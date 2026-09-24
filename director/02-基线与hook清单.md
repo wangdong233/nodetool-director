@@ -18,10 +18,18 @@
 
 | # | 文件/位置 | 用途 | 预期上游冲突面 |
 |---|---|---|---|
-| H1 | 根 `package.json` workspaces 数组 | 追加 `packages/mediagen-nodes` | 低(纯追加行) |
-| H2 | (待研究相确认)节点目录/catalog 注册点 | mediagen 节点进画布 catalog | 待定 |
-| H3 | (待研究相确认)job/Runner 调度处 | credit 预算闸 | 待定 |
-| H4 | `.github/workflows/`(新增自有文件,不改上游文件) | CI windows lane | 无(纯新增) |
+| H1 | 根 `package.json` workspaces 数组(:4-76) | 追加 `packages/mediagen-nodes` | 低(纯追加行) |
+| H2a | `packages/protocol/src/builtin-packs.ts`(:61-150) | BUILTIN_NODE_PACKS 加 mediagen(id 永不改名) | 低(数组追加) |
+| H2b | `packages/websocket/src/node-registry-setup.ts`(:31-43,:94-111) | import+BUILTIN_PACK_REGISTRARS | 低(追加) |
+| H2c | `packages/websocket/package.json` | 依赖 mediagen-nodes | 低 |
+| H2d | `packages/cli/package.json`+`src/node-registry.ts`(:17-24)+`src/nodetool.ts`(:618-628,:2020-2030) | 单节点 harness/DSL 侧注册(验证必需) | 中(两处临时列表上游常改) |
+| H2e | `packages/config/src/package-asset-registry.ts`(:34-44) | manifest 进 PACKAGE_RUNTIME_ASSETS(fail-closed) | 低 |
+| H2f | `packages/cli/src/harness/registry.ts` domain-nodes paths(:1586-1626) | harness gate 路径认领(否则 gate FAIL) | 低(追加目录) |
+| H3 | `packages/runtime/src/context.ts` runGenerationWith(:3482 附近,以注入/包裹方式) + `packages/websocket/src/session/job-execution.ts` 准入(:1151-1156) | credit 预算闸(R1 生成缝为主+R2 job 准入为辅;尽量新增文件+最小注入点) | **高**(核心文件,方案相须设计最小侵入形态) |
+| H4 | `.github/workflows/mediagen-nodes-windows.yml`(新文件) | CI windows lane | 无(纯新增) |
+| H5 | `docs/url-egress-inventory.md`+runtime egress 审计 | 渠道 URL 出口登记(safeFetch) | 低(文档追加) |
+
+> 触碰面纪律:凡不在本表的包外改动 = 收敛面违规(飞轮 §6)。上游 merge 冲突只允许出现在上表文件;每次 merge 记录冲突点与解法。
 
 ## 3. 上游规约要点(对本项目生效,摘自 AGENTS.md)
 
