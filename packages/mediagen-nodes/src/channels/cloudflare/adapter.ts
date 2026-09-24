@@ -112,7 +112,7 @@ const cloudflareImage = {
     const steps = toInt(params.steps);
     const image = singleImage(media);
 
-    let body: BodyInit;
+    let body: FormData | string;
     let contentType: string | undefined;
     if (spec.family === "multipart") {
       // flux-2 family: multipart even for pure text-to-image. Reference images

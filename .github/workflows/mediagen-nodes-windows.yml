@@ -1,0 +1,52 @@
+name: mediagen-nodes (windows)
+
+on:
+  pull_request:
+    paths:
+      - "packages/mediagen-nodes/**"
+      - "packages/node-sdk/**"
+      - "packages/runtime/**"
+      - "packages/protocol/**"
+      - "packages/config/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - ".nvmrc"
+      - ".github/workflows/mediagen-nodes-windows.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/mediagen-nodes/**"
+      - ".github/workflows/mediagen-nodes-windows.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      # Mirrors .github/actions/setup-build's install env, minus apt-get (that
+      # composite action is Linux-only). windows-latest ships VS2022 + Python,
+      # so the root postinstall's better-sqlite3 node-gyp rebuild works.
+      - name: Install workspace dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+          npm_config_onnxruntime_node_install_cuda: skip
+        run: npm ci --no-audit --no-fund
+
+      - name: Build dependency packages and run the mediagen suite
+        run: npx turbo run test --filter=@nodetool-ai/mediagen-nodes
