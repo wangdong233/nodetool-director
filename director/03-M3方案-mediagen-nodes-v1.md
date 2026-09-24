@@ -11,6 +11,8 @@
 
 ## 2. 架构(开闭原则:4 触碰点 + H5 登记豁免)
 
+> ⚠️ 终审 Y3 勘误:下方结构图为 v1.0 原始设计(adapters/ 扁平+单一 manifest),**实际实现以本节底部"新渠道挂载实测清单"为准**(channels/&lt;ch&gt; 自包含目录+构建期合并 dist manifest)。图保留作设计演化留痕,勿据此实施。research/02 windows lane 超时实配 40min(原 30min),以 YAML 为准。
+
 ```
 packages/mediagen-nodes/
   src/

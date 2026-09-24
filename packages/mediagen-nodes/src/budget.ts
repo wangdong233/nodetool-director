@@ -122,10 +122,21 @@ export interface ChannelSlot {
 
 async function acquireSlot(channel: string): Promise<ChannelSlot> {
   const { maxConcurrent, dailyLimit } = channelConfig(channel);
+  let semaphore = semaphores.get(channel);
+  if (!semaphore) {
+    semaphore = new FifoSemaphore(maxConcurrent);
+    semaphores.set(channel, semaphore);
+  }
+  const release = await semaphore.acquire();
+  // Check+increment must be one await-free synchronous stretch: with an await
+  // between them, N concurrent callers can all pass the check before any
+  // increments, admitting up to limit+N-1 (final-review Y2). Past this point
+  // the JS event loop cannot interleave until persistState returns.
   const state = loadState();
   if (dailyLimit !== undefined && dailyLimit > 0) {
     const used = state.counts[channel] ?? 0;
     if (used >= dailyLimit) {
+      release();
       throw new MediagenChannelError(
         channel,
         "quota",
@@ -135,12 +146,6 @@ async function acquireSlot(channel: string): Promise<ChannelSlot> {
       );
     }
   }
-  let semaphore = semaphores.get(channel);
-  if (!semaphore) {
-    semaphore = new FifoSemaphore(maxConcurrent);
-    semaphores.set(channel, semaphore);
-  }
-  const release = await semaphore.acquire();
   // Count at admission: an admitted call consumes the day's budget even if the
   // provider later fails — same accounting media-gen-mcp applies to credits.
   state.counts[channel] = (state.counts[channel] ?? 0) + 1;

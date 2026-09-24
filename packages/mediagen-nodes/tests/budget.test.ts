@@ -67,6 +67,19 @@ describe("mediagen budget gate", () => {
     }
   });
 
+  it("holds the daily limit under a concurrent burst (final-review Y2)", async () => {
+    process.env.MEDIAGEN_DAILY_LIMIT_ZHIPU = "2";
+    resetBudgetGate();
+    writeFileSync(process.env.MEDIAGEN_BUDGET_STATE_PATH!, JSON.stringify({ date: new Date().toISOString().slice(0, 10), counts: {} }));
+    const attempts = await Promise.allSettled(Array.from({ length: 20 }, () => acquireChannelSlot("zhipu")));
+    const admitted = attempts.filter((r) => r.status === "fulfilled");
+    const rejected = attempts.filter((r) => r.status === "rejected");
+    expect(admitted.length).toBe(2);
+    expect(rejected.length).toBe(18);
+    expect(admittedToday("zhipu")).toBe(2);
+    for (const r of admitted) r.value.release();
+  });
+
   it("counts admissions and persists them to the state file", async () => {
     const slot = await acquireChannelSlot("agnes");
     slot.release();

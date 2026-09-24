@@ -26,7 +26,7 @@
 | H2e | `packages/config/src/package-asset-registry.ts`(:34-44) | manifest 进 PACKAGE_RUNTIME_ASSETS(fail-closed) | 低 |
 | H2f | `packages/cli/src/harness/registry.ts` domain-nodes paths(:1586-1626) | harness gate 路径认领(否则 gate FAIL) | 低(追加目录) |
 | H2g | `packages/dsl/package.json`+`packages/dsl/src/registry.ts`(loadBuiltinRegistry) | DSL run()/flow API 执行面(M5 实测:nodetool run 经此注册表——C3 非可选!研究04 标"可选"是误判,已实证) | 低(try-import 块+dep 行) |
-| H3 | `packages/runtime/src/context.ts` runGenerationWith(:3482 附近,以注入/包裹方式) + `packages/websocket/src/session/job-execution.ts` 准入(:1151-1156) | credit 预算闸(R1 生成缝为主+R2 job 准入为辅;尽量新增文件+最小注入点) | **高**(核心文件,方案相须设计最小侵入形态) |
+| H3 | `packages/runtime/src/context.ts` runGenerationWith(:3482 附近,以注入/包裹方式) + `packages/websocket/src/session/job-execution.ts` 准入(:1151-1156) | credit 预算闸(R1 生成缝为主+R2 job 准入为辅;尽量新增文件+最小注入点) | **高**(核心文件,方案相须设计最小侵入形态)。**v1 未用(终审 Y4 注)**:M4 闸实际落在包内 executeMediagenCall 收口(budget.ts),零核心文件触碰;本 hook 留作未来 job 级准入再启用 |
 | H4 | `.github/workflows/mediagen-nodes-windows.yml`(新文件) | CI windows lane | 无(纯新增) |
 | H5 | `docs/url-egress-inventory.md`+`packages/runtime/tests/url-egress-inventory.ts` | 渠道 URL 出口登记(safeFetch;**每新增 adapter 须同步,审计测试强制**) | 低(表追加) |
 | H6 | (可选后续)`web/src/utils/nodeProvider.ts` 两张 namespace 映射 | web 侧 key-gating UX(v1 显式不做:节点常显,缺 key 运行时报结构化错误) | 中;不做则无 |

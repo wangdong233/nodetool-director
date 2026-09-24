@@ -24,8 +24,9 @@
 
 ## 3. 画布 catalog
 
-- 节点总量 2895 → +mediagen(10→13 随 audio/pixverse)≈2908;metadata 端点 <1s。
-- 预算闸开销:纯内存信号量+小 JSON 落盘(每次 admitted 一次原子写),单次 <1ms 量级。
+- 节点总量 2895 → **+mediagen 14**(12 manifest+2 pixverse 手写;含 audio/dummy)=≈2909。metadata 端点 <1s。
+- 勘误(终审 Y1):此前"10→13/≈2908"计数有误;14 为 dist 导出 MEDIAGEN_NODES.length 实测值。计数宣称一律以 dist 导出/registration 测试背书。
+- 预算闸开销:纯内存信号量+小 JSON 落盘(每次 admitted 一次原子写),单次 <1ms 量级;Y2 修复后 check+increment 为无 await 连续段(并发突发下限额精确)。
 
 ## 4. 弱机已知项(非本项目缺陷)
 
