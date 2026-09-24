@@ -472,7 +472,7 @@ jobs:
       # `blender-binary.ts`.
       - name: Cache Blender
         if: matrix.check == 'test-packages-nodes'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/blender
           key: ${{ runner.os }}-blender-5.2.1
@@ -532,7 +532,7 @@ jobs:
       # never picks one of these up in place of a build cache.
       - name: Restore backend test results
         if: startsWith(matrix.check, 'test-packages-')
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: .turbo/test-results
           key: ${{ runner.os }}-test-results-${{ matrix.check }}-${{ github.sha }}
@@ -579,7 +579,7 @@ jobs:
 
       - name: Save backend test results
         if: startsWith(matrix.check, 'test-packages-') && !cancelled()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: .turbo/test-results
           key: ${{ runner.os }}-test-results-${{ matrix.check }}-${{ github.sha }}
