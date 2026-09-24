@@ -47,6 +47,7 @@ import {
 import { registerBaseNodes } from "@nodetool-ai/base-nodes";
 import { registerElevenLabsNodes } from "@nodetool-ai/elevenlabs-nodes";
 import { registerMinimaxNodes } from "@nodetool-ai/minimax-nodes";
+import { registerMediagenNodes } from "@nodetool-ai/mediagen-nodes";
 import { registerTransformersJsNodes } from "@nodetool-ai/transformers-js-nodes";
 import { registerFalNodes } from "@nodetool-ai/fal-nodes";
 import { registerReplicateNodes } from "@nodetool-ai/replicate-nodes";
@@ -617,6 +618,7 @@ addSupervisorOptions(
       registerBaseNodes(registry);
       registerElevenLabsNodes(registry);
       registerMinimaxNodes(registry);
+      registerMediagenNodes(registry);
       registerTransformersJsNodes(registry);
       registerFalNodes(registry);
       registerReplicateNodes(registry);
@@ -2022,6 +2024,7 @@ mcp
       registerBaseNodes(registry);
       registerElevenLabsNodes(registry);
       registerMinimaxNodes(registry);
+      registerMediagenNodes(registry);
       registerTransformersJsNodes(registry);
       registerFalNodes(registry);
       registerReplicateNodes(registry);

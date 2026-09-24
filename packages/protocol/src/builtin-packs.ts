@@ -80,6 +80,14 @@ export const BUILTIN_NODE_PACKS: readonly BuiltinNodePack[] = [
     namespaces: ["minimax"]
   },
   {
+    id: "mediagen",
+    name: "MediaGen",
+    description:
+      "MediaGen channel nodes: zhipu, agnes, cloudflare, siliconflow, and hfspaces image/video generation.",
+    defaultEnabled: true,
+    namespaces: ["mediagen"]
+  },
+  {
     id: "transformers-js",
     name: "Transformers.js",
     description:

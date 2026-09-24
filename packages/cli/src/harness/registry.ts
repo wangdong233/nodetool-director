@@ -1600,6 +1600,7 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/kie-nodes/",
       "packages/llm-nodes/",
       "packages/minimax-nodes/",
+      "packages/mediagen-nodes/",
       "packages/nodes-utils/",
       "packages/replicate-nodes/",
       "packages/reve-nodes/",
