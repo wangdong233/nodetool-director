@@ -1,0 +1,18 @@
+[
+  {
+    "configVersion": 1,
+    "channel": "dummy",
+    "className": "DummyTextToImage",
+    "moduleName": "image",
+    "wire": "inline",
+    "outputType": "image",
+    "title": "Dummy 挂载演习",
+    "description": "M6b mount drill node — static 1x1 PNG, zero network. Keywords: dummy drill test mount",
+    "sourceUrl": "https://example.com/dummy-drill",
+    "models": ["dummy-1"],
+    "defaultModel": "dummy-1",
+    "timeoutSeconds": 5,
+    "requiredSettings": [],
+    "fields": [{ "name": "prompt", "type": "str", "required": true, "default": "", "title": "Prompt" }]
+  }
+]

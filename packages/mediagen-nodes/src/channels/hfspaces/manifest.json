@@ -64,5 +64,28 @@
       { "name": "seed", "type": "int", "default": 42, "title": "Seed" },
       { "name": "steps", "type": "int", "default": 10, "min": 1, "title": "Steps", "description": "10 fits the free ZeroGPU tier; higher step counts need a PRO token" }
     ]
+  },
+  {
+    "configVersion": 1,
+    "channel": "hfspaces",
+    "className": "HfspacesTextToSpeech",
+    "moduleName": "audio",
+    "wire": "inline",
+    "outputType": "audio",
+    "title": "Hfspaces 语音合成",
+    "description": "Text-to-speech with optional voice cloning (Chatterbox, MIT license) on a free HF Space — zero reference audio uses the built-in sample voice. Keywords: hfspaces chatterbox 语音合成 tts text to speech voice clone free zerogpu",
+    "sourceUrl": "https://huggingface.co/spaces/resembleai/chatterbox",
+    "models": ["chatterbox-tts"],
+    "defaultModel": "chatterbox-tts",
+    "timeoutSeconds": 600,
+    "requiredSettings": [],
+    "fields": [
+      { "name": "text", "type": "str", "required": true, "default": "", "title": "Text" },
+      { "name": "exaggeration", "type": "float", "default": 0.5, "title": "Exaggeration", "description": "Emotion intensity 0-1" },
+      { "name": "temperature", "type": "float", "default": 0.8, "title": "Temperature" },
+      { "name": "cfg_weight", "type": "float", "default": 0.5, "title": "CFG weight" },
+      { "name": "seed", "type": "int", "default": 0, "title": "Seed" },
+      { "name": "reference_audio", "type": "audio", "title": "Reference audio (voice to clone)" }
+    ]
   }
 ]

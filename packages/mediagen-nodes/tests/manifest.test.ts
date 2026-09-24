@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import agnesManifest from "../src/channels/agnes/manifest.json";
 import cloudflareManifest from "../src/channels/cloudflare/manifest.json";
+import dummyManifest from "../src/channels/dummy/manifest.json";
 import hfspacesManifest from "../src/channels/hfspaces/manifest.json";
 import siliconflowManifest from "../src/channels/siliconflow/manifest.json";
 import zhipuManifest from "../src/channels/zhipu/manifest.json";
@@ -13,6 +14,7 @@ const fragments: Record<string, MediagenManifestEntry[]> = {
   cloudflare: cloudflareManifest as MediagenManifestEntry[],
   siliconflow: siliconflowManifest as MediagenManifestEntry[],
   hfspaces: hfspacesManifest as MediagenManifestEntry[],
+  dummy: dummyManifest as MediagenManifestEntry[],
 };
 
 describe("mediagen manifest fragments", () => {

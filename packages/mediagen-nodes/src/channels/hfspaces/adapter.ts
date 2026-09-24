@@ -16,6 +16,8 @@
 import { isAbortError, MediagenChannelError, optionalSecret, readJsonBody } from "../../mediagen-base.js";
 import type {
   AdapterContext,
+  AudioAdapter,
+  AudioParams,
   ChannelAdapters,
   ImageParams,
   MediaBag,
@@ -50,6 +52,10 @@ const IMAGE_TARGETS: Record<string, { subdomain: string; apiName: string }> = {
   // tongyi-mai Z-Image-Turbo: t2i, size as the Space's reduced-ratio resolution string.
   "z-image-turbo": { subdomain: "tongyi-mai-z-image-turbo", apiName: "generate" },
 };
+
+// resembleai Chatterbox (MIT): TTS with optional voice cloning; zero reference
+// audio selects the Space's built-in sample voice (hfspaces.ts L425-434).
+const CHATTERBOX_TARGET = { subdomain: "resembleai-chatterbox", apiName: "generate_tts_audio" };
 
 /** Fixed resolution slot of the minimax-h3 signature (hfspaces.ts L83, U+00B7 separator). */
 const MINIMAX_RESOLUTION = "960x544 · 16:9 fast";
@@ -251,30 +257,57 @@ function extractFileDataUrl(data: unknown[]): PollResult {
 }
 
 /**
- * Defensive first-image-url walk (hfspaces.ts L253-267): Gallery / Image /
- * Imageslider components each nest the temp file url differently.
+ * Defensive artifact-url walk (hfspaces.ts L253-267): Gallery / Image /
+ * Imageslider / Audio components each nest the temp file url differently.
  */
-function extractImageUrl(data: unknown[]): PollResult {
+function collectArtifactUrls(value: unknown): string[] {
   const urls: string[] = [];
-  const walk = (value: unknown): void => {
-    if (!value) return;
-    if (typeof value === "string") {
-      if (/^https?:\/\//.test(value)) urls.push(value);
-    } else if (Array.isArray(value)) {
-      value.forEach(walk);
-    } else if (typeof value === "object") {
-      const record = value as Record<string, unknown>;
+  const walk = (node: unknown): void => {
+    if (!node) return;
+    if (typeof node === "string") {
+      if (/^https?:\/\//.test(node)) urls.push(node);
+    } else if (Array.isArray(node)) {
+      node.forEach(walk);
+    } else if (typeof node === "object") {
+      const record = node as Record<string, unknown>;
       if (typeof record.url === "string") urls.push(record.url);
       else walk(record.image);
     }
   };
-  walk(data);
-  if (urls.length === 0) {
+  walk(value);
+  return urls;
+}
+
+/** Prefer hf temp-file urls over unrelated strings the payload may carry. */
+function preferHfUrl(urls: string[]): string | undefined {
+  const hfUrls = urls.filter((url) => url.includes("/file=/") || url.includes(".hf.space") || url.includes("gradio_api"));
+  return (hfUrls.length > 0 ? hfUrls : urls)[0];
+}
+
+function extractImageUrl(data: unknown[]): PollResult {
+  const url = preferHfUrl(collectArtifactUrls(data));
+  if (url === undefined) {
     return { status: "failed", code: "hfspaces.no_image_url", message: "complete event carried no image url (output shape drift)" };
   }
-  // Prefer hf temp-file urls over unrelated strings the payload may carry.
-  const hfUrls = urls.filter((url) => url.includes("/file=/") || url.includes(".hf.space") || url.includes("gradio_api"));
-  return { status: "done", kind: "url", url: (hfUrls.length > 0 ? hfUrls : urls)[0] };
+  return { status: "done", kind: "url", url };
+}
+
+/**
+ * Chatterbox TTS (hfspaces.ts L425-434): complete data carries a temp wav
+ * FileData url. An embedded data:audio base64 payload (the wan22 return
+ * family) decodes to bytes directly.
+ */
+function extractAudio(data: unknown[]): PollResult {
+  const first = data[0];
+  if (typeof first === "string") {
+    const match = /^data:audio[^;]*;base64,(.*)$/s.exec(first);
+    if (match) return { status: "done", kind: "bytes", data: decodeBase64(match[1]), mime: "audio/wav" };
+  }
+  const url = preferHfUrl(collectArtifactUrls(data));
+  if (url === undefined) {
+    return { status: "failed", code: "hfspaces.no_audio_url", message: "complete event carried no audio url (output shape drift)" };
+  }
+  return { status: "done", kind: "url", url, mime: "audio/wav" };
 }
 
 /** z-image-turbo resolution slot: "1024x1024 ( 1:1 )" — WxH plus the reduced ratio (hfspaces.ts L287-294). */
@@ -298,8 +331,12 @@ async function toImageData(input: MediaInput): Promise<{ url: string } | { base6
   return { base64: match[1] };
 }
 
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
 function clampDuration(value: unknown, max: number, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? Math.min(max, value) : fallback;
+  return Math.min(max, numberOr(value, fallback));
 }
 
 function firstMedia(bag: MediaBag, name: string): MediaInput | undefined {
@@ -371,8 +408,8 @@ const hfspacesVideo = {
         last ? await toImageData(last) : null,
         MINIMAX_RESOLUTION,
         clampDuration(params.duration_seconds, target.maxDurationSeconds, 10),
-        typeof params.steps === "number" && Number.isFinite(params.steps) ? params.steps : 10,
-        typeof params.seed === "number" && Number.isFinite(params.seed) ? params.seed : 42,
+        numberOr(params.steps, 10),
+        numberOr(params.seed, 42),
         false,
       ];
     }
@@ -394,4 +431,34 @@ const hfspacesVideo = {
   },
 };
 
-export const hfspacesAdapters: ChannelAdapters = { image: hfspacesImage, video: hfspacesVideo };
+const hfspacesAudio: AudioAdapter = {
+  kind: "audio",
+  async submit(params: AudioParams, media: MediaBag, ctx: AdapterContext): Promise<PollResult> {
+    // Chatterbox positional table (hfspaces.ts L427-428): text, reference audio
+    // ImageData (null = built-in sample voice), exaggeration, temperature,
+    // seed, cfg weight, trim_silence. trim_silence is not exposed as a field —
+    // the wire default (false) always holds.
+    const reference = firstMedia(media, "reference_audio");
+    const data = [
+      typeof params.text === "string" ? params.text : "",
+      reference ? await toImageData(reference) : null,
+      numberOr(params.exaggeration, 0.5),
+      numberOr(params.temperature, 0.8),
+      numberOr(params.seed, 0),
+      numberOr(params.cfg_weight, 0.5),
+      false,
+    ];
+    const eventId = await postEventId(ctx, CHATTERBOX_TARGET, data);
+    if (!eventId) return { status: "failed", code: "hfspaces.no_event_id", message: "submit returned no event_id" };
+    const events = await consumeSse(ctx, callUrl(CHATTERBOX_TARGET, eventId));
+    return resolveSseEvents(events, extractAudio);
+  },
+};
+
+// `audio` stays required on this channel's registration so callers (and tests)
+// can rely on its presence even though ChannelAdapters declares it optional.
+export const hfspacesAdapters: ChannelAdapters & { audio: AudioAdapter } = {
+  image: hfspacesImage,
+  video: hfspacesVideo,
+  audio: hfspacesAudio,
+};

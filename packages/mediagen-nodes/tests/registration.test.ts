@@ -7,7 +7,7 @@ describe("mediagen registration", () => {
     const registry = new NodeRegistry();
     registerMediagenNodes(registry);
     for (const nodeClass of MEDIAGEN_NODES) {
-      expect(nodeClass.nodeType, String(nodeClass.nodeType)).toMatch(/^mediagen\.(image|video)\./);
+      expect(nodeClass.nodeType, String(nodeClass.nodeType)).toMatch(/^mediagen\.(image|video|audio)\./);
       expect(registry.has(nodeClass.nodeType), nodeClass.nodeType).toBe(true);
     }
     expect(MEDIAGEN_NODES.length).toBeGreaterThan(0);
