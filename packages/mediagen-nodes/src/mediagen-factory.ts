@@ -56,10 +56,11 @@ async function toMediaOutput(
   jobId: string,
 ): Promise<MediaOutput> {
   const bytes = result.kind === "bytes" ? result.data : (await safeDownload(entry.channel, result.url, context?.signal)).bytes;
-  const store = context?.storage?.store;
-  if (store) {
+  if (context?.storage?.store) {
+    // Keep the receiver: storage adapters are class methods (FileStorageAdapter
+    // reads this.rootPromise) — detaching `store` loses `this`.
     const key = `mediagen-${entry.outputType}-${entry.channel}-${jobId}`;
-    const uri = await store(key, bytes, entry.outputType === "image" ? undefined : "video/mp4");
+    const uri = await context.storage.store(key, bytes, entry.outputType === "image" ? undefined : "video/mp4");
     return { type: entry.outputType, uri };
   }
   const ref = entry.outputType === "image" ? imageRefFromBytes(bytes) : videoRefFromBytes(bytes);

@@ -59,9 +59,15 @@ export function resolveFieldValues(entry: MediagenManifestEntry, field: Mediagen
   return field.values;
 }
 
-export function loadChannelManifest(channel: string): MediagenManifestEntry[] {
+/**
+ * Load the combined manifest. Sources live per-channel in
+ * src/channels/<channel>/manifest.json; the package build merges them into a
+ * single dist/mediagen-manifest.json (flat packaged layout requires unique
+ * asset basenames — five "manifest.json" entries would collide).
+ */
+export function loadMediagenManifest(): MediagenManifestEntry[] {
   return loadPackageAssetJson<MediagenManifestEntry[]>(
-    { pkg: "@nodetool-ai/mediagen-nodes", path: `channels/${channel}/manifest.json` },
+    { pkg: "@nodetool-ai/mediagen-nodes", path: "mediagen-manifest.json" },
     import.meta.url,
   );
 }

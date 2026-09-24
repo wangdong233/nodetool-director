@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "node ../../scripts/build-typescript-workspace.mjs && node -e \"require('node:fs').cpSync('src/channels', 'dist/channels', { recursive: true })\"",
+    "build": "node ../../scripts/build-typescript-workspace.mjs && node -e \"const fs=require('node:fs'); const entries=[]; for (const dir of fs.readdirSync('src/channels',{withFileTypes:true})) { if (dir.isDirectory()) entries.push(...JSON.parse(fs.readFileSync('src/channels/'+dir.name+'/manifest.json','utf8'))); } fs.writeFileSync('dist/mediagen-manifest.json', JSON.stringify(entries, null, 2));\"",
     "test": "vitest run",
     "lint": "node ../../scripts/run-tsc.mjs --noEmit"
   },
@@ -24,11 +24,7 @@
   },
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "default": "./dist/index.js" },
-    "./channels/zhipu/manifest.json": "./dist/channels/zhipu/manifest.json",
-    "./channels/agnes/manifest.json": "./dist/channels/agnes/manifest.json",
-    "./channels/cloudflare/manifest.json": "./dist/channels/cloudflare/manifest.json",
-    "./channels/siliconflow/manifest.json": "./dist/channels/siliconflow/manifest.json",
-    "./channels/hfspaces/manifest.json": "./dist/channels/hfspaces/manifest.json"
+    "./mediagen-manifest.json": "./dist/mediagen-manifest.json"
   },
   "files": ["dist", "README.md"],
   "license": "MIT"
