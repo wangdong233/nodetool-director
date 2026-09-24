@@ -38,7 +38,7 @@ interface ImageAdapter { submit(req: ImageParams, ctx): Promise<PollResult> }  /
 interface VideoAdapter { submit(req: VideoParams, ctx): Promise<{ handle: string } | PollResult>; poll(handle: string, ctx): Promise<PollResult> }
 ```
 - 工厂按 manifest 条目的 `channel` 字段取 adapter,按 `wire`(inline/poll)走同步或异步路径。
-- **新渠道挂载 = 1 个 manifest 条目 + 1 个 adapter 文件 + index 注册一行 + url-egress 出口登记**(F1 修正:egress 登记 = H5 hook 义务——每新增触碰动态 URL 的 adapter 须同步 `packages/runtime/tests/url-egress-inventory.ts` 与 `docs/url-egress-inventory.md`,否则 url-egress-audit 审计 CI 红;登记义务由"egress 登记面测试"机械闸兜底。开闭违规判据仍指 factory/adapters/types.ts 的被迫改动;H5 属登记性 hook,豁免于该判据但计入 M6 演习触碰面)。
+- **新渠道挂载实测清单(迭代02 修正:含 M6b 演习实证)**:①渠道目录(adapter.ts+manifest.json) ②`channels/index.ts` 注册一行 ③`tests/manifest.test.ts` fragments 登记(每渠道必有片段,空=手写节点——pixverse 空片段缺失曾致合并脚本 ENOENT) ④网络渠道加 url-egress 登记(H5) ⑤若需 CLI `nodetool run`/DSL 执行,加 C3/H2g(dsl 内建注册表,一次性,非每渠道)。开闭违规判据仍指 factory/adapters/types.ts 的被迫改动。
 
 ## 3. 关键设计决策
 
