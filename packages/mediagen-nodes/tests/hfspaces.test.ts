@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MEDIAGEN_NODES, MediagenChannelError } from "../src/index.js";
+import { hfspacesAdapters } from "../src/channels/hfspaces/adapter.js";
 
 // Real magic prefixes so mime detection and byte assertions see genuine
 // signatures (assertion-provenance: PNG/MP4 signature, not implementation output).
@@ -7,6 +8,9 @@ const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
 const PNG_B64 = Buffer.from(PNG_BYTES).toString("base64");
 const MP4_BYTES = new Uint8Array([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d]);
 const MP4_B64 = Buffer.from(MP4_BYTES).toString("base64");
+// Real WAV magic prefix (RIFF....WAVE) for the audio payload assertions.
+const WAV_BYTES = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45]);
+const WAV_B64 = Buffer.from(WAV_BYTES).toString("base64");
 
 // Wire contract constants (hfspaces.ts L1 source: subdomains, api names, slots).
 const Z_IMAGE_CALL = "https://tongyi-mai-z-image-turbo.hf.space/gradio_api/call/generate";
@@ -244,5 +248,108 @@ describe("mediagen.video.HfspacesMinimaxH3Video", () => {
     const body = JSON.parse(String((mockFetch.mock.calls[0] as [string, RequestInit])[1].body)) as { data: unknown[] };
     expect(body.data[1]).toEqual({ url: "https://cdn.example.com/frame.png" });
     expect(body.data[2]).toBeNull();
+  });
+});
+
+// Adapter-level: the factory's inline branch has no audio routing yet (the
+// orchestrator's widening wave adds it), so the TTS adapter is driven directly
+// with a synthetic AdapterContext.
+describe("hfspaces audio adapter (Chatterbox TTS)", () => {
+  const CHATTERBOX_CALL = "https://resembleai-chatterbox.hf.space/gradio_api/call/generate_tts_audio";
+  const audioAdapter = hfspacesAdapters.audio;
+
+  function audioCtx() {
+    return { secrets: {}, fetchFn: mockFetch as unknown as typeof fetch };
+  }
+
+  function mediaInput(uri: string | null, dataUri: string) {
+    return {
+      uri,
+      bytes: () => Promise.resolve(new Uint8Array()),
+      dataUri: () => Promise.resolve(dataUri),
+    };
+  }
+
+  it("posts the Chatterbox positional table with the L1 defaults and returns the temp wav url", async () => {
+    const wavUrl = "https://resembleai-chatterbox.hf.space/gradio_api/file=/tmp/gradio/abc/audio.wav";
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ event_id: "a1" }) })
+      .mockResolvedValueOnce(sseResponse([sseFrame("complete", JSON.stringify([{ url: wavUrl }]))]));
+    const result = await audioAdapter.submit({ text: "hello world" }, {}, audioCtx());
+    const [postUrl, postOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(postUrl).toBe(CHATTERBOX_CALL);
+    const body = JSON.parse(String(postOptions.body)) as { data: unknown[] };
+    expect(body.data).toEqual(["hello world", null, 0.5, 0.8, 0, 0.5, false]);
+    expect(mockFetch.mock.calls[1][0]).toBe(`${CHATTERBOX_CALL}/a1`);
+    expect(result).toEqual({ status: "done", kind: "url", url: wavUrl, mime: "audio/wav" });
+  });
+
+  it("maps an https reference onto the ImageData url form and passes through overrides", async () => {
+    const wavUrl = "https://resembleai-chatterbox.hf.space/gradio_api/file=/tmp/gradio/abc/audio2.wav";
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ event_id: "a2" }) })
+      .mockResolvedValueOnce(sseResponse([sseFrame("complete", JSON.stringify([{ url: wavUrl }]))]));
+    await audioAdapter.submit(
+      { text: "hi", exaggeration: 0.9, temperature: 0.7, seed: 7, cfg_weight: 0.4 },
+      { reference_audio: mediaInput("https://cdn.example.com/voice.wav", "data:audio/wav;base64,") },
+      audioCtx(),
+    );
+    const body = JSON.parse(String((mockFetch.mock.calls[0] as [string, RequestInit])[1].body)) as { data: unknown[] };
+    expect(body.data).toEqual([
+      "hi",
+      { url: "https://cdn.example.com/voice.wav" },
+      0.9,
+      0.7,
+      7,
+      0.4,
+      false,
+    ]);
+  });
+
+  it("maps a bytes reference onto the ImageData base64 form and decodes an embedded audio payload", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ event_id: "a3" }) })
+      .mockResolvedValueOnce(sseResponse([sseFrame("complete", JSON.stringify([`data:audio/wav;base64,${WAV_B64}`]))]));
+    const result = await audioAdapter.submit(
+      { text: "hi" },
+      { reference_audio: mediaInput(null, `data:audio/wav;base64,${WAV_B64}`) },
+      audioCtx(),
+    );
+    const body = JSON.parse(String((mockFetch.mock.calls[0] as [string, RequestInit])[1].body)) as { data: unknown[] };
+    expect(body.data[1]).toEqual({ base64: WAV_B64 });
+    expect(result).toEqual({ status: "done", kind: "bytes", data: WAV_BYTES, mime: "audio/wav" });
+  });
+
+  it("returns the structured ZeroGPU quota failure on SSE error data:null", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ event_id: "a4" }) })
+      .mockResolvedValueOnce(sseResponse([sseFrame("error", "null")]));
+    const result = await audioAdapter.submit({ text: "hello" }, {}, audioCtx());
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.code).toBe("hfspaces.zero_gpu_quota");
+      expect(result.quota).toBe(true);
+      expect(result.message).toMatch(/HF_TOKEN/);
+    }
+  });
+});
+
+describe("mediagen.audio.HfspacesTextToSpeech", () => {
+  it("runs end-to-end: manifest defaults into the positional table, temp wav url downloaded, audio ref out", async () => {
+    const wavUrl = "https://resembleai-chatterbox.hf.space/gradio_api/file=/tmp/gradio/abc/tts.wav";
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ event_id: "a5" }) })
+      .mockResolvedValueOnce(sseResponse([sseFrame("complete", JSON.stringify([{ url: wavUrl }]))]))
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => WAV_BYTES.buffer });
+    const node = new (nodeByType("mediagen.audio.HfspacesTextToSpeech"))({ text: "hello world" });
+    const result = await node.process();
+    const [postUrl, postOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(postUrl).toBe("https://resembleai-chatterbox.hf.space/gradio_api/call/generate_tts_audio");
+    // Manifest field defaults flow into the positional slots (0.5 / 0.8 / 0 / 0.5 / false).
+    const body = JSON.parse(String(postOptions.body)) as { data: unknown[] };
+    expect(body.data).toEqual(["hello world", null, 0.5, 0.8, 0, 0.5, false]);
+    expect(mockFetch.mock.calls[2][0]).toBe(wavUrl);
+    expect(result.output.type).toBe("audio");
+    expect(result.output.data).toBe(WAV_B64);
   });
 });
