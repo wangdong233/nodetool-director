@@ -169,7 +169,10 @@ export function createMediagenNodeClass(spec: MediagenManifestEntry): NodeClass 
 
 function failedAsError(channel: string, result: Extract<PollResult, { status: "failed" }>): MediagenChannelError {
   const code = result.quota ? "quota" : "result";
-  return new MediagenChannelError(channel, code, result.message ?? result.code, result.retryable ?? false, result.quota ?? false);
+  // Surface the adapter's result code (e.g. zhipu.task_failed) alongside the
+  // upstream detail so failures stay diagnosable.
+  const message = result.message ? `${result.code}: ${result.message}` : result.code;
+  return new MediagenChannelError(channel, code, message, result.retryable ?? false, result.quota ?? false);
 }
 
 export function loadMediagenNodesFromManifest(manifest: MediagenManifestEntry[]): readonly NodeClass[] {

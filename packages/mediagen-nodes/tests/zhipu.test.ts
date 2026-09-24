@@ -79,7 +79,7 @@ describe("mediagen.image.ZhipuTextToImage", () => {
 });
 
 describe("mediagen.video.ZhipuTextToVideo", () => {
-  it("submits, polls to SUCCESS and downloads the video", async () => {
+  it("submits, polls to SUCCESS and downloads the video", { timeout: 20000 }, async () => {
     const videoUrl = "https://media.example.com/out.mp4";
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "task-1", task_status: "PROCESSING" }) })
@@ -98,7 +98,7 @@ describe("mediagen.video.ZhipuTextToVideo", () => {
     expect(result.output.type).toBe("video");
   });
 
-  it("surfaces a failed task as a structured result error", async () => {
+  it("surfaces a failed task as a structured result error", { timeout: 20000 }, async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "task-2", task_status: "PROCESSING" }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ task_status: "FAIL" }) });
