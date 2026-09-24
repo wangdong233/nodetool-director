@@ -312,6 +312,12 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "image_urls out of the generation response."
   ),
   guardedSafeFetch(
+    "packages/mediagen-nodes/src/mediagen-base.ts",
+    "MediaGen channel result downloads",
+    "provider-response",
+    "safeDownload routes every provider-returned URL (zhipu video_result, siliconflow images[].url and video results, hfspaces temp files) through safeFetch; channel submit/poll endpoints are fixed-host templates reached via ctx.fetchFn."
+  ),
+  guardedSafeFetch(
     "packages/runtime/src/providers/fal-provider.ts",
     "FAL provider result download",
     "provider-response",

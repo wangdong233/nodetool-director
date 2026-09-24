@@ -35,6 +35,7 @@
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/kernel": "*",
     "@nodetool-ai/minimax-nodes": "*",
+    "@nodetool-ai/mediagen-nodes": "*",
     "@nodetool-ai/models": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/protocol": "*",

@@ -27,7 +27,8 @@
 | H2f | `packages/cli/src/harness/registry.ts` domain-nodes paths(:1586-1626) | harness gate 路径认领(否则 gate FAIL) | 低(追加目录) |
 | H3 | `packages/runtime/src/context.ts` runGenerationWith(:3482 附近,以注入/包裹方式) + `packages/websocket/src/session/job-execution.ts` 准入(:1151-1156) | credit 预算闸(R1 生成缝为主+R2 job 准入为辅;尽量新增文件+最小注入点) | **高**(核心文件,方案相须设计最小侵入形态) |
 | H4 | `.github/workflows/mediagen-nodes-windows.yml`(新文件) | CI windows lane | 无(纯新增) |
-| H5 | `docs/url-egress-inventory.md`+runtime egress 审计 | 渠道 URL 出口登记(safeFetch) | 低(文档追加) |
+| H5 | `docs/url-egress-inventory.md`+`packages/runtime/tests/url-egress-inventory.ts` | 渠道 URL 出口登记(safeFetch;**每新增 adapter 须同步,审计测试强制**) | 低(表追加) |
+| H6 | (可选后续)`web/src/utils/nodeProvider.ts` 两张 namespace 映射 | web 侧 key-gating UX(v1 显式不做:节点常显,缺 key 运行时报结构化错误) | 中;不做则无 |
 
 > 触碰面纪律:凡不在本表的包外改动 = 收敛面违规(飞轮 §6)。上游 merge 冲突只允许出现在上表文件;每次 merge 记录冲突点与解法。
 

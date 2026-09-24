@@ -103,6 +103,7 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | Topaz result downloads | `packages/topaz-nodes/src/topaz-base.ts` | provider response |
 | MiniMax audio / file downloads | `packages/minimax-nodes/src/minimax-base.ts` | provider response |
 | MiniMax image download | `packages/minimax-nodes/src/nodes/text-to-image.ts` | provider response |
+| MediaGen channel result downloads | `packages/mediagen-nodes/src/mediagen-base.ts` | provider response |
 | Gemini node video download | `packages/llm-nodes/src/nodes/gemini.ts` | provider response |
 | provider result downloads | `packages/runtime/src/providers/{fal,replicate,kie,topaz,meshy,rodin,minimax,evolink,gemini,anthropic}-provider.ts` | provider response |
 | durable FAL output recovery | `packages/websocket/src/generation-recovery.ts` | provider response |

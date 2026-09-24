@@ -1,6 +1,6 @@
-# M3 方案 · packages/mediagen-nodes v1(v1.0,2026-09-24)
+# M3 方案 · packages/mediagen-nodes v1(v1.1,2026-09-24;v1.0 评审 BLOCK→按 F1-F4 修订)
 
-> 依据:research/01(渠道契约)+04(节点包解剖)+02(测试配方)。研究相已完成,本文件是方案相产物,过对抗评审后进实施相。
+> 依据:research/01(渠道契约)+04(节点包解剖)+02(测试配方)。v1.0 fresh-agent 对抗评审 verdict=BLOCK(F1 RED:url-egress 审计漏列;F2-F4 YELLOW),本版为修复后复审版。评审记录:iterations/01 附录。
 
 ## 1. 目标与范围
 
@@ -9,7 +9,7 @@
 - 视频节点 ×4:zhipu(cogvideox)/ agnes / hfspaces(wan22-i2v + minimax-h3,模型 enum)/ siliconflow(固定5s)
 - **明确延后**:pixverse Submit/Confirm 确认节点对(M3.5,含 Windows spawn 适配);gemini/flow(CDP 态,不进 v1);TTS/抠图等 hfspaces 附属工具节点。
 
-## 2. 架构(开闭原则的一处改动点)
+## 2. 架构(开闭原则:4 触碰点 + H5 登记豁免)
 
 ```
 packages/mediagen-nodes/
@@ -25,14 +25,20 @@ packages/mediagen-nodes/
   tests/                      # registration / manifest 完整性 / 各节点 fetch-stub / adapter 单测
 ```
 
-**MediagenChannelAdapter 接口**(adapters/types.ts):
+**MediagenChannelAdapter 接口**(adapters/types.ts;F2 修复——PollResult 判别联合补全,url 下载归属 mediagen-base):
 ```ts
 interface AdapterContext { signal?: AbortSignal; secrets: Record<string,string>; fetchFn: typeof fetch }
-interface ImageAdapter { submit(req: ImageParams, ctx): Promise<{kind:"bytes", data:Uint8Array, mime:string} | {kind:"url", url:string}> }
-interface VideoAdapter { submit(req: VideoParams, ctx): Promise<{kind:"handle", handle:string}>; poll(handle, ctx): Promise<PollResult> }
+// PollResult:适配器对 running/终态/配额拒的唯一表达出口
+type PollResult =
+  | { status: "running" }
+  | { status: "done"; kind: "bytes"; data: Uint8Array; mime?: string }   // 图像 mime= detectImageMime
+  | { status: "done"; kind: "url"; url: string; mime?: string }          // mediagen-base 统一 safeFetch 下载
+  | { status: "failed"; code: string; retryable?: boolean; quota?: boolean };
+interface ImageAdapter { submit(req: ImageParams, ctx): Promise<PollResult> }  // 同步图=直接 done
+interface VideoAdapter { submit(req: VideoParams, ctx): Promise<{ handle: string } | PollResult>; poll(handle: string, ctx): Promise<PollResult> }
 ```
 - 工厂按 manifest 条目的 `channel` 字段取 adapter,按 `wire`(inline/poll)走同步或异步路径。
-- **新渠道挂载 = 1 个 manifest 条目 + 1 个 adapter 文件 + index 注册一行**(M6 演习判据;若需改 factory/adapters/types.ts = 开闭违规,飞轮记录)。
+- **新渠道挂载 = 1 个 manifest 条目 + 1 个 adapter 文件 + index 注册一行 + url-egress 出口登记**(F1 修正:egress 登记 = H5 hook 义务——每新增触碰动态 URL 的 adapter 须同步 `packages/runtime/tests/url-egress-inventory.ts` 与 `docs/url-egress-inventory.md`,否则 url-egress-audit 审计 CI 红;登记义务由"egress 登记面测试"机械闸兜底。开闭违规判据仍指 factory/adapters/types.ts 的被迫改动;H5 属登记性 hook,豁免于该判据但计入 M6 演习触碰面)。
 
 ## 3. 关键设计决策
 
@@ -42,9 +48,10 @@ interface VideoAdapter { submit(req: VideoParams, ctx): Promise<{kind:"handle", 
 | manifest 与 wire 的关系 | manifest 声明字段/默认值/模型表;wire 全在 adapter 代码 | 反:manifest 内嵌 wire DSL——过度抽象(02 R-ABS-01),wire 差异大(信封/轮询/SSE/multipart)编码进 JSON 必然再造一门语言 |
 | 轮询与取消 | adapter poll 一律接受 ctx.signal;工厂把 context.signal 传入 | 上游 minimax/higgsfield 反例:阻塞轮询不接信号,cancel 打不断(研究03 §D) |
 | 重试纪律 | 提交 POST 永不重试;下载/幂等 GET 用 fetchWithRetry 语义(自实现薄层或复用 runtime provider-transport) | AGENTS.md External-API Wrapper Nodes 规则 |
-| 裸 base64 | 输出一律 *RefFromBytes(data 裸 base64 + type 判别 + mime 探测) | 研究04 §E⑦ |
+| 裸 base64 | 输出一律 *RefFromBytes(data 裸 base64 + type 判别);**mime 策略:图像=detectImageMime(仓内既有,minimax 复用 runtime 导出);视频=对齐 minimax 先例(videoRefFromBytes 不带 mime)**(F2 修复:删笼统"mime 探测"承诺) | 研究04 §E⑦;仓内无视频 mime 助手,不新造 |
 | M4 预埋 | 所有渠道调用收敛过 mediagen-base.executeMediagenCall(今天=signal+超时+错误规整;M4=在此挂预算闸,节点零改动) | 解耦要求4;避免每节点散装(02 R-CI-02) |
-| 模型清单 | manifest 内嵌默认模型 enum(取 config.example.json 权威值)+ `custom` 自由输入兜底? → **否,enum only** | 契约:无硬编码兜底会抛错;enum 即表单;后续渠道改表=manifest 改条目 |
+| 模型清单 | manifest 内嵌默认模型 enum(取 config.example.json 权威值) | 契约:无硬编码兜底会抛错;enum 即表单;后续渠道改表=manifest 改条目 |
+| size 策略 | **enum-only**(合法吸附集直接作 enum 值;非法值经 props 注入→工厂结构化拒绝,仿 higgsfield-factory.ts:45-46)——**不做运行时吸附**(F4 修复:enum 拒绝与吸附互斥,选拒绝,策略更简单且工厂先例一致) | 反:str+吸附=第三种归一化策略,与工厂 enum 校验漂移 |
 | cloudflare 双 wire | adapter 内部按 model family 分支(JSON/multipart) | 上游目录本身按 family 分类(cloudflare.ts:44-53) |
 | hfspaces SSE | adapter 用 fetch 流式读 SSE(ReadableStream+TextDecoder),不是浏览器 | 契约 §B5;纯 fetch 可行 |
 | 必填密钥 | requiredSettings 按渠道:[ZHIPU_API_KEY]/[AGNES_API_KEY]/[CLOUDFLARE_API_TOKEN,CLOUDFLARE_ACCOUNT_ID]/[SILICONFLOW_API_KEY]/[] (hfspaces 匿名可用,token 可选→HF_TOKEN 非必填) | 契约 §C;设置 UI 自动出配置项 |
@@ -72,21 +79,25 @@ adapter 抛 `MediagenChannelError { channel, code: "mediagen.<channel>.<Sxxx|net
 1. registration:registry.has 每个 nodeType + MEDIAGEN_NODES 数量=manifest 条目数。
 2. manifest 完整性:configVersion/sourceUrl https/enum values 引用可解析/requiredSettings 非空(除 hfspaces)。
 3. 节点行为(每节点≥1):stub fetch → 断言 URL/body/Auth/输出 ref(PNG 魔数);轮询节点串行 mockResolvedValueOnce(提交→轮询→下载);错误路径:4xx→结构化错误;配额(3036/H201)→ quota 码 + retryable=false。
-4. adapter 单测:cloudflare multipart 组装(flux-2 多参考<512 约束)、zhipu size 吸附(512-2880/16 倍数)、agnes numFrames 合法集、hfspaces SSE 解析。
-5. 断言来源纪律:期望值全部来自 research/01 契约(producer 源码锚),禁从实现输出反推。
+4. adapter 单测:cloudflare multipart 组装(flux-2 多参考<512 约束)、**非法 size 经 props 注入→结构化拒绝**(F4 修复:替代原吸附测试)、agnes numFrames 合法集、hfspaces SSE 解析(event_id 流+H201 data:null→{status:"failed",quota:true})。
+5. **egress 登记面测试(F1)**:断言本包每个含动态 URL fetch/safeFetch 调用的源文件都在 URL_EGRESS_INVENTORY 中有 guarded 条目(仿 url-egress-audit 断言的包内前移版)。
+6. 断言来源纪律:期望值全部来自 research/01 契约(producer 源码锚),禁从实现输出反推。
 
-## 7. 包外触碰(全部已在 02-基线 H2 登记)
+## 7. 包外触碰(全部已在 02-基线 H2/H4/H5 登记)
 
-R1-R4 必需 + C1/C2(CLI registry,单节点 harness 验证必需)+ C4(package-asset-registry)+ C7(harness gate 认领)。不触碰 web/。
+R1-R4 必需 + C1/C2(CLI registry,单节点 harness 验证必需)+ C4(package-asset-registry)+ C7(harness gate 认领)+ **C8/H5(url-egress 出口登记:packages/runtime/tests/url-egress-inventory.ts 每文件 guarded 条目 + docs/url-egress-inventory.md 读者文档;下载一律 safeFetch)**(F1 修复)。
+
+**已知降级(F3,显式接受)**:v1 不做 web 侧 key-gating UX(web/src/utils/nodeProvider.ts 的 namespace→secretKey 硬编码映射不含 mediagen)——mediagen 节点在未配 key 时也常显(摆出后运行会得到结构化缺 key 错误)。已登记为 02-基线 H6 可选后续 hook;不做,不阻塞 M3 DoD。
 
 ## 8. 明确不做(v1 rejected-by-design)
 
-- 不做 provider 统一下拉 mega 节点;不做 manifest wire DSL;不做动态模型目录拉取(list_models 在线拉)——静态表+manifest 改动;不做 pixverse(见 §1);不动上游现有节点(minimax/higgsfield 反例不修,不扩大触碰面)。
+- 不做 provider 统一下拉 mega 节点;不做 manifest wire DSL;不做动态模型目录拉取(list_models 在线拉)——静态表+manifest 改动;不做 pixverse(见 §1);不动上游现有节点(minimax/higgsfield 反例不修,不扩大触碰面);**不做 web key-gating(F3 显式降级)**。
 
 ## 9. 验收门(M3 DoD)
 
 - [ ] `npm run test --workspace=packages/mediagen-nodes` 全绿 ×2 连续
 - [ ] `npm run typecheck` + `npm run lint`(oxlint+包内 tsc)过
+- [ ] **packages/runtime url-egress-audit 测试绿**(F1 闸)
 - [ ] `npm run dev:nodetool -- harness gate --base origin/main` 过(C7 已认领)
 - [ ] `nodetool node run mediagen.image.<X> --no-secrets` 优雅报缺 key(登记面验证)
 - [ ] dev 服务器起后 /api/nodes/metadata 含 mediagen 命名空间(curl 断言)

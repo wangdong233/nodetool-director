@@ -1,0 +1,31 @@
+{
+  "name": "@nodetool-ai/mediagen-nodes",
+  "version": "0.7.0-rc.40",
+  "type": "module",
+  "engines": { "node": ">=22.22.1 <23" },
+  "description": "MediaGen channel nodes (zhipu, agnes, cloudflare, siliconflow, hfspaces) for NodeTool — manifest-driven factory with per-channel adapters",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node ../../scripts/build-typescript-workspace.mjs && node -e \"const fs=require('node:fs'); const entries=[]; for (const dir of fs.readdirSync('src/channels',{withFileTypes:true})) { if (dir.isDirectory()) entries.push(...JSON.parse(fs.readFileSync('src/channels/'+dir.name+'/manifest.json','utf8'))); } fs.writeFileSync('dist/mediagen-manifest.json', JSON.stringify(entries, null, 2));\"",
+    "test": "vitest run",
+    "lint": "node ../../scripts/run-tsc.mjs --noEmit"
+  },
+  "dependencies": {
+    "@nodetool-ai/config": "*",
+    "@nodetool-ai/node-sdk": "*",
+    "@nodetool-ai/runtime": "*",
+    "@nodetool-ai/protocol": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "^5.0.1"
+  },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "default": "./dist/index.js" },
+    "./mediagen-manifest.json": "./dist/mediagen-manifest.json"
+  },
+  "files": ["dist", "README.md"],
+  "license": "MIT"
+}
