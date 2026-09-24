@@ -1,0 +1,64 @@
+{
+  "params": {},
+  "graph": {
+    "nodes": [
+      {
+        "id": "imgA",
+        "type": "mediagen.image.ZhipuTextToImage",
+        "name": "镜头A 首帧",
+        "data": { "prompt": "a lighthouse on a cliff at dusk, dramatic clouds, cinematic lighting", "model": "cogview-3-flash", "size": "1440x720" }
+      },
+      {
+        "id": "i2vA",
+        "type": "mediagen.video.ZhipuTextToVideo",
+        "name": "镜头A 动起来",
+        "data": { "prompt": "waves crashing, the lighthouse beam sweeping slowly across the sea, cinematic", "model": "cogvideox-flash", "fps": 30 }
+      },
+      {
+        "id": "imgB",
+        "type": "mediagen.image.HfspacesTextToImage",
+        "name": "镜头B 首帧",
+        "data": { "prompt": "the same lighthouse seen from the sea at night, moonlight on water, wide shot", "size": "1440x720" }
+      },
+      {
+        "id": "i2vB",
+        "type": "mediagen.video.HfspacesImageToVideo",
+        "name": "镜头B 动起来",
+        "data": { "prompt": "slow drift forward toward the lighthouse, gentle swell", "duration_seconds": 5 }
+      },
+      {
+        "id": "tts",
+        "type": "mediagen.audio.HfspacesTextToSpeech",
+        "name": "旁白",
+        "data": { "text": "在世界的边缘,有一座灯塔,守着每一夜的黑。", "exaggeration": 0.5, "temperature": 0.8 }
+      },
+      {
+        "id": "concat",
+        "type": "nodetool.video.Concat",
+        "name": "两镜拼接",
+        "data": {}
+      },
+      {
+        "id": "addaudio",
+        "type": "nodetool.video.AddAudio",
+        "name": "配旁白",
+        "data": { "volume": 1, "mix": false }
+      },
+      {
+        "id": "save",
+        "type": "nodetool.video.SaveVideo",
+        "name": "导出",
+        "data": { "name": "m5-e2e-chain" }
+      }
+    ],
+    "edges": [
+      { "source": "imgA", "sourceHandle": "output", "target": "i2vA", "targetHandle": "image" },
+      { "source": "imgB", "sourceHandle": "output", "target": "i2vB", "targetHandle": "image" },
+      { "source": "i2vA", "sourceHandle": "output", "target": "concat", "targetHandle": "videoA" },
+      { "source": "i2vB", "sourceHandle": "output", "target": "concat", "targetHandle": "videoB" },
+      { "source": "tts", "sourceHandle": "output", "target": "addaudio", "targetHandle": "audio" },
+      { "source": "concat", "sourceHandle": "output", "target": "addaudio", "targetHandle": "video" },
+      { "source": "addaudio", "sourceHandle": "output", "target": "save", "targetHandle": "video" }
+    ]
+  }
+}

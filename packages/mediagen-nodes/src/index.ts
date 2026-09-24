@@ -3,6 +3,7 @@ import { loadMediagenNodesFromManifest } from "./mediagen-factory.js";
 import { loadMediagenManifest } from "./manifest.js";
 
 export * from "./adapters/types.js";
+export * from "./budget.js";
 export * from "./manifest.js";
 export * from "./mediagen-base.js";
 export * from "./mediagen-factory.js";

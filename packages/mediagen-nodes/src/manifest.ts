@@ -38,10 +38,9 @@ export interface MediagenManifestEntry {
   /** Channel id — must exist in the ADAPTERS registry (adapters/index.ts). */
   channel: string;
   className: string;
-  moduleName: string;
-  /** "inline" = synchronous image; "poll" = submit→poll video. */
+  moduleName: string;  /** "inline" = synchronous image/audio; "poll" = submit→poll video. */
   wire: "inline" | "poll";
-  outputType: "image" | "video";
+  outputType: "image" | "video" | "audio";
   title: string;
   description: string;
   /** API reference URL (manifest integrity test enforces https). */

@@ -32,10 +32,10 @@
 
 > 触碰面纪律:凡不在本表的包外改动 = 收敛面违规(飞轮 §6)。上游 merge 冲突只允许出现在上表文件;每次 merge 记录冲突点与解法。
 
-## 3. CI 状态(2026-09-24)
+## 3. CI 状态(2026-09-24;用户裁决更新)
 
 - 已禁用 20 个上游噪音/必败 workflow(`gh workflow disable -R`,Actions 面板级=上游合并零冲突);保留 test/quality-checks/docs/provider-codegen/flatpak/chat-perf/page-load + 自有 mediagen-nodes-windows。
-- 🔴 **GitHub 账户 billing 阻止一切私有仓 job**(payments/spending limit)——修复前远程 CI 不可用;本地以 CI-parity(空 HOME)补偿。windows lane YAML 已就位(action 版本与仓内 36 处用法一致)。
+- 🔴 GitHub 账户 billing 阻止一切私有仓 job——**用户裁决(2026-09-24):Windows CI 验证移至收尾阶段执行,程序=临时 Public(`gh repo edit --visibility public`)→ workflow_dispatch 重跑 windows lane(公共仓 Actions 免费)→ 取绿证据 → 回 Private;期间不 push 以免噪音 workflow 触发**。前方飞轮轮次不做 Windows CI 验证,本地以 CI-parity(空 HOME)补偿。windows lane YAML 已就位(action 版本与仓内 36 处用法一致)。
 
 ## 4. 上游规约要点(对本项目生效,摘自 AGENTS.md)
 

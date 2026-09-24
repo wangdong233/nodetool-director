@@ -5,6 +5,7 @@
  */
 import { detectImageMime, loadMediaRefBytes, safeFetch } from "@nodetool-ai/runtime";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
+import { acquireChannelSlot } from "./budget.js";
 import type { MediaInput, PollResult } from "./adapters/types.js";
 
 /** Structured channel error. `quota` marks account-level quota rejections. */
@@ -81,15 +82,17 @@ export function isAbortError(error: unknown): boolean {
 }
 
 /**
- * The single choke point every channel call passes through. Normalizes thrown
- * errors into MediagenChannelError (abort errors pass through untouched so
- * cancellation keeps its semantics). The M4 budget gate wraps this function;
- * node code never bypasses it.
+ * The single choke point every channel call passes through: budget-gated
+ * (concurrency + daily limits, src/budget.ts), then error-normalized into
+ * MediagenChannelError (abort errors pass through untouched so cancellation
+ * keeps its semantics). The M4 budget gate lives here; node code never
+ * bypasses this function.
  */
 export async function executeMediagenCall<T>(
   channel: string,
   fn: () => Promise<T>,
 ): Promise<T> {
+  const slot = await acquireChannelSlot(channel);
   try {
     return await fn();
   } catch (error) {
@@ -99,6 +102,8 @@ export async function executeMediagenCall<T>(
       throw new MediagenChannelError(channel, "network", String(error), true);
     }
     throw new MediagenChannelError(channel, "result", error instanceof Error ? error.message : String(error));
+  } finally {
+    slot.release();
   }
 }
 
@@ -179,6 +184,11 @@ export function imageRefFromBytes(bytes: Uint8Array): { type: "image"; uri: stri
 /** Video ref aligned with the minimax precedent (no mime sniffing). */
 export function videoRefFromBytes(bytes: Uint8Array): { type: "video"; uri: string; data: string } {
   return { type: "video", uri: "", data: Buffer.from(bytes).toString("base64") };
+}
+
+/** Audio ref aligned with the minimax precedent (type + raw base64 + content_type). */
+export function audioRefFromBytes(bytes: Uint8Array, mime = "audio/wav"): { type: "audio"; uri: string; data: string; content_type: string } {
+  return { type: "audio", uri: "", data: Buffer.from(bytes).toString("base64"), content_type: mime };
 }
 
 /** JSON helper that surfaces channel error bodies without throwing on non-JSON. */

@@ -27,6 +27,8 @@ export interface MediaInput {
 
 export type ImageParams = Record<string, unknown> & { prompt: string };
 
+export type AudioParams = Record<string, unknown> & { text: string };
+
 export type VideoParams = Record<string, unknown> & { prompt: string };
 
 /**
@@ -57,7 +59,14 @@ export interface ImageAdapter {
   submit(params: ImageParams, media: MediaBag, ctx: AdapterContext): Promise<PollResult>;
 }
 
+export interface AudioAdapter {
+  kind: "audio";
+  /** Synchronous audio generation (TTS/music): must resolve to a done/failed PollResult. */
+  submit(params: AudioParams, media: MediaBag, ctx: AdapterContext): Promise<PollResult>;
+}
+
 export interface ChannelAdapters {
   image?: ImageAdapter;
   video?: VideoAdapter;
+  audio?: AudioAdapter;
 }

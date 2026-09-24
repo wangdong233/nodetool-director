@@ -7,8 +7,9 @@ import { applyContentCardBody, BaseNode, classifyFields, defaultForPropType, pro
 import type { NodeClass, NodeValue, PropOptions } from "@nodetool-ai/node-sdk";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import { getChannelAdapters } from "./channels/index.js";
-import type { MediaBag, PollResult } from "./adapters/types.js";
+import type { AudioParams, ImageParams, MediaBag, PollResult } from "./adapters/types.js";
 import {
+  audioRefFromBytes,
   executeMediagenCall,
   getChannelSecrets,
   imageRefFromBytes,
@@ -24,8 +25,14 @@ import type { MediagenField, MediagenManifestEntry } from "./manifest.js";
 type Context = ProcessingContext & {
   storage?: { store?: (key: string, bytes: Uint8Array, mime?: string) => Promise<string> };
 };
-type MediaOutput = { type: "image" | "video"; uri: string; data?: string };
+type MediaOutput = { type: "image" | "video" | "audio"; uri: string; data?: string };
 type Output = { output: MediaOutput };
+
+const OUTPUT_STORE_MIME: Record<"image" | "video" | "audio", string | undefined> = {
+  image: undefined,
+  video: "video/mp4",
+  audio: "audio/wav",
+};
 
 const MEDIA_TYPES = new Set(["image", "video", "audio"]);
 const MEDIA_LIST_TYPES = new Set(["list[image]", "list[video]", "list[audio]"]);
@@ -60,11 +67,12 @@ async function toMediaOutput(
     // Keep the receiver: storage adapters are class methods (FileStorageAdapter
     // reads this.rootPromise) — detaching `store` loses `this`.
     const key = `mediagen-${entry.outputType}-${entry.channel}-${jobId}`;
-    const uri = await context.storage.store(key, bytes, entry.outputType === "image" ? undefined : "video/mp4");
+    const uri = await context.storage.store(key, bytes, OUTPUT_STORE_MIME[entry.outputType]);
     return { type: entry.outputType, uri };
   }
-  const ref = entry.outputType === "image" ? imageRefFromBytes(bytes) : videoRefFromBytes(bytes);
-  return { type: ref.type, uri: "", data: ref.data };
+  if (entry.outputType === "image") return { type: "image", uri: "", data: imageRefFromBytes(bytes).data };
+  if (entry.outputType === "audio") return { type: "audio", uri: "", data: audioRefFromBytes(bytes, result.mime ?? "audio/wav").data };
+  return { type: "video", uri: "", data: videoRefFromBytes(bytes).data };
 }
 
 export function createMediagenNodeClass(spec: MediagenManifestEntry): NodeClass {
@@ -125,10 +133,18 @@ export function createMediagenNodeClass(spec: MediagenManifestEntry): NodeClass 
         if (result.status === "failed") throw failedAsError(spec.channel, result);
         return { output: await toMediaOutput(spec, result, context, jobId) };
       }
-      const adapter = adapters.image;
-      if (!adapter) throw new MediagenChannelError(spec.channel, "params", `channel ${spec.channel} has no image adapter`);
-      const params = { ...scalarInput, prompt: String(scalarInput.prompt ?? "") };
-      const result = await executeMediagenCall(spec.channel, () => adapter.submit(params, media, adapterContext));
+      const inlineAdapter = spec.outputType === "audio" ? adapters.audio : adapters.image;
+      if (!inlineAdapter) {
+        throw new MediagenChannelError(spec.channel, "params", `channel ${spec.channel} has no ${spec.outputType} adapter`);
+      }
+      const inlineParams: Record<string, unknown> = { ...scalarInput };
+      // Each adapter kind names its own required string field; set it before
+      // dispatch so the bag satisfies whichever member the channel provides.
+      if (inlineAdapter.kind === "audio") inlineParams.text = String(scalarInput.text ?? "");
+      else inlineParams.prompt = String(scalarInput.prompt ?? "");
+      const result = await executeMediagenCall(spec.channel, () =>
+        inlineAdapter.submit(inlineParams as ImageParams & AudioParams, media, adapterContext),
+      );
       if (result.status === "failed") throw failedAsError(spec.channel, result);
       if (result.status === "running") throw new MediagenChannelError(spec.channel, "result", "inline adapter returned running");
       return { output: await toMediaOutput(spec, result, context, jobId) };
