@@ -52,10 +52,12 @@ describe("mediagen manifest fragments", () => {
   });
 
   it("declares the channel's required settings on every entry", () => {
+    // Keyless by design: hfspaces (anonymous ZeroGPU tier, token optional) and
+    // dummy (offline static mount-drill/smoke node).
+    const keyless = new Set(["hfspaces", "dummy"]);
     for (const [channel, entries] of Object.entries(fragments)) {
+      if (keyless.has(channel)) continue;
       for (const entry of entries) {
-        // hfspaces is the only anonymous-capable channel (token optional).
-        if (channel === "hfspaces") continue;
         expect((entry.requiredSettings ?? []).length, `${channel}.${entry.className}`).toBeGreaterThan(0);
       }
     }
