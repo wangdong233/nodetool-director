@@ -39,6 +39,7 @@
     "@nodetool-ai/elevenlabs-nodes": "*",
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/kernel": "*",
+    "@nodetool-ai/mediagen-nodes": "*",
     "@nodetool-ai/minimax-nodes": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/protocol": "*",
