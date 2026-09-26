@@ -61,6 +61,35 @@
     "closeAll": "关闭所有标签页",
     "home": "首页",
     "tabName": "标签页名称",
-    "unsaved": "未保存更改"
+    "unsaved": "未保存更改",
+    "openDocument": "打开文档:{{title}}",
+    "openDocuments": "打开文档",
+    "noDocumentOpen": "未打开文档",
+    "switchDocs": "在打开的文档间切换",
+    "emptyDocs": "未打开任何文档——点 + 打开或新建。",
+    "closeNamed": "关闭{{title}}",
+    "closeAllDocs": "关闭全部文档",
+    "typeNames": {
+      "workflow": "工作流",
+      "image": "图像",
+      "svg": "SVG",
+      "sketch": "图稿",
+      "timeline": "时间线",
+      "storyboard": "分镜",
+      "script": "脚本",
+      "jsscript": "JS 脚本",
+      "skill": "技能",
+      "model3d": "3D 模型",
+      "audio": "音频",
+      "text": "文本",
+      "workspace-file": "文件",
+      "chat": "对话",
+      "application": "小程序",
+      "page": "页面",
+      "project-list": "项目列表",
+      "project": "项目",
+      "project-new": "新项目",
+      "guided-flow": "引导流程"
+    }
   }
 }

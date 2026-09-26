@@ -34,8 +34,16 @@ export const tabDisplayTitle = (tab: {
   return tab.title;
 };
 
-export const TYPE_GLYPH = {
-  workflow: "⬡",
+/**
+ * Localized name for a tab type (the mobile document selector's secondary
+ * line). English keeps the raw enum value byte-for-byte; zh reads
+ * nav:tabs.typeNames. Resolved at call time — callers re-render on language
+ * change through their useAppLanguage subscription.
+ */
+export const tabTypeName = (type: WorkspaceTabType): string =>
+  i18n.t(`nav:tabs.typeNames.${type}`, { defaultValue: type });
+
+export const TYPE_GLYPH = {  workflow: "⬡",
   image: "▦",
   svg: "◇",
   sketch: "✎",

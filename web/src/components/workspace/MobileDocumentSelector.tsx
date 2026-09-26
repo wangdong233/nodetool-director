@@ -12,6 +12,7 @@ import type {
 import { useIsWorkflowRunning } from "../../hooks/useWorkflowRunnerState";
 import { useWorkflowDirty } from "../../hooks/useWorkflowDirty";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   BORDER_RADIUS,
   Caption,
@@ -27,7 +28,10 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
-import { tabDisplayTitle } from "./tabTypeIdentity";
+import { tabDisplayTitle, tabTypeName } from "./tabTypeIdentity";
+
+const t18 = (key: string, fallback: string, options?: Record<string, string>) =>
+  i18n.t(`nav:tabs.${key}`, { defaultValue: fallback, ...options });
 
 interface MobileDocumentSelectorProps {
   tabs: WorkspaceTab[];
@@ -126,6 +130,8 @@ const DocumentStatus = memo(function DocumentStatus({
 }: {
   tab: WorkspaceTab;
 }) {
+  // Subscribe so the raw-i18n.t aria-label re-renders on language change.
+  useAppLanguage();
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);
@@ -146,7 +152,11 @@ const DocumentStatus = memo(function DocumentStatus({
         />
       )}
       {isDirty && (
-        <span className="dirty-dot" role="img" aria-label="unsaved changes" />
+        <span
+          className="dirty-dot"
+          role="img"
+          aria-label={t18("unsaved", "unsaved changes")}
+        />
       )}
     </>
   );
@@ -168,6 +178,8 @@ const MobileDocumentSelector = ({
   onCloseAll
 }: MobileDocumentSelectorProps) => {
   const theme = useTheme();
+  // Subscribe so raw-i18n.t reads below re-render on language change.
+  useAppLanguage();
   const buttonStyles = useMemo(() => styles(theme), [theme]);
   const listStyles = useMemo(() => sheetStyles(theme), [theme]);
   const [open, setOpen] = useState(false);
@@ -202,8 +214,10 @@ const MobileDocumentSelector = ({
         aria-expanded={open}
         aria-label={
           activeTab
-            ? `Open document: ${tabDisplayTitle(activeTab)}`
-            : "Open documents"
+            ? t18("openDocument", "Open document: {{title}}", {
+                title: tabDisplayTitle(activeTab)
+              })
+            : t18("openDocuments", "Open documents")
         }
         onClick={() => setOpen(true)}
       >
@@ -213,7 +227,9 @@ const MobileDocumentSelector = ({
           </span>
         )}
         <span className="doc-title">
-          {activeTab ? tabDisplayTitle(activeTab) : "No document open"}
+          {activeTab
+            ? tabDisplayTitle(activeTab)
+            : t18("noDocumentOpen", "No document open")}
         </span>
         {activeTab && <DocumentStatus tab={activeTab} />}
         {tabs.length > 1 && <span className="doc-count">{tabs.length}</span>}
@@ -223,13 +239,16 @@ const MobileDocumentSelector = ({
       <MobileBottomSheet
         open={open}
         onClose={closeSheet}
-        title="Open documents"
-        ariaLabel="Switch between open documents"
+        title={t18("openDocuments", "Open documents")}
+        ariaLabel={t18("switchDocs", "Switch between open documents")}
       >
         <div css={listStyles}>
           {tabs.length === 0 && (
             <Caption color="secondary" sx={{ px: 2.5, py: 2 }}>
-              No documents open — use + to open or create one.
+              {t18(
+                "emptyDocs",
+                "No documents open — use + to open or create one."
+              )}
             </Caption>
           )}
           <List dense disablePadding>
@@ -240,7 +259,9 @@ const MobileDocumentSelector = ({
                 secondaryAction={
                   <CloseButton
                     className="row-close"
-                    tooltip={`Close ${tabDisplayTitle(tab)}`}
+                    tooltip={t18("closeNamed", "Close {{title}}", {
+                      title: tabDisplayTitle(tab)
+                    })}
                     onClick={() => onClose(tab)}
                   />
                 }
@@ -259,7 +280,7 @@ const MobileDocumentSelector = ({
                   </span>
                   <ListItemText
                     primary={tabDisplayTitle(tab)}
-                    secondary={tab.type}
+                    secondary={tabTypeName(tab.type)}
                   />
                   <DocumentStatus tab={tab} />
                 </ListItemButton>
@@ -275,7 +296,9 @@ const MobileDocumentSelector = ({
                     className="close-all"
                     onClick={handleCloseAll}
                   >
-                    <ListItemText primary="Close all documents" />
+                    <ListItemText
+                      primary={t18("closeAllDocs", "Close all documents")}
+                    />
                   </ListItemButton>
                 </ListItem>
               </List>

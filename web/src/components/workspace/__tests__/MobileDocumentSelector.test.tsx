@@ -1,8 +1,9 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
+import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
 
 import type {
   WorkspaceTab,
@@ -116,5 +117,28 @@ describe("MobileDocumentSelector", () => {
       screen.getByRole("button", { name: /Open document: Marketing recipes/ })
     ).toBeInTheDocument();
     expect(screen.getByText("Marketing recipes")).toBeInTheDocument();
+  });
+
+  it("localizes the sheet chrome and type names in zh", async () => {
+    renderSelector();
+    await act(async () => {
+      await changeAppLanguage("zh-CN");
+    });
+
+    try {
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("button", { name: /打开文档:Alpha/ }));
+      await waitFor(() =>
+        expect(screen.getByText("打开文档")).toBeInTheDocument()
+      );
+      // Secondary line reads the localized type name, not the raw enum
+      // (both open tabs are workflows).
+      expect(screen.getAllByText("工作流")).toHaveLength(2);
+      expect(
+        screen.getByRole("button", { name: "关闭全部文档" })
+      ).toBeInTheDocument();
+    } finally {
+      await resetI18nForTest();
+    }
   });
 });

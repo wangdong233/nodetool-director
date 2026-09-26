@@ -61,6 +61,35 @@
     "closeAll": "Close All Tabs",
     "home": "Home",
     "tabName": "Tab name",
-    "unsaved": "unsaved changes"
+    "unsaved": "unsaved changes",
+    "openDocument": "Open document: {{title}}",
+    "openDocuments": "Open documents",
+    "noDocumentOpen": "No document open",
+    "switchDocs": "Switch between open documents",
+    "emptyDocs": "No documents open — use + to open or create one.",
+    "closeNamed": "Close {{title}}",
+    "closeAllDocs": "Close all documents",
+    "typeNames": {
+      "workflow": "workflow",
+      "image": "image",
+      "svg": "svg",
+      "sketch": "sketch",
+      "timeline": "timeline",
+      "storyboard": "storyboard",
+      "script": "script",
+      "jsscript": "jsscript",
+      "skill": "skill",
+      "model3d": "model3d",
+      "audio": "audio",
+      "text": "text",
+      "workspace-file": "workspace-file",
+      "chat": "chat",
+      "application": "application",
+      "page": "page",
+      "project-list": "project-list",
+      "project": "project",
+      "project-new": "project-new",
+      "guided-flow": "guided-flow"
+    }
   }
 }
