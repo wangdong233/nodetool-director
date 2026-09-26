@@ -13,7 +13,8 @@
     "edit": "编辑",
     "copy": "复制",
     "search": "搜索",
-    "run": "运行"
+    "run": "运行",
+    "reportBug": "报告问题"
   },
   "status": {
     "loading": "加载中…",

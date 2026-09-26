@@ -8,11 +8,6 @@ import { useTranslation } from "react-i18next";
 import { Select, MenuItem } from "@mui/material";
 import { Text } from "../ui_primitives";
 
-const LANGUAGE_LABELS: Record<AppLanguage, string> = {
-  en: "English",
-  "zh-CN": "简体中文",
-};
-
 /**
  * Language picker for the General settings section (director/93 §2).
  * Default English; switching loads the zh-CN catalogs lazily and persists
@@ -36,7 +31,7 @@ export function LanguageSetting({ dense = false }: { dense?: boolean }) {
       >
         {options.map((lang) => (
           <MenuItem key={lang} value={lang}>
-            {LANGUAGE_LABELS[lang]}
+            {lang === "en" ? t("settings:general.languageEnglish") : t("settings:general.languageChinese")}
           </MenuItem>
         ))}
       </Select>

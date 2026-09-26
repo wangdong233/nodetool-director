@@ -13,7 +13,8 @@
     "edit": "Edit",
     "copy": "Copy",
     "search": "Search",
-    "run": "Run"
+    "run": "Run",
+    "reportBug": "Report a bug"
   },
   "status": {
     "loading": "Loading…",

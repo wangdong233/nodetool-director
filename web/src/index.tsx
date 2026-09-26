@@ -729,7 +729,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                       </button>
                       <ReportBugButton
                         variant="outlined"
-                        label="Report a bug"
+                        label={i18n.t("common:action.reportBug")}
                         context={{
                           source: "app-crash",
                           summary: "Error loading application metadata",
