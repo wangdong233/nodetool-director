@@ -25,7 +25,8 @@ import "@fontsource/jetbrains-mono/latin-600.css";
 
 // Theme augmentation moved to a single global file `theme.d.ts` to avoid duplication
 
-export const ThemeNodetool = createTheme({
+const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
+  const options: Parameters<typeof createTheme>[0] = {
   cssVariables: {
     cssVarPrefix: "",
     colorSchemeSelector: "class"
@@ -92,7 +93,9 @@ export const ThemeNodetool = createTheme({
     }
   },
   typography: {
-    fontFamily: "'Inter', sans-serif",
+    // fontFamilyOverride carries the CJK fallback chain in the zh variant:
+    // Inter has no CJK glyphs — an implicit OS pick drifts the weights.
+    fontFamily: fontFamilyOverride ?? "'Inter', sans-serif",
     fontSize: 15
   },
   spacing: 4,
@@ -396,31 +399,21 @@ export const ThemeNodetool = createTheme({
     },
     ...editorControlsComponents
   }
-});
+  };
+  // createTheme's locale overload needs a concrete object — split the calls.
+  return locale ? createTheme(options, locale) : createTheme(options);
+};
+
+
+// i18n (director/93): the zh-CN locale reuses the SAME option literal via the
+// builder — every custom field (rounded/editor/virtualScroll/…) carries over;
+// only MUI's zhCN component strings and the CJK font chain differ.
+const CJK_FONT_CHAIN =
+  "'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif";
+
+export const ThemeNodetool = buildTheme();
+
+export const ThemeNodetoolZhCN = buildTheme(zhCN, CJK_FONT_CHAIN);
 
 export default ThemeNodetool;
 
-
-// i18n (director/93): the zh-CN locale variant re-creates the theme with
-// MUI's zhCN component strings; the CJK fallback chain keeps weights
-// consistent under Chinese text (Inter carries no CJK glyphs).
-export const ThemeNodetoolZhCN = createTheme(
-  {
-    cssVariables: {
-      cssVarPrefix: "",
-      colorSchemeSelector: "class"
-    },
-    colorSchemes: {
-      light: { palette: paletteLight },
-      dark: { palette: paletteDark }
-    },
-    typography: {
-      ...ThemeNodetool.typography,
-      // CJK fallback chain: Inter has no CJK glyphs — without an explicit
-      // chain the OS picks silently and weights drift (director/93 Y7).
-      fontFamily:
-        "'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif"
-    }
-  },
-  zhCN
-);
