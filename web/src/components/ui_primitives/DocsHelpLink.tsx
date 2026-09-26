@@ -2,6 +2,7 @@
 import React, { memo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 import type { Theme } from "@mui/material/styles";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -65,7 +66,7 @@ const DocsHelpLinkInternal: React.FC<DocsHelpLinkProps> = ({
   className
 }) => {
   const theme = useTheme();
-  const title = `${label} documentation`;
+  const title = `${label} ${i18n.t("nav:settings.docsSuffix")}`;
 
   const commonProps = {
     href: docsLink(topic),

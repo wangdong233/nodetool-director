@@ -21,7 +21,8 @@
     "integrations": "Integrations",
     "about": "About",
     "docsProviders": "Models & providers",
-    "docsConfig": "Configuration"
+    "docsConfig": "Configuration",
+    "docsSuffix": "documentation"
   },
   "tabs": {
     "closeTab": "Close Tab",
