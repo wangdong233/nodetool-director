@@ -5,36 +5,36 @@ import {
   type AppLanguage,
 } from "../../i18n";
 import { useTranslation } from "react-i18next";
-import { Select, MenuItem } from "@mui/material";
-import { Text } from "../ui_primitives";
+import { SelectField } from "../ui_primitives";
 
 /**
  * Language picker for the General settings section (director/93 §2).
  * Default English; switching loads the zh-CN catalogs lazily and persists
- * to localStorage under `nodetool-language`.
+ * to localStorage under `nodetool-language`. Labels read from the catalogs
+ * (endonyms), never a parallel hardcoded map.
  */
-export function LanguageSetting({ dense = false }: { dense?: boolean }) {
+export function LanguageSetting() {
   const { t } = useTranslation("settings");
   const { language, setLanguage } = useAppLanguage();
-  const options = useMemo(() => [...SUPPORTED_LANGUAGES], []);
+  const options = useMemo(
+    () =>
+      [...SUPPORTED_LANGUAGES].map((lang) => ({
+        value: lang,
+        label:
+          lang === "en"
+            ? t("settings:general.languageEnglish")
+            : t("settings:general.languageChinese"),
+      })),
+    [t],
+  );
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <Text className="language-setting-label">{t("general.language")}</Text>
-      <Select<AppLanguage>
-        value={language}
-        onChange={(event) => {
-          void setLanguage(event.target.value as AppLanguage);
-        }}
-        size={dense ? "small" : "medium"}
-        aria-label={t("general.language")}
-        sx={{ minWidth: 160 }}
-      >
-        {options.map((lang) => (
-          <MenuItem key={lang} value={lang}>
-            {lang === "en" ? t("settings:general.languageEnglish") : t("settings:general.languageChinese")}
-          </MenuItem>
-        ))}
-      </Select>
-    </div>
+    <SelectField<AppLanguage>
+      label={t("general.language")}
+      value={language}
+      onChange={(value) => {
+        void setLanguage(value);
+      }}
+      options={options}
+    />
   );
 }
