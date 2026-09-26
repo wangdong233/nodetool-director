@@ -14,7 +14,8 @@
     "copy": "Copy",
     "search": "Search",
     "run": "Run",
-    "reportBug": "Report a bug"
+    "reportBug": "Report a bug",
+    "closeTab": "Close {{title}}"
   },
   "status": {
     "loading": "Loading…",

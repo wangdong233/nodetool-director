@@ -26,6 +26,7 @@
 | Environment | 环境变量 | 环境 | settings 语境 |
 | Autosave | 自动保存 | — | |
 | Collections | 知识库 | 收藏集/合集 | RAG 文档集(Coze/Dify/FastGPT 同名);润色 R1 定 |
+| Entities | 实体库 | 实体 | rail 三库节奏(素材库/知识库/实体库);组件 EntityLibrary;R7 裁定 |
 | Packages | 包管理器 | 扩展/插件 | 运行时+节点包;技术面保守(润色 R1 定夺)|
 | Version | 版本 | — | 版本历史 |
 | agent Task | 计划任务 | 子任务/待办 | 与 Job=任务分立 |

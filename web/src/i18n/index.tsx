@@ -122,13 +122,20 @@ export function useAppLanguage(): {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => Promise<void>;
 } {
-  const [language, setLanguageState] = useState(() => instance.language as AppLanguage);
+  const [state, setState] = useState(() => ({
+    language: instance.language as AppLanguage,
+    version: 0,
+  }));
   useEffect(() => {
-    const onChange = (lng: string) => setLanguageState(lng as AppLanguage);
+    const onChange = (lng: string) =>
+      // Bump a version on EVERY event: a same-lng re-emit (lazy zh bundles
+      // landing at boot) must still re-render raw-i18n.t consumers — a plain
+      // same-value setState bails and the splash stays English (R7-5).
+      setState((prev) => ({ language: lng as AppLanguage, version: prev.version + 1 }));
     instance.on("languageChanged", onChange);
     return () => instance.off("languageChanged", onChange);
   }, []);
-  return { language, setLanguage: changeAppLanguage };
+  return { language: state.language, setLanguage: changeAppLanguage };
 }
 
 /** Test seam: reset to English and clear persistence between tests. */

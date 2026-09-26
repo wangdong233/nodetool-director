@@ -20,7 +20,7 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { tabDisplayTitle } from "./tabTypeIdentity";
-import { useAppLanguage } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 // Tabs are scanned, not studied — the title has to land while the pointer is
 // still moving. Well under the 700ms chrome default, and the native `title`
@@ -219,7 +219,7 @@ const WorkspaceTabItem = ({
         <CloseButton
           className="tab-close close-icon"
           buttonSize="small"
-          tooltip={`Close ${displayTitle}`}
+          tooltip={i18n.t("common:action.closeTab", { title: displayTitle })}
           onClick={(event) => {
             event.stopPropagation();
             onClose(tab);
