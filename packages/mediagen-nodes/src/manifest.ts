@@ -62,7 +62,7 @@ export function resolveFieldValues(entry: MediagenManifestEntry, field: Mediagen
  * Load the combined manifest. Sources live per-channel in
  * src/channels/<channel>/manifest.json; the package build merges them into a
  * single dist/mediagen-manifest.json (flat packaged layout requires unique
- * asset basenames — five "manifest.json" entries would collide).
+ * asset basenames — per-channel "manifest.json" basenames would collide).
  */
 export function loadMediagenManifest(): MediagenManifestEntry[] {
   return loadPackageAssetJson<MediagenManifestEntry[]>(

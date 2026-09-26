@@ -21,6 +21,7 @@ The `packages/` directory contains the TypeScript backend — a set of npm works
 | `@nodetool-ai/kernel` | Workflow graph model, NodeInbox, NodeActor, WorkflowRunner |
 | `@nodetool-ai/agents` | Planning agent system — TaskPlanner, TaskExecutor, CodeActExecutor, Tool registry |
 | `@nodetool-ai/chat` | Chat message processing and token counting |
+| `@nodetool-ai/mediagen-nodes` | Media-generation channel nodes (zhipu, agnes, cloudflare, siliconflow, hfspaces, pixverse, gemini web) — manifest-driven factory with per-channel adapters |
 | `@nodetool-ai/base-nodes` | Compatibility shell re-exporting the domain node packages (`core-nodes`, `text-nodes`, `llm-nodes`, `data-nodes`, `document-nodes`, `image-nodes`, `audio-nodes`, `video-nodes`, `integration-nodes`, `code-nodes`, `automation-nodes`) as `ALL_BASE_NODES` |
 | `@nodetool-ai/fal-nodes` | FAL AI integration nodes |
 | `@nodetool-ai/fal-codegen` | Code generator for FAL AI node definitions |

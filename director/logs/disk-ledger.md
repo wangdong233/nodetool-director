@@ -1,6 +1,6 @@
 # 磁盘写台账(开发机 SSD 写入敏感,阶段差分记录)
 
-方法:df 余量差分(粗粒度含系统噪声)+ iostat 采样日志(仓外 `../aigc-nodetool-diskmon.log`)+ 大目录 du 定点。诚实声明:df 差分为上界估计,含系统其他写入。
+方法:df 余量差分(粗粒度含系统噪声)+ iostat 采样日志(`director/monitoring/aigc-nodetool-diskmon.log`,**2026-09-26 用户令迁入仓内:项目产物禁写仓外**)+ 大目录 du 定点。诚实声明:df 差分为上界估计,含系统其他写入。
 
 ## Phase 0 · 仓库初始化(2026-09-24)
 

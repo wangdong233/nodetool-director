@@ -60,7 +60,11 @@ M2 零代码双路(可选):①智谱推理:Settings→OpenAI-compatible endpoint
 - **pixverse CLI spawn**:节点走 `npx -y pixverse@1.4.3`+win32 shell:true(适配已做);CLI 登录态在 `%USERPROFILE%\.pixverse\config.json`(30 天,过期重新 login)。
 - 路径:节点包无硬编码 Unix 路径;测试已按 windows-lane 设计(待收尾 CI 验证,见 02-基线 §3)。
 - WebGPU:RenderTimeline/timeline 合成走 DX12;`chrome://gpu` 先验。
-- gemini/flow(CDP 浏览器态)渠道不进 Windows 白名单(设计如此)。
+- **gemini 渠道(92 方案已改判为 Windows 可部署)**:不用 lasso,直接裸起渠道 Chrome
+  ```powershell
+  & "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9225 "--user-data-dir=%USERPROFILE%\nodetool-chrome-gemini" https://gemini.google.com/app
+  ```
+  首次在该 profile 手工登录 Google 一次(每机一次);NodeTool 侧 `GEMINI_CDP_PORT` 缺省即 9225。flow 渠道仍不进 Windows 白名单(账号地区门禁,与 OS 无关)。
 
 ## 6. 上游同步(月度)
 

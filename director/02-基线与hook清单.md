@@ -28,8 +28,9 @@
 | H2g | `packages/dsl/package.json`+`packages/dsl/src/registry.ts`(loadBuiltinRegistry) | DSL run()/flow API 执行面(M5 实测:nodetool run 经此注册表——C3 非可选!研究04 标"可选"是误判,已实证) | 低(try-import 块+dep 行) |
 | H3 | `packages/runtime/src/context.ts` runGenerationWith(:3482 附近,以注入/包裹方式) + `packages/websocket/src/session/job-execution.ts` 准入(:1151-1156) | credit 预算闸(R1 生成缝为主+R2 job 准入为辅;尽量新增文件+最小注入点) | **高**(核心文件,方案相须设计最小侵入形态)。**v1 未用(终审 Y4 注)**:M4 闸实际落在包内 executeMediagenCall 收口(budget.ts),零核心文件触碰;本 hook 留作未来 job 级准入再启用 |
 | H4 | `.github/workflows/mediagen-nodes-windows.yml`(新文件) | CI windows lane | 无(纯新增) |
-| H5 | `docs/url-egress-inventory.md`+`packages/runtime/tests/url-egress-inventory.ts` | 渠道 URL 出口登记(safeFetch;**每新增 adapter 须同步,审计测试强制**) | 低(表追加) |
+| H5 | `docs/url-egress-inventory.md`+`packages/runtime/tests/url-egress-inventory.ts`+`packages/runtime/tests/url-egress-audit.test.ts` | 渠道 URL 出口登记(safeFetch;**每新增 adapter 须同步,审计测试强制**)。92 轮扩展:audit 测试追加 non-https 模板字面量 fetch 棘轮(gemini CDP loopback 是合规样例;append-only 追加,不改上游既有断言) | 低(表追加+测试块追加) |
 | H6 | (可选后续)`web/src/utils/nodeProvider.ts` 两张 namespace 映射 | web 侧 key-gating UX(v1 显式不做:节点常显,缺 key 运行时报结构化错误) | 中;不做则无 |
+| H7 | `packages/AGENTS.md` 包总览表 + `scripts/check-agents-docs.mjs` + `AGENTS.md`/`.agents/README.md` 布局陈述句 | mediagen-nodes 包行(R19-Y4)+检查脚本正修(R21:规则 8 对齐上游 2c7028443 翻转布局=.claude 链接→.agents 真目录;+计数盲绿守卫;**上游净 clone 原本就红=上游自带陈旧,此修可随渠道 PR 一并回馈上游**;R22/R23:AGENTS.md 与 .agents/README.md 的反向布局陈述已全数翻转(sweep 干净)——同样上游陈旧可回馈) | 低(表追加+脚本小修+布局句翻转) |
 
 > 触碰面纪律:凡不在本表的包外改动 = 收敛面违规(飞轮 §6)。上游 merge 冲突只允许出现在上表文件;每次 merge 记录冲突点与解法。
 

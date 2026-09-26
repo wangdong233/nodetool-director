@@ -2,8 +2,10 @@
   "name": "@nodetool-ai/mediagen-nodes",
   "version": "0.7.0-rc.40",
   "type": "module",
-  "engines": { "node": ">=22.22.1 <23" },
-  "description": "MediaGen channel nodes (zhipu, agnes, cloudflare, siliconflow, hfspaces) for NodeTool — manifest-driven factory with per-channel adapters",
+  "engines": {
+    "node": ">=22.22.1 <23"
+  },
+  "description": "MediaGen channel nodes (zhipu, agnes, cloudflare, siliconflow, hfspaces, pixverse, gemini) for NodeTool — manifest-driven factory with per-channel adapters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -15,17 +17,26 @@
     "@nodetool-ai/config": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/runtime": "*",
-    "@nodetool-ai/protocol": "*"
+    "@nodetool-ai/protocol": "*",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "^5.0.1"
   },
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "default": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
     "./mediagen-manifest.json": "./dist/mediagen-manifest.json"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "license": "MIT"
 }

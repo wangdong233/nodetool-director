@@ -2,7 +2,7 @@
 
 MediaGen channel nodes for NodeTool: image / video / audio generation through
 free and low-cost channels (zhipu, agnes, cloudflare, siliconflow, hfspaces,
-pixverse), driven by a per-channel manifest + adapter architecture.
+pixverse, gemini web), driven by a per-channel manifest + adapter architecture.
 
 ## Nodes
 
@@ -15,6 +15,7 @@ pixverse), driven by a per-channel manifest + adapter architecture.
 | HfspacesTextToImage / HfspacesImageToVideo / HfspacesMinimaxH3Video | hfspaces | image / video(i2v ≤5s) / video(t2v·i2v·keyframes 2-14s, with audio) | — (optional HF_TOKEN) |
 | HfspacesTextToSpeech | hfspaces | audio (Chatterbox, voice-clone via reference_audio) | — |
 | PixverseSubmit / PixverseConfirm | pixverse | billing confirm pair (Submit estimates + never bills; Confirm executes with TTL token) | pixverse CLI OAuth or PIXVERSE_ACCESS_KEY |
+| GeminiTextToImage / GeminiTextToVideo | gemini | image (Nano Banana 2) / video (Omni = Veo 3.1, 8s) via the channel Chrome over CDP | — (login state lives in the channel Chrome profile; see director/deploy-windows.md §5 and director/channels/92 for launch preconditions) |
 | DummyTextToImage | dummy | offline 1×1 PNG — mount/smoke node, no network, no key | — |
 
 ## Architecture
@@ -36,13 +37,16 @@ mount drill.
 
 ## Budget gate
 
-Every call passes `executeMediagenCall` → `acquireChannelSlot`: hfspaces is
-serialized to one in-flight call by default (ZeroGPU is accounted per account).
-Raise limits with `MEDIAGEN_MAX_CONCURRENT_<CHANNEL>` /
-`MEDIAGEN_DAILY_LIMIT_<CHANNEL>` (0/absent = unlimited). Counters persist to
+Every call passes `executeMediagenCall` → `acquireChannelSlot`: hfspaces and
+gemini are serialized to one in-flight call by default (ZeroGPU is accounted
+per account; the gemini web channel drives a single page, so a second call
+would navigate away from an unconsumed video). Raise limits with
+`MEDIAGEN_MAX_CONCURRENT_<CHANNEL>` / `MEDIAGEN_DAILY_LIMIT_<CHANNEL>`
+(0/absent = unlimited). Counters persist to
 `~/.local/share/nodetool/mediagen-budget.json` and reset daily.
 
 ## Tests
 
-`npm run test --workspace=packages/mediagen-nodes` — 73 offline tests (fetch
-and CLI spawns stubbed; assertion provenance is the channel wire contracts).
+`npm run test --workspace=packages/mediagen-nodes` — fully offline (fetch,
+CLI spawns and the CDP transport stubbed; assertion provenance is the channel
+wire contracts).

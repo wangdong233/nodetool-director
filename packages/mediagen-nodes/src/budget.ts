@@ -6,7 +6,10 @@
  * account-level quotas that are invisible per-process: hfspaces ZeroGPU is
  * serialized (maxConcurrent 1) because its GPU accounting is per account.
  *
- * Configuration (env, read lazily per acquire):
+ * Configuration (env): the daily limit is re-read on every acquire; the
+ * concurrency capacity is resolved at the FIRST acquire per channel and
+ * memoized — changing MEDIAGEN_MAX_CONCURRENT_<CHANNEL> on a running server
+ * is a no-op until restart (tests reset via resetBudgetGate).
  *   MEDIAGEN_MAX_CONCURRENT_<CHANNEL>   max in-flight calls (0/absent = unlimited)
  *   MEDIAGEN_DAILY_LIMIT_<CHANNEL>      max calls per calendar day (0/absent = unlimited)
  * Daily counters persist to one small JSON file (atomic tmp+rename), reset on
@@ -25,6 +28,10 @@ interface BudgetState {
 const DEFAULT_MAX_CONCURRENT: Record<string, number> = {
   // ZeroGPU quota is accounted per HF account — serialize hfspaces globally.
   hfspaces: 1,
+  // Gemini web is a single-page UI drive with one live session (S303):
+  // serialize so a second node cannot navigate away from an unconsumed
+  // video's result page (director/channels/92 §2).
+  gemini: 1,
 };
 
 function today(): string {

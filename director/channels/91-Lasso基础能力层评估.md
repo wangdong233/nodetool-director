@@ -28,8 +28,8 @@
 [管理层] lasso launch-chrome --port 9225 --profile gemini   ← 登录一次,长驻
               (CC 侧/手动触发;doctor 巡检;Windows 机同装 lasso+npm 跨平台)
                      ↓ 只提供:一个带登录态的 CDP 端口
-[执行层] packages/mediagen-nodes/src/channels/gemini-web/
-            adapter.ts ——直连 127.0.0.1:9225 CDP(移植 media-gen-mcp MIT 源码)
+[执行层] packages/mediagen-nodes/src/channels/gemini/
+            src/channels/gemini/adapter.ts ——直连 127.0.0.1:9225 CDP(已按 92 终版落地)
             (S303 单会话串行;blob 即时抓取;配额面板读数=预算闸输入)
 ```
 
@@ -53,3 +53,19 @@
 
 - **media-gen-mcp**:其 gemini-web.ts/flow.ts CDP 层(MIT)是 adapter 移植源;渠道工厂飞轮的 S2 实探也依赖 lasso——保持 media-gen-mcp 侧不动,本仓只移植代码。
 - **NodeTool 内置 browser 节点**:继续服务"工作流内网页自动化"场景(与渠道驱动正交),不承担渠道登录态。
+
+## 7. AMEND(92 对抗终版轮,2026-09-25):idle-reaper 修正 + 平台分化
+
+92 轮对抗审查在方案 B 落地前抓出一个 RED:**lasso launch-chrome 的 idle-reaper 会杀渠道 Chrome**——
+server 侧 `LASSO_LAUNCH_IDLE_MS` 缺省极短(默认 60s,显式 `--idle-ms` 也只是延长),且存在 24h 硬上限
+(`--idle-ms 0` 之外仍有 hard cap)。渠道 Chrome 必须长驻(登录态就是资产),被 reaper 回收 = S100 全渠道熔断。
+§5 的"launch-chrome 生命周期正常"结论只覆盖了两轮评估的短窗实测,**未覆盖长驻场景**——此为本次修正的判据。
+
+修正后的运维口径(已固化进 92 方案与 adapter 错误提示 LAUNCH_HINT):
+
+- **Mac**:`lasso launch-chrome --port 9225 --profile gemini --idle-ms 0 --no-hard-cap`
+  (`--idle-ms 0` = 永不 idle-reap;`--no-hard-cap` = 解除 24h 硬上限)。
+  外部 CDP 消费方定期 `touch ~/.cache/lasso/chrome-touch-9225`(mtime 即活性信号)双保险。
+- **Windows**:**不装 lasso**。裸起 `chrome --remote-debugging-port=9225 --user-data-dir=<专用目录>`
+  (deploy-windows.md §5),无 reaper 概念,任务计划程序或手工常驻均可。
+- 执行层结论不变:adapter 直连 `127.0.0.1:9225` CDP,对 lasso 零 import;lasso 整个消失不影响执行层。

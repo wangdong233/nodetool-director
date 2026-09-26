@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import agnesManifest from "../src/channels/agnes/manifest.json";
 import cloudflareManifest from "../src/channels/cloudflare/manifest.json";
 import dummyManifest from "../src/channels/dummy/manifest.json";
+import geminiManifest from "../src/channels/gemini/manifest.json";
 import hfspacesManifest from "../src/channels/hfspaces/manifest.json";
 import siliconflowManifest from "../src/channels/siliconflow/manifest.json";
 import zhipuManifest from "../src/channels/zhipu/manifest.json";
@@ -15,6 +16,7 @@ const fragments: Record<string, MediagenManifestEntry[]> = {
   siliconflow: siliconflowManifest as MediagenManifestEntry[],
   hfspaces: hfspacesManifest as MediagenManifestEntry[],
   dummy: dummyManifest as MediagenManifestEntry[],
+  gemini: geminiManifest as MediagenManifestEntry[],
 };
 
 describe("mediagen manifest fragments", () => {
@@ -52,9 +54,10 @@ describe("mediagen manifest fragments", () => {
   });
 
   it("declares the channel's required settings on every entry", () => {
-    // Keyless by design: hfspaces (anonymous ZeroGPU tier, token optional) and
-    // dummy (offline static mount-drill/smoke node).
-    const keyless = new Set(["hfspaces", "dummy"]);
+    // Keyless by design: hfspaces (anonymous ZeroGPU tier, token optional),
+    // dummy (offline static mount-drill/smoke node), and gemini (web channel —
+    // the credential is the channel Chrome's login state, not a secret).
+    const keyless = new Set(["hfspaces", "dummy", "gemini"]);
     for (const [channel, entries] of Object.entries(fragments)) {
       if (keyless.has(channel)) continue;
       for (const entry of entries) {

@@ -6,6 +6,7 @@ import type { ChannelAdapters } from "../adapters/types.js";
 import { agnesAdapters } from "./agnes/adapter.js";
 import { cloudflareAdapters } from "./cloudflare/adapter.js";
 import { dummyAdapters } from "./dummy/adapter.js";
+import { geminiAdapters } from "./gemini/adapter.js";
 import { hfspacesAdapters } from "./hfspaces/adapter.js";
 import { siliconflowAdapters } from "./siliconflow/adapter.js";
 import { zhipuAdapters } from "./zhipu/adapter.js";
@@ -22,6 +23,7 @@ export const CHANNELS: readonly ChannelRegistration[] = [
   { channel: "siliconflow", adapters: siliconflowAdapters },
   { channel: "hfspaces", adapters: hfspacesAdapters },
   { channel: "dummy", adapters: dummyAdapters },
+  { channel: "gemini", adapters: geminiAdapters },
 ];
 
 const BY_CHANNEL = new Map(CHANNELS.map((registration) => [registration.channel, registration.adapters]));
