@@ -1,4 +1,4 @@
-import { appIntlLocale } from "../i18n";
+import { appIntlLocale, i18n } from "../i18n";
 const BYTES_PER_KILOBYTE = 1024;
 
 /**
@@ -110,6 +110,29 @@ export const TYPE_FILTERS = [
 ] as const;
 
 export type TypeFilterKey = (typeof TYPE_FILTERS)[number]["key"];
+
+/**
+ * Localized label for a size filter. Ranges ("< 1 MB" etc.) are locale-neutral
+ * and stay as the constant's label; only "All"/"Empty" carry catalog entries.
+ * Resolve at render time — callers re-render on language change.
+ */
+export function localizedSizeFilterLabel(
+  key: SizeFilterKey,
+  fallback: string
+): string {
+  return i18n.t(`common:sizeFilters.${key}`, { defaultValue: fallback });
+}
+
+/**
+ * Localized label for an asset type filter (all entries carry zh catalog
+ * entries; the English fallback is the constant's label).
+ */
+export function localizedTypeFilterLabel(
+  key: TypeFilterKey,
+  fallback: string
+): string {
+  return i18n.t(`common:typeFilters.${key}`, { defaultValue: fallback });
+}
 
 // Passing an options object to `toLocaleString` rebuilds an Intl.DateTimeFormat
 // on every call — ~50x the cost of formatting with an existing one. Built on
@@ -252,18 +275,25 @@ export function formatContentType(
   contentType: string | null | undefined
 ): string {
   if (!contentType) {
-    return "Unknown";
+    return i18n.t("common:mime.unknown", { defaultValue: "Unknown" });
   }
   const known = MIME_TYPE_LABELS[contentType];
   if (known) {
-    return known;
+    return i18n.t(`common:mime.${contentType}`, { defaultValue: known });
   }
   const [kind, subtype] = contentType.split("/");
   if (!subtype) {
     return contentType;
   }
-  const kindLabel = MIME_KIND_LABELS[kind] ?? "file";
-  return `${subtype.replace(/^x-/, "").toUpperCase()} ${kindLabel}`;
+  const kindRaw = MIME_KIND_LABELS[kind] ?? "file";
+  const kindLabel = i18n.t(`common:mime.kind.${kind}`, { defaultValue: kindRaw });
+  const fmt = subtype.replace(/^x-/, "").toUpperCase();
+  // Single-key interpolation: en separates with a space, zh does not.
+  return i18n.t("common:mime.unknownPattern", {
+    defaultValue: `${fmt} ${kindLabel}`,
+    fmt,
+    kind: kindLabel
+  });
 }
 
 /**

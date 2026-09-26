@@ -20,6 +20,7 @@ import {
   formatFileSize
 } from "../../utils/formatUtils";
 import { secondsToHMS } from "../../utils/formatDateAndTime";
+import { useAppLanguage } from "../../i18n";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 
@@ -107,6 +108,8 @@ function settingLabel(key: string) {
 
 const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
   const theme = useTheme();
+  // Subscribe so formatContentType/date reads re-render on language change.
+  useAppLanguage();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
 

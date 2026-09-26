@@ -56,15 +56,18 @@ void instance.use(initReactI18next).init({
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React already escapes
   react: { useSuspense: false },
-  // Dev guard: a missing key must surface as its English fallback, and the
-  // raw key string is logged — never rendered silently. Gated by a window
-  // flag (no import.meta — the Jest transform does not provide it).
-  parseMissingKeyHandler: (key) => {
+  // Dev guard: a missing key must surface as its fallback (defaultValue when
+  // the caller gave one, else the raw key), and the miss is logged — the key
+  // string never silently replaces a caller-provided English fallback. Gated
+  // by a window flag (no import.meta — the Jest transform does not provide it).
+  parseMissingKeyHandler: (key, defaultValue) => {
     if (typeof window !== "undefined" && (window as { __NODETOOL_I18N_DEBUG__?: boolean }).__NODETOOL_I18N_DEBUG__) {
       // eslint-disable-next-line no-console -- opt-in diagnostics
       console.warn(`[i18n] missing key: ${key}`);
     }
-    return key;
+    // i18next passes the caller's defaultValue as the second argument; prefer
+    // it so a missing key never replaces a caller-provided English fallback.
+    return defaultValue ?? key;
   },
 });
 

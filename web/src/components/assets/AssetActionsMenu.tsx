@@ -36,7 +36,8 @@ import {
   MOTION,
   SPACING, getSpacingPx
 } from "../ui_primitives";
-import { TYPE_FILTERS, TypeFilterKey } from "../../utils/formatUtils";
+import { TYPE_FILTERS, TypeFilterKey, localizedTypeFilterLabel } from "../../utils/formatUtils";
+import { i18n, useAppLanguage } from "../../i18n";
 import isEqual from "../../utils/isEqual";
 
 const styles = (theme: Theme) =>
@@ -145,10 +146,14 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
   );
 
   const theme = useTheme();
+  // Subscribe so localized filter labels re-render on language change.
+  useAppLanguage();
 
   const typeFilterActive = typeFilter !== "all";
-  const typeFilterLabel =
-    TYPE_FILTERS.find((f) => f.key === typeFilter)?.label ?? "All";
+  const typeFilterEntry = TYPE_FILTERS.find((f) => f.key === typeFilter);
+  const typeFilterLabel = typeFilterEntry
+    ? localizedTypeFilterLabel(typeFilterEntry.key, typeFilterEntry.label)
+    : i18n.t("common:typeFilters.all", { defaultValue: "All" });
 
   return (
     <Box
@@ -262,7 +267,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {TYPE_FILTERS.map((filter) => (
           <MenuItemPrimitive
             key={filter.key}
-            label={filter.label}
+            label={localizedTypeFilterLabel(filter.key, filter.label)}
             icon={TYPE_FILTER_ICONS[filter.key]}
             selected={typeFilter === filter.key}
             onClick={() => {

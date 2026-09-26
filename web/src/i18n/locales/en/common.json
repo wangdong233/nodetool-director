@@ -32,5 +32,50 @@
     "refresh": "Refresh Page",
     "retry": "Retry",
     "preparing": "Preparing workspace…"
+  },
+  "mime": {
+    "image/png": "PNG image",
+    "image/jpeg": "JPEG image",
+    "image/gif": "GIF image",
+    "image/webp": "WebP image",
+    "image/svg+xml": "SVG image",
+    "image/tiff": "TIFF image",
+    "image/bmp": "BMP image",
+    "video/mp4": "MP4 video",
+    "video/webm": "WebM video",
+    "video/quicktime": "QuickTime video",
+    "audio/mpeg": "MP3 audio",
+    "audio/wav": "WAV audio",
+    "audio/ogg": "OGG audio",
+    "audio/flac": "FLAC audio",
+    "application/pdf": "PDF document",
+    "application/json": "JSON file",
+    "application/zip": "ZIP archive",
+    "text/plain": "Text file",
+    "text/csv": "CSV file",
+    "text/markdown": "Markdown file",
+    "text/html": "HTML file",
+    "kind.image": "image",
+    "kind.video": "video",
+    "kind.audio": "audio",
+    "kind.model": "3D model",
+    "kind.font": "font",
+    "unknown": "Unknown",
+    "unknownPattern": "{{fmt}} {{kind}}",
+    "kind.file": "file"
+  },
+  "sizeFilters": {
+    "all": "All",
+    "empty": "Empty"
+  },
+  "typeFilters": {
+    "all": "All",
+    "image": "Images",
+    "video": "Videos",
+    "audio": "Audio",
+    "model_3d": "3D Models",
+    "text": "Text",
+    "application": "Documents",
+    "other": "Other"
   }
 }

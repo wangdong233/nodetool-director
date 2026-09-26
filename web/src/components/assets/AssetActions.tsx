@@ -20,7 +20,8 @@ import { useSettingsStore } from "../../stores/SettingsStore";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import SliderBasic from "../inputs/SliderBasic";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
-import { SIZE_FILTERS, SizeFilterKey } from "../../utils/formatUtils";
+import { SIZE_FILTERS, SizeFilterKey, localizedSizeFilterLabel } from "../../utils/formatUtils";
+import { useAppLanguage } from "../../i18n";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import { useTheme } from "@mui/material/styles";
@@ -221,6 +222,8 @@ const AssetActions = ({
   maxItemSize = 10
 }: AssetActionsProps) => {
   const theme = useTheme();
+  // Subscribe so localized filter labels re-render on language change.
+  useAppLanguage();
   const { isLoading } = useAssets();
   const [settings, setAssetItemSize, setAssetsOrder] = useSettingsStore(
     useShallow(
@@ -361,7 +364,7 @@ const AssetActions = ({
         >
           {SIZE_FILTERS.map((filter) => (
             <MenuItem key={filter.key} value={filter.key}>
-              {filter.label}
+              {localizedSizeFilterLabel(filter.key, filter.label)}
             </MenuItem>
           ))}
         </Select>
