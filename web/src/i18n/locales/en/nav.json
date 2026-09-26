@@ -22,7 +22,7 @@
     "about": "About",
     "docsProviders": "Models & providers",
     "docsConfig": "Configuration",
-    "docsSuffix": "documentation"
+    "docsTitle": "{{label}} documentation"
   },
   "tabs": {
     "closeTab": "Close Tab",

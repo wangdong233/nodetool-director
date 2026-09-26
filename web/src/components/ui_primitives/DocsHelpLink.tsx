@@ -66,7 +66,7 @@ const DocsHelpLinkInternal: React.FC<DocsHelpLinkProps> = ({
   className
 }) => {
   const theme = useTheme();
-  const title = `${label} ${i18n.t("nav:settings.docsSuffix")}`;
+  const title = i18n.t("nav:settings.docsTitle", { label });
 
   const commonProps = {
     href: docsLink(topic),

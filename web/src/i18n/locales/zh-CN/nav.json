@@ -22,7 +22,7 @@
     "about": "关于",
     "docsProviders": "模型与服务商",
     "docsConfig": "配置",
-    "docsSuffix": "文档"
+    "docsTitle": "{{label}}文档"
   },
   "tabs": {
     "closeTab": "关闭标签页",
