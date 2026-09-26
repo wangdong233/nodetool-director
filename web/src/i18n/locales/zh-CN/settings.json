@@ -2,7 +2,26 @@
   "general": {
     "language": "语言",
     "languageEnglish": "English",
-    "languageChinese": "简体中文"
+    "languageChinese": "简体中文",
+    "secCanvasNav": "画布与导航",
+    "secAutosaveHistory": "自动保存与版本历史",
+    "secFolders": "文件夹",
+    "secAccounts": "已连接账号",
+    "secMcp": "MCP 集成",
+    "secUpdates": "更新",
+    "catWorkspace": "工作区",
+    "catWorkflow": "工作流",
+    "catHistory": "历史",
+    "secEditor": "编辑器",
+    "secVaults": "保险库",
+    "secAppearance": "外观",
+    "secExecution": "执行",
+    "secCanvas": "画布",
+    "secDefaultModels": "默认模型",
+    "secAutosave": "自动保存",
+    "selectNodesOnDrag": "拖拽时选中节点",
+    "updateChannel": "更新渠道",
+    "onCloseBehavior": "关闭时的行为"
   },
   "search": {
     "placeholder": "搜索设置…",

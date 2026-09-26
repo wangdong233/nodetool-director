@@ -445,27 +445,29 @@ function SettingsPage() {
     });
   };
 
+  const t18 = (key: string, fallback: string) =>
+    i18n.t(`settings:general.${key}`, { defaultValue: fallback });
   const generalSidebarSections = [
     {
-      category: "Workspace",
+      category: t18("catWorkspace", "Workspace"),
       items: [
-        { id: "editor", label: "Editor" },
-        ...(isElectron ? [{ id: "updates", label: "Updates" }] : []),
-        ...(isElectron ? [{ id: "vaults", label: "Vaults" }] : []),
-        { id: "appearance", label: "Appearance" }
+        { id: "editor", label: t18("secEditor", "Editor") },
+        ...(isElectron ? [{ id: "updates", label: t18("secUpdates", "Updates") }] : []),
+        ...(isElectron ? [{ id: "vaults", label: t18("secVaults", "Vaults") }] : []),
+        { id: "appearance", label: t18("secAppearance", "Appearance") }
       ]
     },
     {
-      category: "Workflow",
+      category: t18("catWorkflow", "Workflow"),
       items: [
-        { id: "execution", label: "Execution" },
-        { id: "canvas-navigation", label: "Canvas" },
-        { id: "default-models", label: "Default Models" }
+        { id: "execution", label: t18("secExecution", "Execution") },
+        { id: "canvas-navigation", label: t18("secCanvas", "Canvas") },
+        { id: "default-models", label: t18("secDefaultModels", "Default Models") }
       ]
     },
     {
-      category: "History",
-      items: [{ id: "autosave", label: "Autosave" }]
+      category: t18("catHistory", "History"),
+      items: [{ id: "autosave", label: t18("secAutosave", "Autosave") }]
     }
   ];
 
@@ -667,14 +669,14 @@ function SettingsPage() {
                     </div>
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
-                        Editor
+                        {t18("secEditor", "Editor")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="editor workspace select nodes on drag selection"
                       >
                         <LabeledSwitch
-                          label="Select Nodes On Drag"
+                          label={t18("selectNodesOnDrag", "Select Nodes On Drag")}
                           checked={!!settings.selectNodesOnDrag}
                           onChange={handleSelectNodesOnDragChange}
                         />
@@ -706,7 +708,7 @@ function SettingsPage() {
                     {isElectron && (
                       <div className="settings-section">
                         <Text size="big" id="updates" className="settings-heading">
-                          Updates
+                          {t18("secUpdates", "Updates")}
                         </Text>
                         {supportsDesktopUpdateSettings && (
                           <SearchItem
@@ -727,7 +729,7 @@ function SettingsPage() {
                             keywords="editor workspace update channel stable nightly"
                           >
                             <SelectField
-                              label="Update Channel"
+                              label={t18("updateChannel", "Update Channel")}
                               value={updateChannel}
                               onChange={handleUpdateChannelChange}
                               options={UPDATE_CHANNEL_OPTIONS}
@@ -743,7 +745,7 @@ function SettingsPage() {
                           keywords="editor workspace on close behavior quit background tray"
                         >
                           <SelectField
-                            label="On Close Behavior"
+                            label={t18("onCloseBehavior", "On Close Behavior")}
                             value={closeBehavior}
                             onChange={(v) =>
                               handleCloseBehaviorChange(
@@ -777,7 +779,7 @@ function SettingsPage() {
                         id="appearance"
                         className="settings-heading"
                       >
-                        Appearance
+                        {t18("secAppearance", "Appearance")}
                       </Text>
                       <SearchItem
                         search={search}
@@ -799,7 +801,7 @@ function SettingsPage() {
                         id="execution"
                         className="settings-heading"
                       >
-                        Execution
+                        {t18("secExecution", "Execution")}
                       </Text>
                       <SearchItem
                         search={search}
@@ -884,7 +886,7 @@ function SettingsPage() {
                         id="canvas-navigation"
                         className="settings-heading"
                       >
-                        Canvas & Navigation
+                        {t18("secCanvasNav", "Canvas & Navigation")}
                       </Text>
                       <SearchItem
                         search={search}
@@ -986,7 +988,7 @@ function SettingsPage() {
                         id="autosave"
                         className="settings-heading"
                       >
-                        Autosave & Version History
+                        {t18("secAutosaveHistory", "Autosave & Version History")}
                       </Text>
                       <SearchItem
                         search={search}
@@ -1076,7 +1078,7 @@ function SettingsPage() {
                   ) && (
                     <>
                       <Text size="big" id="folders" className="settings-heading">
-                        Folders
+                        {t18("secFolders", "Folders")}
                       </Text>
                       <FoldersSettings />
                     </>
@@ -1092,7 +1094,7 @@ function SettingsPage() {
                         id="connected-accounts"
                         className="settings-heading"
                       >
-                        Connected Accounts
+                        {t18("secAccounts", "Connected Accounts")}
                       </Text>
                       <ConnectedAccountsSettings />
                     </>
@@ -1109,7 +1111,7 @@ function SettingsPage() {
                         id="mcp-integration"
                         className="settings-heading"
                       >
-                        MCP Integration
+                        {t18("secMcp", "MCP Integration")}
                       </Text>
                       <MCPSettingsMenu />
                     </>

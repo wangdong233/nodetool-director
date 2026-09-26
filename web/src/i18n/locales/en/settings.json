@@ -2,7 +2,26 @@
   "general": {
     "language": "Language",
     "languageEnglish": "English",
-    "languageChinese": "简体中文"
+    "languageChinese": "简体中文",
+    "catWorkspace": "Workspace",
+    "catWorkflow": "Workflow",
+    "catHistory": "History",
+    "secEditor": "Editor",
+    "secUpdates": "Updates",
+    "secVaults": "Vaults",
+    "secAppearance": "Appearance",
+    "secExecution": "Execution",
+    "secCanvas": "Canvas",
+    "secDefaultModels": "Default Models",
+    "secAutosave": "Autosave",
+    "selectNodesOnDrag": "Select Nodes On Drag",
+    "updateChannel": "Update Channel",
+    "onCloseBehavior": "On Close Behavior",
+    "secCanvasNav": "Canvas & Navigation",
+    "secAutosaveHistory": "Autosave & Version History",
+    "secFolders": "Folders",
+    "secAccounts": "Connected Accounts",
+    "secMcp": "MCP Integration"
   },
   "search": {
     "placeholder": "Search settings…",
