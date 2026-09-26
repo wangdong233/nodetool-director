@@ -104,7 +104,7 @@ describe("SettingsPage", () => {
   it("puts one search field in the header", () => {
     renderSettings();
     expect(
-      screen.getByRole("textbox", { name: "Search settings" })
+      screen.getByRole("textbox", { name: "Search settings…" })
     ).toBeInTheDocument();
     expect(
       screen.queryByPlaceholderText("Search providers...")
@@ -114,7 +114,7 @@ describe("SettingsPage", () => {
   it("keeps the query when switching tabs", async () => {
     const user = userEvent.setup();
     renderSettings();
-    const search = screen.getByRole("textbox", { name: "Search settings" });
+    const search = screen.getByRole("textbox", { name: "Search settings…" });
     await user.type(search, "openai");
     await user.click(screen.getByRole("tab", { name: "Models & Providers" }));
     expect(search).toHaveValue("openai");
@@ -125,7 +125,7 @@ describe("SettingsPage", () => {
     const user = userEvent.setup();
     renderSettings();
     await user.type(
-      screen.getByRole("textbox", { name: "Search settings" }),
+      screen.getByRole("textbox", { name: "Search settings…" }),
       "openai"
     );
     expect(screen.getByText("No matches in General.")).toBeInTheDocument();

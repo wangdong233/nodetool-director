@@ -3,5 +3,11 @@
     "language": "Language",
     "languageEnglish": "English",
     "languageChinese": "简体中文"
+  },
+  "search": {
+    "placeholder": "Search settings…",
+    "noMatchesIn": "No matches in {{label}}.",
+    "alsoIn": "Also in",
+    "see": "See"
   }
 }

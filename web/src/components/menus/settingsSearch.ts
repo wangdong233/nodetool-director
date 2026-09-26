@@ -2,15 +2,6 @@ import { PROVIDER_META } from "./providerCatalog";
 import type { SettingsSection } from "../../stores/SettingsPageStore";
 import { i18n } from "../../i18n";
 
-export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
-  value: SettingsSection;
-  label: string;
-}> = [
-  { value: "general", label: "General" },
-  { value: "providers", label: "Models & Providers" },
-  { value: "integrations", label: "Integrations" },
-  { value: "about", label: "About" }
-];
 
 const EN_LABEL: Record<SettingsSection, string> = {
   general: "General",
@@ -32,12 +23,33 @@ const I18N_KEY: Record<SettingsSection, string> = {
 export const settingsTabLabel = (section: SettingsSection): string =>
   i18n.t(I18N_KEY[section], { defaultValue: EN_LABEL[section] });
 
-export function matchesSearch(keywords: string, search: string): boolean {
+export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
+  value: SettingsSection;
+  label: string;
+}> = [
+  { value: "general", label: "General" },
+  { value: "providers", label: "Models & Providers" },
+  { value: "integrations", label: "Integrations" },
+  { value: "about", label: "About" }
+].map(({ value }) => ({ value, label: settingsTabLabel(value) }));
+
+/**
+ * Keyword match with optional localized-label matching: with `section`,
+ * a query also matches the tab's own (possibly Chinese) label, so 通用 or
+ * 语言 finds the General tab without maintaining a parallel zh keyword
+ * list (director/93, copy-polish R3 finding 11).
+ */
+export function matchesSearch(
+  keywords: string,
+  search: string,
+  section?: SettingsSection
+): boolean {
   const query = search.trim().toLowerCase();
   if (!query) {
     return true;
   }
-  return keywords.toLowerCase().includes(query);
+  if (keywords.toLowerCase().includes(query)) return true;
+  return section !== undefined && settingsTabLabel(section).toLowerCase().includes(query);
 }
 
 const GENERAL_KEYWORDS = [
@@ -91,6 +103,8 @@ export function tabHasMatches(tab: SettingsSection, search: string): boolean {
   if (!query) {
     return true;
   }
+  // The tab's own localized label matches too (通用/语言 hit General).
+  if (settingsTabLabel(tab).toLowerCase().includes(query)) return true;
   switch (tab) {
     case "general":
       return GENERAL_KEYWORDS.some((keywords) => keywords.includes(query));

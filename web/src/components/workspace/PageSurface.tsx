@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 
 import { LoadingSpinner } from "../ui_primitives";
-import { PAGE_TAB_TITLES, type PageTabKey } from "./pageTabs";
+import { pageTitle, type PageTabKey } from "./pageTabs";
 
 const AssetExplorer = React.lazy(() => import("../assets/AssetExplorer"));
 const TutorialsPage = React.lazy(() => import("../tutorials/TutorialsPage"));
@@ -72,7 +72,7 @@ const PageSurface = ({ pageKey }: PageSurfaceProps) => {
     ? surfaceStyle
     : SCROLLING_SURFACE_STYLE;
   return (
-    <div style={style} aria-label={PAGE_TAB_TITLES[pageKey]}>
+    <div style={style} aria-label={pageTitle(pageKey)}>
       <Suspense fallback={<LoadingSpinner />}>
         <Component />
       </Suspense>

@@ -29,6 +29,7 @@
     "failed": "Failed to load NodeTool",
     "errorDetail": "Error loading application metadata.",
     "refresh": "Refresh Page",
-    "retry": "Retry"
+    "retry": "Retry",
+    "preparing": "Preparing workspace…"
   }
 }

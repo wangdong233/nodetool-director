@@ -11,7 +11,8 @@
     "memory": "Memory",
     "settings": "Settings",
     "help": "Help",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "entities": "Entities"
   },
   "settings": {
     "title": "Settings",

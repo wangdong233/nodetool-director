@@ -29,6 +29,7 @@
     "failed": "NodeTool 加载失败",
     "errorDetail": "加载应用配置出错。",
     "refresh": "刷新页面",
-    "retry": "重试"
+    "retry": "重试",
+    "preparing": "正在准备工作区…"
   }
 }

@@ -745,7 +745,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                         fallback={
                           <div
                             role="status"
-                            aria-label="Loading"
+                            aria-label={i18n.t("common:status.loading")}
                             style={{
                               display: "flex",
                               flexDirection: "column",

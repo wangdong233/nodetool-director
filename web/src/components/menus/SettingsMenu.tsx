@@ -23,6 +23,7 @@ import {
   SPACING,
   DocsHelpLink, getSpacingPx
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -582,7 +583,7 @@ function SettingsPage() {
         <header className="settings-page-header">
           <div className="settings-page-header__titles">
             <div className="settings-page-header__heading">
-              <h1 className="settings-page-header__title">Settings</h1>
+              <h1 className="settings-page-header__title">{i18n.t("nav:settings.title")}</h1>
               <DocsHelpLink
                 topic={settingsDocsTopic(section)}
                 label={settingsDocsLabel(section)}
@@ -591,13 +592,13 @@ function SettingsPage() {
           </div>
           <div className="settings-page-header__search">
             <SearchInput
-              placeholder="Search settings..."
+              placeholder={i18n.t("settings:search.placeholder")}
               value={searchTerm}
               onChange={setSearchTerm}
               size="medium"
               fullWidth
               showClear
-              ariaLabel="Search settings"
+              ariaLabel={i18n.t("settings:search.placeholder")}
             />
           </div>
         </header>
@@ -634,13 +635,13 @@ function SettingsPage() {
                   <div className="settings-search-alts">
                     {!currentTabHasMatches && (
                       <Caption>
-                        No matches in {settingsTabLabel(section)}.
+                        {i18n.t("settings:search.noMatchesIn", { label: settingsTabLabel(section) })}
                       </Caption>
                     )}
                     {matchingOtherTabs.length > 0 && (
                       <>
                         <Caption>
-                          {currentTabHasMatches ? "Also in" : "See"}
+                          {currentTabHasMatches ? i18n.t("settings:search.alsoIn") : i18n.t("settings:search.see")}
                         </Caption>
                         {matchingOtherTabs.map((tab) => (
                           <TextLink

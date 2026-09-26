@@ -3,5 +3,11 @@
     "language": "语言",
     "languageEnglish": "English",
     "languageChinese": "简体中文"
+  },
+  "search": {
+    "placeholder": "搜索设置…",
+    "noMatchesIn": "在{{label}}中没有找到。",
+    "alsoIn": "另见",
+    "see": "见"
   }
 }

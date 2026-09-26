@@ -8,14 +8,14 @@ import {
   useSettingsPageStore,
   type SettingsSection
 } from "../../stores/SettingsPageStore";
-import { PAGE_TAB_TITLES, type PageTabKey } from "./pageTabs";
+import { pageTitle, type PageTabKey } from "./pageTabs";
 
 export const openPageTab = (key: PageTabKey): void => {
   useWorkspaceTabsStore.getState().openTab({
     type: "page",
     ref: key,
     mode: "view",
-    title: PAGE_TAB_TITLES[key]
+    title: pageTitle(key)
   });
   navigateTo("/workspace");
 };
