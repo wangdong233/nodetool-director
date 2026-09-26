@@ -22,5 +22,12 @@
     "empty": "这里还什么都没有",
     "error": "出了点问题",
     "retryHint": "请重试。"
+  },
+  "boot": {
+    "loading": "正在加载 NodeTool…",
+    "failed": "NodeTool 加载失败",
+    "errorDetail": "加载应用元数据出错。",
+    "refresh": "刷新页面",
+    "retry": "重试"
   }
 }

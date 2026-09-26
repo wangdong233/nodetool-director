@@ -22,5 +22,12 @@
     "empty": "Nothing here yet",
     "error": "Something went wrong",
     "retryHint": "Please try again."
+  },
+  "boot": {
+    "loading": "Loading NodeTool…",
+    "failed": "Failed to load NodeTool",
+    "errorDetail": "Error loading application metadata.",
+    "refresh": "Refresh Page",
+    "retry": "Retry"
   }
 }

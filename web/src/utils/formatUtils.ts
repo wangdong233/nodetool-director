@@ -1,3 +1,4 @@
+import { appIntlLocale } from "../i18n";
 const BYTES_PER_KILOBYTE = 1024;
 
 /**
@@ -112,13 +113,20 @@ export type TypeFilterKey = (typeof TYPE_FILTERS)[number]["key"];
 
 // Passing an options object to `toLocaleString` rebuilds an Intl.DateTimeFormat
 // on every call — ~50x the cost of formatting with an existing one. Built on
-// first use so a route that renders no dates pays nothing at boot.
+// first use so a route that renders no dates pays nothing at boot. Formatters
+// cache per LOCALE (director/93 R3-1): the date language follows the in-app
+// switcher, not the OS — an English UI on a zh OS renders English dates.
 const lazyFormatter = (
   options: Intl.DateTimeFormatOptions
 ): ((date: Date) => string) => {
-  let formatter: Intl.DateTimeFormat | null = null;
+  const formatters = new Map<string, Intl.DateTimeFormat>();
   return (date) => {
-    formatter ??= new Intl.DateTimeFormat(undefined, options);
+    const locale = appIntlLocale();
+    let formatter = formatters.get(locale);
+    if (!formatter) {
+      formatter = new Intl.DateTimeFormat(locale, options);
+      formatters.set(locale, formatter);
+    }
     return formatter.format(date);
   };
 };

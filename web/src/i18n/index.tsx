@@ -98,6 +98,16 @@ if (typeof document !== "undefined") {
 void ensureLanguageLoaded(instance.language as AppLanguage);
 
 export const i18n = instance;
+
+/**
+ * Locale for Intl formatting (dates/numbers). Follows the in-app language
+ * switcher, NOT the OS locale — an English UI on a zh OS must render English
+ * dates (director/93 R3-①). "en" maps to the en-US conventions the previous
+ * hardcoded output used.
+ */
+export function appIntlLocale(): string {
+  return instance.language === "zh-CN" ? "zh-CN" : "en-US";
+}
 export { I18nextProvider } from "react-i18next";
 
 /** React hook for the settings switcher: current language + setter. */

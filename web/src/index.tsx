@@ -671,7 +671,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                   {status === "pending" && !isDevTestRoute && (
                     <div
                       role="status"
-                      aria-label="Loading NodeTool"
+                      aria-label={i18n.t("common:boot.loading")}
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -688,7 +688,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Loading NodeTool…
+                        {i18n.t("common:boot.loading")}
                       </span>
                     </div>
                   )}
@@ -710,7 +710,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Error loading application metadata.
+                        {i18n.t("common:boot.errorDetail")}
                       </span>
                       <button
                         type="button"
@@ -725,7 +725,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Refresh Page
+                        {i18n.t("common:boot.refresh")}
                       </button>
                       <ReportBugButton
                         variant="outlined"
