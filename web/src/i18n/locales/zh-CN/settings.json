@@ -119,7 +119,7 @@
   },
   "vaults": {
     "desc": "保险库是一个独立隔离的数据存储，拥有自己的数据库、素材和知识库。切换保险库可将不同的工作流与数据分开存放。切换会重启后端并重新加载应用。",
-    "activeSuffix": " —— 使用中",
+    "activeSuffix": "——使用中",
     "newName": "新保险库名称",
     "confirmBody": "从列表中移除保险库“{{name}}”？\n\n其数据库文件保留在磁盘上，可重新添加或手动删除。",
     "renamePromptTitle": "重命名保险库"
@@ -141,7 +141,7 @@
     "descKeepGen": "超过此天数后，生成记录中的提示词、参数与日志会被清除。计费记录——模型、服务商、令牌数、费用与日期——保留。",
     "lblAutoClean": "自动清理历史",
     "descAutoClean": "每天在后台应用一次这些限制。数据库压缩仍为手动。",
-    "dbLine": "数据库：{{size}} ·  工作流版本{{versions}}个 · 运行{{runs}}次 · 运行事件{{events}}条",
+    "dbLine": "数据库：{{size}} · 工作流版本{{versions}}个 · 运行{{runs}}次 · 运行事件{{events}}条",
     "pendingLine": "{{count}}条记录超出当前限制。已删除的 SQLite 页面当前占用{{size}}，仅压缩后才会归还磁盘。",
     "redactedLine": "{{total}}条生成记录中{{count}}条仍保留提示词与参数且已超期。清理会清除这些文本并保留计费记录。",
     "cleanNow": "立即清理（{{count}}）",

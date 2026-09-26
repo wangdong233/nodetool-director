@@ -121,27 +121,26 @@ describe("catalog key parity (CI completeness guard)", () => {
 
     const dead: string[] = [];
     for (const [ns, key] of leafKeys) {
-      if (allSource.includes(`${ns}:${key}`)) continue;
-      // Dynamic subtrees (`ns:ancestor.` + interpolation) pass only when the
-      // leaf key name also appears as a quoted literal somewhere in src —
-      // the helper call site (`vt("renamePromptTitle", …)`) or the enum
-      // value table that feeds the template. A helper alone must not
-      // whitelist its whole namespace subtree (mutation-verified).
-      const parts = key.split(".");
-      const leaf = parts[parts.length - 1];
-      const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      // A full-literal reference must END at the key: the next character is
-      // a closing quote/backtick (r15: "common:action.close" was passing as
-      // a substring of "common:action.closeTab").
+      // A full-literal reference must match the FULL key path and END at a
+      // closing quote/backtick. A bare substring check is wrong twice over:
+      // "common:action.close" passes as a substring of "common:action.closeTab"
+      // (r16-R1), and it also short-circuits before the boundary test can
+      // run. The prefix-free sibling reference grants nothing to other keys.
+      const escPath = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const fullLiteral = new RegExp(
-        `${ns.replace("/", "\\/")}:${esc}["\`]`
+        `${ns.replace("/", "\\/")}:${escPath}["\`]`
       );
       if (fullLiteral.test(allSource)) continue;
       // Only whitelisted subtrees may build keys dynamically (a template
       // `ns:subtree.${…}` exists in src). Inside one, a leaf still needs
       // corroboration: the key name as a quoted literal (helper call site)
       // or as an object-literal key (the enum table feeding the template).
-      // Known blind spot: very common words corroborate incidentally.
+      // Known blind spot: very common words corroborate incidentally — a
+      // dead key whose leaf name is a frequent string anywhere in src
+      // (e.g. "close") survives the corroboration check. Verified in r16:
+      // re-adding action.close stays green through this path; the boundary
+      // fix above is what stops prefix-hitchhiking for keys WITHOUT a
+      // coincidental literal.
       const DYNAMIC_SUBTREES = [
         "common:mime.",
         "common:sizeFilters.",
@@ -155,6 +154,11 @@ describe("catalog key parity (CI completeness guard)", () => {
         "settings:defModels."
       ];
       let dynamicallyUsed = false;
+      const parts = key.split(".");
+      const esc = parts[parts.length - 1].replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
       for (const prefix of DYNAMIC_SUBTREES) {
         if (
           allSource.includes(prefix) &&
