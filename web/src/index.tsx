@@ -763,7 +763,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                                 fontSize: "var(--fontSizeNormal)"
                               }}
                             >
-                              Preparing workspace…
+                              {i18n.t("common:boot.preparing")}
                             </span>
                           </div>
                         }

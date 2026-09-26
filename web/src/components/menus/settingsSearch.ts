@@ -23,15 +23,20 @@ const I18N_KEY: Record<SettingsSection, string> = {
 export const settingsTabLabel = (section: SettingsSection): string =>
   i18n.t(I18N_KEY[section], { defaultValue: EN_LABEL[section] });
 
+const SETTINGS_SECTIONS: readonly SettingsSection[] = [
+  "general",
+  "providers",
+  "integrations",
+  "about"
+];
+
 export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   value: SettingsSection;
   label: string;
-}> = [
-  { value: "general", label: "General" },
-  { value: "providers", label: "Models & Providers" },
-  { value: "integrations", label: "Integrations" },
-  { value: "about", label: "About" }
-].map(({ value }) => ({ value, label: settingsTabLabel(value) }));
+}> = SETTINGS_SECTIONS.map((value) => ({
+  value,
+  label: settingsTabLabel(value)
+}));
 
 /**
  * Keyword match with optional localized-label matching: with `section`,

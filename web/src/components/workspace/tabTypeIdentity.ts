@@ -7,10 +7,11 @@
 import { colorForType } from "../../config/data_types";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "../projects/projectIdentity";
 import type { WorkspaceTabType } from "../../stores/WorkspaceTabsStore";
+import { isPageTabKey, pageTitle } from "./pageTabs";
 
 /**
- * The overview tab shows its project name. The new-project landing surface
- * keeps the Home label until a project exists.
+ * The project selector already names the open project, so the overview tab
+ * uses a fixed label and a distinct glyph instead of repeating that name.
  */
 export const PROJECT_HOME_TAB_TITLE = "Home";
 export const PROJECT_HOME_GLYPH = "⌂";
@@ -18,7 +19,19 @@ export const PROJECT_HOME_GLYPH = "⌂";
 export const tabDisplayTitle = (tab: {
   type: WorkspaceTabType;
   title: string;
-}): string => (tab.type === "project-new" ? PROJECT_HOME_TAB_TITLE : tab.title);
+  ref?: string;
+}): string => {
+  if (tab.type === "project" || tab.type === "project-new") {
+    return PROJECT_HOME_TAB_TITLE;
+  }
+  // Page tabs resolve their title at RENDER time so a language switch
+  // re-renders them in the new language (stored titles are snapshots;
+  // director/93 copy-polish R4 finding 3).
+  if (tab.type === "page" && tab.ref && isPageTabKey(tab.ref)) {
+    return pageTitle(tab.ref);
+  }
+  return tab.title;
+};
 
 export const TYPE_GLYPH = {
   workflow: "⬡",

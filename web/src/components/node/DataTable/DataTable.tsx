@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
 import React, {
-import { appIntlLocale } from "../../../i18n";
   useEffect,
   useRef,
   useState,
@@ -9,6 +8,7 @@ import { appIntlLocale } from "../../../i18n";
   useCallback,
   memo
 } from "react";
+import { appIntlLocale } from "../../../i18n";
 import {
   TabulatorFull as Tabulator,
   ColumnDefinition,

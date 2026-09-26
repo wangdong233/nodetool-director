@@ -28,11 +28,11 @@ export function LanguageSetting() {
     [t],
   );
   return (
-    <SelectField<AppLanguage>
+    <SelectField
       label={t("general.language")}
       value={language}
       onChange={(value) => {
-        void setLanguage(value);
+        void setLanguage(value as AppLanguage);
       }}
       options={options}
     />

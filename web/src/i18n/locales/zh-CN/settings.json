@@ -6,7 +6,7 @@
   },
   "search": {
     "placeholder": "搜索设置…",
-    "noMatchesIn": "在{{label}}中没有找到。",
+    "noMatchesIn": "在{{label}}中没有找到匹配项。",
     "alsoIn": "另见",
     "see": "见"
   }
