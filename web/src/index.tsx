@@ -30,7 +30,8 @@ import {
 import ErrorBoundary from "./ErrorBoundary";
 
 import { LoadingSpinner, ThemeRoot } from "./components/ui_primitives";
-import ThemeNodetool from "./components/themes/ThemeNodetool";
+import { I18nextProvider, i18n } from "./i18n";
+import { ThemeNodetool, ThemeNodetoolZhCN } from "./components/themes/ThemeNodetool";
 
 import "@xyflow/react/dist/style.css";
 import "@xyflow/react/dist/base.css";
@@ -659,7 +660,8 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
   return (
     <React.StrictMode>
       <TRPCProvider>
-        <ThemeRoot theme={ThemeNodetool}>
+        <I18nextProvider i18n={i18n}>
+        <ThemeRoot theme={i18n.language === "zh-CN" ? ThemeNodetoolZhCN : ThemeNodetool}>
           <MobileClassProvider>
             <MenuProvider>
               <MenuNavigationBridge />
@@ -783,6 +785,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
             </MenuProvider>
           </MobileClassProvider>
         </ThemeRoot>
+        </I18nextProvider>
       </TRPCProvider>
     </React.StrictMode>
   );

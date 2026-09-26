@@ -1,3 +1,4 @@
+import { zhCN } from "@mui/material/locale";
 import { createTheme } from "@mui/material/styles";
 import type {} from "@mui/material/themeCssVarsAugmentation";
 import { paletteDark } from "./paletteDark";
@@ -24,7 +25,7 @@ import "@fontsource/jetbrains-mono/latin-600.css";
 
 // Theme augmentation moved to a single global file `theme.d.ts` to avoid duplication
 
-const ThemeNodetool = createTheme({
+export const ThemeNodetool = createTheme({
   cssVariables: {
     cssVarPrefix: "",
     colorSchemeSelector: "class"
@@ -398,3 +399,28 @@ const ThemeNodetool = createTheme({
 });
 
 export default ThemeNodetool;
+
+
+// i18n (director/93): the zh-CN locale variant re-creates the theme with
+// MUI's zhCN component strings; the CJK fallback chain keeps weights
+// consistent under Chinese text (Inter carries no CJK glyphs).
+export const ThemeNodetoolZhCN = createTheme(
+  {
+    cssVariables: {
+      cssVarPrefix: "",
+      colorSchemeSelector: "class"
+    },
+    colorSchemes: {
+      light: { palette: paletteLight },
+      dark: { palette: paletteDark }
+    },
+    typography: {
+      ...ThemeNodetool.typography,
+      // CJK fallback chain: Inter has no CJK glyphs — without an explicit
+      // chain the OS picks silently and weights drift (director/93 Y7).
+      fontFamily:
+        "'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif"
+    }
+  },
+  zhCN
+);

@@ -1,0 +1,26 @@
+{
+  "action": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "retry": "Retry",
+    "rename": "Rename",
+    "duplicate": "Duplicate",
+    "download": "Download",
+    "upload": "Upload",
+    "create": "Create",
+    "edit": "Edit",
+    "copy": "Copy",
+    "search": "Search",
+    "run": "Run"
+  },
+  "status": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "searching": "Searching…",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong",
+    "retryHint": "Please try again."
+  }
+}

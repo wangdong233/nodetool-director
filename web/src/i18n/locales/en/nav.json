@@ -1,0 +1,14 @@
+{
+  "rail": {
+    "settings": "Settings",
+    "help": "Help",
+    "downloads": "Downloads"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "providers": "Models & Providers",
+    "integrations": "Integrations",
+    "about": "About"
+  }
+}

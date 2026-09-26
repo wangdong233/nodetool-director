@@ -1,0 +1,14 @@
+{
+  "rail": {
+    "settings": "设置",
+    "help": "帮助",
+    "downloads": "下载"
+  },
+  "settings": {
+    "title": "设置",
+    "general": "通用",
+    "providers": "模型与服务商",
+    "integrations": "集成",
+    "about": "关于"
+  }
+}

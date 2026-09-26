@@ -1,5 +1,6 @@
 import { PROVIDER_META } from "./providerCatalog";
 import type { SettingsSection } from "../../stores/SettingsPageStore";
+import { i18n } from "../../i18n";
 
 export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   value: SettingsSection;
@@ -11,15 +12,25 @@ export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   { value: "about", label: "About" }
 ];
 
-const TAB_LABEL: Record<SettingsSection, string> = {
+const EN_LABEL: Record<SettingsSection, string> = {
   general: "General",
   providers: "Models & Providers",
   integrations: "Integrations",
   about: "About"
 };
 
+// Labels resolve through i18n at CALL time (not import time) so a language
+// switch re-renders without remounting the search index. English values are
+// the catalog source of truth (director/93: default English).
+const I18N_KEY: Record<SettingsSection, string> = {
+  general: "nav:settings.general",
+  providers: "nav:settings.providers",
+  integrations: "nav:settings.integrations",
+  about: "nav:settings.about"
+};
+
 export const settingsTabLabel = (section: SettingsSection): string =>
-  TAB_LABEL[section];
+  i18n.t(I18N_KEY[section], { defaultValue: EN_LABEL[section] });
 
 export function matchesSearch(keywords: string, search: string): boolean {
   const query = search.trim().toLowerCase();

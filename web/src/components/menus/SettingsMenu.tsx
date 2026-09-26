@@ -23,6 +23,7 @@ import {
   SPACING,
   DocsHelpLink, getSpacingPx
 } from "../ui_primitives";
+import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { isLocalhost, isElectron } from "../../lib/env";
@@ -657,6 +658,9 @@ function SettingsPage() {
                 {/* Tab 0: General */}
                 <TabPanel section="general" current={section}>
                   <div className="general-settings">
+                    <div className="settings-section">
+                      <LanguageSetting />
+                    </div>
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
                         Editor
