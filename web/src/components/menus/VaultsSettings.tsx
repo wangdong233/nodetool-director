@@ -1,6 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from "react";
 import { Text, TextInput, EditorButton, FlexColumn, FlexRow } from "../ui_primitives";
+import { i18n, useAppLanguage } from "../../i18n";
+
+const vt = (key: string, fallback: string, options?: Record<string, string>) =>
+  i18n.t(`settings:vaults.${key}`, { defaultValue: fallback, ...options });
+const act = (key: string, fallback: string) =>
+  i18n.t(`common:action.${key}`, { defaultValue: fallback });
 
 const DEFAULT_VAULT_ID = "default";
 
@@ -22,6 +28,8 @@ interface VaultListResult {
  * (e.g. the web build running in a plain browser).
  */
 const VaultsSettings: React.FC = () => {
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const vaultsApi = typeof window !== "undefined" ? window.api?.vaults : undefined;
 
   const [vaults, setVaults] = useState<VaultInfo[]>([]);
@@ -85,7 +93,11 @@ const VaultsSettings: React.FC = () => {
 
   const handleDelete = (id: string, name: string) => {
     const confirmed = window.confirm(
-      `Remove the vault "${name}" from the list?\n\nIts database files are left on disk and can be re-added or deleted manually.`
+      vt(
+        "confirmBody",
+        'Remove the vault "{{name}}" from the list?\n\nIts database files are left on disk and can be re-added or deleted manually.',
+        { name }
+      )
     );
     if (!confirmed) return;
     void run(() => vaultsApi.delete(id));
@@ -94,13 +106,13 @@ const VaultsSettings: React.FC = () => {
   return (
     <div className="settings-section">
       <Text size="big" id="vaults" className="settings-heading">
-        Vaults
+        {i18n.t("settings:general.secVaults", { defaultValue: "Vaults" })}
       </Text>
       <Text className="description">
-        A vault is a separate, isolated data store with its own database,
-        assets, and RAG collections. Switch vaults to keep different sets of
-        workflows and data apart. Switching restarts the backend and reloads the
-        app.
+        {vt(
+          "desc",
+          "A vault is a separate, isolated data store with its own database, assets, and RAG collections. Switch vaults to keep different sets of workflows and data apart. Switching restarts the backend and reloads the app."
+        )}
       </Text>
 
       <FlexColumn gap={1} style={{ marginTop: 8 }}>
@@ -117,7 +129,7 @@ const VaultsSettings: React.FC = () => {
             >
               <Text>
                 {vault.name}
-                {isActive ? " — active" : ""}
+                {isActive ? vt("activeSuffix", " — active") : ""}
               </Text>
               <FlexRow gap={1} align="center">
                 {!isActive && (
@@ -127,7 +139,7 @@ const VaultsSettings: React.FC = () => {
                     disabled={busy}
                     onClick={() => handleSwitch(vault.id)}
                   >
-                    Switch
+                    {act("switch", "Switch")}
                   </EditorButton>
                 )}
                 <EditorButton
@@ -136,7 +148,7 @@ const VaultsSettings: React.FC = () => {
                   disabled={busy || isDefault}
                   onClick={() => handleRename(vault.id, vault.name)}
                 >
-                  Rename
+                  {act("rename", "Rename")}
                 </EditorButton>
                 <EditorButton
                   variant="outlined"
@@ -145,7 +157,7 @@ const VaultsSettings: React.FC = () => {
                   disabled={busy || isDefault || isActive}
                   onClick={() => handleDelete(vault.id, vault.name)}
                 >
-                  Delete
+                  {act("delete", "Delete")}
                 </EditorButton>
               </FlexRow>
             </FlexRow>
@@ -155,7 +167,7 @@ const VaultsSettings: React.FC = () => {
 
       <FlexRow gap={1} align="flex-end" style={{ marginTop: 12 }}>
         <TextInput
-          label="New vault name"
+          label={vt("newName", "New vault name")}
           value={newName}
           autoComplete="off"
           disabled={busy}
@@ -172,7 +184,7 @@ const VaultsSettings: React.FC = () => {
           disabled={busy || newName.trim().length === 0}
           onClick={handleCreate}
         >
-          Create
+          {act("create", "Create")}
         </EditorButton>
       </FlexRow>
 
