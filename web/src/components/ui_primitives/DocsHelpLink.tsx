@@ -2,7 +2,7 @@
 import React, { memo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import type { Theme } from "@mui/material/styles";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -66,7 +66,13 @@ const DocsHelpLinkInternal: React.FC<DocsHelpLinkProps> = ({
   className
 }) => {
   const theme = useTheme();
-  const title = i18n.t("nav:settings.docsTitle", { label });
+  // Subscribe so the raw-i18n.t reads below re-render on language change.
+  useAppLanguage();
+  // The topic is a closed enum — resolve its display name from the catalog so
+  // callers never ship mixed-language tooltips (the label prop is the English
+  // fallback for topics the catalog does not name yet).
+  const docLabel = i18n.t(`nav:settings.docsTopics.${topic}`, { defaultValue: label });
+  const title = i18n.t("nav:settings.docsTitle", { label: docLabel });
 
   const commonProps = {
     href: docsLink(topic),
