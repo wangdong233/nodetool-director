@@ -19,6 +19,16 @@
     "general": "General",
     "providers": "Models & Providers",
     "integrations": "Integrations",
-    "about": "About"
+    "about": "About",
+    "docsProviders": "Models & providers",
+    "docsConfig": "Configuration"
+  },
+  "tabs": {
+    "closeTab": "Close Tab",
+    "closeOthers": "Close Other Tabs",
+    "closeAll": "Close All Tabs",
+    "home": "Home",
+    "tabName": "Tab name",
+    "unsaved": "unsaved changes"
   }
 }

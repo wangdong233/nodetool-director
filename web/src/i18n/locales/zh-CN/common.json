@@ -15,7 +15,7 @@
     "search": "搜索",
     "run": "运行",
     "reportBug": "报告问题",
-    "closeTab": "Close {{title}}"
+    "closeTab": "关闭{{title}}"
   },
   "status": {
     "loading": "加载中…",

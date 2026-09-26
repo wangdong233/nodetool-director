@@ -181,7 +181,7 @@ const WorkspaceTabItem = ({
         {isEditing ? (
           <InlineEditableText
             className="tab-input"
-            ariaLabel="Tab name"
+            ariaLabel={i18n.t("nav:tabs.tabName")}
             value={tab.title}
             editing
             onEditingChange={handleEditingChange}
@@ -211,7 +211,7 @@ const WorkspaceTabItem = ({
               <span
                 className="dirty-dot"
                 role="img"
-                aria-label="unsaved changes"
+                aria-label={i18n.t("nav:tabs.unsaved")}
               />
             )}
           </>
@@ -235,7 +235,7 @@ const WorkspaceTabItem = ({
       >
         {canRename && (
           <MenuItemPrimitive
-            label="Rename"
+            label={i18n.t("common:action.rename")}
             compact
             onClick={() => {
               closeContextMenu();
@@ -244,7 +244,7 @@ const WorkspaceTabItem = ({
           />
         )}
         <MenuItemPrimitive
-          label="Close Tab"
+          label={i18n.t("nav:tabs.closeTab")}
           compact
           onClick={() => {
             closeContextMenu();
@@ -252,7 +252,7 @@ const WorkspaceTabItem = ({
           }}
         />
         <MenuItemPrimitive
-          label="Close Other Tabs"
+          label={i18n.t("nav:tabs.closeOthers")}
           compact
           onClick={() => {
             closeContextMenu();
@@ -260,7 +260,7 @@ const WorkspaceTabItem = ({
           }}
         />
         <MenuItemPrimitive
-          label="Close All Tabs"
+          label={i18n.t("nav:tabs.closeAll")}
           compact
           onClick={() => {
             closeContextMenu();

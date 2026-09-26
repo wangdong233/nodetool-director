@@ -71,7 +71,10 @@ const settingsDocsTopic = (section: SettingsSection): DocsTopic =>
   section === "providers" ? "providers" : "configuration";
 
 const settingsDocsLabel = (section: SettingsSection): string =>
-  section === "providers" ? "Models & providers" : "Configuration";
+  i18n.t(
+    section === "providers" ? "nav:settings.docsProviders" : "nav:settings.docsConfig",
+    { defaultValue: section === "providers" ? "Models & providers" : "Configuration" }
+  );
 
 const UPDATE_CHANNEL_OPTIONS = [
   { value: "latest", label: "Stable" },
