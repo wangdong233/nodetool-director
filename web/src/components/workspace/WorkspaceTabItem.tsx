@@ -20,6 +20,7 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { tabDisplayTitle } from "./tabTypeIdentity";
+import { useAppLanguage } from "../../i18n";
 
 // Tabs are scanned, not studied — the title has to land while the pointer is
 // still moving. Well under the 700ms chrome default, and the native `title`
@@ -64,6 +65,7 @@ const WorkspaceTabItem = ({
   onCommitRename,
   onCancelRename
 }: WorkspaceTabItemProps) => {
+  useAppLanguage(); // re-render on language change: render-time tab titles (R5/R6-6)
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isWorkflowDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);

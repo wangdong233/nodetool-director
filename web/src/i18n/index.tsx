@@ -73,10 +73,17 @@ const loadedZhNamespaces = new Set<string>();
 export async function ensureLanguageLoaded(language: AppLanguage): Promise<void> {
   if (language !== "zh-CN") return;
   const missing = NAMESPACES.filter((ns) => !loadedZhNamespaces.has(ns));
+  if (missing.length === 0) return;
   for (const ns of missing) {
     const mod = await import(`./locales/zh-CN/${ns}.json`);
     instance.addResourceBundle("zh-CN", ns, mod.default, true, true);
     loadedZhNamespaces.add(ns);
+  }
+  // addResourceBundle emits nothing — re-run changeLanguage against the same
+  // lng so components using raw i18n.t (the boot splash) re-render with the
+  // now-loaded zh bundles instead of flashing English (R6-7).
+  if (instance.language === language) {
+    await instance.changeLanguage(language);
   }
 }
 
