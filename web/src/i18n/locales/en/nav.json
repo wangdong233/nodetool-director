@@ -1,5 +1,14 @@
 {
   "rail": {
+    "tutorials": "Tutorials",
+    "examples": "Examples",
+    "costs": "Costs",
+    "models": "Model Manager",
+    "packages": "Package Manager",
+    "assets": "Assets",
+    "collections": "Collections",
+    "workspaces": "Workspaces",
+    "memory": "Memory",
     "settings": "Settings",
     "help": "Help",
     "downloads": "Downloads"

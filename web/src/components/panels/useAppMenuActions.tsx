@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import { i18n } from "../../i18n";
 import { useShallow } from "zustand/react/shallow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
@@ -73,21 +74,21 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     const actions: AppMenuAction[] = [
       {
         key: "tutorials",
-        label: "Tutorials",
+        label: i18n.t("nav:rail.tutorials"),
         icon: <SchoolOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("tutorials")
       },
       {
         key: "examples",
-        label: "Examples",
+        label: i18n.t("nav:rail.examples"),
         icon: <AutoAwesomeOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("examples")
       },
       {
         key: "costs",
-        label: "Costs",
+        label: i18n.t("nav:rail.costs"),
         icon: <PaidOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("costs"),
@@ -95,7 +96,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "models",
-        label: "Model Manager",
+        label: i18n.t("nav:rail.models"),
         icon: <ViewInArOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("models")
@@ -105,7 +106,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     if (!isProduction) {
       actions.push({
         key: "packages",
-        label: "Package Manager",
+        label: i18n.t("nav:rail.packages"),
         icon: <Inventory2OutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("packages")
@@ -115,28 +116,28 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     actions.push(
       {
         key: "assets",
-        label: "Assets",
+        label: i18n.t("nav:rail.assets"),
         icon: <PermMediaOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("assets")
       },
       {
         key: "collections",
-        label: "Collections",
+        label: i18n.t("nav:rail.collections"),
         icon: <LibraryBooksOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("collections")
       },
       {
         key: "workspaces",
-        label: "Workspaces",
+        label: i18n.t("nav:rail.workspaces"),
         icon: <FolderSpecialOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("workspaces")
       },
       {
         key: "memory",
-        label: "Memory",
+        label: i18n.t("nav:rail.memory"),
         icon: <PsychologyOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("memory"),
@@ -144,14 +145,14 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "settings",
-        label: "Settings",
+        label: i18n.t("nav:rail.settings"),
         icon: <SettingsIcon />,
         placement: "logo",
         onClick: () => openPage("settings")
       },
       {
         key: "help",
-        label: "Help",
+        label: i18n.t("nav:rail.help"),
         icon: <HelpOutlineIcon />,
         placement: "logo",
         onClick: () => {
@@ -161,7 +162,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "downloads",
-        label: "Downloads",
+        label: i18n.t("nav:rail.downloads"),
         icon: <DownloadIcon />,
         placement: "logo",
         onClick: () => {
