@@ -21,7 +21,22 @@
     "secAutosave": "自动保存",
     "selectNodesOnDrag": "拖拽时选中节点",
     "updateChannel": "更新渠道",
-    "onCloseBehavior": "关闭时的行为"
+    "onCloseBehavior": "关闭时的行为",
+    "descSound": "工作流完成、导出结束或其它重要事件发生时播放系统提示音。",
+    "descUpdates": "从所选更新渠道检查并下载桌面应用更新。",
+    "descTimeFormat": "以 12 或 24 小时制显示时间。",
+    "descConfirmManyNodes": "运行工作流会一次执行全部节点。当一次运行会启动大量可能压垮 API 的模型/服务商节点时,先弹出确认。",
+    "descManyNodesThreshold": "当一次运行的模型/服务商节点(大模型、图像、音频、API 等)超过此数量时发出警告。",
+    "descAudioBuffer": "实时音频(模块合成器补丁)的播放缓冲。调低可减少操作到出声的延迟,调高可在编辑器繁忙时防止丢声。",
+    "descMaxParallelRuns": "可同时执行的工作流运行数量上限。超出的运行会排队,前面的结束后自动开始。",
+    "descMaxRunsPerWorkflow": "同一工作流可同时运行的份数,超出的排队等待。适用于并发生成(时间线、图稿);画布运行始终串行。",
+    "descSnapToGrid": "拖拽时让节点对齐画布网格。桌面应用的视图菜单中也可开关。",
+    "descGridSize": "启用对齐网格时使用的网格大小。画布网格每 25 个单位绘制一条。",
+    "descSnapDistance": "连接节点时的吸附距离。",
+    "descAutosave": "按固定间隔自动保存工作流。",
+    "descAutosaveInterval": "自动保存工作流的时间间隔。",
+    "descCheckpoint": "执行工作流前先创建检查点版本。",
+    "descAutosaveOnClose": "关闭标签页或窗口时自动保存。"
   },
   "search": {
     "placeholder": "搜索设置…",

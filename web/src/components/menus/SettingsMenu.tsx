@@ -23,7 +23,7 @@ import {
   SPACING,
   DocsHelpLink, getSpacingPx
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -167,6 +167,9 @@ const SearchItem = React.memo(function SearchItem({
 });
 
 function SettingsPage() {
+  // Subscribe so raw-i18n.t reads (t18) re-render on language change — the
+  // language switcher lives inside this page and must flip it live.
+  useAppLanguage();
   const section = useSettingsPageStore((state) => state.section);
   const setSection = useSettingsPageStore((state) => state.setSection);
   const session = useAuth((state) => state.session);
@@ -698,7 +701,7 @@ function SettingsPage() {
                             label="Sound Notifications"
                             checked={!!settings.soundNotifications}
                             onChange={handleSoundNotificationsChange}
-                            description="Play a system beep sound when workflows complete, exports finish, or other important events occur."
+                            description={t18("descSound", "Play a system beep sound when workflows complete, exports finish, or other important events occur.")}
                           />
                         </SearchItem>
                       )}
@@ -719,7 +722,7 @@ function SettingsPage() {
                               label="Automatic Updates"
                               checked={autoUpdatesEnabled}
                               onChange={handleAutoUpdatesChange}
-                              description="Check for and download desktop app updates from the selected release channel."
+                              description={t18("descUpdates", "Check for and download desktop app updates from the selected release channel.")}
                             />
                           </SearchItem>
                         )}
@@ -790,7 +793,7 @@ function SettingsPage() {
                           value={settings.timeFormat}
                           onChange={handleTimeFormatChange}
                           options={TIME_FORMAT_OPTIONS}
-                          description="Display time in 12h or 24h format."
+                          description={t18("descTimeFormat", "Display time in 12h or 24h format.")}
                         />
                       </SearchItem>
                     </div>
@@ -813,7 +816,7 @@ function SettingsPage() {
                           onChange={(checked) =>
                             updateSettings({ confirmLargeRun: checked })
                           }
-                          description="Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API."
+                          description={t18("descConfirmManyNodes", "Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API.")}
                         />
                       </SearchItem>
 
@@ -830,7 +833,7 @@ function SettingsPage() {
                           max={100}
                           fallback={5}
                           disabled={!(settings.confirmLargeRun ?? true)}
-                          description="Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.)."
+                          description={t18("descManyNodesThreshold", "Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.).")}
                         />
                       </SearchItem>
 
@@ -847,7 +850,7 @@ function SettingsPage() {
                           max={1000}
                           step={10}
                           fallback={100}
-                          description="Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy."
+                          description={t18("descAudioBuffer", "Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy.")}
                         />
                       </SearchItem>
 
@@ -861,7 +864,7 @@ function SettingsPage() {
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish."
+                          description={t18("descMaxParallelRuns", "Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish.")}
                         />
                       </SearchItem>
 
@@ -875,7 +878,7 @@ function SettingsPage() {
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential."
+                          description={t18("descMaxRunsPerWorkflow", "How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential.")}
                         />
                       </SearchItem>
                     </div>
@@ -940,7 +943,7 @@ function SettingsPage() {
                           label="Snap to Grid"
                           checked={!!settings.snapToGrid}
                           onChange={handleSnapToGridChange}
-                          description="Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app."
+                          description={t18("descSnapToGrid", "Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app.")}
                         />
                       </SearchItem>
 
@@ -957,7 +960,7 @@ function SettingsPage() {
                           max={100}
                           fallback={25}
                           disabled={!settings.snapToGrid}
-                          description="Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units."
+                          description={t18("descGridSize", "Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units.")}
                         />
                       </SearchItem>
 
@@ -973,7 +976,7 @@ function SettingsPage() {
                           min={5}
                           max={30}
                           fallback={20}
-                          description="Snap distance for connecting nodes."
+                          description={t18("descSnapDistance", "Snap distance for connecting nodes.")}
                         />
                       </SearchItem>
                     </div>
@@ -1000,7 +1003,7 @@ function SettingsPage() {
                           onChange={(checked) =>
                             updateAutosaveSettings({ enabled: checked })
                           }
-                          description="Automatically save your workflow at regular intervals."
+                          description={t18("descAutosave", "Automatically save your workflow at regular intervals.")}
                         />
                       </SearchItem>
 
@@ -1018,7 +1021,7 @@ function SettingsPage() {
                           }
                           options={AUTOSAVE_INTERVAL_OPTIONS}
                           disabled={!settings.autosave?.enabled}
-                          description="How often to automatically save your workflow."
+                          description={t18("descAutosaveInterval", "How often to automatically save your workflow.")}
                         />
                       </SearchItem>
 
@@ -1034,7 +1037,7 @@ function SettingsPage() {
                               saveBeforeRun: checked
                             })
                           }
-                          description="Create a checkpoint version before executing workflow."
+                          description={t18("descCheckpoint", "Create a checkpoint version before executing workflow.")}
                         />
                       </SearchItem>
 
@@ -1050,7 +1053,7 @@ function SettingsPage() {
                               saveOnClose: checked
                             })
                           }
-                          description="Automatically save when closing the tab or window."
+                          description={t18("descAutosaveOnClose", "Automatically save when closing the tab or window.")}
                         />
                       </SearchItem>
 

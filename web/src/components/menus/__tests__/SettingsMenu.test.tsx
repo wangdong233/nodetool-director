@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import { useSettingsPageStore } from "../../../stores/SettingsPageStore";
+import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
 
 jest.mock("../../../lib/env", () => ({
   isLocalhost: true,
@@ -132,5 +133,21 @@ describe("SettingsPage", () => {
     expect(
       screen.getByRole("button", { name: "Models & Providers" })
     ).toBeInTheDocument();
+  });
+
+  it("localizes general section descriptions in zh", async () => {
+    renderSettings();
+    await act(async () => {
+      await changeAppLanguage("zh-CN");
+    });
+    try {
+      // A catalog-backed description flips with the language switcher that
+      // lives inside this same page.
+      expect(
+        screen.getByText("按固定间隔自动保存工作流。")
+      ).toBeInTheDocument();
+    } finally {
+      await resetI18nForTest();
+    }
   });
 });

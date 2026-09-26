@@ -21,7 +21,22 @@
     "secAutosaveHistory": "Autosave & Version History",
     "secFolders": "Folders",
     "secAccounts": "Connected Accounts",
-    "secMcp": "MCP Integration"
+    "secMcp": "MCP Integration",
+    "descSound": "Play a system beep sound when workflows complete, exports finish, or other important events occur.",
+    "descUpdates": "Check for and download desktop app updates from the selected release channel.",
+    "descTimeFormat": "Display time in 12h or 24h format.",
+    "descConfirmManyNodes": "Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API.",
+    "descManyNodesThreshold": "Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.).",
+    "descAudioBuffer": "Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy.",
+    "descMaxParallelRuns": "Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish.",
+    "descMaxRunsPerWorkflow": "How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential.",
+    "descSnapToGrid": "Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app.",
+    "descGridSize": "Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units.",
+    "descSnapDistance": "Snap distance for connecting nodes.",
+    "descAutosave": "Automatically save your workflow at regular intervals.",
+    "descAutosaveInterval": "How often to automatically save your workflow.",
+    "descCheckpoint": "Create a checkpoint version before executing workflow.",
+    "descAutosaveOnClose": "Automatically save when closing the tab or window."
   },
   "search": {
     "placeholder": "Search settings…",
