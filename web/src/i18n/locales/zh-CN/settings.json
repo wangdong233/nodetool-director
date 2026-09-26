@@ -141,7 +141,7 @@
     "descKeepGen": "超过此天数后，生成记录中的提示词、参数与日志会被清除。计费记录——模型、服务商、令牌数、费用与日期——保留。",
     "lblAutoClean": "自动清理历史",
     "descAutoClean": "每天在后台应用一次这些限制。数据库压缩仍为手动。",
-    "dbLine": "数据库：{{size}}· 工作流版本{{versions}}个 · 运行{{runs}}次 · 运行事件{{events}}条",
+    "dbLine": "数据库：{{size}} ·  工作流版本{{versions}}个 · 运行{{runs}}次 · 运行事件{{events}}条",
     "pendingLine": "{{count}}条记录超出当前限制。已删除的 SQLite 页面当前占用{{size}}，仅压缩后才会归还磁盘。",
     "redactedLine": "{{total}}条生成记录中{{count}}条仍保留提示词与参数且已超期。清理会清除这些文本并保留计费记录。",
     "cleanNow": "立即清理（{{count}}）",

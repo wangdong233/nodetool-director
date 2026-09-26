@@ -47,3 +47,17 @@
 | account（登录关联义） | 账号 | connected accounts=已连接账号（第三方服务关联）；鉴权／账户体系义用“账户”（API token 验证你的账户）——两语境分立非双译（r13-G2） |
 | flow（引导式） | 流程 | guided-flow=引导流程；flow≠workflow，不与“工作流”互撞（r13-G3） |
 | 标点 | 全角 | zh 一切用户可见串的 ，：；（） 用全角（微件规范重申；r12-B1 修 12 串含 nav.openDocument，r13 校正计数） |
+
+## r15 补锚与裁决（2026-09-27）
+
+| 英文 | 中文 | 边界 |
+|---|---|---|
+| Vault | 保险库 | 独立隔离数据存储（r13-Y3 批）；重命名保险库／切换 |
+| chat model | 对话模型 | 代码生成默认模型语境（useChatPlaceholder） |
+| App / mini app | 小程序 | docsTopics.apps／appBuilder／typeNames.application 三处一致 |
+| image（类型／文档语境） | 图像 | 图像模型（defModels.mImage）／tab 类型 image=图像 |
+| image（素材／文件语境） | 图片 | 素材筛选 typeFilters.image=图片／MIME 全系=图片 |
+
+裁决：image 双译按语境分立（r15-Y2）——类型与文档语境用“图像”，素材与文件语境用“图片”；新增键先查本表语境再定译。
+已知上游不一致：en 侧 “Nodetool API”（小写 t）与 “NodeTool” 品牌大小写并存（r15-G1，非本分支引入，zh 忠实镜像；上游修正后跟随）。
+死键律（r14/r15）：词表键上线即须有接线——接线或删除二选一，CI 死键守卫强制；风格断言样本须用活键。

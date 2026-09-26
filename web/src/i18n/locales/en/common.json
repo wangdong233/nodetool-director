@@ -1,36 +1,21 @@
 {
   "action": {
-    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
-    "close": "Close",
-    "retry": "Retry",
     "rename": "Rename",
-    "duplicate": "Duplicate",
-    "download": "Download",
-    "upload": "Upload",
     "create": "Create",
-    "edit": "Edit",
-    "copy": "Copy",
-    "search": "Search",
-    "run": "Run",
     "reportBug": "Report a bug",
     "closeTab": "Close {{title}}",
     "clear": "Clear",
     "switch": "Switch"
   },
   "status": {
-    "loading": "Loading…",
-    "saving": "Saving…",
-    "empty": "Nothing here yet",
-    "error": "Something went wrong"
+    "loading": "Loading…"
   },
   "boot": {
     "loading": "Loading NodeTool…",
-    "failed": "Failed to load NodeTool",
     "errorDetail": "Error loading application metadata.",
     "refresh": "Refresh Page",
-    "retry": "Retry",
     "preparing": "Preparing workspace…"
   },
   "mime": {

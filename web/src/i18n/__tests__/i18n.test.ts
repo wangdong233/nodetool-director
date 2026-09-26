@@ -28,12 +28,12 @@ afterEach(async () => {
 describe("app i18n", () => {
   it("defaults to English with the full en bundle", () => {
     expect(i18n.language.startsWith("en")).toBe(true);
-    expect(i18n.t("common:action.save")).toBe("Save");
+    expect(i18n.t("common:action.cancel")).toBe("Cancel");
   });
 
   it("switches to zh-CN, translates, and syncs <html lang> + storage", async () => {
     await changeAppLanguage("zh-CN");
-    expect(i18n.t("common:action.save")).toBe("保存");
+    expect(i18n.t("common:action.cancel")).toBe("取消");
     expect(i18n.t("nav:settings.general")).toBe("通用");
     expect(document.documentElement.lang).toBe("zh-CN");
     expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe("zh-CN");
@@ -56,7 +56,7 @@ describe("app i18n", () => {
   it("reset restores English and clears persistence", async () => {
     await changeAppLanguage("zh-CN");
     await resetI18nForTest();
-    expect(i18n.t("common:action.save")).toBe("Save");
+    expect(i18n.t("common:action.cancel")).toBe("Cancel");
     expect(document.documentElement.lang).toBe("en");
     expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBeNull();
   });
@@ -130,20 +130,41 @@ describe("catalog key parity (CI completeness guard)", () => {
       const parts = key.split(".");
       const leaf = parts[parts.length - 1];
       const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      // A leaf passes its subtree's dynamic prefix only with corroborating
-      // evidence: the key name as a quoted literal (helper call site) or as
-      // an object-literal key (the enum table that feeds the template).
+      // A full-literal reference must END at the key: the next character is
+      // a closing quote/backtick (r15: "common:action.close" was passing as
+      // a substring of "common:action.closeTab").
+      const fullLiteral = new RegExp(
+        `${ns.replace("/", "\\/")}:${esc}["\`]`
+      );
+      if (fullLiteral.test(allSource)) continue;
+      // Only whitelisted subtrees may build keys dynamically (a template
+      // `ns:subtree.${…}` exists in src). Inside one, a leaf still needs
+      // corroboration: the key name as a quoted literal (helper call site)
+      // or as an object-literal key (the enum table feeding the template).
       // Known blind spot: very common words corroborate incidentally.
-      const literal = new RegExp(`["'\`]${esc}["'\`]`);
-      const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
+      const DYNAMIC_SUBTREES = [
+        "common:mime.",
+        "common:sizeFilters.",
+        "common:typeFilters.",
+        "common:action.",
+        "nav:tabs.",
+        "nav:settings.docsTopics.",
+        "settings:general.",
+        "settings:vaults.",
+        "settings:storage.",
+        "settings:defModels."
+      ];
       let dynamicallyUsed = false;
-      for (let i = 1; i < parts.length; i++) {
-        const ancestor = parts.slice(0, i).join(".");
+      for (const prefix of DYNAMIC_SUBTREES) {
         if (
-          allSource.includes(`${ns}:${ancestor}.`) &&
-          (literal.test(allSource) || objectKey.test(allSource))
+          allSource.includes(prefix) &&
+          `${ns}:${parts.slice(0, -1).join(".")}.`.startsWith(prefix)
         ) {
-          dynamicallyUsed = true;
+          const literal = new RegExp(`["'\`]${esc}["'\`]`);
+          const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
+          if (literal.test(allSource) || objectKey.test(allSource)) {
+            dynamicallyUsed = true;
+          }
         }
       }
       if (!dynamicallyUsed) dead.push(`${ns}:${key}`);

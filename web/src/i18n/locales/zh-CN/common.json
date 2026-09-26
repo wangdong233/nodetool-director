@@ -1,36 +1,21 @@
 {
   "action": {
-    "save": "保存",
     "cancel": "取消",
     "delete": "删除",
-    "close": "关闭",
-    "retry": "重试",
     "rename": "重命名",
-    "duplicate": "创建副本",
-    "download": "下载",
-    "upload": "上传",
     "create": "新建",
-    "edit": "编辑",
-    "copy": "复制",
-    "search": "搜索",
-    "run": "运行",
     "reportBug": "报告问题",
     "closeTab": "关闭{{title}}",
     "clear": "清除",
     "switch": "切换"
   },
   "status": {
-    "loading": "加载中…",
-    "saving": "保存中…",
-    "empty": "这里还什么都没有",
-    "error": "出了点问题"
+    "loading": "加载中…"
   },
   "boot": {
     "loading": "正在加载 NodeTool…",
-    "failed": "NodeTool 加载失败",
     "errorDetail": "加载应用数据出错。",
     "refresh": "刷新页面",
-    "retry": "重试",
     "preparing": "正在准备工作区…"
   },
   "mime": {
