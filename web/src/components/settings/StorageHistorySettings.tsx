@@ -61,8 +61,8 @@ export default function StorageHistorySettings() {
             type: "success",
             content:
               redactedPredictions > 0
-                ? `Removed ${total} old history records and cleared prompt data from ${redactedPredictions} generation records.`
-                : `Removed ${total} old history records.`
+                ? st("notifCleanSome", "Removed {{total}} old history records and cleared prompt data from {{redact}} generation records.", { total: String(total), redact: String(redactedPredictions) })
+                : st("notifCleanAll", "Removed {{total}} old history records.", { total: String(total) })
           });
         })
         .catch((error) => {

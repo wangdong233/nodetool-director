@@ -121,7 +121,8 @@
     "desc": "A vault is a separate, isolated data store with its own database, assets, and RAG collections. Switch vaults to keep different sets of workflows and data apart. Switching restarts the backend and reloads the app.",
     "activeSuffix": " — active",
     "newName": "New vault name",
-    "confirmBody": "Remove the vault \"{{name}}\" from the list?\n\nIts database files are left on disk and can be re-added or deleted manually."
+    "confirmBody": "Remove the vault \"{{name}}\" from the list?\n\nIts database files are left on disk and can be re-added or deleted manually.",
+    "renamePromptTitle": "Rename vault"
   },
   "storage": {
     "loading": "Loading history status…",

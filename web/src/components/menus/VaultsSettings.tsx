@@ -84,7 +84,7 @@ const VaultsSettings: React.FC = () => {
   };
 
   const handleRename = (id: string, currentName: string) => {
-    const next = window.prompt("Rename vault", currentName);
+    const next = window.prompt(vt("renamePromptTitle", "Rename vault"), currentName);
     if (next === null) return;
     const name = next.trim();
     if (!name || name === currentName) return;

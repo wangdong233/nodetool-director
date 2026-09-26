@@ -47,8 +47,7 @@ const MODEL_TYPE_CONFIG = [
     Select: LanguageModelSelect,
     // The submission is a tool call, so non-tool-capable models are hidden.
     selectProps: { placeholder: "Use chat model", requireToolSupport: true },
-    hint: "Writes Code Node code. Falls back to the chat model when unset.",
-    hintKey: "codeHint"
+    hint: "Writes Code Node code. Falls back to the chat model when unset."
   }
 ] as const;
 
@@ -79,7 +78,11 @@ function DefaultModelsMenu() {
             label={dm(config.labelKey, config.label)}
             Select={config.Select}
             selectProps={"selectProps" in config ? config.selectProps : undefined}
-            placeholder={"selectProps" in config ? config.selectProps.placeholder : undefined}
+            placeholder={
+              "selectProps" in config
+                ? dm("useChatPlaceholder", config.selectProps.placeholder)
+                : undefined
+            }
             hint={"hint" in config ? dm("codeHint", config.hint) : undefined}
             current={defaults[config.type]}
             onSelect={setDefault}
@@ -156,7 +159,7 @@ function DefaultModelRow({
           onChange={handleChange}
           value={current?.id || ""}
           {...selectProps}
-          placeholder={placeholder ?? selectProps?.placeholder}
+          placeholder={placeholder}
         />
         {current && (
           <EditorButton size="small" onClick={handleClear}>

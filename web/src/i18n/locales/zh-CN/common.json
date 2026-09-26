@@ -22,10 +22,8 @@
   "status": {
     "loading": "加载中…",
     "saving": "保存中…",
-    "searching": "搜索中…",
     "empty": "这里还什么都没有",
-    "error": "出了点问题",
-    "retryHint": "稍后再试。"
+    "error": "出了点问题"
   },
   "boot": {
     "loading": "正在加载 NodeTool…",

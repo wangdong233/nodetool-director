@@ -22,10 +22,8 @@
   "status": {
     "loading": "Loading…",
     "saving": "Saving…",
-    "searching": "Searching…",
     "empty": "Nothing here yet",
-    "error": "Something went wrong",
-    "retryHint": "Please try again."
+    "error": "Something went wrong"
   },
   "boot": {
     "loading": "Loading NodeTool…",

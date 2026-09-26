@@ -84,6 +84,73 @@ describe("catalog key parity (CI completeness guard)", () => {
     );
   });
 
+  it("every catalog key is referenced from src (dead-key guard)", () => {
+    // A key passes when the source tree contains its full literal
+    // `ns:key.path`, OR when some ancestor path is used as a dynamic
+    // template prefix (`ns:ancestor.` immediately followed by interpolation) —
+    // that covers the enum-keyed subtrees (opts/typeNames/docsTopics/mime…).
+    // Keys written to the catalogs but never wired render nothing and have
+    // twice slipped through (r14: notifCleanSome/All, useChatPlaceholder).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- test-only source sweep
+    const fs = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- test-only source sweep
+    const path = require("path");
+    const webSrc = path.resolve(__dirname, "../../..");
+    let allSource = "";
+    const walkFiles = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name === "__tests__" || entry.name === "i18n" || entry.name.startsWith(".")) continue;
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walkFiles(full);
+        else if (/\.(tsx?|jsx?)$/.test(entry.name)) allSource += fs.readFileSync(full, "utf-8");
+      }
+    };
+    walkFiles(webSrc);
+
+    const leafKeys: Array<[string, string]> = [];
+    const collect = (node: object, ns: string, prefix: string) => {
+      for (const [k, v] of Object.entries(node)) {
+        const p = prefix ? `${prefix}.${k}` : k;
+        if (v && typeof v === "object") collect(v as object, ns, p);
+        else leafKeys.push([ns, p]);
+      }
+    };
+    collect(commonEn, "common", "");
+    collect(navEn, "nav", "");
+    collect(settingsEn, "settings", "");
+
+    const dead: string[] = [];
+    for (const [ns, key] of leafKeys) {
+      if (allSource.includes(`${ns}:${key}`)) continue;
+      // Dynamic subtrees (`ns:ancestor.` + interpolation) pass only when the
+      // leaf key name also appears as a quoted literal somewhere in src —
+      // the helper call site (`vt("renamePromptTitle", …)`) or the enum
+      // value table that feeds the template. A helper alone must not
+      // whitelist its whole namespace subtree (mutation-verified).
+      const parts = key.split(".");
+      const leaf = parts[parts.length - 1];
+      const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // A leaf passes its subtree's dynamic prefix only with corroborating
+      // evidence: the key name as a quoted literal (helper call site) or as
+      // an object-literal key (the enum table that feeds the template).
+      // Known blind spot: very common words corroborate incidentally.
+      const literal = new RegExp(`["'\`]${esc}["'\`]`);
+      const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
+      let dynamicallyUsed = false;
+      for (let i = 1; i < parts.length; i++) {
+        const ancestor = parts.slice(0, i).join(".");
+        if (
+          allSource.includes(`${ns}:${ancestor}.`) &&
+          (literal.test(allSource) || objectKey.test(allSource))
+        ) {
+          dynamicallyUsed = true;
+        }
+      }
+      if (!dynamicallyUsed) dead.push(`${ns}:${key}`);
+    }
+    expect(dead).toEqual([]);
+  });
+
   it("zh values are non-empty strings", () => {
     for (const [, , zh] of suites) {
       for (const value of Object.values(flattenDeep(zh))) {
