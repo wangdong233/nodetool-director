@@ -33,15 +33,17 @@
 
 微件规范:动词不加"请";进行中态带"…"(全角省略号);标点全角;Duplicate=创建副本(保"复制"给 Copy);Loading=加载中…(大陆用"加载"不用"载入")。
 
-## 覆盖扩展批术语定夺(r12 审查回填，2026-09-26)
+## 覆盖扩展批术语定夺（r12 审查回填，2026-09-26；r13 校正）
 
 | 英文 | 中文 | 边界 |
 |---|---|---|
-| drag | 拖动 | 统一旧译"拖拽"→"拖动"(r12-B3,3:1 多数裁定）;selectNodesOnDrag=拖动时选中节点 |
-| Run(execute 工作流义） | 运行 | glossary 原锚重申：descCheckpoint/descMaxParallelRuns 的"执行"已改"运行"；节点级 execute（一次执行全部节点）仍用"执行" |
-| Token(API token) | 令牌 | 与 API 密钥(key)分立；复制令牌/妥善保管 |
+| drag | 拖动 | 统一旧译“拖拽”→“拖动”（r12-B3 多数裁定；r13 抓回 descSnapToGrid 漏网）；selectNodesOnDrag=拖动时选中节点 |
+| Run（execute 工作流义） | 运行 | glossary 原锚重申：工作流级 execute 译“运行”；节点级 execute（一次执行全部节点）仍用“执行” |
+| Token（API token） | 令牌 | 与 API 密钥（key）分立；复制令牌／妥善保管 |
 | Stable | 稳定版 | 更新渠道 |
-| Nightly | Nightly（保留专名） | 渠道专名保留拉丁，与"稳定版"并列表述（业界惯例：Firefox Nightly/VS Code Insiders)；每夜构建=nightly build 的指称词 |
-| box-select | 框选 | 框选节点/绘制选框框选 |
+| Nightly | Nightly（保留专名） | 渠道专名保留拉丁，与“稳定版”并列表述（业界惯例：Firefox Nightly／VS Code Insiders）；每夜构建=nightly build 的指称词 |
+| box-select | 框选 | 框选节点／绘制选框框选 |
 | system tray | 系统托盘 | 后台运行说明 |
-| 标点 | 全角 | zh 一切用户可见串的 ，：；（） 用全角（微件规范重申，r12-B1 修 13 串含 nav.openDocument) |
+| account（登录关联义） | 账号 | connected accounts=已连接账号（第三方服务关联）；鉴权／账户体系义用“账户”（API token 验证你的账户）——两语境分立非双译（r13-G2） |
+| flow（引导式） | 流程 | guided-flow=引导流程；flow≠workflow，不与“工作流”互撞（r13-G3） |
+| 标点 | 全角 | zh 一切用户可见串的 ，：；（） 用全角（微件规范重申；r12-B1 修 12 串含 nav.openDocument，r13 校正计数） |
