@@ -450,6 +450,23 @@ function SettingsPage() {
 
   const t18 = (key: string, fallback: string) =>
     i18n.t(`settings:general.${key}`, { defaultValue: fallback });
+  // Option enum labels localize through the shared opts.* namespace keyed by
+  // the option value; TIME_FORMAT (12h/24h) has no catalog entries and falls
+  // back to its constant label.
+  // OWNERSHIP: the shared value-keyed namespace is reserved for the five
+  // enums below whose value sets are disjoint (including the bare numeric
+  // autosave intervals). A new Select enum whose values could collide with
+  // an existing one (e.g. another plain number) must NOT join this namespace —
+  // give it a per-field sub-object (opts.<fieldName>.<value>) instead.
+  const localizedOptions = <T extends string | number>(
+    options: readonly { value: T; label: string }[]
+  ): { value: T; label: string }[] =>
+    options.map((o) => ({
+      value: o.value,
+      label: i18n.t(`settings:general.opts.${String(o.value)}`, {
+        defaultValue: o.label
+      })
+    }));
   const generalSidebarSections = [
     {
       category: t18("catWorkspace", "Workspace"),
@@ -684,11 +701,15 @@ function SettingsPage() {
                           onChange={handleSelectNodesOnDragChange}
                         />
                         <Text className="description">
-                          Mark nodes as selected after changing a node&apos;s
-                          position.
+                          {t18(
+                            "descSelectDrag1",
+                            "Mark nodes as selected after changing a node's position."
+                          )}
                           <br />
-                          If disabled, nodes can still be selected by clicking on
-                          them.
+                          {t18(
+                            "descSelectDrag2",
+                            "If disabled, nodes can still be selected by clicking on them."
+                          )}
                         </Text>
                       </SearchItem>
 
@@ -698,7 +719,7 @@ function SettingsPage() {
                           keywords="editor workspace sound notifications beep"
                         >
                           <LabeledSwitch
-                            label="Sound Notifications"
+                            label={t18("lblSoundNotifications", "Sound Notifications")}
                             checked={!!settings.soundNotifications}
                             onChange={handleSoundNotificationsChange}
                             description={t18("descSound", "Play a system beep sound when workflows complete, exports finish, or other important events occur.")}
@@ -719,7 +740,7 @@ function SettingsPage() {
                             keywords="editor workspace updates automatic desktop"
                           >
                             <LabeledSwitch
-                              label="Automatic Updates"
+                              label={t18("lblAutomaticUpdates", "Automatic Updates")}
                               checked={autoUpdatesEnabled}
                               onChange={handleAutoUpdatesChange}
                               description={t18("descUpdates", "Check for and download desktop app updates from the selected release channel.")}
@@ -735,11 +756,13 @@ function SettingsPage() {
                               label={t18("updateChannel", "Update Channel")}
                               value={updateChannel}
                               onChange={handleUpdateChannelChange}
-                              options={UPDATE_CHANNEL_OPTIONS}
+                              options={localizedOptions(UPDATE_CHANNEL_OPTIONS)}
                             />
                             <Text className="description">
-                              Stable follows full releases. Nightly follows prerelease nightly builds.
-                              Nightly builds default to the Nightly channel.
+                              {t18(
+                                "descUpdateChannel",
+                                "Stable follows full releases. Nightly follows prerelease nightly builds. Nightly builds default to the Nightly channel."
+                              )}
                             </Text>
                           </SearchItem>
                         )}
@@ -755,17 +778,28 @@ function SettingsPage() {
                                 v as "ask" | "quit" | "background"
                               )
                             }
-                            options={CLOSE_BEHAVIOR_OPTIONS}
+                            options={localizedOptions(CLOSE_BEHAVIOR_OPTIONS)}
                           />
                           <Text className="description">
-                            Choose what happens when you close the main window.
+                            {t18(
+                              "descOnCloseIntro",
+                              "Choose what happens when you close the main window."
+                            )}
                             <br />
-                            <b>Ask Every Time:</b> Shows a dialog with options.
+                            <b>{t18("optAskShort", "Ask Every Time")}:</b>{" "}
+                            {t18("descOnCloseAsk", "Shows a dialog with options.")}
                             <br />
-                            <b>Quit:</b> Closes the application completely.
+                            <b>{t18("optQuitShort", "Quit")}:</b>{" "}
+                            {t18(
+                              "descOnCloseQuit",
+                              "Closes the application completely."
+                            )}
                             <br />
-                            <b>Background:</b> Keeps the app running in the system
-                            tray.
+                            <b>{t18("optBackgroundShort", "Background")}:</b>{" "}
+                            {t18(
+                              "descOnCloseBackground",
+                              "Keeps the app running in the system tray."
+                            )}
                           </Text>
                         </SearchItem>
                       </div>
@@ -789,7 +823,7 @@ function SettingsPage() {
                         keywords="appearance time format 12h 24h"
                       >
                         <SelectField
-                          label="Time Format"
+                          label={t18("lblTimeFormat", "Time Format")}
                           value={settings.timeFormat}
                           onChange={handleTimeFormatChange}
                           options={TIME_FORMAT_OPTIONS}
@@ -811,7 +845,7 @@ function SettingsPage() {
                         keywords="execution warn before large runs confirmation"
                       >
                         <LabeledSwitch
-                          label="Warn Before Large Runs"
+                          label={t18("lblWarnLargeRuns", "Warn Before Large Runs")}
                           checked={settings.confirmLargeRun ?? true}
                           onChange={(checked) =>
                             updateSettings({ confirmLargeRun: checked })
@@ -826,7 +860,7 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="large-run-threshold-input"
-                          label="Large-Run Threshold"
+                          label={t18("lblLargeRunThreshold", "Large-Run Threshold")}
                           value={settings.largeRunThreshold ?? 5}
                           onCommit={handleLargeRunThresholdChange}
                           min={1}
@@ -843,7 +877,7 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="audio-buffer-ms-input"
-                          label="Audio Buffer (ms)"
+                          label={t18("lblAudioBuffer", "Audio Buffer (ms)")}
                           value={settings.audioBufferMs ?? 100}
                           onCommit={handleAudioBufferMsChange}
                           min={20}
@@ -860,7 +894,7 @@ function SettingsPage() {
                       >
                         <ServerNumberSetting
                           envVar="MAX_CONCURRENT_JOBS"
-                          label="Max Concurrent Runs"
+                          label={t18("lblMaxConcurrentRuns", "Max Concurrent Runs")}
                           defaultValue={4}
                           min={1}
                           max={64}
@@ -874,7 +908,7 @@ function SettingsPage() {
                       >
                         <ServerNumberSetting
                           envVar="MAX_CONCURRENT_RUNS_PER_WORKFLOW"
-                          label="Max Concurrent Runs per Workflow"
+                          label={t18("lblMaxRunsPerWorkflow", "Max Concurrent Runs per Workflow")}
                           defaultValue={4}
                           min={1}
                           max={64}
@@ -896,22 +930,27 @@ function SettingsPage() {
                         keywords="canvas navigation pan controls mouse select left click drag"
                       >
                         <SelectField
-                          label="Left-Click Drag"
+                          label={t18("lblLeftClickDrag", "Left-Click Drag")}
                           value={settings.panControls}
                           onChange={handlePanControlsChange}
-                          options={PAN_CONTROLS_OPTIONS}
+                          options={localizedOptions(PAN_CONTROLS_OPTIONS)}
                         />
                         <div className="description">
                           <Text>
-                            What dragging with the left mouse button does on
-                            empty canvas.
+                            {t18(
+                              "descPanIntro",
+                              "What dragging with the left mouse button does on empty canvas."
+                            )}
                           </Text>
                           <Text>
-                            <b>Pan canvas:</b> left-drag moves the view.
+                            <b>{t18("opts.LMB", "Pan canvas")}:</b>{" "}
+                            {t18("descPanPan", "left-drag moves the view.")}
                             <br />
-                            <b>Select nodes:</b> left-drag draws a selection box;
-                            pan with the right or middle mouse button (and
-                            two-finger scroll on a trackpad).
+                            <b>{t18("optSelectNodesShort", "Select nodes")}:</b>{" "}
+                            {t18(
+                              "descPanSelect",
+                              "left-drag draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad)."
+                            )}
                           </Text>
                         </div>
                       </SearchItem>
@@ -921,17 +960,25 @@ function SettingsPage() {
                         keywords="canvas navigation node selection mode full partial"
                       >
                         <SelectField
-                          label="Node Selection Mode"
+                          label={t18("lblSelectionMode", "Node Selection Mode")}
                           value={settings.selectionMode}
                           onChange={handleSelectionModeChange}
-                          options={SELECTION_MODE_OPTIONS}
+                          options={localizedOptions(SELECTION_MODE_OPTIONS)}
                         />
                         <Text className="description">
-                          When drawing a selection box for node selections:
+                          {t18(
+                            "descSelIntro",
+                            "When drawing a selection box for node selections:"
+                          )}
                           <br />
-                          <b>Full:</b> nodes have to be fully enclosed.
+                          <b>{t18("opts.full", "Full")}:</b>{" "}
+                          {t18("descSelFull", "nodes have to be fully enclosed.")}
                           <br />
-                          <b>Partial:</b> intersecting nodes will be selected.
+                          <b>{t18("opts.partial", "Partial")}:</b>{" "}
+                          {t18(
+                            "descSelPartial",
+                            "intersecting nodes will be selected."
+                          )}
                         </Text>
                       </SearchItem>
 
@@ -940,7 +987,7 @@ function SettingsPage() {
                         keywords="canvas navigation grid snap align nodes"
                       >
                         <LabeledSwitch
-                          label="Snap to Grid"
+                          label={t18("lblSnapToGrid", "Snap to Grid")}
                           checked={!!settings.snapToGrid}
                           onChange={handleSnapToGridChange}
                           description={t18("descSnapToGrid", "Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app.")}
@@ -953,7 +1000,7 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="grid-snap-input"
-                          label="Grid Snap Precision"
+                          label={t18("lblGridSnapPrecision", "Grid Snap Precision")}
                           value={settings.gridSnap}
                           onCommit={setGridSnap}
                           min={1}
@@ -970,7 +1017,7 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="connection-snap-input"
-                          label="Connection Snap Range"
+                          label={t18("lblSnapRange", "Connection Snap Range")}
                           value={settings.connectionSnap}
                           onCommit={setConnectionSnap}
                           min={5}
@@ -998,7 +1045,7 @@ function SettingsPage() {
                         keywords="autosave version history enable"
                       >
                         <LabeledSwitch
-                          label="Enable Autosave"
+                          label={t18("lblEnableAutosave", "Enable Autosave")}
                           checked={settings.autosave?.enabled ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({ enabled: checked })
@@ -1012,14 +1059,14 @@ function SettingsPage() {
                         keywords="autosave version history interval minutes"
                       >
                         <SelectField
-                          label="Autosave Interval (minutes)"
+                          label={t18("lblAutosaveInterval", "Autosave Interval (minutes)")}
                           value={settings.autosave?.intervalMinutes ?? 10}
                           onChange={(v) =>
                             updateAutosaveSettings({
                               intervalMinutes: Number(v)
                             })
                           }
-                          options={AUTOSAVE_INTERVAL_OPTIONS}
+                          options={localizedOptions(AUTOSAVE_INTERVAL_OPTIONS)}
                           disabled={!settings.autosave?.enabled}
                           description={t18("descAutosaveInterval", "How often to automatically save your workflow.")}
                         />
@@ -1030,7 +1077,7 @@ function SettingsPage() {
                         keywords="autosave version history save before running checkpoint"
                       >
                         <LabeledSwitch
-                          label="Save Before Running"
+                          label={t18("lblSaveBeforeRunning", "Save Before Running")}
                           checked={settings.autosave?.saveBeforeRun ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({
@@ -1046,7 +1093,7 @@ function SettingsPage() {
                         keywords="autosave version history save on window close"
                       >
                         <LabeledSwitch
-                          label="Save on Window Close"
+                          label={t18("lblSaveOnClose", "Save on Window Close")}
                           checked={settings.autosave?.saveOnClose ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({
@@ -1146,14 +1193,16 @@ function SettingsPage() {
                         id="nodetool-api-token"
                         className="settings-heading"
                       >
-                        Nodetool API
+                        {t18("apiIntTitle", "Nodetool API")}
                       </Text>
                       <Text
                         className="explanation"
                         sx={{ margin: `0 0 ${getSpacingPx(SPACING.xl)} 0` }}
                       >
-                        Use the Nodetool API to execute workflows
-                        programmatically.
+                        {t18(
+                          "apiIntDesc",
+                          "Use the Nodetool API to execute workflows programmatically."
+                        )}
                         <br />
                         <br />
                         <a
@@ -1161,7 +1210,8 @@ function SettingsPage() {
                           rel="noopener noreferrer"
                           href="https://github.com/nodetool-ai/nodetool#using-the-workflow-api-"
                         >
-                          API documentation on GitHub <br />
+                          {t18("apiIntDocs", "API documentation on GitHub")}{" "}
+                          <br />
                         </a>
                       </Text>
                       <div
@@ -1179,12 +1229,14 @@ function SettingsPage() {
                             color: theme.palette.text.primary
                           }}
                         >
-                          Nodetool API Token
+                          {t18("apiTokenTitle", "Nodetool API Token")}
                         </Text>
                         <div className="description">
                           <Text>
-                            This token is used to authenticate your account
-                            with the Nodetool API.
+                            {t18(
+                              "descApiToken",
+                              "This token is used to authenticate your account with the Nodetool API."
+                            )}
                           </Text>
                           <div className="secrets">
                             <WarningIcon
@@ -1194,12 +1246,14 @@ function SettingsPage() {
                               }}
                             />
                             <Text component="span">
-                              Keep this token secure and do not share it
-                              publicly
+                              {t18(
+                                "apiTokenSecret",
+                                "Keep this token secure and do not share it publicly"
+                              )}
                             </Text>
                           </div>
                         </div>
-                        <Tooltip title="Copy to clipboard">
+                        <Tooltip title={t18("apiIntCopyTooltip", "Copy to clipboard")}>
                           <EditorButton
                             style={{ margin: `${getSpacingPx(SPACING.md)} 0` }}
                             size="small"
@@ -1207,7 +1261,7 @@ function SettingsPage() {
                             startIcon={<ContentCopyIcon />}
                             onClick={copyAuthToken}
                           >
-                            Copy Token
+                            {t18("apiIntCopyToken", "Copy Token")}
                           </EditorButton>
                         </Tooltip>
                       </div>

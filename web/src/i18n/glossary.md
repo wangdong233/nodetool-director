@@ -32,3 +32,16 @@
 | agent Task | 计划任务 | 子任务/待办 | 与 Job=任务分立 |
 
 微件规范:动词不加"请";进行中态带"…"(全角省略号);标点全角;Duplicate=创建副本(保"复制"给 Copy);Loading=加载中…(大陆用"加载"不用"载入")。
+
+## 覆盖扩展批术语定夺(r12 审查回填，2026-09-26)
+
+| 英文 | 中文 | 边界 |
+|---|---|---|
+| drag | 拖动 | 统一旧译"拖拽"→"拖动"(r12-B3,3:1 多数裁定）;selectNodesOnDrag=拖动时选中节点 |
+| Run(execute 工作流义） | 运行 | glossary 原锚重申：descCheckpoint/descMaxParallelRuns 的"执行"已改"运行"；节点级 execute（一次执行全部节点）仍用"执行" |
+| Token(API token) | 令牌 | 与 API 密钥(key)分立；复制令牌/妥善保管 |
+| Stable | 稳定版 | 更新渠道 |
+| Nightly | Nightly（保留专名） | 渠道专名保留拉丁，与"稳定版"并列表述（业界惯例：Firefox Nightly/VS Code Insiders)；每夜构建=nightly build 的指称词 |
+| box-select | 框选 | 框选节点/绘制选框框选 |
+| system tray | 系统托盘 | 后台运行说明 |
+| 标点 | 全角 | zh 一切用户可见串的 ，：；（） 用全角（微件规范重申，r12-B1 修 13 串含 nav.openDocument) |

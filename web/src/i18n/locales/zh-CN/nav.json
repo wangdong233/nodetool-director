@@ -62,7 +62,7 @@
     "home": "首页",
     "tabName": "标签页名称",
     "unsaved": "未保存更改",
-    "openDocument": "打开文档:{{title}}",
+    "openDocument": "打开文档：{{title}}",
     "openDocuments": "打开文档",
     "noDocumentOpen": "未打开文档",
     "switchDocs": "在打开的文档间切换",
