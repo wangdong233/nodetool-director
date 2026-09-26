@@ -30,13 +30,20 @@ const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   "about"
 ];
 
-export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
+/**
+ * Tab items resolved FRESH per call: labels must re-resolve on a language
+ * switch, so consumers render this instead of a module-frozen array
+ * (director/93 copy-polish R5 finding 1).
+ */
+export function settingsTabItems(): ReadonlyArray<{
   value: SettingsSection;
   label: string;
-}> = SETTINGS_SECTIONS.map((value) => ({
-  value,
-  label: settingsTabLabel(value)
-}));
+}> {
+  return SETTINGS_SECTIONS.map((value) => ({
+    value,
+    label: settingsTabLabel(value)
+  }));
+}
 
 /**
  * Keyword match with optional localized-label matching: with `section`,
@@ -134,7 +141,7 @@ export function otherMatchingTabs(
   if (!search.trim()) {
     return [];
   }
-  return SETTINGS_TAB_ITEMS.map((tab) => tab.value).filter(
+  return SETTINGS_SECTIONS.filter(
     (tab) => tab !== current && tabHasMatches(tab, search)
   );
 }

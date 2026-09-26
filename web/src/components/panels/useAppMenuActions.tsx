@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import { useShallow } from "zustand/react/shallow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
@@ -69,6 +69,8 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     const done = active.reduce((sum, d) => sum + d.downloadedBytes, 0);
     return total > 0 ? Math.round((done / total) * 100) : 0;
   }, [downloads]);
+
+  const { language } = useAppLanguage(); // re-render on language change (R5-2)
 
   return useMemo(() => {
     const actions: AppMenuAction[] = [
@@ -179,6 +181,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     finish,
     handleOpenHelp,
     openDownloadsDialog,
-    downloadProgress
+    downloadProgress,
+    language
   ]);
 };

@@ -8,6 +8,7 @@
     "placeholder": "Search settings…",
     "noMatchesIn": "No matches in {{label}}.",
     "alsoIn": "Also in",
-    "see": "See"
+    "see": "See",
+    "tabsLabel": "settings tabs"
   }
 }

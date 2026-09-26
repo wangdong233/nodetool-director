@@ -60,7 +60,7 @@ import { isFunction } from "../../utils/typePredicates";
 import { NumberSetting } from "./NumberSetting";
 import StorageHistorySettings from "../settings/StorageHistorySettings";
 import {
-  SETTINGS_TAB_ITEMS,
+  settingsTabItems,
   matchesSearch,
   otherMatchingTabs,
   settingsTabLabel,
@@ -607,8 +607,8 @@ function SettingsPage() {
             <div className="sticky-header">
               <TabGroup
                 className="settings-tabs"
-                aria-label="settings tabs"
-                tabs={[...SETTINGS_TAB_ITEMS]}
+                aria-label={i18n.t("settings:search.tabsLabel")}
+                tabs={[...settingsTabItems()]}
                 value={section}
                 onChange={handleSectionChange}
                 variant={isMobile ? "scrollable" : "standard"}

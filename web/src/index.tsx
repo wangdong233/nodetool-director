@@ -30,7 +30,7 @@ import {
 import ErrorBoundary from "./ErrorBoundary";
 
 import { LoadingSpinner, ThemeRoot } from "./components/ui_primitives";
-import { I18nextProvider, i18n } from "./i18n";
+import { I18nextProvider, i18n, useAppLanguage } from "./i18n";
 import { ThemeNodetool, ThemeNodetoolZhCN } from "./components/themes/ThemeNodetool";
 
 import "@xyflow/react/dist/style.css";
@@ -654,6 +654,8 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
       });
   }, [authState, configLoaded, isPublicAppRoute]);
 
+  const { language } = useAppLanguage(); // re-render on language change: theme + i18n renders (R5-2)
+
   const shouldRenderRouter =
     isDevTestRoute || status === "success" || status === "logged_out";
 
@@ -661,7 +663,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
     <React.StrictMode>
       <TRPCProvider>
         <I18nextProvider i18n={i18n}>
-        <ThemeRoot theme={i18n.language === "zh-CN" ? ThemeNodetoolZhCN : ThemeNodetool}>
+        <ThemeRoot theme={language === "zh-CN" ? ThemeNodetoolZhCN : ThemeNodetool}>
           <MobileClassProvider>
             <MenuProvider>
               <MenuNavigationBridge />
