@@ -20,6 +20,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { PMTab, PMCount } from "./usePackageManager";
+import { i18n } from "../../i18n";
 
 interface PackageRailProps {
   tab: PMTab;
@@ -63,8 +64,8 @@ const PackageRail = ({
         if (value) onTab(value as PMTab);
       }}
     >
-      <ToggleOption value="software">Software</ToggleOption>
-      <ToggleOption value="packs">Node Packs</ToggleOption>
+      <ToggleOption value="software">{i18n.t("ui2:attrs.software", { defaultValue: "Software" })}</ToggleOption>
+      <ToggleOption value="packs">{i18n.t("ui2:attrs.nodePacks", { defaultValue: "Node Packs" })}</ToggleOption>
     </ToggleGroup>
 
     <Text

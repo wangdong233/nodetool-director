@@ -172,7 +172,7 @@ const PadBodyInner: React.FC<PadBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Fill</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}</span>
         <div style={{ gridColumn: "2 / 4" }}>
           <ColorPicker
             color={colorValue}

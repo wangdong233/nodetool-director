@@ -24,6 +24,7 @@ import {
   previewFailureText,
   type PreviewFailureHandler
 } from "./previewFailure";
+import { i18n } from "../../../i18n";
 
 interface PreviewRecoveryProps {
   readonly children: (
@@ -168,7 +169,7 @@ export function PreviewRecovery({
             action={
               <FlexRow gap={SPACING.xs}>
                 {issue.terminal && (
-                  <EditorButton onClick={retry}>Retry preview</EditorButton>
+                  <EditorButton onClick={retry}>{i18n.t("ui2:attrs.retryPreview", { defaultValue: "Retry preview" })}</EditorButton>
                 )}
                 <ReportBugButton context={issue.context} />
               </FlexRow>

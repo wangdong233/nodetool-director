@@ -284,7 +284,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
       {renderAssetTree(assetTree)}
     </Box>
   ) : (
-    <Text>No assets found</Text>
+    <Text>{i18n.t("ui2:attrs.noAssetsFound", { defaultValue: "No assets found" })}</Text>
   );
 };
 

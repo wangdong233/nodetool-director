@@ -148,7 +148,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
           }
         }}
       >
-        <DialogTitle id={inputDialogTitleId}>Add Input</DialogTitle>
+        <DialogTitle id={inputDialogTitleId}>{i18n.t("ui2:attrs.addInput", { defaultValue: "Add Input" })}</DialogTitle>
         <DialogContent>
           <FlexRow css={css({ gap: 8, marginTop: 8 })}>
             <TextField

@@ -451,7 +451,7 @@ export const ExternalMcpServersSection = memo(
           sx={{ marginBottom: theme.spacing(3) }}
         >
           <FlexColumn gap={0.5}>
-            <Text size="big">External servers</Text>
+            <Text size="big">{i18n.t("ui2:attrs.externalServers", { defaultValue: "External servers" })}</Text>
             <Caption sx={{ opacity: 0.55 }}>
               Give the agent the tools of any MCP server: Blender, Hugging
               Face, or a script of your own. Works with every model provider.

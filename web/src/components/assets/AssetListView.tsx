@@ -560,10 +560,10 @@ const AssetListView: React.FC<AssetListViewProps> = ({
       <div className="asset-list-container">
         <div className="asset-list-header">
           <div className="asset-header-icon-space"></div>
-          <div className="asset-header-name">Name</div>
-          {showSize && <div className="asset-header-size">Size</div>}
-          {showType && <div className="asset-header-type">Type</div>}
-          {showDate && <div className="asset-header-date">Modified</div>}
+          <div className="asset-header-name">{i18n.t("editor:asset.info.name", { defaultValue: "Name" })}</div>
+          {showSize && <div className="asset-header-size">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</div>}
+          {showType && <div className="asset-header-type">{i18n.t("editor:asset.info.type", { defaultValue: "Type" })}</div>}
+          {showDate && <div className="asset-header-date">{i18n.t("ui2:attrs.modified", { defaultValue: "Modified" })}</div>}
         </div>
 
         <div

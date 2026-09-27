@@ -52,9 +52,9 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         }
       }}
     >
-      <SketchModeOption value="size">Size</SketchModeOption>
+      <SketchModeOption value="size">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</SketchModeOption>
       <SketchModeOption value="opacity">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</SketchModeOption>
-      <SketchModeOption value="both">Both</SketchModeOption>
+      <SketchModeOption value="both">{i18n.t("ui2:attrs.both", { defaultValue: "Both" })}</SketchModeOption>
     </SketchModeToggle>
   );
 
@@ -143,7 +143,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <>
       {!omitSensitivitySwitch ? (
         <Box className="setting-row" sx={{ alignItems: "center" }}>
-          <Text className="setting-label">Pressure</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.pressure", { defaultValue: "Pressure" })}</Text>
           <Switch
             size="small"
             checked={settings.pressureSensitivity ?? true}

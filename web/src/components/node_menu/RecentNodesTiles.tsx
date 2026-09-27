@@ -309,7 +309,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>Recent Nodes</Text>
+        <Text size="normal" weight={600}>{i18n.t("ui2:attrs.recentNodes", { defaultValue: "Recent Nodes" })}</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
           tooltip={i18n.t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}

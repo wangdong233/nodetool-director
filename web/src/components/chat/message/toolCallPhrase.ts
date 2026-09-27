@@ -10,6 +10,7 @@
 import type { ToolCall } from "../../../stores/ApiTypes";
 import { formatToolName } from "../../../utils/formatUtils";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /** What a tool does, as far as the row phrasing is concerned. */
 type ToolPhraseKind =
@@ -204,20 +205,20 @@ export function toolCallPhrase(call: ToolCall): ToolRowPhrase {
   switch (toolPhraseKind(name)) {
     case "plan":
       return detail
-        ? { label: "Planned", detail }
-        : { label: "Wrote a plan", detail: null };
+        ? { label: i18n.t("ui2:attrs.planned", { defaultValue: "Planned" }), detail }
+        : { label: i18n.t("ui2:attrs.wroteAPlan", { defaultValue: "Wrote a plan" }), detail: null };
     case "search":
       return detail
-        ? { label: "Searched", detail }
-        : { label: "Ran 1 search", detail: null };
+        ? { label: i18n.t("ui2:attrs.searched", { defaultValue: "Searched" }), detail }
+        : { label: i18n.t("ui2:attrs.ran1Search", { defaultValue: "Ran 1 search" }), detail: null };
     case "page":
       return detail
-        ? { label: "Opened page", detail }
-        : { label: "Opened 1 page", detail: null };
+        ? { label: i18n.t("ui2:attrs.openedPage", { defaultValue: "Opened page" }), detail }
+        : { label: i18n.t("ui2:attrs.opened1Page", { defaultValue: "Opened 1 page" }), detail: null };
     case "read":
-      return { label: detail ? "Read" : formatToolName(name), detail };
+      return { label: detail ? i18n.t("ui2:attrs.read", { defaultValue: "Read" }) : formatToolName(name), detail };
     case "write":
-      return { label: detail ? "Edited" : formatToolName(name), detail };
+      return { label: detail ? i18n.t("ui2:attrs.edited", { defaultValue: "Edited" }) : formatToolName(name), detail };
     default:
       // `run` and everything unrecognized: the tool's own name is the clearest
       // thing we can say, with whatever it acted on beside it.

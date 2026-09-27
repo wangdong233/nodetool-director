@@ -128,12 +128,12 @@ export const ShapeSettingsPanel = memo(function ShapeSettingsPanel({
               />
             }
             label={
-              <Text sx={{ fontSize: SKETCH_FONT.section }}>Fill</Text>
+              <Text sx={{ fontSize: SKETCH_FONT.section }}>{i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}</Text>
             }
           />
           {settings.filled && (
             <Box className="setting-row">
-              <Text className="setting-label">Fill</Text>
+              <Text className="setting-label">{i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}</Text>
               <input
                 type="color"
                 className="color-input"
@@ -162,7 +162,7 @@ export const FillSettingsPanel = memo(function FillSettingsPanel({
 }: FillSettingsPanelProps) {
   return (
     <Box className="setting-row">
-      <Text className="setting-label">Tolerance</Text>
+      <Text className="setting-label">{i18n.t("ui2:attrs.tolerance", { defaultValue: "Tolerance" })}</Text>
       <Slider
         sx={sketchSliderSx}
         size="small"
@@ -183,7 +183,7 @@ export const BlurSettingsPanel = memo(function BlurSettingsPanel({
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">Size</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -195,7 +195,7 @@ export const BlurSettingsPanel = memo(function BlurSettingsPanel({
         <Text className="setting-value">{settings.size}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Strength</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.strength", { defaultValue: "Strength" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -248,7 +248,7 @@ export const GradientSettingsPanel = memo(function GradientSettingsPanel({
         </Box>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">End</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.end", { defaultValue: "End" })}</Text>
         <Box
           sx={{ ...colorSwatchSx }}
           role="button"
@@ -281,8 +281,8 @@ export const GradientSettingsPanel = memo(function GradientSettingsPanel({
           }
         }}
       >
-        <SketchModeOption value="linear">Linear</SketchModeOption>
-        <SketchModeOption value="radial">Radial</SketchModeOption>
+        <SketchModeOption value="linear">{i18n.t("ui2:attrs.linear", { defaultValue: "Linear" })}</SketchModeOption>
+        <SketchModeOption value="radial">{i18n.t("ui2:attrs.radial", { defaultValue: "Radial" })}</SketchModeOption>
       </SketchModeToggle>
 
       <ColorPickerPopover
@@ -310,7 +310,7 @@ export const CloneStampSettingsPanel = memo(function CloneStampSettingsPanel({
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">Size</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -337,7 +337,7 @@ export const CloneStampSettingsPanel = memo(function CloneStampSettingsPanel({
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Hardness</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.hardness", { defaultValue: "Hardness" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -359,8 +359,8 @@ export const CloneStampSettingsPanel = memo(function CloneStampSettingsPanel({
           }
         }}
       >
-        <SketchModeOption value="active_layer">Active Layer</SketchModeOption>
-        <SketchModeOption value="composited">All Layers</SketchModeOption>
+        <SketchModeOption value="active_layer">{i18n.t("ui2:attrs.activeLayer", { defaultValue: "Active Layer" })}</SketchModeOption>
+        <SketchModeOption value="composited">{i18n.t("ui2:attrs.allLayers", { defaultValue: "All Layers" })}</SketchModeOption>
       </SketchModeToggle>
       <Text sx={{ ...sketchHintTextSx, mt: 1 }}>
         Alt+click to set source point

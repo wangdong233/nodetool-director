@@ -40,6 +40,7 @@ import {
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
 import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
+import { i18n } from "../../../i18n";
 
 const HANDLE_HEIGHT_PX = 6;
 const TOUCH_HANDLE_HEIGHT_PX = 20;
@@ -212,7 +213,7 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
             <SelectField label="Note grid" hideLabel size="small" value={gridDivision}
               options={GRID_DIVISION_OPTIONS} css={css({ width: 96 })}
               onChange={(value) => setGridDivision(value as TempoGridDivision)} />
-            <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label="Snap notes" aria-pressed={snapEnabled}>Snap</EditorButton>
+            <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label="Snap notes" aria-pressed={snapEnabled}>{i18n.t("ui2:attrs.snap", { defaultValue: "Snap" })}</EditorButton>
             <FlexRow sx={{ flex: 1 }} />
             {!fullHeight && (
               <CloseButton

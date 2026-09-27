@@ -332,7 +332,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     color: theme.vars.palette.success.main
                   }}
                 />
-                <Caption size="small">Connected</Caption>
+                <Caption size="small">{i18n.t("ui2:attrs.connected", { defaultValue: "Connected" })}</Caption>
               </FlexRow>
             ) : (
               <>

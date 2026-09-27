@@ -139,7 +139,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     >
       <FlexColumn gap={SPACING.md} sx={{ pt: 1, minWidth: 360 }}>
         <FlexColumn gap={SPACING.xs}>
-          <Label>Image</Label>
+          <Label>{i18n.t("ui2:attrs.image", { defaultValue: "Image" })}</Label>
           <FlexRow gap={SPACING.md} align="center">
             <div
               style={{
@@ -162,7 +162,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>Kind</Label>
+          <Label>{i18n.t("ui2:attrs.kind", { defaultValue: "Kind" })}</Label>
           <ToggleGroup
             value={kind}
             exclusive

@@ -273,7 +273,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
           gap={0.5}
           sx={{ pt: 2, mt: 1, borderTop: `1px solid ${theme.vars.palette.divider}` }}
         >
-          <Caption sx={{ opacity: 0.7 }}>Press</Caption>
+          <Caption sx={{ opacity: 0.7 }}>{i18n.t("ui2:attrs.press", { defaultValue: "Press" })}</Caption>
           <ShortcutHint shortcut={["?"]} />
           <Caption sx={{ opacity: 0.7 }}>
             any time to toggle this panel · Ctrl also responds to ⌘ on macOS

@@ -31,6 +31,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface VersionHistoryPanelProps {
   workflowId: string;
@@ -270,7 +271,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
           }
         />
         <FlexColumn padding={3} gap={0.5}>
-          <Text color="error">Failed to load versions</Text>
+          <Text color="error">{i18n.t("ui2:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}</Text>
           <Text size="smaller" color="secondary">{String(error)}</Text>
         </FlexColumn>
       </FlexColumn>
@@ -331,9 +332,9 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
           compact
           aria-label="version filter"
         >
-          <ToggleOption value="all" aria-label="all">All</ToggleOption>
-          <ToggleOption value="manual" aria-label="manual">Manual</ToggleOption>
-          <ToggleOption value="autosave" aria-label="autosave">Auto</ToggleOption>
+          <ToggleOption value="all" aria-label="all">{i18n.t("common:sizeFilters.all", { defaultValue: "All" })}</ToggleOption>
+          <ToggleOption value="manual" aria-label="manual">{i18n.t("timeline:history.manual", { defaultValue: "Manual" })}</ToggleOption>
+          <ToggleOption value="autosave" aria-label="autosave">{i18n.t("timeline:history.auto", { defaultValue: "Auto" })}</ToggleOption>
         </ToggleGroup>
       </PanelToolbar>
 
@@ -370,7 +371,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         >
           {versions.length === 0 ? (
             <div style={{ padding: getSpacingPx(SPACING.xl), textAlign: "center" }}>
-              <Text color="secondary">No versions saved yet</Text>
+              <Text color="secondary">{i18n.t("ui2:attrs.noVersionsSavedYet", { defaultValue: "No versions saved yet" })}</Text>
               <Caption size="smaller" color="muted">
                 Save your workflow to create a version
               </Caption>
@@ -537,7 +538,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         confirmText="Delete"
         destructive
       >
-        <Text color="secondary">This action cannot be undone.</Text>
+        <Text color="secondary">{i18n.t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
       </Dialog>
     </div>
   );

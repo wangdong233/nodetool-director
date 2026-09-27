@@ -1561,7 +1561,7 @@ const TextEditorModal = ({
                           <AutoAwesomeIcon />
                         </span>
                         <div className="assistant-meta">
-                          <span className="assistant-name">Assistant</span>
+                          <span className="assistant-name">{i18n.t("timeline:editor.assistant", { defaultValue: "Assistant" })}</span>
                           <span className="assistant-sub">
                             writes &amp; edits this prompt
                           </span>

@@ -17,6 +17,7 @@ import {
   TextInput,
   SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface JsScriptSecretsEditorProps {
   secrets: readonly string[];
@@ -46,7 +47,7 @@ const JsScriptSecretsEditor = ({
   return (
     <FlexColumn gap={SPACING.sm}>
       <FlexRow align="center" justify="space-between">
-        <Label>Secrets</Label>
+        <Label>{i18n.t("ui2:attrs.secrets", { defaultValue: "Secrets" })}</Label>
         {!readOnly && (
           <EditorButton
             density="compact"

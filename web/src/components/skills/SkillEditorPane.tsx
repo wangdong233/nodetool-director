@@ -37,6 +37,7 @@ import {
   preserveEditAfterSubmit,
   shouldApplyServerSkill
 } from "./skillEditorState";
+import { i18n } from "../../i18n";
 
 interface SkillEditorPaneProps {
   skillId: string;
@@ -409,7 +410,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <Caption sx={{ color: "error.main" }}>Failed to load skill</Caption>
+        <Caption sx={{ color: "error.main" }}>{i18n.t("ui2:attrs.failedToLoadSkill", { defaultValue: "Failed to load skill" })}</Caption>
         <ReportBugButton
           context={{
             source: "panel-crash",

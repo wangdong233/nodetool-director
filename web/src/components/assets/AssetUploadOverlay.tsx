@@ -53,7 +53,7 @@ const AssetUploadOverlay = () => {
     <div css={styles(theme)} className="uploading-overlay">
       <div className="uploading-message">
         <Box>
-          <Text size="big" >Uploading assets</Text>
+          <Text size="big" >{i18n.t("ui2:attrs.uploadingAssets", { defaultValue: "Uploading assets" })}</Text>
           <Text size="normal" weight={600}>
             {completed} / {files.length} files completed
           </Text>

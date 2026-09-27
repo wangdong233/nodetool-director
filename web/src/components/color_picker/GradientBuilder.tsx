@@ -22,6 +22,7 @@ import {
   GradientStop,
   gradientToCss
 } from "../../stores/ColorPickerStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -301,8 +302,8 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           }
         }}
       >
-        <ToggleOption value="linear">Linear</ToggleOption>
-        <ToggleOption value="radial">Radial</ToggleOption>
+        <ToggleOption value="linear">{i18n.t("ui2:attrs.linear", { defaultValue: "Linear" })}</ToggleOption>
+        <ToggleOption value="radial">{i18n.t("ui2:attrs.radial", { defaultValue: "Radial" })}</ToggleOption>
       </ToggleGroup>
 
       {gradient.type === "linear" && (

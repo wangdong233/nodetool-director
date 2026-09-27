@@ -174,7 +174,7 @@ const OutlineBodyInner: React.FC<OutlineBodyProps> = ({
       </div>
 
       <div className="color-row">
-        <span className="color-row-label">Color</span>
+        <span className="color-row-label">{i18n.t("timeline:attrs.color", { defaultValue: "Color" })}</span>
         <ColorPicker
           color={colorHex}
           onColorChange={handleColorChange}

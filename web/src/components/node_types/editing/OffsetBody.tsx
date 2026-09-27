@@ -208,7 +208,7 @@ const OffsetBodyInner: React.FC<OffsetBodyProps> = ({
         })}
 
         <div className="wrap-row">
-          <span className="wrap-label">Wrap</span>
+          <span className="wrap-label">{i18n.t("ui2:attrs.wrap", { defaultValue: "Wrap" })}</span>
           <ToggleGroup
             quiet
             value={String(Math.round(wrapValue))}

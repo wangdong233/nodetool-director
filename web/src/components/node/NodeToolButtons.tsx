@@ -197,7 +197,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <GroupRemoveIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Remove from Group</ListItemText>
+            <ListItemText>{i18n.t("ui2:attrs.removeFromGroup", { defaultValue: "Remove from Group" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -206,7 +206,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <SwapHorizIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Convert to Input</ListItemText>
+            <ListItemText>{i18n.t("ui2:attrs.convertToInput", { defaultValue: "Convert to Input" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -215,7 +215,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <SwapHorizIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Convert to Constant</ListItemText>
+            <ListItemText>{i18n.t("ui2:attrs.convertToConstant", { defaultValue: "Convert to Constant" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -232,21 +232,21 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
           <ListItemIcon>
             <SearchIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Show Templates</ListItemText>
+          <ListItemText>{i18n.t("ui2:attrs.showTemplates", { defaultValue: "Show Templates" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem onClick={handleSelectAllSameType}>
           <ListItemIcon>
             <FilterListIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Select All Same Type</ListItemText>
+          <ListItemText>{i18n.t("ui2:attrs.selectAllSameType", { defaultValue: "Select All Same Type" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem onClick={handlers.handleCopyMetadataToClipboard}>
           <ListItemIcon>
             <DataArrayIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Copy Node as JSON</ListItemText>
+          <ListItemText>{i18n.t("ui2:attrs.copyNodeAsJSON", { defaultValue: "Copy Node as JSON" })}</ListItemText>
         </EditorMenuItem>
 
         <Divider />

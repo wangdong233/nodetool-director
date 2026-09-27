@@ -135,7 +135,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       <FlexColumn gap={2} sx={{ pt: 1 }}>
         {profileNames.length === 0 ? (
           <Caption size="small">
-            No worker profiles yet. Open <strong>Manage Profiles</strong> to
+            No worker profiles yet. Open <strong>{i18n.t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}</strong> to
             create one.
           </Caption>
         ) : (

@@ -209,7 +209,7 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Range</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.range", { defaultValue: "Range" })}</span>
         <Select
           className="range-select nodrag"
           size="small"

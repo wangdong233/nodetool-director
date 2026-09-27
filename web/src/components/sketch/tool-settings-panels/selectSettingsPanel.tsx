@@ -141,8 +141,8 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
             }}
             sx={{ flexWrap: "wrap" }}
           >
-            <SketchModeOption value="contiguous">Contiguous</SketchModeOption>
-            <SketchModeOption value="allLayers">All Layers</SketchModeOption>
+            <SketchModeOption value="contiguous">{i18n.t("ui2:attrs.contiguous", { defaultValue: "Contiguous" })}</SketchModeOption>
+            <SketchModeOption value="allLayers">{i18n.t("ui2:attrs.allLayers", { defaultValue: "All Layers" })}</SketchModeOption>
           </SketchModeToggle>
         </>
       ) : null}

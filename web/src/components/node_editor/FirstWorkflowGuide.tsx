@@ -77,7 +77,7 @@ const FirstWorkflowGuide = ({
       <FlexColumn gap={SPACING.lg}>
         <FlexRow align="flex-start" justify="space-between" gap={SPACING.lg}>
           <FlexColumn gap={SPACING.xs}>
-            <Text size="big">Build your first useful workflow</Text>
+            <Text size="big">{i18n.t("ui2:attrs.buildYourFirstUsefulWorkflow", { defaultValue: "Build your first useful workflow" })}</Text>
             <Caption>
               Connect a text input to an output, run it, and see the result.
               This starter needs no model or provider setup.

@@ -278,7 +278,7 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
         </div>
         {Object.keys(localTree).length > 0 && (
           <>
-            <Text className="namespace-section-title">Local</Text>
+            <Text className="namespace-section-title">{i18n.t("ui2:attrs.local", { defaultValue: "Local" })}</Text>
             <div className="namespace-list-local">
               <RenderNamespaces tree={localTree} />
             </div>

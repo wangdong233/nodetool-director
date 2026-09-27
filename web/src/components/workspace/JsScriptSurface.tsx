@@ -38,6 +38,7 @@ import JsScriptRunConsole from "../jsScript/JsScriptRunConsole";
 import type { JsScriptRunRequest } from "../jsScript/JsScriptRunDialog";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
 import DocumentLoadStatus from "./DocumentLoadStatus";
+import { i18n } from "../../i18n";
 
 interface JsScriptSurfaceProps {
   refId: string;
@@ -165,7 +166,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
   // The store seeds an empty script on mount, so rendering before the server
   // copy lands looks like a script with an empty body.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="JS script" />;
+    return <DocumentLoadStatus state={loadState} label={i18n.t("ui2:attrs.jsScript", { defaultValue: "JS script" })} />;
   }
 
   const editor = <JsScriptEditorPane scriptId={refId} readOnly={readOnly} />;
@@ -256,7 +257,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
       <ResizableSideDock
         storageKey="jsscript_assistant"
         defaultWidth={DOCK_WIDTH}
-        ariaLabel="Resize JS script assistant"
+        ariaLabel={i18n.t("ui2:attrs.resizeJSScriptAssistant", { defaultValue: "Resize JS script assistant" })}
       >
         <TabGroup
           tabs={dockTabs}

@@ -235,7 +235,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
           </div>
         </DialogContent>
         <DialogActions>
-          <EditorButton onClick={onClose}>Close</EditorButton>
+          <EditorButton onClick={onClose}>{i18n.t("ui2:attrs.close", { defaultValue: "Close" })}</EditorButton>
         </DialogActions>
       </Dialog>
     );
@@ -278,7 +278,7 @@ const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
           onClick={handleOpen}
           startIcon={<ListAltIcon />}
         >
-          <span>Logs</span>
+          <span>{i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}</span>
           <Chip size="small" label={count} sx={{ ml: 1 }} />
         </EditorButton>
       </div>

@@ -41,7 +41,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
                 {layer.name}
               </Label>
             </FlexRow>
-            <Caption color="secondary">Imported layer</Caption>
+            <Caption color="secondary">{i18n.t("ui2:attrs.importedLayer", { defaultValue: "Imported layer" })}</Caption>
           </FlexColumn>
 
           <CollapsibleSection title="Source" defaultOpen>
@@ -55,7 +55,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
                 </Text>
               </FlexColumn>
             ) : (
-              <Caption color="secondary">No image source recorded.</Caption>
+              <Caption color="secondary">{i18n.t("ui2:attrs.noImageSourceRecorded", { defaultValue: "No image source recorded." })}</Caption>
             )}
           </CollapsibleSection>
         </FlexColumn>

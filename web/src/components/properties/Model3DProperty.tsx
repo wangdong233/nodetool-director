@@ -264,7 +264,7 @@ const Model3DProperty = (props: PropertyProps) => {
                 />
               </div>
             ) : (
-              <p className="prop-drop">Drop 3D model (GLB, GLTF)</p>
+              <p className="prop-drop">{i18n.t("ui2:attrs.drop3DModelGLBGLTF", { defaultValue: "Drop 3D model (GLB, GLTF)" })}</p>
             )}
           </div>
 

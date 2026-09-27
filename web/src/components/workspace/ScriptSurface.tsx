@@ -37,6 +37,7 @@ import {
   useScriptSetupFlow,
   useScriptSetupStage
 } from "../setup/script/useScriptSetupFlow";
+import { i18n } from "../../i18n";
 
 interface ScriptSurfaceProps {
   refId: string;
@@ -154,7 +155,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
   // The store seeds an empty script on mount, so rendering before the server
   // copy lands looks like a script with no lines.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="script" />;
+    return <DocumentLoadStatus state={loadState} label={i18n.t("ui2:attrs.docScript", { defaultValue: "script" })} />;
   }
 
   if (setupStage !== "done") {
@@ -203,7 +204,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
               maxHeight="85dvh"
               title={dockTab === "cast" ? "Cast" : "Assistant"}
               headerExtras={dockTabGroup}
-              ariaLabel="Script cast and assistant"
+              ariaLabel={i18n.t("ui2:attrs.scriptCastAndAssistant", { defaultValue: "Script cast and assistant" })}
             >
               <FlexColumn
                 fullWidth
@@ -225,7 +226,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
       {!readOnly && (
         <ResizableSideDock
           storageKey="script_assistant"
-          ariaLabel="Resize script assistant"
+          ariaLabel={i18n.t("ui2:attrs.resizeScriptAssistant", { defaultValue: "Resize script assistant" })}
         >
           {dockTabGroup}
           <FlexColumn

@@ -11,6 +11,7 @@ import {
   useWaveRecorder
 } from "../../hooks/browser/useWaveRecorder";
 import Select from "../inputs/Select";
+import { i18n } from "../../i18n";
 
 const WaveRecorder = (props: WaveRecorderProps) => {
   const theme = useTheme();
@@ -154,8 +155,8 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                   options={deviceOptions}
                   value={selectedInputDeviceId}
                   onChange={handleInputDeviceChange}
-                  placeholder="System default input"
-                  label="Input Device"
+                  placeholder={i18n.t("ui2:attrs.systemDefaultInput", { defaultValue: "System default input" })}
+                  label={i18n.t("ui2:attrs.inputDevice", { defaultValue: "Input Device" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>

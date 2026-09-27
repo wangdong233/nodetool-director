@@ -21,6 +21,7 @@ import {
   useRunSelectedNodes
 } from "../../hooks/nodes/useRunSelectedNodes";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -130,7 +131,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
         fullWidth
         className="runs-row"
       >
-        <span className="runs-label">Runs</span>
+        <span className="runs-label">{i18n.t("ui2:attrs.runs", { defaultValue: "Runs" })}</span>
         <FlexRow gap={0} align="center" className="stepper-control">
           <EditorButton
             onClick={decrement}
@@ -156,7 +157,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
           placement="top"
           title={
             <FlexRow gap={1} align="center">
-              <span>Run selected nodes</span>
+              <span>{i18n.t("ui2:attrs.runSelectedNodes", { defaultValue: "Run selected nodes" })}</span>
               <ShortcutHint shortcut={["⌘", "Enter"]} />
             </FlexRow>
           }
@@ -169,7 +170,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
             aria-label="Run selected nodes"
           >
             <PlayArrowIcon className="play-icon" />
-            <span className="run-label">Run selected</span>
+            <span className="run-label">{i18n.t("ui2:attrs.runSelected", { defaultValue: "Run selected" })}</span>
           </EditorButton>
         </Tooltip>
         {inSequence && runProgress !== null ? (

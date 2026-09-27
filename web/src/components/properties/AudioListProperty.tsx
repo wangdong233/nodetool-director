@@ -472,7 +472,7 @@ const AudioListProperty = (props: PropertyProps<AudioItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>Click or drop audio files here</p>
+          <p>{i18n.t("ui2:attrs.clickOrDropAudioFilesHere", { defaultValue: "Click or drop audio files here" })}</p>
         </div>
       </Tooltip>
     </div>

@@ -18,6 +18,7 @@ import {
   type NewDocumentSubmenu
 } from "./newDocumentCatalog";
 import { useGuidedFlowStarters } from "./useGuidedFlowStarters";
+import { i18n } from "../../i18n";
 
 interface OpenMenuProps {
   anchorEl: HTMLElement | null;
@@ -83,7 +84,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       >
         {view === "root" && (
           <>
-            <MenuSectionLabel>Guided flows</MenuSectionLabel>
+            <MenuSectionLabel>{i18n.t("ui2:attrs.guidedFlows", { defaultValue: "Guided flows" })}</MenuSectionLabel>
             {starters.map((starter) => (
               <MenuItemPrimitive
                 key={starter.id}
@@ -96,7 +97,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             ))}
 
             <Divider sx={{ my: 1 }} />
-            <MenuSectionLabel>Blank documents</MenuSectionLabel>
+            <MenuSectionLabel>{i18n.t("ui2:attrs.blankDocuments", { defaultValue: "Blank documents" })}</MenuSectionLabel>
             {entries.map((entry) => (
               <MenuItemPrimitive
                 key={entry.key}
@@ -117,7 +118,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         {view === "texts" && (
           <>
             <MenuItemPrimitive
-              label="Back"
+              label={i18n.t("timeline:addClip.back", { defaultValue: "Back" })}
               icon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => setView("root")}
               dividerAfter
@@ -136,13 +137,13 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         {view === "storyboards" && (
           <>
             <MenuItemPrimitive
-              label="Back"
+              label={i18n.t("timeline:addClip.back", { defaultValue: "Back" })}
               icon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => setView("root")}
               dividerAfter
             />
             <MenuItemPrimitive
-              label="Blank storyboard"
+              label={i18n.t("ui2:attrs.blankStoryboard", { defaultValue: "Blank storyboard" })}
               icon={<AddRoundedIcon fontSize="small" />}
               onClick={() => void createBlankStoryboard()}
               disabled={busy}

@@ -111,7 +111,7 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
             Delete {project.name} and all of its documents, conversations,
             generated outputs, assets, jobs, and project files.
           </Caption>
-          <Caption color="error">This cannot be undone.</Caption>
+          <Caption color="error">{i18n.t("ui2:attrs.thisCannotBeUndone", { defaultValue: "This cannot be undone." })}</Caption>
         </FlexColumn>
       </Dialog>
     </>

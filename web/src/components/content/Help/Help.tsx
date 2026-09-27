@@ -25,6 +25,7 @@ import { NODE_EDITOR_SHORTCUTS } from "../../../config/shortcuts";
 import ControlsShortcutsTab from "./ControlsShortcutsTab";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { Dialog } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -227,7 +228,7 @@ const Help = ({
         <div css={helpStyles(theme)}>
           <div className="help">
             <div className="top">
-              <Text size="big" >Help</Text>
+              <Text size="big" >{i18n.t("nav:rail.help", { defaultValue: "Help" })}</Text>
               <CloseButton onClick={handleClose} />
             </div>
             <div className="tabs-row">
@@ -252,7 +253,7 @@ const Help = ({
                 >
                   <div className="docs-button-text">
                     <span>Nodetool</span>
-                    <span>Docs</span>
+                    <span>{i18n.t("ui2:attrs.docs", { defaultValue: "Docs" })}</span>
                   </div>
                   <OpenInNewIcon />
                 </a>

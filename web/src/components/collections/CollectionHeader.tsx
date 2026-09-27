@@ -11,6 +11,7 @@ import {
   getSpacingPx,
   activateOnKey
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const CollectionHeader = () => {
   const [formatInfoAnchor, setFormatInfoAnchor] = useState<HTMLElement | null>(
@@ -59,8 +60,8 @@ const CollectionHeader = () => {
             }}
           >
             <li>PDFs, PowerPoint, Word, Excel</li>
-            <li>Text files, Markdown, HTML</li>
-            <li>Images (text extraction with OCR)</li>
+            <li>{i18n.t("ui2:attrs.textFilesMarkdownHTML", { defaultValue: "Text files, Markdown, HTML" })}</li>
+            <li>{i18n.t("ui2:attrs.imagesTextExtractionWithOCR", { defaultValue: "Images (text extraction with OCR)" })}</li>
           </ul>
         </FlexColumn>
       </Popover>

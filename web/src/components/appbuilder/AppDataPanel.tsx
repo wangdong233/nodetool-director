@@ -48,6 +48,7 @@ import {
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface AppDataPanelProps {
   meta: AppDocMeta;
@@ -360,7 +361,7 @@ const VariableRow: React.FC<{
       onChange={(checked) => onPatch({ persist: checked })}
     />
     {variable.scope !== "user" ? (
-      <Caption color="secondary">Only per-user variables can be remembered.</Caption>
+      <Caption color="secondary">{i18n.t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
     ) : null}
   </EntryCard>
   );

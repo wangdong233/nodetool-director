@@ -21,6 +21,7 @@ import {
 import { WorkflowInputIO } from "../workflowIO";
 import { WorkflowInputControl } from "./WorkflowInputWidget";
 import { useWidgetRuntime } from "./useWidgetRuntime";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowFormWidgetProps {
   id: string;
@@ -109,7 +110,7 @@ export const WorkflowFormWidget: React.FC<WorkflowFormWidgetProps> = ({
     return (
       <FlexColumn gap={SPACING.xs} fullWidth>
         {heading}
-        <Caption color="secondary">This operation has no inputs.</Caption>
+        <Caption color="secondary">{i18n.t("ui2:attrs.thisOperationHasNoInputs", { defaultValue: "This operation has no inputs." })}</Caption>
       </FlexColumn>
     );
   }

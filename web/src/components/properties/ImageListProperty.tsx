@@ -557,7 +557,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>Click or drop images here</p>
+          <p>{i18n.t("ui2:attrs.clickOrDropImagesHere", { defaultValue: "Click or drop images here" })}</p>
         </div>
       </Tooltip>
     </div>

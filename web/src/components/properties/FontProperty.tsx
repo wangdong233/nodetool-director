@@ -78,7 +78,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
         {isLoading ? (
           <div className="loading-state">Loading fonts…</div>
         ) : isError ? (
-          <div className="error-state">Error loading fonts</div>
+          <div className="error-state">{i18n.t("ui2:attrs.errorLoadingFonts", { defaultValue: "Error loading fonts" })}</div>
         ) : (
           <Select
             value={currentValue}

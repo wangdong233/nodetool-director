@@ -180,13 +180,13 @@ function LLMDetail({ detail }: { detail: LLMCallDetail }) {
       ) : null}
       {detail.response ? (
         <div className="llm-section">
-          <div className="llm-label">Response</div>
+          <div className="llm-label">{i18n.t("ui2:attrs.response", { defaultValue: "Response" })}</div>
           <pre>{isString(detail.response) ? detail.response : JSON.stringify(detail.response, null, 2)}</pre>
         </div>
       ) : null}
       {detail.tool_calls && detail.tool_calls.length > 0 ? (
         <div className="llm-section">
-          <div className="llm-label">Tool Calls</div>
+          <div className="llm-label">{i18n.t("ui2:attrs.toolCalls", { defaultValue: "Tool Calls" })}</div>
           <pre>{JSON.stringify(detail.tool_calls, null, 2)}</pre>
         </div>
       ) : null}
@@ -204,7 +204,7 @@ function LLMDetail({ detail }: { detail: LLMCallDetail }) {
       </div>
       {detail.error ? (
         <div className="llm-section">
-          <div className="llm-label" style={{ color: "var(--palette-error-main)" }}>Error</div>
+          <div className="llm-label" style={{ color: "var(--palette-error-main)" }}>{i18n.t("ui2:attrs.error", { defaultValue: "Error" })}</div>
           <pre>{String(detail.error)}</pre>
         </div>
       ) : null}

@@ -29,6 +29,7 @@ import { trpc } from "../../../trpc/client";
 import { isConcurrencyConflict } from "../../../hooks/useApplications";
 import { useBoundResource } from "./useBoundResource";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 interface StoryboardSceneListProps {
   /** Puck injects the placed widget's id. */
@@ -188,7 +189,7 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
           {isLoading ? "Loading…" : "This resource has no scenes."}
         </Caption>
       ) : shots.length === 0 ? (
-        <Caption color="secondary">This storyboard has no scenes yet.</Caption>
+        <Caption color="secondary">{i18n.t("ui2:attrs.thisStoryboardHasNoScenesYet", { defaultValue: "This storyboard has no scenes yet." })}</Caption>
       ) : (
         <Box
           component="ul"

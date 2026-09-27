@@ -201,7 +201,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
 
       <div className="section">
         <FlexRow className="section-header" align="center" justify="space-between">
-          <span className="section-title">Tonal</span>
+          <span className="section-title">{i18n.t("ui2:attrs.tonal", { defaultValue: "Tonal" })}</span>
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}

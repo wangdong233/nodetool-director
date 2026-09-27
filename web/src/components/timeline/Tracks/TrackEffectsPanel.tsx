@@ -1740,7 +1740,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
 
         {effects.length === 0 ? (
           <Text size="small" color="secondary">
-            No effects. Click <strong>Add</strong> to insert one.
+            No effects. Click <strong>{i18n.t("ui2:attrs.add", { defaultValue: "Add" })}</strong> to insert one.
           </Text>
         ) : (
           <div css={deviceRackStyles(theme)}>

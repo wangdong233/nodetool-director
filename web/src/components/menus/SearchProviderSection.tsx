@@ -82,7 +82,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
 
       <div className="settings-item large">
         <FormControl variant="standard" fullWidth sx={{ marginBottom: getSpacingPx(SPACING.xxl) }}>
-          <InputLabel id="provider-select-label">Provider</InputLabel>
+          <InputLabel id="provider-select-label">{i18n.t("ui2:attrs.provider", { defaultValue: "Provider" })}</InputLabel>
           <Select
             labelId="provider-select-label"
             id="provider-select"

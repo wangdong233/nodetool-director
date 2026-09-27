@@ -27,6 +27,7 @@ import {
   LoadingSpinner,
   BORDER_RADIUS
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface TextDocumentEditorProps {
   asset: Asset;
@@ -279,7 +280,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
             toolbarEnd={
               <>
                 {isDirty && (
-                  <span className="dirty-dot" aria-label="Unsaved changes" />
+                  <span className="dirty-dot" aria-label={i18n.t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
                 )}
                 <EditorButton
                   variant="contained"
@@ -328,7 +329,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           />
           <FlexRow align="center" gap={0.5} sx={{ px: 1 }}>
             {isDirty && (
-              <span className="dirty-dot" aria-label="Unsaved changes" />
+              <span className="dirty-dot" aria-label={i18n.t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
             )}
             <EditorButton
               variant="contained"

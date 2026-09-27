@@ -195,7 +195,7 @@ const FoldersSettings = () => {
         css={getSharedSettingsStyles(theme)}
       >
         <div className="settings-main-content">
-          <Text size="giant">Folder Settings</Text>
+          <Text size="giant">{i18n.t("ui2:attrs.folderSettings", { defaultValue: "Folder Settings" })}</Text>
 
           {canOpenSystemFolders && (
             <div className="settings-section">

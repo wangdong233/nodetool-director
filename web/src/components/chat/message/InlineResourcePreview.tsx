@@ -77,7 +77,7 @@ const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
     return <LoadingSpinner size="small" text="Loading sketch" />;
   }
   if (query.isError) {
-    return <Caption color="secondary">Could not load this sketch.</Caption>;
+    return <Caption color="secondary">{i18n.t("ui2:attrs.couldNotLoadThisSketch", { defaultValue: "Could not load this sketch." })}</Caption>;
   }
   return null;
 };
@@ -108,7 +108,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
     return <LoadingSpinner size="small" text="Loading timeline" />;
   }
   if (query.isError) {
-    return <Caption color="secondary">Could not load this timeline.</Caption>;
+    return <Caption color="secondary">{i18n.t("ui2:attrs.couldNotLoadThisTimeline", { defaultValue: "Could not load this timeline." })}</Caption>;
   }
   return null;
 };

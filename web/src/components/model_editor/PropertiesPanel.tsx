@@ -515,7 +515,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
             step={1}
             onChanged={onChanged}
           />
-          <Vector3Row label="Scale" vector={object.scale} step={0.1} onChanged={onChanged} />
+          <Vector3Row label={i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })} vector={object.scale} step={0.1} onChanged={onChanged} />
 
           {light && (
             <>
@@ -523,7 +523,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               <Text size="small" weight={600} className="section-title">
                 Light
               </Text>
-              <ColorRow label="Color" color={light.color} onChange={onChanged} />
+              <ColorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })} color={light.color} onChange={onChanged} />
               <NumberRow
                 label={i18n.t("editor:ui.intensity", { defaultValue: "Intensity" })}
                 value={light.intensity}
@@ -547,7 +547,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                     }}
                   />
                   <NumberRow
-                    label="Decay"
+                    label={i18n.t("ui2:attrs.decay", { defaultValue: "Decay" })}
                     value={pointLight.decay}
                     min={0}
                     step={0.1}
@@ -662,7 +662,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 <SelectField
                   className="select-field nodrag"
                   hideLabel
-                  label="Side"
+                  label={i18n.t("ui2:attrs.side", { defaultValue: "Side" })}
                   size="small"
                   value={String(material.side)}
                   options={SIDE_OPTIONS}

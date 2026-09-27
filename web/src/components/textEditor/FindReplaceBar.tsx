@@ -264,7 +264,7 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>Replace</span>}
+              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{i18n.t("ui2:attrs.replace", { defaultValue: "Replace" })}</span>}
               tooltip={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
               onClick={handleReplace}
               disabled={!isValidSearch || totalMatches === 0}
@@ -274,7 +274,7 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>All</span>}
+              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{i18n.t("common:sizeFilters.all", { defaultValue: "All" })}</span>}
               tooltip={i18n.t("editor:ui.replaceAll", { defaultValue: "Replace All" })}
               onClick={handleReplaceAll}
               disabled={!isValidSearch || totalMatches === 0}

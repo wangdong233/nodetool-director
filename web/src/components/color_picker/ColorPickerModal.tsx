@@ -30,6 +30,7 @@ import GradientBuilder from "./GradientBuilder";
 import SwatchPanel from "./SwatchPanel";
 import ContrastChecker from "./ContrastChecker";
 import EyedropperButton from "./EyedropperButton";
+import { i18n } from "../../i18n";
 
 // Falls between theme.zIndex.commandMenu (9999) and theme.zIndex.popover
 // (10001), so no tier matches and it keeps its own value.
@@ -395,7 +396,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       >
         <FlexColumn className="modal-content" onClick={(e) => e.stopPropagation()}>
           <FlexRow className="modal-header" align="center" justify="space-between" fullWidth>
-            <Text className="modal-title">Color Picker</Text>
+            <Text className="modal-title">{i18n.t("ui2:attrs.colorPicker", { defaultValue: "Color Picker" })}</Text>
             <FlexRow className="header-actions" align="center">
               <EyedropperButton onColorPicked={handleEyedropperPick} />
               <CloseButton

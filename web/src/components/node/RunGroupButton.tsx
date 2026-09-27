@@ -80,7 +80,7 @@ const RunGroupButton: React.FC<RunGroupButtonProps> = ({
             className="tooltip-span"
             style={tooltipSpanStyle}
           >
-            <span style={tooltipTextStyle}>Run Group</span>
+            <span style={tooltipTextStyle}>{i18n.t("ui2:attrs.runGroup", { defaultValue: "Run Group" })}</span>
           </div>
         )
       }

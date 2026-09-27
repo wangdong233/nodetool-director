@@ -143,7 +143,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                 }}
                 data-testid="sketch-open-generate"
               >
-                <span className="sketch-generate-label">Generate</span>
+                <span className="sketch-generate-label">{i18n.t("ui2:attrs.generate", { defaultValue: "Generate" })}</span>
               </EditorButton>
             </span>
           </Tooltip>
@@ -193,7 +193,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           <ListItemIcon>
             <FitScreenIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Fit to viewport</ListItemText>
+          <ListItemText>{i18n.t("ui2:attrs.fitToViewport", { defaultValue: "Fit to viewport" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem
@@ -203,7 +203,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           <ListItemIcon>
             <ViewSidebarOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Hide panels</ListItemText>
+          <ListItemText>{i18n.t("ui2:attrs.hidePanels", { defaultValue: "Hide panels" })}</ListItemText>
         </EditorMenuItem>
 
         {menuItems ? <Divider key="host-divider" /> : null}

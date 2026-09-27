@@ -244,7 +244,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
       );
     }
     case "document":
-      return <div>Document</div>;
+      return <div>{i18n.t("ui2:attrs.document", { defaultValue: "Document" })}</div>;
     default:
       return null;
   }

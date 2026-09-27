@@ -88,8 +88,8 @@ const BrowserExtensionSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          The <strong>Nodetool browser extension</strong> lets the{" "}
-          <strong>Live Browser Agent</strong> drive your own logged-in Chrome —
+          The <strong>{i18n.t("ui2:attrs.nodetoolBrowserExtension", { defaultValue: "Nodetool browser extension" })}</strong> lets the{" "}
+          <strong>{i18n.t("ui2:attrs.liveBrowserAgent", { defaultValue: "Live Browser Agent" })}</strong> drive your own logged-in Chrome —
           automating media-generation sites, saving results as assets, and
           uploading assets into pages. Chrome can’t install it for you, so load
           it unpacked once with the steps below.

@@ -28,6 +28,7 @@ import {
 import type { TimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import type { TimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
 import { FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
@@ -199,7 +200,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
       />
       <ul className="slash-menu">
         {matches.length === 0 ? (
-          <li className="slash-empty">No commands</li>
+          <li className="slash-empty">{i18n.t("ui2:attrs.noCommands", { defaultValue: "No commands" })}</li>
         ) : (
           matches.map((c, i) => (
             <li

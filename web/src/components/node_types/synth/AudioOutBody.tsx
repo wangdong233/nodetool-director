@@ -153,7 +153,7 @@ const AudioOutBodyInner: React.FC<AudioOutBodyProps> = ({
   return (
     <div css={cssStyles} className="audio-out-body" data-bespoke-body="AudioOut">
       <HandleColumn id={id} properties={chunkProperty} />
-      <span className="module-label">Out</span>
+      <span className="module-label">{i18n.t("ui2:attrs.out", { defaultValue: "Out" })}</span>
 
       {chunks.length > 0 ? (
         <div className="player nodrag">
@@ -167,7 +167,7 @@ const AudioOutBodyInner: React.FC<AudioOutBodyProps> = ({
           />
         </div>
       ) : (
-        <div className="idle-hint">Run the patch to hear it</div>
+        <div className="idle-hint">{i18n.t("ui2:attrs.runThePatchToHearIt", { defaultValue: "Run the patch to hear it" })}</div>
       )}
 
       {!isOutputNode && (

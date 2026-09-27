@@ -675,7 +675,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         </div>
         <ul>
           <li>Drag out while holding CTRL | ⌘ key</li>
-          <li>Shake rapidly, then drag out</li>
+          <li>{i18n.t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
         </ul>
       </div>
 

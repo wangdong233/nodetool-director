@@ -36,6 +36,7 @@ import CompositorEditorCanvas, {
 import LayerTransformFields from "./LayerTransformFields";
 import { useLayerBitmaps } from "./useLayerBitmaps";
 import { defaultTransform, type CompositorEditorLayer } from "./types";
+import { i18n } from "../../i18n";
 
 export interface CompositorEditorProps {
   canvasWidth: number;
@@ -278,10 +279,10 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
 
       <div className="side-panel">
         <FlexColumn gap={0.5}>
-          <Caption>Canvas size</Caption>
+          <Caption>{i18n.t("ui2:attrs.canvasSize", { defaultValue: "Canvas size" })}</Caption>
           <FlexRow className="size-row" gap={0.5}>
             <div className="field">
-              <div className="field-label">Width</div>
+              <div className="field-label">{i18n.t("timeline:project.width", { defaultValue: "Width" })}</div>
               <NumberInput
                 id="compositor-canvas-width"
                 nodeId=""
@@ -304,7 +305,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
               />
             </div>
             <div className="field">
-              <div className="field-label">Height</div>
+              <div className="field-label">{i18n.t("timeline:project.height", { defaultValue: "Height" })}</div>
               <NumberInput
                 id="compositor-canvas-height"
                 nodeId=""
@@ -334,7 +335,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
         {selectedTransform ? (
           <FlexColumn gap={0.5}>
             <FlexRow justify="space-between" align="center">
-              <Text sx={{ fontWeight: 500 }}>Selected layer</Text>
+              <Text sx={{ fontWeight: 500 }}>{i18n.t("ui2:attrs.selectedLayer", { defaultValue: "Selected layer" })}</Text>
               <StateIconButton
                 icon={<RestartAltIcon fontSize="small" />}
                 onClick={handleResetTransform}
@@ -349,11 +350,11 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
             <Divider />
           </FlexColumn>
         ) : (
-          <Caption>Select a layer to transform it.</Caption>
+          <Caption>{i18n.t("ui2:attrs.selectALayerToTransformIt", { defaultValue: "Select a layer to transform it." })}</Caption>
         )}
 
         <FlexColumn gap={0.5}>
-          <Caption>Layers</Caption>
+          <Caption>{i18n.t("sketch:attrs.layers", { defaultValue: "Layers" })}</Caption>
           {layers.length === 0 ? (
             <div className="empty">No layers yet - add one below.</div>
           ) : (

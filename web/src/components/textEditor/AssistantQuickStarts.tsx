@@ -149,13 +149,13 @@ const AssistantQuickStarts = ({
         <div className="hero-badge">
           <AutoAwesomeIcon />
         </div>
-        <h3 className="hero-title">Write this prompt with AI</h3>
+        <h3 className="hero-title">{i18n.t("ui2:attrs.writeThisPromptWithAI", { defaultValue: "Write this prompt with AI" })}</h3>
         <p className="hero-text">
           Describe what you want, or start from one of these. Drafts drop
           straight into the editor.
         </p>
       </div>
-      <span className="quick-label">Quick starts</span>
+      <span className="quick-label">{i18n.t("ui2:attrs.quickStarts", { defaultValue: "Quick starts" })}</span>
       <div className="quick-list">
         {quickStarts.map((item) => (
           <button

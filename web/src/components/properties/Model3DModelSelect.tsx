@@ -200,7 +200,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
             ))}
           </React.Fragment>
         ))}
-        <EditorMenuItem onClick={openSetup}>Add providers</EditorMenuItem>
+        <EditorMenuItem onClick={openSetup}>{i18n.t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
       </EditorMenu>
     </>
   );

@@ -463,7 +463,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
       inputField = createElement(componentType, propertyProps);
     }
   } else {
-    inputField = <div>Unsupported property type</div>;
+    inputField = <div>{i18n.t("ui2:attrs.unsupportedPropertyType", { defaultValue: "Unsupported property type" })}</div>;
   }
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {

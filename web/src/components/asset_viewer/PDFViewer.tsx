@@ -23,6 +23,7 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 import RestartAlt from "@mui/icons-material/RestartAlt";
 import { ActionButtonGroup } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -224,14 +225,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           loading={<LoadingSpinner />}
-          error={<Text color="error">Failed to load PDF</Text>}
+          error={<Text color="error">{i18n.t("ui2:attrs.failedToLoadPDF", { defaultValue: "Failed to load PDF" })}</Text>}
         >
           {pageComponent}
         </Document>
         <FlexRow className="page-controls" align="center" gap={SPACING.xs} sx={{ position: "sticky", bottom: "1em", background: theme.vars.palette.grey[600], padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xl)}`, borderRadius: BORDER_RADIUS.sm, zIndex: Z_INDEX.sticky, minWidth: "200px", userSelect: "none" }}>
           <ToolbarIconButton
             icon={<NavigateBefore />}
-            tooltip="Previous page"
+            tooltip={i18n.t("ui2:attrs.previousPage", { defaultValue: "Previous page" })}
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
             size="small"
@@ -241,7 +242,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           </Text>
           <ToolbarIconButton
             icon={<NavigateNext />}
-            tooltip="Next page"
+            tooltip={i18n.t("ui2:attrs.nextPage", { defaultValue: "Next page" })}
             onClick={goToNextPage}
             disabled={pageNumber >= (numPages || 1)}
             size="small"
@@ -251,24 +252,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
       <ActionButtonGroup
         className="zoom-controls"
         spacing={0.25}
-        aria-label="Zoom controls"
+        aria-label={i18n.t("ui2:attrs.zoomControls", { defaultValue: "Zoom controls" })}
         nodrag={false}
       >
         <ToolbarIconButton
           icon={<ZoomIn fontSize="small" />}
-          tooltip="Zoom in"
+          tooltip={i18n.t("ui2:attrs.zoomIn", { defaultValue: "Zoom in" })}
           onClick={zoomIn}
           size="small"
         />
         <ToolbarIconButton
           icon={<ZoomOut fontSize="small" />}
-          tooltip="Zoom out"
+          tooltip={i18n.t("ui2:attrs.zoomOut", { defaultValue: "Zoom out" })}
           onClick={zoomOut}
           size="small"
         />
         <ToolbarIconButton
           icon={<RestartAlt fontSize="small" />}
-          tooltip="Reset zoom"
+          tooltip={i18n.t("ui2:attrs.resetZoom", { defaultValue: "Reset zoom" })}
           onClick={resetZoom}
           size="small"
         />
@@ -283,7 +284,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           marks
           density="compact"
           orientation="vertical"
-          aria-label="Page navigation slider"
+          aria-label={i18n.t("ui2:attrs.pageNavigationSlider", { defaultValue: "Page navigation slider" })}
         />
       </FlexRow>
     </FlexRow>

@@ -327,7 +327,7 @@ export const KeyboardConnectionPicker = ({
           />
         ) : (
           <Box padding={SPACING.md}>
-            <Text color="muted">No compatible ports found.</Text>
+            <Text color="muted">{i18n.t("ui2:attrs.noCompatiblePortsFound", { defaultValue: "No compatible ports found." })}</Text>
           </Box>
         )}
       </FlexColumn>

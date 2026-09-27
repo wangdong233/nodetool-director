@@ -56,6 +56,7 @@ import {
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import WorkflowGraphPreview from "../version/WorkflowGraphPreview";
 import { WorkflowLandingChecklist } from "../setup/workflow/WorkflowLandingChecklist";
+import { i18n } from "../../i18n";
 
 // Floating editor status message: sits above the canvas and node overlays but
 // below the node-info panel (15000) and find dialog (20000). Beyond the shared
@@ -188,7 +189,7 @@ const WorkflowEditorSurface = ({
           type: "chat",
           ref: threadId,
           mode: "view",
-          title: "Workflow repair",
+          title: i18n.t("ui2:attrs.workflowRepair", { defaultValue: "Workflow repair" }),
           projectId: useGlobalChatStore.getState().threads[threadId]?.project_id
         });
         await sendMessage(

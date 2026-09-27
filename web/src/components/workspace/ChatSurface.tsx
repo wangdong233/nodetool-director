@@ -19,6 +19,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import DocumentLoadStatus from "./DocumentLoadStatus";
 import { buildUiContext } from "../../lib/chat/uiContext";
+import { i18n } from "../../i18n";
 
 const whenChatStoreHydrated = (): Promise<void> => {
   const persistApi = useGlobalChatStore.persist;
@@ -225,7 +226,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
   const noMessagesPlaceholder = useMemo(
     () =>
       loadingThread ? (
-        <DocumentLoadStatus state="loading" label="conversation" />
+        <DocumentLoadStatus state="loading" label={i18n.t("ui2:attrs.docConversation", { defaultValue: "conversation" })} />
       ) : (
         <WelcomePlaceholder onSuggestionClick={handleSuggestionClick} />
       ),
@@ -242,7 +243,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: "New chat",
+        title: i18n.t("ui2:attrs.newChat", { defaultValue: "New chat" }),
         projectId
       });
     } catch (error) {

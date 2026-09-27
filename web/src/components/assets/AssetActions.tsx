@@ -337,9 +337,9 @@ const AssetActions = ({
           inputProps={{ "aria-label": "Sort assets" }}
           tabIndex={-1}
         >
-          <MenuItem value="name">Name</MenuItem>
-          <MenuItem value="date">Date</MenuItem>
-          <MenuItem value="size">Size</MenuItem>
+          <MenuItem value="name">{i18n.t("editor:asset.info.name", { defaultValue: "Name" })}</MenuItem>
+          <MenuItem value="date">{i18n.t("ui2:attrs.date", { defaultValue: "Date" })}</MenuItem>
+          <MenuItem value="size">{i18n.t("editor:asset.info.size", { defaultValue: "Size" })}</MenuItem>
         </Select>
       </Tooltip>
 

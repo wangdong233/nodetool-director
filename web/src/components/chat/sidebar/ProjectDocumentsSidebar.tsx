@@ -63,13 +63,13 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
       </FlexColumn>
       <ScrollArea sx={{ flex: 1, minHeight: 0, p: SPACING.sm }}>
         {!projectId ? (
-          <Caption color="muted">No project selected.</Caption>
+          <Caption color="muted">{i18n.t("ui2:attrs.noProjectSelected", { defaultValue: "No project selected." })}</Caption>
         ) : isPending ? (
           <LoadingSpinner />
         ) : error ? (
           <Caption color="error">{error.message}</Caption>
         ) : documents.length === 0 ? (
-          <Caption color="muted">No documents in this project yet.</Caption>
+          <Caption color="muted">{i18n.t("ui2:attrs.noDocumentsInThisProjectYet", { defaultValue: "No documents in this project yet." })}</Caption>
         ) : (
           <FlexColumn gap={SPACING.xs}>
             {documents.map((document) => (

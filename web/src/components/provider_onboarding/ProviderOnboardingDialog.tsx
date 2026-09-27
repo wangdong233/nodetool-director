@@ -52,8 +52,8 @@ const ProviderOnboardingDialog: React.FC = () => {
       title={i18n.t("editor:ui.connectAnAIProvider", { defaultValue: "Connect an AI provider" })}
       actions={
         <FlexRow justify="space-between" gap={SPACING.md} wrap sx={{ width: "100%", px: SPACING.md }}>
-          <EditorButton variant="text" onClick={handleOpenSettings}>See all providers in Settings</EditorButton>
-          <EditorButton variant="outlined" onClick={dismiss}>Done</EditorButton>
+          <EditorButton variant="text" onClick={handleOpenSettings}>{i18n.t("ui2:attrs.seeAllProvidersInSettings", { defaultValue: "See all providers in Settings" })}</EditorButton>
+          <EditorButton variant="outlined" onClick={dismiss}>{i18n.t("ui2:attrs.done", { defaultValue: "Done" })}</EditorButton>
         </FlexRow>
       }
     >
@@ -88,7 +88,7 @@ const ProviderOnboardingDialog: React.FC = () => {
               <Text size="small">Prefer local models?</Text>
               <Caption>Install Ollama and download a model to run on your machine.</Caption>
             </FlexColumn>
-            <EditorButton component="a" href="https://ollama.com/download" target="_blank" rel="noopener noreferrer" variant="text" endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}>Get Ollama</EditorButton>
+            <EditorButton component="a" href="https://ollama.com/download" target="_blank" rel="noopener noreferrer" variant="text" endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}>{i18n.t("ui2:attrs.getOllama", { defaultValue: "Get Ollama" })}</EditorButton>
           </FlexRow>
         )}
         <FlexRow gap={SPACING.md} align="center">

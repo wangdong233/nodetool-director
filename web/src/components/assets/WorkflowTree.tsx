@@ -201,7 +201,7 @@ const WorkflowTree: React.FC = () => {
         onKeyDown={handleRootKeyDown}
       >
         <AccountTreeIcon className="root-icon" />
-        <span className="root-label">Workflows</span>
+        <span className="root-label">{i18n.t("ui2:attrs.workflows", { defaultValue: "Workflows" })}</span>
         <ExpandMoreIcon className="expand-icon" />
       </div>
 
@@ -221,7 +221,7 @@ const WorkflowTree: React.FC = () => {
         {isLoading ? (
           <LoadingSpinner size="small" />
         ) : workflows.length === 0 ? (
-          <div className="empty-row">No workflows</div>
+          <div className="empty-row">{i18n.t("ui2:attrs.noWorkflows", { defaultValue: "No workflows" })}</div>
         ) : (
           workflows.map((workflow) => (
             <div

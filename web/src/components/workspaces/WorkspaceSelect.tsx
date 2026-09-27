@@ -31,6 +31,7 @@ import { useFolderPicker } from "./useFolderPicker";
 import FolderIcon from "@mui/icons-material/Folder";
 import AddIcon from "@mui/icons-material/Add";
 import StarIcon from "@mui/icons-material/Star";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -359,7 +360,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
             </Box>
             <Divider sx={{ mb: 0.5 }} />
             <MenuItem value="">
-              <span className="none-option">Default workspace</span>
+              <span className="none-option">{i18n.t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" })}</span>
             </MenuItem>
             {workspaces.map((workspace) => (
               <MenuItem key={workspace.id} value={workspace.id}>

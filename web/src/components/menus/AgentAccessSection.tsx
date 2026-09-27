@@ -190,7 +190,7 @@ const AgentAccessSection = () => {
 
   return (
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-      <Text sx={{ fontWeight: 500, mb: 0.5 }}>Connect an agent remotely</Text>
+      <Text sx={{ fontWeight: 500, mb: 0.5 }}>{i18n.t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
       <Text className="description" sx={{ mb: 1 }}>
         Point Claude Code, Claude Desktop, or any MCP client at this server over
         HTTP. Create a token below and paste the configuration it produces.
@@ -213,7 +213,7 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={1} sx={{ mb: 2 }}>
-        <Caption>Server URL</Caption>
+        <Caption>{i18n.t("ui2:attrs.serverURL", { defaultValue: "Server URL" })}</Caption>
         <FlexRow align="center" gap={1}>
           <div css={codeBox} style={{ flex: 1 }}>
             {url}
@@ -284,7 +284,7 @@ const AgentAccessSection = () => {
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
-          <Caption sx={{ mb: 0.5 }}>Your tokens</Caption>
+          <Caption sx={{ mb: 0.5 }}>{i18n.t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
           {tokens.map((token: TokenSummary) => (
             <div key={token.id} className="settings-item">
               <FlexRow align="center" justify="space-between" fullWidth>
@@ -320,10 +320,10 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
-        <Caption sx={{ mb: 0.5 }}>Connected MCP clients</Caption>
+        <Caption sx={{ mb: 0.5 }}>{i18n.t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
         {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading…</Text>}
         {!grantsLoading && grants.length === 0 && (
-          <Text className="description">No MCP client has connected yet.</Text>
+          <Text className="description">{i18n.t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
         )}
         {grants.map((grant: OauthGrant) => (
           <div key={grant.id} className="settings-item">

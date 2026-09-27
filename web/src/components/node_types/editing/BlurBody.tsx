@@ -190,7 +190,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Type</span>
+        <span className="ctrl-label">{i18n.t("editor:asset.info.type", { defaultValue: "Type" })}</span>
         <Select
           className="type-select nodrag"
           size="small"
@@ -207,7 +207,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
           ))}
         </Select>
 
-        <span className="ctrl-label">Size</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <NodeSlider
           min={0}
           max={100}

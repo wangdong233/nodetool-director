@@ -62,6 +62,7 @@ import { PreviewCompositor } from "./PreviewCompositor";
 import { getAssetUrl } from "../../../utils/assetHelpers";
 import { useCombo } from "../../../stores/KeyPressedStore";
 import { formatTimecode } from "../Inspector/InspectorPrimitives.helpers";
+import { i18n } from "../../../i18n";
 
 function frameDeltaMs(fps: number): number {
   return 1000 / Math.max(1, fps);
@@ -1058,7 +1059,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         css={containerCss}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        aria-label="Preview area"
+        aria-label={i18n.t("ui2:attrs.previewArea", { defaultValue: "Preview area" })}
         data-testid="preview-area"
         data-expanded={isExpanded}
       >
@@ -1069,19 +1070,19 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         <div css={controlBarCss}>
           <ToolbarIconButton
             icon={<SkipPreviousIcon />}
-            tooltip="Previous clip boundary (Shift+←)"
+            tooltip={i18n.t("ui2:attrs.previousClipBoundaryShift", { defaultValue: "Previous clip boundary (Shift+←)" })}
             onClick={jumpToPrevBoundary}
-            aria-label="Previous clip boundary"
+            aria-label={i18n.t("ui2:attrs.previousClipBoundary", { defaultValue: "Previous clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={<NavigateBeforeIcon />}
-            tooltip="Step back one frame (←)"
+            tooltip={i18n.t("ui2:attrs.stepBackOneFrame", { defaultValue: "Step back one frame (←)" })}
             onClick={stepBack}
             disabled={isPlaying}
-            aria-label="Step back one frame"
+            aria-label={i18n.t("ui2:attrs.stepBackOneFrame", { defaultValue: "Step back one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
@@ -1097,27 +1098,27 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={<StopIcon />}
-            tooltip="Stop and return to start"
+            tooltip={i18n.t("ui2:attrs.stopAndReturnToStart", { defaultValue: "Stop and return to start" })}
             onClick={handleStop}
-            aria-label="Stop"
+            aria-label={i18n.t("ui2:attrs.stop", { defaultValue: "Stop" })}
             size="small"
           />
 
           <ToolbarIconButton
             icon={<NavigateNextIcon />}
-            tooltip="Step forward one frame (→)"
+            tooltip={i18n.t("ui2:attrs.stepForwardOneFrame", { defaultValue: "Step forward one frame (→)" })}
             onClick={stepForward}
             disabled={isPlaying}
-            aria-label="Step forward one frame"
+            aria-label={i18n.t("ui2:attrs.stepForwardOneFrame", { defaultValue: "Step forward one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={<SkipNextIcon />}
-            tooltip="Next clip boundary (Shift+→)"
+            tooltip={i18n.t("ui2:attrs.nextClipBoundaryShift", { defaultValue: "Next clip boundary (Shift+→)" })}
             onClick={jumpToNextBoundary}
-            aria-label="Next clip boundary"
+            aria-label={i18n.t("ui2:attrs.nextClipBoundary", { defaultValue: "Next clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
@@ -1129,7 +1130,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
           )}
           <div css={scrubberCss}>
             <Slider
-              aria-label="Scrub timeline"
+              aria-label={i18n.t("ui2:attrs.scrubTimeline", { defaultValue: "Scrub timeline" })}
               min={0}
               max={scrubMax}
               step={frameDeltaMs(fps)}
@@ -1152,11 +1153,11 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={<FilterBAndWOutlinedIcon />}
-            tooltip="Show the selected clip's subject matte instead of the frame"
+            tooltip={i18n.t("ui2:attrs.showTheSelectedClipSSubjectMatteInsteadOfTheFrame", { defaultValue: "Show the selected clip's subject matte instead of the frame" })}
             onClick={toggleMatteView}
             disabled={!hasReadyMatte}
             active={matteViewEnabled}
-            aria-label="Show matte"
+            aria-label={i18n.t("ui2:attrs.showMatte", { defaultValue: "Show matte" })}
             aria-pressed={matteViewEnabled}
             size="small"
             className="timeline-preview__matte-view"

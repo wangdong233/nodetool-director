@@ -480,7 +480,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
 
             {nodes.length === 0 ? (
               <div className="nl-list">
-                <div className="nl-empty">No matching nodes</div>
+                <div className="nl-empty">{i18n.t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</div>
               </div>
             ) : (
               <div

@@ -218,7 +218,7 @@ const OptionalPacksSection = () => {
         aria-expanded={Boolean(anchorEl)}
       >
         <Inventory2OutlinedIcon className="icon" />
-        <span className="label">Optional packs</span>
+        <span className="label">{i18n.t("ui2:attrs.optionalPacks", { defaultValue: "Optional packs" })}</span>
         <span className="count">
           {enabledCount > 0 ? `${enabledCount}/${total}` : `+${total}`}
         </span>

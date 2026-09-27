@@ -173,7 +173,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             </EditorMenuItem>
           ))
         )}
-        <EditorMenuItem onClick={openSetup}>Add providers</EditorMenuItem>
+        <EditorMenuItem onClick={openSetup}>{i18n.t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
       </EditorMenu>
     </>
   );

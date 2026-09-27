@@ -23,6 +23,7 @@ import {
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
 import { navigateToRedirect } from "./navigate";
+import { i18n } from "../../i18n";
 
 const OAuthConsentPage = () => {
   const [searchParams] = useSearchParams();
@@ -71,7 +72,7 @@ const OAuthConsentPage = () => {
           align="center"
           sx={{ maxWidth: "480px", textAlign: "center" }}
         >
-          <Text sx={{ fontWeight: 500 }}>No authorization request</Text>
+          <Text sx={{ fontWeight: 500 }}>{i18n.t("ui2:attrs.noAuthorizationRequest", { defaultValue: "No authorization request" })}</Text>
           <Text className="description">
             This page needs a request_id. Restart the connection from your
             MCP client.
@@ -121,11 +122,11 @@ const OAuthConsentPage = () => {
 
         <FlexColumn gap={1} sx={{ mt: 1 }}>
           <FlexRow justify="space-between">
-            <Text className="description">Redirects to</Text>
+            <Text className="description">{i18n.t("ui2:attrs.redirectsTo", { defaultValue: "Redirects to" })}</Text>
             <Text>{request.redirect_host}</Text>
           </FlexRow>
           <FlexRow justify="space-between">
-            <Text className="description">Access</Text>
+            <Text className="description">{i18n.t("ui2:attrs.access", { defaultValue: "Access" })}</Text>
             <Text>{request.scope}</Text>
           </FlexRow>
         </FlexColumn>
@@ -148,14 +149,14 @@ const OAuthConsentPage = () => {
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
           <NavButton
             icon={<CloseIcon />}
-            label="Deny"
+            label={i18n.t("ui2:attrs.deny", { defaultValue: "Deny" })}
             disabled={busy}
             onClick={handleDeny}
             sx={{ padding: `${SPACING.sm}px ${SPACING.xl}px` }}
           />
           <NavButton
             icon={<CheckIcon />}
-            label="Approve"
+            label={i18n.t("ui2:attrs.approve", { defaultValue: "Approve" })}
             color="primary"
             disabled={busy}
             onClick={handleApprove}

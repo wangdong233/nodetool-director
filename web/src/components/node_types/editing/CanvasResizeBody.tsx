@@ -288,9 +288,9 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
           compact
           size="small"
         >
-          <ToggleOption value="fixed">Fixed</ToggleOption>
-          <ToggleOption value="scale">Scale</ToggleOption>
-          <ToggleOption value="padding">Padding</ToggleOption>
+          <ToggleOption value="fixed">{i18n.t("ui2:attrs.fixed", { defaultValue: "Fixed" })}</ToggleOption>
+          <ToggleOption value="scale">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
+          <ToggleOption value="padding">{i18n.t("ui2:attrs.padding", { defaultValue: "Padding" })}</ToggleOption>
         </ToggleGroup>
 
         {mode === "fixed" && (

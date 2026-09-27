@@ -11,6 +11,7 @@ import {
   useVideoRecorder
 } from "../../hooks/browser/useVideoRecorder";
 import Select from "../inputs/Select";
+import { i18n } from "../../i18n";
 
 const VideoRecorder = (props: VideoRecorderProps) => {
   const theme = useTheme();
@@ -172,7 +173,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
         onClick={toggleDeviceListVisibility}
         variant="text"
         density="compact"
-        aria-label="Toggle device list"
+        aria-label={i18n.t("ui2:attrs.toggleDeviceList", { defaultValue: "Toggle device list" })}
       >
         {isDeviceListVisible ? (
           <SettingsInputComponentIcon className="toggle-on" />
@@ -186,7 +187,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
         <video
           ref={videoRef}
           className="video-preview"
-          aria-label="Camera preview"
+          aria-label={i18n.t("ui2:attrs.cameraPreview", { defaultValue: "Camera preview" })}
           autoPlay
           playsInline
           muted
@@ -212,8 +213,8 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                   options={videoDeviceOptions}
                   value={selectedVideoDeviceId}
                   onChange={handleVideoDeviceChange}
-                  placeholder="System default camera"
-                  label="Camera"
+                  placeholder={i18n.t("ui2:attrs.systemDefaultCamera", { defaultValue: "System default camera" })}
+                  label={i18n.t("ui2:attrs.camera", { defaultValue: "Camera" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>
@@ -254,8 +255,8 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                   options={audioDeviceOptions}
                   value={selectedAudioDeviceId}
                   onChange={handleAudioDeviceChange}
-                  placeholder="System default input"
-                  label="Microphone"
+                  placeholder={i18n.t("ui2:attrs.systemDefaultInput", { defaultValue: "System default input" })}
+                  label={i18n.t("ui2:attrs.microphone", { defaultValue: "Microphone" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>

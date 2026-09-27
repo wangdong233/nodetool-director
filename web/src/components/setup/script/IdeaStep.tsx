@@ -154,7 +154,7 @@ const CarriedContext: React.FC<{
     component="section"
     aria-label="Brought from your project"
   >
-    <Label>Brought from your project</Label>
+    <Label>{i18n.t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}</Label>
     <Caption color="secondary" component="p">
       {[
         attachments.length > 0

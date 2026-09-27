@@ -10,6 +10,7 @@ import {
 } from "../../hooks/sketch/ensureSketchDocumentForAsset";
 import { useSaveSketchToAsset } from "../../hooks/sketch/useSaveSketchToAsset";
 import type { Asset } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 interface ImageSketchEditorProps {
   asset: Asset;
@@ -80,7 +81,7 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title="Could not open editor"
+          title={i18n.t("ui2:attrs.couldNotOpenEditor", { defaultValue: "Could not open editor" })}
           description={error}
         />
       </FlexColumn>

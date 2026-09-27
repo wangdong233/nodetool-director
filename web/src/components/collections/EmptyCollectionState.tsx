@@ -6,6 +6,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const EmptyCollectionState = () => {
   return (
@@ -39,15 +40,15 @@ const EmptyCollectionState = () => {
           }}
         >
           <li>Index text and images as vector embeddings</li>
-          <li>Perform semantic similarity searches</li>
-          <li>Filter search results using metadata</li>
-          <li>Batch process large sets of documents</li>
+          <li>{i18n.t("ui2:attrs.performSemanticSimilaritySearches", { defaultValue: "Perform semantic similarity searches" })}</li>
+          <li>{i18n.t("ui2:attrs.filterSearchResultsUsingMetadata", { defaultValue: "Filter search results using metadata" })}</li>
+          <li>{i18n.t("ui2:attrs.batchProcessLargeSetsOfDocuments", { defaultValue: "Batch process large sets of documents" })}</li>
         </ul>
         <Text>
-          Key nodes include <strong>Index Image</strong> and{" "}
-          <strong>Index Text Chunk</strong> for populating data, and{" "}
-          <strong>Query Image</strong>, <strong>Query Text</strong>, or{" "}
-          <strong>Hybrid Search</strong> for retrieval.
+          Key nodes include <strong>{i18n.t("ui2:attrs.indexImage", { defaultValue: "Index Image" })}</strong> and{" "}
+          <strong>{i18n.t("ui2:attrs.indexTextChunk", { defaultValue: "Index Text Chunk" })}</strong> for populating data, and{" "}
+          <strong>{i18n.t("ui2:attrs.queryImage", { defaultValue: "Query Image" })}</strong>, <strong>{i18n.t("ui2:attrs.queryText", { defaultValue: "Query Text" })}</strong>, or{" "}
+          <strong>{i18n.t("ui2:attrs.hybridSearch", { defaultValue: "Hybrid Search" })}</strong> for retrieval.
         </Text>
       </FlexColumn>
     </Box>

@@ -113,7 +113,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
                   color: theme.vars.palette.success.main
                 }}
               />
-              <Caption color="secondary">Installed</Caption>
+              <Caption color="secondary">{i18n.t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
             </FlexRow>
           ) : (
             <EditorButton

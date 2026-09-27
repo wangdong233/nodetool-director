@@ -39,7 +39,7 @@ export const ImageComparisonRenderer: React.FC<ImageComparisonRendererProps> = (
   }, [value.image_a, value.image_b]);
 
   if (!imageAUrl || !imageBUrl) {
-    return <div>Missing image data for comparison</div>;
+    return <div>{i18n.t("ui2:attrs.missingImageDataForComparison", { defaultValue: "Missing image data for comparison" })}</div>;
   }
 
   return (

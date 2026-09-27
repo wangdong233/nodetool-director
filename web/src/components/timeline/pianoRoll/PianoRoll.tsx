@@ -86,6 +86,7 @@ import {
 
 import { decodeNoteClipboard, encodeNoteClipboard, pasteNotes } from "./noteClipboard";
 import { NoteSelectionInspector } from "./NoteSelectionInspector";
+import { i18n } from "../../../i18n";
 
 const isNoteControl = (target: EventTarget) => target instanceof HTMLElement &&
   target.closest("input, select, textarea, button, [role=combobox], [role=dialog], [contenteditable=true]") !== null;
@@ -852,7 +853,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
             }}
             onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
           <Caption color="muted">⌘C/V copy/paste · ⌘R repeat · Q quantize</Caption>
-          <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label="Note editing shortcuts">Shortcuts</Button>
+          <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label="Note editing shortcuts">{i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })}</Button>
         </FlexRow>
         <NoteSelectionInspector notes={notes} selectedIds={selectedIds}
           beatTicks={msToTicks(beatDurationMs(tempo), tempo.bpm)}

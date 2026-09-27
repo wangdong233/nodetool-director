@@ -339,7 +339,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         />
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>Attached data</Text>
+          <Text weight={600}>{i18n.t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}</Text>
           <Caption>
             API keys and inlined media are removed before the file is written.
             Open any file to read it first.
@@ -412,7 +412,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         </FlexColumn>
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>Screenshots and other files</Text>
+          <Text weight={600}>{i18n.t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}</Text>
           <Caption>
             A screenshot of the broken screen is the most useful thing you can
             add.

@@ -465,7 +465,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>Click or drop text files here</p>
+          <p>{i18n.t("ui2:attrs.clickOrDropTextFilesHere", { defaultValue: "Click or drop text files here" })}</p>
         </div>
       </Tooltip>
     </div>

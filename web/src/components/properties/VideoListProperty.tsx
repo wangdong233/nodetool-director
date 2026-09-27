@@ -437,7 +437,7 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>Click or drop videos here</p>
+          <p>{i18n.t("ui2:attrs.clickOrDropVideosHere", { defaultValue: "Click or drop videos here" })}</p>
         </div>
       </Tooltip>
     </div>

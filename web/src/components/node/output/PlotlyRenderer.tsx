@@ -15,7 +15,7 @@ interface PlotlyRendererProps {
 
 const PlotlyRenderer: React.FC<PlotlyRendererProps> = ({ config }) => {
   if (!config.config) {
-    return <div>Invalid Plotly config</div>;
+    return <div>{i18n.t("ui2:attrs.invalidPlotlyConfig", { defaultValue: "Invalid Plotly config" })}</div>;
   }
   return (
     <div className="render-content" style={FULL_SIZE_STYLE}>

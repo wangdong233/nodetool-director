@@ -1,5 +1,6 @@
 import type { DocumentLoadState } from "../../stores/documentSync";
 import { EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;
@@ -25,12 +26,23 @@ const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => (
     sx={{ minHeight: 0 }}
   >
     {state === "loading" ? (
-      <LoadingSpinner text={`Loading ${label}…`} />
+      <LoadingSpinner
+        text={i18n.t("ui2:attrs.loadingDocument", {
+          defaultValue: "Loading {{label}}…",
+          label
+        })}
+      />
     ) : (
       <EmptyState
         variant="error"
-        title={`Could not load this ${label}`}
-        description="The server did not answer. Close the tab and open it again to retry."
+        title={i18n.t("ui2:attrs.couldNotLoadDocument", {
+          defaultValue: "Could not load this {{label}}",
+          label
+        })}
+        description={i18n.t("ui2:attrs.loadFailedRetry", {
+          defaultValue:
+            "The server did not answer. Close the tab and open it again to retry."
+        })}
       />
     )}
   </FlexColumn>

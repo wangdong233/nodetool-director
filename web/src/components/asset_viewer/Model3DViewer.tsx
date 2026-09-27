@@ -52,6 +52,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import CloseIcon from "@mui/icons-material/Close";
 import { cn, reactFlowClasses } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 // Lighting presets (must match drei Environment preset types)
 type LightingPreset =
@@ -764,7 +765,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         {isFullscreen && (
           <ToolbarIconButton
             icon={<CloseIcon />}
-            tooltip="Exit Fullscreen (Esc)"
+            tooltip={i18n.t("ui2:attrs.exitFullscreenEsc", { defaultValue: "Exit Fullscreen (Esc)" })}
             className="fullscreen-close-button"
             onClick={exitFullscreen}
             size="medium"
@@ -775,7 +776,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
           <FlexRow className="controls-toolbar" gap={SPACING.micro} align="center">
             <ToolbarIconButton
               icon={<GridOnIcon fontSize="small" />}
-              tooltip="Toggle Grid"
+              tooltip={i18n.t("ui2:attrs.toggleGrid", { defaultValue: "Toggle Grid" })}
               onClick={handleToggleGrid}
               active={showGrid}
               size="small"
@@ -783,7 +784,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<ViewInArIcon fontSize="small" />}
-              tooltip="Toggle Axes"
+              tooltip={i18n.t("ui2:attrs.toggleAxes", { defaultValue: "Toggle Axes" })}
               onClick={handleToggleAxes}
               active={showAxes}
               size="small"
@@ -808,7 +809,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 value={lightingPreset}
                 onChange={handleLightingChange}
                 variant="outlined"
-                aria-label="Lighting preset"
+                aria-label={i18n.t("ui2:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
                 IconComponent={LightModeIcon}
               >
                 {LIGHTING_PRESETS.map((preset) => (
@@ -824,7 +825,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 value={backgroundColor}
                 onChange={handleBackgroundChange}
                 variant="outlined"
-                aria-label="Background color"
+                aria-label={i18n.t("ui2:attrs.backgroundColor", { defaultValue: "Background color" })}
               >
                 {BACKGROUND_COLORS.map((bg) => (
                   <MenuItem key={bg.value} value={bg.value}>
@@ -836,14 +837,14 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<RestartAltIcon fontSize="small" />}
-              tooltip="Reset Camera"
+              tooltip={i18n.t("ui2:attrs.resetCamera", { defaultValue: "Reset Camera" })}
               onClick={handleResetCamera}
               size="small"
             />
 
             <ToolbarIconButton
               icon={<CameraAltIcon fontSize="small" />}
-              tooltip="Take Screenshot"
+              tooltip={i18n.t("ui2:attrs.takeScreenshot", { defaultValue: "Take Screenshot" })}
               onClick={handleScreenshot}
               size="small"
             />

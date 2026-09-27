@@ -101,7 +101,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
         ))}
         {stills.length === 0 && (
           <FlexRow align="center" justify="center" fullHeight>
-            <Caption color="muted">No stills yet</Caption>
+            <Caption color="muted">{i18n.t("ui2:attrs.noStillsYet", { defaultValue: "No stills yet" })}</Caption>
           </FlexRow>
         )}
         {progress && (

@@ -169,8 +169,8 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
     <Box css={styles(theme)} className="cost-estimate-summary">
       <div className="cost-table">
         <div className="cost-row is-head">
-          <span className="cost-col-head">Node</span>
-          <span className="cost-col-head">Provider / model</span>
+          <span className="cost-col-head">{i18n.t("ui2:attrs.node", { defaultValue: "Node" })}</span>
+          <span className="cost-col-head">{i18n.t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
             Units
           </span>

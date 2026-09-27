@@ -423,7 +423,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
             )}
             {parsedDescription.useCases.raw && (
               <div className="node-use-cases">
-                <h5>Use cases</h5>
+                <h5>{i18n.t("ui2:attrs.useCases", { defaultValue: "Use cases" })}</h5>
                 <ul>
                   {parsedDescription.useCases.raw.split("\n").map((useCase) => (
                     <li key={useCase}>{useCase}</li>

@@ -140,7 +140,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
       {/* What runs, and how the user points at the object. */}
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">Model</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.model", { defaultValue: "Model" })}</Text>
           {/* The picker's button is `width: 100%`, so it needs a box to fill
               — left free it stretched to a third of the bar. */}
           <Box sx={{ width: 192, flexShrink: 0 }}>
@@ -181,16 +181,16 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             }
           }}
         >
-          <SketchModeOption value="point">Point</SketchModeOption>
-          <SketchModeOption value="box">Box</SketchModeOption>
-          <SketchModeOption value="auto">Auto</SketchModeOption>
+          <SketchModeOption value="point">{i18n.t("ui2:attrs.point", { defaultValue: "Point" })}</SketchModeOption>
+          <SketchModeOption value="box">{i18n.t("ui2:attrs.box", { defaultValue: "Box" })}</SketchModeOption>
+          <SketchModeOption value="auto">{i18n.t("timeline:history.auto", { defaultValue: "Auto" })}</SketchModeOption>
         </SketchModeToggle>
       </Box>
 
       {/* What counts as an object. */}
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">Max Objects</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.maxObjects", { defaultValue: "Max Objects" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -203,7 +203,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         </Box>
 
         <Box className="setting-row">
-          <Text className="setting-label">Confidence</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.confidence", { defaultValue: "Confidence" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -219,7 +219,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         </Box>
 
         <Box className="setting-row">
-          <Text className="setting-label">Min Size</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.minSize", { defaultValue: "Min Size" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -233,7 +233,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         </Box>
 
         <Box className="setting-row">
-          <Text className="setting-label">Feather</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.feather", { defaultValue: "Feather" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -250,7 +250,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
       {/* What the run leaves behind. */}
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">Source Layer</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.sourceLayer", { defaultValue: "Source Layer" })}</Text>
           <SketchModeToggle
             value={settings.sourceLayerAction}
             onChange={(_, v) => {
@@ -259,9 +259,9 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               }
             }}
           >
-            <SketchModeOption value="keep">Keep</SketchModeOption>
-            <SketchModeOption value="hide">Hide</SketchModeOption>
-            <SketchModeOption value="lock">Lock</SketchModeOption>
+            <SketchModeOption value="keep">{i18n.t("ui2:attrs.keep", { defaultValue: "Keep" })}</SketchModeOption>
+            <SketchModeOption value="hide">{i18n.t("ui2:attrs.hide", { defaultValue: "Hide" })}</SketchModeOption>
+            <SketchModeOption value="lock">{i18n.t("ui2:attrs.lock", { defaultValue: "Lock" })}</SketchModeOption>
           </SketchModeToggle>
         </Box>
 
@@ -284,7 +284,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
 
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">Concept</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.concept", { defaultValue: "Concept" })}</Text>
           <TextInput
             compact
             value={settings.conceptPrompt}

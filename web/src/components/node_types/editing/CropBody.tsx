@@ -702,7 +702,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Aspect</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.aspect", { defaultValue: "Aspect" })}</span>
         <Select
           className="aspect-select nodrag"
           size="small"
@@ -719,7 +719,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
           ))}
         </Select>
 
-        <span className="ctrl-label">Size</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <div className="dims-cluster">
           <div className="dim-field">
             <NumberInput

@@ -33,7 +33,7 @@ const MediaCostEstimateInternal: React.FC<MediaCostEstimateProps> = ({
 
   const detail = (
     <FlexColumn gap={0.5}>
-      <Text size="small">Estimated cost of this generation</Text>
+      <Text size="small">{i18n.t("ui2:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}</Text>
       {perOutput && (
         <Caption color="secondary">{perOutput}</Caption>
       )}

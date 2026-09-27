@@ -558,7 +558,7 @@ const QueueOverlay = memo(function QueueOverlay() {
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", px: 2, pb: 2 }}>
         {running.length > 0 && (
           <>
-            <SectionLabel>Running</SectionLabel>
+            <SectionLabel>{i18n.t("editor:ui.running", { defaultValue: "Running" })}</SectionLabel>
             <FlexColumn gap={1}>
               {running.map((job) => {
                 const isCurrentWf =
@@ -581,7 +581,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {queued.length > 0 && (
           <>
-            <SectionLabel>Enqueued</SectionLabel>
+            <SectionLabel>{i18n.t("ui2:attrs.enqueued", { defaultValue: "Enqueued" })}</SectionLabel>
             <FlexColumn gap={1}>
               {queued.map((job, index) => (
                 <EnqueuedCard
@@ -596,7 +596,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {cancelled.length > 0 && (
           <>
-            <SectionLabel>Cancelled</SectionLabel>
+            <SectionLabel>{i18n.t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })}</SectionLabel>
             <FlexColumn gap={1}>
               {cancelled.map((job) => (
                 <CancelledCard key={job.id} job={job} />

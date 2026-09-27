@@ -408,7 +408,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                 <Text>Searching…</Text>
               </div>
             ) : (
-              <Text>No assets found matching your search.</Text>
+              <Text>{i18n.t("ui2:attrs.noAssetsFoundMatchingYourSearch", { defaultValue: "No assets found matching your search." })}</Text>
             )}
           </div>
         </div>

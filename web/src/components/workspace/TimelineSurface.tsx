@@ -7,6 +7,7 @@ import TimelineEditor from "../timeline/TimelineEditor";
 import TimelinePlayer from "../timeline/TimelinePlayer";
 import VideoSetupHost from "../setup/video/VideoSetupHost";
 import DocumentLoadStatus from "./DocumentLoadStatus";
+import { i18n } from "../../i18n";
 
 interface TimelineSurfaceProps {
   refId: string;
@@ -39,10 +40,10 @@ const TimelineSurface = ({ refId, mode, active }: TimelineSurfaceProps) => {
   }
 
   if (query.isPending) {
-    return <DocumentLoadStatus state="loading" label="video" />;
+    return <DocumentLoadStatus state="loading" label={i18n.t("ui2:attrs.docVideo", { defaultValue: "video" })} />;
   }
   if (query.isError) {
-    return <DocumentLoadStatus state="error" label="video" />;
+    return <DocumentLoadStatus state="error" label={i18n.t("ui2:attrs.docVideo", { defaultValue: "video" })} />;
   }
 
   // The flow's last step writes stage `done` to the store, and autosave

@@ -186,7 +186,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>
-          <div className="menu-section-title">Actions</div>
+          <div className="menu-section-title">{i18n.t("ui2:attrs.actions", { defaultValue: "Actions" })}</div>
           <ListItem className={`menu-item ${!isClipboardValid ? "disabled" : ""}`}>
             <ListItemButton onClick={handlePasteAction} disabled={!isClipboardValid}>
               <ListItemIcon className="menu-item-icon">
@@ -231,7 +231,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">Input Nodes</div>
+          <div className="menu-section-title">{i18n.t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addInputNode} data-node-type="StringInput">
               <ListItemIcon className="menu-item-icon">
@@ -299,7 +299,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">Organization</div>
+          <div className="menu-section-title">{i18n.t("ui2:attrs.organization", { defaultValue: "Organization" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addComment}>
               <ListItemIcon className="menu-item-icon">

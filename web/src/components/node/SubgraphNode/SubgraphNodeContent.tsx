@@ -130,7 +130,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
         >
           <FlexRow gap={0.5} align="center">
             <AccountTreeIcon sx={{ fontSize: 14 }} />
-            <Caption>Open subgraph</Caption>
+            <Caption>{i18n.t("ui2:attrs.openSubgraph", { defaultValue: "Open subgraph" })}</Caption>
           </FlexRow>
           <Caption>
             {innerNodeCount === 0

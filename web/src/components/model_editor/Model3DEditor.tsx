@@ -821,7 +821,7 @@ const Model3DEditor = ({
           >
             {isSaving ? "Saving…" : "Save"}
           </EditorButton>
-          <CloseButton onClick={onClose} tooltip="Close editor" />
+          <CloseButton onClick={onClose} tooltip={i18n.t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
         </FlexRow>
       </FlexRow>
 
@@ -921,7 +921,7 @@ const Model3DEditor = ({
               </FlexRow>
               <CloseButton
                 onClick={() => toggleAssistant()}
-                tooltip="Hide assistant"
+                tooltip={i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
               />
             </FlexRow>
             <div className="panel-body">

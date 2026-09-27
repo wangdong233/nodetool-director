@@ -200,7 +200,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Scale</span>
+        <span className="ctrl-label">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</span>
         <NodeSlider
           min={SCALE_MIN}
           max={SCALE_MAX}

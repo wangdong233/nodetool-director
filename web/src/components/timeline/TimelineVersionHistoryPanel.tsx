@@ -347,7 +347,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         confirmText="Delete"
         destructive
       >
-        <Text color="secondary">This action cannot be undone.</Text>
+        <Text color="secondary">{i18n.t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
       </Dialog>
     </FlexColumn>
   );

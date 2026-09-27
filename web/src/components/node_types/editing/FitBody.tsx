@@ -261,7 +261,7 @@ const FitBodyInner: React.FC<FitBodyProps> = ({
       </FlexRow>
 
       <div className="presets-row">
-        <span className="presets-label">Presets</span>
+        <span className="presets-label">{i18n.t("editor:ui.presets", { defaultValue: "Presets" })}</span>
         {PRESETS.map((size) => {
           const active = widthValue === size && heightValue === size;
           return (

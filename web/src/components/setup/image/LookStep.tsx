@@ -427,7 +427,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
           Size
         </Text>
         <OptionCardGrid
-          label="Size"
+          label={i18n.t("ui2:attrs.size", { defaultValue: "Size" })}
           options={sizeOptions}
           selectedId={selectedSizeId}
           onSelect={handleSize}

@@ -80,11 +80,11 @@ const DownloadManagerDialog: React.FC = () => {
   ) : (
     <FlexColumn gap={1}>
       <span>
-        Download models using the <strong>Recommended Models</strong> button
+        Download models using the <strong>{i18n.t("ui2:attrs.recommendedModels", { defaultValue: "Recommended Models" })}</strong> button
         inside nodes.
       </span>
       <span>
-        The <strong>Model Manager</strong> in the top right panel shows all
+        The <strong>{i18n.t("ui2:attrs.modelManager", { defaultValue: "Model Manager" })}</strong> in the top right panel shows all
         available models.
       </span>
     </FlexColumn>
@@ -122,7 +122,7 @@ const DownloadManagerDialog: React.FC = () => {
               }}
             >
               <DownloadingIcon sx={{ opacity: 0.8 }} />
-              <Text size="normal" weight={600}>No active downloads</Text>
+              <Text size="normal" weight={600}>{i18n.t("ui2:attrs.noActiveDownloads", { defaultValue: "No active downloads" })}</Text>
               <Text
                 size="small"
                 sx={{ opacity: 0.8, textAlign: "center" }}

@@ -566,7 +566,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
 
       <div className="footer">
         <div className="field">
-          <span className="field-label">Frame</span>
+          <span className="field-label">{i18n.t("ui2:attrs.frame", { defaultValue: "Frame" })}</span>
           <div className="frame-field">
             <NumberInput
               id={`extract-frame-${id}`}
@@ -585,7 +585,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           </div>
         </div>
         <div className="field">
-          <span className="field-label">Timecode</span>
+          <span className="field-label">{i18n.t("ui2:attrs.timecode", { defaultValue: "Timecode" })}</span>
           <span className="timecode-readout">
             {formatTimecode(currentTime, fps)}
           </span>

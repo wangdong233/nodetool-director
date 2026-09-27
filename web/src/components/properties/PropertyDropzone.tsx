@@ -382,7 +382,7 @@ const PropertyDropzone = ({
                 style={imageError ? { display: "none" } : undefined}
               />
               {imageError && (
-                <p className="centered uppercase">Image could not be loaded</p>
+                <p className="centered uppercase">{i18n.t("ui2:attrs.imageCouldNotBeLoaded", { defaultValue: "Image could not be loaded" })}</p>
               )}
               {imageDimensions && (
                 <ImageDimensions
@@ -418,7 +418,7 @@ const PropertyDropzone = ({
                 <AudioPlayer filename={filename} source={uri as string} />
               </div>
             ) : (
-              <p className="centered uppercase">Drop audio</p>
+              <p className="centered uppercase">{i18n.t("ui2:attrs.dropAudio", { defaultValue: "Drop audio" })}</p>
             )}
           </>
         );
@@ -447,7 +447,7 @@ const PropertyDropzone = ({
                 <p className="centered uppercase">{filename}</p>
               </>
             ) : (
-              <p className="centered uppercase">Drop video</p>
+              <p className="centered uppercase">{i18n.t("ui2:attrs.dropVideo", { defaultValue: "Drop video" })}</p>
             )}
           </>
         );

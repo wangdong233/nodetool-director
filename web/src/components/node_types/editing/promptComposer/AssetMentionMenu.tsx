@@ -224,7 +224,7 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
     >
       {entityCount > 0 && (
         <div className="mention-entities" role="listbox" aria-label={i18n.t("editor:ui.entities", { defaultValue: "Entities" })}>
-          <span className="mention-entities-label">Entities</span>
+          <span className="mention-entities-label">{i18n.t("nav:rail.entities", { defaultValue: "Entities" })}</span>
           {entities.map((entity, index) => (
             <EntityRow
               key={entity.id}

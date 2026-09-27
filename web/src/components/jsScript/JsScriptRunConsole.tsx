@@ -39,6 +39,7 @@ import {
 import JsScriptRunDialog, {
   type JsScriptRunRequest
 } from "./JsScriptRunDialog";
+import { i18n } from "../../i18n";
 
 interface JsScriptRunConsoleProps {
   scriptId: string;
@@ -159,7 +160,7 @@ const JsScriptRunConsole = ({
             <FlexRow gap={SPACING.lg} align="flex-start">
               {readOnly && tests.length > 0 && (
                 <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
-                  <Label>Saved cases</Label>
+                  <Label>{i18n.t("ui2:attrs.savedCases", { defaultValue: "Saved cases" })}</Label>
                   {tests.map((test) => (
                     <FlexColumn key={test.name} gap={SPACING.xs}>
                       <Text size="small" weight={600}>
@@ -173,7 +174,7 @@ const JsScriptRunConsole = ({
               {lastTest && (
                 <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
                   <FlexRow gap={SPACING.sm} align="center">
-                    <Label>Tests</Label>
+                    <Label>{i18n.t("ui2:attrs.tests", { defaultValue: "Tests" })}</Label>
                     <Chip
                       compact
                       color={lastTest.failed === 0 ? "success" : "error"}
@@ -191,7 +192,7 @@ const JsScriptRunConsole = ({
           {lastRun && (
             <FlexColumn gap={SPACING.sm}>
               <FlexRow gap={SPACING.sm} align="center">
-                <Label>Last run</Label>
+                <Label>{i18n.t("ui2:attrs.lastRun", { defaultValue: "Last run" })}</Label>
                 <Chip
                   compact
                   color={lastRun.ok ? "success" : "error"}
@@ -208,19 +209,19 @@ const JsScriptRunConsole = ({
               )}
               {lastRun.logs.length > 0 && (
                 <>
-                  <Label>Logs</Label>
+                  <Label>{i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}</Label>
                   <Mono>{lastRun.logs.join("\n")}</Mono>
                 </>
               )}
               {lastRun.streamed && lastRun.streamed.length > 0 && (
                 <>
-                  <Label>Streamed</Label>
+                  <Label>{i18n.t("ui2:attrs.streamed", { defaultValue: "Streamed" })}</Label>
                   <Mono>{json(lastRun.streamed)}</Mono>
                 </>
               )}
               {lastRun.outputs && (
                 <>
-                  <Label>Outputs</Label>
+                  <Label>{i18n.t("editor:ui.outputs", { defaultValue: "Outputs" })}</Label>
                   <Mono>{json(lastRun.outputs)}</Mono>
                 </>
               )}

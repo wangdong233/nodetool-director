@@ -246,7 +246,7 @@ const CodeAssistantDialogInner = ({
       minWidth="min(1100px, 100vw - 32px)"
       actions={
         <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>Cancel</EditorButton>
+          <EditorButton onClick={onClose}>{i18n.t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
             Apply
           </EditorButton>

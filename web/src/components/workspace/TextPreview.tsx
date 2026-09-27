@@ -20,6 +20,7 @@ import {
   ScrollArea,
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface TextPreviewProps {
   asset: Asset;
@@ -90,7 +91,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>Empty table</Caption>
+        <Caption>{i18n.t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
       </FlexColumn>
     );
   }

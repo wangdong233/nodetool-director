@@ -383,7 +383,7 @@ const CostsDashboard: React.FC = () => {
           />
         ) : (
           <StateMessage>
-            <Text color="secondary">No cost data for this period.</Text>
+            <Text color="secondary">{i18n.t("ui2:attrs.noCostDataForThisPeriod", { defaultValue: "No cost data for this period." })}</Text>
           </StateMessage>
         )}
       </Box>

@@ -244,7 +244,7 @@ const EditorVariablesPanel = ({
       <div className="variables-head">
         <div className="variables-title">
           <DataObjectIcon />
-          <span>Variables</span>
+          <span>{i18n.t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>
           <span className="count">{variables.length}</span>
           {unboundCount > 0 && (
             <span className="unbound">{unboundCount} unbound</span>

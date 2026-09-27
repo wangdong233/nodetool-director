@@ -406,7 +406,7 @@ const ToolCallRow: React.FC<{
           <FlexColumn className="tool-row-details" gap={SPACING.xs}>
             {isSubtask && subtaskInstructions && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">Objective</Caption>
+                <Caption className="tool-section-title">{i18n.t("ui2:attrs.objective", { defaultValue: "Objective" })}</Caption>
                 <Text size="small" className="subtask-instructions">
                   {subtaskInstructions}
                 </Text>
@@ -417,7 +417,7 @@ const ToolCallRow: React.FC<{
             )}
             {formattedActionCode && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">Code</Caption>
+                <Caption className="tool-section-title">{i18n.t("ui2:attrs.code", { defaultValue: "Code" })}</Caption>
                 <CodeBlock inline={false} className="language-javascript">
                   {formattedActionCode}
                 </CodeBlock>
@@ -439,7 +439,7 @@ const ToolCallRow: React.FC<{
                   justify="space-between"
                   fullWidth
                 >
-                  <Caption className="tool-section-title">Result</Caption>
+                  <Caption className="tool-section-title">{i18n.t("editor:ui.result", { defaultValue: "Result" })}</Caption>
                   <CopyButton
                     value={resultContent}
                     tooltip={i18n.t("editor:ui.copyResult", { defaultValue: "Copy result" })}

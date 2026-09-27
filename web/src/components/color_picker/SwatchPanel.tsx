@@ -26,6 +26,7 @@ import {
   PRESET_PALETTES,
   ColorPalette
 } from "../../stores/ColorPickerStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -203,7 +204,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
     <FlexColumn css={swatchStyles} gap={2}>
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">Recent</Text>
+          <Text className="section-title">{i18n.t("editor:ui.recent", { defaultValue: "Recent" })}</Text>
           {recentColors.length > 0 && (
             <DeleteButton
               onClick={clearRecentColors}
@@ -225,14 +226,14 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               />
             ))
           ) : (
-            <Text className="empty-message">No recent colors</Text>
+            <Text className="empty-message">{i18n.t("ui2:attrs.noRecentColors", { defaultValue: "No recent colors" })}</Text>
           )}
         </FlexRow>
       </FlexColumn>
 
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">Saved</Text>
+          <Text className="section-title">{i18n.t("ui2:attrs.saved", { defaultValue: "Saved" })}</Text>
         </FlexRow>
         <FlexRow className="color-grid" gap={0.5} wrap fullWidth>
           {swatches.map((swatch) => (
@@ -265,7 +266,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
       {palettes.length > 0 && (
         <FlexColumn className="section" gap={1} fullWidth>
           <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-            <Text className="section-title">Palettes</Text>
+            <Text className="section-title">{i18n.t("ui2:attrs.palettes", { defaultValue: "Palettes" })}</Text>
           </FlexRow>
           {palettes.map((palette) => (
             <FlexColumn key={palette.id} className="palette-section" gap={1} fullWidth>
@@ -296,7 +297,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
 
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">Presets</Text>
+          <Text className="section-title">{i18n.t("editor:ui.presets", { defaultValue: "Presets" })}</Text>
           <EditorButton
             size="small"
             startIcon={<FolderOpenIcon />}

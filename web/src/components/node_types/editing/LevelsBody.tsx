@@ -519,7 +519,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
         </FlexRow>
 
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">Black</span>
+          <span className="slider-label">{i18n.t("ui2:attrs.black", { defaultValue: "Black" })}</span>
           <NodeSlider
             min={0}
             max={255}
@@ -532,7 +532,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           <span className="slider-readout">{channelProps.black}</span>
         </FlexRow>
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">Gamma</span>
+          <span className="slider-label">{i18n.t("ui2:attrs.gamma", { defaultValue: "Gamma" })}</span>
           <NodeSlider
             min={0.1}
             max={10}
@@ -545,7 +545,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           <span className="slider-readout">{channelProps.gamma.toFixed(2)}</span>
         </FlexRow>
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">White</span>
+          <span className="slider-label">{i18n.t("ui2:attrs.white", { defaultValue: "White" })}</span>
           <NodeSlider
             min={0}
             max={255}

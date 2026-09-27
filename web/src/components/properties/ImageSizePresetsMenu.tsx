@@ -140,7 +140,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
       </FlexRow>
 
       {Object.entries(filteredGroupedPresets).length === 0 ? (
-        <EditorMenuItem disabled sx={{ fontSize: 'var(--fontSizeSmall)' }}>No presets found</EditorMenuItem>
+        <EditorMenuItem disabled sx={{ fontSize: 'var(--fontSizeSmall)' }}>{i18n.t("ui2:attrs.noPresetsFound", { defaultValue: "No presets found" })}</EditorMenuItem>
       ) : (
         Object.entries(filteredGroupedPresets).map(([category, items]) => [
           <ListSubheader key={category} className="presets-category-header">{category}</ListSubheader>,

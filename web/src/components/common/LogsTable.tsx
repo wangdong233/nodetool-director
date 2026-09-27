@@ -9,6 +9,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import DataObjectIcon from "@mui/icons-material/DataObject";
 import { CopyButton } from "../ui_primitives";
 import { formatTimeOfDay } from "../../utils/formatUtils";
+import { i18n } from "../../i18n";
 
 export type Severity = "info" | "warning" | "error";
 
@@ -552,8 +553,8 @@ export const LogsTable: React.FC<LogsTableProps> = ({
       <Card variant="outlined" className="table" sx={{ flex: 1, minHeight: 0 }}>
         <FlexColumn fullWidth fullHeight sx={{ minHeight: 0 }}>
           <div className="header" style={{ gridTemplateColumns: columns }}>
-            <span>Message</span>
-            {showTimestampColumn && <span>Time</span>}
+            <span>{i18n.t("ui2:attrs.message", { defaultValue: "Message" })}</span>
+            {showTimestampColumn && <span>{i18n.t("ui2:attrs.time", { defaultValue: "Time" })}</span>}
             <span style={{ textAlign: "right" }}></span>
           </div>
           <FlexColumn className="list-container" fullWidth sx={{ flex: 1, minHeight: 0 }}>

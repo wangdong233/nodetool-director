@@ -33,6 +33,7 @@ import {
   ListItem,
   ListItemSecondaryAction
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -298,7 +299,7 @@ const WorkspacesManager: React.FC = () => {
           ) : (
             <Box className="empty-state">
               <FolderIcon sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} />
-              <Text>No workspaces configured</Text>
+              <Text>{i18n.t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}</Text>
               <Text size="small">
                 {canManage
                   ? "Add a workspace to allow agents to access local folders"

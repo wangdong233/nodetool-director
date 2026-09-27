@@ -875,7 +875,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
           aria-label={i18n.t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
         />
         <Command.List>
-          <Command.Empty>No results found.</Command.Empty>
+          <Command.Empty>{i18n.t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}</Command.Empty>
           <WorkflowCommands />
           <AppCommands />
           <EditCommands undo={undo} redo={redo} />

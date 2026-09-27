@@ -88,7 +88,7 @@ const RealtimeAudioOutput: React.FC<Props> = ({
           <EditorButton onClick={isPlaying ? stop : start}>
             {isPlaying ? "Stop" : "Start"}
           </EditorButton>
-          <EditorButton onClick={restart}>Restart</EditorButton>
+          <EditorButton onClick={restart}>{i18n.t("ui2:attrs.restart", { defaultValue: "Restart" })}</EditorButton>
         </ButtonGroup>
         {isQueued && queuePosition !== null && (
           <div className="time">Queue position: {queuePosition}</div>

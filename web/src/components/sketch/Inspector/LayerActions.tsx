@@ -253,7 +253,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
     return (
       <>
         <FlexRow css={actionsRowStyles(theme)}>
-          <span css={sectionLabelStyles(theme)}>Layer</span>
+          <span css={sectionLabelStyles(theme)}>{i18n.t("ui2:attrs.layer", { defaultValue: "Layer" })}</span>
 
           <Tooltip
             title={

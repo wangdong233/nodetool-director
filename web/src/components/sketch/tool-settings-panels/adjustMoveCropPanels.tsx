@@ -53,7 +53,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">Brightness</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.brightness", { defaultValue: "Brightness" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -65,7 +65,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{brightness}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Contrast</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.contrast", { defaultValue: "Contrast" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -77,7 +77,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{contrast}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Saturation</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.saturation", { defaultValue: "Saturation" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -190,7 +190,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         sx={{ mr: 2, ml: 0 }}
       />
       <Box className="setting-row">
-        <Text className="setting-label">Mode</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.mode", { defaultValue: "Mode" })}</Text>
         <SketchModeToggle
           value={mode}
           onChange={(_, nextMode: TransformMode | null) => {
@@ -216,19 +216,19 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         </SketchModeToggle>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Scale X</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.scaleX", { defaultValue: "Scale X" })}</Text>
         <Text className="setting-value">
           {(scaleX * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Scale Y</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.scaleY", { defaultValue: "Scale Y" })}</Text>
         <Text className="setting-value">
           {(scaleY * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Rotation</Text>
+        <Text className="setting-label">{i18n.t("ui2:attrs.rotation", { defaultValue: "Rotation" })}</Text>
         <Text className="setting-value">{rotDeg}°</Text>
       </Box>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>

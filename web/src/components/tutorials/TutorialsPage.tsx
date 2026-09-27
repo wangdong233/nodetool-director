@@ -24,6 +24,7 @@ import { useGuidedFlowStarters } from "../workspace/useGuidedFlowStarters";
 import { TutorialCard } from "./TutorialCard";
 import { TUTORIALS, getTutorial } from "./tutorialsData";
 import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -357,7 +358,7 @@ const TutorialsPage: React.FC = () => {
       <header className="tut-header">
         <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
         <div className="titles">
-          <h1>Tutorials</h1>
+          <h1>{i18n.t("nav:rail.tutorials", { defaultValue: "Tutorials" })}</h1>
           <span className="sub">Short, beginner-friendly walkthroughs of NodeTool</span>
         </div>
         <span className="spacer" />
@@ -418,7 +419,7 @@ const TutorialsPage: React.FC = () => {
             <p className="tut-desc">{active.description}</p>
 
             <section className="tut-learn">
-              <h2>What you'll learn</h2>
+              <h2>{i18n.t("ui2:attrs.whatYouLlLearn", { defaultValue: "What you'll learn" })}</h2>
               <ul>
                 {active.learn.map((point) => (
                   <li key={point}>
@@ -431,18 +432,18 @@ const TutorialsPage: React.FC = () => {
 
             {active.startingState && active.task && active.result && (
               <section className="tut-task" aria-labelledby="tut-task-heading">
-                <h2 id="tut-task-heading">Try it yourself</h2>
+                <h2 id="tut-task-heading">{i18n.t("ui2:attrs.tryItYourself", { defaultValue: "Try it yourself" })}</h2>
                 <div className="tut-task-grid">
                   <div>
-                    <h3>Start here</h3>
+                    <h3>{i18n.t("ui2:attrs.startHere", { defaultValue: "Start here" })}</h3>
                     <p>{active.startingState}</p>
                   </div>
                   <div>
-                    <h3>Your task</h3>
+                    <h3>{i18n.t("ui2:attrs.yourTask", { defaultValue: "Your task" })}</h3>
                     <p>{active.task}</p>
                   </div>
                   <div>
-                    <h3>Check the result</h3>
+                    <h3>{i18n.t("ui2:attrs.checkTheResult", { defaultValue: "Check the result" })}</h3>
                     <p>{active.result}</p>
                   </div>
                 </div>

@@ -72,7 +72,7 @@ const WorkflowCostEstimatePanelInternal: React.FC<
         }}
         title={
           <FlexRow gap={SPACING.md} justify="space-between" wrap>
-            <Label>Cost estimate</Label>
+            <Label>{i18n.t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</Label>
             <Caption>
               {summary?.hasItems
                 ? `${summary.isTotalLowerBound ? "≥ " : summary.isTotalApproximate ? "~" : ""}${summary.totalLabel}${summary.unknownCount > 0 ? " · incomplete" : " / run"}`
@@ -102,8 +102,8 @@ const WorkflowCostEstimatePanelInternal: React.FC<
   return (
     <Box css={styles(theme)} className="cost-estimate">
       <div className="cost-head">
-        <div className="cost-title">Cost estimate</div>
-        <span className="cost-subtitle">Estimated cost of a single run</span>
+        <div className="cost-title">{i18n.t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</div>
+        <span className="cost-subtitle">{i18n.t("ui2:attrs.estimatedCostOfASingleRun", { defaultValue: "Estimated cost of a single run" })}</span>
       </div>
       <CostEstimateSummary estimate={estimate} />
     </Box>

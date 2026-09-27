@@ -258,7 +258,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
       </SketchModeToggle>
       {assistOn && (
         <Box className="setting-row">
-          <Text className="setting-label">Strength</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.strength", { defaultValue: "Strength" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -326,7 +326,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
       </SketchModeToggle>
       {snapOn && (
         <Box className="setting-row">
-          <Text className="setting-label">Snap</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.snap", { defaultValue: "Snap" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -369,10 +369,10 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
             }
           }}
         >
-          <SketchModeOption value="round">Round</SketchModeOption>
-          <SketchModeOption value="soft">Soft</SketchModeOption>
-          <SketchModeOption value="airbrush">Air</SketchModeOption>
-          <SketchModeOption value="spray">Spray</SketchModeOption>
+          <SketchModeOption value="round">{i18n.t("ui2:attrs.round", { defaultValue: "Round" })}</SketchModeOption>
+          <SketchModeOption value="soft">{i18n.t("ui2:attrs.soft", { defaultValue: "Soft" })}</SketchModeOption>
+          <SketchModeOption value="airbrush">{i18n.t("ui2:attrs.air", { defaultValue: "Air" })}</SketchModeOption>
+          <SketchModeOption value="spray">{i18n.t("ui2:attrs.spray", { defaultValue: "Spray" })}</SketchModeOption>
         </SketchModeToggle>
       </SettingGroup>
       {/* Group 2 — Paint params. Size/Opacity/Hard are always present;
@@ -383,7 +383,7 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
         {!omitPaintSliders && (
           <>
             <Box className="setting-row setting-row--wide">
-              <Text className="setting-label">Size</Text>
+              <Text className="setting-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -412,7 +412,7 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
           </>
         )}
         <Box className="setting-row">
-          <Text className="setting-label">Hard</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.hard", { defaultValue: "Hard" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -429,7 +429,7 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
         {(settings.brushType === "round" || settings.brushType === "soft") && (
           <>
             <Box className="setting-row">
-              <Text className="setting-label">Round</Text>
+              <Text className="setting-label">{i18n.t("ui2:attrs.round", { defaultValue: "Round" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -444,7 +444,7 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
               </Text>
             </Box>
             <Box className="setting-row">
-              <Text className="setting-label">Angle</Text>
+              <Text className="setting-label">{i18n.t("ui2:attrs.angle", { defaultValue: "Angle" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -517,7 +517,7 @@ export const PencilSettingsPanel = memo(function PencilSettingsPanel({
         {!omitPaintSliders && (
           <>
             <Box className="setting-row setting-row--wide">
-              <Text className="setting-label">Size</Text>
+              <Text className="setting-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -616,7 +616,7 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
       </SettingGroup>
       <SettingGroup>
         <Box className="setting-row setting-row--wide">
-          <Text className="setting-label">Size</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"
@@ -643,7 +643,7 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
           </Text>
         </Box>
         <Box className="setting-row">
-          <Text className="setting-label">Stabilize</Text>
+          <Text className="setting-label">{i18n.t("ui2:attrs.stabilize", { defaultValue: "Stabilize" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"

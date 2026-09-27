@@ -136,7 +136,7 @@ const ToolCallsView: React.FC<{ toolCalls?: ToolCall[] | null }> = memo(({
         return (
           <div key={stableKey} className="tool-call">
             <div className="tool-call__header">
-              <span className="tool-call__badge">Agent Task</span>
+              <span className="tool-call__badge">{i18n.t("ui2:attrs.agentTask", { defaultValue: "Agent Task" })}</span>
               <span className="tool-call__name">
                 {tc.name ? formatToolName(tc.name) : "Agent Task"}
               </span>

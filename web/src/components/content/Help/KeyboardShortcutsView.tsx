@@ -19,6 +19,7 @@ import "../../../styles/keyboard.css";
 import { keyboardLayouts } from "./keyboard_layouts";
 import { useKeyPressedStore } from "../../../stores/KeyPressedStore";
 import { physicalKeyToLayoutButtonId } from "./physicalKeyboardLayoutKey";
+import { i18n } from "../../../i18n";
 
 interface KeyboardShortcutsViewProps {
   shortcuts?: Shortcut[];
@@ -381,13 +382,13 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
         sx={{ mb: 2, ml: imageEditorShortcuts ? 2 : 8 }}
       >
         {imageEditorShortcuts ? (
-          <ToggleOption value="image-editor">Image Editor</ToggleOption>
+          <ToggleOption value="image-editor">{i18n.t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" })}</ToggleOption>
         ) : (
           <>
-            <ToggleOption value="editor">Editor</ToggleOption>
-            <ToggleOption value="workflow">Workflow</ToggleOption>
-            <ToggleOption value="panel">Panels</ToggleOption>
-            <ToggleOption value="assets">Assets</ToggleOption>
+            <ToggleOption value="editor">{i18n.t("ui2:attrs.editor", { defaultValue: "Editor" })}</ToggleOption>
+            <ToggleOption value="workflow">{i18n.t("home:entry.workflow.title", { defaultValue: "Workflow" })}</ToggleOption>
+            <ToggleOption value="panel">{i18n.t("ui2:attrs.panels", { defaultValue: "Panels" })}</ToggleOption>
+            <ToggleOption value="assets">{i18n.t("nav:rail.assets", { defaultValue: "Assets" })}</ToggleOption>
           </>
         )}
       </ToggleGroup>
@@ -427,7 +428,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
                 <React.Fragment key={idx}>
                   {slug === "switchToTabGroup" ? (
                     <div className="tooltip-span">
-                      <div className="tooltip-title">Switch to Tab</div>
+                      <div className="tooltip-title">{i18n.t("ui2:attrs.switchToTab", { defaultValue: "Switch to Tab" })}</div>
                       <div className="tooltip-key">
                         <kbd>{os === "mac" ? "⌘" : "CTRL"}</kbd>+<kbd>1-9</kbd>
                       </div>

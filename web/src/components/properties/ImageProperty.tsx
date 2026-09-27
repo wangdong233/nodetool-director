@@ -43,7 +43,7 @@ const ConnectedImagePreview = (props: PropertyProps) => {
     <div css={connectedPreviewStyles}>
       <ImageRefPreview
         value={upstreamValue}
-        placeholder={<div css={awaitingStyles}>Awaiting upstream</div>}
+        placeholder={<div css={awaitingStyles}>{i18n.t("ui2:attrs.awaitingUpstream", { defaultValue: "Awaiting upstream" })}</div>}
       />
     </div>
   );

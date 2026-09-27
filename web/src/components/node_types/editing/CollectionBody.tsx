@@ -343,7 +343,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
       >
         {items.length === 0 ? (
           <div className="col-empty">
-            <span>Drop assets here</span>
+            <span>{i18n.t("ui2:attrs.dropAssetsHere", { defaultValue: "Drop assets here" })}</span>
             <span>from the asset panel, files, or generation history</span>
           </div>
         ) : (

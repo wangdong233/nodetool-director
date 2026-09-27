@@ -290,7 +290,7 @@ const UnresolvedMedia: React.FC<{ href: string; label: string }> = ({
     {isResourceUri(href) ? (
       <ResourceChip uri={href} label={label || href} />
     ) : null}
-    <Caption color="secondary">This media could not be loaded.</Caption>
+    <Caption color="secondary">{i18n.t("ui2:attrs.thisMediaCouldNotBeLoaded", { defaultValue: "This media could not be loaded." })}</Caption>
   </FlexColumn>
 );
 

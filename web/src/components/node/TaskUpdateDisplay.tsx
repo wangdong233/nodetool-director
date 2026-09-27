@@ -184,7 +184,7 @@ const TaskUpdateDisplay: React.FC<TaskUpdateDisplayProps> = ({
 
       {task?.steps && task.steps.length > 0 && (
         <Box className="steps-section">
-          <Text className="steps-header">Execution Plan</Text>
+          <Text className="steps-header">{i18n.t("ui2:attrs.executionPlan", { defaultValue: "Execution Plan" })}</Text>
           {task.steps.map((step, idx) => {
             const isCurrent =
               currentStep &&

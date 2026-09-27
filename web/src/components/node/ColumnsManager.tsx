@@ -218,8 +218,8 @@ const ColumnsManager: React.FC<ColumnsManagerProps> = ({
   return (
     <div css={cssStyles}>
       <div className="labels">
-        <Label className="label-name">Name</Label>
-        <Label className="label-datatype">Data Type</Label>
+        <Label className="label-name">{i18n.t("editor:asset.info.name", { defaultValue: "Name" })}</Label>
+        <Label className="label-datatype">{i18n.t("ui2:attrs.dataType", { defaultValue: "Data Type" })}</Label>
       </div>
       {localColumns.map((field, index) => (
         <Column

@@ -1069,7 +1069,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
           }}
         />
         <FlexColumn sx={{ minWidth: 0 }}>
-          <Text size="small">Your secrets are safe</Text>
+          <Text size="small">{i18n.t("ui2:attrs.yourSecretsAreSafe", { defaultValue: "Your secrets are safe" })}</Text>
           <Caption
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}

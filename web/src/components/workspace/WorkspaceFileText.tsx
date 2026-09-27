@@ -28,6 +28,7 @@ import {
   ScrollArea,
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface WorkspaceFileTextProps {
   workspaceId: string;
@@ -109,7 +110,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>Empty table</Caption>
+        <Caption>{i18n.t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
       </FlexColumn>
     );
   }
@@ -296,7 +297,7 @@ const WorkspaceFileText = ({
           {mode === "edit" && (
             <>
               {isDirty && (
-                <span className="dirty-dot" aria-label="Unsaved changes" />
+                <span className="dirty-dot" aria-label={i18n.t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
               )}
               <EditorButton
                 variant="contained"

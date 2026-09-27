@@ -157,7 +157,7 @@ const ProjectListSurface = () => {
         gap={SPACING.xl}
         sx={{ px: SPACING.xxl, pt: SPACING.xxl, pb: SPACING.md }}
       >
-        <Text size="big">Projects</Text>
+        <Text size="big">{i18n.t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
         <Caption color="secondary">
           One piece of work — the documents an agent built for it, what it
           cost, where it stands.
@@ -181,7 +181,7 @@ const ProjectListSurface = () => {
         {summaries.isPending ? (
           <LoadingSpinner />
         ) : summaries.error ? (
-          <Caption color="error">Could not load projects</Caption>
+          <Caption color="error">{i18n.t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}</Caption>
         ) : (
           <Box
             sx={{
@@ -223,7 +223,7 @@ const ProjectListSurface = () => {
               <Box sx={{ color: PROJECT_COLOR, fontSize: "var(--fontSizeBig)" }}>
                 +
               </Box>
-              <Label>Start a project</Label>
+              <Label>{i18n.t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
               <Caption color="muted">
                 Say what you want made, and an agent builds its documents
               </Caption>

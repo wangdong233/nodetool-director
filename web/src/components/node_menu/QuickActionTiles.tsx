@@ -354,7 +354,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
         })}
       </div>
       <div className="tiles-header" style={constantsHeaderStyle}>
-        <Text size="normal" weight={600}>Constants</Text>
+        <Text size="normal" weight={600}>{i18n.t("ui2:attrs.constants", { defaultValue: "Constants" })}</Text>
       </div>
       <div className="constants-container">
         {CONSTANT_NODES.map((definition) => {

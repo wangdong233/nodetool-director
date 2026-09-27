@@ -308,15 +308,15 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
           onChange={handleModeChange}
           aria-label={i18n.t("editor:ui.resizeMode", { defaultValue: "Resize mode" })}
         >
-          <ToggleOption value="scale">Scale</ToggleOption>
-          <ToggleOption value="dimensions">Dimensions</ToggleOption>
-          <ToggleOption value="fit">Fit</ToggleOption>
+          <ToggleOption value="scale">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
+          <ToggleOption value="dimensions">{i18n.t("ui2:attrs.dimensions", { defaultValue: "Dimensions" })}</ToggleOption>
+          <ToggleOption value="fit">{i18n.t("ui2:attrs.fit", { defaultValue: "Fit" })}</ToggleOption>
         </ToggleGroup>
       </div>
 
       {mode === "scale" ? (
         <div className="scale-controls">
-          <span className="ctrl-label">Scale</span>
+          <span className="ctrl-label">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</span>
           <NodeSlider
             min={SCALE_MIN}
             max={SCALE_MAX}
@@ -384,7 +384,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
 
           {mode === "fit" && (
             <div className="presets-row">
-              <span className="presets-label">Presets</span>
+              <span className="presets-label">{i18n.t("editor:ui.presets", { defaultValue: "Presets" })}</span>
               {PRESETS.map((size) => {
                 const active = widthValue === size && heightValue === size;
                 return (

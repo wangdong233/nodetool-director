@@ -339,14 +339,14 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
       <Box sx={headerSx}>
         {isExecution ? (
           <>
-            <HeaderText>Node</HeaderText>
-            <HeaderText>Workflow</HeaderText>
-            <HeaderText>Provider / Model</HeaderText>
-            <HeaderText align="right">Tokens (in/out)</HeaderText>
-            <HeaderText align="right">Runtime</HeaderText>
-            <HeaderText>Status</HeaderText>
+            <HeaderText>{i18n.t("ui2:attrs.node", { defaultValue: "Node" })}</HeaderText>
+            <HeaderText>{i18n.t("home:entry.workflow.title", { defaultValue: "Workflow" })}</HeaderText>
+            <HeaderText>{i18n.t("ui2:attrs.providerModel", { defaultValue: "Provider / Model" })}</HeaderText>
+            <HeaderText align="right">{i18n.t("ui2:attrs.tokensInOut", { defaultValue: "Tokens (in/out)" })}</HeaderText>
+            <HeaderText align="right">{i18n.t("ui2:attrs.runtime", { defaultValue: "Runtime" })}</HeaderText>
+            <HeaderText>{i18n.t("editor:ui.status", { defaultValue: "Status" })}</HeaderText>
             <FlexRow align="center" justify="flex-end" gap={SPACING.micro}>
-              <HeaderText align="right">When</HeaderText>
+              <HeaderText align="right">{i18n.t("ui2:attrs.when", { defaultValue: "When" })}</HeaderText>
               <ArrowDropDownIcon
                 sx={{
                   fontSize: 16,
@@ -354,7 +354,7 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
                 }}
               />
             </FlexRow>
-            <HeaderText align="right">Cost</HeaderText>
+            <HeaderText align="right">{i18n.t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
           </>
         ) : (
           <>
@@ -367,9 +367,9 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
                     ? "Provider"
                     : "Model"}
             </HeaderText>
-            <HeaderText align="right">Executions</HeaderText>
-            <HeaderText>Share of spend</HeaderText>
-            <HeaderText align="right">Cost</HeaderText>
+            <HeaderText align="right">{i18n.t("ui2:attrs.executions", { defaultValue: "Executions" })}</HeaderText>
+            <HeaderText>{i18n.t("ui2:attrs.shareOfSpend", { defaultValue: "Share of spend" })}</HeaderText>
+            <HeaderText align="right">{i18n.t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
           </>
         )}
       </Box>

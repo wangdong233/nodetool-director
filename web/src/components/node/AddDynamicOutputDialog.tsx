@@ -70,7 +70,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       fullWidth
       aria-labelledby={titleId}
     >
-      <DialogTitle id={titleId}>Add Output</DialogTitle>
+      <DialogTitle id={titleId}>{i18n.t("ui2:attrs.addOutput", { defaultValue: "Add Output" })}</DialogTitle>
       <DialogContent>
         <FlexRow css={css({ gap: 8, marginTop: 8 })}>
           <TextField

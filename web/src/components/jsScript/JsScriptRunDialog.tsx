@@ -30,6 +30,7 @@ import {
 } from "../appbuilder/inputProperty";
 import { workflowInputForScriptPort } from "../appbuilder/workflowIO";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
+import { i18n } from "../../i18n";
 
 /** What the dialog hands back: buffered values, or items staged per handle. */
 export interface JsScriptRunRequest {
@@ -161,7 +162,7 @@ const JsScriptRunDialog = ({
       maxWidth="sm"
       actions={
         <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>Cancel</EditorButton>
+          <EditorButton onClick={onClose}>{i18n.t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleRun}>
             Run
           </EditorButton>

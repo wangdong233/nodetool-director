@@ -1058,7 +1058,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <EditNoteIcon />
               </span>
-              <Text size="small">Prompt</Text>
+              <Text size="small">{i18n.t("editor:asset.info.prompt", { defaultValue: "Prompt" })}</Text>
             </Box>
           )}
           {type != null && handleId != null && (

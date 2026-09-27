@@ -135,7 +135,7 @@ const ShareWorkflowDialog = ({
 
         {activeShares.length > 0 && (
           <FlexColumn gap={SPACING.xs}>
-            <Text size="small">Active links</Text>
+            <Text size="small">{i18n.t("ui2:attrs.activeLinks", { defaultValue: "Active links" })}</Text>
             {activeShares.map((share) => (
               <FlexRow
                 key={share.id}
@@ -164,7 +164,7 @@ const ShareWorkflowDialog = ({
 
         <Divider />
 
-        <Text size="small">People with access</Text>
+        <Text size="small">{i18n.t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })}</Text>
         {collaborators.length === 0 && !query.isLoading && (
           <EmptyState
             variant="empty"

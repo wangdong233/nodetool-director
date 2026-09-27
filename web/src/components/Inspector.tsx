@@ -828,7 +828,7 @@ const Inspector: React.FC = () => {
                       >
                         <span className="mixed-indicator">
                           <WarningAmberOutlinedIcon fontSize="small" />
-                          <span>Mixed</span>
+                          <span>{i18n.t("ui2:attrs.mixed", { defaultValue: "Mixed" })}</span>
                         </span>
                       </Tooltip>
                     )}
@@ -854,7 +854,7 @@ const Inspector: React.FC = () => {
   }
 
   if (!metadata) {
-    return <Text size="small" color="secondary">No metadata available for this node</Text>;
+    return <Text size="small" color="secondary">{i18n.t("ui2:attrs.noMetadataAvailableForThisNode", { defaultValue: "No metadata available for this node" })}</Text>;
   }
 
   return (
@@ -1145,7 +1145,7 @@ const Inspector: React.FC = () => {
                 })()}
                 <div className="help-meta">
                   <div className="help-meta-row">
-                    <span className="help-meta-key">Type</span>
+                    <span className="help-meta-key">{i18n.t("editor:asset.info.type", { defaultValue: "Type" })}</span>
                     <span
                       className="help-meta-value"
                       title={metadata.node_type}
@@ -1154,14 +1154,14 @@ const Inspector: React.FC = () => {
                     </span>
                   </div>
                   <div className="help-meta-row">
-                    <span className="help-meta-key">Namespace</span>
+                    <span className="help-meta-key">{i18n.t("ui2:attrs.namespace", { defaultValue: "Namespace" })}</span>
                     <span className="help-meta-value" title={metadata.namespace}>
                       {metadata.namespace}
                     </span>
                   </div>
                   {metadata.supports_dynamic_inputs ? (
                     <div className="help-meta-row">
-                      <span className="help-meta-key">Dynamic</span>
+                      <span className="help-meta-key">{i18n.t("ui2:attrs.dynamic", { defaultValue: "Dynamic" })}</span>
                       <span className="help-meta-value">yes</span>
                     </div>
                   ) : null}

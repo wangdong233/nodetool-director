@@ -35,6 +35,7 @@ import {
   useStoryboardSetupFlow,
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
+import { i18n } from "../../i18n";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -180,7 +181,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
   // The store seeds an empty board on mount, so rendering before the server
   // copy lands looks like a board with no shots.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="storyboard" />;
+    return <DocumentLoadStatus state={loadState} label={i18n.t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })} />;
   }
 
   if (setupStage !== "done") {
@@ -252,7 +253,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       {mode !== "view" && (
         <ResizableSideDock
           storageKey="storyboard_assistant"
-          ariaLabel="Resize storyboard assistant"
+          ariaLabel={i18n.t("ui2:attrs.resizeStoryboardAssistant", { defaultValue: "Resize storyboard assistant" })}
         >
           <StoryboardAgentPanel boardId={refId} />
         </ResizableSideDock>

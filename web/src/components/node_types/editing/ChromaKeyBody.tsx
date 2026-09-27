@@ -166,7 +166,7 @@ const ChromaKeyBodyInner: React.FC<ChromaKeyBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Key Color</span>
+        <span className="ctrl-label">{i18n.t("ui2:attrs.keyColor", { defaultValue: "Key Color" })}</span>
         <span style={{ gridColumn: "2 / 4", display: "flex", alignItems: "center" }}>
           <ColorPicker
             color={hexColor}

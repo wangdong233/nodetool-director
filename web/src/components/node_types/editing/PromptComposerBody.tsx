@@ -189,7 +189,7 @@ const VariableInsertBar: React.FC<{
   );
   return (
     <div className="variable-bar">
-      {showLabel && <span className="variable-bar-label">Variables</span>}
+      {showLabel && <span className="variable-bar-label">{i18n.t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>}
       {variables.map(({ name, source }) => (
         <button
           key={name}

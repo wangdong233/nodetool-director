@@ -85,7 +85,7 @@ export const ScriptCreativeContextFields: React.FC<
         />
       ))}
       <FlexColumn gap={GAP.micro}>
-        <Label>Approved claims</Label>
+        <Label>{i18n.t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}</Label>
         <TextInput
           label="Approved claims"
           hideLabel

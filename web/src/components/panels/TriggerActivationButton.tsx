@@ -314,7 +314,7 @@ const TriggerActivationButton: React.FC = () => {
           aria-label={i18n.t("editor:ui.triggerStatus", { defaultValue: "Trigger status" })}
         >
           <FlexRow justify="space-between" align="center">
-            <Text size="big">Triggers</Text>
+            <Text size="big">{i18n.t("ui2:attrs.triggers", { defaultValue: "Triggers" })}</Text>
             <StatusIndicator
               status={STATUS_KINDS[state]}
               label={STATUS_LABELS[state]}

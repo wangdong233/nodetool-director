@@ -391,9 +391,9 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               {results.length !== 1 ? "s" : ""} found
             </>
           ) : searchTerm ? (
-            <>No nodes found</>
+            <>{i18n.t("ui2:attrs.noNodesFound", { defaultValue: "No nodes found" })}</>
           ) : (
-            <>Type to search nodes</>
+            <>{i18n.t("ui2:attrs.typeToSearchNodes", { defaultValue: "Type to search nodes" })}</>
           )}
         </Box>
 
@@ -434,7 +434,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
         ) : searchTerm ? (
           <Box className="empty-state">
             <SearchIcon className="empty-icon" />
-            <Text className="empty-text">No matching nodes</Text>
+            <Text className="empty-text">{i18n.t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</Text>
           </Box>
         ) : null}
       </Box>

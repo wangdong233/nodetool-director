@@ -290,15 +290,15 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
               <li>Click on the namespaces to the left</li>
             </ul>
 
-            <Text size="normal" weight={600}>Search Nodes</Text>
+            <Text size="normal" weight={600}>{i18n.t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
             <ul>
               <li>Type in the search bar to search for nodes.</li>
             </ul>
 
-            <Text size="normal" weight={600}>Create Nodes</Text>
+            <Text size="normal" weight={600}>{i18n.t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>
             <ul>
-              <li>Click on a node</li>
-              <li>Drag a node onto the canvas</li>
+              <li>{i18n.t("ui2:attrs.clickOnANode", { defaultValue: "Click on a node" })}</li>
+              <li>{i18n.t("ui2:attrs.dragANodeOntoTheCanvas", { defaultValue: "Drag a node onto the canvas" })}</li>
             </ul>
           </div>
         </div>

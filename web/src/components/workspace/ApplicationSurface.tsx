@@ -37,6 +37,7 @@ import {
   SPACING,
   Z_INDEX
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface ApplicationSurfaceProps {
   refId: string;
@@ -152,7 +153,7 @@ const ApplicationSurface = ({
     return (
       <EmptyState
         variant="error"
-        title="Could not load app"
+        title={i18n.t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
         description={error?.message ?? "The app may have been deleted."}
       />
     );
@@ -208,12 +209,12 @@ const ApplicationSurface = ({
                 exclusive
                 value={view}
                 onChange={handleViewChange}
-                aria-label="App view"
+                aria-label={i18n.t("ui2:attrs.appView", { defaultValue: "App view" })}
               >
-                <ToggleOption value="design">Design</ToggleOption>
-                <ToggleOption value="run">Run</ToggleOption>
-                <ToggleOption value="preview">Preview draft</ToggleOption>
-                <ToggleOption value="settings">Settings</ToggleOption>
+                <ToggleOption value="design">{i18n.t("ui2:attrs.design", { defaultValue: "Design" })}</ToggleOption>
+                <ToggleOption value="run">{i18n.t("ui2:attrs.run", { defaultValue: "Run" })}</ToggleOption>
+                <ToggleOption value="preview">{i18n.t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
+                <ToggleOption value="settings">{i18n.t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
               </ToggleGroup>
             </FlexRow>
           </FlexRow>
@@ -263,7 +264,7 @@ const ApplicationSurface = ({
             <Box
               ref={narrowAgentPanelRef}
               role="dialog"
-              aria-label="App builder assistant"
+              aria-label={i18n.t("ui2:attrs.appBuilderAssistant", { defaultValue: "App builder assistant" })}
               tabIndex={-1}
               sx={{
                 ...overlayPanelSx,
@@ -279,7 +280,7 @@ const ApplicationSurface = ({
         <ResizableSideDock
           storageKey="app_builder"
           defaultWidth={420}
-          ariaLabel="Resize app builder assistant"
+          ariaLabel={i18n.t("ui2:attrs.resizeAppBuilderAssistant", { defaultValue: "Resize app builder assistant" })}
         >
           {assistant}
         </ResizableSideDock>

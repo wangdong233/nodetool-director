@@ -24,6 +24,7 @@ import {
 } from "../ui_primitives";
 import MonacoPane from "./MonacoPane";
 import SvgPreview from "./SvgPreview";
+import { i18n } from "../../i18n";
 
 const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -217,7 +218,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
         <Caption>{asset.name}</Caption>
         <FlexRow align="center" gap={0.5}>
           {isDirty && (
-            <span className="dirty-dot" aria-label="Unsaved changes" />
+            <span className="dirty-dot" aria-label={i18n.t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
           )}
           <EditorButton
             variant="contained"

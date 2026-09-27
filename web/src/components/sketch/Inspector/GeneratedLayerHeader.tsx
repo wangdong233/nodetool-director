@@ -56,7 +56,7 @@ export const GeneratedLayerHeader: React.FC<GeneratedLayerHeaderProps> = memo(
           />
         </FlexRow>
 
-        <Caption color="secondary">Generated layer</Caption>
+        <Caption color="secondary">{i18n.t("ui2:attrs.generatedLayer", { defaultValue: "Generated layer" })}</Caption>
 
         {latestVersion && (
           <Caption color="secondary">

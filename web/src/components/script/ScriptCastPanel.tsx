@@ -204,7 +204,7 @@ const SpeakerRow = ({
           />
         </FlexRow>
       ) : speaker.entityId ? (
-        <Caption color="warning">Linked entity missing</Caption>
+        <Caption color="warning">{i18n.t("ui2:attrs.linkedEntityMissing", { defaultValue: "Linked entity missing" })}</Caption>
       ) : null}
     </FlexColumn>
   );

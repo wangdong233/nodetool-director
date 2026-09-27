@@ -35,6 +35,7 @@ import type {
 } from "../../hooks/useExecutionTreeState";
 import { formatJavaScriptForDisplay } from "../../utils/formatJavaScript";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 type NodeStatus = "waiting" | "running" | "completed" | "failed";
 
@@ -513,14 +514,14 @@ const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
     <div className="tl-inspector">
       {step.instructions ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Instructions</span>
+          <span className="tl-inspector-label">{i18n.t("ui2:attrs.instructions", { defaultValue: "Instructions" })}</span>
           <span className="tl-inspector-body">{step.instructions}</span>
         </div>
       ) : null}
 
       {step.duration !== undefined ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Duration</span>
+          <span className="tl-inspector-label">{i18n.t("ui2:attrs.duration", { defaultValue: "Duration" })}</span>
           <span className="tl-inspector-body">
             {formatDuration(step.duration)}
           </span>
@@ -540,14 +541,14 @@ const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
 
       {resultText ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Result</span>
+          <span className="tl-inspector-label">{i18n.t("editor:ui.result", { defaultValue: "Result" })}</span>
           <pre className="tl-inspector-code">{resultText}</pre>
         </div>
       ) : null}
 
       {step.error ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label tl-inspector-error">Error</span>
+          <span className="tl-inspector-label tl-inspector-error">{i18n.t("ui2:attrs.error", { defaultValue: "Error" })}</span>
           <pre className="tl-inspector-code tl-inspector-error">
             {step.error}
           </pre>
@@ -620,7 +621,7 @@ const StepNode: React.FC<{
             <span className={`tl-name ${step.status}`}>{displayName}</span>
           </FlexRow>
           {step.status === "running" ? (
-            <span className="tl-meta running">In progress</span>
+            <span className="tl-meta running">{i18n.t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
           ) : step.duration !== undefined ? (
             <span className="tl-meta">
               <AccessTimeRoundedIcon aria-hidden />
@@ -700,7 +701,7 @@ const TaskNode: React.FC<{
             )}
           </FlexRow>
           {task.status === "running" ? (
-            <span className="tl-meta running">In progress</span>
+            <span className="tl-meta running">{i18n.t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
           ) : task.status === "waiting" ? (
             <span className="tl-meta waiting">waiting</span>
           ) : (
@@ -751,8 +752,8 @@ const PlanningLog: React.FC<{
             </div>
             <div className="tl-content">
               <div className="tl-row">
-                <span className="planning-phase">Planning</span>
-                <span className="tl-meta running">In progress</span>
+                <span className="planning-phase">{i18n.t("ui2:attrs.planning", { defaultValue: "Planning" })}</span>
+                <span className="tl-meta running">{i18n.t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
               </div>
             </div>
           </div>
@@ -786,7 +787,7 @@ const PlanningLog: React.FC<{
             <div className="tl-content">
               <div className="tl-row">
                 <span className="planning-phase">{entry.phase}</span>
-                {isRunning && <span className="tl-meta running">In progress</span>}
+                {isRunning && <span className="tl-meta running">{i18n.t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>}
               </div>
               {entry.content ? (
                 <div className="planning-content">{entry.content}</div>
@@ -837,7 +838,7 @@ const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) =>
       {hasTasks && (
         <div className="plan-card">
           <FlexRow className="plan-header" align="center" gap={2}>
-            <span className="plan-title">Execution plan</span>
+            <span className="plan-title">{i18n.t("ui2:attrs.executionPlan", { defaultValue: "Execution plan" })}</span>
             <div
               className="plan-progress-track"
               role="progressbar"
