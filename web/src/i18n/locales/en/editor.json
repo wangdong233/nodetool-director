@@ -224,6 +224,8 @@
     "versions": "Versions",
     "trace": "Trace",
     "resizeAria": "Resize panel",
-    "workerConnected": "Worker {{state}}"
+    "workerConnected": "Worker {{state}}",
+    "stateConnected": "connected",
+    "stateDisconnected": "disconnected"
   }
 }

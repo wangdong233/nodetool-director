@@ -540,7 +540,14 @@ const PanelBottom: React.FC = () => {
             <div
               className="status-cluster"
               role="status"
-              aria-label={`Worker ${isConnected ? "connected" : "disconnected"}`}
+              aria-label={
+                i18n.t("editor:bottom.workerConnected", {
+                  defaultValue: "Worker {{state}}",
+                  state: isConnected
+                    ? i18n.t("editor:bottom.stateConnected", { defaultValue: "connected" })
+                    : i18n.t("editor:bottom.stateDisconnected", { defaultValue: "disconnected" })
+                })
+              }
             >
               <span
                 className={`status-dot ${isConnected ? "" : "disconnected"}`}

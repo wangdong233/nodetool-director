@@ -224,6 +224,8 @@
     "versions": "版本",
     "trace": "追踪",
     "resizeAria": "调整面板大小",
-    "workerConnected": "Worker {{state}}"
+    "workerConnected": "Worker {{state}}",
+    "stateConnected": "已连接",
+    "stateDisconnected": "已断开"
   }
 }
