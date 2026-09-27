@@ -22,6 +22,7 @@ import type { Chunk, NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import useResultsStore from "../../../stores/ResultsStore";
 import useWorkflowRunsStore from "../../../stores/WorkflowRunsStore";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({

@@ -32,6 +32,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { RESIZE_IMAGE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 type ResizeImageMode = "scale" | "dimensions" | "fit";
 
@@ -305,7 +306,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
           value={mode}
           exclusive
           onChange={handleModeChange}
-          aria-label="Resize mode"
+          aria-label={i18n.t("editor:ui.resizeMode", { defaultValue: "Resize mode" })}
         >
           <ToggleOption value="scale">Scale</ToggleOption>
           <ToggleOption value="dimensions">Dimensions</ToggleOption>
@@ -323,7 +324,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
             value={scale}
             onChange={handleScaleChange}
             onChangeCommitted={setPropertyComplete}
-            aria-label="Scale factor"
+            aria-label={i18n.t("editor:ui.scaleFactor", { defaultValue: "Scale factor" })}
           />
           <span className="ctrl-value">{scale.toFixed(2)}×</span>
         </div>

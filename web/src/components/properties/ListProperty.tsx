@@ -6,6 +6,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { isNumber, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const detectTypeFromList = (list: unknown[]) => {
   if (list.length === 0) {
@@ -61,8 +62,8 @@ const ListProperty = (props: PropertyProps) => {
             value={dataType}
             onChange={handleDataTypeChange}
             options={options}
-            label="Data Type"
-            placeholder="Select type..."
+            label={i18n.t("editor:ui.dataType", { defaultValue: "Data Type" })}
+            placeholder={i18n.t("editor:ui.selectType", { defaultValue: "Select type..." })}
           />
         </div>
         <ListTable

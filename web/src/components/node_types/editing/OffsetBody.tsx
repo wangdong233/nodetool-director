@@ -29,6 +29,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { i18n } from "../../../i18n";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -214,7 +215,7 @@ const OffsetBodyInner: React.FC<OffsetBodyProps> = ({
             exclusive
             onChange={handleWrapChange}
             size="small"
-            aria-label="Wrap mode"
+            aria-label={i18n.t("editor:ui.wrapMode", { defaultValue: "Wrap mode" })}
           >
             {WRAP_LABELS.map((label, i) => (
               <ToggleOption key={i} value={String(i)} aria-label={label}>

@@ -15,6 +15,7 @@ import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { useMediaOverlay } from "./MediaOverlayContext";
 import { isString } from "../../utils/typePredicates";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 
 const hoverStyles = css({
   ".image-dimensions": {
@@ -359,7 +360,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
             url={imageUrl}
           />
           <ToolbarIconButton
-            title="Download"
+            title={i18n.t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
             sx={iconButtonStyle}
@@ -367,7 +368,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
             <DownloadIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Open in Viewer (double-click)"
+            title={i18n.t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
             size="small"
             onClick={handleOpenInViewer}
             sx={iconButtonStyle}
@@ -379,7 +380,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
       {bitmap ? (
         <BitmapCanvas
           bitmap={bitmap}
-          aria-label="Generated image output"
+          aria-label={i18n.t("editor:ui.generatedImageOutput", { defaultValue: "Generated image output" })}
           style={imageStyle}
           onDoubleClick={handleDoubleClick}
         />

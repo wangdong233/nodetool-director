@@ -24,6 +24,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { SCALE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 import {
   isNumber,
   isObjectLike,
@@ -207,7 +208,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
           value={scale}
           onChange={handleScaleChange}
           onChangeCommitted={handleScaleCommitted}
-          aria-label="Scale factor"
+          aria-label={i18n.t("editor:ui.scaleFactor", { defaultValue: "Scale factor" })}
         />
         <span className="ctrl-value">{scale.toFixed(2)}×</span>
       </div>

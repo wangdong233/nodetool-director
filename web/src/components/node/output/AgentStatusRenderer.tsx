@@ -10,6 +10,7 @@ import ErrorIcon from "@mui/icons-material/ErrorOutline";
 import { Chunk } from "../../../stores/ApiTypes";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 type Props = {
   chunk: Chunk;
 };

@@ -26,6 +26,7 @@ import {
 import useModelCalloutStore from "../../stores/ModelCalloutStore";
 import { isModelEmpty } from "../../utils/findMissingModelNodes";
 import ModelSetupCallout from "./ModelSetupCallout";
+import { i18n } from "../../i18n";
 
 const highlightBlink = keyframes({
   "0%, 100%": {

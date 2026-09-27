@@ -2,6 +2,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 import { EditorButton } from "../editor_ui";
+import { i18n } from "../../i18n";
 import {
   Caption,
   CloseButton,
@@ -61,7 +62,7 @@ const FirstWorkflowGuide = ({
 
   return (
     <Surface
-      aria-label="First workflow guide"
+      aria-label={i18n.t("editor:ui.firstWorkflowGuide", { defaultValue: "First workflow guide" })}
       bordered
       elevation={3}
       padding={SPACING.xl}
@@ -83,7 +84,7 @@ const FirstWorkflowGuide = ({
             </Caption>
           </FlexColumn>
           {started ? (
-            <CloseButton onClick={onClose} tooltip="Close guide" />
+            <CloseButton onClick={onClose} tooltip={i18n.t("editor:ui.closeGuide", { defaultValue: "Close guide" })} />
           ) : null}
         </FlexRow>
 

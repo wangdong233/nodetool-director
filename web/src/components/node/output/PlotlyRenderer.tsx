@@ -3,6 +3,7 @@ import React, { Suspense, lazy, memo } from "react";
 import { LoadingSpinner, FlexRow, BORDER_RADIUS } from "../../ui_primitives";
 import type { PlotlyConfig } from "../../../stores/ApiTypes";
 import type { Data, Layout, Config, Frame } from "plotly.js";
+import { i18n } from "../../../i18n";
 
 const PlotlyPlot = lazy(() => import("./PlotlyChart"));
 

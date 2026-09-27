@@ -18,6 +18,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListVideoThumb } from "./PropertyListThumb";
+import { i18n } from "../../i18n";
 
 interface VideoItem {
   uri: string;
@@ -418,14 +419,14 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
                 className="remove-button"
                 onClick={removeHandlers[index]}
                 buttonSize="small"
-                tooltip="Remove video"
+                tooltip={i18n.t("editor:ui.removeVideo", { defaultValue: "Remove video" })}
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title="Click to select videos or drag and drop">
+      <Tooltip title={i18n.t("editor:ui.clickToSelectVideosOrDragAndDrop", { defaultValue: "Click to select videos or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}

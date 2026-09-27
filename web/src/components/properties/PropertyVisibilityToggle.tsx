@@ -17,6 +17,7 @@ import { Tooltip, ToolbarIconButton, MOTION } from "../ui_primitives";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 import type { ExposedInputPlacement } from "../../utils/exposedInputs";
+import { i18n } from "../../i18n";
 
 
 

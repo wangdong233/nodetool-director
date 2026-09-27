@@ -31,6 +31,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { HSL_ADJUST_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 const COLOR_RANGES = [
   "all",
@@ -215,7 +216,7 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
           variant="standard"
           value={colorRange}
           onChange={handleRangeChange}
-          aria-label="Color range"
+          aria-label={i18n.t("editor:ui.colorRange", { defaultValue: "Color range" })}
           disableUnderline
         >
           {COLOR_RANGES.map((r) => (

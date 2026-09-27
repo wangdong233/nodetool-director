@@ -31,6 +31,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput, useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { CANVAS_RESIZE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 type CanvasMode = "fixed" | "scale" | "padding";
 type PaddingUnit = "px" | "percent";
@@ -339,7 +340,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 setNumberProp("scale", Math.round(next * 100) / 100);
               }}
               onChangeCommitted={() => setPropertyComplete()}
-              aria-label="Canvas scale factor"
+              aria-label={i18n.t("editor:ui.canvasScaleFactor", { defaultValue: "Canvas scale factor" })}
             />
           </div>
         )}

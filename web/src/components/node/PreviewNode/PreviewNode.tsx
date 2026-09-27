@@ -42,6 +42,7 @@ import {
 } from "../../../hooks/nodes/useNodeResultHistory";
 import { useNodes } from "../../../contexts/NodeContext";
 import { isObjectLike } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css([
@@ -492,7 +493,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
             isScrollable ? "scrollable nowheel" : "noscroll"
           } nodrag`}
           role="region"
-          aria-label="Preview output"
+          aria-label={i18n.t("editor:ui.previewOutput", { defaultValue: "Preview output" })}
           style={{ width: "100%", height: "100%" }}
           tabIndex={0}
           onFocus={handleContentFocus}

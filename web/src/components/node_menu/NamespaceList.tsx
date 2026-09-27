@@ -18,6 +18,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { i18n } from "../../i18n";
 
 interface NamespaceListProps {
   namespaceTree: NamespaceTree;

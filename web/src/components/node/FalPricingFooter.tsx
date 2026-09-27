@@ -37,6 +37,7 @@ import {
 } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 import {
   formatFalUnitPricingShort,
   formatFalUnitPricingTooltip,
@@ -344,7 +345,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View on fal.ai"
+          label={i18n.t("editor:ui.viewOnFalai", { defaultValue: "View on fal.ai" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {

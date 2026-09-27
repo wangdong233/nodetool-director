@@ -5,6 +5,7 @@ import TextEditorModal from "./TextEditorModal";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { Tooltip, Text, getSpacingPx, SPACING } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
+import { i18n } from "../../i18n";
 
 const MAX_TEXT_LENGTH = 1000;
 const MAX_TEXT_HEIGHT = 50;
@@ -49,7 +50,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         overflow: "auto"
       }}
     >
-      <Tooltip title="Open Editor" delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })} delay={TOOLTIP_ENTER_DELAY}>
         <button type="button" className="button-expand" onClick={toggleExpand}>
           {isExpanded ? "↙" : "↗"}
         </button>

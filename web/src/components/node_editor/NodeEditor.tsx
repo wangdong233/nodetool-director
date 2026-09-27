@@ -48,6 +48,7 @@ import { useWorkflowRuntimeCheck } from "../../hooks/useWorkflowRuntimeCheck";
 import RuntimeInstallDialog from "./RuntimeInstallDialog";
 import { useAutoEnableNodePacks } from "../../hooks/useAutoEnableNodePacks";
 import { useRightPanelStore } from "../../stores/RightPanelStore";
+import { i18n } from "../../i18n";
 
 declare global {
   interface Window {
@@ -239,7 +240,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
                   }
                 }}
                 closeAfterTransition
-                aria-label="Keyboard shortcuts"
+                aria-label={i18n.t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
               >
                 <Box
                   sx={shortcutsModalSx}

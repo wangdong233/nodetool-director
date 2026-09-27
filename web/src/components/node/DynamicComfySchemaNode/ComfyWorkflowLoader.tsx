@@ -28,6 +28,7 @@ import {
   type ComfyDynInput
 } from "../../../utils/comfyDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
+import { i18n } from "../../../i18n";
 
 interface ComfyWorkflowLoaderProps {
   nodeId: string;
@@ -152,9 +153,9 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
 
     return (
       <>
-        <Tooltip title="Load Workflow" arrow delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={i18n.t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })} arrow delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
-            title="Load Workflow"
+            title={i18n.t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })}
             size="small"
             onClick={() => setOpen(true)}
             sx={{
@@ -172,7 +173,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
         <Dialog
           open={open}
           onClose={() => setOpen(false)}
-          title="Load ComfyUI Workflow"
+          title={i18n.t("editor:ui.loadComfyUIWorkflow", { defaultValue: "Load ComfyUI Workflow" })}
           maxWidth="sm"
           fullWidth
           showActions
@@ -197,7 +198,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
               }}
             >
               <TextInput
-                label="Workflow JSON"
+                label={i18n.t("editor:ui.workflowJSON", { defaultValue: "Workflow JSON" })}
                 value={text}
                 onChange={(e) => parseText(e.target.value)}
                 multiline
@@ -207,7 +208,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
               />
               <FlexRow gap={1} align="center" sx={{ mt: 1 }}>
                 <ToolbarIconButton
-                  title="Choose file"
+                  title={i18n.t("editor:ui.chooseFile", { defaultValue: "Choose file" })}
                   size="small"
                   onClick={() => fileInputRef.current?.click()}
                 >

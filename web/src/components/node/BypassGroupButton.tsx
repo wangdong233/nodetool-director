@@ -6,6 +6,7 @@ import { Tooltip, ToolbarIconButton, MOTION, BORDER_RADIUS, getSpacingPx, SPACIN
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { memo, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, isBypassed: boolean) =>
   css({

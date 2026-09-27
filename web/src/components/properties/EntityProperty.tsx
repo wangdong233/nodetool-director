@@ -7,6 +7,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { useEntities } from "../../serverState/useEntities";
 import EntityAssetPickerDialog from "../entities/EntityAssetPickerDialog";
+import { i18n } from "../../i18n";
 import {
   getEntityChipSx,
   getEntityKindDotSx

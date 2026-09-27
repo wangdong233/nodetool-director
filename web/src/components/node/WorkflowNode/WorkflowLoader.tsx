@@ -14,6 +14,7 @@ import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import { Workflow } from "../../../stores/ApiTypes";
 import { NodeData } from "../../../stores/NodeData";
 import { extractDynamicIO } from "./WorkflowLoader.helpers";
+import { i18n } from "../../../i18n";
 
 export { WORKFLOW_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -221,7 +222,7 @@ export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Select Workflow"
+              label={i18n.t("editor:ui.selectWorkflow", { defaultValue: "Select Workflow" })}
               variant="outlined"
               size="small"
               slotProps={{

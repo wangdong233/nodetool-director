@@ -13,6 +13,7 @@ import {
 import Search from "@mui/icons-material/Search";
 import { IMAGE_SIZE_PRESETS, PresetOption } from "../../config/constants";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
+import { i18n } from "../../i18n";
 
 interface ImageSizePresetsMenuProps {
   anchorEl: null | HTMLElement;
@@ -116,7 +117,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
         <NodeTextField
           className="presets-search-field"
           fullWidth
-          placeholder="Search presets..."
+          placeholder={i18n.t("editor:ui.searchPresets", { defaultValue: "Search presets..." })}
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}

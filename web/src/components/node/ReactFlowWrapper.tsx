@@ -162,6 +162,7 @@ import CustomEdge from "../node_editor/CustomEdge";
 import ControlEdge from "../node_editor/ControlEdge";
 import { usePlaceholderNodeTypes } from "../node_types/usePlaceholderNodeTypes";
 import { isNumber, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /** React Flow edge paths use both endpoints — refresh neighbors when one node’s DOM height changes. */
 function withEdgeNeighborNodeIds(

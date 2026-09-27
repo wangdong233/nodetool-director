@@ -10,6 +10,7 @@ import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 
 import { BORDER_RADIUS } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 const GLYPH_W = 18;
 const GLYPH_H = 10;
 
@@ -75,7 +76,7 @@ const WaveformSelectorInner: React.FC<WaveformSelectorProps> = ({
   );
 
   return (
-    <div className="waveform-row nodrag" role="group" aria-label="Waveform">
+    <div className="waveform-row nodrag" role="group" aria-label={i18n.t("editor:ui.waveform", { defaultValue: "Waveform" })}>
       {options.map((w) => {
         const active = w === value;
         return (

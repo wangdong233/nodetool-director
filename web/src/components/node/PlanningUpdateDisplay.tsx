@@ -7,6 +7,7 @@ import { css } from "@emotion/react";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { MOTION, reducedMotion, SPACING } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface PlanningUpdateDisplayProps {
   planningUpdate: PlanningUpdate;

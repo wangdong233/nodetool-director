@@ -6,6 +6,7 @@ import { Tooltip, ToolbarIconButton, LoadingSpinner, MOTION, BORDER_RADIUS, getS
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { memo, useCallback, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, _isRunning: boolean) =>
   css({

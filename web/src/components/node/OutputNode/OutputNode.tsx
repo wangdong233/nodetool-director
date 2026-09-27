@@ -31,6 +31,7 @@ import { useSyncEdgeSelection } from "../../../hooks/nodes/useSyncEdgeSelection"
 import useMetadataStore from "../../../stores/MetadataStore";
 import { NODE_COLLAPSED_LAYOUT } from "../../../styles/collapsedNodeTokens";
 import { isObjectLike } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css([
@@ -444,7 +445,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
           className={`content ${isScrollable ? "scrollable nowheel" : "noscroll"
             }`}
           role="region"
-          aria-label="Node output"
+          aria-label={i18n.t("editor:ui.nodeOutput", { defaultValue: "Node output" })}
           style={CONTENT_DIV_STYLE}
           tabIndex={0}
           onFocus={handleContentFocus}

@@ -7,6 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Box, MOTION, Z_INDEX } from "../ui_primitives";
 import { memo, useMemo } from "react";
+import { i18n } from "../../i18n";
 import MediaAspectResizeControl, {
   type ResizeCorner
 } from "./MediaAspectResizeControl";

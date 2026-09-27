@@ -16,6 +16,7 @@ import ConnectedBadge from "./ConnectedBadge";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const propertyStyles = (theme: Theme) =>
   css({
@@ -95,7 +96,7 @@ const StringProperty = ({
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip="Open Editor"
+          tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -142,7 +143,7 @@ const StringProperty = ({
         {!isInspector ? (
           <div className="string-action-buttons">
             <ToolbarIconButton
-              tooltip="Open Editor"
+              tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"

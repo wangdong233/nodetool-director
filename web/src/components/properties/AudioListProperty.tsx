@@ -19,6 +19,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListAudioThumb } from "./PropertyListThumb";
+import { i18n } from "../../i18n";
 
 interface AudioItem {
   uri: string;
@@ -452,7 +453,7 @@ const AudioListProperty = (props: PropertyProps<AudioItem[] | null>) => {
                 className="remove-button"
                 onClick={removeHandlers[index]}
                 buttonSize="small"
-                tooltip="Remove audio"
+                tooltip={i18n.t("editor:ui.removeAudio", { defaultValue: "Remove audio" })}
               />
             </div>
           ))}
@@ -460,7 +461,7 @@ const AudioListProperty = (props: PropertyProps<AudioItem[] | null>) => {
       )}
 
       {/* Dropzone */}
-      <Tooltip title="Click to select audio files or drag and drop">
+      <Tooltip title={i18n.t("editor:ui.clickToSelectAudioFilesOrDragAndDrop", { defaultValue: "Click to select audio files or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}

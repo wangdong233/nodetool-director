@@ -8,6 +8,7 @@ import {
 } from "lexical";
 
 import { EntityMentionChip } from "./EntityMentionChip";
+import { i18n } from "../../../../i18n";
 
 export type SerializedEntityMentionNode = Spread<
   {

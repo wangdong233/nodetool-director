@@ -30,6 +30,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { ROTATE_AND_FLIP_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 // 90° snap marks across the slider's full -360..360 range. Material UI's
 // `Slider` shows ticks for `marks`; the user can still drag freely between.
@@ -198,7 +199,7 @@ const RotateAndFlipBodyInner: React.FC<RotateAndFlipBodyProps> = ({
             value={angle}
             onChange={handleAngleChange}
             onChangeCommitted={handleAngleCommitted}
-            aria-label="Rotation angle"
+            aria-label={i18n.t("editor:ui.rotationAngle", { defaultValue: "Rotation angle" })}
           />
           <span className="angle-readout">{Math.round(angle)}°</span>
         </FlexRow>
@@ -209,8 +210,8 @@ const RotateAndFlipBodyInner: React.FC<RotateAndFlipBodyProps> = ({
               isActive={flipH}
               icon={<FlipIcon fontSize="small" />}
               activeIcon={<FlipIcon fontSize="small" />}
-              tooltip="Flip horizontally"
-              ariaLabel="Flip horizontally"
+              tooltip={i18n.t("editor:ui.flipHorizontally", { defaultValue: "Flip horizontally" })}
+              ariaLabel={i18n.t("editor:ui.flipHorizontally", { defaultValue: "Flip horizontally" })}
               onClick={toggleFlipH}
             />
             <StateIconButton
@@ -228,16 +229,16 @@ const RotateAndFlipBodyInner: React.FC<RotateAndFlipBodyProps> = ({
                   style={{ transform: "rotate(90deg)" }}
                 />
               }
-              tooltip="Flip vertically"
-              ariaLabel="Flip vertically"
+              tooltip={i18n.t("editor:ui.flipVertically", { defaultValue: "Flip vertically" })}
+              ariaLabel={i18n.t("editor:ui.flipVertically", { defaultValue: "Flip vertically" })}
               onClick={toggleFlipV}
             />
           </FlexRow>
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Reset rotation and flips"
-            ariaLabel="Reset rotation and flips"
+            tooltip={i18n.t("editor:ui.resetRotationAndFlips", { defaultValue: "Reset rotation and flips" })}
+            ariaLabel={i18n.t("editor:ui.resetRotationAndFlips", { defaultValue: "Reset rotation and flips" })}
             onClick={handleReset}
           />
         </FlexRow>

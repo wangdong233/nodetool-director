@@ -11,6 +11,7 @@ import { EditorButton, ButtonGroup, BORDER_RADIUS, getSpacingPx, SPACING } from 
 // icons
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import isEqual from "../../utils/isEqual";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

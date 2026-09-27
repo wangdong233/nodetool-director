@@ -14,6 +14,7 @@ import {
 import { useCallback, useState, memo, useId } from "react";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
+import { i18n } from "../../i18n";
 
 interface AddDynamicOutputDialogProps {
   open: boolean;

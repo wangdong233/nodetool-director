@@ -10,6 +10,7 @@ import { memo } from "react";
 import isEqual from "../../utils/isEqual";
 import { useUpstreamValue } from "../../hooks/nodes/useNodeIO";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { i18n } from "../../i18n";
 
 const connectedPreviewStyles = css({
   position: "relative",

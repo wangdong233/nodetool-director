@@ -29,6 +29,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { CURVES_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -204,8 +205,8 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Reset all curves"
-            ariaLabel="Reset all curves"
+            tooltip={i18n.t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
+            ariaLabel={i18n.t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
             onClick={handleReset}
           />
         </FlexRow>

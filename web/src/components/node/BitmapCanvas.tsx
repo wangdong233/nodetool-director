@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { i18n } from "../../i18n";
 
 interface BitmapCanvasProps {
   bitmap: ImageBitmap;

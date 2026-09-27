@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import { i18n } from "../../i18n";
 
 interface MediaOverlayValue {
   // Set by NodeHistoryViewer to tell nested media renderers (ImageView in

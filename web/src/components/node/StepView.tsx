@@ -17,6 +17,7 @@ import {
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import { Step } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

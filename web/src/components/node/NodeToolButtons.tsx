@@ -33,6 +33,7 @@ import { useNodeContextMenu } from "../../hooks/nodes/useNodeContextMenu";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
 import { NodeData } from "../../stores/NodeData";
+import { i18n } from "../../i18n";
 
 interface NodeToolbarProps {
   nodeId: string | null;
@@ -163,7 +164,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title="More Actions"
+          title={i18n.t("editor:ui.moreActions", { defaultValue: "More Actions" })}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleOpenDropdown}

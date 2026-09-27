@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo } from "react";
 
 import AssistantChatPanel from "../../chat/assistant/AssistantChatPanel";
+import { i18n } from "../../../i18n";
 
 /** Teaches the agent the Code assistant surface and the sandbox contract. */
 const codeAssistantSystemPrompt = (nodeId: string): string =>

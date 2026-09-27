@@ -28,6 +28,7 @@ import {
 import PaletteIcon from "@mui/icons-material/Palette";
 import LegendToggleIcon from "@mui/icons-material/LegendToggle";
 import CheckIcon from "@mui/icons-material/Check";
+import { i18n } from "../../i18n";
 
 const minimapStyle = {
   position: "absolute" as const,
@@ -189,7 +190,7 @@ const MiniMapNavigator: React.FC = () => {
           >
             {colorMode === "type" && showLegend && (
               <ToolbarIconButton
-                title="Node Type Legend"
+                title={i18n.t("editor:ui.nodeTypeLegend", { defaultValue: "Node Type Legend" })}
                 size="small"
                 onClick={handleOpenLegend}
                 sx={{
@@ -206,7 +207,7 @@ const MiniMapNavigator: React.FC = () => {
               </ToolbarIconButton>
             )}
             <ToolbarIconButton
-              title="Color Mode Settings"
+              title={i18n.t("editor:ui.colorModeSettings", { defaultValue: "Color Mode Settings" })}
               size="small"
               onClick={handleOpenSettings}
               sx={{

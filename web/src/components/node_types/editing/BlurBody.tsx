@@ -31,6 +31,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { BLUR_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 type BlurType = "gaussian" | "box" | "motion";
 
@@ -196,7 +197,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
           variant="standard"
           value={blurType}
           onChange={handleTypeChange}
-          aria-label="Blur type"
+          aria-label={i18n.t("editor:ui.blurType", { defaultValue: "Blur type" })}
           disableUnderline
         >
           {BLUR_TYPES.map((t) => (
@@ -214,7 +215,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
           value={size}
           onChange={handleSizeChange}
           onChangeCommitted={handleSizeCommitted}
-          aria-label="Blur size"
+          aria-label={i18n.t("editor:ui.blurSize", { defaultValue: "Blur size" })}
         />
         <span className="ctrl-value">{Math.round(size)}</span>
       </div>

@@ -25,6 +25,7 @@ import { HorizontalRuleNode } from "../textEditor/HorizontalRuleNode";
 import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
 import { shallow } from "zustand/shallow";
 import { isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 function getContrastTextColor(hexColor: string): string {
   if (!hexColor) {

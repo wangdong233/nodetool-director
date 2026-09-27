@@ -71,6 +71,7 @@ import {
 
 import { codeHighlightTheme } from "../textEditor/codeHighlightTheme";
 import { codeHighlightTokenStyles } from "../textEditor/codeHighlightStyles";
+import { i18n } from "../../i18n";
 
 const initialConfigTemplate = {
   namespace: "TextEditorModal",
@@ -1227,23 +1228,23 @@ const TextEditorModal = ({
             </div>
             <div className="actions">
               {!readOnly && (
-                <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Revert to original">
+                <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}>
                   <button
                     type="button"
                     className="button"
                     onClick={handleRevert}
-                    aria-label="Revert to original"
+                    aria-label={i18n.t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}
                   >
                     <HistoryIcon />
                   </button>
                 </Tooltip>
               )}
-              <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Download">
+              <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.download", { defaultValue: "Download" })}>
                 <button
                   type="button"
                   className="button"
                   onClick={handleDownload}
-                  aria-label="Download"
+                  aria-label={i18n.t("editor:ui.download", { defaultValue: "Download" })}
                 >
                   <DownloadIcon />
                 </button>
@@ -1293,12 +1294,12 @@ const TextEditorModal = ({
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>
               </Tooltip>
-              <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Close Editor | Esc">
+              <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.closeEditorEsc", { defaultValue: "Close Editor | Esc" })}>
                 <button
                   type="button"
                   className="button button-close"
                   onClick={onClose}
-                  aria-label="Close Editor"
+                  aria-label={i18n.t("editor:ui.closeEditor", { defaultValue: "Close Editor" })}
                 >
                   <CloseIcon />
                 </button>
@@ -1336,7 +1337,7 @@ const TextEditorModal = ({
                   className="lang-select"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  aria-label="Language"
+                  aria-label={i18n.t("editor:ui.language", { defaultValue: "Language" })}
                 >
                   {LANGUAGES.map((lang) => (
                     <option key={lang} value={lang}>
@@ -1393,23 +1394,23 @@ const TextEditorModal = ({
               </div>
               <div className="toolbar-side">
                 <div className="font-controls">
-                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Decrease font size">
+                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
                       onClick={() => changeFontSize(-1)}
-                      aria-label="Decrease font size"
+                      aria-label={i18n.t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}
                     >
                       <TextDecreaseIcon />
                     </button>
                   </Tooltip>
                   <span className="font-size-value">{fontSize}</span>
-                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Increase font size">
+                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
                       onClick={() => changeFontSize(1)}
-                      aria-label="Increase font size"
+                      aria-label={i18n.t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}
                     >
                       <TextIncreaseIcon />
                     </button>
@@ -1551,7 +1552,7 @@ const TextEditorModal = ({
                     defaultWidth={360}
                     maxWidth={560}
                     enabled={!assistantStacks}
-                    ariaLabel="Resize text editor assistant"
+                    ariaLabel={i18n.t("editor:ui.resizeTextEditorAssistant", { defaultValue: "Resize text editor assistant" })}
                   >
                   <div className="assistant-pane">
                     <div className="assistant-header">
@@ -1567,25 +1568,25 @@ const TextEditorModal = ({
                         </div>
                       </div>
                       <div className="assistant-head-actions">
-                        <Tooltip delay={TOOLTIP_ENTER_DELAY} title="New chat">
+                        <Tooltip delay={TOOLTIP_ENTER_DELAY} title={i18n.t("editor:ui.newChat", { defaultValue: "New chat" })}>
                           <button
                             type="button"
                             className="button-ghost"
                             onClick={() => void createNewThread()}
-                            aria-label="New chat"
+                            aria-label={i18n.t("editor:ui.newChat", { defaultValue: "New chat" })}
                           >
                             <AddIcon />
                           </button>
                         </Tooltip>
                         <Tooltip
                           delay={TOOLTIP_ENTER_DELAY}
-                          title="Hide Assistant"
+                          title={i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })}
                         >
                           <button
                             type="button"
                             className="button-ghost"
                             onClick={toggleAssistantVisible}
-                            aria-label="Hide Assistant"
+                            aria-label={i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })}
                           >
                             <ChevronRightIcon />
                           </button>

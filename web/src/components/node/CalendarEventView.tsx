@@ -7,6 +7,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import NotesIcon from "@mui/icons-material/Notes";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface CalendarEventViewProps {
   event: CalendarEvent;

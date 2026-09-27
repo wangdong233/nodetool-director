@@ -47,6 +47,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput, useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { CROP_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 import {
   isNumber,
   isObjectLike,
@@ -708,7 +709,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
           variant="standard"
           value={aspect}
           onChange={handleAspectChange}
-          aria-label="Aspect ratio"
+          aria-label={i18n.t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
           disableUnderline
         >
           {ASPECT_OPTIONS.map((o) => (
@@ -762,8 +763,8 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
           type="button"
           className="reset-btn"
           onClick={handleReset}
-          aria-label="Reset crop"
-          title="Reset crop"
+          aria-label={i18n.t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
+          title={i18n.t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
         >
           <RestartAltIcon fontSize="small" />
         </button>

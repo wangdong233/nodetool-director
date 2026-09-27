@@ -4,6 +4,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { useNodes } from "../../contexts/NodeContext";
 import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
+import { i18n } from "../../i18n";
 import {
   MOTION,
   BORDER_RADIUS,
@@ -256,8 +257,8 @@ const EditableTitle = memo(function EditableTitle({
         <textarea
           defaultValue={title}
           autoFocus
-          aria-label="Note text"
-          placeholder="Add your note..."
+          aria-label={i18n.t("editor:ui.noteText", { defaultValue: "Note text" })}
+          placeholder={i18n.t("editor:ui.addYourNote", { defaultValue: "Add your note..." })}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onBlur={handleBlur}
@@ -270,8 +271,8 @@ const EditableTitle = memo(function EditableTitle({
             type="button"
             className="remove-title"
             onClick={handleRemoveTitle}
-            title="Remove note"
-            aria-label="Remove note"
+            title={i18n.t("editor:ui.removeNote", { defaultValue: "Remove note" })}
+            aria-label={i18n.t("editor:ui.removeNote", { defaultValue: "Remove note" })}
           >
             <CloseIcon className="icon" />
           </button>

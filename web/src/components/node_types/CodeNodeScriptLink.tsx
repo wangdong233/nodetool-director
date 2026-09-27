@@ -18,6 +18,7 @@ import { EditorButton, NodeSelect, NodeMenuItem } from "../editor_ui";
 import { Box, Caption, FlexRow, GAP, SPACING } from "../ui_primitives";
 import SaveToMyNodesDialog from "./SaveToMyNodesDialog";
 import { isCustomCodeNode } from "../node/codeNodeUi";
+import { i18n } from "../../i18n";
 
 interface CodeNodeScriptLinkProps {
   id: string;
@@ -120,7 +121,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
             density="compact"
             disabled={busy}
             sx={BUTTON_SX}
-            title="Re-pin this node to the script's current content"
+            title={i18n.t("editor:ui.repinThisNodeToTheScriptsCurrentContent", { defaultValue: "Re-pin this node to the script's current content" })}
             onClick={() => void guard("re-pin the script", updateToLatest)}
           >
             Update
@@ -159,7 +160,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
           disabled={busy}
           onChange={(event) => onPick(String(event.target.value ?? ""))}
           renderValue={() => "Link script"}
-          aria-label="Link script"
+          aria-label={i18n.t("editor:ui.linkScript", { defaultValue: "Link script" })}
         >
           {(scripts.data ?? []).map((script) => (
             <NodeMenuItem key={script.id} value={script.id}>
@@ -172,7 +173,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
         density="compact"
         disabled={busy}
         sx={BUTTON_SX}
-        title="Lift this node's body into a new script"
+        title={i18n.t("editor:ui.liftThisNodesBodyIntoANewScript", { defaultValue: "Lift this node's body into a new script" })}
         onClick={() =>
           void guard("extract the script", () => extractToScript(NEW_SCRIPT_NAME))
         }

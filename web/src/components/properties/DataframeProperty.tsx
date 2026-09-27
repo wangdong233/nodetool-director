@@ -18,6 +18,7 @@ import {
   isSupportedDataframeFile
 } from "../../utils/dataframeParsers";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -259,7 +260,7 @@ const DataframeProperty = ({
         </ButtonGroup>
         {isHovered && (
           <div className="dataframe-action-buttons">
-            <ToolbarIconButton tooltip="Open Editor" icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
+            <ToolbarIconButton tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })} icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
           </div>
         )}
       </div>

@@ -11,6 +11,7 @@ import { DataframeRef, ColumnDef } from "../../../stores/ApiTypes";
 import DataTable from "../DataTable/DataTable";
 import DataframeEditorModal from "../../properties/DataframeEditorModal";
 import { isNumber } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 interface DataframeRendererProps {
   dataframe: DataframeRef;
@@ -129,7 +130,7 @@ const DataframeRenderer: React.FC<DataframeRendererProps> = ({ dataframe }) => {
   return (
     <div css={memoizedStyles} className="dataframe-renderer">
       <div className="dataframe-action-buttons">
-        <ToolbarIconButton title="Open in Full View" size="small" onClick={toggleExpand}>
+        <ToolbarIconButton title={i18n.t("editor:ui.openInFullView", { defaultValue: "Open in Full View" })} size="small" onClick={toggleExpand}>
           <OpenInFullIcon />
         </ToolbarIconButton>
       </div>

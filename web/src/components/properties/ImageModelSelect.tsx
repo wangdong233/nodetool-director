@@ -16,6 +16,7 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
+import { i18n } from "../../i18n";
 
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -132,7 +133,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_image"
-        label="Image model"
+        label={i18n.t("editor:ui.imageModel", { defaultValue: "Image model" })}
         options={forTasks(STUDIO_STILL_MODELS, task)}
         value={value}
         onChange={onChange}

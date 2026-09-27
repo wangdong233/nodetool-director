@@ -18,6 +18,7 @@ import {
 } from "../../lib/dragdrop";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { i18n } from "../../i18n";
 
 interface TextItem {
   uri: string;
@@ -446,14 +447,14 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
                 className="remove-button"
                 onClick={removeButtonClickHandlers[index]}
                 buttonSize="small"
-                tooltip="Remove text file"
+                tooltip={i18n.t("editor:ui.removeTextFile", { defaultValue: "Remove text file" })}
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title="Click to select text files or drag and drop">
+      <Tooltip title={i18n.t("editor:ui.clickToSelectTextFilesOrDragAndDrop", { defaultValue: "Click to select text files or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}

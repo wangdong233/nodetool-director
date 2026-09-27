@@ -32,6 +32,7 @@ import { ColumnDef, DataframeRef } from "../../stores/ApiTypes";
 import DataTable from "../node/DataTable/DataTable";
 import ColumnsManager from "../node/ColumnsManager";
 import { NavButton, NodeTextField, CloseButton as CloseButtonPrimitive } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface DataframeEditorModalProps {
   value: DataframeRef;
@@ -563,13 +564,13 @@ const DataframeEditorModal = ({
                 </Tooltip>
                 <Tooltip
                   delay={TOOLTIP_ENTER_DELAY}
-                  title="Close Editor | Esc"
+                  title={i18n.t("editor:ui.closeEditorEsc", { defaultValue: "Close Editor | Esc" })}
                 >
                   <button
                     type="button"
                     className="button button-close"
                     onClick={onClose}
-                    aria-label="Close Editor"
+                    aria-label={i18n.t("editor:ui.closeEditor", { defaultValue: "Close Editor" })}
                   >
                     <CloseIcon />
                   </button>
@@ -587,7 +588,7 @@ const DataframeEditorModal = ({
                       className="add-column" 
                       onClick={addColumn}
                       icon={<TableRowsIcon style={{ rotate: "90deg" }} />}
-                      label="Add Column"
+                      label={i18n.t("editor:ui.addColumn", { defaultValue: "Add Column" })}
                     />
                   </div>
                   <ColumnsManager
@@ -599,7 +600,7 @@ const DataframeEditorModal = ({
               <div className="table-section">
                 <div className="search-bar">
                   <NodeTextField
-                    placeholder="Search in table..."
+                    placeholder={i18n.t("editor:ui.searchInTable", { defaultValue: "Search in table..." })}
                     value={searchFilter}
                     onChange={handleSearchChange}
                     InputProps={{
@@ -613,7 +614,7 @@ const DataframeEditorModal = ({
                           <CloseButtonPrimitive
                             buttonSize="small"
                             onClick={handleClearSearch}
-                            tooltip="Clear search"
+                            tooltip={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                           />
                         </InputAdornment>
                       )

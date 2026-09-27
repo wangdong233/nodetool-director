@@ -15,6 +15,7 @@ import ApiKeyValidation from "../node/ApiKeyValidation";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
+import { i18n } from "../../i18n";
 
 interface RenderNodesProps {
   nodes: NodeMetadata[];

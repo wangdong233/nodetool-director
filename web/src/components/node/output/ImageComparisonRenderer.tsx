@@ -2,6 +2,7 @@
 import React, { useMemo, useRef, memo } from "react";
 import { ImageComparer } from "../../widgets";
 import { createImageUrl, ImageData } from "../../../utils/imageUtils";
+import { i18n } from "../../../i18n";
 
 export interface ImageComparisonData {
   type: "image_comparison";

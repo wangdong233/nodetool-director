@@ -3,6 +3,7 @@ import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { MaybeMarkdown } from "./markdown";
 import { outputStyles } from "./styles";
+import { i18n } from "../../../i18n";
 
 export type Email = {
   sender: string;

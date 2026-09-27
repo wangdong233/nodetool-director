@@ -11,6 +11,7 @@ import {
 } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useNodeExecutionDuration } from "../../hooks/nodes/useNodeExecState";
+import { i18n } from "../../i18n";
 
 interface NodeExecutionTimeProps {
   nodeId: string;

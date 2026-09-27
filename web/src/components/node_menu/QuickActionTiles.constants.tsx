@@ -17,6 +17,7 @@ import MusicVideoIcon from "@mui/icons-material/MusicVideo";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
 import { QUICK_ACTION_NODE_TYPES } from "../../config/quickActionNodeTypes";
+import { i18n } from "../../i18n";
 
 export type QuickActionDefinition = {
   key: string;

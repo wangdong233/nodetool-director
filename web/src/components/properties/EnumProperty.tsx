@@ -4,6 +4,7 @@ import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import PropertyLabel from "../node/PropertyLabel";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const formatEnumLabel = (value: string | number): string => {
   if (!isString(value)) {
@@ -67,7 +68,7 @@ const EnumProperty: React.FC<PropertyProps<string>> = ({
         onChange={onChange}
         options={options}
         label={property.name}
-        placeholder="Select…"
+        placeholder={i18n.t("editor:ui.select", { defaultValue: "Select…" })}
         tabIndex={tabIndex}
         changed={changed}
       />

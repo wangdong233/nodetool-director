@@ -525,18 +525,18 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
       {!suppressed && (
         <div className="video-preview-actions">
           <ToolbarIconButton
-            title="Download"
+            title={i18n.t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
-            aria-label="Download video"
+            aria-label={i18n.t("editor:ui.downloadVideo", { defaultValue: "Download video" })}
           >
             <DownloadIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Save to Assets"
+            title={i18n.t("editor:ui.saveToAssets", { defaultValue: "Save to Assets" })}
             size="small"
             onClick={handleAddToAssets}
-            aria-label="Save video to assets"
+            aria-label={i18n.t("editor:ui.saveVideoToAssets", { defaultValue: "Save video to assets" })}
           >
             <AddIcon />
           </ToolbarIconButton>
@@ -581,7 +581,7 @@ const TextPreview: React.FC<{ value: unknown }> = ({ value }) => {
   return (
     <div
       className="text-preview nodrag nopan nowheel"
-      aria-label="Generated text"
+      aria-label={i18n.t("editor:ui.generatedText", { defaultValue: "Generated text" })}
     >
       <TextRenderer text={text} showActions={false} />
     </div>

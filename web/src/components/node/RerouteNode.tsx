@@ -23,6 +23,7 @@ import { useSyncEdgeSelection } from "../../hooks/nodes/useSyncEdgeSelection";
 import { edgesTargeting } from "../../hooks/nodes/edgeIndex";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { hexToRgba } from "../../utils/ColorUtils";
+import { i18n } from "../../i18n";
 
 const rerouteBackground = (theme: Theme, alpha: number): string =>
   theme.palette.mode === "dark"
@@ -227,7 +228,7 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
 
   return (
     <Tooltip
-      title="Double-click to add a label"
+      title={i18n.t("editor:ui.doubleclickToAddALabel", { defaultValue: "Double-click to add a label" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       placement="top"
     >
@@ -261,7 +262,7 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
                 ref={inputRef}
                 defaultValue={title}
                 autoFocus
-                aria-label="Reroute label"
+                aria-label={i18n.t("editor:ui.rerouteLabel", { defaultValue: "Reroute label" })}
                 placeholder="label"
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}

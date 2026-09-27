@@ -10,6 +10,7 @@ import { useShallow } from "zustand/react/shallow";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { HomeNamespaceIcon } from "./NamespaceIcon";
 import OptionalPacksSection from "./OptionalPacksSection";
+import { i18n } from "../../i18n";
 
 interface NamespacePanelProps {
   namespaceTree: NamespaceTree;

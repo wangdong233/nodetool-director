@@ -14,6 +14,7 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
+import { i18n } from "../../i18n";
 import {
   forAllTasks,
   forTasks,
@@ -55,7 +56,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_video"
-        label="Video model"
+        label={i18n.t("editor:ui.videoModel", { defaultValue: "Video model" })}
         options={
           Array.isArray(task)
             ? forAllTasks(STUDIO_CLIP_MODELS, task)

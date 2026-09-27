@@ -8,6 +8,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
 import { ToolbarIconButton, MOTION, BORDER_RADIUS } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -94,13 +95,13 @@ const CategorySearchBar = memo(function CategorySearchBar({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        aria-label="Filter category"
+        aria-label={i18n.t("editor:ui.filterCategory", { defaultValue: "Filter category" })}
       />
       {value && (
         <ToolbarIconButton
           tabIndex={-1}
-          tooltip="Clear filter"
-          ariaLabel="Clear filter"
+          tooltip={i18n.t("editor:ui.clearFilter", { defaultValue: "Clear filter" })}
+          ariaLabel={i18n.t("editor:ui.clearFilter", { defaultValue: "Clear filter" })}
           onClick={handleClear}
           icon={<ClearIcon />}
         />

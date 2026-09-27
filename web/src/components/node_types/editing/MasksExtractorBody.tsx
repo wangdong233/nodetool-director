@@ -39,6 +39,7 @@ import {
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
+import { i18n } from "../../../i18n";
 
 // Node types bound to this bespoke body — the Bria + 851-labs
 // background-removal variants.
@@ -188,12 +189,12 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         {tab === "image" ? (
           <ImagePreview
             value={imageTabValue}
-            placeholder="Connect an image"
+            placeholder={i18n.t("editor:ui.connectAnImage", { defaultValue: "Connect an image" })}
           />
         ) : (
           <ImagePreview
             value={maskTabValue}
-            placeholder="Run the node to extract a mask"
+            placeholder={i18n.t("editor:ui.runTheNodeToExtractAMask", { defaultValue: "Run the node to extract a mask" })}
           />
         )}
       </div>
@@ -207,7 +208,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label="Preview tab"
+            aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
             <ToggleOption value="image" aria-label="Image">
               Image
@@ -219,7 +220,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         </FlexRow>
         <div className="action-row">
           <RunModelButton
-            label="Recalculate Mask"
+            label={i18n.t("editor:ui.recalculateMask", { defaultValue: "Recalculate Mask" })}
             isRunning={isRunning}
             onClick={runSingleNode}
           />

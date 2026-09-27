@@ -6,6 +6,7 @@ import type { Theme } from "@mui/material/styles";
 import { Text, Box, BORDER_RADIUS, MOTION, reducedMotion, getSpacingPx, SPACING } from "../ui_primitives";
 import { TaskUpdate } from "../../stores/ApiTypes";
 import StepView from "./StepView";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

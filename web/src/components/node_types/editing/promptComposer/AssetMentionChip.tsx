@@ -11,6 +11,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import { BORDER_RADIUS, SPACING, Tooltip, getSpacingPx } from "../../../ui_primitives";
 import { useAssetById } from "../../../../serverState/useAssetById";
 import { assetMediaKind, parseAssetUri } from "./promptTokens";
+import { i18n } from "../../../../i18n";
 
 // One pill for every asset mention: a leading thumbnail (image / video) or a
 // type icon (audio / file), then the asset name. The name is always visible so

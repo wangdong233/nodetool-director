@@ -17,6 +17,7 @@ import AssetViewer from "../assets/AssetViewer";
 import LazyModel3DViewer from "../asset_viewer/LazyModel3DViewer";
 import { resolveAssetUri } from "../node/output/hooks";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -226,7 +227,7 @@ const Model3DProperty = (props: PropertyProps) => {
               autoCapitalize="off"
               spellCheck="false"
               onChange={handleUrlChange}
-              placeholder="Enter 3D model URL"
+              placeholder={i18n.t("editor:ui.enter3DModelURL", { defaultValue: "Enter 3D model URL" })}
             />
           )}
 

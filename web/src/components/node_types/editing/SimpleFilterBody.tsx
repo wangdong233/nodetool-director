@@ -29,6 +29,7 @@ import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../i18n";
 import {
   useNodeOutput,
   useUpstreamValue
@@ -199,13 +200,13 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
           <ImagePreview
             tab="before"
             value={beforeValue}
-            placeholder="Connect an image"
+            placeholder={i18n.t("editor:ui.connectAnImage", { defaultValue: "Connect an image" })}
           />
         ) : (
           <ImagePreview
             tab="after"
             value={afterValue}
-            placeholder="Run the node to see the result"
+            placeholder={i18n.t("editor:ui.runTheNodeToSeeTheResult", { defaultValue: "Run the node to see the result" })}
           />
         )}
       </div>
@@ -219,12 +220,12 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label="Preview tab"
+            aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
             <ToggleOption
               className="tab-option tab-option-before"
               value="before"
-              aria-label="Before"
+              aria-label={i18n.t("editor:ui.before", { defaultValue: "Before" })}
             >
               Before
             </ToggleOption>

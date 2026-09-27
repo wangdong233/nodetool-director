@@ -13,6 +13,7 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import { NodeLogsDialog } from "./NodeLogs";
 import { BORDER_RADIUS, FlexRow, Tooltip, ToolbarIconButton, MOTION, SPACING, getSpacingPx } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface NodeHeaderProps {
   id: string;
@@ -311,7 +312,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
           {isEditingTitle ? (
             <input
               className="node-title-input nodrag nopan"
-              aria-label="Node title"
+              aria-label={i18n.t("editor:ui.nodeTitle", { defaultValue: "Node title" })}
               autoFocus
               value={draftTitle}
               onBlur={commitTitleEdit}

@@ -13,6 +13,7 @@ import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useInspectedNodeStore } from "../../stores/InspectedNodeStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
+import { i18n } from "../../i18n";
 
 const PrettyNamespace = memo<{ namespace: string }>(({ namespace }) => {
   const parts = namespace.split(".");

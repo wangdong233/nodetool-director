@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { Viewport, useOnViewportChange } from "@xyflow/react";
+import { i18n } from "../../i18n";
 
 const AxisMarker: React.FC = memo(function AxisMarker() {
   const horizontalLineRef = React.useRef<HTMLDivElement>(null);

@@ -7,6 +7,7 @@ import Select from "../inputs/Select";
 import { trpcClient } from "../../trpc/client";
 import type { FontEntry } from "@nodetool-ai/protocol/api-schemas/fonts.js";
 import { isObjectLike } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /**
  * The fonts endpoint returns the bundled families first, then the system ones
@@ -84,7 +85,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
             onChange={handleChange}
             options={options}
             tabIndex={tabIndex}
-            placeholder="Select a font"
+            placeholder={i18n.t("editor:ui.selectAFont", { defaultValue: "Select a font" })}
           />
         )}
       </div>

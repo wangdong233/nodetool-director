@@ -17,6 +17,7 @@ import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import ConfirmDialog from "../dialogs/ConfirmDialog";
+import { i18n } from "../../i18n";
 
 const tooltipHintStyle: CSSProperties = {
   fontSize: "var(--fontSizeSmaller)",
@@ -293,7 +294,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
         )}
         <EmptyState
           size="small"
-          title="No favorites yet"
+          title={i18n.t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
           description="Click the star next to any node to add it here."
         />
       </Box>
@@ -309,12 +310,12 @@ const FavoritesTiles = memo(function FavoritesTiles({
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}
-            tooltip="Clear all favorites"
+            tooltip={i18n.t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
             tooltipPlacement="top"
             size="small"
             className="clear-button"
             onClick={() => setClearConfirmOpen(true)}
-            aria-label="Clear all favorites"
+            aria-label={i18n.t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
           />
         </div>
       )}

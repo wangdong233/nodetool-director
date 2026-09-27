@@ -12,6 +12,7 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import TextEditorModal from "./TextEditorModal";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
+import { i18n } from "../../i18n";
 
 interface JSONValue {
   type: "json";
@@ -183,7 +184,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip="Open Editor"
+          tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -224,7 +225,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         {!props.isInspector && isHovered ? (
           <div className="json-action-buttons">
             <ToolbarIconButton
-              tooltip="Open Editor"
+              tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"

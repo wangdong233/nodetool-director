@@ -3,6 +3,7 @@ import isEqual from "../../../utils/isEqual";
 import { useNodes } from "../../../contexts/NodeContext";
 import { extractDynamicIO } from "../WorkflowNode";
 import type { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../i18n";
 
 interface SubgraphSyncProps {
   nodeId: string;

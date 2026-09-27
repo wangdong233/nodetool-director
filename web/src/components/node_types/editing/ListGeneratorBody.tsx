@@ -316,7 +316,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
                   >
                     <CopyButton
                       value={item}
-                      tooltip="Copy item"
+                      tooltip={i18n.t("editor:ui.copyItem", { defaultValue: "Copy item" })}
                       buttonSize="small"
                     />
                   </span>

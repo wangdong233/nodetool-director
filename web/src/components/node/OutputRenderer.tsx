@@ -148,6 +148,7 @@ import { isAudioChunkLike, isTextLikeChunk } from "./outputChunkUtils";
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
 import { extractTextValue } from "../../utils/extractTextValue";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 
 const LazyTimelineRenderer = React.lazy(() => import("../timeline/TimelineRenderer"));
 const LazyAudioPlayer = React.lazy(() => import("../audio/AudioPlayer"));
@@ -699,7 +700,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             // nodrag/nopan stop ReactFlow's drag from capturing the pointer so
             // the native controls (scrub, volume) get the mouse events.
             className="nodrag nopan"
-            aria-label="Video output"
+            aria-label={i18n.t("editor:ui.videoOutput", { defaultValue: "Video output" })}
             style={FULL_SIZE_STYLE}
           />
         );
@@ -732,7 +733,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <SketchRenderer
               document={sketchDocument}
-              ariaLabel="Sketch output preview"
+              ariaLabel={i18n.t("editor:ui.sketchOutputPreview", { defaultValue: "Sketch output preview" })}
               showDimensions
             />
           );
@@ -744,14 +745,14 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <EmptyState
               variant="error"
-              title="Could not load sketch"
+              title={i18n.t("editor:ui.couldNotLoadSketch", { defaultValue: "Could not load sketch" })}
               description={sketchQuery.error.message}
             />
           );
         }
         return (
           <EmptyState
-            title="No sketch selected"
+            title={i18n.t("editor:ui.noSketchSelected", { defaultValue: "No sketch selected" })}
             description="Choose a sketch document to preview it here."
           />
         );
@@ -762,7 +763,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             <React.Suspense fallback={<LoadingSpinner size="small" text="Loading timeline preview" />}>
               <LazyTimelineRenderer
                 sequence={timelineSequence}
-                ariaLabel="Timeline output preview"
+                ariaLabel={i18n.t("editor:ui.timelineOutputPreview", { defaultValue: "Timeline output preview" })}
                 showMetadata
               />
             </React.Suspense>
@@ -775,14 +776,14 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <EmptyState
               variant="error"
-              title="Could not load timeline"
+              title={i18n.t("editor:ui.couldNotLoadTimeline", { defaultValue: "Could not load timeline" })}
               description={timelineQuery.error.message}
             />
           );
         }
         return (
           <EmptyState
-            title="No timeline selected"
+            title={i18n.t("editor:ui.noTimelineSelected", { defaultValue: "No timeline selected" })}
             description="Choose a timeline sequence to preview it here."
           />
         );

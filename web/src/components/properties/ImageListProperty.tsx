@@ -20,6 +20,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useUpstreamValue } from "../../hooks/nodes/useNodeIO";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListImageThumb } from "./PropertyListThumb";
+import { i18n } from "../../i18n";
 
 interface ImageItem {
   uri: string;
@@ -537,7 +538,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
                 className="remove-button"
                 onClick={removeHandlers[index]}
                 buttonSize="small"
-                tooltip="Remove image"
+                tooltip={i18n.t("editor:ui.removeImage", { defaultValue: "Remove image" })}
               />
             </div>
           ))}
@@ -545,7 +546,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
       )}
 
       {/* Dropzone */}
-      <Tooltip title="Click to select images or drag and drop">
+      <Tooltip title={i18n.t("editor:ui.clickToSelectImagesOrDragAndDrop", { defaultValue: "Click to select images or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}

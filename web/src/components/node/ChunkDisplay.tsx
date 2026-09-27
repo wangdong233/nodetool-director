@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, memo } from "react";
 import MarkdownRenderer from "../../utils/MarkdownRenderer";
 import { EditorButton, SPACING, getSpacingPx } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface ChunkDisplayProps {
   chunk: string;

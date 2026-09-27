@@ -8,6 +8,7 @@ import {
   type EdgeProps
 } from "@xyflow/react";
 import { memo, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 const CONTROL_EDGE_COLOR = "#f59e0b";
 

@@ -54,6 +54,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { useMediaSrc } from "../../../hooks/nodes/useMediaSrc";
 import { isFunction } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 export { EXTRACT_VIDEO_FRAME_NODE_TYPE } from "./bespokeNodeTypes";
 
@@ -490,7 +491,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
             crossOrigin="anonymous"
             muted={muted}
             playsInline
-            aria-label="Video frame preview"
+            aria-label={i18n.t("editor:ui.videoFramePreview", { defaultValue: "Video frame preview" })}
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
@@ -515,7 +516,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
         onChange={handleScrub}
         onPointerUp={commitCurrent}
         disabled={!videoSrc}
-        aria-label="Seek video"
+        aria-label={i18n.t("editor:ui.seekVideo", { defaultValue: "Seek video" })}
       />
 
       <div className="transport">
@@ -525,8 +526,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
         <div className="transport-buttons">
           <ToolbarIconButton
             icon={<SkipPreviousIcon />}
-            tooltip="Previous frame"
-            ariaLabel="Previous frame"
+            tooltip={i18n.t("editor:ui.previousFrame", { defaultValue: "Previous frame" })}
+            ariaLabel={i18n.t("editor:ui.previousFrame", { defaultValue: "Previous frame" })}
             disabled={!videoSrc}
             onClick={() => stepFrame(-1)}
           />
@@ -539,8 +540,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           />
           <ToolbarIconButton
             icon={<SkipNextIcon />}
-            tooltip="Next frame"
-            ariaLabel="Next frame"
+            tooltip={i18n.t("editor:ui.nextFrame", { defaultValue: "Next frame" })}
+            ariaLabel={i18n.t("editor:ui.nextFrame", { defaultValue: "Next frame" })}
             disabled={!videoSrc}
             onClick={() => stepFrame(1)}
           />
@@ -555,8 +556,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           />
           <ToolbarIconButton
             icon={<DownloadIcon />}
-            tooltip="Download frame"
-            ariaLabel="Download frame"
+            tooltip={i18n.t("editor:ui.downloadFrame", { defaultValue: "Download frame" })}
+            ariaLabel={i18n.t("editor:ui.downloadFrame", { defaultValue: "Download frame" })}
             disabled={!videoSrc}
             onClick={handleDownloadFrame}
           />

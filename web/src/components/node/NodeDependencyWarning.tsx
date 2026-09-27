@@ -8,6 +8,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import isEqual from "../../utils/isEqual";
 import { getIsElectronDetails } from "../../utils/browser";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { i18n } from "../../i18n";
 import {
   RUNTIME_LABELS,
   RUNTIME_TO_PACKAGE_ID,

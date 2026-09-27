@@ -1,6 +1,7 @@
 import React, { useMemo, memo } from "react";
 import { Text, Tooltip, getSpacingPx, SPACING } from "../ui_primitives";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import { i18n } from "../../i18n";
 
 interface InputNodeNameWarningProps {
   nodeType: string;

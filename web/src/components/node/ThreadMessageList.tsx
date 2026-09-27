@@ -10,6 +10,7 @@ import isEqual from "../../utils/isEqual";
 import { BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
 import { formatToolName } from "../../utils/formatUtils";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

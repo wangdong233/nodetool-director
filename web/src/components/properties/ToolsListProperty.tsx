@@ -27,6 +27,7 @@ import Description from "@mui/icons-material/Description";
 import EditNote from "@mui/icons-material/EditNote";
 import Folder from "@mui/icons-material/Folder";
 import Lock from "@mui/icons-material/Lock";
+import { i18n } from "../../i18n";
 
 const BROWSER_TOOL_IDS = [
   "browser_view",
@@ -201,7 +202,7 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
         ))}
 
         <ToolbarIconButton
-          tooltip="Add / Remove Tools"
+          tooltip={i18n.t("editor:ui.addRemoveTools", { defaultValue: "Add / Remove Tools" })}
           tooltipPlacement="top"
           icon={<Add fontSize="small" />}
           size="small"

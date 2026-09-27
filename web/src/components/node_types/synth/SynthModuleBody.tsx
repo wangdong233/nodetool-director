@@ -28,6 +28,7 @@ import {
   type SynthAccent
 } from "./synthModules";
 import { AUDIO_EFFECT_CONFIGS } from "./audioEffectModules";
+import { i18n } from "../../../i18n";
 import WaveformSelector, {
   waveformSelectorStyles
 } from "./WaveformSelector";

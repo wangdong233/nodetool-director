@@ -5,6 +5,7 @@ import type { ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
+import { i18n } from "../../i18n";
 
 interface EmbeddingModelSelection {
   type: "embedding_model";

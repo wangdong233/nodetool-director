@@ -45,6 +45,7 @@ import { registerCodeAssistantHandler } from "./codeAssistantBridge";
 import CodeAssistantChatPanel from "./CodeAssistantChatPanel";
 import ResizableSideDock from "../../chat/assistant/ResizableSideDock";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const CHAT_PANEL_WIDTH = 360;
 
@@ -241,7 +242,7 @@ const CodeAssistantDialogInner = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Code assistant"
+      title={i18n.t("editor:ui.codeAssistant", { defaultValue: "Code assistant" })}
       minWidth="min(1100px, 100vw - 32px)"
       actions={
         <FlexRow gap={SPACING.md}>
@@ -259,8 +260,8 @@ const CodeAssistantDialogInner = ({
         <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
           <FlexRow gap={SPACING.md} align="center" sx={{ flexWrap: "wrap" }}>
             <Text weight={600}>{nodeTitle}</Text>
-            <PortChips label="Inputs" ports={draftInputs} />
-            <PortChips label="Outputs" ports={draftOutputs} />
+            <PortChips label={i18n.t("editor:ui.inputs", { defaultValue: "Inputs" })} ports={draftInputs} />
+            <PortChips label={i18n.t("editor:ui.outputs", { defaultValue: "Outputs" })} ports={draftOutputs} />
           </FlexRow>
           <Box
             sx={{
@@ -290,7 +291,7 @@ const CodeAssistantDialogInner = ({
             ) : (
               <Box
                 component="pre"
-                aria-label="Code draft"
+                aria-label={i18n.t("editor:ui.codeDraft", { defaultValue: "Code draft" })}
                 sx={{
                   ...TYPOGRAPHY.mono.code,
                   margin: 0,
@@ -307,7 +308,7 @@ const CodeAssistantDialogInner = ({
         <ResizableSideDock
           storageKey="code_assistant"
           defaultWidth={CHAT_PANEL_WIDTH}
-          ariaLabel="Resize code assistant"
+          ariaLabel={i18n.t("editor:ui.resizeCodeAssistant", { defaultValue: "Resize code assistant" })}
         >
           <CodeAssistantChatPanel nodeId={nodeId} workflowId={workflowId} />
         </ResizableSideDock>

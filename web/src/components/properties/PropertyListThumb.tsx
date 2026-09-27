@@ -1,6 +1,7 @@
 import type { Audio, Image, Video } from "../../stores/ApiTypes";
 import { useAsset } from "../../serverState/useAsset";
 import { resolveUri } from "../../utils/imageUtils";
+import { i18n } from "../../i18n";
 
 type MediaItem = { uri: string; asset_id?: string };
 

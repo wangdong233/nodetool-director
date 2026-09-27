@@ -8,6 +8,7 @@ import { resolveReplicateSchemaClient } from "../../../utils/replicateDynamicSch
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
+import { i18n } from "../../../i18n";
 
 export { DYNAMIC_REPLICATE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -147,9 +148,9 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-        <Tooltip title="Reload Schema" arrow delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
-            title="Reload Schema"
+            title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
             size="small"
             disabled={loading}
             onClick={() => void handleLoad(true)}

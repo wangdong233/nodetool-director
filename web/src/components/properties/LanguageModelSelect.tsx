@@ -9,6 +9,7 @@ import type {
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
+import { i18n } from "../../i18n";
 
 interface LanguageModelSelectProps {
   onChange: (value: LanguageModelValue) => void;

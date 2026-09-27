@@ -30,6 +30,7 @@ import {
 import { ANY_TYPE } from "./variableGraph";
 import { GET_VARIABLE_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -162,7 +163,7 @@ const GetVariableBodyInner: React.FC<GetVariableBodyProps> = ({
       {options.length > 0 ? (
         <div className="picker">
           <SelectField
-            label="Variable"
+            label={i18n.t("editor:ui.variable", { defaultValue: "Variable" })}
             value={currentName}
             onChange={handleChange}
             options={options}

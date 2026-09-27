@@ -6,6 +6,7 @@ import { BASE_URL } from "../../stores/BASE_URL";
 import { Model3DModelValue } from "../../stores/ApiTypes";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
+import { i18n } from "../../i18n";
 
 import {
   Caption,

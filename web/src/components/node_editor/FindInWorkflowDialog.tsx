@@ -23,6 +23,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ClearIcon from "@mui/icons-material/Clear";
 import { CloseButton, SHADOW } from "../ui_primitives";
 import { useFindInWorkflow } from "../../hooks/useFindInWorkflow";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -334,7 +335,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
           <Box className="search-input-wrapper">
             <input
               ref={inputRef}
-              aria-label="Find nodes"
+              aria-label={i18n.t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
               className="search-input"
               type="text"
               placeholder="Find nodes..."
@@ -345,7 +346,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               <button
                 type="button"
                 className="clear-button"
-                aria-label="Clear search"
+                aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onClick={handleClear}
               >
                 <ClearIcon fontSize="small" />
@@ -358,8 +359,8 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               className="nav-button"
               onClick={navigatePrevious}
               disabled={results.length === 0}
-              title="Previous (Shift+Enter)"
-              aria-label="Previous match"
+              title={i18n.t("editor:ui.previousShift+Enter", { defaultValue: "Previous (Shift+Enter)" })}
+              aria-label={i18n.t("editor:ui.previousMatch", { defaultValue: "Previous match" })}
             >
               <ArrowUpwardIcon fontSize="small" />
             </button>
@@ -368,15 +369,15 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               className="nav-button"
               onClick={navigateNext}
               disabled={results.length === 0}
-              title="Next (Enter)"
-              aria-label="Next match"
+              title={i18n.t("editor:ui.nextEnter", { defaultValue: "Next (Enter)" })}
+              aria-label={i18n.t("editor:ui.nextMatch", { defaultValue: "Next match" })}
             >
               <ArrowDownwardIcon fontSize="small" />
             </button>
           </Box>
           <CloseButton
             onClick={closeFind}
-            tooltip="Close (Escape)"
+            tooltip={i18n.t("editor:ui.closeEscape", { defaultValue: "Close (Escape)" })}
             buttonSize="small"
             nodrag={false}
             sx={{ marginLeft: getSpacingPx(SPACING.md) }}

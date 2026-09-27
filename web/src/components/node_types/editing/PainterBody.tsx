@@ -67,6 +67,7 @@ import { createImageUrl } from "../../../utils/imageUtils";
 import { useResolvedMediaUri } from "../../../hooks/useResolvedMediaUri";
 import { PAINTER_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isFunction, isNumber, isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 // Inline SVG so we don't depend on an icon-set that ships an eraser glyph.
 // Stylized rubber/wedge eraser at the standard 24px MUI viewBox.
@@ -1047,12 +1048,12 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             exclusive
             onChange={onToolChange}
             size="small"
-            aria-label="Paint tool"
+            aria-label={i18n.t("editor:ui.paintTool", { defaultValue: "Paint tool" })}
           >
             <ToggleOption value="brush" aria-label="Brush">
               <BrushIcon />
             </ToggleOption>
-            <ToggleOption value="eraser" aria-label="Eraser">
+            <ToggleOption value="eraser" aria-label={i18n.t("editor:ui.eraser", { defaultValue: "Eraser" })}>
               <EraserIcon />
             </ToggleOption>
           </ToggleGroup>
@@ -1062,7 +1063,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             type="color"
             value={color}
             onChange={onColorChange}
-            aria-label="Brush color"
+            aria-label={i18n.t("editor:ui.brushColor", { defaultValue: "Brush color" })}
           />
           <div className="row-spacer" />
           <ToolbarIconButton
@@ -1085,7 +1086,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             className="nodrag"
             size="small"
             onClick={onClear}
-            tooltip="Clear painted mask"
+            tooltip={i18n.t("editor:ui.clearPaintedMask", { defaultValue: "Clear painted mask" })}
             icon={<RestartAltIcon fontSize="small" />}
           />
         </FlexRow>

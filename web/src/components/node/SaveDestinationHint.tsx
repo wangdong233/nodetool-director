@@ -4,6 +4,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import { Caption, FlexRow, SPACING, getSpacingPx } from "../ui_primitives";
 import { NodeData } from "../../stores/NodeData";
 import { useCurrentWorkspace } from "../../hooks/useCurrentWorkspace";
+import { i18n } from "../../i18n";
 
 interface SaveDestinationHintProps {
   data: NodeData;

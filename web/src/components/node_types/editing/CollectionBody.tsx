@@ -50,6 +50,7 @@ import {
 } from "../../../utils/collectionItems";
 import { COLLECTION_NODE_TYPE } from "../../../constants/nodeTypes";
 import type { BespokeBodyProps } from "./bespokeRegistry";
+import { i18n } from "../../../i18n";
 
 export { COLLECTION_NODE_TYPE };
 
@@ -323,8 +324,8 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
         <span className="spacer" />
         {items.length > 0 ? (
           <ToolbarIconButton
-            ariaLabel="Clear collection"
-            tooltip="Clear collection"
+            ariaLabel={i18n.t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
+            tooltip={i18n.t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
             onClick={clear}
           >
             <ClearAllRoundedIcon fontSize="inherit" />
@@ -356,7 +357,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
               <span className="col-remove">
                 <ToolbarIconButton
                   ariaLabel={`Remove item ${i + 1}`}
-                  tooltip="Remove"
+                  tooltip={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
                   onClick={() => removeAt(i)}
                 >
                   <CloseRoundedIcon fontSize="inherit" />

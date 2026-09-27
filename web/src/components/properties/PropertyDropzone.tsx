@@ -19,6 +19,7 @@ import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { i18n } from "../../i18n";
 
 interface PropertyDropzoneProps {
   asset: Asset | undefined;
@@ -476,7 +477,7 @@ const PropertyDropzone = ({
               sandbox=""
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen"
-              title="Text viewer"
+              title={i18n.t("editor:ui.textViewer", { defaultValue: "Text viewer" })}
             />
           );
         }
@@ -533,7 +534,7 @@ const PropertyDropzone = ({
                     }}
                   />
                   <ToolbarIconButton
-                    tooltip="Replace file"
+                    tooltip={i18n.t("editor:ui.replaceFile", { defaultValue: "Replace file" })}
                     icon={<FolderOpenIcon fontSize="small" />}
                     className="asset-action-button"
                     onClick={handleReplaceClick}
@@ -543,7 +544,7 @@ const PropertyDropzone = ({
               )}
             </>
           ) : (
-            <Tooltip title="Click to select a file or drag and drop">
+            <Tooltip title={i18n.t("editor:ui.clickToSelectAFileOrDragAndDrop", { defaultValue: "Click to select a file or drag and drop" })}>
               <p className="prop-drop centered uppercase">Click or drop {contentType}</p>
             </Tooltip>
           )}

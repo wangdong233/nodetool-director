@@ -33,6 +33,7 @@ import { colorForType } from "../../config/data_types";
 import { editorClassNames, cn } from "../editor_ui";
 import HandleTooltip from "../HandleTooltip";
 import type { NodeStoreState } from "../../stores/NodeStore";
+import { i18n } from "../../i18n";
 import {
   NODE_COLLAPSED_BODY_HEIGHT_WIN,
   NODE_COLLAPSED_LAYOUT
@@ -319,7 +320,7 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           </HandleTooltip>
         </div>
         <div className="header-actions nodrag nopan">
-          <ToolbarIconButton title="Open Editor" size="small" onClick={toggleExpand}>
+          <ToolbarIconButton title={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })} size="small" onClick={toggleExpand}>
             <OpenInFullIcon />
           </ToolbarIconButton>
           <CopyButton value={localValue} buttonSize="small" />
@@ -338,7 +339,7 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         <textarea
           ref={textareaRef}
           className="constant-string-textarea"
-          aria-label="String value"
+          aria-label={i18n.t("editor:ui.stringValue", { defaultValue: "String value" })}
           value={localValue}
           onChange={handleChange}
           readOnly={isConnected}

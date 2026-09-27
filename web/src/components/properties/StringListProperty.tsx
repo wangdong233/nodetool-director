@@ -5,6 +5,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { PropertyProps } from "../node/PropertyInput";
 import isEqual from "../../utils/isEqual";
 import { NodeTextField } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const StringListProperty = (props: PropertyProps<string[]>) => {
   const theme = useTheme();

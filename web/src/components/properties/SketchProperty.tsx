@@ -5,6 +5,7 @@ import isEqual from "../../utils/isEqual";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { trpc } from "../../trpc/client";
 import DocumentPickerProperty from "./DocumentPickerProperty";
+import { i18n } from "../../i18n";
 
 const useSketches = () => trpc.sketch.list.useQuery({}, { staleTime: 30_000 });
 

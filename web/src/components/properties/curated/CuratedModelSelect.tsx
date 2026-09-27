@@ -15,6 +15,7 @@ import type { OnboardingCapability } from "../../../stores/ProviderOnboardingSto
 import { SelectField } from "../../ui_primitives";
 import type { CuratedOption } from "../../../studio/curatedModels";
 import { useSpendableOptions } from "../../../studio/useSpendableModels";
+import { i18n } from "../../../i18n";
 
 interface CuratedModelSelectProps<T> {
   label: string;

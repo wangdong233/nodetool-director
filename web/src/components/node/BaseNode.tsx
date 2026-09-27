@@ -75,6 +75,7 @@ import {
 } from "./codeNodeUi";
 import { isString } from "../../utils/typePredicates";
 import { isContentCardNode } from "../node_types/contentCardRegistry";
+import { i18n } from "../../i18n";
 import {
   CONSTANT_IMAGE_NODE_TYPE,
   CONSTANT_VIDEO_NODE_TYPE

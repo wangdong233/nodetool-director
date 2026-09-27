@@ -9,6 +9,7 @@ import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { Text, EditorButton, ToolbarIconButton, MOTION } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },
@@ -88,8 +89,8 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
       <ToolbarIconButton
         className="callout-close"
         size="small"
-        aria-label="Dismiss"
-        tooltip="Dismiss"
+        aria-label={i18n.t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
+        tooltip={i18n.t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
         onClick={onDismiss}
         icon={<CloseRoundedIcon sx={{ fontSize: 14 }} />}
       />

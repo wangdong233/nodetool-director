@@ -18,6 +18,7 @@ import type {
   DataframeCellValue
 } from "./DataTable";
 import { isNumber, isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /**
  * Union type for all possible table data formats
@@ -415,13 +416,13 @@ const TableActions: React.FC<TableActionsProps> = memo(({
     <div className="table-actions">
       {editable && (
         <>
-          <ToolbarIconButton title="Add new row" onClick={handleAddRow}>
+          <ToolbarIconButton title={i18n.t("editor:ui.addNewRow", { defaultValue: "Add new row" })} onClick={handleAddRow}>
             <AddIcon sx={{ fontSize: 12 }} />
           </ToolbarIconButton>
 
           <DeleteButton
             onClick={handleDeleteRowsClick}
-            tooltip="Delete selected rows"
+            tooltip={i18n.t("editor:ui.deleteSelectedRows", { defaultValue: "Delete selected rows" })}
             disabled={selectedRows.length === 0}
             iconVariant="clear"
             nodrag={false}
@@ -429,7 +430,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
 
           {isModalMode && (
             <ToolbarIconButton
-              title="Duplicate selected rows"
+              title={i18n.t("editor:ui.duplicateSelectedRows", { defaultValue: "Duplicate selected rows" })}
               className={selectedRows.length === 0 ? "disabled" : ""}
               onClick={handleDuplicateRows}
             >
@@ -442,7 +443,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
       {showSortingButton && (
         <RefreshButton
           onClick={handleResetSorting}
-          tooltip="Reset table sorting"
+          tooltip={i18n.t("editor:ui.resetTableSorting", { defaultValue: "Reset table sorting" })}
           iconVariant="reset"
           nodrag={false}
         />
@@ -452,7 +453,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
         <>
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
           <ToolbarIconButton
-            title="Undo (Ctrl+Z)"
+            title={i18n.t("editor:ui.undoCtrl+Z", { defaultValue: "Undo (Ctrl+Z)" })}
             onClick={handleUndo}
             disabled={!canUndo}
             className={!canUndo ? "disabled" : ""}
@@ -460,7 +461,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
             <UndoIcon sx={{ fontSize: 12 }} />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Redo (Ctrl+Y)"
+            title={i18n.t("editor:ui.redoCtrl+Y", { defaultValue: "Redo (Ctrl+Y)" })}
             onClick={handleRedo}
             disabled={!canRedo}
             className={!canRedo ? "disabled" : ""}
@@ -468,7 +469,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
             <RedoIcon sx={{ fontSize: 12 }} />
           </ToolbarIconButton>
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-          <ToolbarIconButton title="Paste from clipboard" onClick={handlePaste}>
+          <ToolbarIconButton title={i18n.t("editor:ui.pasteFromClipboard", { defaultValue: "Paste from clipboard" })} onClick={handlePaste}>
             <ContentPasteIcon sx={{ fontSize: 12 }} />
           </ToolbarIconButton>
         </>
@@ -479,14 +480,14 @@ const TableActions: React.FC<TableActionsProps> = memo(({
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
           <DownloadButton
             onClick={handleExportCSV}
-            tooltip="Export as CSV"
+            tooltip={i18n.t("editor:ui.exportAsCSV", { defaultValue: "Export as CSV" })}
             nodrag={false}
           />
         </>
       )}
 
       <ToolbarIconButton
-        title="Show Select column"
+        title={i18n.t("editor:ui.showSelectColumn", { defaultValue: "Show Select column" })}
         onClick={handleToggleSelect}
         color={showSelect ? "primary" : "default"}
       >
@@ -495,7 +496,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
 
       {showRowNumbersButton && Array.isArray(data) && setShowRowNumbers && (
         <ToolbarIconButton
-          title="Show Row Numbers"
+          title={i18n.t("editor:ui.showRowNumbers", { defaultValue: "Show Row Numbers" })}
           onClick={handleToggleRowNumbers}
           color={showRowNumbers ? "primary" : "default"}
         >
@@ -503,7 +504,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
         </ToolbarIconButton>
       )}
 
-      <ToolbarIconButton title="Copy table data to clipboard" onClick={handleCopyData}>
+      <ToolbarIconButton title={i18n.t("editor:ui.copyTableDataToClipboard", { defaultValue: "Copy table data to clipboard" })} onClick={handleCopyData}>
         <ContentCopyIcon sx={{ fontSize: 12 }} />
       </ToolbarIconButton>
 

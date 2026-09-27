@@ -17,6 +17,7 @@ import TableActions from "./TableActions";
 import { tableStyles } from "../../../styles/TableStyles";
 import { useTheme } from "@mui/material/styles";
 import type { TableData } from "./TableActions";
+import { i18n } from "../../../i18n";
 
 export type DictDataType = "int" | "string" | "datetime" | "float";
 

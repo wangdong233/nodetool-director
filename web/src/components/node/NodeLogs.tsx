@@ -29,6 +29,7 @@ import {
 } from "../ui_primitives";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import LogsTable, { LogRow, Severity } from "../common/LogsTable";
+import { i18n } from "../../i18n";
 
 type NodeLogsProps = {
   id: string;
@@ -173,7 +174,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
             <Chip size="small" label={`${count}`} />
             <CopyButton
               value={logText}
-              tooltip="Copy logs"
+              tooltip={i18n.t("editor:ui.copyLogs", { defaultValue: "Copy logs" })}
               nodrag={false}
             />
           </FlexRow>

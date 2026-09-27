@@ -46,6 +46,7 @@ import RunGroupButton from "./RunGroupButton";
 import BypassGroupButton from "./BypassGroupButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 200;
@@ -595,7 +596,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             spellCheck={false}
             className="nodrag"
             type="text"
-            aria-label="Group headline"
+            aria-label={i18n.t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
             placeholder="Group"
@@ -615,7 +616,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         className="group-actions nodrag"
         style={actionsStyle}
       >
-        <Tooltip title="Group options" delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={i18n.t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
             ref={menuButtonRef}
             title=""

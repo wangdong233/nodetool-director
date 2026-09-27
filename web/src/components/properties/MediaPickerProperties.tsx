@@ -9,6 +9,7 @@ import type { PropertyProps } from "../node/PropertyInput";
 import PropertyLabel from "../node/PropertyLabel";
 import MediaControlChip from "../chat/composer/MediaControlChip";
 import MediaAspectRatioMenu from "../chat/composer/MediaAspectRatioMenu";
+import { i18n } from "../../i18n";
 import MediaOptionMenu, {
   type MediaOption
 } from "../chat/composer/MediaOptionMenu";

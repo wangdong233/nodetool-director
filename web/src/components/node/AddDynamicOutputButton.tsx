@@ -3,6 +3,7 @@ import { DynamicInputButton } from "../ui_primitives";
 import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
+import { i18n } from "../../i18n";
 
 interface AddDynamicOutputButtonProps {
   id: string;
@@ -28,7 +29,7 @@ const AddDynamicOutputButton: React.FC<AddDynamicOutputButtonProps> = ({
 
   return (
     <>
-      <DynamicInputButton label="Add output" onAdd={handleOpen} />
+      <DynamicInputButton label={i18n.t("editor:ui.addOutput", { defaultValue: "Add output" })} onAdd={handleOpen} />
       <AddDynamicOutputDialog
         open={open}
         onClose={handleClose}

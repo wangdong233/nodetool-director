@@ -17,6 +17,7 @@ import {
   type ResizeResult
 } from "./mediaAspectResize";
 import { measureNodeMedia } from "./measureNodeMedia";
+import { i18n } from "../../i18n";
 
 export type ResizeCorner =
   | "bottom-right"
@@ -304,7 +305,7 @@ const MediaAspectResizeControl = memo(function MediaAspectResizeControl({
       <button
         type="button"
         className="resize-grip nodrag nopan"
-        aria-label="Resize node, keeping image aspect ratio"
+        aria-label={i18n.t("editor:ui.resizeNodeKeepingImageAspectRatio", { defaultValue: "Resize node, keeping image aspect ratio" })}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}

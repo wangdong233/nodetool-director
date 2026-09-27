@@ -45,6 +45,7 @@ import { useSecrets } from "../../hooks/useSecrets";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
 import { getSecretDisplayName } from "../../utils/nodeProvider";
 import { isElectron } from "../../lib/env";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -212,7 +213,7 @@ const OptionalPacksSection = () => {
         type="button"
         className="optional-packs-trigger"
         onClick={handleOpen}
-        title="Reveal advanced and niche node packs"
+        title={i18n.t("editor:ui.revealAdvancedAndNicheNodePacks", { defaultValue: "Reveal advanced and niche node packs" })}
         aria-haspopup="dialog"
         aria-expanded={Boolean(anchorEl)}
       >

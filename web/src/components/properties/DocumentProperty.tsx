@@ -5,6 +5,7 @@ import isEqual from "../../utils/isEqual";
 import { Text } from "../ui_primitives";
 import { useAsset } from "../../serverState/useAsset";
 import PropertyDropzone from "./PropertyDropzone";
+import { i18n } from "../../i18n";
 
 const DocumentProperty = (props: PropertyProps) => {
   const id = `document-${props.property.name}-${props.propertyIndex}`;

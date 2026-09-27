@@ -4,6 +4,7 @@ import { css } from "@emotion/react";
 import { Text, getSpacingPx, SPACING } from "../ui_primitives";
 import { Task } from "../../stores/ApiTypes";
 import TaskView from "./TaskView";
+import { i18n } from "../../i18n";
 
 interface TaskPlanViewProps {
   data: Task[] | { type?: "task_plan"; title?: string; tasks?: Task[] };

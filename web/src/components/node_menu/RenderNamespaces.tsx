@@ -3,6 +3,7 @@ import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
 import NamespaceItem from "./NamespaceItem";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
+import { i18n } from "../../i18n";
 
 interface RenderNamespacesProps {
   tree: NamespaceTree;

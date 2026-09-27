@@ -17,6 +17,7 @@ import TableActions from "./TableActions";
 import { useTheme } from "@mui/material/styles";
 import isEqual from "../../../utils/isEqual";
 import type { TableData } from "./TableActions";
+import { i18n } from "../../../i18n";
 
 export type ListDataType = "int" | "string" | "datetime" | "float";
 

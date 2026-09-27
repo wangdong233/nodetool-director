@@ -13,6 +13,7 @@ import { Chunk } from "../../../stores/ApiTypes";
 import AudioVisualizer from "../../common/AudioVisualizer";
 import { useWebsocketRunner } from "../../../stores/WorkflowRunner";
 import { useRealtimeAudioPlayback } from "../../../hooks/browser/useRealtimeAudioPlayback";
+import { i18n } from "../../../i18n";
 
 type Props = {
   /**

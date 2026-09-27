@@ -12,6 +12,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { BORDER_RADIUS, FONT_WEIGHT } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 import {
   clamp,

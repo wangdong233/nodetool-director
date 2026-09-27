@@ -48,6 +48,7 @@ import {
   kiePricingExternalUrl,
 } from "../../utils/formatKieUnitPricing";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /**
  * Format a kie node's actual last-run charge. Since #3426, `provider_cost.amount`
@@ -379,7 +380,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View pricing on kie.ai"
+          label={i18n.t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {
@@ -393,7 +394,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         />
 
         <MenuItemPrimitive
-          label="Top up credits"
+          label={i18n.t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {

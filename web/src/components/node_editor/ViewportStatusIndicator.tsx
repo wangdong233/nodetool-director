@@ -25,6 +25,7 @@ import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
+import { i18n } from "../../i18n";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -234,7 +235,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<FilterCenterFocusIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip="Fit selection"
+          tooltip={i18n.t("editor:ui.fitSelection", { defaultValue: "Fit selection" })}
           tooltipPlacement="top"
           onClick={handleFitSelection}
           size="small"

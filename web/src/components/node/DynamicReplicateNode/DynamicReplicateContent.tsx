@@ -5,6 +5,7 @@ import { NodeOutputs } from "../NodeOutputs";
 import NodeProgress from "../NodeProgress";
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../i18n";
 
 interface DynamicReplicateContentProps {
   id: string;

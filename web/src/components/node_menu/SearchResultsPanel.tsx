@@ -9,6 +9,7 @@ import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { EmptyState } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface SearchResultsPanelProps {
   searchNodes: NodeMetadata[];
@@ -77,7 +78,7 @@ const SearchResultsPanel: React.FC<SearchResultsPanelProps> = ({
     return (
       <EmptyState
         variant="no-results"
-        title="No matching nodes"
+        title={i18n.t("editor:ui.noMatchingNodes", { defaultValue: "No matching nodes" })}
         description="Try a different search term or adjust your filters."
         size="small"
       />

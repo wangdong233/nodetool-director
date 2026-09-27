@@ -6,6 +6,7 @@ import { EmptyState, FlexColumn } from "../ui_primitives";
 import SearchResultsPanel from "./SearchResultsPanel";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useRecentNodesStore } from "../../stores/RecentNodesStore";
+import { i18n } from "../../i18n";
 
 const styles = () =>
   css({
@@ -47,7 +48,7 @@ const HistoryTilesPanel = memo(() => {
         {nodes.length === 0 ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
-              title="No recent nodes yet"
+              title={i18n.t("editor:ui.noRecentNodesYet", { defaultValue: "No recent nodes yet" })}
               description="Nodes you use will appear here."
             />
           </FlexColumn>

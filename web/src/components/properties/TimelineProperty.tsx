@@ -5,6 +5,7 @@ import isEqual from "../../utils/isEqual";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { useTimelines } from "../../hooks/useTimelineSequence";
 import DocumentPickerProperty from "./DocumentPickerProperty";
+import { i18n } from "../../i18n";
 
 /** Property editor for the `timeline` type. */
 const TimelineProperty = (props: PropertyProps) => (

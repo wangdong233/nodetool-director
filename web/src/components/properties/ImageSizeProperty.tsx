@@ -13,6 +13,7 @@ import { useNodes } from "../../contexts/NodeContext";
 import { ImageSizePresetsMenu } from "./ImageSizePresetsMenu";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
+import { i18n } from "../../i18n";
 
 type ImageSizeValue = {
   width: number;
@@ -164,7 +165,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
         <Box className="spacer" sx={{ flex: 1 }} />
         <FlexRow className="icon-container" align="center" gap={0} sx={{ mt: -2 }}>
           <ToolbarIconButton
-            tooltip="Swap Width and Height"
+            tooltip={i18n.t("editor:ui.swapWidthAndHeight", { defaultValue: "Swap Width and Height" })}
             icon={<SwapHoriz sx={{ fontSize: "var(--fontSizeBig)" }} />}
             className="aspect-swap-button"
             onClick={handleSwap}
@@ -190,7 +191,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip="Presets"
+            tooltip={i18n.t("editor:ui.presets", { defaultValue: "Presets" })}
             icon={<MoreVert sx={{ fontSize: "var(--fontSizeBig)" }} />}
             className="presets-menu-button"
             onClick={handlePresetClick}

@@ -66,6 +66,7 @@ import { useVariablePassthroughOutputs } from "./promptComposer/useVariablePasst
 import { useGraphVariableNames } from "./useGraphVariables";
 import { PROMPT_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -380,7 +381,7 @@ const PromptComposerBodyInner: React.FC<PromptComposerBodyProps> = ({
               contentEditable={
                 <ContentEditable
                   className="composer-input"
-                  aria-label="Prompt"
+                  aria-label={i18n.t("editor:ui.prompt", { defaultValue: "Prompt" })}
                   spellCheck={false}
                   onClick={(e) => e.stopPropagation()}
                 />

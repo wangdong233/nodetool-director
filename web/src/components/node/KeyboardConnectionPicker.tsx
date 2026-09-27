@@ -26,6 +26,7 @@ import {
   VirtualList
 } from "../ui_primitives";
 import type { VirtualListHandle } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 type HandleDirection = "source" | "target";
 
@@ -269,8 +270,8 @@ export const KeyboardConnectionPicker = ({
               focusOption(0);
             }
           }}
-          label="Find a compatible node or port"
-          placeholder="Search compatible ports"
+          label={i18n.t("editor:ui.findACompatibleNodeOrPort", { defaultValue: "Find a compatible node or port" })}
+          placeholder={i18n.t("editor:ui.searchCompatiblePorts", { defaultValue: "Search compatible ports" })}
         />
         {connectedEdgeIds.length > 0 ? (
           <EditorButton color="error" onClick={disconnect}>
@@ -283,7 +284,7 @@ export const KeyboardConnectionPicker = ({
             items={filteredOptions}
             estimateSize={PORT_OPTION_HEIGHT}
             getItemKey={(option) => option.key}
-            ariaLabel="Compatible ports"
+            ariaLabel={i18n.t("editor:ui.compatiblePorts", { defaultValue: "Compatible ports" })}
             scrollToIndex={boundedActiveIndex}
             sx={{ maxHeight: PORT_OPTIONS_MAX_HEIGHT }}
             getItemProps={(_option, index) => ({

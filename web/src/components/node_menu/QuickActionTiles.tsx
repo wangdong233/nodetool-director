@@ -17,6 +17,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
+import { i18n } from "../../i18n";
 import {
   QUICK_ACTION_BUTTONS,
   CONSTANT_NODES,

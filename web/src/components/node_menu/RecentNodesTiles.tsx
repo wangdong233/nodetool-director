@@ -20,6 +20,7 @@ import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
+import { i18n } from "../../i18n";
 
 const QUICK_ACTION_NODE_TYPES = new Set(
   QUICK_ACTION_BUTTONS.map((action) => action.nodeType)
@@ -311,12 +312,12 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         <Text size="normal" weight={600}>Recent Nodes</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
-          tooltip="Clear recent nodes"
+          tooltip={i18n.t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
           tooltipPlacement="top"
           size="small"
           className="clear-button"
           onClick={() => setClearConfirmOpen(true)}
-          aria-label="Clear recent nodes"
+          aria-label={i18n.t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
         />
       </div>
       <div className="tiles-container">

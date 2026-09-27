@@ -47,6 +47,7 @@ import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { computeHistogramAsync } from "../../../utils/histogram/histogramAsync";
 import type { ImageHistogram } from "../../../utils/histogram/computeHistogram";
 import { LEVELS_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 import {
   isNumber,
   isObjectLike,
@@ -488,7 +489,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           value={histView}
           exclusive
           onChange={handleHistViewChange}
-          aria-label="Histogram channel"
+          aria-label={i18n.t("editor:ui.histogramChannel", { defaultValue: "Histogram channel" })}
         >
           {HIST_VIEW_OPTIONS.map((o) => (
             <ToggleOption key={o.value} value={o.value} aria-label={o.label}>
@@ -507,7 +508,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channel}
             exclusive
             onChange={handleChannelChange}
-            aria-label="Channel"
+            aria-label={i18n.t("editor:ui.channel", { defaultValue: "Channel" })}
           >
             {CHANNEL_OPTIONS.map((o) => (
               <ToggleOption key={o.value} value={o.value} aria-label={o.label}>
@@ -526,7 +527,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.black}
             onChange={handleBlackChange}
             onChangeCommitted={commit}
-            aria-label="Black point"
+            aria-label={i18n.t("editor:ui.blackPoint", { defaultValue: "Black point" })}
           />
           <span className="slider-readout">{channelProps.black}</span>
         </FlexRow>
@@ -552,7 +553,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.white}
             onChange={handleWhiteChange}
             onChangeCommitted={commit}
-            aria-label="White point"
+            aria-label={i18n.t("editor:ui.whitePoint", { defaultValue: "White point" })}
           />
           <span className="slider-readout">{channelProps.white}</span>
         </FlexRow>
@@ -561,8 +562,8 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Reset levels"
-            ariaLabel="Reset levels"
+            tooltip={i18n.t("editor:ui.resetLevels", { defaultValue: "Reset levels" })}
+            ariaLabel={i18n.t("editor:ui.resetLevels", { defaultValue: "Reset levels" })}
             onClick={handleReset}
           />
         </div>

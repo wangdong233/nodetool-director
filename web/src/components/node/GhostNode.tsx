@@ -2,6 +2,7 @@
 import { memo, useMemo } from "react";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { i18n } from "../../i18n";
 interface GhostNodeProps {
   position: { x: number; y: number };
   label: string | null;

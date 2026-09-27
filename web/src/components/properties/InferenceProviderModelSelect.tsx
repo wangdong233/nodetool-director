@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import type { PropertyProps } from "../node/PropertyInput";
+import { i18n } from "../../i18n";
 
 interface HuggingFaceModel {
   id: string;
@@ -146,7 +147,7 @@ const InferenceProviderModelSelect = ({
                     options={providerOptions}
                     value={value.provider}
                     onChange={handleChangeProvider}
-                    placeholder="Select an inference provider"
+                    placeholder={i18n.t("editor:ui.selectAnInferenceProvider", { defaultValue: "Select an inference provider" })}
                 />
             </div>
 

@@ -9,6 +9,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { NodeSelect, NodeMenuItem } from "../editor_ui";
 import type { WorkflowValue } from "./WorkflowProperty";
+import { i18n } from "../../i18n";
 
 import {
   OutlinedInput

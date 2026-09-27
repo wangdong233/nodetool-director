@@ -8,6 +8,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { NodeSelect, NodeMenuItem } from "../editor_ui";
 import type { SelectChangeEvent } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 export interface WorkflowValue {
   type: "workflow";

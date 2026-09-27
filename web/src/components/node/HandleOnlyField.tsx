@@ -21,6 +21,7 @@ import { Property } from "../../stores/ApiTypes";
 import { Slugify, isCollectType } from "../../utils/TypeHandler";
 import { isConnectableCached } from "../node_menu/typeFilterUtils";
 import HandleTooltip from "../HandleTooltip";
+import { i18n } from "../../i18n";
 
 const styles = css({
   position: "relative",

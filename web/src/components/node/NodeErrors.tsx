@@ -27,6 +27,7 @@ import {
   type InputConnection
 } from "../../utils/bugReport";
 import { openBugReport } from "../../stores/BugReportStore";
+import { i18n } from "../../i18n";
 
 /** Collect the upstream connections feeding a node from the graph state. */
 function collectInputConnections(
@@ -199,23 +200,23 @@ const NodeErrorsImpl: React.FC<{
   return (
     <div css={memoizedErrorStyles} className="node-error nodrag nowheel">
       <div className="error-actions">
-        <Tooltip title="Show logs for this node and run">
+        <Tooltip title={i18n.t("editor:ui.showLogsForThisNodeAndRun", { defaultValue: "Show logs for this node and run" })}>
           <button
             type="button"
             className="report-button nodrag"
             onClick={handleViewLogs}
-            aria-label="View logs for this node and run"
+            aria-label={i18n.t("editor:ui.viewLogsForThisNodeAndRun", { defaultValue: "View logs for this node and run" })}
           >
             <ListAltIcon sx={{ fontSize: "0.9em" }} />
             View logs
           </button>
         </Tooltip>
-        <Tooltip title="Report this as a bug">
+        <Tooltip title={i18n.t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}>
           <button
             type="button"
             className="report-button nodrag"
             onClick={handleReport}
-            aria-label="Report this as a bug"
+            aria-label={i18n.t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}
           >
             <BugReportIcon sx={{ fontSize: "0.9em" }} />
             Report
@@ -223,7 +224,7 @@ const NodeErrorsImpl: React.FC<{
         </Tooltip>
         <CopyButton
           value={errorDisplay}
-          tooltip="Copy to clipboard"
+          tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
         />
       </div>
       <div className="error-text">{errorDisplay}</div>

@@ -19,6 +19,7 @@ import HandleTooltip from "../../HandleTooltip";
 import { Slugify } from "../../../utils/TypeHandler";
 import { createImageUrl, ImageData } from "../../../utils/imageUtils";
 import { isObjectLike } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({

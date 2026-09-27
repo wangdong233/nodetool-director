@@ -6,7 +6,7 @@ import type { Theme } from "@mui/material/styles";
 
 import { usePromptComposerContext } from "./promptComposerContext";
 import { BORDER_RADIUS, getSpacingPx, SPACING } from "../../../ui_primitives";
-
+import { i18n } from "../../../../i18n";
 const chipStyles = (theme: Theme, known: boolean) =>
   css({
     display: "inline-flex",

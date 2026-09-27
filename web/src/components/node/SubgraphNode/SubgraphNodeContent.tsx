@@ -11,6 +11,7 @@ import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { SubgraphSync } from "./SubgraphSync";
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../i18n";
 
 interface SubgraphNodeContentProps {
   id: string;
@@ -100,7 +101,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
           type="button"
           className="nodrag nopan"
           onClick={handleOpen}
-          title="Open the subgraph in its own tab"
+          title={i18n.t("editor:ui.openTheSubgraphInItsOwnTab", { defaultValue: "Open the subgraph in its own tab" })}
           sx={{
             flexShrink: 0,
             mt: 0.5,

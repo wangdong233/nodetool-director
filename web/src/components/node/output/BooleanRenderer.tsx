@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import Actions from "./Actions";
 import { outputStyles } from "./styles";
 import { getSpacingPx, SPACING } from "../../ui_primitives";
-
+import { i18n } from "../../../i18n";
 export const BooleanRenderer: React.FC<{
   value: boolean;
 }> = ({ value }) => {

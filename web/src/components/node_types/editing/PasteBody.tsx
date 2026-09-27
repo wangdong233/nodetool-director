@@ -30,6 +30,7 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { PASTE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -211,7 +212,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
       <div className="preview-area">
         <PreviewImage
           value={previewValue ?? baseValue}
-          placeholder="Connect Image and Paste, then run"
+          placeholder={i18n.t("editor:ui.connectImageAndPasteThenRun", { defaultValue: "Connect Image and Paste, then run" })}
         />
         {overlayRect && (
           <div

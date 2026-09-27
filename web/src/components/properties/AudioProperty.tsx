@@ -13,6 +13,7 @@ import { EditorButton, NodeTextField, MOTION, SPACING, BORDER_RADIUS, getSpacing
 import { useNodes } from "../../contexts/NodeContext";
 import AudioVisualizer from "../common/AudioVisualizer";
 import { useRealtimeAudioStream } from "../../hooks/useRealtimeAudioStream";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -92,7 +93,7 @@ const AudioProperty = (props: PropertyProps) => {
           {isStreaming ? (
             <div
               className="realtime-visualizer"
-              aria-label="Realtime audio visualizer"
+              aria-label={i18n.t("editor:ui.realtimeAudioVisualizer", { defaultValue: "Realtime audio visualizer" })}
             >
               <AudioVisualizer
                 stream={stream}

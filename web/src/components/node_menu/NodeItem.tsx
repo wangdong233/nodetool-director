@@ -27,6 +27,7 @@ import {
 } from "../../config/constants";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
+import { i18n } from "../../i18n";
 
 interface NodeItemProps {
   node: NodeMetadata;

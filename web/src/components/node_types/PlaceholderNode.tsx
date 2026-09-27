@@ -18,6 +18,7 @@ import type { NodeStoreState } from "../../stores/NodeStore";
 import { findBuiltinPackForNodeType } from "@nodetool-ai/protocol";
 import usePacksStore from "../../stores/PacksStore";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { i18n } from "../../i18n";
 import {
   Box,
   EditorButton,

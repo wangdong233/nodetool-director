@@ -8,6 +8,7 @@
 
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../../i18n";
 
 const W = 120;
 const H = 36;
@@ -62,7 +63,7 @@ const AdsrPreviewInner: React.FC<AdsrPreviewProps> = ({
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
       style={{ display: "block", height: H }}
-      aria-label="Envelope shape"
+      aria-label={i18n.t("editor:ui.envelopeShape", { defaultValue: "Envelope shape" })}
       role="img"
     >
       <path

@@ -19,6 +19,7 @@ import type { LlamaModelValue } from "../../stores/ApiTypes";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import { EditorMenu, EditorMenuItem } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;

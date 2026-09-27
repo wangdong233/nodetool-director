@@ -9,6 +9,7 @@ import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { isNumber } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 export { DYNAMIC_FAL_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -137,9 +138,9 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
 
   return (
     <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-      <Tooltip title="Reload Schema" arrow delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
         <ToolbarIconButton
-          title="Reload Schema"
+          title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
           size="small"
           disabled={loading}
           onClick={() => void handleLoad(true)}

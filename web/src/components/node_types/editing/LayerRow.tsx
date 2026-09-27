@@ -22,6 +22,7 @@ import ImageIcon from "@mui/icons-material/Image";
 
 import { SelectField, StateIconButton, MOTION, reducedMotion, BORDER_RADIUS } from "../../ui_primitives";
 import NumberInput from "../../inputs/NumberInput";
+import { i18n } from "../../../i18n";
 
 import {
   BLEND_MODES,
@@ -209,8 +210,8 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
         className="del-btn"
         icon={<DeleteOutlineIcon fontSize="small" />}
         onClick={handleDelete}
-        ariaLabel="Delete layer"
-        tooltip="Delete layer"
+        ariaLabel={i18n.t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
+        tooltip={i18n.t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
       />
     </div>
   );

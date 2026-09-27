@@ -9,6 +9,7 @@ import {
 import useConnectionStore from "../../stores/ConnectionStore";
 import { colorForType } from "../../config/data_types";
 import { Slugify } from "../../utils/TypeHandler";
+import { i18n } from "../../i18n";
 
 const CONTROL_EDGE_COLOR = "#f59e0b";
 const DEFAULT_EDGE_COLOR = "#888";

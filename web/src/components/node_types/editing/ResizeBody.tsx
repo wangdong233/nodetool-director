@@ -27,6 +27,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { RESIZE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 import {
   isNumber,
   isObjectLike,

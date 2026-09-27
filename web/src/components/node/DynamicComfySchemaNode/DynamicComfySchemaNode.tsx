@@ -15,6 +15,7 @@ import { useNodeStatus } from "../../../hooks/nodes/useNodeExecState";
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicComfySchemaContent } from "./DynamicComfySchemaContent";
 import { ComfyWorkflowLoader } from "./ComfyWorkflowLoader";
+import { i18n } from "../../../i18n";
 
 /** ComfyUI node accent. */
 const COMFY_HEADER_COLOR = "#1F9E89";

@@ -10,6 +10,7 @@ import type { Entity } from "@nodetool-ai/protocol";
 import { MentionAssetTile } from "./MentionAssetTile";
 import { MentionEntityTile } from "./MentionEntityTile";
 import type { MentionTab } from "./useAssetMentionSearch";
+import { i18n } from "../../../../i18n";
 
 const assetMentionMenuStyles = (theme: Theme) =>
   css({
@@ -222,7 +223,7 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
       className={`asset-mention-menu nowheel${className ? ` ${className}` : ""}`}
     >
       {entityCount > 0 && (
-        <div className="mention-entities" role="listbox" aria-label="Entities">
+        <div className="mention-entities" role="listbox" aria-label={i18n.t("editor:ui.entities", { defaultValue: "Entities" })}>
           <span className="mention-entities-label">Entities</span>
           {entities.map((entity, index) => (
             <EntityRow

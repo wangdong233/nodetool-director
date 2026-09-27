@@ -61,6 +61,7 @@ import { useNodeOutput, useUpstreamValues } from "../../../hooks/nodes/useNodeIO
 import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { COMPOSITOR_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isNumber, isObjectLike } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /** Canonical blend modes are owned by `@nodetool-ai/gpu`. */
 export type CompositorBlendMode = BlendMode;
@@ -436,7 +437,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
         />
         <EditButton
           onClick={() => setEditorOpen(true)}
-          tooltip="Open layout editor"
+          tooltip={i18n.t("editor:ui.openLayoutEditor", { defaultValue: "Open layout editor" })}
         />
       </FlexRow>
 

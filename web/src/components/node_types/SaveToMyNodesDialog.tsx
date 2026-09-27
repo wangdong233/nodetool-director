@@ -7,6 +7,7 @@
 import { memo, useEffect, useState } from "react";
 
 import { Dialog, FlexColumn, SPACING, TextInput } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface SaveToMyNodesDialogProps {
   open: boolean;
@@ -43,7 +44,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
     <Dialog
       open={open}
       onClose={onCancel}
-      title="Save to My Nodes"
+      title={i18n.t("editor:ui.saveToMyNodes", { defaultValue: "Save to My Nodes" })}
       confirmText="Save"
       isLoading={busy}
       confirmDisabled={!valid}
@@ -55,7 +56,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
       <FlexColumn gap={SPACING.md}>
         {askName ? (
           <TextInput
-            label="Node name"
+            label={i18n.t("editor:ui.nodeName", { defaultValue: "Node name" })}
             size="small"
             autoFocus
             value={name}
@@ -63,7 +64,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
           />
         ) : null}
         <TextInput
-          label="Category"
+          label={i18n.t("editor:ui.category", { defaultValue: "Category" })}
           size="small"
           autoFocus={!askName}
           value={category}

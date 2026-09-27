@@ -6,6 +6,7 @@ import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
+import { i18n } from "../../i18n";
 interface ASRModelSelection {
   type: "asr_model";
   id: string;

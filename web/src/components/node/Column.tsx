@@ -2,6 +2,7 @@ import { ColumnDef } from "../../stores/ApiTypes";
 import isEqual from "../../utils/isEqual";
 import { memo } from "react";
 import { NodeTextField, NodeSelect, NodeMenuItem, DeleteButton } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface ColumnProps {
   index: number;
@@ -74,7 +75,7 @@ const Column: React.FC<ColumnProps> = ({
     <DeleteButton
       onClick={onDelete}
       buttonSize="small"
-      tooltip="Delete column"
+      tooltip={i18n.t("editor:ui.deleteColumn", { defaultValue: "Delete column" })}
       className="delete-button"
       tabIndex={-1}
     />

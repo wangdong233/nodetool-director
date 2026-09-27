@@ -18,6 +18,7 @@ import { $insertAssetMention } from "./promptEditorState";
 import { assetToUri, entityToUri } from "./promptTokens";
 import { AssetMentionMenu } from "./AssetMentionMenu";
 import { useAssetMentionSearch } from "./useAssetMentionSearch";
+import { i18n } from "../../../../i18n";
 
 class AssetTypeaheadOption extends MenuOption {
   asset: Asset;

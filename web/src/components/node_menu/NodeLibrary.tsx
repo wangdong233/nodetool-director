@@ -36,6 +36,7 @@ import {
 } from "../../config/quickAccessCategories";
 import type { NodeCategoryId } from "../../stores/PanelStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 const ROW_HEIGHT = 36;
 
@@ -440,14 +441,14 @@ const NodeLibrary = memo<NodeLibraryProps>(
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search nodes…"
-            aria-label="Search nodes"
+            aria-label={i18n.t("editor:ui.searchNodes", { defaultValue: "Search nodes" })}
           />
           {query && (
             <button
               type="button"
               className="nl-search-clear"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             >
               <ClearIcon />
             </button>
@@ -459,7 +460,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             <nav
               className="nl-rail"
               role="tablist"
-              aria-label="Node categories"
+              aria-label={i18n.t("editor:ui.nodeCategories", { defaultValue: "Node categories" })}
             >
               {NODE_SUBCATEGORIES.map((sub) => (
                 <button

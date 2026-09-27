@@ -31,6 +31,7 @@ import { useSelectionActions } from "../../hooks/useSelectionActions";
 import { useRunSelectedNodes } from "../../hooks/nodes/useRunSelectedNodes";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface SelectionActionToolbarProps {
   visible: boolean;
@@ -251,7 +252,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       <FlexRow
         className="selection-action-toolbar"
         role="region"
-        aria-label="Selection Action Toolbar"
+        aria-label={i18n.t("editor:ui.selectionActionToolbar", { defaultValue: "Selection Action Toolbar" })}
         onKeyDown={handleKeyDown}
         gap={0.5}
         align="center"
@@ -275,8 +276,8 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
               <ArrowDropDown fontSize="small" />
             </>
           }
-          tooltip="Arrange — align & distribute"
-          ariaLabel="Arrange"
+          tooltip={i18n.t("editor:ui.arrangeAlignAndDistribute", { defaultValue: "Arrange — align & distribute" })}
+          ariaLabel={i18n.t("editor:ui.arrange", { defaultValue: "Arrange" })}
           onClick={openArrange}
           active={arrangeOpen}
           variant={arrangeOpen ? "primary" : "default"}

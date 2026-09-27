@@ -11,6 +11,7 @@ import { ToolCallRenderer } from "./ToolCallRenderer";
 import { AgentStatusRenderer } from "./AgentStatusRenderer";
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
 
 type Props = {
   chunk: Chunk;
@@ -66,7 +67,7 @@ export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
           // nodrag/nopan stop ReactFlow's drag from capturing the pointer so
           // the native controls (scrub, volume) get the mouse events.
           className="nodrag nopan"
-          aria-label="Video output"
+          aria-label={i18n.t("editor:ui.videoOutput", { defaultValue: "Video output" })}
           style={{ width: "100%" }}
         />
       );

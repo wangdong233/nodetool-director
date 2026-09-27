@@ -35,6 +35,7 @@ import { useReactFlow } from "@xyflow/react";
 import isEqual from "../../utils/isEqual";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -259,13 +260,13 @@ const QuickAddNodeDialog: React.FC<QuickAddNodeDialogProps> = ({
       aria-label="Quick add node"
     >
       <div css={cssStyles}>
-        <Command label="Quick Add Node" className="command-menu" shouldFilter={false}>
+        <Command label={i18n.t("editor:ui.quickAddNode", { defaultValue: "Quick Add Node" })} className="command-menu" shouldFilter={false}>
           <div className="command-input">
             <CommandInput
               ref={inputRef}
               value={searchTerm}
               onValueChange={handleValueChange}
-              placeholder="Search nodes by name, type, or namespace..."
+              placeholder={i18n.t("editor:ui.searchNodesByNameTypeOrNamespace", { defaultValue: "Search nodes by name, type, or namespace..." })}
             />
           </div>
 

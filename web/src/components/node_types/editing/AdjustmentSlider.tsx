@@ -19,6 +19,7 @@ import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 
 import { NodeSlider, BORDER_RADIUS, FONT_WEIGHT, SPACING, Z_INDEX } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const TRACK_HEIGHT = 4;
 const THUMB_SIZE = 12;

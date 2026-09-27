@@ -11,6 +11,7 @@ import { colorForType } from "../../config/data_types";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { nodeTypeDisplayName } from "../../constants/nodeTypes";
+import { i18n } from "../../i18n";
 
 const rowStyles = (theme: Theme) =>
   css({

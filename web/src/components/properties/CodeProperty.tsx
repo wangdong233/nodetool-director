@@ -36,6 +36,7 @@ import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -167,7 +168,7 @@ const CodeProperty = ({
         {showExpandEditor && (
           <ToolbarIconButton
             className="inspector-supplemental-action"
-            tooltip="Open Editor"
+            tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
             icon={<OpenInFullIcon />}
             onClick={toggleExpand}
             size="small"
@@ -274,7 +275,7 @@ const CodeProperty = ({
           <div className="code-action-buttons">
             {showExpandEditor && (
               <ToolbarIconButton
-                tooltip="Open Editor"
+                tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
                 icon={<OpenInFullIcon />}
                 onClick={toggleExpand}
                 size="small"

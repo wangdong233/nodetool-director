@@ -10,6 +10,7 @@ import { useAssetById } from "../../../../serverState/useAssetById";
 import { readEntityMarker } from "../../../../serverState/useEntities";
 import { ENTITY_KIND_ICON } from "../../../entities/entityKind";
 import { parseEntityUri } from "./promptTokens";
+import { i18n } from "../../../../i18n";
 
 // The entity pill: kind icon (or tiny reference-image thumb), then the entity
 // name. Rendered in the secondary palette so an entity mention reads as a

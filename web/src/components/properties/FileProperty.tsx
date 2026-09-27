@@ -3,6 +3,7 @@ import { PropertyProps } from "../node/PropertyInput";
 import { memo } from "react";
 import isEqual from "../../utils/isEqual";
 import { Text } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface FileRef {
   id?: string;

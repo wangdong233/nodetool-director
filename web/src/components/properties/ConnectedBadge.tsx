@@ -2,6 +2,7 @@
 import { css } from "@emotion/react";
 import { memo } from "react";
 import LinkIcon from "@mui/icons-material/Link";
+import { i18n } from "../../i18n";
 
 const badgeStyles = css({
   display: "inline-flex",

@@ -31,6 +31,7 @@ import {
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { MASK_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../i18n";
 
 type MaskTab = "image1" | "image2" | "mask" | "result";
 
@@ -186,18 +187,18 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label="Preview tab"
+            aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
-            <ToggleOption value="image1" aria-label="Image 1">
+            <ToggleOption value="image1" aria-label={i18n.t("editor:ui.image1", { defaultValue: "Image 1" })}>
               Img 1
             </ToggleOption>
-            <ToggleOption value="image2" aria-label="Image 2">
+            <ToggleOption value="image2" aria-label={i18n.t("editor:ui.image2", { defaultValue: "Image 2" })}>
               Img 2
             </ToggleOption>
             <ToggleOption value="mask" aria-label="Mask">
               Mask
             </ToggleOption>
-            <ToggleOption value="result" aria-label="Result">
+            <ToggleOption value="result" aria-label={i18n.t("editor:ui.result", { defaultValue: "Result" })}>
               Result
             </ToggleOption>
           </ToggleGroup>

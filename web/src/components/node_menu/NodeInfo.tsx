@@ -25,6 +25,7 @@ import {
   isKieVagueBillingSummary,
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
+import { i18n } from "../../i18n";
 
 interface NodeInfoProps {
   nodeMetadata: NodeMetadata;

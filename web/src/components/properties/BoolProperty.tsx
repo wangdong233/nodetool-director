@@ -4,6 +4,7 @@ import { memo, useCallback } from "react";
 import isEqual from "../../utils/isEqual";
 import { NodeSwitch } from "../editor_ui";
 import { BORDER_RADIUS } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const BoolProperty = (props: PropertyProps<boolean>) => {
   const { property, value, changed, onChange } = props;

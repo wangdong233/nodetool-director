@@ -49,6 +49,7 @@ import { MediaOverlaySuppressProvider } from "./MediaOverlayContext";
 import { TextRenderer } from "./output/TextRenderer";
 import { extractTextValue } from "../../utils/extractTextValue";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface NodeHistoryViewerProps {
   workflowId: string;
@@ -801,7 +802,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             className="grid nodrag nopan nowheel"
             role="listbox"
             aria-multiselectable={hasDownstream || undefined}
-            aria-label="Generations"
+            aria-label={i18n.t("editor:ui.generations", { defaultValue: "Generations" })}
             onPointerDown={stopNodeSelection}
             onClick={handleGridClick}
             onKeyDown={handleGridKeyDown}
@@ -852,18 +853,18 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             size="small"
             onClick={handleToggleView}
             className="overlay-icon-btn"
-            aria-label="Toggle view"
+            aria-label={i18n.t("editor:ui.toggleView", { defaultValue: "Toggle view" })}
           >
             {effectiveView === "single" ? <GridViewIcon /> : <CropSquareIcon />}
           </ToolbarIconButton>
           {showPagination ? (
             <>
               <ToolbarIconButton
-                title="Previous"
+                title={i18n.t("editor:ui.previous", { defaultValue: "Previous" })}
                 size="small"
                 onClick={handlePrev}
                 className="overlay-icon-btn"
-                aria-label="Previous output"
+                aria-label={i18n.t("editor:ui.previousOutput", { defaultValue: "Previous output" })}
               >
                 <KeyboardArrowLeftIcon />
               </ToolbarIconButton>
@@ -875,7 +876,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
                 size="small"
                 onClick={handleNext}
                 className="overlay-icon-btn"
-                aria-label="Next output"
+                aria-label={i18n.t("editor:ui.nextOutput", { defaultValue: "Next output" })}
               >
                 <KeyboardArrowRightIcon />
               </ToolbarIconButton>
@@ -898,12 +899,12 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             <OpenInFullIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Download"
+            title={i18n.t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
             disabled={!currentAsset || showingLive}
             className="overlay-icon-btn"
-            aria-label="Download current output"
+            aria-label={i18n.t("editor:ui.downloadCurrentOutput", { defaultValue: "Download current output" })}
           >
             <DownloadIcon />
           </ToolbarIconButton>
@@ -946,9 +947,9 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
         <Dialog
           open={viewerOpen}
           onClose={handleCloseViewer}
-          title="Generated text"
+          title={i18n.t("editor:ui.generatedText", { defaultValue: "Generated text" })}
           minWidth="min(720px, 90vw)"
-          titleActions={<CopyButton value={currentText} tooltip="Copy text" />}
+          titleActions={<CopyButton value={currentText} tooltip={i18n.t("editor:ui.copyText", { defaultValue: "Copy text" })} />}
         >
           <div
             className="text-popup nowheel"

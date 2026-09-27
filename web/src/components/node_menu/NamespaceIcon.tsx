@@ -33,6 +33,7 @@ import elevenlabsIcon from "../../icons/providers/elevenlabs.svg";
 
 import { useIsDarkMode } from "../../hooks/useIsDarkMode";
 import { MOTION, BORDER_RADIUS } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 type SvgEntry = {
   kind: "svg";

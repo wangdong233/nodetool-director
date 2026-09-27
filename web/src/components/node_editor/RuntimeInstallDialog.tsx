@@ -32,6 +32,7 @@ import {
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { createErrorMessage } from "../../utils/errorHandling";
 import type { MissingRuntime } from "../../hooks/useWorkflowRuntimeCheck";
+import { i18n } from "../../i18n";
 
 type RuntimeStatus = "pending" | "installing" | "installed" | "failed";
 
@@ -181,7 +182,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      title="Install required runtimes"
+      title={i18n.t("editor:ui.installRequiredRuntimes", { defaultValue: "Install required runtimes" })}
       minWidth="min(440px, 100vw - 32px)"
       onConfirm={allInstalled ? onClose : handleInstall}
       onCancel={onClose}

@@ -6,7 +6,7 @@ import { outputStyles } from "./styles";
 import { Datetime } from "../../../stores/ApiTypes";
 import { formatDateTime } from "../../../utils/formatUtils";
 import { getSpacingPx, SPACING } from "../../ui_primitives";
-
+import { i18n } from "../../../i18n";
 /**
  * Format a Datetime object into a human-readable string.
  * Note: Month is 1-indexed in the API but 0-indexed in JS Date.

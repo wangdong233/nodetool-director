@@ -14,6 +14,7 @@ import {
 import type { NodeMetadata, TypeMetadata } from "../../stores/ApiTypes";
 import { colorForType } from "../../config/data_types";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
+import { i18n } from "../../i18n";
 import {
   allowedSlotTypes,
   slotTypeKey,

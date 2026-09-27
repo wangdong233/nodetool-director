@@ -22,6 +22,7 @@ import type { Edge } from "@xyflow/react";
 import HandleOnlyField from "./HandleOnlyField";
 import { NODE_HEADER_MIN_HEIGHT } from "./NodeHeader";
 import { Z_INDEX } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const HANDLE_ROW_HEIGHT = 18;
 /** Offset that centers the first handle row on the header row. */

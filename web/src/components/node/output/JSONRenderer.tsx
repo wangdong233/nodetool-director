@@ -11,6 +11,7 @@ import Actions from "./Actions";
 
 import { BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../../ui_primitives";
 import { isNumber, isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 const jsonStyles = (theme: Theme) =>
   css({
     "&": {

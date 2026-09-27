@@ -13,6 +13,7 @@ import useMetadataStore from "../../../stores/MetadataStore";
 import { useNodeStatus } from "../../../hooks/nodes/useNodeExecState";
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { WorkflowNodeContent } from "./WorkflowNodeContent";
+import { i18n } from "../../../i18n";
 
 /** Accent color for WorkflowNode (blue-teal to distinguish from other node types) */
 const WORKFLOW_HEADER_COLOR = "#0891B2";
