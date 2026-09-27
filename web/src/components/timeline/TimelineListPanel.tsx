@@ -277,7 +277,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         ref={fileInputRef}
         type="file"
         accept=".zip,application/zip"
-        aria-label="Import timeline archive"
+        aria-label={i18n.t("timeline:list.importTooltip", { defaultValue: "Import timeline archive" })}
         style={{ display: "none" }}
         onChange={(event) => void handleImportFile(event)}
       />

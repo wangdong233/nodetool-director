@@ -32,6 +32,7 @@ import {
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { clipsById } from "../../stores/timeline/clipLookup";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
+import { i18n } from "../../i18n";
 
 const badgeButtonStyles = (theme: Theme) =>
   css({
@@ -133,7 +134,7 @@ const ClipListPopover: React.FC<ClipListPopoverProps> = memo(
           </Caption>
 
           {affectedClips.length === 0 ? (
-            <Caption color="secondary">No clips</Caption>
+            <Caption color="secondary">{i18n.t("timeline:list.noClips", { defaultValue: "No clips" })}</Caption>
           ) : (
             affectedClips.map((clip) => (
               <FlexRow
