@@ -524,7 +524,7 @@ const OutputContextMenu: React.FC = () => {
             inputRef={searchInputRef}
             size="small"
             fullWidth
-            placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes..." })}
+            placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(event) => event.stopPropagation()}

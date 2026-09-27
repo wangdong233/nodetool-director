@@ -130,7 +130,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="run-from-here"
       onClick={handlers.handleRunFromHere}
-      label={conditions.isWorkflowRunning ? i18n.t("editor:node.running", { defaultValue: "Running..." }) : i18n.t("editor:node.runNode", { defaultValue: "Run Node" })}
+      label={conditions.isWorkflowRunning ? i18n.t("editor:node.running", { defaultValue: "Running…" }) : i18n.t("editor:node.runNode", { defaultValue: "Run Node" })}
       IconComponent={<PlayArrowIcon />}
       tooltip={i18n.t("editor:node.runNodeTip", { defaultValue: "Run this node as its own job, using previous results as inputs" })}
       addButtonClassName={conditions.isWorkflowRunning ? "disabled" : ""}

@@ -8,7 +8,7 @@
     "copyJson": "Copy Node as JSON",
     "copyJsonTip": "Copy this node's data as JSON to the clipboard",
     "duplicateVertical": "Duplicate Vertical",
-    "running": "Running...",
+    "running": "Running…",
     "runNode": "Run Node",
     "runNodeTip": "Run this node as its own job, using previous results as inputs",
     "enableNode": "Enable Node",
@@ -95,7 +95,7 @@
     "removeDynamicTip": "Remove this property from being dynamic"
   },
   "io": {
-    "searchNodes": "Search nodes...",
+    "searchNodes": "Search nodes…",
     "searchConnectable": "Search connectable nodes",
     "clearSearch": "clear search"
   }
