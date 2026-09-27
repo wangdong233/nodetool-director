@@ -200,5 +200,21 @@
     "terminateWorkerConfirm": "终止此 worker?其卷与全部缓存模型将被永久删除,计费随之停止。",
     "stopAllAria": "停止全部 worker",
     "stopAll": "全部停止"
+  },
+  "explorer": {
+    "title": "素材",
+    "subtitle": "浏览、整理并预览你的图像、音频、视频和其它文件。",
+    "loading": "正在加载素材",
+    "loadFailed": "无法加载素材",
+    "errorGeneric": "发生错误,请重试。",
+    "retry": "重试",
+    "hideFolders": "隐藏文件夹",
+    "showFolders": "显示文件夹",
+    "filterByType": "按类型筛选",
+    "hideSearchSort": "收起搜索与排序",
+    "searchSortResize": "搜索、排序与缩放",
+    "createFolder": "新建文件夹",
+    "uploadFiles": "上传文件",
+    "searchError": "搜索输入出错"
   }
 }

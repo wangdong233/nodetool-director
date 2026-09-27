@@ -200,5 +200,21 @@
     "terminateWorkerConfirm": "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing.",
     "stopAllAria": "Stop all workers",
     "stopAll": "Stop All"
+  },
+  "explorer": {
+    "title": "Assets",
+    "subtitle": "Browse, organize, and preview your images, audio, video, and other files.",
+    "loading": "Loading assets",
+    "loadFailed": "Could not load assets",
+    "errorGeneric": "An error occurred. Please try again.",
+    "retry": "Retry",
+    "hideFolders": "Hide folders",
+    "showFolders": "Show folders",
+    "filterByType": "Filter by type",
+    "hideSearchSort": "Hide search & sort",
+    "searchSortResize": "Search, sort & resize",
+    "createFolder": "Create folder",
+    "uploadFiles": "Upload files",
+    "searchError": "Search Input Error"
   }
 }

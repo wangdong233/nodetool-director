@@ -187,7 +187,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {!isFullscreenAssets && !hideFolderControls && hasFolders && (
           <ToolbarIconButton
             icon={foldersVisible ? <FolderIcon /> : <FolderOffIcon />}
-            tooltip={foldersVisible ? "Hide folders" : "Show folders"}
+            tooltip={foldersVisible ? i18n.t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : i18n.t("editor:explorer.showFolders", { defaultValue: "Show folders" })}
             onClick={toggleFoldersVisible}
             tooltipPlacement="top"
             nodrag={false}
@@ -197,7 +197,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
 
         {/* Filter: asset type (labeled to avoid icon guessing) */}
         <ToolbarIconButton
-          tooltip="Filter by type"
+          tooltip={i18n.t("editor:explorer.filterByType", { defaultValue: "Filter by type" })}
           onClick={(e) => setTypeFilterAnchor(e.currentTarget)}
           tooltipPlacement="top"
           nodrag={false}
@@ -224,7 +224,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {!isFullscreenAssets && (
           <ToolbarIconButton
             icon={<TuneIcon />}
-            tooltip={expanded ? "Hide search & sort" : "Search, sort & resize"}
+            tooltip={expanded ? i18n.t("editor:explorer.hideSearchSort", { defaultValue: "Hide search & sort" }) : i18n.t("editor:explorer.searchSortResize", { defaultValue: "Search, sort & resize" })}
             onClick={() => setExpanded((prev) => !prev)}
             tooltipPlacement="top"
             nodrag={false}
@@ -242,7 +242,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           {!hideFolderControls && (
             <ToolbarIconButton
               icon={<CreateNewFolderIcon />}
-              tooltip="Create folder"
+              tooltip={i18n.t("editor:explorer.createFolder", { defaultValue: "Create folder" })}
               onClick={() => setCreateFolderDialogOpen(true)}
               tooltipPlacement="top"
               nodrag={false}
@@ -251,7 +251,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           <UploadButton
             onFileSelect={(files) => onUploadFiles?.(files)}
             iconVariant="file"
-            tooltip="Upload files"
+            tooltip={i18n.t("editor:explorer.uploadFiles", { defaultValue: "Upload files" })}
             multiple
           />
         </FlexRow>
@@ -288,7 +288,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
               : styles(theme)
           }
         >
-          <SearchErrorBoundary fallbackTitle="Search Input Error">
+          <SearchErrorBoundary fallbackTitle={i18n.t("editor:explorer.searchError", { defaultValue: "Search Input Error" })}>
             <AssetSearchInput
               onLocalSearchChange={onLocalSearchChange}
               focusOnTyping={false}
