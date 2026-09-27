@@ -17,6 +17,7 @@ import { useSidebarDocumentMenu } from "../../hooks/useSidebarDocumentMenu";
 import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { downgradeScriptsLinkedToBoard } from "../../lib/scriptStoryboardDowngrade";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
@@ -54,9 +55,9 @@ export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
   }, [createStoryboard, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New storyboard" placement="right-start">
+    <Tooltip title={i18n.t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New storyboard"
+        ariaLabel={i18n.t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })}
         onClick={() => void handleCreate()}
         disabled={createStoryboard.isPending}
         tabIndex={-1}

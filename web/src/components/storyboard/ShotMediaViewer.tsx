@@ -32,6 +32,7 @@ import { useBoard } from "../../stores/storyboard/StoryboardStore";
 import { useAssetsForLocators } from "../../hooks/assets/useAssetsForLocators";
 import { assetIdOf } from "../../utils/mediaRef";
 import { useResolvedMedia } from "../../hooks/useResolvedMediaUri";
+import { i18n } from "../../i18n";
 
 interface ShotMediaViewerProps {
   /** The board whose media the gallery pages through. */

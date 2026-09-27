@@ -33,6 +33,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSetup";
 import type { Workflow } from "../../../stores/ApiTypes";
 import { WorkflowExamplePicker } from "./ExamplePicker";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -146,9 +147,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     >
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
-          <Text size="big" component="h2">
-            What should this workflow do?
-          </Text>
+          <Text size="big" component="h2">{i18n.t("storyboard:attrs.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}</Text>
           <Text size="normal" color="secondary">
             Describe the task. We&apos;ll plan the steps and check what it needs
             before building.
@@ -160,9 +159,9 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label="The task"
+          label={i18n.t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
-          placeholder="Summarize a PDF and email it"
+          placeholder={i18n.t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
           helperText="Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it."
           onChange={handleChange}
         />
@@ -181,7 +180,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -191,7 +190,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         hidden
         ref={importInput}
         accept={WORKFLOW_IMPORT_ACCEPT}
-        aria-label="Import a workflow"
+        aria-label={i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" })}
         onChange={handlePicked}
       />
     </Box>

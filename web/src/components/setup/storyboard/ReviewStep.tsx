@@ -52,6 +52,7 @@ import {
 } from "../video/productionAuthoring";
 import { productionRequirementsFrom } from "../../../hooks/storyboard/productionContext";
 import type { GenerationModel } from "../generationEstimate";
+import { i18n } from "../../../i18n";
 import {
   forgetPreviousScreenplay,
   usePreviousScreenplay
@@ -424,9 +425,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_WIDE_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Your screenplay
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}</Text>
         <Text size="normal" color="secondary">
           Edit anything here. It is the text your storyboard is drawn from.
         </Text>
@@ -443,7 +442,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           believing it is wastes the edit. It is named, and the creator decides
           whether to keep it (F9). */}
       {usedFallback ? (
-        <AlertBanner severity="warning" title="Written here, not by your model">
+        <AlertBanner severity="warning" title={i18n.t("storyboard:attrs.writtenHereNotByYourModel", { defaultValue: "Written here, not by your model" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
               Your model returned nothing usable, so this outline was built from
@@ -455,17 +454,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 size="small"
                 disabled={rewriting}
                 onClick={onRewrite}
-              >
-                Run the Director again
-              </EditorButton>
+              >{i18n.t("storyboard:attrs.runTheDirectorAgain", { defaultValue: "Run the Director again" })}</EditorButton>
               {onKeepFallback ? (
                 <EditorButton
                   variant="text"
                   size="small"
                   onClick={onKeepFallback}
-                >
-                  Keep this outline
-                </EditorButton>
+                >{i18n.t("storyboard:attrs.keepThisOutline", { defaultValue: "Keep this outline" })}</EditorButton>
               ) : null}
             </FlexRow>
           </FlexColumn>
@@ -475,19 +470,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           edited. Putting it back is one press for as long as the tab is
           open (F15). */}
       {replaced ? (
-        <AlertBanner severity="info" title="Rewritten from your brief">
+        <AlertBanner severity="info" title={i18n.t("storyboard:attrs.rewrittenFromYourBrief", { defaultValue: "Rewritten from your brief" })}>
           <FlexRow gap={GAP.normal} align="center" wrap>
-            <Caption component="span">
-              The previous screenplay is still here.
-            </Caption>
+            <Caption component="span">{i18n.t("storyboard:attrs.thePreviousScreenplayIsStillHere", { defaultValue: "The previous screenplay is still here." })}</Caption>
             <EditorButton
               variant="outlined"
               size="small"
               disabled={rewriting}
               onClick={handleRestore}
-            >
-              Restore the previous screenplay
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.restoreThePreviousScreenplay", { defaultValue: "Restore the previous screenplay" })}</EditorButton>
           </FlexRow>
         </AlertBanner>
       ) : null}
@@ -508,7 +499,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           </EditorButton>
         </FlexRow>
         <Suspense
-          fallback={<Caption color="secondary">Loading estimate…</Caption>}
+          fallback={<Caption color="secondary">{i18n.t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
             result="Rewrite the screenplay from your brief"

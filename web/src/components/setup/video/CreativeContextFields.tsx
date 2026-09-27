@@ -17,6 +17,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
+import { i18n } from "../../../i18n";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
@@ -89,7 +90,7 @@ export default function CreativeContextFields({
   };
   return (
     <CollapsibleSection
-      title="Creative context (optional)"
+      title={i18n.t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
       defaultOpen={false}
       unmountOnExit
     >

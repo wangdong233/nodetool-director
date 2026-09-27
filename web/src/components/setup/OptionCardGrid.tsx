@@ -20,6 +20,7 @@ import {
 import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { SetupCardButton, useRovingRadioGroup } from "./SetupCardButton";
 import type { SetupCardGridMode } from "./SetupCardButton";
+import { i18n } from "../../i18n";
 
 export interface OptionCardItem {
   id: string;

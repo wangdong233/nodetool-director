@@ -40,6 +40,7 @@ import {
   useDirectGenJob
 } from "../../../hooks/sketch/useDirectGenJob";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
@@ -209,9 +210,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Pick your image
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}</Text>
         <Text size="normal" color="secondary">
           Every variation stays on the document, so nothing you rendered is
           lost.
@@ -252,7 +251,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
       <Box
         role="group"
-        aria-label="Variations"
+        aria-label={i18n.t("storyboard:attrs.variations", { defaultValue: "Variations" })}
         sx={{
           display: "grid",
           gridTemplateColumns:
@@ -315,9 +314,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 variant="contained"
                 disabled={!tile.assetId}
                 onClick={() => pick(tile.layerId)}
-              >
-                Sketch editor
-              </EditorButton>
+              >{i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}</EditorButton>
               {(
                 [
                   ["entity", "Save to entities"],
@@ -351,9 +348,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                     void downloadVariation(tile.assetId, tile.label);
                   }
                 }}
-              >
-                Download
-              </EditorButton>
+              >{i18n.t("storyboard:attrs.download", { defaultValue: "Download" })}</EditorButton>
             </FlexRow>
             {actions[tile.layerId] ? (
               <Text
@@ -380,9 +375,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         <EditorButton variant="text" onClick={onBackToSettings}>
           Back to generation settings
         </EditorButton>
-        <EditorButton variant="text" onClick={onOpenEditor}>
-          Open editor
-        </EditorButton>
+        <EditorButton variant="text" onClick={onOpenEditor}>{i18n.t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
       </FlexRow>
     </FlexColumn>
   );

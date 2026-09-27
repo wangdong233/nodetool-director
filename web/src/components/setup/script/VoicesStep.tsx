@@ -51,6 +51,7 @@ import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
+import { i18n } from "../../../i18n";
 
 /** The languages the flow offers to write and read in. */
 const LANGUAGES = [
@@ -369,9 +370,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Choose the voices
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.chooseTheVoices", { defaultValue: "Choose the voices" })}</Text>
         <Text size="normal" color="secondary">
           Hear each one read your own words before you pick it.
         </Text>
@@ -380,11 +379,11 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
       <FlexColumn
         gap={GAP.tight}
         component="section"
-        aria-label="Read settings"
+        aria-label={i18n.t("storyboard:attrs.readSettings", { defaultValue: "Read settings" })}
       >
         <FlexRow gap={GAP.comfortable} wrap align="flex-end">
           <SelectField
-            label="Language"
+            label={i18n.t("storyboard:attrs.language", { defaultValue: "Language" })}
             value={language}
             options={LANGUAGES.map((name) => ({ value: name, label: name }))}
             onChange={setLanguage}
@@ -414,18 +413,14 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
       ) : null}
 
       {loading && voices.length === 0 ? (
-        <Caption color="secondary" component="p">
-          Looking up the voices your providers offer…
-        </Caption>
+        <Caption color="secondary" component="p">{i18n.t("storyboard:attrs.lookingUpTheVoicesYourProvidersOffer", { defaultValue: "Looking up the voices your providers offer…" })}</Caption>
       ) : null}
 
       {error ? (
         <AlertBanner
           severity="error"
           action={
-            <EditorButton variant="text" size="small" onClick={retry}>
-              Try again
-            </EditorButton>
+            <EditorButton variant="text" size="small" onClick={retry}>{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
           {`The voice list could not be loaded. ${error}`}
@@ -440,13 +435,9 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
               variant="text"
               size="small"
               onClick={() => openProviderOnboarding()}
-            >
-              Connect a provider
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.connectAProvider", { defaultValue: "Connect a provider" })}</EditorButton>
           }
-        >
-          No connected provider offers a voice yet.
-        </AlertBanner>
+        >{i18n.t("storyboard:attrs.noConnectedProviderOffersAVoiceYet", { defaultValue: "No connected provider offers a voice yet." })}</AlertBanner>
       ) : null}
 
       {cast.map((speaker) => (

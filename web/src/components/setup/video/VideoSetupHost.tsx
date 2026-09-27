@@ -20,6 +20,7 @@ import { useTimelineAgentBridge } from "../../../hooks/timeline/useTimelineAgent
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useVideoSetupFlow } from "./useVideoSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface VideoSetupHostProps {
   sequenceId: string;

@@ -27,6 +27,7 @@ import GenerationSummary, {
 import { PlanReview, type PlanReviewSection } from "../PlanReview";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import BriefModelSelect from "./BriefModelSelect";
+import { i18n } from "../../../i18n";
 
 /** The counts the flow offers (PRD § 10.2). */
 export const VARIATION_COUNTS: readonly number[] = [1, 2, 4];
@@ -136,22 +137,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               variant="text"
               onClick={onReRefine}
               disabled={refining}
-            >
-              Try again
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
           {error}
         </AlertBanner>
       ) : null}
       <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          How many variations?
-        </Text>
+        <Text size="small" component="h3">{i18n.t("storyboard:attrs.howManyVariations", { defaultValue: "How many variations?" })}</Text>
         {/* One count out of three, so the cards are radios in a named radio
             group: three chips announcing themselves as independent toggles
             described the wrong control (F26). */}
-        <FlexRow role="radiogroup" aria-label="Variations" gap={GAP.normal} wrap>
+        <FlexRow role="radiogroup" aria-label={i18n.t("storyboard:attrs.variations", { defaultValue: "Variations" })} gap={GAP.normal} wrap>
           {COUNT_OPTIONS.map((option) => (
             <Box key={option.id} sx={{ width: COUNT_CARD_WIDTH }}>
               <SetupCardButton

@@ -9,6 +9,7 @@ import {
   Text
 } from "../ui_primitives";
 import { generationEstimate, type GenerationModel } from "./generationEstimate";
+import { i18n } from "../../i18n";
 
 export interface GenerationSummaryProps {
   result: string;

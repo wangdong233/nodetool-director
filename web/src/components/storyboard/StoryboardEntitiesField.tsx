@@ -30,6 +30,7 @@ import {
   getEntityKindChipSx
 } from "../entities/entityKind";
 import { useResolvedThumbnailUri } from "../../hooks/useResolvedMediaUri";
+import { i18n } from "../../i18n";
 
 interface StoryboardEntitiesFieldProps {
   boardId: string;

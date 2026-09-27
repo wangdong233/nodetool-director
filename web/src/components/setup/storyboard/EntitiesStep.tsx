@@ -18,6 +18,7 @@ import EntityAssetPickerDialog from "../../entities/EntityAssetPickerDialog";
 import EntityEditorDialog from "../../entities/EntityEditorDialog";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
+import { i18n } from "../../../i18n";
 import {
   AlertBanner,
   BORDER_RADIUS,
@@ -296,9 +297,7 @@ export const EntitiesStep = ({
       sx={{ maxWidth: 1040, width: "100%", minWidth: 0 }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big" component="h1">
-          Keep people and places consistent
-        </Text>
+        <Text size="big" component="h1">{i18n.t("storyboard:attrs.keepPeopleAndPlacesConsistent", { defaultValue: "Keep people and places consistent" })}</Text>
         <Text color="secondary" sx={{ maxWidth: "65ch" }}>
           Choose the characters, places, and props that need to look consistent
           across shots.
@@ -316,7 +315,7 @@ export const EntitiesStep = ({
             gap={SPACING.xs}
             sx={{ flexGrow: 1, flexShrink: 1, flexBasis: SETUP_MEDIA_WIDTH }}
           >
-            <Label component="h2">Suggested from your story</Label>
+            <Label component="h2">{i18n.t("storyboard:attrs.suggestedFromYourStory", { defaultValue: "Suggested from your story" })}</Label>
             <Caption>
               Find recurring references in your screenplay. Create only the ones
               you want to use.
@@ -338,7 +337,7 @@ export const EntitiesStep = ({
         {assistError ? (
           <AlertBanner
             severity="error"
-            title="Could not create entities"
+            title={i18n.t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })}
             action={
               <ReportBugButton
                 context={{
@@ -365,7 +364,7 @@ export const EntitiesStep = ({
                 )
             ) ? (
               <FormField
-                label="Reference image model"
+                label={i18n.t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
                 helperText="Used only for missing entities you choose to create. The same model carries into the Look step."
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
@@ -440,7 +439,7 @@ export const EntitiesStep = ({
 
       <FlexRow gap={SPACING.xl} wrap align="center">
         <FlexRow gap={SPACING.md} wrap align="baseline">
-          <Label component="h2">Your entity library</Label>
+          <Label component="h2">{i18n.t("storyboard:attrs.yourEntityLibrary", { defaultValue: "Your entity library" })}</Label>
           <Caption role="status">
             {selectedEntities.length} selected for this storyboard
           </Caption>
@@ -449,9 +448,7 @@ export const EntitiesStep = ({
           variant="outlined"
           startIcon={<AddPhotoAlternateOutlinedIcon />}
           onClick={() => setPickerOpen(true)}
-        >
-          Create entity from an image
-        </EditorButton>
+        >{i18n.t("storyboard:attrs.createEntityFromAnImage", { defaultValue: "Create entity from an image" })}</EditorButton>
       </FlexRow>
 
       {isLoading ? (
@@ -459,7 +456,7 @@ export const EntitiesStep = ({
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
-          title="No entities yet"
+          title={i18n.t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
           description="Create one from a generated or uploaded image, or skip this step."
           size="small"
         />
@@ -482,7 +479,7 @@ export const EntitiesStep = ({
               <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder="Search entities"
+                placeholder={i18n.t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
                 fullWidth
               />
             </FlexColumn>
@@ -490,9 +487,7 @@ export const EntitiesStep = ({
               variant={onlySelected ? "outlined" : "text"}
               aria-pressed={onlySelected}
               onClick={() => setOnlySelected(!onlySelected)}
-            >
-              Selected only
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.selectedOnly", { defaultValue: "Selected only" })}</EditorButton>
           </FlexRow>
           <ScrollArea maxHeight="min(48vh, 480px)">
             <FlexColumn gap={SPACING.xl}>

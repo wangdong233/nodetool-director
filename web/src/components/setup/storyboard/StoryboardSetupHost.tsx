@@ -16,6 +16,7 @@ import { useStoryboardAgentBridge } from "../../../hooks/storyboard/useStoryboar
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useStoryboardSetupFlow } from "./useStoryboardSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface StoryboardSetupHostProps {
   boardId: string;

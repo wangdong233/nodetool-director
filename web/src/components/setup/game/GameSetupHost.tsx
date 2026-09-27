@@ -33,6 +33,7 @@ import { SetupFlow } from "../SetupFlow";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useGameSetupFlow, type GameRowAvailability } from "./useGameSetupFlow";
 import type { GameRowStatus } from "./LookStep";
+import { i18n } from "../../../i18n";
 
 /** A model as a Look step tile row shows it. */
 interface RowModel {

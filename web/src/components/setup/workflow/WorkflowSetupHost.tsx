@@ -39,6 +39,7 @@ import { SetupFlow } from "../SetupFlow";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useWorkflowSetupFlow } from "./useWorkflowSetupFlow";
 import type { ModelRoleAvailability, ModelRoleStatus } from "./SetupStep";
+import { i18n } from "../../../i18n";
 
 /** A model as the setup step's tile row shows it. */
 interface RoleModel {

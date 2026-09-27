@@ -20,6 +20,7 @@ import {
   Text
 } from "../../ui_primitives";
 import type { ShotlistReportEntry } from "../../../lib/storyboard/parseShotlistCsv";
+import { i18n } from "../../../i18n";
 
 export interface ShotlistReportProps {
   open: boolean;
@@ -34,7 +35,7 @@ export const ShotlistReport: React.FC<ShotlistReportProps> = ({
   entries,
   onClose
 }) => (
-  <Dialog open={open} onClose={onClose} title="Shotlist imported">
+  <Dialog open={open} onClose={onClose} title={i18n.t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
     <FlexColumn gap={GAP.normal}>
       <Text size="normal">
         {shotCount} shot{shotCount === 1 ? "" : "s"} imported. These values did
@@ -59,7 +60,7 @@ export const ShotlistReport: React.FC<ShotlistReportProps> = ({
       {/* One way out: the import already wrote the board, so there is nothing
           here to confirm or cancel. */}
       <FlexRow justify="flex-end">
-        <EditorButton onClick={onClose}>Continue</EditorButton>
+        <EditorButton onClick={onClose}>{i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" })}</EditorButton>
       </FlexRow>
     </FlexColumn>
   </Dialog>

@@ -49,6 +49,7 @@ import {
 } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import { i18n } from "../../../i18n";
 
 
 export interface WorkflowReviewStepProps {
@@ -210,9 +211,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Your plan
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourPlan", { defaultValue: "Your plan" })}</Text>
         <Text size="normal" color="secondary">
           Review this plan, then choose models before building.
         </Text>
@@ -343,7 +342,7 @@ const StepRow: React.FC<StepRowProps> = ({
             size="small"
             color="error"
             icon={<DeleteOutlineIcon fontSize="inherit" />}
-            tooltip="Remove step"
+            tooltip={i18n.t("storyboard:attrs.removeStep", { defaultValue: "Remove step" })}
             onClick={() => onRemove(step.id)}
             aria-label={`Remove step ${index + 1}`}
           />
@@ -354,7 +353,7 @@ const StepRow: React.FC<StepRowProps> = ({
         <TextInput
           label={`Step ${index + 1} description`}
           hideLabel
-          placeholder="What this step does"
+          placeholder={i18n.t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
           value={step.summary}
           multiline
           onChange={(event) =>
@@ -364,7 +363,7 @@ const StepRow: React.FC<StepRowProps> = ({
       </Box>
 
       {entry.unknownNodeType ? (
-        <AlertBanner severity="error" title="No node for this step">
+        <AlertBanner severity="error" title={i18n.t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
           <FlexColumn gap={GAP.normal}>
             <Caption component="span">
               {step.node_type === null
@@ -374,7 +373,7 @@ const StepRow: React.FC<StepRowProps> = ({
             <Autocomplete
               options={nodeTypeOptions}
               label={`Node type for step ${index + 1}`}
-              placeholder="Search node types"
+              placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
                   node_type:
@@ -410,7 +409,7 @@ const StepRow: React.FC<StepRowProps> = ({
                 ) ?? null
               }
               label={`Node type for step ${index + 1}`}
-              placeholder="Search node types"
+              placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
                   node_type:
@@ -435,9 +434,7 @@ const StepRow: React.FC<StepRowProps> = ({
                   reason: `Step ${index + 1} needs a ${missingRole} model.`
                 })
               }
-            >
-              Connect
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
           }
         >
           <Caption component="span">

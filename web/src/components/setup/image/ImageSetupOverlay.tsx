@@ -35,6 +35,7 @@ import {
 import { SetupFlow } from "../SetupFlow";
 import { ContactSheet } from "./ContactSheet";
 import { useImageSetupFlow } from "./useImageSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface ImageSetupOverlayProps {
   /** Runs whenever the flow hands the document back to the editor. */

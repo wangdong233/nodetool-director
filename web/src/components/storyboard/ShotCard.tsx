@@ -64,6 +64,7 @@ import {
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { i18n } from "../../i18n";
 
 interface ShotCardProps {
   boardId: string;
@@ -564,9 +565,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               variant="outlined"
               onClick={handleRetry}
               sx={{ flexShrink: 0 }}
-            >
-              Retry
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
           )}
         </FlexRow>
       )}
@@ -589,9 +588,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           }}
         >
           {onEdit && (
-            <EditorButton size="small" onClick={handleEdit} sx={footerButtonSx}>
-              Edit
-            </EditorButton>
+            <EditorButton size="small" onClick={handleEdit} sx={footerButtonSx}>{i18n.t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
           )}
           <EditorButton
             size="small"
@@ -603,19 +600,17 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
                 ? "Re-render this clip with a note applied"
                 : "Render a clip first"
             }
-          >
-            Iterate
-          </EditorButton>
+          >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
           <ToolbarIconButton
             icon={<AutorenewIcon sx={{ fontSize: "1em" }} />}
-            tooltip="Render a new still from this shot's fields"
-            ariaLabel="Regenerate still"
+            tooltip={i18n.t("storyboard:attrs.renderANewStillFromThisShotFields", { defaultValue: "Render a new still from this shot's fields" })}
+            ariaLabel={i18n.t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
             onClick={handleRegenerate}
             disabled={isGenerating}
           />
           <UploadButton
             onFileSelect={handleUpload}
-            tooltip="Upload your own still"
+            tooltip={i18n.t("storyboard:attrs.uploadYourOwnStill", { defaultValue: "Upload your own still" })}
             accept="image/*"
             multiple={false}
           />
@@ -634,7 +629,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         <Dialog
           open={iterateOpen}
           onClose={handleCloseIterate}
-          title="Iterate on this clip"
+          title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
           onConfirm={handleIterateConfirm}
           confirmText="Iterate"
           confirmDisabled={iterateText.trim().length === 0}

@@ -29,6 +29,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
+import { i18n } from "../../../i18n";
 
 export interface GameIdeaStepProps {
   brief: string;
@@ -169,9 +170,9 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label="The premise"
+          label={i18n.t("storyboard:attrs.thePremise", { defaultValue: "The premise" })}
           hideLabel
-          placeholder="One sentence is enough: who you play, what you do, and what stops you."
+          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnoughWhoYouPlayWhatYouDoAndWhatStopsYou", { defaultValue: "One sentence is enough: who you play, what you do, and what stops you." })}
           onChange={handleChange}
         />
 
@@ -183,7 +184,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
     </Box>

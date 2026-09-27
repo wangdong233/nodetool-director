@@ -12,6 +12,7 @@ import React, { memo, useCallback } from "react";
 import { Chip, Tooltip } from "../ui_primitives";
 import { trpc } from "../../trpc/client";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 
 export interface BoardLineageChipProps {
   boardId: string;
@@ -46,7 +47,7 @@ const BoardLineageChipInner: React.FC<BoardLineageChipProps> = ({ boardId }) => 
   }
 
   return (
-    <Tooltip title="Open the board this one was recast from">
+    <Tooltip title={i18n.t("storyboard:attrs.openTheBoardThisOneWasRecastFrom", { defaultValue: "Open the board this one was recast from" })}>
       <Chip
         compact
         label={`Recast from ${templateName ?? "template"}`}

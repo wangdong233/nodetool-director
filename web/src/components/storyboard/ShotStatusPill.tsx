@@ -22,6 +22,7 @@ import { shotStaleness } from "@nodetool-ai/protocol";
 
 import { StatusPill, type StatusPillTone } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
+import { i18n } from "../../i18n";
 import {
   useStoryboardGenerationStore,
   type ShotGenerationStatus

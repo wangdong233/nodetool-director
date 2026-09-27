@@ -10,6 +10,7 @@
 
 import React, { memo } from "react";
 import type { WorkflowSetupRunMode } from "@nodetool-ai/protocol/api-schemas/workflows.js";
+import { i18n } from "../../../i18n";
 
 import {
   AlertBanner,
@@ -146,12 +147,12 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         status="built"
-        label="Graph built"
+        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
       <Line
         status={validated && wired ? "validated" : "failed"}
-        label="Validated"
+        label={i18n.t("storyboard:attrs.validated", { defaultValue: "Validated" })}
         detail={
           validated
             ? wired
@@ -175,7 +176,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
                 ? "running"
                 : result.status
         }
-        label="Test run"
+        label={i18n.t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
         detail={
           result.status === "completed-with-output"
             ? outputDetail(result.output ?? result.testRun.output)
@@ -202,7 +203,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       ) : (
         <AlertBanner
           severity="error"
-          title="This needs a fix before it works"
+          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
               Ask the agent

@@ -52,6 +52,7 @@ import {
   useRovingRadioGroup
 } from "./SetupCardButton";
 import type { RovingRadioItemProps } from "./SetupCardButton";
+import { i18n } from "../../i18n";
 
 export interface PresetTile {
   id: string;

@@ -1,4 +1,5 @@
 import React from "react";
+import { i18n } from "../../i18n";
 import {
   Caption,
   EditorButton,
@@ -36,8 +37,8 @@ export function ExampleBriefs({
     briefRef?.current?.focus();
   };
   return (
-    <FlexColumn role="group" aria-label="Inspiration" gap={GAP.tight}>
-      <Caption>Try an example</Caption>
+    <FlexColumn role="group" aria-label={i18n.t("storyboard:attrs.inspiration", { defaultValue: "Inspiration" })} gap={GAP.tight}>
+      <Caption>{i18n.t("storyboard:attrs.tryAnExample", { defaultValue: "Try an example" })}</Caption>
       {choices.map((text) => (
         <EditorButton
           key={text}

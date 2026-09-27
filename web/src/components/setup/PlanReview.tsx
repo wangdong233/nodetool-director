@@ -29,6 +29,7 @@ import {
   ToolbarIconButton
 } from "../ui_primitives";
 import type { SelectOption } from "../ui_primitives";
+import { i18n } from "../../i18n";
 import {
   EDITABLE_FIELD,
   REVIEW_BLOCK,

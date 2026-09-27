@@ -29,6 +29,7 @@ import { useBoard } from "../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../serverState/useEntities";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { AlertBanner, EditorButton, FlexRow, SPACING } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 export type StaleInputReason =
   | "action or prompt"
@@ -197,18 +198,14 @@ const BoardStaleBannerImpl = ({
             variant="outlined"
             onClick={handleRerenderStills}
             disabled={disabled}
-          >
-            Regenerate stale stills
-          </EditorButton>
+          >{i18n.t("storyboard:attrs.regenerateStaleStills", { defaultValue: "Regenerate stale stills" })}</EditorButton>
           )}
           {staleClips.length > 0 && (
             <EditorButton
               variant="outlined"
               onClick={handleRerenderClips}
               disabled={disabled}
-            >
-              Regenerate stale clips
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.regenerateStaleClips", { defaultValue: "Regenerate stale clips" })}</EditorButton>
           )}
         </FlexRow>
       }

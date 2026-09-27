@@ -23,6 +23,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { SETUP_CONTENT_WIDTH, SETUP_MEDIA_WIDTH } from "../layout";
+import { i18n } from "../../../i18n";
 
 interface ReferenceStepProps {
   readonly name: string;
@@ -118,7 +119,7 @@ const GenerateReferenceDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Generate a reference image"
+      title={i18n.t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
       showActions
       onConfirm={() => void handleGenerate()}
       confirmText={generating ? "Generating" : "Generate reference"}
@@ -132,7 +133,7 @@ const GenerateReferenceDialog = ({
           want a different visual interpretation.
         </Caption>
         <TextInput
-          label="Prompt"
+          label={i18n.t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
           multiline
@@ -140,7 +141,7 @@ const GenerateReferenceDialog = ({
           autoFocus
         />
         <FormField
-          label="Image model"
+          label={i18n.t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
           helperText="Used to create the reference image."
         >
           <ImageModelSelect
@@ -153,7 +154,7 @@ const GenerateReferenceDialog = ({
         {generating ? (
           <FlexRow gap={GAP.tight} align="center">
             <LoadingSpinner inline size={14} />
-            <Caption>Creating your reference image…</Caption>
+            <Caption>{i18n.t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
           </FlexRow>
         ) : null}
       </FlexColumn>
@@ -179,9 +180,7 @@ export const ReferenceStep = ({
   return (
     <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h1">
-          Choose a reference image
-        </Text>
+        <Text size="big" component="h1">{i18n.t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}</Text>
         <Text color="secondary">
           Pick the clearest image of the traits you want future generations to
           preserve, or create one with AI.
@@ -223,9 +222,7 @@ export const ReferenceStep = ({
           variant="outlined"
           startIcon={<AutoAwesomeOutlinedIcon />}
           onClick={() => setGeneratorOpen(true)}
-        >
-          Generate with AI
-        </EditorButton>
+        >{i18n.t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}</EditorButton>
       </FlexRow>
 
       <EntityAssetPickerDialog

@@ -26,6 +26,7 @@ import {
   useStylePresets
 } from "../../serverState/useStylePresets";
 import { PresetTileGrid, type PresetTile } from "../setup/PresetTileGrid";
+import { i18n } from "../../i18n";
 
 export interface BoardStyleDialogProps {
   boardId: string;
@@ -92,7 +93,7 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
           rendered are marked stale — nothing re-renders until you ask for it.
         </Caption>
         <PresetTileGrid
-          label="Art style"
+          label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
           presets={tiles}
           selectedId={selectedId}
           onSelect={handleSelect}

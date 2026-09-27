@@ -21,6 +21,7 @@ import {
 } from "./DetailsStep";
 import { ReferenceStep } from "./ReferenceStep";
 import { ReviewStep } from "./ReviewStep";
+import { i18n } from "../../../i18n";
 import {
   clearEntitySetupDraft,
   readEntitySetupDraft,

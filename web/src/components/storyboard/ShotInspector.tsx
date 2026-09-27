@@ -45,6 +45,7 @@ import {
 } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
 import { hexToRgba } from "../../utils/ColorUtils";
+import { i18n } from "../../i18n";
 
 interface ShotInspectorProps {
   boardId: string;
@@ -198,7 +199,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           <ShotActionText action={shot.action} entities={shotEntities} />
         </Box>
         <Divider orientation="vertical" flexItem />
-        <Caption color="secondary">Appears in</Caption>
+        <Caption color="secondary">{i18n.t("storyboard:attrs.appearsIn", { defaultValue: "Appears in" })}</Caption>
         {timelineLink && (
           <Chip
             compact
@@ -206,7 +207,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
             label={timelineLink.label}
             sx={timelineChipSx}
             onClick={timelineLink.open}
-            title="Open the cut with this shot's clip selected"
+            title={i18n.t("storyboard:attrs.openTheCutWithThisShotClipSelected", { defaultValue: "Open the cut with this shot's clip selected" })}
           />
         )}
         {scriptLink && (
@@ -216,7 +217,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
             label={scriptLink.label}
             sx={scriptChipSx}
             onClick={handleOpenScript}
-            title="Open the script this shot's lines come from"
+            title={i18n.t("storyboard:attrs.openTheScriptThisShotLinesComeFrom", { defaultValue: "Open the script this shot's lines come from" })}
           />
         )}
         {!timelineLink && !scriptLink && (
@@ -229,10 +230,8 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
                 variant="contained"
                 color="primary"
                 onClick={() => onEdit(shot.id)}
-                title="Open this shot's fields, takes and script lines under its card"
-              >
-                Edit
-              </EditorButton>
+                title={i18n.t("storyboard:attrs.openThisShotFieldsTakesAndScriptLinesUnderItsCard", { defaultValue: "Open this shot's fields, takes and script lines under its card" })}
+              >{i18n.t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
             )}
             <EditorButton
               onClick={() => setIterateOpen(true)}
@@ -243,36 +242,30 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
                   ? "Re-render this clip with a note applied"
                   : "Render a clip first"
               }
-            >
-              Iterate
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
             <EditorButton
               onClick={handleRegenerate}
               disabled={isGenerating}
               sx={quietActionSx}
-              title="Render a new still from this shot's saved fields"
-            >
-              Regenerate
-            </EditorButton>
+              title={i18n.t("storyboard:attrs.renderANewStillFromThisShotSavedFields", { defaultValue: "Render a new still from this shot's saved fields" })}
+            >{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
             <EditorButton
               onClick={() => setConfirmDelete(true)}
               disabled={isGenerating}
               sx={quietActionSx}
-              title="Remove this shot from the board"
-            >
-              Delete
-            </EditorButton>
+              title={i18n.t("storyboard:attrs.removeThisShotFromTheBoard", { defaultValue: "Remove this shot from the board" })}
+            >{i18n.t("storyboard:attrs.delete", { defaultValue: "Delete" })}</EditorButton>
           </>
         )}
         {onClose && (
-          <CloseButton onClick={onClose} tooltip="Clear shot selection" />
+          <CloseButton onClick={onClose} tooltip={i18n.t("storyboard:attrs.clearShotSelection", { defaultValue: "Clear shot selection" })} />
         )}
       </FlexRow>
 
       <Dialog
         open={iterateOpen}
         onClose={() => setIterateOpen(false)}
-        title="Iterate on this clip"
+        title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
         onConfirm={handleIterateConfirm}
         confirmText="Iterate"
         confirmDisabled={iterateText.trim().length === 0}

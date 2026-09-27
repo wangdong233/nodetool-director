@@ -31,6 +31,7 @@ import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import type { Workflow, WorkflowList } from "../../../stores/ApiTypes";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowExamplePickerProps {
   /** Copies the picked example. The host owns where the copy lands. */
@@ -90,9 +91,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Start from an example
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" })}</Text>
         <Text size="normal" color="secondary">
           Pick one and we copy it onto your canvas. Nothing runs.
         </Text>
@@ -104,7 +103,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         <SearchInput
           value={query}
           onChange={setQuery}
-          placeholder="Search examples"
+          placeholder={i18n.t("storyboard:attrs.searchExamples", { defaultValue: "Search examples" })}
           showClear
         />
         <EditorButton variant="text" onClick={onCancel}>
@@ -115,9 +114,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       {isLoading ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            Reading the examples this install ships…
-          </Caption>
+          <Caption color="secondary" component="span">{i18n.t("storyboard:attrs.readingTheExamplesThisInstallShips", { defaultValue: "Reading the examples this install ships…" })}</Caption>
         </FlexRow>
       ) : isError ? (
         <AlertBanner
@@ -128,12 +125,10 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
               onClick={() => {
                 void refetch();
               }}
-            >
-              Try again
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
-          <Caption component="span">Could not read the examples.</Caption>
+          <Caption component="span">{i18n.t("storyboard:attrs.couldNotReadTheExamples", { defaultValue: "Could not read the examples." })}</Caption>
         </AlertBanner>
       ) : matches.length === 0 ? (
         <EmptyState
@@ -150,7 +145,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         />
       ) : (
         <OptionCardGrid
-          label="Example workflows"
+          label={i18n.t("storyboard:attrs.exampleWorkflows", { defaultValue: "Example workflows" })}
           options={options}
           onSelect={(id) => {
             const example = matches.find((entry) => entry.id === id);
@@ -165,9 +160,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       {pickingId !== null ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            Copying the example…
-          </Caption>
+          <Caption color="secondary" component="span">{i18n.t("storyboard:attrs.copyingTheExample", { defaultValue: "Copying the example…" })}</Caption>
         </FlexRow>
       ) : null}
     </FlexColumn>

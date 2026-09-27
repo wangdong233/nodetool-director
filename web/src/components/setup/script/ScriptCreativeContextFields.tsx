@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import type { CreativeContext } from "@nodetool-ai/protocol";
+import { i18n } from "../../../i18n";
 
 import {
   Caption,
@@ -59,12 +60,10 @@ export const ScriptCreativeContextFields: React.FC<
     <FlexColumn
       gap={GAP.normal}
       component="section"
-      aria-label="Production context"
+      aria-label={i18n.t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}
     >
       <FlexColumn gap={GAP.micro}>
-        <Text size="normal" weight={600} component="h3">
-          Production context
-        </Text>
+        <Text size="normal" weight={600} component="h3">{i18n.t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}</Text>
         <Caption color="secondary" component="p">
           Optional context for visual production. The script still owns its words.
         </Caption>
@@ -100,9 +99,9 @@ export const ScriptCreativeContextFields: React.FC<
         />
       </FlexColumn>
       <FlexColumn gap={GAP.micro}>
-        <Label>Prohibited claims</Label>
+        <Label>{i18n.t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}</Label>
         <TextInput
-          label="Prohibited claims"
+          label={i18n.t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}
           hideLabel
           multiline
           rows={3}

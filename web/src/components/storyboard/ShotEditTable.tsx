@@ -12,6 +12,7 @@
  */
 
 import React, { memo, useCallback, useMemo, useState } from "react";
+import { i18n } from "../../i18n";
 import {
   Box,
   Caption,
@@ -148,7 +149,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
 
   return (
     <Box sx={gridSx} data-testid="shot-edit-table">
-      <Cell label="Scene">
+      <Cell label={i18n.t("storyboard:attrs.scene", { defaultValue: "Scene" })}>
         <Text sx={readOnlyCellSx} data-testid="cell-scene">
           {numbering.scene || "—"}
         </Text>
@@ -159,37 +160,33 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
         </Text>
       </Cell>
 
-      <Cell label="Description" span={2}>
+      <Cell label={i18n.t("storyboard:attrs.description", { defaultValue: "Description" })} span={2}>
         <TextInput
           compact
           size="small"
           multiline
           minRows={2}
-          label="Description"
+          label={i18n.t("storyboard:attrs.description", { defaultValue: "Description" })}
           hideLabel
-          placeholder="What the shot shows"
+          placeholder={i18n.t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
           disabled={readOnly}
           value={draft.action}
           onChange={(event) => set({ action: event.target.value })}
         />
       </Cell>
 
-      <Cell label="Dialogue" span={2}>
+      <Cell label={i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })} span={2}>
         {linksLines ? (
           <FlexColumn gap={SPACING.xs}>
             <Text sx={{ whiteSpace: "pre-wrap" }} data-testid="shot-dialogue-readonly">
               {draft.dialogue || "—"}
             </Text>
-            <Caption color="muted">
-              The script owns these words.
-            </Caption>
+            <Caption color="muted">{i18n.t("storyboard:attrs.theScriptOwnsTheseWords", { defaultValue: "The script owns these words." })}</Caption>
             <EditorButton
               size="small"
               onClick={onEditInScript}
               sx={{ alignSelf: "flex-start" }}
-            >
-              Edit in script
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.editInScript", { defaultValue: "Edit in script" })}</EditorButton>
           </FlexColumn>
         ) : (
           <TextInput
@@ -197,9 +194,9 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
             size="small"
             multiline
             minRows={2}
-            label="Dialogue"
+            label={i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
             hideLabel
-            placeholder="What is said in shot"
+            placeholder={i18n.t("storyboard:attrs.whatIsSaidInShot", { defaultValue: "What is said in shot" })}
             disabled={readOnly}
             autoFocus={focusDialogue}
             value={draft.dialogue}
@@ -214,7 +211,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
             compact
             size="small"
             type="number"
-            label="Estimated running time in seconds"
+            label={i18n.t("storyboard:attrs.estimatedRunningTimeInSeconds", { defaultValue: "Estimated running time in seconds" })}
             hideLabel
             placeholder={
               !pinned && takesDuration != null ? String(takesDuration) : "auto"
@@ -256,10 +253,10 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           options={framingOptions}
         />
       </Cell>
-      <Cell label="Perspective">
+      <Cell label={i18n.t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}>
         <SelectField
           size="small"
-          label="Perspective"
+          label={i18n.t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
           hideLabel
           disabled={readOnly}
           value={draft.angle}
@@ -267,10 +264,10 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           options={angleOptions}
         />
       </Cell>
-      <Cell label="Movement">
+      <Cell label={i18n.t("storyboard:attrs.movement", { defaultValue: "Movement" })}>
         <SelectField
           size="small"
-          label="Movement"
+          label={i18n.t("storyboard:attrs.movement", { defaultValue: "Movement" })}
           hideLabel
           disabled={readOnly}
           value={draft.movement}
@@ -278,10 +275,10 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           options={movementOptions}
         />
       </Cell>
-      <Cell label="Equipment">
+      <Cell label={i18n.t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}>
         <SelectField
           size="small"
-          label="Equipment"
+          label={i18n.t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}
           hideLabel
           disabled={readOnly}
           value={draft.equipment}
@@ -289,10 +286,10 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           options={equipmentOptions}
         />
       </Cell>
-      <Cell label="Focal length">
+      <Cell label={i18n.t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}>
         <SelectField
           size="small"
-          label="Focal length"
+          label={i18n.t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}
           hideLabel
           disabled={readOnly}
           value={draft.lens}
@@ -301,7 +298,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
         />
       </Cell>
 
-      <Cell label="Aspect ratio">
+      <Cell label={i18n.t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}>
         <FlexRow align="center" gap={SPACING.sm} wrap>
           <Text sx={readOnlyCellSx} data-testid="cell-aspect-ratio">
             {aspectRatio}
@@ -312,26 +309,24 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
             <EditorButton
               size="small"
               onClick={onOpenBoardSettings}
-              title="Aspect ratio is set once for the whole board"
-            >
-              Board settings
-            </EditorButton>
+              title={i18n.t("storyboard:attrs.aspectRatioIsSetOnceForTheWholeBoard", { defaultValue: "Aspect ratio is set once for the whole board" })}
+            >{i18n.t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}</EditorButton>
           ) : (
-            <Caption color="muted">Set in Board settings</Caption>
+            <Caption color="muted">{i18n.t("storyboard:attrs.setInBoardSettings", { defaultValue: "Set in Board settings" })}</Caption>
           )}
         </FlexRow>
       </Cell>
 
-      <Cell label="Notes" span={2}>
+      <Cell label={i18n.t("storyboard:attrs.notes", { defaultValue: "Notes" })} span={2}>
         {notesOpen ? (
           <TextInput
             compact
             size="small"
             multiline
             minRows={2}
-            label="Notes"
+            label={i18n.t("storyboard:attrs.notes", { defaultValue: "Notes" })}
             hideLabel
-            placeholder="Anything the render should not read as direction"
+            placeholder={i18n.t("storyboard:attrs.anythingTheRenderShouldNotReadAsDirection", { defaultValue: "Anything the render should not read as direction" })}
             disabled={readOnly}
             autoFocus={draft.notes === ""}
             value={draft.notes}

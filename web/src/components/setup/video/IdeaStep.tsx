@@ -44,6 +44,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
+import { i18n } from "../../../i18n";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -234,7 +235,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           rows={4}
           label="Your video"
           hideLabel
-          placeholder="One sentence is enough."
+          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
           onChange={handleChange}
           inputRef={briefField}
         />
@@ -246,9 +247,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         />
 
         {dragging ? (
-          <Caption color="secondary" role="status">
-            Drop to place your media on the timeline.
-          </Caption>
+          <Caption color="secondary" role="status">{i18n.t("storyboard:attrs.dropToPlaceYourMediaOnTheTimeline", { defaultValue: "Drop to place your media on the timeline." })}</Caption>
         ) : null}
 
         {error ? (
@@ -290,9 +289,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           <FlexColumn
             gap={GAP.tight}
             role="group"
-            aria-label="Carried from your project screen"
+            aria-label={i18n.t("storyboard:attrs.carriedFromYourProjectScreen", { defaultValue: "Carried from your project screen" })}
           >
-            <Caption color="muted">From your project screen</Caption>
+            <Caption color="muted">{i18n.t("storyboard:attrs.fromYourProjectScreen", { defaultValue: "From your project screen" })}</Caption>
             {references.length > 0 ? (
               <FlexRow gap={GAP.tight} wrap>
                 {references.map((reference) => {
@@ -351,7 +350,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -362,7 +361,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         multiple
         ref={mediaInput}
         accept={MEDIA_ACCEPT}
-        aria-label="Drop your media"
+        aria-label={i18n.t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" })}
         onChange={handlePicked}
       />
     </Box>

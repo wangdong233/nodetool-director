@@ -31,6 +31,7 @@ import {
 } from "../../ui_primitives";
 import type { BuildGameResult } from "../../../hooks/game/useBuildGame";
 import type { GameRunSummary, GameVerificationState } from "./gameRunSummary";
+import { i18n } from "../../../i18n";
 
 export interface GameLandingChecklistProps {
   result: BuildGameResult;
@@ -104,7 +105,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         done
-        label="Graph built"
+        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${
           result.nodeCount === 1 ? "" : "s"
         } placed`}
@@ -120,7 +121,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
       />
       <Line
         done={exported}
-        label="Exported"
+        label={i18n.t("storyboard:attrs.exported", { defaultValue: "Exported" })}
         detail={run.directory ?? "Waiting for the export node"}
       />
       <VerificationLine
@@ -144,16 +145,12 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
             variant="contained"
             onClick={onOpenFolder}
             disabled={!exported}
-          >
-            Open project folder
-          </EditorButton>
+          >{i18n.t("storyboard:attrs.openProjectFolder", { defaultValue: "Open project folder" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onDownload}
             disabled={run.archive === null}
-          >
-            Download project
-          </EditorButton>
+          >{i18n.t("storyboard:attrs.downloadProject", { defaultValue: "Download project" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onPlayTest}
@@ -161,18 +158,14 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
           >
             Play-test with the agent
           </EditorButton>
-          <EditorButton variant="text" onClick={onRegenerate}>
-            Regenerate
-          </EditorButton>
+          <EditorButton variant="text" onClick={onRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title="This needs a fix before it plays"
+          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItPlays", { defaultValue: "This needs a fix before it plays" })}
           action={
-            <EditorButton variant="text" onClick={onRegenerate}>
-              Regenerate
-            </EditorButton>
+            <EditorButton variant="text" onClick={onRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
           }
         >
           <Caption component="span">{failure.split("\n")[0]}</Caption>

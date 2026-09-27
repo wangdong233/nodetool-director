@@ -12,6 +12,7 @@ import {
 } from "../../ui_primitives";
 import { getEntityKindChipSx } from "../../entities/entityKind";
 import { SETUP_CONTENT_WIDTH, SETUP_MEDIA_WIDTH } from "../layout";
+import { i18n } from "../../../i18n";
 
 interface ReviewStepProps {
   readonly assetId: string;
@@ -30,9 +31,7 @@ export const ReviewStep = ({
 }: ReviewStepProps) => (
   <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
     <FlexColumn gap={GAP.tight}>
-      <Text size="big" component="h1">
-        Review your entity
-      </Text>
+      <Text size="big" component="h1">{i18n.t("storyboard:attrs.reviewYourEntity", { defaultValue: "Review your entity" })}</Text>
       <Text color="secondary">
         This reference and descriptor will be available anywhere entities can
         be added.

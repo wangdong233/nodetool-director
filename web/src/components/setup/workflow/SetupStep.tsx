@@ -45,6 +45,7 @@ import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore"
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { MODEL_ROLE_LABEL, MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import { i18n } from "../../../i18n";
 
 /**
  * The three run modes, as cards (PRD § 11.3).
@@ -126,9 +127,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Models and how it runs
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.modelsAndHowItRuns", { defaultValue: "Models and how it runs" })}</Text>
         <Text size="normal" color="secondary">
           Pick what each step runs on, and how you want to start it.
         </Text>
@@ -139,15 +138,13 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       ))}
 
       <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">
-          How it runs
-        </Text>
+        <Text size="normal" component="h3">{i18n.t("storyboard:attrs.howItRuns", { defaultValue: "How it runs" })}</Text>
         <Caption color="secondary" component="p">
           Building runs it once with the sample inputs. This is how you start it
           after that.
         </Caption>
         <OptionCardGrid
-          label="Run mode"
+          label={i18n.t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
           options={runModeOptions}
           selectedId={runMode}
           onSelect={(id) => onRunModeChange(id as WorkflowSetupRunMode)}
@@ -156,9 +153,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
 
       {plan.inputs.length > 0 ? (
         <FlexColumn gap={GAP.normal}>
-          <Text size="normal" component="h3">
-            Sample inputs
-          </Text>
+          <Text size="normal" component="h3">{i18n.t("storyboard:attrs.sampleInputs", { defaultValue: "Sample inputs" })}</Text>
           <Caption color="secondary" component="p">
             The values the test run uses. Change them to something of yours.
           </Caption>
@@ -261,9 +256,7 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
         <AlertBanner
           severity="error"
           action={
-            <EditorButton variant="text" onClick={role.onRetry}>
-              Try again
-            </EditorButton>
+            <EditorButton variant="text" onClick={role.onRetry}>{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
           <Caption component="span">
@@ -284,9 +277,7 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
                   reason: `This workflow needs a ${role.role} model.`
                 })
               }
-            >
-              Connect
-            </EditorButton>
+            >{i18n.t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
           }
         >
           <Caption component="span">

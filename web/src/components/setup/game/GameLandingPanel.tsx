@@ -30,6 +30,7 @@ import { stageChatTurn } from "../../chat/pendingChatTurn";
 import { GameLandingChecklist } from "./GameLandingChecklist";
 import { useGameRunSummary } from "./gameRunSummary";
 import { gameBuildResult, readGameBuild } from "./gameExtras";
+import { i18n } from "../../../i18n";
 import {
   gameArchiveDownloadPath,
   gamePlayTestTurn,

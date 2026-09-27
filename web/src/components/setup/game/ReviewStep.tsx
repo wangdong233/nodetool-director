@@ -30,6 +30,7 @@ import {
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { REVIEW_CONTENT_WIDTH } from "../reviewStyles";
+import { i18n } from "../../../i18n";
 
 export interface GameReviewStepProps {
   design: GameDesign;
@@ -262,9 +263,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Your design
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourDesign", { defaultValue: "Your design" })}</Text>
         <Text size="normal" color="secondary">
           Read it, change anything, then choose the look. Nothing is generated
           yet.

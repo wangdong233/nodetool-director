@@ -19,6 +19,7 @@ import {
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { OptionCardGrid, type OptionCardItem } from "../setup/OptionCardGrid";
+import { i18n } from "../../i18n";
 import {
   STORYBOARD_GENRES,
   genreByLabel,
@@ -94,11 +95,9 @@ const BoardGenreChipInner: React.FC<BoardGenreChipProps> = ({
         maxHeight="70vh"
       >
         <FlexColumn gap={SPACING.md} sx={{ p: SPACING.xl }}>
-          <Text size="small" component="h3">
-            Genre
-          </Text>
+          <Text size="small" component="h3">{i18n.t("storyboard:attrs.genre", { defaultValue: "Genre" })}</Text>
           <OptionCardGrid
-            label="Genre"
+            label={i18n.t("storyboard:attrs.genre", { defaultValue: "Genre" })}
             options={options}
             selectedId={selectedId}
             onSelect={handleSelect}

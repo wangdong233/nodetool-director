@@ -26,6 +26,7 @@ import {
 } from "../../ui_primitives";
 import type { GenerationModel } from "../generationEstimate";
 import { MAX_STYLE_REFERENCES, STYLE_ACCEPT } from "./useCustomStyle";
+import { i18n } from "../../../i18n";
 
 // The estimate pulls in the provider price tables; nothing needs them until
 // the dialog is open.
@@ -126,16 +127,14 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
         <EditorButton
           onClick={handleAdd}
           disabled={saving || files.length >= MAX_STYLE_REFERENCES}
-        >
-          Choose references
-        </EditorButton>
+        >{i18n.t("storyboard:attrs.chooseReferences", { defaultValue: "Choose references" })}</EditorButton>
         <input
           type="file"
           hidden
           multiple
           ref={input}
           accept={STYLE_ACCEPT}
-          aria-label="Reference images"
+          aria-label={i18n.t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
           onChange={handlePicked}
         />
         {files.length > 0 ? (
@@ -168,25 +167,21 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
                     disabled={saving}
                     aria-label={`Replace ${file.name}`}
                     onClick={() => openPicker(index)}
-                  >
-                    Replace
-                  </EditorButton>
+                  >{i18n.t("storyboard:attrs.replace", { defaultValue: "Replace" })}</EditorButton>
                   <EditorButton
                     variant="text"
                     size="small"
                     disabled={saving}
                     aria-label={`Remove ${file.name}`}
                     onClick={() => handleRemove(index)}
-                  >
-                    Remove
-                  </EditorButton>
+                  >{i18n.t("storyboard:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
               </FlexRow>
             ))}
           </FlexColumn>
         ) : null}
         <Suspense
-          fallback={<Caption color="secondary">Loading estimate…</Caption>}
+          fallback={<Caption color="secondary">{i18n.t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
             result="Describe your references as a style you can reuse"

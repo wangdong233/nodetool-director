@@ -46,6 +46,7 @@ import {
 import { readScriptSource } from "../../../lib/script/importedScript";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
+import { i18n } from "../../../i18n";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
@@ -216,9 +217,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Read it through
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.readItThrough", { defaultValue: "Read it through" })}</Text>
         <Caption color="secondary" component="p">
           {`${words} words · about ${spokenLength(estimateSpokenSeconds(words, pace))} spoken at a ${pace} read`}
         </Caption>
@@ -227,12 +226,12 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       {/* The model and the rewrite belong together: picking a different
           writer is only useful next to the button that runs it. */}
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <Label>Write with</Label>
+        <Label>{i18n.t("storyboard:attrs.writeWith", { defaultValue: "Write with" })}</Label>
         <Box sx={{ width: MODEL_PICKER_WIDTH }}>
           <LanguageModelSelect
             value={writerModel?.id ?? ""}
             provider={writerModel?.provider}
-            placeholder="Select writer model"
+            placeholder={i18n.t("storyboard:attrs.selectWriterModel", { defaultValue: "Select writer model" })}
             onChange={setWriterModel}
           />
         </Box>
@@ -281,9 +280,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <PlanReview sections={sections} />
 
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <EditorButton variant="text" size="small" onClick={onOpenEditor}>
-          Open the editor without voicing
-        </EditorButton>
+        <EditorButton variant="text" size="small" onClick={onOpenEditor}>{i18n.t("storyboard:attrs.openTheEditorWithoutVoicing", { defaultValue: "Open the editor without voicing" })}</EditorButton>
         <Caption color="secondary">
           Finish here with the text. You can voice it in the editor later.
         </Caption>

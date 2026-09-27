@@ -22,6 +22,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { videoFormatById } from "./formats";
+import { i18n } from "../../../i18n";
 import {
   productionFields,
   productionPatch,
@@ -220,9 +221,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Review your beats
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.reviewYourBeats", { defaultValue: "Review your beats" })}</Text>
         <FlexRow gap={GAP.normal} align="baseline">
           <Text size="normal" color={over ? "warning" : "secondary"}>
             {format

@@ -19,6 +19,7 @@ import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { SETUP_STILL_GROUPS, setupStill } from "../stills";
 import { VIDEO_FORMATS, videoFormatById, tracksForFormat } from "./formats";
+import { i18n } from "../../../i18n";
 
 /** "15s · 16:9 · 30fps" — the numbers the card decides, said out loud. */
 const formatSpec = (durationMs: number, aspect: string, fps: number): string =>
@@ -72,9 +73,7 @@ const FormatStepInternal: React.FC = () => {
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Choose a video template
-        </Text>
+        <Text size="big" component="h2">{i18n.t("storyboard:attrs.chooseAVideoTemplate", { defaultValue: "Choose a video template" })}</Text>
         <Text size="normal" color="secondary">
           Each template combines a target length, frame shape and editing style.
           These are starting settings, not generated footage.
@@ -84,7 +83,7 @@ const FormatStepInternal: React.FC = () => {
           with a single tab stop. Stated rather than inferred from the fact
           that a selection is tracked (F26). */}
       <OptionCardGrid
-        label="Format"
+        label={i18n.t("storyboard:attrs.format", { defaultValue: "Format" })}
         options={options}
         selectedId={selectedId}
         onSelect={handleSelect}

@@ -9,6 +9,7 @@ import {
 } from "../../ui_primitives";
 import { AlternativesColumn } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
+import { i18n } from "../../../i18n";
 import {
   SETUP_OPTION_MIN_WIDTH,
   SETUP_WIDE_CONTENT_WIDTH
@@ -85,9 +86,7 @@ export const DetailsStep = ({
   >
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h1">
-          What should stay consistent?
-        </Text>
+        <Text size="big" component="h1">{i18n.t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}</Text>
         <Text color="secondary">
           Give the entity a stable name and the description generation prompts
           should reuse.
@@ -95,7 +94,7 @@ export const DetailsStep = ({
       </FlexColumn>
 
       <OptionCardGrid
-        label="Entity type"
+        label={i18n.t("storyboard:attrs.entityType", { defaultValue: "Entity type" })}
         options={ENTITY_KINDS}
         selectedId={value.kind}
         onSelect={(kind) => {
@@ -115,7 +114,7 @@ export const DetailsStep = ({
         autoFocus
       />
       <TextInput
-        label="Descriptor"
+        label={i18n.t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
         helperText="This text is added to every prompt that uses the entity. Describe only stable visual traits."
         value={value.descriptor}
         onChange={(event) =>
@@ -126,7 +125,7 @@ export const DetailsStep = ({
         rows={4}
       />
       <TextInput
-        label="Tags (optional)"
+        label={i18n.t("storyboard:attrs.tagsOptional", { defaultValue: "Tags (optional)" })}
         value={value.tags}
         onChange={(event) => onChange({ ...value, tags: event.target.value })}
         placeholder="hero, space"
@@ -134,7 +133,7 @@ export const DetailsStep = ({
     </FlexColumn>
     {onStartBlank === undefined ? null : (
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={[
           {
             id: "blank",

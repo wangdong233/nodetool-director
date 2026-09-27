@@ -48,6 +48,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { ExampleBriefs } from "../ExampleBriefs";
 import { ShotlistReport } from "./ShotlistReport";
 import { SCRIPT_ACCEPT, useScriptImport } from "./useScriptImport";
+import { i18n } from "../../../i18n";
 import {
   SHOTLIST_ACCEPT,
   SHOTLIST_TEMPLATE_URL,
@@ -207,25 +208,19 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                   variant="outlined"
                   size="small"
                   onClick={replaceSource}
-                >
-                  Replace file
-                </EditorButton>
+                >{i18n.t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}</EditorButton>
                 {locked ? (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={editAsText}
-                  >
-                    Edit as text
-                  </EditorButton>
+                  >{i18n.t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}</EditorButton>
                 ) : (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={removeSource}
-                  >
-                    Remove the file
-                  </EditorButton>
+                  >{i18n.t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}</EditorButton>
                 )}
               </FlexRow>
             </FlexColumn>
@@ -237,9 +232,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus={!locked}
           multiline
           rows={5}
-          label="Your story"
+          label={i18n.t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
           hideLabel
-          placeholder="One sentence is enough, or paste a full script."
+          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnoughOrPasteAFullScript", { defaultValue: "One sentence is enough, or paste a full script." })}
           onChange={handleChange}
           slotProps={{ input: { readOnly: locked } }}
           helperText={
@@ -272,13 +267,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           under the rail, next to the card that needs it. */}
       <FlexColumn gap={GAP.normal}>
         <AlternativesColumn
-          label="Other ways to start"
+          label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
           alternatives={alternatives}
         />
         <Caption color="secondary" component="p">
-          <a href={SHOTLIST_TEMPLATE_URL} download>
-            Download the CSV template
-          </a>
+          <a href={SHOTLIST_TEMPLATE_URL} download>{i18n.t("storyboard:attrs.downloadTheCSVTemplate", { defaultValue: "Download the CSV template" })}</a>
         </Caption>
       </FlexColumn>
 
@@ -288,7 +281,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={scriptInput}
         accept={SCRIPT_ACCEPT}
-        aria-label="Upload your file"
+        aria-label={i18n.t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" })}
         onChange={handlePicked(script.importFile)}
       />
       <input
@@ -296,7 +289,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={shotlistInput}
         accept={SHOTLIST_ACCEPT}
-        aria-label="Import your shotlist"
+        aria-label={i18n.t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" })}
         onChange={handlePicked(shotlist.importFile)}
       />
 

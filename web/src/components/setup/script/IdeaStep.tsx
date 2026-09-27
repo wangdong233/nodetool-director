@@ -47,6 +47,7 @@ import type { ScriptSetupAttachment } from "./scriptSetupContext";
 import { ExampleBriefs } from "../ExampleBriefs";
 import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
+import { i18n } from "../../../i18n";
 import {
   SCRIPT_SUBTITLE_ACCEPT,
   SCRIPT_TEXT_ACCEPT,
@@ -103,7 +104,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
     gap={GAP.normal}
     padding={PADDING.comfortable}
     component="section"
-    aria-label="Imported script"
+    aria-label={i18n.t("storyboard:attrs.importedScript", { defaultValue: "Imported script" })}
     sx={{
       border: "1px solid",
       borderColor: "divider",
@@ -111,7 +112,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
     }}
   >
     <FlexColumn gap={GAP.micro}>
-      <Label>Your script, kept word for word</Label>
+      <Label>{i18n.t("storyboard:attrs.yourScriptKeptWordForWord", { defaultValue: "Your script, kept word for word" })}</Label>
       <Caption color="secondary" component="p">
         {sourceSummary(source)}
       </Caption>
@@ -133,12 +134,8 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
       ) : null}
     </FlexColumn>
     <FlexRow gap={GAP.normal} wrap>
-      <EditorButton variant="outlined" size="small" onClick={onReplace}>
-        Replace these words
-      </EditorButton>
-      <EditorButton variant="text" size="small" onClick={onRemove}>
-        Remove them
-      </EditorButton>
+      <EditorButton variant="outlined" size="small" onClick={onReplace}>{i18n.t("storyboard:attrs.replaceTheseWords", { defaultValue: "Replace these words" })}</EditorButton>
+      <EditorButton variant="text" size="small" onClick={onRemove}>{i18n.t("storyboard:attrs.removeThem", { defaultValue: "Remove them" })}</EditorButton>
     </FlexRow>
   </FlexColumn>
 );
@@ -358,7 +355,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -368,7 +365,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={textInput}
         accept={SCRIPT_TEXT_ACCEPT}
-        aria-label="Upload a file"
+        aria-label={i18n.t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" })}
         onChange={handlePicked(imports.importText)}
       />
       <input
@@ -376,7 +373,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={subtitleInput}
         accept={SCRIPT_SUBTITLE_ACCEPT}
-        aria-label="Import subtitles"
+        aria-label={i18n.t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" })}
         onChange={handlePicked(imports.importSubtitles)}
       />
 
@@ -396,9 +393,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={12}
-          label="Your script"
+          label={i18n.t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
           hideLabel
-          placeholder="Paste it here. We'll split it into lines and leave the words alone."
+          placeholder={i18n.t("storyboard:attrs.pasteItHereWe'llSplitItIntoLinesAndLeaveTheWordsAlone", { defaultValue: "Paste it here. We'll split it into lines and leave the words alone." })}
           onChange={(event) => setPasted(event.target.value)}
         />
       </Dialog>

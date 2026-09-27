@@ -48,6 +48,7 @@ import { linkedScriptId } from "../../lib/scriptStoryboardLink";
 import { useLinkedScript } from "../../hooks/storyboard/useLinkedScript";
 import { useReprojectShots } from "../../hooks/storyboard/useReprojectShots";
 import { shotDialogueDrifted } from "@nodetool-ai/protocol";
+import { i18n } from "../../i18n";
 
 interface ShotScriptPanelProps {
   boardId: string;
@@ -129,7 +130,7 @@ const ScriptLineEntry = ({
           </Tooltip>
         )}
         <ToolbarIconButton
-          tooltip="Play current take"
+          tooltip={i18n.t("storyboard:attrs.playCurrentTake", { defaultValue: "Play current take" })}
           ariaLabel={`Play take: ${line.text}`}
           disabled={!take}
           onClick={() => void (take && playTake(take.assetId))}
@@ -184,13 +185,13 @@ const LinkedScriptSection: React.FC<ShotScriptPanelProps> = ({
       }}
     >
       <FlexRow align="center" justify="space-between" gap={SPACING.xs} wrap>
-        <Caption color="secondary">Script</Caption>
+        <Caption color="secondary">{i18n.t("storyboard:attrs.script", { defaultValue: "Script" })}</Caption>
         {drifted && (
           <FlexRow align="center" gap={SPACING.xs}>
             <StatusIndicator
               status="warning"
-              label="Script changed"
-              tooltip="The linked lines read differently from this shot's text"
+              label={i18n.t("storyboard:attrs.scriptChanged", { defaultValue: "Script changed" })}
+              tooltip={i18n.t("storyboard:attrs.theLinkedLinesReadDifferentlyFromThisShotText", { defaultValue: "The linked lines read differently from this shot's text" })}
             />
             {!readOnly && (
               <EditorButton onClick={() => void onReproject()} disabled={reprojecting}>

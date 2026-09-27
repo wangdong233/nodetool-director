@@ -20,6 +20,7 @@ import {
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { buildPreviewSequence, previewSignature } from "./previewSequence";
+import { i18n } from "../../i18n";
 
 const PREVIEW_HEIGHT = 400;
 
@@ -90,7 +91,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
         <TimelineRenderer
           sequence={preview.sequence}
           showMetadata={false}
-          ariaLabel="Storyboard preview"
+          ariaLabel={i18n.t("storyboard:attrs.storyboardPreview", { defaultValue: "Storyboard preview" })}
         />
       </Box>
       <FlexRow gap={SPACING.sm} align="center">
