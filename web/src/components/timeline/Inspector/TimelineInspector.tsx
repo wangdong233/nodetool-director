@@ -71,6 +71,7 @@ import ExtendClipPanel from "./ExtendClipPanel";
 import { ClipVersionHistory } from "./ClipVersionHistory";
 import LineDeliveryPanel from "./LineDeliveryPanel";
 import InspectorSearch from "./InspectorSearch";
+import { i18n } from "../../../i18n";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -371,7 +372,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         <EmptyState
           variant="empty"
           size="small"
-          title="No selection"
+          title={i18n.t("timeline:attrs.noSelection", { defaultValue: "No selection" })}
           description="Select a clip on the timeline to edit its properties."
         />
       </Panel>
@@ -403,9 +404,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
             variant="outlined"
             startIcon={<FolderOutlinedIcon />}
             onClick={groupSelection}
-          >
-            Group selected clips
-          </Button>
+          >{i18n.t("timeline:attrs.groupSelectedClips", { defaultValue: "Group selected clips" })}</Button>
           <Text size="small" sx={{ color: "text.secondary" }}>
             Grouping parents these clips to one group clip: it moves, trims and
             fades them together. Per-field editing of several clips at once is
@@ -470,7 +469,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Timing"
+              title={i18n.t("timeline:attrs.timing", { defaultValue: "Timing" })}
               icon={<ScheduleOutlinedIcon />}
             />
           }
@@ -479,27 +478,27 @@ const TimelineInspectorContent: React.FC = memo(() => {
           unmountOnExit
         >
           <FlexColumn css={sectionContentStyles(theme)}>
-            <InspectorRow label="Start">
+            <InspectorRow label={i18n.t("timeline:attrs.start", { defaultValue: "Start" })}>
               <InspectorPillInput
                 value={formatTimecode(clip.startMs, fps)}
                 onCommit={handleStartCommit}
                 disabled={timingLocked}
                 minWidth={112}
-                ariaLabel="Start timecode"
+                ariaLabel={i18n.t("timeline:attrs.startTimecode", { defaultValue: "Start timecode" })}
               />
             </InspectorRow>
-            <InspectorRow label="Duration">
+            <InspectorRow label={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}>
               <InspectorPillInput
                 value={(clip.durationMs / 1000).toFixed(2)}
                 unit="s"
                 scrub={SCRUB_DURATION}
                 onCommit={handleDurationCommit}
                 disabled={timingLocked}
-                ariaLabel="Duration in seconds"
+                ariaLabel={i18n.t("timeline:attrs.durationInSeconds", { defaultValue: "Duration in seconds" })}
               />
             </InspectorRow>
             <InspectorToggleRow
-              label="Hidden"
+              label={i18n.t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
               checked={!!clip.hidden}
               onChange={handleHiddenChange}
             />
@@ -511,7 +510,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Render"
+              title={i18n.t("timeline:attrs.render", { defaultValue: "Render" })}
               icon={<LayersOutlinedIcon />}
             />
           }
@@ -521,7 +520,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         >
           <FlexColumn css={sectionContentStyles(theme)}>
             <InspectorSliderRow
-              label="Opacity"
+              label={i18n.t("timeline:attrs.opacity", { defaultValue: "Opacity" })}
               min={0}
               max={1}
               step={0.01}
@@ -618,7 +617,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Media"
+              title={i18n.t("timeline:attrs.media", { defaultValue: "Media" })}
               icon={<PermMediaOutlinedIcon />}
             />
           }
@@ -630,12 +629,12 @@ const TimelineInspectorContent: React.FC = memo(() => {
             <InspectorRow label="Type">
               <InspectorStaticValue value={clip.mediaType} />
             </InspectorRow>
-            <InspectorRow label="Asset">
+            <InspectorRow label={i18n.t("timeline:attrs.asset", { defaultValue: "Asset" })}>
               <InspectorStaticValue value={clip.currentAssetId ?? "—"} />
             </InspectorRow>
-            <InspectorRow label="Parent">
+            <InspectorRow label={i18n.t("timeline:attrs.parent", { defaultValue: "Parent" })}>
               <InspectorSelect
-                label="Parent group"
+                label={i18n.t("timeline:attrs.parentGroup", { defaultValue: "Parent group" })}
                 value={clip.parentId ?? NO_PARENT}
                 options={parentOptions}
                 onChange={handleParentChange}
@@ -643,9 +642,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
               />
             </InspectorRow>
             {clip.parentId !== undefined && (
-              <Button size="small" variant="text" onClick={handleUngroup}>
-                Ungroup
-              </Button>
+              <Button size="small" variant="text" onClick={handleUngroup}>{i18n.t("timeline:attrs.ungroup", { defaultValue: "Ungroup" })}</Button>
             )}
           </FlexColumn>
         </CollapsibleSection>
@@ -655,7 +652,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Group"
+              title={i18n.t("timeline:attrs.group", { defaultValue: "Group" })}
               icon={<FolderOutlinedIcon />}
             />
           }
@@ -664,9 +661,9 @@ const TimelineInspectorContent: React.FC = memo(() => {
           unmountOnExit
         >
           <FlexColumn css={sectionContentStyles(theme)}>
-            <InspectorRow label="Parent">
+            <InspectorRow label={i18n.t("timeline:attrs.parent", { defaultValue: "Parent" })}>
               <InspectorSelect
-                label="Parent group"
+                label={i18n.t("timeline:attrs.parentGroup", { defaultValue: "Parent group" })}
                 value={clip.parentId ?? NO_PARENT}
                 options={parentOptions}
                 onChange={handleParentChange}
@@ -674,9 +671,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
               />
             </InspectorRow>
             {clip.parentId !== undefined && (
-              <Button size="small" variant="text" onClick={handleUngroup}>
-                Ungroup
-              </Button>
+              <Button size="small" variant="text" onClick={handleUngroup}>{i18n.t("timeline:attrs.ungroup", { defaultValue: "Ungroup" })}</Button>
             )}
           </FlexColumn>
         </CollapsibleSection>
@@ -689,7 +684,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Timing"
+            title={i18n.t("timeline:attrs.timing", { defaultValue: "Timing" })}
             icon={<ScheduleOutlinedIcon />}
           />
         }
@@ -698,38 +693,38 @@ const TimelineInspectorContent: React.FC = memo(() => {
         unmountOnExit
       >
         <FlexColumn css={sectionContentStyles(theme)}>
-          <InspectorRow label="Start">
+          <InspectorRow label={i18n.t("timeline:attrs.start", { defaultValue: "Start" })}>
             <InspectorPillInput
               value={formatTimecode(clip.startMs, fps)}
               onCommit={handleStartCommit}
               disabled={timingLocked}
               minWidth={112}
-              ariaLabel="Start timecode"
+              ariaLabel={i18n.t("timeline:attrs.startTimecode", { defaultValue: "Start timecode" })}
             />
           </InspectorRow>
-          <InspectorRow label="Duration">
+          <InspectorRow label={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}>
             <InspectorPillInput
               value={(clip.durationMs / 1000).toFixed(2)}
               unit="s"
               scrub={SCRUB_DURATION}
               onCommit={handleDurationCommit}
               disabled={timingLocked}
-              ariaLabel="Duration in seconds"
+              ariaLabel={i18n.t("timeline:attrs.durationInSeconds", { defaultValue: "Duration in seconds" })}
             />
           </InspectorRow>
           {!isMidi && (
             <>
-              <InspectorRow label="Speed">
+              <InspectorRow label={i18n.t("timeline:attrs.speed", { defaultValue: "Speed" })}>
                 <InspectorPillInput
                   value={(clip.speedMultiplier ?? 1).toFixed(2)}
                   unit="×"
                   scrub={SCRUB_SPEED}
                   onCommit={handleSpeedCommit}
-                  ariaLabel="Playback speed"
+                  ariaLabel={i18n.t("timeline:attrs.playbackSpeed", { defaultValue: "Playback speed" })}
                 />
               </InspectorRow>
               <InspectorToggleRow
-                label="Hidden"
+                label={i18n.t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
                 checked={!!clip.hidden}
                 onChange={handleHiddenChange}
               />

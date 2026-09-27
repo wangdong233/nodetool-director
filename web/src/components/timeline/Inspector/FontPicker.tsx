@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "../../../trpc/client";
 import { InspectorSelect } from "./InspectorPrimitives";
 import type { SelectOption } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 /** The empty option's value: "whatever the renderer defaults to". */
 const DEFAULT_VALUE = "";

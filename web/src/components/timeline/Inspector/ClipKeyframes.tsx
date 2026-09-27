@@ -38,6 +38,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../i18n";
 
 const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number }> = {
   opacity: { label: "Opacity", step: 0.05 },

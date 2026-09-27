@@ -22,6 +22,7 @@ import {
   FONT_WEIGHT
 } from "../../ui_primitives";
 import { relativeTime } from "../../../utils/formatDateAndTime";
+import { i18n } from "../../../i18n";
 
 // ── Status mapping (PRD §5.5) ─────────────────────────────────────────────
 

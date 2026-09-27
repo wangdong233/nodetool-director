@@ -63,6 +63,7 @@ import {
   InspectorToggleRow
 } from "./InspectorPrimitives";
 import { ToneCurveEditor } from "./ToneCurveEditor";
+import { i18n } from "../../../i18n";
 
 /** The fixed effect the dedicated Color section owns; never listed here. */
 const SECTION_OWNED_IDS = new Set(["inspector:color"]);
@@ -195,7 +196,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     if (isClipBlurEffect(effect)) {
       return (
         <InspectorSliderRow
-          label="Radius"
+          label={i18n.t("timeline:attrs.radius", { defaultValue: "Radius" })}
           min={0}
           max={20}
           step={0.5}
@@ -209,7 +210,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     if (isClipGlowEffect(effect)) {
       return (
         <>
-          <InspectorRow label="Radius">
+          <InspectorRow label={i18n.t("timeline:attrs.radius", { defaultValue: "Radius" })}>
             <InspectorPillInput
               value={String(effect.radius)}
               unit="px"
@@ -221,7 +222,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             />
           </InspectorRow>
           <InspectorSliderRow
-            label="Intensity"
+            label={i18n.t("timeline:attrs.intensity", { defaultValue: "Intensity" })}
             min={0}
             max={2}
             step={0.01}
@@ -229,7 +230,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             display={effect.intensity.toFixed(2)}
             onChange={(intensity) => onPatch({ intensity })}
           />
-          <InspectorRow label="Color">
+          <InspectorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}>
             <TextInput
               type="color"
               value={effect.color ?? "#ffffff"}
@@ -244,7 +245,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     if (isClipDropShadowEffect(effect)) {
       return (
         <>
-          <InspectorRow label="Offset">
+          <InspectorRow label={i18n.t("timeline:attrs.offset", { defaultValue: "Offset" })}>
             <InspectorPillInput
               value={String(effect.offsetX)}
               unit="px"
@@ -275,7 +276,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
               ariaLabel={`${name} blur`}
             />
           </InspectorRow>
-          <InspectorRow label="Color">
+          <InspectorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}>
             <TextInput
               type="color"
               value={effect.color}
@@ -284,7 +285,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             />
           </InspectorRow>
           <InspectorSliderRow
-            label="Opacity"
+            label={i18n.t("timeline:attrs.opacity", { defaultValue: "Opacity" })}
             min={0}
             max={1}
             step={0.01}
@@ -300,7 +301,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
       return (
         <>
           <InspectorSliderRow
-            label="Amount"
+            label={i18n.t("timeline:attrs.amount", { defaultValue: "Amount" })}
             min={0}
             max={1}
             step={0.01}
@@ -309,7 +310,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(amount) => onPatch({ amount })}
           />
           <InspectorSliderRow
-            label="Softness"
+            label={i18n.t("timeline:attrs.softness", { defaultValue: "Softness" })}
             min={0}
             max={1}
             step={0.01}
@@ -325,7 +326,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
       return (
         <>
           <InspectorSliderRow
-            label="Amount"
+            label={i18n.t("timeline:attrs.amount", { defaultValue: "Amount" })}
             min={0}
             max={1}
             step={0.01}
@@ -343,7 +344,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(size) => onPatch({ size })}
           />
           <InspectorSliderRow
-            label="Colour"
+            label={i18n.t("timeline:attrs.colour", { defaultValue: "Colour" })}
             min={0}
             max={1}
             step={0.01}
@@ -352,7 +353,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(colorAmount) => onPatch({ colorAmount })}
           />
           <InspectorToggleRow
-            label="Animate"
+            label={i18n.t("timeline:attrs.animate", { defaultValue: "Animate" })}
             checked={effect.animate ?? false}
             onChange={(animate) => onPatch({ animate })}
           />
@@ -364,7 +365,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
       return (
         <>
           <InspectorSliderRow
-            label="Amount"
+            label={i18n.t("timeline:attrs.amount", { defaultValue: "Amount" })}
             min={0}
             max={2}
             step={0.01}
@@ -372,7 +373,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             display={effect.amount.toFixed(2)}
             onChange={(amount) => onPatch({ amount })}
           />
-          <InspectorRow label="Radius">
+          <InspectorRow label={i18n.t("timeline:attrs.radius", { defaultValue: "Radius" })}>
             <InspectorPillInput
               value={String(effect.radius ?? 1)}
               unit="px"
@@ -390,7 +391,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     if (isClipChromaKeyEffect(effect)) {
       return (
         <>
-          <InspectorRow label="Key color">
+          <InspectorRow label={i18n.t("timeline:attrs.keyColor", { defaultValue: "Key color" })}>
             <TextInput
               type="color"
               value={effect.color}
@@ -399,7 +400,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             />
           </InspectorRow>
           <InspectorSliderRow
-            label="Tolerance"
+            label={i18n.t("timeline:attrs.tolerance", { defaultValue: "Tolerance" })}
             min={0}
             max={1}
             step={0.01}
@@ -408,7 +409,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(tolerance) => onPatch({ tolerance })}
           />
           <InspectorSliderRow
-            label="Softness"
+            label={i18n.t("timeline:attrs.softness", { defaultValue: "Softness" })}
             min={0}
             max={1}
             step={0.01}
@@ -417,7 +418,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(softness) => onPatch({ softness })}
           />
           <InspectorSliderRow
-            label="Spill"
+            label={i18n.t("timeline:attrs.spill", { defaultValue: "Spill" })}
             min={0}
             max={1}
             step={0.01}
@@ -445,7 +446,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
       return (
         <>
           <InspectorSliderRow
-            label="In black"
+            label={i18n.t("timeline:attrs.inBlack", { defaultValue: "In black" })}
             min={0}
             max={1}
             step={0.01}
@@ -454,7 +455,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(inBlack) => onPatch({ inBlack })}
           />
           <InspectorSliderRow
-            label="In white"
+            label={i18n.t("timeline:attrs.inWhite", { defaultValue: "In white" })}
             min={0}
             max={1}
             step={0.01}
@@ -462,7 +463,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             display={effect.inWhite.toFixed(2)}
             onChange={(inWhite) => onPatch({ inWhite })}
           />
-          <InspectorRow label="Gamma">
+          <InspectorRow label={i18n.t("timeline:attrs.gamma", { defaultValue: "Gamma" })}>
             <InspectorPillInput
               value={effect.gamma.toFixed(2)}
               scrub={SCRUB_UNIT}
@@ -473,7 +474,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             />
           </InspectorRow>
           <InspectorSliderRow
-            label="Out black"
+            label={i18n.t("timeline:attrs.outBlack", { defaultValue: "Out black" })}
             min={0}
             max={1}
             step={0.01}
@@ -482,7 +483,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(outBlack) => onPatch({ outBlack })}
           />
           <InspectorSliderRow
-            label="Out white"
+            label={i18n.t("timeline:attrs.outWhite", { defaultValue: "Out white" })}
             min={0}
             max={1}
             step={0.01}
@@ -614,7 +615,7 @@ const EffectRow: React.FC<EffectRowProps> = memo(
         <FlexRow align="center" gap={SPACING.micro}>
           <ToolbarIconButton
             icon={<DragIndicatorOutlinedIcon />}
-            tooltip="Drag to reorder, or use Alt + arrow keys"
+            tooltip={i18n.t("timeline:attrs.dragToReorderOrUseAlt+ArrowKeys", { defaultValue: "Drag to reorder, or use Alt + arrow keys" })}
             aria-label={`Reorder ${name}`}
             aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
             size="small"
@@ -793,7 +794,7 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
           title={
             <FlexRow align="center" gap={SPACING.md}>
               <InspectorSectionTitle
-                title="Effects"
+                title={i18n.t("timeline:attrs.effects", { defaultValue: "Effects" })}
                 icon={<AutoAwesomeOutlinedIcon />}
               />
               {listed.length > 0 && (
@@ -820,9 +821,7 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
               aria-haspopup="dialog"
               aria-expanded={Boolean(menuAnchor)}
               sx={{ alignSelf: "flex-start" }}
-            >
-              Add effect
-            </Button>
+            >{i18n.t("timeline:attrs.addEffect", { defaultValue: "Add effect" })}</Button>
             <Popover
               open={Boolean(menuAnchor)}
               anchorEl={menuAnchor}
@@ -830,14 +829,14 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
             >
               <FlexColumn
                 role="dialog"
-                aria-label="Add effect"
+                aria-label={i18n.t("timeline:attrs.addEffect", { defaultValue: "Add effect" })}
                 gap={SPACING.md}
                 sx={{ p: SPACING.md }}
               >
                 <SearchInput
                   value={query}
                   onChange={setQuery}
-                  placeholder="Search effects"
+                  placeholder={i18n.t("timeline:attrs.searchEffects", { defaultValue: "Search effects" })}
                   autoFocus
                   fullWidth
                 />
@@ -854,7 +853,7 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
                     </Button>
                   ))}
                   {matchingEffects.length === 0 && (
-                    <EmptyState size="small" title="No matching effects" />
+                    <EmptyState size="small" title={i18n.t("timeline:attrs.noMatchingEffects", { defaultValue: "No matching effects" })} />
                   )}
                 </FlexColumn>
               </FlexColumn>

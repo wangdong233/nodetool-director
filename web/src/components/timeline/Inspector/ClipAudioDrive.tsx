@@ -51,6 +51,7 @@ import {
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { BakedCurvePreview, type BakedCurvePoint } from "./BakedCurvePreview";
+import { i18n } from "../../../i18n";
 
 /** The capability's own defaults, so an untouched form bakes what it would. */
 const DEFAULT_ATTACK_MS = 20;
@@ -367,7 +368,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Audio drive"
+            title={i18n.t("timeline:attrs.audioDrive", { defaultValue: "Audio drive" })}
             icon={<GraphicEqOutlinedIcon />}
           />
         }
@@ -382,9 +383,9 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
             </Caption>
           ) : (
             <>
-              <InspectorRow label="Audio">
+              <InspectorRow label={i18n.t("timeline:attrs.audio", { defaultValue: "Audio" })}>
                 <InspectorSelect
-                  label="Audio clip to measure"
+                  label={i18n.t("timeline:attrs.audioClipToMeasure", { defaultValue: "Audio clip to measure" })}
                   value={audioClipId}
                   options={audioOptions}
                   onChange={handleAudioClip}
@@ -392,9 +393,9 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   grow
                 />
               </InspectorRow>
-              <InspectorRow label="Property">
+              <InspectorRow label={i18n.t("timeline:attrs.property", { defaultValue: "Property" })}>
                 <InspectorSelect
-                  label="Property to drive"
+                  label={i18n.t("timeline:attrs.propertyToDrive", { defaultValue: "Property to drive" })}
                   value={property}
                   options={PROPERTY_OPTIONS}
                   onChange={handleProperty}
@@ -402,7 +403,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   grow
                 />
               </InspectorRow>
-              <InspectorRow label="Shape">
+              <InspectorRow label={i18n.t("timeline:attrs.shape", { defaultValue: "Shape" })}>
                 <ToggleGroup
                   size="small"
                   segmented
@@ -410,13 +411,13 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   value={mode}
                   onChange={handleMode}
                   disabled={pending}
-                  aria-label="Curve shape"
+                  aria-label={i18n.t("timeline:attrs.curveShape", { defaultValue: "Curve shape" })}
                 >
-                  <ToggleOption value="envelope">Envelope</ToggleOption>
-                  <ToggleOption value="beats">Beats</ToggleOption>
+                  <ToggleOption value="envelope">{i18n.t("timeline:attrs.envelope", { defaultValue: "Envelope" })}</ToggleOption>
+                  <ToggleOption value="beats">{i18n.t("timeline:attrs.beats", { defaultValue: "Beats" })}</ToggleOption>
                 </ToggleGroup>
               </InspectorRow>
-              <InspectorRow label="Range">
+              <InspectorRow label={i18n.t("timeline:attrs.range", { defaultValue: "Range" })}>
                 <InspectorPillInput
                   value={String(low)}
                   onCommit={handleLow}
@@ -424,7 +425,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   disabled={pending}
                   minWidth={52}
                   scrub={preset.scrub}
-                  ariaLabel="Range quiet value"
+                  ariaLabel={i18n.t("timeline:attrs.rangeQuietValue", { defaultValue: "Range quiet value" })}
                 />
                 <InspectorPillInput
                   value={String(high)}
@@ -433,11 +434,11 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   disabled={pending}
                   minWidth={52}
                   scrub={preset.scrub}
-                  ariaLabel="Range loud value"
+                  ariaLabel={i18n.t("timeline:attrs.rangeLoudValue", { defaultValue: "Range loud value" })}
                 />
               </InspectorRow>
               <InspectorSliderRow
-                label="Sensitivity"
+                label={i18n.t("timeline:attrs.sensitivity", { defaultValue: "Sensitivity" })}
                 value={sensitivity}
                 display={sensitivity.toFixed(2)}
                 min={SCRUB_SENSITIVITY.min}
@@ -447,34 +448,34 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                 onChange={handleSensitivity}
                 origin={1}
               />
-              <InspectorRow label="Attack">
+              <InspectorRow label={i18n.t("timeline:attrs.attack", { defaultValue: "Attack" })}>
                 <InspectorPillInput
                   value={String(attackMs)}
                   onCommit={handleAttack}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_MS}
-                  ariaLabel="Attack"
+                  ariaLabel={i18n.t("timeline:attrs.attack", { defaultValue: "Attack" })}
                 />
               </InspectorRow>
-              <InspectorRow label="Release">
+              <InspectorRow label={i18n.t("timeline:attrs.release", { defaultValue: "Release" })}>
                 <InspectorPillInput
                   value={String(releaseMs)}
                   onCommit={handleRelease}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_MS}
-                  ariaLabel="Release"
+                  ariaLabel={i18n.t("timeline:attrs.release", { defaultValue: "Release" })}
                 />
               </InspectorRow>
-              <InspectorRow label="Offset">
+              <InspectorRow label={i18n.t("timeline:attrs.offset", { defaultValue: "Offset" })}>
                 <InspectorPillInput
                   value={String(offsetMs)}
                   onCommit={handleOffset}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_OFFSET_MS}
-                  ariaLabel="Offset"
+                  ariaLabel={i18n.t("timeline:attrs.offset", { defaultValue: "Offset" })}
                 />
               </InspectorRow>
               <FlexRow align="center" gap={SPACING.sm}>

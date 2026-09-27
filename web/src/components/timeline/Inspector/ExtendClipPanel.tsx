@@ -22,6 +22,7 @@ import {
   VideoPlayer
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
+import { i18n } from "../../../i18n";
 
 const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string }> =
   [
@@ -130,7 +131,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   return (
     <CollapsibleSection
       title={
-        <InspectorSectionTitle title="Extend" icon={<MoreTimeOutlinedIcon />} />
+        <InspectorSectionTitle title={i18n.t("timeline:attrs.extend", { defaultValue: "Extend" })} icon={<MoreTimeOutlinedIcon />} />
       }
       defaultOpen
     >
@@ -145,7 +146,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               <EmptyState
                 variant="empty"
                 size="small"
-                title="No extension model available"
+                title={i18n.t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
                 description={
                   modelError
                     ? "Could not load extension models. Try again when connected."
@@ -155,7 +156,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
             ) : (
               <>
                 <SelectField
-                  label="Extension model"
+                  label={i18n.t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
                   value={`${model.provider}:${model.id}`}
                   options={modelsForTask.map((item) => ({
                     value: `${item.provider}:${item.id}`,
@@ -165,7 +166,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   disabled={pending}
                 />
                 <SelectField
-                  label="Extend from"
+                  label={i18n.t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
                   value={selectedDirection}
                   options={directionOptions}
                   onChange={(value) =>
@@ -174,7 +175,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   disabled={pending}
                 />
                 <TextInput
-                  label="Added source seconds"
+                  label={i18n.t("timeline:attrs.addedSourceSeconds", { defaultValue: "Added source seconds" })}
                   type="number"
                   value={duration}
                   onChange={(event) => setDuration(event.target.value)}
@@ -184,7 +185,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   fullWidth
                 />
                 <TextInput
-                  label="Extension intent"
+                  label={i18n.t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
                   value={intent}
                   onChange={(event) => setIntent(event.target.value)}
                   disabled={pending}
@@ -234,7 +235,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   {preview === take.assetId && (
                     <VideoPlayer
                       locator={`asset://${take.assetId}`}
-                      label="Extension candidate"
+                      label={i18n.t("timeline:attrs.extensionCandidate", { defaultValue: "Extension candidate" })}
                     />
                   )}
                   {TIMING_OPTIONS.map((option) => (
@@ -252,14 +253,10 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               ) : job.status !== "running" ? (
                 <>
                   {job.error && <Caption color="error">{job.error}</Caption>}
-                  <EditorButton onClick={() => recover(job.request)}>
-                    Recover extension
-                  </EditorButton>
+                  <EditorButton onClick={() => recover(job.request)}>{i18n.t("timeline:attrs.recoverExtension", { defaultValue: "Recover extension" })}</EditorButton>
                 </>
               ) : (
-                <Caption color="secondary">
-                  Extension generation is running.
-                </Caption>
+                <Caption color="secondary">{i18n.t("timeline:attrs.extensionGenerationIsRunning", { defaultValue: "Extension generation is running." })}</Caption>
               )}
             </FlexColumn>
           );

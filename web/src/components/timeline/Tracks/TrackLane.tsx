@@ -63,6 +63,7 @@ import { useVideoAudioImport } from "../../../hooks/timeline/useVideoAudioImport
 import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { layoutTrackRows } from "./trackWindow";
+import { i18n } from "../../../i18n";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;
@@ -748,7 +749,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
             generated-clip picker. */}
         {(track.type === "overlay" || track.type === "video") && (
           <MenuItemPrimitive
-            label="Add text"
+            label={i18n.t("timeline:attrs.addText", { defaultValue: "Add text" })}
             icon={<TitleIcon fontSize="small" />}
             onClick={handleAddText}
             compact
@@ -756,14 +757,14 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {track.type === "midi" ? (
           <MenuItemPrimitive
-            label="Add MIDI clip"
+            label={i18n.t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddMidi}
             compact
           />
         ) : (
           <MenuItemPrimitive
-            label="Add generated clip here…"
+            label={i18n.t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddClipFromMenu}
             compact
@@ -771,7 +772,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {menuGap && (
           <MenuItemPrimitive
-            label="Close gap"
+            label={i18n.t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
             icon={<CompressOutlinedIcon fontSize="small" />}
             onClick={handleCloseGap}
             compact

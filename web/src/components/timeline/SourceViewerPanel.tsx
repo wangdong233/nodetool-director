@@ -203,9 +203,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label={i18n.t("timeline:source.markIn", { defaultValue: "Mark source in (I)" })}>
-                Mark here
-              </Button>
+              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label={i18n.t("timeline:source.markIn", { defaultValue: "Mark source in (I)" })}>{i18n.t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
             )}
           </FlexRow>
         </InspectorRow>
@@ -224,9 +222,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label={i18n.t("timeline:source.markOut", { defaultValue: "Mark source out (O)" })}>
-                Mark here
-              </Button>
+              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label={i18n.t("timeline:source.markOut", { defaultValue: "Mark source out (O)" })}>{i18n.t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
             )}
           </FlexRow>
         </InspectorRow>
@@ -237,19 +233,13 @@ export const SourceViewerPanel: React.FC = memo(() => {
 
         <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceAppend")} />}>
-            <Button size="small" variant="outlined" startIcon={<PlaylistAddOutlinedIcon />} onClick={() => run("append")} disabled={!mediaType}>
-              Append
-            </Button>
+            <Button size="small" variant="outlined" startIcon={<PlaylistAddOutlinedIcon />} onClick={() => run("append")} disabled={!mediaType}>{i18n.t("timeline:attrs.append", { defaultValue: "Append" })}</Button>
           </Tooltip>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceInsert")} />}>
-            <Button size="small" variant="outlined" startIcon={<KeyboardTabOutlinedIcon />} onClick={() => run("insert")} disabled={!mediaType}>
-              Insert
-            </Button>
+            <Button size="small" variant="outlined" startIcon={<KeyboardTabOutlinedIcon />} onClick={() => run("insert")} disabled={!mediaType}>{i18n.t("timeline:attrs.insert", { defaultValue: "Insert" })}</Button>
           </Tooltip>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceOverwrite")} />}>
-            <Button size="small" variant="outlined" startIcon={<FlipToFrontOutlinedIcon />} onClick={() => run("overwrite")} disabled={!mediaType}>
-              Overwrite
-            </Button>
+            <Button size="small" variant="outlined" startIcon={<FlipToFrontOutlinedIcon />} onClick={() => run("overwrite")} disabled={!mediaType}>{i18n.t("timeline:attrs.overwrite", { defaultValue: "Overwrite" })}</Button>
           </Tooltip>
         </FlexRow>
       </FlexColumn>

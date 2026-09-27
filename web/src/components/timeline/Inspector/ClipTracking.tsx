@@ -21,6 +21,7 @@ import {
 } from "../../ui_primitives";
 import { useTrackingSelection } from "../preview/useTrackingSelection";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../i18n";
 import {
   InspectorDivider,
   InspectorPillInput,
@@ -85,7 +86,7 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Tracking"
+            title={i18n.t("timeline:attrs.tracking", { defaultValue: "Tracking" })}
             icon={<TrackChangesOutlinedIcon />}
           />
         }
@@ -98,9 +99,7 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
             fullWidth
             onClick={startSelection}
             disabled={!clip.currentAssetId}
-          >
-            Select subject in preview
-          </EditorButton>
+          >{i18n.t("timeline:attrs.selectSubjectInPreview", { defaultValue: "Select subject in preview" })}</EditorButton>
           <Caption color="muted">
             Drag a rectangle around the subject. With the preview focused, press
             Enter to create a box, use arrow keys to move it, or Alt and arrow
@@ -113,9 +112,7 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
               : "No subject selected."}
           </Caption>
           {active && (
-            <EditorButton onClick={() => select(null)}>
-              Stop selecting
-            </EditorButton>
+            <EditorButton onClick={() => select(null)}>{i18n.t("timeline:attrs.stopSelecting", { defaultValue: "Stop selecting" })}</EditorButton>
           )}
           {stale && (
             <Caption color="warning">
@@ -274,7 +271,7 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Follow object"
+              title={i18n.t("timeline:attrs.followObject", { defaultValue: "Follow object" })}
               icon={<LinkOutlinedIcon />}
             />
           }
@@ -287,16 +284,16 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
               Track id — from list_tracks, or the track_object result once a
               provider is wired up.
             </Caption>
-            <InspectorRow label="Track id">
+            <InspectorRow label={i18n.t("timeline:attrs.trackId", { defaultValue: "Track id" })}>
               <InspectorPillInput
                 value={trackIdInput}
                 onCommit={handleTrackIdCommit}
-                ariaLabel="Track id to follow"
+                ariaLabel={i18n.t("timeline:attrs.trackIdToFollow", { defaultValue: "Track id to follow" })}
               />
             </InspectorRow>
             <InspectorRow label="Mode">
               <InspectorSelect
-                label="Follow mode"
+                label={i18n.t("timeline:attrs.followMode", { defaultValue: "Follow mode" })}
                 value={mode}
                 options={BIND_MODE_OPTIONS}
                 onChange={handleModeChange}
@@ -313,32 +310,30 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
                 disabled={trackIdInput.trim() === ""}
                 onClick={handleBind}
                 data-testid="bind-to-track"
-              >
-                Follow
-              </EditorButton>
+              >{i18n.t("timeline:attrs.follow", { defaultValue: "Follow" })}</EditorButton>
             )}
 
             {binding && (
               <>
-                <InspectorRow label="Offset X">
+                <InspectorRow label={i18n.t("timeline:attrs.offsetX", { defaultValue: "Offset X" })}>
                   <InspectorPillInput
                     value={String(binding.offset?.x ?? 0)}
                     unit="px"
                     onCommit={handleOffsetX}
-                    ariaLabel="Follow offset X"
+                    ariaLabel={i18n.t("timeline:attrs.followOffsetX", { defaultValue: "Follow offset X" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Offset Y">
+                <InspectorRow label={i18n.t("timeline:attrs.offsetY", { defaultValue: "Offset Y" })}>
                   <InspectorPillInput
                     value={String(binding.offset?.y ?? 0)}
                     unit="px"
                     onCommit={handleOffsetY}
-                    ariaLabel="Follow offset Y"
+                    ariaLabel={i18n.t("timeline:attrs.followOffsetY", { defaultValue: "Follow offset Y" })}
                   />
                 </InspectorRow>
                 {mode === "position_scale" && (
                   <InspectorSliderRow
-                    label="Scale"
+                    label={i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}
                     value={binding.scale ?? 1}
                     display={(binding.scale ?? 1).toFixed(2)}
                     min={0}
@@ -348,7 +343,7 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
                   />
                 )}
                 <InspectorSliderRow
-                  label="Smoothing"
+                  label={i18n.t("timeline:attrs.smoothing", { defaultValue: "Smoothing" })}
                   value={binding.smoothing ?? 0}
                   display={(binding.smoothing ?? 0).toFixed(2)}
                   min={0}
@@ -363,9 +358,7 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
                   startIcon={<LinkOffOutlinedIcon />}
                   onClick={handleUnbind}
                   data-testid="unbind-track"
-                >
-                  Unfollow
-                </EditorButton>
+                >{i18n.t("timeline:attrs.unfollow", { defaultValue: "Unfollow" })}</EditorButton>
               </>
             )}
           </FlexColumn>

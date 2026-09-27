@@ -136,14 +136,14 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     >
       <FlexColumn gap={SPACING.lg} sx={{ py: SPACING.md }}>
         <FlexColumn gap={SPACING.xs}>
-          <Label>Original</Label>
+          <Label>{i18n.t("timeline:attrs.original", { defaultValue: "Original" })}</Label>
           <Text size="small">
             {sequence ? `${sequence.width} × ${sequence.height}` : "—"}
           </Text>
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>Target formats</Label>
+          <Label>{i18n.t("timeline:attrs.targetFormats", { defaultValue: "Target formats" })}</Label>
           {FORMAT_OPTIONS.map((format) => (
             <Checkbox
               key={format.value}
@@ -156,7 +156,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>Strategy</Label>
+          <Label>{i18n.t("timeline:attrs.strategy", { defaultValue: "Strategy" })}</Label>
           <RadioSet value={strategy} onChange={handleStrategyChange}>
             <Radio value="center" label={i18n.t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
@@ -196,7 +196,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
 
         <FlexColumn gap={SPACING.xs}>
           <FlexRow justify="space-between" align="center">
-            <Label>Safe margin</Label>
+            <Label>{i18n.t("timeline:attrs.safeMargin", { defaultValue: "Safe margin" })}</Label>
             <Text size="small">{safeMarginPercent}%</Text>
           </FlexRow>
           <Slider

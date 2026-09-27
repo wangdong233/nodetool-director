@@ -11,6 +11,7 @@ import {
   CLIP_FADE_SHAPE_LABELS
 } from "../fadeShapes";
 import type { ClipFadeEdge } from "./useClipFade";
+import { i18n } from "../../../i18n";
 
 interface ClipFadeShapeMenuProps {
   edge: ClipFadeEdge;

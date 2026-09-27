@@ -32,6 +32,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { BORDER_RADIUS, FONT_SIZE_MONO } from "../../ui_primitives";
 import { computeBarRulerTicks } from "./tempoGrid";
+import { i18n } from "../../../i18n";
 
 interface RulerColors {
   bg: string;

@@ -22,6 +22,7 @@ import type { WorkflowMediaItem } from "../../../hooks/handlers/useGenerationToC
 import { clipWorkflowMedia } from "../clipWorkflowMedia";
 
 import { ContextMenu, MenuItemPrimitive } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 import {
   useClipMenuActions,
   type ClipMenuActionCallbacks
@@ -97,14 +98,14 @@ export function ClipContextMenu({
   return (
     <ContextMenu open position={position} onClose={onClose} compact>
       <MenuItemPrimitive
-        label="Split at playhead"
+        label={i18n.t("timeline:attrs.splitAtPlayhead", { defaultValue: "Split at playhead" })}
         icon={<ContentCutOutlinedIcon fontSize="small" />}
         compact
         onClick={run(actions.splitAtPlayhead)}
       />
       {actions.isMidi && (
         <MenuItemPrimitive
-          label="Edit notes"
+          label={i18n.t("timeline:attrs.editNotes", { defaultValue: "Edit notes" })}
           icon={<MusicNoteOutlinedIcon fontSize="small" />}
           compact
           onClick={run(actions.editNotes)}
@@ -112,14 +113,14 @@ export function ClipContextMenu({
       )}
       {actions.canEditVideo && (
         <MenuItemPrimitive
-          label="Edit video…"
+          label={i18n.t("timeline:attrs.editVideo", { defaultValue: "Edit video…" })}
           icon={<AutoAwesomeOutlinedIcon fontSize="small" />}
           compact
           onClick={run(actions.openAiEdit)}
         />
       )}
       <MenuItemPrimitive
-        label="Duplicate"
+        label={i18n.t("timeline:attrs.duplicate", { defaultValue: "Duplicate" })}
         icon={<ContentCopyIcon fontSize="small" />}
         compact
         onClick={run(actions.duplicate)}
@@ -148,7 +149,7 @@ export function ClipContextMenu({
       )}
       {actions.isGenerated && (
         <MenuItemPrimitive
-          label="Regenerate as new clip"
+          label={i18n.t("timeline:attrs.regenerateAsNewClip", { defaultValue: "Regenerate as new clip" })}
           icon={<AutoAwesomeMotionIcon fontSize="small" />}
           compact
           onClick={run(actions.regenerateAsCopy)}
@@ -168,7 +169,7 @@ export function ClipContextMenu({
       />
       {actions.canReplace && (
         <MenuItemPrimitive
-          label="Replace clip…"
+          label={i18n.t("timeline:attrs.replaceClip", { defaultValue: "Replace clip…" })}
           icon={<ImageIcon fontSize="small" />}
           compact
           onClick={run(actions.openReplace)}
@@ -188,7 +189,7 @@ export function ClipContextMenu({
       )}
       {actions.canOpenInNodeEditor && (
         <MenuItemPrimitive
-          label="Open in node editor"
+          label={i18n.t("timeline:attrs.openInNodeEditor", { defaultValue: "Open in node editor" })}
           icon={<OpenInNewIcon fontSize="small" />}
           compact
           onClick={run(actions.openInNodeEditor)}
@@ -196,14 +197,14 @@ export function ClipContextMenu({
       )}
       {isLinked && (
         <MenuItemPrimitive
-          label="Unlink"
+          label={i18n.t("timeline:attrs.unlink", { defaultValue: "Unlink" })}
           icon={<LinkOffIcon fontSize="small" />}
           compact
           onClick={run(onUnlink)}
         />
       )}
       <MenuItemPrimitive
-        label="Delete"
+        label={i18n.t("timeline:attrs.delete", { defaultValue: "Delete" })}
         icon={<DeleteOutlineOutlinedIcon fontSize="small" />}
         compact
         onClick={run(onDelete)}

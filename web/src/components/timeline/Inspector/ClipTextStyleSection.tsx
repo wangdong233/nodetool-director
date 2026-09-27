@@ -30,6 +30,7 @@ import {
 } from "./InspectorPrimitives";
 import { FillFields } from "./InspectorMotionFields";
 import { FontPicker } from "./FontPicker";
+import { i18n } from "../../../i18n";
 
 const TEXT_ALIGNMENTS = [
   { value: "left", label: "Left" },
@@ -293,36 +294,36 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
             />
             <InspectorRow label="Font">
               <FontPicker
-                label="Text font family"
+                label={i18n.t("timeline:attrs.textFontFamily", { defaultValue: "Text font family" })}
                 value={textStyle.fontFamily}
                 onChange={handleFontFamilyChange}
               />
             </InspectorRow>
-            <InspectorRow label="Font size">
+            <InspectorRow label={i18n.t("timeline:attrs.fontSize", { defaultValue: "Font size" })}>
               <InspectorPillInput
                 value={String(textStyle.fontSizePx)}
                 unit="px"
                 scrub={SCRUB_PX}
                 onCommit={handleFontSizeCommit}
-                ariaLabel="Text font size"
+                ariaLabel={i18n.t("timeline:attrs.textFontSize", { defaultValue: "Text font size" })}
               />
             </InspectorRow>
-            <InspectorRow label="Weight">
+            <InspectorRow label={i18n.t("timeline:attrs.weight", { defaultValue: "Weight" })}>
               <InspectorPillInput
                 value={String(textStyle.fontWeight ?? 400)}
                 onCommit={handleFontWeightCommit}
-                ariaLabel="Text font weight"
+                ariaLabel={i18n.t("timeline:attrs.textFontWeight", { defaultValue: "Text font weight" })}
               />
             </InspectorRow>
-            <InspectorRow label="Style">
+            <InspectorRow label={i18n.t("timeline:attrs.style", { defaultValue: "Style" })}>
               <InspectorSelect
-                label="Text font style"
+                label={i18n.t("timeline:attrs.textFontStyle", { defaultValue: "Text font style" })}
                 value={textStyle.fontStyle ?? "normal"}
                 options={FONT_STYLES}
                 onChange={handleFontStyleChange}
               />
             </InspectorRow>
-            <InspectorRow label="Color">
+            <InspectorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}>
               <TextInput
                 type="color"
                 value={textStyle.color}
@@ -330,49 +331,49 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                 inputProps={TEXT_COLOR_INPUT_PROPS}
               />
             </InspectorRow>
-            <InspectorRow label="Align">
+            <InspectorRow label={i18n.t("timeline:attrs.align", { defaultValue: "Align" })}>
               <InspectorSelect
-                label="Text alignment"
+                label={i18n.t("timeline:attrs.textAlignment", { defaultValue: "Text alignment" })}
                 value={textStyle.align ?? "center"}
                 options={TEXT_ALIGNMENTS}
                 onChange={handleAlignChange}
               />
             </InspectorRow>
-            <InspectorRow label="Vertical align">
+            <InspectorRow label={i18n.t("timeline:attrs.verticalAlign", { defaultValue: "Vertical align" })}>
               <InspectorSelect
-                label="Text vertical alignment"
+                label={i18n.t("timeline:attrs.textVerticalAlignment", { defaultValue: "Text vertical alignment" })}
                 value={textStyle.verticalAlign ?? "middle"}
                 options={VERTICAL_ALIGNMENTS}
                 onChange={handleVerticalAlignChange}
               />
             </InspectorRow>
-            <InspectorRow label="Letter spacing">
+            <InspectorRow label={i18n.t("timeline:attrs.letterSpacing", { defaultValue: "Letter spacing" })}>
               <InspectorPillInput
                 value={String(textStyle.letterSpacingPx ?? 0)}
                 unit="px"
                 scrub={SCRUB_PX}
                 onCommit={handleLetterSpacingCommit}
-                ariaLabel="Text letter spacing"
+                ariaLabel={i18n.t("timeline:attrs.textLetterSpacing", { defaultValue: "Text letter spacing" })}
               />
             </InspectorRow>
-            <InspectorRow label="Line height">
+            <InspectorRow label={i18n.t("timeline:attrs.lineHeight", { defaultValue: "Line height" })}>
               <InspectorPillInput
                 value={(textStyle.lineHeight ?? 1.2).toFixed(2)}
                 unit="×"
                 scrub={SCRUB_UNIT}
                 onCommit={handleLineHeightCommit}
-                ariaLabel="Text line height"
+                ariaLabel={i18n.t("timeline:attrs.textLineHeight", { defaultValue: "Text line height" })}
               />
             </InspectorRow>
 
             <InspectorToggleRow
-              label="Stroke"
+              label={i18n.t("timeline:attrs.stroke", { defaultValue: "Stroke" })}
               checked={textStyle.stroke !== undefined}
               onChange={handleStrokeToggle}
             />
             {textStyle.stroke && (
               <>
-                <InspectorRow label="Stroke color">
+                <InspectorRow label={i18n.t("timeline:attrs.strokeColor", { defaultValue: "Stroke color" })}>
                   <TextInput
                     type="color"
                     value={textStyle.stroke.color}
@@ -380,26 +381,26 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     inputProps={STROKE_COLOR_INPUT_PROPS}
                   />
                 </InspectorRow>
-                <InspectorRow label="Stroke width">
+                <InspectorRow label={i18n.t("timeline:attrs.strokeWidth", { defaultValue: "Stroke width" })}>
                   <InspectorPillInput
                     value={String(textStyle.stroke.widthPx)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleStrokeWidthCommit}
-                    ariaLabel="Text stroke width"
+                    ariaLabel={i18n.t("timeline:attrs.textStrokeWidth", { defaultValue: "Text stroke width" })}
                   />
                 </InspectorRow>
               </>
             )}
 
             <InspectorToggleRow
-              label="Shadow"
+              label={i18n.t("timeline:attrs.shadow", { defaultValue: "Shadow" })}
               checked={textStyle.shadow !== undefined}
               onChange={handleShadowToggle}
             />
             {textStyle.shadow && (
               <>
-                <InspectorRow label="Shadow color">
+                <InspectorRow label={i18n.t("timeline:attrs.shadowColor", { defaultValue: "Shadow color" })}>
                   <TextInput
                     type="color"
                     value={textStyle.shadow.color}
@@ -407,23 +408,23 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     inputProps={SHADOW_COLOR_INPUT_PROPS}
                   />
                 </InspectorRow>
-                <InspectorRow label="Shadow blur">
+                <InspectorRow label={i18n.t("timeline:attrs.shadowBlur", { defaultValue: "Shadow blur" })}>
                   <InspectorPillInput
                     value={String(textStyle.shadow.blurPx)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleShadowBlurCommit}
-                    ariaLabel="Text shadow blur"
+                    ariaLabel={i18n.t("timeline:attrs.textShadowBlur", { defaultValue: "Text shadow blur" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Shadow offset">
+                <InspectorRow label={i18n.t("timeline:attrs.shadowOffset", { defaultValue: "Shadow offset" })}>
                   <InspectorPillInput
                     value={String(textStyle.shadow.offsetX)}
                     unit="px"
                     minWidth={64}
                     scrub={SCRUB_PX}
                     onCommit={handleShadowOffsetXCommit}
-                    ariaLabel="Text shadow offset X"
+                    ariaLabel={i18n.t("timeline:attrs.textShadowOffsetX", { defaultValue: "Text shadow offset X" })}
                   />
                   <InspectorPillInput
                     value={String(textStyle.shadow.offsetY)}
@@ -431,20 +432,20 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_PX}
                     onCommit={handleShadowOffsetYCommit}
-                    ariaLabel="Text shadow offset Y"
+                    ariaLabel={i18n.t("timeline:attrs.textShadowOffsetY", { defaultValue: "Text shadow offset Y" })}
                   />
                 </InspectorRow>
               </>
             )}
 
             <InspectorToggleRow
-              label="Background"
+              label={i18n.t("timeline:attrs.background", { defaultValue: "Background" })}
               checked={textStyle.background !== undefined}
               onChange={handleBackgroundToggle}
             />
             {textStyle.background && (
               <>
-                <InspectorRow label="Background color">
+                <InspectorRow label={i18n.t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}>
                   <TextInput
                     type="color"
                     value={textStyle.background.color}
@@ -452,22 +453,22 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     inputProps={BACKGROUND_COLOR_INPUT_PROPS}
                   />
                 </InspectorRow>
-                <InspectorRow label="Background padding">
+                <InspectorRow label={i18n.t("timeline:attrs.backgroundPadding", { defaultValue: "Background padding" })}>
                   <InspectorPillInput
                     value={String(textStyle.background.paddingPx)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleBackgroundPaddingCommit}
-                    ariaLabel="Text background padding"
+                    ariaLabel={i18n.t("timeline:attrs.textBackgroundPadding", { defaultValue: "Text background padding" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Background radius">
+                <InspectorRow label={i18n.t("timeline:attrs.backgroundRadius", { defaultValue: "Background radius" })}>
                   <InspectorPillInput
                     value={String(textStyle.background.radiusPx ?? 0)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleBackgroundRadiusCommit}
-                    ariaLabel="Text background radius"
+                    ariaLabel={i18n.t("timeline:attrs.textBackgroundRadius", { defaultValue: "Text background radius" })}
                   />
                 </InspectorRow>
               </>

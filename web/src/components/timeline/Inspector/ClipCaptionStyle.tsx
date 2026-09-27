@@ -37,6 +37,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { FontPicker } from "./FontPicker";
+import { i18n } from "../../../i18n";
 
 const sectionContentStyles = (theme: Theme) =>
   css({
@@ -155,7 +156,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Caption"
+              title={i18n.t("timeline:attrs.caption", { defaultValue: "Caption" })}
               icon={<ClosedCaptionOutlinedIcon />}
             />
           }
@@ -166,7 +167,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
           <FlexColumn css={sectionContentStyles(theme)}>
             <InspectorRow label="Font">
               <FontPicker
-                label="Caption font family"
+                label={i18n.t("timeline:attrs.captionFontFamily", { defaultValue: "Caption font family" })}
                 value={style?.fontFamily}
                 onChange={(fontFamily) => setField("fontFamily", fontFamily)}
               />
@@ -177,10 +178,10 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 unit="%"
                 placeholder="5"
                 onCommit={(raw) => handleFraction("fontSizeFrac", raw)}
-                ariaLabel="Caption size as a percentage of frame height"
+                ariaLabel={i18n.t("timeline:attrs.captionSizeAsAPercentageOfFrameHeight", { defaultValue: "Caption size as a percentage of frame height" })}
               />
             </InspectorRow>
-            <InspectorRow label="Color">
+            <InspectorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}>
               <TextInput
                 type="color"
                 value={style?.color ?? DEFAULT_COLOR}
@@ -188,7 +189,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 inputProps={{ "aria-label": "Caption color" }}
               />
             </InspectorRow>
-            <InspectorRow label="Spoken">
+            <InspectorRow label={i18n.t("timeline:attrs.spoken", { defaultValue: "Spoken" })}>
               <TextInput
                 type="color"
                 value={style?.activeColor ?? DEFAULT_ACTIVE_COLOR}
@@ -198,26 +199,26 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 inputProps={{ "aria-label": "Caption spoken-word color" }}
               />
             </InspectorRow>
-            <InspectorRow label="Bottom">
+            <InspectorRow label={i18n.t("timeline:attrs.bottom", { defaultValue: "Bottom" })}>
               <InspectorPillInput
                 value={asPercent(style?.bottomMarginFrac)}
                 unit="%"
                 placeholder="12"
                 onCommit={(raw) => handleFraction("bottomMarginFrac", raw)}
-                ariaLabel="Caption distance from the frame bottom"
+                ariaLabel={i18n.t("timeline:attrs.captionDistanceFromTheFrameBottom", { defaultValue: "Caption distance from the frame bottom" })}
               />
             </InspectorRow>
-            <InspectorRow label="Outline">
+            <InspectorRow label={i18n.t("timeline:attrs.outline", { defaultValue: "Outline" })}>
               <InspectorPillInput
                 value={outline ? String(outline.widthPx) : ""}
                 unit="px"
                 placeholder="auto"
                 onCommit={handleOutlineWidth}
-                ariaLabel="Caption outline width"
+                ariaLabel={i18n.t("timeline:attrs.captionOutlineWidth", { defaultValue: "Caption outline width" })}
               />
             </InspectorRow>
             {outline && (
-              <InspectorRow label="Outline color">
+              <InspectorRow label={i18n.t("timeline:attrs.outlineColor", { defaultValue: "Outline color" })}>
                 <TextInput
                   type="color"
                   value={outline.color}
@@ -231,18 +232,18 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 />
               </InspectorRow>
             )}
-            <InspectorRow label="Scrim">
+            <InspectorRow label={i18n.t("timeline:attrs.scrim", { defaultValue: "Scrim" })}>
               <InspectorPillInput
                 value={scrim ? String(scrim.paddingPx) : ""}
                 unit="px"
                 placeholder="none"
                 onCommit={handleScrimPadding}
-                ariaLabel="Caption scrim padding"
+                ariaLabel={i18n.t("timeline:attrs.captionScrimPadding", { defaultValue: "Caption scrim padding" })}
               />
             </InspectorRow>
             {scrim && (
               <>
-                <InspectorRow label="Scrim color">
+                <InspectorRow label={i18n.t("timeline:attrs.scrimColor", { defaultValue: "Scrim color" })}>
                   <TextInput
                     type="color"
                     value={scrim.color}
@@ -255,7 +256,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                     inputProps={{ "aria-label": "Caption scrim color" }}
                   />
                 </InspectorRow>
-                <InspectorRow label="Scrim radius">
+                <InspectorRow label={i18n.t("timeline:attrs.scrimRadius", { defaultValue: "Scrim radius" })}>
                   <InspectorPillInput
                     value={String(scrim.radiusPx ?? 0)}
                     unit="px"
@@ -264,7 +265,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                       if (!Number.isFinite(radiusPx) || radiusPx < 0) return;
                       setField("background", { ...scrim, radiusPx });
                     }}
-                    ariaLabel="Caption scrim corner radius"
+                    ariaLabel={i18n.t("timeline:attrs.captionScrimCornerRadius", { defaultValue: "Caption scrim corner radius" })}
                   />
                 </InspectorRow>
               </>

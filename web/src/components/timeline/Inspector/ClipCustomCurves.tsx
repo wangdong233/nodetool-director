@@ -14,6 +14,7 @@
 
 import React, { memo, useCallback, useRef } from "react";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import { i18n } from "../../../i18n";
 import {
   ANIMATED_PROPERTIES,
   parseEasing,
@@ -230,7 +231,7 @@ const CurveEditor: React.FC<CurveEditorProps> = memo(
             sx={CURVE_DELETE_SX}
           />
         </FlexRow>
-        <InspectorRow label="Property">
+        <InspectorRow label={i18n.t("timeline:attrs.property", { defaultValue: "Property" })}>
           <InspectorSelect
             label={`${curveLabel} property`}
             value={curve.property}
@@ -407,9 +408,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
           variant="outlined"
           startIcon={<AddOutlinedIcon />}
           onClick={addCurve}
-        >
-          Add curve
-        </Button>
+        >{i18n.t("timeline:attrs.addCurve", { defaultValue: "Add curve" })}</Button>
       </FlexColumn>
     );
   }

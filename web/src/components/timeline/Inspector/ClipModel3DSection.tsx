@@ -39,6 +39,7 @@ import {
 } from "../../ui_primitives";
 import { useModel3DBake } from "../../../hooks/timeline/useModel3DBake";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../i18n";
 import {
   InspectorDivider,
   InspectorPillInput,
@@ -238,9 +239,9 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Camera">
+            <InspectorRow label={i18n.t("timeline:attrs.camera", { defaultValue: "Camera" })}>
               <InspectorSelect
-                label="Camera mode"
+                label={i18n.t("timeline:attrs.cameraMode", { defaultValue: "Camera mode" })}
                 value={camera.mode}
                 options={CAMERA_MODES}
                 onChange={handleModeChange}
@@ -249,14 +250,14 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
 
             {camera.mode === "orbit" && (
               <>
-                <InspectorRow label="Orbit">
+                <InspectorRow label={i18n.t("timeline:attrs.orbit", { defaultValue: "Orbit" })}>
                   <InspectorPillInput
                     value={camera.azimuthDeg.toFixed(1)}
                     unit="°"
                     minWidth={64}
                     scrub={SCRUB_DEGREES}
                     onCommit={handleAzimuthCommit}
-                    ariaLabel="Camera azimuth"
+                    ariaLabel={i18n.t("timeline:attrs.cameraAzimuth", { defaultValue: "Camera azimuth" })}
                   />
                   <InspectorPillInput
                     value={camera.elevationDeg.toFixed(1)}
@@ -264,7 +265,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_DEGREES}
                     onCommit={handleElevationCommit}
-                    ariaLabel="Camera elevation"
+                    ariaLabel={i18n.t("timeline:attrs.cameraElevation", { defaultValue: "Camera elevation" })}
                   />
                 </InspectorRow>
                 <InspectorRow label="Lens">
@@ -274,7 +275,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_FOV}
                     onCommit={handleFovCommit}
-                    ariaLabel="Camera field of view"
+                    ariaLabel={i18n.t("timeline:attrs.cameraFieldOfView", { defaultValue: "Camera field of view" })}
                   />
                   <InspectorPillInput
                     value={camera.zoom.toFixed(2)}
@@ -282,7 +283,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_ZOOM}
                     onCommit={handleZoomCommit}
-                    ariaLabel="Camera zoom"
+                    ariaLabel={i18n.t("timeline:attrs.cameraZoom", { defaultValue: "Camera zoom" })}
                   />
                 </InspectorRow>
               </>
@@ -290,7 +291,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
 
             {camera.mode === "scene" && (
               <NamePickerRow
-                label="Scene camera"
+                label={i18n.t("timeline:attrs.sceneCamera", { defaultValue: "Scene camera" })}
                 pickerLabel="Scene camera"
                 autoLabel="First camera"
                 value={camera.sceneCameraName ?? AUTO}
@@ -301,7 +302,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
             )}
 
             <NamePickerRow
-              label="Animation"
+              label={i18n.t("timeline:attrs.animation", { defaultValue: "Animation" })}
               pickerLabel="glTF animation"
               autoLabel="All animations"
               value={model3dStyle.animation.clipName ?? AUTO}
@@ -314,26 +315,26 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               checked={model3dStyle.animation.loop}
               onChange={handleLoopChange}
             />
-            <InspectorRow label="Animation speed">
+            <InspectorRow label={i18n.t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}>
               <InspectorPillInput
                 value={model3dStyle.animation.speed.toFixed(2)}
                 unit="×"
                 scrub={SCRUB_SPEED}
                 onCommit={handleSpeedCommit}
-                ariaLabel="Animation speed"
+                ariaLabel={i18n.t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}
               />
             </InspectorRow>
 
-            <InspectorRow label="Lighting">
+            <InspectorRow label={i18n.t("timeline:attrs.lighting", { defaultValue: "Lighting" })}>
               <InspectorSelect
-                label="Lighting preset"
+                label={i18n.t("timeline:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
                 value={model3dStyle.lighting}
                 options={LIGHTING_PRESETS}
                 onChange={handleLightingChange}
               />
             </InspectorRow>
             <InspectorSliderRow
-              label="Light intensity"
+              label={i18n.t("timeline:attrs.lightIntensity", { defaultValue: "Light intensity" })}
               min={0}
               max={4}
               step={0.05}
@@ -343,12 +344,12 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
             />
 
             <InspectorToggleRow
-              label="Transparent background"
+              label={i18n.t("timeline:attrs.transparentBackground", { defaultValue: "Transparent background" })}
               checked={background.transparent}
               onChange={handleTransparentChange}
             />
             {!background.transparent && (
-              <InspectorRow label="Background color">
+              <InspectorRow label={i18n.t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}>
                 <TextInput
                   type="color"
                   value={background.color}
@@ -376,7 +377,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                   <Chip
                     compact
                     color="warning"
-                    label="Stale — the clip changed since this bake"
+                    label={i18n.t("timeline:attrs.staleTheClipChangedSinceThisBake", { defaultValue: "Stale — the clip changed since this bake" })}
                   />
                 )}
               </FlexColumn>

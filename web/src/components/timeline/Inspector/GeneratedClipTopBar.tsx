@@ -18,6 +18,7 @@ import type { TimelineClip } from "@nodetool-ai/timeline";
 import { Z_INDEX } from "../../ui_primitives";
 import { GeneratedClipHeader } from "./GeneratedClipHeader";
 import { ClipActions } from "./ClipActions";
+import { i18n } from "../../../i18n";
 
 const topBarStyles = (theme: Theme) =>
   css({

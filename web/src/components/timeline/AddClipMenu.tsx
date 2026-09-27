@@ -311,9 +311,7 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
             onClick={onBack}
             aria-label={i18n.t("timeline:addClip.backToSources", { defaultValue: "Back to clip sources" })}
           />
-          <Text size="small" weight={500} sx={{ flex: 1 }}>
-            Pick a 3D model
-          </Text>
+          <Text size="small" weight={500} sx={{ flex: 1 }}>{i18n.t("timeline:attrs.pickA3DModel", { defaultValue: "Pick a 3D model" })}</Text>
         </FlexRow>
         {modelsQuery.isLoading ? (
           <FlexRow justify="center" sx={{ py: 3 }}>
@@ -692,9 +690,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
           {!terminalOutputs && !pickingModel3D && (
             <>
               <FlexRow align="center" justify="space-between">
-                <Text size="small" weight={600}>
-                  Add Generated Clip
-                </Text>
+                <Text size="small" weight={600}>{i18n.t("timeline:attrs.addGeneratedClip", { defaultValue: "Add Generated Clip" })}</Text>
                 {isAdding && <LoadingSpinner size="small" />}
               </FlexRow>
 
@@ -789,9 +785,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                         <Text size="small" weight={500}>
                           3D model
                         </Text>
-                        <Caption sx={{ color: "text.secondary" }}>
-                          Place a glTF asset on this track
-                        </Caption>
+                        <Caption sx={{ color: "text.secondary" }}>{i18n.t("timeline:attrs.placeAGlTFAssetOnThisTrack", { defaultValue: "Place a glTF asset on this track" })}</Caption>
                       </FlexColumn>
                     </FlexRow>
                   )}
@@ -817,9 +811,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                     >
                       <TuneOutlinedIcon fontSize="small" />
                       <FlexColumn gap={0}>
-                        <Text size="small" weight={500}>
-                          Adjustment layer
-                        </Text>
+                        <Text size="small" weight={500}>{i18n.t("timeline:attrs.adjustmentLayer", { defaultValue: "Adjustment layer" })}</Text>
                         <Caption sx={{ color: "text.secondary" }}>
                           Grade or blur every layer beneath it
                         </Caption>

@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import { i18n } from "../../../i18n";
 import {
   Button,
   Caption,
@@ -97,16 +98,16 @@ export default function InspectorSearch({ contentRef }: InspectorSearchProps) {
         value={query}
         onChange={search}
         onSubmit={submit}
-        placeholder="Find a control"
+        placeholder={i18n.t("timeline:attrs.findAControl", { defaultValue: "Find a control" })}
         fullWidth
       />
       {query.trim() && (
         <FlexColumn
           gap={SPACING.none}
           role="region"
-          aria-label="Matching inspector sections"
+          aria-label={i18n.t("timeline:attrs.matchingInspectorSections", { defaultValue: "Matching inspector sections" })}
         >
-          <Caption color="muted">Jump to section</Caption>
+          <Caption color="muted">{i18n.t("timeline:attrs.jumpToSection", { defaultValue: "Jump to section" })}</Caption>
           {results.map((result, index) => (
             <Button
               key={`${result.title}-${index}`}
@@ -119,7 +120,7 @@ export default function InspectorSearch({ contentRef }: InspectorSearchProps) {
             </Button>
           ))}
           {results.length === 0 && (
-            <EmptyState size="small" title="No matching controls" />
+            <EmptyState size="small" title={i18n.t("timeline:attrs.noMatchingControls", { defaultValue: "No matching controls" })} />
           )}
         </FlexColumn>
       )}

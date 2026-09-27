@@ -4,6 +4,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
+import { i18n } from "../../i18n";
 
 const TimelineAgentPanel = () => {
   const sequenceId = useTimelineStore((s) => s.sequenceId);

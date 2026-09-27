@@ -16,6 +16,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
 import { ToolbarIconButton, FlexRow, Text, Dialog, TextInput, Toast } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -138,19 +139,19 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
               panel; this toolbar is for clip operations only. */}
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip="Duplicate — copies overrides; tweak params for a variation"
+            tooltip={i18n.t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy}
-            aria-label="Duplicate clip"
+            aria-label={i18n.t("timeline:attrs.duplicateClip", { defaultValue: "Duplicate clip" })}
             data-testid="clip-action-duplicate"
           />
 
           {clip.sourceType === "generated" && (
             <ToolbarIconButton
               icon={<AutoAwesomeMotionIcon fontSize="small" />}
-              tooltip="Regenerate as new clip — drops a fresh copy beside this one so you can roll a new take without losing the existing render"
+              tooltip={i18n.t("timeline:attrs.regenerateAsNewClipDropsAFreshCopyBesideThisOneSoYouCanRollANewTakeWithoutLosingTheExistingRender", { defaultValue: "Regenerate as new clip — drops a fresh copy beside this one so you can roll a new take without losing the existing render" })}
               onClick={handleRegenerateAsCopy}
-              aria-label="Regenerate as new clip"
+              aria-label={i18n.t("timeline:attrs.regenerateAsNewClip", { defaultValue: "Regenerate as new clip" })}
               data-testid="clip-action-regenerate-as-copy"
             />
           )}
@@ -176,9 +177,9 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<ImageIcon fontSize="small" />}
-            tooltip="Replace Output… — pick an existing asset without regenerating"
+            tooltip={i18n.t("timeline:attrs.replaceOutputPickAnExistingAssetWithoutRegenerating", { defaultValue: "Replace Output… — pick an existing asset without regenerating" })}
             onClick={handleOpenReplace}
-            aria-label="Replace clip output"
+            aria-label={i18n.t("timeline:attrs.replaceClipOutput", { defaultValue: "Replace clip output" })}
             data-testid="clip-action-replace-output"
           />
 
@@ -187,7 +188,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
               icon={<OpenInNewIcon fontSize="small" />}
               tooltip="Open in Node Editor"
               onClick={handleOpenInNodeEditor}
-              aria-label="Open clip workflow in node editor"
+              aria-label={i18n.t("timeline:attrs.openClipWorkflowInNodeEditor", { defaultValue: "Open clip workflow in node editor" })}
               data-testid="clip-action-open-in-editor"
             />
           )}
@@ -197,7 +198,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         <Dialog
           open={replaceOpen}
           onClose={handleCancelReplace}
-          title="Replace Output"
+          title={i18n.t("timeline:attrs.replaceOutput", { defaultValue: "Replace Output" })}
           onConfirm={handleConfirmReplace}
           onCancel={handleCancelReplace}
           confirmText="Replace"
@@ -211,7 +212,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           <TextInput
             value={assetIdInput}
             onChange={(e) => setAssetIdInput(e.target.value)}
-            placeholder="Asset ID"
+            placeholder={i18n.t("timeline:attrs.assetID", { defaultValue: "Asset ID" })}
             inputProps={{ "aria-label": "Asset ID" }}
             fullWidth
             size="small"

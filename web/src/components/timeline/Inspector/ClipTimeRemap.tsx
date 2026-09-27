@@ -35,6 +35,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { keyframeRowKeys } from "./InspectorPrimitives.helpers";
+import { i18n } from "../../../i18n";
 import {
   EASING_HINT,
   UNPARSEABLE_EASING_HINT
@@ -148,7 +149,7 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Time remap"
+              title={i18n.t("timeline:attrs.timeRemap", { defaultValue: "Time remap" })}
               icon={<SpeedOutlinedIcon />}
               checked={keyframes !== undefined}
               onCheckedChange={handleEnabled}
@@ -250,12 +251,8 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                     variant="outlined"
                     startIcon={<AddOutlinedIcon />}
                     onClick={addKeyframe}
-                  >
-                    Add keyframe
-                  </Button>
-                  <Button size="small" variant="text" onClick={handleClear}>
-                    Clear
-                  </Button>
+                  >{i18n.t("timeline:attrs.addKeyframe", { defaultValue: "Add keyframe" })}</Button>
+                  <Button size="small" variant="text" onClick={handleClear}>{i18n.t("timeline:attrs.clear", { defaultValue: "Clear" })}</Button>
                 </FlexRow>
               </>
             )}
@@ -284,7 +281,7 @@ export const ClipCompositionInfo: React.FC<ClipCompositionProps> = memo(
     if (clip.compositionId === undefined) return null;
     return (
       <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-        <InspectorRow label="Composition">
+        <InspectorRow label={i18n.t("timeline:attrs.composition", { defaultValue: "Composition" })}>
           <Caption color="muted">{clip.compositionId}</Caption>
         </InspectorRow>
         {params.map(([name, value]) => (

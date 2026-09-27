@@ -70,6 +70,7 @@ import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { DEFAULT_TRACK_HEIGHT_PX as SHARED_DEFAULT_TRACK_HEIGHT_PX } from "./trackHeight";
 import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
 import ConfirmDialog from "../../dialogs/ConfirmDialog";
+import { i18n } from "../../../i18n";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
 /**
  * Phone header width. 192px is half a 390px viewport — the lanes get less room
@@ -686,7 +687,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   aria-label={`Reorder ${track.name}`}
                   role="button"
                   tabIndex={-1}
-                  title="Drag to reorder track"
+                  title={i18n.t("timeline:attrs.dragToReorderTrack", { defaultValue: "Drag to reorder track" })}
                   data-testid={`track-drag-handle-${track.id}`}
                 >
                   <DragIndicatorIcon />
@@ -706,7 +707,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 onEditingChange={setEditingName}
                 onCommit={commitName}
                 ariaLabel={`Track name: ${track.name}`}
-                title="Double-click to rename"
+                title={i18n.t("timeline:attrs.doubleclickToRename", { defaultValue: "Double-click to rename" })}
               />
               <span
                 css={indexChipCss}
@@ -806,14 +807,14 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   onChange={handlePresetChange}
                   css={presetSelectStyles}
                 />
-                <Tooltip title="Edit instrument">
+                <Tooltip title={i18n.t("timeline:attrs.editInstrument", { defaultValue: "Edit instrument" })}>
                   <button
                     type="button"
                     css={
                       instrumentExpanded ? iconButtonOnCss : iconButtonOffCss
                     }
                     onClick={handleInstrumentToggle}
-                    aria-label="Edit instrument"
+                    aria-label={i18n.t("timeline:attrs.editInstrument", { defaultValue: "Edit instrument" })}
                     aria-expanded={instrumentExpanded}
                     aria-pressed={instrumentExpanded}
                     data-testid={`track-instrument-${track.id}`}
@@ -851,12 +852,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               </Tooltip>
             )}
 
-            <Tooltip title="Remove track">
+            <Tooltip title={i18n.t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}>
               <button
                 type="button"
                 css={iconButtonOnCss}
                 onClick={() => setConfirmRemoveOpen(true)}
-                aria-label="Remove track"
+                aria-label={i18n.t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
               >
                 <DeleteOutlineOutlinedIcon />
               </button>
@@ -871,7 +872,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             onPointerUp={handleResizePointerEnd}
             onPointerCancel={handleResizePointerEnd}
             onContextMenu={stopPointerPropagation}
-            aria-label="Resize track height"
+            aria-label={i18n.t("timeline:attrs.resizeTrackHeight", { defaultValue: "Resize track height" })}
             role="separator"
             aria-orientation="horizontal"
           />
@@ -885,13 +886,13 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           data-testid={`track-context-menu-${track.id}`}
         >
           <MenuItemPrimitive
-            label="Rename"
+            label={i18n.t("timeline:attrs.rename", { defaultValue: "Rename" })}
             icon={<DriveFileRenameOutlineIcon fontSize="small" />}
             onClick={handleMenuRename}
             compact
           />
           <MenuItemPrimitive
-            label="Duplicate track"
+            label={i18n.t("timeline:attrs.duplicateTrack", { defaultValue: "Duplicate track" })}
             icon={<ContentCopyIcon fontSize="small" />}
             onClick={handleMenuDuplicate}
             compact
@@ -909,7 +910,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             compact
           />
           <MenuItemPrimitive
-            label="Remove track"
+            label={i18n.t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
             icon={<DeleteOutlineOutlinedIcon fontSize="small" />}
             onClick={handleMenuRemove}
             color="error"
@@ -921,7 +922,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           open={confirmRemoveOpen}
           onClose={() => setConfirmRemoveOpen(false)}
           onConfirm={() => removeTrack(track.id)}
-          title="Remove track"
+          title={i18n.t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
           content={`Remove track "${track.name}" and all its clips?`}
           confirmText="Remove"
           cancelText="Cancel"

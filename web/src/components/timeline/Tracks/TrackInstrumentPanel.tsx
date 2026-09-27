@@ -12,6 +12,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { playAuditionNote } from "../preview/audition";
 import FableSynthInstrumentEditor, { InstrumentKeyboard } from "./FableSynthInstrumentEditors";
 import { Button, Caption, FlexColumn, SelectField, SPACING } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
   width: "100%", height: "100%", padding: theme.spacing(1),
@@ -78,7 +79,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
       >
         <FlexColumn gap={SPACING.md}>
           <SelectField
-            label="Instrument preset"
+            label={i18n.t("timeline:attrs.instrumentPreset", { defaultValue: "Instrument preset" })}
             css={css({ width: 240, maxWidth: "100%", alignSelf: "flex-start" })}
             size="small"
             value={presetId}
@@ -96,7 +97,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
           />
           <Button size="small" variant="text" aria-pressed={showKeyboard}
             sx={{ alignSelf: "flex-start", color: showKeyboard ? "primary.main" : "text.secondary", backgroundColor: showKeyboard ? "action.selected" : "transparent" }}
-            onClick={() => toggleKeyboard(trackId)}>Keyboard</Button>
+            onClick={() => toggleKeyboard(trackId)}>{i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })}</Button>
           {showKeyboard && <div className={`fs-editor fs-${instrument.type}`}>
             <InstrumentKeyboard start={instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />

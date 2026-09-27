@@ -59,6 +59,7 @@ import type {
 } from "../../stores/MediaGenerationStore";
 import type { MusicModel, TTSModel, VideoModel } from "../../stores/ApiTypes";
 import { useInStudio } from "../../studio/StudioContext";
+import { i18n } from "../../i18n";
 import {
   forTasks,
   STUDIO_CLIP_MODELS,
@@ -365,7 +366,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
   const costLine = (
     <CostEstimateLine
       estimate={generationCostLine(costEstimate)}
-      title="Estimated cost of this generation"
+      title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
     />
   );
 

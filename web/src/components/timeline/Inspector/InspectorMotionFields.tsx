@@ -15,6 +15,7 @@ import React, { memo, useCallback, useState } from "react";
 import { parseEasing, type ShapeFill } from "@nodetool-ai/timeline";
 
 import { Caption, FlexColumn, SPACING, TextInput } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 import {
   InspectorPillInput,
   InspectorRow,
@@ -214,7 +215,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
           />
         </InspectorRow>
         {fill?.type === "solid" && (
-          <InspectorRow label="Fill color">
+          <InspectorRow label={i18n.t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
             <TextInput
               type="color"
               value={fill.color}
@@ -226,7 +227,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
           </InspectorRow>
         )}
         {fill?.type === "linear" && (
-          <InspectorRow label="Angle">
+          <InspectorRow label={i18n.t("timeline:attrs.angle", { defaultValue: "Angle" })}>
             <InspectorPillInput
               value={String(fill.angle)}
               unit="°"
@@ -241,7 +242,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
         )}
         {fill && fill.type !== "solid" && (
           <>
-            <InspectorRow label="Stops">
+            <InspectorRow label={i18n.t("timeline:attrs.stops", { defaultValue: "Stops" })}>
               <TextCommitField
                 value={formatGradientStops(fill.stops)}
                 ariaLabel={`${labelPrefix} stops`}

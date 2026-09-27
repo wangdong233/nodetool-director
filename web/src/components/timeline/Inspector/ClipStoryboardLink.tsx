@@ -16,6 +16,7 @@ import { Chip, FlexRow, BORDER_RADIUS, CONTROL, SPACING } from "../../ui_primiti
 import { colorForType } from "../../../config/data_types";
 import { hexToRgba } from "../../../utils/ColorUtils";
 import { useClipStoryboardLink } from "../../../hooks/timeline/useClipStoryboardLink";
+import { i18n } from "../../../i18n";
 
 /** Violet — the app's colour for anything picture-shaped. */
 const BOARD_COLOR = colorForType("video");

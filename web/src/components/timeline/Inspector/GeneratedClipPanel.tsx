@@ -47,6 +47,7 @@ import { GeneratedClipTopBar } from "./GeneratedClipTopBar";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
+import { i18n } from "../../../i18n";
 
 interface GeneratedClipPanelProps {
   clipId: string;
@@ -189,7 +190,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title="Inputs"
+                  title={i18n.t("timeline:attrs.inputs", { defaultValue: "Inputs" })}
                   icon={<TuneOutlinedIcon />}
                 />
               }
@@ -235,7 +236,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
                   estimate={workflowCostLine(costEstimate)}
-                  title="Estimated cost of one run of this workflow"
+                  title={i18n.t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
                 />
               </FlexRow>
               <EditorButton
@@ -252,9 +253,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 {isActive ? "Cancel" : generateLabel}
               </EditorButton>
               {isFailed && (
-                <Caption color="error" sx={{ textAlign: "center" }}>
-                  Generation failed.
-                </Caption>
+                <Caption color="error" sx={{ textAlign: "center" }}>{i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
               )}
             </FlexColumn>
           )}

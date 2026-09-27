@@ -128,9 +128,7 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               disabled={busy}
               onClick={handleRestore}
               aria-label={`Restore version ${version.version}`}
-            >
-              Restore
-            </EditorButton>
+            >{i18n.t("timeline:attrs.restore", { defaultValue: "Restore" })}</EditorButton>
             <EditorButton
               density="compact"
               variant="text"
@@ -138,9 +136,7 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               onClick={handleDelete}
               aria-label={`Delete version ${version.version}`}
               sx={{ color: "text.secondary" }}
-            >
-              Delete
-            </EditorButton>
+            >{i18n.t("timeline:attrs.delete", { defaultValue: "Delete" })}</EditorButton>
           </FlexRow>
         </FlexRow>
         <Caption size="smaller" color="muted">
@@ -273,7 +269,7 @@ export const TimelineVersionHistoryPanel: React.FC<
           </FlexColumn>
         ) : error ? (
           <FlexColumn gap={0.5} sx={{ p: 2 }}>
-            <Text color="error">Failed to load versions</Text>
+            <Text color="error">{i18n.t("timeline:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}</Text>
             <Caption size="smaller" color="secondary">
               {error instanceof Error ? error.message : String(error)}
             </Caption>

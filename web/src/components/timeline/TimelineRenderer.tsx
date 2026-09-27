@@ -18,6 +18,7 @@ import {
   TimelineProvider
 } from "../../stores/timeline/TimelineInstance";
 import { PreviewArea } from "./preview/PreviewArea";
+import { i18n } from "../../i18n";
 
 const rendererStyles = (theme: Theme) =>
   css({

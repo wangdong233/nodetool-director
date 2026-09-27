@@ -91,12 +91,8 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
   const actions = useMemo(
     () => (
       <>
-        <EditorButton variant="outlined" size="small" onClick={onClose}>
-          Cancel
-        </EditorButton>
-        <EditorButton variant="contained" size="small" onClick={handleExport}>
-          Export
-        </EditorButton>
+        <EditorButton variant="outlined" size="small" onClick={onClose}>{i18n.t("timeline:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+        <EditorButton variant="contained" size="small" onClick={handleExport}>{i18n.t("timeline:attrs.export", { defaultValue: "Export" })}</EditorButton>
       </>
     ),
     [onClose, handleExport]

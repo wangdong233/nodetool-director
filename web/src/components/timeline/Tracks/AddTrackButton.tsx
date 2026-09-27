@@ -22,6 +22,7 @@ import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { Popover, MenuItemPrimitive, MOTION, BORDER_RADIUS } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -118,13 +119,13 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         type="button"
         css={buttonStyles(theme, compact)}
         onClick={handleOpen}
-        aria-label="Add track"
-        title="Add track"
+        aria-label={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
+        title={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
         aria-haspopup="menu"
         data-testid="add-track-button"
       >
         <AddIcon />
-        {!compact && <span>Track</span>}
+        {!compact && <span>{i18n.t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
       </button>
       <Popover
         open={Boolean(anchorEl)}

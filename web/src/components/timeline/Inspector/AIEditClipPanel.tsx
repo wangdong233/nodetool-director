@@ -35,6 +35,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { InspectorSectionTitle, InspectorSliderRow } from "./InspectorPrimitives";
+import { i18n } from "../../../i18n";
 
 interface AIEditClipPanelProps {
   clipId: string;
@@ -306,7 +307,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
           <EmptyState
             variant="empty"
             size="small"
-            title="Edit video unavailable"
+            title={i18n.t("timeline:attrs.editVideoUnavailable", { defaultValue: "Edit video unavailable" })}
             description={unavailableReason}
           />
         ) : (
@@ -314,7 +315,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
             <TextInput
               value={instruction}
               onChange={(event) => setInstruction(event.target.value)}
-              placeholder="Describe the change to make…"
+              placeholder={i18n.t("timeline:attrs.describeTheChangeToMake", { defaultValue: "Describe the change to make…" })}
               multiline
               minRows={2}
               maxRows={6}
@@ -333,7 +334,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               <EmptyState
                 variant={error ? "error" : "empty"}
                 size="small"
-                title="No compatible model"
+                title={i18n.t("timeline:attrs.noCompatibleModel", { defaultValue: "No compatible model" })}
                 description={unavailableReason}
                 actionText={error ? "Retry model catalog" : undefined}
                 onAction={
@@ -344,7 +345,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               />
             ) : IS_MANAGED_BUILD ? (
               <CuratedModelSelect
-                label="Video edit model"
+                label={i18n.t("timeline:attrs.videoEditModel", { defaultValue: "Video edit model" })}
                 options={managedModelOptions}
                 value={selectedModel?.id ?? ""}
                 onChange={handleModelChange}
@@ -359,7 +360,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
 
             {strengthSupported && (
               <InspectorSliderRow
-                label="Strength"
+                label={i18n.t("timeline:attrs.strength", { defaultValue: "Strength" })}
                 min={0}
                 max={1}
                 step={0.05}
@@ -372,7 +373,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
             <FlexRow justify="flex-end" fullWidth>
               <CostEstimateLine
                 estimate={generationCostLine(costEstimate)}
-                title="Estimated cost of this video edit"
+                title={i18n.t("timeline:attrs.estimatedCostOfThisVideoEdit", { defaultValue: "Estimated cost of this video edit" })}
               />
             </FlexRow>
 
@@ -405,7 +406,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 <TextInput
                   value={newTakeInstruction}
                   onChange={(event) => setNewTakeInstruction(event.target.value)}
-                  placeholder="Optional new-take direction…"
+                  placeholder={i18n.t("timeline:attrs.optionalNewtakeDirection", { defaultValue: "Optional new-take direction…" })}
                   multiline
                   minRows={2}
                   maxRows={4}

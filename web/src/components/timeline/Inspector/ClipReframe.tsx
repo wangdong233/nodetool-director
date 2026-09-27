@@ -19,6 +19,7 @@ import {
   SPACING
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../i18n";
 import {
   InspectorDivider,
   InspectorRow,
@@ -107,7 +108,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Smart Reframe"
+            title={i18n.t("timeline:attrs.smartReframe", { defaultValue: "Smart Reframe" })}
             icon={<CenterFocusStrongOutlinedIcon />}
           />
         }
@@ -116,9 +117,9 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
         unmountOnExit
       >
         <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-          <InspectorRow label="Subject">
+          <InspectorRow label={i18n.t("timeline:attrs.subject", { defaultValue: "Subject" })}>
             <InspectorSelect
-              label="Reframe subject"
+              label={i18n.t("timeline:attrs.reframeSubject", { defaultValue: "Reframe subject" })}
               value={subjectValue}
               options={subjectOptions}
               onChange={handleSubject}
@@ -143,7 +144,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             </Caption>
           )}
           <InspectorSliderRow
-            label="Focus X"
+            label={i18n.t("timeline:attrs.focusX", { defaultValue: "Focus X" })}
             value={focusX}
             display={`${Math.round(focusX * 100)}%`}
             min={0}
@@ -152,7 +153,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             onChange={setFocusX}
           />
           <InspectorSliderRow
-            label="Focus Y"
+            label={i18n.t("timeline:attrs.focusY", { defaultValue: "Focus Y" })}
             value={focusY}
             display={`${Math.round(focusY * 100)}%`}
             min={0}
@@ -173,18 +174,14 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             fullWidth
             variant="contained"
             onClick={handleAddKeyframe}
-          >
-            Add framing keyframe
-          </EditorButton>
+          >{i18n.t("timeline:attrs.addFramingKeyframe", { defaultValue: "Add framing keyframe" })}</EditorButton>
           {reframe && (
             <EditorButton
               fullWidth
               variant="outlined"
               color="error"
               onClick={handleClear}
-            >
-              Clear reframe
-            </EditorButton>
+            >{i18n.t("timeline:attrs.clearReframe", { defaultValue: "Clear reframe" })}</EditorButton>
           )}
         </FlexColumn>
       </CollapsibleSection>

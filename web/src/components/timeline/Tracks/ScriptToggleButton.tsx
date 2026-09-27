@@ -24,6 +24,7 @@ import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import { useHasScript } from "../../../hooks/timeline/useHasScript";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { MOTION, BORDER_RADIUS } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({

@@ -19,6 +19,7 @@ import { groupDescendantIds } from "@nodetool-ai/timeline";
 
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { SPACING_PX } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const BRACKET_DEPTH_PX = SPACING_PX.md;
 

@@ -48,6 +48,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
+import { i18n } from "../../../i18n";
 
 const TILE_PX = 56;
 
@@ -445,7 +446,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
         {editingVersion && (
           <div css={renameRowStyles(theme)}>
             <TextInput
-              label="Take label"
+              label={i18n.t("timeline:attrs.takeLabel", { defaultValue: "Take label" })}
               hideLabel
               compact
               autoFocus

@@ -230,9 +230,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
       <FlexColumn gap={4} sx={{ py: 1 }}>
         {/* ── Canvas size ─────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Canvas size
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{i18n.t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}</Text>
           {/* Label hidden — the section header names it; an outlined variant
               keeps it consistent with the Width/Height fields below. */}
           <SelectField
@@ -278,9 +276,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
 
         {/* ── Frame rate ──────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Frame rate
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{i18n.t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}</Text>
           <FlexRow gap={1.5} align="flex-start">
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
@@ -312,9 +308,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
 
         {/* ── Tempo ───────────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Tempo
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{i18n.t("timeline:attrs.tempo", { defaultValue: "Tempo" })}</Text>
           <FlexRow gap={1.5} align="flex-start">
             <TextInput
               label="BPM"
@@ -358,7 +352,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             </FlexColumn>
           </FlexRow>
           <TextInput
-            label="Beat one at"
+            label={i18n.t("timeline:attrs.beatOneAt", { defaultValue: "Beat one at" })}
             type="number"
             size="small"
             value={offsetText}

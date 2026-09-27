@@ -78,6 +78,7 @@ import { GeneratedClipTopBar } from "./GeneratedClipTopBar";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
+import { i18n } from "../../../i18n";
 
 interface VideoModelChange {
   type: "video_model";
@@ -382,7 +383,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Prompt"
+              title={i18n.t("timeline:attrs.prompt", { defaultValue: "Prompt" })}
               icon={<AutoAwesomeOutlinedIcon />}
             />
           }
@@ -485,7 +486,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 />
               ) : (
                 <SelectField
-                  label="Source clip"
+                  label={i18n.t("timeline:attrs.sourceClip", { defaultValue: "Source clip" })}
                   value={clip.sourceClipId ?? ""}
                   onChange={handleSourceChange}
                   options={sourceOptions}
@@ -571,7 +572,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
             <FlexRow justify="flex-end" fullWidth>
               <CostEstimateLine
                 estimate={generationCostLine(costEstimate)}
-                title="Estimated cost of this generation"
+                title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
               />
             </FlexRow>
 
@@ -589,9 +590,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               {isActive ? "Cancel" : generateLabel}
             </EditorButton>
             {isFailed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                Generation failed.
-              </Caption>
+              <Caption color="error" sx={{ textAlign: "center" }}>{i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
             )}
           </FlexColumn>
         </CollapsibleSection>

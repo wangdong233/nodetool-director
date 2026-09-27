@@ -34,6 +34,7 @@ import {
 import { formatTimecode, parseSeconds, parseTimecode } from "./InspectorPrimitives.helpers";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipAnimations } from "./ClipAnimations";
+import { i18n } from "../../../i18n";
 
 const SCRUB_DURATION = { step: 0.02, min: 0.01 };
 
@@ -92,7 +93,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Group"
+              title={i18n.t("timeline:attrs.group", { defaultValue: "Group" })}
               icon={<FolderOutlinedIcon />}
             />
           }
@@ -106,10 +107,10 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
                 value={clip.name}
                 minWidth={140}
                 onCommit={handleName}
-                ariaLabel="Group name"
+                ariaLabel={i18n.t("timeline:attrs.groupName", { defaultValue: "Group name" })}
               />
             </InspectorRow>
-            <InspectorRow label="Children">
+            <InspectorRow label={i18n.t("timeline:attrs.children", { defaultValue: "Children" })}>
               <InspectorStaticValue value={String(childCount)} />
             </InspectorRow>
             <Caption color="muted">
@@ -117,9 +118,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
               every clip that names it as a parent; each child keeps its own
               track, so layer order is unchanged.
             </Caption>
-            <Button size="small" variant="outlined" onClick={onUngroup}>
-              Ungroup
-            </Button>
+            <Button size="small" variant="outlined" onClick={onUngroup}>{i18n.t("timeline:attrs.ungroup", { defaultValue: "Ungroup" })}</Button>
           </FlexColumn>
         </CollapsibleSection>
 
@@ -128,7 +127,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Timing"
+              title={i18n.t("timeline:attrs.timing", { defaultValue: "Timing" })}
               icon={<ScheduleOutlinedIcon />}
             />
           }
@@ -137,25 +136,25 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Start">
+            <InspectorRow label={i18n.t("timeline:attrs.start", { defaultValue: "Start" })}>
               <InspectorPillInput
                 value={formatTimecode(clip.startMs, fps)}
                 minWidth={112}
                 onCommit={handleStart}
-                ariaLabel="Start timecode"
+                ariaLabel={i18n.t("timeline:attrs.startTimecode", { defaultValue: "Start timecode" })}
               />
             </InspectorRow>
-            <InspectorRow label="Duration">
+            <InspectorRow label={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}>
               <InspectorPillInput
                 value={(clip.durationMs / 1000).toFixed(2)}
                 unit="s"
                 scrub={SCRUB_DURATION}
                 onCommit={handleDuration}
-                ariaLabel="Duration in seconds"
+                ariaLabel={i18n.t("timeline:attrs.durationInSeconds", { defaultValue: "Duration in seconds" })}
               />
             </InspectorRow>
             <InspectorToggleRow
-              label="Hidden"
+              label={i18n.t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
               checked={!!clip.hidden}
               onChange={handleHidden}
             />

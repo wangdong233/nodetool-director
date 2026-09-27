@@ -27,6 +27,7 @@ import {
 } from "../../ui_primitives";
 
 import "./fablesynth-editor.css";
+import { i18n } from "../../../i18n";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -137,7 +138,7 @@ const Knob: React.FC<KnobProps> = ({
           type="range"
           aria-label={def.label}
           aria-valuetext={def.fmt?.(value) ?? String(value)}
-          title="Drag up or down. Shift for fine adjustment. Double-click to reset."
+          title={i18n.t("timeline:attrs.dragUpOrDownShiftForFineAdjustmentDoubleclickToReset", { defaultValue: "Drag up or down. Shift for fine adjustment. Double-click to reset." })}
           min="0"
           max="1"
           step={def.curve === "int" ? 1 / (def.max - def.min) : 0.01}
@@ -565,7 +566,7 @@ const BassEditor = ({
         </FlexRow>
       </Panel>
       <Filter instrument={instrument} onChange={onChange} />
-      <Panel title="ENV" className="fs-panel-inline" head={<Caption>Filter envelope</Caption>}>
+      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{i18n.t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
         <div className="fs-knob-row">
           <Knob
             def={P("fattack", "F·ATT", 0, 500, 1, (v) => sec(v / 1000), "time")}
@@ -718,7 +719,7 @@ const DrumEditor = ({
         title="PADS"
         accent="b"
         className="fs-pad-panel"
-        head={<Caption>Select to edit and audition</Caption>}
+        head={<Caption>{i18n.t("timeline:attrs.selectToEditAndAudition", { defaultValue: "Select to edit and audition" })}</Caption>}
       >
         <div className="fs-pad-grid">
           {DRUM_PAD_ORDER.filter((index) => index < instrument.pads.length).map(
@@ -861,7 +862,7 @@ const DrumEditor = ({
             head={
               <Power
                 on={Boolean(filter)}
-                label="Filter"
+                label={i18n.t("timeline:attrs.filter", { defaultValue: "Filter" })}
                 onChange={() =>
                   commit({
                     ...pad,
@@ -972,9 +973,7 @@ const FableSynthInstrumentEditor = ({
               instrument.type === "drum" ? instrument.baseNote : 60
             )
           }
-        >
-          Audition
-        </EditorButton>
+        >{i18n.t("timeline:attrs.audition", { defaultValue: "Audition" })}</EditorButton>
         <Knob
           def={P(
             "output",

@@ -42,6 +42,7 @@ import { usePersistedFold } from "./usePersistedFold";
 import { ClipCustomCurves, makeCustomAnimation } from "./ClipCustomCurves";
 import { EasingField, TextCommitField } from "./InspectorMotionFields";
 import { isNumber } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 import {
   shapeClipToFollowPathParams,
   type FollowPathParams
@@ -388,9 +389,9 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
     if (shapeClips.length === 0) return null;
 
     return (
-      <InspectorRow label="Use shape clip">
+      <InspectorRow label={i18n.t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}>
         <InspectorSelect
-          label="Use shape clip"
+          label={i18n.t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}
           value={CHOOSE_SHAPE_CLIP}
           options={options}
           onChange={handlePick}
@@ -588,12 +589,12 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
       </FlexRow>
 
       <InspectorToggleRow
-        label="Enabled"
+        label={i18n.t("timeline:attrs.enabled", { defaultValue: "Enabled" })}
         checked={animation.enabled !== false}
         onChange={handleEnabledChange}
       />
 
-      <InspectorRow label="Preset">
+      <InspectorRow label={i18n.t("timeline:attrs.preset", { defaultValue: "Preset" })}>
         <InspectorSelect
           label={`${animation.role} animation preset`}
           value={animation.preset}
@@ -614,7 +615,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
               ariaLabel={`${animation.role} animation duration`}
             />
           </InspectorRow>
-          <InspectorRow label="Delay">
+          <InspectorRow label={i18n.t("timeline:attrs.delay", { defaultValue: "Delay" })}>
             <InspectorPillInput
               value={String(animation.delayMs ?? 0)}
               unit="ms"
@@ -634,7 +635,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
           onChange={handleEasingChange}
         />
       ) : (
-        <InspectorRow label="Easing">
+        <InspectorRow label={i18n.t("timeline:attrs.easing", { defaultValue: "Easing" })}>
           <InspectorSelect
             label={`${animation.role} animation easing`}
             value={animation.easing ?? preset?.defaultEasing ?? "linear"}
@@ -647,7 +648,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
       {staggerAvailable && !preset?.fullClip && (
         <>
           <InspectorToggleRow
-            label="Stagger"
+            label={i18n.t("timeline:attrs.stagger", { defaultValue: "Stagger" })}
             checked={stagger !== undefined}
             onChange={handleStaggerToggle}
           />
@@ -669,7 +670,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
                   onChange={handleStaggerFromChange}
                 />
               </InspectorRow>
-              <InspectorRow label="Offset">
+              <InspectorRow label={i18n.t("timeline:attrs.offset", { defaultValue: "Offset" })}>
                 <InspectorPillInput
                   value={String(stagger.offsetMs)}
                   unit="ms"
@@ -796,7 +797,7 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Animate"
+            title={i18n.t("timeline:attrs.animate", { defaultValue: "Animate" })}
             icon={<AnimationOutlinedIcon />}
           />
         }
@@ -807,14 +808,14 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
         <FlexColumn gap={SPACING.md} sx={{ py: SPACING.xs }}>
           <FlexRow gap={SPACING.md} align="center">
             <InspectorSelect
-              label="New animation role"
+              label={i18n.t("timeline:attrs.newAnimationRole", { defaultValue: "New animation role" })}
               value={newRole}
               options={ROLE_OPTIONS}
               onChange={handleRoleChange}
               grow
             />
             <InspectorSelect
-              label="New animation preset"
+              label={i18n.t("timeline:attrs.newAnimationPreset", { defaultValue: "New animation preset" })}
               value={newPreset}
               options={PRESET_OPTIONS_BY_ROLE[newRole]}
               onChange={setNewPreset}

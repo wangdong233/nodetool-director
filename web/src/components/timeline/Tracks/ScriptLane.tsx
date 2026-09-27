@@ -25,6 +25,7 @@ import {
   type TranscriptSegment
 } from "../../../stores/timeline/transcriptOps";
 import { trackHeaderWidthCss } from "./TrackHeader";
+import { i18n } from "../../../i18n";
 
 export const SCRIPT_LANE_HEIGHT_PX = 46;
 
@@ -115,7 +116,7 @@ const HeaderCell = styled("div")(({ theme }) => ({
 }));
 
 export const ScriptLaneHeader: React.FC = () => (
-  <HeaderCell aria-label="Script lane">
+  <HeaderCell aria-label={i18n.t("timeline:attrs.scriptLane", { defaultValue: "Script lane" })}>
     <GraphicEqIcon />
     SCRIPT
   </HeaderCell>

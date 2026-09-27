@@ -27,6 +27,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n } from "../../i18n";
 import {
   bindingKeys,
   TIMELINE_KEYBOARD_PRESET_LABELS,
@@ -229,17 +230,17 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
       <Dialog
         open={open}
         onClose={onClose}
-        title="Keyboard shortcuts"
+        title={i18n.t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
         minWidth="min(680px, 100vw - 32px)"
       >
         <FlexRow align="center" gap={1} sx={{ pb: 1 }}>
-          <Caption sx={groupTitleSx}>Layout</Caption>
+          <Caption sx={groupTitleSx}>{i18n.t("timeline:attrs.layout", { defaultValue: "Layout" })}</Caption>
           <ToggleGroup
             value={preset}
             exclusive
             onChange={handlePreset}
             compact
-            aria-label="Keyboard layout"
+            aria-label={i18n.t("timeline:attrs.keyboardLayout", { defaultValue: "Keyboard layout" })}
           >
             {TIMELINE_KEYBOARD_PRESETS.map((p) => (
               <ToggleOption key={p} value={p}>

@@ -284,9 +284,7 @@ const PreviewRegion: React.FC<{
                 onClick={onRetryFetch}
                 disabled={createSequencePending}
                 aria-label={i18n.t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
-              >
-                Retry
-              </EditorButton>
+              >{i18n.t("timeline:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
             ) : null}
             {onCreateNewSequence ? (
               <EditorButton
@@ -483,7 +481,7 @@ const MobilePanelSheet: React.FC<{
       maxHeight="62vh"
       showDragHandle
       showClose={false}
-      ariaLabel="Timeline panels"
+      ariaLabel={i18n.t("timeline:attrs.timelinePanels", { defaultValue: "Timeline panels" })}
     >
       <FlexColumn fullWidth sx={{ height: "52vh", minHeight: 0 }}>
         {activeTab === "inspector" ? (

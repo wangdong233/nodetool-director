@@ -31,6 +31,7 @@ import {
 } from "./InspectorPrimitives";
 import { parseSeconds } from "./InspectorPrimitives.helpers";
 import { DIRECTION_OPTIONS, EasingField } from "./InspectorMotionFields";
+import { i18n } from "../../../i18n";
 
 /** "auto" is no `transitionIn`; "none" is a zero-length cross-fade. */
 type TransitionMode =
@@ -212,7 +213,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Transition"
+              title={i18n.t("timeline:attrs.transition", { defaultValue: "Transition" })}
               icon={<CompareArrowsOutlinedIcon />}
             />
           }
@@ -223,7 +224,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
             <InspectorRow label="Type">
               <InspectorSelect
-                label="Transition type"
+                label={i18n.t("timeline:attrs.transitionType", { defaultValue: "Transition type" })}
                 value={mode}
                 options={TRANSITION_MODES}
                 onChange={handleModeChange}
@@ -231,19 +232,19 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
             </InspectorRow>
 
             {configurable && (
-              <InspectorRow label="Duration">
+              <InspectorRow label={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}>
                 <InspectorPillInput
                   value={(durationMs / 1000).toFixed(2)}
                   unit="s"
                   scrub={SCRUB_SECONDS}
                   onCommit={handleDurationCommit}
-                  ariaLabel="Transition duration"
+                  ariaLabel={i18n.t("timeline:attrs.transitionDuration", { defaultValue: "Transition duration" })}
                 />
               </InspectorRow>
             )}
 
             {mode === "dipToColor" && (
-              <InspectorRow label="Color">
+              <InspectorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}>
                 <TextInput
                   type="color"
                   value={readString(transition, "color") ?? "#000000"}
@@ -256,9 +257,9 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
             )}
 
             {hasDirection && (
-              <InspectorRow label="Direction">
+              <InspectorRow label={i18n.t("timeline:attrs.direction", { defaultValue: "Direction" })}>
                 <InspectorSelect
-                  label="Transition direction"
+                  label={i18n.t("timeline:attrs.transitionDirection", { defaultValue: "Transition direction" })}
                   value={readString(transition, "direction") ?? "left"}
                   options={DIRECTION_OPTIONS}
                   onChange={(direction) => patchField({ direction })}
@@ -268,7 +269,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
 
             {mode === "wipe" && (
               <InspectorSliderRow
-                label="Softness"
+                label={i18n.t("timeline:attrs.softness", { defaultValue: "Softness" })}
                 min={0}
                 max={1}
                 step={0.01}
@@ -281,7 +282,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
             {configurable && (
               <EasingField
                 value={transition?.easing}
-                ariaLabel="Transition easing"
+                ariaLabel={i18n.t("timeline:attrs.transitionEasing", { defaultValue: "Transition easing" })}
                 onChange={handleEasingChange}
               />
             )}

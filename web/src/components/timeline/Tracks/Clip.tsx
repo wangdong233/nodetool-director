@@ -45,6 +45,7 @@ import { ClipContextMenu } from "./ClipContextMenu";
 import { SendToWorkflowMenu } from "../../workflows/SendToWorkflowMenu";
 import type { WorkflowMediaItem } from "../../../hooks/handlers/useGenerationToCanvas";
 import { ReplaceOutputDialog } from "./ReplaceOutputDialog";
+import { i18n } from "../../../i18n";
 
 interface ClipProps {
   clipId: string;

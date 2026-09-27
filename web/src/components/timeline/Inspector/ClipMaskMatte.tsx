@@ -50,6 +50,7 @@ import {
   InspectorToggleRow
 } from "./InspectorPrimitives";
 import { TextCommitField } from "./InspectorMotionFields";
+import { i18n } from "../../../i18n";
 
 const MASK_KINDS = [
   { value: "rect", label: "Rectangle" },
@@ -245,9 +246,9 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
               </Caption>
             ) : (
               <>
-                <InspectorRow label="Shape">
+                <InspectorRow label={i18n.t("timeline:attrs.shape", { defaultValue: "Shape" })}>
                   <InspectorSelect
-                    label="Mask shape"
+                    label={i18n.t("timeline:attrs.maskShape", { defaultValue: "Mask shape" })}
                     value={mask.kind}
                     options={MASK_KINDS}
                     onChange={handleMaskKindChange}
@@ -258,7 +259,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                     <InspectorRow label="Path">
                       <TextCommitField
                         value={mask.d ?? ""}
-                        ariaLabel="Mask path data"
+                        ariaLabel={i18n.t("timeline:attrs.maskPathData", { defaultValue: "Mask path data" })}
                         placeholder="M 0 0 L 1 0 L 1 1 Z"
                         onCommit={handleMaskPathCommit}
                       />
@@ -269,20 +270,20 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                   </>
                 ) : (
                   <>
-                    <InspectorRow label="Position">
+                    <InspectorRow label={i18n.t("timeline:attrs.position", { defaultValue: "Position" })}>
                       <InspectorPillInput
                         value={(mask.x ?? 0).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskXCommit}
-                        ariaLabel="Mask X"
+                        ariaLabel={i18n.t("timeline:attrs.maskX", { defaultValue: "Mask X" })}
                       />
                       <InspectorPillInput
                         value={(mask.y ?? 0).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskYCommit}
-                        ariaLabel="Mask Y"
+                        ariaLabel={i18n.t("timeline:attrs.maskY", { defaultValue: "Mask Y" })}
                       />
                     </InspectorRow>
                     <InspectorRow label="Size">
@@ -291,29 +292,29 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskWidthCommit}
-                        ariaLabel="Mask width"
+                        ariaLabel={i18n.t("timeline:attrs.maskWidth", { defaultValue: "Mask width" })}
                       />
                       <InspectorPillInput
                         value={(mask.height ?? 1).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskHeightCommit}
-                        ariaLabel="Mask height"
+                        ariaLabel={i18n.t("timeline:attrs.maskHeight", { defaultValue: "Mask height" })}
                       />
                     </InspectorRow>
                   </>
                 )}
-                <InspectorRow label="Feather">
+                <InspectorRow label={i18n.t("timeline:attrs.feather", { defaultValue: "Feather" })}>
                   <InspectorPillInput
                     value={String(mask.featherPx ?? 0)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleMaskFeatherCommit}
-                    ariaLabel="Mask feather"
+                    ariaLabel={i18n.t("timeline:attrs.maskFeather", { defaultValue: "Mask feather" })}
                   />
                 </InspectorRow>
                 <InspectorToggleRow
-                  label="Invert"
+                  label={i18n.t("timeline:attrs.invert", { defaultValue: "Invert" })}
                   checked={mask.invert === true}
                   onChange={handleMaskInvertChange}
                 />
@@ -328,7 +329,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title="Matte"
+                  title={i18n.t("timeline:attrs.matte", { defaultValue: "Matte" })}
                   icon={<FilterOutlinedIcon />}
                 />
               }
@@ -337,9 +338,9 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
               unmountOnExit
             >
               <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-                <InspectorRow label="Source">
+                <InspectorRow label={i18n.t("timeline:attrs.source", { defaultValue: "Source" })}>
                   <InspectorSelect
-                    label="Matte source clip"
+                    label={i18n.t("timeline:attrs.matteSourceClip", { defaultValue: "Matte source clip" })}
                     value={matte?.sourceClipId ?? NO_MATTE}
                     options={sourceOptions}
                     onChange={handleMatteSourceChange}
@@ -350,14 +351,14 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                   <>
                     <InspectorRow label="Mode">
                       <InspectorSelect
-                        label="Matte mode"
+                        label={i18n.t("timeline:attrs.matteMode", { defaultValue: "Matte mode" })}
                         value={matte.mode}
                         options={MATTE_MODES}
                         onChange={handleMatteModeChange}
                       />
                     </InspectorRow>
                     <InspectorToggleRow
-                      label="Invert"
+                      label={i18n.t("timeline:attrs.invert", { defaultValue: "Invert" })}
                       checked={matte.invert === true}
                       onChange={handleMatteInvertChange}
                     />
@@ -492,7 +493,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Subject matte"
+              title={i18n.t("timeline:attrs.subjectMatte", { defaultValue: "Subject matte" })}
               icon={<PersonOutlineOutlinedIcon />}
             />
           }
@@ -501,9 +502,9 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Model">
+            <InspectorRow label={i18n.t("timeline:attrs.model", { defaultValue: "Model" })}>
               <InspectorSelect
-                label="Subject matte model"
+                label={i18n.t("timeline:attrs.subjectMatteModel", { defaultValue: "Subject matte model" })}
                 value={model}
                 options={SUBJECT_MODEL_OPTIONS}
                 onChange={handleModelChange}
@@ -515,7 +516,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
             {generating && (
               <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.xs }}>
                 <LoadingSpinner size="small" />
-                <Caption color="muted">Cutting the subject out…</Caption>
+                <Caption color="muted">{i18n.t("timeline:attrs.cuttingTheSubjectOut", { defaultValue: "Cutting the subject out…" })}</Caption>
               </FlexRow>
             )}
 
@@ -533,9 +534,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   startIcon={<AutoAwesomeOutlinedIcon />}
                   onClick={handleIsolate}
                   data-testid="isolate-subject"
-                >
-                  Isolate subject
-                </EditorButton>
+                >{i18n.t("timeline:attrs.isolateSubject", { defaultValue: "Isolate subject" })}</EditorButton>
                 <Caption color="muted">
                   Cuts a mask from this clip&apos;s own source, so it stays
                   aligned through every trim and split.
@@ -546,13 +545,13 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
             {result && (
               <>
                 <InspectorToggleRow
-                  label="Invert"
+                  label={i18n.t("timeline:attrs.invert", { defaultValue: "Invert" })}
                   checked={result.invert === true}
                   onChange={handleInvert}
                   disabled={generating}
                 />
                 <InspectorSliderRow
-                  label="Strength"
+                  label={i18n.t("timeline:attrs.strength", { defaultValue: "Strength" })}
                   value={result.strength ?? 1}
                   display={(result.strength ?? 1).toFixed(2)}
                   min={0}
@@ -561,19 +560,19 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   disabled={generating}
                   onChange={handleStrength}
                 />
-                <InspectorRow label="Feather">
+                <InspectorRow label={i18n.t("timeline:attrs.feather", { defaultValue: "Feather" })}>
                   <InspectorPillInput
                     value={String(result.featherPx ?? 0)}
                     unit="px"
                     scrub={SCRUB_PX}
                     disabled={generating}
                     onCommit={handleFeather}
-                    ariaLabel="Subject matte feather"
+                    ariaLabel={i18n.t("timeline:attrs.subjectMatteFeather", { defaultValue: "Subject matte feather" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Version">
+                <InspectorRow label={i18n.t("timeline:attrs.version", { defaultValue: "Version" })}>
                   <InspectorSelect
-                    label="Subject matte version"
+                    label={i18n.t("timeline:attrs.subjectMatteVersion", { defaultValue: "Subject matte version" })}
                     value={result.assetId}
                     options={versionOptions}
                     onChange={handleVersion}
@@ -602,9 +601,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                     disabled={generating}
                     onClick={handleRegenerate}
                     data-testid="regenerate-subject-matte"
-                  >
-                    Regenerate
-                  </EditorButton>
+                  >{i18n.t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
                   <EditorButton
                     fullWidth
                     variant="outlined"
@@ -613,9 +610,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                     disabled={generating}
                     onClick={handleRemove}
                     data-testid="remove-subject-matte"
-                  >
-                    Remove
-                  </EditorButton>
+                  >{i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
                 <Caption color="muted">
                   Regenerate runs the model again and keeps this result as a
