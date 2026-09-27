@@ -8,6 +8,7 @@ import { Caption, FlexColumn, Popover, Text, MOTION, BORDER_RADIUS, SPACING, get
 import MediaControlChip from "./MediaControlChip";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { PermissionMode } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 interface ModeItem {
   id: PermissionMode;
@@ -155,7 +156,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         <div
           css={menuStyles(theme)}
           role="menu"
-          aria-label="Permission mode"
+          aria-label={i18n.t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
         >
           <Caption className="permission-menu-header" size="small">
             Permission mode

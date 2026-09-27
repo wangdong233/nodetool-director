@@ -20,6 +20,7 @@ import {
   createAssetDragImage
 } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
+import { i18n } from "../../i18n";
 
 interface GlobalSearchResultsProps {
   results: AssetWithPath[];
@@ -534,7 +535,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                       </span>
                     </div>
                     {onNavigateToFolder && (
-                      <Tooltip title="Go to folder">
+                      <Tooltip title={i18n.t("editor:ui.goToFolder", { defaultValue: "Go to folder" })}>
                         <EditorButton
                           className="global-search-navigate-btn folder-navigate-btn"
                           density="compact"

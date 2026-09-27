@@ -20,6 +20,7 @@ import { Box, Caption, CollapsibleSection, FlexRow, Label, SPACING } from "../ui
 import { useWorkflowCostEstimate } from "../../hooks/useWorkflowCostEstimate";
 import { CostEstimateSummary } from "./CostEstimateSummary";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

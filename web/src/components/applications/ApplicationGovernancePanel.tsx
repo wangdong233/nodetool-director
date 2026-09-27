@@ -36,6 +36,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 
 type Version = RouterOutputs["applications"]["versions"][number];
 type BudgetPeriod = RouterOutputs["applications"]["setBudget"]["period"];
@@ -104,7 +105,7 @@ const VersionRow = memo(function VersionRow({
       <FlexColumn gap={SPACING.micro} sx={{ minWidth: 0 }}>
         <FlexRow align="center" gap={SPACING.xs}>
           <Text weight={600}>{`Version ${version.version}`}</Text>
-          {version.released && <Chip label="Released" size="small" />}
+          {version.released && <Chip label={i18n.t("editor:ui.released", { defaultValue: "Released" })} size="small" />}
         </FlexRow>
         <Caption>{capabilitySummary(version)}</Caption>
         <Caption>{formatDate(version.createdAt)}</Caption>
@@ -185,20 +186,20 @@ const BudgetSection = memo(function BudgetSection({
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Spend budget" />
+      <SectionHeader title={i18n.t("editor:ui.spendBudget", { defaultValue: "Spend budget" })} />
       <Caption>
         Runs of the released app are checked against this ceiling before they
         reach a provider. An empty field means no limit.
       </Caption>
       <SelectField
-        label="Period"
+        label={i18n.t("editor:ui.period", { defaultValue: "Period" })}
         value={period}
         onChange={handlePeriodChange}
         options={PERIOD_OPTIONS}
         size="small"
       />
       <TextInput
-        label="Max spend (USD)"
+        label={i18n.t("editor:ui.maxSpendUSD", { defaultValue: "Max spend (USD)" })}
         size="small"
         inputMode="decimal"
         value={maxUsd}
@@ -206,7 +207,7 @@ const BudgetSection = memo(function BudgetSection({
         onChange={(event) => setMaxUsd(event.target.value)}
       />
       <TextInput
-        label="Max invocations"
+        label={i18n.t("editor:ui.maxInvocations", { defaultValue: "Max invocations" })}
         size="small"
         inputMode="numeric"
         value={maxInvocations}
@@ -276,7 +277,7 @@ const DeploySection = memo(function DeploySection({
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Public link" />
+      <SectionHeader title={i18n.t("editor:ui.publicLink", { defaultValue: "Public link" })} />
       {isError && isProductionOnlyDeploymentError(error) ? (
         <Caption>
           Public links are available on nodetool.ai. This server does not serve
@@ -288,7 +289,7 @@ const DeploySection = memo(function DeploySection({
             {`Could not load the public link: ${error?.message ?? "try again later."}`}
           </AlertBanner>
           <ReportBugButton
-            label="Report deployment issue"
+            label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
             context={{
               source: "panel-crash",
               summary: "Public link status failed to load",
@@ -313,7 +314,7 @@ const DeploySection = memo(function DeploySection({
                 slotProps={{ htmlInput: { readOnly: true } }}
                 fullWidth
               />
-              <CopyButton value={url} tooltip="Copy the link" />
+              <CopyButton value={url} tooltip={i18n.t("editor:ui.copyTheLink", { defaultValue: "Copy the link" })} />
             </FlexRow>
           )}
           {deployment?.blockedReason && (
@@ -348,7 +349,7 @@ const DeploySection = memo(function DeploySection({
                 {`Could not create the link: ${deploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
                   summary: "Public link creation failed",
@@ -365,7 +366,7 @@ const DeploySection = memo(function DeploySection({
                 {`Could not withdraw the link: ${undeploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
                   summary: "Public link withdrawal failed",
@@ -408,10 +409,10 @@ const InvocationsSection = memo(function InvocationsSection({
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Recent invocations" />
+      <SectionHeader title={i18n.t("editor:ui.recentInvocations", { defaultValue: "Recent invocations" })} />
       {invocations.length === 0 ? (
         <EmptyState
-          title="No invocations yet"
+          title={i18n.t("editor:ui.noInvocationsYet", { defaultValue: "No invocations yet" })}
           description="Runs of the released app show up here with their cost."
         />
       ) : (
@@ -491,7 +492,7 @@ const ApplicationGovernancePanel = ({
         fullWidth
       >
         <FlexColumn gap={SPACING.micro}>
-          <SectionHeader title="Release" />
+          <SectionHeader title={i18n.t("editor:ui.release", { defaultValue: "Release" })} />
           <Caption>
             {released
               ? `Serving version ${released.version} — ${capabilitySummary(
@@ -523,7 +524,7 @@ const ApplicationGovernancePanel = ({
       <Divider />
 
       <FlexColumn gap={SPACING.md} fullWidth>
-        <SectionHeader title="Versions" />
+        <SectionHeader title={i18n.t("editor:ui.versions", { defaultValue: "Versions" })} />
         {isLoading ? (
           <LoadingSpinner text="Loading versions" />
         ) : isError ? (
@@ -532,7 +533,7 @@ const ApplicationGovernancePanel = ({
           </AlertBanner>
         ) : sortedVersions.length === 0 ? (
           <EmptyState
-            title="No versions yet"
+            title={i18n.t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
             description="Publish the app to cut its first version."
           />
         ) : (

@@ -2,6 +2,7 @@ import React, { memo, useCallback } from "react";
 import { Text, DeleteButton } from "../../ui_primitives";
 import { ThreadItemProps } from "../types/thread.types";
 import { formatClockTime24 } from "../../../utils/formatUtils";
+import { i18n } from "../../../i18n";
 
 const ThreadItemBase: React.FC<ThreadItemProps> = ({
   threadId,

@@ -10,6 +10,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
 import useAuth from "../../stores/useAuth";
 import { FolderTree, AssetTreeNode } from "../../stores/AssetStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

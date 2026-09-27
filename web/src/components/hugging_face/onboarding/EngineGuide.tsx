@@ -21,6 +21,7 @@ import {
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { useOpenPackageManagerInNewTab } from "../../../hooks/useOpenPackageManager";
+import { i18n } from "../../../i18n";
 import {
   ONBOARDING_ENGINES,
   ONBOARDING_NODE_PACKS,
@@ -31,9 +32,9 @@ import {
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
   const theme = useTheme();
   const statusChip = engine.bundled ? (
-    <Chip label="Bundled" compact color="success" variant="outlined" />
+    <Chip label={i18n.t("editor:ui.bundled", { defaultValue: "Bundled" })} compact color="success" variant="outlined" />
   ) : engine.runtimeId ? (
-    <Chip label="Runtime" compact variant="outlined" />
+    <Chip label={i18n.t("editor:ui.runtime", { defaultValue: "Runtime" })} compact variant="outlined" />
   ) : null;
 
   return (

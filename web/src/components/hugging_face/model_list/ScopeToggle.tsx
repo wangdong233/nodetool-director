@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { ToggleGroup, ToggleOption, Tooltip } from "../../ui_primitives";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
+import { i18n } from "../../../i18n";
 
 interface ScopeToggleProps {
   scope: ModelScope;

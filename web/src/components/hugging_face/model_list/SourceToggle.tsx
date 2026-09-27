@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { ToggleGroup, ToggleOption } from "../../ui_primitives";
 import type { ModelSource } from "../../../stores/ModelManagerStore";
+import { i18n } from "../../../i18n";
 
 interface SourceToggleProps {
   source: ModelSource;

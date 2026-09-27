@@ -29,6 +29,7 @@ import {
 import { formatProviderCallFailures } from "../../utils/providerCallReport";
 import { getConsoleEntries, formatConsoleEntries } from "../../utils/consoleCapture";
 import { getSystemInfo } from "../../utils/systemInfo";
+import { i18n } from "../../i18n";
 import {
   buildBundleSections,
   buildBundleReadme,
@@ -266,7 +267,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         className="bug-report-dialog"
         open
         onClose={onClose}
-        title="Report saved"
+        title={i18n.t("editor:ui.reportSaved", { defaultValue: "Report saved" })}
         maxWidth="sm"
         fullWidth
       >
@@ -296,7 +297,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
       className="bug-report-dialog"
       open
       onClose={onClose}
-      title="Report a Bug"
+      title={i18n.t("editor:ui.reportABug", { defaultValue: "Report a Bug" })}
       maxWidth="md"
       fullWidth
     >
@@ -310,17 +311,17 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         <Caption>Reported from: {sourceLabel(context.source)}</Caption>
 
         <TextField
-          label="What went wrong?"
+          label={i18n.t("editor:ui.whatWentWrong", { defaultValue: "What went wrong?" })}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           multiline
           minRows={3}
           fullWidth
           autoFocus
-          placeholder="Describe the problem in a sentence or two."
+          placeholder={i18n.t("editor:ui.describeTheProblemInASentenceOrTwo", { defaultValue: "Describe the problem in a sentence or two." })}
         />
         <TextField
-          label="Steps to reproduce"
+          label={i18n.t("editor:ui.stepsToReproduce", { defaultValue: "Steps to reproduce" })}
           value={steps}
           onChange={(event) => setSteps(event.target.value)}
           multiline
@@ -329,7 +330,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           placeholder={"1. Open …\n2. Add a … node\n3. Run the workflow"}
         />
         <TextField
-          label="What did you expect?"
+          label={i18n.t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
           value={expected}
           onChange={(event) => setExpected(event.target.value)}
           multiline
@@ -422,7 +423,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
               multiple
               onChange={handleAttach}
               style={{ display: "block" }}
-              aria-label="Attach files to the bug report"
+              aria-label={i18n.t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
             />
           </label>
           {attachments.map((file) => (

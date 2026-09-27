@@ -26,6 +26,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import MemoryCard, { type Memory } from "./MemoryCard";
+import { i18n } from "../../i18n";
 
 /** Every kind present, so the filter offers what the data actually holds. */
 function kindsOf(memories: readonly Memory[]): string[] {
@@ -129,7 +130,7 @@ const MemoryPage: React.FC = () => {
   return (
     <ManagerPageLayout
       icon={<PsychologyOutlinedIcon sx={{ fontSize: 22 }} />}
-      title="Memory"
+      title={i18n.t("editor:ui.memory", { defaultValue: "Memory" })}
       subtitle="What the agent remembers across every conversation — project notes and the resources they refer to."
     >
       <FlexColumn gap={SPACING.md} sx={{ width: "100%" }}>
@@ -137,8 +138,8 @@ const MemoryPage: React.FC = () => {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search memories"
-            ariaLabel="Search memories by keyword"
+            placeholder={i18n.t("editor:ui.searchMemories", { defaultValue: "Search memories" })}
+            ariaLabel={i18n.t("editor:ui.searchMemoriesByKeyword", { defaultValue: "Search memories by keyword" })}
             size="small"
             debounceMs={250}
             sx={{ maxWidth: 360, width: "100%" }}
@@ -178,7 +179,7 @@ const MemoryPage: React.FC = () => {
             deleteMemory.mutate({ id: memoryToDelete });
           }
         }}
-        title="Delete memory"
+        title={i18n.t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
         content="Delete this memory? This cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"

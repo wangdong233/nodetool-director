@@ -292,7 +292,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load apps"
+              title={i18n.t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
               description="Try again in a moment."
               actionText="Retry"
               onAction={() => refetch()}
@@ -302,7 +302,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="no-data"
-              title="No apps available"
+              title={i18n.t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
               description="Example apps will appear here when the server ships them."
             />
           </div>

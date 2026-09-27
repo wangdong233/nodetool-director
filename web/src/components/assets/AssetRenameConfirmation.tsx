@@ -8,6 +8,7 @@ import dialogStyles from "../../styles/DialogStyles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
 import useAssets from "../../serverState/useAssets";
+import { i18n } from "../../i18n";
 
 interface AssetRenameConfirmationProps {
   assets: string[];

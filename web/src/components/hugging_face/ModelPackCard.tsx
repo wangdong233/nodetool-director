@@ -33,6 +33,7 @@ import {
 } from "../../utils/hfCache";
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
+import { i18n } from "../../i18n";
 
 interface ModelPackCardProps {
   pack: ModelPack;

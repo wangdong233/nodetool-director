@@ -5,6 +5,7 @@ import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import { StateIconButton, MOTION } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
+import { i18n } from "../../i18n";
 
 interface DefaultModelPinProps {
   /**

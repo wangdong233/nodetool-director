@@ -66,6 +66,7 @@ import {
   type ToolCallRun
 } from "./groupToolCalls";
 import { toolCallPhrase, toolCallRunDisplay } from "./toolCallPhrase";
+import { i18n } from "../../../i18n";
 
 /**
  * PrettyJson - Memoized component for displaying formatted JSON.
@@ -441,7 +442,7 @@ const ToolCallRow: React.FC<{
                   <Caption className="tool-section-title">Result</Caption>
                   <CopyButton
                     value={resultContent}
-                    tooltip="Copy result"
+                    tooltip={i18n.t("editor:ui.copyResult", { defaultValue: "Copy result" })}
                     buttonSize="small"
                   />
                 </FlexRow>
@@ -1068,15 +1069,15 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               {canEditAndResend && (
                 <ToolbarIconButton
                   icon={<EditOutlinedIcon fontSize="small" />}
-                  tooltip="Edit and resend"
-                  ariaLabel="Edit and resend"
+                  tooltip={i18n.t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
+                  ariaLabel={i18n.t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
                   onClick={handleEditAndResend}
                 />
               )}
               <CopyButton
                 value={copyText}
                 buttonSize="small"
-                tooltip="Copy to clipboard"
+                tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
               />
             </div>
           )}

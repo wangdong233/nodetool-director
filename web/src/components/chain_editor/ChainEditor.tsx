@@ -24,6 +24,7 @@ import { NodePickerDialog } from "./NodePickerDialog";
 import { trpcClient } from "../../trpc/client";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import type { ChainNode } from "./chainTypes";
+import { i18n } from "../../i18n";
 
 interface ChainEditorProps {
   onSave?: () => void;
@@ -108,14 +109,14 @@ export const ChainEditor: React.FC<ChainEditorProps> = ({ onSave }) => {
           variant="standard"
           value={workflowName}
           onChange={(e) => setWorkflowName(e.target.value)}
-          placeholder="Workflow name"
+          placeholder={i18n.t("editor:ui.workflowName", { defaultValue: "Workflow name" })}
           slotProps={{ input: { disableUnderline: true, sx: { fontWeight: 600, fontSize: theme.fontSizeNormal } } }}
           sx={{ flex: 1 }}
         />
         <ToolbarIconButton
           size="small"
-          ariaLabel="Save workflow"
-          tooltip="Save workflow"
+          ariaLabel={i18n.t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
+          tooltip={i18n.t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
           onClick={handleSave}
           disabled={saving}
           icon={<SaveOutlinedIcon sx={{ fontSize: 20 }} />}
@@ -138,7 +139,7 @@ export const ChainEditor: React.FC<ChainEditorProps> = ({ onSave }) => {
           <FlexColumn align="center" justify="center" sx={{ pt: 8 }}>
             <EmptyState
               icon={<AccountTreeOutlinedIcon sx={{ fontSize: 48 }} />}
-              title="Build Your Workflow"
+              title={i18n.t("editor:ui.buildYourWorkflow", { defaultValue: "Build Your Workflow" })}
               description={
                 "Add nodes to create a processing chain.\nEach node's output flows into the next."
               }

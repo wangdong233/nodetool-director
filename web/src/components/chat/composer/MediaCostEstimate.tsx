@@ -11,6 +11,7 @@ import React, { memo } from "react";
 import { Caption, FlexColumn, Text, Tooltip } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
 import { useMediaCostEstimate } from "./useMediaCostEstimate";
+import { i18n } from "../../../i18n";
 
 interface MediaCostEstimateProps {
   mode: MediaMode;

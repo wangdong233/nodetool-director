@@ -16,6 +16,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSectionWrap, SectionHeader } from "./dashboardChrome";
+import { i18n } from "../../i18n";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;
@@ -438,7 +439,7 @@ const DashboardRecipes: React.FC = () => {
   return (
     <section css={styles(theme)}>
       <div css={sectionWrap}>
-        <SectionHeader title="Recipes" count={`${recipes.length}`} />
+        <SectionHeader title={i18n.t("editor:ui.recipes", { defaultValue: "Recipes" })} count={`${recipes.length}`} />
         <p className="rcp-lede">
           Each one installs as an app that runs the whole chain, with the
           example workflows behind it in your library to edit.
@@ -451,7 +452,7 @@ const DashboardRecipes: React.FC = () => {
           <div className="rcp-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load recipes"
+              title={i18n.t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
               description="Try again in a moment."
               actionText="Retry"
               onAction={() => refetch()}

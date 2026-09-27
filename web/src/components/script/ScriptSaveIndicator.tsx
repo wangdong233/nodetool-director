@@ -10,6 +10,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useScriptSaveStatus } from "../../stores/script/ScriptStore";
+import { i18n } from "../../i18n";
 
 interface ScriptSaveIndicatorProps {
   scriptId: string;
@@ -26,7 +27,7 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
 
   if (status === "unsaved") {
     return (
-      <Tooltip title="Unsaved changes — saving shortly">
+      <Tooltip title={i18n.t("editor:ui.unsavedChangesSavingShortly", { defaultValue: "Unsaved changes — saving shortly" })}>
         <FlexRow align="center" gap={SPACING.xs}>
           <CircleIcon sx={{ fontSize: 10, color: "text.disabled" }} />
           <Text size="smaller" sx={{ color: "text.secondary" }}>
@@ -50,7 +51,7 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
 
   if (status === "error") {
     return (
-      <Tooltip title="Couldn't sync with the server. Your changes are kept locally.">
+      <Tooltip title={i18n.t("editor:ui.couldntSyncWithTheServerYourChangesAreKeptLocally", { defaultValue: "Couldn't sync with the server. Your changes are kept locally." })}>
         <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
           <SyncProblemIcon color="warning" sx={{ fontSize: 16 }} />
           <Text size="smaller" color="warning">
@@ -75,7 +76,7 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
   }
 
   return (
-    <Tooltip title="All changes saved">
+    <Tooltip title={i18n.t("editor:ui.allChangesSaved", { defaultValue: "All changes saved" })}>
       <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
         <CloudDoneOutlinedIcon
           sx={{ fontSize: 16, color: "text.disabled" }}

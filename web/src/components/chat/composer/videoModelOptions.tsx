@@ -10,6 +10,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TvIcon from "@mui/icons-material/Tv";
 import type { VideoModel } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 import {
   VIDEO_ASPECT_RATIOS,
   VIDEO_DURATIONS,

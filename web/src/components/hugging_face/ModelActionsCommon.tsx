@@ -1,6 +1,7 @@
 import React from "react";
 import { Tooltip, EditorButton, SPACING, getSpacingPx } from "../ui_primitives";
 import FolderIcon from "@mui/icons-material/Folder";
+import { i18n } from "../../i18n";
 import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
@@ -11,7 +12,7 @@ export const ModelShowInExplorerButton: React.FC<{
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
   <Tooltip
-    title="Show in File Explorer"
+    title={i18n.t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })}
     delay={TOOLTIP_ENTER_DELAY * 2}
     nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
   >
@@ -34,7 +35,7 @@ export const HuggingFaceLink: React.FC<{
 }> = ({ modelId }) =>
   !modelId.endsWith("safetensors") && (
     <Tooltip
-      title="View on HuggingFace"
+      title={i18n.t("editor:ui.View on Hugging Face", { defaultValue: "View on HuggingFace" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
     >
@@ -63,7 +64,7 @@ export const OllamaLink: React.FC<{
 }> = ({ modelId }) => {
   return (
     <Tooltip
-      title="View on Ollama"
+      title={i18n.t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
     >

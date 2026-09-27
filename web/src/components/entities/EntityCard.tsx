@@ -21,6 +21,7 @@ import {
 } from "../ui_primitives";
 import ImageRefPreview from "../node/ImageRefPreview";
 import { getEntityKindChipSx } from "./entityKind";
+import { i18n } from "../../i18n";
 
 interface EntityCardProps {
   entity: Entity;
@@ -109,7 +110,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
           {onEdit && (
             <ToolbarIconButton
               size="small"
-              title="Edit entity"
+              title={i18n.t("editor:ui.editEntity", { defaultValue: "Edit entity" })}
               onClick={handleEdit}
             >
               <EditIcon fontSize="small" />
@@ -118,7 +119,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
           {onRemove && (
             <ToolbarIconButton
               size="small"
-              title="Remove entity"
+              title={i18n.t("editor:ui.removeEntity", { defaultValue: "Remove entity" })}
               onClick={handleRemove}
             >
               <DeleteOutlineIcon fontSize="small" />

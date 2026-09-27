@@ -24,6 +24,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { WorkflowList, Workflow } from "../../stores/ApiTypes";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
+import { i18n } from "../../i18n";
 
 // Show the inline search field once the list grows past this many workflows.
 const SEARCH_THRESHOLD = 8;
@@ -195,7 +196,7 @@ const WorkflowTree: React.FC = () => {
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        aria-label="Workflows"
+        aria-label={i18n.t("editor:ui.workflows", { defaultValue: "Workflows" })}
         onClick={toggleExpanded}
         onKeyDown={handleRootKeyDown}
       >
@@ -210,7 +211,7 @@ const WorkflowTree: React.FC = () => {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search workflows..."
+              placeholder={i18n.t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
               fullWidth
               size="small"
               sx={searchInputSx}

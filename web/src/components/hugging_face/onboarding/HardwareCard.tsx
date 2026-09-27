@@ -18,6 +18,7 @@ import {
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { ModelStat } from "../ModelStat";
 import { TIER_LABELS, type HardwareProfile } from "./useHardwareProfile";
+import { i18n } from "../../../i18n";
 
 interface HardwareCardProps {
   profile: HardwareProfile;
@@ -132,11 +133,11 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
       />
       <ModelStat
         icon={<MemoryIcon sx={{ fontSize: 14 }} />}
-        label="System RAM"
+        label={i18n.t("editor:ui.systemRAM", { defaultValue: "System RAM" })}
         value={gb(profile.ramGb)}
       />
       <ModelStat
-        label="Model budget"
+        label={i18n.t("editor:ui.modelBudget", { defaultValue: "Model budget" })}
         value={profile.budgetGb != null ? `${profile.budgetGb} GB` : "Not set"}
         highlight
       />

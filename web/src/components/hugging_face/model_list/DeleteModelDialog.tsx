@@ -21,6 +21,7 @@ import { trpc } from "../../../lib/trpc";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { useModels } from "./useModels";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
+import { i18n } from "../../../i18n";
 
 interface DeleteModelDialogProps {
   modelId: string | null;

@@ -2,6 +2,7 @@ import React from "react";
 import { useTheme } from "@mui/material/styles";
 import FolderList from "../FolderList";
 import WorkflowTree from "../WorkflowTree";
+import { i18n } from "../../../i18n";
 
 interface AssetFoldersPanelProps {
   isFullscreenAssets?: boolean;

@@ -9,6 +9,7 @@ import FolderTree from "./FolderTree";
 import { Asset } from "../../stores/ApiTypes";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
+import { i18n } from "../../i18n";
 
 interface AssetMoveToFolderConfirmationProps {
   assets: string[];

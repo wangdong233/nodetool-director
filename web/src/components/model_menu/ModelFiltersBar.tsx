@@ -12,6 +12,7 @@ import {
 } from "../ui_primitives";
 import CategoryIcon from "@mui/icons-material/Category";
 import StraightenIcon from "@mui/icons-material/Straighten";
+import { i18n } from "../../i18n";
 import useModelFiltersStore, {
   SizeBucket,
   TypeTag

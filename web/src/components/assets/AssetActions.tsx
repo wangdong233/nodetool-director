@@ -27,6 +27,7 @@ import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Tooltip, LoadingSpinner, Box } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface AssetActionsProps {
   setSelectedAssetIds: (assetIds: string[]) => void;
@@ -285,7 +286,7 @@ const AssetActions = ({
       <ButtonGroup className="asset-button-group" size="small" tabIndex={-1}>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title="Select all"
+          title={i18n.t("editor:ui.selectAll", { defaultValue: "Select all" })}
           disableInteractive
         >
           <EditorButton onClick={handleSelectAllAssets} tabIndex={-1}>
@@ -294,7 +295,7 @@ const AssetActions = ({
         </Tooltip>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title="Deselect"
+          title={i18n.t("editor:ui.deselect", { defaultValue: "Deselect" })}
           disableInteractive
         >
           <EditorButton onClick={handleDeselectAssets} tabIndex={-1}>
@@ -323,7 +324,7 @@ const AssetActions = ({
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title="Sort assets"
+        title={i18n.t("editor:ui.sortAssets", { defaultValue: "Sort assets" })}
         placement="bottom"
         disableInteractive
       >
@@ -344,7 +345,7 @@ const AssetActions = ({
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title="Filter by file size"
+        title={i18n.t("editor:ui.filterByFileSize", { defaultValue: "Filter by file size" })}
         placement="bottom"
         disableInteractive
       >

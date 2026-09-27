@@ -3,6 +3,7 @@ import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { createStyles } from "./EmptyThreadList.styles";
 import { EmptyState } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 export const EmptyThreadList: React.FC<{ isFiltered?: boolean }> = ({
   isFiltered = false

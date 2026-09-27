@@ -14,6 +14,7 @@ import { useSidebarDocumentMenu } from "../../hooks/useSidebarDocumentMenu";
 import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { downgradeBoardsLinkedToScript } from "../../lib/scriptStoryboardDowngrade";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
@@ -51,9 +52,9 @@ export const CreateScriptButton = memo(function CreateScriptButton() {
   }, [createScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New script" placement="right-start">
+    <Tooltip title={i18n.t("editor:ui.newScript", { defaultValue: "New script" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New script"
+        ariaLabel={i18n.t("editor:ui.newScript", { defaultValue: "New script" })}
         onClick={() => void handleCreate()}
         disabled={createScript.isPending}
         tabIndex={-1}

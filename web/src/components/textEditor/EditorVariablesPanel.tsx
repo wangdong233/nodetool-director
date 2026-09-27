@@ -13,6 +13,7 @@ import {
   BORDER_RADIUS, getSpacingPx, SPACING
 } from "../ui_primitives";
 import type { TemplateVariable, VariableSyntax } from "./templateVariables";
+import { i18n } from "../../i18n";
 
 interface EditorVariablesPanelProps {
   variables: TemplateVariable[];
@@ -298,7 +299,7 @@ const EditorVariablesPanel = ({
                 editing
                 unstyled
                 placeholder="variable name"
-                ariaLabel="New variable name"
+                ariaLabel={i18n.t("editor:ui.newVariableName", { defaultValue: "New variable name" })}
                 sanitize={sanitizeVariableName}
                 onEditingChange={closeAdd}
                 onCommit={commitAdd}

@@ -15,6 +15,7 @@ import useAssets from "../../serverState/useAssets";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 const VIEWPORT_MARGIN = 16;
 

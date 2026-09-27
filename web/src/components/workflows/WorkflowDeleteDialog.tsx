@@ -5,6 +5,7 @@ import { WorkflowAttributes } from "../../stores/ApiTypes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useNavigate } from "react-router-dom";
+import { i18n } from "../../i18n";
 
 interface WorkflowDeleteDialogProps {
   open: boolean;
@@ -75,7 +76,7 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       onConfirm={handleDelete}
       confirmText="Delete"
       cancelText="Cancel"
-      title="Delete Workflows"
+      title={i18n.t("editor:ui.deleteWorkflows", { defaultValue: "Delete Workflows" })}
       notificationMessage="Workflows deleted"
       notificationType="success"
       content={

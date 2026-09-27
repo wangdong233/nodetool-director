@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { EmbeddingModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import { useEmbeddingModelMenuStore } from "../../stores/ModelMenuStore";
+import { i18n } from "../../i18n";
 
 interface EmbeddingModelMenuDialogProps {
   open: boolean;
@@ -31,7 +32,7 @@ function EmbeddingModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Embedding Model"
+      title={i18n.t("editor:ui.selectEmbeddingModel", { defaultValue: "Select Embedding Model" })}
       searchPlaceholder="Search embedding models..."
       storeHook={useEmbeddingModelMenuStore}
       modelType="embedding_model"

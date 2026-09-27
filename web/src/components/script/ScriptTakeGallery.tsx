@@ -22,8 +22,12 @@ import {
 import { syncLineClipToTimeline } from "../../stores/script/timelineSync";
 import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
+<<<<<<< HEAD
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import { takeWorkflowMedia } from "./scriptWorkflowMedia";
+=======
+import { i18n } from "../../i18n";
+>>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
 
 interface ScriptTakeGalleryProps {
   scriptId: string;
@@ -114,7 +118,7 @@ const TakeRow = ({
         </Text>
       </FlexColumn>
       <ToolbarIconButton
-        tooltip="Play take"
+        tooltip={i18n.t("editor:ui.playTake", { defaultValue: "Play take" })}
         onClick={() => void play()}
         icon={<PlayArrowIcon fontSize="small" />}
       />
@@ -134,7 +138,7 @@ const TakeRow = ({
         }
       />
       <ToolbarIconButton
-        tooltip="Delete take"
+        tooltip={i18n.t("editor:ui.deleteTake", { defaultValue: "Delete take" })}
         onClick={deleteTake}
         icon={<DeleteOutlineIcon fontSize="small" />}
       />
@@ -153,7 +157,7 @@ const ScriptTakeGallery = ({
     return (
       <Box sx={{ minWidth: 260, padding: SPACING.md }}>
         <EmptyState
-          title="No takes yet"
+          title={i18n.t("editor:ui.noTakesYet", { defaultValue: "No takes yet" })}
           description="Voice this line to create the first take."
         />
       </Box>

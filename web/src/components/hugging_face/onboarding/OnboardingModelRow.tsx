@@ -18,6 +18,7 @@ import {
 } from "../../ui_primitives";
 import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
 import { DownloadProgress } from "../DownloadProgress";
+import { i18n } from "../../../i18n";
 import {
   FIT_LABELS,
   getEngine,
@@ -71,7 +72,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
               {entry.name}
             </Text>
             {entry.featured && (
-              <Chip label="Popular" compact color="primary" variant="outlined" />
+              <Chip label={i18n.t("editor:ui.popular", { defaultValue: "Popular" })} compact color="primary" variant="outlined" />
             )}
             {engine && (
               <Tooltip title={engine.description} delay={400}>

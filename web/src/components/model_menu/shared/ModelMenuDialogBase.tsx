@@ -62,6 +62,7 @@ import {
   nextAvailableIndex
 } from "../../../utils/modelMenuNavigation";
 import type { ModelPack, UnifiedModel } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
   open: boolean;
@@ -502,7 +503,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
           />
         }
-        label="Favorites"
+        label={i18n.t("editor:ui.favorites", { defaultValue: "Favorites" })}
         active={customView === "favorites"}
         horizontal={isMobile}
         onClick={handleSetFavoritesView}
@@ -514,7 +515,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
           />
         }
-        label="Recent"
+        label={i18n.t("editor:ui.recent", { defaultValue: "Recent" })}
         active={customView === "recent"}
         horizontal={isMobile}
         onClick={handleSetRecentView}
@@ -720,7 +721,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           </Box>
           <ToolbarIconButton
             icon={<RefreshIcon fontSize="small" />}
-            tooltip="Refresh models"
+            tooltip={i18n.t("editor:ui.refreshModels", { defaultValue: "Refresh models" })}
             onClick={handleRefresh}
             disabled={!refetch || !!isFetching}
             size="small"

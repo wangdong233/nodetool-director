@@ -16,6 +16,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useAcceptShare } from "../../serverState/useWorkflowSharing";
+import { i18n } from "../../i18n";
 
 const AcceptSharePage = () => {
   const { token } = useParams<{ token: string }>();

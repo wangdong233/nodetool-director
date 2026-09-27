@@ -6,6 +6,7 @@ import { ToolResultJson } from "./ToolResultJson";
 import { isString } from "../../../../utils/typePredicates";
 import { parsePlanDocument } from "../parsePlanDocument";
 import PlanDocument from "../PlanDocument";
+import { i18n } from "../../../../i18n";
 
 interface ToolResultProps {
   toolName?: string | null;

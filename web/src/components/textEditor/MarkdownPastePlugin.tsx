@@ -10,6 +10,7 @@ import {
 } from "lexical";
 import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
 import { isMarkdownText } from "./editorUtils";
+import { i18n } from "../../i18n";
 
 export function MarkdownPastePlugin(): null {
   const [editor] = useLexicalComposerContext();

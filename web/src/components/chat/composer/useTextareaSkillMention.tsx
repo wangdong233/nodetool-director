@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 
 import type { RouterOutputs } from "../../../trpc/client";
 import { useSkills } from "../../../hooks/skills/useSkills";
+import { i18n } from "../../../i18n";
 import {
   BORDER_RADIUS,
   SelectableListItem,
@@ -80,7 +81,7 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
 }) => (
   <Surface
     role="listbox"
-    aria-label="Skills"
+    aria-label={i18n.t("editor:ui.skills", { defaultValue: "Skills" })}
     elevation={2}
     rounded="medium"
     padding={1}

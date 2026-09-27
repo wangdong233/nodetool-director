@@ -22,6 +22,7 @@ import {
 } from "./codeBlockColors";
 import isEqual from "../../../../utils/isEqual";
 import { isString } from "../../../../utils/typePredicates";
+import { i18n } from "../../../../i18n";
 
 export interface CodeBlockProps
   extends React.ComponentPropsWithoutRef<"code"> {
@@ -308,7 +309,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = memo(({
                 type="button"
                 className="button"
                 onClick={handleInsert}
-                title="Insert into editor"
+                title={i18n.t("editor:ui.insertIntoEditor", { defaultValue: "Insert into editor" })}
                 style={{
                   padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xxl)}`,
                   fontSize: FONT_SIZE_SANS.caption,

@@ -33,6 +33,7 @@ import {
 } from "../../utils/fileExplorer";
 import { isLocalhost, isProduction } from "../../lib/env";
 import { isElectron } from "../../utils/browser";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

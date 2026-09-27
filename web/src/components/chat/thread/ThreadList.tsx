@@ -11,6 +11,7 @@ import type { ThreadListProps } from "../types/thread.types";
 import { sortThreadsByDate } from "../utils/threadUtils";
 import { groupByDate } from "../../../utils/groupByDate";
 import { formatDayMonth } from "../../../utils/formatUtils";
+import { i18n } from "../../../i18n";
 
 export type { ThreadInfo } from "../types/thread.types";
 
@@ -154,7 +155,7 @@ const ThreadList: React.FC<ThreadListProps> = ({
           open
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          title="Delete conversation"
+          title={i18n.t("editor:ui.deleteConversation", { defaultValue: "Delete conversation" })}
           content={`Delete "${pendingLabel}"? This cannot be undone.`}
           confirmText="Delete"
           cancelText="Cancel"

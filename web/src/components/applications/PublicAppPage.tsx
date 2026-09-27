@@ -31,6 +31,7 @@ import {
 } from "../ui_primitives";
 import { parseApplicationDocument, type AppDocument } from "../appbuilder/appData";
 import AppRuntimeView from "../appbuilder/AppRuntimeView";
+import { i18n } from "../../i18n";
 import {
   createPublicAppSession,
   fetchPublicApplication
@@ -79,7 +80,7 @@ const Unavailable: React.FC = () => (
   >
     <EmptyState
       variant="error"
-      title="This app is not available"
+      title={i18n.t("editor:ui.thisAppIsNotAvailable", { defaultValue: "This app is not available" })}
       description="The link may have been withdrawn, or the app may not be published."
     />
   </FlexColumn>
@@ -95,7 +96,7 @@ const Updated: React.FC = () => (
   >
     <EmptyState
       variant="empty"
-      title="This app has been updated"
+      title={i18n.t("editor:ui.thisAppHasBeenUpdated", { defaultValue: "This app has been updated" })}
       description="Reload the page to run the version the owner just published."
     />
   </FlexColumn>
@@ -221,7 +222,7 @@ const PublicAppPage: React.FC = () => {
       >
         <EmptyState
           variant="empty"
-          title="Nothing to show"
+          title={i18n.t("editor:ui.nothingToShow", { defaultValue: "Nothing to show" })}
           description="This app was published without any widgets."
         />
       </FlexColumn>

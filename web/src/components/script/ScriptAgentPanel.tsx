@@ -3,6 +3,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useScriptTitle } from "../../stores/script/ScriptStore";
+import { i18n } from "../../i18n";
 
 interface ScriptAgentPanelProps {
   scriptId: string;

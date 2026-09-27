@@ -28,6 +28,7 @@ import {
 } from "../../hooks/useProjects";
 import { useAuth } from "../../stores/useAuth";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { i18n } from "../../i18n";
 
 const selectorStyles = (theme: Theme, inline: boolean) =>
   css({
@@ -226,7 +227,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
       >
         {!inline && (
           <MenuItemPrimitive
-            label="New project"
+            label={i18n.t("editor:ui.newProject", { defaultValue: "New project" })}
             icon={<AddRoundedIcon />}
             onClick={openNewProject}
             color="primary"
@@ -237,13 +238,13 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search projects"
-          ariaLabel="Search projects"
+          placeholder={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          ariaLabel={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
           fullWidth
           sx={{ my: SPACING.xs }}
         />
         <MenuItemPrimitive
-          label="Personal"
+          label={i18n.t("editor:ui.personal", { defaultValue: "Personal" })}
           className="project-menu-item"
           dense
           selected={

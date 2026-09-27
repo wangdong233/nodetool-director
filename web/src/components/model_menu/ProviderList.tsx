@@ -158,6 +158,7 @@ import skyworkColorIcon from "../../icons/providers/skywork-color.svg";
 import tencentColorIcon from "../../icons/providers/tencent-color.svg";
 import tencentcloudColorIcon from "../../icons/providers/tencentcloud-color.svg";
 import yuanbaoColorIcon from "../../icons/providers/yuanbao-color.svg";
+import { i18n } from "../../i18n";
 
 const providerIconMap: Record<string, string> = {
   // OpenAI / GPT
@@ -691,7 +692,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         {iconOnly ? (
           <Tooltip
             className="model-menu__all-providers-tooltip"
-            title="All providers"
+            title={i18n.t("editor:ui.allProviders", { defaultValue: "All providers" })}
             placement={tooltipPlacement}
           >
             <FlexColumn align="center" gap={0.5} sx={{ py: 0.5 }}>
@@ -967,7 +968,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                             }}
                           />
                         </Tooltip>
-                        <Tooltip className="model-menu__provider-add-key-tooltip" title="Connect this provider">
+                        <Tooltip className="model-menu__provider-add-key-tooltip" title={i18n.t("editor:ui.connectThisProvider", { defaultValue: "Connect this provider" })}>
                           <EditorButton
                             className="model-menu__provider-add-key-button"
                             density="compact"

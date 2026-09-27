@@ -10,6 +10,7 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useShallow } from "zustand/react/shallow";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 // Threshold in ms to consider a download stalled (30 seconds)
 const STALL_THRESHOLD_MS = 30000;
@@ -303,7 +304,7 @@ export const DownloadProgress: React.FC<{
             <CloseButton
               onClick={handleCancelAndDismiss}
               buttonSize="small"
-              tooltip="Cancel download"
+              tooltip={i18n.t("editor:ui.cancelDownload", { defaultValue: "Cancel download" })}
               nodrag={false}
               sx={{ flexShrink: 0 }}
             />
@@ -357,7 +358,7 @@ export const DownloadProgress: React.FC<{
           </Box>
           <CopyButton
             value={download.message}
-            tooltip="Copy full message"
+            tooltip={i18n.t("editor:ui.copyFullMessage", { defaultValue: "Copy full message" })}
             buttonSize="small"
             nodrag={false}
             sx={{ flexShrink: 0, mt: `-${getSpacingPx(SPACING.micro)}` }}
@@ -375,9 +376,9 @@ export const DownloadProgress: React.FC<{
         </FlexRow>
       )}
       {download.status === "completed" && (
-        <Tooltip title="Download has finished successfully">
+        <Tooltip title={i18n.t("editor:ui.downloadHasFinishedSuccessfully", { defaultValue: "Download has finished successfully" })}>
           <Chip
-            label="Completed"
+            label={i18n.t("editor:ui.completed", { defaultValue: "Completed" })}
             size="small"
             color="success"
             className="download-status"
@@ -387,7 +388,7 @@ export const DownloadProgress: React.FC<{
       {download.status === "cancelled" && (
         <Tooltip title="Download was cancelled. You can restart it from the model browser.">
           <Chip
-            label="Cancelled"
+            label={i18n.t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
             size="small"
             color="warning"
             className="download-status"
@@ -397,7 +398,7 @@ export const DownloadProgress: React.FC<{
       {download.status === "error" && (
         <Tooltip title={download.message || "Download failed"}>
           <Chip
-            label="Failed"
+            label={i18n.t("editor:ui.failed", { defaultValue: "Failed" })}
             size="small"
             color="error"
             className="download-status"
@@ -462,7 +463,7 @@ export const DownloadProgress: React.FC<{
             />
           </Box>
           <Box className="download-details">
-            <Tooltip title="Total size of files being downloaded">
+            <Tooltip title={i18n.t("editor:ui.totalSizeOfFilesBeingDownloaded", { defaultValue: "Total size of files being downloaded" })}>
               <Text
                 className="download-progress-text download-size"
                 size="small"
@@ -475,7 +476,7 @@ export const DownloadProgress: React.FC<{
                 {(download.totalBytes / 1024 / 1024).toFixed(2)} MB
               </Text>
             </Tooltip>
-            <Tooltip title="Number of files downloaded vs total files">
+            <Tooltip title={i18n.t("editor:ui.numberOfFilesDownloadedVsTotalFiles", { defaultValue: "Number of files downloaded vs total files" })}>
               <Text
                 className="download-progress-text download-files"
                 size="small"
@@ -511,7 +512,7 @@ export const DownloadProgress: React.FC<{
               ETA: {isStalled ? "Unknown (stalled)" : eta || "-"}
             </Text>
           </Box>
-          <Tooltip title="Stop the current download. You can restart it later.">
+          <Tooltip title={i18n.t("editor:ui.stopTheCurrentDownloadYouCanRestartItLater", { defaultValue: "Stop the current download. You can restart it later." })}>
             <EditorButton
               onClick={handleCancelDownload}
               variant="contained"

@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { AlertBanner, EditorButton } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface SelectModelBannerProps {
   reason: string;

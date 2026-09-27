@@ -20,6 +20,7 @@ import "prismjs/components/prism-tsx";
 import "prismjs/components/prism-json";
 
 import "prismjs/themes/prism-tomorrow.css";
+import { i18n } from "../../i18n";
 
 export function CodeHighlightPlugin() {
   const [editor] = useLexicalComposerContext();

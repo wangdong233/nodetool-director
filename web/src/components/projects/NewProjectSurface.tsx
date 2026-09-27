@@ -2002,7 +2002,7 @@ const NewProjectSurface = ({
           {submenu?.kind === "storyboards" && (
             <>
               <MenuItemPrimitive
-                label="Blank storyboard"
+                label={i18n.t("editor:ui.blankStoryboard", { defaultValue: "Blank storyboard" })}
                 compact
                 dividerAfter
                 disabled={creating !== null}

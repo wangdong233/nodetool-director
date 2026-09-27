@@ -24,6 +24,7 @@ import { useSaveEntity } from "../../serverState/useEntities";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
+import { i18n } from "../../i18n";
 
 interface EntityEditorDialogProps {
   open: boolean;
@@ -186,7 +187,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         />
 
         <TextInput
-          label="Descriptor"
+          label={i18n.t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
           helperText="Pasted verbatim into every prompt that uses this entity."
           value={descriptor}
           onChange={(e) => setDescriptor(e.target.value)}
@@ -198,7 +199,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
 
         {kind === "character" && (
           <TextInput
-            label="Voice id (optional)"
+            label={i18n.t("editor:ui.voiceIdOptional", { defaultValue: "Voice id (optional)" })}
             value={voiceId}
             onChange={(e) => setVoiceId(e.target.value)}
             size="small"
@@ -207,7 +208,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         )}
 
         <TextInput
-          label="Tags (comma-separated)"
+          label={i18n.t("editor:ui.tagsCommaseparated", { defaultValue: "Tags (comma-separated)" })}
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           size="small"

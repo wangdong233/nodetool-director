@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { BORDER_RADIUS, FlexRow, Text, MOTION } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface MediaControlChipProps {
   /** Leading icon (e.g. clock, aspect, resolution). */

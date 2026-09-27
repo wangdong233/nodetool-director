@@ -18,6 +18,7 @@ import {
 } from "../ui_primitives";
 import { useSharedWithMe } from "../../serverState/useWorkflowSharing";
 import { usePanelStore } from "../../stores/PanelStore";
+import { i18n } from "../../i18n";
 
 const ROLE_LABELS = { viewer: "view", editor: "edit" } as const;
 
@@ -37,7 +38,7 @@ const SharedWithMeSection = () => {
 
   return (
     <FlexColumn gap={SPACING.xs} sx={{ px: 2, pb: 2 }}>
-      <SectionHeader title="Shared with me" />
+      <SectionHeader title={i18n.t("editor:ui.sharedWithMe", { defaultValue: "Shared with me" })} />
       {workflows.map((workflow) => (
         <FlexRow
           key={workflow.id}

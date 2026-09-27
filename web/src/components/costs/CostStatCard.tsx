@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { SvgIconProps } from "@mui/material/SvgIcon";
+import { i18n } from "../../i18n";
 import {
   Box,
   FlexRow,

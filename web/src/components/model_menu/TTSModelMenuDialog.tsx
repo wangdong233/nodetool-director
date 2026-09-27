@@ -5,6 +5,7 @@ import {
   useTTSModelMenuStore
 } from "../../stores/ModelMenuStore";
 import { useTTSModelsByProvider } from "../../hooks/useModelsByProvider";
+import { i18n } from "../../i18n";
 
 interface TTSModelMenuDialogProps {
   open: boolean;
@@ -31,7 +32,7 @@ function TTSModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select TTS Model"
+      title={i18n.t("editor:ui.selectTTSModel", { defaultValue: "Select TTS Model" })}
       searchPlaceholder="Search text-to-speech models..."
       storeHook={useTTSModelMenuStore}
       modelType="tts_model"

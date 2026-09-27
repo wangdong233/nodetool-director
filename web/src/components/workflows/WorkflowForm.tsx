@@ -9,6 +9,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import WorkspaceSelect from "../workspaces/WorkspaceSelect";
+import { i18n } from "../../i18n";
 
 const RUN_MODE_OPTIONS = [
   { value: "workflow", label: "Workflow" },
@@ -243,7 +244,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
           />
         </FormField>
 
-        <FormField label="Description">
+        <FormField label={i18n.t("editor:ui.description", { defaultValue: "Description" })}>
           <TextInput
             name="description"
             value={localWorkflow.description}
@@ -264,19 +265,19 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
             applyChange({ tags: uniqueTags }, true);
           }}
           suggestions={tagOptions}
-          placeholder="Type or select tags..."
+          placeholder={i18n.t("editor:ui.typeOrSelectTags", { defaultValue: "Type or select tags..." })}
           description="Select from suggestions or type custom tags (press Enter to add)"
         />
       </FormSection>
 
-      <FormSection label="Execution" className="settings-section">
+      <FormSection label={i18n.t("editor:ui.execution", { defaultValue: "Execution" })} className="settings-section">
         <Caption sx={{ display: "block" }}>
           Configure how this workflow runs and can be triggered
         </Caption>
 
-        <FormField label="Run Mode">
+        <FormField label={i18n.t("editor:ui.runMode", { defaultValue: "Run Mode" })}>
           <SelectField
-            label="Run Mode"
+            label={i18n.t("editor:ui.runMode", { defaultValue: "Run Mode" })}
             value={localWorkflow.run_mode || "workflow"}
             onChange={(value) => applyChange({ run_mode: value }, true)}
             options={RUN_MODE_OPTIONS}
@@ -284,7 +285,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         </FormField>
       </FormSection>
 
-      <FormSection label="Advanced" className="settings-section">
+      <FormSection label={i18n.t("editor:ui.advanced", { defaultValue: "Advanced" })} className="settings-section">
         <Caption sx={{ display: "block" }}>
           Advanced configuration for workspaces and API/tool usage
         </Caption>
@@ -296,7 +297,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         />
 
         <FormField
-          label="Tool Name"
+          label={i18n.t("editor:ui.toolName", { defaultValue: "Tool Name" })}
           helperText="Identifier for API/tool usage. Letters, numbers, underscores only."
         >
           <TextInput

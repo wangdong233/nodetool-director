@@ -30,7 +30,7 @@ import type { Theme } from "@mui/material/styles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import AssetListView from "./AssetListView";
 import { EmptyState, LoadingSpinner, getSpacingPx, SPACING } from "../ui_primitives";
-
+import { i18n } from "../../i18n";
 const styles = (theme: Theme) =>
   css({
     "&": {
@@ -372,7 +372,7 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
         ) : error ? (
           <EmptyState
             variant="error"
-            title="Could not load assets"
+            title={i18n.t("editor:ui.couldNotLoadAssets", { defaultValue: "Could not load assets" })}
             description={error.message || "An error occurred. Please try again."}
             actionText="Retry"
             onAction={refetchAssets}

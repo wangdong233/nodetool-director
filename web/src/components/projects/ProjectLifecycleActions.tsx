@@ -14,6 +14,7 @@ import {
   useRestoreProject
 } from "../../hooks/useProjects";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 interface ErrorWithMessage {
   readonly message: string;

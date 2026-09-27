@@ -24,6 +24,7 @@ import {
 } from "./projectStatus";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
+import { i18n } from "../../i18n";
 
 const MEDIA_HEIGHT = 176;
 

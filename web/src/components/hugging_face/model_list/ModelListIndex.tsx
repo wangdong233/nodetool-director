@@ -50,6 +50,7 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;

@@ -26,6 +26,7 @@ import {
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import EntitySetupHost from "../setup/entity/EntitySetupHost";
+import { i18n } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -71,7 +72,7 @@ const EntityLibraryInternal: React.FC = () => {
       return (
         <EmptyState
           variant="empty"
-          title="No entities yet"
+          title={i18n.t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
           description="Tag an image as a character, location, style, or prop to reuse it across shots."
           actionText="Add entity"
           onAction={handleAdd}

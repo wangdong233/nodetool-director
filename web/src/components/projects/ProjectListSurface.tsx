@@ -36,6 +36,7 @@ import ProjectCard from "./ProjectCard";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
 import { PROJECT_COLOR } from "./projectIdentity";
 import type { ProjectDetail } from "./projectStatus";
+import { i18n } from "../../i18n";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -165,7 +166,7 @@ const ProjectListSurface = () => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search projects"
+          placeholder={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
         />
         <EditorButton
           variant="contained"

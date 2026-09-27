@@ -20,6 +20,7 @@ import {
   type ImageResolution
 } from "../../../stores/MediaGenerationStore";
 import { buildAspectOptions, clampToAllowed } from "./videoModelOptions";
+import { i18n } from "../../../i18n";
 
 // Shared generic helpers live in videoModelOptions — re-export them so image
 // consumers have a parallel surface without duplicating the logic.

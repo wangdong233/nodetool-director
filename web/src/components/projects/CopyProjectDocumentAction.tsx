@@ -11,6 +11,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ProjectDocument } from "./projectStatus";
+import { i18n } from "../../i18n";
 
 interface CopyProjectDocumentActionProps {
   readonly document: ProjectDocument;
@@ -86,7 +87,7 @@ const CopyProjectDocumentAction = ({
             the destination. The source remains unchanged.
           </Caption>
           <SelectField
-            label="Destination project"
+            label={i18n.t("editor:ui.destinationProject", { defaultValue: "Destination project" })}
             value={destinationProjectId}
             onChange={setDestinationProjectId}
             options={destinations.map((project) => ({

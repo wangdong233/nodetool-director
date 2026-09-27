@@ -27,6 +27,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { EmptyState, FlexColumn, FlexRow, LoadingSpinner } from "../ui_primitives";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -358,7 +359,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search workflows..."
+          placeholder={i18n.t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
         />
         <FlexRow
           className="toolbar-header"
@@ -384,7 +385,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
               variant="error"
-              title="Couldn't load workflows"
+              title={i18n.t("editor:ui.couldntLoadWorkflows", { defaultValue: "Couldn't load workflows" })}
               description="Try again later."
               actionText="Retry"
               onAction={() => refetch()}
@@ -394,12 +395,12 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             {showFavoritesOnly ? (
               <EmptyState
-                title="No favorite workflows"
+                title={i18n.t("editor:ui.noFavoriteWorkflows", { defaultValue: "No favorite workflows" })}
                 description="Click the star icon on a workflow to add it to your favorites."
               />
             ) : data?.workflows && data.workflows.length > 0 ? (
               <EmptyState
-                title="No matching workflows"
+                title={i18n.t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
                 description={
                   filterValue && selectedTags.length > 0
                     ? "Try adjusting your search term or tag filters."
@@ -412,7 +413,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
               />
             ) : (
               <EmptyState
-                title="No workflows yet"
+                title={i18n.t("editor:ui.noWorkflowsYet", { defaultValue: "No workflows yet" })}
                 description="Create your first workflow with the + button above."
               />
             )}

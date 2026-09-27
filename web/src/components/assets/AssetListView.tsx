@@ -17,6 +17,7 @@ import { ExpandCollapseButton, EmptyState, Text, Box, MOTION, BORDER_RADIUS, Z_I
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
+import { i18n } from "../../i18n";
 
 interface AssetListViewProps {
   assets: Asset[];
@@ -547,7 +548,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
       <Box css={listStyles} className="asset-list-view">
         <EmptyState
           variant="no-data"
-          title="No assets to display"
+          title={i18n.t("editor:ui.noAssetsToDisplay", { defaultValue: "No assets to display" })}
           size="small"
         />
       </Box>

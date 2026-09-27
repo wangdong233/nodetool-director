@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useRef } from "react";
 import { useTheme } from "@mui/material/styles";
 import { LEVEL_BUFFER_SIZE } from "../../../../hooks/browser/useMicrophoneRecorder";
+import { i18n } from "../../../../i18n";
 
 interface RecordingWaveformProps {
   /** Amplitudes in [0,1], oldest first. Read per frame, never via state. */

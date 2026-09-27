@@ -10,6 +10,7 @@ import {
   type DayPoint
 } from "./costsData";
 import type { ProviderView } from "./costsView";
+import { i18n } from "../../i18n";
 
 const PLOT_HEIGHT = 240;
 const X_AXIS_HEIGHT = 22;

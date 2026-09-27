@@ -1,6 +1,7 @@
 import { memo } from "react";
 
 import { useFirstRunProviderSignIn } from "../../hooks/useFirstRunProviderSignIn";
+import { i18n } from "../../i18n";
 
 /**
  * Mount point for the first-run sign-in offer. Renders nothing — it exists so

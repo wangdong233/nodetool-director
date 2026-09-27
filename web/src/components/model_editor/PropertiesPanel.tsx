@@ -28,6 +28,7 @@ import {
   readGeometryParams
 } from "./geometryParams";
 import { isBoolean, isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -455,7 +456,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           </FlexRow>
           <Text size="smaller" color="secondary" sx={{ padding: `0 ${getSpacingPx(SPACING.md)}` }}>{object.type}</Text>
           <CheckboxRow
-            label="Visible"
+            label={i18n.t("editor:ui.visible", { defaultValue: "Visible" })}
             checked={object.visible}
             onChange={(c) => {
               object.visible = c;
@@ -463,7 +464,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
             }}
           />
           <CheckboxRow
-            label="Frustum Cull"
+            label={i18n.t("editor:ui.frustumCull", { defaultValue: "Frustum Cull" })}
             checked={object.frustumCulled}
             onChange={(c) => {
               object.frustumCulled = c;
@@ -471,7 +472,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
             }}
           />
           <NumberRow
-            label="Render Ord"
+            label={i18n.t("editor:ui.renderOrd", { defaultValue: "Render Ord" })}
             value={object.renderOrder}
             integer
             step={1}
@@ -483,7 +484,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           {mesh && (
             <>
               <CheckboxRow
-                label="Cast Shadow"
+                label={i18n.t("editor:ui.castShadow", { defaultValue: "Cast Shadow" })}
                 checked={mesh.castShadow}
                 onChange={(c) => {
                   mesh.castShadow = c;
@@ -491,7 +492,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 }}
               />
               <CheckboxRow
-                label="Recv Shadow"
+                label={i18n.t("editor:ui.recvShadow", { defaultValue: "Recv Shadow" })}
                 checked={mesh.receiveShadow}
                 onChange={(c) => {
                   mesh.receiveShadow = c;
@@ -505,9 +506,9 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           <Text size="small" weight={600} className="section-title">
             Transform
           </Text>
-          <Vector3Row label="Position" vector={object.position} step={0.1} onChanged={onChanged} />
+          <Vector3Row label={i18n.t("editor:ui.position", { defaultValue: "Position" })} vector={object.position} step={0.1} onChanged={onChanged} />
           <Vector3Row
-            label="Rotation"
+            label={i18n.t("editor:ui.rotation", { defaultValue: "Rotation" })}
             vector={object.rotation}
             toDisplay={THREE.MathUtils.radToDeg}
             fromDisplay={THREE.MathUtils.degToRad}
@@ -524,7 +525,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               </Text>
               <ColorRow label="Color" color={light.color} onChange={onChanged} />
               <NumberRow
-                label="Intensity"
+                label={i18n.t("editor:ui.intensity", { defaultValue: "Intensity" })}
                 value={light.intensity}
                 min={0}
                 step={0.1}
@@ -536,7 +537,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               {pointLight && (
                 <>
                   <NumberRow
-                    label="Distance"
+                    label={i18n.t("editor:ui.distance", { defaultValue: "Distance" })}
                     value={pointLight.distance}
                     min={0}
                     step={0.5}
@@ -626,7 +627,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               })}
 
               <NumberRow
-                label="Opacity"
+                label={i18n.t("editor:ui.opacity", { defaultValue: "Opacity" })}
                 value={material.opacity}
                 min={0}
                 max={1}
@@ -642,7 +643,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 }}
               />
               <NumberRow
-                label="Alpha Test"
+                label={i18n.t("editor:ui.alphaTest", { defaultValue: "Alpha Test" })}
                 value={material.alphaTest}
                 min={0}
                 max={1}

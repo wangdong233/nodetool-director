@@ -14,6 +14,7 @@ import type { UnifiedModel } from "../../../stores/ApiTypes";
 import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
 import { DownloadProgress } from "../../hugging_face/DownloadProgress";
 import { formatBytes } from "../../../utils/modelFormatting";
+import { i18n } from "../../../i18n";
 
 interface RecommendedDownloadRowProps {
   model: UnifiedModel;
@@ -153,7 +154,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
             </Text>
           </Box>
         ) : downloaded ? (
-          <Tooltip title="Use this model">
+          <Tooltip title={i18n.t("editor:ui.useThisModel", { defaultValue: "Use this model" })}>
             <EditorButton
               variant="contained"
               onClick={(e) => {

@@ -37,6 +37,7 @@ import {
   useNodeResultValue
 } from "../../hooks/nodes/useNodeExecState";
 import type { ChainNode, InputSource } from "./chainTypes";
+import { i18n } from "../../i18n";
 
 interface ChainNodeCardProps {
   node: ChainNode;
@@ -248,11 +249,11 @@ export const ChainNodeCard: React.FC<ChainNodeCardProps> = memo(function ChainNo
           <Divider spacing="compact" color="subtle" />
 
           <FlexRow gap={0.5} align="center">
-            <ToolbarIconButton ariaLabel="Move node up" size="small" onClick={onMoveUp} disabled={index === 0} tooltip="Move up" icon={<ArrowUpwardIcon sx={{ fontSize: 18 }} />} />
-            <ToolbarIconButton ariaLabel="Move node down" size="small" onClick={onMoveDown} disabled={index === totalNodes - 1} tooltip="Move down" icon={<ArrowDownwardIcon sx={{ fontSize: 18 }} />} />
+            <ToolbarIconButton ariaLabel={i18n.t("editor:ui.moveNodeUp", { defaultValue: "Move node up" })} size="small" onClick={onMoveUp} disabled={index === 0} tooltip={i18n.t("editor:ui.moveUp", { defaultValue: "Move up" })} icon={<ArrowUpwardIcon sx={{ fontSize: 18 }} />} />
+            <ToolbarIconButton ariaLabel={i18n.t("editor:ui.moveNodeDown", { defaultValue: "Move node down" })} size="small" onClick={onMoveDown} disabled={index === totalNodes - 1} tooltip={i18n.t("editor:ui.moveDown", { defaultValue: "Move down" })} icon={<ArrowDownwardIcon sx={{ fontSize: 18 }} />} />
             <Box sx={{ flex: 1 }} />
-            <ToolbarIconButton ariaLabel="Duplicate node" size="small" onClick={onDuplicate} tooltip="Duplicate" icon={<ContentCopyIcon sx={{ fontSize: 18 }} />} />
-            <ToolbarIconButton ariaLabel="Remove node" size="small" onClick={onRemove} tooltip="Remove" icon={<DeleteOutlineIcon sx={{ fontSize: 18 }} />} sx={{ color: theme.vars.palette.error.main }} />
+            <ToolbarIconButton ariaLabel={i18n.t("editor:ui.duplicateNode", { defaultValue: "Duplicate node" })} size="small" onClick={onDuplicate} tooltip={i18n.t("editor:ui.duplicate", { defaultValue: "Duplicate" })} icon={<ContentCopyIcon sx={{ fontSize: 18 }} />} />
+            <ToolbarIconButton ariaLabel={i18n.t("editor:ui.removeNode", { defaultValue: "Remove node" })} size="small" onClick={onRemove} tooltip={i18n.t("editor:ui.remove", { defaultValue: "Remove" })} icon={<DeleteOutlineIcon sx={{ fontSize: 18 }} />} sx={{ color: theme.vars.palette.error.main }} />
           </FlexRow>
         </FlexColumn>
       </Collapse>

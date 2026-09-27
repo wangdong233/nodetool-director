@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { LanguageModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useLanguageModelMenuStore } from "../../stores/ModelMenuStore";
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
+import { i18n } from "../../i18n";
 
 interface LanguageModelMenuDialogProps {
   open: boolean;
@@ -41,7 +42,7 @@ function LanguageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Language Model"
+      title={i18n.t("editor:ui.selectLanguageModel", { defaultValue: "Select Language Model" })}
       searchPlaceholder="Search language models..."
       storeHook={useLanguageModelMenuStore}
       modelType="language_model"

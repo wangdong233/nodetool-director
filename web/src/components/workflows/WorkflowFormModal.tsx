@@ -1,6 +1,7 @@
 import WorkflowForm from "./WorkflowForm";
 import { Workflow } from "../../stores/ApiTypes";
 import { Dialog } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface WorkflowFormModalProps {
   open: boolean;

@@ -20,6 +20,7 @@ import {
 } from "../ui_primitives";
 import type { RouterOutputs } from "../../trpc/client";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export type Memory = RouterOutputs["memories"]["list"]["memories"][number];
 type Resource = Memory["resources"][number];
@@ -132,12 +133,12 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
         </FlexColumn>
         <FlexRow className="memory-actions" align="center" gap={SPACING.xs}>
           <ToolbarIconButton
-            tooltip="Open the conversation this came from"
+            tooltip={i18n.t("editor:ui.openTheConversationThisCameFrom", { defaultValue: "Open the conversation this came from" })}
             onClick={() => onOpenThread(memory.thread_id)}
             icon={<ForumOutlinedIcon fontSize="small" />}
           />
           <DeleteButton
-            tooltip="Delete memory"
+            tooltip={i18n.t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
             onClick={() => onDelete(memory.id)}
             disabled={deleteDisabled}
           />

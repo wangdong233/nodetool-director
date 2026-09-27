@@ -19,6 +19,7 @@ import {
   reducedMotion
 } from "../../ui_primitives";
 import type { TodoItem } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 const TODO_SIDEBAR_WIDTH = 280;
 

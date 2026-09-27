@@ -21,6 +21,7 @@ import {
 import { useFolderTree } from "../../serverState/useFolderTree";
 import { useAssetStore, type AssetTreeNode } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 interface SaveToFolderMenuProps {
   anchorEl: HTMLElement | null;

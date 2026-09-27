@@ -19,6 +19,7 @@ import type {
 } from "../../../stores/GlobalChatStore";
 import PlanDocument from "./PlanDocument";
 import { parsePlanDocument } from "./parsePlanDocument";
+import { i18n } from "../../../i18n";
 
 interface PlanApprovalCardProps {
   approvalId: string;
@@ -122,9 +123,9 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
         <TextInput
           size="small"
           compact
-          label="What should change?"
+          label={i18n.t("editor:ui.whatShouldChange", { defaultValue: "What should change?" })}
           hideLabel
-          placeholder="What should change?"
+          placeholder={i18n.t("editor:ui.whatShouldChange", { defaultValue: "What should change?" })}
           value={feedback}
           onChange={handleFeedbackChange}
           onKeyDown={handleFeedbackKeyDown}
@@ -145,7 +146,7 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
             Run this plan
           </EditorButton>
           <Tooltip
-            title="Describe the change first"
+            title={i18n.t("editor:ui.describeTheChangeFirst", { defaultValue: "Describe the change first" })}
             disabled={hasFeedback}
           >
             <span>

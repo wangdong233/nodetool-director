@@ -5,6 +5,7 @@ import { ToolbarIconButton } from "../../../ui_primitives";
 import ASRModelMenuDialog from "../../../model_menu/ASRModelMenuDialog";
 import { VoiceRecordingBar } from "./VoiceRecordingBar";
 import { useVoiceInput } from "./useVoiceInput";
+import { i18n } from "../../../../i18n";
 
 interface VoiceInputControlProps {
   /** Called with the transcript once a recording is accepted. */
@@ -66,8 +67,8 @@ export const VoiceInputControl = memo(function VoiceInputControl({
       <ToolbarIconButton
         ref={micRef}
         className="voice-input-button"
-        aria-label="Record voice message"
-        tooltip="Record voice message"
+        aria-label={i18n.t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
+        tooltip={i18n.t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
         icon={<MicNoneRoundedIcon fontSize="small" />}
         onClick={startRecording}
         disabled={disabled || isActive}

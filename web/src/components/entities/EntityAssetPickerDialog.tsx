@@ -20,6 +20,7 @@ import {
 import type { Asset } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { i18n } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore

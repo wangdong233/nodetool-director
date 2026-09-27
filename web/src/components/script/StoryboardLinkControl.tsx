@@ -24,6 +24,7 @@ import { useScriptStoryboardLink } from "../../stores/script/ScriptStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useDeriveStoryboard } from "../../hooks/script/useDeriveStoryboard";
 import { useBoardScriptLinkIssues } from "../../hooks/storyboard/useBoardScriptLinkIssues";
+import { i18n } from "../../i18n";
 
 interface StoryboardLinkControlProps {
   scriptId: string;

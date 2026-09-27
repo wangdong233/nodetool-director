@@ -27,6 +27,7 @@ import useSecretsStore from "../../stores/SecretsStore";
 import type { SecretValidation } from "../../stores/SecretsStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import type { OnboardingProvider } from "./providerOnboardingCatalog";
+import { i18n } from "../../i18n";
 
 type StoredCredentialStatus = "configured" | "verified" | "unavailable" | "rejected";
 

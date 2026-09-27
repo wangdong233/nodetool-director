@@ -5,6 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { memo } from "react";
 import { Box, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import LockIcon from "@mui/icons-material/Lock";
+import { i18n } from "../../i18n";
 
 interface EditorStatusBarProps {
   text: string;

@@ -27,6 +27,7 @@ import { SourceToggle } from "./SourceToggle";
 import { HUB_RESULT_LIMIT } from "./useModels";
 import { useModelDownloadTarget } from "../../../hooks/useModelDownloadTarget";
 import { Caption, Tooltip } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface ModelListHeaderProps {
   totalCount: number;
@@ -201,7 +202,7 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
           </Text>
           <Box sx={toolbarSelectSx(theme)}>
             <SelectField
-              label="Sort models by"
+              label={i18n.t("editor:ui.sortModelsBy", { defaultValue: "Sort models by" })}
               hideLabel
               variant="outlined"
               value={sortField}
@@ -220,7 +221,7 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
             tooltip={`Sort ${sortDirection === "asc" ? "ascending" : "descending"}`}
             onClick={toggleSortDirection}
             size="small"
-            aria-label="Toggle sort direction"
+            aria-label={i18n.t("editor:ui.toggleSortDirection", { defaultValue: "Toggle sort direction" })}
             sx={{
               color: theme.vars.palette.text.secondary,
               "&:hover": { color: theme.vars.palette.text.primary }

@@ -46,6 +46,7 @@ import {
   type Execution
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
+import { i18n } from "../../i18n";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
 const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
@@ -433,7 +434,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       {/* stat cards */}
       <FlexRow gap={2} wrap sx={{ mb: 3 }}>
         <CostStatCard
-          label="Total spend"
+          label={i18n.t("editor:ui.totalSpend", { defaultValue: "Total spend" })}
           icon={AttachMoneyIcon}
           value={total.whole}
           decimal={total.decimal}
@@ -464,19 +465,19 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           }
         />
         <CostStatCard
-          label="Node executions"
+          label={i18n.t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
           icon={GridViewIcon}
           value={String(stats.executionCount)}
           caption={`${stats.failedCount} failed · ${stats.workflowCount} workflows`}
         />
         <CostStatCard
-          label="Avg / execution"
+          label={i18n.t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
           icon={ShowChartIcon}
           value={formatMoney(stats.avgPerExecution)}
           caption="across all node types"
         />
         <CostStatCard
-          label="Top cost driver"
+          label={i18n.t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
           icon={BarChartIcon}
           value={driver ? driver.label : "—"}
           valueVariant="label"
@@ -540,7 +541,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Filter nodes, models…"
+              placeholder={i18n.t("editor:ui.filterNodesModels", { defaultValue: "Filter nodes, models…" })}
               fullWidth
             />
           </Box>

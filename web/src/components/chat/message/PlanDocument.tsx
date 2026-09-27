@@ -12,6 +12,7 @@ import {
   SPACING
 } from "../../ui_primitives";
 import type { PlanDocumentModel } from "./parsePlanDocument";
+import { i18n } from "../../../i18n";
 
 const PLAN_IDLE_NOTE =
   "Nothing ran. Switch to Default or Auto, then send a message.";

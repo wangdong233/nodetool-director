@@ -7,6 +7,7 @@ import { Box } from "../ui_primitives";
 import { useLocation } from "react-router-dom";
 import { Asset } from "../../stores/ApiTypes";
 import { formatFileSize } from "../../utils/formatUtils";
+import { i18n } from "../../i18n";
 
 interface StorageAnalyticsProps {
   assets: Asset[];

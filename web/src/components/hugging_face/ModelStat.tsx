@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { Caption, FlexColumn, FlexRow, Text, SPACING } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 export interface ModelStatProps {
   label: string;

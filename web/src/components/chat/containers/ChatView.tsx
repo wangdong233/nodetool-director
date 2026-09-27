@@ -44,6 +44,7 @@ import {
 } from "../../../lib/chat/uiContext";
 import { CHAT_COLUMN_MAX_WIDTH, type ChatStatus } from "../types/chat.types";
 import { conversationToMarkdown } from "../utils/conversationMarkdown";
+import { i18n } from "../../../i18n";
 import type {
   ChatOutgoingMessage,
   MediaGenerationRequest
@@ -450,14 +451,14 @@ const ChatView = ({
             {!isMobile && messages.length > 0 && (
               <ToolbarIconButton
                 onClick={handleCopyConversation}
-                tooltip="Copy conversation as Markdown"
+                tooltip={i18n.t("editor:ui.copyConversationAsMarkdown", { defaultValue: "Copy conversation as Markdown" })}
                 icon={<ContentCopyIcon fontSize="small" />}
               />
             )}
             {showNewChatButton && onNewChat && (
               <ToolbarIconButton
                 onClick={onNewChat}
-                tooltip="New chat"
+                tooltip={i18n.t("editor:ui.newChat", { defaultValue: "New chat" })}
                 icon={<AddIcon fontSize="small" />}
               />
             )}

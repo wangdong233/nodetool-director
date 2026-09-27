@@ -20,6 +20,7 @@ import {
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
 import { isObjectLike } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const styles = css({
   ".asset-delete-confirmation-content": {

@@ -3,6 +3,7 @@ import type { Workflow } from "../../stores/ApiTypes";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { formatGenericProviderName, isLocalProvider } from "../../utils/providerDisplay";
 import { isRecord, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface EntryWorkflowLike {
   input_schema?: unknown;
@@ -326,9 +327,24 @@ export const CompatibilityDetails = ({
   ].filter((detail): detail is string => detail !== null);
 
   return (
+<<<<<<< HEAD
     <span className="entry-compat" aria-label="Compatibility details">
       {details.map((detail) => (
         <span key={detail}>{detail}</span>
+=======
+    <span className="entry-compat" aria-label={i18n.t("editor:ui.compatibilityDetails", { defaultValue: "Compatibility details" })}>
+      <span>Inputs: {inputLabel}</span>
+      <span>Provider/model: {providerModelLabel}</span>
+      <span>Execution: {compatibility.executionLocation}</span>
+      {compatibility.requiredSettings.length > 0 && (
+        <span>Required setup: {compatibility.requiredSettings.join(", ")}</span>
+      )}
+      {compatibility.requiredRuntimes.length > 0 && (
+        <span>Runtime: {compatibility.requiredRuntimes.join(", ")}</span>
+      )}
+      {compatibility.unknowns.map((unknown) => (
+        <span key={unknown}>Unknown: {unknown}</span>
+>>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
       ))}
     </span>
   );

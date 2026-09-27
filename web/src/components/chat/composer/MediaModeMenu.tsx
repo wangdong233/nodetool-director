@@ -29,6 +29,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
+import { i18n } from "../../../i18n";
 
 interface MediaModeMenuProps {
   anchorEl: HTMLElement | null;
@@ -193,7 +194,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
         boxShadow: SHADOW(theme).lg
       }}
     >
-      <div css={cssStyles} role="menu" aria-label="Generation mode">
+      <div css={cssStyles} role="menu" aria-label={i18n.t("editor:ui.generationMode", { defaultValue: "Generation mode" })}>
         <Caption className="mode-menu-header" size="small">
           Mode
         </Caption>

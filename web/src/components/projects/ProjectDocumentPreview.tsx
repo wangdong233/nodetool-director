@@ -23,6 +23,7 @@ import {
 import { colorForType } from "../../config/data_types";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import type { ProjectDocument } from "./projectStatus";
+import { i18n } from "../../i18n";
 
 /** Height of the media area, per the overview mockup's card geometry. */
 const PREVIEW_HEIGHT = 120;

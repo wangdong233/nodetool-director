@@ -4,6 +4,7 @@ import { ContextMenu, MenuItemPrimitive } from "../ui_primitives";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useOpenNewProjectTab, useOpenProject, useProjects } from "../../hooks/useProjects";
 import { PROJECT_GLYPH } from "./projectIdentity";
+import { i18n } from "../../i18n";
 
 interface ProjectScopeChipProps {
   projectId: string;
@@ -58,12 +59,12 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
         compact
       >
         <MenuItemPrimitive
-          label="Open editor home"
+          label={i18n.t("editor:ui.openEditorHome", { defaultValue: "Open editor home" })}
           compact
           onClick={handleOpenHome}
         />
         <MenuItemPrimitive
-          label="Close group"
+          label={i18n.t("editor:ui.closeGroup", { defaultValue: "Close group" })}
           compact
           dividerAfter={(projects?.length ?? 0) > 1}
           onClick={() => {

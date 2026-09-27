@@ -14,6 +14,7 @@ import {
 } from "../../ui_primitives";
 import { isString } from "../../../utils/typePredicates";
 import type { ApprovalDecision } from "../../../stores/GlobalChatStore";
+import { i18n } from "../../../i18n";
 
 interface ToolApprovalCardProps {
   approvalId: string;

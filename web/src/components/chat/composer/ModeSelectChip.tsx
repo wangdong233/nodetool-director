@@ -17,6 +17,7 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import MediaControlChip from "./MediaControlChip";
 import MediaModeMenu from "./MediaModeMenu";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
+import { i18n } from "../../../i18n";
 
 export function modeIconFor(mode: MediaMode): React.ReactNode {
   if (mode === "music") return <AudiotrackIcon fontSize="small" />;

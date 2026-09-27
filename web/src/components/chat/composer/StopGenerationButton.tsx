@@ -1,6 +1,7 @@
 import type { Ref } from "react";
 import StopIcon from "@mui/icons-material/Stop";
 import { ToolbarIconButton, MOTION } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface StopGenerationButtonProps {
   onClick: () => void;
@@ -15,7 +16,7 @@ export function StopGenerationButton({
     <ToolbarIconButton
       ref={ref}
       icon={<StopIcon fontSize="small" />}
-      tooltip="Stop generation"
+      tooltip={i18n.t("editor:ui.stopGeneration", { defaultValue: "Stop generation" })}
       onClick={onClick}
       nodrag={false}
       sx={(theme) => ({

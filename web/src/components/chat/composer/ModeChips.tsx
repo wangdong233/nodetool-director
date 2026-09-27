@@ -39,6 +39,7 @@ import useModelPreferencesStore from "../../../stores/ModelPreferencesStore";
 import ModelChip, { type ModelPickerHandle } from "./ModelChip";
 import OptionChip from "./OptionChip";
 import { type MediaOption } from "./MediaOptionMenu";
+import { i18n } from "../../../i18n";
 import {
   buildImageEditOptions,
   buildImageModelOptions,

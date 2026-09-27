@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import React, { useCallback, memo } from "react";
 import { FavoriteButton, MOTION } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
+import { i18n } from "../../i18n";
 
 interface FavoriteStarProps {
   provider?: string;

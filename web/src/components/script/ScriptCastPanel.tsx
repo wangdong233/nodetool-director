@@ -30,6 +30,7 @@ import {
 } from "../../stores/script/ScriptStore";
 import { useEntities } from "../../serverState/useEntities";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { i18n } from "../../i18n";
 
 interface ScriptCastPanelProps {
   scriptId: string;
@@ -119,14 +120,14 @@ const SpeakerRow = ({
             updateSpeaker(scriptId, speaker.id, { name: e.target.value })
           }
           hideLabel
-          label="Speaker name"
+          label={i18n.t("editor:ui.speakerName", { defaultValue: "Speaker name" })}
           compact
           fullWidth
           disabled={readOnly}
         />
         {!readOnly && (
           <ToolbarIconButton
-            tooltip="Remove speaker"
+            tooltip={i18n.t("editor:ui.removeSpeaker", { defaultValue: "Remove speaker" })}
             onClick={() => removeSpeaker(scriptId, speaker.id)}
             icon={<DeleteOutlineIcon fontSize="small" />}
           />
@@ -146,7 +147,7 @@ const SpeakerRow = ({
       {!readOnly ? (
         <FlexColumn gap={SPACING.xs} fullWidth>
           <SelectField
-            label="Linked entity"
+            label={i18n.t("editor:ui.linkedEntity", { defaultValue: "Linked entity" })}
             value={speaker.entityId ?? ""}
             onChange={onEntityChange}
             options={entityOptions}
@@ -267,7 +268,7 @@ const ScriptCastPanel = ({
       <Divider />
       {cast.length === 0 ? (
         <EmptyState
-          title="No speakers"
+          title={i18n.t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
           description="Add a speaker, pick a voice, then click a line's name to assign it."
           actionText={readOnly ? undefined : "Add speaker"}
           onAction={readOnly ? undefined : onAdd}

@@ -37,6 +37,7 @@ import { getComponentForProperty } from "../node/PropertyInput.resolver";
 import type { Property, TypeMetadata } from "../../stores/ApiTypes";
 import type { ChainNode, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible } from "./chainTypes";
+import { i18n } from "../../i18n";
 
 interface ChainNodePropertiesProps {
   nodeId: string;
@@ -280,7 +281,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Disconnect ${prop.title ?? prop.name}`}
-                      tooltip="Disconnect — edit the value instead"
+                      tooltip={i18n.t("editor:ui.disconnectEditTheValueInstead", { defaultValue: "Disconnect — edit the value instead" })}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSetInputMapping(prop.name, null);
@@ -312,7 +313,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Connect ${prop.title ?? prop.name} to a previous step`}
-                      tooltip="Use output from a previous step"
+                      tooltip={i18n.t("editor:ui.useOutputFromAPreviousStep", { defaultValue: "Use output from a previous step" })}
                       onClick={(e) => handleOpenPicker(prop.name, e.currentTarget)}
                       icon={
                         <AddLinkIcon sx={{ fontSize: 16, color: secondary }} />

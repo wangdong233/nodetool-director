@@ -19,6 +19,7 @@ import {
   ResponsiveImage
 } from "../ui_primitives";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
+import { i18n } from "../../i18n";
 
 interface ScriptShotChipProps {
   shot: Shot;

@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Box, FlexRow, FlexColumn, Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { CostNodeIcon } from "./CostNodeIcon";
+import { i18n } from "../../i18n";
 import {
   groupExecutions,
   providerColor,

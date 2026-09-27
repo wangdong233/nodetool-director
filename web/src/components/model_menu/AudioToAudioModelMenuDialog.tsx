@@ -7,6 +7,7 @@ import type {
 } from "../../stores/ApiTypes";
 import { useAudioToAudioModelMenuStore } from "../../stores/ModelMenuStore";
 import { useAudioToAudioModelsByProvider } from "../../hooks/useModelsByProvider";
+import { i18n } from "../../i18n";
 
 interface AudioToAudioModelMenuDialogProps {
   open: boolean;
@@ -33,7 +34,7 @@ function AudioToAudioModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Audio To Audio Model"
+      title={i18n.t("editor:ui.selectAudioToAudioModel", { defaultValue: "Select Audio To Audio Model" })}
       searchPlaceholder="Search voice changers, separators, denoisers..."
       storeHook={useAudioToAudioModelMenuStore}
       modelType="audio_to_audio_model"

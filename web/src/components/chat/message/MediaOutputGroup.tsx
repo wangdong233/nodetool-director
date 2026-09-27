@@ -50,6 +50,7 @@ import {
 } from "../../../hooks/useResolvedMediaUri";
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
 
 /** Edge length of a generated-media thumbnail tile (px). */
 const THUMBNAIL_SIZE = 120;
@@ -408,7 +409,7 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
           {!isPending && isCanvasAvailable && mediaContents.length > 1 && (
             <ToolbarIconButton
               className="add-all-button"
-              tooltip="Add all to canvas"
+              tooltip={i18n.t("editor:ui.addAllToCanvas", { defaultValue: "Add all to canvas" })}
               size="small"
               onClick={addAll}
             >
@@ -453,7 +454,7 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip="Add to canvas"
+                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >
@@ -473,11 +474,11 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
                 draggable
                 onDragStart={(e) => handleDragStart(e, c)}
               >
-                <VideoPlayer locator={c.video} label="Generated video" />
+                <VideoPlayer locator={c.video} label={i18n.t("editor:ui.generatedVideo", { defaultValue: "Generated video" })} />
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip="Add to canvas"
+                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >
@@ -498,13 +499,13 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
               >
                 <AudioPlayback
                   locator={c.audio}
-                  label="Generated audio"
+                  label={i18n.t("editor:ui.generatedAudio", { defaultValue: "Generated audio" })}
                   sx={AUDIO_SX}
                 />
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip="Add to canvas"
+                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >

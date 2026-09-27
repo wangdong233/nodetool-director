@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { trpcClient } from "../../trpc/client";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 import {
   EmptyState,
   FlexColumn,
@@ -78,7 +79,7 @@ const LegacyAppRedirect = () => {
       >
         <EmptyState
           variant="error"
-          title="App not found"
+          title={i18n.t("editor:ui.appNotFound", { defaultValue: "App not found" })}
           description="No app is built on this workflow. Open the Apps panel to create one."
         />
       </FlexColumn>

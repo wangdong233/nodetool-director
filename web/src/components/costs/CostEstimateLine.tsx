@@ -12,6 +12,7 @@
 
 import React, { memo } from "react";
 import { Caption, FlexColumn, Text, Tooltip } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 /** A figure to show, plus what produced it. */
 export interface CostLineDetail {

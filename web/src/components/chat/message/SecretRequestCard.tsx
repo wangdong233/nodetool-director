@@ -14,6 +14,7 @@ import {
   BORDER_RADIUS
 } from "../../ui_primitives";
 import useSecretsStore from "../../../stores/SecretsStore";
+import { i18n } from "../../../i18n";
 import type {
   PendingSecretRequest,
   SecretRequestOutcome
@@ -167,7 +168,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
           type="password"
           autoComplete="off"
           label={request.key}
-          placeholder="Paste the key"
+          placeholder={i18n.t("editor:ui.pasteTheKey", { defaultValue: "Paste the key" })}
           value={value}
           onChange={handleChange}
           disabled={saving}

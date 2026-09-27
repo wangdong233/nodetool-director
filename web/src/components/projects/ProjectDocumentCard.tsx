@@ -21,6 +21,7 @@ import {
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import ProjectDocumentPreview from "./ProjectDocumentPreview";
 import CopyProjectDocumentAction from "./CopyProjectDocumentAction";
+import { i18n } from "../../i18n";
 import {
   documentProgress,
   documentStatusLine,

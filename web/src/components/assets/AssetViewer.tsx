@@ -57,6 +57,7 @@ import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
 import { isElectron } from "../../utils/browser";
 import { copyAssetToClipboard, isClipboardSupported } from "../../utils/clipboardUtils";
+import { i18n } from "../../i18n";
 import {
   ToolbarIconButton,
   CloseButton,
@@ -680,7 +681,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           <>
             <ToolbarIconButton
               icon={<KeyboardArrowLeftIcon />}
-              tooltip="Previous asset"
+              tooltip={i18n.t("editor:ui.previousAsset", { defaultValue: "Previous asset" })}
               onClick={handlePrevAsset}
               disabled={prevAssets?.length === 0}
               className="prev-next-button left"
@@ -688,7 +689,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
             />
             <ToolbarIconButton
               icon={<KeyboardArrowRightIcon />}
-              tooltip="Next asset"
+              tooltip={i18n.t("editor:ui.nextAsset", { defaultValue: "Next asset" })}
               onClick={handleNextAsset}
               disabled={nextAssets?.length === 0}
               className="prev-next-button right"
@@ -797,7 +798,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
         fullWidth
         open={open}
         onClose={handleClose}
-        aria-label="Asset viewer"
+        aria-label={i18n.t("editor:ui.assetViewer", { defaultValue: "Asset viewer" })}
         slotProps={{
           // Override the primitive's default glass/rounded/bordered paper so the
           // viewer is a true edge-to-edge fullscreen surface with no top gap.
@@ -901,7 +902,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isModel3D && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip="Edit in 3D Editor"
+              tooltip={i18n.t("editor:ui.editIn3DEditor", { defaultValue: "Edit in 3D Editor" })}
               onClick={handleOpenModel3DEditor}
               className="button edit"
               nodrag={false}
@@ -911,7 +912,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isAudio && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip="Edit Audio"
+              tooltip={i18n.t("editor:ui.editAudio", { defaultValue: "Edit Audio" })}
               onClick={handleOpenAudioEditor}
               className="button edit"
               nodrag={false}
@@ -955,7 +956,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {canCompare && !compareMode && !compareAssetB && (
             <ToolbarIconButton
               icon={<CompareIcon />}
-              tooltip="Compare with another image"
+              tooltip={i18n.t("editor:ui.compareWithAnotherImage", { defaultValue: "Compare with another image" })}
               onClick={startCompareMode}
               className="button compare"
               nodrag={false}

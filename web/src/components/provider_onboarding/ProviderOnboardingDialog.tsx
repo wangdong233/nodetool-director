@@ -15,6 +15,7 @@ import { openSettingsTab } from "../workspace/openPageTab";
 import ollamaIcon from "../../icons/providers/ollama.svg";
 import ProviderOnboardingCard from "./ProviderOnboardingCard";
 import { CAPABILITY_LABELS, providersForCapability } from "./providerOnboardingCatalog";
+import { i18n } from "../../i18n";
 
 const ProviderOnboardingDialog: React.FC = () => {
   const theme = useTheme();
@@ -48,7 +49,7 @@ const ProviderOnboardingDialog: React.FC = () => {
       onClose={dismiss}
       maxWidth="sm"
       fullWidth
-      title="Connect an AI provider"
+      title={i18n.t("editor:ui.connectAnAIProvider", { defaultValue: "Connect an AI provider" })}
       actions={
         <FlexRow justify="space-between" gap={SPACING.md} wrap sx={{ width: "100%", px: SPACING.md }}>
           <EditorButton variant="text" onClick={handleOpenSettings}>See all providers in Settings</EditorButton>

@@ -11,6 +11,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { FlexColumn, Text, ScrollArea, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import type { SceneTreeNode } from "./sceneTree";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

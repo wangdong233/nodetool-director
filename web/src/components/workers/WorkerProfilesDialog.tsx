@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useState } from "react";
+import { i18n } from "../../i18n";
 import {
   FlexColumn,
   FlexRow,
@@ -283,7 +284,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Manage worker profiles"
+      title={i18n.t("editor:ui.manageWorkerProfiles", { defaultValue: "Manage worker profiles" })}
       minWidth={480}
       actions={
         <FlexRow gap={2}>
@@ -294,7 +295,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             variant="outlined"
             onClick={handleCreate}
             disabled={!canCreate}
-            aria-label="Create profile"
+            aria-label={i18n.t("editor:ui.createProfile", { defaultValue: "Create profile" })}
           >
             Create Profile
           </EditorButton>
@@ -369,7 +370,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           />
 
           <SelectField
-            label="Provider"
+            label={i18n.t("editor:ui.provider", { defaultValue: "Provider" })}
             value={target}
             onChange={(value) => handleTargetChange(value as WorkerTarget)}
             options={TARGET_OPTIONS}
@@ -432,7 +433,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           )}
 
           <TextInput
-            label="Disk (GB)"
+            label={i18n.t("editor:ui.diskGB", { defaultValue: "Disk (GB)" })}
             value={disk}
             onChange={(e) => setDisk(e.target.value)}
             type="number"
@@ -442,7 +443,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           />
 
           <TextInput
-            label="Idle timeout (minutes)"
+            label={i18n.t("editor:ui.idleTimeoutMinutes", { defaultValue: "Idle timeout (minutes)" })}
             value={idleTimeout}
             onChange={(e) => setIdleTimeout(e.target.value)}
             type="number"
@@ -461,7 +462,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           >
             <FlexColumn gap={2} sx={{ pt: 1 }}>
               <SelectField
-                label="Worker image preset"
+                label={i18n.t("editor:ui.workerImagePreset", { defaultValue: "Worker image preset" })}
                 value={
                   IMAGE_PRESETS.some((p) => p.value === image)
                     ? image
@@ -476,7 +477,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 description="ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node."
               />
               <TextInput
-                label="Worker image"
+                label={i18n.t("editor:ui.workerImage", { defaultValue: "Worker image" })}
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
                 helperText="Container image the provider runs. Pick a preset above, or set your own worker build."
@@ -484,7 +485,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 compact
               />
               <SelectField
-                label="Token policy"
+                label={i18n.t("editor:ui.tokenPolicy", { defaultValue: "Token policy" })}
                 value={tokenPolicy}
                 onChange={(value) => setTokenPolicy(value as TokenPolicy)}
                 options={TOKEN_POLICY_OPTIONS}
@@ -493,7 +494,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 description="Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere."
               />
               <TextInput
-                label="Max lifetime (minutes)"
+                label={i18n.t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
                 value={maxLifetime}
                 onChange={(e) => setMaxLifetime(e.target.value)}
                 type="number"

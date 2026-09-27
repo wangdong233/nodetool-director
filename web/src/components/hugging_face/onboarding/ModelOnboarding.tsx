@@ -26,6 +26,7 @@ import EngineGuide from "./EngineGuide";
 import OnboardingModelRow from "./OnboardingModelRow";
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useNotificationStore } from "../../../stores/NotificationStore";
+import { i18n } from "../../../i18n";
 import {
   CAPABILITY_LABELS,
   HUGGINGFACE_PACK_REPO_ID,

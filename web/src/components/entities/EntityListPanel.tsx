@@ -25,6 +25,7 @@ import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {
@@ -45,9 +46,9 @@ export const CreateEntityButton = memo(function CreateEntityButton({
 
   return (
     <>
-      <Tooltip title="New entity" placement="right-start">
+      <Tooltip title={i18n.t("editor:ui.newEntity", { defaultValue: "New entity" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel="New entity"
+          ariaLabel={i18n.t("editor:ui.newEntity", { defaultValue: "New entity" })}
           onClick={() => setPickerOpen(true)}
           tabIndex={-1}
           icon={<AddIcon />}
@@ -101,7 +102,7 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
     return (
       <EmptyState
         variant="empty"
-        title="No entities yet"
+        title={i18n.t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
         description="Tag an image as a character, location, style, or prop with the + button above."
         size="small"
       />

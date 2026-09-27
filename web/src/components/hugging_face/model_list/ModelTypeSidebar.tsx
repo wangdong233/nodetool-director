@@ -20,6 +20,7 @@ import { prettifyModelType } from "../../../utils/modelFormatting";
 import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../../i18n";
 
 const ModelTypeSidebar: React.FC = () => {
   const scope = useModelManagerStore((state) => state.scope);
@@ -96,7 +97,7 @@ const ModelTypeSidebar: React.FC = () => {
                 href ? (
                   <ToolbarIconButton
                     icon={<OpenInNewIcon fontSize="small" />}
-                    tooltip="View on Hugging Face"
+                    tooltip={i18n.t("editor:ui.viewOnHuggingFace", { defaultValue: "View on Hugging Face" })}
                     edge="end"
                     component="a"
                     href={href}

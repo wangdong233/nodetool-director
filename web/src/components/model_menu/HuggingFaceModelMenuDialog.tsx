@@ -6,6 +6,7 @@ import { useHuggingFaceImageModelsByProvider } from "../../hooks/useModelsByProv
 import { useWorkerCachedModelIds } from "../../hooks/useWorkerCachedModels";
 import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { i18n } from "../../i18n";
 
 interface HuggingFaceModelMenuDialogProps {
   open: boolean;
@@ -101,7 +102,7 @@ function HuggingFaceModelMenuDialog({
       onClose={onClose}
       modelData={sortedModelData}
       onModelChange={onModelChange}
-      title="Select HuggingFace Model"
+      title={i18n.t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace Model" })}
       searchPlaceholder="Search HuggingFace models..."
       storeHook={useHuggingFaceImageModelMenuStore}
       recommendedModels={recommendedModels}

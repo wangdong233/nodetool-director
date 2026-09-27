@@ -8,6 +8,7 @@ import type { Theme } from "@mui/material/styles";
 import { ImageComparer } from "../widgets";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useCombo } from "../../stores/KeyPressedStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -95,7 +96,7 @@ const ImageCompareDialog: React.FC = () => {
       fullWidth
       open={compareAssets !== null}
       onClose={closeCompareView}
-      aria-label="Compare images"
+      aria-label={i18n.t("editor:ui.compareImages", { defaultValue: "Compare images" })}
     >
       <div className="compare-container">
         <div className="actions">

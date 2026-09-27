@@ -13,6 +13,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useWorkflowActions } from "../../hooks/useWorkflowActions";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { estimateGraphCost } from "../../hooks/useGraphCostEstimate";
+import { i18n } from "../../i18n";
 import {
   TOP_CATEGORIES,
   workflowsForCategory,
@@ -376,14 +377,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
       css={fullPage ? [styles(theme), fullPageStyles] : styles(theme)}
     >
       <div css={sectionWrap}>
-        <SectionHeader title="Start from a template" count={countLabel}>
+        <SectionHeader title={i18n.t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
           <DashboardSearchBox
             ref={searchRef}
             value={query}
             onChange={setQuery}
-            placeholder="Search templates by name, tag…"
+            placeholder={i18n.t("editor:ui.searchTemplatesByNameTag", { defaultValue: "Search templates by name, tag…" })}
             kbd="/"
-            aria-label="Search templates"
+            aria-label={i18n.t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
           />
           {!fullPage && (
             <SectionLink onClick={handleViewAllTemplates}>
@@ -392,7 +393,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           )}
         </SectionHeader>
 
-        <div className="cats" role="group" aria-label="Filter by category">
+        <div className="cats" role="group" aria-label={i18n.t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
           <button
             type="button"
             className={`cat${category === "all" ? " on" : ""}`}
@@ -435,7 +436,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           <div className="tpl-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load templates"
+              title={i18n.t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
               description="Try again in a moment."
               actionText="Retry"
               onAction={() => refetch()}
@@ -446,7 +447,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
             {query.trim() ? (
               <EmptyState
                 variant="no-results"
-                title="No templates match your search"
+                title={i18n.t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
                 description="Try a different search term."
                 actionText="Clear search"
                 onAction={() => setQuery("")}
@@ -454,14 +455,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
             ) : category !== "all" ? (
               <EmptyState
                 variant="no-results"
-                title="No templates in this category"
+                title={i18n.t("editor:ui.noTemplatesInThisCategory", { defaultValue: "No templates in this category" })}
                 actionText="Show all templates"
                 onAction={() => setCategory("all")}
               />
             ) : (
               <EmptyState
                 variant="no-data"
-                title="No templates available"
+                title={i18n.t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
                 description="Templates will appear here when available."
               />
             )}

@@ -115,7 +115,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Start a worker"
+      title={i18n.t("editor:ui.startAWorker", { defaultValue: "Start a worker" })}
       minWidth={420}
       actions={
         <FlexRow gap={2}>
@@ -140,7 +140,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
           </Caption>
         ) : (
           <SelectField
-            label="Profile"
+            label={i18n.t("editor:ui.profile", { defaultValue: "Profile" })}
             value={effective}
             onChange={setSelected}
             options={options}
@@ -489,7 +489,7 @@ const WorkersPanel: React.FC = () => {
             density="compact"
             variant="text"
             onClick={() => setProfilesOpen(true)}
-            aria-label="Manage profiles"
+            aria-label={i18n.t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
           >
             Manage Profiles
           </EditorButton>
@@ -497,7 +497,7 @@ const WorkersPanel: React.FC = () => {
             density="compact"
             variant="outlined"
             onClick={() => setDialogOpen(true)}
-            aria-label="Start worker"
+            aria-label={i18n.t("editor:ui.startWorker", { defaultValue: "Start worker" })}
           >
             Start Worker
           </EditorButton>
@@ -506,7 +506,7 @@ const WorkersPanel: React.FC = () => {
             variant="text"
             onClick={handleReconcile}
             disabled={busy}
-            aria-label="Reconcile workers"
+            aria-label={i18n.t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
           >
             Reconcile
           </EditorButton>

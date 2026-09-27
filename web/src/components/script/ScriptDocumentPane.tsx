@@ -68,8 +68,12 @@ import { useScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
 import { useScriptLineFocus } from "../../hooks/script/useScriptLineFocus";
 import StoryboardLinkControl from "./StoryboardLinkControl";
 import ScriptSaveIndicator from "./ScriptSaveIndicator";
+<<<<<<< HEAD
 import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
+=======
+import { i18n } from "../../i18n";
+>>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
@@ -130,7 +134,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label="Insert line here"
+      aria-label={i18n.t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -363,9 +367,9 @@ const SectionBlockInner = ({
           onChange={(e) =>
             setSectionTitle(scriptId, section.id, e.target.value)
           }
-          placeholder="Untitled section"
+          placeholder={i18n.t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
           hideLabel
-          label="Section title"
+          label={i18n.t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -382,7 +386,7 @@ const SectionBlockInner = ({
         {!readOnly && (
           <Box className="section-remove">
             <ToolbarIconButton
-              tooltip="Remove section"
+              tooltip={i18n.t("editor:ui.removeSection", { defaultValue: "Remove section" })}
               onClick={() => removeSection(scriptId, section.id)}
               icon={<CloseIcon fontSize="small" />}
             />
@@ -997,7 +1001,7 @@ const ScriptDocumentPane = ({
               <MenuItemPrimitive
                 compact
                 icon={<SubtitlesIcon fontSize="small" />}
-                label="Export SRT"
+                label={i18n.t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
@@ -1036,7 +1040,7 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title="Empty script"
+            title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
             description="Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them."
             actionText={readOnly ? undefined : "Add first line"}
             onAction={readOnly ? undefined : () => addLine(scriptId)}

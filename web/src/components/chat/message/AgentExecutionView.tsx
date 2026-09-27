@@ -3,6 +3,7 @@ import type { Message } from "../../../stores/ApiTypes";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import ExecutionTree from "../../execution/ExecutionTree";
 import { useExecutionTreeState } from "../../../hooks/useExecutionTreeState";
+import { i18n } from "../../../i18n";
 
 interface AgentExecutionViewProps {
   messages: Message[];

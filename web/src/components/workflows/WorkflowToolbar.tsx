@@ -14,6 +14,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useShowGraphPreview, useWorkflowListViewStore, useSortBy, useSelectedTags, SortBy } from "../../stores/WorkflowListViewStore";
+import { i18n } from "../../i18n";
 
 interface WorkflowToolbarProps {
   showCheckboxes: boolean;
@@ -229,7 +230,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
             <>
               <ToolbarIconButton
                 icon={<LocalOfferIcon />}
-                tooltip="Filter by tags"
+                tooltip={i18n.t("editor:ui.filterByTags", { defaultValue: "Filter by tags" })}
                 onClick={handleTagsMenuOpen}
                 active={selectedTags.length > 0}
                 className={`tool-button ${selectedTags.length > 0 ? "active" : ""}`}
@@ -356,7 +357,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
             {selectedTags.length > 1 && (
               <ToolbarIconButton
                 icon={<ClearIcon fontSize="small" />}
-                tooltip="Clear all tag filters"
+                tooltip={i18n.t("editor:ui.clearAllTagFilters", { defaultValue: "Clear all tag filters" })}
                 onClick={clearSelectedTags}
                 size="small"
                 className="clear-tags-button"

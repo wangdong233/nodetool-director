@@ -17,6 +17,7 @@ import TerminalRoundedIcon from "@mui/icons-material/TerminalRounded";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
+import { i18n } from "../../../i18n";
 
 const CATEGORIES: Array<{ pattern: RegExp; Icon: SvgIconComponent }> = [
   { pattern: /subtask|agent|task|plan/, Icon: AccountTreeOutlinedIcon },

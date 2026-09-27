@@ -15,6 +15,7 @@ import useThreadModel from "../../../hooks/chat/useThreadModel";
 import { useInStudio } from "../../../studio/StudioContext";
 import type { DocsTopic } from "../../../config/docsLinks";
 import type { BuildUiContextOptions } from "../../../lib/chat/uiContext";
+import { i18n } from "../../../i18n";
 
 const styles = (_theme: Theme) =>
   css({

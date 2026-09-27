@@ -23,6 +23,7 @@ import { remarkEntityMentions } from "./remarkEntityMentions";
 import { remarkResourceMentions } from "./remarkResourceMentions";
 import { isNumber, isString } from "../../../utils/typePredicates";
 import "../../../styles/markdown/github-markdown.css";
+import { i18n } from "../../../i18n";
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"];
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".mkv", ".m4v", ".ogv"];
@@ -398,7 +399,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
         if (href && isAudioHref(href)) {
           return (
             <span css={audioSpanCss}>
-              <audio controls src={href} css={audioCss} aria-label="Audio content" />
+              <audio controls src={href} css={audioCss} aria-label={i18n.t("editor:ui.audioContent", { defaultValue: "Audio content" })} />
               <a {...props} target="_blank" rel="noopener noreferrer">
                 {children}
               </a>

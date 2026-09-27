@@ -7,6 +7,7 @@ import {
   Text
 } from "../../../ui_primitives";
 import type { SearchResultItem } from "./parseSearchResults";
+import { i18n } from "../../../../i18n";
 
 /** Edge of the preview an image search result renders, in px. */
 const THUMBNAIL_SIZE = 56;

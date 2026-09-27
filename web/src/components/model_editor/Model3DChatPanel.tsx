@@ -2,6 +2,7 @@ import { memo } from "react";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
+import { i18n } from "../../i18n";
 
 /**
  * Chat surface for the 3D model editor. The `ui_3d_*` tools act on the

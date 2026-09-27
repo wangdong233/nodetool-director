@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import type { TaskUpdate } from "../../../stores/ApiTypes";
 import TaskUpdateDisplay from "../../node/TaskUpdateDisplay";
 import { FlexColumn, ScrollArea, SPACING } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const TASK_SIDEBAR_WIDTH = 360;
 
@@ -19,7 +20,7 @@ export const TaskUpdateSidebar = memo<TaskUpdateSidebarProps>(
     return (
       <FlexColumn
         component="aside"
-        aria-label="Active agent task"
+        aria-label={i18n.t("editor:ui.activeAgentTask", { defaultValue: "Active agent task" })}
         className="task-update-sidebar"
         fullHeight
         sx={{

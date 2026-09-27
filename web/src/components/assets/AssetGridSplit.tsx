@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import React, { useCallback, useState } from "react";
 
 import { ResizeHandle } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 export type SplitOrientation = "horizontal" | "vertical";
 

@@ -24,6 +24,7 @@ import {
   useOpenApplication
 } from "../../hooks/useOpenApplication";
 import { trpc } from "../../trpc/client";
+import { i18n } from "../../i18n";
 import {
   Dialog,
   DocumentListPanel,
@@ -79,9 +80,9 @@ export const CreateApplicationButton = memo(function CreateApplicationButton() {
   }, [createApplication, openApplication]);
 
   return (
-    <Tooltip title="New app" placement="right-start">
+    <Tooltip title={i18n.t("editor:ui.newApp", { defaultValue: "New app" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New app"
+        ariaLabel={i18n.t("editor:ui.newApp", { defaultValue: "New app" })}
         onClick={() => void handleCreate()}
         disabled={createApplication.isPending}
         tabIndex={-1}
@@ -141,9 +142,9 @@ export const CreateApplicationFromWorkflowButton = memo(
 
     return (
       <>
-        <Tooltip title="Create app from workflow" placement="right-start">
+        <Tooltip title={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })} placement="right-start">
           <ToolbarIconButton
-            ariaLabel="Create app from workflow"
+            ariaLabel={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
             onClick={() => setOpen(true)}
             tabIndex={-1}
             icon={<AccountTreeOutlinedIcon />}
@@ -155,11 +156,11 @@ export const CreateApplicationFromWorkflowButton = memo(
             setOpen(false);
             setCreateError(null);
           }}
-          title="Create app from workflow"
+          title={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
         >
           <div css={pickerStyles()}>
             {createError ? (
-              <AlertBanner severity="error" title="Could not create app">
+              <AlertBanner severity="error" title={i18n.t("editor:ui.couldNotCreateApp", { defaultValue: "Could not create app" })}>
                 {createError} Select the workflow again to retry.
               </AlertBanner>
             ) : null}
@@ -167,7 +168,7 @@ export const CreateApplicationFromWorkflowButton = memo(
               <LoadingSpinner text="Loading workflows" />
             ) : workflows.length === 0 ? (
               <EmptyState
-                title="No workflows"
+                title={i18n.t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
                 description="Create a workflow first, then build an app on top of it."
               />
             ) : (

@@ -10,6 +10,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import WorkflowListItem from "./WorkflowListItem";
 import { useShowGraphPreview, useSortBy } from "../../stores/WorkflowListViewStore";
 import { groupByDate } from "../../utils/groupByDate";
+import { i18n } from "../../i18n";
 
 type ListItem =
   | { type: "header"; label: string }
@@ -364,7 +365,7 @@ const WorkflowListView: React.FC<WorkflowListViewProps> = ({
       overscan={theme.virtualScroll.overscan.normal}
       getItemKey={getItemKey}
       getItemProps={getItemProps}
-      ariaLabel="Workflows"
+      ariaLabel={i18n.t("editor:ui.workflows", { defaultValue: "Workflows" })}
       renderItem={renderItem}
     />
   );

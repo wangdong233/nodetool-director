@@ -19,6 +19,7 @@ import type { WorkflowCostEstimateDetail } from "@nodetool-ai/node-sdk/cost-esti
 import { Box, Caption, ExternalLink, Tooltip } from "../ui_primitives";
 import { genspendPricingCatalog } from "@nodetool-ai/model-pricing/genspend-catalog";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
+import { i18n } from "../../i18n";
 
 /** Date the shipped GenSpend prices last moved, e.g. "2026-07-29". */
 const genspendUpdatedOn = genspendPricingCatalog.updatedAt.slice(0, 10);
@@ -185,7 +186,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
               </span>
               {row.unknown ? (
                 <Tooltip title={row.unknownReason} arrow>
-                  <span className="cost-unknown" aria-label="Price unknown">
+                  <span className="cost-unknown" aria-label={i18n.t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })}>
                     <HelpOutlineIcon fontSize="inherit" />
                   </span>
                 </Tooltip>

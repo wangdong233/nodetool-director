@@ -15,6 +15,7 @@ import {
 } from "../../ui_primitives";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
 import type { Message, MessageContent } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 /**
  * `execution_event_type` of a compaction record — the persisted summary that

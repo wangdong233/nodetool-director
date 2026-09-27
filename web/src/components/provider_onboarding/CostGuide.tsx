@@ -5,6 +5,7 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import DataUsageOutlinedIcon from "@mui/icons-material/DataUsageOutlined";
 import SavingsOutlinedIcon from "@mui/icons-material/SavingsOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import { i18n } from "../../i18n";
 import {
   Caption,
   Card,

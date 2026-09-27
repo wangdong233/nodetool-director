@@ -27,6 +27,7 @@ import {
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
 import type { ResolvedMediaUrl } from "../../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
 
 interface MessageContentRendererProps {
   content: MessageContent;
@@ -155,7 +156,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
   const addButton = isCanvasAvailable ? (
     <ToolbarIconButton
       className="add-to-canvas-button"
-      tooltip="Add to canvas"
+      tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
       size="small"
       onClick={handleAddToCanvas}
     >
@@ -236,7 +237,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
             preload="metadata"
             style={videoStyle}
             src={videoObjectUrl}
-            aria-label="Video content"
+            aria-label={i18n.t("editor:ui.videoContent", { defaultValue: "Video content" })}
           />
           {addButton}
         </div>

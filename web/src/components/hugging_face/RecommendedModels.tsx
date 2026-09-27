@@ -13,6 +13,7 @@ import {
 import { isLocalhost } from "../../lib/env";
 import { useHfCacheStatusStore } from "../../stores/HfCacheStatusStore";
 import { useShallow } from "zustand/react/shallow";
+import { i18n } from "../../i18n";
 import {
   buildHfCacheRequest,
   canCheckHfCache,
@@ -106,7 +107,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
       >
         <SearchInput
           className="search-models-input"
-          placeholder="Search models..."
+          placeholder={i18n.t("editor:ui.searchModels", { defaultValue: "Search models..." })}
           size="small"
           value={searchQuery}
           onChange={setSearchQuery}

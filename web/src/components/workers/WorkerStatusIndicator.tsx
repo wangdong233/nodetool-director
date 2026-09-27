@@ -7,6 +7,7 @@ import {
 } from "../ui_primitives";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import { useWorkers } from "../../hooks/useWorkers";
+import { i18n } from "../../i18n";
 
 /**
  * Status-bar attached-worker indicator. Renders only when the local NodeTool
@@ -41,8 +42,8 @@ const WorkerStatusIndicator: React.FC = () => {
         tooltip={`Attached to ${activeWorker.id} (${activeWorker.ws_url})`}
       />
       <ToolbarIconButton
-        ariaLabel="Stop attached worker"
-        tooltip="Stop attached worker"
+        ariaLabel={i18n.t("editor:ui.stopAttachedWorker", { defaultValue: "Stop attached worker" })}
+        tooltip={i18n.t("editor:ui.stopAttachedWorker", { defaultValue: "Stop attached worker" })}
         onClick={handleStop}
         disabled={stopping}
       >

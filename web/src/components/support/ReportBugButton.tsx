@@ -8,6 +8,7 @@ import BugReportIcon from "@mui/icons-material/BugReport";
 import { EditorButton, Tooltip } from "../ui_primitives";
 import { openBugReport } from "../../stores/BugReportStore";
 import type { BugReportContext } from "../../utils/bugReportBundle";
+import { i18n } from "../../i18n";
 
 interface ReportBugButtonProps {
   context: BugReportContext;
@@ -36,7 +37,7 @@ const ReportBugButton = ({
     // `describeChild` keeps the visible label as the button's accessible name.
     // Without it MUI turns the tooltip into an `aria-label`, so the name a
     // screen reader announces no longer contains the text on screen.
-    <Tooltip title="Report this as a bug" describeChild>
+    <Tooltip title={i18n.t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })} describeChild>
       <EditorButton
         className={className}
         variant={variant}

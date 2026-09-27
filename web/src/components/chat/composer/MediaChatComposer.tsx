@@ -49,6 +49,7 @@ import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
+import { i18n } from "../../../i18n";
 
 /** Textarea growth caps. The mobile one matches the composer stylesheet — on a
  *  phone the keyboard already owns most of the screen. */
@@ -737,7 +738,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
         <textarea
           ref={textareaRef}
           className="media-compose-input"
-          aria-label="Message prompt"
+          aria-label={i18n.t("editor:ui.messagePrompt", { defaultValue: "Message prompt" })}
           aria-expanded={isSkillMenuOpen}
           aria-controls={isSkillMenuOpen ? skillMenuId : undefined}
           value={prompt}
@@ -901,7 +902,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                 className="media-generate-btn"
                 onClick={handleSend}
                 disabled={isDisabled || !canGenerate}
-                aria-label="Generate"
+                aria-label={i18n.t("editor:ui.generate", { defaultValue: "Generate" })}
               >
                 Generate
               </button>

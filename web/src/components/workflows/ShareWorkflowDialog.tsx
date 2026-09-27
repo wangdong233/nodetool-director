@@ -28,6 +28,7 @@ import {
   type ShareRole
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
   viewer: "Can view",
@@ -146,7 +147,7 @@ const ShareWorkflowDialog = ({
                   <Chip label={ROLE_LABELS[share.role]} size="small" />
                   <CopyButton
                     value={shareUrlForToken(share.token)}
-                    tooltip="Copy share link"
+                    tooltip={i18n.t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
                   />
                 </FlexRow>
                 <EditorButton
@@ -167,7 +168,7 @@ const ShareWorkflowDialog = ({
         {collaborators.length === 0 && !query.isLoading && (
           <EmptyState
             variant="empty"
-            title="No collaborators yet"
+            title={i18n.t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
             description="Copy a link above and send it to someone."
           />
         )}
@@ -199,7 +200,7 @@ const ShareWorkflowDialog = ({
                 }
               />
               <DeleteButton
-                tooltip="Remove access"
+                tooltip={i18n.t("editor:ui.removeAccess", { defaultValue: "Remove access" })}
                 disabled={removeCollaborator.isPending}
                 onClick={() => removeCollaborator.mutate(collaborator.user_id)}
               />

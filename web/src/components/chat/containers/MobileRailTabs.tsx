@@ -8,6 +8,7 @@
 import { memo } from "react";
 
 import { ToggleGroup, ToggleOption } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 export type MobileRail = "chat" | "documents" | "todos" | "task";
 
@@ -32,7 +33,7 @@ const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => 
     exclusive
     segmented
     size="small"
-    aria-label="Conversation panel"
+    aria-label={i18n.t("editor:ui.conversationPanel", { defaultValue: "Conversation panel" })}
     onChange={(_event, next: MobileRail | null) => {
       if (next !== null) {
         onChange(next);

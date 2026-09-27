@@ -27,6 +27,7 @@ import {
 } from "../../../config/constants";
 import { isProduction } from "../../../lib/env";
 import { isElectron } from "../../../utils/browser";
+import { i18n } from "../../../i18n";
 
 interface ModelListItemActionsProps {
   model: UnifiedModel;
@@ -134,7 +135,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
         >
           <Chip
-            label="Downloaded"
+            label={i18n.t("editor:ui.downloaded", { defaultValue: "Downloaded" })}
             color="success"
             variant="outlined"
             size="small"
@@ -162,7 +163,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           />
         )}
         {handleModelDelete && (
-          <DeleteButton onClick={handleDeleteClick} tooltip="Delete model" />
+          <DeleteButton onClick={handleDeleteClick} tooltip={i18n.t("editor:ui.deleteModel", { defaultValue: "Delete model" })} />
         )}
       </div>
       {isHuggingFace && <HuggingFaceLink modelId={model.repo_id || model.id} />}

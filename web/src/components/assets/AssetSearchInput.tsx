@@ -13,6 +13,7 @@ import { Tooltip, MOTION, BORDER_RADIUS, reducedMotion, getSpacingPx, SPACING } 
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 
 const styles = (theme: Theme) =>

@@ -25,6 +25,7 @@ import { isElectron, isLocalhost } from "../../../lib/env";
 import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({

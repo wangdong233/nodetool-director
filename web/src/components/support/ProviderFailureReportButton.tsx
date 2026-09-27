@@ -18,6 +18,7 @@ import {
   providerCallSummary
 } from "../../utils/providerCallReport";
 import type { BugReportContext } from "../../utils/bugReportBundle";
+import { i18n } from "../../i18n";
 
 interface ProviderFailureReportButtonProps {
   /** The message the surface is showing. */

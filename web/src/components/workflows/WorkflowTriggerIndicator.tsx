@@ -3,6 +3,7 @@ import BoltIcon from "@mui/icons-material/Bolt";
 import { Box, Tooltip } from "../ui_primitives";
 import { useRunningTriggers } from "../../serverState/useTriggers";
 import { describeTriggerDisabledReason } from "@nodetool-ai/protocol";
+import { i18n } from "../../i18n";
 
 interface WorkflowTriggerIndicatorProps {
   workflowId: string;

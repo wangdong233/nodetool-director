@@ -17,6 +17,7 @@ import {
 } from "../../config/constants";
 import { ExpandCollapseButton } from "../ui_primitives";
 import { assetTypeLabel } from "./assetTypeLabels";
+import { i18n } from "../../i18n";
 
 interface AssetGridRowProps {
   index: number;

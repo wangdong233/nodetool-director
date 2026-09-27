@@ -11,7 +11,7 @@ import NotesIcon from "@mui/icons-material/Notes";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
-
+import { i18n } from "../../i18n";
 interface QuickStart {
   icon: React.ReactNode;
   label: string;

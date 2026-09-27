@@ -13,6 +13,7 @@ import ScatterPlotIcon from "@mui/icons-material/ScatterPlot";
 import type { SvgIconProps } from "@mui/material/SvgIcon";
 
 import type { NodeCategory } from "./costsData";
+import { i18n } from "../../i18n";
 
 const ICONS = {
   text: SubjectIcon,

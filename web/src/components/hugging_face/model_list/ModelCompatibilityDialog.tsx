@@ -25,6 +25,7 @@ import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import TerminalRoundedIcon from "@mui/icons-material/TerminalRounded";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import { i18n } from "../../../i18n";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -155,7 +156,7 @@ const NodeList: React.FC<{
                 </Text>
                 {isRecommended && (
                   <Chip
-                    label="Best Match"
+                    label={i18n.t("editor:ui.bestMatch", { defaultValue: "Best Match" })}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -192,7 +193,7 @@ const NodeList: React.FC<{
             <div className="copy-button">
               <CopyButton
                 value={node.nodeType}
-                tooltip="Copy node type"
+                tooltip={i18n.t("editor:ui.copyNodeType", { defaultValue: "Copy node type" })}
                 tooltipPlacement="left"
               />
             </div>

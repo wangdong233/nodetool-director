@@ -25,6 +25,7 @@ import {
   resolveTimelineSequence
 } from "../../node/outputValueResolvers";
 import ResourceChip from "./ResourceChip";
+import { i18n } from "../../../i18n";
 
 const LazySketchRenderer = React.lazy(
   () => import("../../sketch/SketchRenderer")
@@ -65,7 +66,7 @@ const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
         >
           <LazySketchRenderer
             document={document}
-            ariaLabel="Sketch preview"
+            ariaLabel={i18n.t("editor:ui.sketchPreview", { defaultValue: "Sketch preview" })}
             showDimensions
           />
         </React.Suspense>
@@ -96,7 +97,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
         >
           <LazyTimelineRenderer
             sequence={sequence}
-            ariaLabel="Timeline preview"
+            ariaLabel={i18n.t("editor:ui.timelinePreview", { defaultValue: "Timeline preview" })}
             showMetadata
           />
         </React.Suspense>

@@ -22,6 +22,7 @@ import { Asset } from "../../stores/ApiTypes";
 import { IconForType } from "../../config/IconForType";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore

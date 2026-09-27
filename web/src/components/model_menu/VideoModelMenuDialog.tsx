@@ -1,6 +1,7 @@
 import React from "react";
 import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { ModelPack, UnifiedModel, VideoModel } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 import {
   useVideoModelMenuStore
 } from "../../stores/ModelMenuStore";
@@ -36,7 +37,7 @@ function VideoModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Video Model"
+      title={i18n.t("editor:ui.selectVideoModel", { defaultValue: "Select Video Model" })}
       searchPlaceholder="Search text-to-video models..."
       storeHook={useVideoModelMenuStore}
       modelType="video_model"

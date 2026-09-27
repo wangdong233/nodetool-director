@@ -51,6 +51,7 @@ import {
   type PrimitiveKind
 } from "./objectFactory";
 import { exportSceneToGlb } from "./exportGltf";
+import { i18n } from "../../i18n";
 import {
   setModel3DToolHandler,
   type Model3DSceneNode,
@@ -785,20 +786,20 @@ const Model3DEditor = ({
         <AddMenu onAdd={handleAdd} />
         <ToolbarIconButton
           icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip="Delete selected (Del)"
+          tooltip={i18n.t("editor:ui.deleteSelectedDel", { defaultValue: "Delete selected (Del)" })}
           onClick={handleDelete}
           disabled={!selectedObject}
           size="small"
         />
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon fontSize="small" />}
-          tooltip="Frame scene"
+          tooltip={i18n.t("editor:ui.frameScene", { defaultValue: "Frame scene" })}
           onClick={() => setFitTrigger((t) => t + 1)}
           size="small"
         />
         <ToolbarIconButton
           icon={<GridOnIcon fontSize="small" />}
-          tooltip="Toggle grid"
+          tooltip={i18n.t("editor:ui.toggleGrid", { defaultValue: "Toggle grid" })}
           onClick={() => setShowGrid((v) => !v)}
           active={showGrid}
           size="small"
@@ -909,7 +910,7 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel="Resize 3D assistant"
+            ariaLabel={i18n.t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
           >
             <FlexRow className="panel-header" justify="space-between" align="center">
               <FlexRow gap={1} align="center">

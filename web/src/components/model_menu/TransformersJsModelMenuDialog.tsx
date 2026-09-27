@@ -5,6 +5,7 @@ import type { ImageModel, UnifiedModel } from "../../stores/ApiTypes";
 import { useTransformersJsModelMenuStore } from "../../stores/ModelMenuStore";
 import { useTransformersJsModelsByType } from "../../hooks/useModelsByProvider";
 import { trpc } from "../../lib/trpc";
+import { i18n } from "../../i18n";
 
 interface TransformersJsModelMenuDialogProps {
   open: boolean;
@@ -64,7 +65,7 @@ function TransformersJsModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Transformers.js Model"
+      title={i18n.t("editor:ui.selectTransformersjsModel", { defaultValue: "Select Transformers.js Model" })}
       searchPlaceholder="Search Transformers.js models..."
       storeHook={useTransformersJsModelMenuStore}
       recommendedModels={recommendedModels}

@@ -32,6 +32,7 @@ import {
   type QuickActionDefinition,
 } from "../node_menu/QuickActionTiles.constants";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 interface NodePickerDialogProps {
   open: boolean;

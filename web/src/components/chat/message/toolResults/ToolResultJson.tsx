@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { isString } from "../../../../utils/typePredicates";
+import { i18n } from "../../../../i18n";
 
 /** Pretty-prints arbitrary tool-result content as JSON. Fallback renderer. */
 export const ToolResultJson: React.FC<{ value: unknown }> = React.memo(({ value }) => {

@@ -16,6 +16,7 @@ import { trpc } from "../../../trpc/client";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
 import { TYPE_COLOR, TYPE_GLYPH } from "../../workspace/tabTypeIdentity";
 import { documentStatusLine, type ProjectDocument } from "../../projects/projectStatus";
+import { i18n } from "../../../i18n";
 
 interface ProjectDocumentsSidebarProps {
   projectId: string | null;
@@ -45,7 +46,7 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
   return (
     <FlexColumn
       component="aside"
-      aria-label="Project documents"
+      aria-label={i18n.t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
       fullHeight
       sx={{
         width: { xs: "100%", md: "280px" },

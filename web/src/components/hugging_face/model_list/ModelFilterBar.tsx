@@ -19,6 +19,7 @@ import type {
 import { MODEL_GOALS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
+import { i18n } from "../../../i18n";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
@@ -137,7 +138,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         ))}
       </FilterRow>
 
-      <FilterRow label="Format">
+      <FilterRow label={i18n.t("editor:ui.format", { defaultValue: "Format" })}>
         {MODEL_FORMATS.map((format) => (
           <Chip
             key={format.id}
@@ -151,7 +152,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
       </FilterRow>
 
       {source === "installed" && (
-        <FilterRow label="Status">
+        <FilterRow label={i18n.t("editor:ui.status", { defaultValue: "Status" })}>
           {AVAILABILITY_FILTERS.map(({ value, label, color }) => (
             <Chip
               key={value}
@@ -165,7 +166,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         </FilterRow>
       )}
 
-      <FilterRow label="Max size">
+      <FilterRow label={i18n.t("editor:ui.maxSize", { defaultValue: "Max size" })}>
         <FlexRow
           align="center"
           sx={{
@@ -174,7 +175,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
           }}
         >
           <NodeSlider
-            aria-label="Max model size in GB"
+            aria-label={i18n.t("editor:ui.maxModelSizeInGB", { defaultValue: "Max model size in GB" })}
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
