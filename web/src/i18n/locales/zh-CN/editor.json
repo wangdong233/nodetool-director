@@ -175,5 +175,18 @@
     "tabIO": "I/O",
     "tabHelp": "帮助",
     "nameNoNumber": "不能以数字开头"
+  },
+  "chat": {
+    "newChat": "新建对话",
+    "conversations": "历史对话",
+    "openInTab": "在工作区标签页中打开",
+    "emptyConversation": "空对话",
+    "deleteFailed": "无法删除对话,请重试。",
+    "startFailed": "无法开始新对话,请重试。",
+    "searchConversations": "搜索对话…",
+    "loadFailed": "无法加载对话",
+    "noneYet": "还没有对话",
+    "noneYetDesc": "从工作区的新建菜单开始一段对话。",
+    "docsLabel": "对话与智能体"
   }
 }

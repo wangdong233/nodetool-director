@@ -175,5 +175,18 @@
     "tabIO": "I/O",
     "tabHelp": "Help",
     "nameNoNumber": "Cannot start with a number"
+  },
+  "chat": {
+    "newChat": "New chat",
+    "conversations": "Conversations",
+    "openInTab": "Open in a workspace tab",
+    "emptyConversation": "Empty conversation",
+    "deleteFailed": "Could not delete the conversation. Please try again.",
+    "startFailed": "Could not start a new conversation. Please try again.",
+    "searchConversations": "Search conversations...",
+    "loadFailed": "Could not load conversations",
+    "noneYet": "No conversations yet",
+    "noneYetDesc": "Start a chat from the workspace New menu.",
+    "docsLabel": "Chat & agents"
   }
 }

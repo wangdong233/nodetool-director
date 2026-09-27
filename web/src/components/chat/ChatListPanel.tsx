@@ -25,6 +25,7 @@ import {
   Tooltip,
   ToolbarIconButton
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 /** Opens a thread as a chat tab, leaving the rest of the workspace in place. */
 const useOpenThreadTab = () => {
@@ -38,7 +39,7 @@ const useOpenThreadTab = () => {
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: title || "New chat",
+        title: title || i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
         projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -73,15 +74,15 @@ export const CreateChatButton = memo(function CreateChatButton({
       console.error("Failed to create new chat thread:", error);
       addNotification({
         type: "error",
-        content: "Could not start a new conversation. Please try again."
+        content: i18n.t("editor:chat.startFailed", { defaultValue: "Could not start a new conversation. Please try again." })
       });
     }
   }, [createNewThread, openThreadTab, addNotification, projectId]);
 
   return (
-    <Tooltip title="New chat" placement="right-start">
+    <Tooltip title={i18n.t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New chat"
+        ariaLabel={i18n.t("editor:chat.newChat", { defaultValue: "New chat" })}
         onClick={() => void handleCreate()}
         tabIndex={-1}
         icon={<AddIcon />}
@@ -135,7 +136,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
     (threadId: string) =>
       threads[threadId]
         ? threadPreview(threads[threadId].title, messageCache[threadId])
-        : "Empty conversation",
+        : i18n.t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
     [threads, messageCache]
   );
 
@@ -178,7 +179,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         console.error("Failed to delete thread:", error);
         addNotification({
           type: "error",
-          content: "Could not delete the conversation. Please try again."
+          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
         });
       });
     },
@@ -206,7 +207,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search conversations..."
+          placeholder={i18n.t("editor:chat.searchConversations", { defaultValue: "Search conversations…" })}
         />
       </FlexColumn>
 
@@ -230,7 +231,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load conversations"
+            title={i18n.t("editor:chat.loadFailed", { defaultValue: "Could not load conversations" })}
             description={threadsError}
           />
         </FlexColumn>
@@ -242,8 +243,8 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title="No conversations yet"
-            description="Start a chat from the workspace New menu."
+            title={i18n.t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
+            description={i18n.t("editor:chat.noneYetDesc", { defaultValue: "Start a chat from the workspace New menu." })}
           />
         </FlexColumn>
       ) : (
