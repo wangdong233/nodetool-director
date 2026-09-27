@@ -23,6 +23,7 @@ import { TimelineProvider } from "../../stores/timeline/TimelineInstance";
 import { useTimeline } from "../../hooks/useTimelineSequence";
 import { useLoadTimelineIntoStore } from "../../hooks/timeline/useLoadTimelineIntoStore";
 import { PreviewArea } from "./preview/PreviewArea";
+import { i18n } from "../../i18n";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -62,7 +63,7 @@ const TimelinePlayerBody: React.FC<Omit<TimelinePlayerProps, "active">> = memo(
         ) : unavailable ? (
           <EmptyState
             variant="error"
-            title="Sequence not found"
+            title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
             description="The timeline sequence you requested does not exist or you do not have access to it."
           />
         ) : (

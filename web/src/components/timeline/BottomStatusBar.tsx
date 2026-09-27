@@ -23,6 +23,7 @@ import CostEstimateLine, {
 } from "../costs/CostEstimateLine";
 import CloudIcon from "@mui/icons-material/Cloud";
 import ComputerIcon from "@mui/icons-material/Computer";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -132,8 +133,8 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
 
           <CostEstimateLine
             estimate={costEstimate}
-            title="Estimated cost of generating every clip in this sequence"
-            ariaPrefix="Estimated sequence cost"
+            title={i18n.t("timeline:status.costTip", { defaultValue: "Estimated cost of generating every clip in this sequence" })}
+            ariaPrefix={i18n.t("timeline:status.costPrefix", { defaultValue: "Estimated sequence cost" })}
           />
         </FlexRow>
 

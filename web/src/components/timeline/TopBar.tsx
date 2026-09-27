@@ -17,6 +17,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import TuneIcon from "@mui/icons-material/Tune";
 import AspectRatioOutlinedIcon from "@mui/icons-material/AspectRatioOutlined";
 import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
+import { i18n } from "../../i18n";
 
 interface TopBarProps {
   onExportVideo?: () => void;
@@ -69,8 +70,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onSave}
             disabled={isSaving}
-            tooltip={isSaving ? "Saving…" : "Save"}
-            aria-label={isSaving ? "Saving…" : "Save"}
+            tooltip={isSaving ? i18n.t("timeline:topbar.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
+            aria-label={isSaving ? i18n.t("timeline:topbar.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
           >
             <SaveIcon fontSize="small" />
           </ToolbarIconButton>
@@ -79,8 +80,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onExportVideo}
             disabled={isExporting}
-            tooltip={isExporting ? "Exporting…" : "Export video"}
-            aria-label={isExporting ? "Exporting…" : "Export video"}
+            tooltip={isExporting ? i18n.t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
+            aria-label={isExporting ? i18n.t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
           >
             <FileDownloadIcon fontSize="small" />
           </ToolbarIconButton>
@@ -90,8 +91,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
             <ToolbarIconButton
               ref={overflowButtonRef}
               onClick={(event) => setOverflowAnchor(event.currentTarget)}
-              tooltip="More timeline actions"
-              aria-label="More timeline actions"
+              tooltip={i18n.t("timeline:topbar.moreActions", { defaultValue: "More timeline actions" })}
+              aria-label={i18n.t("timeline:topbar.moreActions", { defaultValue: "More timeline actions" })}
               aria-haspopup="menu"
               aria-expanded={!!overflowAnchor}
             >
@@ -105,21 +106,21 @@ export const TopBar: React.FC<TopBarProps> = memo(
               {onOpenSettings && (
                 <MenuItemPrimitive
                   icon={<TuneIcon fontSize="small" />}
-                  label="Project settings"
+                  label={i18n.t("timeline:topbar.projectSettings", { defaultValue: "Project settings" })}
                   onClick={runFromMenu(onOpenSettings)}
                 />
               )}
               {onAdaptFormat && (
                 <MenuItemPrimitive
                   icon={<AspectRatioOutlinedIcon fontSize="small" />}
-                  label="Adapt format"
+                  label={i18n.t("timeline:topbar.adaptFormat", { defaultValue: "Adapt format" })}
                   onClick={runFromMenu(onAdaptFormat)}
                 />
               )}
               {onSaveToAssets && (
                 <MenuItemPrimitive
                   icon={<VideoLibraryOutlinedIcon fontSize="small" />}
-                  label="Save as Asset"
+                  label={i18n.t("timeline:topbar.saveAsAsset", { defaultValue: "Save as Asset" })}
                   disabled={isExporting}
                   onClick={runFromMenu(() => {
                     const anchor = overflowButtonRef.current;

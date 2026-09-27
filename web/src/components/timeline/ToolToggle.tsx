@@ -34,6 +34,7 @@ import {
 } from "../ui_primitives";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
+import { i18n } from "../../i18n";
 
 /** Custom pointer cursor — monoline, 1.6px stroke. */
 const PointerIcon: React.FC = () => (
@@ -185,7 +186,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       css={compact ? compactRowStyles : undefined}
     >
       <ToolButton
-        label="Select"
+        label={i18n.t("timeline:tools.select", { defaultValue: "Select" })}
         shortcut="V"
         active={activeTool === "select"}
         compact={compact}
@@ -203,7 +204,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <ContentCutOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Ripple"
+        label={i18n.t("timeline:tools.ripple", { defaultValue: "Ripple" })}
         shortcut="trims and deletes close the gap"
         active={rippleMode}
         compact={compact}
@@ -213,7 +214,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Overwrite"
+        label={i18n.t("timeline:tools.overwrite", { defaultValue: "Overwrite" })}
         shortcut="drop replaces what it covers"
         active={dropMode === "overwrite"}
         compact={compact}
@@ -222,7 +223,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <FlipToFrontOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Insert"
+        label={i18n.t("timeline:tools.insert", { defaultValue: "Insert" })}
         shortcut="drop pushes later clips right · Ctrl+drag"
         active={dropMode === "insert"}
         compact={compact}
@@ -231,7 +232,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <KeyboardTabOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Overlap"
+        label={i18n.t("timeline:tools.overlap", { defaultValue: "Overlap" })}
         shortcut="drop stacks and cross-fades"
         active={dropMode === "overlap"}
         compact={compact}
@@ -259,7 +260,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <StraightenOutlinedIcon />
       </ToolButton>
       <SelectField
-        label="Grid division"
+        label={i18n.t("timeline:tools.gridDivision", { defaultValue: "Grid division" })}
         hideLabel
         size="small"
         value={gridDivision}
@@ -269,7 +270,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       />
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Linked"
+        label={i18n.t("timeline:tools.linked", { defaultValue: "Linked" })}
         shortcut="video and its audio move together"
         active={linkedSelection}
         compact={compact}

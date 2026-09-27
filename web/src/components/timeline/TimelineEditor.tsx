@@ -116,6 +116,7 @@ import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsCo
 // the server rasterizer registers (D8). Imported by the editor rather than
 // globally so a session that never opens a timeline never fetches them.
 import "./fonts.css";
+import { i18n } from "../../i18n";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Phone drag handle — 6px is under any reasonable touch target. */
@@ -272,7 +273,7 @@ const PreviewRegion: React.FC<{
         >
           <EmptyState
             variant="error"
-            title="Sequence not found"
+            title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
             description="The timeline sequence you requested does not exist or you do not have access to it."
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
@@ -282,7 +283,7 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onRetryFetch}
                 disabled={createSequencePending}
-                aria-label="Retry loading sequence"
+                aria-label={i18n.t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
               >
                 Retry
               </EditorButton>
@@ -293,7 +294,7 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onCreateNewSequence}
                 disabled={createSequencePending}
-                aria-label="Create new sequence"
+                aria-label={i18n.t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
                 {createSequencePending ? "Creating…" : "New sequence"}
               </EditorButton>
@@ -320,11 +321,11 @@ PreviewRegion.displayName = "PreviewRegion";
 type InspectorTab = "inspector" | "source" | "instrument" | "agent" | "history" | "script";
 
 const INSPECTOR_TABS = [
-  { value: "inspector", label: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "instrument", label: "Instruments", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
-  { value: "agent", label: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
-  { value: "history", label: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
+  { value: "inspector", labelKey: "timeline:editor.inspector", labelDefault: "Inspector", icon: <TuneOutlinedIcon /> },
+  { value: "instrument", labelKey: "timeline:editor.instruments", labelDefault: "Instruments", icon: <TuneOutlinedIcon /> },
+  { value: "source", labelKey: "timeline:editor.source", labelDefault: "Source", icon: <MovieFilterOutlinedIcon /> },
+  { value: "agent", labelKey: "timeline:editor.assistant", labelDefault: "Assistant", icon: <AutoAwesomeIcon /> },
+  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon /> } (i18n: timeline batch 2 — editor chrome (tabs resolved per render))
 ];
 
 const SCRIPT_TAB = {
@@ -359,10 +360,20 @@ const InspectorRegion: React.FC<{ sequenceId: string | undefined }> = memo(
   const tab = useTimelineUIStore(s => s.panelTab);
   const setTab = useTimelineUIStore(s => s.setPanelTab);
 
-  const { tabs, activeTab } = useAvailableInspectorTabs(tab);
+  const { tabs: availableTabs, activeTab } = useAvailableInspectorTabs(tab);
   useEffect(() => {
     if (activeTab !== tab) setTab(activeTab);
   }, [activeTab, tab, setTab]);
+  // Resolve labels per render — module-level i18n.t freezes before the
+  // async zh bundle lands (r21 F-1).
+  const tabs: TabItem[] = availableTabs.map((t) => ({
+    value: t.value,
+    label:
+      "labelKey" in t
+        ? i18n.t(t.labelKey, { defaultValue: t.labelDefault })
+        : t.label,
+    icon: t.icon
+  }));
 
   return (
     <ResizableSideDock
@@ -436,10 +447,22 @@ const MobilePanelSheet: React.FC<{
   onTabChange: (tab: InspectorTab) => void;
 }> = memo(({ open, onClose, sequenceId, tab, onTabChange }) => {
   const hasScript = useHasScript();
-  const { tabs, activeTab } = useAvailableInspectorTabs(tab, hasScript);
+  const { tabs: availableTabs, activeTab } = useAvailableInspectorTabs(tab, hasScript);
   useEffect(() => {
     if (activeTab !== tab) onTabChange(activeTab);
   }, [activeTab, tab, onTabChange]);
+  const tabs: TabItem[] = useMemo(
+    () =>
+      availableTabs.map((t) => ({
+        value: t.value,
+        label:
+          "labelKey" in t
+            ? i18n.t(t.labelKey, { defaultValue: t.labelDefault })
+            : t.label,
+        icon: t.icon
+      })),
+    [availableTabs]
+  );
 
   const tabRail = (
     <TabGroup

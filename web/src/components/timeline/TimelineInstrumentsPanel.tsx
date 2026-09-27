@@ -3,6 +3,7 @@ import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import { Caption, FlexColumn, SelectField, SPACING } from "../ui_primitives";
 import { TrackInstrumentPanel } from "./Tracks/TrackInstrumentPanel";
+import { i18n } from "../../i18n";
 
 export function TimelineInstrumentsPanel() {
   const tracks = useTimelineStore(state => state.tracks);
@@ -17,7 +18,7 @@ export function TimelineInstrumentsPanel() {
   if (!track) return <Caption sx={{ p: SPACING.md }}>Add a MIDI track to choose an instrument.</Caption>;
   return <FlexColumn fullHeight sx={{ minHeight: 0 }} data-testid="timeline-instruments-panel">
     <FlexColumn sx={{ p: SPACING.sm }}>
-      <SelectField label="Instrument track" hideLabel size="small" value={track.id}
+      <SelectField label={i18n.t("timeline:status.instrumentTrack", { defaultValue: "Instrument track" })} hideLabel size="small" value={track.id}
         options={midiTracks.map(track => ({value: track.id, label: track.name}))} onChange={openInstrument} />
     </FlexColumn>
     <TrackInstrumentPanel key={track.id} trackId={track.id} />

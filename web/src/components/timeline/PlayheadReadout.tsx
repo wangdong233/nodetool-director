@@ -19,6 +19,7 @@ import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import type { RulerMode } from "../../stores/timeline/TimelineUIStore";
 import { Caption, FlexRow } from "../ui_primitives";
 import { formatTimecode } from "./Inspector/InspectorPrimitives.helpers";
+import { i18n } from "../../i18n";
 
 const readoutSx = {
   fontFamily: "var(--fontFamily2)",
@@ -69,7 +70,7 @@ export const PlayheadReadout: React.FC = memo(() => {
         ref={valueRef}
         sx={readoutSx}
         aria-live="off"
-        aria-label="Playhead position"
+        aria-label={i18n.t("timeline:status.playhead", { defaultValue: "Playhead position" })}
       />
     </FlexRow>
   );

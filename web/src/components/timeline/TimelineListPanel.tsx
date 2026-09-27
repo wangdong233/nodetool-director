@@ -33,6 +33,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -78,7 +79,7 @@ function createTimelineDragImage(name: string): HTMLElement {
   container.appendChild(icon);
 
   const label = document.createElement("div");
-  label.textContent = name || "Untitled video";
+  label.textContent = name || i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" });
   label.style.cssText = `
     min-width: 0;
     overflow: hidden;

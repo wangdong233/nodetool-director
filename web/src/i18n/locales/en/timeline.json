@@ -68,5 +68,52 @@
     "importAria": "Import audio or video",
     "extractTip": "Extract this transcript as an editable script",
     "extract": "Extract as script"
+  },
+  "editor": {
+    "seqNotFound": "Sequence not found",
+    "retryLoad": "Retry loading sequence",
+    "createNew": "Create new sequence",
+    "openPanels": "Open panels",
+    "panels": "Panels",
+    "resizeSide": "Resize timeline side panel",
+    "resizeTracks": "Resize tracks panel",
+    "inspector": "Inspector",
+    "instruments": "Instruments",
+    "source": "Source",
+    "assistant": "Assistant",
+    "history": "History"
+  },
+  "tools": {
+    "select": "Select",
+    "ripple": "Ripple",
+    "overwrite": "Overwrite",
+    "insert": "Insert",
+    "overlap": "Overlap",
+    "gridDivision": "Grid division",
+    "linked": "Linked"
+  },
+  "topbar": {
+    "saving": "Saving…",
+    "save": "Save",
+    "exporting": "Exporting…",
+    "exportVideo": "Export video",
+    "moreActions": "More timeline actions",
+    "projectSettings": "Project settings",
+    "adaptFormat": "Adapt format",
+    "saveAsAsset": "Save as Asset"
+  },
+  "list": {
+    "untitled": "Untitled video",
+    "newTimeline": "New timeline",
+    "importArchive": "Import timeline (.zip)",
+    "importTooltip": "Import timeline archive",
+    "imported": "Imported {{name}}",
+    "noClips": "No clips"
+  },
+  "status": {
+    "costTip": "Estimated cost of generating every clip in this sequence",
+    "costPrefix": "Estimated sequence cost",
+    "playhead": "Playhead position",
+    "instrumentTrack": "Instrument track"
   }
 }

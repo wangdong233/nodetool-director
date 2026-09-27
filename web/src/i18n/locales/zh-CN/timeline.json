@@ -68,5 +68,52 @@
     "importAria": "导入音频或视频",
     "extractTip": "将此转写提取为可编辑脚本",
     "extract": "提取为脚本"
+  },
+  "editor": {
+    "seqNotFound": "未找到序列",
+    "retryLoad": "重试加载序列",
+    "createNew": "新建序列",
+    "openPanels": "打开面板",
+    "panels": "面板",
+    "resizeSide": "调整时间线侧栏",
+    "resizeTracks": "调整轨道面板",
+    "inspector": "属性面板",
+    "instruments": "乐器",
+    "source": "源素材",
+    "assistant": "助手",
+    "history": "历史"
+  },
+  "tools": {
+    "select": "选择",
+    "ripple": "波纹",
+    "overwrite": "覆盖",
+    "insert": "插入",
+    "overlap": "交叠",
+    "gridDivision": "网格划分",
+    "linked": "联动"
+  },
+  "topbar": {
+    "saving": "保存中…",
+    "save": "保存",
+    "exporting": "导出中…",
+    "exportVideo": "导出视频",
+    "moreActions": "更多时间线操作",
+    "projectSettings": "项目设置",
+    "adaptFormat": "适配格式",
+    "saveAsAsset": "保存为素材"
+  },
+  "list": {
+    "untitled": "未命名视频",
+    "newTimeline": "新建时间线",
+    "importArchive": "导入时间线(.zip)",
+    "importTooltip": "导入时间线归档",
+    "imported": "已导入{{name}}",
+    "noClips": "暂无剪辑"
+  },
+  "status": {
+    "costTip": "生成此序列全部剪辑的预估费用",
+    "costPrefix": "序列预估费用",
+    "playhead": "播放头位置",
+    "instrumentTrack": "乐器轨道"
   }
 }
