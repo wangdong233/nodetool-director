@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { useCallback, useState } from "react";
 import FileBrowserDialog from "../dialogs/FileBrowserDialog";
+import { i18n } from "../../i18n";
 
 const hasNativeDialog = (): boolean => {
   return typeof window !== "undefined" && window.api?.dialog !== undefined;
@@ -56,7 +57,7 @@ export function useFolderPicker() {
       open={isOpen}
       onClose={handleCancel}
       onConfirm={handleConfirm}
-      title="Select Workspace Folder"
+      title={i18n.t("editor:ui.selectWorkspaceFolder", { defaultValue: "Select Workspace Folder" })}
       initialPath="~"
       selectionMode="directory"
     />

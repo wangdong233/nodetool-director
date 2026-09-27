@@ -27,6 +27,7 @@ import {
 import { EmptyState } from "../ui_primitives";
 import { useWebGPUPreview, type PreviewLayer } from "./useWebGPUPreview";
 import type { BitmapMap } from "./useLayerBitmaps";
+import { i18n } from "../../i18n";
 import {
   applyMove,
   applyRotate,
@@ -450,7 +451,7 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
       {status === "unavailable" && (
         <div className="unavailable">
           <EmptyState
-            title="WebGPU unavailable"
+            title={i18n.t("editor:ui.webgpuUnavailable", { defaultValue: "WebGPU unavailable" })}
             description="This browser can't render the compositor preview. The node still composites server-side."
           />
         </div>

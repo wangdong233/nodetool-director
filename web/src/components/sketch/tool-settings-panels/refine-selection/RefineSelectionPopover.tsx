@@ -224,7 +224,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
     >
       <FlexColumn gap={1.5} sx={{ width: 340 }}>
         <RefineRow
-          label="Modify"
+          label={i18n.t("editor:ui.modify", { defaultValue: "Modify" })}
           value={modifyPx}
           min={1}
           max={MAX_MODIFY_PX}
@@ -270,7 +270,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label="Smooth"
+          label={i18n.t("editor:ui.smooth", { defaultValue: "Smooth" })}
           value={null}
           action={
             <ApplyButton
@@ -285,7 +285,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label="Border"
+          label={i18n.t("editor:ui.border", { defaultValue: "Border" })}
           value={settings.borderWidth}
           min={1}
           max={MAX_BORDER_WIDTH}

@@ -166,7 +166,7 @@ const ConnectedStatusBarInner: React.FC = () => {
       <FlexRow align="center" gap={1.5} sx={{ marginLeft: "auto" }}>
         <CostEstimateLine
           estimate={costEstimate}
-          title="Estimated cost of regenerating every generated layer"
+          title={i18n.t("editor:ui.estimatedCostOfRegeneratingEveryGeneratedLayer", { defaultValue: "Estimated cost of regenerating every generated layer" })}
           ariaPrefix="Estimated document cost"
         />
         <span>

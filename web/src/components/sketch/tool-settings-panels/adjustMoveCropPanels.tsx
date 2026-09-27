@@ -234,14 +234,14 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
           icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip="Commit (Enter)"
+          tooltip={i18n.t("editor:ui.commitEnter", { defaultValue: "Commit (Enter)" })}
           tooltipPlacement="bottom"
           onClick={onCommit}
           sx={{ padding: 1, color: "success.main" }}
         />
         <ToolbarIconButton
           icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip="Cancel (Esc)"
+          tooltip={i18n.t("editor:ui.cancelEsc", { defaultValue: "Cancel (Esc)" })}
           tooltipPlacement="bottom"
           onClick={onCancel}
           sx={{ padding: 1, color: "error.main" }}
@@ -284,7 +284,7 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
           icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip="Apply crop (Enter)"
+          tooltip={i18n.t("editor:ui.applyCropEnter", { defaultValue: "Apply crop (Enter)" })}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onApply}
@@ -292,7 +292,7 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
         />
         <ToolbarIconButton
           icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip="Cancel crop preview (Esc)"
+          tooltip={i18n.t("editor:ui.cancelCropPreviewEsc", { defaultValue: "Cancel crop preview (Esc)" })}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onCancel}

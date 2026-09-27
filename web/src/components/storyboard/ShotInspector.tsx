@@ -289,7 +289,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
       <Dialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title="Delete shot?"
+        title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
         onConfirm={handleDelete}
         confirmText="Delete"
         destructive

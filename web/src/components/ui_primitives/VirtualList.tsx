@@ -18,6 +18,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { ScrollArea } from "./ScrollArea";
 import { scrollbarStyles } from "./tokens";
+import { i18n } from "../../i18n";
 
 export type VirtualListAlign = "start" | "center" | "end" | "auto";
 
@@ -177,7 +178,7 @@ function VirtualListInner<T>(
  *   items={rows}
  *   estimateSize={36}
  *   getItemKey={(row) => row.id}
- *   ariaLabel="Log messages"
+ *   ariaLabel={i18n.t("editor:ui.logMessages", { defaultValue: "Log messages" })}
  *   renderItem={(row) => <LogRow row={row} />}
  * />
  */

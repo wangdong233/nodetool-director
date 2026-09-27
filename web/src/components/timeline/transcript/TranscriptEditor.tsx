@@ -75,6 +75,7 @@ import {
 } from "../../../stores/timeline/TimelineInstance";
 import { MOTION, FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../../ui_primitives";
 import type { TimelineClip, TimelineMarker } from "@nodetool-ai/timeline";
+import { i18n } from "../../../i18n";
 
 type EditorMode = "script" | "write";
 
@@ -905,7 +906,7 @@ const EditorBody: React.FC<{
           contentEditable={
             <ContentEditable
               className="transcript-content"
-              aria-label="Transcript"
+              aria-label={i18n.t("editor:ui.transcript", { defaultValue: "Transcript" })}
               spellCheck={false}
               data-testid="transcript-editor"
             />

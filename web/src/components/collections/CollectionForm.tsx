@@ -140,7 +140,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
     >
       <FlexRow gap={2} align="center" wrap>
         <FormField
-          label="Collection Name"
+          label={i18n.t("editor:ui.collectionName", { defaultValue: "Collection Name" })}
           required
           compact
           sx={{ flex: 1, minWidth: 180 }}

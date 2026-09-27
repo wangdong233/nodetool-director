@@ -265,7 +265,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}
       >
         <PanelToolbar
-          title="Version History"
+          title={i18n.t("editor:ui.versionHistory", { defaultValue: "Version History" })}
           actions={
             <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
           }
@@ -304,7 +304,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 Clear
               </EditorButton>
             )}
-            <Tooltip title="Compare two versions side by side">
+            <Tooltip title={i18n.t("editor:ui.compareTwoVersionsSideBySide", { defaultValue: "Compare two versions side by side" })}>
               <EditorButton
                 density="compact"
                 variant={isCompareMode ? "contained" : "text"}
@@ -532,7 +532,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
-        title="Delete this version?"
+        title={i18n.t("editor:ui.deleteThisVersion", { defaultValue: "Delete this version?" })}
         onConfirm={handleConfirmDelete}
         onCancel={handleCloseDeleteDialog}
         confirmText="Delete"

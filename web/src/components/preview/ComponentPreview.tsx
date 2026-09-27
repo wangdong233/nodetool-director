@@ -38,6 +38,7 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useModelManagerStore } from "../../stores/ModelManagerStore";
 import { useSystemStatsStore } from "../../stores/systemStatsHandler";
 import { useProviderOnboardingStore } from "../../stores/ProviderOnboardingStore";
+import { i18n } from "../../i18n";
 
 const CostsDashboard = React.lazy(() => import("../costs/CostsDashboard"));
 const ModelListIndex = React.lazy(
@@ -420,7 +421,7 @@ const PreviewConfirmDialog: React.FC = () => (
         open
         onClose={() => undefined}
         onConfirm={() => undefined}
-        title="Delete this workflow?"
+        title={i18n.t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
         content="This action cannot be undone. The workflow and its run history will be removed from the workspace."
         confirmText="Delete"
         cancelText="Cancel"
@@ -638,16 +639,16 @@ const PreviewFormControls: React.FC = () => (
     <Panel padding="normal">
       <FlexColumn gap={3}>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label="Medium text" placeholder="36px" />
+          <TextInput label={i18n.t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
           <SelectField
-            label="Medium outlined"
+            label={i18n.t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
             variant="outlined"
             value="widescreen"
             onChange={() => undefined}
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label="Medium standard"
+            label={i18n.t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
             variant="standard"
             value="widescreen"
             onChange={() => undefined}
@@ -655,9 +656,9 @@ const PreviewFormControls: React.FC = () => (
           />
         </FlexRow>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label="Small text" placeholder="28px" compact />
+          <TextInput label={i18n.t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
           <SelectField
-            label="Small outlined"
+            label={i18n.t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
             variant="outlined"
             size="small"
             value="square"
@@ -665,7 +666,7 @@ const PreviewFormControls: React.FC = () => (
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label="Small standard"
+            label={i18n.t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
             variant="standard"
             size="small"
             value="square"

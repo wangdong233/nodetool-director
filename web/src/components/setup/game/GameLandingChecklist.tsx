@@ -112,7 +112,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
       />
       <Line
         done={run.total > 0 && run.checked === run.total}
-        label="Assets checked"
+        label={i18n.t("editor:ui.assetsChecked", { defaultValue: "Assets checked" })}
         detail={
           run.total === 0
             ? "This project keeps the template's own art"

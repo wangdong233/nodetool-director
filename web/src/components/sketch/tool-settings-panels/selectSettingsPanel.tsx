@@ -74,40 +74,40 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
         <SketchModeOption
           value="rectangle"
           variant="icon"
-          aria-label="Rectangular marquee"
-          title="Rectangular marquee"
+          aria-label={i18n.t("editor:ui.rectangularMarquee", { defaultValue: "Rectangular marquee" })}
+          title={i18n.t("editor:ui.rectangularMarquee", { defaultValue: "Rectangular marquee" })}
         >
           <RectangleOutlinedIcon fontSize="inherit" />
         </SketchModeOption>
         <SketchModeOption
           value="ellipse"
           variant="icon"
-          aria-label="Elliptical marquee"
-          title="Elliptical marquee"
+          aria-label={i18n.t("editor:ui.ellipticalMarquee", { defaultValue: "Elliptical marquee" })}
+          title={i18n.t("editor:ui.ellipticalMarquee", { defaultValue: "Elliptical marquee" })}
         >
           <RadioButtonUncheckedIcon fontSize="inherit" />
         </SketchModeOption>
         <SketchModeOption
           value="lasso"
           variant="icon"
-          aria-label="Freehand lasso"
-          title="Freehand (lasso)"
+          aria-label={i18n.t("editor:ui.Freehand (lasso)", { defaultValue: "Freehand lasso" })}
+          title={i18n.t("editor:ui.freehandLasso", { defaultValue: "Freehand (lasso)" })}
         >
           <GestureOutlinedIcon fontSize="inherit" />
         </SketchModeOption>
         <SketchModeOption
           value="lasso_polygon"
           variant="icon"
-          aria-label="Polygon selection"
-          title="Polygon"
+          aria-label={i18n.t("editor:ui.polygonSelection", { defaultValue: "Polygon selection" })}
+          title={i18n.t("editor:ui.polygon", { defaultValue: "Polygon" })}
         >
           <PentagonOutlinedIcon fontSize="inherit" />
         </SketchModeOption>
         <SketchModeOption
           value="magic_wand"
           variant="icon"
-          aria-label="Magic wand"
-          title="Magic wand (click to sample)"
+          aria-label={i18n.t("editor:ui.magicWand", { defaultValue: "Magic wand" })}
+          title={i18n.t("editor:ui.magicWandClickToSample", { defaultValue: "Magic wand (click to sample)" })}
         >
           <AutoAwesomeOutlinedIcon fontSize="inherit" />
         </SketchModeOption>
@@ -178,7 +178,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           >
             Invert
           </EditorButton>
-          <Tooltip title="Refine selection (grow, shrink, feather, smooth, border)">
+          <Tooltip title={i18n.t("editor:ui.refineSelectionGrowShrinkFeatherSmoothBorder", { defaultValue: "Refine selection (grow, shrink, feather, smooth, border)" })}>
             <span>
               <EditorButton
                 ref={refineAnchorRef}
@@ -249,12 +249,12 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
               flexItem
               sx={{ alignSelf: "stretch", borderColor: "grey.700" }}
             />
-            <Tooltip title="Crop canvas to selection">
+            <Tooltip title={i18n.t("editor:ui.cropCanvasToSelection", { defaultValue: "Crop canvas to selection" })}>
               <span>
                 <ToolbarIconButton
                   disabled={!hasActiveSelection}
                   onClick={onCropCanvasToSelection}
-                  aria-label="Crop canvas to selection"
+                  aria-label={i18n.t("editor:ui.cropCanvasToSelection", { defaultValue: "Crop canvas to selection" })}
                   sx={{
                     ...iconButtonCompactSx,
                     borderRadius: BORDER_RADIUS.xs,

@@ -30,6 +30,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 /** Providers this card can link. Telegram is the only bridge shipping today. */
 const PROVIDER = "telegram" as const;
@@ -205,7 +206,7 @@ const ConnectedAccountsSettings = () => {
               <Text size="small" family="secondary">
                 {showPending.code}
               </Text>
-              <CopyButton value={showPending.code} tooltip="Copy the link code" />
+              <CopyButton value={showPending.code} tooltip={i18n.t("editor:ui.copyTheLinkCode", { defaultValue: "Copy the link code" })} />
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />

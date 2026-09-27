@@ -291,7 +291,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             onChange={(event) =>
               onChange({ conceptPrompt: event.target.value })
             }
-            placeholder="Describe the object"
+            placeholder={i18n.t("editor:ui.describeTheObject", { defaultValue: "Describe the object" })}
             inputProps={{ "aria-label": "Concept prompt" }}
             // Wide enough for the placeholder to read in full, and it keeps
             // the bar from being dominated by one text field.

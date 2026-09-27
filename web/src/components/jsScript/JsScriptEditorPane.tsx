@@ -17,6 +17,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
+import { i18n } from "../../i18n";
 import {
   useJsScriptCode,
   useJsScriptStore
@@ -102,7 +103,7 @@ const JsScriptEditorPane = ({
         ) : (
           <Box
             component="pre"
-            aria-label="Script body"
+            aria-label={i18n.t("editor:ui.scriptBody", { defaultValue: "Script body" })}
             sx={{
               ...TYPOGRAPHY.mono.code,
               margin: 0,

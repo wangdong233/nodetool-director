@@ -136,7 +136,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
           <EditorButton
             onClick={decrement}
             disabled={runs <= MIN_RUNS || isWorkflowRunning}
-            aria-label="Decrease runs"
+            aria-label={i18n.t("editor:ui.decreaseRuns", { defaultValue: "Decrease runs" })}
           >
             <RemoveIcon fontSize="small" />
           </EditorButton>
@@ -146,7 +146,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
           <EditorButton
             onClick={increment}
             disabled={runs >= MAX_RUNS || isWorkflowRunning}
-            aria-label="Increase runs"
+            aria-label={i18n.t("editor:ui.increaseRuns", { defaultValue: "Increase runs" })}
           >
             <AddIcon fontSize="small" />
           </EditorButton>

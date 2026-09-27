@@ -21,6 +21,7 @@ import {
   BORDER_RADIUS
 } from "../ui_primitives";
 import { CollectionResponse } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 const CollectionList = () => {
   const {
@@ -128,9 +129,9 @@ const CollectionList = () => {
             </Text>
             <CreateFab
               onClick={handleShowForm}
-              label="Create Collection"
+              label={i18n.t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
               icon={<AddIcon />}
-              aria-label="Create Collection"
+              aria-label={i18n.t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
             />
           </FlexRow>
 
@@ -143,7 +144,7 @@ const CollectionList = () => {
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4, px: 2 }}>
               <EmptyState
                 variant="error"
-                title="Couldn't load collections"
+                title={i18n.t("editor:ui.couldnTLoadCollections", { defaultValue: "Couldn't load collections" })}
                 description="Try again later."
                 actionText="Retry"
                 onAction={() => fetchCollections()}
@@ -186,7 +187,7 @@ const CollectionList = () => {
       <Dialog
         open={Boolean(deleteTarget)}
         onClose={cancelDelete}
-        title="Delete this collection?"
+        title={i18n.t("editor:ui.Delete this collection", { defaultValue: "Delete this collection?" })}
         onConfirm={confirmDelete}
         confirmText="Delete"
         cancelText="Cancel"
@@ -197,7 +198,7 @@ const CollectionList = () => {
       </Dialog>
 
       {indexErrors.length > 0 && (
-        <Dialog open={true} onClose={handleClearIndexErrors} title="Indexing report">
+        <Dialog open={true} onClose={handleClearIndexErrors} title={i18n.t("editor:ui.indexingReport", { defaultValue: "Indexing report" })}>
           <FlexColumn gap={2}>
             <Text>
               The following files encountered errors during indexing:

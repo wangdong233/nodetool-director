@@ -127,7 +127,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             className="color-swatch-pair__fg"
             padding="none"
             onClick={handleFgClick}
-            aria-label="Foreground color"
+            aria-label={i18n.t("editor:ui.foregroundColor", { defaultValue: "Foreground color" })}
             sx={{
               ...colorSwatchSx,
               position: "absolute",

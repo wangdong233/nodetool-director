@@ -302,7 +302,7 @@ const VerticalToolbar = memo(function VerticalToolbar({
       <Tooltip title={i18n.t("editor:ui.togglePanel", { defaultValue: "Toggle Panel" })} placement="right-start">
         <ToolbarIconButton
           tabIndex={-1}
-          ariaLabel="Toggle panel"
+          ariaLabel={i18n.t("editor:ui.togglePanel", { defaultValue: "Toggle panel" })}
           onClick={handlePanelToggle}
           icon={<CodeIcon />}
         />

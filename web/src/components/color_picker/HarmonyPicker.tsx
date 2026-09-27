@@ -11,6 +11,7 @@ import {
   getHarmonyInfo
 } from "../../utils/colorHarmonies";
 import { getContrastingTextColor, hexToRgb, rgbToHex } from "../../utils/colorConversion";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -129,7 +130,7 @@ const HarmonyPicker: React.FC<HarmonyPickerProps> = ({
               </Text>
             </div>
             <CopyButton
-              tooltip="Copy all colors"
+              tooltip={i18n.t("editor:ui.copyAllColors", { defaultValue: "Copy all colors" })}
               value={harmony.colors.join(", ")}
               buttonSize="small"
             />

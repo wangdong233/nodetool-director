@@ -706,7 +706,7 @@ function FileBrowserDialog({
         >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon fontSize="small" />}
-            tooltip="Up one level"
+            tooltip={i18n.t("editor:ui.upOneLevel", { defaultValue: "Up one level" })}
             onClick={handleUp}
             disabled={currentPath === "~" || currentPath === "/"}
             size="small"
@@ -749,14 +749,14 @@ function FileBrowserDialog({
             <SearchInput
               value={searchQuery}
               onChange={handleSearchQueryChange}
-              placeholder="Search in current folder..."
+              placeholder={i18n.t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder..." })}
               fullWidth
             />
           </div>
 
           <ToolbarIconButton
             icon={<CreateNewFolderIcon fontSize="small" />}
-            tooltip="New folder here"
+            tooltip={i18n.t("editor:ui.newFolderHere", { defaultValue: "New folder here" })}
             onClick={handleStartNewFolder}
             size="small"
           />
@@ -785,7 +785,7 @@ function FileBrowserDialog({
                 size="small"
                 autoFocus
                 value={newFolderName}
-                placeholder="New folder name"
+                placeholder={i18n.t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 onChange={handleNewFolderChange}
                 onKeyDown={handleNewFolderKeyDown}
                 sx={{ flex: 1 }}
@@ -937,7 +937,7 @@ function FileBrowserDialog({
           {selectedPath && (
             <CopyButton
               value={selectedPath}
-              tooltip="Copy path"
+              tooltip={i18n.t("editor:ui.copyPath", { defaultValue: "Copy path" })}
               buttonSize="small"
             />
           )}

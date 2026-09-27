@@ -314,7 +314,7 @@ const Select: React.FC<SelectProps> = ({
                 setHighlightedIndex(-1);
               }}
               placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })}
-              aria-label="Search options"
+              aria-label={i18n.t("editor:ui.searchOptions", { defaultValue: "Search options" })}
               onClick={(e) => e.stopPropagation()}
             />
           )}

@@ -190,7 +190,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
         className="slash-input"
         value={query}
         spellCheck={false}
-        aria-label="Slash command"
+        aria-label={i18n.t("editor:ui.slashCommand", { defaultValue: "Slash command" })}
         onChange={(e) => {
           setQuery(e.target.value);
           setActive(0);

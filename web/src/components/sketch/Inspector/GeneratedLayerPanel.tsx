@@ -175,7 +175,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
           <EmptyState
             variant="empty"
             size="small"
-            title="No workflow binding"
+            title={i18n.t("editor:ui.noWorkflowBinding", { defaultValue: "No workflow binding" })}
             description="This layer does not have a generated-layer binding yet."
           />
         </Panel>
@@ -201,7 +201,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
               <AlertBanner
                 severity="error"
                 compact
-                title="Generation failed"
+                title={i18n.t("editor:ui.generationFailed", { defaultValue: "Generation failed" })}
                 onClose={() => clearJob(layer.id)}
               >
                 {jobErrorMessage}

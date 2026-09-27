@@ -352,7 +352,7 @@ const RowItem = memo(({
         <div className="cell actions" onClick={handleActionsClick}>
           <CopyButton
             value={row.content}
-            tooltip="Copy log to clipboard"
+            tooltip={i18n.t("editor:ui.copyLogToClipboard", { defaultValue: "Copy log to clipboard" })}
             tooltipPlacement="top"
             className="copy-btn"
             sx={{ padding: getSpacingPx(SPACING.micro) }}
@@ -361,7 +361,7 @@ const RowItem = memo(({
             <>
               <ToolbarIconButton
                 icon={<DataObjectIcon fontSize="inherit" />}
-                tooltip="View log data"
+                tooltip={i18n.t("editor:ui.viewLogData", { defaultValue: "View log data" })}
               onClick={handleClick}
               size="small"
               sx={{ padding: getSpacingPx(SPACING.micro) }}
@@ -573,7 +573,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
                 overscan={theme.virtualScroll.overscan.small}
                 getItemKey={getItemKey}
                 getItemProps={getItemProps}
-                ariaLabel="Log messages"
+                ariaLabel={i18n.t("editor:ui.logMessages", { defaultValue: "Log messages" })}
                 renderItem={renderRow}
               />
             )}
@@ -584,7 +584,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
       {showScrollButton && (
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon />}
-          tooltip="Scroll to latest"
+          tooltip={i18n.t("editor:ui.scrollToLatest", { defaultValue: "Scroll to latest" })}
           className="scroll-to-bottom"
           onClick={scrollToBottom}
           size="small"

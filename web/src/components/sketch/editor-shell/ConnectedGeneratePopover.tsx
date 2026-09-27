@@ -266,7 +266,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <TextInput
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the image…"
+            placeholder={i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
             autoFocus
             multiline
             minRows={2}

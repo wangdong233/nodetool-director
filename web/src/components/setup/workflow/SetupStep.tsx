@@ -199,7 +199,7 @@ const BuildDisclosure: React.FC<{
     <FlexColumn
       gap={GAP.tight}
       role="region"
-      aria-label="Before you build"
+      aria-label={i18n.t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
       sx={{
         borderTop: "1px solid",
         borderColor: "divider",

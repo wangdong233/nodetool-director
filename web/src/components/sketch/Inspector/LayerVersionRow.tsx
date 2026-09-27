@@ -150,18 +150,18 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
             {canRestore && (
               <ToolbarIconButton
                 icon={<RestoreIcon fontSize="small" />}
-                tooltip="Restore this version"
+                tooltip={i18n.t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
                 onClick={handleRestoreClick}
                 disabled={isRestoring}
-                aria-label="Restore version"
+                aria-label={i18n.t("editor:ui.restoreVersion", { defaultValue: "Restore version" })}
               />
             )}
             <ToolbarIconButton
               icon={<DeleteIcon fontSize="small" />}
-              tooltip="Delete version"
+              tooltip={i18n.t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              aria-label="Delete version"
+              aria-label={i18n.t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
             />
           </FlexRow>
         </FlexRow>
@@ -169,7 +169,7 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
         <Dialog
           open={deleteDialogOpen}
           onClose={handleDeleteCancel}
-          title="Delete version?"
+          title={i18n.t("editor:ui.Delete version", { defaultValue: "Delete version?" })}
           onConfirm={handleDeleteConfirm}
           confirmText="Delete"
           cancelText="Cancel"

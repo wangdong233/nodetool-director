@@ -5,6 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { css } from "@emotion/react";
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { isValid, parseISO } from "../../utils/dateFormat";
+import { i18n } from "../../i18n";
 
 interface CustomDatePickerProps {
   value: string;
@@ -93,7 +94,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       onChange={handleInputChange}
       onBlur={commit}
       onKeyDown={handleKeyDown}
-      aria-label="Date and time"
+      aria-label={i18n.t("editor:ui.dateAndTime", { defaultValue: "Date and time" })}
     />
   );
 };

@@ -841,7 +841,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
             {selectedNotes.length > 1 ? ` · ${selectedNotes.length} selected` : ""}
           </Caption>
           <Caption color="muted">Velocity ±</Caption>
-          <Slider aria-label="Selected note velocity" min={1} max={127} step={1}
+          <Slider aria-label={i18n.t("editor:ui.selectedNoteVelocity", { defaultValue: "Selected note velocity" })} min={1} max={127} step={1}
             density="compact" sx={{ width: 96 }} disabled={selectedNotes.length === 0}
             value={selectedVelocity} valueLabelDisplay="auto"
             onPointerDown={handleVelocityStart}
@@ -853,12 +853,12 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
             }}
             onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
           <Caption color="muted">⌘C/V copy/paste · ⌘R repeat · Q quantize</Caption>
-          <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label="Note editing shortcuts">{i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })}</Button>
+          <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label={i18n.t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>{i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })}</Button>
         </FlexRow>
         <NoteSelectionInspector notes={notes} selectedIds={selectedIds}
           beatTicks={msToTicks(beatDurationMs(tempo), tempo.bpm)}
           onChange={next => setClipNotes(clipId, next)} />
-        <Dialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title="Note editing shortcuts">
+        <Dialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title={i18n.t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>
           <FlexColumn gap={SPACING.sm}>
             {[
               "⌘C / ⌘X / ⌘V — Copy / cut / paste at the playhead",

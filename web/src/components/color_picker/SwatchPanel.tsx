@@ -208,7 +208,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
           {recentColors.length > 0 && (
             <DeleteButton
               onClick={clearRecentColors}
-              tooltip="Clear recent colors"
+              tooltip={i18n.t("editor:ui.clearRecentColors", { defaultValue: "Clear recent colors" })}
               iconVariant="clear"
               nodrag={false}
             />
@@ -246,7 +246,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => handleSwatchContextMenu(e, swatch.id)}
             />
           ))}
-          <Tooltip title="Save current color">
+          <Tooltip title={i18n.t("editor:ui.saveCurrentColor", { defaultValue: "Save current color" })}>
             <FlexRow
               className="add-swatch-button"
               align="center"
@@ -255,7 +255,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               onKeyDown={handleAddSwatchKeyDown}
               role="button"
               tabIndex={0}
-              aria-label="Save current color as swatch"
+              aria-label={i18n.t("editor:ui.saveCurrentColorAsSwatch", { defaultValue: "Save current color as swatch" })}
             >
               <AddIcon sx={{ fontSize: 16 }} />
             </FlexRow>

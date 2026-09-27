@@ -2,6 +2,7 @@
 import React, { memo, useCallback, useState } from "react";
 import { useRunWarningStore } from "../../stores/RunWarningStore";
 import { Dialog, Checkbox, Text, FlexColumn } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 /**
  * Confirmation shown before a "Run Entire Workflow" action that would execute many
@@ -64,7 +65,7 @@ const RunWarningDialog: React.FC = () => {
                 provider rate limits.
               </Text>
               <Checkbox
-                label="Don't ask again for this session"
+                label={i18n.t("editor:ui.donTAskAgainForThisSession", { defaultValue: "Don't ask again for this session" })}
                 checked={dontAskAgain}
                 onChange={(_event, checked) => setDontAskAgain(checked)}
               />

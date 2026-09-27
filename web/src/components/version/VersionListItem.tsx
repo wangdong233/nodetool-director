@@ -12,6 +12,7 @@ import { relativeTime } from "../../utils/formatDateAndTime";
 import { formatDateTime } from "../../utils/formatUtils";
 import { WorkflowVersion } from "../../stores/ApiTypes";
 import { WorkflowMiniPreview } from "./WorkflowMiniPreview";
+import { i18n } from "../../i18n";
 
 interface VersionListItemProps {
   version: WorkflowVersion & { save_type: SaveType; size_bytes: number; is_pinned?: boolean };
@@ -201,7 +202,7 @@ const VersionListItem = React.memo(function VersionListItem({
           <ToolbarIconButton
             size="small"
             onClick={handleClick}
-            tooltip="Select for comparison"
+            tooltip={i18n.t("editor:ui.selectForComparison", { defaultValue: "Select for comparison" })}
             icon={<CompareIcon sx={{ fontSize: 14 }} />}
             sx={{ padding: getSpacingPx(SPACING.micro) }}
             nodrag={false}
@@ -213,14 +214,14 @@ const VersionListItem = React.memo(function VersionListItem({
             <ToolbarIconButton
               size="small"
               onClick={handleRestore}
-              tooltip="Restore this version"
+              tooltip={i18n.t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
               icon={<RestoreIcon sx={{ fontSize: 14 }} />}
               sx={{ padding: getSpacingPx(SPACING.micro) }}
               nodrag={false}
             />
             <DeleteButton
               onClick={handleDelete}
-              tooltip="Delete version"
+              tooltip={i18n.t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
               sx={{ padding: getSpacingPx(SPACING.micro), "& .MuiSvgIcon-root": { fontSize: 14 } }}
             />
           </>

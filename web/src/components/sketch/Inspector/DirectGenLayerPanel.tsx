@@ -160,8 +160,8 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <TextInput
           value={binding.prompt ?? ""}
           onChange={(e) => patchBinding(layer.id, { prompt: e.target.value })}
-          placeholder="Describe the image…"
-          aria-label="Image prompt"
+          placeholder={i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
+          aria-label={i18n.t("editor:ui.imagePrompt", { defaultValue: "Image prompt" })}
           sx={{ "& .MuiOutlinedInput-root": sketchFieldSx }}
           multiline
           minRows={3}

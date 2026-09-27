@@ -12,7 +12,7 @@ const PackagesPage: React.FC = () => (
   <ManagerPageLayout
     icon={<Inventory2OutlinedIcon sx={{ fontSize: 22 }} />}
     title={i18n.t("nav:rail.packages", { defaultValue: "Package Manager" })}
-    subtitle="Install runtimes and node packs in one place."
+    subtitle={i18n.t("editor:ui.installRuntimesAndNodePacksInOnePlace", { defaultValue: "Install runtimes and node packs in one place." })}
     docsTopic="nodePacks"
     padded={false}
   >

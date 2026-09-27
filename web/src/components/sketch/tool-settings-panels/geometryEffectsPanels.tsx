@@ -227,7 +227,7 @@ export const GradientSettingsPanel = memo(function GradientSettingsPanel({
           sx={{ ...colorSwatchSx }}
           role="button"
           tabIndex={0}
-          aria-label="Gradient start color"
+          aria-label={i18n.t("editor:ui.gradientStartColor", { defaultValue: "Gradient start color" })}
           aria-haspopup="dialog"
           onClick={(e) => {
             setStartInitial(settings.startColor);
@@ -253,7 +253,7 @@ export const GradientSettingsPanel = memo(function GradientSettingsPanel({
           sx={{ ...colorSwatchSx }}
           role="button"
           tabIndex={0}
-          aria-label="Gradient end color"
+          aria-label={i18n.t("editor:ui.gradientEndColor", { defaultValue: "Gradient end color" })}
           aria-haspopup="dialog"
           onClick={(e) => {
             setEndInitial(settings.endColor);

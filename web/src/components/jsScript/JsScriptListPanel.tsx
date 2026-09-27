@@ -13,6 +13,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import CategorySearchBar from "../node_menu/CategorySearchBar";
+import { i18n } from "../../i18n";
 import {
   EmptyState,
   FlexColumn,
@@ -58,9 +59,9 @@ export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
   }, [createJsScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New JS script" placement="right-start">
+    <Tooltip title={i18n.t("editor:ui.newJSScript", { defaultValue: "New JS script" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New JS script"
+        ariaLabel={i18n.t("editor:ui.newJSScript", { defaultValue: "New JS script" })}
         onClick={() => void handleCreate()}
         disabled={createJsScript.isPending}
         tabIndex={-1}
@@ -131,7 +132,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
         <CategorySearchBar
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search JS scripts..."
+          placeholder={i18n.t("editor:ui.searchJSScripts", { defaultValue: "Search JS scripts..." })}
         />
       </div>
 
@@ -148,7 +149,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load JS scripts"
+            title={i18n.t("editor:ui.couldNotLoadJSScripts", { defaultValue: "Could not load JS scripts" })}
             description={error?.message ?? "Try again later."}
           />
         </FlexColumn>

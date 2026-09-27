@@ -15,6 +15,7 @@ import {
 import { colorPickerColors } from "../../constants/colors";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import ColorPickerModal from "../color_picker/ColorPickerModal";
+import { i18n } from "../../i18n";
 
 const PALETTE_BUTTON_SIZE = 28;
 
@@ -148,13 +149,13 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <div className="color-picker" css={cssStyles}>
       <Tooltip
-        title="Set color"
+        title={i18n.t("editor:ui.setColor", { defaultValue: "Set color" })}
         placement="bottom"
         delay={TOOLTIP_ENTER_DELAY}
       >
         <Button
           className="open-colors-button"
-          aria-label="Choose color"
+          aria-label={i18n.t("editor:ui.chooseColor", { defaultValue: "Choose color" })}
           aria-haspopup="dialog"
           onClick={handleClick}
           style={{

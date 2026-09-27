@@ -178,7 +178,7 @@ const CollectionItem = ({
         ) : (
           <DeleteButton
             onClick={handleDeleteClick}
-            tooltip="Delete this collection"
+            tooltip={i18n.t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection" })}
             disabled={isDeleting}
             sx={{ mt: -10 }}
             nodrag={false}
@@ -236,7 +236,7 @@ const CollectionItem = ({
       </FlexRow>
 
       <FlexRow align="center" gap={SPACING.lg} fullWidth>
-        <Tooltip title="Number of documents in this collection">
+        <Tooltip title={i18n.t("editor:ui.numberOfDocumentsInThisCollection", { defaultValue: "Number of documents in this collection" })}>
           <Text
             size="small"
             color="secondary"
@@ -248,7 +248,7 @@ const CollectionItem = ({
             {collection.count} item{collection.count === 1 ? "" : "s"}
           </Text>
         </Tooltip>
-        <Tooltip title="Model used for embedding documents">
+        <Tooltip title={i18n.t("editor:ui.modelUsedForEmbeddingDocuments", { defaultValue: "Model used for embedding documents" })}>
           <Caption
             sx={{
               fontSize: "0.8em",
@@ -280,7 +280,7 @@ const CollectionItem = ({
             }}
           />
         ) : (
-          <Tooltip title="Click to change the ingestion workflow for this collection">
+          <Tooltip title={i18n.t("editor:ui.clickToChangeTheIngestionWorkflowForThisCollection", { defaultValue: "Click to change the ingestion workflow for this collection" })}>
             <EditorButton
               variant="text"
               sx={{

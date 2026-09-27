@@ -663,7 +663,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         <Dialog
           open={confirmDelete}
           onClose={handleCloseDeleteConfirm}
-          title="Delete shot?"
+          title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
           onConfirm={handleDeleteConfirmed}
           confirmText="Delete"
           destructive

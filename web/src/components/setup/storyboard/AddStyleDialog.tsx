@@ -109,7 +109,7 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
     <Dialog
       open={open}
       onClose={handleCancel}
-      title="Add your own style"
+      title={i18n.t("editor:ui.addYourOwnStyle", { defaultValue: "Add your own style" })}
       showActions
       onConfirm={handleSubmit}
       confirmText={saving ? "Reading your references…" : "Add style"}

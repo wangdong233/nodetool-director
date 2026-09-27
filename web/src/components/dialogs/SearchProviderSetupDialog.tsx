@@ -14,6 +14,7 @@ import { useSearchProviderCalloutStore } from "../../stores/SearchProviderCallou
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { formatSettingLabel } from "../menus/settingsLabel";
+import { i18n } from "../../i18n";
 import {
   SEARCH_PROVIDER_CONFIGS,
   SUGGESTED_SERP_PROVIDER,
@@ -121,7 +122,7 @@ const SearchProviderSetupDialog: React.FC = () => {
     <Dialog
       open={open}
       onClose={dismiss}
-      title="Set up web search"
+      title={i18n.t("editor:ui.setUpWebSearch", { defaultValue: "Set up web search" })}
       onConfirm={handleSave}
       onCancel={dismiss}
       confirmText="Save & continue"
@@ -138,7 +139,7 @@ const SearchProviderSetupDialog: React.FC = () => {
           </Text>
 
           <SelectField
-            label="Search provider"
+            label={i18n.t("editor:ui.searchProvider", { defaultValue: "Search provider" })}
             value={provider}
             onChange={handleProviderChange}
             options={PROVIDER_OPTIONS}

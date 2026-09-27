@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 interface EditableInputProps {
   value: string;
@@ -136,7 +137,7 @@ const EditableInput: React.FC<EditableInputProps> = ({
         tabIndex={tabIndex}
         autoFocus={false}
         onKeyDown={handleKeyDown}
-        aria-label="Edit value"
+        aria-label={i18n.t("editor:ui.editValue", { defaultValue: "Edit value" })}
       />
     </div>
   );

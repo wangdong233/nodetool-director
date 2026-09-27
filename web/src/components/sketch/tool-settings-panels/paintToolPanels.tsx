@@ -68,7 +68,7 @@ const AdvancedToggleButton: React.FC<{
     variant="text"
     onClick={onToggle}
     aria-pressed={open}
-    aria-label="Toggle advanced stroke options"
+    aria-label={i18n.t("editor:ui.toggleAdvancedStrokeOptions", { defaultValue: "Toggle advanced stroke options" })}
     sx={{
       minWidth: 0,
       padding: `${SKETCH_SPACING.xs} ${SKETCH_SPACING.sm}`,
@@ -240,7 +240,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
       >
         <SketchModeOption
           value="off"
-          title="No stroke assist. Tip follows the raw pointer."
+          title={i18n.t("editor:ui.noStrokeAssistTipFollowsTheRawPointer", { defaultValue: "No stroke assist. Tip follows the raw pointer." })}
         >
           Off
         </SketchModeOption>
@@ -251,7 +251,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
         ))}
         <SketchModeOption
           value="custom"
-          title="Tune algorithm, strength and angle snap manually."
+          title={i18n.t("editor:ui.tuneAlgorithmStrengthAndAngleSnapManually", { defaultValue: "Tune algorithm, strength and angle snap manually." })}
         >
           Custom
         </SketchModeOption>
@@ -311,7 +311,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
         }}
         sx={{ flexWrap: "wrap" }}
       >
-        <SketchModeOption value="off" title="No angle snap.">
+        <SketchModeOption value="off" title={i18n.t("editor:ui.noAngleSnap", { defaultValue: "No angle snap." })}>
           Free
         </SketchModeOption>
         {STROKE_ASSIST_ANGLE_OPTIONS.map((angle) => (

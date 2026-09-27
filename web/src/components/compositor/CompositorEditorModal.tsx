@@ -13,6 +13,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import { CloseButton, Text } from "../ui_primitives";
+import { i18n } from "../../i18n";
 import CompositorEditor, {
   type CompositorEditorProps
 } from "./CompositorEditor";
@@ -65,7 +66,7 @@ const CompositorEditorModalInner: React.FC<CompositorEditorModalProps> = ({
     <div css={cssStyles} className="compositor-modal">
       <div className="compositor-modal-header">
         <Text sx={{ fontWeight: 500, mr: "auto" }}>{title}</Text>
-        <CloseButton onClick={onClose} tooltip="Close compositor editor" />
+        <CloseButton onClick={onClose} tooltip={i18n.t("editor:ui.closeCompositorEditor", { defaultValue: "Close compositor editor" })} />
       </div>
       <div className="compositor-modal-body">
         <CompositorEditor {...editorProps} />

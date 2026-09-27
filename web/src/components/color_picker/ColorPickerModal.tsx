@@ -401,7 +401,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <EyedropperButton onColorPicked={handleEyedropperPick} />
               <CloseButton
                 onClick={handleApply}
-                tooltip="Close (Esc)"
+                tooltip={i18n.t("editor:ui.closeEsc", { defaultValue: "Close (Esc)" })}
                 buttonSize="small"
               />
             </FlexRow>
@@ -434,14 +434,14 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               />
 
               <FlexRow className="color-preview" align="center">
-                <Tooltip title="Click to copy HEX">
+                <Tooltip title={i18n.t("editor:ui.clickToCopyHEX", { defaultValue: "Click to copy HEX" })}>
                   <FlexRow
                     className="preview-swatch"
                     align="center"
                     justify="center"
                     role="button"
                     tabIndex={0}
-                    aria-label="Copy hex value"
+                    aria-label={i18n.t("editor:ui.copyHexValue", { defaultValue: "Copy hex value" })}
                     onClick={handleCopyHex}
                     onKeyDown={activateOnKey(handleCopyHex)}
                   >

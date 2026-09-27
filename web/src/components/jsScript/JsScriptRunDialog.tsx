@@ -157,7 +157,7 @@ const JsScriptRunDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Run script"
+      title={i18n.t("editor:ui.runScript", { defaultValue: "Run script" })}
       fullWidth
       maxWidth="sm"
       actions={

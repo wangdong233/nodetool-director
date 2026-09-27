@@ -487,7 +487,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           <TextInput
             value={description}
             onChange={handleDescriptionChange}
-            placeholder="When to use this skill"
+            placeholder={i18n.t("editor:ui.whenToUseThisSkill", { defaultValue: "When to use this skill" })}
             disabled={readOnly}
             fullWidth
           />

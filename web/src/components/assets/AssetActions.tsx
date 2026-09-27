@@ -376,7 +376,7 @@ const AssetActions = ({
           <SliderBasic
             size="small"
             defaultValue={settings.assetItemSize}
-            aria-label="Small"
+            aria-label={i18n.t("editor:ui.small", { defaultValue: "Small" })}
             tooltipText="Item Size"
             tooltipPlacement="bottom"
             valueLabelDisplay="auto"

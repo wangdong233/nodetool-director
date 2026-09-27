@@ -75,7 +75,7 @@ const JsScriptSettingsPanel = ({
             multiline
             minRows={2}
             value={document.description}
-            placeholder="What this script does"
+            placeholder={i18n.t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
             disabled={readOnly}
             onChange={(event) =>
               setDescription(scriptId, event.target.value)
@@ -112,7 +112,7 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn gap={SPACING.xs}>
           <LabeledSwitch
-            label="Show in node menu"
+            label={i18n.t("editor:ui.showInNodeMenu", { defaultValue: "Show in node menu" })}
             size="small"
             checked={document.palette !== undefined}
             disabled={readOnly}

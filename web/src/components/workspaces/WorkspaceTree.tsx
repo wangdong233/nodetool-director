@@ -469,7 +469,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
   return (
     <Box css={workspaceTreeStyles(theme)}>
       <PanelHeadline
-        title="Workspace Explorer"
+        title={i18n.t("editor:ui.workspaceExplorer", { defaultValue: "Workspace Explorer" })}
         docsTopic="workspaces"
         actions={
           <RefreshButton
@@ -489,7 +489,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
         <SettingsButton
           className="settings-button"
           onClick={handleManageWorkspace}
-          tooltip="Manage Workspaces"
+          tooltip={i18n.t("editor:ui.manageWorkspaces", { defaultValue: "Manage Workspaces" })}
         />
       </div>
 
@@ -498,7 +498,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <span
             className="breadcrumb-segment"
             role="button"
-            aria-label="Go to workspace root"
+            aria-label={i18n.t("editor:ui.goToWorkspaceRoot", { defaultValue: "Go to workspace root" })}
             tabIndex={0}
             onClick={() => setSelectedFilePath("")}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedFilePath(""); } }}

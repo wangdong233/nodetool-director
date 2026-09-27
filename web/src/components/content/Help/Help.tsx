@@ -240,9 +240,9 @@ const Help = ({
               >
                 <Tab label={i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })} id="help-tab-0" />
                 <Tab label={i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })} id="help-tab-1" />
-                <Tab label="DataTypes" id="help-tab-2" />
+                <Tab label={i18n.t("editor:ui.datatypes", { defaultValue: "DataTypes" })} id="help-tab-2" />
               </Tabs>
-              <Tooltip title="Open Nodetool Documentation Website" placement="bottom"
+              <Tooltip title={i18n.t("editor:ui.openNodetoolDocumentationWebsite", { defaultValue: "Open Nodetool Documentation Website" })} placement="bottom"
                 delay={TOOLTIP_ENTER_DELAY}
               >
                 <a
@@ -268,7 +268,7 @@ const Help = ({
               </TabPanel>
               <TabPanel value={helpIndex} index={2}>
                 <DataTypesList
-                  title="Nodetool Data Types"
+                  title={i18n.t("editor:ui.nodetoolDataTypes", { defaultValue: "Nodetool Data Types" })}
                   dataTypes={nodetoolTypes}
                   expanded={expandedNodetool}
                   onChange={handleAccordionChange("nodetool")}

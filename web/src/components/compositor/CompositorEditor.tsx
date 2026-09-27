@@ -339,8 +339,8 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
               <StateIconButton
                 icon={<RestartAltIcon fontSize="small" />}
                 onClick={handleResetTransform}
-                ariaLabel="Reset transform"
-                tooltip="Reset transform"
+                ariaLabel={i18n.t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
+                tooltip={i18n.t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
               />
             </FlexRow>
             <LayerTransformFields

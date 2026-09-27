@@ -287,7 +287,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           copyable
           onCopy={handleCopy}
         />
-        <InfoRow label="Build" value={BUILD_NUMBER} />
+        <InfoRow label={i18n.t("editor:ui.build", { defaultValue: "Build" })} value={BUILD_NUMBER} />
         {systemInfo && (
           <>
             <InfoRow label={i18n.t("editor:ui.electron", { defaultValue: "Electron" })} value={systemInfo.electronVersion} />

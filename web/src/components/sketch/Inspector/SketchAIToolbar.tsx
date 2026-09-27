@@ -113,7 +113,7 @@ const SketchAIToolbarInner: React.FC = () => {
       <Dialog
         open={confirmRegenOpen}
         onClose={() => setConfirmRegenOpen(false)}
-        title="Re-generate stale layers?"
+        title={i18n.t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
         onConfirm={() => void handleConfirmRegen()}
         onCancel={() => setConfirmRegenOpen(false)}
         confirmText="Re-generate"

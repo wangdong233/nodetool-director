@@ -233,7 +233,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label="Your video"
+          label={i18n.t("editor:ui.yourVideo", { defaultValue: "Your video" })}
           hideLabel
           placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
           onChange={handleChange}

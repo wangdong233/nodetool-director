@@ -18,6 +18,7 @@ import { TYPOGRAPHY } from "../../ui_primitives";
 import { computeBarRulerTicks } from "../Tracks/tempoGrid";
 import { pickPianoRollColors } from "./pianoRollColors";
 import { tickToX, xToTick, type PianoRollGeometry } from "./pianoRollGeometry";
+import { i18n } from "../../../i18n";
 
 /** Height of the ruler strip. */
 export const PIANO_ROLL_RULER_HEIGHT_PX = 22;
@@ -110,7 +111,7 @@ export const PianoRollRuler: React.FC<PianoRollRulerProps> = memo(
         css={canvasStyles}
         style={{ height: PIANO_ROLL_RULER_HEIGHT_PX }}
         data-testid="piano-roll-ruler"
-        title="Click or drag to position the playhead"
+        title={i18n.t("editor:ui.clickOrDragToPositionThePlayhead", { defaultValue: "Click or drag to position the playhead" })}
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           event.preventDefault();

@@ -678,7 +678,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className="composer-action"
             onClick={handleAutoLayout}
-            aria-label="Auto layout"
+            aria-label={i18n.t("editor:ui.autoLayout", { defaultValue: "Auto layout" })}
           >
             <LayoutIcon />
           </button>

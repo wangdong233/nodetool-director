@@ -22,6 +22,7 @@ import WaveformView, { type Selection } from "./WaveformView";
 import AudioEditorToolbar from "./AudioEditorToolbar";
 import { useEditHistory } from "./useEditHistory";
 import { createPlayheadStore, type PlayheadStore } from "./playheadStore";
+import { i18n } from "../../i18n";
 import {
   applyGain,
   audioBufferToSample,
@@ -412,7 +413,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title="Could not open audio editor"
+          title={i18n.t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
           description={error ?? "Audio could not be decoded."}
           actionText="Done"
           onAction={onClose}

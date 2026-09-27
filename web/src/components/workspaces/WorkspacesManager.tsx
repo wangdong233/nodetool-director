@@ -254,7 +254,7 @@ const WorkspacesManager: React.FC = () => {
                       {!workspace.is_accessible && (
                         <Chip
                           size="small"
-                          label="Inaccessible"
+                          label={i18n.t("editor:ui.inaccessible", { defaultValue: "Inaccessible" })}
                           color="error"
                           variant="outlined"
                         />
@@ -329,7 +329,7 @@ const WorkspacesManager: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Remove this workspace?"
+        title={i18n.t("editor:ui.removeThisWorkspace", { defaultValue: "Remove this workspace?" })}
         content={
           <Text>
             The workspace will be removed from NodeTool. The folder itself will

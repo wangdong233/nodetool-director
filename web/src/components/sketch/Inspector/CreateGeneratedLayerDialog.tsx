@@ -233,7 +233,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         <Dialog
           open
           onClose={handleClose}
-          title="Create generated layer"
+          title={i18n.t("editor:ui.createGeneratedLayer", { defaultValue: "Create generated layer" })}
           showActions
           onConfirm={() => void handleConfirm()}
           onCancel={handleClose}

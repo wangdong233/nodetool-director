@@ -866,7 +866,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
       onClose={() => setOpen(false)}
       className="command-menu-dialog"
       css={styles()}
-      aria-label="Command menu"
+      aria-label={i18n.t("editor:ui.commandMenu", { defaultValue: "Command menu" })}
     >
       <Command label={i18n.t("editor:ui.commandMenu", { defaultValue: "Command Menu" })} className="command-menu">
         <CommandInput

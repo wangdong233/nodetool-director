@@ -845,7 +845,7 @@ const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) =>
               aria-valuenow={counts.completed}
               aria-valuemin={0}
               aria-valuemax={total}
-              aria-label="Completed tasks"
+              aria-label={i18n.t("editor:ui.completedTasks", { defaultValue: "Completed tasks" })}
             >
               <div
                 className="plan-progress-fill"

@@ -366,7 +366,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
             }}
             sx={{ width: "80px" }}
           />
-          <Tooltip title="Use current color">
+          <Tooltip title={i18n.t("editor:ui.useCurrentColor", { defaultValue: "Use current color" })}>
             <EditorButton
               variant="outlined"
               data-stop-index={selectedStopIndex}
@@ -378,7 +378,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           </Tooltip>
           <DeleteButton
             onClick={handleRemoveStopButtonClick}
-            tooltip="Remove stop"
+            tooltip={i18n.t("editor:ui.removeStop", { defaultValue: "Remove stop" })}
             disabled={gradient.stops.length <= 2}
             nodrag={false}
           />

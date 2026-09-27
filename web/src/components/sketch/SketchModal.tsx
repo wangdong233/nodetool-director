@@ -398,7 +398,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
 
           {!confirmDiscard && (
             <Tooltip title={i18n.t("sketch:attrs.saveAndClose", { defaultValue: "Save & Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label="Save and close" onClick={handleRequestClose} sx={{ color: "success.light" }}>
+              <IconButton size="small" aria-label={i18n.t("editor:ui.saveAndClose", { defaultValue: "Save and close" })} onClick={handleRequestClose} sx={{ color: "success.light" }}>
                 <CheckIcon fontSize="small" />
               </IconButton>
             </Tooltip>

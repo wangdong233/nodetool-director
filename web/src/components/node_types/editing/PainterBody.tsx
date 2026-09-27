@@ -1050,7 +1050,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             size="small"
             aria-label={i18n.t("editor:ui.paintTool", { defaultValue: "Paint tool" })}
           >
-            <ToggleOption value="brush" aria-label="Brush">
+            <ToggleOption value="brush" aria-label={i18n.t("editor:ui.brush", { defaultValue: "Brush" })}>
               <BrushIcon />
             </ToggleOption>
             <ToggleOption value="eraser" aria-label={i18n.t("editor:ui.eraser", { defaultValue: "Eraser" })}>

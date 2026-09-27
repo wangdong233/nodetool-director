@@ -361,7 +361,7 @@ export const LookStep: React.FC<LookStepProps> = ({
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title="Before you generate">
+        <AlertBanner severity="info" title={i18n.t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}

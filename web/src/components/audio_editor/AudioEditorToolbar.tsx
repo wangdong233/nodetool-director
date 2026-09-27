@@ -182,12 +182,12 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
       />
       <ToolbarIconButton
         icon={<FitScreenIcon />}
-        tooltip="Fit to window"
+        tooltip={i18n.t("editor:ui.fitToWindow", { defaultValue: "Fit to window" })}
         onClick={onZoomFit}
       />
       <FlexRow align="center" gap={1} sx={{ width: 160, mx: 0.5 }}>
         <NodeSlider
-          aria-label="Waveform zoom"
+          aria-label={i18n.t("editor:ui.waveformZoom", { defaultValue: "Waveform zoom" })}
           value={zoomSliderValue}
           min={ZOOM_SLIDER_MIN}
           max={ZOOM_SLIDER_MAX}

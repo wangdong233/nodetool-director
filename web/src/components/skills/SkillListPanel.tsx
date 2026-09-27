@@ -19,6 +19,7 @@ import { newDocumentId } from "../../lib/newDocumentId";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import type { SkillListItem } from "@nodetool-ai/protocol/api-schemas/skills.js";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
@@ -60,9 +61,9 @@ export const CreateSkillButton = () => {
   }, [handleCreate]);
 
   return (
-    <Tooltip title="New skill" placement="right-start">
+    <Tooltip title={i18n.t("editor:ui.newSkill", { defaultValue: "New skill" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New skill"
+        ariaLabel={i18n.t("editor:ui.newSkill", { defaultValue: "New skill" })}
         onClick={handleCreateClick}
         disabled={createSkill.isPending}
         tabIndex={-1}

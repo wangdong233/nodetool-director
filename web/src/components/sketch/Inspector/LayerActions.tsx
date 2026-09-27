@@ -297,7 +297,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             tooltip={i18n.t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy || !documentId}
-            aria-label="Duplicate layer"
+            aria-label={i18n.t("editor:ui.duplicateLayer", { defaultValue: "Duplicate layer" })}
             data-testid="layer-action-duplicate"
           />
 
@@ -322,19 +322,19 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Revert — clear the current generation back to draft"
+            tooltip={i18n.t("editor:ui.revertClearTheCurrentGenerationBackToDraft", { defaultValue: "Revert — clear the current generation back to draft" })}
             onClick={handleRevert}
             disabled={!binding.lastGeneratedHash}
-            aria-label="Revert layer to draft"
+            aria-label={i18n.t("editor:ui.revertLayerToDraft", { defaultValue: "Revert layer to draft" })}
             data-testid="layer-action-revert"
           />
 
           {binding.workflowId && documentId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip="Open in Node Editor"
+              tooltip={i18n.t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
               onClick={handleOpenInNodeEditor}
-              aria-label="Open layer workflow in node editor"
+              aria-label={i18n.t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
               data-testid="layer-action-open-in-editor"
             />
           )}

@@ -86,7 +86,7 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
   );
 
   return (
-    <Dialog open={open} onClose={onClose} title="Change style" maxWidth="md">
+    <Dialog open={open} onClose={onClose} title={i18n.t("editor:ui.changeStyle", { defaultValue: "Change style" })} maxWidth="md">
       <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.md }}>
         <Caption color="secondary">
           The new style applies to every shot. Stills and clips already

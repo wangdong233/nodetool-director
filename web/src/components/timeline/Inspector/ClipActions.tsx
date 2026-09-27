@@ -186,7 +186,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           {clip.workflowId && sequenceId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip="Open in Node Editor"
+              tooltip={i18n.t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
               onClick={handleOpenInNodeEditor}
               aria-label={i18n.t("timeline:attrs.openClipWorkflowInNodeEditor", { defaultValue: "Open clip workflow in node editor" })}
               data-testid="clip-action-open-in-editor"

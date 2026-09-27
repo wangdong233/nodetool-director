@@ -122,7 +122,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
 
       {documentId && (
         <>
-          <Tooltip title="Generate an image from a prompt">
+          <Tooltip title={i18n.t("editor:ui.generateAnImageFromAPrompt", { defaultValue: "Generate an image from a prompt" })}>
             <span>
               <EditorButton
                 ref={generateAnchorRef}
@@ -133,7 +133,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                   setGenerateOpen(true);
                 }}
                 startIcon={<AutoAwesomeIcon fontSize="small" />}
-                aria-label="Generate an image"
+                aria-label={i18n.t("editor:ui.generateAnImage", { defaultValue: "Generate an image" })}
                 sx={{
                   "@container sketch-workspace (max-width: 400px)": {
                     minWidth: 44,
@@ -169,11 +169,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </IconButton>
       </Tooltip>
 
-      <Tooltip title="Editor actions">
+      <Tooltip title={i18n.t("editor:ui.editorActions", { defaultValue: "Editor actions" })}>
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Editor actions"
+          aria-label={i18n.t("editor:ui.editorActions", { defaultValue: "Editor actions" })}
           aria-haspopup="menu"
           data-testid="sketch-editor-menu"
         >

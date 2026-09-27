@@ -17,6 +17,7 @@ import type { MidiInstrument } from "@nodetool-ai/timeline";
 import { TYPOGRAPHY } from "../../ui_primitives";
 import { playAuditionNote } from "../preview/audition";
 import { pickPianoRollColors } from "./pianoRollColors";
+import { i18n } from "../../../i18n";
 import {
   isBlackKey,
   pitchName,
@@ -123,7 +124,7 @@ export const PianoRollKeyboard: React.FC<PianoRollKeyboardProps> = memo(
         css={canvasStyles}
         style={{ height: heightPx }}
         onPointerDown={handlePointerDown}
-        aria-label="Piano keyboard"
+        aria-label={i18n.t("editor:ui.pianoKeyboard", { defaultValue: "Piano keyboard" })}
         role="img"
       />
     );

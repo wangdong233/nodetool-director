@@ -30,6 +30,7 @@ import PackageRail from "./PackageRail";
 import PackageRow from "./PackageRow";
 import ConsolePanel from "./ConsolePanel";
 import PackagesMenu from "../menus/PackagesMenu";
+import { i18n } from "../../i18n";
 import {
   usePackageManager,
   type PMTab,
@@ -320,7 +321,7 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder="Search…  (press /)"
+                    placeholder={i18n.t("editor:ui.searchPress", { defaultValue: "Search…  (press /)" })}
                     showClear
                   />
                 </Box>
