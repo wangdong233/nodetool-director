@@ -291,7 +291,7 @@ function SettingsPage() {
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to save automatic update preference."
+        content: i18n.t("editor:notify.saveUpdatePrefFailed", { defaultValue: "Failed to save automatic update preference." })
       });
     });
   }, [addNotification, autoUpdatesEnabled, desktopUpdateSettingsApi, supportsDesktopUpdateSettings]);
@@ -311,7 +311,7 @@ function SettingsPage() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to save update channel preference."
+          content: i18n.t("editor:notify.saveChannelFailed", { defaultValue: "Failed to save update channel preference." })
         });
       });
   }, [addNotification, desktopUpdateSettingsApi, supportsDesktopUpdateSettings, updateChannel]);
@@ -400,14 +400,14 @@ function SettingsPage() {
         addNotification({
           type: "info",
           alert: true,
-          content: "Nodetool API Token copied to Clipboard!"
+          content: i18n.t("editor:notify.tokenCopied", { defaultValue: "Nodetool API Token copied to Clipboard!" })
         });
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to copy token to clipboard"
+          content: i18n.t("editor:notify.tokenCopyFailed", { defaultValue: "Failed to copy token to clipboard" })
         });
       }
     }

@@ -17,6 +17,7 @@ import {
   type RendererToolCallMessage
 } from "@nodetool-ai/protocol";
 import { recordProviderCallFailure } from "../../stores/ProviderCallFailureStore";
+import { i18n } from "../../i18n";
 
 /**
  * Base shape of every message routed through the WebSocket.
@@ -76,7 +77,7 @@ function requestRendererToolConsent(name: string, args: unknown): boolean {
     details = String(args);
   }
   return window.confirm(
-    `Allow the connected MCP client to run ${name}?\n\nArguments:\n${details}`
+    i18n.t("editor:notify.mcpAllowConfirm", { defaultValue: "Allow the connected MCP client to run {{name}}?\n\nArguments:\n{{details}}", name, details })
   );
 }
 

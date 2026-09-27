@@ -236,7 +236,7 @@ const PropertyContextMenuComponent: React.FC = () => {
         } catch {
           addNotification({
             type: "error",
-            content: "Failed to copy to clipboard"
+            content: i18n.t("editor:notify.copyFailed", { defaultValue: "Failed to copy to clipboard" })
           });
         }
       } else {

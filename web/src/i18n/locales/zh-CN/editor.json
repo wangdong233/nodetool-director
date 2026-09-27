@@ -188,5 +188,17 @@
     "noneYet": "还没有对话",
     "noneYetDesc": "从工作区的新建菜单开始一段对话。",
     "docsLabel": "对话与智能体"
+  },
+  "notify": {
+    "saveUpdatePrefFailed": "无法保存自动更新偏好。",
+    "saveChannelFailed": "无法保存更新渠道偏好。",
+    "tokenCopied": "Nodetool API 令牌已复制到剪贴板!",
+    "tokenCopyFailed": "无法复制令牌到剪贴板",
+    "copyFailed": "无法复制到剪贴板",
+    "hideInputConfirm": "隐藏输入“{{name}}”?相连的连线将被移除。",
+    "mcpAllowConfirm": "允许已连接的 MCP 客户端运行 {{name}}?\n\n参数:\n{{details}}",
+    "terminateWorkerConfirm": "终止此 worker?其卷与全部缓存模型将被永久删除,计费随之停止。",
+    "stopAllAria": "停止全部 worker",
+    "stopAll": "全部停止"
   }
 }

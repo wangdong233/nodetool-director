@@ -9,6 +9,7 @@ import {
   type ExposedInputPlacement
 } from "../../utils/exposedInputs";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface UseExposedInputToggleResult {
   canToggleExposed: (nodeId: string, propertyName: string) => boolean;
@@ -112,7 +113,7 @@ export function useExposedInputToggle(): UseExposedInputToggleResult {
       if (
         hasConnectedEdge &&
         !window.confirm(
-          `Hide input for "${propertyName}"? The connected edge will be removed.`
+          i18n.t("editor:notify.hideInputConfirm", { defaultValue: 'Hide input for "{{name}}"? The connected edge will be removed.', name: propertyName })
         )
       ) {
         return false;

@@ -188,5 +188,17 @@
     "noneYet": "No conversations yet",
     "noneYetDesc": "Start a chat from the workspace New menu.",
     "docsLabel": "Chat & agents"
+  },
+  "notify": {
+    "saveUpdatePrefFailed": "Failed to save automatic update preference.",
+    "saveChannelFailed": "Failed to save update channel preference.",
+    "tokenCopied": "Nodetool API Token copied to Clipboard!",
+    "tokenCopyFailed": "Failed to copy token to clipboard",
+    "copyFailed": "Failed to copy to clipboard",
+    "hideInputConfirm": "Hide input for \"{{name}}\"? The connected edge will be removed.",
+    "mcpAllowConfirm": "Allow the connected MCP client to run {{name}}?\n\nArguments:\n{{details}}",
+    "terminateWorkerConfirm": "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing.",
+    "stopAllAria": "Stop all workers",
+    "stopAll": "Stop All"
   }
 }

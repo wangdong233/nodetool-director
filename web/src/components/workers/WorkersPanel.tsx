@@ -23,6 +23,7 @@ import {
   type WorkerInstance
 } from "../../hooks/useWorkers";
 import WorkerProfilesDialog from "./WorkerProfilesDialog";
+import { i18n } from "../../i18n";
 
 /**
  * Workers panel — the live GPU-worker surface. Lists provisioned instances with
@@ -415,8 +416,7 @@ const WorkersPanel: React.FC = () => {
       // Destroying the volume loses the cached models — confirm first.
       if (
         !window.confirm(
-          "Terminate this worker? Its volume and all cached models are " +
-            "permanently deleted. This stops all billing."
+          i18n.t("editor:notify.terminateWorkerConfirm", { defaultValue: "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing." })
         )
       ) {
         return;
@@ -515,9 +515,9 @@ const WorkersPanel: React.FC = () => {
             variant="text"
             onClick={handleStopAll}
             disabled={shownInstances.length === 0}
-            aria-label="Stop all workers"
+            aria-label={i18n.t("editor:notify.stopAllAria", { defaultValue: "Stop all workers" })}
           >
-            Stop All
+            {i18n.t("editor:notify.stopAll", { defaultValue: "Stop All" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>
