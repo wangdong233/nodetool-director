@@ -30,7 +30,8 @@
     "selectAllOfType": "选中该类型的全部节点",
     "selectAllOfTypeTip": "选中全部同类型节点",
     "deleteNode": "删除节点",
-    "deleteNodeTip": "删除该节点"
+    "deleteNodeTip": "删除该节点",
+    "selectAllOfTypeTyped": "选中全部 {{type}} 节点"
   },
   "edge": {
     "insertReroute": "插入转接点",

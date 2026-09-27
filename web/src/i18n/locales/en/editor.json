@@ -30,7 +30,8 @@
     "selectAllOfType": "Select all nodes of this type",
     "selectAllOfTypeTip": "Select all nodes of the same type",
     "deleteNode": "Delete Node",
-    "deleteNodeTip": "Delete this node"
+    "deleteNodeTip": "Delete this node",
+    "selectAllOfTypeTyped": "Select all {{type}} nodes"
   },
   "edge": {
     "insertReroute": "Insert Reroute",

@@ -208,7 +208,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<QueueIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Duplicate</div>
+            <div className="tooltip-title">{i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}</div>
             <div className="tooltip-key">
               <kbd>CTRL</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>D</kbd>
             </div>
@@ -221,7 +221,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<CopyAllIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Copy</div>
+            <div className="tooltip-title">{i18n.t("common:action.copy", { defaultValue: "Copy" })}</div>
             <div className="tooltip-key">
               <kbd>CTRL</kbd>+<kbd>C</kbd> / <kbd>⌘</kbd>+<kbd>C</kbd>
             </div>
@@ -234,7 +234,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<ContentCutIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Cut</div>
+            <div className="tooltip-title">{i18n.t("common:action.cut", { defaultValue: "Cut" })}</div>
             <div className="tooltip-key">
               <kbd>CTRL</kbd>+<kbd>X</kbd> / <kbd>⌘</kbd>+<kbd>X</kbd>
             </div>
@@ -425,7 +425,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<RemoveCircleIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Delete</div>
+            <div className="tooltip-title">{i18n.t("common:action.delete", { defaultValue: "Delete" })}</div>
             <div className="tooltip-key">
               <kbd>Backspace</kbd> / <kbd>Del</kbd>
             </div>

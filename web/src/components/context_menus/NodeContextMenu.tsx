@@ -71,7 +71,7 @@ const NodeContextMenu: React.FC = () => {
       IconComponent={<ContentCopyIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Copy</div>
+          <div className="tooltip-title">{i18n.t("common:action.copy", { defaultValue: "Copy" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>C</kbd> / <kbd>⌘</kbd>+<kbd>C</kbd>
           </div>
@@ -85,7 +85,7 @@ const NodeContextMenu: React.FC = () => {
       IconComponent={<ContentCutIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Cut</div>
+          <div className="tooltip-title">{i18n.t("common:action.cut", { defaultValue: "Cut" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>X</kbd> / <kbd>⌘</kbd>+<kbd>X</kbd>
           </div>
@@ -106,7 +106,7 @@ const NodeContextMenu: React.FC = () => {
       IconComponent={<QueueIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Duplicate</div>
+          <div className="tooltip-title">{i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>D</kbd>
           </div>
@@ -120,7 +120,7 @@ const NodeContextMenu: React.FC = () => {
       IconComponent={<SouthIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Duplicate Vertical</div>
+          <div className="tooltip-title">{i18n.t("editor:node.duplicateVertical", { defaultValue: "Duplicate Vertical" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd>
           </div>
@@ -217,7 +217,7 @@ const NodeContextMenu: React.FC = () => {
       onClick={handlers.handleSelectAllSameType}
       label={
         node?.type
-          ? `Select all ${node.type.split(".").pop()} nodes`
+          ? i18n.t("editor:node.selectAllOfTypeTyped", { defaultValue: "Select all {{type}} nodes", type: node.type.split(".").pop() || "" })
           : i18n.t("editor:node.selectAllOfType", { defaultValue: "Select all nodes of this type" })
       }
       IconComponent={<FilterListIcon />}
