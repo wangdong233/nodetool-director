@@ -24,6 +24,7 @@ import { NodeData } from "../../stores/NodeData";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useGroupIntoSubgraph } from "../../hooks/nodes/useGroupIntoSubgraph";
 import { useNodes } from "../../contexts/NodeContext";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const NodeContextMenu: React.FC = () => {
   const {
@@ -58,9 +59,9 @@ const NodeContextMenu: React.FC = () => {
       <ContextMenuItem
         key="remove-from-group"
         onClick={handleRemoveFromGroup}
-        label="Remove from Group"
+        label={i18n.t("editor:node.removeFromGroup", { defaultValue: "Remove from Group" })}
         IconComponent={<GroupRemoveIcon />}
-        tooltip="Remove this node from the group"
+        tooltip={i18n.t("editor:node.removeFromGroupTip", { defaultValue: "Remove this node from the group" })}
       />
     ),
     <ContextMenuItem
@@ -94,14 +95,14 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="copy-nodedata"
       onClick={handlers.handleCopyMetadataToClipboard}
-      label="Copy Node as JSON"
+      label={i18n.t("editor:node.copyJson", { defaultValue: "Copy Node as JSON" })}
       IconComponent={<DataArrayIcon />}
-      tooltip="Copy this node's data as JSON to the clipboard"
+      tooltip={i18n.t("editor:node.copyJsonTip", { defaultValue: "Copy this node's data as JSON to the clipboard" })}
     />,
     <ContextMenuItem
       key="duplicate"
       onClick={handlers.handleDuplicate}
-      label="Duplicate"
+      label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
       IconComponent={<QueueIcon />}
       tooltip={
         <div className="tooltip-span">
@@ -115,7 +116,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="duplicate-vertical"
       onClick={handlers.handleDuplicateVertical}
-      label="Duplicate Vertical"
+      label={i18n.t("editor:node.duplicateVertical", { defaultValue: "Duplicate Vertical" })}
       IconComponent={<SouthIcon />}
       tooltip={
         <div className="tooltip-span">
@@ -129,20 +130,20 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="run-from-here"
       onClick={handlers.handleRunFromHere}
-      label={conditions.isWorkflowRunning ? "Running..." : "Run Node"}
+      label={conditions.isWorkflowRunning ? i18n.t("editor:node.running", { defaultValue: "Running..." }) : i18n.t("editor:node.runNode", { defaultValue: "Run Node" })}
       IconComponent={<PlayArrowIcon />}
-      tooltip="Run this node as its own job, using previous results as inputs"
+      tooltip={i18n.t("editor:node.runNodeTip", { defaultValue: "Run this node as its own job, using previous results as inputs" })}
       addButtonClassName={conditions.isWorkflowRunning ? "disabled" : ""}
     />,
     <ContextMenuItem
       key="toggle-bypass"
       onClick={handlers.handleToggleBypass}
-      label={conditions.isBypassed ? "Enable Node" : "Disable Node"}
+      label={conditions.isBypassed ? i18n.t("editor:node.enableNode", { defaultValue: "Enable Node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable Node" })}
       IconComponent={conditions.isBypassed ? <PowerSettingsNewIcon /> : <BlockIcon />}
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isBypassed ? "Enable Node" : "Disable Node"}
+            {conditions.isBypassed ? i18n.t("editor:node.enableNode", { defaultValue: "Enable Node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable Node" })}
           </div>
           <div className="tooltip-key">
             <kbd>B</kbd>
@@ -153,14 +154,14 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-collapsed"
       onClick={handlers.handleToggleCollapsed}
-      label={conditions.isCollapsed ? "Expand Node" : "Collapse Node"}
+      label={conditions.isCollapsed ? i18n.t("editor:node.expandNode", { defaultValue: "Expand Node" }) : i18n.t("editor:node.collapseNode", { defaultValue: "Collapse Node" })}
       IconComponent={
         conditions.isCollapsed ? <UnfoldMoreIcon /> : <UnfoldLessIcon />
       }
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isCollapsed ? "Expand Node" : "Collapse Node"}
+            {conditions.isCollapsed ? i18n.t("editor:node.expandNode", { defaultValue: "Expand Node" }) : i18n.t("editor:node.collapseNode", { defaultValue: "Collapse Node" })}
           </div>
           <div className="tooltip-key">
             <kbd>C</kbd>
@@ -171,12 +172,12 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-comment"
       onClick={handlers.handleToggleComment}
-      label={conditions.hasCommentTitle ? "Remove Comment" : "Add Comment"}
+      label={conditions.hasCommentTitle ? i18n.t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : i18n.t("editor:node.addComment", { defaultValue: "Add Comment" })}
       IconComponent={<EditIcon />}
       tooltip={
         conditions.hasCommentTitle
-          ? "Remove the comment from this node"
-          : "Add a comment to this node"
+          ? i18n.t("editor:node.removeCommentTip", { defaultValue: "Remove the comment from this node" })
+          : i18n.t("editor:node.addCommentTip", { defaultValue: "Add a comment to this node" })
       }
     />,
     <ContextMenuItem
@@ -184,32 +185,32 @@ const NodeContextMenu: React.FC = () => {
       onClick={handleGroupIntoSubgraph}
       label="Group into Subgraph"
       IconComponent={<AccountTreeIcon />}
-      tooltip="Move the selected nodes into a new subgraph node"
+      tooltip={i18n.t("editor:node.groupIntoSubgraphTip", { defaultValue: "Move the selected nodes into a new subgraph node" })}
     />,
     conditions.canConvertToInput && (
       <ContextMenuItem
         key="convert-to-input"
         onClick={handlers.handleConvertToInput}
-        label="Convert to Input Node"
+        label={i18n.t("editor:node.toInputNode", { defaultValue: "Convert to Input Node" })}
         IconComponent={<SwapHorizIcon />}
-        tooltip="Convert this constant node to an input node"
+        tooltip={i18n.t("editor:node.toInputNodeTip", { defaultValue: "Convert this constant node to an input node" })}
       />
     ),
     conditions.canConvertToConstant && (
       <ContextMenuItem
         key="convert-to-constant"
         onClick={handlers.handleConvertToConstant}
-        label="Convert to Constant Node"
+        label={i18n.t("editor:node.toConstantNode", { defaultValue: "Convert to Constant Node" })}
         IconComponent={<SwapHorizIcon />}
-        tooltip="Convert this input node to a constant node"
+        tooltip={i18n.t("editor:node.toConstantNodeTip", { defaultValue: "Convert this input node to a constant node" })}
       />
     ),
     <ContextMenuItem
       key="show-templates"
       onClick={handlers.handleFindTemplates}
-      label="Show Templates"
+      label={i18n.t("editor:node.showTemplates", { defaultValue: "Show Templates" })}
       IconComponent={<SearchIcon />}
-      tooltip="Find Templates using this node"
+      tooltip={i18n.t("editor:node.showTemplatesTip", { defaultValue: "Find Templates using this node" })}
     />,
     <ContextMenuItem
       key="select-all"
@@ -217,18 +218,18 @@ const NodeContextMenu: React.FC = () => {
       label={
         node?.type
           ? `Select all ${node.type.split(".").pop()} nodes`
-          : "Select all nodes of this type"
+          : i18n.t("editor:node.selectAllOfType", { defaultValue: "Select all nodes of this type" })
       }
       IconComponent={<FilterListIcon />}
-      tooltip="Select all nodes of the same type"
+      tooltip={i18n.t("editor:node.selectAllOfTypeTip", { defaultValue: "Select all nodes of the same type" })}
     />,
     <Divider key="divider-before-delete" />,
     <ContextMenuItem
       key="delete-node"
       onClick={handlers.handleDeleteNode}
-      label="Delete Node"
+      label={i18n.t("editor:node.deleteNode", { defaultValue: "Delete Node" })}
       IconComponent={<DeleteIcon />}
-      tooltip="Delete this node"
+      tooltip={i18n.t("editor:node.deleteNodeTip", { defaultValue: "Delete this node" })}
     />
   ];
 

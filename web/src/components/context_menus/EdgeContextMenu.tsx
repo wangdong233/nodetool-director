@@ -10,6 +10,7 @@ import { useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RouteIcon from "@mui/icons-material/Route";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface EdgeContextMenuProps {
   edgeId?: string;
@@ -118,13 +119,13 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
       <ContextMenuItem
         onClick={handleInsertReroute}
         IconComponent={<RouteIcon />}
-        label="Insert Reroute"
-        tooltip="Insert a reroute node at this position"
+        label={i18n.t("editor:edge.insertReroute", { defaultValue: "Insert Reroute" })}
+        tooltip={i18n.t("editor:edge.insertRerouteTip", { defaultValue: "Insert a reroute node at this position" })}
       />
       <ContextMenuItem
         onClick={handleDeleteEdge}
         IconComponent={<DeleteIcon />}
-        label="Delete Edge"
+        label={i18n.t("editor:edge.deleteEdge", { defaultValue: "Delete Edge" })}
         tooltip={
           <span
             style={{

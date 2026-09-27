@@ -1,0 +1,105 @@
+{
+  "common": {
+    "cut": "Cut",
+    "paste": "Paste"
+  },
+  "node": {
+    "removeFromGroup": "Remove from Group",
+    "removeFromGroupTip": "Remove this node from the group",
+    "copyJson": "Copy Node as JSON",
+    "copyJsonTip": "Copy this node's data as JSON to the clipboard",
+    "duplicateVertical": "Duplicate Vertical",
+    "running": "Running...",
+    "runNode": "Run Node",
+    "runNodeTip": "Run this node as its own job, using previous results as inputs",
+    "enableNode": "Enable Node",
+    "disableNode": "Disable Node",
+    "expandNode": "Expand Node",
+    "collapseNode": "Collapse Node",
+    "removeComment": "Remove Comment",
+    "addComment": "Add Comment",
+    "removeCommentTip": "Remove the comment from this node",
+    "addCommentTip": "Add a comment to this node",
+    "groupIntoSubgraph": "Group into Subgraph",
+    "groupIntoSubgraphTip": "Move the selected nodes into a new subgraph node",
+    "toInputNode": "Convert to Input Node",
+    "toInputNodeTip": "Convert this constant node to an input node",
+    "toConstantNode": "Convert to Constant Node",
+    "toConstantNodeTip": "Convert this input node to a constant node",
+    "showTemplates": "Show Templates",
+    "showTemplatesTip": "Find Templates using this node",
+    "selectAllOfType": "Select all nodes of this type",
+    "selectAllOfTypeTip": "Select all nodes of the same type",
+    "deleteNode": "Delete Node",
+    "deleteNodeTip": "Delete this node"
+  },
+  "edge": {
+    "insertReroute": "Insert Reroute",
+    "insertRerouteTip": "Insert a reroute node at this position",
+    "deleteEdge": "Delete Edge"
+  },
+  "pane": {
+    "fitScreen": "Fit Screen",
+    "addComment": "Add Comment",
+    "addCommentTip": "Hold C key and drag",
+    "addGroup": "Add Group",
+    "addGroupTip": "Add a group node",
+    "addWorkflow": "Add Workflow",
+    "addWorkflowTip": "Add a workflow node"
+  },
+  "selection": {
+    "runSelected": "Run Selected",
+    "runSelectedTip": "Run the selected nodes as their own job",
+    "align": "Align",
+    "arrange": "Arrange",
+    "enableAll": "Enable All",
+    "disableAll": "Disable All",
+    "collapseExpand": "Collapse / Expand",
+    "surroundWithGroup": "Surround With Group",
+    "removeFromGroup": "Remove from Group",
+    "selectAllConnected": "Select All Connected",
+    "selectInputs": "Select Inputs",
+    "selectOutputs": "Select Outputs"
+  },
+  "workflow": {
+    "removeFav": "Remove from favorites",
+    "addFav": "Add to favorites",
+    "openAsApp": "Open as App"
+  },
+  "asset": {
+    "openAsTab": "Open as Tab",
+    "openAsTabTip": "Open this asset in a new editor tab",
+    "editTimeline": "Edit Timeline",
+    "createTimelineFromVideo": "Create Timeline from Video",
+    "editTimelineTip": "Open the timeline this video was rendered from",
+    "moveToExisting": "Move to existing folder",
+    "moveToNew": "Move to new folder",
+    "createNewFolder": "Create new folder",
+    "downloadSelected": "Download Selected Assets",
+    "copyImage": "Copy Image",
+    "copyVideoInfo": "Copy Video Info",
+    "copyAudioInfo": "Copy Audio Info",
+    "copyContent": "Copy Content",
+    "compareImages": "Compare Images",
+    "untitled": "Untitled",
+    "renameTip": "Rename selected assets",
+    "deleteTip": "Delete selected assets",
+    "copyImageTip": "Copy image to clipboard",
+    "copyVideoTip": "Copy video URL and metadata to clipboard",
+    "copyAudioTip": "Copy audio URL and metadata to clipboard",
+    "copyContentTip": "Copy content to clipboard",
+    "sortByName": "Sort assets by name",
+    "sortByDate": "Sort assets by creation date",
+    "sortBySize": "Sort assets by file size"
+  },
+  "property": {
+    "removeDynamic": "Remove Dynamic Property",
+    "removeDynamicTip": "Remove this property from being dynamic"
+  },
+  "io": {
+    "searchNodes": "Search nodes...",
+    "searchConnectable": "Search connectable nodes",
+    "clearSearch": "clear search",
+    "searchNodesAria": "Search nodes"
+  }
+}

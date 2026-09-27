@@ -38,6 +38,7 @@ import {
   CONSTANT_NODE_OPTIONS,
   INPUT_NODE_OPTIONS
 } from "./paneNodeOptions";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const PaneContextMenu: React.FC = () => {
   const { handlePaste } = useCopyPaste();
@@ -255,7 +256,7 @@ const PaneContextMenu: React.FC = () => {
       >
         <ContextMenuItem
           onClick={handlePasteAndClose}
-          label="Paste"
+          label={i18n.t("editor:common.paste", { defaultValue: "Paste" })}
           addButtonClassName={`action ${!isClipboardValid ? "disabled" : ""}`}
           IconComponent={<SouthEastIcon />}
           tooltip={
@@ -275,7 +276,7 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleFitViewAndClose}
-          label="Fit Screen"
+          label={i18n.t("editor:pane.fitScreen", { defaultValue: "Fit Screen" })}
           IconComponent={<FitScreenIcon />}
           tooltip={getShortcutTooltip("fitView")}
         />
@@ -346,20 +347,20 @@ const PaneContextMenu: React.FC = () => {
         <Divider />
         <ContextMenuItem
           onClick={handleAddCommentAndClose}
-          label="Add Comment"
+          label={i18n.t("editor:pane.addComment", { defaultValue: "Add Comment" })}
           IconComponent={<AddCommentIcon />}
-          tooltip={"Hold C key and drag"}
+          tooltip={i18n.t("editor:pane.addCommentTip", { defaultValue: "Hold C key and drag" })}
         />
         <ContextMenuItem
           onClick={handleAddGroupAndClose}
-          label="Add Group"
+          label={i18n.t("editor:pane.addGroup", { defaultValue: "Add Group" })}
           IconComponent={<GroupWorkIcon />}
-          tooltip={"Add a group node"}
+          tooltip={i18n.t("editor:pane.addGroupTip", { defaultValue: "Add a group node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(WORKFLOW_NODE_TYPE)}
-          label="Add Workflow"
-          tooltip={"Add a workflow node"}
+          label={i18n.t("editor:pane.addWorkflow", { defaultValue: "Add Workflow" })}
+          tooltip={i18n.t("editor:pane.addWorkflowTip", { defaultValue: "Add a workflow node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}

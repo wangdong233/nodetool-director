@@ -36,6 +36,7 @@ import CallSplitIcon from "@mui/icons-material/CallSplit";
 import { useNodes } from "../../contexts/NodeContext";
 import isEqual from "../../utils/isEqual";
 import { shallow } from "zustand/shallow";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface SelectionContextMenuProps {
   top?: number;
@@ -203,7 +204,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleDuplicateNodes}
-        label="Duplicate"
+        label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<QueueIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -242,14 +243,14 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       />
       <ContextMenuItem
         onClick={handleRunSelected}
-        label="Run Selected"
+        label={i18n.t("editor:selection.runSelected", { defaultValue: "Run Selected" })}
         IconComponent={<PlayArrowIcon />}
-        tooltip="Run the selected nodes as their own job"
+        tooltip={i18n.t("editor:selection.runSelectedTip", { defaultValue: "Run the selected nodes as their own job" })}
       />
       {selectedNodes?.length > 1 && (
         <ContextMenuItem
           onClick={handleAlignNodesFalse}
-          label="Align"
+          label={i18n.t("editor:selection.align", { defaultValue: "Align" })}
           IconComponent={<FormatAlignLeftIcon />}
           tooltip={
             <div className="tooltip-span">
@@ -264,7 +265,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       {selectedNodes?.length > 1 && (
         <ContextMenuItem
           onClick={handleAlignNodesTrue}
-          label="Arrange"
+          label={i18n.t("editor:selection.arrange", { defaultValue: "Arrange" })}
           IconComponent={<FormatAlignLeftIcon />}
           tooltip={
             <div className="tooltip-span">
@@ -279,7 +280,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleToggleBypass}
-        label={majorityBypassed ? "Enable All" : "Disable All"}
+        label={majorityBypassed ? i18n.t("editor:selection.enableAll", { defaultValue: "Enable All" }) : i18n.t("editor:selection.disableAll", { defaultValue: "Disable All" })}
         IconComponent={<BlockIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -295,7 +296,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleToggleCollapsed}
-        label="Collapse / Expand"
+        label={i18n.t("editor:selection.collapseExpand", { defaultValue: "Collapse / Expand" })}
         IconComponent={<UnfoldLessIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -310,7 +311,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       {!anyHasParent && (
         <ContextMenuItem
           onClick={handleSurroundWithGroup}
-          label="Surround With Group"
+          label={i18n.t("editor:selection.surroundWithGroup", { defaultValue: "Surround With Group" })}
           IconComponent={<GroupWorkIcon />}
           tooltip={
             <div className="tooltip-span">
@@ -328,9 +329,9 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleGroupIntoSubgraph}
-        label="Group into Subgraph"
+        label={i18n.t("editor:node.groupIntoSubgraph", { defaultValue: "Group into Subgraph" })}
         IconComponent={<AccountTreeIcon />}
-        tooltip="Move the selected nodes into a new subgraph node"
+        tooltip={i18n.t("editor:node.groupIntoSubgraphTip", { defaultValue: "Move the selected nodes into a new subgraph node" })}
         addButtonClassName={`action ${
           selectedNodes.length < 1 ? "disabled" : ""
         }`}
@@ -339,7 +340,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       {anyHasParent && (
         <ContextMenuItem
           onClick={handleRemoveFromGroup}
-          label="Remove from Group"
+          label={i18n.t("editor:node.removeFromGroup", { defaultValue: "Remove from Group" })}
           IconComponent={<GroupWorkIcon />}
           tooltip={
             <div className="tooltip-span">
@@ -370,7 +371,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleSelectConnectedAll}
-        label="Select All Connected"
+        label={i18n.t("editor:selection.selectAllConnected", { defaultValue: "Select All Connected" })}
         IconComponent={<CallSplitIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -386,7 +387,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       />
       <ContextMenuItem
         onClick={handleSelectConnectedInputs}
-        label="Select Inputs"
+        label={i18n.t("editor:selection.selectInputs", { defaultValue: "Select Inputs" })}
         IconComponent={<ArrowBackIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -402,7 +403,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       />
       <ContextMenuItem
         onClick={handleSelectConnectedOutputs}
-        label="Select Outputs"
+        label={i18n.t("editor:selection.selectOutputs", { defaultValue: "Select Outputs" })}
         IconComponent={<ArrowForwardIcon />}
         tooltip={
           <div className="tooltip-span">

@@ -18,6 +18,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const WorkflowContextMenu: React.FC = () => {
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
@@ -85,19 +86,19 @@ const WorkflowContextMenu: React.FC = () => {
       </MenuItem>
       <ContextMenuItem
         onClick={handleToggleFavorite}
-        label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        label={isFavorite ? i18n.t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : i18n.t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
       <ContextMenuItem onClick={handleEdit} label="Edit" IconComponent={<EditIcon />} />
       <ContextMenuItem
         onClick={handleDuplicate}
-        label="Duplicate"
+        label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
       {onOpenAsApp && (
         <ContextMenuItem
           onClick={handleOpenAsApp}
-          label="Open as App"
+          label={i18n.t("editor:workflow.openAsApp", { defaultValue: "Open as App" })}
           IconComponent={<StarIcon />}
         />
       )}

@@ -10,6 +10,7 @@ import {
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import { i18n } from "../../i18n";
 
 /**
  * Right-click menu for sidebar document list items (timelines, sketches,
@@ -68,19 +69,19 @@ const SidebarDocumentContextMenu: React.FC = () => {
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleRename}
-          label="Rename"
+          label={i18n.t("common:action.rename", { defaultValue: "Rename" })}
           IconComponent={<EditIcon />}
         />
       )}
       <ContextMenuItem
         onClick={handleDuplicate}
-        label="Duplicate"
+        label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleDelete}
-          label="Delete"
+          label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
           addButtonClassName="delete"
           IconComponent={<DeleteIcon />}
         />

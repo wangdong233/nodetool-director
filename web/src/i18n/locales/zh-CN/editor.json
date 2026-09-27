@@ -1,0 +1,105 @@
+{
+  "common": {
+    "cut": "剪切",
+    "paste": "粘贴"
+  },
+  "node": {
+    "removeFromGroup": "从分组移除",
+    "removeFromGroupTip": "将该节点移出分组",
+    "copyJson": "复制节点 JSON",
+    "copyJsonTip": "将该节点的数据以 JSON 复制到剪贴板",
+    "duplicateVertical": "向下创建副本",
+    "running": "运行中…",
+    "runNode": "运行节点",
+    "runNodeTip": "将该节点作为独立任务运行,以上次结果为输入",
+    "enableNode": "启用节点",
+    "disableNode": "停用节点",
+    "expandNode": "展开节点",
+    "collapseNode": "折叠节点",
+    "removeComment": "移除备注",
+    "addComment": "添加备注",
+    "removeCommentTip": "移除该节点的备注",
+    "addCommentTip": "为该节点添加备注",
+    "groupIntoSubgraph": "编组为子图",
+    "groupIntoSubgraphTip": "将所选节点移入一个新的子图节点",
+    "toInputNode": "转为输入节点",
+    "toInputNodeTip": "将该常量节点转为输入节点",
+    "toConstantNode": "转为常量节点",
+    "toConstantNodeTip": "将该输入节点转为常量节点",
+    "showTemplates": "显示模板",
+    "showTemplatesTip": "查找使用该节点的模板",
+    "selectAllOfType": "选中该类型的全部节点",
+    "selectAllOfTypeTip": "选中全部同类型节点",
+    "deleteNode": "删除节点",
+    "deleteNodeTip": "删除该节点"
+  },
+  "edge": {
+    "insertReroute": "插入转接点",
+    "insertRerouteTip": "在此位置插入转接节点",
+    "deleteEdge": "删除连线"
+  },
+  "pane": {
+    "fitScreen": "适配屏幕",
+    "addComment": "添加备注",
+    "addCommentTip": "按住 C 键拖动",
+    "addGroup": "添加分组",
+    "addGroupTip": "添加分组节点",
+    "addWorkflow": "添加工作流",
+    "addWorkflowTip": "添加工作流节点"
+  },
+  "selection": {
+    "runSelected": "运行所选",
+    "runSelectedTip": "将所选节点作为独立任务运行",
+    "align": "对齐",
+    "arrange": "排布",
+    "enableAll": "全部启用",
+    "disableAll": "全部停用",
+    "collapseExpand": "折叠 / 展开",
+    "surroundWithGroup": "围成分组",
+    "removeFromGroup": "从分组移除",
+    "selectAllConnected": "选中全部相连",
+    "selectInputs": "选中输入",
+    "selectOutputs": "选中输出"
+  },
+  "workflow": {
+    "removeFav": "取消收藏",
+    "addFav": "添加收藏",
+    "openAsApp": "作为小程序打开"
+  },
+  "asset": {
+    "openAsTab": "在标签页中打开",
+    "openAsTabTip": "在新标签页中打开此素材",
+    "editTimeline": "编辑时间线",
+    "createTimelineFromVideo": "从视频创建时间线",
+    "editTimelineTip": "打开渲染此视频的时间线",
+    "moveToExisting": "移到现有文件夹",
+    "moveToNew": "移到新文件夹",
+    "createNewFolder": "新建文件夹",
+    "downloadSelected": "下载所选素材",
+    "copyImage": "复制图片",
+    "copyVideoInfo": "复制视频信息",
+    "copyAudioInfo": "复制音频信息",
+    "copyContent": "复制内容",
+    "compareImages": "对比图片",
+    "untitled": "未命名",
+    "renameTip": "重命名所选素材",
+    "deleteTip": "删除所选素材",
+    "copyImageTip": "复制图片到剪贴板",
+    "copyVideoTip": "复制视频地址与元数据到剪贴板",
+    "copyAudioTip": "复制音频地址与元数据到剪贴板",
+    "copyContentTip": "复制内容到剪贴板",
+    "sortByName": "按名称排序素材",
+    "sortByDate": "按创建时间排序素材",
+    "sortBySize": "按文件大小排序素材"
+  },
+  "property": {
+    "removeDynamic": "移除动态属性",
+    "removeDynamicTip": "取消该属性的动态化"
+  },
+  "io": {
+    "searchNodes": "搜索节点…",
+    "searchConnectable": "搜索可连接节点",
+    "clearSearch": "清除搜索",
+    "searchNodesAria": "搜索节点"
+  }
+}

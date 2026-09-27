@@ -37,6 +37,7 @@ import { serializeValue } from "../../utils/serializeValue";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
+import { i18n, useAppLanguage } from "../../i18n";
 
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(
@@ -409,10 +410,10 @@ const PropertyContextMenuComponent: React.FC = () => {
       {isDynamicProperty && (
         <ContextMenuItem
           onClick={handleRemoveDynamicProperty}
-          label="Remove Dynamic Property"
+          label={i18n.t("editor:property.removeDynamic", { defaultValue: "Remove Dynamic Property" })}
           addButtonClassName="remove-dynamic-property"
           IconComponent={<DeleteIcon />}
-          tooltip="Remove this property from being dynamic"
+          tooltip={i18n.t("editor:property.removeDynamicTip", { defaultValue: "Remove this property from being dynamic" })}
         />
       )}
     </ContextMenu>

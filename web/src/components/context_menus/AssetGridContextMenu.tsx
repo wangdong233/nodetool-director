@@ -14,6 +14,7 @@ import StorageIcon from "@mui/icons-material/Storage";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const AssetGridContextMenu = () => {
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
@@ -59,7 +60,7 @@ const AssetGridContextMenu = () => {
       <Divider />
       <ContextMenuItem
         onClick={handleCreateFolder}
-        label="Create new folder"
+        label={i18n.t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
         IconComponent={<CreateNewFolderIcon />}
         tooltip={`Create a new folder in '${currentFolder?.name || "ASSETS"}' `}
       />
@@ -68,19 +69,19 @@ const AssetGridContextMenu = () => {
         onClick={handleSortByName}
         label={`Sort by name ${assetsOrder === "name" ? "✓" : ""}`}
         IconComponent={<SortByAlphaIcon />}
-        tooltip="Sort assets by name"
+        tooltip={i18n.t("editor:asset.sortByName", { defaultValue: "Sort assets by name" })}
       />
       <ContextMenuItem
         onClick={handleSortByDate}
         label={`Sort by date ${assetsOrder === "date" ? "✓" : ""}`}
         IconComponent={<AccessTimeIcon />}
-        tooltip="Sort assets by creation date"
+        tooltip={i18n.t("editor:asset.sortByDate", { defaultValue: "Sort assets by creation date" })}
       />
       <ContextMenuItem
         onClick={handleSortBySize}
         label={`Sort by size ${assetsOrder === "size" ? "✓" : ""}`}
         IconComponent={<StorageIcon />}
-        tooltip="Sort assets by file size"
+        tooltip={i18n.t("editor:asset.sortBySize", { defaultValue: "Sort assets by file size" })}
       />
     </ContextMenu>
   );

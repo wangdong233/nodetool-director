@@ -40,6 +40,7 @@ import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { useHandleNodePlacement } from "../../hooks/useHandleNodePlacement";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const NODE_ROW_HEIGHT = 28;
 
@@ -523,12 +524,12 @@ const OutputContextMenu: React.FC = () => {
             inputRef={searchInputRef}
             size="small"
             fullWidth
-            placeholder="Search nodes..."
+            placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes..." })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={handleSearchKeyDown}
-            aria-label="Search connectable nodes"
+            aria-label={i18n.t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
             sx={{
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "action.disabledBackground",
@@ -562,7 +563,7 @@ const OutputContextMenu: React.FC = () => {
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <ToolbarIconButton
-                      aria-label="clear search"
+                      aria-label={i18n.t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
                       icon={<ClearIcon sx={{ fontSize: 16 }} />}
