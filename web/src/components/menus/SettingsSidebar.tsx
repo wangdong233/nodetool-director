@@ -1,4 +1,5 @@
 import { useCallback, memo } from "react";
+import { i18n } from "../../i18n";
 
 interface SidebarItem {
   id: string;
@@ -34,7 +35,7 @@ const SettingsSidebar = ({
   );
 
   return (
-    <nav className="settings-sidebar" aria-label="Settings sections">
+    <nav className="settings-sidebar" aria-label={i18n.t("editor:ui.settingsSections", { defaultValue: "Settings sections" })}>
       {sections.map((section) => (
         <div key={section.category || section.items[0]?.id} className="settings-sidebar-folder">
           {section.category ? (

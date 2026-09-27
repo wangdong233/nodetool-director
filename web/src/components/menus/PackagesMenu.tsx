@@ -28,6 +28,7 @@ import usePacksStore, {
   type SkipReason
 } from "../../stores/PacksStore";
 import { useShallow } from "zustand/react/shallow";
+import { i18n } from "../../i18n";
 
 function statusColor(
   pack: PackInfo
@@ -106,7 +107,7 @@ const PackRow = memo(function PackRow({
         </FlexColumn>
         <FlexRow gap={1.5} align="center" sx={{ flexShrink: 0 }}>
           <LabeledSwitch
-            label="Trusted"
+            label={i18n.t("editor:ui.trusted", { defaultValue: "Trusted" })}
             checked={trusted}
             onChange={onTrustChange}
           />

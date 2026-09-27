@@ -40,6 +40,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import PanelToolbar from "./PanelToolbar";
+import { i18n } from "../../i18n";
 
 const EVENT_ICONS = {
   node_start: <PlayArrowIcon sx={{ fontSize: 14, color: "info.main" }} />,
@@ -438,19 +439,19 @@ const TracePanel: React.FC = () => {
           <>
             <CopyButton
               value={copyValue}
-              tooltip="Copy to clipboard"
+              tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
               disabled={events.length === 0}
               nodrag={false}
             />
             <DownloadButton
               onClick={handleExport}
-              tooltip="Export as JSON"
+              tooltip={i18n.t("editor:ui.exportAsJSON", { defaultValue: "Export as JSON" })}
               disabled={events.length === 0}
               nodrag={false}
             />
             <DeleteButton
               onClick={clear}
-              tooltip="Clear trace"
+              tooltip={i18n.t("editor:ui.clearTrace", { defaultValue: "Clear trace" })}
               iconVariant="clear"
               nodrag={false}
             />
@@ -459,7 +460,7 @@ const TracePanel: React.FC = () => {
       >
         {runs.length > 0 && selectedRunId ? (
           <SelectField
-            label="Trace run"
+            label={i18n.t("editor:ui.traceRun", { defaultValue: "Trace run" })}
             hideLabel
             size="small"
             variant="standard"
@@ -473,7 +474,7 @@ const TracePanel: React.FC = () => {
         {events.length === 0 ? (
           <EmptyState
             variant="empty"
-            title="No trace data"
+            title={i18n.t("editor:ui.noTraceData", { defaultValue: "No trace data" })}
             description="Run a workflow to see the execution trace"
             size="small"
           />

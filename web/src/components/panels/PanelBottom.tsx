@@ -581,7 +581,7 @@ const PanelBottom: React.FC = () => {
                 />
               ))}
             </div>
-            <div className="meta-cluster" aria-label="Workflow stats">
+            <div className="meta-cluster" aria-label={i18n.t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>

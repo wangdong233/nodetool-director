@@ -12,6 +12,7 @@ import { getSharedSettingsStyles } from "./settingsMenuStyles";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { BASE_URL } from "../../stores/BASE_URL";
+import { i18n } from "../../i18n";
 
 const CHROME_EXTENSIONS_URL = "chrome://extensions";
 
@@ -130,7 +131,7 @@ const BrowserExtensionSettingsMenu = () => {
         <FlexRow gap={1} sx={{ flexWrap: "wrap" }}>
           <NavButton
             icon={<DownloadIcon />}
-            label="Download extension"
+            label={i18n.t("editor:ui.downloadExtension", { defaultValue: "Download extension" })}
             color="primary"
             onClick={() => window.open(downloadUrl, "_blank")}
             navSize="small"
@@ -139,7 +140,7 @@ const BrowserExtensionSettingsMenu = () => {
           {canReveal ? (
             <NavButton
               icon={<FolderOpenIcon />}
-              label="Reveal build folder"
+              label={i18n.t("editor:ui.revealBuildFolder", { defaultValue: "Reveal build folder" })}
               onClick={handleReveal}
               navSize="small"
               sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}
@@ -148,7 +149,7 @@ const BrowserExtensionSettingsMenu = () => {
             distExists && (
               <NavButton
                 icon={<ContentCopyIcon />}
-                label="Copy build path"
+                label={i18n.t("editor:ui.copyBuildPath", { defaultValue: "Copy build path" })}
                 onClick={() => handleCopy(distPath, "build path")}
                 navSize="small"
                 sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}
@@ -157,7 +158,7 @@ const BrowserExtensionSettingsMenu = () => {
           )}
           <NavButton
             icon={<ContentCopyIcon />}
-            label="Copy chrome://extensions"
+            label={i18n.t("editor:ui.copyChromeExtensions", { defaultValue: "Copy chrome://extensions" })}
             onClick={() => handleCopy(CHROME_EXTENSIONS_URL, CHROME_EXTENSIONS_URL)}
             navSize="small"
             sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}

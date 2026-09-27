@@ -7,6 +7,7 @@ import { isGoogleWorkspaceEnabled } from "../../lib/runtimeConfig";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import useAuth from "../../stores/useAuth";
 import googleColorIcon from "../../icons/providers/google-color.svg";
+import { i18n } from "../../i18n";
 import {
   Box,
   Card,

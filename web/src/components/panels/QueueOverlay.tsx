@@ -30,6 +30,7 @@ import { Job } from "../../stores/ApiTypes";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import { i18n } from "../../i18n";
 
 const RUNNING = new Set(["running"]);
 const QUEUED = new Set(["queued", "scheduled", "starting"]);
@@ -218,7 +219,7 @@ const RunningCard = memo(function RunningCard({
         >
           <IconButton
             icon={<CloseIcon sx={{ fontSize: 15 }} />}
-            label="Stop run"
+            label={i18n.t("editor:ui.stopRun", { defaultValue: "Stop run" })}
             onClick={() => onCancel(job.id)}
             hoverColor="error.main"
           />
@@ -235,7 +236,7 @@ const RunningCard = memo(function RunningCard({
       <Box
         role="button"
         tabIndex={0}
-        aria-label="Show run on canvas"
+        aria-label={i18n.t("editor:ui.showRunOnCanvas", { defaultValue: "Show run on canvas" })}
         aria-pressed={isFocused}
         onClick={handleFocus}
         onKeyDown={(e: React.KeyboardEvent) => {
@@ -287,7 +288,7 @@ const EnqueuedCard = memo(function EnqueuedCard({
         </Text>
         <IconButton
           icon={<CloseIcon sx={{ fontSize: 15 }} />}
-          label="Remove from queue"
+          label={i18n.t("editor:ui.removeFromQueue", { defaultValue: "Remove from queue" })}
           onClick={() => onCancel(job.id)}
           hoverColor="error.main"
         />
@@ -513,7 +514,7 @@ const QueueOverlay = memo(function QueueOverlay() {
             )}
             <IconButton
               icon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
-              label="Expand queue"
+              label={i18n.t("editor:ui.expandQueue", { defaultValue: "Expand queue" })}
               onClick={() => setExpanded(true)}
             />
           </FlexRow>
@@ -549,7 +550,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         </FlexRow>
         <IconButton
           icon={<RemoveIcon sx={{ fontSize: 16 }} />}
-          label="Collapse queue"
+          label={i18n.t("editor:ui.collapseQueue", { defaultValue: "Collapse queue" })}
           onClick={() => setExpanded(false)}
         />
       </FlexRow>

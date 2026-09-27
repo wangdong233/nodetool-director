@@ -27,6 +27,7 @@ import {
 import { ConfirmDialog } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 type CustomProviderRow = RouterOutputs["customProviders"]["list"][number];
 type TestResult = RouterOutputs["customProviders"]["test"];
@@ -130,7 +131,7 @@ const ProviderRow = memo(function ProviderRow({
             </Text>
             <Chip label={provider.provider_id} compact variant="outlined" />
             {provider.has_api_key && (
-              <Chip label="Key set" compact variant="outlined" color="success" />
+              <Chip label={i18n.t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
@@ -429,7 +430,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       {rows.length === 0 ? (
         <EmptyState
           variant="no-results"
-          title="No endpoints yet"
+          title={i18n.t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
           description="Add a base URL and an API key to use any OpenAI-compatible provider."
         />
       ) : (
@@ -473,7 +474,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             value={draft.name}
             onChange={handleNameChange}
             fullWidth
-            placeholder="My Proxy"
+            placeholder={i18n.t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
             autoFocus
             variant="outlined"
             size="small"
@@ -495,7 +496,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             helperText={`Provider id: custom_${draft.slug || "…"}`}
           />
           <TextInput
-            label="Base URL"
+            label={i18n.t("editor:ui.baseURL", { defaultValue: "Base URL" })}
             value={draft.baseUrl}
             onChange={handleBaseUrlChange}
             fullWidth
@@ -518,31 +519,31 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
           />
           <TextInput
-            label="Models"
+            label={i18n.t("editor:ui.models", { defaultValue: "Models" })}
             value={draft.models}
             onChange={handleModelsChange}
             fullWidth
-            placeholder="Leave blank to read GET /models"
+            placeholder={i18n.t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
             variant="outlined"
             size="small"
             helperText="Comma-separated model ids, for endpoints with no /models route."
           />
           <TextInput
-            label="Image models"
+            label={i18n.t("editor:ui.imageModels", { defaultValue: "Image models" })}
             value={draft.imageModels}
             onChange={handleImageModelsChange}
             fullWidth
-            placeholder="Optional, e.g. flux-dev, seedream-4"
+            placeholder={i18n.t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
             variant="outlined"
             size="small"
             helperText="Detected from the model list. Add ids that Test misses. Calls go to /images/generations."
           />
           <TextInput
-            label="Video models"
+            label={i18n.t("editor:ui.videoModels", { defaultValue: "Video models" })}
             value={draft.videoModels}
             onChange={handleVideoModelsChange}
             fullWidth
-            placeholder="Optional, e.g. kling-v2, veo-3"
+            placeholder={i18n.t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
             variant="outlined"
             size="small"
             helperText="Detected from the model list. Add ids that Test misses. Calls go to /videos."
@@ -558,7 +559,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Remove endpoint"
+        title={i18n.t("editor:ui.removeEndpoint", { defaultValue: "Remove endpoint" })}
         content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
         confirmText="Remove"
         cancelText="Cancel"

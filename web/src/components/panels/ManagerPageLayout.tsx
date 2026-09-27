@@ -6,6 +6,7 @@ import React, { memo, useMemo } from "react";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Box, EditorButton, FlexColumn, FlexRow, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { docsLink, type DocsTopic } from "../../config/docsLinks";
+import { i18n } from "../../i18n";
 
 interface ManagerPageLayoutProps {
   /** Icon shown in the tinted chip beside the title. */

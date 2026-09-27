@@ -52,6 +52,7 @@ import CanvasMediaComposer from "./CanvasMediaComposer";
 import ConversationOverlay from "./ConversationOverlay";
 import GameLandingPanel from "../setup/game/GameLandingPanel";
 import TriggerActivationButton from "./TriggerActivationButton";
+import { i18n } from "../../i18n";
 
 const MOBILE_DOCK_POSITION: DockPosition = { x: 0, y: 0 };
 const MOBILE_DOCK_LAYER_STYLE: React.CSSProperties = {
@@ -521,14 +522,14 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
 
   const dragHandle = (
     <Tooltip
-      title="Drag to move • double-click to reset"
+      title={i18n.t("editor:ui.dragToMoveDoubleclickToReset", { defaultValue: "Drag to move • double-click to reset" })}
       placement="top"
       delay={TOOLTIP_ENTER_DELAY}
     >
       <span
         role="button"
         tabIndex={-1}
-        aria-label="Move chat dock"
+        aria-label={i18n.t("editor:ui.moveChatDock", { defaultValue: "Move chat dock" })}
         className="dock-drag-handle composer-drag-handle"
         onDoubleClick={resetPosition}
       >
@@ -599,7 +600,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className="composer-action"
             onClick={handleToggleNodeMenu}
-            aria-label="Add node"
+            aria-label={i18n.t("editor:ui.addNode", { defaultValue: "Add node" })}
           >
             <AddCircleIcon />
           </button>
@@ -615,7 +616,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           type="button"
           className={cn("composer-convo", conversationOpen && "active")}
           onClick={() => setConversationCollapsed(!conversationCollapsed)}
-          aria-label="Toggle conversation"
+          aria-label={i18n.t("editor:ui.toggleConversation", { defaultValue: "Toggle conversation" })}
           aria-pressed={conversationOpen}
         >
           <ForumOutlinedIcon />
@@ -672,7 +673,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
       {/* On mobile Auto Layout and Save move into the ⋮ menu to keep the
           action cluster within a phone-width composer row. */}
       {editorViewMode === "graph" && !isMobile && (
-        <Tooltip title="Auto Layout" placement="top" delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={i18n.t("editor:ui.autoLayout", { defaultValue: "Auto Layout" })} placement="top" delay={TOOLTIP_ENTER_DELAY}>
           <button
             type="button"
             className="composer-action"
@@ -690,7 +691,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className="composer-action"
             onClick={handleSave}
-            aria-label="Save workflow"
+            aria-label={i18n.t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
           >
             <SaveIcon />
           </button>
@@ -702,7 +703,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
       <TriggerActivationButton />
 
       <Tooltip
-        title="Workflow actions"
+        title={i18n.t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
         placement="top"
         delay={TOOLTIP_ENTER_DELAY}
       >
@@ -710,7 +711,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           type="button"
           className={cn("composer-menu", actionsMenuAnchor && "active")}
           onClick={handleOpenActionsMenu}
-          aria-label="Workflow actions"
+          aria-label={i18n.t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
           aria-haspopup="menu"
           aria-expanded={Boolean(actionsMenuAnchor)}
         >
@@ -787,7 +788,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           onClick={runWithClose(handleToggleViewMode)}
         />
         <MenuItemPrimitive
-          label="Instant Update"
+          label={i18n.t("editor:ui.instantUpdate", { defaultValue: "Instant Update" })}
           icon={<BoltIcon fontSize="small" />}
           secondary={instantUpdate ? "On" : "Off"}
           onClick={runWithClose(handleToggleInstantUpdate)}
@@ -801,7 +802,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
         {isMobile && editorViewMode === "graph" && (
           <MenuItemPrimitive
-            label="Auto Layout"
+            label={i18n.t("editor:ui.autoLayout", { defaultValue: "Auto Layout" })}
             icon={<LayoutIcon fontSize="small" />}
             onClick={runWithClose(handleAutoLayout)}
           />
@@ -814,19 +815,19 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           />
         )}
         <MenuItemPrimitive
-          label="Mini Map"
+          label={i18n.t("editor:ui.miniMap", { defaultValue: "Mini Map" })}
           icon={<MapIcon fontSize="small" />}
           secondary={isMiniMapVisible ? "Visible" : "Hidden"}
           onClick={runWithClose(handleToggleMiniMap)}
         />
         <MenuItemPrimitive
-          label="Download JSON"
+          label={i18n.t("editor:ui.downloadJSON", { defaultValue: "Download JSON" })}
           icon={<DownloadIcon fontSize="small" />}
           onClick={runWithClose(handleDownload)}
         />
         {isMobile && (
           <MenuItemPrimitive
-            label="Panels…"
+            label={i18n.t("editor:ui.panels", { defaultValue: "Panels…" })}
             icon={<MoreHorizIcon fontSize="small" />}
             onClick={runWithClose(handleOpenPaneMenu)}
           />

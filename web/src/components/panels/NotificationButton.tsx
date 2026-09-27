@@ -9,6 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import { CopyButton, Text, Caption, NotificationBadge, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SHADOW } from "../ui_primitives";
 import { useShallow } from "zustand/react/shallow";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 
 const popoverStyles = css({
   paddingRight: "4em",
@@ -71,7 +72,7 @@ const NotificationButton: React.FC = React.memo(() => {
         count={unreadCount}
         color="secondary"
         dot
-        tooltip="Notifications"
+        tooltip={i18n.t("editor:ui.notifications", { defaultValue: "Notifications" })}
         ariaLabel={getNotificationButtonLabel(unreadCount)}
       >
         <ToolbarIconButton
@@ -99,7 +100,7 @@ const NotificationButton: React.FC = React.memo(() => {
         <Box
           className="notification-container"
           role="region"
-          aria-label="Notifications"
+          aria-label={i18n.t("editor:ui.notifications", { defaultValue: "Notifications" })}
           sx={{
             p: 3,
             width: "600px",
@@ -181,7 +182,7 @@ const NotificationButton: React.FC = React.memo(() => {
                   <CopyButton
                     value={notification.content}
                     className="copy-button"
-                    tooltip="Copy to clipboard"
+                    tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
                   />
                   {notification.type === "error" ? (
                     <ReportBugButton

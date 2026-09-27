@@ -7,6 +7,7 @@ import { useNodeStoreRef } from "../../contexts/NodeContext";
 import { useAutoAddGeneratedMediaToCanvas } from "../../hooks/handlers/useAutoAddGeneratedMediaToCanvas";
 import { buildUiContext } from "../../lib/chat/uiContext";
 import type { MessageContent } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 import type {
   ChatOutgoingMessage,
   MediaGenerationRequest

@@ -6,6 +6,7 @@ import React, { useCallback } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 
 import { usePanelStore } from "../../stores/PanelStore";
+import { i18n } from "../../i18n";
 import {
   ToolbarIconButton,
   BORDER_RADIUS,

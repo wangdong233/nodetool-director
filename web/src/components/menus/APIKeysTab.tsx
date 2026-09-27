@@ -52,6 +52,7 @@ import {
 } from "./providerCatalog";
 
 import { docsLink, docsUrl } from "../../config/docsLinks";
+import { i18n } from "../../i18n";
 
 // For multi-field credentials, find the parent provider (the one with fields array)
 const getParentProviderMeta = (key: string): ProviderMeta | undefined => {
@@ -415,7 +416,7 @@ export const ProviderCard = memo(function ProviderCard({
                 Manage
               </EditorButton>
               <ToolbarIconButton
-                tooltip="Delete key"
+                tooltip={i18n.t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
                 icon={<DeleteIcon fontSize="small" />}
                 size="small"
                 color="error"
@@ -792,7 +793,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {!hasContent && lowerSearch && (
         <EmptyState
           variant="no-results"
-          title="No providers found"
+          title={i18n.t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
           description={`No providers match "${searchTerm}"`}
         />
       )}
@@ -800,7 +801,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {connected.length > 0 && (
         <div>
           <SectionTitle
-            title="Connected Providers"
+            title={i18n.t("editor:ui.connectedProviders", { defaultValue: "Connected Providers" })}
             count={connected.length}
             theme={theme}
           />
@@ -1012,7 +1013,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                       value={formValue}
                       onChange={(e) => setFormValue(e.target.value)}
                       fullWidth
-                      placeholder="Paste your API key here"
+                      placeholder={i18n.t("editor:ui.pasteYourAPIKeyHere", { defaultValue: "Paste your API key here" })}
                       autoFocus
                       variant="outlined"
                       size="small"
@@ -1033,7 +1034,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         open={deleteDialogOpen}
         onClose={handleCloseDelete}
         onConfirm={confirmDelete}
-        title="Delete API Key"
+        title={i18n.t("editor:ui.deleteAPIKey", { defaultValue: "Delete API Key" })}
         content={`Are you sure you want to delete the ${secretToDelete ? getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key : ""} API key?`}
         confirmText="Delete"
         cancelText="Cancel"

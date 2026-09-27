@@ -37,6 +37,7 @@ import {
   COMMENT_NODE_METADATA
 } from "../../utils/nodeUtils";
 import { shallow } from "zustand/shallow";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -180,8 +181,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
     <MobileBottomSheet
       open={open}
       onClose={onClose}
-      title="Canvas Menu"
-      ariaLabel="Canvas actions and node insertion"
+      title={i18n.t("editor:ui.canvasMenu", { defaultValue: "Canvas Menu" })}
+      ariaLabel={i18n.t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>

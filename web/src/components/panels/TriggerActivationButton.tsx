@@ -51,6 +51,7 @@ import {
   isTriggerNodeType
 } from "@nodetool-ai/protocol";
 import { formatSchedule } from "../../utils/triggerSchedule";
+import { i18n } from "../../i18n";
 
 /** Stable empty fallback, so a pending query doesn't hand every render a new
  * array identity and re-create the callbacks that close over it. */
@@ -135,18 +136,18 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
     <FlexColumn gap={SPACING.xs}>
       <FlexRow gap={SPACING.xs} align="center">
         <TextInput
-          label="Webhook URL"
+          label={i18n.t("editor:ui.webhookURL", { defaultValue: "Webhook URL" })}
           hideLabel
           value={url}
           size="small"
           fullWidth
           slotProps={{ input: { readOnly: true } }}
         />
-        <CopyButton value={url} tooltip="Copy webhook URL" />
+        <CopyButton value={url} tooltip={i18n.t("editor:ui.copyWebhookURL", { defaultValue: "Copy webhook URL" })} />
       </FlexRow>
       <FlexRow gap={SPACING.xs} align="center">
         <TextInput
-          label="Webhook secret"
+          label={i18n.t("editor:ui.webhookSecret", { defaultValue: "Webhook secret" })}
           hideLabel
           type={revealed ? "text" : "password"}
           value={webhookSecret}
@@ -166,7 +167,7 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
           ariaLabel={revealed ? "Hide webhook secret" : "Show webhook secret"}
           onClick={() => setRevealed((r) => !r)}
         />
-        <CopyButton value={webhookSecret} tooltip="Copy webhook secret" />
+        <CopyButton value={webhookSecret} tooltip={i18n.t("editor:ui.copyWebhookSecret", { defaultValue: "Copy webhook secret" })} />
       </FlexRow>
       <Caption>Send this value as the x-webhook-secret header.</Caption>
     </FlexColumn>
@@ -310,7 +311,7 @@ const TriggerActivationButton: React.FC = () => {
             width: `min(360px, calc(100vw - ${getSpacingPx(SPACING.xxxl)}))`
           }}
           role="region"
-          aria-label="Trigger status"
+          aria-label={i18n.t("editor:ui.triggerStatus", { defaultValue: "Trigger status" })}
         >
           <FlexRow justify="space-between" align="center">
             <Text size="big">Triggers</Text>
@@ -322,7 +323,7 @@ const TriggerActivationButton: React.FC = () => {
           </FlexRow>
 
           <LabeledSwitch
-            label="Workflow active"
+            label={i18n.t("editor:ui.workflowActive", { defaultValue: "Workflow active" })}
             description={SWITCH_DESCRIPTIONS[state]}
             checked={state === "active"}
             onChange={(next) => {
@@ -380,7 +381,7 @@ const TriggerActivationButton: React.FC = () => {
                   </FlexRow>
                   <LabeledSwitch
                     size="small"
-                    label="Enabled"
+                    label={i18n.t("editor:ui.enabled", { defaultValue: "Enabled" })}
                     checked={Boolean(reg?.enabled)}
                     disabled={!reg}
                     onChange={(next) => reg && handleRowToggle(reg.id, next)}

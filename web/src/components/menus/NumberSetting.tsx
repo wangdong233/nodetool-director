@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { TextInput, Text } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface NumberSettingProps {
   label: string;

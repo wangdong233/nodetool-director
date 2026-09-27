@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { useWebsocketRunner } from "../../stores/WorkflowRunner";
 import { Caption } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const StatusMessage = memo(function StatusMessage() {
   const statusMessage = useWebsocketRunner((state) => state.statusMessage);

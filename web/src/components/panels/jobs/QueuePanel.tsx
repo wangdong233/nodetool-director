@@ -3,6 +3,7 @@ import { useMemo, memo } from "react";
 import { useRunningJobs } from "../../../hooks/useRunningJobs";
 import { Job } from "../../../stores/ApiTypes";
 import JobItem from "./JobItem";
+import { i18n } from "../../../i18n";
 import {
   LoadingSpinner,
   Text,
@@ -130,15 +131,15 @@ const QueuePanel = memo(function QueuePanel() {
 
   return (
     <FlexRow sx={{ flex: 1, minHeight: 0, height: "100%" }}>
-      <JobColumn title="Running" jobs={running} emptyText="Nothing running" />
-      <JobColumn title="Queued" jobs={queued} emptyText="Queue is empty" />
+      <JobColumn title={i18n.t("editor:ui.running", { defaultValue: "Running" })} jobs={running} emptyText="Nothing running" />
+      <JobColumn title={i18n.t("editor:ui.queued", { defaultValue: "Queued" })} jobs={queued} emptyText="Queue is empty" />
       <JobColumn
-        title="Completed"
+        title={i18n.t("editor:ui.completed", { defaultValue: "Completed" })}
         jobs={completed}
         emptyText="No completed jobs"
       />
       <JobColumn
-        title="Cancelled"
+        title={i18n.t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
         jobs={cancelled}
         emptyText="Nothing cancelled"
         last

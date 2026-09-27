@@ -30,6 +30,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 type ProbeResult = RouterOutputs["externalMcp"]["probe"];
 
@@ -221,7 +222,7 @@ const ServerRow = memo(function ServerRow({
             </Text>
             <Chip label={t.type} compact variant="outlined" />
             {!server.enabled && (
-              <Chip label="Disabled" compact variant="outlined" />
+              <Chip label={i18n.t("editor:ui.disabled", { defaultValue: "Disabled" })} compact variant="outlined" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
@@ -470,7 +471,7 @@ export const ExternalMcpServersSection = memo(
         {servers.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="No external servers"
+            title={i18n.t("editor:ui.noExternalServers", { defaultValue: "No external servers" })}
             description="Add a command or a URL. Its tools join the agent's toolbelt on the next message."
           />
         ) : (
@@ -515,7 +516,7 @@ export const ExternalMcpServersSection = memo(
               value={draft.name}
               onChange={handleNameChange}
               fullWidth
-              placeholder="Blender"
+              placeholder={i18n.t("editor:ui.blender", { defaultValue: "Blender" })}
               autoFocus
               variant="outlined"
               size="small"
@@ -537,7 +538,7 @@ export const ExternalMcpServersSection = memo(
               helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
             />
             <SelectField
-              label="Connection"
+              label={i18n.t("editor:ui.connection", { defaultValue: "Connection" })}
               value={draft.type}
               onChange={handleTypeChange}
               options={TRANSPORT_OPTIONS}
@@ -552,7 +553,7 @@ export const ExternalMcpServersSection = memo(
             {draft.type === "stdio" ? (
               <>
                 <TextInput
-                  label="Command"
+                  label={i18n.t("editor:ui.command", { defaultValue: "Command" })}
                   value={draft.command}
                   onChange={field("command")}
                   fullWidth
@@ -562,7 +563,7 @@ export const ExternalMcpServersSection = memo(
                   errorMessage={transportError ?? undefined}
                 />
                 <TextInput
-                  label="Arguments"
+                  label={i18n.t("editor:ui.arguments", { defaultValue: "Arguments" })}
                   value={draft.args}
                   onChange={field("args")}
                   fullWidth
@@ -574,7 +575,7 @@ export const ExternalMcpServersSection = memo(
                   helperText="One argument per line, so a path with a space stays one argument."
                 />
                 <TextInput
-                  label="Environment"
+                  label={i18n.t("editor:ui.environment", { defaultValue: "Environment" })}
                   value={draft.env}
                   onChange={field("env")}
                   fullWidth
@@ -586,11 +587,11 @@ export const ExternalMcpServersSection = memo(
                   helperText="One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
                 />
                 <TextInput
-                  label="Working directory"
+                  label={i18n.t("editor:ui.workingDirectory", { defaultValue: "Working directory" })}
                   value={draft.cwd}
                   onChange={field("cwd")}
                   fullWidth
-                  placeholder="Optional"
+                  placeholder={i18n.t("editor:ui.optional", { defaultValue: "Optional" })}
                   variant="outlined"
                   size="small"
                 />
@@ -609,7 +610,7 @@ export const ExternalMcpServersSection = memo(
                   helperText="Streamable HTTP, with SSE as the fallback."
                 />
                 <TextInput
-                  label="Headers"
+                  label={i18n.t("editor:ui.headers", { defaultValue: "Headers" })}
                   value={draft.headers}
                   onChange={field("headers")}
                   fullWidth
@@ -623,7 +624,7 @@ export const ExternalMcpServersSection = memo(
               </>
             )}
             <Checkbox
-              label="Enabled"
+              label={i18n.t("editor:ui.enabled", { defaultValue: "Enabled" })}
               checked={draft.enabled}
               onChange={handleEnabledChange}
               size="small"
@@ -633,7 +634,7 @@ export const ExternalMcpServersSection = memo(
 
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title="Remove server"
+          title={i18n.t("editor:ui.removeServer", { defaultValue: "Remove server" })}
           content={`Remove ${pendingDelete?.name ?? ""}? Its tools leave the agent's toolbelt.`}
           confirmText="Remove"
           cancelText="Cancel"

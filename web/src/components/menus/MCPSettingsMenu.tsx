@@ -13,6 +13,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import AgentAccessSection from "./AgentAccessSection";
 import ExternalMcpServersSection from "./ExternalMcpServersSection";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 interface TargetStatus {
   target: string;
@@ -235,7 +236,7 @@ const MCPSettingsMenu = () => {
                       {t.installed ? (
                         <NavButton
                           icon={<RemoveCircleOutlineIcon />}
-                          label="Remove"
+                          label={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
                           disabled={busy}
                           onClick={() => handleUninstall(t.target)}
                           navSize="small"
@@ -248,7 +249,7 @@ const MCPSettingsMenu = () => {
                       ) : (
                         <NavButton
                           icon={<AddCircleOutlineIcon />}
-                          label="Install"
+                          label={i18n.t("editor:ui.install", { defaultValue: "Install" })}
                           color="primary"
                           disabled={busy}
                           onClick={() => handleInstall(t.target)}
@@ -270,7 +271,7 @@ const MCPSettingsMenu = () => {
               <FlexRow justify="flex-start" sx={{ mt: 1 }}>
                 <NavButton
                   icon={<InstallDesktopIcon />}
-                  label="Install All"
+                  label={i18n.t("editor:ui.installAll", { defaultValue: "Install All" })}
                   color="primary"
                   disabled={busy}
                   onClick={handleInstallAll}
@@ -291,7 +292,7 @@ const MCPSettingsMenu = () => {
             <FlexRow justify="flex-start">
               <NavButton
                 icon={<InstallDesktopIcon />}
-                label="Install Extension"
+                label={i18n.t("editor:ui.installExtension", { defaultValue: "Install Extension" })}
                 color="primary"
                 disabled={bundleBusy}
                 onClick={handleInstallBundle}

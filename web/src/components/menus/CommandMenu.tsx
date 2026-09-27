@@ -108,6 +108,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
 // Icons — Nodes & Workflows list
 import FolderOpenRoundedIcon from "@mui/icons-material/FolderOpenRounded";
+import { i18n } from "../../i18n";
 import {
   isBoolean,
   isNumber,
@@ -368,7 +369,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={fileInputRef}
         type="file"
         accept=".json"
-        aria-label="Import workflow file"
+        aria-label={i18n.t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
         style={{ display: "none" }}
         onChange={handleImportFileChange}
       />
@@ -376,7 +377,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={bundleInputRef}
         type="file"
         accept=".nodetool,application/zip"
-        aria-label="Import workflow bundle file"
+        aria-label={i18n.t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
@@ -739,7 +740,7 @@ const AppCommands = memo(function AppCommands() {
         ref={appBundleInputRef}
         type="file"
         accept=".json,application/json"
-        aria-label="Import app bundle file"
+        aria-label={i18n.t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />
@@ -867,11 +868,11 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
       css={styles()}
       aria-label="Command menu"
     >
-      <Command label="Command Menu" className="command-menu">
+      <Command label={i18n.t("editor:ui.commandMenu", { defaultValue: "Command Menu" })} className="command-menu">
         <CommandInput
           ref={input}
-          placeholder="Type a command or search…"
-          aria-label="Command menu search"
+          placeholder={i18n.t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search…" })}
+          aria-label={i18n.t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
         />
         <Command.List>
           <Command.Empty>No results found.</Command.Empty>

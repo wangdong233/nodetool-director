@@ -23,6 +23,7 @@ import { isElectron } from "../../utils/browser";
 import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
+import { i18n } from "../../i18n";
 
 interface FolderButtonProps {
   label: string;
@@ -61,7 +62,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   return (
     <ToolbarIconButton
       icon={<FolderOutlinedIcon fontSize="small" />}
-      tooltip="Open folder in file explorer"
+      tooltip={i18n.t("editor:ui.openFolderInFileExplorer", { defaultValue: "Open folder in file explorer" })}
       onClick={handleClick}
       sx={{ ml: 1 }}
     />
@@ -206,15 +207,15 @@ const FoldersSettings = () => {
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="Nodetool Installation"
+                  label={i18n.t("editor:ui.nodetoolInstallation", { defaultValue: "Nodetool Installation" })}
                   onClick={openInstallationPath}
                 />
                 <FolderButton
-                  label="Nodetool Logs"
+                  label={i18n.t("editor:ui.nodetoolLogs", { defaultValue: "Nodetool Logs" })}
                   onClick={openLogsPath}
                 />
                 <FolderButton
-                  label="Assets Storage"
+                  label={i18n.t("editor:ui.assetsStorage", { defaultValue: "Assets Storage" })}
                   onClick={openAssetsPath}
                 />
               </FlexColumn>
@@ -231,11 +232,11 @@ const FoldersSettings = () => {
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="HuggingFace Models"
+                  label={i18n.t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace Models" })}
                   onClick={openHuggingfacePath}
                 />
                 <FolderButton
-                  label="Ollama Models"
+                  label={i18n.t("editor:ui.ollamaModels", { defaultValue: "Ollama Models" })}
                   onClick={openOllamaPath}
                 />
               </FlexColumn>

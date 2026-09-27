@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo, useMemo } from "react";
 import { FlexRow, Text, SPACING, getSpacingPx } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const PANEL_TOOLBAR_HEIGHT = 36;
 

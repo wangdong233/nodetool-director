@@ -8,6 +8,7 @@ import { VERSION, GIT_COMMIT_HASH, BUILD_NUMBER } from "../../config/constants";
 import { isElectron, isProduction } from "../../lib/env";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { FlexRow, FlexColumn, Text, Caption, LoadingSpinner, Chip, Box, getSpacingPx, SPACING } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 // Note: This interface mirrors the SystemInfo type from window.d.ts
 // We use a local copy to avoid type export complexity
@@ -139,7 +140,7 @@ const FeatureStatus: React.FC<{
         ) : (
           <Chip
             icon={<CancelIcon />}
-            label="Not Available"
+            label={i18n.t("editor:ui.notAvailable", { defaultValue: "Not Available" })}
             size="small"
             color="default"
             variant="outlined"
@@ -279,9 +280,9 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         Application
       </Text>
       <div className="settings-section">
-        <InfoRow label="Version" value={VERSION} />
+        <InfoRow label={i18n.t("editor:ui.version", { defaultValue: "Version" })} value={VERSION} />
         <InfoRow
-          label="Git Commit"
+          label={i18n.t("editor:ui.gitCommit", { defaultValue: "Git Commit" })}
           value={GIT_COMMIT_HASH}
           copyable
           onCopy={handleCopy}
@@ -289,9 +290,9 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         <InfoRow label="Build" value={BUILD_NUMBER} />
         {systemInfo && (
           <>
-            <InfoRow label="Electron" value={systemInfo.electronVersion} />
-            <InfoRow label="Chrome" value={systemInfo.chromeVersion} />
-            <InfoRow label="Node.js" value={systemInfo.nodeVersion} />
+            <InfoRow label={i18n.t("editor:ui.electron", { defaultValue: "Electron" })} value={systemInfo.electronVersion} />
+            <InfoRow label={i18n.t("editor:ui.chrome", { defaultValue: "Chrome" })} value={systemInfo.chromeVersion} />
+            <InfoRow label={i18n.t("editor:ui.nodejs", { defaultValue: "Node.js" })} value={systemInfo.nodeVersion} />
           </>
         )}
       </div>
@@ -303,13 +304,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         {systemInfo ? (
           <>
             <InfoRow label="OS" value={systemInfo.os} />
-            <InfoRow label="Version" value={systemInfo.osVersion} />
-            <InfoRow label="Architecture" value={systemInfo.arch} />
+            <InfoRow label={i18n.t("editor:ui.version", { defaultValue: "Version" })} value={systemInfo.osVersion} />
+            <InfoRow label={i18n.t("editor:ui.architecture", { defaultValue: "Architecture" })} value={systemInfo.arch} />
           </>
         ) : (
           <>
-            <InfoRow label="Platform" value={navigator.platform} />
-            <InfoRow label="User Agent" value={navigator.userAgent} />
+            <InfoRow label={i18n.t("editor:ui.platform", { defaultValue: "Platform" })} value={navigator.platform} />
+            <InfoRow label={i18n.t("editor:ui.userAgent", { defaultValue: "User Agent" })} value={navigator.userAgent} />
           </>
         )}
       </div>
@@ -321,13 +322,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           </Text>
           <div className="settings-section">
             <InfoRow
-              label="Application"
+              label={i18n.t("editor:ui.application", { defaultValue: "Application" })}
               value={systemInfo.installPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Conda Environment"
+              label={i18n.t("editor:ui.condaEnvironment", { defaultValue: "Conda Environment" })}
               value={systemInfo.condaEnvPath}
               copyable
               onCopy={handleCopy}
@@ -360,14 +361,14 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
             Features & Versions
           </Text>
           <div className="settings-section">
-            <InfoRow label="Python" value={systemInfo.pythonVersion} />
+            <InfoRow label={i18n.t("editor:ui.python", { defaultValue: "Python" })} value={systemInfo.pythonVersion} />
             <FeatureStatus
               label="CUDA (GPU)"
               available={systemInfo.cudaAvailable}
               version={systemInfo.cudaVersion}
             />
             <FeatureStatus
-              label="Ollama"
+              label={i18n.t("editor:ui.ollama", { defaultValue: "Ollama" })}
               available={systemInfo.ollamaInstalled}
               version={systemInfo.ollamaVersion}
             />

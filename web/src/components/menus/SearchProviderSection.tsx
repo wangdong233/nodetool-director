@@ -26,6 +26,7 @@ import {
   type SerpProviderId
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
+import { i18n } from "../../i18n";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;
@@ -176,7 +177,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
                   {isFilled && (
                     <Chip
                       icon={<CheckCircleIcon />}
-                      label="Configured"
+                      label={i18n.t("editor:ui.configured", { defaultValue: "Configured" })}
                       size="small"
                       sx={{
                         marginTop: getSpacingPx(SPACING.md),

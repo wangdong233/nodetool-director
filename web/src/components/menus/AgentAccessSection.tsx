@@ -31,6 +31,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -217,20 +218,20 @@ const AgentAccessSection = () => {
           <div css={codeBox} style={{ flex: 1 }}>
             {url}
           </div>
-          <CopyButton value={url} tooltip="Copy the server URL" />
+          <CopyButton value={url} tooltip={i18n.t("editor:ui.copyTheServerURL", { defaultValue: "Copy the server URL" })} />
         </FlexRow>
       </FlexColumn>
 
       <FlexRow align="flex-end" gap={1} sx={{ mb: 1 }}>
         <TextInput
-          label="Token name"
-          placeholder="Claude Code on my laptop"
+          label={i18n.t("editor:ui.tokenName", { defaultValue: "Token name" })}
+          placeholder={i18n.t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
           value={name}
           size="small"
           onChange={(event) => setName(event.target.value)}
         />
         <SelectField
-          label="Expires"
+          label={i18n.t("editor:ui.expires", { defaultValue: "Expires" })}
           value={expiry}
           options={EXPIRY_OPTIONS}
           size="small"
@@ -238,7 +239,7 @@ const AgentAccessSection = () => {
         />
         <NavButton
           icon={<AddCircleOutlineIcon />}
-          label="Create token"
+          label={i18n.t("editor:ui.createToken", { defaultValue: "Create token" })}
           color="primary"
           disabled={!name.trim() || createToken.isPending}
           onClick={handleCreate}
@@ -255,7 +256,7 @@ const AgentAccessSection = () => {
             <div css={codeBox} style={{ flex: 1 }}>
               {freshToken}
             </div>
-            <CopyButton value={freshToken} tooltip="Copy the token" />
+            <CopyButton value={freshToken} tooltip={i18n.t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
           </FlexRow>
 
           <Caption>Claude Code — run this</Caption>
@@ -263,7 +264,7 @@ const AgentAccessSection = () => {
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.cli}
             </div>
-            <CopyButton value={snippets.cli} tooltip="Copy the command" />
+            <CopyButton value={snippets.cli} tooltip={i18n.t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
           </FlexRow>
 
           <Caption>Or paste into an MCP client config file</Caption>
@@ -273,7 +274,7 @@ const AgentAccessSection = () => {
             </div>
             <CopyButton
               value={snippets.json}
-              tooltip="Copy the configuration"
+              tooltip={i18n.t("editor:ui.copyTheConfiguration", { defaultValue: "Copy the configuration" })}
             />
           </FlexRow>
         </FlexColumn>
@@ -302,7 +303,7 @@ const AgentAccessSection = () => {
                 </FlexColumn>
                 <NavButton
                   icon={<RemoveCircleOutlineIcon />}
-                  label="Revoke"
+                  label={i18n.t("editor:ui.revoke", { defaultValue: "Revoke" })}
                   disabled={revokeToken.isPending}
                   onClick={() => revokeToken.mutate(token.id)}
                   navSize="small"
@@ -338,7 +339,7 @@ const AgentAccessSection = () => {
               </FlexColumn>
               <NavButton
                 icon={<RemoveCircleOutlineIcon />}
-                label="Revoke"
+                label={i18n.t("editor:ui.revoke", { defaultValue: "Revoke" })}
                 disabled={revokeGrant.isPending}
                 onClick={() => setGrantToRevoke(grant)}
                 navSize="small"
@@ -356,7 +357,7 @@ const AgentAccessSection = () => {
       <Dialog
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
-        title="Disconnect this client?"
+        title={i18n.t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         showActions
         confirmText="Disconnect"
         cancelText="Cancel"

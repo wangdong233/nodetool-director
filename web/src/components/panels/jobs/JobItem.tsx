@@ -28,6 +28,7 @@ import isEqual from "../../../utils/isEqual";
 import { notifyMutationError } from "../../../utils/notifyMutationError";
 import { formatClockTime } from "../../../utils/formatUtils";
 import ReportBugButton from "../../support/ReportBugButton";
+import { i18n } from "../../../i18n";
 
 const formatDuration = (ms: number): string => {
   if (ms < 0) {
@@ -196,7 +197,7 @@ const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
       <FlexRow
         role="button"
         tabIndex={0}
-        aria-label="Open job output"
+        aria-label={i18n.t("editor:ui.openJobOutput", { defaultValue: "Open job output" })}
         onClick={handleOpen}
         onKeyDown={handleKeyDown}
         align="center"
@@ -403,8 +404,8 @@ const JobItem = ({ job }: { job: Job }) => {
           size="small"
           onClick={handleStop}
           disabled={cancelling}
-          ariaLabel="Stop job"
-          tooltip="Stop job"
+          ariaLabel={i18n.t("editor:ui.stopJob", { defaultValue: "Stop job" })}
+          tooltip={i18n.t("editor:ui.stopJob", { defaultValue: "Stop job" })}
           icon={
             cancelling ? (
               <LoadingSpinner size="small" />

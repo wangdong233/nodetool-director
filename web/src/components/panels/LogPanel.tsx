@@ -25,6 +25,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import PanelToolbar from "./PanelToolbar";
+import { i18n } from "../../i18n";
 
 type Row = LogRow & { workflowId: string; workflowName: string; key: string };
 
@@ -207,7 +208,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
             }
             tooltip={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
             onClick={handleFullscreenToggle}
-            ariaLabel="Toggle fullscreen"
+            ariaLabel={i18n.t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
           />
         }
       >
@@ -215,7 +216,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
           value={selectedSeverities}
           onChange={handleSeverityChange}
           compact
-          aria-label="Filter by severity"
+          aria-label={i18n.t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
         >
           {SEVERITIES.map((s) => (
             <ToggleOption key={s} value={s} aria-label={s}>

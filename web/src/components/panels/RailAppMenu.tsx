@@ -14,6 +14,7 @@ import type { MenuEventData } from "../../window";
 import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import Logo from "../Logo";
 import { useAppMenuActions } from "./useAppMenuActions";
+import { i18n } from "../../i18n";
 import {
   Popover,
   MenuItemPrimitive,
@@ -153,7 +154,7 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
           type="button"
           css={logoButtonStyles(theme)}
           className="rail-app-logo"
-          aria-label="Open app menu"
+          aria-label={i18n.t("editor:ui.openAppMenu", { defaultValue: "Open app menu" })}
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}

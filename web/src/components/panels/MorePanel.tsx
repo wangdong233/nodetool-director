@@ -17,6 +17,7 @@ import {
 } from "../ui_primitives";
 import PanelHeadline from "../ui/PanelHeadline";
 import AppPagesList from "./AppPagesList";
+import { i18n } from "../../i18n";
 
 interface MorePanelProps {
   readonly onSelectView: (view: LeftPanelView) => void;
@@ -87,8 +88,8 @@ const MorePanel: React.FC<MorePanelProps> = ({
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel="Search all panels"
-          placeholder="Search all panels"
+          ariaLabel={i18n.t("editor:ui.searchAllPanels", { defaultValue: "Search all panels" })}
+          placeholder={i18n.t("editor:ui.searchAllPanels", { defaultValue: "Search all panels" })}
           fullWidth
         />
       </FlexColumn>

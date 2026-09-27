@@ -31,6 +31,7 @@ import { EntityEditorDialog } from "../entities/EntityEditorDialog";
 import ReportBugButton from "../support/ReportBugButton";
 import PanelHeadline from "../ui/PanelHeadline";
 import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
+import { i18n } from "../../i18n";
 import {
   BORDER_RADIUS,
   Box,
@@ -355,7 +356,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     <FlexColumn fullHeight fullWidth gap={0}>
       {!isMobile && (
         <PanelHeadline
-          title="Documents"
+          title={i18n.t("editor:ui.documents", { defaultValue: "Documents" })}
           description="Open documents in the current project."
         />
       )}
@@ -363,8 +364,8 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel="Search documents"
-          placeholder="Search documents"
+          ariaLabel={i18n.t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
+          placeholder={i18n.t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
           fullWidth
         />
       </FlexColumn>
@@ -381,7 +382,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load documents"
+            title={i18n.t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
                 <Text size="small">
@@ -411,7 +412,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         </FlexColumn>
       ) : (
         <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0 }}>
-          <FlexColumn role="tree" aria-label="Project documents" gap={SPACING.xs}>
+          <FlexColumn role="tree" aria-label={i18n.t("editor:ui.projectDocuments", { defaultValue: "Project documents" })} gap={SPACING.xs}>
             {filteredGroups.map((group) => (
               <DocumentTreeGroupRow
                 key={group.id}
