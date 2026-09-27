@@ -4,6 +4,7 @@ import type { Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { i18n, useAppLanguage } from "../../i18n";
 import useOnboardingStore, {
   type OnboardingStepId
 } from "../../stores/OnboardingStore";
@@ -116,6 +117,8 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   onOpenExamples
 }) => {
   const theme = useTheme();
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const { completedSteps, dismissed, dismiss } = useOnboardingStore(
     useShallow((s) => ({
       completedSteps: s.completedSteps,
@@ -127,13 +130,13 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   const steps: ChecklistStep[] = [
     {
       id: "connect-provider",
-      label: "Connect an AI provider",
+      label: i18n.t("home:checklist.connectProvider", { defaultValue: "Connect an AI provider" }),
       done: hasConfiguredProvider,
       onClick: onConnectProvider
     },
     {
       id: "start-guided-flow",
-      label: "Start a guided flow",
+      label: i18n.t("home:checklist.startGuidedFlow", { defaultValue: "Start a guided flow" }),
       done: completedSteps.includes("start-guided-flow"),
       // The cards live further down this surface; the pill takes the user
       // to them, starting one marks the step.
@@ -141,7 +144,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "describe-idea",
-      label: "Describe what you want to make",
+      label: i18n.t("home:checklist.describeIdea", { defaultValue: "Describe what you want to make" }),
       done: completedSteps.includes("describe-idea"),
       // The composer below the cards is the way there; pressing Start
       // marks the step.
@@ -149,7 +152,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "keep-creating",
-      label: "Open an example or a blank doc",
+      label: i18n.t("home:checklist.openExamples", { defaultValue: "Open an example or a blank doc" }),
       done: completedSteps.includes("keep-creating"),
       onClick: onOpenExamples
     }
@@ -161,11 +164,11 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   }
 
   return (
-    <section css={styles(theme)} aria-label="Getting started checklist">
+    <section css={styles(theme)} aria-label={i18n.t("home:checklist.aria", { defaultValue: "Getting started checklist" })}>
       <div>
         <div className="checklist-inner">
           <span className="checklist-label">
-            Getting started · {doneCount}/{steps.length}
+            {i18n.t("home:checklist.title", { defaultValue: "Getting started · {{done}}/{{total}}", done: String(doneCount), total: String(steps.length) })}
           </span>
           {steps.map((step) => (
             <button
@@ -196,9 +199,9 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
             type="button"
             className="checklist-dismiss"
             onClick={dismiss}
-            aria-label="Dismiss getting started checklist"
+            aria-label={i18n.t("home:checklist.dismissAria", { defaultValue: "Dismiss getting started checklist" })}
           >
-            Dismiss
+            {i18n.t("common:action.dismiss", { defaultValue: "Dismiss" })}
           </button>
         </div>
       </div>

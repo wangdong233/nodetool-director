@@ -79,6 +79,7 @@ import {
   useOpenProject,
   useProjectSummaries
 } from "../../hooks/useProjects";
+import { i18n, useAppLanguage } from "../../i18n";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import {
   TEXT_FILE_TEMPLATES,
@@ -633,7 +634,7 @@ const NewProjectSurface = ({
       addNotification({
         type: "info",
         alert: true,
-        content: "Still checking your language models. Try again in a moment."
+        content: i18n.t("home:notices.checkingModels", { defaultValue: "Still checking your language models. Try again in a moment." })
       });
       return;
     }
@@ -641,7 +642,7 @@ const NewProjectSurface = ({
       setPendingStart(true);
       openProviderOnboarding({
         capability: "generate_message",
-        reason: "Almost there — chat needs a model to run."
+        reason: i18n.t("home:notices.needModel", { defaultValue: "Almost there — chat needs a model to run." })
       });
       return;
     }
@@ -655,7 +656,7 @@ const NewProjectSurface = ({
         type: "error",
         alert: true,
         content:
-          "No model selected. Pick a language model here before opening chat."
+          i18n.t("home:notices.noModelSelected", { defaultValue: "No model selected. Pick a language model here before opening chat." })
       });
       return;
     }
@@ -1249,6 +1250,8 @@ const NewProjectSurface = ({
   const entryOptions = useMemo<readonly OptionCardItem[]>(() => {
     const cards = ENTRY_CARDS.map((card) => ({
       ...card,
+      title: i18n.t(`home:entry.${card.id}.title`, { defaultValue: card.title }),
+      description: i18n.t(`home:entry.${card.id}.desc`, { defaultValue: card.description }),
       image: ENTRY_BACKGROUNDS[card.id]
     }));
     if (pendingFlow === null) {
@@ -1258,14 +1261,14 @@ const NewProjectSurface = ({
       card.id === pendingFlow
         ? {
             ...card,
-            meta: "Creating…",
+            meta: i18n.t("home:surface.creatingMeta", { defaultValue: "Creating…" }),
             disabled: true,
-            disabledReason: "Creating your project…"
+            disabledReason: i18n.t("home:surface.creating", { defaultValue: "Creating your project…" })
           }
         : {
             ...card,
             disabled: true,
-            disabledReason: "One flow is already starting."
+            disabledReason: i18n.t("home:surface.oneFlowStarting", { defaultValue: "One flow is already starting." })
           }
     );
   }, [pendingFlow]);
@@ -1609,13 +1612,12 @@ const NewProjectSurface = ({
           <CurrentProjectDocuments />
 
           <FlexColumn gap={SPACING.md} align="center">
-            <Text size="big">What do you want to make?</Text>
+            <Text size="big">{i18n.t("home:surface.title", { defaultValue: "What do you want to make?" })}</Text>
             <Caption
               color="secondary"
               sx={{ maxWidth: "560px", textAlign: "center" }}
             >
-              An agent plans the documents and builds them while you watch.
-              Everything it makes stays editable.
+              {i18n.t("home:surface.subtitle", { defaultValue: "An agent plans the documents and builds them while you watch. Everything it makes stays editable." })}
             </Caption>
           </FlexColumn>
 
@@ -1631,9 +1633,9 @@ const NewProjectSurface = ({
               "& img": { opacity: 0.6 }
             }}
           >
-            <Caption color="muted">Start with a guided flow</Caption>
+            <Caption color="muted">{i18n.t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}</Caption>
             <OptionCardGrid
-              label="Guided creation flows"
+              label={i18n.t("home:surface.guidedFlowsLabel", { defaultValue: "Guided creation flows" })}
               options={entryOptions}
               onSelect={handleEntryCard}
               minColumnWidth={190}
@@ -1648,7 +1650,7 @@ const NewProjectSurface = ({
               menus open upward from the box's top edge
               (`useTextareaSkillMention`), so it needs the page above it as
               headroom. */}
-          <Caption color="muted">Or describe what you want to make</Caption>
+          <Caption color="muted">{i18n.t("home:surface.orDescribe", { defaultValue: "Or describe what you want to make" })}</Caption>
           <FlexColumn
             gap={SPACING.lg}
             sx={{
@@ -1665,10 +1667,10 @@ const NewProjectSurface = ({
               autoFocus
               multiline
               rows={3}
-              label="Chat prompt"
+              label={i18n.t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
               hideLabel
               inputRef={promptRef}
-              placeholder="A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity."
+              placeholder={i18n.t("home:composer.placeholder", { defaultValue: "A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity. Ctrl+Enter sends to chat." })}
               onChange={(event) => setPrompt(event.target.value)}
               onKeyDown={handlePromptKeyDown}
             />
@@ -1689,7 +1691,7 @@ const NewProjectSurface = ({
                     />
                     <CloseButton
                       onClick={() => removeFile(file.id)}
-                      tooltip={`Remove ${file.name}`}
+                      tooltip={i18n.t("home:composer.removeFile", { defaultValue: "Remove {{name}}", name: file.name })}
                       buttonSize="small"
                       iconVariant="clear"
                       sx={{
@@ -1709,14 +1711,14 @@ const NewProjectSurface = ({
                 density="compact"
                 onClick={() => refInputRef.current?.click()}
               >
-                {`Ref images · ${droppedFiles.length}`}
+                {i18n.t("home:composer.refImages", { defaultValue: "Ref images · {{count}}", count: String(droppedFiles.length) })}
               </EditorButton>
               <input
                 ref={refInputRef}
                 type="file"
                 accept="image/*"
                 multiple
-                aria-label="Reference images"
+                aria-label={i18n.t("home:composer.refImagesAria", { defaultValue: "Reference images" })}
                 onChange={handleRefImages}
                 style={{ display: "none" }}
               />
@@ -1726,10 +1728,8 @@ const NewProjectSurface = ({
                 onClick={(event) => setEntityAnchor(event.currentTarget)}
               >
                 {selectedEntities.length === 0
-                  ? "Entities · none"
-                  : `Entities · ${selectedEntities
-                      .map((entity) => entity.name)
-                      .join(", ")}`}
+                  ? i18n.t("home:composer.entitiesNone", { defaultValue: "Entities · none" })
+                  : i18n.t("home:composer.entitiesList", { defaultValue: "Entities · {{list}}", list: selectedEntities.map((entity) => entity.name).join(", ") })}
               </EditorButton>
               <EditorButton
                 ref={modelButtonRef}
@@ -1738,8 +1738,13 @@ const NewProjectSurface = ({
                 onClick={(event) => setModelAnchor(event.currentTarget)}
               >
                 {isModelSelected(selectedModel)
-                  ? `Model · ${selectedModel?.name || selectedModel?.id}`
-                  : "Select a model"}
+                  ? i18n.t("home:composer.modelName", {
+                      defaultValue: "Model · {{name}}",
+                      name: selectedModel?.name || selectedModel?.id || ""
+                    })
+                  : i18n.t("home:composer.selectModel", {
+                      defaultValue: "Select a model"
+                    })}
               </EditorButton>
               <Box sx={{ flex: 1 }} />
               {estimate && (
@@ -1757,7 +1762,7 @@ const NewProjectSurface = ({
                 disabled={prompt.trim().length === 0 || starting}
                 onClick={() => void handleStart()}
               >
-                Send to chat
+                {i18n.t("home:composer.send", { defaultValue: "Send to chat" })}
               </EditorButton>
             </FlexRow>
           </FlexColumn>
@@ -1773,7 +1778,7 @@ const NewProjectSurface = ({
                 gap={SPACING.sm}
                 wrap
                 role="group"
-                aria-label="Start from a skill"
+                aria-label={i18n.t("home:composer.skillGroup", { defaultValue: "Start from a skill" })}
               >
                 {visibleStarters.map((entry) => {
                   const active = entry.name === starter?.name;
@@ -1807,8 +1812,8 @@ const NewProjectSurface = ({
                     aria-expanded={showAllStarters}
                     label={
                       showAllStarters
-                        ? "Show fewer"
-                        : `${hiddenStarterCount} more`
+                        ? i18n.t("home:composer.showFewer", { defaultValue: "Show fewer" })
+                        : i18n.t("home:composer.moreCount", { defaultValue: "{{count}} more", count: String(hiddenStarterCount) })
                     }
                     onClick={() => setShowAllStarters((shown) => !shown)}
                     sx={{ ...starterPillSx, borderStyle: "dashed" }}

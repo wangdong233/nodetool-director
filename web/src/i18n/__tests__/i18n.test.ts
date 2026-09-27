@@ -147,6 +147,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "common:typeFilters.",
         "common:action.",
         "nav:tabs.",
+        "nav:qa.",
         "nav:settings.docsTopics.",
         "settings:general.",
         "settings:vaults.",

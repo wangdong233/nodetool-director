@@ -25,6 +25,11 @@ export const tabDisplayTitle = (tab: {
   if (tab.type === "project" || tab.type === "project-new") {
     return i18n.t("nav:tabs.home", { defaultValue: PROJECT_HOME_TAB_TITLE });
   }
+  // The projects list is one fixed tab — resolve at render time so it follows
+  // the language switcher (the stored title is an English snapshot).
+  if (tab.type === "project-list") {
+    return i18n.t("nav:tabs.projects", { defaultValue: tab.title });
+  }
   // Page tabs resolve their title at RENDER time so a language switch
   // re-renders them in the new language (stored titles are snapshots;
   // director/93 copy-polish R4 finding 3).

@@ -17,10 +17,13 @@ import { trpc } from "../../trpc/client";
 import ProjectDocumentCard from "./ProjectDocumentCard";
 import ProjectSelector from "./ProjectSelector";
 import type { ProjectDocument } from "./projectStatus";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const DOCUMENTS_PER_PAGE = 4;
 
 const CurrentProjectDocuments = () => {
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
   );
@@ -64,11 +67,13 @@ const CurrentProjectDocuments = () => {
     firstDocument + DOCUMENTS_PER_PAGE
   );
   return (
-    <FlexColumn gap={SPACING.md} aria-label="Current project documents">
+    <FlexColumn gap={SPACING.md} aria-label={i18n.t("home:docs.sectionAria", { defaultValue: "Current project documents" })}>
       <FlexRow align="center" gap={SPACING.md} wrap>
         <ProjectSelector inline />
         <Caption color="muted">
-          Documents{documents.length > 0 ? ` · ${documents.length}` : ""}
+          {documents.length > 0
+            ? i18n.t("home:docs.title", { defaultValue: "Documents · {{count}}", count: String(documents.length) })
+            : i18n.t("home:docs.titleEmpty", { defaultValue: "Documents" })}
         </Caption>
       </FlexRow>
       {isPending ? (
@@ -76,7 +81,7 @@ const CurrentProjectDocuments = () => {
       ) : error ? (
         <Caption color="error">{error.message}</Caption>
       ) : documents.length === 0 ? (
-        <Caption color="muted">No documents in this project yet.</Caption>
+        <Caption color="muted">{i18n.t("home:docs.empty", { defaultValue: "No documents in this project yet." })}</Caption>
       ) : (
         <Box
           sx={{
@@ -105,12 +110,15 @@ const CurrentProjectDocuments = () => {
             disabled={page === 0}
             onClick={() => setPageState({ projectId, page: page - 1 })}
           >
-            Previous
+            {i18n.t("home:docs.previous", { defaultValue: "Previous" })}
           </EditorButton>
           <Caption color="secondary">
-            {firstDocument + 1}–
-            {Math.min(firstDocument + DOCUMENTS_PER_PAGE, documents.length)} of{" "}
-            {documents.length}
+            {i18n.t("home:docs.range", {
+              defaultValue: "{{first}}–{{last}} of {{total}}",
+              first: String(firstDocument + 1),
+              last: String(Math.min(firstDocument + DOCUMENTS_PER_PAGE, documents.length)),
+              total: String(documents.length)
+            })}
           </Caption>
           <EditorButton
             variant="outlined"
@@ -118,7 +126,7 @@ const CurrentProjectDocuments = () => {
             disabled={page >= pageCount - 1}
             onClick={() => setPageState({ projectId, page: page + 1 })}
           >
-            Next
+            {i18n.t("home:docs.next", { defaultValue: "Next" })}
           </EditorButton>
         </FlexRow>
       )}

@@ -8,6 +8,7 @@ import {
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import { PROJECT_COLOR } from "./projectIdentity";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const ProjectsIcon = ({ active }: { active: boolean }) => (
   <Box
@@ -42,6 +43,9 @@ const ProjectsRailButton = ({
   onSelect?: () => void;
   tooltipPlacement?: TooltipProps["placement"];
 }) => {
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
+  const label = i18n.t("nav:tabs.projects", { defaultValue: "Projects" });
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const onProjectSurface = useWorkspaceTabsStore((state) => {
     const active = state.tabs.find((tab) => tab.id === state.activeTabId);
@@ -53,20 +57,20 @@ const ProjectsRailButton = ({
       type: "project-list",
       ref: PROJECT_LIST_REF,
       mode: "view",
-      title: "Projects"
+      title: label
     });
     onSelect?.();
-  }, [openTab, onSelect]);
+  }, [openTab, onSelect, label]);
 
   return (
     <Tooltip
-      title="Projects"
+      title={label}
       placement={tooltipPlacement}
       delay={TOOLTIP_ENTER_DELAY}
     >
       <ToolbarIconButton
         tabIndex={-1}
-        ariaLabel="Projects"
+        ariaLabel={label}
         className={onProjectSurface ? "active" : ""}
         onClick={handleClick}
         icon={<ProjectsIcon active={onProjectSurface} />}

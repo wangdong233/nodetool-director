@@ -90,6 +90,91 @@
       "project": "project",
       "project-new": "project-new",
       "guided-flow": "guided-flow"
+    },
+    "projects": "Projects",
+    "documents": "Documents",
+    "chats": "Chats",
+    "library": "Library",
+    "more": "More",
+    "openOrCreate": "Open or create a tab",
+    "new": "New"
+  },
+  "qa": {
+    "documents": {
+      "label": "Documents",
+      "description": "Browse every document in the current project."
+    },
+    "nodes": {
+      "label": "Nodes",
+      "description": "Browse, search, and add nodes to the current workflow."
+    },
+    "favorites": {
+      "label": "Favorite Nodes",
+      "description": "Find nodes that you saved as favorites."
+    },
+    "history": {
+      "label": "Recent Nodes",
+      "description": "Reuse nodes that you added recently."
+    },
+    "settings": {
+      "label": "Workflow Settings",
+      "description": "Edit settings for the current workflow."
+    },
+    "workflows": {
+      "label": "Workflows",
+      "description": "Open, create, and manage workflows."
+    },
+    "apps": {
+      "label": "Apps",
+      "description": "Build and open user-facing apps from workflows."
+    },
+    "chats": {
+      "label": "Chats",
+      "description": "Open and create saved AI conversations."
+    },
+    "sketches": {
+      "label": "Sketches",
+      "description": "Create and edit images."
+    },
+    "scripts": {
+      "label": "Scripts",
+      "description": "Create and manage narrative or production scripts."
+    },
+    "storyboards": {
+      "label": "Storyboards",
+      "description": "Plan sequences as ordered visual scenes."
+    },
+    "entities": {
+      "label": "Entities",
+      "description": "Reusable characters, locations, styles, and props for prompts and shots."
+    },
+    "timelines": {
+      "label": "Timelines",
+      "description": "Arrange media and events over time."
+    },
+    "jsscripts": {
+      "label": "JS Scripts",
+      "description": "Create and manage reusable JavaScript code."
+    },
+    "skills": {
+      "label": "Skills",
+      "description": "Agent skills — markdown instructions matched to the objective."
+    },
+    "assets": {
+      "label": "Assets",
+      "description": "Browse assets available in the current context."
+    },
+    "workspace-files": {
+      "label": "Workspace",
+      "description": "Browse the files in the selected workspace folder."
+    },
+    "library": {
+      "label": "Library",
+      "description": "Browse assets in the current project."
+    },
+    "more": {
+      "label": "More",
+      "description": "Open additional workflow, editor, developer, and workspace panels."
     }
   }
 }

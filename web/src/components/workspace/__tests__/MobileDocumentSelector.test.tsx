@@ -127,7 +127,7 @@ describe("MobileDocumentSelector", () => {
 
     try {
       const user = userEvent.setup();
-      await user.click(screen.getByRole("button", { name: /打开文档:Alpha/ }));
+      await user.click(screen.getByRole("button", { name: /打开文档：Alpha/ }));
       await waitFor(() =>
         expect(screen.getByText("打开文档")).toBeInTheDocument()
       );

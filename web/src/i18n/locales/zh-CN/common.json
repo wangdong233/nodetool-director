@@ -7,7 +7,8 @@
     "reportBug": "报告问题",
     "closeTab": "关闭{{title}}",
     "clear": "清除",
-    "switch": "切换"
+    "switch": "切换",
+    "dismiss": "关闭"
   },
   "status": {
     "loading": "加载中…"

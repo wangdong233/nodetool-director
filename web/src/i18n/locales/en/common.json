@@ -7,7 +7,8 @@
     "reportBug": "Report a bug",
     "closeTab": "Close {{title}}",
     "clear": "Clear",
-    "switch": "Switch"
+    "switch": "Switch",
+    "dismiss": "Dismiss"
   },
   "status": {
     "loading": "Loading…"

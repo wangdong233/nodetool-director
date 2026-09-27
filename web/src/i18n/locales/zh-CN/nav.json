@@ -90,6 +90,91 @@
       "project": "项目",
       "project-new": "新项目",
       "guided-flow": "引导流程"
+    },
+    "projects": "项目",
+    "documents": "文档",
+    "chats": "对话",
+    "library": "资源库",
+    "more": "更多",
+    "openOrCreate": "打开或新建标签页",
+    "new": "新建"
+  },
+  "qa": {
+    "documents": {
+      "label": "文档",
+      "description": "浏览当前项目的全部文档。"
+    },
+    "nodes": {
+      "label": "节点",
+      "description": "浏览、搜索并向当前工作流添加节点。"
+    },
+    "favorites": {
+      "label": "收藏节点",
+      "description": "找到你收藏的节点。"
+    },
+    "history": {
+      "label": "最近使用",
+      "description": "复用最近添加过的节点。"
+    },
+    "settings": {
+      "label": "工作流设置",
+      "description": "编辑当前工作流的设置。"
+    },
+    "workflows": {
+      "label": "工作流",
+      "description": "打开、创建和管理工作流。"
+    },
+    "apps": {
+      "label": "小程序",
+      "description": "用工作流构建并打开面向用户的小程序。"
+    },
+    "chats": {
+      "label": "对话",
+      "description": "打开和创建保存的 AI 对话。"
+    },
+    "sketches": {
+      "label": "图稿",
+      "description": "创建和编辑图像。"
+    },
+    "scripts": {
+      "label": "脚本",
+      "description": "创建和管理叙事或制片脚本。"
+    },
+    "storyboards": {
+      "label": "分镜",
+      "description": "以有序的视觉场景规划序列。"
+    },
+    "entities": {
+      "label": "实体",
+      "description": "供提示词和镜头复用的角色、地点、风格与道具。"
+    },
+    "timelines": {
+      "label": "时间线",
+      "description": "随时间编排媒体与事件。"
+    },
+    "jsscripts": {
+      "label": "JS 脚本",
+      "description": "创建和管理可复用的 JavaScript 代码。"
+    },
+    "skills": {
+      "label": "技能",
+      "description": "智能体技能——按目标匹配的 Markdown 指令。"
+    },
+    "assets": {
+      "label": "素材",
+      "description": "浏览当前上下文可用的素材。"
+    },
+    "workspace-files": {
+      "label": "工作区文件",
+      "description": "浏览所选工作区文件夹中的文件。"
+    },
+    "library": {
+      "label": "资源库",
+      "description": "浏览当前项目的素材。"
+    },
+    "more": {
+      "label": "更多",
+      "description": "打开更多工作流、编辑器、开发者与工作区面板。"
     }
   }
 }

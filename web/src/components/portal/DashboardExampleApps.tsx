@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { memo, useCallback, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   creationProjectId,
   useWorkspaceTabsStore
@@ -165,7 +166,7 @@ const ExampleAppCard = memo(function ExampleAppCard({
     <button
       type="button"
       className={installing ? "app-card installing" : "app-card"}
-      title={`Add ${app.name} to your apps`}
+      title={i18n.t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: app.name })}
       aria-busy={installing}
       onClick={() => onInstall(app)}
     >
@@ -216,6 +217,8 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
     (state) => state.addNotification
   );
 
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: EXAMPLE_APPS_QUERY_KEY,
     queryFn: listExampleApps,
@@ -240,14 +243,14 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       addNotification({
         type: "success",
         alert: true,
-        content: `Added "${created.name}" to your apps`
+        content: i18n.t("home:apps.added", { defaultValue: "Added \"{{name}}\" to your apps", name: created.name })
       });
     },
     onError: (error: unknown, app) => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Couldn't add ${app.name}: ${error instanceof Error ? error.message : "Unknown error"}`
+        content: i18n.t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : "Unknown error" })
       });
     }
   });
@@ -262,22 +265,24 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
 
   const apps = data ?? [];
   const installingSlug = install.isPending ? install.variables?.slug : null;
-  const countLabel = `${apps.length} app${apps.length === 1 ? "" : "s"}`;
+  const countLabel = i18n.t(
+    apps.length === 1 ? "home:apps.countOne" : "home:apps.countMany",
+    { defaultValue: `${apps.length} app${apps.length === 1 ? "" : "s"}`, count: String(apps.length) }
+  );
   const visibleApps = compact ? apps.slice(0, 4) : apps;
 
   return (
     <section css={styles(theme, compact)} aria-labelledby="dashboard-example-apps-title">
       <div css={compact ? css({ maxWidth: "none", padding: 0 }) : sectionWrap}>
-        <SectionHeader title="Start from an app" count={countLabel}>
+        <SectionHeader title={i18n.t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
           {compact && onBrowseAll && apps.length > visibleApps.length && (
             <EditorButton variant="text" density="compact" onClick={onBrowseAll}>
-              See all apps
+              {i18n.t("home:apps.seeAll", { defaultValue: "See all apps" })}
             </EditorButton>
           )}
         </SectionHeader>
         <p className="apps-lede">
-          One upload, a few choices, one result. Adding an app also adds the
-          workflows it runs, so you can open the graph behind any of them.
+          {i18n.t("home:apps.lede", { defaultValue: "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them." })}
         </p>
         {isLoading ? (
           <div className="apps-loading">

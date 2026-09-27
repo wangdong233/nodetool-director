@@ -21,15 +21,16 @@ export const SUPPORTED_LANGUAGES = ["en", "zh-CN"] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: AppLanguage = "en";
 
-export const NAMESPACES = ["common", "nav", "settings"] as const;
+export const NAMESPACES = ["common", "nav", "settings", "home"] as const;
 export type AppNamespace = (typeof NAMESPACES)[number];
 
 import commonEn from "./locales/en/common.json";
 import navEn from "./locales/en/nav.json";
 import settingsEn from "./locales/en/settings.json";
+import homeEn from "./locales/en/home.json";
 
 const enResources: Resource = {
-  en: { common: commonEn, nav: navEn, settings: settingsEn },
+  en: { common: commonEn, nav: navEn, settings: settingsEn, home: homeEn },
 };
 
 function detectInitialLanguage(): AppLanguage {
