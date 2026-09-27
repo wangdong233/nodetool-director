@@ -131,13 +131,16 @@
     "removeDynamicTip": "Remove this property from being dynamic",
     "copyValue": "Copy Value",
     "resetDefault": "Reset To Default Value",
-    "declareAs": "Declare \"{{prop}}\" as {{type}}"
+    "declareAs": "Declare \"{{prop}}\" as {{type}}",
+    "slotType": "Slot Type",
+    "copyValueTip": "Copy property value to clipboard"
   },
   "io": {
     "searchNodes": "Search nodes…",
     "searchConnectable": "Search connectable nodes",
     "clearSearch": "clear search",
-    "searchNodesAria": "Search nodes"
+    "searchNodesAria": "Search nodes",
+    "deleteOutput": "Delete output"
   },
   "nodeBody": {
     "runImage": "Run to generate",

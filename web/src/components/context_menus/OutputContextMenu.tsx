@@ -588,7 +588,7 @@ const OutputContextMenu: React.FC = () => {
                 <span className="icon-bg">
                   <DeleteOutlineIcon />
                 </span>
-                <Text size="small">Delete output</Text>
+                <Text size="small">{i18n.t("editor:io.deleteOutput", { defaultValue: "Delete output" })}</Text>
               </Box>
             </Box>
             <Divider />

@@ -340,7 +340,7 @@ const PropertyContextMenuComponent: React.FC = () => {
         label={i18n.t("editor:property.copyValue", { defaultValue: "Copy Value" })}
         addButtonClassName="copy-value"
         IconComponent={<ContentCopyIcon />}
-        tooltip="Copy property value to clipboard"
+        tooltip={i18n.t("editor:property.copyValueTip", { defaultValue: "Copy property value to clipboard" })}
       />
       <ContextMenuItem
         onClick={handleReset}
@@ -392,7 +392,7 @@ const PropertyContextMenuComponent: React.FC = () => {
       {isDynamicProperty && <Divider />}
       {slotTypeOptions !== null && (
         <MenuItem disabled>
-          <Text size="small">Slot Type</Text>
+          <Text size="small">{i18n.t("editor:property.slotType", { defaultValue: "Slot Type" })}</Text>
         </MenuItem>
       )}
       {slotTypeOptions?.map((option) => (

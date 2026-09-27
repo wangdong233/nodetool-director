@@ -315,7 +315,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
           IconComponent={<GroupWorkIcon />}
           tooltip={
             <div className="tooltip-span">
-              <div className="tooltip-title">Surround With Group</div>
+              <div className="tooltip-title">{i18n.t("editor:selection.surroundWithGroup", { defaultValue: "Surround With Group" })}</div>
               <div className="tooltip-key">
                 <kbd>CTRL</kbd>/<kbd>⌘</kbd>+<kbd>G</kbd>
               </div>
@@ -344,7 +344,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
           IconComponent={<GroupWorkIcon />}
           tooltip={
             <div className="tooltip-span">
-              <div className="tooltip-title">Remove from Group</div>
+              <div className="tooltip-title">{i18n.t("editor:node.removeFromGroup", { defaultValue: "Remove from Group" })}</div>
               <div className="tooltip-key">
                 <kbd>Right-Click</kbd>
               </div>
@@ -375,7 +375,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<CallSplitIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Select All Connected</div>
+            <div className="tooltip-title">{i18n.t("editor:selection.selectAllConnected", { defaultValue: "Select All Connected" })}</div>
             <div className="tooltip-key">
               <kbd>SHIFT</kbd>+<kbd>C</kbd>
             </div>
@@ -391,7 +391,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<ArrowBackIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Select Inputs</div>
+            <div className="tooltip-title">{i18n.t("editor:selection.selectInputs", { defaultValue: "Select Inputs" })}</div>
             <div className="tooltip-key">
               <kbd>SHIFT</kbd>+<kbd>I</kbd>
             </div>
@@ -407,7 +407,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<ArrowForwardIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Select Outputs</div>
+            <div className="tooltip-title">{i18n.t("editor:selection.selectOutputs", { defaultValue: "Select Outputs" })}</div>
             <div className="tooltip-key">
               <kbd>SHIFT</kbd>+<kbd>O</kbd>
             </div>

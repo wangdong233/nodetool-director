@@ -131,13 +131,16 @@
     "removeDynamicTip": "取消该属性的动态化",
     "copyValue": "复制值",
     "resetDefault": "恢复默认值",
-    "declareAs": "将“{{prop}}”声明为 {{type}}"
+    "declareAs": "将“{{prop}}”声明为 {{type}}",
+    "slotType": "插槽类型",
+    "copyValueTip": "复制属性值到剪贴板"
   },
   "io": {
     "searchNodes": "搜索节点…",
     "searchConnectable": "搜索可连接节点",
     "clearSearch": "清除搜索",
-    "searchNodesAria": "搜索节点"
+    "searchNodesAria": "搜索节点",
+    "deleteOutput": "删除输出"
   },
   "nodeBody": {
     "runImage": "运行以生成",
