@@ -626,7 +626,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
           unmountOnExit
         >
           <FlexColumn css={sectionContentStyles(theme)}>
-            <InspectorRow label="Type">
+            <InspectorRow label={i18n.t("editor:asset.info.type", { defaultValue: "Type" })}>
               <InspectorStaticValue value={clip.mediaType} />
             </InspectorRow>
             <InspectorRow label={i18n.t("timeline:attrs.asset", { defaultValue: "Asset" })}>

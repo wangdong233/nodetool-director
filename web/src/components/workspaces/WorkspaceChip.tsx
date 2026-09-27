@@ -29,6 +29,7 @@ import {
   useWorkspaceCacheWriter
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
+import { i18n } from "../../i18n";
 
 /** Derive a workspace name from an absolute folder path. */
 function nameFromPath(path: string): string {
@@ -164,7 +165,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
           boxShadow: `0 12px 40px ${theme.vars.palette.c_scrim}`
         }}
       >
-        <div css={cssStyles} role="menu" aria-label="Workspace">
+        <div css={cssStyles} role="menu" aria-label={i18n.t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}>
           <Caption className="workspace-menu-header" size="small">
             Workspace
           </Caption>

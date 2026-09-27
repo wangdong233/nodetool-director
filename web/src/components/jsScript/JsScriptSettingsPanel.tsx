@@ -24,6 +24,7 @@ import {
 } from "../../stores/jsScript/JsScriptStore";
 import JsScriptPortsEditor from "./JsScriptPortsEditor";
 import JsScriptSecretsEditor from "./JsScriptSecretsEditor";
+import { i18n } from "../../i18n";
 
 /** What a newly exposed script lands under until its owner names a category. */
 const DEFAULT_CATEGORY = "My Nodes";
@@ -69,7 +70,7 @@ const JsScriptSettingsPanel = ({
       <FlexColumn gap={SPACING.lg} padding={2}>
         <FlexColumn gap={SPACING.xs}>
           <TextInput
-            label="Description"
+            label={i18n.t("editor:ui.description", { defaultValue: "Description" })}
             size="small"
             multiline
             minRows={2}
@@ -88,13 +89,13 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn data-focus-id="jsscript-ports" gap={SPACING.lg}>
           <JsScriptPortsEditor
-            label="Inputs"
+            label={i18n.t("editor:ui.inputs", { defaultValue: "Inputs" })}
             ports={document.inputs}
             readOnly={readOnly}
             onChange={handleInputs}
           />
           <JsScriptPortsEditor
-            label="Outputs"
+            label={i18n.t("editor:ui.outputs", { defaultValue: "Outputs" })}
             ports={document.outputs}
             readOnly={readOnly}
             onChange={handleOutputs}
@@ -120,7 +121,7 @@ const JsScriptSettingsPanel = ({
           />
           {document.palette !== undefined ? (
             <TextInput
-              label="Category"
+              label={i18n.t("editor:ui.category", { defaultValue: "Category" })}
               size="small"
               value={document.palette.category}
               placeholder={DEFAULT_CATEGORY}

@@ -364,7 +364,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             <Chip
               className={`provider-quick-chip ${selectedProviderType === "local" ? "selected" : ""}`}
               size="small"
-              label="Local"
+              label={i18n.t("ui2:attrs.local", { defaultValue: "Local" })}
               onClick={handleLocalProviderClick}
             />
             <Chip

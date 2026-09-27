@@ -433,7 +433,7 @@ const TracePanel: React.FC = () => {
   return (
     <div css={cssStyles}>
       <PanelToolbar
-        title="Trace"
+        title={i18n.t("editor:bottom.trace", { defaultValue: "Trace" })}
         count={events.length}
         actions={
           <>

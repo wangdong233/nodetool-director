@@ -18,6 +18,7 @@ import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { selectStyles, portalOptionsStyles } from "./selectStyles";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface Option {
   value: string;
@@ -312,7 +313,7 @@ const Select: React.FC<SelectProps> = ({
                 setSearchQuery(e.target.value);
                 setHighlightedIndex(-1);
               }}
-              placeholder="Search..."
+              placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })}
               aria-label="Search options"
               onClick={(e) => e.stopPropagation()}
             />

@@ -222,7 +222,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Type">
+            <InspectorRow label={i18n.t("editor:asset.info.type", { defaultValue: "Type" })}>
               <InspectorSelect
                 label={i18n.t("timeline:attrs.transitionType", { defaultValue: "Transition type" })}
                 value={mode}

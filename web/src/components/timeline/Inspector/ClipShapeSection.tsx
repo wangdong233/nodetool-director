@@ -214,7 +214,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Kind">
+            <InspectorRow label={i18n.t("ui2:attrs.kind", { defaultValue: "Kind" })}>
               <InspectorSelect
                 label={i18n.t("timeline:attrs.shapeKind", { defaultValue: "Shape kind" })}
                 value={kind}
@@ -241,7 +241,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                     ariaLabel={i18n.t("timeline:attrs.shapeY", { defaultValue: "Shape Y" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Size">
+                <InspectorRow label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}>
                   <InspectorPillInput
                     value={(shapeStyle.width ?? 0).toFixed(2)}
                     minWidth={64}

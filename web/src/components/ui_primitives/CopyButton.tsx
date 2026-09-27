@@ -7,7 +7,7 @@
  * @example
  * <CopyButton
  *   value="Text to copy"
- *   tooltip="Copy to clipboard"
+ *   tooltip={i18n.t("settings:general.apiIntCopyTooltip", { defaultValue: "Copy to clipboard" })}
  * />
  */
 

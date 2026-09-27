@@ -21,6 +21,7 @@ import { TreeViewBaseItem } from "@mui/x-tree-view/models";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { trpcClient } from "../../trpc/client";
 import type { FileInfo } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 import {
   Breadcrumbs,
@@ -763,9 +764,9 @@ function FileBrowserDialog({
           <RefreshButton
             onClick={handleRefresh}
             buttonSize="small"
-            tooltip="Refresh"
+            tooltip={i18n.t("ui:attrs.refresh", { defaultValue: "Refresh" })}
           />
-          <CloseButton onClick={onClose} buttonSize="small" tooltip="Close" />
+          <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
         </FlexRow>
 
         {newFolderName !== null && (

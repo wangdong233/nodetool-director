@@ -288,7 +288,7 @@ const WorkspacesManager: React.FC = () => {
                     {!workspace.is_default && (
                       <ToolbarIconButton
                         icon={<DeleteIcon fontSize="small" />}
-                        tooltip="Remove"
+                        tooltip={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
                         onClick={() => handleDeleteWorkspace(workspace.id)}
                       />
                     )}

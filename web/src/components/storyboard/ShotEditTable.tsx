@@ -242,10 +242,10 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
         </FlexColumn>
       </Cell>
 
-      <Cell label="Size">
+      <Cell label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}>
         <SelectField
           size="small"
-          label="Size"
+          label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}
           hideLabel
           disabled={readOnly}
           value={draft.framing}

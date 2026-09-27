@@ -686,7 +686,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
       )}
 
       {!isMobile && (
-        <Tooltip title="Save" placement="top" delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={i18n.t("timeline:topbar.save", { defaultValue: "Save" })} placement="top" delay={TOOLTIP_ENTER_DELAY}>
           <button
             type="button"
             className="composer-action"
@@ -795,7 +795,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         />
         {isRunningish && (
           <MenuItemPrimitive
-            label="Stop"
+            label={i18n.t("ui2:attrs.stop", { defaultValue: "Stop" })}
             icon={<StopIcon fontSize="small" />}
             onClick={runWithClose(handleStop)}
           />
@@ -809,7 +809,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
         {isMobile && (
           <MenuItemPrimitive
-            label="Save"
+            label={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
             icon={<SaveIcon fontSize="small" />}
             onClick={runWithClose(handleSave)}
           />

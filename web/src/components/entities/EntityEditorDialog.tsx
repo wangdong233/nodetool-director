@@ -179,7 +179,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         </FlexColumn>
 
         <TextInput
-          label="Name"
+          label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
           value={name}
           onChange={(e) => setName(e.target.value)}
           size="small"

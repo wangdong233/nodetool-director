@@ -540,7 +540,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.gamma}
             onChange={handleGammaChange}
             onChangeCommitted={commit}
-            aria-label="Gamma"
+            aria-label={i18n.t("timeline:attrs.gamma", { defaultValue: "Gamma" })}
           />
           <span className="slider-readout">{channelProps.gamma.toFixed(2)}</span>
         </FlexRow>

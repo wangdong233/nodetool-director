@@ -11,6 +11,7 @@ import React, { useId, useMemo } from "react";
 import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
+import { i18n } from "../../i18n";
 import {
   FormFieldContext,
   type FormFieldContextValue
@@ -47,7 +48,7 @@ export interface FormFieldProps extends Omit<BoxProps, 'onChange'> {
  *
  * @example
  * // Basic form field
- * <FormField label="Name" required>
+ * <FormField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })} required>
  *   <TextField value={name} onChange={setName} />
  * </FormField>
  *
@@ -59,7 +60,7 @@ export interface FormFieldProps extends Omit<BoxProps, 'onChange'> {
  *
  * @example
  * // Horizontal layout
- * <FormField label="Theme" direction="row" labelWidth={120}>
+ * <FormField label={i18n.t("appbuilder:attrs.theme", { defaultValue: "Theme" })} direction="row" labelWidth={120}>
  *   <Select value={theme} onChange={setTheme} />
  * </FormField>
  *

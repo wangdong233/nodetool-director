@@ -350,7 +350,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <FlexRow justify="flex-end" fullWidth>
             <CostEstimateLine
               estimate={generationCostLine(costEstimate)}
-              title="Estimated cost of this generation"
+              title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
             />
           </FlexRow>
 

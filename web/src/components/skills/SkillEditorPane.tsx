@@ -447,7 +447,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         />
         <FlexRow align="center" gap={SPACING.micro} sx={{ px: SPACING.xs }}>
           {isDirty && (
-            <span className="dirty-dot" aria-label="Unsaved changes" />
+            <span className="dirty-dot" aria-label={i18n.t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
           )}
           {updateMutation.error && (
             <ReportBugButton
@@ -471,7 +471,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
       </FlexRow>
 
       <FlexColumn className="meta-row">
-        <FormField label="Name" required>
+        <FormField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })} required>
           <TextInput
             value={name}
             onChange={handleNameChange}
@@ -481,7 +481,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           />
         </FormField>
         <FormField
-          label="Description"
+          label={i18n.t("editor:ui.description", { defaultValue: "Description" })}
           helperText="Matched against the agent objective (words >=4 chars)"
         >
           <TextInput

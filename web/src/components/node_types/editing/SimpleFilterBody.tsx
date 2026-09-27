@@ -232,7 +232,7 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
             <ToggleOption
               className="tab-option tab-option-after"
               value="after"
-              aria-label="After"
+              aria-label={i18n.t("appbuilder:attrs.after", { defaultValue: "After" })}
             >
               After
             </ToggleOption>

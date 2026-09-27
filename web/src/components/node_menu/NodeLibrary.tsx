@@ -426,7 +426,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
       <div css={cssStyles} className="nl-root">
         <div className="nl-header">
           <PanelHeadline
-            title="Nodes"
+            title={i18n.t("nav:settings.docsTopics.nodes", { defaultValue: "Nodes" })}
             docsTopic="nodes"
             description={getTopLevelCategory("nodes").description}
             actions={<span className="nl-count">{nodes.length}</span>}
@@ -440,7 +440,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search nodes…"
+            placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
             aria-label={i18n.t("editor:ui.searchNodes", { defaultValue: "Search nodes" })}
           />
           {query && (

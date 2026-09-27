@@ -80,7 +80,7 @@ const MorePanel: React.FC<MorePanelProps> = ({
     <FlexColumn fullHeight>
       {!isMobile && (
         <PanelHeadline
-          title="More"
+          title={i18n.t("nav:tabs.more", { defaultValue: "More" })}
           description="Search and open additional panels."
         />
       )}

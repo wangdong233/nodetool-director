@@ -399,7 +399,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
       return (
         <FlexRow gap={1}>
           <ColorPreview label={i18n.t("sketch:attrs.stroke", { defaultValue: "Stroke" })} color={shapeSettings.strokeColor} />
-          <ColorPreview label="Fill" color={shapeSettings.fillColor} />
+          <ColorPreview label={i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })} color={shapeSettings.fillColor} />
         </FlexRow>
       );
     }
@@ -677,7 +677,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
                   <Divider sx={{ my: 0.5, borderColor: surfaceSoft }} />
                   <SelectionMenuItem
                     icon={<FormatColorFillIcon sx={{ fontSize: 16 }} />}
-                    label="Fill"
+                    label={i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onFillSelectionWithForeground(); onClose(); }}
                   />

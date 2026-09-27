@@ -252,7 +252,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label="Feather"
+          label={i18n.t("timeline:attrs.feather", { defaultValue: "Feather" })}
           value={settings.featherRadius}
           min={0}
           max={MAX_SELECTION_FEATHER_RADIUS}

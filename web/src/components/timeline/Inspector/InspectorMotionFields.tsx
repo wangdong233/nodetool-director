@@ -206,7 +206,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
 
     return (
       <FlexColumn gap={SPACING.xs}>
-        <InspectorRow label="Fill">
+        <InspectorRow label={i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}>
           <InspectorSelect
             label={`${labelPrefix} type`}
             value={fill?.type ?? "none"}

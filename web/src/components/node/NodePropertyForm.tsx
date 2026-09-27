@@ -153,7 +153,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
           <FlexRow css={css({ gap: 8, marginTop: 8 })}>
             <TextField
               autoFocus
-              label="Name"
+              label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
               size="small"
               value={newInputName}
               onChange={(e) => {

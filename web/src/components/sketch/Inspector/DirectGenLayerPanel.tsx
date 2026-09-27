@@ -213,7 +213,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             </Caption>
           ) : (
             <SelectField
-              label="Source"
+              label={i18n.t("timeline:editor.source", { defaultValue: "Source" })}
               value={binding.sourceLayerId ?? ""}
               onChange={(v) =>
                 patchBinding(layer.id, { sourceLayerId: v ? v : null })
@@ -226,7 +226,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow justify="flex-end" fullWidth>
           <CostEstimateLine
             estimate={generationCostLine(costEstimate)}
-            title="Estimated cost of this generation"
+            title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
           />
         </FlexRow>
 

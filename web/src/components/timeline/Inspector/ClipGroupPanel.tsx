@@ -102,7 +102,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Name">
+            <InspectorRow label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}>
               <InspectorPillInput
                 value={clip.name}
                 minWidth={140}

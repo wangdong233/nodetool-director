@@ -167,7 +167,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
             density="normal"
             onClick={handleRun}
             disabled={buttonDisabled}
-            aria-label="Run selected nodes"
+            aria-label={i18n.t("ui2:attrs.runSelectedNodes", { defaultValue: "Run selected nodes" })}
           >
             <PlayArrowIcon className="play-icon" />
             <span className="run-label">{i18n.t("ui2:attrs.runSelected", { defaultValue: "Run selected" })}</span>

@@ -470,7 +470,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
           sx={{ marginTop: theme.spacing(4), gap: theme.spacing(3) }}
         >
           <TextInput
-            label="Name"
+            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             value={draft.name}
             onChange={handleNameChange}
             fullWidth

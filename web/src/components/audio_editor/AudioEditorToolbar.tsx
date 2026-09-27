@@ -19,6 +19,7 @@ import {
 } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface AudioEditorToolbarProps {
   isPlaying: boolean;
@@ -157,10 +158,10 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         tooltip={isPlaying ? "Pause" : "Play"}
         onClick={onTogglePlay}
       />
-      <ToolbarIconButton icon={<StopIcon />} tooltip="Stop" onClick={onStop} />
+      <ToolbarIconButton icon={<StopIcon />} tooltip={i18n.t("ui2:attrs.stop", { defaultValue: "Stop" })} onClick={onStop} />
       <ToolbarIconButton
         icon={<RepeatIcon />}
-        tooltip="Loop"
+        tooltip={i18n.t("ui2:attrs.loop", { defaultValue: "Loop" })}
         active={loop}
         onClick={onToggleLoop}
       />
@@ -169,13 +170,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarIconButton
         icon={<ZoomOutIcon />}
-        tooltip="Zoom out"
+        tooltip={i18n.t("timeline:shortcuts.zoomOut", { defaultValue: "Zoom out" })}
         onClick={onZoomOut}
         disabled={!canZoomOut}
       />
       <ToolbarIconButton
         icon={<ZoomInIcon />}
-        tooltip="Zoom in"
+        tooltip={i18n.t("timeline:shortcuts.zoomIn", { defaultValue: "Zoom in" })}
         onClick={onZoomIn}
         disabled={!canZoomIn}
       />
@@ -233,13 +234,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarIconButton
         icon={<UndoIcon />}
-        tooltip="Undo"
+        tooltip={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
         onClick={onUndo}
         disabled={!canUndo}
       />
       <ToolbarIconButton
         icon={<RedoIcon />}
-        tooltip="Redo"
+        tooltip={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
         onClick={onRedo}
         disabled={!canRedo}
       />

@@ -361,7 +361,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           </FlexColumn>
 
           <TextInput
-            label="Name"
+            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
             helperText="A label to recognise this template, e.g. “A40 image worker”."

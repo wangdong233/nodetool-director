@@ -8,8 +8,8 @@
  * @example
  * // Simple horizontal group
  * <ActionButtonGroup>
- *   <StateIconButton icon={<SaveIcon />} onClick={handleSave} tooltip="Save" />
- *   <StateIconButton icon={<DeleteIcon />} onClick={handleDelete} tooltip="Delete" />
+ *   <StateIconButton icon={<SaveIcon />} onClick={handleSave} tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })} />
+ *   <StateIconButton icon={<DeleteIcon />} onClick={handleDelete} tooltip={i18n.t("common:action.delete", { defaultValue: "Delete" })} />
  * </ActionButtonGroup>
  *
  * @example
@@ -32,6 +32,7 @@ import React, { forwardRef, memo } from "react";
 import { Box } from "@mui/material";
 import { useTheme, SxProps, Theme } from "@mui/material/styles";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
+import { i18n } from "../../i18n";
 
 export interface ActionButtonGroupProps {
   /**

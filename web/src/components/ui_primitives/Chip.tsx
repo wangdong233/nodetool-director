@@ -9,6 +9,7 @@ import React from "react";
 import { Chip as MuiChip, ChipProps as MuiChipProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { CONTROL } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface ChipProps extends Omit<MuiChipProps, 'color'> {
   /** Semantic color variant */
@@ -24,7 +25,7 @@ export interface ChipProps extends Omit<MuiChipProps, 'color'> {
  *
  * @example
  * // Basic chip
- * <Chip label="Category" />
+ * <Chip label={i18n.t("editor:ui.category", { defaultValue: "Category" })} />
  *
  * @example
  * // Deletable chip
@@ -40,7 +41,7 @@ export interface ChipProps extends Omit<MuiChipProps, 'color'> {
  *
  * @example
  * // With icon
- * <Chip label="Status" color="success" icon={<CheckIcon />} />
+ * <Chip label={i18n.t("editor:ui.status", { defaultValue: "Status" })} color="success" icon={<CheckIcon />} />
  */
 export const Chip: React.FC<ChipProps> = ({
   color = "default",

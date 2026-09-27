@@ -19,6 +19,7 @@ import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useWorkspaceExplorer } from "../../hooks/useWorkspaceExplorer";
 import WorkspaceSelect from "./WorkspaceSelect";
 import PanelHeadline from "../ui/PanelHeadline";
+import { i18n } from "../../i18n";
 
 /** Props forwarded onto a rendered tree row. */
 interface TreeViewItemSlotProps {
@@ -473,7 +474,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
         actions={
           <RefreshButton
             onClick={handleRefresh}
-            tooltip="Refresh"
+            tooltip={i18n.t("ui:attrs.refresh", { defaultValue: "Refresh" })}
             tooltipPlacement="bottom"
           />
         }

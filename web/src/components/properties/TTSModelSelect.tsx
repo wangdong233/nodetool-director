@@ -175,7 +175,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_speech"
-        label="Voice"
+        label={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
         options={STUDIO_VOICES}
         value={selectedVoice}
         onChange={onChange}
@@ -201,7 +201,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
           value={selectedVoice || availableVoices[0] || ""}
           onChange={handleVoiceChange}
           placeholder={i18n.t("editor:ui.selectVoice", { defaultValue: "Select voice" })}
-          label="Voice"
+          label={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
         />
       )}
 

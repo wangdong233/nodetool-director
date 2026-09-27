@@ -258,7 +258,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
         <FormControl fullWidth={fullWidth} css={cssStyles}>
           <Select
             className={`workspace-select${compact ? " compact" : ""}`}
-            aria-label="Workspace"
+            aria-label={i18n.t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}
             value={value || ""}
             onChange={handleChange}
             disabled={disabled || createMutation.isPending}

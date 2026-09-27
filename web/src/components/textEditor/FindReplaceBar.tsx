@@ -232,7 +232,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon fontSize="small" />}
-          tooltip="Next"
+          tooltip={i18n.t("home:docs.next", { defaultValue: "Next" })}
           onClick={onNext}
           disabled={totalMatches === 0}
           className="toolbar-button"

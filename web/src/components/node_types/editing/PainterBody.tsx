@@ -1071,7 +1071,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             size="small"
             onClick={onUndo}
             disabled={undoDisabled}
-            tooltip="Undo"
+            tooltip={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
             icon={<UndoIcon fontSize="small" />}
           />
           <ToolbarIconButton
@@ -1079,7 +1079,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             size="small"
             onClick={onRedo}
             disabled={redoDisabled}
-            tooltip="Redo"
+            tooltip={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
             icon={<RedoIcon fontSize="small" />}
           />
           <ToolbarIconButton

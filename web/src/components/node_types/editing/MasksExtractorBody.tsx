@@ -210,7 +210,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
             onChange={handleTabChange}
             aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
-            <ToggleOption value="image" aria-label="Image">
+            <ToggleOption value="image" aria-label={i18n.t("home:entry.image.title", { defaultValue: "Image" })}>
               Image
             </ToggleOption>
             <ToggleOption value="mask" aria-label="Mask">

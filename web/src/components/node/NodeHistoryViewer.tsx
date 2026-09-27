@@ -872,7 +872,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
                 {`${currentIndex + 1} / ${generations.length}`}
               </span>
               <ToolbarIconButton
-                title="Next"
+                title={i18n.t("home:docs.next", { defaultValue: "Next" })}
                 size="small"
                 onClick={handleNext}
                 className="overlay-icon-btn"

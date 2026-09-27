@@ -9,6 +9,7 @@ import React, { forwardRef } from "react";
 import { Box, BoxProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { isNumber, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface StackProps extends Omit<BoxProps, 'display' | 'flexDirection'> {
   /** Spacing between children (theme spacing units) */
@@ -52,7 +53,7 @@ const elementTypeName = (type: React.ReactElement["type"]): string => {
  * @example
  * // Full width with padding
  * <Stack spacing={2} padding={3} fullWidth>
- *   <TextField label="Name" />
+ *   <TextField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })} />
  *   <TextField label="Email" />
  * </Stack>
  */

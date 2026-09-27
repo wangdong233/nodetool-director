@@ -10,6 +10,7 @@ import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { snapSpacing } from "./spacing";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface PanelProps extends BoxProps {
   /** Panel title */
@@ -47,7 +48,7 @@ const PADDING_VARIANTS = {
  * 
  * @example
  * // Basic panel with title
- * <Panel title="Settings">
+ * <Panel title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })}>
  *   <Typography>Panel content</Typography>
  * </Panel>
  * 

@@ -103,7 +103,7 @@ const ImageCompareDialog: React.FC = () => {
           <CloseButton
             className="button close"
             onClick={closeCompareView}
-            tooltip="Close"
+            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
             nodrag={false}
           />
         </div>

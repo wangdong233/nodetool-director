@@ -291,7 +291,7 @@ const FollowObjectSection: React.FC<{ clip: TimelineClip }> = memo(
                 ariaLabel={i18n.t("timeline:attrs.trackIdToFollow", { defaultValue: "Track id to follow" })}
               />
             </InspectorRow>
-            <InspectorRow label="Mode">
+            <InspectorRow label={i18n.t("ui2:attrs.mode", { defaultValue: "Mode" })}>
               <InspectorSelect
                 label={i18n.t("timeline:attrs.followMode", { defaultValue: "Follow mode" })}
                 value={mode}

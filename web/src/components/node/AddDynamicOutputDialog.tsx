@@ -75,7 +75,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
         <FlexRow css={css({ gap: 8, marginTop: 8 })}>
           <TextField
             autoFocus
-            label="Name"
+            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             size="small"
             value={name}
             onChange={(e) => {
@@ -95,7 +95,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
           />
           <TextField
             select
-            label="Type"
+            label={i18n.t("editor:asset.info.type", { defaultValue: "Type" })}
             size="small"
             value={type}
             onChange={(e) => setType(e.target.value)}

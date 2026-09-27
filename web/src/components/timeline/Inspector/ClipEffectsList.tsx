@@ -267,7 +267,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
               ariaLabel={`${name} offset Y`}
             />
           </InspectorRow>
-          <InspectorRow label="Blur">
+          <InspectorRow label={i18n.t("editor:ui.blur", { defaultValue: "Blur" })}>
             <InspectorPillInput
               value={String(effect.blur)}
               unit="px"
@@ -335,7 +335,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(amount) => onPatch({ amount })}
           />
           <InspectorSliderRow
-            label="Size"
+            label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}
             min={1}
             max={16}
             step={0.5}

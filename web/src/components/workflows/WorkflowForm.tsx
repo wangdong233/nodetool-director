@@ -233,7 +233,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
   return (
     <div css={styles(theme)} className="workflow-form">
       <FormSection className="settings-section">
-        <FormField label="Name">
+        <FormField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}>
           <TextInput
             name="name"
             spellCheck={false}

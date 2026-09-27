@@ -248,7 +248,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
             <FlexRow justify="flex-end" fullWidth sx={{ px: 0.5, pb: 0.5 }}>
               <CostEstimateLine
                 estimate={workflowCostLine(costEstimate)}
-                title="Estimated cost of one run of this workflow"
+                title={i18n.t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
               />
             </FlexRow>
             <LayerActions layerId={layer.id} binding={binding} />

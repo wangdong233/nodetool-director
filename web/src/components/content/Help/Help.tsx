@@ -223,7 +223,7 @@ const Help = ({
       onClose={handleClose}
       fullWidth
       maxWidth="lg"
-      aria-label="Help"
+      aria-label={i18n.t("nav:rail.help", { defaultValue: "Help" })}
     >
         <div css={helpStyles(theme)}>
           <div className="help">
@@ -238,8 +238,8 @@ const Help = ({
                 onChange={handleChange}
                 aria-label="help tabs"
               >
-                <Tab label="Shortcuts" id="help-tab-0" />
-                <Tab label="Keyboard" id="help-tab-1" />
+                <Tab label={i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })} id="help-tab-0" />
+                <Tab label={i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })} id="help-tab-1" />
                 <Tab label="DataTypes" id="help-tab-2" />
               </Tabs>
               <Tooltip title="Open Nodetool Documentation Website" placement="bottom"

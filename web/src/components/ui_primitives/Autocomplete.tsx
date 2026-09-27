@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
+import { i18n } from "../../i18n";
 
 export interface AutocompleteOption {
   label: string;
@@ -53,7 +54,7 @@ export interface AutocompleteProps<
  * // Basic usage with options
  * <Autocomplete
  *   options={[{ label: "Option 1", value: "1" }, { label: "Option 2", value: "2" }]}
- *   placeholder="Search..."
+ *   placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })}
  *   onChange={(e, value) => setValue(value)}
  * />
  *

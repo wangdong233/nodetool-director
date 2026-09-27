@@ -44,7 +44,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
             <Caption color="secondary">{i18n.t("ui2:attrs.importedLayer", { defaultValue: "Imported layer" })}</Caption>
           </FlexColumn>
 
-          <CollapsibleSection title="Source" defaultOpen>
+          <CollapsibleSection title={i18n.t("timeline:editor.source", { defaultValue: "Source" })} defaultOpen>
             {ref ? (
               <FlexColumn gap={0.5}>
                 <Text size="small">

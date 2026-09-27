@@ -294,7 +294,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip="Duplicate — copies overrides; tweak params for a variation"
+            tooltip={i18n.t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy || !documentId}
             aria-label="Duplicate layer"

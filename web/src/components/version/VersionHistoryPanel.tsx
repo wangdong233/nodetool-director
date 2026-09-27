@@ -267,7 +267,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         <PanelToolbar
           title="Version History"
           actions={
-            <CloseButton onClick={onClose} buttonSize="small" tooltip="Close" />
+            <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
           }
         />
         <FlexColumn padding={3} gap={0.5}>
@@ -290,7 +290,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
       }}
     >
       <PanelToolbar
-        title="Versions"
+        title={i18n.t("editor:bottom.versions", { defaultValue: "Versions" })}
         count={versions.length}
         actions={
           <>
@@ -321,7 +321,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 Compare
               </EditorButton>
             </Tooltip>
-            <CloseButton onClick={onClose} buttonSize="small" tooltip="Close" />
+            <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
           </>
         }
       >

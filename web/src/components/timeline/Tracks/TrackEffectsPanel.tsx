@@ -822,7 +822,7 @@ const FilterEditor: React.FC<EffectEditorProps<TrackFilterEffect>> = ({
 }) => (
   <FlexColumn gap={0.5}>
     <SelectField
-      label="Mode"
+      label={i18n.t("ui2:attrs.mode", { defaultValue: "Mode" })}
       value={effect.mode}
       onChange={(v) =>
         onPatch({ mode: v as TrackFilterEffect["mode"] })

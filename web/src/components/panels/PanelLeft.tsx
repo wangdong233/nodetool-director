@@ -510,7 +510,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Chats"
+              title={i18n.t("nav:tabs.chats", { defaultValue: "Chats" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -680,7 +680,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Apps"
+              title={i18n.t("nav:qa.apps.label", { defaultValue: "Apps" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={

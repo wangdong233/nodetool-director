@@ -54,7 +54,7 @@ const SketchInspectorInner: React.FC = () => {
       <EmptyState
         variant="empty"
         size="small"
-        title="Inspector"
+        title={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })}
         description="Select a layer to inspect."
       />
     );

@@ -286,7 +286,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                         ariaLabel={i18n.t("timeline:attrs.maskY", { defaultValue: "Mask Y" })}
                       />
                     </InspectorRow>
-                    <InspectorRow label="Size">
+                    <InspectorRow label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}>
                       <InspectorPillInput
                         value={(mask.width ?? 1).toFixed(2)}
                         minWidth={64}
@@ -349,7 +349,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                 </InspectorRow>
                 {matte && (
                   <>
-                    <InspectorRow label="Mode">
+                    <InspectorRow label={i18n.t("ui2:attrs.mode", { defaultValue: "Mode" })}>
                       <InspectorSelect
                         label={i18n.t("timeline:attrs.matteMode", { defaultValue: "Matte mode" })}
                         value={matte.mode}

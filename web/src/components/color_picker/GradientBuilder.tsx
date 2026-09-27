@@ -350,14 +350,14 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
         <FlexRow align="center" gap={1} wrap>
           <TextInput
             size="small"
-            label="Color"
+            label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}
             value={selectedStop.color}
             onChange={handleStopColorInputChange}
             sx={{ width: "100px" }}
           />
           <TextInput
             size="small"
-            label="Position"
+            label={i18n.t("editor:ui.position", { defaultValue: "Position" })}
             type="number"
             value={selectedStop.position}
             onChange={handleStopPositionInputChange}

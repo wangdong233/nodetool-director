@@ -21,6 +21,7 @@ import { CollectionCreate } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EmbeddingModelSelect from "../properties/EmbeddingModelSelect";
+import { i18n } from "../../i18n";
 
 const slideIn = keyframes`
   from {
@@ -165,7 +166,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
         </FormField>
 
         <FormField
-          label="Embedding Model"
+          label={i18n.t("settings:defModels.mEmbedding", { defaultValue: "Embedding Model" })}
           compact
           className="model-select"
           sx={{ flex: 1, minWidth: 200 }}

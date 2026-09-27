@@ -31,6 +31,7 @@ import {
 import SketchRenderer from "../../sketch/SketchRenderer";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { tAttr } from "../i18nAttrs";
+import { i18n } from "../../../i18n";
 
 const LazyTimelineRenderer = React.lazy(async () => ({
   default: (await import("../../timeline/TimelineRenderer")).default
@@ -92,7 +93,7 @@ export const SketchWidget: React.FC<
       <Box sx={frame(props.height)}>
         <SketchRenderer
           document={document}
-          ariaLabel="Sketch"
+          ariaLabel={i18n.t("editor:ui.sketch", { defaultValue: "Sketch" })}
           showDimensions={props.showDimensions ?? false}
         />
       </Box>
@@ -152,7 +153,7 @@ export const TimelineWidget: React.FC<
         >
           <LazyTimelineRenderer
             sequence={sequence}
-            ariaLabel="Timeline"
+            ariaLabel={i18n.t("editor:ui.timeline", { defaultValue: "Timeline" })}
             showMetadata={props.showMetadata ?? true}
           />
         </React.Suspense>

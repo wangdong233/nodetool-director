@@ -172,7 +172,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 onChange={(fontFamily) => setField("fontFamily", fontFamily)}
               />
             </InspectorRow>
-            <InspectorRow label="Size">
+            <InspectorRow label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}>
               <InspectorPillInput
                 value={asPercent(style?.fontSizeFrac)}
                 unit="%"

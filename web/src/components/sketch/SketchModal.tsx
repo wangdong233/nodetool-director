@@ -294,14 +294,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
         <FlexRow align="center" sx={{ gap: getSpacingPx(SPACING.micro) }}>
           <Tooltip title={`Undo (${displayCombo("undo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Undo" onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
+              <IconButton size="small" aria-label={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })} onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
                 <UndoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
           </Tooltip>
           <Tooltip title={`Redo (${displayCombo("redo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Redo" onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
+              <IconButton size="small" aria-label={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })} onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
                 <RedoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>

@@ -340,7 +340,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Logs"
+              label={i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}
               value={systemInfo.logsPath}
               copyable
               onCopy={handleCopy}

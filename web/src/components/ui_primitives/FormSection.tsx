@@ -12,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { SPACING, resolveSpacing, type SpacingValue } from "./spacing";
 import { FONT_SIZE_SANS, FONT_WEIGHT } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface FormSectionProps {
   /** Optional uppercase group label above the body */
@@ -28,8 +29,8 @@ export interface FormSectionProps {
  *
  * @example
  * <FormSection label="Run settings">
- *   <SelectField label="Provider" ... />
- *   <TextInput label="Model" ... />
+ *   <SelectField label={i18n.t("editor:asset.info.provider", { defaultValue: "Provider" })} ... />
+ *   <TextInput label={i18n.t("editor:asset.info.model", { defaultValue: "Model" })} ... />
  * </FormSection>
  */
 export const FormSection = forwardRef<HTMLDivElement, FormSectionProps>(

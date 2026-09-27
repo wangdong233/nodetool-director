@@ -599,7 +599,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             aria-label={i18n.t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
-            placeholder="Group"
+            placeholder={i18n.t("timeline:attrs.group", { defaultValue: "Group" })}
             style={inputStyle}
           />
           <span

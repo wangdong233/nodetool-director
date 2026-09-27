@@ -195,7 +195,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
       className={isFullscreen ? "fullscreen" : undefined}
     >
       <PanelToolbar
-        title="Logs"
+        title={i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}
         count={filteredRows.length}
         actions={
           <ToolbarIconButton

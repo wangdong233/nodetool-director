@@ -975,7 +975,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           )}
           <CloseButton
             onClick={compareAssetB ? exitCompareView : handleClose}
-            tooltip="Close"
+            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
             className="button close"
             nodrag={false}
             sx={viewerActionButtonSx}

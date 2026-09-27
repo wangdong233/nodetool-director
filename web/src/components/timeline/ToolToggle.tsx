@@ -242,7 +242,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Snap"
+        label={i18n.t("ui2:attrs.snap", { defaultValue: "Snap" })}
         shortcut="N · Alt-drag bypasses"
         active={snapEnabled}
         compact={compact}

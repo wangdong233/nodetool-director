@@ -277,7 +277,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
       <>
         <CollapsibleSection
           title={
-            <InspectorSectionTitle title="Text" icon={<TitleOutlinedIcon />} />
+            <InspectorSectionTitle title={i18n.t("common:typeFilters.text", { defaultValue: "Text" })} icon={<TitleOutlinedIcon />} />
           }
           open={open}
           onToggle={setOpen}

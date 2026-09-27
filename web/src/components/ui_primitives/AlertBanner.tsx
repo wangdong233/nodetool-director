@@ -8,6 +8,7 @@
 
 import { forwardRef } from "react";
 import { Alert, AlertTitle, AlertProps as MuiAlertProps } from "@mui/material";
+import { i18n } from "../../i18n";
 
 export interface AlertBannerProps extends Omit<MuiAlertProps, 'variant'> {
   /** Alert title (optional) */
@@ -27,7 +28,7 @@ export interface AlertBannerProps extends Omit<MuiAlertProps, 'variant'> {
  *
  * @example
  * // Error alert with title
- * <AlertBanner severity="error" title="Error">
+ * <AlertBanner severity="error" title={i18n.t("ui2:attrs.error", { defaultValue: "Error" })}>
  *   Something went wrong
  * </AlertBanner>
  *

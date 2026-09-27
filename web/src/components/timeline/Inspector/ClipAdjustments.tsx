@@ -457,7 +457,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
               <>
                 {isMidi && (
                   <InspectorToggleRow
-                    label="Mute"
+                    label={i18n.t("ui2:attrs.mute", { defaultValue: "Mute" })}
                     checked={!!clip.muted}
                     onChange={handleMutedChange}
                   />

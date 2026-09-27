@@ -8,7 +8,7 @@
  * @example
  * <ToolbarIconButton
  *   icon={<SaveIcon />}
- *   tooltip="Save"
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   shortcut={["Ctrl", "S"]}
  *   onClick={handleSave}
  * />
@@ -24,6 +24,7 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { ShortcutHint } from "./ShortcutHint";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface ToolbarIconButtonProps
   extends Omit<IconButtonProps, "children" | "title"> {

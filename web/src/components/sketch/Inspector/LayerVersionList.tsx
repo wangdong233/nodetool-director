@@ -139,7 +139,7 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
               <EmptyState
                 variant="error"
                 size="small"
-                title="Failed to load versions"
+                title={i18n.t("timeline:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}
               />
             )}
 
@@ -147,7 +147,7 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
               <EmptyState
                 variant="empty"
                 size="small"
-                title="No versions yet"
+                title={i18n.t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
                 description="Successful generations will appear here"
               />
             )}

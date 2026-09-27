@@ -152,7 +152,7 @@ const CarriedContext: React.FC<{
   <FlexColumn
     gap={GAP.micro}
     component="section"
-    aria-label="Brought from your project"
+    aria-label={i18n.t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
   >
     <Label>{i18n.t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}</Label>
     <Caption color="secondary" component="p">

@@ -13,6 +13,7 @@ import {
   FormControlLabelProps
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 export interface CheckboxProps
   extends Omit<MuiCheckboxProps, "size"> {
@@ -39,7 +40,7 @@ export interface CheckboxProps
  *
  * @example
  * // Compact size
- * <Checkbox label="Select" compact size="small" />
+ * <Checkbox label={i18n.t("timeline:tools.select", { defaultValue: "Select" })} compact size="small" />
  */
 const CheckboxInternal = forwardRef<HTMLButtonElement, CheckboxProps>(
   (

@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import ManagerPageLayout from "../panels/ManagerPageLayout";
 import CollectionList from "./CollectionList";
+import { i18n } from "../../i18n";
 
 /**
  * Full-screen Collections page. Reachable from the logo menu; wraps the
@@ -10,7 +11,7 @@ import CollectionList from "./CollectionList";
 const CollectionsExplorer: React.FC = () => (
   <ManagerPageLayout
     icon={<LibraryBooksOutlinedIcon sx={{ fontSize: 22 }} />}
-    title="Collections"
+    title={i18n.t("nav:rail.collections", { defaultValue: "Collections" })}
     subtitle="Searchable document collections for RAG workflows — drop in PDFs, Markdown, HTML, or transcripts."
     docsTopic="collections"
   >

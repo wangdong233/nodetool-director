@@ -307,7 +307,7 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
         <FlexRow align="center" gap={0.5}>
           <ToolbarIconButton
             icon={<ArrowBackIcon fontSize="small" />}
-            tooltip="Back"
+            tooltip={i18n.t("editor:ui.back", { defaultValue: "Back" })}
             onClick={onBack}
             aria-label={i18n.t("timeline:addClip.backToSources", { defaultValue: "Back to clip sources" })}
           />

@@ -104,7 +104,7 @@ const EditorToolbar = ({
         <div className="toolbar-group">
           <ToolbarIconButton
             icon={<UndoIcon fontSize="small" />}
-            tooltip="Undo"
+            tooltip={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
             className={`toolbar-button ${!canUndo ? "disabled" : ""}`}
             onClick={onUndo}
             disabled={!canUndo}
@@ -112,7 +112,7 @@ const EditorToolbar = ({
           />
           <ToolbarIconButton
             icon={<RedoIcon fontSize="small" />}
-            tooltip="Redo"
+            tooltip={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
             className={`toolbar-button ${!canRedo ? "disabled" : ""}`}
             onClick={onRedo}
             disabled={!canRedo}

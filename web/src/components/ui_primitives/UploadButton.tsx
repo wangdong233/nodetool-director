@@ -4,7 +4,7 @@
  * A standardized upload button with file input handling.
  *
  * @example
- * <UploadButton onFileSelect={handleFiles} tooltip="Upload files" />
+ * <UploadButton onFileSelect={handleFiles} tooltip={i18n.t("editor:explorer.uploadFiles", { defaultValue: "Upload files" })} />
  */
 
 import React, { memo, forwardRef, useCallback, useRef } from "react";

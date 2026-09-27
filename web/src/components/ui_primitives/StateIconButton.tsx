@@ -9,7 +9,7 @@
  * // Simple toggle button
  * <StateIconButton
  *   icon={<PlayIcon />}
- *   tooltip="Run workflow"
+ *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })}
  *   onClick={handleRun}
  * />
  *
@@ -17,7 +17,7 @@
  * // With loading state
  * <StateIconButton
  *   icon={<SaveIcon />}
- *   tooltip="Save"
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   onClick={handleSave}
  *   isLoading={isSaving}
  * />
@@ -44,6 +44,7 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface StateIconButtonProps {
   /**

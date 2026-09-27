@@ -685,7 +685,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           </Text>
           <ToolbarIconButton
             icon={<CloseIcon fontSize="small" />}
-            tooltip="Close"
+            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
             onClick={onClose}
             size="small"
             nodrag={false}

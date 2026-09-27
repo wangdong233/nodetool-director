@@ -11,6 +11,7 @@ import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { SPACING, resolveSpacing, type SpacingValue } from "./spacing";
+import { i18n } from "../../i18n";
 
 export interface AutoGridProps {
   /** Minimum column width in px, default 200 */
@@ -40,7 +41,7 @@ export interface AutoGridProps {
  *
  * @example
  * // Stretch items to fill the row instead of leaving empty tracks
- * <AutoGrid minItemWidth={240} fill="fit" role="list" aria-label="Assets">
+ * <AutoGrid minItemWidth={240} fill="fit" role="list" aria-label={i18n.t("nav:rail.assets", { defaultValue: "Assets" })}>
  *   {assets.map((asset) => <AssetCard key={asset.id} asset={asset} />)}
  * </AutoGrid>
  */

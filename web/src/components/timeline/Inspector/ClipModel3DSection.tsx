@@ -311,7 +311,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               onChange={handleAnimationChange}
             />
             <InspectorToggleRow
-              label="Loop"
+              label={i18n.t("ui2:attrs.loop", { defaultValue: "Loop" })}
               checked={model3dStyle.animation.loop}
               onChange={handleLoopChange}
             />

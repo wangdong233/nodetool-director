@@ -107,7 +107,7 @@ export const DetailsStep = ({
       />
 
       <TextInput
-        label="Name"
+        label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
         value={value.name}
         onChange={(event) => onChange({ ...value, name: event.target.value })}
         placeholder="Nova"

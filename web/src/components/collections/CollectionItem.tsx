@@ -7,6 +7,7 @@ import WorkflowSelect from "./WorkflowSelect";
 import { useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 interface CollectionItemProps {
   collection: CollectionResponse;
@@ -264,7 +265,7 @@ const CollectionItem = ({
         {isEditingWorkflow ? (
           <WorkflowSelect
             onChange={onWorkflowChange}
-            label="Workflow"
+            label={i18n.t("settings:general.catWorkflow", { defaultValue: "Workflow" })}
             value={
               collection.metadata?.workflow
                 ? { id: collection.metadata.workflow as string }

@@ -101,7 +101,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             className="color-swatch-pair__bg"
             padding="none"
             onClick={handleBgClick}
-            aria-label="Background color"
+            aria-label={i18n.t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}
             sx={{
               ...colorSwatchSx,
               position: "absolute",

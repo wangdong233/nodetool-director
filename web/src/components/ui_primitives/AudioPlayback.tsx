@@ -81,10 +81,10 @@ LocatorAudio.displayName = "LocatorAudio";
 
 /**
  * @example
- * <AudioPlayback locator={message.audio} label="Generated audio" />
+ * <AudioPlayback locator={message.audio} label={i18n.t("editor:ui.generatedAudio", { defaultValue: "Generated audio" })} />
  *
  * @example
- * <AudioPlayback src={resolvedUrl} label="Preview" />
+ * <AudioPlayback src={resolvedUrl} label={i18n.t("editor:io.preview", { defaultValue: "Preview" })} />
  */
 export const AudioPlayback: React.FC<AudioPlaybackProps> = ({
   locator,

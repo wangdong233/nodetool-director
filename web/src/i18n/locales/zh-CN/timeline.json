@@ -57,11 +57,11 @@
     "title": "历史",
     "loading": "正在加载版本…",
     "noneYet": "还没有版本",
-    "noneYetDesc": "保存一个版本,随时可以回到这个快照。",
+    "noneYetDesc": "保存一个版本，随时可以回到这个快照。",
     "saveTitle": "保存版本",
     "nameOptional": "名称(可选)",
-    "restoreConfirm": "恢复 v{{n}}?",
-    "restoreGeneric": "恢复?"
+    "restoreConfirm": "恢复 v{{n}}？",
+    "restoreGeneric": "恢复？"
   },
   "transcript": {
     "importTip": "导入音频或视频以转写",
@@ -206,7 +206,7 @@
     "duplicate": "创建副本",
     "duplicateClip": "创建剪辑副本",
     "duplicateTrack": "创建轨道副本",
-    "duplicateCopiesOverrides;TweakParamsForAVariation": "创建副本——复制覆盖参数;微调参数可得变体",
+    "duplicateCopiesOverrides;TweakParamsForAVariation": "创建副本——复制覆盖参数；微调参数可得变体",
     "duration": "时长",
     "durationInSeconds": "时长（秒）",
     "easing": "缓动",
@@ -271,7 +271,7 @@
     "keyboard": "键盘",
     "keyboardLayout": "键盘布局",
     "keyboardShortcuts": "键盘快捷键",
-    "keyboardShortcuts(?)": "键盘快捷键（?)",
+    "keyboardShortcuts(?)": "键盘快捷键（？）",
     "knee": "膝宽",
     "layout": "布局",
     "letterSpacing": "字间距",
@@ -481,7 +481,8 @@
     "verticalAlign": "垂直对齐",
     "videoEditModel": "视频编辑模型",
     "volume": "音量",
-    "weight": "字重"
+    "weight": "字重",
+    "duplicateCopiesOverridesTweakParamsForAVariation": ""
   },
   "shortcuts": {
     "tools": "工具",

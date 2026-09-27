@@ -988,8 +988,8 @@ const ScriptDocumentPane = ({
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip="More actions"
-              ariaLabel="More actions"
+              tooltip={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              ariaLabel={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
             />

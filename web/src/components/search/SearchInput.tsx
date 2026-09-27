@@ -14,6 +14,7 @@ import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import { isMac } from "../../utils/platform";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -342,7 +343,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           className={`clear-search-btn ${localSearchTerm.trim() === "" ? "disabled" : ""
             }`}
           tabIndex={-1}
-          aria-label="Clear search"
+          aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
           onClick={clearSearch}
           data-testid="search-clear-btn"
         >
