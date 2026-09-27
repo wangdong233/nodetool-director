@@ -1931,7 +1931,7 @@ const NewProjectSurface = ({
                   {TYPE_GLYPH[entry.type]}
                 </Box>
                 <Label>
-                  {entry.submenu ? `${entry.label} ▸` : entry.label}
+                  {entry.submenu ? `${i18n.t(`editor:ui.${"labelKey" in entry ? entry.labelKey : ""}`, { defaultValue: entry.label })} ▸` : i18n.t(`editor:ui.${"labelKey" in entry ? entry.labelKey : ""}`, { defaultValue: entry.label })}
                 </Label>
               </Box>
             ))}
@@ -1991,7 +1991,7 @@ const NewProjectSurface = ({
             TEXT_FILE_TEMPLATES.map((template) => (
               <MenuItemPrimitive
                 key={template.filename}
-                label={template.label}
+                label={i18n.t(`editor:ui.${template.labelKey ?? ""}`, { defaultValue: template.label })}
                 compact
                 disabled={creating !== null}
                 onClick={() => {

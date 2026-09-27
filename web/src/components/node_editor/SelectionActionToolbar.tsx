@@ -41,6 +41,7 @@ interface SelectionActionToolbarProps {
 interface ToolbarAction {
   icon: React.ReactNode;
   label: string;
+  labelKey?: string;
   slug: string;
   action: () => void;
   disabled?: boolean;
@@ -74,7 +75,7 @@ const ActionButton: React.FC<{
   <ToolbarIconButton
     icon={button.icon}
     tooltip={tooltipFor(button.slug, button.label)}
-    ariaLabel={button.label}
+    ariaLabel={i18n.t(`editor:ui.${"labelKey" in button ? button.labelKey : ""}`, { defaultValue: button.label })}
     onClick={button.action}
     disabled={button.disabled}
     variant={active ? "primary" : "default"}
@@ -129,19 +130,19 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       () => [
         {
           icon: <AlignHorizontalLeft fontSize="small" />,
-          label: "Align Left",
+          label: "Align Left", labelKey: "alignLeft",
           slug: "alignLeft",
           action: selectionActions.alignLeft
         },
         {
           icon: <AlignHorizontalCenter fontSize="small" />,
-          label: "Align Center",
+          label: "Align Center", labelKey: "alignCenter",
           slug: "alignCenter",
           action: selectionActions.alignCenter
         },
         {
           icon: <AlignHorizontalRight fontSize="small" />,
-          label: "Align Right",
+          label: "Align Right", labelKey: "alignRight",
           slug: "alignRight",
           action: selectionActions.alignRight
         }
@@ -153,19 +154,19 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       () => [
         {
           icon: <AlignVerticalTop fontSize="small" />,
-          label: "Align Top",
+          label: "Align Top", labelKey: "alignTop",
           slug: "alignTop",
           action: selectionActions.alignTop
         },
         {
           icon: <AlignVerticalCenter fontSize="small" />,
-          label: "Align Middle",
+          label: "Align Middle", labelKey: "alignMiddle",
           slug: "alignMiddle",
           action: selectionActions.alignMiddle
         },
         {
           icon: <AlignVerticalBottom fontSize="small" />,
-          label: "Align Bottom",
+          label: "Align Bottom", labelKey: "alignBottom",
           slug: "alignBottom",
           action: selectionActions.alignBottom
         }
@@ -177,13 +178,13 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       () => [
         {
           icon: <ViewColumn fontSize="small" />,
-          label: "Distribute Horizontally",
+          label: "Distribute Horizontally", labelKey: "distributeHorizontally",
           slug: "distributeHorizontal",
           action: selectionActions.distributeHorizontal
         },
         {
           icon: <ViewStream fontSize="small" />,
-          label: "Distribute Vertically",
+          label: "Distribute Vertically", labelKey: "distributeVertically",
           slug: "distributeVertical",
           action: selectionActions.distributeVertical
         }
@@ -195,7 +196,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       () => [
         {
           icon: <PlayArrow fontSize="small" />,
-          label: "Run Selected",
+          label: "Run Selected", labelKey: "runSelected",
           slug: "runSelected",
           // onClick forwards a MouseEvent; runSelectedNodes treats its first arg
           // as a run count (Math.floor(event) -> NaN -> no-op), so call it bare.
@@ -206,7 +207,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
         },
         {
           icon: <ContentCopy fontSize="small" />,
-          label: "Duplicate",
+          label: "Duplicate", labelKey: "duplicate",
           slug: "duplicate",
           action: selectionActions.duplicateSelected
         },
@@ -219,7 +220,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
         },
         {
           icon: <PowerSettingsNew fontSize="small" />,
-          label: "Disable",
+          label: "Disable", labelKey: "disable",
           slug: "bypassNode",
           action: selectionActions.bypassSelected
         }

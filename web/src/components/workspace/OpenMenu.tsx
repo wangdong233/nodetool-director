@@ -126,7 +126,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             {TEXT_FILE_TEMPLATES.map((template) => (
               <MenuItemPrimitive
                 key={template.filename}
-                label={template.label}
+                label={i18n.t(`editor:ui.${"labelKey" in template ? template.labelKey : ""}`, { defaultValue: template.label })}
                 onClick={() => void createTextFile(template)}
                 disabled={busy}
               />

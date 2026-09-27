@@ -159,6 +159,7 @@ const NumberField = ({
 
 interface NumberRowProps {
   label: string;
+  labelKey?: string;
   value: number;
   onCommit: (value: number) => void;
   step?: number;
@@ -203,6 +204,7 @@ const NumberRow = memo(({ label, value, onCommit, step, min, max, integer }: Num
 
 interface CheckboxRowProps {
   label: string;
+  labelKey?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
 }
@@ -218,6 +220,7 @@ const CheckboxRow = ({ label, checked, onChange }: CheckboxRowProps) => (
 
 interface ColorRowProps {
   label: string;
+  labelKey?: string;
   color: THREE.Color;
   onChange: () => void;
 }
@@ -242,6 +245,7 @@ const ColorRow = ({ label, color, onChange }: ColorRowProps) => (
 
 interface Vector3RowProps {
   label: string;
+  labelKey?: string;
   vector: THREE.Vector3 | THREE.Euler;
   toDisplay?: (v: number) => number;
   fromDisplay?: (v: number) => number;
@@ -304,6 +308,7 @@ const setBoolProp = (obj: Record<string, unknown>, key: string, value: boolean):
 interface MaterialNumberSpec {
   key: string;
   label: string;
+  labelKey?: string;
   min?: number;
   max?: number;
   step: number;
@@ -312,49 +317,50 @@ interface MaterialNumberSpec {
 // Ordered so common PBR controls come first; physical-only fields are skipped
 // automatically when absent on the material.
 const MATERIAL_NUMBER_FIELDS: readonly MaterialNumberSpec[] = [
-  { key: "metalness", label: "Metalness", min: 0, max: 1, step: 0.05 },
-  { key: "roughness", label: "Roughness", min: 0, max: 1, step: 0.05 },
-  { key: "emissiveIntensity", label: "Emissive", min: 0, step: 0.05 },
-  { key: "ior", label: "IOR", min: 1, max: 2.333, step: 0.01 },
-  { key: "reflectivity", label: "Reflectivity", min: 0, max: 1, step: 0.05 },
-  { key: "specularIntensity", label: "Specular", min: 0, max: 1, step: 0.05 },
-  { key: "clearcoat", label: "Clearcoat", min: 0, max: 1, step: 0.05 },
-  { key: "clearcoatRoughness", label: "CC Rough", min: 0, max: 1, step: 0.05 },
-  { key: "sheen", label: "Sheen", min: 0, max: 1, step: 0.05 },
-  { key: "sheenRoughness", label: "Sheen Rough", min: 0, max: 1, step: 0.05 },
-  { key: "transmission", label: "Transmission", min: 0, max: 1, step: 0.05 },
-  { key: "thickness", label: "Thickness", min: 0, step: 0.1 },
-  { key: "iridescence", label: "Iridescence", min: 0, max: 1, step: 0.05 },
-  { key: "iridescenceIOR", label: "Irid IOR", min: 1, max: 2.333, step: 0.01 },
-  { key: "dispersion", label: "Dispersion", min: 0, step: 0.1 }
+  { key: "metalness", label: "Metalness", labelKey: "metalness", min: 0, max: 1, step: 0.05 },
+  { key: "roughness", label: "Roughness", labelKey: "roughness", min: 0, max: 1, step: 0.05 },
+  { key: "emissiveIntensity", label: "Emissive", labelKey: "emissive", min: 0, step: 0.05 },
+  { key: "ior", label: "IOR", labelKey: "ior", min: 1, max: 2.333, step: 0.01 },
+  { key: "reflectivity", label: "Reflectivity", labelKey: "reflectivity", min: 0, max: 1, step: 0.05 },
+  { key: "specularIntensity", label: "Specular", labelKey: "specular", min: 0, max: 1, step: 0.05 },
+  { key: "clearcoat", label: "Clearcoat", labelKey: "clearcoat", min: 0, max: 1, step: 0.05 },
+  { key: "clearcoatRoughness", label: "CC Rough", labelKey: "ccRough", min: 0, max: 1, step: 0.05 },
+  { key: "sheen", label: "Sheen", labelKey: "sheen", min: 0, max: 1, step: 0.05 },
+  { key: "sheenRoughness", label: "Sheen Rough", labelKey: "sheenRough", min: 0, max: 1, step: 0.05 },
+  { key: "transmission", label: "Transmission", labelKey: "transmission", min: 0, max: 1, step: 0.05 },
+  { key: "thickness", label: "Thickness", labelKey: "thickness", min: 0, step: 0.1 },
+  { key: "iridescence", label: "Iridescence", labelKey: "iridescence", min: 0, max: 1, step: 0.05 },
+  { key: "iridescenceIOR", label: "Irid IOR", labelKey: "iridIOR", min: 1, max: 2.333, step: 0.01 },
+  { key: "dispersion", label: "Dispersion", labelKey: "dispersion", min: 0, step: 0.1 }
 ];
 
-const MATERIAL_COLOR_FIELDS: readonly { key: string; label: string }[] = [
+const MATERIAL_COLOR_FIELDS: readonly { key: string; label: string; labelKey?: string; }[] = [
   { key: "color", label: "Color" },
-  { key: "emissive", label: "Emissive" },
-  { key: "sheenColor", label: "Sheen Col" },
-  { key: "specularColor", label: "Specular" },
-  { key: "attenuationColor", label: "Atten Col" }
+  { key: "emissive", label: "Emissive", labelKey: "emissive" },
+  { key: "sheenColor", label: "Sheen Col", labelKey: "sheenCol" },
+  { key: "specularColor", label: "Specular", labelKey: "specular" },
+  { key: "attenuationColor", label: "Atten Col", labelKey: "attenCol" }
 ];
 
 // `recompile` fields change the shader program and require needsUpdate = true.
 const MATERIAL_FLAG_FIELDS: readonly {
   key: string;
   label: string;
+  labelKey?: string;
   recompile: boolean;
 }[] = [
-  { key: "transparent", label: "Transparent", recompile: true },
-  { key: "wireframe", label: "Wireframe", recompile: false },
-  { key: "flatShading", label: "Flat Shading", recompile: true },
-  { key: "vertexColors", label: "Vertex Cols", recompile: true },
-  { key: "depthTest", label: "Depth Test", recompile: false },
-  { key: "depthWrite", label: "Depth Write", recompile: false }
+  { key: "transparent", label: "Transparent", labelKey: "transparent", recompile: true },
+  { key: "wireframe", label: "Wireframe", labelKey: "wireframe", recompile: false },
+  { key: "flatShading", label: "Flat Shading", labelKey: "flatShading", recompile: true },
+  { key: "vertexColors", label: "Vertex Cols", labelKey: "vertexCols", recompile: true },
+  { key: "depthTest", label: "Depth Test", labelKey: "depthTest", recompile: false },
+  { key: "depthWrite", label: "Depth Write", labelKey: "depthWrite", recompile: false }
 ];
 
 const SIDE_OPTIONS = [
-  { value: String(THREE.FrontSide), label: "Front" },
-  { value: String(THREE.BackSide), label: "Back" },
-  { value: String(THREE.DoubleSide), label: "Double" }
+  { value: String(THREE.FrontSide), label: "Front", labelKey: "front" },
+  { value: String(THREE.BackSide), label: "Back", labelKey: "back" },
+  { value: String(THREE.DoubleSide), label: "Double", labelKey: "double" }
 ] as const;
 
 interface PropertiesPanelProps {
@@ -415,12 +421,12 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
 
   const hasGeometry =
     !!mesh && !!geometryParams && isEditableGeometryType(geometryType);
-  const tabs: TabItem[] = [{ value: "object", label: "Object" }];
+  const tabs: (TabItem & { labelKey?: string })[] = [{ value: "object", label: "Object", labelKey: "object" }];
   if (hasGeometry) {
-    tabs.push({ value: "geometry", label: "Geometry" });
+    tabs.push({ value: "geometry", label: "Geometry", labelKey: "geometry" });
   }
   if (material) {
-    tabs.push({ value: "material", label: "Material" });
+    tabs.push({ value: "material", label: "Material", labelKey: "material" });
   }
   // Fall back to the Object tab when the active one isn't available for the
   // newly selected object (e.g. a light has no geometry/material tab).
@@ -574,7 +580,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 return (
                   <NumberRow
                     key={spec.key}
-                    label={spec.label}
+                    label={i18n.t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
                     value={display}
                     integer={spec.kind === "int"}
                     min={isAngle ? 0 : spec.min}
@@ -610,7 +616,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 return current === undefined ? null : (
                   <NumberRow
                     key={spec.key}
-                    label={spec.label}
+                    label={i18n.t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
                     value={current}
                     min={spec.min}
                     max={spec.max}

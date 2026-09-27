@@ -67,17 +67,17 @@ type LightingPreset =
   | "night"
   | "park";
 
-const LIGHTING_PRESETS: { value: LightingPreset; label: string }[] = [
-  { value: "studio", label: "Studio" },
-  { value: "dawn", label: "Dawn" },
-  { value: "warehouse", label: "Warehouse" },
-  { value: "city", label: "City" },
-  { value: "sunset", label: "Sunset" },
-  { value: "forest", label: "Forest" },
-  { value: "park", label: "Park" },
-  { value: "apartment", label: "Apartment" },
-  { value: "lobby", label: "Lobby" },
-  { value: "night", label: "Night" }
+const LIGHTING_PRESETS: { value: LightingPreset; label: string; labelKey?: string; }[] = [
+  { value: "studio", label: "Studio", labelKey: "studio" },
+  { value: "dawn", label: "Dawn", labelKey: "dawn" },
+  { value: "warehouse", label: "Warehouse", labelKey: "warehouse" },
+  { value: "city", label: "City", labelKey: "city" },
+  { value: "sunset", label: "Sunset", labelKey: "sunset" },
+  { value: "forest", label: "Forest", labelKey: "forest" },
+  { value: "park", label: "Park", labelKey: "park" },
+  { value: "apartment", label: "Apartment", labelKey: "apartment" },
+  { value: "lobby", label: "Lobby", labelKey: "lobby" },
+  { value: "night", label: "Night", labelKey: "night" }
 ];
 
 type BackgroundColor =
@@ -90,13 +90,14 @@ type BackgroundColor =
 const BACKGROUND_COLORS: {
   value: BackgroundColor;
   label: string;
+  labelKey?: string;
   color: string;
 }[] = [
-  { value: "dark", label: "Dark", color: "#1a1a1a" },
-  { value: "light", label: "Light", color: "#f5f5f5" },
-  { value: "neutral", label: "Neutral", color: "#404040" },
-  { value: "transparent", label: "Transparent", color: "transparent" },
-  { value: "gradient", label: "Gradient", color: "#2a2a3a" }
+  { value: "dark", label: "Dark", labelKey: "dark", color: "#1a1a1a" },
+  { value: "light", label: "Light", labelKey: "light", color: "#f5f5f5" },
+  { value: "neutral", label: "Neutral", labelKey: "neutral", color: "#404040" },
+  { value: "transparent", label: "Transparent", labelKey: "transparent", color: "transparent" },
+  { value: "gradient", label: "Gradient", labelKey: "gradient", color: "#2a2a3a" }
 ];
 
 interface Model3DViewerProps {
@@ -814,7 +815,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
               >
                 {LIGHTING_PRESETS.map((preset) => (
                   <MenuItem key={preset.value} value={preset.value}>
-                    {preset.label}
+                    {i18n.t(`editor:ui.${"labelKey" in preset ? preset.labelKey : ""}`, { defaultValue: preset.label })}
                   </MenuItem>
                 ))}
               </Select>
@@ -829,7 +830,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
               >
                 {BACKGROUND_COLORS.map((bg) => (
                   <MenuItem key={bg.value} value={bg.value}>
-                    {bg.label}
+                    {i18n.t(`editor:ui.${"labelKey" in bg ? bg.labelKey : ""}`, { defaultValue: bg.label })}
                   </MenuItem>
                 ))}
               </Select>

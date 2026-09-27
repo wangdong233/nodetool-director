@@ -43,6 +43,7 @@ interface MediaModeMenuProps {
 interface ModeItem {
   id: MediaMode;
   label: string;
+  labelKey?: string;
   description?: string;
   icon: React.ReactNode;
   enabled: boolean;
@@ -51,62 +52,62 @@ interface ModeItem {
 const MODES: ModeItem[] = [
   {
     id: "chat",
-    label: "Chat",
+    label: "Chat", labelKey: "chat",
     icon: <ChatBubbleOutlineIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "image",
-    label: "Generate Images",
+    label: "Generate Images", labelKey: "generateImages",
     icon: <ImageIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "image_edit",
-    label: "Edit Images",
+    label: "Edit Images", labelKey: "editImages",
     icon: <AutoFixHighIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "video",
-    label: "Generate Videos",
+    label: "Generate Videos", labelKey: "generateVideos",
     icon: <MovieIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "image_to_video",
-    label: "Animate Image",
+    label: "Animate Image", labelKey: "animateImage",
     icon: <MovieFilterIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "reference_to_video",
-    label: "Reference to Video",
+    label: "Reference to Video", labelKey: "referenceToVideo",
     description: "several references, one shot",
     icon: <BurstModeIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "audio",
-    label: "Generate Speech",
+    label: "Generate Speech", labelKey: "generateSpeech",
     icon: <RecordVoiceOverIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "music",
-    label: "Generate Music",
+    label: "Generate Music", labelKey: "generateMusic",
     icon: <AudiotrackIcon fontSize="small" />,
     enabled: true
   },
   {
     id: "audio_to_video",
-    label: "Audio to Video",
+    label: "Audio to Video", labelKey: "audioToVideo",
     icon: <GraphicEqIcon fontSize="small" />,
     enabled: false
   },
   {
     id: "retake",
-    label: "Retake",
+    label: "Retake", labelKey: "retake",
     icon: <ReplayIcon fontSize="small" />,
     enabled: false
   },
@@ -118,7 +119,7 @@ const MODES: ModeItem[] = [
   },
   {
     id: "motion_control",
-    label: "Motion Control",
+    label: "Motion Control", labelKey: "motionControl",
     icon: <TuneIcon fontSize="small" />,
     enabled: false
   }
@@ -233,7 +234,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
                 sx={{ flex: 1, minWidth: 0 }}
               >
                 <Text size="small" weight={500} sx={{ color: "inherit" }}>
-                  {m.label}
+                  {i18n.t(`editor:ui.${"labelKey" in m ? m.labelKey : ""}`, { defaultValue: m.label })}
                 </Text>
                 {m.description && (
                   <Caption size="smaller" color="secondary">

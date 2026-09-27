@@ -165,6 +165,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "home:entry.",
         "editor:nodeBody.items.",
         "editor:bottom.",
+        "editor:ui.",
         "timeline:shortcuts.",
         "nav:settings.docsTopics.",
         "settings:general.",

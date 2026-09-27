@@ -42,9 +42,9 @@ const COMFY_WORKER_IMAGE = "ghcr.io/nodetool-ai/nodetool-worker-comfy:latest";
 // Sentinel select value that keeps the free-text image field for a custom build.
 const CUSTOM_IMAGE = "__custom_image__";
 const IMAGE_PRESETS = [
-  { value: DEFAULT_WORKER_IMAGE, label: "NodeTool Worker" },
-  { value: COMFY_WORKER_IMAGE, label: "NodeTool Worker + ComfyUI" },
-  { value: CUSTOM_IMAGE, label: "Custom…" }
+  { value: DEFAULT_WORKER_IMAGE, label: "NodeTool Worker", labelKey: "nodetoolWorker" },
+  { value: COMFY_WORKER_IMAGE, label: "NodeTool Worker + ComfyUI", labelKey: "nodetoolWorkerComfyUI" },
+  { value: CUSTOM_IMAGE, label: "Custom…", labelKey: "custom" }
 ] as const;
 const DEFAULT_IDLE_TIMEOUT = "30";
 // Persistent volume default — big enough for several HF image models. Models
@@ -56,8 +56,8 @@ const DEFAULT_DISK_GB = "100";
 const CUSTOM_GPU = "__custom__";
 
 const TARGET_OPTIONS = [
-  { value: "runpod", label: "RunPod" },
-  { value: "vast", label: "Vast" }
+  { value: "runpod", label: "RunPod", labelKey: "runpod" },
+  { value: "vast", label: "Vast", labelKey: "vast" }
 ] as const;
 
 // GPU ids are PROVIDER-NATIVE and differ per target: RunPod wants the full
@@ -70,31 +70,31 @@ const TARGET_OPTIONS = [
 const CPU_MACHINE = "";
 
 const RUNPOD_GPU_OPTIONS = [
-  { value: CPU_MACHINE, label: "CPU only (no GPU)" },
-  { value: "NVIDIA RTX A5000", label: "RTX A5000 · 24 GB" },
-  { value: "NVIDIA GeForce RTX 4090", label: "RTX 4090 · 24 GB" },
-  { value: "NVIDIA L4", label: "L4 · 24 GB" },
-  { value: "NVIDIA RTX A6000", label: "RTX A6000 · 48 GB" },
-  { value: "NVIDIA A40", label: "A40 · 48 GB" },
-  { value: "NVIDIA L40S", label: "L40S · 48 GB" },
-  { value: "NVIDIA A100 80GB PCIe", label: "A100 · 80 GB" },
-  { value: "NVIDIA H100 80GB HBM3", label: "H100 · 80 GB" },
-  { value: CUSTOM_GPU, label: "Other (enter GPU id)…" }
+  { value: CPU_MACHINE, label: "CPU only (no GPU)", labelKey: "cpuOnlyNoGPU" },
+  { value: "NVIDIA RTX A5000", label: "RTX A5000 · 24 GB", labelKey: "rtxA500024GB" },
+  { value: "NVIDIA GeForce RTX 4090", label: "RTX 4090 · 24 GB", labelKey: "rtx409024GB" },
+  { value: "NVIDIA L4", label: "L4 · 24 GB", labelKey: "l424GB" },
+  { value: "NVIDIA RTX A6000", label: "RTX A6000 · 48 GB", labelKey: "rtxA600048GB" },
+  { value: "NVIDIA A40", label: "A40 · 48 GB", labelKey: "a4048GB" },
+  { value: "NVIDIA L40S", label: "L40S · 48 GB", labelKey: "l40s48GB" },
+  { value: "NVIDIA A100 80GB PCIe", label: "A100 · 80 GB", labelKey: "a10080GB" },
+  { value: "NVIDIA H100 80GB HBM3", label: "H100 · 80 GB", labelKey: "h10080GB" },
+  { value: CUSTOM_GPU, label: "Other (enter GPU id)…", labelKey: "otherEnterGPUId" }
 ] as const;
 
 // Vast searches the marketplace, so "Any" (empty id) is valid and picks the
 // cheapest offer. RunPod provisions a specific pod type, so a GPU is required.
 const VAST_GPU_OPTIONS = [
-  { value: "", label: "Any (cheapest offer)" },
-  { value: "RTX_3090", label: "RTX 3090 · 24 GB" },
-  { value: "RTX_4090", label: "RTX 4090 · 24 GB" },
-  { value: "RTX_A6000", label: "RTX A6000 · 48 GB" },
-  { value: "A40", label: "A40 · 48 GB" },
-  { value: "L40S", label: "L40S · 48 GB" },
-  { value: "A100_PCIE", label: "A100 · 80 GB" },
-  { value: "A100_SXM4", label: "A100 SXM4 · 80 GB" },
-  { value: "H100_PCIE", label: "H100 · 80 GB" },
-  { value: CUSTOM_GPU, label: "Other (enter GPU id)…" }
+  { value: "", label: "Any (cheapest offer)", labelKey: "anyCheapestOffer" },
+  { value: "RTX_3090", label: "RTX 3090 · 24 GB", labelKey: "rtx309024GB" },
+  { value: "RTX_4090", label: "RTX 4090 · 24 GB", labelKey: "rtx409024GB" },
+  { value: "RTX_A6000", label: "RTX A6000 · 48 GB", labelKey: "rtxA600048GB" },
+  { value: "A40", label: "A40 · 48 GB", labelKey: "a4048GB" },
+  { value: "L40S", label: "L40S · 48 GB", labelKey: "l40s48GB" },
+  { value: "A100_PCIE", label: "A100 · 80 GB", labelKey: "a10080GB" },
+  { value: "A100_SXM4", label: "A100 SXM4 · 80 GB", labelKey: "a100SXM480GB" },
+  { value: "H100_PCIE", label: "H100 · 80 GB", labelKey: "h10080GB" },
+  { value: CUSTOM_GPU, label: "Other (enter GPU id)…", labelKey: "otherEnterGPUId" }
 ] as const;
 
 // Default GPU per target: a solid mid-range card for RunPod, and "Any cheapest"
@@ -116,8 +116,8 @@ const VCPU_OPTIONS = [
 const DEFAULT_VCPU = "4";
 
 const TOKEN_POLICY_OPTIONS = [
-  { value: "generate", label: "Generate (recommended)" },
-  { value: "fixed", label: "Fixed" }
+  { value: "generate", label: "Generate (recommended)", labelKey: "generateRecommended" },
+  { value: "fixed", label: "Fixed", labelKey: "fixed" }
 ] as const;
 
 interface WorkerProfilesDialogProps {

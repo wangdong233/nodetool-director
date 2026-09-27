@@ -70,16 +70,16 @@ const SECTION_OWNED_IDS = new Set(["inspector:color"]);
 
 /** Catalog effects this panel can add, in the order D7 lists them. */
 const ADDABLE_EFFECTS = [
-  { value: "blur", label: "Blur" },
-  { value: "glow", label: "Glow" },
-  { value: "dropShadow", label: "Drop shadow" },
-  { value: "vignette", label: "Vignette" },
-  { value: "sharpen", label: "Sharpen" },
-  { value: "chromaKey", label: "Chroma key" },
-  { value: "curves", label: "Curves" },
-  { value: "levels", label: "Levels" },
-  { value: "liftGammaGain", label: "Lift / gamma / gain" },
-  { value: "grain", label: "Film grain" }
+  { value: "blur", label: "Blur", labelKey: "blur" },
+  { value: "glow", label: "Glow", labelKey: "glow" },
+  { value: "dropShadow", label: "Drop shadow", labelKey: "dropShadow" },
+  { value: "vignette", label: "Vignette", labelKey: "vignette" },
+  { value: "sharpen", label: "Sharpen", labelKey: "sharpen" },
+  { value: "chromaKey", label: "Chroma key", labelKey: "chromaKey" },
+  { value: "curves", label: "Curves", labelKey: "curves" },
+  { value: "levels", label: "Levels", labelKey: "levels" },
+  { value: "liftGammaGain", label: "Lift / gamma / gain", labelKey: "liftGammaGain" },
+  { value: "grain", label: "Film grain", labelKey: "filmGrain" }
 ] as const;
 
 type AddableEffectType = (typeof ADDABLE_EFFECTS)[number]["value"];
@@ -497,15 +497,15 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
 
     if (isClipLiftGammaGainEffect(effect)) {
       const triples = [
-        { key: "lift", label: "Lift", value: effect.lift },
+        { key: "lift", label: "Lift", labelKey: "lift", value: effect.lift },
         { key: "gamma", label: "Gamma", value: effect.gamma },
-        { key: "gain", label: "Gain", value: effect.gain }
+        { key: "gain", label: "Gain", labelKey: "gain", value: effect.gain }
       ] as const;
       const channelNames = ["R", "G", "B"] as const;
       return (
         <>
           {triples.map((triple) => (
-            <InspectorRow key={triple.key} label={triple.label}>
+            <InspectorRow key={triple.key} label={i18n.t(`editor:ui.${"labelKey" in triple ? triple.labelKey : ""}`, { defaultValue: triple.label })}>
               {channelNames.map((channel, index) => (
                 <InspectorPillInput
                   key={channel}
@@ -849,7 +849,7 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
                       onClick={() => handleAdd(effect.value)}
                       sx={{ justifyContent: "flex-start" }}
                     >
-                      {effect.label}
+                      {i18n.t(`editor:ui.${"labelKey" in effect ? effect.labelKey : ""}`, { defaultValue: effect.label })}
                     </Button>
                   ))}
                   {matchingEffects.length === 0 && (
