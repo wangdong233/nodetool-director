@@ -379,7 +379,7 @@ const InspectorRegion: React.FC<{ sequenceId: string | undefined }> = memo(
     <ResizableSideDock
       storageKey="timeline_assistant"
       defaultWidth={360}
-      ariaLabel="Resize timeline side panel"
+      ariaLabel={i18n.t("timeline:editor.resizeSide", { defaultValue: "Resize timeline side panel" })}
     >
       <FlexColumn css={inspectorRegionStyles(theme)} fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
@@ -1020,7 +1020,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           ref={handleRef}
           role="separator"
           aria-orientation="horizontal"
-          aria-label="Resize tracks panel"
+          aria-label={i18n.t("timeline:editor.resizeTracks", { defaultValue: "Resize tracks panel" })}
           aria-valuenow={tracksHeight}
           aria-valuemin={MIN_TRACKS_HEIGHT_PX}
           aria-valuemax={MAX_TRACKS_HEIGHT_PX}
@@ -1048,8 +1048,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           isMobile ? (
             <ToolbarIconButton
               onClick={openPanelSheet}
-              tooltip="Panels"
-              aria-label="Open panels"
+              tooltip={i18n.t("timeline:editor.panels", { defaultValue: "Panels" })}
+              aria-label={i18n.t("timeline:editor.openPanels", { defaultValue: "Open panels" })}
               // Tinted while a clip is selected: that's when the Inspector has
               // something to show, and it's the only hint on a phone that
               // tapping a clip led somewhere.

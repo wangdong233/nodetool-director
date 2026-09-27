@@ -235,7 +235,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         addNotification({
           type: "success",
           alert: true,
-          content: `Imported ${timeline.name || "Untitled video"}`
+          content: i18n.t("timeline:list.imported", { defaultValue: "Imported {{name}}", name: timeline.name || i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" }) })
         });
         if (result.missing.length > 0) {
           addNotification({
@@ -255,18 +255,18 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
 
   return (
     <FlexRow align="center" gap={SPACING.xs}>
-      <Tooltip title="New timeline" placement="right-start">
+      <Tooltip title={i18n.t("timeline:list.newTimeline", { defaultValue: "New timeline" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel="New timeline"
+          ariaLabel={i18n.t("timeline:list.newTimeline", { defaultValue: "New timeline" })}
           onClick={() => void handleCreate()}
           disabled={createTimeline.isPending}
           tabIndex={-1}
           icon={<AddIcon />}
         />
       </Tooltip>
-      <Tooltip title="Import timeline (.zip)" placement="right-start">
+      <Tooltip title={i18n.t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel="Import timeline (.zip)"
+          ariaLabel={i18n.t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })}
           onClick={handleImportClick}
           disabled={isImporting}
           tabIndex={-1}
