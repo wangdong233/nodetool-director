@@ -18,7 +18,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const WorkflowContextMenu: React.FC = () => {
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
@@ -104,7 +104,7 @@ const WorkflowContextMenu: React.FC = () => {
       )}
       <ContextMenuItem
         onClick={handleDelete}
-        label="Delete"
+        label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
         addButtonClassName="delete"
         IconComponent={<DeleteIcon />}
       />

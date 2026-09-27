@@ -8,7 +8,10 @@
     "closeTab": "关闭{{title}}",
     "clear": "清除",
     "switch": "切换",
-    "dismiss": "关闭"
+    "dismiss": "关闭",
+    "duplicate": "创建副本",
+    "copy": "复制",
+    "cut": "剪切"
   },
   "status": {
     "loading": "加载中…"

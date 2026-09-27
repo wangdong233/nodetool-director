@@ -32,7 +32,7 @@ import AssetInfoPanel from "./AssetInfoPanel";
 import { SendToWorkflowMenu } from "../workflows/SendToWorkflowMenu";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
 import { useShallow } from "zustand/react/shallow";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const AssetItemContextMenu = () => {
   const menuPosition = useContextMenuStore((state) => state.menuPosition);

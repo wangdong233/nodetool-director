@@ -10,7 +10,7 @@ import { useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RouteIcon from "@mui/icons-material/Route";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 interface EdgeContextMenuProps {
   edgeId?: string;

@@ -43,7 +43,7 @@ import NodeItem from "../node_menu/NodeItem";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const NODE_ROW_HEIGHT = 28;
 
@@ -934,7 +934,7 @@ const InputContextMenu: React.FC = () => {
           inputRef={searchInputRef}
           size="small"
           fullWidth
-          placeholder="Search nodes..."
+          placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes..." })}
           value={searchTerm}
           onChange={handleSearchChange}
           onClick={(event) => event.stopPropagation()}

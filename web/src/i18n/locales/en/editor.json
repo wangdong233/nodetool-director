@@ -1,6 +1,5 @@
 {
   "common": {
-    "cut": "Cut",
     "paste": "Paste"
   },
   "node": {
@@ -56,7 +55,6 @@
     "disableAll": "Disable All",
     "collapseExpand": "Collapse / Expand",
     "surroundWithGroup": "Surround With Group",
-    "removeFromGroup": "Remove from Group",
     "selectAllConnected": "Select All Connected",
     "selectInputs": "Select Inputs",
     "selectOutputs": "Select Outputs"
@@ -99,7 +97,6 @@
   "io": {
     "searchNodes": "Search nodes...",
     "searchConnectable": "Search connectable nodes",
-    "clearSearch": "clear search",
-    "searchNodesAria": "Search nodes"
+    "clearSearch": "clear search"
   }
 }

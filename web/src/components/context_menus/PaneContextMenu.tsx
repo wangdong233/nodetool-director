@@ -38,7 +38,7 @@ import {
   CONSTANT_NODE_OPTIONS,
   INPUT_NODE_OPTIONS
 } from "./paneNodeOptions";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const PaneContextMenu: React.FC = () => {
   const { handlePaste } = useCopyPaste();

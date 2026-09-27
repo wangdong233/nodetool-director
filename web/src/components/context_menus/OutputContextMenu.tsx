@@ -40,7 +40,7 @@ import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { useHandleNodePlacement } from "../../hooks/useHandleNodePlacement";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const NODE_ROW_HEIGHT = 28;
 

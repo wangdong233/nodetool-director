@@ -36,7 +36,7 @@ import CallSplitIcon from "@mui/icons-material/CallSplit";
 import { useNodes } from "../../contexts/NodeContext";
 import isEqual from "../../utils/isEqual";
 import { shallow } from "zustand/shallow";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 interface SelectionContextMenuProps {
   top?: number;
@@ -217,7 +217,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       />
       <ContextMenuItem
         onClick={handleCopyNodes}
-        label="Copy"
+        label={i18n.t("common:action.copy", { defaultValue: "Copy" })}
         IconComponent={<CopyAllIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -230,7 +230,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       />
       <ContextMenuItem
         onClick={handleCutNodes}
-        label="Cut"
+        label={i18n.t("common:action.cut", { defaultValue: "Cut" })}
         IconComponent={<ContentCutIcon />}
         tooltip={
           <div className="tooltip-span">
@@ -421,7 +421,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       <Divider />
       <ContextMenuItem
         onClick={handleDelete}
-        label="Delete"
+        label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
         IconComponent={<RemoveCircleIcon />}
         tooltip={
           <div className="tooltip-span">

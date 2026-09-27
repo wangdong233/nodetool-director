@@ -8,7 +8,10 @@
     "closeTab": "Close {{title}}",
     "clear": "Clear",
     "switch": "Switch",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "duplicate": "Duplicate",
+    "copy": "Copy",
+    "cut": "Cut"
   },
   "status": {
     "loading": "Loading…"

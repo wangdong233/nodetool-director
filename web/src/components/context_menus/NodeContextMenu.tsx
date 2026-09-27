@@ -24,7 +24,7 @@ import { NodeData } from "../../stores/NodeData";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useGroupIntoSubgraph } from "../../hooks/nodes/useGroupIntoSubgraph";
 import { useNodes } from "../../contexts/NodeContext";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const NodeContextMenu: React.FC = () => {
   const {
@@ -67,7 +67,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="copy"
       onClick={handlers.handleCopy}
-      label="Copy"
+      label={i18n.t("common:action.copy", { defaultValue: "Copy" })}
       IconComponent={<ContentCopyIcon />}
       tooltip={
         <div className="tooltip-span">
@@ -81,7 +81,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="cut"
       onClick={handlers.handleCut}
-      label="Cut"
+      label={i18n.t("common:action.cut", { defaultValue: "Cut" })}
       IconComponent={<ContentCutIcon />}
       tooltip={
         <div className="tooltip-span">
@@ -183,7 +183,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="group-into-subgraph"
       onClick={handleGroupIntoSubgraph}
-      label="Group into Subgraph"
+      label={i18n.t("editor:node.groupIntoSubgraph", { defaultValue: "Group into Subgraph" })}
       IconComponent={<AccountTreeIcon />}
       tooltip={i18n.t("editor:node.groupIntoSubgraphTip", { defaultValue: "Move the selected nodes into a new subgraph node" })}
     />,

@@ -1,6 +1,8 @@
 import commonEn from "../locales/en/common.json";
 import navEn from "../locales/en/nav.json";
 import settingsEn from "../locales/en/settings.json";
+import homeEn from "../locales/en/home.json";
+import editorEn from "../locales/en/editor.json";
 import commonZh from "../locales/zh-CN/common.json";
 import navZh from "../locales/zh-CN/nav.json";
 import settingsZh from "../locales/zh-CN/settings.json";
@@ -118,6 +120,8 @@ describe("catalog key parity (CI completeness guard)", () => {
     collect(commonEn, "common", "");
     collect(navEn, "nav", "");
     collect(settingsEn, "settings", "");
+    collect(homeEn, "home", "");
+    collect(editorEn, "editor", "");
 
     const dead: string[] = [];
     for (const [ns, key] of leafKeys) {
@@ -148,6 +152,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "common:action.",
         "nav:tabs.",
         "nav:qa.",
+        "home:entry.",
         "nav:settings.docsTopics.",
         "settings:general.",
         "settings:vaults.",

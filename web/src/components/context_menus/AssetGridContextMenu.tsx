@@ -14,7 +14,7 @@ import StorageIcon from "@mui/icons-material/Storage";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const AssetGridContextMenu = () => {
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
