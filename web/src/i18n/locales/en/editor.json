@@ -98,5 +98,20 @@
     "searchNodes": "Search nodes…",
     "searchConnectable": "Search connectable nodes",
     "clearSearch": "clear search"
+  },
+  "nodeBody": {
+    "runImage": "Run to generate",
+    "runVideo": "Run to generate video",
+    "runText": "Run to generate text",
+    "runAudio": "Run to generate audio",
+    "run3d": "Run to generate 3D",
+    "runModel": "Run Model",
+    "noMask": "No mask yet",
+    "runList": "Run to generate a list",
+    "generatingItems": "Generating items…",
+    "requiredOne": "Required setting {{names}} is not configured!",
+    "requiredMany": "Required settings {{names}} are not configured!",
+    "configureInSettings": "Configure in Settings",
+    "addAnother": "Add another {{item}}"
   }
 }

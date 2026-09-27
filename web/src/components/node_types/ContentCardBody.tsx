@@ -19,6 +19,7 @@
  */
 
 import React, { memo, useCallback, useMemo } from "react";
+import { i18n } from "../../i18n";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -618,17 +619,17 @@ const PreviewArea: React.FC<{
       return (
         <div className="mask-empty">
           <LayersIcon className="mask-icon" />
-          <span>No mask yet</span>
+          <span>{i18n.t("editor:nodeBody.noMask", { defaultValue: "No mask yet" })}</span>
         </div>
       );
     }
     const empty = {
-      image: { message: "Run to generate", icon: <ImageIcon /> },
-      video: { message: "Run to generate video", icon: <MovieIcon /> },
-      text: { message: "Run to generate text", icon: <TextFieldsIcon /> },
-      audio: { message: "Run to generate audio", icon: <AudiotrackIcon /> },
-      model_3d: { message: "Run to generate 3D", icon: <ViewInArIcon /> },
-      generic: { message: "Run Model", icon: undefined }
+      image: { message: i18n.t("editor:nodeBody.runImage", { defaultValue: "Run to generate" }), icon: <ImageIcon /> },
+      video: { message: i18n.t("editor:nodeBody.runVideo", { defaultValue: "Run to generate video" }), icon: <MovieIcon /> },
+      text: { message: i18n.t("editor:nodeBody.runText", { defaultValue: "Run to generate text" }), icon: <TextFieldsIcon /> },
+      audio: { message: i18n.t("editor:nodeBody.runAudio", { defaultValue: "Run to generate audio" }), icon: <AudiotrackIcon /> },
+      model_3d: { message: i18n.t("editor:nodeBody.run3d", { defaultValue: "Run to generate 3D" }), icon: <ViewInArIcon /> },
+      generic: { message: i18n.t("editor:nodeBody.runModel", { defaultValue: "Run Model" }), icon: undefined }
     } satisfies Record<
       Exclude<ContentCardVariant, "image_mask">,
       { message: string; icon: React.ReactNode }

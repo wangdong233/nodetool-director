@@ -10,6 +10,7 @@
  */
 
 import React, { memo, useMemo } from "react";
+import { i18n } from "../../i18n";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -78,7 +79,7 @@ const DynamicInputButtonInner: React.FC<DynamicInputButtonProps> = ({
 }) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
-  const text = label ?? `Add another ${itemLabel}`;
+  const text = label ?? i18n.t("editor:nodeBody.addAnother", { defaultValue: "Add another {{item}}", item: itemLabel });
 
   return (
     <Button

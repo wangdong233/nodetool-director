@@ -26,6 +26,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import { i18n } from "../../../i18n";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -284,7 +285,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
 
       {items.length === 0 ? (
         <div className="list-empty">
-          {isRunning ? "Generating items…" : "Run to generate a list"}
+          {isRunning ? i18n.t("editor:nodeBody.generatingItems", { defaultValue: "Generating items…" }) : i18n.t("editor:nodeBody.runList", { defaultValue: "Run to generate a list" })}
         </div>
       ) : (
         <div ref={scrollRef} className="list-scroll nowheel">
