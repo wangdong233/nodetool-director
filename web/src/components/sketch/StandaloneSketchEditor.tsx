@@ -56,6 +56,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
+import { i18n } from "../../i18n";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -236,7 +237,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <FileDownloadOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>Export PNG</ListItemText>
+        <ListItemText>{i18n.t("sketch:attrs.exportPNG", { defaultValue: "Export PNG" })}</ListItemText>
       </EditorMenuItem>
     ];
 
@@ -249,7 +250,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <FlexColumn align="center" justify="center" sx={centered}>
             <EmptyState
               variant="error"
-              title="Sketch document not found"
+              title={i18n.t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
               description="The image document you requested does not exist or you do not have access to it."
             />
           </FlexColumn>

@@ -16,6 +16,7 @@ import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, FlexColumn, BORDER_RADIUS } from "../ui_primitives";
 import { parseColorToRgba, rgbaToCss, rgbToHsv, hsvToRgb } from "./types";
+import { i18n } from "../../i18n";
 
 /** Below this saturation/value, hue is ambiguous — don't resync from color. */
 const MIN_SV_FOR_HUE_SYNC = 0.05;

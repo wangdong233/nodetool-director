@@ -31,6 +31,7 @@ import {
 import { useCreateGeneratedLayer } from "../../../hooks/sketch/useCreateGeneratedLayer";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const IMAGE_OUTPUT_TYPES = new Set([
   "nodetool.output.ImageOutput",

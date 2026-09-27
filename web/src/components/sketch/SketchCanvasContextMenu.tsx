@@ -47,6 +47,7 @@ import {
 import { displayCombo } from "./shortcuts";
 import SketchToolIconLabel from "./SketchToolIconLabel";
 import { ToolSettingsPanel } from "./ToolSettingsPanels";
+import { i18n } from "../../i18n";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -397,7 +398,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
     if (isShapeTool(activeTool)) {
       return (
         <FlexRow gap={1}>
-          <ColorPreview label="Stroke" color={shapeSettings.strokeColor} />
+          <ColorPreview label={i18n.t("sketch:attrs.stroke", { defaultValue: "Stroke" })} color={shapeSettings.strokeColor} />
           <ColorPreview label="Fill" color={shapeSettings.fillColor} />
         </FlexRow>
       );
@@ -406,7 +407,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
     if (activeTool === "gradient") {
       return (
         <FlexRow gap={1}>
-          <ColorPreview label="Start" color={gradientSettings.startColor} />
+          <ColorPreview label={i18n.t("sketch:attrs.start", { defaultValue: "Start" })} color={gradientSettings.startColor} />
           <ColorPreview label="End" color={gradientSettings.endColor} />
         </FlexRow>
       );
@@ -419,7 +420,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
         <ToolbarIconButton
           icon={<SwapHorizIcon sx={{ fontSize: 18 }} />}
           onClick={onSwapColors}
-          aria-label="Swap foreground and background colors"
+          aria-label={i18n.t("sketch:attrs.swapForegroundAndBackgroundColors", { defaultValue: "Swap foreground and background colors" })}
           sx={{
             mt: 0,
             border: "1px solid",
@@ -637,38 +638,38 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
                   px: 0
                 }}
               >
-                <SectionLabel>Selection</SectionLabel>
+                <SectionLabel>{i18n.t("sketch:attrs.selection", { defaultValue: "Selection" })}</SectionLabel>
                 <FlexColumn gap={0.3}>
                   <SelectionMenuItem
                     icon={<DeselectIcon sx={{ fontSize: 16 }} />}
-                    label="Deselect"
+                    label={i18n.t("sketch:attrs.deselect", { defaultValue: "Deselect" })}
                     shortcut={displayCombo("deselect")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onDeselectSelection(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<RestoreIcon sx={{ fontSize: 16 }} />}
-                    label="Reselect"
+                    label={i18n.t("sketch:attrs.reselect", { defaultValue: "Reselect" })}
                     shortcut={displayCombo("reselect")}
                     onClick={() => { onReselectSelection(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<CropIcon sx={{ fontSize: 16 }} />}
-                    label="Crop to Selection"
+                    label={i18n.t("sketch:attrs.cropToSelection", { defaultValue: "Crop to Selection" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onCropCanvasToSelection(); onClose(); }}
                   />
                   <Divider sx={{ my: 0.5, borderColor: surfaceSoft }} />
                   <SelectionMenuItem
                     icon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
-                    label="Layer via Copy"
+                    label={i18n.t("sketch:attrs.layerViaCopy", { defaultValue: "Layer via Copy" })}
                     shortcut={displayCombo("layer-via-copy")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onLayerViaCopy(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<ContentCutIcon sx={{ fontSize: 16 }} />}
-                    label="Layer via Cut"
+                    label={i18n.t("sketch:attrs.layerViaCut", { defaultValue: "Layer via Cut" })}
                     shortcut={displayCombo("layer-via-cut")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onLayerViaCut(); onClose(); }}
@@ -682,7 +683,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
                   />
                   <SelectionMenuItem
                     icon={<HighlightAltIcon sx={{ fontSize: 16 }} />}
-                    label="Stroke"
+                    label={i18n.t("sketch:attrs.stroke", { defaultValue: "Stroke" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onStrokeSelectionWithForeground(); onClose(); }}
                   />
@@ -701,7 +702,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
               py: 1
             }}
           >
-            <SectionLabel>Tools</SectionLabel>
+            <SectionLabel>{i18n.t("sketch:attrs.tools", { defaultValue: "Tools" })}</SectionLabel>
             <FlexColumn
               gap={0.75}
               className="sketch-context-menu__tools-groups"

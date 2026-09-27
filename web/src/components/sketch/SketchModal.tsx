@@ -45,6 +45,7 @@ import {
   settingRowChildrenSx
 } from "./sketchStyles";
 import { displayCombo } from "./shortcuts";
+import { i18n } from "../../i18n";
 import {
   Caption,
   Divider,
@@ -253,7 +254,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   setPenPressure({ pressureSensitivity: !headerPenPressureOn })
                 }
                 color={headerPenPressureOn ? "primary" : "default"}
-                aria-label="Toggle pen pressure"
+                aria-label={i18n.t("sketch:attrs.togglePenPressure", { defaultValue: "Toggle pen pressure" })}
                 aria-expanded={headerPenPressureOn}
                 aria-controls="sketch-modal-pen-pressure-panel"
                 sx={{
@@ -306,7 +307,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             </span>
           </Tooltip>
 
-          <Tooltip title="Keyboard shortcuts" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={i18n.t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
@@ -323,7 +324,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           <Tooltip title={`Symmetry: ${symmetryLabel}`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
-              aria-label="Symmetry menu"
+              aria-label={i18n.t("sketch:attrs.symmetryMenu", { defaultValue: "Symmetry menu" })}
               aria-haspopup="true"
               aria-expanded={Boolean(symmetryAnchorEl)}
               onClick={(e) => setSymmetryAnchorEl(e.currentTarget)}
@@ -373,32 +374,30 @@ const SketchModal: React.FC<SketchModalProps> = ({
 
           {confirmDiscard ? (
             <>
-              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>
-                Discard changes?
-              </Caption>
-              <IconButton size="small" aria-label="Confirm discard" color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
+              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>{i18n.t("sketch:attrs.discardChanges?", { defaultValue: "Discard changes?" })}</Caption>
+              <IconButton size="small" aria-label={i18n.t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })} color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
                 <TrashIcon width={16} height={16} />
               </IconButton>
-              <IconButton size="small" aria-label="Cancel discard" onClick={() => setConfirmDiscard(false)}>
+              <IconButton size="small" aria-label={i18n.t("sketch:attrs.cancelDiscard", { defaultValue: "Cancel discard" })} onClick={() => setConfirmDiscard(false)}>
                 <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
               </IconButton>
             </>
           ) : (
-            <Tooltip title="Discard all changes and close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label="Discard changes" onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
+            <Tooltip title={i18n.t("sketch:attrs.discardAllChangesAndClose", { defaultValue: "Discard all changes and close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+              <IconButton size="small" aria-label={i18n.t("sketch:attrs.discardChanges", { defaultValue: "Discard changes" })} onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
 
-          <Tooltip title="Export Image" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-            <IconButton size="small" aria-label="Export Image" onClick={() => editorRef.current?.exportPng()}>
+          <Tooltip title={i18n.t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+            <IconButton size="small" aria-label={i18n.t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} onClick={() => editorRef.current?.exportPng()}>
               <SaveAltIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
             </IconButton>
           </Tooltip>
 
           {!confirmDiscard && (
-            <Tooltip title="Save & Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+            <Tooltip title={i18n.t("sketch:attrs.saveAndClose", { defaultValue: "Save & Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
               <IconButton size="small" aria-label="Save and close" onClick={handleRequestClose} sx={{ color: "success.light" }}>
                 <CheckIcon fontSize="small" />
               </IconButton>
@@ -468,14 +467,12 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   flexShrink: 0
                 }}
               >
-                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>
-                  Keyboard shortcuts
-                </Text>
-                <Tooltip title="Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>{i18n.t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}</Text>
+                <Tooltip title={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
                   <IconButton
                     size="small"
                     onClick={() => setShortcutsPaneOpen(false)}
-                    aria-label="Close keyboard shortcuts"
+                    aria-label={i18n.t("sketch:attrs.closeKeyboardShortcuts", { defaultValue: "Close keyboard shortcuts" })}
                   >
                     <CloseIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
                   </IconButton>
@@ -489,7 +486,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 }}
               >
                 <TabGroup
-                  aria-label="Image editor shortcuts"
+                  aria-label={i18n.t("sketch:attrs.imageEditorShortcuts", { defaultValue: "Image editor shortcuts" })}
                   tabs={[
                     { value: "shortcuts", label: "Shortcuts" },
                     { value: "keyboard", label: "Keyboard" }

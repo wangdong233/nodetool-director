@@ -6,6 +6,7 @@ import { memo } from "react";
 import SketchToolbar from "../SketchToolbar";
 import { useSketchStore } from "../state";
 import { useColorIntentRouter } from "../hooks";
+import { i18n } from "../../../i18n";
 
 export const ConnectedToolbar = memo(function ConnectedToolbar() {
   const activeTool = useSketchStore((s) => s.activeTool);

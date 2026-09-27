@@ -31,6 +31,7 @@ import {
 import { displayCombo } from "./shortcuts";
 import ColorSwatchPair from "./ColorSwatchPair";
 import { SKETCH_SPACING, SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
+import { i18n } from "../../i18n";
 
 const BTN = 32; // button size px
 

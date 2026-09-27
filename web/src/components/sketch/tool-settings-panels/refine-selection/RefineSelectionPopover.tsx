@@ -27,6 +27,7 @@ import { sketchSliderSx } from "../../sketchStyles";
 import { cloneSelectionMask, MAX_SELECTION_FEATHER_RADIUS } from "../../selection";
 import type { SelectSettings, Selection } from "../../types";
 import { useSketchStore } from "../../state";
+import { i18n } from "../../../../i18n";
 
 const MAX_BORDER_WIDTH = 64;
 const MAX_MODIFY_PX = 64;
@@ -302,9 +303,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
-          <EditorButton variant="outlined" onClick={handleCancel}>
-            Cancel
-          </EditorButton>
+          <EditorButton variant="outlined" onClick={handleCancel}>{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
             Apply
           </EditorButton>

@@ -13,6 +13,7 @@ import {
 } from "../ui_primitives";
 import { useCompositing } from "./sketchCanvasHooks";
 import type { ActiveStrokeInfo } from "./rendering";
+import { i18n } from "../../i18n";
 import {
   normalizeSketchDocument,
   type LayerTransform,

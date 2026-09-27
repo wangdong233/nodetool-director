@@ -23,6 +23,7 @@ import { sketchSliderSx, SKETCH_SPACING } from "../sketchStyles";
 import { effectiveEraserMode } from "./shared";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { isNumber } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /**
  * Wraps a conceptual subgroup of tool-settings (e.g. paint params,
@@ -394,7 +395,7 @@ export const BrushSettingsPanel = memo(function BrushSettingsPanel({
               <Text className="setting-value">{settings.size}</Text>
             </Box>
             <Box className="setting-row">
-              <Text className="setting-label">Opacity</Text>
+              <Text className="setting-label">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -528,7 +529,7 @@ export const PencilSettingsPanel = memo(function PencilSettingsPanel({
               <Text className="setting-value">{settings.size}</Text>
             </Box>
             <Box className="setting-row">
-              <Text className="setting-label">Opacity</Text>
+              <Text className="setting-label">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</Text>
               <Slider
                 sx={sketchSliderSx}
                 size="small"
@@ -627,7 +628,7 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
           <Text className="setting-value">{settings.size}</Text>
         </Box>
         <Box className="setting-row">
-          <Text className="setting-label">Opacity</Text>
+          <Text className="setting-label">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</Text>
           <Slider
             sx={sketchSliderSx}
             size="small"

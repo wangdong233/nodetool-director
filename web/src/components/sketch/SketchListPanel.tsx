@@ -28,6 +28,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -197,9 +198,9 @@ export const CreateSketchButton = memo(function CreateSketchButton() {
   }, [createSketch, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New sketch" placement="right-start">
+    <Tooltip title={i18n.t("sketch:attrs.newSketch", { defaultValue: "New sketch" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New sketch"
+        ariaLabel={i18n.t("sketch:attrs.newSketch", { defaultValue: "New sketch" })}
         onClick={() => void handleCreate()}
         disabled={createSketch.isPending}
         tabIndex={-1}

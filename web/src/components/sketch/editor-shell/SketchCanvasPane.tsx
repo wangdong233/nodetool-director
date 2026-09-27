@@ -10,6 +10,7 @@ import { useSketchStore } from "../state";
 import type { LayerContentBounds, Point } from "../types";
 import type { SketchCanvasCallbacks } from "../tools/types";
 import type { useSegmentation } from "../hooks/useSegmentation";
+import { i18n } from "../../../i18n";
 
 /** `onSelectionChange` is omitted because the pane writes selection to the store itself. */
 export interface SketchCanvasPaneProps

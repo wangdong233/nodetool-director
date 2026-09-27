@@ -23,6 +23,7 @@ import { GeneratedLayerPanel } from "./GeneratedLayerPanel";
 import { ImportedLayerPanel } from "./ImportedLayerPanel";
 import { PaintedLayerPanel } from "./PaintedLayerPanel";
 import { DirectGenLayerPanel } from "./DirectGenLayerPanel";
+import { i18n } from "../../../i18n";
 
 const SketchInspectorInner: React.FC = () => {
   const theme = useTheme();

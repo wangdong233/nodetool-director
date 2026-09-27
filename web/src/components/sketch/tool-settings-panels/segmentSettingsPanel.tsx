@@ -28,6 +28,7 @@ import ImageModelSelect from "../../properties/ImageModelSelect";
 import type { ImageModelValue } from "../../../stores/ApiTypes";
 import { useSketchStore } from "../state";
 import { getLayerDataImageUrl } from "../serialization";
+import { i18n } from "../../../i18n";
 
 function promptModeHelpText(mode: SegmentPromptMode): string {
   if (mode === "point") {
@@ -339,9 +340,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               color="inherit"
               onClick={onCancelSegmentation}
               sx={{ ...sketchButtonSmallSx, minWidth: "56px" }}
-            >
-              Cancel
-            </EditorButton>
+            >{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
           </>
         )}
         {isPreviewing && (

@@ -18,6 +18,7 @@ import {
   StatusIndicator
 } from "../../ui_primitives";
 import { LAYER_STATUS_MAP } from "./layerStatusMapping";
+import { i18n } from "../../../i18n";
 
 function formatTimestamp(isoString: string): string {
   try {

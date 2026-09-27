@@ -90,6 +90,7 @@ import HueTriangleColorPicker from "./HueTriangleColorPicker";
 import { getMergeSelectedLayersPlan } from "./layerMergeSelection";
 import { CreateGeneratedLayerDialog } from "./Inspector/CreateGeneratedLayerDialog";
 import { isFunction } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /**
  * Layer row modifiers: `getModifierState` helps when `draggable` rows omit flags on
@@ -993,38 +994,34 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           gap={SPACING.md}
         >
           <Tooltip
-            title="New layer generated from a text prompt"
+            title={i18n.t("sketch:attrs.newLayerGeneratedFromATextPrompt", { defaultValue: "New layer generated from a text prompt" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <Button
-              aria-label="Add Text-to-Image Layer"
+              aria-label={i18n.t("sketch:attrs.addTexttoImageLayer", { defaultValue: "Add Text-to-Image Layer" })}
               onClick={() => addDirectGenLayer("text-to-image")}
               data-testid="layers-panel-add-text-to-image"
               startIcon={
                 <AutoAwesomeIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
               }
               sx={GENERATE_ACTION_SX}
-            >
-              From text
-            </Button>
+            >{i18n.t("sketch:attrs.fromText", { defaultValue: "From text" })}</Button>
           </Tooltip>
           <Tooltip
-            title="New layer generated from the layers below it"
+            title={i18n.t("sketch:attrs.newLayerGeneratedFromTheLayersBelowIt", { defaultValue: "New layer generated from the layers below it" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <Button
-              aria-label="Add Image-to-Image Layer"
+              aria-label={i18n.t("sketch:attrs.addImagetoImageLayer", { defaultValue: "Add Image-to-Image Layer" })}
               onClick={() => addDirectGenLayer("image-to-image")}
               data-testid="layers-panel-add-image-to-image"
               startIcon={
                 <AutoFixHighIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
               }
               sx={GENERATE_ACTION_SX}
-            >
-              From image
-            </Button>
+            >{i18n.t("sketch:attrs.fromImage", { defaultValue: "From image" })}</Button>
           </Tooltip>
         </FlexRow>
         <FlexRow
@@ -1034,12 +1031,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           gap={SPACING.xs}
         >
           <Tooltip
-            title="Add Transparent Layer"
+            title={i18n.t("sketch:attrs.addTransparentLayer", { defaultValue: "Add Transparent Layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Add Transparent Layer"
+              aria-label={i18n.t("sketch:attrs.addTransparentLayer", { defaultValue: "Add Transparent Layer" })}
               size="small"
               onClick={() => onAddLayer(null)}
               sx={{
@@ -1061,12 +1058,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title="Add Black Layer"
+            title={i18n.t("sketch:attrs.addBlackLayer", { defaultValue: "Add Black Layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Add Black Layer"
+              aria-label={i18n.t("sketch:attrs.addBlackLayer", { defaultValue: "Add Black Layer" })}
               size="small"
               onClick={() => onAddLayer("#000000")}
               sx={{
@@ -1091,12 +1088,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title="Add White Layer"
+            title={i18n.t("sketch:attrs.addWhiteLayer", { defaultValue: "Add White Layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Add White Layer"
+              aria-label={i18n.t("sketch:attrs.addWhiteLayer", { defaultValue: "Add White Layer" })}
               size="small"
               onClick={() => onAddLayer("#ffffff")}
               sx={{
@@ -1121,12 +1118,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title="Add Gray Layer"
+            title={i18n.t("sketch:attrs.addGrayLayer", { defaultValue: "Add Gray Layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Add Gray Layer"
+              aria-label={i18n.t("sketch:attrs.addGrayLayer", { defaultValue: "Add Gray Layer" })}
               size="small"
               onClick={() => onAddLayer("#808080")}
               sx={{
@@ -1151,12 +1148,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title="New empty layer group (folder)"
+            title={i18n.t("sketch:attrs.newEmptyLayerGroup", { defaultValue: "New empty layer group (folder)" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="New empty layer group (folder)"
+              aria-label={i18n.t("sketch:attrs.newEmptyLayerGroup", { defaultValue: "New empty layer group (folder)" })}
               size="small"
               onClick={() => onAddGroup()}
               sx={ADD_ACTION_ICON_SX}
@@ -1165,12 +1162,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title="Generate Layer from any workflow with image output"
+            title={i18n.t("sketch:attrs.generateLayerFromAnyWorkflowWithImageOutput", { defaultValue: "Generate Layer from any workflow with image output" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Generate Layer (Text-to-Image)"
+              aria-label={i18n.t("sketch:attrs.generateLayer", { defaultValue: "Generate Layer (Text-to-Image)" })}
               size="small"
               onClick={() => setGenerateDialogOpen(true)}
               data-testid="layers-panel-generate-layer"
@@ -1302,13 +1299,13 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
         </Tooltip>
 
         <Tooltip
-          title="Group selected layers"
+          title={i18n.t("sketch:attrs.groupSelectedLayers", { defaultValue: "Group selected layers" })}
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
         >
           <span>
             <IconButton
-              aria-label="Group selected layers"
+              aria-label={i18n.t("sketch:attrs.groupSelectedLayers", { defaultValue: "Group selected layers" })}
               size="small"
               onClick={onGroupSelectedLayers}
               disabled={!hasMultiLayerSelection}
@@ -1322,12 +1319,12 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
         {/* Lifecycle, right-aligned: Duplicate · Delete */}
         <FlexRow align="center" gap={0.5} sx={{ ml: "auto" }}>
           <Tooltip
-            title="Duplicate Layer"
+            title={i18n.t("sketch:attrs.duplicateLayer", { defaultValue: "Duplicate Layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Duplicate Layer"
+              aria-label={i18n.t("sketch:attrs.duplicateLayer", { defaultValue: "Duplicate Layer" })}
               size="small"
               onClick={() => onDuplicateLayer(activeLayerId)}
               sx={OPS_ICON_SX}
@@ -1344,7 +1341,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           >
             <span>
               <IconButton
-                aria-label="Remove active layer"
+                aria-label={i18n.t("sketch:attrs.removeActiveLayer", { defaultValue: "Remove active layer" })}
                 size="small"
                 onClick={() =>
                   hasMultiLayerSelection
@@ -1372,9 +1369,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           >
             <Text
               sx={{ fontSize: SKETCH_FONT.md, color: SKETCH_COLORS.textMuted }}
-            >
-              Opacity
-            </Text>
+            >{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</Text>
             <Slider
               sx={sketchSliderSx}
               size="small"
@@ -1405,7 +1400,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             sx={{ px: SPACING.none }}
           >
             <Select
-              aria-label="Layer blend mode"
+              aria-label={i18n.t("sketch:attrs.layerBlendMode", { defaultValue: "Layer blend mode" })}
               value={coerceBlendMode(activeLayer.blendMode)}
               onChange={(e) =>
                 onLayerBlendModeChange(
@@ -1417,18 +1412,18 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               onWheelCapture={handleBlendModeQuickCycleWheelCapture}
               sx={{ ...sketchFieldSx, fontSize: SKETCH_FONT.md, height: "28px" }}
             >
-              <MenuItem value="normal">Normal</MenuItem>
-              <MenuItem value="multiply">Multiply</MenuItem>
-              <MenuItem value="screen">Screen</MenuItem>
-              <MenuItem value="overlay">Overlay</MenuItem>
-              <MenuItem value="darken">Darken</MenuItem>
-              <MenuItem value="lighten">Lighten</MenuItem>
-              <MenuItem value="color-dodge">Color Dodge</MenuItem>
-              <MenuItem value="color-burn">Color Burn</MenuItem>
-              <MenuItem value="hard-light">Hard Light</MenuItem>
-              <MenuItem value="soft-light">Soft Light</MenuItem>
-              <MenuItem value="difference">Difference</MenuItem>
-              <MenuItem value="exclusion">Exclusion</MenuItem>
+              <MenuItem value="normal">{i18n.t("sketch:attrs.normal", { defaultValue: "Normal" })}</MenuItem>
+              <MenuItem value="multiply">{i18n.t("sketch:attrs.multiply", { defaultValue: "Multiply" })}</MenuItem>
+              <MenuItem value="screen">{i18n.t("sketch:attrs.screen", { defaultValue: "Screen" })}</MenuItem>
+              <MenuItem value="overlay">{i18n.t("sketch:attrs.overlay", { defaultValue: "Overlay" })}</MenuItem>
+              <MenuItem value="darken">{i18n.t("sketch:attrs.darken", { defaultValue: "Darken" })}</MenuItem>
+              <MenuItem value="lighten">{i18n.t("sketch:attrs.lighten", { defaultValue: "Lighten" })}</MenuItem>
+              <MenuItem value="color-dodge">{i18n.t("sketch:attrs.colorDodge", { defaultValue: "Color Dodge" })}</MenuItem>
+              <MenuItem value="color-burn">{i18n.t("sketch:attrs.colorBurn", { defaultValue: "Color Burn" })}</MenuItem>
+              <MenuItem value="hard-light">{i18n.t("sketch:attrs.hardLight", { defaultValue: "Hard Light" })}</MenuItem>
+              <MenuItem value="soft-light">{i18n.t("sketch:attrs.softLight", { defaultValue: "Soft Light" })}</MenuItem>
+              <MenuItem value="difference">{i18n.t("sketch:attrs.difference", { defaultValue: "Difference" })}</MenuItem>
+              <MenuItem value="exclusion">{i18n.t("sketch:attrs.exclusion", { defaultValue: "Exclusion" })}</MenuItem>
             </Select>
           </FormControl>
           {activeLayer.imageReference ? (
@@ -1604,9 +1599,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             >
               {isMulti ? "Duplicate Layers" : "Duplicate"}
             </MenuItem>
-            <MenuItem sx={menuItemSx} onClick={handleCtxDelete}>
-              Remove
-            </MenuItem>
+            <MenuItem sx={menuItemSx} onClick={handleCtxDelete}>{i18n.t("sketch:attrs.remove", { defaultValue: "Remove" })}</MenuItem>
 
             <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
 
@@ -1614,23 +1607,17 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               sx={menuItemSx}
               onClick={handleCtxClear}
               disabled={ctxPixelActionsDisabled || isMulti}
-            >
-              Clear Layer
-            </MenuItem>
+            >{i18n.t("sketch:attrs.clearLayer", { defaultValue: "Clear Layer" })}</MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxFlipH}
               disabled={ctxPixelActionsDisabled || isMulti}
-            >
-              Flip Horizontal
-            </MenuItem>
+            >{i18n.t("sketch:attrs.flipHorizontal", { defaultValue: "Flip Horizontal" })}</MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxFlipV}
               disabled={ctxPixelActionsDisabled || isMulti}
-            >
-              Flip Vertical
-            </MenuItem>
+            >{i18n.t("sketch:attrs.flipVertical", { defaultValue: "Flip Vertical" })}</MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxRotate180}
@@ -1643,13 +1630,9 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
                 sx={menuItemSx}
                 onClick={handleCtxMergeDown}
                 disabled={!ctxCanMergeDown}
-              >
-                Merge Down
-              </MenuItem>
+              >{i18n.t("sketch:attrs.mergeDown", { defaultValue: "Merge Down" })}</MenuItem>
             )}
-            <MenuItem sx={menuItemSx} onClick={handleCtxFlatten}>
-              Flatten Visible
-            </MenuItem>
+            <MenuItem sx={menuItemSx} onClick={handleCtxFlatten}>{i18n.t("sketch:attrs.flattenVisible", { defaultValue: "Flatten Visible" })}</MenuItem>
 
             <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
 
@@ -1675,19 +1658,13 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               sx={menuItemSx}
               onClick={handleCtxCropToExtents}
               disabled={ctxIsGroup || isMulti || ctxLayer?.type === "mask"}
-            >
-              Crop Canvas to Layer Extents
-            </MenuItem>
+            >{i18n.t("sketch:attrs.cropCanvasToLayerExtents", { defaultValue: "Crop Canvas to Layer Extents" })}</MenuItem>
 
             {ctxIsGroup && !isMulti && (
-              <MenuItem sx={menuItemSx} onClick={handleCtxUngroup}>
-                Ungroup
-              </MenuItem>
+              <MenuItem sx={menuItemSx} onClick={handleCtxUngroup}>{i18n.t("sketch:attrs.ungroup", { defaultValue: "Ungroup" })}</MenuItem>
             )}
             {isMulti ? (
-              <MenuItem sx={menuItemSx} onClick={handleCtxGroup}>
-                Group Selected
-              </MenuItem>
+              <MenuItem sx={menuItemSx} onClick={handleCtxGroup}>{i18n.t("sketch:attrs.groupSelected", { defaultValue: "Group Selected" })}</MenuItem>
             ) : null}
             {isMulti ? (
               <MenuItem
@@ -1696,9 +1673,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
                 disabled={
                   getMergeSelectedLayersPlan(layers, targetIds) === null
                 }
-              >
-                Merge Selected
-              </MenuItem>
+              >{i18n.t("sketch:attrs.mergeSelected", { defaultValue: "Merge Selected" })}</MenuItem>
             ) : null}
           </Menu>
         );

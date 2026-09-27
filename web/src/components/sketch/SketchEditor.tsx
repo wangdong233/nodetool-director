@@ -86,6 +86,7 @@ import { SKETCH_SIZE, SKETCH_FONT } from "./sketchStyles";
 import { ColorFieldPicker } from "./ColorFieldPicker";
 import { SKETCH_PRESET_SWATCHES, colorToHex6 } from "./types";
 import { useSketchStore } from "./state/useSketchStore";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -165,7 +166,7 @@ const ColorSectionHeader = memo(function ColorSectionHeader() {
       justify="space-between"
       sx={{ width: "100%", pr: 1 }}
     >
-      <SectionTitle>Color</SectionTitle>
+      <SectionTitle>{i18n.t("sketch:attrs.color", { defaultValue: "Color" })}</SectionTitle>
       <Chip
         compact
         label={colorToHex6(foregroundColor)}
@@ -431,7 +432,7 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__layers-section"
-        title={<SectionTitle>Layers</SectionTitle>}
+        title={<SectionTitle>{i18n.t("sketch:attrs.layers", { defaultValue: "Layers" })}</SectionTitle>}
         defaultOpen
         compact
         sx={{
@@ -497,7 +498,7 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__canvas-section"
-        title={<SectionTitle>Canvas</SectionTitle>}
+        title={<SectionTitle>{i18n.t("sketch:attrs.canvas", { defaultValue: "Canvas" })}</SectionTitle>}
         defaultOpen={false}
         compact
         sx={{
@@ -647,11 +648,11 @@ function SketchEditor({
               has no Tab key — keep one always-visible affordance on the bare
               canvas. */}
           {panelsHidden && (
-            <Tooltip title="Show panels">
+            <Tooltip title={i18n.t("sketch:attrs.showPanels", { defaultValue: "Show panels" })}>
               <Fab
                 className="sketch-editor__show-panels-fab"
                 size="small"
-                aria-label="Show panels"
+                aria-label={i18n.t("sketch:attrs.showPanels", { defaultValue: "Show panels" })}
                 onClick={togglePanelsHidden}
                 sx={{
                   position: "absolute",
@@ -699,7 +700,7 @@ function SketchEditor({
           <ResizableSideDock
             storageKey="sketch_assistant"
             className="sketch-editor__assistant-panel"
-            ariaLabel="Resize sketch assistant"
+            ariaLabel={i18n.t("sketch:attrs.resizeSketchAssistant", { defaultValue: "Resize sketch assistant" })}
           >
             <SketchAgentPanel />
           </ResizableSideDock>
@@ -712,12 +713,12 @@ function SketchEditor({
           the panels sheet. Gated on the same panelsHidden chrome toggle. */}
       {isMobile && !panelsHidden && (
         <>
-          <Tooltip title="Layers & color">
+          <Tooltip title={i18n.t("sketch:attrs.layersAndColor", { defaultValue: "Layers & color" })}>
             <Fab
               className="sketch-editor__mobile-panels-fab"
               size="medium"
               color="primary"
-              aria-label="Open layers and color panel"
+              aria-label={i18n.t("sketch:attrs.openLayersAndColorPanel", { defaultValue: "Open layers and color panel" })}
               onClick={() => {
                 // Last action wins — never stack the two mobile sheets.
                 setAssistantPanelOpen(false);
@@ -738,8 +739,8 @@ function SketchEditor({
             <MobileBottomSheet
               open={mobilePanelsOpen}
               onClose={() => setMobilePanelsOpen(false)}
-              title="Layers & color"
-              ariaLabel="Layers and color panel"
+              title={i18n.t("sketch:attrs.layersAndColor", { defaultValue: "Layers & color" })}
+              ariaLabel={i18n.t("sketch:attrs.layersAndColorPanel", { defaultValue: "Layers and color panel" })}
             >
               <FlexColumn
                 className="sketch-editor__panel-right sketch-editor__panel-right--mobile"
@@ -755,7 +756,7 @@ function SketchEditor({
             <MobileBottomSheet
               open={assistantPanelOpen}
               onClose={() => setAssistantPanelOpen(false)}
-              title="Assistant"
+              title={i18n.t("sketch:attrs.assistant", { defaultValue: "Assistant" })}
               ariaLabel="AI assistant panel"
               maxHeight="85vh"
             >

@@ -18,6 +18,7 @@ import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useRegenerateStaleLayers } from "../../../hooks/sketch/useRegenerateStaleLayers";
 import { CreateGeneratedLayerDialog } from "./CreateGeneratedLayerDialog";
+import { i18n } from "../../../i18n";
 
 const SketchAIToolbarInner: React.FC = () => {
   const theme = useTheme();

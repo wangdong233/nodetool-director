@@ -30,6 +30,7 @@ import {
 } from "../../ui_primitives";
 import { RefineSelectionPopover } from "./refine-selection";
 import { useSketchStore } from "../state";
+import { i18n } from "../../../i18n";
 
 interface SelectSettingsPanelProps {
   settings: SelectSettings;

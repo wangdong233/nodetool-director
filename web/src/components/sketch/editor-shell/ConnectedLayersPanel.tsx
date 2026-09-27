@@ -9,6 +9,7 @@ import SketchLayersPanel from "../SketchLayersPanel";
 import { useSketchStore } from "../state";
 import { useColorIntentRouter } from "../hooks";
 import type { BlendMode } from "../types";
+import { i18n } from "../../../i18n";
 
 export interface ConnectedLayersPanelProps {
   onClearLayer: () => void;

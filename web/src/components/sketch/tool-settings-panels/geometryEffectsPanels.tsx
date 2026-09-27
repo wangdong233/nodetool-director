@@ -29,6 +29,7 @@ import {
 } from "../sketchStyles";
 import ColorPickerPopover from "../ColorPickerPopover";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
+import { i18n } from "../../../i18n";
 
 interface ShapeSettingsPanelProps {
   settings: ShapeSettings;
@@ -86,7 +87,7 @@ export const ShapeSettingsPanel = memo(function ShapeSettingsPanel({
         ))}
       </SketchModeToggle>
       <Box className="setting-row">
-        <Text className="setting-label">Stroke</Text>
+        <Text className="setting-label">{i18n.t("sketch:attrs.stroke", { defaultValue: "Stroke" })}</Text>
         <input
           type="color"
           className="color-input"
@@ -103,7 +104,7 @@ export const ShapeSettingsPanel = memo(function ShapeSettingsPanel({
         />
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Width</Text>
+        <Text className="setting-label">{i18n.t("sketch:attrs.width", { defaultValue: "Width" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"
@@ -221,7 +222,7 @@ export const GradientSettingsPanel = memo(function GradientSettingsPanel({
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">Start</Text>
+        <Text className="setting-label">{i18n.t("sketch:attrs.start", { defaultValue: "Start" })}</Text>
         <Box
           sx={{ ...colorSwatchSx }}
           role="button"
@@ -321,7 +322,7 @@ export const CloneStampSettingsPanel = memo(function CloneStampSettingsPanel({
         <Text className="setting-value">{settings.size}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Opacity</Text>
+        <Text className="setting-label">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</Text>
         <Slider
           sx={sketchSliderSx}
           size="small"

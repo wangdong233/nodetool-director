@@ -9,6 +9,7 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import type { LayerVersion } from "@nodetool-ai/image-editor";
+import { i18n } from "../../../i18n";
 import {
   FlexRow,
   FlexColumn,

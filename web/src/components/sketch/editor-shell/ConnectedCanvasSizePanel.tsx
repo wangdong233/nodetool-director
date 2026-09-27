@@ -5,6 +5,7 @@
 import { memo } from "react";
 import SketchCanvasSizePanel from "../SketchCanvasSizePanel";
 import { useSketchStore } from "../state";
+import { i18n } from "../../../i18n";
 
 export interface ConnectedCanvasSizePanelProps {
   onCanvasResize: (width: number, height: number) => void;

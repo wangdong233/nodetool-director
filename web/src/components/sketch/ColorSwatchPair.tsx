@@ -27,6 +27,7 @@ import {
   colorSwatchSx
 } from "./sketchStyles";
 import ColorPickerPopover from "./ColorPickerPopover";
+import { i18n } from "../../i18n";
 
 /** Square edge (px) — matches colorSwatchSx. */
 const SWATCH = 24;
@@ -91,7 +92,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         }}
       >
         <Tooltip
-          title="Background Color"
+          title={i18n.t("sketch:attrs.backgroundColor", { defaultValue: "Background Color" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -117,7 +118,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         </Tooltip>
 
         <Tooltip
-          title="Foreground Color"
+          title={i18n.t("sketch:attrs.foregroundColor", { defaultValue: "Foreground Color" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -152,7 +153,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         sx={{ width: `${STACK}px` }}
       >
         <Tooltip
-          title="Swap Colors (X)"
+          title={i18n.t("sketch:attrs.swapColors", { defaultValue: "Swap Colors (X)" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -160,14 +161,14 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
           <EditorButton
             density="compact"
             onClick={onSwapColors}
-            aria-label="Swap Colors (X)"
+            aria-label={i18n.t("sketch:attrs.swapColors", { defaultValue: "Swap Colors (X)" })}
             sx={{ flex: 1, minWidth: 0, padding: 0, borderRadius: BORDER_RADIUS.sm }}
           >
             <SwapHorizIcon sx={{ fontSize: "var(--fontSizeSmall)" }} />
           </EditorButton>
         </Tooltip>
         <Tooltip
-          title="Reset to B/W (D)"
+          title={i18n.t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to B/W (D)" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -175,7 +176,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
           <EditorButton
             density="compact"
             onClick={onResetColors}
-            aria-label="Reset to black and white (D)"
+            aria-label={i18n.t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to black and white (D)" })}
             sx={{ flex: 1, minWidth: 0, padding: 0, borderRadius: BORDER_RADIUS.sm }}
           >
             <Text

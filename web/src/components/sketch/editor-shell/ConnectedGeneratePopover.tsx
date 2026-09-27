@@ -59,6 +59,7 @@ import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import { SKETCH_SPACING } from "../sketchStyles";
+import { i18n } from "../../../i18n";
 
 /** Most recent direct-gen binding's model, to seed the form's picker. */
 function seedModelFromBindings() {

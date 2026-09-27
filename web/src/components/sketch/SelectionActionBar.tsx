@@ -56,6 +56,7 @@ import { getSelectionBounds } from "./selection";
 import type { Point } from "./types";
 import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
+import { i18n } from "../../i18n";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;
@@ -414,7 +415,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             as a mask). The picked mode drives the model filter and the run. */}
         <FlexRow gap={0} sx={{ flexShrink: 0, mr: 0.5 }}>
           <Tooltip
-            title="Edit — transform the whole frame from your prompt (image-to-image, no mask)."
+            title={i18n.t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt(imagetoimageNoMask)", { defaultValue: "Edit — transform the whole frame from your prompt (image-to-image, no mask)." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -423,12 +424,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("edit")}
               data-testid="sketch-selection-mode-edit"
-            >
-              Edit
-            </EditorButton>
+            >{i18n.t("sketch:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
           </Tooltip>
           <Tooltip
-            title="Inpaint — regenerate only the selected region, using the selection as a mask."
+            title={i18n.t("sketch:attrs.inpaintRegenerateOnlyTheSelectedRegionUsingTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate only the selected region, using the selection as a mask." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -437,9 +436,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("inpaint")}
               data-testid="sketch-selection-mode-inpaint"
-            >
-              Inpaint
-            </EditorButton>
+            >{i18n.t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })}</EditorButton>
           </Tooltip>
         </FlexRow>
 
@@ -512,7 +509,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         </Tooltip>
 
         <Tooltip
-          title="Remove — clear the selected pixels from the active layer."
+          title={i18n.t("sketch:attrs.removeClearTheSelectedPixelsFromTheActiveLayer", { defaultValue: "Remove — clear the selected pixels from the active layer." })}
           delay={TOOLTIP_ENTER_DELAY}
           placement={placeAbove ? "top" : "bottom"}
         >
@@ -524,9 +521,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               disabled={!clearActiveLayer}
               startIcon={<DeleteOutlineIcon fontSize="small" />}
               data-testid="sketch-selection-remove"
-            >
-              Remove
-            </EditorButton>
+            >{i18n.t("sketch:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
           </span>
         </Tooltip>
 
@@ -535,7 +530,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             them there. */}
         {mode === "inpaint" && (
           <Tooltip
-            title="Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting."
+            title={i18n.t("sketch:attrs.refineMaskFeatherSmoothGrowShrinkOrBorderTheSelectionUsedForInpainting", { defaultValue: "Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -546,14 +541,12 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               onClick={() => setRefineOpen((v) => !v)}
               startIcon={<TuneIcon fontSize="small" />}
               data-testid="sketch-selection-refine-edge"
-            >
-              Refine mask
-            </EditorButton>
+            >{i18n.t("sketch:attrs.refineMask", { defaultValue: "Refine mask" })}</EditorButton>
           </Tooltip>
         )}
 
         <CloseButton
-          tooltip="Dismiss selection"
+          tooltip={i18n.t("sketch:attrs.dismissSelection", { defaultValue: "Dismiss selection" })}
           tooltipPlacement={placeAbove ? "top" : "bottom"}
           onClick={handleClose}
           buttonSize="small"

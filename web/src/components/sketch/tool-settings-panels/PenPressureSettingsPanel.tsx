@@ -11,6 +11,7 @@ import {
 } from "../../ui_primitives";
 import { sketchSliderSx } from "../sketchStyles";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
+import { i18n } from "../../../i18n";
 import {
   DEFAULT_PRESSURE_CURVE,
   DEFAULT_PRESSURE_MIN_SCALE,
@@ -52,7 +53,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
       }}
     >
       <SketchModeOption value="size">Size</SketchModeOption>
-      <SketchModeOption value="opacity">Opacity</SketchModeOption>
+      <SketchModeOption value="opacity">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</SketchModeOption>
       <SketchModeOption value="both">Both</SketchModeOption>
     </SketchModeToggle>
   );

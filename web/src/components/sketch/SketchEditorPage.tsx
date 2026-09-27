@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 
 import { EmptyState, FlexColumn } from "../ui_primitives";
 import StandaloneSketchEditor from "./StandaloneSketchEditor";
+import { i18n } from "../../i18n";
 
 const SketchEditorPage: React.FC = memo(function SketchEditorPage() {
   const { documentId } = useParams<{ documentId: string }>();
@@ -24,7 +25,7 @@ const SketchEditorPage: React.FC = memo(function SketchEditorPage() {
       >
         <EmptyState
           variant="error"
-          title="No document id"
+          title={i18n.t("sketch:attrs.noDocumentId", { defaultValue: "No document id" })}
           description="The sketch route requires a documentId path parameter."
         />
       </FlexColumn>

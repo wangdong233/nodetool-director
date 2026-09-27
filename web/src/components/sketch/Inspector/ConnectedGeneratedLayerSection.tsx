@@ -16,6 +16,7 @@ import { useLayerBinding } from "../../../stores/sketch/SketchSessionStore";
 import { SKETCH_FONT } from "../sketchStyles";
 import { SketchAIToolbar } from "./SketchAIToolbar";
 import { SketchInspector } from "./SketchInspector";
+import { i18n } from "../../../i18n";
 
 const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   const theme = useTheme();

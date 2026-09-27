@@ -16,6 +16,7 @@ import {
   Z_INDEX
 } from "../ui_primitives";
 import { SKETCH_FONT } from "./sketchStyles";
+import { i18n } from "../../i18n";
 
 export interface SketchToolIconLabelProps {
   /** Rendered icon (e.g. Mui SvgIcon with sx fontSize). */

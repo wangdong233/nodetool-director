@@ -41,6 +41,7 @@ import {
 import type { SamModelInfo } from "./sam";
 import { ToolSettingsPanel } from "./ToolSettingsPanels";
 import { settingRowChildrenSx } from "./sketchStyles";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

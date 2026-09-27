@@ -26,6 +26,7 @@ import {
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { TransformMode } from "../types";
 import { getToolbarTransformModes } from "../transform/modes";
+import { i18n } from "../../../i18n";
 
 interface AdjustmentsSettingsPanelProps {
   brightness: number;
@@ -105,9 +106,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
           disabled={!hasChanges}
           onClick={onCancel}
           sx={{ ...sketchButtonSmallSx, flex: 1 }}
-        >
-          Cancel
-        </EditorButton>
+        >{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
       </FlexRow>
     </>
   );
@@ -249,7 +248,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         />
         <ToolbarIconButton
           icon={<RestartAltIcon sx={{ fontSize: 18 }} />}
-          tooltip="Reset"
+          tooltip={i18n.t("sketch:attrs.reset", { defaultValue: "Reset" })}
           tooltipPlacement="bottom"
           onClick={onReset}
           sx={{ padding: 1, color: SKETCH_COLORS.textSecondary }}

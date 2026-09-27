@@ -17,6 +17,7 @@ import { useSketchStore } from "./state";
 import { useSketchSessionStore } from "../../stores/sketch/SketchInstance";
 import { computeTransformedCorners } from "./transform/geometry/layerGeometry";
 import { BORDER_RADIUS, MagicGenerationFill } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface Rect {
   x: number;

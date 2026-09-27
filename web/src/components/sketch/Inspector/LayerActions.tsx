@@ -36,6 +36,7 @@ import {
 } from "../../ui_primitives";
 import { cn } from "../../editor_ui/editorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
+import { i18n } from "../../../i18n";
 
 const actionsRowStyles = (theme: Theme) =>
   css({

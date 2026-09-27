@@ -34,6 +34,7 @@ import { getSelectionBounds } from "../selection";
 import { displayCombo } from "../shortcuts";
 import { colorToHex6 } from "../types";
 import { SKETCH_FONT } from "../sketchStyles";
+import { i18n } from "../../../i18n";
 
 /** OS-aware combo for the fit-to-screen action ("⌘0" on Mac, "Ctrl+0" elsewhere). */
 const FIT_LABEL = `Fit to screen (${displayCombo("zoom-fit")})`;

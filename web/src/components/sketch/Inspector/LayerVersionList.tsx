@@ -23,6 +23,7 @@ import {
   useDeleteLayerVersion
 } from "../../../hooks/sketch/useLayerVersions";
 import { LayerVersionRow } from "./LayerVersionRow";
+import { i18n } from "../../../i18n";
 
 const sectionStyles = (theme: Theme) =>
   css({

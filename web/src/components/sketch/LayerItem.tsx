@@ -45,6 +45,7 @@ import {
 import type { LayerStatus } from "@nodetool-ai/image-editor";
 import { LAYER_STATUS_MAP } from "./Inspector/layerStatusMapping";
 import { isFunction } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /** Base left padding for the layer row (px). 0 so the thumbnail sits flush
  *  with the row's left edge — the row background should not stick out past it. */
@@ -345,7 +346,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
         {isEditing ? (
           <InlineEditableText
-            ariaLabel="Layer name"
+            ariaLabel={i18n.t("sketch:attrs.layerName", { defaultValue: "Layer name" })}
             value={layer.name}
             editing
             onDraftChange={onEditNameChange}
@@ -382,7 +383,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               ) : null}
               {layer.alphaLock ? (
                 <Tooltip
-                  title="Lock transparency"
+                  title={i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })}
                   placement="top"
                   enterDelay={SKETCH_TOOLTIP_DELAY_MS}
                   enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}

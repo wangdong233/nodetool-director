@@ -33,6 +33,7 @@ import { useSketchStore, SKETCH_ZOOM_MIN, SKETCH_ZOOM_MAX } from "../state";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useSketchCanvasRefStore } from "../../../stores/sketch/SketchCanvasRefStore";
 import { ConnectedGeneratePopover } from "./ConnectedGeneratePopover";
+import { i18n } from "../../../i18n";
 
 export interface ConnectedEditorActionsProps {
   /** Compact buttons rendered inline before the menu (e.g. the asset tab's

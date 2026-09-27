@@ -10,6 +10,7 @@
 
 import React, { memo } from "react";
 import type { Layer } from "../types";
+import { i18n } from "../../../i18n";
 import {
   Caption,
   CollapsibleSection,

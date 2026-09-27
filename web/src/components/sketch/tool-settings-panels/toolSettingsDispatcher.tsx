@@ -37,6 +37,7 @@ import {
 import { SegmentSettingsPanel } from "./segmentSettingsPanel";
 import { SelectSettingsPanel } from "./selectSettingsPanel";
 import { effectiveEraserMode, noop } from "./shared";
+import { i18n } from "../../../i18n";
 
 export interface ToolSettingsPanelProps {
   activeTool: SketchTool;

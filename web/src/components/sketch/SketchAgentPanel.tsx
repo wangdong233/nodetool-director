@@ -4,6 +4,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchStore } from "./state/useSketchStore";
+import { i18n } from "../../i18n";
 
 /**
  * Chat surface for the image / sketch editor. The shared assistant panel

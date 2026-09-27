@@ -17,6 +17,7 @@ import {
   BORDER_RADIUS
 } from "../ui_primitives";
 import { SKETCH_FONT } from "./sketchStyles";
+import { i18n } from "../../i18n";
 
 interface TransformContextMenuProps {
   open: boolean;
@@ -110,15 +111,13 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
             fontWeight: 600,
             color: "text.primary"
           }}
-        >
-          Free Transform
-        </Text>
+        >{i18n.t("sketch:attrs.freeTransform", { defaultValue: "Free Transform" })}</Text>
       </FlexRow>
 
       <Divider sx={{ mx: 1, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Commit"
+        label={i18n.t("sketch:attrs.commit", { defaultValue: "Commit" })}
         icon={<CheckIcon sx={{ fontSize: 16, color: "success.main" }} />}
         shortcut="Enter"
         compact
@@ -128,7 +127,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
         }}
       />
       <MenuItemPrimitive
-        label="Cancel"
+        label={i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}
         icon={<CloseIcon sx={{ fontSize: 16, color: "error.main" }} />}
         shortcut="Esc"
         compact
@@ -138,7 +137,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
         }}
       />
       <MenuItemPrimitive
-        label="Reset"
+        label={i18n.t("sketch:attrs.reset", { defaultValue: "Reset" })}
         icon={<RestartAltIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={() => {
@@ -150,7 +149,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
       <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Rotate 180°"
+        label={i18n.t("sketch:attrs.rotate180°", { defaultValue: "Rotate 180°" })}
         icon={<Rotate90DegreesCwIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={() => {
@@ -159,7 +158,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
         }}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CW"
+        label={i18n.t("sketch:attrs.rotate90°CW", { defaultValue: "Rotate 90° CW" })}
         icon={<RotateRightIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={() => {
@@ -168,7 +167,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
         }}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CCW"
+        label={i18n.t("sketch:attrs.rotate90°CCW", { defaultValue: "Rotate 90° CCW" })}
         icon={<RotateLeftIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={() => {
@@ -180,7 +179,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
       <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Flip Horizontal"
+        label={i18n.t("sketch:attrs.flipHorizontal", { defaultValue: "Flip Horizontal" })}
         icon={<FlipIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={() => {
@@ -189,7 +188,7 @@ const TransformContextMenu: React.FC<TransformContextMenuProps> = ({
         }}
       />
       <MenuItemPrimitive
-        label="Flip Vertical"
+        label={i18n.t("sketch:attrs.flipVertical", { defaultValue: "Flip Vertical" })}
         icon={<FlipIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />}
         compact
         onClick={() => {

@@ -34,6 +34,7 @@ import { workflowCostLine } from "../../costs/costLine";
 import { GeneratedLayerHeader } from "./GeneratedLayerHeader";
 import { LayerActions } from "./LayerActions";
 import { LayerVersionList } from "./LayerVersionList";
+import { i18n } from "../../../i18n";
 
 interface GeneratedLayerPanelProps {
   layer: Layer;

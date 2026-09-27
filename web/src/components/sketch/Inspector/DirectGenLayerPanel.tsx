@@ -50,6 +50,7 @@ import { useDirectGenJob } from "../../../hooks/sketch/useDirectGenJob";
 import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
+import { i18n } from "../../../i18n";
 
 // Defaults for image-to-image controls when the binding has no explicit
 // value yet — same as the media chat composer's image_edit defaults.
@@ -235,9 +236,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             variant="text"
             color="inherit"
             onClick={() => cancel(layer.id)}
-          >
-            Cancel
-          </EditorButton>
+          >{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
         ) : (
           <EditorButton
             size="small"
