@@ -52,6 +52,7 @@ import {
 import { focusActiveWorkflowEditor } from "../utils/focusWorkflowEditor";
 import { getSharedEditableProperties } from "./inspector/multiEdit";
 import { useRightPanelStore } from "../stores/RightPanelStore";
+import { i18n } from "../../i18n";
 
 const DEFAULT_TYPE_METADATA: TypeMetadata = {
   type: "any",
@@ -764,7 +765,7 @@ const Inspector: React.FC = () => {
             <div className="inspector-head-close">
               <CloseButton
                 onClick={handleInspectorClose}
-                tooltip="Close inspector"
+                tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
                 buttonSize="small"
                 nodrag={false}
               />
@@ -791,7 +792,7 @@ const Inspector: React.FC = () => {
             <div className="inspector-head-close">
               <CloseButton
                 onClick={handleInspectorClose}
-                tooltip="Close inspector"
+                tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
                 buttonSize="small"
                 nodrag={false}
               />
@@ -821,7 +822,7 @@ const Inspector: React.FC = () => {
                     />
                     {isMixed && (
                       <Tooltip
-                        title="Mixed values across the selected nodes"
+                        title={i18n.t("editor:inspector.mixedValues", { defaultValue: "Mixed values across the selected nodes" })}
                         placement="top-start"
                         delay={200}
                       >
@@ -876,7 +877,7 @@ const Inspector: React.FC = () => {
               <div className="inspector-namespace">
                 <Tooltip
                   delay={TOOLTIP_ENTER_DELAY}
-                  title="Browse this namespace in the node menu"
+                  title={i18n.t("editor:inspector.browseNamespace", { defaultValue: "Browse this namespace in the node menu" })}
                   placement="bottom-start"
                 >
                   <button
@@ -891,7 +892,7 @@ const Inspector: React.FC = () => {
                 </Tooltip>
                 <CopyButton
                   value={metadata.namespace}
-                  tooltip="Copy namespace"
+                  tooltip={i18n.t("editor:inspector.copyNamespace", { defaultValue: "Copy namespace" })}
                   buttonSize="small"
                 />
               </div>
@@ -900,7 +901,7 @@ const Inspector: React.FC = () => {
           <div className="inspector-head-close">
             <CloseButton
               onClick={handleInspectorClose}
-              tooltip="Close inspector"
+              tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
               buttonSize="small"
               nodrag={false}
             />

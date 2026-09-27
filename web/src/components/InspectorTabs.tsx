@@ -1,12 +1,13 @@
 import React from "react";
+import { i18n } from "../../i18n";
 
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
 
 const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean }[] = [
-  { value: "params", label: "Params", hasCount: true },
-  { value: "io", label: "I/O", hasCount: true },
-  { value: "help", label: "Help", hasCount: false }
+  { value: "params", label: i18n.t("editor:inspector.tabParams", { defaultValue: "Params" }), hasCount: true },
+  { value: "io", label: i18n.t("editor:inspector.tabIO", { defaultValue: "I/O" }), hasCount: true },
+  { value: "help", label: i18n.t("editor:inspector.tabHelp", { defaultValue: "Help" }), hasCount: false }
 ];
 
 interface InspectorTabsProps {

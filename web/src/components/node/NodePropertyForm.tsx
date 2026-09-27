@@ -19,6 +19,7 @@ import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
+import { i18n } from "../../i18n";
 
 interface NodePropertyFormProps {
   id: string;
@@ -178,7 +179,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
                 }
               }}
               error={!!inputNameError}
-              helperText={inputNameError || "Cannot start with a number"}
+              helperText={inputNameError || i18n.t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
               sx={{ flex: 1 }}
             />
           </FlexRow>

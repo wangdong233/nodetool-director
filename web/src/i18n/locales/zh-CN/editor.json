@@ -97,7 +97,8 @@
   "io": {
     "searchNodes": "搜索节点…",
     "searchConnectable": "搜索可连接节点",
-    "clearSearch": "清除搜索"
+    "clearSearch": "清除搜索",
+    "searchNodesAria": "搜索节点"
   },
   "nodeBody": {
     "runImage": "运行以生成",
@@ -112,6 +113,25 @@
     "requiredOne": "必需的设置 {{names}} 尚未配置！",
     "requiredMany": "必需的设置 {{names}} 尚未配置！",
     "configureInSettings": "在设置中配置",
-    "addAnother": "添加另一个{{item}}"
+    "addAnother": "添加另一个{{item}}",
+    "items": {
+      "variable": "变量",
+      "image input": "图像输入",
+      "video input": "视频输入",
+      "audio input": "音频输入",
+      "text input": "文本输入",
+      "input": "输入",
+      "layer": "图层"
+    }
+  },
+  "inspector": {
+    "close": "关闭属性面板",
+    "mixedValues": "所选节点的值不一致",
+    "browseNamespace": "在节点菜单中浏览此命名空间",
+    "copyNamespace": "复制命名空间",
+    "tabParams": "参数",
+    "tabIO": "I/O",
+    "tabHelp": "帮助",
+    "nameNoNumber": "不能以数字开头"
   }
 }

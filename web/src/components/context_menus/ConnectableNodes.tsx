@@ -37,6 +37,7 @@ import type { Theme } from "@mui/material/styles";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useContextMenuActions } from "../../stores/ContextMenuStore";
 import type {
+import { i18n } from "../../i18n";
   ConnectionMatchMenuPayload,
   ConnectionMatchOption
 } from "./ConnectionMatchMenu";
@@ -489,14 +490,14 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
             className="connectable-nodes-search"
             size="small"
             fullWidth
-            placeholder="Search nodes..."
+            placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleSearchKeyDown}
             autoFocus={isVisible && autoFocusEnabled}
             inputRef={searchInputRef}
-            aria-label="Search nodes"
+            aria-label={i18n.t("editor:io.searchNodesAria", { defaultValue: "Search nodes" })}
             sx={{
                 "& .MuiOutlinedInput-root": {
                     backgroundColor: "action.disabledBackground",

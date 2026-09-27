@@ -97,7 +97,8 @@
   "io": {
     "searchNodes": "Search nodes…",
     "searchConnectable": "Search connectable nodes",
-    "clearSearch": "clear search"
+    "clearSearch": "clear search",
+    "searchNodesAria": "Search nodes"
   },
   "nodeBody": {
     "runImage": "Run to generate",
@@ -112,6 +113,25 @@
     "requiredOne": "Required setting {{names}} is not configured!",
     "requiredMany": "Required settings {{names}} are not configured!",
     "configureInSettings": "Configure in Settings",
-    "addAnother": "Add another {{item}}"
+    "addAnother": "Add another {{item}}",
+    "items": {
+      "variable": "variable",
+      "image input": "image input",
+      "video input": "video input",
+      "audio input": "audio input",
+      "text input": "text input",
+      "input": "input",
+      "layer": "layer"
+    }
+  },
+  "inspector": {
+    "close": "Close inspector",
+    "mixedValues": "Mixed values across the selected nodes",
+    "browseNamespace": "Browse this namespace in the node menu",
+    "copyNamespace": "Copy namespace",
+    "tabParams": "Params",
+    "tabIO": "I/O",
+    "tabHelp": "Help",
+    "nameNoNumber": "Cannot start with a number"
   }
 }

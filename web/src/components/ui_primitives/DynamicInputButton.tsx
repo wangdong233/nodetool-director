@@ -79,7 +79,10 @@ const DynamicInputButtonInner: React.FC<DynamicInputButtonProps> = ({
 }) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
-  const text = label ?? i18n.t("editor:nodeBody.addAnother", { defaultValue: "Add another {{item}}", item: itemLabel });
+  const itemNoun = i18n.t(`editor:nodeBody.items.${itemLabel}`, {
+    defaultValue: itemLabel
+  });
+  const text = label ?? i18n.t("editor:nodeBody.addAnother", { defaultValue: "Add another {{item}}", item: itemNoun });
 
   return (
     <Button
