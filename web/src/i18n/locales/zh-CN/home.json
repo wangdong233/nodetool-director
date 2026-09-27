@@ -80,7 +80,7 @@
     "lede": "一次上传，几个选项，一个结果。添加小程序也会一并添加它运行的工作流，随时可打开其背后的图谱。",
     "addTitle": "将{{name}}添加到小程序",
     "added": "已将“{{name}}”添加到小程序",
-    "addFailed": "无法添加{{name}}:{{error}}"
+    "addFailed": "无法添加{{name}}：{{error}}"
   },
   "notices": {
     "checkingModels": "仍在检查语言模型，请稍后再试。",
