@@ -216,5 +216,14 @@
     "createFolder": "Create folder",
     "uploadFiles": "Upload files",
     "searchError": "Search Input Error"
+  },
+  "bottom": {
+    "logs": "Logs",
+    "queue": "Queue",
+    "workers": "Workers",
+    "versions": "Versions",
+    "trace": "Trace",
+    "resizeAria": "Resize panel",
+    "workerConnected": "Worker {{state}}"
   }
 }

@@ -216,5 +216,14 @@
     "createFolder": "新建文件夹",
     "uploadFiles": "上传文件",
     "searchError": "搜索输入出错"
+  },
+  "bottom": {
+    "logs": "日志",
+    "queue": "队列",
+    "workers": "Worker",
+    "versions": "版本",
+    "trace": "追踪",
+    "resizeAria": "调整面板大小",
+    "workerConnected": "Worker {{state}}"
   }
 }

@@ -47,6 +47,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
+import { i18n } from "../../i18n";
 
 const HEADER_HEIGHT = 32;
 
@@ -111,16 +112,16 @@ const useGraphCounts = (
 
 interface ViewSpec {
   id: BottomPanelView;
-  label: string;
+  label: string; // resolved at render via i18n
   icon: React.ReactNode;
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", label: "Logs", icon: <ArticleIcon /> },
-  queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
-  workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
-  versions: { id: "versions", label: "Versions", icon: <HistoryIcon /> },
-  trace: { id: "trace", label: "Trace", icon: <TimelineIcon /> }
+  logs: { id: "logs", label: i18n.t("editor:bottom.logs", { defaultValue: "Logs" }), icon: <ArticleIcon /> },
+  queue: { id: "queue", label: i18n.t("editor:bottom.queue", { defaultValue: "Queue" }), icon: <PlaylistPlayIcon /> },
+  workers: { id: "workers", label: i18n.t("editor:bottom.workers", { defaultValue: "Workers" }), icon: <MemoryIcon /> },
+  versions: { id: "versions", label: i18n.t("editor:bottom.versions", { defaultValue: "Versions" }), icon: <HistoryIcon /> },
+  trace: { id: "trace", label: i18n.t("editor:bottom.trace", { defaultValue: "Trace" }), icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
 
 const PANEL_VIEWS = BOTTOM_PANEL_GROUPS.flatMap((g) => g.views);
@@ -416,7 +417,7 @@ const PanelBodyContent = memo(function PanelBodyContent({
             padding: `0 ${getSpacingPx(SPACING.xl)}`
           }}
         >
-          <PanelHeadline title="Queue" docsTopic="debugging" />
+          <PanelHeadline title={i18n.t("editor:bottom.queue", { defaultValue: "Queue" })} docsTopic="debugging" />
           <QueuePanel />
         </FlexColumn>
       );
@@ -527,7 +528,7 @@ const PanelBottom: React.FC = () => {
             onMouseDown={handleMouseDown}
             style={{ cursor: "ns-resize" }}
             role="slider"
-            aria-label="Resize panel"
+            aria-label={i18n.t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
             aria-valuenow={panelSize}
             aria-valuemin={40}
             aria-valuemax={600}
