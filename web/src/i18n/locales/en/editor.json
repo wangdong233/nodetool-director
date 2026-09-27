@@ -35,7 +35,9 @@
   "edge": {
     "insertReroute": "Insert Reroute",
     "insertRerouteTip": "Insert a reroute node at this position",
-    "deleteEdge": "Delete Edge"
+    "deleteEdge": "Delete Edge",
+    "deleteTip1": "Delete this connection",
+    "deleteTip2": "Middle Mouse Button or select the edge and press Delete or Backspace. Select many edges by holding CTRL or Meta while clicking."
   },
   "pane": {
     "fitScreen": "Fit Screen",
@@ -44,7 +46,13 @@
     "addGroup": "Add Group",
     "addGroupTip": "Add a group node",
     "addWorkflow": "Add Workflow",
-    "addWorkflowTip": "Add a workflow node"
+    "addWorkflowTip": "Add a workflow node",
+    "favorites": "Favorites",
+    "noValidData": "no valid node data in clipboard",
+    "addConstantNode": "Add Constant Node",
+    "addInputNode": "Add Input Node",
+    "addSubgraph": "Add Subgraph",
+    "addSubgraphTip": "Add an inline subgraph node"
   },
   "selection": {
     "runSelected": "Run Selected",
@@ -107,7 +115,9 @@
   },
   "property": {
     "removeDynamic": "Remove Dynamic Property",
-    "removeDynamicTip": "Remove this property from being dynamic"
+    "removeDynamicTip": "Remove this property from being dynamic",
+    "copyValue": "Copy Value",
+    "resetDefault": "Reset To Default Value"
   },
   "io": {
     "searchNodes": "Search nodes…",

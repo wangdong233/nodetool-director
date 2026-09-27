@@ -52,7 +52,7 @@ import {
 import { focusActiveWorkflowEditor } from "../utils/focusWorkflowEditor";
 import { getSharedEditableProperties } from "./inspector/multiEdit";
 import { useRightPanelStore } from "../stores/RightPanelStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 const DEFAULT_TYPE_METADATA: TypeMetadata = {
   type: "any",

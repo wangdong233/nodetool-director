@@ -134,11 +134,9 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
               alignItems: "center"
             }}
           >
-            <span>Delete this connection</span>
+            <span>{i18n.t("editor:edge.deleteTip1", { defaultValue: "Delete this connection" })}</span>
             <span style={{ textAlign: "center" }}>
-              <kbd>Middle Mouse Button</kbd> or select the edge and press{" "}
-              <kbd>Delete</kbd> or <kbd>Backspace</kbd>. Select many edges by
-              holding <kbd>CTRL</kbd> or <kbd>Meta</kbd> while clicking.
+              {i18n.t("editor:edge.deleteTip2", { defaultValue: "Middle Mouse Button or select the edge and press Delete or Backspace. Select many edges by holding CTRL or Meta while clicking." })}
             </span>
           </span>
         }

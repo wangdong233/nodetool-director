@@ -35,7 +35,9 @@
   "edge": {
     "insertReroute": "插入转接点",
     "insertRerouteTip": "在此位置插入转接节点",
-    "deleteEdge": "删除连线"
+    "deleteEdge": "删除连线",
+    "deleteTip1": "删除此连接",
+    "deleteTip2": "鼠标中键，或选中连线后按 Delete 或 Backspace。按住 Ctrl 或 Cmd 点击可选择多条连线。"
   },
   "pane": {
     "fitScreen": "适配屏幕",
@@ -44,7 +46,13 @@
     "addGroup": "添加分组",
     "addGroupTip": "添加分组节点",
     "addWorkflow": "添加工作流",
-    "addWorkflowTip": "添加工作流节点"
+    "addWorkflowTip": "添加工作流节点",
+    "favorites": "收藏",
+    "noValidData": "剪贴板中没有有效的节点数据",
+    "addConstantNode": "添加常量节点",
+    "addInputNode": "添加输入节点",
+    "addSubgraph": "添加子图",
+    "addSubgraphTip": "添加一个内联子图节点"
   },
   "selection": {
     "runSelected": "运行所选",
@@ -107,7 +115,9 @@
   },
   "property": {
     "removeDynamic": "移除动态属性",
-    "removeDynamicTip": "取消该属性的动态化"
+    "removeDynamicTip": "取消该属性的动态化",
+    "copyValue": "复制值",
+    "resetDefault": "恢复默认值"
   },
   "io": {
     "searchNodes": "搜索节点…",

@@ -265,8 +265,7 @@ const PaneContextMenu: React.FC = () => {
                 {getShortcutTooltip("paste")}
                 <br />
                 <span className="attention">
-                  no valid node data <br />
-                  in clipboard
+                  {i18n.t("editor:pane.noValidData", { defaultValue: "no valid node data in clipboard" })}
                 </span>
               </span>
             ) : (
@@ -298,7 +297,7 @@ const PaneContextMenu: React.FC = () => {
             <StarIcon
               sx={{ fontSize: "var(--fontSizeNormal)", color: "warning.main" }}
             />
-            <Text>Favorites</Text>
+            <Text>{i18n.t("editor:pane.favorites", { defaultValue: "Favorites" })}</Text>
           </FlexRow>,
           ...favorites.map((favorite) => {
             const displayName = getNodeDisplayName(favorite.nodeType);
@@ -327,7 +326,7 @@ const PaneContextMenu: React.FC = () => {
               density="normal"
             >
               <DataObjectIcon />
-              <span className="label">Add Constant Node</span>
+              <span className="label">{i18n.t("editor:pane.addConstantNode", { defaultValue: "Add Constant Node" })}</span>
             </EditorButton>
           }
         />
@@ -340,7 +339,7 @@ const PaneContextMenu: React.FC = () => {
               density="normal"
             >
               <InputIcon />
-              <span className="label">Add Input Node</span>
+              <span className="label">{i18n.t("editor:pane.addInputNode", { defaultValue: "Add Input Node" })}</span>
             </EditorButton>
           }
         />
@@ -364,8 +363,8 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}
-          label="Add Subgraph"
-          tooltip={"Add an inline subgraph node"}
+          label={i18n.t("editor:pane.addSubgraph", { defaultValue: "Add Subgraph" })}
+          tooltip={i18n.t("editor:pane.addSubgraphTip", { defaultValue: "Add an inline subgraph node" })}
         />
       </ContextMenu>
       <ContextMenu

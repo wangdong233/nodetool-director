@@ -37,10 +37,10 @@ import type { Theme } from "@mui/material/styles";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useContextMenuActions } from "../../stores/ContextMenuStore";
 import type {
-import { i18n } from "../../i18n";
   ConnectionMatchMenuPayload,
   ConnectionMatchOption
 } from "./ConnectionMatchMenu";
+import { i18n } from "../../i18n";
 
 const NODE_ROW_HEIGHT = 34;
 

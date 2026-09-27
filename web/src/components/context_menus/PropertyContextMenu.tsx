@@ -337,14 +337,14 @@ const PropertyContextMenuComponent: React.FC = () => {
       <Divider />
       <ContextMenuItem
         onClick={handleCopyValue}
-        label="Copy Value"
+        label={i18n.t("editor:property.copyValue", { defaultValue: "Copy Value" })}
         addButtonClassName="copy-value"
         IconComponent={<ContentCopyIcon />}
         tooltip="Copy property value to clipboard"
       />
       <ContextMenuItem
         onClick={handleReset}
-        label="Reset To Default Value"
+        label={i18n.t("editor:property.resetDefault", { defaultValue: "Reset To Default Value" })}
         addButtonClassName="reset"
         IconComponent={<SettingsBackupRestoreIcon />}
         tooltip={getShortcutTooltip("resetDefault")}
