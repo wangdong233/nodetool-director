@@ -4,10 +4,12 @@ import { i18n } from "../i18n";
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
 
-const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean }[] = [
-  { value: "params", label: i18n.t("editor:inspector.tabParams", { defaultValue: "Params" }), hasCount: true },
-  { value: "io", label: i18n.t("editor:inspector.tabIO", { defaultValue: "I/O" }), hasCount: true },
-  { value: "help", label: i18n.t("editor:inspector.tabHelp", { defaultValue: "Help" }), hasCount: false }
+// Labels resolve per call (tabLabel) — module-level i18n.t would freeze
+// before the async zh bundle lands at boot.
+const TAB_DEFS: { value: InspectorTab; labelKey: string; labelDefault: string; hasCount: boolean }[] = [
+  { value: "params", labelKey: "editor:inspector.tabParams", labelDefault: "Params", hasCount: true },
+  { value: "io", labelKey: "editor:inspector.tabIO", labelDefault: "I/O", hasCount: true },
+  { value: "help", labelKey: "editor:inspector.tabHelp", labelDefault: "Help", hasCount: false }
 ];
 
 interface InspectorTabsProps {
@@ -35,7 +37,7 @@ export const InspectorTabs: React.FC<InspectorTabsProps> = ({
           className={`inspector-tab${isActive ? " is-active" : ""}`}
           onClick={() => onChange(tab.value)}
         >
-          {tab.label}
+          {i18n.t(tab.labelKey, { defaultValue: tab.labelDefault })}
           {tab.hasCount && count != null ? (
             <span className="tab-count">{count}</span>
           ) : null}

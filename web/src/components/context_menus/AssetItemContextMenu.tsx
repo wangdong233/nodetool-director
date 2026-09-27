@@ -150,21 +150,21 @@ const AssetItemContextMenu = () => {
   const handleDownloadAssets = async (selectedAssetIds: string[]) => {
     addNotification({
       type: "info",
-      content: "Download started. This may take a while.",
+      content: i18n.t("editor:asset.downloadStarted", { defaultValue: "Download started. This may take a while." }),
       alert: true
     });
     try {
       await download(selectedAssetIds);
       addNotification({
         type: "success",
-        content: "Download finished successfully.",
+        content: i18n.t("editor:asset.downloadDone", { defaultValue: "Download finished successfully." }),
         alert: true
       });
     } catch (error) {
       console.error("Download failed", error);
       addNotification({
         type: "error",
-        content: "Download failed. Please check the console for more details.",
+        content: i18n.t("editor:asset.downloadFailed", { defaultValue: "Download failed. Please check the console for more details." }),
         alert: true
       });
     }

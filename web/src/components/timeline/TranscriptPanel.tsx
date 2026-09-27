@@ -37,6 +37,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useExtractScript } from "../../hooks/script/useExtractScript";
 import { TranscriptEditor } from "./transcript/TranscriptEditor";
+import { i18n } from "../../i18n";
 
 export const TranscriptPanel: React.FC = memo(() => {
   // Only the transcript/caption-bearing subset — untouched clips (B-roll,
@@ -159,8 +160,8 @@ export const TranscriptPanel: React.FC = memo(() => {
                   <UploadFileIcon fontSize="small" />
                 )
               }
-              tooltip="Import audio or video to transcribe"
-              aria-label="Import audio or video"
+              tooltip={i18n.t("timeline:transcript.importTip", { defaultValue: "Import audio or video to transcribe" })}
+              aria-label={i18n.t("timeline:transcript.importAria", { defaultValue: "Import audio or video" })}
               disabled={importing}
               onClick={() => fileInputRef.current?.click()}
             />
@@ -173,8 +174,8 @@ export const TranscriptPanel: React.FC = memo(() => {
                     <EditNoteIcon fontSize="small" />
                   )
                 }
-                tooltip="Extract this transcript as an editable script"
-                aria-label="Extract as script"
+                tooltip={i18n.t("timeline:transcript.extractTip", { defaultValue: "Extract this transcript as an editable script" })}
+                aria-label={i18n.t("timeline:transcript.extract", { defaultValue: "Extract as script" })}
                 disabled={extracting}
                 onClick={() => void onExtractScript()}
               />

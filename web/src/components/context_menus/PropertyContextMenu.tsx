@@ -231,7 +231,7 @@ const PropertyContextMenuComponent: React.FC = () => {
           await writeClipboard(serialized, true);
           addNotification({
             type: "success",
-            content: "Value copied to clipboard"
+            content: i18n.t("editor:property.copied", { defaultValue: "Value copied to clipboard" })
           });
         } catch {
           addNotification({
@@ -242,7 +242,7 @@ const PropertyContextMenuComponent: React.FC = () => {
       } else {
         addNotification({
           type: "warning",
-          content: "No value to copy"
+          content: i18n.t("editor:property.nothingToCopy", { defaultValue: "No value to copy" })
         });
       }
     }
@@ -310,7 +310,7 @@ const PropertyContextMenuComponent: React.FC = () => {
       position={menuPosition}
     >
       <MenuItem disabled>
-        <Text>Property</Text>
+        <Text>{i18n.t("editor:property.sectionTitle", { defaultValue: "Property" })}</Text>
       </MenuItem>
 
       {description && description.length > 0 && (

@@ -604,7 +604,7 @@ const OutputContextMenu: React.FC = () => {
             sx={actionRowStyles}
           >
             <span className="icon-bg"><VisibilityIcon /></span>
-            <Text size="small">Preview</Text>
+            <Text size="small">{i18n.t("editor:io.preview", { defaultValue: "Preview" })}</Text>
           </Box>
           {outputNodeMetadata != null && (
             <Box
@@ -615,7 +615,7 @@ const OutputContextMenu: React.FC = () => {
               sx={actionRowStyles}
             >
               <span className="icon-bg"><DataObjectIcon /></span>
-              <Text size="small">Output</Text>
+              <Text size="small">{i18n.t("editor:io.output", { defaultValue: "Output" })}</Text>
             </Box>
           )}
           <Box
@@ -626,7 +626,7 @@ const OutputContextMenu: React.FC = () => {
             sx={actionRowStyles}
           >
             <span className="icon-bg"><AltRouteIcon /></span>
-            <Text size="small">Reroute</Text>
+            <Text size="small">{i18n.t("editor:io.reroute", { defaultValue: "Reroute" })}</Text>
           </Box>
             {saveNodeMetadata != null && (
               <Box

@@ -124,7 +124,10 @@
     "compareTip": "Compare the two selected images side-by-side",
     "sortName": "Sort by name",
     "sortDate": "Sort by date",
-    "sortSize": "Sort by size"
+    "sortSize": "Sort by size",
+    "downloadStarted": "Download started. This may take a while.",
+    "downloadDone": "Download finished successfully.",
+    "downloadFailed": "Download failed. Please check the console for more details."
   },
   "property": {
     "removeDynamic": "Remove Dynamic Property",
@@ -133,14 +136,21 @@
     "resetDefault": "Reset To Default Value",
     "declareAs": "Declare \"{{prop}}\" as {{type}}",
     "slotType": "Slot Type",
-    "copyValueTip": "Copy property value to clipboard"
+    "copyValueTip": "Copy property value to clipboard",
+    "copied": "Value copied to clipboard",
+    "nothingToCopy": "No value to copy",
+    "sectionTitle": "Property"
   },
   "io": {
     "searchNodes": "Search nodes…",
     "searchConnectable": "Search connectable nodes",
     "clearSearch": "clear search",
     "searchNodesAria": "Search nodes",
-    "deleteOutput": "Delete output"
+    "deleteOutput": "Delete output",
+    "preview": "Preview",
+    "output": "Output",
+    "reroute": "Reroute",
+    "connectableNodes": "Connectable nodes"
   },
   "nodeBody": {
     "runImage": "Run to generate",

@@ -555,7 +555,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
           overscan={theme.virtualScroll.overscan.normal}
           getItemKey={(node, index) => node?.node_type ?? index}
           getItemProps={itemProps}
-          ariaLabel="Connectable nodes"
+          ariaLabel={i18n.t("editor:io.connectableNodes", { defaultValue: "Connectable nodes" })}
           renderItem={renderNode}
         />
       )}

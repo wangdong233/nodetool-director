@@ -42,6 +42,7 @@ import { assetMediaType } from "./dnd/assetToClipAdapter";
 import { performSourceEdit, sourceRangeFor, type SourceEditKind } from "./sourceEdit";
 import { TIMELINE_KEYMAPS, bindingKeys } from "./timelineKeymap";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n } from "../../i18n";
 
 const panelStyles = (theme: Theme) =>
   css({
@@ -163,7 +164,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
       css={panelStyles(theme)}
       data-testid="source-viewer"
       role="region"
-      aria-label="Source monitor"
+      aria-label={i18n.t("timeline:source.monitor", { defaultValue: "Source monitor" })}
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
@@ -187,12 +188,12 @@ export const SourceViewerPanel: React.FC = memo(() => {
           {!mediaType && <Caption>This asset type cannot go on the timeline.</Caption>}
         </div>
 
-        <InspectorRow label="In">
+        <InspectorRow label={i18n.t("timeline:source.in", { defaultValue: "In" })}>
           <FlexRow gap={SPACING.xs} align="center">
             <InspectorPillInput
               value={formatSeconds(range.inMs)}
               unit="s"
-              ariaLabel="Source in point"
+              ariaLabel={i18n.t("timeline:source.inPoint", { defaultValue: "Source in point" })}
               onCommit={(raw) => {
                 const inMs = parseSeconds(raw);
                 if (inMs !== null) {
@@ -202,18 +203,18 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label="Mark source in (I)">
+              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label={i18n.t("timeline:source.markIn", { defaultValue: "Mark source in (I)" })}>
                 Mark here
               </Button>
             )}
           </FlexRow>
         </InspectorRow>
-        <InspectorRow label="Out">
+        <InspectorRow label={i18n.t("timeline:source.out", { defaultValue: "Out" })}>
           <FlexRow gap={SPACING.xs} align="center">
             <InspectorPillInput
               value={formatSeconds(range.outMs)}
               unit="s"
-              ariaLabel="Source out point"
+              ariaLabel={i18n.t("timeline:source.outPoint", { defaultValue: "Source out point" })}
               onCommit={(raw) => {
                 const outMs = parseSeconds(raw);
                 if (outMs !== null) {
@@ -223,7 +224,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label="Mark source out (O)">
+              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label={i18n.t("timeline:source.markOut", { defaultValue: "Mark source out (O)" })}>
                 Mark here
               </Button>
             )}

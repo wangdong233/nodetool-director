@@ -124,7 +124,10 @@
     "compareTip": "并排对比两张所选图片",
     "sortName": "按名称排序",
     "sortDate": "按日期排序",
-    "sortSize": "按大小排序"
+    "sortSize": "按大小排序",
+    "downloadStarted": "下载已开始，可能需要一些时间。",
+    "downloadDone": "下载完成。",
+    "downloadFailed": "下载失败。详情请查看控制台。"
   },
   "property": {
     "removeDynamic": "移除动态属性",
@@ -133,14 +136,21 @@
     "resetDefault": "恢复默认值",
     "declareAs": "将“{{prop}}”声明为 {{type}}",
     "slotType": "插槽类型",
-    "copyValueTip": "复制属性值到剪贴板"
+    "copyValueTip": "复制属性值到剪贴板",
+    "copied": "值已复制到剪贴板",
+    "nothingToCopy": "没有可复制的值",
+    "sectionTitle": "属性"
   },
   "io": {
     "searchNodes": "搜索节点…",
     "searchConnectable": "搜索可连接节点",
     "clearSearch": "清除搜索",
     "searchNodesAria": "搜索节点",
-    "deleteOutput": "删除输出"
+    "deleteOutput": "删除输出",
+    "preview": "预览",
+    "output": "输出",
+    "reroute": "转接",
+    "connectableNodes": "可连接节点"
   },
   "nodeBody": {
     "runImage": "运行以生成",
@@ -181,8 +191,8 @@
     "conversations": "历史对话",
     "openInTab": "在工作区标签页中打开",
     "emptyConversation": "空对话",
-    "deleteFailed": "无法删除对话,请重试。",
-    "startFailed": "无法开始新对话,请重试。",
+    "deleteFailed": "无法删除对话，请重试。",
+    "startFailed": "无法开始新对话，请重试。",
     "searchConversations": "搜索对话…",
     "loadFailed": "无法加载对话",
     "noneYet": "还没有对话",
@@ -192,12 +202,12 @@
   "notify": {
     "saveUpdatePrefFailed": "无法保存自动更新偏好。",
     "saveChannelFailed": "无法保存更新渠道偏好。",
-    "tokenCopied": "Nodetool API 令牌已复制到剪贴板!",
+    "tokenCopied": "Nodetool API 令牌已复制到剪贴板！",
     "tokenCopyFailed": "无法复制令牌到剪贴板",
     "copyFailed": "无法复制到剪贴板",
-    "hideInputConfirm": "隐藏输入“{{name}}”?相连的连线将被移除。",
-    "mcpAllowConfirm": "允许已连接的 MCP 客户端运行 {{name}}?\n\n参数:\n{{details}}",
-    "terminateWorkerConfirm": "终止此 worker?其卷与全部缓存模型将被永久删除,计费随之停止。",
+    "hideInputConfirm": "隐藏输入“{{name}}”？相连的连线将被移除。",
+    "mcpAllowConfirm": "允许已连接的 MCP 客户端运行 {{name}}?\n\n参数：\n{{details}}",
+    "terminateWorkerConfirm": "终止此 worker？其卷与全部缓存模型将被永久删除，计费随之停止。",
     "stopAllAria": "停止全部 worker",
     "stopAll": "全部停止"
   },
@@ -206,7 +216,7 @@
     "subtitle": "浏览、整理并预览你的图像、音频、视频和其它文件。",
     "loading": "正在加载素材",
     "loadFailed": "无法加载素材",
-    "errorGeneric": "发生错误,请重试。",
+    "errorGeneric": "发生错误，请重试。",
     "retry": "重试",
     "hideFolders": "隐藏文件夹",
     "showFolders": "显示文件夹",

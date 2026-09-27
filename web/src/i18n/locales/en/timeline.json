@@ -1,0 +1,72 @@
+{
+  "adapt": {
+    "title": "Adapt format",
+    "createMany": "Create adaptations",
+    "createOne": "Create adaptation",
+    "center": "Center",
+    "smartReframe": "Smart Reframe",
+    "followObject": "Follow selected object",
+    "reframeSubject": "Reframe subject",
+    "safeMargin": "Safe margin"
+  },
+  "addClip": {
+    "noMatches": "No matches",
+    "back": "Back",
+    "backToWorkflows": "Back to workflow list",
+    "backToSources": "Back to clip sources",
+    "no3d": "No 3D models",
+    "no3dDesc": "Upload a .glb or .gltf asset first.",
+    "addFailed": "Failed to add clip",
+    "noMediaOutput": "This workflow has no media output node (image, video, or audio).",
+    "add3dClip": "Add a 3D model clip",
+    "addAdjustment": "Add an adjustment layer",
+    "search": "Search…"
+  },
+  "export": {
+    "title": "Export timeline",
+    "format": "Format",
+    "webm": "WebM (VP9)",
+    "alpha": "Export with transparency"
+  },
+  "project": {
+    "title": "Project settings",
+    "canvasPreset": "Canvas preset",
+    "custom": "Custom…",
+    "width": "Width",
+    "height": "Height",
+    "frameRate": "Frame rate preset",
+    "beatsPerBar": "Beats per bar",
+    "beatUnit": "Beat unit",
+    "apply": "Apply"
+  },
+  "source": {
+    "monitor": "Source monitor",
+    "in": "In",
+    "out": "Out",
+    "inPoint": "Source in point",
+    "outPoint": "Source out point",
+    "markIn": "Mark source in (I)",
+    "markOut": "Mark source out (O)"
+  },
+  "history": {
+    "manual": "Manual",
+    "auto": "Auto",
+    "restore": "Restore",
+    "saving": "Saving…",
+    "saveVersion": "Save version",
+    "title": "History",
+    "loading": "Loading versions…",
+    "noneYet": "No versions yet",
+    "noneYetDesc": "Save a version to snapshot the sequence you can come back to.",
+    "saveTitle": "Save a version",
+    "nameOptional": "Name (optional)",
+    "restoreConfirm": "Restore v{{n}}?",
+    "restoreGeneric": "Restore?"
+  },
+  "transcript": {
+    "importTip": "Import audio or video to transcribe",
+    "importAria": "Import audio or video",
+    "extractTip": "Extract this transcript as an editable script",
+    "extract": "Extract as script"
+  }
+}

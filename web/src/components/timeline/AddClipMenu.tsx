@@ -52,6 +52,7 @@ import type {
 } from "../../stores/ApiTypes";
 import { clipFitsTrack, makeClip } from "@nodetool-ai/timeline";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
+import { i18n } from "../../i18n";
 
 /**
  * An adjustment layer draws nothing of its own — like an authored text or
@@ -162,7 +163,7 @@ const WorkflowList: React.FC<WorkflowListProps> = memo(
     if (filtered.length === 0) {
       return (
         <EmptyState
-          title={searchQuery ? "No matches" : emptyLabel}
+          title={searchQuery ? i18n.t("timeline:addClip.noMatches", { defaultValue: "No matches" }) : emptyLabel}
           size="small"
         />
       );
@@ -236,9 +237,9 @@ const OutputSelectPanel: React.FC<OutputSelectPanelProps> = memo(
         <FlexRow align="center" gap={0.5}>
           <ToolbarIconButton
             icon={<ArrowBackIcon fontSize="small" />}
-            tooltip="Back"
+            tooltip={i18n.t("timeline:addClip.back", { defaultValue: "Back" })}
             onClick={onBack}
-            aria-label="Back to workflow list"
+            aria-label={i18n.t("timeline:addClip.backToWorkflows", { defaultValue: "Back to workflow list" })}
           />
           <Text size="small" weight={500} sx={{ flex: 1 }}>
             Select output - {workflowName}
@@ -308,7 +309,7 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
             icon={<ArrowBackIcon fontSize="small" />}
             tooltip="Back"
             onClick={onBack}
-            aria-label="Back to clip sources"
+            aria-label={i18n.t("timeline:addClip.backToSources", { defaultValue: "Back to clip sources" })}
           />
           <Text size="small" weight={500} sx={{ flex: 1 }}>
             Pick a 3D model
@@ -320,8 +321,8 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
           </FlexRow>
         ) : assets.length === 0 ? (
           <EmptyState
-            title="No 3D models"
-            description="Upload a .glb or .gltf asset first."
+            title={i18n.t("timeline:addClip.no3d", { defaultValue: "No 3D models" })}
+            description={i18n.t("timeline:addClip.no3dDesc", { defaultValue: "Upload a .glb or .gltf asset first." })}
             size="small"
           />
         ) : (
@@ -477,7 +478,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
           onClose();
         } catch (err) {
           const msg =
-            err instanceof Error ? err.message : "Failed to add clip";
+            err instanceof Error ? err.message : i18n.t("timeline:addClip.addFailed", { defaultValue: "Failed to add clip" });
           setError(msg);
         } finally {
           setIsAdding(false);
@@ -508,7 +509,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
           if (result.outputs.length === 0) {
             // Server will throw TIMELINE_NO_MEDIA_OUTPUT; surface gracefully
             throw new Error(
-              "This workflow has no media output node (image, video, or audio)."
+              i18n.t("timeline:addClip.noMediaOutput", { defaultValue: "This workflow has no media output node (image, video, or audio)." })
             );
           }
 
@@ -773,7 +774,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       css={workflowItemStyles(theme)}
                       role="button"
                       tabIndex={0}
-                      aria-label="Add a 3D model clip"
+                      aria-label={i18n.t("timeline:addClip.add3dClip", { defaultValue: "Add a 3D model clip" })}
                       data-testid="add-clip-model3d"
                       onClick={() => setPickingModel3D(true)}
                       onKeyDown={(e) => {
@@ -804,7 +805,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       css={workflowItemStyles(theme)}
                       role="button"
                       tabIndex={0}
-                      aria-label="Add an adjustment layer"
+                      aria-label={i18n.t("timeline:addClip.addAdjustment", { defaultValue: "Add an adjustment layer" })}
                       data-testid="add-clip-adjustment"
                       onClick={handleAddAdjustmentLayer}
                       onKeyDown={(e) => {
@@ -853,7 +854,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder="Search…"
+                placeholder={i18n.t("timeline:addClip.search", { defaultValue: "Search…" })}
                 autoFocus
                 fullWidth
                 debounceMs={150}

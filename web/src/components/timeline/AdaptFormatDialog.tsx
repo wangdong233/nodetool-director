@@ -1,4 +1,5 @@
 import React, { memo, useEffect, useState } from "react";
+import { i18n } from "../../i18n";
 
 import {
   isMediaTrackStale,
@@ -123,11 +124,11 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Adapt format"
+      title={i18n.t("timeline:adapt.title", { defaultValue: "Adapt format" })}
       onConfirm={() => void handleCreate()}
       onCancel={onClose}
       confirmText={
-        formats.size > 1 ? "Create adaptations" : "Create adaptation"
+        formats.size > 1 ? i18n.t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : i18n.t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
       }
       cancelText="Cancel"
       confirmDisabled={cannotCreate}
@@ -157,23 +158,23 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
         <FlexColumn gap={SPACING.xs}>
           <Label>Strategy</Label>
           <RadioSet value={strategy} onChange={handleStrategyChange}>
-            <Radio value="center" label="Center" size="small" />
+            <Radio value="center" label={i18n.t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
               value="smart"
-              label="Smart Reframe"
+              label={i18n.t("timeline:adapt.smartReframe", { defaultValue: "Smart Reframe" })}
               size="small"
               disabled={smartUnavailable}
             />
             <Radio
               value="track"
-              label="Follow selected object"
+              label={i18n.t("timeline:adapt.followObject", { defaultValue: "Follow selected object" })}
               size="small"
               disabled={readyTracks.length === 0}
             />
           </RadioSet>
           {strategy === "track" && (
             <SelectField
-              label="Reframe subject"
+              label={i18n.t("timeline:adapt.reframeSubject", { defaultValue: "Reframe subject" })}
               value={trackId}
               onChange={setTrackId}
               options={trackOptions}
@@ -206,7 +207,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
             onChange={(_event, value) =>
               setSafeMarginPercent(Array.isArray(value) ? value[0] : value)
             }
-            aria-label="Safe margin"
+            aria-label={i18n.t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}
           />
         </FlexColumn>
 

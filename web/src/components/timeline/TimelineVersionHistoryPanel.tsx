@@ -30,6 +30,7 @@ import {
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import PanelToolbar from "../panels/PanelToolbar";
+import { i18n } from "../../i18n";
 import {
   Caption,
   Chip,
@@ -49,9 +50,9 @@ import {
 } from "../ui_primitives";
 
 const SAVE_TYPE_LABEL = {
-  manual: "Manual",
-  autosave: "Auto",
-  restore: "Restore"
+  manual: i18n.t("timeline:history.manual", { defaultValue: "Manual" }),
+  autosave: i18n.t("timeline:history.auto", { defaultValue: "Auto" }),
+  restore: i18n.t("timeline:history.restore", { defaultValue: "Restore" })
 } satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_COLOR = {
@@ -251,7 +252,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClick={openSaveDialog}
         disabled={!sequenceId || isCreatingVersion}
       >
-        {isCreatingVersion ? "Saving…" : "Save version"}
+        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       </EditorButton>
     ),
     [openSaveDialog, sequenceId, isCreatingVersion]
@@ -260,7 +261,7 @@ export const TimelineVersionHistoryPanel: React.FC<
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelToolbar
-        title="History"
+        title={i18n.t("timeline:history.title", { defaultValue: "History" })}
         count={ordered.length}
         actions={toolbarActions}
       />
@@ -268,7 +269,7 @@ export const TimelineVersionHistoryPanel: React.FC<
       <ScrollArea css={listStyles(theme)} sx={{ flex: 1, minHeight: 0 }}>
         {isLoading ? (
           <FlexColumn align="center" justify="center" sx={{ py: 4 }}>
-            <LoadingSpinner size="small" text="Loading versions…" />
+            <LoadingSpinner size="small" text={i18n.t("timeline:history.loading", { defaultValue: "Loading versions…" })} />
           </FlexColumn>
         ) : error ? (
           <FlexColumn gap={0.5} sx={{ p: 2 }}>
@@ -280,8 +281,8 @@ export const TimelineVersionHistoryPanel: React.FC<
         ) : ordered.length === 0 ? (
           <FlexColumn align="center" sx={{ py: 4, px: 2 }}>
             <EmptyState
-              title="No versions yet"
-              description="Save a version to snapshot the sequence you can come back to."
+              title={i18n.t("timeline:history.noneYet", { defaultValue: "No versions yet" })}
+              description={i18n.t("timeline:history.noneYetDesc", { defaultValue: "Save a version to snapshot the sequence you can come back to." })}
             />
           </FlexColumn>
         ) : (
@@ -300,14 +301,14 @@ export const TimelineVersionHistoryPanel: React.FC<
       <Dialog
         open={saveDialogOpen}
         onClose={closeSaveDialog}
-        title="Save a version"
+        title={i18n.t("timeline:history.saveTitle", { defaultValue: "Save a version" })}
         onConfirm={handleConfirmSave}
         onCancel={closeSaveDialog}
-        confirmText="Save version"
+        confirmText={i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       >
         <FlexColumn gap={1} sx={{ minWidth: 320, py: 1 }}>
           <TextInput
-            label="Name (optional)"
+            label={i18n.t("timeline:history.nameOptional", { defaultValue: "Name (optional)" })}
             value={saveName}
             onChange={handleSaveNameChange}
             size="small"
@@ -323,7 +324,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         open={restoreTarget !== null}
         onClose={clearRestoreTarget}
         title={
-          restoreTarget ? `Restore v${restoreTarget.version}?` : "Restore?"
+          restoreTarget ? i18n.t("timeline:history.restoreConfirm", { defaultValue: "Restore v{{n}}?", n: String(restoreTarget.version) }) : i18n.t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
         }
         onConfirm={handleConfirmRestore}
         onCancel={clearRestoreTarget}

@@ -1,0 +1,72 @@
+{
+  "adapt": {
+    "title": "适配格式",
+    "createMany": "创建适配",
+    "createOne": "创建适配",
+    "center": "居中",
+    "smartReframe": "智能重构图",
+    "followObject": "跟随所选对象",
+    "reframeSubject": "主体重构图",
+    "safeMargin": "安全边距"
+  },
+  "addClip": {
+    "noMatches": "无匹配",
+    "back": "返回",
+    "backToWorkflows": "返回工作流列表",
+    "backToSources": "返回剪辑来源",
+    "no3d": "暂无 3D 模型",
+    "no3dDesc": "请先上传 .glb 或 .gltf 素材。",
+    "addFailed": "无法添加剪辑",
+    "noMediaOutput": "此工作流没有媒体输出节点(图像、视频或音频)。",
+    "add3dClip": "添加 3D 模型剪辑",
+    "addAdjustment": "添加调整图层",
+    "search": "搜索…"
+  },
+  "export": {
+    "title": "导出时间线",
+    "format": "格式",
+    "webm": "WebM(VP9)",
+    "alpha": "带透明通道导出"
+  },
+  "project": {
+    "title": "项目设置",
+    "canvasPreset": "画布预设",
+    "custom": "自定义…",
+    "width": "宽度",
+    "height": "高度",
+    "frameRate": "帧率预设",
+    "beatsPerBar": "每小节拍数",
+    "beatUnit": "拍单位",
+    "apply": "应用"
+  },
+  "source": {
+    "monitor": "源素材监视器",
+    "in": "入点",
+    "out": "出点",
+    "inPoint": "源素材入点",
+    "outPoint": "源素材出点",
+    "markIn": "标记入点(I)",
+    "markOut": "标记出点(O)"
+  },
+  "history": {
+    "manual": "手动",
+    "auto": "自动",
+    "restore": "恢复",
+    "saving": "保存中…",
+    "saveVersion": "保存版本",
+    "title": "历史",
+    "loading": "正在加载版本…",
+    "noneYet": "还没有版本",
+    "noneYetDesc": "保存一个版本,随时可以回到这个快照。",
+    "saveTitle": "保存版本",
+    "nameOptional": "名称(可选)",
+    "restoreConfirm": "恢复 v{{n}}?",
+    "restoreGeneric": "恢复?"
+  },
+  "transcript": {
+    "importTip": "导入音频或视频以转写",
+    "importAria": "导入音频或视频",
+    "extractTip": "将此转写提取为可编辑脚本",
+    "extract": "提取为脚本"
+  }
+}

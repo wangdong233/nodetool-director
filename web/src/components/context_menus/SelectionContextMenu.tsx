@@ -254,7 +254,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
           IconComponent={<FormatAlignLeftIcon />}
           tooltip={
             <div className="tooltip-span">
-              <div className="tooltip-title">Align</div>
+              <div className="tooltip-title">{i18n.t("editor:selection.align", { defaultValue: "Align" })}</div>
               <div className="tooltip-key">
                 <kbd>A</kbd>
               </div>
@@ -269,7 +269,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
           IconComponent={<FormatAlignLeftIcon />}
           tooltip={
             <div className="tooltip-span">
-              <div className="tooltip-title">Arrange</div>
+              <div className="tooltip-title">{i18n.t("editor:selection.arrange", { defaultValue: "Arrange" })}</div>
               <div className="tooltip-key">
                 <kbd>SHIFT</kbd>+<kbd>A</kbd>
               </div>
@@ -300,7 +300,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         IconComponent={<UnfoldLessIcon />}
         tooltip={
           <div className="tooltip-span">
-            <div className="tooltip-title">Collapse / Expand</div>
+            <div className="tooltip-title">{i18n.t("editor:selection.collapseExpand", { defaultValue: "Collapse / Expand" })}</div>
             <div className="tooltip-key">
               <kbd>C</kbd>
             </div>

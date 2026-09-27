@@ -24,10 +24,11 @@ import {
   type SelectOption
 } from "../ui_primitives";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
+import { i18n } from "../../i18n";
 
 const FORMAT_OPTIONS: readonly SelectOption[] = [
   { value: "mp4", label: "MP4 (H.264)" },
-  { value: "webm", label: "WebM (VP9)" },
+  { value: "webm", label: i18n.t("timeline:export.webm", { defaultValue: "WebM (VP9)" }) },
   { value: "png_sequence", label: "PNG sequence (.zip)" }
 ];
 
@@ -46,7 +47,7 @@ export interface ExportVideoChoice {
   alpha: boolean;
 }
 
-const ALPHA_LABEL = "Export with transparency";
+const ALPHA_LABEL = "Export with transparency"; // localized at render via timeline:export.alpha
 
 /** Why the switch is off, or what turning it on does. */
 const ALPHA_NOTE: Record<BrowserExportFormat, string> = {
@@ -105,12 +106,12 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Export timeline"
+      title={i18n.t("timeline:export.title", { defaultValue: "Export timeline" })}
       actions={actions}
     >
       <FlexColumn gap={SPACING.md} sx={{ minWidth: 360, py: 1 }}>
         <SelectField
-          label="Format"
+          label={i18n.t("timeline:export.format", { defaultValue: "Format" })}
           value={format}
           onChange={handleFormatChange}
           options={FORMAT_OPTIONS}
@@ -121,7 +122,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
         <LabeledSwitch
           id="timeline-export-alpha"
           size="small"
-          label={ALPHA_LABEL}
+          label={i18n.t("timeline:export.alpha", { defaultValue: ALPHA_LABEL })}
           checked={alpha}
           onChange={setAlpha}
           disabled={format === "mp4"}
