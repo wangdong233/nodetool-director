@@ -62,24 +62,24 @@ const AssetGridContextMenu = () => {
         onClick={handleCreateFolder}
         label={i18n.t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
         IconComponent={<CreateNewFolderIcon />}
-        tooltip={`Create a new folder in '${currentFolder?.name || "ASSETS"}' `}
+        tooltip={i18n.t("editor:asset.createFolderInTip", { defaultValue: "Create a new folder in '{{name}}'", name: currentFolder?.name || "ASSETS" })}
       />
       <Divider />
       <ContextMenuItem
         onClick={handleSortByName}
-        label={`Sort by name ${assetsOrder === "name" ? "✓" : ""}`}
+        label={`${i18n.t("editor:asset.sortName", { defaultValue: "Sort by name" })}${assetsOrder === "name" ? " ✓" : ""}`}
         IconComponent={<SortByAlphaIcon />}
         tooltip={i18n.t("editor:asset.sortByName", { defaultValue: "Sort assets by name" })}
       />
       <ContextMenuItem
         onClick={handleSortByDate}
-        label={`Sort by date ${assetsOrder === "date" ? "✓" : ""}`}
+        label={`${i18n.t("editor:asset.sortDate", { defaultValue: "Sort by date" })}${assetsOrder === "date" ? " ✓" : ""}`}
         IconComponent={<AccessTimeIcon />}
         tooltip={i18n.t("editor:asset.sortByDate", { defaultValue: "Sort assets by creation date" })}
       />
       <ContextMenuItem
         onClick={handleSortBySize}
-        label={`Sort by size ${assetsOrder === "size" ? "✓" : ""}`}
+        label={`${i18n.t("editor:asset.sortSize", { defaultValue: "Sort by size" })}${assetsOrder === "size" ? " ✓" : ""}`}
         IconComponent={<StorageIcon />}
         tooltip={i18n.t("editor:asset.sortBySize", { defaultValue: "Sort assets by file size" })}
       />

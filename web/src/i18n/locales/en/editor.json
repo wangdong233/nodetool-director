@@ -70,7 +70,8 @@
   "workflow": {
     "removeFav": "Remove from favorites",
     "addFav": "Add to favorites",
-    "openAsApp": "Open as App"
+    "openAsApp": "Open as App",
+    "edit": "Edit"
   },
   "asset": {
     "openAsTab": "Open as Tab",
@@ -111,7 +112,17 @@
       "provider": "Provider",
       "node": "Node",
       "task": "Task"
-    }
+    },
+    "createTimelineTip": "Create a timeline from this video and open it for editing",
+    "moveToExistingTip": "Move selected assets to an existing folder",
+    "moveToNewTip": "Create a new folder and move selected assets into it",
+    "createFolderHereTip": "Create a new folder in the current location",
+    "createFolderInTip": "Create a new folder in '{{name}}'",
+    "downloadTip": "Download selected assets to your Downloads folder",
+    "compareTip": "Compare the two selected images side-by-side",
+    "sortName": "Sort by name",
+    "sortDate": "Sort by date",
+    "sortSize": "Sort by size"
   },
   "property": {
     "removeDynamic": "Remove Dynamic Property",

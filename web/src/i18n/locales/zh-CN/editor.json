@@ -70,7 +70,8 @@
   "workflow": {
     "removeFav": "取消收藏",
     "addFav": "添加收藏",
-    "openAsApp": "作为小程序打开"
+    "openAsApp": "作为小程序打开",
+    "edit": "编辑"
   },
   "asset": {
     "openAsTab": "在标签页中打开",
@@ -111,7 +112,17 @@
       "provider": "服务商",
       "node": "节点",
       "task": "任务类型"
-    }
+    },
+    "createTimelineTip": "从此视频创建时间线并打开编辑",
+    "moveToExistingTip": "将所选素材移到现有文件夹",
+    "moveToNewTip": "新建文件夹并移入所选素材",
+    "createFolderHereTip": "在当前位置新建文件夹",
+    "createFolderInTip": "在“{{name}}”中新建文件夹",
+    "downloadTip": "将所选素材下载到下载文件夹",
+    "compareTip": "并排对比两张所选图片",
+    "sortName": "按名称排序",
+    "sortDate": "按日期排序",
+    "sortSize": "按大小排序"
   },
   "property": {
     "removeDynamic": "移除动态属性",

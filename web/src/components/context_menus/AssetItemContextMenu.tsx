@@ -283,7 +283,7 @@ const AssetItemContextMenu = () => {
             tooltip={
               singleVideo.timeline_id
                 ? i18n.t("editor:asset.editTimelineTip", { defaultValue: "Open the timeline this video was rendered from" })
-                : "Create a timeline from this video and open it for editing"
+                : i18n.t("editor:asset.createTimelineTip", { defaultValue: "Create a timeline from this video and open it for editing" })
             }
           />
         )}
@@ -292,7 +292,7 @@ const AssetItemContextMenu = () => {
           onClick={openMoveDialog}
           label={i18n.t("editor:asset.moveToExisting", { defaultValue: "Move to existing folder" })}
           IconComponent={<DriveFileMoveIcon />}
-          tooltip="Move selected assets to an existing folder"
+          tooltip={i18n.t("editor:asset.moveToExistingTip", { defaultValue: "Move selected assets to an existing folder" })}
         />
         <ContextMenuItem
           onClick={openCreateFolderDialog}
@@ -300,8 +300,8 @@ const AssetItemContextMenu = () => {
           IconComponent={<CreateNewFolderIcon />}
           tooltip={
             hasSelectedAssets
-              ? "Create a new folder and move selected assets into it"
-              : "Create a new folder in the current location"
+              ? i18n.t("editor:asset.moveToNewTip", { defaultValue: "Create a new folder and move selected assets into it" })
+              : i18n.t("editor:asset.createFolderHereTip", { defaultValue: "Create a new folder in the current location" })
           }
         />
         <Divider />
@@ -309,7 +309,7 @@ const AssetItemContextMenu = () => {
           onClick={downloadSelected}
           label={i18n.t("editor:asset.downloadSelected", { defaultValue: "Download Selected Assets" })}
           IconComponent={<FileDownloadIcon />}
-          tooltip="Download selected assets to your Downloads folder"
+          tooltip={i18n.t("editor:asset.downloadTip", { defaultValue: "Download selected assets to your Downloads folder" })}
         />
         {isElectron && isSingleClipboardSupported && (
           <ContextMenuItem
@@ -340,7 +340,7 @@ const AssetItemContextMenu = () => {
             onClick={handleCompareImages}
             label={i18n.t("editor:asset.compareImages", { defaultValue: "Compare Images" })}
             IconComponent={<CompareIcon />}
-            tooltip="Compare the two selected images side-by-side"
+            tooltip={i18n.t("editor:asset.compareTip", { defaultValue: "Compare the two selected images side-by-side" })}
           />
         )}
         <Divider />

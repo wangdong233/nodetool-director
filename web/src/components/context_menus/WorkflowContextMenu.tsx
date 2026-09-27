@@ -89,7 +89,7 @@ const WorkflowContextMenu: React.FC = () => {
         label={isFavorite ? i18n.t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : i18n.t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
-      <ContextMenuItem onClick={handleEdit} label="Edit" IconComponent={<EditIcon />} />
+      <ContextMenuItem onClick={handleEdit} label={i18n.t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />
       <ContextMenuItem
         onClick={handleDuplicate}
         label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
