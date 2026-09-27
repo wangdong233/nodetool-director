@@ -88,7 +88,22 @@
     "copyContentTip": "复制内容到剪贴板",
     "sortByName": "按名称排序素材",
     "sortByDate": "按创建时间排序素材",
-    "sortBySize": "按文件大小排序素材"
+    "sortBySize": "按文件大小排序素材",
+    "info": {
+      "name": "名称",
+      "type": "类型",
+      "size": "大小",
+      "duration": "时长",
+      "created": "创建时间",
+      "folder": "文件夹",
+      "workflow": "工作流",
+      "prompt": "提示词",
+      "copyPrompt": "复制提示词",
+      "model": "模型",
+      "provider": "服务商",
+      "node": "节点",
+      "task": "任务类型"
+    }
   },
   "property": {
     "removeDynamic": "移除动态属性",

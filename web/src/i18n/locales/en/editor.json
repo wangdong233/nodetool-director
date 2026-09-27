@@ -88,7 +88,22 @@
     "copyContentTip": "Copy content to clipboard",
     "sortByName": "Sort assets by name",
     "sortByDate": "Sort assets by creation date",
-    "sortBySize": "Sort assets by file size"
+    "sortBySize": "Sort assets by file size",
+    "info": {
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "duration": "Duration",
+      "created": "Created",
+      "folder": "Folder",
+      "workflow": "Workflow",
+      "prompt": "Prompt",
+      "copyPrompt": "Copy prompt",
+      "model": "Model",
+      "provider": "Provider",
+      "node": "Node",
+      "task": "Task"
+    }
   },
   "property": {
     "removeDynamic": "Remove Dynamic Property",
