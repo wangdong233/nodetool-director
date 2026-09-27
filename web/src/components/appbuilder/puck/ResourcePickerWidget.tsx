@@ -16,6 +16,7 @@ import React, { useEffect, useMemo } from "react";
 import { SelectField, Caption, FlexColumn } from "../../ui_primitives";
 import { trpc } from "../../../trpc/client";
 import { useAppRuntimeContext } from "../runtime/AppRuntimeContext";
+import { tAttr } from "../i18nAttrs";
 
 interface ResourcePickerProps {
   /** Puck injects the placed widget's id. */
@@ -64,8 +65,8 @@ export const ResourcePickerWidget: React.FC<ResourcePickerProps> = ({
     return (
       <Caption color="secondary">
         {designMode
-          ? "Pick a resource binding for this widget."
-          : "This picker is not bound to a resource."}
+          ? tAttr("Pick a resource binding for this widget.")
+          : tAttr("This picker is not bound to a resource.")}
       </Caption>
     );
   }

@@ -40,6 +40,7 @@ import {
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { MarkdownBlock, renderOutputItem, resolveImageSrc } from "./widgets";
 import { isString } from "../../../utils/typePredicates";
+import { tAttr } from "../i18nAttrs";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -99,7 +100,7 @@ const Bubble: React.FC<{ message: ChatMessage }> = React.memo(({ message }) => {
         }}
       >
         <Caption color="secondary">
-          {ROLE_LABELS[message.role] ?? message.role}
+          {tAttr(ROLE_LABELS[message.role] ?? message.role)}
         </Caption>
         <MessageParts content={message.content} />
       </FlexColumn>
@@ -196,7 +197,7 @@ export const ChatThreadWidget: React.FC<ChatThreadWidgetProps> = ({
         ref={scrollRef}
         thin
         maxHeight={maxHeight && maxHeight > 0 ? maxHeight : 360}
-        aria-label={label || "Conversation"}
+        aria-label={label || tAttr("Conversation")}
         sx={{
           width: "100%",
           minHeight: 96,
@@ -209,9 +210,11 @@ export const ChatThreadWidget: React.FC<ChatThreadWidgetProps> = ({
         {all.length === 0 ? (
           <Caption color="secondary">
             {placeholder ??
-              (designMode
-                ? "Messages appear here once the app runs."
-                : "No messages yet")}
+              tAttr(
+                designMode
+                  ? "Messages appear here once the app runs."
+                  : "No messages yet"
+              )}
           </Caption>
         ) : (
           <FlexColumn gap={SPACING.md} fullWidth>
@@ -378,14 +381,14 @@ export const ChatComposerWidget: React.FC<ChatComposerWidgetProps> = ({
       <FlexRow gap={SPACING.sm} align="flex-end" fullWidth>
         <TextInput
           value={draft}
-          placeholder={placeholder ?? "Write a message…"}
+          placeholder={placeholder ?? tAttr("Write a message…")}
           multiline
           minRows={2}
           maxRows={8}
           size="small"
           fullWidth
           disabled={disabled}
-          inputProps={{ "aria-label": label || "Message" }}
+          inputProps={{ "aria-label": label || tAttr("Message") }}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setDraft(e.target.value)
           }
@@ -414,10 +417,10 @@ export const ChatComposerWidget: React.FC<ChatComposerWidgetProps> = ({
               variant="outlined"
               size="small"
               disabled={disabled}
-              aria-label="Attach image"
+              aria-label={tAttr("Attach image")}
               onClick={() => fileInputRef.current?.click()}
             >
-              Attach
+              {tAttr("Attach")}
             </EditorButton>
           </>
         ) : null}
@@ -427,7 +430,7 @@ export const ChatComposerWidget: React.FC<ChatComposerWidgetProps> = ({
           disabled={disabled || !canSend}
           onClick={send}
         >
-          {isRunning ? "Sending…" : sendLabel || "Send"}
+          {isRunning ? tAttr("Sending…") : sendLabel || tAttr("Send")}
         </EditorButton>
       </FlexRow>
     </FlexColumn>

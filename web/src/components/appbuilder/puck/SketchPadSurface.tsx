@@ -53,6 +53,7 @@ import {
   sketchPadImageUri,
   sketchPadValue
 } from "./sketchPadDocument";
+import { tAttr } from "../i18nAttrs";
 import {
   clampPadSide,
   DEFAULT_PAD_HEIGHT,
@@ -174,7 +175,7 @@ const PadToolbar: React.FC<PadToolbarProps> = ({ onUndo, onRedo, onClear }) => {
 
       {SIZED_TOOLS.includes(activeTool) ? (
         <Slider
-          aria-label="Stroke size"
+          aria-label={tAttr("Stroke size")}
           size="small"
           value={size}
           min={MIN_STROKE_SIZE}
@@ -188,11 +189,11 @@ const PadToolbar: React.FC<PadToolbarProps> = ({ onUndo, onRedo, onClear }) => {
       ) : null}
 
       <FlexRow align="center" gap={SPACING.xs} sx={{ marginLeft: "auto" }}>
-        <Tooltip title="Undo">
+        <Tooltip title={tAttr("Undo")}>
           <span>
             <IconButton
               size="small"
-              aria-label="Undo"
+              aria-label={tAttr("Undo")}
               disabled={!canUndo}
               onClick={onUndo}
             >
@@ -200,11 +201,11 @@ const PadToolbar: React.FC<PadToolbarProps> = ({ onUndo, onRedo, onClear }) => {
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Redo">
+        <Tooltip title={tAttr("Redo")}>
           <span>
             <IconButton
               size="small"
-              aria-label="Redo"
+              aria-label={tAttr("Redo")}
               disabled={!canRedo}
               onClick={onRedo}
             >
@@ -212,8 +213,8 @@ const PadToolbar: React.FC<PadToolbarProps> = ({ onUndo, onRedo, onClear }) => {
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="Clear">
-          <IconButton size="small" aria-label="Clear" onClick={onClear}>
+        <Tooltip title={tAttr("Clear")}>
+          <IconButton size="small" aria-label={tAttr("Clear")} onClick={onClear}>
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>
         </Tooltip>

@@ -21,6 +21,7 @@ import {
 } from "../../ui_primitives";
 import { trpc } from "../../../trpc/client";
 import { useBoundResource, type ResourceItem } from "./useBoundResource";
+import { tAttr, tAttrTpl } from "../i18nAttrs";
 
 interface ResourceGalleryProps {
   /** Puck injects the placed widget's id. */
@@ -197,8 +198,8 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
     return (
       <Caption color="secondary">
         {designMode
-          ? "Pick a resource binding for this gallery."
-          : "This gallery is not bound to a resource."}
+          ? tAttr("Pick a resource binding for this gallery.")
+          : tAttr("This gallery is not bound to a resource.")}
       </Caption>
     );
   }
@@ -222,8 +223,10 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
       {items.length === 0 ? (
         <Caption color="secondary">
           {isLoading
-            ? "Loading…"
-            : `No ${binding.kind} resources in this collection yet.`}
+            ? tAttr("Loading…")
+            : tAttrTpl("noKindResourcesYet", "No {{kind}} resources in this collection yet.", {
+                kind: tAttr(binding.kind)
+              })}
         </Caption>
       ) : (
         <Box

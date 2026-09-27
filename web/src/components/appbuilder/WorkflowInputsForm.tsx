@@ -16,6 +16,7 @@ import {
   WorkflowInputFormValues
 } from "./workflowInputForm";
 import { WorkflowInputKind } from "./inputKinds";
+import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { isNumber, isString } from "../../utils/typePredicates";
 
 interface WorkflowInputsFormProps {
@@ -327,8 +328,14 @@ const WorkflowInputsForm: React.FC<WorkflowInputsFormProps> = ({
                         <Tooltip
                           title={
                             exceedsMaxLength
-                              ? `${draft.length - maxLength} characters over the limit; extra characters will not be sent.`
-                              : "Max length. Extra characters will not be sent."
+                              ? tAttrTpl(
+                                  "charactersOverLimit",
+                                  "{{count}} characters over the limit; extra characters will not be sent.",
+                                  { count: draft.length - maxLength }
+                                )
+                              : tAttr(
+                                  "Max length. Extra characters will not be sent."
+                                )
                           }
                           placement="bottom"
                         >

@@ -10,6 +10,7 @@ import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useChatViewThread } from "../../hooks/chat/useChatViewThread";
 import useThreadModel from "../../hooks/chat/useThreadModel";
 import { Box, Caption, FlexColumn, Text } from "../ui_primitives";
+import { tAttr } from "./i18nAttrs";
 
 type ChatViewStatus = React.ComponentProps<typeof ChatView>["status"];
 
@@ -188,10 +189,12 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
         }}
       >
         <Text size="small" weight={500}>
-          App Builder Agent
+          {tAttr("App Builder Agent")}
         </Text>
         <Caption color="secondary" sx={{ display: "block", mt: 0.5 }}>
-          Build the app layout and bind widgets to workflow inputs and outputs.
+          {tAttr(
+            "Build the app layout and bind widgets to workflow inputs and outputs."
+          )}
         </Caption>
       </Box>
       <ChatPanelHeader
@@ -199,7 +202,7 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
         onSelectThread={selectThread}
         threadId={threadId}
         docsTopic="appBuilder"
-        docsLabel="App builder"
+        docsLabel={tAttr("App builder")}
       />
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <ChatView
@@ -223,7 +226,9 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
           chatSource="app_builder"
           uiContext={appBuilderUiContext}
           hideModePicker
-          composerPlaceholder="Ask the agent to build your app or edit the workflow…"
+          composerPlaceholder={tAttr(
+            "Ask the agent to build your app or edit the workflow…"
+          )}
           threadId={threadId}
           key={threadId ?? "no-thread"}
         />

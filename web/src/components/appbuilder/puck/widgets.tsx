@@ -49,6 +49,7 @@ import {
   isObjectLike,
   isString
 } from "../../../utils/typePredicates";
+import { tAttr, tAttrTpl } from "../i18nAttrs";
 
 const REMARK_PLUGINS: Options["remarkPlugins"] = [remarkGfm];
 
@@ -181,7 +182,7 @@ const MediaDownloadButton: React.FC<{
       size="small"
       variant="text"
       density="compact"
-      aria-label={`Download ${filename}`}
+      aria-label={tAttrTpl("downloadFile", "Download {{filename}}", { filename })}
       onClick={(event) => {
         event.preventDefault();
         void downloadResolvedMedia(href, filename);
@@ -400,7 +401,7 @@ export const ImageWidget: React.FC<
     return (
       <MediaPlaceholder
         height={height}
-        text={props.placeholder ?? "No image"}
+        text={tAttr(props.placeholder ?? "No image")}
       />
     );
   }
@@ -462,7 +463,7 @@ export const AudioWidget: React.FC<
     return (
       <MediaPlaceholder
         height={56}
-        text={props.placeholder ?? "No audio yet"}
+        text={tAttr(props.placeholder ?? "No audio yet")}
       />
     );
   }
@@ -506,7 +507,7 @@ export const VideoWidget: React.FC<
     return (
       <MediaPlaceholder
         height={height}
-        text={props.placeholder ?? "No video yet"}
+        text={tAttr(props.placeholder ?? "No video yet")}
       />
     );
   }
@@ -629,7 +630,7 @@ export const OutputWidget: React.FC<
   if (items.length === 0) {
     return (
       <Caption color="secondary">
-        {props.placeholder ?? "No result yet"}
+        {tAttr(props.placeholder ?? "No result yet")}
       </Caption>
     );
   }
@@ -710,7 +711,7 @@ export const TableWidget: React.FC<
       };
     }
     return {
-      columns: [{ key: "value", label: props.label || "Value" }],
+      columns: [{ key: "value", label: tAttr(props.label || "Value") }],
       rows: items.map((item) => ({
         value: typeof item === "object" ? JSON.stringify(item) : str(item)
       }))
@@ -719,12 +720,12 @@ export const TableWidget: React.FC<
 
   if (rows.length === 0) {
     return (
-      <Caption color="secondary">{props.placeholder ?? "No rows yet"}</Caption>
+      <Caption color="secondary">{tAttr(props.placeholder ?? "No rows yet")}</Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
+      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
       <DataTable
         compact
         striped
@@ -758,7 +759,7 @@ export const ProgressWidget: React.FC<WidgetCommon & { label?: string }> = (
   if (!designMode && !isRunning) return null;
   // An agent run reports what it is doing; without it the app shows a spinner
   // and nothing else. The label the run reports wins over the static one.
-  const caption = (isRunning && activity) || props.label;
+  const caption = (isRunning && activity) || (props.label ? tAttr(props.label) : undefined);
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
       {caption ? <Caption color="secondary">{caption}</Caption> : null}
@@ -799,7 +800,7 @@ export const AlertWidget: React.FC<
     <AlertBanner
       severity={severity}
       variant="outlined"
-      title={props.title || undefined}
+      title={props.title ? tAttr(props.title) : undefined}
       sx={{ width: "100%" }}
     >
       {text || "Alert"}
@@ -870,12 +871,12 @@ export const ListWidget: React.FC<
   ).filter((item) => item != null && item !== "");
   if (items.length === 0) {
     return (
-      <Caption color="secondary">{props.placeholder ?? "No items yet"}</Caption>
+      <Caption color="secondary">{tAttr(props.placeholder ?? "No items yet")}</Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
+      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
       <Box
         component={props.ordered ? "ol" : "ul"}
         sx={{
@@ -928,13 +929,13 @@ export const KeyValueWidget: React.FC<
   if (entries.length === 0) {
     return (
       <Caption color="secondary">
-        {props.placeholder ?? "No values yet"}
+        {tAttr(props.placeholder ?? "No values yet")}
       </Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
+      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
       <FlexColumn gap={0} fullWidth>
         {entries.map(([key, entry], index) => (
           <FlexRow
@@ -974,7 +975,7 @@ export const StatWidget: React.FC<
     props.formattedValue ?? (value != null && value !== "" ? str(value) : "");
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
+      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
       <Text size="giant" weight={600}>
         {shown || props.placeholder || "—"}
       </Text>
@@ -1001,7 +1002,7 @@ export const DownloadWidget: React.FC<
   if (!href && !designMode) {
     return (
       <Caption color="secondary">
-        {props.placeholder ?? "Nothing to download yet"}
+        {tAttr(props.placeholder ?? "Nothing to download yet")}
       </Caption>
     );
   }
@@ -1018,7 +1019,7 @@ export const DownloadWidget: React.FC<
       rel="noopener"
       download={props.filename || ""}
     >
-      {props.label ?? "Download"}
+      {tAttr(props.label ?? "Download")}
     </EditorButton>
   );
 };
@@ -1036,7 +1037,7 @@ export const TextInputWidget: React.FC<
   return (
     <TextInput
       data-focus-id={`app-widget-${props.id}`}
-      label={props.label ?? ""}
+      label={tAttr(props.label ?? "")}
       placeholder={props.placeholder ?? ""}
       value={str(value)}
       multiline={Boolean(props.multiline)}
@@ -1063,7 +1064,7 @@ export const NumberInputWidget: React.FC<
   const { value, setValue, emit } = useBinding(props, "write");
   return (
     <TextInput
-      label={props.label ?? ""}
+      label={tAttr(props.label ?? "")}
       type="number"
       value={value == null ? "" : String(value)}
       size="small"
@@ -1095,7 +1096,7 @@ export const SliderWidget: React.FC<
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
       <Caption color="secondary">
-        {props.label ?? ""}: {numOr(value, min)}
+        {tAttr(props.label ?? "")}: {numOr(value, min)}
       </Caption>
       <Slider
         value={numOr(value, min)}
@@ -1122,7 +1123,7 @@ export const SwitchWidget: React.FC<WidgetCommon & { label?: string }> = (
   const { value, setValue, emit } = useBinding(props, "write");
   return (
     <LabeledSwitch
-      label={props.label ?? ""}
+      label={tAttr(props.label ?? "")}
       checked={Boolean(value)}
       onChange={(checked) => {
         setValue(checked);
@@ -1152,7 +1153,7 @@ export const SelectWidget: React.FC<
   const options = optionValues(props.options);
   return (
     <SelectField
-      label={props.label ?? ""}
+      label={tAttr(props.label ?? "")}
       value={str(value)}
       options={options.map((o) => ({ label: o, value: o }))}
       onChange={(v) => {
@@ -1174,7 +1175,7 @@ export const RadioGroupWidget: React.FC<
   const options = optionValues(props.options);
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Label>{props.label}</Label> : null}
+      {props.label ? <Label>{tAttr(props.label)}</Label> : null}
       <RadioSet
         row={Boolean(props.row)}
         value={str(value)}
@@ -1222,7 +1223,7 @@ export const CheckboxGroupWidget: React.FC<
   };
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Label>{props.label}</Label> : null}
+      {props.label ? <Label>{tAttr(props.label)}</Label> : null}
       <FormGroup row={Boolean(props.row)}>
         {options.map((option) => (
           <Checkbox
@@ -1248,7 +1249,7 @@ export const DateInputWidget: React.FC<
   const { value, setValue, emit } = useBinding(props, "write");
   return (
     <TextInput
-      label={props.label ?? ""}
+      label={tAttr(props.label ?? "")}
       type={props.withTime ? "datetime-local" : "date"}
       value={str(value)}
       size="small"
@@ -1283,7 +1284,7 @@ const RunningLabel: React.FC = () => (
     component="span"
     sx={{ display: "inline-flex", alignItems: "baseline", gap: getSpacingPx(SPACING.micro) }}
   >
-    Running
+    {tAttr("Running")}
     <Box component="span" aria-hidden sx={{ display: "inline-flex" }}>
       {[0, 1, 2].map((i) => (
         <Box
@@ -1353,7 +1354,7 @@ export const ButtonWidget: React.FC<
         })
       }}
     >
-      {showRunning ? <RunningLabel /> : (props.label ?? "Button")}
+      {showRunning ? <RunningLabel /> : tAttr(props.label ?? "Button")}
     </EditorButton>
   );
 };
@@ -1442,7 +1443,7 @@ export const TabsWidget: React.FC<{
     : panes[0]?.value;
 
   if (panes.length === 0) {
-    return <Caption color="secondary">Name a tab to show its content</Caption>;
+    return <Caption color="secondary">{tAttr("Name a tab to show its content")}</Caption>;
   }
   return (
     <FlexColumn gap={SPACING.lg} fullWidth>
@@ -1481,7 +1482,7 @@ export const AccordionWidget: React.FC<{
   content?: SlotComponent;
 }> = ({ title, defaultOpen, content: Content }) => (
   <CollapsibleSection
-    title={title || "Section"}
+    title={tAttr(title || "Section")}
     defaultOpen={defaultOpen !== false}
     compact
   >

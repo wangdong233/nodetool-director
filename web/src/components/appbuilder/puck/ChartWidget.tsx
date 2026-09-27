@@ -22,6 +22,7 @@ import {
 import { AppEvent } from "../types";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { isNumber, isString } from "../../../utils/typePredicates";
+import { tAttr } from "../i18nAttrs";
 
 const LazyPlotlyChart = React.lazy(
   () => import("../../node/output/PlotlyChart")
@@ -172,7 +173,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = (props) => {
   if (traces.length === 0) {
     return (
       <Caption color="secondary">
-        {props.placeholder ?? "Nothing to plot yet"}
+        {tAttr(props.placeholder ?? "Nothing to plot yet")}
       </Caption>
     );
   }
@@ -182,7 +183,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = (props) => {
       {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
       <Box sx={{ width: "100%", height, borderRadius: BORDER_RADIUS.md }}>
         <React.Suspense
-          fallback={<LoadingSpinner size="small" text="Loading chart" />}
+          fallback={<LoadingSpinner size="small" text={tAttr("Loading chart")} />}
         >
           <LazyPlotlyChart
             data={traces}

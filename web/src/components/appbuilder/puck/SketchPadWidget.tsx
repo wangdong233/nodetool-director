@@ -15,6 +15,7 @@ import {
   BORDER_RADIUS
 } from "../../ui_primitives";
 import { AppEvent } from "../types";
+import { tAttr } from "../i18nAttrs";
 import {
   clampPadSide,
   DEFAULT_PAD_HEIGHT,
@@ -52,7 +53,7 @@ export const SketchPadWidget: React.FC<SketchPadWidgetProps> = (props) => (
           borderRadius: BORDER_RADIUS.md
         }}
       >
-        <LoadingSpinner size="small" text="Loading pad" />
+        <LoadingSpinner size="small" text={tAttr("Loading pad")} />
       </FlexColumn>
     }
   >

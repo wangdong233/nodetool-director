@@ -26,6 +26,8 @@ import {
 } from "../ui_primitives";
 import { parseApplicationDocument, type AppDocument } from "./appData";
 import AppRuntimeView from "./AppRuntimeView";
+import { tAttr, tAttrTpl } from "./i18nAttrs";
+import { i18n } from "../../i18n";
 
 interface ApplicationRunViewProps {
   applicationId: string;
@@ -103,15 +105,25 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
   }, [applicationId, application?.name, hostWorkflowId, liveHost, pinnedHost]);
 
   if (isLoading || releaseLoading) {
-    return <LoadingSpinner size="large" text="Loading app" />;
+    return (
+      <LoadingSpinner
+        size="large"
+        text={i18n.t("ui2:attrs.loadingDocument", {
+          defaultValue: "Loading {{label}}…",
+          label: tAttr("App")
+        })}
+      />
+    );
   }
 
   if (!document || document.ui.content.length === 0) {
     return (
       <EmptyState
         variant="empty"
-        title="Nothing to run yet"
-        description="Add widgets in the Design view, then run the app here."
+        title={tAttr("Nothing to run yet")}
+        description={tAttr(
+          "Add widgets in the Design view, then run the app here."
+        )}
       />
     );
   }
@@ -120,8 +132,12 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
     return (
       <EmptyState
         variant="error"
-        title="Workflow unavailable"
-        description={`This app runs workflow ${hostWorkflowId}, which could not be loaded.`}
+        title={tAttr("Workflow unavailable")}
+        description={tAttrTpl(
+          "workflowUnavailableFor",
+          "This app runs workflow {{workflowId}}, which could not be loaded.",
+          { workflowId: hostWorkflowId }
+        )}
       />
     );
   }
@@ -130,12 +146,16 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
     <FlexColumn gap={0} fullWidth sx={{ height: "100%", minHeight: 0 }}>
       {!previewDraft && release && (
         <Caption color="secondary" sx={{ px: SPACING.lg, py: SPACING.xs }}>
-          {`Running released version ${release.version}`}
+          {tAttrTpl("runningReleasedVersion", "Running released version {{version}}", {
+            version: release.version
+          })}
         </Caption>
       )}
       {previewDraft && (
         <Caption color="secondary" sx={{ px: SPACING.lg, py: SPACING.xs }}>
-          Previewing current draft. This does not change the released app.
+          {tAttr(
+            "Previewing current draft. This does not change the released app."
+          )}
         </Caption>
       )}
       <AppRuntimeView

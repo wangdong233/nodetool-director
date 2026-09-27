@@ -21,7 +21,7 @@ export const SUPPORTED_LANGUAGES = ["en", "zh-CN"] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: AppLanguage = "en";
 
-export const NAMESPACES = ["common", "nav", "settings", "home", "editor", "timeline", "sketch", "storyboard", "ui", "ui2"] as const;
+export const NAMESPACES = ["common", "nav", "settings", "home", "editor", "timeline", "sketch", "storyboard", "ui", "ui2", "appbuilder"] as const;
 export type AppNamespace = (typeof NAMESPACES)[number];
 
 import commonEn from "./locales/en/common.json";
@@ -34,9 +34,10 @@ import sketchEn from "./locales/en/sketch.json";
 import storyboardEn from "./locales/en/storyboard.json";
 import uiEn from "./locales/en/ui.json";
 import ui2En from "./locales/en/ui2.json";
+import appbuilderEn from "./locales/en/appbuilder.json";
 
 const enResources: Resource = {
-  en: { common: commonEn, nav: navEn, settings: settingsEn, home: homeEn, editor: editorEn, timeline: timelineEn, sketch: sketchEn, storyboard: storyboardEn, ui: uiEn, ui2: ui2En },
+  en: { common: commonEn, nav: navEn, settings: settingsEn, home: homeEn, editor: editorEn, timeline: timelineEn, sketch: sketchEn, storyboard: storyboardEn, ui: uiEn, ui2: ui2En, appbuilder: appbuilderEn },
 };
 
 function detectInitialLanguage(): AppLanguage {

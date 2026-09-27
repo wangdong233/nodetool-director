@@ -29,6 +29,7 @@ import { isRecord, isString } from "../../../utils/typePredicates";
 import { AppEvent } from "../types";
 import { useAppRuntimeContext, useBindingRef } from "../runtime/AppRuntimeContext";
 import { useWidgetRuntime } from "./useWidgetRuntime";
+import { tAttr } from "../i18nAttrs";
 
 export interface RecorderWidgetProps {
   id: string;
@@ -117,14 +118,14 @@ export const AudioRecorderWidget: React.FC<RecorderWidgetProps> = (props) => {
 
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      <Label>{props.label || "Record audio"}</Label>
+      <Label>{props.label || tAttr("Record audio")}</Label>
       {designMode ? (
-        <DesignPlaceholder text="Microphone capture — records when the app runs" />
+        <DesignPlaceholder text={tAttr("Microphone capture — records when the app runs")} />
       ) : (
         <WaveRecorder onChange={onChange} workflowId={workflowId} />
       )}
       {locator && !designMode ? (
-        <AudioPlayback locator={locator} label="Recorded audio" />
+        <AudioPlayback locator={locator} label={tAttr("Recorded audio")} />
       ) : null}
     </FlexColumn>
   );
@@ -141,9 +142,9 @@ export const CameraCaptureWidget: React.FC<RecorderWidgetProps> = (props) => {
 
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      <Label>{props.label || "Record video"}</Label>
+      <Label>{props.label || tAttr("Record video")}</Label>
       {designMode ? (
-        <DesignPlaceholder text="Camera capture — records when the app runs" />
+        <DesignPlaceholder text={tAttr("Camera capture — records when the app runs")} />
       ) : (
         <VideoRecorder onChange={onChange} workflowId={workflowId} />
       )}
@@ -156,7 +157,7 @@ export const CameraCaptureWidget: React.FC<RecorderWidgetProps> = (props) => {
             overflow: "hidden"
           }}
         >
-          <VideoPlayer locator={locator} label="Recorded video" />
+          <VideoPlayer locator={locator} label={tAttr("Recorded video")} />
         </Box>
       ) : null}
     </FlexColumn>

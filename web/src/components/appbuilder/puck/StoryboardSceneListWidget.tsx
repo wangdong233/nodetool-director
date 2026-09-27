@@ -30,6 +30,7 @@ import { isConcurrencyConflict } from "../../../hooks/useApplications";
 import { useBoundResource } from "./useBoundResource";
 import { isString } from "../../../utils/typePredicates";
 import { i18n } from "../../../i18n";
+import { tAttr } from "../i18nAttrs";
 
 interface StoryboardSceneListProps {
   /** Puck injects the placed widget's id. */
@@ -132,8 +133,8 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
     return (
       <Caption color="secondary">
         {designMode
-          ? "Pick a resource binding for this scene list."
-          : "This scene list is not bound to a resource."}
+          ? tAttr("Pick a resource binding for this scene list.")
+          : tAttr("This scene list is not bound to a resource.")}
       </Caption>
     );
   }
@@ -183,10 +184,10 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
       ) : null}
 
       {!targetId ? (
-        <Caption color="secondary">Select a storyboard to edit its scenes.</Caption>
+        <Caption color="secondary">{tAttr("Select a storyboard to edit its scenes.")}</Caption>
       ) : shots === null ? (
         <Caption color="secondary">
-          {isLoading ? "Loading…" : "This resource has no scenes."}
+          {isLoading ? tAttr("Loading…") : tAttr("This resource has no scenes.")}
         </Caption>
       ) : shots.length === 0 ? (
         <Caption color="secondary">{i18n.t("ui2:attrs.thisStoryboardHasNoScenesYet", { defaultValue: "This storyboard has no scenes yet." })}</Caption>

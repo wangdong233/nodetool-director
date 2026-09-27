@@ -14,6 +14,7 @@ import {
   useRuntimeSelector
 } from "./runtime/AppRuntimeContext";
 import { appConfig } from "./puck/config";
+import { tAttr } from "./i18nAttrs";
 import {
   AlertBanner,
   Box,
@@ -76,7 +77,7 @@ const RuntimeErrorBanner: React.FC = () => {
           action={
             <>
               <ReportBugButton
-                label="Report failure"
+                label={tAttr("Report failure")}
                 context={{
                   source: "panel-crash",
                   summary: `${name || operationId} operation failed`,
