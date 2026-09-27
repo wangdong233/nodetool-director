@@ -198,7 +198,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
             padding: "0"
           }}
         >
-          SELECTION
+          {i18n.t("editor:selection.header", { defaultValue: "SELECTION" })}
         </Text>
       </MenuItem>
 

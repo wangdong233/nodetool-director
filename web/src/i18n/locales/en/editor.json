@@ -66,7 +66,8 @@
     "surroundWithGroup": "Surround With Group",
     "selectAllConnected": "Select All Connected",
     "selectInputs": "Select Inputs",
-    "selectOutputs": "Select Outputs"
+    "selectOutputs": "Select Outputs",
+    "header": "SELECTION"
   },
   "workflow": {
     "removeFav": "Remove from favorites",
@@ -129,7 +130,8 @@
     "removeDynamic": "Remove Dynamic Property",
     "removeDynamicTip": "Remove this property from being dynamic",
     "copyValue": "Copy Value",
-    "resetDefault": "Reset To Default Value"
+    "resetDefault": "Reset To Default Value",
+    "declareAs": "Declare \"{{prop}}\" as {{type}}"
   },
   "io": {
     "searchNodes": "Search nodes…",

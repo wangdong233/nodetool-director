@@ -404,7 +404,7 @@ const PropertyContextMenuComponent: React.FC = () => {
             option
           )}`}
           IconComponent={<CategoryIcon />}
-          tooltip={`Declare "${propertyName}" as ${slotTypeLabel(option)}`}
+          tooltip={i18n.t("editor:property.declareAs", { defaultValue: 'Declare "{{prop}}" as {{type}}', prop: propertyName, type: slotTypeLabel(option) })}
         />
       ))}
       {isDynamicProperty && (
