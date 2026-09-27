@@ -4,6 +4,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 const skipLinkStyles = (theme: Theme) =>
   css({
@@ -31,7 +32,7 @@ const skipLinkStyles = (theme: Theme) =>
 export const SkipLinks = memo(function SkipLinks() {
   const theme = useTheme();
   return (
-    <nav css={skipLinkStyles(theme)} aria-label="Skip links">
+    <nav css={skipLinkStyles(theme)} aria-label={i18n.t("ui:attrs.skipLinks", { defaultValue: "Skip links" })}>
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>

@@ -6,6 +6,7 @@ import editorEn from "../locales/en/editor.json";
 import timelineEn from "../locales/en/timeline.json";
 import sketchEn from "../locales/en/sketch.json";
 import storyboardEn from "../locales/en/storyboard.json";
+import uiEn from "../locales/en/ui.json";
 import commonZh from "../locales/zh-CN/common.json";
 import navZh from "../locales/zh-CN/nav.json";
 import settingsZh from "../locales/zh-CN/settings.json";
@@ -128,6 +129,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     collect(timelineEn, "timeline", "");
     collect(sketchEn, "sketch", "");
     collect(storyboardEn, "storyboard", "");
+    collect(uiEn, "ui", "");
 
     const dead: string[] = [];
     for (const [ns, key] of leafKeys) {

@@ -18,6 +18,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
+import { i18n } from "../../i18n";
 
 export interface DownloadButtonProps {
   /**
@@ -93,7 +94,7 @@ export const DownloadButton = memo(
     (
       {
         onClick,
-        tooltip = "Download",
+        tooltip = i18n.t("ui:attrs.download", { defaultValue: "Download" }),
         label,
         tooltipPlacement = "bottom",
         buttonSize = "small",

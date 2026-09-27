@@ -9,6 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
+import { i18n } from "../../i18n";
 
 export interface SearchInputProps {
   /** Current search value */
@@ -126,7 +127,7 @@ const styles = (theme: Theme) => css`
 export const SearchInput = memo(forwardRef<HTMLInputElement, SearchInputProps>(({
   value,
   onChange,
-  placeholder = "Search...",
+  placeholder = i18n.t("ui:attrs.search", { defaultValue: "Search..." }),
   ariaLabel,
   showClear = true,
   size = "small",

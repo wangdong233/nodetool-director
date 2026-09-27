@@ -25,6 +25,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -97,7 +98,7 @@ export const CopyButton = memo(
     (
       {
         value,
-        tooltip = "Copy to clipboard",
+        tooltip = i18n.t("ui:attrs.copyToClipboard", { defaultValue: "Copy to clipboard" }),
         tooltipPlacement = "bottom",
         buttonSize = "small",
         nodrag = true,

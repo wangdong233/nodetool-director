@@ -10,6 +10,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { FlexColumn } from "./FlexColumn";
 import { FlexRow } from "./FlexRow";
 import { ResizeHandle } from "./ResizeHandle";
+import { i18n } from "../../i18n";
 
 /** Prefix every assistant dock has always written under. */
 const DEFAULT_STORAGE_PREFIX = "nodetool.assistantDock.";
@@ -67,7 +68,7 @@ export const ResizableDock = ({
   defaultWidth = DEFAULT_WIDTH,
   minWidth = MIN_WIDTH,
   maxWidth = MAX_WIDTH,
-  ariaLabel = "Resize assistant panel",
+  ariaLabel = i18n.t("ui:attrs.resizeAssistantPanel", { defaultValue: "Resize assistant panel" }),
   className,
   enabled = true,
   children

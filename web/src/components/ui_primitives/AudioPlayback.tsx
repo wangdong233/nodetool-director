@@ -19,6 +19,7 @@ import {
   type MediaLocator
 } from "../../hooks/useResolvedMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 
 export interface AudioPlaybackProps {
   /**
@@ -44,7 +45,7 @@ export interface AudioPlaybackProps {
 /** The rendering half: `src` is already resolved. */
 const ResolvedAudio: React.FC<Omit<AudioPlaybackProps, "locator">> = ({
   src,
-  label = "Audio player",
+  label = i18n.t("ui:attrs.audioPlayer", { defaultValue: "Audio player" }),
   autoPlay = false,
   loop = false,
   className,

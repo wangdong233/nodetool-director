@@ -15,6 +15,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import FolderIcon from "@mui/icons-material/Folder";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { BORDER_RADIUS, MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface BreadcrumbItem {
   /** Label to display */
@@ -147,7 +148,7 @@ const BreadcrumbsInternal: React.FC<BreadcrumbsProps> = ({
       <MuiBreadcrumbs
         separator={getSeparator(separator)}
         maxItems={maxItems}
-        aria-label="breadcrumb"
+        aria-label={i18n.t("ui:attrs.breadcrumb", { defaultValue: "breadcrumb" })}
       >
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

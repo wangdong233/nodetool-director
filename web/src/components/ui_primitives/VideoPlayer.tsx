@@ -33,6 +33,7 @@ import {
   type MediaLocator
 } from "../../hooks/useResolvedMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 
 interface FullscreenVideoElement extends HTMLVideoElement {
   webkitEnterFullscreen?: () => void;
@@ -197,7 +198,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
   muted = false,
   onTimeUpdate,
   onDurationChange,
-  label = "Video player",
+  label = i18n.t("ui:attrs.videoPlayer", { defaultValue: "Video player" }),
   prominentPlay = false,
   className
 }) => {
@@ -353,7 +354,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
       />
       {prominentPlay && !isPlaying && (
         <IconButton
-          aria-label="Play clip"
+          aria-label={i18n.t("ui:attrs.playClip", { defaultValue: "Play clip" })}
           onClick={handleTogglePlay}
           sx={{
             position: "absolute",
@@ -387,7 +388,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
           step={0.05}
           value={currentTime}
           onChange={handleSeek}
-          aria-label="Seek"
+          aria-label={i18n.t("ui:attrs.seek", { defaultValue: "Seek" })}
         />
         <span className="timestamp">
           {formatTime(currentTime)} / {formatTime(duration)}
@@ -396,7 +397,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
           className="speed-select"
           value={speed}
           onChange={handleSpeedChange}
-          aria-label="Playback speed"
+          aria-label={i18n.t("ui:attrs.playbackSpeed", { defaultValue: "Playback speed" })}
         >
           {SPEED_OPTIONS.map((s) => (
             <option key={s} value={s}>

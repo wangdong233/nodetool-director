@@ -32,6 +32,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface AutocompleteTagInputProps {
   /** Label for the input */
@@ -59,7 +60,7 @@ const AutocompleteTagInputInternal: React.FC<AutocompleteTagInputProps> = ({
   value,
   onChange,
   suggestions = [],
-  placeholder = "Type or select...",
+  placeholder = i18n.t("ui:attrs.typeOrSelect", { defaultValue: "Type or select..." }),
   description,
   disabled = false,
   size = "small"

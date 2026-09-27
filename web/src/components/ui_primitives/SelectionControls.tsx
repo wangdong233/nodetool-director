@@ -27,6 +27,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface SelectionControlsProps {
   /**
@@ -156,7 +157,7 @@ export const SelectionControls = memo(
               className
             )}
             role="group"
-            aria-label="Selection controls"
+            aria-label={i18n.t("ui:attrs.selectionControls", { defaultValue: "Selection controls" })}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -202,7 +203,7 @@ export const SelectionControls = memo(
             className
           )}
           role="group"
-          aria-label="Selection controls"
+          aria-label={i18n.t("ui:attrs.selectionControls", { defaultValue: "Selection controls" })}
           sx={{
             display: "flex",
             alignItems: "center",

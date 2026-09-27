@@ -10,6 +10,7 @@ import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 import LiveHelpIcon from "@mui/icons-material/LiveHelp";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export type HelpIconVariant = "help" | "helpOutline" | "question" | "liveHelp";
 
@@ -76,7 +77,7 @@ export const HelpButton: React.FC<HelpButtonProps> = memo(({
   onClick,
   iconVariant = "helpOutline",
   size = "small",
-  tooltip = "Help",
+  tooltip = i18n.t("ui:attrs.help", { defaultValue: "Help" }),
   active = false,
   disabled = false,
   tooltipPlacement = "top",

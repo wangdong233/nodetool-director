@@ -51,6 +51,7 @@ import { CloseButton } from "./CloseButton";
 import PanelHeadline from "../ui/PanelHeadline";
 import { isString } from "../../utils/typePredicates";
 import { OverlayLayerProvider, useOverlayLayer } from "./OverlayLayer";
+import { i18n } from "../../i18n";
 
 export interface DialogProps extends Omit<MuiDialogProps, "title" | "content"> {
   /**
@@ -187,7 +188,7 @@ export const Dialog = memo(
         shouldShowCloseButton && onClose ? (
           <CloseButton
             onClick={() => onClose({}, "escapeKeyDown")}
-            tooltip="Close"
+            tooltip={i18n.t("ui:attrs.close", { defaultValue: "Close" })}
           />
         ) : null;
       const headerActions =

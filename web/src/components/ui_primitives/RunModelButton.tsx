@@ -19,6 +19,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { Button } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -73,7 +74,7 @@ export interface RunModelButtonProps {
 const RunModelButtonInner = forwardRef<
   HTMLButtonElement,
   RunModelButtonProps
->(({ label = "Run Model", isRunning = false, disabled = false, onClick, className }, ref) => {
+>(({ label = i18n.t("ui:attrs.runModel", { defaultValue: "Run Model" }), isRunning = false, disabled = false, onClick, className }, ref) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
