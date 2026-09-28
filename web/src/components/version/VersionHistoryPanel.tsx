@@ -249,7 +249,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}
       >
         <FlexColumn align="center" justify="center" fullHeight>
-          <LoadingSpinner size="medium" text="Loading versions..." />
+          <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingVersions", { defaultValue: "Loading versions" })} />
         </FlexColumn>
       </div>
     );
@@ -345,8 +345,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}>
           <Caption size="smaller" color="primary">
             {!selectedVersionId
-              ? "Select the first version to compare"
-              : "Select the second version to compare"}
+              ? i18n.t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" })
+              : i18n.t("editor:ui.selectTheSecondVersionToCompare", { defaultValue: "Select the second version to compare" })}
           </Caption>
         </div>
       )}

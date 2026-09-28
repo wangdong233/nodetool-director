@@ -112,7 +112,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
     modelReady &&
     (settings.promptMode === "auto" ? canSplitSelectedLayer : true);
   const segmentActionLabel =
-    settings.promptMode === "auto" ? "Split selected layer" : "Segment";
+    settings.promptMode === "auto" ? i18n.t("sketch:attrs.splitSelectedLayer", { defaultValue: "Split selected layer" }) : i18n.t("sketch:attrs.segmentTool", { defaultValue: "Segment" });
   const showClearPrompts = settings.promptMode !== "auto";
   // The picker names the model, so its status line is only worth a row when
   // the model cannot run.
@@ -376,7 +376,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             }}
           >
             {settings.promptMode === "auto" && !canSplitSelectedLayer
-              ? "Select exactly one raster layer to split."
+              ? i18n.t("sketch:attrs.selectExactlyOneRasterLayerToSplit", { defaultValue: "Select exactly one raster layer to split." })
               : promptModeHelpText(settings.promptMode)}
           </Text>
         )}
@@ -398,7 +398,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             wordBreak: "break-word"
           }}
         >
-          {segmentationError ?? "Segmentation failed."}
+          {segmentationError ?? i18n.t("sketch:attrs.segmentationFailed", { defaultValue: "Segmentation failed." })}
         </Text>
       )}
     </>

@@ -1251,8 +1251,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
         <Tooltip
           title={
             maskLayerId === activeLayerId
-              ? "Remove Mask Designation"
-              : "Set as Mask Layer"
+              ? i18n.t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove Mask Designation" })
+              : i18n.t("sketch:attrs.setAsMaskLayer", { defaultValue: "Set as Mask Layer" })
           }
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -1260,8 +1260,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           <IconButton
             aria-label={
               maskLayerId === activeLayerId
-                ? "Remove Mask Designation"
-                : "Set as Mask Layer"
+                ? i18n.t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove Mask Designation" })
+                : i18n.t("sketch:attrs.setAsMaskLayer", { defaultValue: "Set as Mask Layer" })
             }
             size="small"
             onClick={() =>
@@ -1279,7 +1279,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
 
         <Tooltip
           title={
-            activeLayer?.alphaLock ? "Unlock Transparency" : "Lock Transparency"
+            activeLayer?.alphaLock ? i18n.t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
           }
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -1287,8 +1287,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           <IconButton
             aria-label={
               activeLayer?.alphaLock
-                ? "Unlock Transparency"
-                : "Lock Transparency"
+                ? i18n.t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" })
+                : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
             }
             size="small"
             onClick={() => onToggleAlphaLock(activeLayerId)}
@@ -1334,7 +1334,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           </Tooltip>
           <Tooltip
             title={
-              hasMultiLayerSelection ? "Remove selected layers" : "Remove Layer"
+              hasMultiLayerSelection ? i18n.t("sketch:attrs.removeSelectedLayers", { defaultValue: "Remove selected layers" }) : i18n.t("sketch:attrs.removeLayer", { defaultValue: "Remove Layer" })
             }
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -1581,23 +1581,23 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             slotProps={{ paper: { sx: { minWidth: 180 } } }}
           >
             <MenuItem sx={menuItemSx} onClick={handleCtxToggleInput}>
-              {allInputHidden ? "Show Input" : "Hide Input"}
+              {allInputHidden ? i18n.t("sketch:attrs.showInput", { defaultValue: "Show Input" }) : i18n.t("sketch:attrs.hideInput", { defaultValue: "Hide Input" })}
             </MenuItem>
             <MenuItem sx={menuItemSx} onClick={handleCtxToggleOutput}>
-              {allOutputHidden ? "Show Output" : "Hide Output"}
+              {allOutputHidden ? i18n.t("sketch:attrs.showOutput", { defaultValue: "Show Output" }) : i18n.t("sketch:attrs.hideOutput", { defaultValue: "Hide Output" })}
             </MenuItem>
 
             <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
 
             <MenuItem sx={menuItemSx} onClick={handleCtxVisibility}>
-              {ctxLayer?.visible === false ? "Show Layer" : "Hide Layer"}
+              {ctxLayer?.visible === false ? i18n.t("sketch:attrs.showLayer", { defaultValue: "Show Layer" }) : i18n.t("sketch:attrs.hideLayer", { defaultValue: "Hide Layer" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxDuplicate}
               disabled={!ctxLayer}
             >
-              {isMulti ? "Duplicate Layers" : "Duplicate"}
+              {isMulti ? i18n.t("sketch:attrs.duplicateLayers", { defaultValue: "Duplicate Layers" }) : i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
             </MenuItem>
             <MenuItem sx={menuItemSx} onClick={handleCtxDelete}>{i18n.t("sketch:attrs.remove", { defaultValue: "Remove" })}</MenuItem>
 
@@ -1642,8 +1642,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               disabled={ctxIsGroup || isMulti}
             >
               {ctxLayer?.alphaLock
-                ? "Unlock Transparency"
-                : "Lock Transparency"}
+                ? i18n.t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" })
+                : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
@@ -1651,8 +1651,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               disabled={ctxIsGroup || isMulti}
             >
               {ctxLayer && maskLayerId === ctxLayer.id
-                ? "Remove Mask"
-                : "Set as Mask"}
+                ? i18n.t("sketch:attrs.removeMask", { defaultValue: "Remove Mask" })
+                : i18n.t("sketch:attrs.setAsMask", { defaultValue: "Set as Mask" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}

@@ -38,17 +38,17 @@ import {
 } from "./AdjustmentSlider";
 
 const TONAL_SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "black_point", label: "Black Point", min: 0, max: 0.5, step: 0.01, default: 0, bipolar: false },
-  { name: "white_point", label: "White Point", min: 0.5, max: 1, step: 0.01, default: 1, bipolar: false },
-  { name: "shadows", label: "Shadows", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "midtones", label: "Midtones", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "highlights", label: "Highlights", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
+  { name: "black_point", label: "Black Point", labelKey: "editor:ui.blackPoint", min: 0, max: 0.5, step: 0.01, default: 0, bipolar: false },
+  { name: "white_point", label: "White Point", labelKey: "editor:ui.whitePoint", min: 0.5, max: 1, step: 0.01, default: 1, bipolar: false },
+  { name: "shadows", label: "Shadows", labelKey: "timeline:attrs.shadows", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "midtones", label: "Midtones", labelKey: "editor:ui.midtones", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "highlights", label: "Highlights", labelKey: "timeline:attrs.highlights", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
 ];
 
 const RGB_SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "red_midtones", label: "Red", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "green_midtones", label: "Green", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "blue_midtones", label: "Blue", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
+  { name: "red_midtones", label: "Red", labelKey: "editor:ui.red", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "green_midtones", label: "Green", labelKey: "editor:ui.green", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "blue_midtones", label: "Blue", labelKey: "editor:ui.blue", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
 ];
 
 const ALL_SLIDERS: ReadonlyArray<SliderSpec> = [...TONAL_SLIDERS, ...RGB_SLIDERS];

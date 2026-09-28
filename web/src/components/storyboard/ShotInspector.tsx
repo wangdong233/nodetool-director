@@ -239,8 +239,8 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               sx={quietActionSx}
               title={
                 shot.clip
-                  ? "Re-render this clip with a note applied"
-                  : "Render a clip first"
+                  ? i18n.t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
+                  : i18n.t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
               }
             >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
             <EditorButton

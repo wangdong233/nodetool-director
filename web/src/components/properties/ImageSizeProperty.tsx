@@ -178,7 +178,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip={locked ? "Unlock Aspect Ratio" : "Lock Aspect Ratio"}
+            tooltip={locked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio", { defaultValue: "Lock Aspect Ratio" })}
             icon={locked ? <Lock sx={{ fontSize: "var(--fontSizeNormal)" }} /> : <LockOpen sx={{ fontSize: "var(--fontSizeNormal)" }} />}
             className="aspect-lock-button"
             onClick={toggleLock}

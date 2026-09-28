@@ -47,6 +47,7 @@ import {
   type SandboxWasmContract,
   SandboxWasmContractSchema
 } from "@nodetool-ai/protocol";
+import { i18n } from "../../i18n";
 
 import { restFetch } from "../rest-fetch";
 import type { WorkflowGraph } from "../../stores/ApiTypes";
@@ -476,7 +477,7 @@ export function createSeededSandboxModuleCatalog(
             specifier: declaration.specifier,
             status: "warning",
             code: "version-mismatch",
-            message: `Sandbox module ${declaration.specifier} was saved with pack version ${declaration.resolvedPackVersion}, but ${entry.packVersion ?? "an unversioned pack"} is installed.`
+            message: i18n.t("editor:ui.sandboxModuleVersionMismatch", { defaultValue: "Sandbox module {{specifier}} was saved with pack version {{saved}}, but {{installed}} is installed.", specifier: declaration.specifier, saved: declaration.resolvedPackVersion, installed: entry.packVersion ?? i18n.t("editor:ui.anUnversionedPack", { defaultValue: "an unversioned pack" }) })
           });
         }
         if (

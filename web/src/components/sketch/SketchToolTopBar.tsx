@@ -240,7 +240,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
         {onToggleSettingsCollapsed && (
           <Tooltip
             title={
-              settingsCollapsed ? "Show tool settings" : "Hide tool settings"
+              settingsCollapsed ? i18n.t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : i18n.t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
             }
           >
             <IconButton
@@ -248,7 +248,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
               onClick={onToggleSettingsCollapsed}
               aria-expanded={!settingsCollapsed}
               aria-label={
-                settingsCollapsed ? "Show tool settings" : "Hide tool settings"
+                settingsCollapsed ? i18n.t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : i18n.t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
               }
               data-testid="sketch-toggle-tool-settings"
             >

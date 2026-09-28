@@ -316,14 +316,14 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
         {!isGroup && (
           <Tooltip
-            title={isIsolated ? "Show all layers" : "Solo this layer"}
+            title={isIsolated ? i18n.t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : i18n.t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
             placement="top"
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
               size="small"
-              aria-label={isIsolated ? "Show all layers" : "Solo this layer"}
+              aria-label={isIsolated ? i18n.t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : i18n.t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleIsolateLayer(layer.id);

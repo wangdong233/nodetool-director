@@ -245,10 +245,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         {onTogglePortLabels ? (
           <ToolbarIconButton
             icon={<LabelOutlinedIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-            tooltip={showPortLabels ? "Hide port labels" : "Show port labels"}
+            tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
-            ariaLabel={showPortLabels ? "Hide port labels" : "Show port labels"}
+            ariaLabel={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             aria-pressed={showPortLabels}
             size="small"
             sx={zoomButtonSx}

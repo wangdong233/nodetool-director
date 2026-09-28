@@ -298,9 +298,9 @@ const promptForProviderAuth = (
     return;
   }
   authPromptedRuns.add(runKey);
-  const provider = detail.provider ?? "the provider";
+  const provider = detail.provider ?? i18n.t("editor:ui.theProvider", { defaultValue: "the provider" });
   const onboarding: Parameters<typeof openProviderOnboarding>[0] = {
-    reason: `The run stopped because ${provider} rejected the credentials. Reconnect it to continue.`
+    reason: i18n.t("editor:ui.theRunStoppedBecause", { defaultValue: "The run stopped because {{provider}} rejected the credentials. Reconnect it to continue.", provider })
   };
   if (detail.secret_key) {
     onboarding.highlightSecretKey = detail.secret_key;

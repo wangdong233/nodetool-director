@@ -781,7 +781,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         onClose={() => setMenuAnchor(null)}
       >
         <EditorMenuItem onClick={handleRenderClip}>
-          {shot.clip ? "Re-render clip" : "Render clip"}
+          {shot.clip ? i18n.t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : i18n.t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}
         </EditorMenuItem>
         <EditorMenuItem
           onClick={() => handleNudge("up")}

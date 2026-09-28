@@ -62,7 +62,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         {error
           ? i18n.t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." })
           : isLoading
-          ? "Loading preview..."
+          ? i18n.t("editor:ui.loadingPreview", { defaultValue: "Loading preview..." })
           : memoizedPreviewText}
       </Text>
 

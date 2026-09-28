@@ -10,6 +10,7 @@ import { reactFlowEdgeToGraphEdge } from "../../stores/reactFlowEdgeToGraphEdge"
 import { buildRunSubgraph } from "../../utils/runSubgraph";
 import { getNodeGenerations } from "../../stores/nodeGenerationAccessor";
 import { computeRunSignatures } from "../../utils/computeRunSignatures";
+import { i18n } from "../../i18n";
 
 interface UseRunFromHereReturn {
   /** Run just this node as its own job (the "Run Node" action). */
@@ -80,11 +81,10 @@ export function useRunFromHere(
       addNotification({
         type: "warning",
         alert: true,
-        content: `Run ${names} first — this node depends on ${
-          subgraph.blocked.length > 1 ? "generative nodes" : "a generative node"
-        } that ${
-          subgraph.blocked.length > 1 ? "have" : "has"
-        } not been executed yet.`
+        content:
+          subgraph.blocked.length > 1
+            ? i18n.t("editor:ui.runNamesFirstDependsOnNodes", { defaultValue: "Run {{names}} first — this node depends on generative nodes that have not been executed yet.", names })
+            : i18n.t("editor:ui.runNamesFirstDependsOnNode", { defaultValue: "Run {{names}} first — this node depends on a generative node that has not been executed yet.", names })
       });
       return;
     }

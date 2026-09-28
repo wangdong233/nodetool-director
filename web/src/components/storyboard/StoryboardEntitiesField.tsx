@@ -129,7 +129,7 @@ const StoryboardEntitiesFieldInner: React.FC<StoryboardEntitiesFieldProps> = ({
         startIcon={<AddIcon />}
         onClick={() => setPickerOpen(true)}
       >
-        {selected.length === 0 ? "Add entities" : "Add"}
+        {selected.length === 0 ? i18n.t("storyboard:attrs.addEntities", { defaultValue: "Add entities" }) : i18n.t("ui2:attrs.add", { defaultValue: "Add" })}
       </EditorButton>
 
       <Popover

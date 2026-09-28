@@ -112,7 +112,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           onClick={() => void handleSubmit()}
           startIcon={<AutoAwesomeOutlinedIcon />}
         >
-          {pending ? "Generating delivery…" : "Change line delivery"}
+          {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : i18n.t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })}
         </EditorButton>
         {error && <Caption color="error">{error}</Caption>}
       </FlexColumn>

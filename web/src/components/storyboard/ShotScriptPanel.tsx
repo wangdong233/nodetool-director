@@ -119,9 +119,9 @@ const ScriptLineEntry = ({
                 ? i18n.t("storyboard:attrs.openTheScriptToVoiceThisLine", { defaultValue: "Open the script to voice this line" })
                 : voice
                   ? status === "stale"
-                    ? "Re-voice line"
-                    : "Voice line"
-                  : "Assign a voice to this speaker first"
+                    ? i18n.t("storyboard:attrs.reVoiceLine", { defaultValue: "Re-voice line" })
+                    : i18n.t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+                  : i18n.t("storyboard:attrs.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
             }
           >
             <span>

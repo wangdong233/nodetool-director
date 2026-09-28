@@ -273,7 +273,7 @@ export function useTrackObject(
       timeline.getState().setBaseUpdatedAt(sequence.updatedAt, synced);
       if (result.status === "failed") {
         setStatus("failed");
-        setError(result.error ?? "Subject tracking failed.");
+        setError(result.error ?? i18n.t("editor:ui.subjectTrackingFailed", { defaultValue: "Subject tracking failed." }));
       } else {
         setStatus("ready");
       }

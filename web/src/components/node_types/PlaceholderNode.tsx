@@ -329,7 +329,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         selected={props.selected}
         workflowId={nodeData?.workflow_id}
       />
-      <Tooltip title="This node type is missing. Search the node menu for a replacement or install the package that provides it.">
+      <Tooltip title={i18n.t("editor:ui.thisNodeTypeIsMissingSearchTheNodeMenuForAReplacementOrInstallThePackageThatProvidesIt", { defaultValue: "This node type is missing. Search the node menu for a replacement or install the package that provides it." })}>
         <Text size="big" className="missing-node-text">
           {i18n.t("editor:ui.missingNode")}
         </Text>

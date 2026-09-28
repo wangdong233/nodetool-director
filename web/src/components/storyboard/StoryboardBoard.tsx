@@ -39,7 +39,7 @@ import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
 
-import { ASPECT_OPTIONS } from "./aspectOptions";
+import { ASPECT_OPTIONS, aspectOptionLabel } from "./aspectOptions";
 import {
   CLIP_TASK_LABELS,
   STILL_MODEL_TASKS,
@@ -1048,7 +1048,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 onClick={togglePreview}
                 disabled={!hasPlayableShot}
               >
-                {previewOpen ? "Hide preview" : "Preview"}
+                {previewOpen ? i18n.t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : i18n.t("storyboard:attrs.preview", { defaultValue: "Preview" })}
               </EditorButton>
               <EditorButton
                 variant={settingsVisible ? "contained" : "outlined"}
@@ -1167,7 +1167,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                         label="Aspect ratio"
                         value={aspectRatio}
                         onChange={(value) => setAspectRatio(boardId, value)}
-                        options={ASPECT_OPTIONS}
+                        options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
                       />
                     </FormField>
                     <FormField label="Shots">
@@ -1195,7 +1195,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                     {directError ??
                       assembleError ??
                       (hasShots
-                        ? "Re-directing rewrites the screenplay and replaces every shot."
+                        ? i18n.t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." })
                         : i18n.t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", { defaultValue: "Direct writes the screenplay and seeds your shots." }))}
                   </Caption>
                   <EditorButton

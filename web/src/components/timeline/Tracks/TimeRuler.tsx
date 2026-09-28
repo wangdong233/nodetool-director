@@ -599,7 +599,7 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
           onPointerMove={handlePointerMove}
           aria-label={
             rulerMode === "bars"
-              ? "Bars ruler — click or drag to set playhead"
+              ? i18n.t("timeline:attrs.barsRulerClickOrDragToSetPlayhead", { defaultValue: "Bars ruler — click or drag to set playhead" })
               : i18n.t("timeline:attrs.timeRulerClickOrDragToSetPlayhead", { defaultValue: "Time ruler — click or drag to set playhead" })
           }
           role="slider"

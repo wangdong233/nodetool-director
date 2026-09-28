@@ -202,7 +202,7 @@ const RequestCard = memo(function RequestCard({
 }) {
   const statusLabel =
     row.status === "stopped"
-      ? "Stopped tracking; provider may still finish and charge"
+      ? i18n.t("storyboard:attrs.stoppedTrackingProviderMayStillFinishAndCharge", { defaultValue: "Stopped tracking; provider may still finish and charge" })
       : row.awaitingReview
         ? i18n.t("storyboard:attrs.completedAwaitingReview", { defaultValue: "Completed · awaiting review" })
         : row.status;

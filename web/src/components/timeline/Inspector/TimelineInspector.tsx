@@ -71,7 +71,7 @@ import ExtendClipPanel from "./ExtendClipPanel";
 import { ClipVersionHistory } from "./ClipVersionHistory";
 import LineDeliveryPanel from "./LineDeliveryPanel";
 import InspectorSearch from "./InspectorSearch";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -111,6 +111,7 @@ const clamp = (value: number, min: number, max: number) =>
 // ── Component ──────────────────────────────────────────────────────────────
 
 const TimelineInspectorContent: React.FC = memo(() => {
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
 
   const selectedClipIds = useTimelineUIStore((s) => s.selectedClipIds);
@@ -297,7 +298,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
       return false;
     };
     return [
-      { value: NO_PARENT, label: "None (ungrouped)" },
+      { value: NO_PARENT, label: i18n.t("timeline:attrs.noneUngrouped", { defaultValue: "None (ungrouped)" }) },
       ...groupSummaries
         .filter((group) => group.id !== clipId && !isUnder(group.id))
         .map((group) => ({
@@ -305,7 +306,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
           label: group.name || group.id
         }))
     ];
-  }, [groupSummaries, clipId]);
+  }, [languageVersion, groupSummaries, clipId]);
 
   const handleParentChange = useCallback(
     (value: string) => {
@@ -368,7 +369,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
         css={containerStyles}
         sx={inspectorPanelSx}
       >
-        <InspectorHeader eyebrow="Inspector" />
+        <InspectorHeader eyebrow={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })} />
         <EmptyState
           variant="empty"
           size="small"

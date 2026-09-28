@@ -208,8 +208,8 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         <Tooltip
           title={
             canvasResizeHandlesEnabled
-              ? "Hide resize handles on canvas"
-              : "Show resize handles on canvas"
+              ? i18n.t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" })
+              : i18n.t("sketch:attrs.showResizeHandlesOnCanvas", { defaultValue: "Show resize handles on canvas" })
           }
           placement="left"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}

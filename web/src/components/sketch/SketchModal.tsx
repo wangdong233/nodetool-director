@@ -328,7 +328,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
-              aria-label={shortcutsPaneOpen ? "Hide keyboard shortcuts" : "Show keyboard shortcuts"}
+              aria-label={shortcutsPaneOpen ? i18n.t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : i18n.t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
               aria-expanded={shortcutsPaneOpen}
               color={shortcutsPaneOpen ? "primary" : "default"}
             >

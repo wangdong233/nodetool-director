@@ -166,7 +166,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             }
             tooltip={
               clip.locked
-                ? "Locked — successful generations do not replace current output"
+                ? i18n.t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
                 : i18n.t("timeline:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={clip.locked}

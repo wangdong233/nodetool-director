@@ -198,7 +198,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
       : "pending"
     : statusTone(instance.status);
   const statusHint = isBooting
-    ? "GPU up — worker still loading"
+    ? i18n.t("editor:ui.gpuUpWorkerStillLoading", { defaultValue: "GPU up — worker still loading" })
     : isRunning && isHealthy
       ? i18n.t("editor:ui.workerIsAnsweringSafeToAttach", { defaultValue: "Worker is answering — safe to attach" })
       : null;

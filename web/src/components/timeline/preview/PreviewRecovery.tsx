@@ -177,8 +177,8 @@ export function PreviewRecovery({
           >
             {issue.message}{" "}
             {issue.terminal
-              ? "Automatic recovery failed. Your timeline is unchanged."
-              : "Restarting preview…"}
+              ? i18n.t("timeline:attrs.automaticRecoveryFailedYourTimelineIsUnchanged", { defaultValue: "Automatic recovery failed. Your timeline is unchanged." })
+              : i18n.t("timeline:attrs.restartingPreview", { defaultValue: "Restarting preview…" })}
           </AlertBanner>
         </Box>
       )}

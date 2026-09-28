@@ -1322,8 +1322,8 @@ const TextEditorModal = ({
                     delay={TOOLTIP_ENTER_DELAY}
                     title={
                       isCodeEditor
-                        ? "Switch to Rich Text"
-                        : "Switch to Code Editor"
+                        ? i18n.t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
+                        : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
                     }
                   >
                     <button
@@ -1332,8 +1332,8 @@ const TextEditorModal = ({
                       onClick={handleToggleEditorMode}
                       aria-label={
                         isCodeEditor
-                          ? "Switch to Rich Text"
-                          : "Switch to Code Editor"
+                          ? i18n.t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
+                          : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
                       }
                     >
                       {isCodeEditor ? <TextFieldsIcon /> : <CodeIcon />}

@@ -311,7 +311,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             }
             tooltip={
               isLocked
-                ? "Locked — successful generations do not replace current output"
+                ? i18n.t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
                 : i18n.t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={isLocked}

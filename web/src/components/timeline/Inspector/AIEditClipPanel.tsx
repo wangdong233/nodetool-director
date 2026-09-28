@@ -337,7 +337,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 size="small"
                 title={i18n.t("timeline:attrs.noCompatibleModel", { defaultValue: "No compatible model" })}
                 description={unavailableReason}
-                actionText={error ? "Retry model catalog" : undefined}
+                actionText={error ? i18n.t("timeline:attrs.retryModelCatalog", { defaultValue: "Retry model catalog" }) : undefined}
                 onAction={
                   error
                     ? () => void refetch()

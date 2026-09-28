@@ -233,8 +233,8 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
               sx={chipSx}
               title={
                 pinned
-                  ? "Length is pinned to the shot's own value. Click to take it from the lines this shot covers."
-                  : "Length comes from the takes of the lines this shot covers. Click to pin it to the shot's own value."
+                  ? i18n.t("storyboard:attrs.lengthIsPinnedToTheShotsOwnValueClickToTakeItFromTheLinesThisShotCovers", { defaultValue: "Length is pinned to the shot's own value. Click to take it from the lines this shot covers." })
+                  : i18n.t("storyboard:attrs.lengthComesFromTheTakesOfTheLinesThisShotCoversClickToPinItToTheShotsOwnValue", { defaultValue: "Length comes from the takes of the lines this shot covers. Click to pin it to the shot's own value." })
               }
               onClick={readOnly ? undefined : handleToggleDurationSource}
             />

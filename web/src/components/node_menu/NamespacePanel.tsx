@@ -262,16 +262,16 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
             tabIndex={0}
             title={
               searchTerm.length > minSearchTermLength
-                ? "Show all results"
-                : "Home"
+                ? i18n.t("editor:ui.showAllResults", { defaultValue: "Show all results" })
+                : i18n.t("editor:ui.home", { defaultValue: "Home" })
             }
           >
             <div className="namespace-item">
               <HomeNamespaceIcon />
               <span className="namespace-label">
                 {searchTerm.length > minSearchTermLength
-                  ? "All results"
-                  : "Home"}
+                  ? i18n.t("editor:ui.allResults", { defaultValue: "All results" })
+                  : i18n.t("editor:ui.home", { defaultValue: "Home" })}
               </span>
             </div>
           </div>

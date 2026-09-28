@@ -69,7 +69,7 @@ export const ScriptToggleButton: React.FC<ScriptToggleButtonProps> = memo(({ com
     setScriptEnabled(!hasScript);
   }, [setScriptEnabled, hasScript]);
 
-  const label = hasScript ? "Remove script" : "Add script";
+  const label = hasScript ? i18n.t("timeline:attrs.removeScript", { defaultValue: "Remove script" }) : i18n.t("timeline:attrs.addScript", { defaultValue: "Add script" });
 
   return (
     <button

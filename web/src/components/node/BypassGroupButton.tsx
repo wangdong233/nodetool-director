@@ -88,7 +88,7 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
           style={tooltipContainerStyles}
         >
           <span style={titleTextStyles}>
-            {isBypassed ? "Enable All Nodes" : "Disable All Nodes"}
+            {isBypassed ? i18n.t("editor:ui.enableNodes", { defaultValue: "Enable Nodes" }) : i18n.t("editor:ui.disableNodes", { defaultValue: "Disable Nodes" })}
           </span>
           <span style={shortcutStyles}>
             <kbd>B</kbd>

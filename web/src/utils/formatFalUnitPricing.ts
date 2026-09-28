@@ -1,5 +1,6 @@
 import type { FalUnitPricing } from "../stores/ApiTypes";
 import { relativeTime } from "./formatDateAndTime";
+import { i18n } from "../i18n";
 
 /**
  * fal.ai exposes a single `unit_price` + `billing_unit` per endpoint from
@@ -76,9 +77,9 @@ export function formatFalUnitPricingTooltip(p: FalUnitPricing): string {
   const when = formatFalPricingAgeLine(p);
 
   return [
-    vague ? `${money} (SEE DETAILS)` : money,
+    vague ? `${money}${i18n.t("editor:ui.seeDetails", { defaultValue: "(SEE DETAILS)" })}` : money,
     vague
-      ? "\nVaries by resolution and quality.\nView on fal.ai to see detailed pricing.\n"
+      ? i18n.t("editor:ui.variesByResolutionAndQuality", { defaultValue: "Varies by resolution and quality.\nView on fal.ai to see detailed pricing." })
       : null,
     when,
     `Endpoint: ${p.endpoint_id}`,

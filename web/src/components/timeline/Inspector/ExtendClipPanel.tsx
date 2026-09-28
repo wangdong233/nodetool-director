@@ -219,9 +219,9 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               {take ? (
                 <>
                   <Caption>
-                    {job.request.direction === "start" ? "Start" : "End"}{" "}
-                    extension, {job.request.addedSourceDurationMs / 1000}s
-                    {accepted ? " · In use" : " · Candidate"}
+                    {job.request.direction === "start" ? i18n.t("timeline:attrs.start", { defaultValue: "Start" }) : i18n.t("ui2:attrs.end", { defaultValue: "End" })}{" "}
+                    {i18n.t("timeline:attrs.extensionSeconds", { defaultValue: "extension, {{n}}s", n: job.request.addedSourceDurationMs / 1000 })}
+                    {accepted ? i18n.t("timeline:attrs.inUseSuffix", { defaultValue: " · In use" }) : i18n.t("timeline:attrs.candidateSuffix", { defaultValue: " · Candidate" })}
                   </Caption>
                   <EditorButton
                     onClick={() =>

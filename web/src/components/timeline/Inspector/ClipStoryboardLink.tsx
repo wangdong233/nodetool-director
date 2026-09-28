@@ -50,7 +50,7 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
         label={link.label}
         sx={chipSx}
         onClick={link.open}
-        title={`Open ${link.shot.slug ?? "this shot"} on the storyboard`}
+        title={i18n.t("timeline:attrs.openShotOnTheStoryboard", { defaultValue: "Open {{shot}} on the storyboard", shot: link.shot.slug ?? i18n.t("timeline:attrs.thisShot", { defaultValue: "this shot" }) })}
       />
     </FlexRow>
   );

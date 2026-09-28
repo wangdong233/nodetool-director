@@ -8,6 +8,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { formatFileSize } from "../../utils/formatUtils";
+import { i18n } from "../../i18n";
 
 export interface ImageMetadata {
   width?: number;
@@ -325,7 +326,7 @@ const ImageComparer: React.FC<ImageComparerProps> = ({
 
         {/* Toggle button */}
         <ToolbarIconButton
-          tooltip={mode === "horizontal" ? "Switch to vertical" : "Switch to horizontal"}
+          tooltip={mode === "horizontal" ? i18n.t("editor:ui.switchToVertical", { defaultValue: "Switch to vertical" }) : i18n.t("editor:ui.switchToHorizontal", { defaultValue: "Switch to horizontal" })}
           icon={mode === "horizontal" ? <SwapVertIcon fontSize="small" /> : <SwapHorizIcon fontSize="small" />}
           className="toggle-button"
           onClick={toggleMode}

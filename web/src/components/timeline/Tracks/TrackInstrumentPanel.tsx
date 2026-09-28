@@ -106,8 +106,8 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           <Caption color="muted">
-            Every clip on this track plays this voice. Changes are auditioned on{" "}
-            {instrument.type === "drum" ? "the selected pad" : "middle C"}.
+            {i18n.t("timeline:attrs.everyClipOnThisTrackPlaysThisVoiceChangesAreAuditionedOn", { defaultValue: "Every clip on this track plays this voice. Changes are auditioned on " })}{" "}
+            {instrument.type === "drum" ? i18n.t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" }) : i18n.t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
           </Caption>
         </FlexColumn>
       </div>

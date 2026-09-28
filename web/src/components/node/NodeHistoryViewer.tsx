@@ -849,7 +849,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
       <div className="node-history-overlay overlay-top-left">
         <div className="overlay-cluster">
           <ToolbarIconButton
-            title={effectiveView === "single" ? "Show grid" : "Show single"}
+            title={effectiveView === "single" ? i18n.t("editor:ui.showGrid", { defaultValue: "Show grid" }) : i18n.t("editor:ui.showSingle", { defaultValue: "Show single" })}
             size="small"
             onClick={handleToggleView}
             className="overlay-icon-btn"

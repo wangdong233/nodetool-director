@@ -398,7 +398,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             size="small"
             description={
               target === "runpod"
-                ? "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models."
+                ? i18n.t("editor:ui.whichMachineToRent", { defaultValue: "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models." })
                 : i18n.t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
             }
           />
@@ -406,8 +406,8 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             <TextInput
               label={
                 target === "runpod"
-                  ? "GPU id (RunPod gpuTypeId)"
-                  : "GPU id (Vast gpu_name)"
+                  ? i18n.t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" })
+                  : i18n.t("editor:ui.gpuIdVastGpuName", { defaultValue: "GPU id (Vast gpu_name)" })
               }
               value={customGpu}
               onChange={(e) => setCustomGpu(e.target.value)}

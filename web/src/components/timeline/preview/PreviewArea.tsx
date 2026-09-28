@@ -1089,9 +1089,9 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            tooltip={isPlaying ? "Pause (Space)" : "Play (Space)"}
+            tooltip={isPlaying ? i18n.t("timeline:attrs.pauseSpace", { defaultValue: "Pause (Space)" }) : i18n.t("timeline:attrs.playSpace", { defaultValue: "Play (Space)" })}
             onClick={handlePlayPauseToggle}
-            aria-label={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("timeline:attrs.play2", { defaultValue: "Play" })}
             variant="primary"
             size="small"
           />

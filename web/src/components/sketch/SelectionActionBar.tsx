@@ -446,7 +446,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             mode === "inpaint"
-              ? "Replace selection with…"
+              ? i18n.t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" })
               : i18n.t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
           }
           compact

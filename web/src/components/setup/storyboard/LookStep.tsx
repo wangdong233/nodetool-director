@@ -41,7 +41,7 @@ import {
   SetupFooterField
 } from "../SetupFooterField";
 import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
-import { ASPECT_OPTIONS } from "../../storyboard/aspectOptions";
+import { ASPECT_OPTIONS, aspectOptionLabel } from "../../storyboard/aspectOptions";
 import { useInStudio } from "../../../studio/StudioContext";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../../serverState/useEntities";
@@ -424,7 +424,7 @@ export const LookStep: React.FC<LookStepProps> = ({
           label="Aspect ratio"
           value={aspectRatio}
           onChange={handleAspect}
-          options={ASPECT_OPTIONS}
+          options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
           disabled={readOnly}
         />
       </Box>

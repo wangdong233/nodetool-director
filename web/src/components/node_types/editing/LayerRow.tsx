@@ -202,8 +202,8 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
         className="vis-btn"
         icon={state.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
         onClick={handleToggleVisible}
-        ariaLabel={state.visible ? "Hide layer" : "Show layer"}
-        tooltip={state.visible ? "Hide layer" : "Show layer"}
+        ariaLabel={state.visible ? i18n.t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : i18n.t("editor:ui.showLayer", { defaultValue: "Show layer" })}
+        tooltip={state.visible ? i18n.t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : i18n.t("editor:ui.showLayer", { defaultValue: "Show layer" })}
       />
 
       <StateIconButton

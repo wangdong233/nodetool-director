@@ -8,6 +8,7 @@
  */
 
 import type { RouterOutputs } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 export type ProjectDetail = RouterOutputs["projects"]["summaries"][number];
 export type ProjectDocument = ProjectDetail["documents"][number];
@@ -230,12 +231,12 @@ export const projectNextStep = (
 
   const cut = documents.find((doc) => doc.status?.kind === "timeline");
   if (cut) {
-    return { label: "Render master", document: cut };
+    return { label: i18n.t("editor:ui.renderMaster", { defaultValue: "Render master" }), document: cut };
   }
   // Reached only when the board rendered everything it set out to: the first
   // block returns while stills or clips are still short.
   if (board && boardStatus && boardStatus.shots > 0) {
-    return { label: "Assemble timeline", document: board };
+    return { label: i18n.t("editor:ui.assembleTimeline", { defaultValue: "Assemble timeline" }), document: board };
   }
   return null;
 };

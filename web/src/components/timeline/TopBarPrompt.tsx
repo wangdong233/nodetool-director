@@ -216,7 +216,9 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       .tracks.find((track) => track.type === mediaType && !track.locked)?.id;
     if (!trackId) {
       setError(
-        `Unlock ${mediaType === "audio" ? "an audio" : "a video"} track first.`
+        mediaType === "audio"
+          ? i18n.t("timeline:attrs.unlockAnAudioTrackFirst", { defaultValue: "Unlock an audio track first." })
+          : i18n.t("timeline:attrs.unlockAVideoTrackFirst", { defaultValue: "Unlock a video track first." })
       );
       return;
     }
@@ -315,8 +317,8 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
           : mode === "audio"
             ? i18n.t("timeline:attrs.enterTextToSpeak", { defaultValue: "Enter text to speak…" })
             : compact
-              ? "Generate a video…"
-              : "Generate a video at the playhead…"
+              ? i18n.t("timeline:attrs.generateAVideo", { defaultValue: "Generate a video…" })
+              : i18n.t("timeline:attrs.generateAVideoAtThePlayhead", { defaultValue: "Generate a video at the playhead…" })
       }
       compact
       fullWidth

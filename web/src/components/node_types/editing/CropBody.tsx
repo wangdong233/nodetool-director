@@ -56,8 +56,8 @@ import {
 
 /** Aspect-ratio dropdown options. `free` means no constraint. */
 const ASPECT_OPTIONS = [
-  { value: "free", label: "Free" },
-  { value: "1:1", label: "1:1 Square" },
+  { value: "free", label: "Free", labelKey: "editor:ui.free" },
+  { value: "1:1", label: "1:1 Square", labelKey: "editor:ui.oneToOneSquare" },
   { value: "4:3", label: "4:3" },
   { value: "3:2", label: "3:2" },
   { value: "16:9", label: "16:9" },
@@ -714,7 +714,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
         >
           {ASPECT_OPTIONS.map((o) => (
             <MenuItem key={o.value} value={o.value} dense>
-              {o.label}
+              {"labelKey" in o && o.labelKey ? i18n.t(o.labelKey, { defaultValue: o.label }) : o.label}
             </MenuItem>
           ))}
         </Select>

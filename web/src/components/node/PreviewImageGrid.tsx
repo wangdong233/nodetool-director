@@ -519,7 +519,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           onClick={toggleSelectionMode}
           startIcon={selectionMode ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
         >
-          {selectionMode ? "Exit Select" : "Select"}
+          {selectionMode ? i18n.t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : i18n.t("editor:ui.select", { defaultValue: "Select" })}
         </EditorButton>
       )}
 

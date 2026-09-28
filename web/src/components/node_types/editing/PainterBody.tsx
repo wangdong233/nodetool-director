@@ -1135,7 +1135,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             <NumberInput
               id={`painter-canvas-w-${id}`}
               nodeId={id}
-              name="canvas width"
+              name={i18n.t("editor:ui.canvasWidth", { defaultValue: "canvas width" })}
               description={i18n.t("editor:ui.canvasWidthInPixels")}
               value={configuredW}
               min={1}
@@ -1151,7 +1151,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             <NumberInput
               id={`painter-canvas-h-${id}`}
               nodeId={id}
-              name="canvas height"
+              name={i18n.t("editor:ui.canvasHeight", { defaultValue: "canvas height" })}
               description={i18n.t("editor:ui.canvasHeightInPixels")}
               value={configuredH}
               min={1}

@@ -70,7 +70,7 @@ const lifecyclePill = (
     return {
       tone: "rendering",
       label:
-        shot.status === "clip_generating" ? "rendering clip" : "rendering still"
+        shot.status === "clip_generating" ? i18n.t("storyboard:attrs.renderingClip", { defaultValue: "rendering clip" }) : i18n.t("storyboard:attrs.renderingStillLower", { defaultValue: "rendering still" })
     };
   }
   if (shot.status === "failed") {
@@ -87,8 +87,8 @@ const lifecyclePill = (
   if (shot.keyframe) {
     const clipQueued = jobStatus === "queued" || jobStatus === "running";
     return clipQueued
-      ? { tone: "neutral", label: "still · clip queued" }
-      : { tone: "neutral", label: "still" };
+      ? { tone: "neutral", label: i18n.t("storyboard:attrs.stillClipQueued", { defaultValue: "still · clip queued" }) }
+      : { tone: "neutral", label: i18n.t("storyboard:attrs.still", { defaultValue: "Still" }) };
   }
   return { tone: "neutral", label: "planned" };
 };

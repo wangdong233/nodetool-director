@@ -98,8 +98,8 @@ const KeyframeRow: React.FC<{
             activeIcon={<DiamondIcon fontSize="inherit" />}
             tooltip={
               keyed
-                ? "Remove keyframe at playhead"
-                : `Add keyframe at playhead${armed ? " (Alt+K)" : ""}`
+                ? i18n.t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
+                : `${i18n.t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${armed ? i18n.t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
             }
             aria-label={`${keyed ? "Remove" : "Add"} ${meta.label} keyframe`}
           />

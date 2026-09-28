@@ -726,12 +726,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             className={compact ? "timeline-track-controls" : undefined}
           >
             {track.type !== "midi" && (
-              <Tooltip title={track.visible ? "Hide track" : "Show track"}>
+              <Tooltip title={track.visible ? i18n.t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : i18n.t("timeline:attrs.showTrack", { defaultValue: "Show track" })}>
                 <button
                   type="button"
                   css={track.visible ? iconButtonOnCss : iconButtonOffCss}
                   onClick={() => setTrackVisible(track.id, !track.visible)}
-                  aria-label={track.visible ? "Hide track" : "Show track"}
+                  aria-label={track.visible ? i18n.t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : i18n.t("timeline:attrs.showTrack", { defaultValue: "Show track" })}
                   aria-pressed={!track.visible}
                 >
                   {track.visible ? (
@@ -842,7 +842,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   }
                   onClick={handleFxToggle}
                   aria-label={
-                    fxExpanded ? "Hide effects chain" : "Show effects chain"
+                    fxExpanded ? i18n.t("timeline:attrs.hideEffectsChain", { defaultValue: "Hide effects chain" }) : i18n.t("timeline:attrs.showEffectsChain", { defaultValue: "Show effects chain" })
                   }
                   aria-pressed={fxExpanded}
                   data-testid={`track-fx-${track.id}`}

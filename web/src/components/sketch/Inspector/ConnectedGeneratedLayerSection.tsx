@@ -31,7 +31,7 @@ const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   // Direct-gen layers (text-to-image / image-to-image) share the "Prompt"
   // section, matching the timeline inspector; workflow-bound layers keep
   // their own label.
-  const titleText = isWorkflowBound ? "Generated Layer" : "Prompt";
+  const titleText = isWorkflowBound ? i18n.t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" }) : i18n.t("sketch:attrs.prompt", { defaultValue: "Prompt" });
 
   return (
     <CollapsibleSection

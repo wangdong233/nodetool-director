@@ -569,23 +569,23 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
   }
 
   const runTooltip = isStopping
-    ? "Stopping workflow"
+    ? i18n.t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
     : runControlLabel.startsWith("Error")
-      ? `${runControlDetail ?? i18n.t("editor:ui.workflowFailedToStart", { defaultValue: "Workflow failed to start" })}. Click to retry the entire workflow.`
+      ? `${runControlDetail ?? i18n.t("editor:ui.workflowFailedToStart", { defaultValue: "Workflow failed to start" })}${i18n.t("editor:ui.clickToRetryTheEntireWorkflow", { defaultValue: ". Click to retry the entire workflow." })}`
       : queuePosition != null
-        ? `Queued (#${queuePosition})`
+        ? i18n.t("editor:ui.queuedN", { defaultValue: "Queued (#{{n}})", n: queuePosition })
         : pendingRunCount > 0
-          ? `Running — ${pendingRunCount} queued (click to queue another)`
+          ? i18n.t("editor:ui.runningNQueuedClickToQueueAnother", { defaultValue: "Running — {{n}} queued (click to queue another)", n: pendingRunCount })
         : isWorkflowActive
-          ? `${runControlLabel} (click to queue another entire workflow run)`
-          : `${getShortcutTooltip("runWorkflow")} — runs the entire workflow`;
+          ? `${runControlLabel}${i18n.t("editor:ui.clickToQueueAnotherEntireWorkflowRun", { defaultValue: " (click to queue another entire workflow run)" })}`
+          : `${getShortcutTooltip("runWorkflow")} — ${i18n.t("editor:ui.runsTheEntireWorkflow", { defaultValue: "runs the entire workflow" })}`;
 
   const runAriaLabel = isStopping
-    ? "Stopping workflow"
+    ? i18n.t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
     : runControlLabel.startsWith("Error")
-      ? `${runControlLabel}. Retry the entire workflow`
+      ? `${runControlLabel}${i18n.t("editor:ui.retryTheEntireWorkflow", { defaultValue: ". Retry the entire workflow" })}`
       : isWorkflowActive
-        ? `${runControlLabel}. Queue another entire workflow run`
+        ? `${runControlLabel}${i18n.t("editor:ui.queueAnotherEntireWorkflowRun", { defaultValue: ". Queue another entire workflow run" })}`
         : runControlLabel;
 
   const workflowActions = (
@@ -608,7 +608,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
       )}
 
       <Tooltip
-        title={conversationOpen ? "Hide conversation" : "Show conversation"}
+        title={conversationOpen ? i18n.t("editor:ui.hideConversation", { defaultValue: "Hide conversation" }) : i18n.t("editor:ui.showConversation", { defaultValue: "Show conversation" })}
         placement="top"
         delay={TOOLTIP_ENTER_DELAY}
       >
@@ -638,7 +638,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className="composer-stop"
             onClick={handleStop}
-            aria-label={isStopping ? "Stopping workflow" : "Stop workflow"}
+            aria-label={isStopping ? i18n.t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" }) : i18n.t("editor:ui.stopWorkflow", { defaultValue: "Stop workflow" })}
             disabled={isStopping}
           >
             <StopIcon />
@@ -777,7 +777,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         paperSx={{ minWidth: "220px", maxWidth: "280px" }}
       >
         <MenuItemPrimitive
-          label={editorViewMode === "graph" ? "Chain View" : "Graph View"}
+          label={editorViewMode === "graph" ? i18n.t("editor:ui.chainView", { defaultValue: "Chain View" }) : i18n.t("editor:ui.graphView", { defaultValue: "Graph View" })}
           icon={
             editorViewMode === "graph" ? (
               <LinearScaleIcon fontSize="small" />
@@ -790,7 +790,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <MenuItemPrimitive
           label={i18n.t("editor:ui.instantUpdate", { defaultValue: "Instant Update" })}
           icon={<BoltIcon fontSize="small" />}
-          secondary={instantUpdate ? "On" : "Off"}
+          secondary={instantUpdate ? i18n.t("appbuilder:attrs.on", { defaultValue: "On" }) : i18n.t("appbuilder:attrs.off", { defaultValue: "Off" })}
           onClick={runWithClose(handleToggleInstantUpdate)}
         />
         {isRunningish && (
@@ -817,7 +817,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <MenuItemPrimitive
           label={i18n.t("editor:ui.miniMap", { defaultValue: "Mini Map" })}
           icon={<MapIcon fontSize="small" />}
-          secondary={isMiniMapVisible ? "Visible" : "Hidden"}
+          secondary={isMiniMapVisible ? i18n.t("editor:ui.visible", { defaultValue: "Visible" }) : i18n.t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
           onClick={runWithClose(handleToggleMiniMap)}
         />
         <MenuItemPrimitive

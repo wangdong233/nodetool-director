@@ -459,7 +459,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering ? "Rendering still…" : "No still yet"}
+            {stillRendering ? i18n.t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : i18n.t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -597,8 +597,8 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             sx={footerButtonSx}
             title={
               shot.clip
-                ? "Re-render this clip with a note applied"
-                : "Render a clip first"
+                ? i18n.t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
+                : i18n.t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
             }
           >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
           <ToolbarIconButton

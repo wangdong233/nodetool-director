@@ -279,12 +279,12 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active ? "Preview Original" : "Preview Candidate"}
+              tooltip={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active ? "Preview Original" : "Preview Candidate"}
+              aria-label={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               sx={actionIconSx}
             />
             {!active && (

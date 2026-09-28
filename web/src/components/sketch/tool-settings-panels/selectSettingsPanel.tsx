@@ -202,8 +202,8 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           <Tooltip
             title={
               showAsMask
-                ? "Showing selection as red overlay — click to switch to marching ants"
-                : "Showing selection as marching ants — click to switch to red overlay"
+                ? i18n.t("sketch:attrs.showingSelectionAsRedOverlayClickToSwitchToMarchingAnts", { defaultValue: "Showing selection as red overlay — click to switch to marching ants" })
+                : i18n.t("sketch:attrs.showingSelectionAsMarchingAntsClickToSwitchToRedOverlay", { defaultValue: "Showing selection as marching ants — click to switch to red overlay" })
             }
           >
             <span>
@@ -213,8 +213,8 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                 }
                 aria-label={
                   showAsMask
-                    ? "Switch to marching ants"
-                    : "Switch to mask overlay"
+                    ? i18n.t("sketch:attrs.switchToMarchingAnts", { defaultValue: "Switch to marching ants" })
+                    : i18n.t("sketch:attrs.switchToMaskOverlay", { defaultValue: "Switch to mask overlay" })
                 }
                 sx={{
                   ...iconButtonCompactSx,

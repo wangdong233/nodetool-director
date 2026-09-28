@@ -345,9 +345,11 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       if (!isCompatibleWithTrack(mediaType, track.type)) {
         const expected =
-          mediaType === "audio" ? "an audio" : "a video or overlay";
+          mediaType === "audio"
+            ? i18n.t("timeline:attrs.anAudioTrack", { defaultValue: "an audio" })
+            : i18n.t("timeline:attrs.aVideoOrOverlayTrack", { defaultValue: "a video or overlay" });
         showWarning(
-          `Cannot drop ${mediaType} asset onto this ${track.type} track — use ${expected} track.`,
+          i18n.t("timeline:attrs.cannotDropAssetOntoTrack", { defaultValue: "Cannot drop {{mediaType}} asset onto this {{trackType}} track — use {{expected}} track.", mediaType, trackType: track.type, expected }),
           true
         );
         return;

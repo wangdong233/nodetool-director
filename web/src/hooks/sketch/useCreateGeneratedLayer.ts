@@ -44,7 +44,7 @@ export function useCreateGeneratedLayer(): UseCreateGeneratedLayerResult {
 
       busyRef.current = true;
       setIsBusy(true);
-      const layerName = options.layerName ?? "Generated Layer";
+      const layerName = options.layerName ?? i18n.t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" });
       const newLayerId = useSketchStore
         .getState()
         .addLayer(layerName, "raster");

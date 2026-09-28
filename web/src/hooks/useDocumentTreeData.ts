@@ -92,7 +92,7 @@ const GROUPS: readonly {
     labelKey: "editor:ui.creativeDocuments",
     types: ["sketch", "script", "storyboard", "timeline", "entity"]
   },
-  { id: "agents", label: "Agents & code", types: ["jsscript"] }
+  { id: "agents", label: "Agents & code", labelKey: "editor:ui.agentsAndCode", types: ["jsscript"] }
 ];
 
 /**

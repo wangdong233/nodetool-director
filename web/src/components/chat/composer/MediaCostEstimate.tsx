@@ -28,7 +28,7 @@ const MediaCostEstimateInternal: React.FC<MediaCostEstimateProps> = ({
 
   const perOutput =
     estimate.quantity > 1
-      ? `${estimate.quantity} outputs × ${estimate.breakdown ?? "list price"}`
+      ? i18n.t("editor:ui.nOutputsXBreakdown", { defaultValue: "{{n}} outputs × {{breakdown}}", n: estimate.quantity, breakdown: estimate.breakdown ?? i18n.t("editor:ui.listPrice", { defaultValue: "list price" }) })
       : estimate.breakdown;
 
   const detail = (

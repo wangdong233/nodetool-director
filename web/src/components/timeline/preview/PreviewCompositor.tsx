@@ -527,7 +527,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
           onFailure({
             stage: "renderer-init",
             error: new Error(
-              init.reason ?? "Preview renderer could not initialize"
+              init.reason ?? i18n.t("timeline:attrs.previewRendererCouldNotInitialize", { defaultValue: "Preview renderer could not initialize" })
             )
           });
           compositor.dispose();

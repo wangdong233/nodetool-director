@@ -261,7 +261,10 @@ const waitForRunCompletion = async (
       if (run.state !== "completed") {
         finish({
           status: "failed",
-          error: `The sample run ${run.state === "cancelled" ? "was canceled" : "failed"}.`
+          error:
+            run.state === "cancelled"
+              ? i18n.t("editor:ui.theSampleRunWasCanceled", { defaultValue: "The sample run was canceled." })
+              : i18n.t("editor:ui.theSampleRunFailed", { defaultValue: "The sample run failed." })
         });
         return;
       }

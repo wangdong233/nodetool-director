@@ -35,8 +35,8 @@ import {
 export const OUTLINE_NODE_TYPE = "lib.image.effects.Outline";
 
 const SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "width",     label: "Width (px)",     min: 0, max: 32, step: 0.5,  default: 2,   bipolar: false },
-  { name: "threshold", label: "Alpha threshold", min: 0, max: 1,  step: 0.01, default: 0.5, bipolar: false }
+  { name: "width",     label: "Width (px)",     labelKey: "editor:ui.widthPx", min: 0, max: 32, step: 0.5,  default: 2,   bipolar: false },
+  { name: "threshold", label: "Alpha threshold", labelKey: "editor:ui.alphaThreshold", min: 0, max: 1,  step: 0.01, default: 0.5, bipolar: false }
 ];
 
 const styles = (theme: Theme) =>

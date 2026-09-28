@@ -376,7 +376,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             value={offsetText}
             onChange={(e) => setOffsetText(e.target.value)}
             errorMessage={
-              offsetText !== "" && !offsetValid ? "0 or more" : undefined
+              offsetText !== "" && !offsetValid ? i18n.t("timeline:attrs.zeroOrMore", { defaultValue: "0 or more" }) : undefined
             }
             inputProps={{ min: 0, step: 1 }}
             sx={{ mt: 2, width: 160 }}
