@@ -1,0 +1,3 @@
+src/components/context_menus/ConnectableNodes.tsx TS2339
+src/components/context_menus/__tests__/ConnectableNodes.test.ts TS2739
+src/components/inspector/__tests__/multiEdit.test.ts TS2739
