@@ -63,10 +63,12 @@
         "description": "Fast LLM inference on Cerebras hardware."
       },
       "CLAUDE_SUBSCRIPTION": {
-        "description": "Use a Claude Pro or Max subscription instead of API credits."
+        "description": "Use a Claude Pro or Max subscription instead of API credits.",
+        "note": "Shares the credentials used by Claude Code."
       },
       "CODEX_SUBSCRIPTION": {
-        "description": "Use Codex models through your ChatGPT subscription."
+        "description": "Use Codex models through your ChatGPT subscription.",
+        "note": "Signs in with your ChatGPT account."
       },
       "COHERE_API_KEY": {
         "description": "Embed v4 text embeddings and reranking."
@@ -187,7 +189,8 @@
         "description": "GLM models via Z.AI's OpenAI-compatible API."
       },
       "COMFY_API_KEY": {
-        "description": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key."
+        "description": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key.",
+        "note": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key."
       }
     },
     "searchProviders": {

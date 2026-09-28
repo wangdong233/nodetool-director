@@ -63,10 +63,12 @@
         "description": "Cerebras 硬件上的快速 LLM 推理。"
       },
       "CLAUDE_SUBSCRIPTION": {
-        "description": "使用 Claude Pro 或 Max 订阅，无需 API 额度。"
+        "description": "使用 Claude Pro 或 Max 订阅，无需 API 额度。",
+        "note": "共享 Claude Code 所用的凭据。"
       },
       "CODEX_SUBSCRIPTION": {
-        "description": "通过你的 ChatGPT 订阅使用 Codex 模型。"
+        "description": "通过你的 ChatGPT 订阅使用 Codex 模型。",
+        "note": "使用你的 ChatGPT 账号登录。"
       },
       "COHERE_API_KEY": {
         "description": "Embed v4 文本嵌入与重排。"
@@ -187,7 +189,8 @@
         "description": "通过 Z.AI 的 OpenAI 兼容 API 使用 GLM 模型。"
       },
       "COMFY_API_KEY": {
-        "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
+        "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。",
+        "note": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
       }
     },
     "searchProviders": {
