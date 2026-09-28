@@ -146,6 +146,20 @@ for (const root of ROOTS) {
     const src = readFileSync(fp, "utf8");
     issues.scanned++;
     issues.frozen.push(...frozenUseMemoIssues(src, relative(process.cwd(), fp)));
+    // r27 F5: half-wired ternary arms (F4 pattern, 4th recurrence class) —
+    // one arm i18n.t, the sibling a bare string literal. Same-line form;
+    // multi-line splits are audited manually until this proves stable.
+    for (let i = 0; i < src.split("\n").length; i++) {
+      const ln = src.split("\n")[i];
+      if (!ln.includes("i18n.t(")) continue;
+      const m = ln.match(/[?:]\s*i18n\.t\([^)]*\)\s*:\s*"([^"\\]+)"|[?:]\s*"([^"\\]+)"\s*:\s*i18n\.t\(/);
+      if (m) {
+        const bare = m[1] ?? m[2];
+        if (/[A-Za-z]{2}/.test(bare)) {
+          issues.frozen.push(`${relative(process.cwd(), fp)}:${i + 1} half-wired ternary arm: ${JSON.stringify(bare)}`);
+        }
+      }
+    }
   }
 }
 console.log(`scanned ${issues.scanned} files`);
