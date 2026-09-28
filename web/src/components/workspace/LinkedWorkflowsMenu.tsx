@@ -9,9 +9,9 @@
 import { memo, useCallback, useState, type MouseEvent } from "react";
 
 import { useLinkedWorkflows, type LinkedWorkflow } from "../../hooks/useApplications";
+import { i18n } from "../../i18n";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import {
-import { i18n } from "../../i18n";
   Button,
   Caption,
   Chip,
