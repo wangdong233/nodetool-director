@@ -1,0 +1,3304 @@
+{
+ "Error loading application metadata": [
+  "index.tsx:737"
+ ],
+ "No ?data= param. Pass base64-encoded workflow JSON.": [
+  "GraphViewerApp.tsx:287"
+ ],
+ "No stack trace available": [
+  "ErrorBoundary.tsx:185"
+ ],
+ "Copy error": [
+  "ErrorBoundary.tsx:240"
+ ],
+ "Create video": [
+  "studio/StudioScriptPage.tsx:112",
+  "components/hugging_face/model_list/modelFit.ts:152"
+ ],
+ "Unknown error": [
+  "core/chat/chatProtocol.ts:1328",
+  "components/portal/DashboardExampleApps.tsx:246",
+  "components/model_menu/shared/ModelMenuDialogBase.tsx:779",
+  "components/properties/DataframeProperty.tsx:235",
+  "components/menus/CommandMenu.tsx:250",
+  "components/menus/CommandMenu.tsx:321",
+  "components/menus/CommandMenu.tsx:359",
+  "components/menus/CommandMenu.tsx:702",
+  "components/menus/CommandMenu.tsx:729",
+  "components/hugging_face/model_list/DeleteModelDialog.tsx:127",
+  "hooks/useRecipeActions.ts:99",
+  "hooks/handlers/useDropHandler.ts:257",
+  "hooks/handlers/useDropHandler.ts:272"
+ ],
+ "Conjuring image": [
+  "core/chat/chatProtocol.ts:1534"
+ ],
+ "Conjuring video": [
+  "core/chat/chatProtocol.ts:1536"
+ ],
+ "Conjuring sound": [
+  "core/chat/chatProtocol.ts:1538"
+ ],
+ "Failed to save workflow": [
+  "stores/WorkflowManagerStore.ts:514",
+  "components/workspace/WorkflowChainSurface.tsx:150"
+ ],
+ "Failed to create workflow": [
+  "stores/WorkflowManagerStore.ts:687",
+  "hooks/handlers/dropHandlerUtils.ts:217"
+ ],
+ "Failed to load workflows": [
+  "stores/WorkflowManagerStore.ts:715"
+ ],
+ "Failed to load templates": [
+  "stores/WorkflowManagerStore.ts:725"
+ ],
+ "Failed to search templates": [
+  "stores/WorkflowManagerStore.ts:736"
+ ],
+ "Workflow not found": [
+  "components/chain_editor/ChainEditorPage.tsx:30"
+ ],
+ "Failed to delete workflow": [
+  "stores/WorkflowManagerStore.ts:780"
+ ],
+ "Connection lost. Download may still be running on server.": [
+  "stores/ModelDownloadStore.ts:189"
+ ],
+ "Connection failed": [
+  "stores/ModelDownloadStore.ts:233",
+  "components/sketch/tool-settings-panels/segmentSettingsPanel.tsx:170"
+ ],
+ "WebSocket is null": [
+  "stores/ModelDownloadStore.ts:260"
+ ],
+ "Failed to connect to download service": [
+  "stores/ModelDownloadStore.ts:522"
+ ],
+ "Could not reach server to cancel; download may still be running on server.": [
+  "stores/ModelDownloadStore.ts:551"
+ ],
+ "Failed to connect to chat service": [
+  "stores/GlobalChatStore.ts:770"
+ ],
+ "Failed to send message": [
+  "stores/GlobalChatStore.ts:1211"
+ ],
+ "Failed to load chat threads": [
+  "stores/GlobalChatStore.ts:1272"
+ ],
+ "Failed to load messages": [
+  "stores/GlobalChatStore.ts:1615"
+ ],
+ "Failed to stop generation": [
+  "stores/GlobalChatStore.ts:1812",
+  "stores/GlobalChatStore.ts:1814"
+ ],
+ "Network error while creating asset": [
+  "stores/AssetStore.ts:169"
+ ],
+ "Failed to search assets": [
+  "stores/AssetStore.ts:444"
+ ],
+ "Failed to create folder": [
+  "stores/AssetStore.ts:487"
+ ],
+ "Failed to create asset": [
+  "stores/AssetStore.ts:683"
+ ],
+ "Failed to load node packs": [
+  "stores/NodePacksStore.ts:100"
+ ],
+ "Failed to load assets": [
+  "stores/WorkflowAssetStore.ts:87"
+ ],
+ "Not found": [
+  "stores/useAuth.ts:181"
+ ],
+ "Failed to sign out": [
+  "stores/useAuth.ts:323"
+ ],
+ "Use cases:": [
+  "stores/formatNodeDocumentation.ts:24"
+ ],
+ "Error loading collections": [
+  "stores/CollectionStore.ts:101"
+ ],
+ "Failed to load packs": [
+  "stores/PacksStore.ts:109"
+ ],
+ "Failed to load built-in packs": [
+  "stores/PacksStore.ts:120"
+ ],
+ "Failed to update built-in pack": [
+  "stores/PacksStore.ts:138"
+ ],
+ "Failed to update pack trust": [
+  "stores/PacksStore.ts:159"
+ ],
+ "Failed to update allowUnlisted setting": [
+  "stores/PacksStore.ts:176"
+ ],
+ "Failed to reload packs": [
+  "stores/PacksStore.ts:195"
+ ],
+ "Workflow starting...": [
+  "stores/WorkflowRunner.ts:489"
+ ],
+ "Failed to resolve auth session": [
+  "stores/WorkflowRunner.ts:515"
+ ],
+ "Failed to start job": [
+  "stores/WorkflowRunner.ts:680",
+  "lib/workflow/runInlineGraphJob.ts:269"
+ ],
+ "New flow": [
+  "stores/WorkspaceTabsStore.ts:612"
+ ],
+ "Failed to load settings": [
+  "stores/RemoteSettingStore.ts:53"
+ ],
+ "Failed to update settings": [
+  "stores/RemoteSettingStore.ts:76"
+ ],
+ "Installed on the server.": [
+  "stores/RuntimePackagesStore.ts:83"
+ ],
+ "Not installed on the server.": [
+  "stores/RuntimePackagesStore.ts:84"
+ ],
+ "Failed to load runtime packages": [
+  "stores/RuntimePackagesStore.ts:93",
+  "stores/RuntimePackagesStore.ts:109"
+ ],
+ "Failed to set install location": [
+  "stores/RuntimePackagesStore.ts:149"
+ ],
+ "Failed to load secrets": [
+  "stores/SecretsStore.ts:71"
+ ],
+ "Failed to update secret": [
+  "stores/SecretsStore.ts:103"
+ ],
+ "Failed to delete secret": [
+  "stores/SecretsStore.ts:119"
+ ],
+ "Couldn't reach the server to check the key.": [
+  "stores/SecretsStore.ts:137"
+ ],
+ "Direct generation returned no asset.": [
+  "stores/storyboard/StoryboardGenerationStore.ts:1219"
+ ],
+ "Voicing failed": [
+  "stores/script/scriptVoicing.ts:256",
+  "components/storyboard/ShotScriptPanel.tsx:90",
+  "components/script/ScriptLineRow.tsx:413"
+ ],
+ "No timeline is open.": [
+  "hooks/timeline/useTrackObject.ts:97"
+ ],
+ "Isolate subject failed.": [
+  "stores/timeline/TimelineStore.ts:3300"
+ ],
+ "Unhandled promise rejection": [
+  "utils/consoleCapture.ts:108"
+ ],
+ "Error class": [
+  "utils/providerCallReport.ts:50"
+ ],
+ "Provider request id": [
+  "utils/providerCallReport.ts:51"
+ ],
+ "Name cannot be empty": [
+  "utils/identifierValidation.ts:20"
+ ],
+ "Name cannot start with a number. Use a letter or underscore instead.": [
+  "utils/identifierValidation.ts:27"
+ ],
+ "Execution availability was not reported by this server.": [
+  "utils/modelNormalization.ts:27"
+ ],
+ "Download the model files before using it locally.": [
+  "utils/modelNormalization.ts:57"
+ ],
+ "Unable to read file header": [
+  "utils/imageUploadValidation.ts:180",
+  "utils/imageUploadValidation.ts:182"
+ ],
+ "Explorer bridge returned no result": [
+  "utils/fileExplorer.ts:95"
+ ],
+ "Explorer bridge returned result": [
+  "utils/fileExplorer.ts:98"
+ ],
+ "Calling explorer.openModelPath": [
+  "utils/fileExplorer.ts:148"
+ ],
+ "Unable to open the requested path.": [
+  "utils/fileExplorer.ts:150"
+ ],
+ "Could not open folder in file explorer.": [
+  "utils/fileExplorer.ts:155"
+ ],
+ "Calling explorer.openModelDirectory for huggingface": [
+  "utils/fileExplorer.ts:170"
+ ],
+ "Could not open HuggingFace folder.": [
+  "utils/fileExplorer.ts:172",
+  "utils/fileExplorer.ts:177"
+ ],
+ "Calling explorer.openModelDirectory for ollama": [
+  "utils/fileExplorer.ts:192"
+ ],
+ "Could not open Ollama folder.": [
+  "utils/fileExplorer.ts:194",
+  "utils/fileExplorer.ts:199"
+ ],
+ "Calling explorer.openSystemDirectory for installation": [
+  "utils/fileExplorer.ts:215"
+ ],
+ "Could not open Nodetool installation folder.": [
+  "utils/fileExplorer.ts:217",
+  "utils/fileExplorer.ts:222"
+ ],
+ "Calling explorer.openSystemDirectory for logs": [
+  "utils/fileExplorer.ts:238"
+ ],
+ "Could not open Nodetool logs folder.": [
+  "utils/fileExplorer.ts:240",
+  "utils/fileExplorer.ts:245"
+ ],
+ "Calling explorer.openSystemDirectory for assets": [
+  "utils/fileExplorer.ts:261"
+ ],
+ "Could not open Nodetool assets folder.": [
+  "utils/fileExplorer.ts:263",
+  "utils/fileExplorer.ts:268"
+ ],
+ "No report bundle was attached.": [
+  "utils/bugReportBundle.ts:317"
+ ],
+ "Varies by resolution, duration, and quality.": [
+  "utils/formatKieUnitPricing.ts:77"
+ ],
+ "Usage is billed to your Meshy account.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:65"
+ ],
+ "Pay per token, ~$0.15–$5 per 1M tokens depending on the model.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:84"
+ ],
+ "Use a Claude Pro or Max subscription — no API key.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:98"
+ ],
+ "Included in your Claude subscription — no per-token API bill.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:102"
+ ],
+ "Thousands of open models for image, chat, and audio.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:112"
+ ],
+ "Pay for compute time on serverless inference providers.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:121"
+ ],
+ "Free monthly credits": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:122"
+ ],
+ "Claude models for reasoning, writing, and agents.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:131"
+ ],
+ "Pay per token, ~$0.25–$15 per 1M tokens depending on the model.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:135"
+ ],
+ "Pay per token, with a generous free tier to experiment.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:152"
+ ],
+ "Free tier available": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:153",
+  "components/provider_onboarding/providerOnboardingCatalog.ts:167",
+  "components/provider_onboarding/providerOnboardingCatalog.ts:179",
+  "components/provider_onboarding/providerOnboardingCatalog.ts:220"
+ ],
+ "Very fast open-model chat on custom hardware.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:162"
+ ],
+ "European open models for chat and embeddings.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:174"
+ ],
+ "Pay per token, competitive pricing for open models.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:178"
+ ],
+ "Fast image and video generation (FLUX and more).": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:186"
+ ],
+ "Pay per generation, priced per image or per second of video.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:190"
+ ],
+ "Pay for compute by the second while a model runs.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:207"
+ ],
+ "Pay per character of speech generated.": [
+  "components/provider_onboarding/providerOnboardingCatalog.ts:219"
+ ],
+ "Use an API key": [
+  "components/provider_onboarding/ProviderOnboardingDialog.tsx:35"
+ ],
+ "Choose an account or API key to use models in your workflows.": [
+  "components/provider_onboarding/ProviderOnboardingDialog.tsx:65"
+ ],
+ "Your API usage is billed directly to your provider account.": [
+  "components/provider_onboarding/ProviderOnboardingDialog.tsx:67:jsx"
+ ],
+ "Prefer local models?": [
+  "components/provider_onboarding/ProviderOnboardingDialog.tsx:88:jsx"
+ ],
+ "Install Ollama and download a model to run on your machine.": [
+  "components/provider_onboarding/ProviderOnboardingDialog.tsx:89:jsx"
+ ],
+ "Couldn't save the key. Check your connection and try again.": [
+  "components/provider_onboarding/ProviderOnboardingCard.tsx:183",
+  "components/provider_onboarding/ProviderOnboardingCard.tsx:200"
+ ],
+ "The provider rejected this key.": [
+  "components/provider_onboarding/ProviderOnboardingCard.tsx:198"
+ ],
+ "The provider rejected the stored key.": [
+  "components/provider_onboarding/ProviderOnboardingCard.tsx:217"
+ ],
+ "The stored key could not be verified.": [
+  "components/provider_onboarding/ProviderOnboardingCard.tsx:219"
+ ],
+ "Waiting for Telegram to confirm the link…": [
+  "components/settings/ConnectedAccountsSettings.tsx:213:jsx"
+ ],
+ "Checking this link…": [
+  "components/settings/IntegrationLinkPage.tsx:81:jsx"
+ ],
+ "Per run": [
+  "components/costs/WorkflowCostEstimatePanel.tsx:79"
+ ],
+ "Node type": [
+  "components/costs/CostsDashboard.tsx:54",
+  "components/costs/CostsTable.tsx:363"
+ ],
+ "Prices ship with the app; a nightly sync moves them": [
+  "components/costs/CostEstimateSummary.tsx:250"
+ ],
+ "Install app": [
+  "components/portal/DashboardRecipes.tsx:310"
+ ],
+ "Duration: unknown — execution time is not declared": [
+  "components/portal/DashboardTemplates.tsx:282:jsx"
+ ],
+ "Unknown provider": [
+  "components/portal/entryCompatibility.tsx:153",
+  "components/portal/entryCompatibility.tsx:319"
+ ],
+ "No inputs are declared": [
+  "components/portal/entryCompatibility.tsx:253"
+ ],
+ "Input requirements are unknown": [
+  "components/portal/entryCompatibility.tsx:254",
+  "components/portal/entryCompatibility.tsx:297"
+ ],
+ "Which inputs are required is unknown": [
+  "components/portal/entryCompatibility.tsx:257"
+ ],
+ "Provider/model requirements are unknown": [
+  "components/portal/entryCompatibility.tsx:260"
+ ],
+ "No model is selected; compatible options are shown only as guidance": [
+  "components/portal/entryCompatibility.tsx:262"
+ ],
+ "Credential requirements are not declared": [
+  "components/portal/entryCompatibility.tsx:268"
+ ],
+ "None declared": [
+  "components/portal/entryCompatibility.tsx:311"
+ ],
+ "Could not complete this request.": [
+  "components/oauth/OAuthConsentPage.tsx:145"
+ ],
+ "No memory matches": [
+  "components/memory/MemoryPage.tsx:99"
+ ],
+ "Nothing remembered yet": [
+  "components/memory/MemoryPage.tsx:99"
+ ],
+ "No memory contains all of those words.": [
+  "components/memory/MemoryPage.tsx:103"
+ ],
+ "The agent records project notes and the assets it creates as it works. They show up here.": [
+  "components/memory/MemoryPage.tsx:104"
+ ],
+ "Transform this output…": [
+  "components/context_menus/OutputContextMenu.tsx:652:jsx"
+ ],
+ "Create value with AI…": [
+  "components/context_menus/InputContextMenu.tsx:1084:jsx"
+ ],
+ "Video info": [
+  "components/context_menus/AssetItemContextMenu.tsx:108"
+ ],
+ "Current project": [
+  "components/chat/sidebar/ProjectDocumentsSidebar.tsx:61"
+ ],
+ "Describe an image…": [
+  "components/chat/composer/MediaChatComposer.tsx:460"
+ ],
+ "Describe the image you want to generate…": [
+  "components/chat/composer/MediaChatComposer.tsx:461"
+ ],
+ "Describe the edits…": [
+  "components/chat/composer/MediaChatComposer.tsx:465"
+ ],
+ "Describe the edits to apply to the dropped image…": [
+  "components/chat/composer/MediaChatComposer.tsx:466"
+ ],
+ "Describe a video…": [
+  "components/chat/composer/MediaChatComposer.tsx:470"
+ ],
+ "Describe your video… like a man drinking a cup of coffee…": [
+  "components/chat/composer/MediaChatComposer.tsx:471"
+ ],
+ "Describe the animation…": [
+  "components/chat/composer/MediaChatComposer.tsx:475"
+ ],
+ "Describe how the dropped image should animate…": [
+  "components/chat/composer/MediaChatComposer.tsx:476"
+ ],
+ "Describe the shot…": [
+  "components/chat/composer/MediaChatComposer.tsx:480"
+ ],
+ "Describe the shot — the attached images and videos are the references…": [
+  "components/chat/composer/MediaChatComposer.tsx:481"
+ ],
+ "Describe the work to plan…": [
+  "components/chat/composer/MediaChatComposer.tsx:501"
+ ],
+ "Describe the work. The agent will propose a plan, not run it.": [
+  "components/chat/composer/MediaChatComposer.tsx:502"
+ ],
+ "Message… or @ to add an asset": [
+  "components/chat/composer/MediaChatComposer.tsx:505"
+ ],
+ "Continue the thread — or type @ to add an asset…": [
+  "components/chat/composer/MediaChatComposer.tsx:506"
+ ],
+ "Nothing was transcribed from that recording.": [
+  "components/chat/composer/voice/useVoiceInput.ts:108"
+ ],
+ "Could not save the key.": [
+  "components/chat/message/SecretRequestCard.tsx:118"
+ ],
+ "Other arguments": [
+  "components/chat/message/MessageView.tsx:429"
+ ],
+ "Error: No image source available": [
+  "components/chat/message/MessageContentRenderer.tsx:207:jsx"
+ ],
+ "Make this change?": [
+  "components/chat/message/ToolApprovalCard.tsx:36"
+ ],
+ "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key.": [
+  "components/chat/containers/WelcomePlaceholder.tsx:171"
+ ],
+ "Chat needs a language model. Connect a provider to start.": [
+  "components/chat/containers/WelcomePlaceholder.tsx:172"
+ ],
+ "No matching conversations": [
+  "components/chat/thread/EmptyThreadList.tsx:16"
+ ],
+ "This model is not ready to use.": [
+  "components/model_menu/ModelList.tsx:292"
+ ],
+ "Enable provider and add API key in Settings to use this model": [
+  "components/model_menu/ModelList.tsx:294"
+ ],
+ "Enable provider in the left sidebar to use this model": [
+  "components/model_menu/ModelList.tsx:296"
+ ],
+ "Default for new nodes of this type — click to clear": [
+  "components/model_menu/DefaultModelPin.tsx:79"
+ ],
+ "Clear default model": [
+  "components/model_menu/DefaultModelPin.tsx:84"
+ ],
+ "Unavailable: No ready execution target was reported.": [
+  "components/model_menu/ProviderList.tsx:765"
+ ],
+ "Disable provider": [
+  "components/model_menu/ProviderList.tsx:999",
+  "components/model_menu/ProviderList.tsx:1048"
+ ],
+ "Enable provider": [
+  "components/model_menu/ProviderList.tsx:999",
+  "components/model_menu/ProviderList.tsx:1049"
+ ],
+ "Filter by Type": [
+  "components/model_menu/ModelFiltersBar.tsx:65"
+ ],
+ "Filter by Size": [
+  "components/model_menu/ModelFiltersBar.tsx:94"
+ ],
+ "Missing a provider?": [
+  "components/model_menu/shared/ModelMenuDialogBase.tsx:801:jsx"
+ ],
+ "Open the script this board's words come from": [
+  "components/storyboard/ScriptLinkControl.tsx:68"
+ ],
+ "Project this board's dialogue and narration into a script": [
+  "components/storyboard/ScriptLinkControl.tsx:69"
+ ],
+ "Open script": [
+  "components/storyboard/ScriptLinkControl.tsx:72"
+ ],
+ "Extract script": [
+  "components/storyboard/ScriptLinkControl.tsx:72"
+ ],
+ "View clip fullscreen": [
+  "components/storyboard/ShotCard.tsx:484"
+ ],
+ "View still fullscreen": [
+  "components/storyboard/ShotCard.tsx:484"
+ ],
+ "The render failed. Try again.": [
+  "components/storyboard/ShotCard.tsx:548"
+ ],
+ "Try again.": [
+  "components/storyboard/ShotEditViewer.tsx:103",
+  "lib/storyboard/providerError.ts:59"
+ ],
+ "The still could not be flipped.": [
+  "components/storyboard/ShotEditViewer.tsx:334"
+ ],
+ "The still could not be opened for editing.": [
+  "components/storyboard/ShotEditViewer.tsx:367",
+  "components/storyboard/ShotEditViewer.tsx:370"
+ ],
+ "Estimated running time": [
+  "components/storyboard/ShotEditPanel.tsx:152"
+ ],
+ "Duration source": [
+  "components/storyboard/ShotEditPanel.tsx:153"
+ ],
+ "Not set": [
+  "components/storyboard/ShotEditPanel.tsx:825",
+  "components/storyboard/ShotEditPanel.tsx:826",
+  "components/hugging_face/onboarding/HardwareCard.tsx:141"
+ ],
+ "No entities yet.": [
+  "components/storyboard/StoryboardEntitiesField.tsx:147"
+ ],
+ "The still could not be loaded.": [
+  "components/storyboard/shotImageEdits.ts:21"
+ ],
+ "The still could not be encoded.": [
+  "components/storyboard/shotImageEdits.ts:31"
+ ],
+ "No storyboards are currently open. ": [
+  "components/storyboard/storyboardAgentBridge.ts:361"
+ ],
+ "View takes": [
+  "components/storyboard/ShotTakesGallery.tsx:362"
+ ],
+ "Use entity references": [
+  "components/storyboard/StoryboardBoard.tsx:184"
+ ],
+ "Direct writes the screenplay and seeds your shots.": [
+  "components/storyboard/StoryboardBoard.tsx:1203"
+ ],
+ "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips.": [
+  "components/storyboard/StoryboardBoard.tsx:1323"
+ ],
+ "This storyboard has no shots.": [
+  "components/storyboard/StoryboardBoard.tsx:1396"
+ ],
+ "Write a brief and press Direct to generate a screenplay of shots.": [
+  "components/storyboard/StoryboardBoard.tsx:1397"
+ ],
+ "Create timeline": [
+  "components/storyboard/StoryboardBoard.tsx:1496"
+ ],
+ "Completed · awaiting review": [
+  "components/storyboard/StoryboardQueueOverlay.tsx:207"
+ ],
+ "Not voiced": [
+  "components/storyboard/ShotScriptPanel.tsx:60"
+ ],
+ "Open the script to voice this line": [
+  "components/storyboard/ShotScriptPanel.tsx:113"
+ ],
+ "Drop files here": [
+  "components/ui_primitives/CheckerDropzone.tsx:137"
+ ],
+ "Tag cannot be empty": [
+  "components/ui_primitives/TagInput.tsx:182"
+ ],
+ "This tag already exists": [
+  "components/ui_primitives/TagInput.tsx:187"
+ ],
+ "Nothing to copy": [
+  "components/ui_primitives/CopyButton.tsx:165"
+ ],
+ "Exit fullscreen": [
+  "components/ui_primitives/VideoPlayer.tsx:413",
+  "components/timeline/preview/PreviewArea.tsx:1168",
+  "components/timeline/preview/PreviewArea.tsx:1170"
+ ],
+ "Create new": [
+  "components/ui_primitives/CreateFab.tsx:91"
+ ],
+ "View diff": [
+  "components/ui_primitives/ConflictBanner.tsx:73"
+ ],
+ "View external value": [
+  "components/ui_primitives/ConflictBanner.tsx:76"
+ ],
+ "Your edit": [
+  "components/ui_primitives/ConflictBanner.tsx:102:jsx"
+ ],
+ "External": [
+  "components/ui_primitives/ConflictBanner.tsx:109:jsx"
+ ],
+ "No layers yet - add one below.": [
+  "components/compositor/CompositorEditor.tsx:359:jsx",
+  "components/node_types/editing/CompositorBody.tsx:414:jsx"
+ ],
+ "Math.hypot(p.x - h.x, p.y - h.y)": [
+  "components/compositor/CompositorEditorCanvas.tsx:262:jsx"
+ ],
+ "Text block": [
+  "components/appbuilder/puck/config.tsx:455"
+ ],
+ "No app builders are currently open. ": [
+  "components/appbuilder/puck/puckAgentBridge.ts:127"
+ ],
+ "Drag onto a project card to move it in": [
+  "components/projects/ProjectListSurface.tsx:252:jsx"
+ ],
+ "No matching projects": [
+  "components/projects/ProjectSelector.tsx:269"
+ ],
+ "No named projects yet": [
+  "components/projects/ProjectSelector.tsx:269"
+ ],
+ "New video": [
+  "components/projects/NewProjectSurface.tsx:873"
+ ],
+ "New image": [
+  "components/projects/NewProjectSurface.tsx:1004"
+ ],
+ "New game": [
+  "components/projects/NewProjectSurface.tsx:1116"
+ ],
+ "Canvas 2D context unavailable": [
+  "components/workspace/newDocumentCatalog.tsx:53",
+  "components/setup/entity/EntitySetupHost.tsx:55"
+ ],
+ "Failed to render blank image": [
+  "components/workspace/newDocumentCatalog.tsx:60",
+  "components/setup/entity/EntitySetupHost.tsx:62"
+ ],
+ "New text file…": [
+  "components/workspace/newDocumentCatalog.tsx:496"
+ ],
+ "New storyboard…": [
+  "components/workspace/newDocumentCatalog.tsx:528"
+ ],
+ "Close agent": [
+  "components/workspace/ApplicationSurface.tsx:293",
+  "components/workspace/ApplicationSurface.tsx:294"
+ ],
+ "No preview available for this file type.": [
+  "components/workspace/WorkspaceFileSurface.tsx:49:jsx"
+ ],
+ "Failed to load image": [
+  "components/workspace/ImageSurface.tsx:49",
+  "components/common/CopyAssetButton.tsx:158",
+  "components/sketch/serialization/index.ts:395"
+ ],
+ "Image not found": [
+  "components/workspace/ImageSurface.tsx:49"
+ ],
+ "Failed to load SVG": [
+  "components/workspace/SvgSurface.tsx:187"
+ ],
+ "No &lt;svg&gt; element to render": [
+  "components/workspace/SvgPreview.tsx:71:jsx"
+ ],
+ "Project documents failed to load": [
+  "components/panels/DocumentsTree.tsx:271"
+ ],
+ "No matching documents": [
+  "components/panels/DocumentsTree.tsx:392"
+ ],
+ "No documents yet": [
+  "components/panels/DocumentsTree.tsx:392"
+ ],
+ "Documents created in this project will appear here.": [
+  "components/panels/DocumentsTree.tsx:396"
+ ],
+ "Workflow failed to start": [
+  "components/panels/FloatingToolBar.tsx:574"
+ ],
+ "Close panel": [
+  "components/panels/PanelLeft.tsx:912",
+  "components/panels/MobileRailLauncher.tsx:71"
+ ],
+ "Open left panel": [
+  "components/panels/PanelLeft.tsx:912",
+  "components/panels/MobileRailLauncher.tsx:71"
+ ],
+ "File watch": [
+  "components/panels/TriggerActivationButton.tsx:77"
+ ],
+ "Checking trigger status…": [
+  "components/panels/TriggerActivationButton.tsx:92"
+ ],
+ "Could not load trigger status. Check your connection and retry.": [
+  "components/panels/TriggerActivationButton.tsx:93"
+ ],
+ "Not registered": [
+  "components/panels/TriggerActivationButton.tsx:104"
+ ],
+ "Partly active": [
+  "components/panels/TriggerActivationButton.tsx:106"
+ ],
+ "Checking status…": [
+  "components/panels/TriggerActivationButton.tsx:390:jsx"
+ ],
+ "In queue": [
+  "components/panels/jobs/JobItem.tsx:335"
+ ],
+ "No matching JS scripts": [
+  "components/jsScript/JsScriptListPanel.tsx:164"
+ ],
+ "No JS scripts yet": [
+  "components/jsScript/JsScriptListPanel.tsx:164"
+ ],
+ "Create a new JS script with the + button above.": [
+  "components/jsScript/JsScriptListPanel.tsx:168"
+ ],
+ "No tests": [
+  "components/jsScript/JsScriptRunConsole.tsx:143"
+ ],
+ "No JS scripts are currently open. ": [
+  "components/jsScript/jsScriptAgentBridge.ts:112"
+ ],
+ "Each input uses the control for its declared type.": [
+  "components/jsScript/JsScriptRunDialog.tsx:186"
+ ],
+ "Cost estimate unavailable for this model": [
+  "components/setup/GenerationSummary.tsx:54"
+ ],
+ "Uses the existing text or preset": [
+  "components/setup/GenerationSummary.tsx:69"
+ ],
+ "Not selected": [
+  "components/setup/GenerationSummary.tsx:70"
+ ],
+ "Describe the video, or bring your own media": [
+  "components/setup/video/useVideoSetupFlow.ts:320"
+ ],
+ "Continue to the beats": [
+  "components/setup/video/useVideoSetupFlow.ts:339"
+ ],
+ "Plan the beats": [
+  "components/setup/video/useVideoSetupFlow.ts:342"
+ ],
+ "Pick a video template": [
+  "components/setup/video/useVideoSetupFlow.ts:347"
+ ],
+ "Pick a model to draft the beats": [
+  "components/setup/video/useVideoSetupFlow.ts:348"
+ ],
+ "The brief or template changed. Your edited plan will guide the new beats.": [
+  "components/setup/video/useVideoSetupFlow.ts:354"
+ ],
+ "Planning the beats": [
+  "components/setup/video/useVideoSetupFlow.ts:366"
+ ],
+ "Continue to look": [
+  "components/setup/video/useVideoSetupFlow.ts:376",
+  "components/setup/game/useGameSetupFlow.ts:459",
+  "components/setup/image/useImageSetupFlow.ts:169"
+ ],
+ "Plan the beats first — there is nothing to review yet": [
+  "components/setup/video/useVideoSetupFlow.ts:387"
+ ],
+ "Uses local speech. Production voice and audio resolution are unavailable in this setup.": [
+  "components/setup/video/productionAuthoring.ts:106"
+ ],
+ "Call to action": [
+  "components/setup/video/productionAuthoring.ts:127"
+ ],
+ "Product close-up": [
+  "components/setup/video/productionAuthoring.ts:147"
+ ],
+ "Drop video, audio or images. Nothing else goes on a track.": [
+  "components/setup/video/IdeaStep.tsx:154"
+ ],
+ "Uploading your files…": [
+  "components/setup/video/IdeaStep.tsx:182"
+ ],
+ "Not available here. Start a script from the project screen.": [
+  "components/setup/video/IdeaStep.tsx:192"
+ ],
+ "Next:": [
+  "components/setup/video/VideoLandingStrip.tsx:123:jsx"
+ ],
+ "Plan the beats first — there is nothing to render yet": [
+  "components/setup/video/LookStep.tsx:330"
+ ],
+ "Pick a video model": [
+  "components/setup/video/LookStep.tsx:335"
+ ],
+ "Connect a provider that renders video to keep going.": [
+  "components/setup/video/LookStep.tsx:379"
+ ],
+ "Connect a provider that reads lines aloud to keep going.": [
+  "components/setup/video/LookStep.tsx:383"
+ ],
+ "Checking which video models your providers offer…": [
+  "components/setup/video/LookStep.tsx:394"
+ ],
+ "Checking which voices your providers offer…": [
+  "components/setup/video/LookStep.tsx:395"
+ ],
+ "Could not read the video models your providers offer.": [
+  "components/setup/video/LookStep.tsx:406"
+ ],
+ "Could not read the voices your providers offer.": [
+  "components/setup/video/LookStep.tsx:407"
+ ],
+ "No provider is set up to render video.": [
+  "components/setup/video/LookStep.tsx:420"
+ ],
+ "No provider is set up to read lines aloud, so switch Voiceover off or connect one.": [
+  "components/setup/video/LookStep.tsx:421"
+ ],
+ "Your providers offer no video model.": [
+  "components/setup/video/LookStep.tsx:434"
+ ],
+ "Your providers offer no voice, so switch Voiceover off or connect one that does.": [
+  "components/setup/video/LookStep.tsx:435"
+ ],
+ "Your providers do not offer this model.": [
+  "components/setup/video/LookStep.tsx:481"
+ ],
+ "Your providers do not offer this voice.": [
+  "components/setup/video/LookStep.tsx:492"
+ ],
+ "Pick a voice, or switch Voiceover off — nothing is read otherwise.": [
+  "components/setup/video/LookStep.tsx:562"
+ ],
+ "Your providers do not offer the voice you picked. Pick another, or switch Voiceover off.": [
+  "components/setup/video/LookStep.tsx:564"
+ ],
+ "Music generation is unavailable. Add an audio track in the editor.": [
+  "components/setup/video/LookStep.tsx:748"
+ ],
+ "One bed under the whole cut": [
+  "components/setup/video/LookStep.tsx:749"
+ ],
+ "Product name": [
+  "components/setup/video/CreativeContextFields.tsx:29",
+  "components/setup/script/ScriptCreativeContextFields.tsx:31",
+  "components/preview/ComponentPreview.tsx:338"
+ ],
+ "Product description": [
+  "components/setup/video/CreativeContextFields.tsx:30"
+ ],
+ "Context was not saved. Use at most 64 claims per list and 32 references.": [
+  "components/setup/video/CreativeContextFields.tsx:73"
+ ],
+ "Fast cuts, handheld weight, motion across the frame.": [
+  "components/setup/storyboard/genres.ts:44"
+ ],
+ "Wide framing, held beats, the joke landing on the cut.": [
+  "components/setup/storyboard/genres.ts:50"
+ ],
+ "Close coverage and long takes, faces carrying the scene.": [
+  "components/setup/storyboard/genres.ts:61"
+ ],
+ "Enter a positive duration in seconds, or clear it to leave timing unspecified.": [
+  "components/setup/storyboard/ReviewStep.tsx:134"
+ ],
+ "Could not find entities in the story.": [
+  "components/setup/storyboard/EntitiesStep.tsx:178"
+ ],
+ "Pick a reference image model first.": [
+  "components/setup/storyboard/EntitiesStep.tsx:211"
+ ],
+ "The entity could not be made.": [
+  "components/setup/storyboard/EntitiesStep.tsx:254"
+ ],
+ "Finding entities": [
+  "components/setup/storyboard/EntitiesStep.tsx:330"
+ ],
+ "Find entities": [
+  "components/setup/storyboard/EntitiesStep.tsx:333"
+ ],
+ "No entities selected": [
+  "components/setup/storyboard/EntitiesStep.tsx:499"
+ ],
+ "No matching entities": [
+  "components/setup/storyboard/EntitiesStep.tsx:500"
+ ],
+ "Try another name or change the selected filter.": [
+  "components/setup/storyboard/EntitiesStep.tsx:505"
+ ],
+ "Write at least one shot": [
+  "components/setup/storyboard/useStoryboardSetupFlow.ts:273"
+ ],
+ "Write a sentence, or bring your own script": [
+  "components/setup/storyboard/useStoryboardSetupFlow.ts:290"
+ ],
+ "Continue to your screenplay": [
+  "components/setup/storyboard/useStoryboardSetupFlow.ts:307"
+ ],
+ "Pick a genre": [
+  "components/setup/storyboard/useStoryboardSetupFlow.ts:312"
+ ],
+ "This CSV holds no shots to import.": [
+  "components/setup/storyboard/useShotlistImport.ts:67"
+ ],
+ "This CSV could not be read.": [
+  "components/setup/storyboard/useShotlistImport.ts:96"
+ ],
+ "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing.": [
+  "components/setup/storyboard/IdeaStep.tsx:203"
+ ],
+ "The Director structures this text into scenes and shots.": [
+  "components/setup/storyboard/IdeaStep.tsx:204"
+ ],
+ "Pick at least one reference image.": [
+  "components/setup/storyboard/useCustomStyle.ts:83",
+  "components/setup/game/useGameCustomStyle.ts:88"
+ ],
+ "Pick a model before adding a style.": [
+  "components/setup/storyboard/useCustomStyle.ts:89",
+  "components/setup/game/useGameCustomStyle.ts:92"
+ ],
+ "The model did not describe these references.": [
+  "components/setup/storyboard/useCustomStyle.ts:123",
+  "components/setup/game/useGameCustomStyle.ts:121"
+ ],
+ "The style could not be saved.": [
+  "components/setup/storyboard/useCustomStyle.ts:135",
+  "components/setup/game/useGameCustomStyle.ts:133"
+ ],
+ "The style could not be made.": [
+  "components/setup/storyboard/useCustomStyle.ts:146",
+  "components/setup/game/useGameCustomStyle.ts:140"
+ ],
+ "Pick an art style": [
+  "components/setup/storyboard/LookStep.tsx:150"
+ ],
+ "Pick a still model": [
+  "components/setup/storyboard/LookStep.tsx:153"
+ ],
+ "Draws every keyframe. The estimate beside the button follows it.": [
+  "components/setup/storyboard/LookStep.tsx:198"
+ ],
+ "Making your canvas…": [
+  "components/setup/entity/DetailsStep.tsx:156"
+ ],
+ "The reference image could not be generated.": [
+  "components/setup/entity/ReferenceStep.tsx:111"
+ ],
+ "Change reference": [
+  "components/setup/entity/ReferenceStep.tsx:218"
+ ],
+ "Choose from assets": [
+  "components/setup/entity/ReferenceStep.tsx:219"
+ ],
+ "Untitled entity": [
+  "components/setup/entity/EntitySetupHost.tsx:143",
+  "hooks/useDocumentTreeData.ts:50"
+ ],
+ "Choose a reference": [
+  "components/setup/entity/EntitySetupHost.tsx:202"
+ ],
+ "Name the entity": [
+  "components/setup/entity/EntitySetupHost.tsx:208"
+ ],
+ "Describe the traits to preserve": [
+  "components/setup/entity/EntitySetupHost.tsx:209"
+ ],
+ "Could not verify your entity library": [
+  "components/setup/entity/EntitySetupHost.tsx:225"
+ ],
+ "Create entity": [
+  "components/setup/entity/EntitySetupHost.tsx:247"
+ ],
+ "Creating your entity": [
+  "components/setup/entity/EntitySetupHost.tsx:249"
+ ],
+ "Play test": [
+  "components/setup/game/GameLandingPanel.tsx:109"
+ ],
+ "This project keeps the template's own art": [
+  "components/setup/game/GameLandingChecklist.tsx:118"
+ ],
+ "Waiting for the export node": [
+  "components/setup/game/GameLandingChecklist.tsx:125",
+  "components/setup/game/GameLandingChecklist.tsx:244"
+ ],
+ "The project opened and ran headlessly": [
+  "components/setup/game/GameLandingChecklist.tsx:214"
+ ],
+ "The run was cancelled": [
+  "components/setup/game/GameLandingChecklist.tsx:239"
+ ],
+ "What each one does in the loop.": [
+  "components/setup/game/ReviewStep.tsx:178"
+ ],
+ "Keep the placeholder sounds": [
+  "components/setup/game/GameSetupHost.tsx:184"
+ ],
+ "The template's own sound files, no generation": [
+  "components/setup/game/GameSetupHost.tsx:185"
+ ],
+ "Keep the placeholder music": [
+  "components/setup/game/GameSetupHost.tsx:208"
+ ],
+ "The template's own music loop, no generation": [
+  "components/setup/game/GameSetupHost.tsx:209"
+ ],
+ "Exporting the template…": [
+  "components/setup/game/IdeaStep.tsx:94"
+ ],
+ "The template with its placeholder art, exported and ready to open in Godot.": [
+  "components/setup/game/IdeaStep.tsx:131"
+ ],
+ "Pick the loop and skip straight to the design.": [
+  "components/setup/game/IdeaStep.tsx:132"
+ ],
+ "Cost unknown until the first asset returns": [
+  "components/setup/game/LookStep.tsx:219"
+ ],
+ "Describe your game": [
+  "components/setup/game/useGameSetupFlow.ts:364"
+ ],
+ "Exporting the template": [
+  "components/setup/game/useGameSetupFlow.ts:366"
+ ],
+ "Continue to your design": [
+  "components/setup/game/useGameSetupFlow.ts:394"
+ ],
+ "Write the design": [
+  "components/setup/game/useGameSetupFlow.ts:397"
+ ],
+ "Pick a template": [
+  "components/setup/game/useGameSetupFlow.ts:403"
+ ],
+ "Pick a designer model, or start from one of the examples": [
+  "components/setup/game/useGameSetupFlow.ts:404"
+ ],
+ "Write the design: premise, loop, cast and one prompt per asset slot": [
+  "components/setup/game/useGameSetupFlow.ts:408"
+ ],
+ "Your design is unchanged — this keeps it.": [
+  "components/setup/game/useGameSetupFlow.ts:416"
+ ],
+ "Writing the design": [
+  "components/setup/game/useGameSetupFlow.ts:419"
+ ],
+ "Write the design first": [
+  "components/setup/game/useGameSetupFlow.ts:465"
+ ],
+ "Pick a style": [
+  "components/setup/game/useGameSetupFlow.ts:505"
+ ],
+ "Pick an image model": [
+  "components/setup/game/useGameSetupFlow.ts:507",
+  "components/setup/image/LookStep.tsx:244"
+ ],
+ "Name your project": [
+  "components/setup/game/useGameSetupFlow.ts:508"
+ ],
+ "Placing the graph, then running it once": [
+  "components/setup/game/useGameSetupFlow.ts:511"
+ ],
+ "This replaces your imported words with the model's. Your own text is dropped.": [
+  "components/setup/script/ReviewStep.tsx:254"
+ ],
+ "Edits you have made are given to the writer as context.": [
+  "components/setup/script/ReviewStep.tsx:255"
+ ],
+ "This subtitle file could not be read.": [
+  "components/setup/script/useScriptFileImport.ts:146"
+ ],
+ "Optional name used in production direction.": [
+  "components/setup/script/ScriptCreativeContextFields.tsx:31"
+ ],
+ "Who this script is for.": [
+  "components/setup/script/ScriptCreativeContextFields.tsx:37"
+ ],
+ "What the video should achieve.": [
+  "components/setup/script/ScriptCreativeContextFields.tsx:38"
+ ],
+ "The desired delivery and mood.": [
+  "components/setup/script/ScriptCreativeContextFields.tsx:39"
+ ],
+ "The writer did not return a script.": [
+  "components/setup/script/useScriptSetupFlow.ts:194",
+  "hooks/script/useScriptAgentBridge.ts:175"
+ ],
+ "Describe what to write, or import your script": [
+  "components/setup/script/useScriptSetupFlow.ts:234"
+ ],
+ "Write the script": [
+  "components/setup/script/useScriptSetupFlow.ts:251"
+ ],
+ "Continue to review": [
+  "components/setup/script/useScriptSetupFlow.ts:252"
+ ],
+ "Pick a script format": [
+  "components/setup/script/useScriptSetupFlow.ts:257"
+ ],
+ "Pick a writer model": [
+  "components/setup/script/useScriptSetupFlow.ts:258"
+ ],
+ "Writing your script": [
+  "components/setup/script/useScriptSetupFlow.ts:264"
+ ],
+ "Continue to voices": [
+  "components/setup/script/useScriptSetupFlow.ts:276"
+ ],
+ "Every line needs words, or remove it": [
+  "components/setup/script/useScriptSetupFlow.ts:281"
+ ],
+ "Voice your script": [
+  "components/setup/script/useScriptSetupFlow.ts:299"
+ ],
+ "Choose a voice for every speaker": [
+  "components/setup/script/useScriptSetupFlow.ts:302"
+ ],
+ "Paste different words": [
+  "components/setup/script/IdeaStep.tsx:247"
+ ],
+ "Paste your script": [
+  "components/setup/script/IdeaStep.tsx:247",
+  "components/setup/script/IdeaStep.tsx:383"
+ ],
+ "Notes for the writer": [
+  "components/setup/script/IdeaStep.tsx:323"
+ ],
+ "Optional: say who reads what, or how to split the lines.": [
+  "components/setup/script/IdeaStep.tsx:327"
+ ],
+ "Describe the topic, audience and message for a new script.": [
+  "components/setup/script/IdeaStep.tsx:328"
+ ],
+ "Your imported words are kept as written. Anything here only guides how they are split and who reads them.": [
+  "components/setup/script/IdeaStep.tsx:332"
+ ],
+ "Choose a model": [
+  "components/setup/script/VoicesStep.tsx:189"
+ ],
+ "Choose a voice": [
+  "components/setup/script/VoicesStep.tsx:196"
+ ],
+ "This speaker has no lines yet, so there is nothing to sample.": [
+  "components/setup/script/VoicesStep.tsx:271"
+ ],
+ "The voice list could not be loaded.": [
+  "components/setup/script/useSetupVoices.ts:91"
+ ],
+ "Edit anything here before it is rendered.": [
+  "components/setup/image/ReviewStep.tsx:103"
+ ],
+ "Image to video": [
+  "components/setup/image/ImageSetupOverlay.tsx:132",
+  "components/setup/image/ContactSheet.tsx:322"
+ ],
+ "Image canvas": [
+  "components/setup/image/ImageSetupOverlay.tsx:132"
+ ],
+ "The refinement reads these when it writes your brief.": [
+  "components/setup/image/IdeaStep.tsx:204"
+ ],
+ "These stay with the document as you set it up.": [
+  "components/setup/image/IdeaStep.tsx:205"
+ ],
+ "Waiting to start": [
+  "components/setup/image/ContactSheet.tsx:88"
+ ],
+ "This one failed": [
+  "components/setup/image/ContactSheet.tsx:91"
+ ],
+ "Opening destination…": [
+  "components/setup/image/ContactSheet.tsx:179"
+ ],
+ "Opened in a new node canvas.": [
+  "components/setup/image/ContactSheet.tsx:194"
+ ],
+ "Could not open that destination. Try again.": [
+  "components/setup/image/ContactSheet.tsx:202"
+ ],
+ "New node canvas": [
+  "components/setup/image/ContactSheet.tsx:321"
+ ],
+ "Making more…": [
+  "components/setup/image/ContactSheet.tsx:373"
+ ],
+ "Make more variations": [
+  "components/setup/image/ContactSheet.tsx:373"
+ ],
+ "The image models could not be loaded": [
+  "components/setup/image/LookStep.tsx:233"
+ ],
+ "Connect an image provider first": [
+  "components/setup/image/LookStep.tsx:235"
+ ],
+ "No image model can render a picture yet": [
+  "components/setup/image/LookStep.tsx:237"
+ ],
+ "That model is no longer offered — pick another": [
+  "components/setup/image/LookStep.tsx:239"
+ ],
+ "That model has no size supported by this guided flow": [
+  "components/setup/image/LookStep.tsx:241"
+ ],
+ "Pick a size supported by this image model": [
+  "components/setup/image/LookStep.tsx:243"
+ ],
+ "The model did not return a brief.": [
+  "components/setup/image/useImageSetupFlow.ts:98"
+ ],
+ "Expand your sentence into a five-field brief you can edit": [
+  "components/setup/image/useImageSetupFlow.ts:122"
+ ],
+ "You read and fix the brief next. No layer is added and no image is rendered here.": [
+  "components/setup/image/useImageSetupFlow.ts:123"
+ ],
+ "Describe the image, or upload one to edit": [
+  "components/setup/image/useImageSetupFlow.ts:144"
+ ],
+ "Continue to the brief": [
+  "components/setup/image/useImageSetupFlow.ts:154"
+ ],
+ "Pick an image use case": [
+  "components/setup/image/useImageSetupFlow.ts:157"
+ ],
+ "Write what the image shows before choosing the look": [
+  "components/setup/image/useImageSetupFlow.ts:171"
+ ],
+ "What it hands back.": [
+  "components/setup/workflow/ReviewStep.tsx:190"
+ ],
+ "The plan could not name a node for this step. Pick one.": [
+  "components/setup/workflow/ReviewStep.tsx:370"
+ ],
+ "Keep it": [
+  "components/setup/workflow/ReviewStep.tsx:396"
+ ],
+ "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates.": [
+  "components/setup/workflow/SetupStep.tsx:219"
+ ],
+ "This plan needs no model of its own.": [
+  "components/setup/workflow/SetupStep.tsx:224"
+ ],
+ "Pick an example, or go back to your idea": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:272"
+ ],
+ "Describe the task": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:273"
+ ],
+ "Copying the example": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:275"
+ ],
+ "Continue to your plan": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:307"
+ ],
+ "Plan the steps": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:310"
+ ],
+ "Pick a workflow category": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:315"
+ ],
+ "Pick a planner model, or use a shipped example": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:316"
+ ],
+ "Draft a plan of inputs, processing steps and outputs": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:320"
+ ],
+ "Your plan is unchanged — this keeps it.": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:328"
+ ],
+ "Planning the steps": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:331"
+ ],
+ "Continue to setup": [
+  "components/setup/workflow/useWorkflowSetupFlow.ts:372"
+ ],
+ "Voice model": [
+  "components/setup/workflow/modelRoles.ts:26"
+ ],
+ "Copying this one": [
+  "components/setup/workflow/ExamplePicker.tsx:86"
+ ],
+ "Copying an example": [
+  "components/setup/workflow/ExamplePicker.tsx:86"
+ ],
+ "This install ships no examples": [
+  "components/setup/workflow/ExamplePicker.tsx:137"
+ ],
+ "No example matches that": [
+  "components/setup/workflow/ExamplePicker.tsx:138"
+ ],
+ "Describe the task instead, or start with a blank canvas.": [
+  "components/setup/workflow/ExamplePicker.tsx:142"
+ ],
+ "Try another word, or describe the task instead.": [
+  "components/setup/workflow/ExamplePicker.tsx:143"
+ ],
+ "Create and open a Mini App backed by this workflow.": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:42"
+ ],
+ "Open the trigger-node picker on this canvas.": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:47"
+ ],
+ "Output is ready": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:106",
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:117"
+ ],
+ "No problems found": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:162"
+ ],
+ "Validates, but part of the plan is unwired": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:163"
+ ],
+ "Not started — part of the plan is unwired": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:190"
+ ],
+ "Not started — the graph did not validate": [
+  "components/setup/workflow/WorkflowLandingChecklist.tsx:191"
+ ],
+ "Opening shared workflow…": [
+  "components/workflows/AcceptSharePage.tsx:60:jsx"
+ ],
+ "Try adjusting your search term or tag filters.": [
+  "components/workflows/WorkflowList.tsx:406"
+ ],
+ "Try removing some tag filters.": [
+  "components/workflows/WorkflowList.tsx:410"
+ ],
+ "No workflows match the current filters.": [
+  "components/workflows/WorkflowList.tsx:411"
+ ],
+ "Trigger armed": [
+  "components/workflows/WorkflowTriggerIndicator.tsx:43"
+ ],
+ "Can view": [
+  "components/workflows/ShareWorkflowDialog.tsx:34"
+ ],
+ "Can edit": [
+  "components/workflows/ShareWorkflowDialog.tsx:35"
+ ],
+ "Picking color...": [
+  "components/color_picker/EyedropperButton.tsx:46"
+ ],
+ "Pick color from screen": [
+  "components/color_picker/EyedropperButton.tsx:46"
+ ],
+ "Windows/Linux": [
+  "components/content/Help/KeyboardShortcutsView.tsx:363:jsx"
+ ],
+ "Nodetool": [
+  "components/content/Help/Help.tsx:255:jsx"
+ ],
+ "Workspace added": [
+  "components/workspaces/WorkspacesManager.tsx:138",
+  "components/workspaces/WorkspaceSelect.tsx:174"
+ ],
+ "Workspace removed": [
+  "components/workspaces/WorkspacesManager.tsx:178"
+ ],
+ "This deployment manages your workspace for you": [
+  "components/workspaces/WorkspacesManager.tsx:306"
+ ],
+ "Words:": [
+  "components/textEditor/EditorStatusBar.tsx:126:jsx"
+ ],
+ "Chars:": [
+  "components/textEditor/EditorStatusBar.tsx:131:jsx"
+ ],
+ "Vars:": [
+  "components/textEditor/EditorStatusBar.tsx:143:jsx"
+ ],
+ "Failed to load workflow": [
+  "components/chain_editor/ChainEditorPage.tsx:38",
+  "components/node/WorkflowNode/WorkflowLoader.tsx:151"
+ ],
+ "Missing source": [
+  "components/chain_editor/ChainNodeProperties.tsx:262"
+ ],
+ "No scripts are currently open. ": [
+  "components/script/scriptAgentBridge.ts:179"
+ ],
+ "Open the storyboard derived from this script": [
+  "components/script/StoryboardLinkControl.tsx:69"
+ ],
+ "Derive a storyboard: one shot per line, linked to it": [
+  "components/script/StoryboardLinkControl.tsx:70"
+ ],
+ "Open storyboard": [
+  "components/script/StoryboardLinkControl.tsx:74"
+ ],
+ "Create storyboard": [
+  "components/script/StoryboardLinkControl.tsx:77"
+ ],
+ "Current take": [
+  "components/script/ScriptTakeGallery.tsx:87"
+ ],
+ "Use this take": [
+  "components/script/ScriptTakeGallery.tsx:87"
+ ],
+ "No pause after": [
+  "components/script/ScriptLineRow.tsx:117"
+ ],
+ "Change speaker": [
+  "components/script/ScriptLineRow.tsx:235"
+ ],
+ "Not voiced yet": [
+  "components/script/ScriptLineRow.tsx:569"
+ ],
+ "No entity": [
+  "components/script/ScriptCastPanel.tsx:97"
+ ],
+ "Every line is already voiced.": [
+  "components/script/ScriptDocumentPane.tsx:471"
+ ],
+ "Voice all": [
+  "components/script/ScriptDocumentPane.tsx:511"
+ ],
+ "Voicing…": [
+  "components/script/ScriptDocumentPane.tsx:904:jsx"
+ ],
+ "Play current takes in order": [
+  "components/script/ScriptDocumentPane.tsx:925"
+ ],
+ "Voice at least one line to play": [
+  "components/script/ScriptDocumentPane.tsx:926"
+ ],
+ "Cut the linked storyboard's shots and these takes into one timeline": [
+  "components/script/ScriptDocumentPane.tsx:961"
+ ],
+ "Voice at least one line to send it to a timeline": [
+  "components/script/ScriptDocumentPane.tsx:963"
+ ],
+ "Update timeline": [
+  "components/script/ScriptDocumentPane.tsx:971"
+ ],
+ "Voice at least one line to export subtitles": [
+  "components/script/ScriptDocumentPane.tsx:997"
+ ],
+ "This audio asset has no URL to load.": [
+  "components/audio_editor/AudioSampleEditor.tsx:256"
+ ],
+ "Drag to select · Click to seek": [
+  "components/audio_editor/AudioSampleEditor.tsx:488"
+ ],
+ "Failed to get canvas context": [
+  "components/common/CopyAssetButton.tsx:143",
+  "components/sketch/serialization/index.ts:131",
+  "components/sketch/serialization/index.ts:380",
+  "hooks/sketch/useGenerateLayer.ts:112"
+ ],
+ "Failed to convert to PNG": [
+  "components/common/CopyAssetButton.tsx:152"
+ ],
+ "Failed to copy": [
+  "components/common/CopyAssetButton.tsx:329"
+ ],
+ "Error loading models": [
+  "components/properties/InferenceProviderModelSelect.tsx:168"
+ ],
+ "Error loading preview.": [
+  "components/properties/TextAssetDisplay.tsx:63"
+ ],
+ "Please check that Ollama is running": [
+  "components/properties/LlamaModelSelect.tsx:131"
+ ],
+ "Drop CSV or Excel file": [
+  "components/properties/DataframeProperty.tsx:277"
+ ],
+ "Pick entity": [
+  "components/properties/EntityProperty.tsx:82"
+ ],
+ "Input on top (click for bottom; edge stays connected)": [
+  "components/properties/PropertyVisibilityToggle.tsx:120"
+ ],
+ "Input on top — click for bottom labeled row": [
+  "components/properties/PropertyVisibilityToggle.tsx:122"
+ ],
+ "Input on bottom (click to hide; disconnects edge)": [
+  "components/properties/PropertyVisibilityToggle.tsx:130"
+ ],
+ "Input on bottom — click to hide": [
+  "components/properties/PropertyVisibilityToggle.tsx:132"
+ ],
+ "Enter values...": [
+  "components/properties/StringListProperty.tsx:116"
+ ],
+ "Exit focus mode": [
+  "components/properties/TextEditorModal.tsx:1280",
+  "components/properties/TextEditorModal.tsx:1286"
+ ],
+ "Focus mode (hide panels)": [
+  "components/properties/TextEditorModal.tsx:1280"
+ ],
+ "Focus mode": [
+  "components/properties/TextEditorModal.tsx:1286"
+ ],
+ "Nothing was captured to attach to this report.": [
+  "components/support/BugReportDialog.tsx:349:jsx"
+ ],
+ "Delete version": [
+  "components/version/VersionListItem.tsx:224",
+  "components/sketch/Inspector/LayerVersionRow.tsx:161",
+  "components/sketch/Inspector/LayerVersionRow.tsx:164"
+ ],
+ "Pick two versions to see what changed.": [
+  "components/version/VersionHistoryPanel.tsx:524"
+ ],
+ "Click any entry to see its graph and metadata here.": [
+  "components/version/VersionHistoryPanel.tsx:525"
+ ],
+ "Execution plan": [
+  "components/execution/ExecutionTree.tsx:841"
+ ],
+ "View documentation": [
+  "components/packages/SandboxPackDisclosure.tsx:86"
+ ],
+ "No output yet. Logs appear here during install.": [
+  "components/packages/ConsolePanel.tsx:97"
+ ],
+ "Included packs": [
+  "components/packages/usePackageManager.ts:55"
+ ],
+ "Third-party packs": [
+  "components/packages/usePackageManager.ts:57"
+ ],
+ "No matching nodes found": [
+  "components/node_editor/QuickAddNodeDialog.tsx:276"
+ ],
+ "Type to search for nodes...": [
+  "components/node_editor/QuickAddNodeDialog.tsx:276"
+ ],
+ "Enter": [
+  "components/node_editor/QuickAddNodeDialog.tsx:319:jsx"
+ ],
+ "Math.abs(preset - value)": [
+  "components/node_editor/ViewportStatusIndicator.tsx:102:jsx"
+ ],
+ "Install failed": [
+  "components/node_editor/RuntimeInstallDialog.tsx:78"
+ ],
+ "Install all": [
+  "components/node_editor/RuntimeInstallDialog.tsx:179"
+ ],
+ "Output:": [
+  "components/node_menu/TypeFilterChips.tsx:386:jsx",
+  "components/node_menu/SearchResultItem.tsx:519:jsx"
+ ],
+ "Text to Image": [
+  "components/node_menu/QuickActionTiles.constants.tsx:67"
+ ],
+ "Image to Image": [
+  "components/node_menu/QuickActionTiles.constants.tsx:68"
+ ],
+ "Text to Video": [
+  "components/node_menu/QuickActionTiles.constants.tsx:73"
+ ],
+ "Image to Video": [
+  "components/node_menu/QuickActionTiles.constants.tsx:74"
+ ],
+ "Video to Video": [
+  "components/node_menu/QuickActionTiles.constants.tsx:75"
+ ],
+ "Text to Speech": [
+  "components/node_menu/QuickActionTiles.constants.tsx:77",
+  "components/hugging_face/onboarding/onboardingCatalog.ts:31"
+ ],
+ "Click on the namespaces to the left": [
+  "components/node_menu/RenderNodes.tsx:290:jsx"
+ ],
+ "Type in the search bar to search for nodes.": [
+  "components/node_menu/RenderNodes.tsx:295:jsx"
+ ],
+ "Node added to favorites": [
+  "components/node_menu/SearchResultItem.tsx:256",
+  "components/node_menu/NodeItem.tsx:202"
+ ],
+ "Collapse details": [
+  "components/node_menu/SearchResultItem.tsx:470",
+  "components/node_menu/SearchResultItem.tsx:471"
+ ],
+ "Input:": [
+  "components/node_menu/SearchResultItem.tsx:493:jsx"
+ ],
+ "Could not create the app from this workflow.": [
+  "components/applications/ApplicationListPanel.tsx:134"
+ ],
+ "Per day": [
+  "components/applications/ApplicationGovernancePanel.tsx:45"
+ ],
+ "Per month": [
+  "components/applications/ApplicationGovernancePanel.tsx:46"
+ ],
+ "Public link status failed to load": [
+  "components/applications/ApplicationGovernancePanel.tsx:295"
+ ],
+ "Public link creation failed": [
+  "components/applications/ApplicationGovernancePanel.tsx:355"
+ ],
+ "Public link withdrawal failed": [
+  "components/applications/ApplicationGovernancePanel.tsx:372"
+ ],
+ "Nothing released yet.": [
+  "components/applications/ApplicationGovernancePanel.tsx:501"
+ ],
+ "Not connected": [
+  "components/menus/GoogleWorkspaceCard.tsx:112",
+  "components/menus/APIKeysTab.tsx:145",
+  "components/menus/BrowserExtensionSettingsMenu.tsx:112"
+ ],
+ "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar.": [
+  "components/menus/GoogleWorkspaceCard.tsx:122"
+ ],
+ "Failed to load system information": [
+  "components/menus/AboutMenu.tsx:175"
+ ],
+ "Key stored": [
+  "components/menus/APIKeysTab.tsx:334"
+ ],
+ "Need API credits?": [
+  "components/menus/APIKeysTab.tsx:1252:jsx"
+ ],
+ "Turn Off Snap to Grid": [
+  "components/menus/CommandMenu.tsx:572"
+ ],
+ "Extension connected": [
+  "components/menus/BrowserExtensionSettingsMenu.tsx:111"
+ ],
+ "No expiry": [
+  "components/menus/AgentAccessSection.tsx:43",
+  "components/menus/AgentAccessSection.tsx:303"
+ ],
+ "Token revoked": [
+  "components/menus/AgentAccessSection.tsx:131"
+ ],
+ "Claude Code — run this": [
+  "components/menus/AgentAccessSection.tsx:264:jsx"
+ ],
+ "Or paste into an MCP client config file": [
+  "components/menus/AgentAccessSection.tsx:272:jsx"
+ ],
+ "Installed outside the current install ledger, so its mode is unknown here.": [
+  "components/menus/PackagesMenu.tsx:316"
+ ],
+ "Trust and rebuild": [
+  "components/menus/PackagesMenu.tsx:327"
+ ],
+ "Node pack install is not available in this build.": [
+  "components/menus/PackagesMenu.tsx:371"
+ ],
+ "Package to install": [
+  "components/menus/PackagesMenu.tsx:426"
+ ],
+ "No valid nodes in clipboard": [
+  "components/menus/MobilePaneMenu.tsx:198"
+ ],
+ "Paste copied nodes": [
+  "components/menus/MobilePaneMenu.tsx:198"
+ ],
+ "Email address": [
+  "components/menus/providerCatalog.ts:529"
+ ],
+ "Could not find the NodeTool extension bundle.": [
+  "components/menus/MCPSettingsMenu.tsx:147"
+ ],
+ "Model Context Protocol": [
+  "components/menus/MCPSettingsMenu.tsx:183:jsx"
+ ],
+ "Claude Desktop": [
+  "components/menus/MCPSettingsMenu.tsx:287:jsx"
+ ],
+ "Connected. The server offers no tools.": [
+  "components/menus/ExternalMcpServersSection.tsx:242"
+ ],
+ "Could not connect.": [
+  "components/menus/ExternalMcpServersSection.tsx:246"
+ ],
+ "Enter a command.": [
+  "components/menus/ExternalMcpServersSection.tsx:434"
+ ],
+ "That id is already in use.": [
+  "components/menus/ExternalMcpServersSection.tsx:538"
+ ],
+ "This deployment cannot run commands; only HTTP servers connect.": [
+  "components/menus/ExternalMcpServersSection.tsx:553"
+ ],
+ "Edit endpoint": [
+  "components/menus/CustomProvidersSection.tsx:463"
+ ],
+ "That slug is already in use.": [
+  "components/menus/CustomProvidersSection.tsx:498"
+ ],
+ "Failed to save search provider": [
+  "components/dialogs/SearchProviderSetupDialog.tsx:97"
+ ],
+ "This agent uses a web-search tool, but no search provider is configured. ": [
+  "components/dialogs/SearchProviderSetupDialog.tsx:137"
+ ],
+ "Could not create the folder": [
+  "components/dialogs/FileBrowserDialog.tsx:544"
+ ],
+ "Opening task…": [
+  "components/tutorials/TutorialsPage.tsx:461"
+ ],
+ "Open task": [
+  "components/tutorials/TutorialsPage.tsx:461"
+ ],
+ "The wash layer appears in the layer panel with the requested blend mode and opacity.": [
+  "components/tutorials/tutorialsData.ts:75"
+ ],
+ "The script contains cast speakers, written lines, and an audio take for each speaker.": [
+  "components/tutorials/tutorialsData.ts:96"
+ ],
+ "Describe a short piece, review the generated shot list, and approve it for rendering.": [
+  "components/tutorials/tutorialsData.ts:116"
+ ],
+ "The board contains an approved shot list with a rendered still for each shot.": [
+  "components/tutorials/tutorialsData.ts:117"
+ ],
+ "The Examples page with the mini-app gallery ready to browse.": [
+  "components/tutorials/tutorialsData.ts:136"
+ ],
+ "Open a mini app, provide its input, and run it once from the app surface.": [
+  "components/tutorials/tutorialsData.ts:137"
+ ],
+ "The app displays a completed answer and its input/output widgets remain bound.": [
+  "components/tutorials/tutorialsData.ts:138"
+ ],
+ "JS scripts · ports, body, saved test": [
+  "components/tutorials/tutorialsData.ts:144"
+ ],
+ "Make one assistant edit, then ask it to reduce the effect without creating another layer.": [
+  "components/tutorials/tutorialsData.ts:175"
+ ],
+ "The existing layer is amended in place and the layer count stays unchanged.": [
+  "components/tutorials/tutorialsData.ts:176"
+ ],
+ "The assistant waits before spending, then creates the clarified shot list after your answer.": [
+  "components/tutorials/tutorialsData.ts:197"
+ ],
+ "JS scripts · red, then the repair, then green": [
+  "components/tutorials/tutorialsData.ts:203"
+ ],
+ "The chat shows a web-search tool call followed by a streamed answer.": [
+  "components/tutorials/tutorialsData.ts:235"
+ ],
+ "Text → enhance → image, end to end": [
+  "components/tutorials/tutorialsData.ts:241"
+ ],
+ "The graph completes and the generated image appears on the canvas.": [
+  "components/tutorials/tutorialsData.ts:256"
+ ],
+ "Follow a connected graph from input to output": [
+  "components/tutorials/tutorialsData.ts:262"
+ ],
+ "Connect a text input to Uppercase and then to Preview, run it with hello nodetool, and inspect the output.": [
+  "components/tutorials/tutorialsData.ts:276"
+ ],
+ "Preview shows HELLO NODETOOL and each connected node reports completion.": [
+  "components/tutorials/tutorialsData.ts:277"
+ ],
+ "One prompt, many results": [
+  "components/tutorials/tutorialsData.ts:283"
+ ],
+ "Connect a topic input to a list-generating LLM node and run it for weekend trip ideas.": [
+  "components/tutorials/tutorialsData.ts:297"
+ ],
+ "The output contains multiple list items that can be passed to a downstream node.": [
+  "components/tutorials/tutorialsData.ts:298"
+ ],
+ "Connect a question input to an LLM node, ask for a short API explanation, and run it.": [
+  "components/tutorials/tutorialsData.ts:318"
+ ],
+ "The answer streams into the output and remains available to the next node.": [
+  "components/tutorials/tutorialsData.ts:319"
+ ],
+ "Merge values with a template": [
+  "components/tutorials/tutorialsData.ts:325"
+ ],
+ "Connect name and topic inputs to a template prompt, fill both values, and run it.": [
+  "components/tutorials/tutorialsData.ts:339"
+ ],
+ "Preview shows the completed template with both input values substituted.": [
+  "components/tutorials/tutorialsData.ts:340"
+ ],
+ "Feed a long passage into a Summarizer node, run it, and send the summary to Preview.": [
+  "components/tutorials/tutorialsData.ts:360"
+ ],
+ "Preview contains a shorter set of key points while the source remains available for comparison.": [
+  "components/tutorials/tutorialsData.ts:361"
+ ],
+ "The vision response describes the image and is available in the downstream output.": [
+  "components/tutorials/tutorialsData.ts:382"
+ ],
+ "Timeline editor · trim, arrange, caption": [
+  "components/tutorials/tutorialsData.ts:388"
+ ],
+ "Place two clips, trim their cut, add a caption, and preview the finished sequence.": [
+  "components/tutorials/tutorialsData.ts:402"
+ ],
+ "The timeline plays the arranged cut with the caption aligned to the dialogue.": [
+  "components/tutorials/tutorialsData.ts:403"
+ ],
+ "Worker is answering — safe to attach": [
+  "components/workers/WorkersPanel.tsx:203"
+ ],
+ "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money.": [
+  "components/workers/WorkerProfilesDialog.tsx:402"
+ ],
+ "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”.": [
+  "components/workers/WorkerProfilesDialog.tsx:416"
+ ],
+ "Exact Vast name, e.g. “RTX_6000Ada”.": [
+  "components/workers/WorkerProfilesDialog.tsx:417"
+ ],
+ "Whisper Large v3": [
+  "components/preview/ComponentPreview.tsx:264"
+ ],
+ "The text description of the image to generate.": [
+  "components/preview/ComponentPreview.tsx:290"
+ ],
+ "Negative prompt": [
+  "components/preview/ComponentPreview.tsx:297"
+ ],
+ "Concepts to discourage from the generated image.": [
+  "components/preview/ComponentPreview.tsx:298"
+ ],
+ "Number of denoising steps. Higher = better but slower.": [
+  "components/preview/ComponentPreview.tsx:306"
+ ],
+ "Playwright screenshot usage:": [
+  "components/preview/ComponentPreview.tsx:780:jsx"
+ ],
+ "Could not load credits": [
+  "components/node/KieCreditsFooter.tsx:314",
+  "components/node/FalPricingFooter.tsx:307"
+ ],
+ "Credits unavailable": [
+  "components/node/KieCreditsFooter.tsx:326",
+  "components/node/FalPricingFooter.tsx:319"
+ ],
+ "Existing node": [
+  "components/node/KeyboardConnectionPicker.tsx:322"
+ ],
+ "Create node": [
+  "components/node/KeyboardConnectionPicker.tsx:322"
+ ],
+ "Click to place · Esc to cancel": [
+  "components/node/GhostNode.tsx:84:jsx"
+ ],
+ "This node needs an AI model. Connect a provider to run it.": [
+  "components/node/ModelSetupCallout.tsx:83"
+ ],
+ "Connect an AI provider to use models — add an API key to get started.": [
+  "components/node/ModelSetupCallout.tsx:105"
+ ],
+ "Pick a model here before running this workflow.": [
+  "components/node/ModelSetupCallout.tsx:106"
+ ],
+ "This node needs a provider key. Connect it to run the node.": [
+  "components/node/ApiKeyValidation.tsx:21"
+ ],
+ "Enable all nodes": [
+  "components/node/GroupNode.tsx:648"
+ ],
+ "Disable all nodes": [
+  "components/node/GroupNode.tsx:648"
+ ],
+ "Drag out while holding CTRL | ⌘ key": [
+  "components/node/GroupNode.tsx:677:jsx"
+ ],
+ "Failed in": [
+  "components/node/NodeExecutionTime.tsx:90"
+ ],
+ "Completed in": [
+  "components/node/NodeExecutionTime.tsx:90"
+ ],
+ "Open full text": [
+  "components/node/NodeHistoryViewer.tsx:892",
+  "components/node/NodeHistoryViewer.tsx:897"
+ ],
+ "Open in viewer": [
+  "components/node/NodeHistoryViewer.tsx:892",
+  "components/node/NodeHistoryViewer.tsx:897"
+ ],
+ "From:": [
+  "components/node/output/EmailRenderer.tsx:22:jsx"
+ ],
+ "Failed to parse": [
+  "components/node/DynamicComfySchemaNode/ComfyWorkflowLoader.tsx:72"
+ ],
+ "Failed to load file": [
+  "components/node/DynamicComfySchemaNode/ComfyWorkflowLoader.tsx:92"
+ ],
+ "Expose additional parameters as inputs:": [
+  "components/node/DynamicComfySchemaNode/ComfyWorkflowLoader.tsx:243:jsx"
+ ],
+ "Paste kie.ai API documentation first.": [
+  "components/node/DynamicKieSchemaNode/KieSchemaLoader.tsx:50"
+ ],
+ "Failed to load schema": [
+  "components/node/DynamicKieSchemaNode/KieSchemaLoader.tsx:122",
+  "components/node/DynamicFalSchemaNode/FalSchemaLoader.tsx:119",
+  "components/node/DynamicReplicateNode/ReplicateSchemaLoader.tsx:115"
+ ],
+ "Node definition not found.": [
+  "components/node/DynamicFalSchemaNode/FalSchemaLoader.tsx:47"
+ ],
+ "Paste a Replicate model identifier first.": [
+  "components/node/DynamicReplicateNode/ReplicateSchemaLoader.tsx:44"
+ ],
+ "View on HuggingFace": [
+  "components/hugging_face/ModelActionsCommon.tsx:38"
+ ],
+ "Collapse model pack details": [
+  "components/hugging_face/ModelPackCard.tsx:259"
+ ],
+ "Expand model pack details": [
+  "components/hugging_face/ModelPackCard.tsx:259"
+ ],
+ "Pending download...": [
+  "components/hugging_face/DownloadProgress.tsx:374"
+ ],
+ "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates.": [
+  "components/hugging_face/DownloadProgress.tsx:418"
+ ],
+ "Copy model name": [
+  "components/hugging_face/model_list/ModelListItemActions.tsx:156"
+ ],
+ "Copy repo ID": [
+  "components/hugging_face/model_list/ModelListItemActions.tsx:156"
+ ],
+ "Write, reason, and use tools with a language model": [
+  "components/hugging_face/model_list/modelFit.ts:85"
+ ],
+ "Create images": [
+  "components/hugging_face/model_list/modelFit.ts:91"
+ ],
+ "Understand images": [
+  "components/hugging_face/model_list/modelFit.ts:125"
+ ],
+ "Describe, classify, or analyze images and documents": [
+  "components/hugging_face/model_list/modelFit.ts:125"
+ ],
+ "Transcribe speech": [
+  "components/hugging_face/model_list/modelFit.ts:144"
+ ],
+ "Turn audio recordings into text": [
+  "components/hugging_face/model_list/modelFit.ts:144"
+ ],
+ "Voice lines, narration, and sound from text": [
+  "components/hugging_face/model_list/modelFit.ts:147"
+ ],
+ "Embeddings for semantic search over your documents": [
+  "components/hugging_face/model_list/modelFit.ts:156"
+ ],
+ "Vision (image understanding)": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:28"
+ ],
+ "One-click local LLMs": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:66"
+ ],
+ "Image, video & audio via Python": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:96"
+ ],
+ "Fits your machine": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:444"
+ ],
+ "Tight fit": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:445"
+ ],
+ "Needs more memory": [
+  "components/hugging_face/onboarding/onboardingCatalog.ts:446"
+ ],
+ "Install the packs that add the nodes you want to use.": [
+  "components/hugging_face/onboarding/EngineGuide.tsx:208"
+ ],
+ "Node packs install from the desktop app's Package Manager.": [
+  "components/hugging_face/onboarding/EngineGuide.tsx:209"
+ ],
+ "Entry — small models run great": [
+  "components/hugging_face/onboarding/useHardwareProfile.ts:55"
+ ],
+ "Mid-range — 7–14B models are comfortable": [
+  "components/hugging_face/onboarding/useHardwareProfile.ts:56"
+ ],
+ "Workstation — the largest local models": [
+  "components/hugging_face/onboarding/useHardwareProfile.ts:58"
+ ],
+ "My node": [
+  "components/node_types/CodeNodeScriptLink.tsx:115"
+ ],
+ "No Code assistant is currently open. Ask the user to open one from a Code node.": [
+  "components/node_types/code_assistant/codeAssistantBridge.ts:76"
+ ],
+ "Image load failed": [
+  "components/node_types/editing/LevelsBody.tsx:205"
+ ],
+ "Target width": [
+  "components/node_types/editing/FitBody.tsx:229",
+  "components/node_types/editing/ResizeBody.tsx:237",
+  "components/node_types/editing/ResizeImageBody.tsx:340"
+ ],
+ "Target height": [
+  "components/node_types/editing/FitBody.tsx:248",
+  "components/node_types/editing/ResizeBody.tsx:265",
+  "components/node_types/editing/ResizeImageBody.tsx:370"
+ ],
+ "Connect a mask": [
+  "components/node_types/editing/MaskBody.tsx:41"
+ ],
+ "Unlock aspect ratio": [
+  "components/node_types/editing/ResizeBody.tsx:255",
+  "components/node_types/editing/ResizeBody.tsx:256",
+  "components/node_types/editing/ResizeImageBody.tsx:359",
+  "components/node_types/editing/ResizeImageBody.tsx:360"
+ ],
+ "Top offset": [
+  "components/node_types/editing/PasteBody.tsx:261"
+ ],
+ "Crop width": [
+  "components/node_types/editing/CropBody.tsx:729"
+ ],
+ "Crop height": [
+  "components/node_types/editing/CropBody.tsx:748"
+ ],
+ "No recent assets match.": [
+  "components/node_types/editing/promptComposer/AssetMentionMenu.tsx:204"
+ ],
+ "No assets used yet. Generate or drag one in.": [
+  "components/node_types/editing/promptComposer/AssetMentionMenu.tsx:205"
+ ],
+ "No assets match.": [
+  "components/node_types/editing/promptComposer/AssetMentionMenu.tsx:207"
+ ],
+ "No saved assets yet.": [
+  "components/node_types/editing/promptComposer/AssetMentionMenu.tsx:208"
+ ],
+ "Delete this collection?": [
+  "components/collections/CollectionList.tsx:190"
+ ],
+ "With a collection, you can:": [
+  "components/collections/EmptyCollectionState.tsx:34:jsx"
+ ],
+ "Index text and images as vector embeddings": [
+  "components/collections/EmptyCollectionState.tsx:42:jsx"
+ ],
+ "Failed to create collection": [
+  "components/collections/CollectionForm.tsx:203"
+ ],
+ "No outputs from this workflow yet": [
+  "components/assets/AssetGridContent.tsx:387"
+ ],
+ "This folder is empty": [
+  "components/assets/AssetGridContent.tsx:388"
+ ],
+ "Drop files here or use the upload button to add assets": [
+  "components/assets/AssetGridContent.tsx:393"
+ ],
+ "Filter by size": [
+  "components/assets/AssetActions.tsx:363"
+ ],
+ "Plays everywhere. No transparency.": [
+  "components/timeline/ExportVideoDialog.tsx:37"
+ ],
+ "VP9 video with Opus audio.": [
+  "components/timeline/ExportVideoDialog.tsx:38"
+ ],
+ "MP4 carries no alpha channel. Choose WebM or a PNG sequence.": [
+  "components/timeline/ExportVideoDialog.tsx:54"
+ ],
+ "Composites over a transparent ground and keeps the alpha channel.": [
+  "components/timeline/ExportVideoDialog.tsx:55"
+ ],
+ "Every PNG keeps its alpha channel.": [
+  "components/timeline/ExportVideoDialog.tsx:56"
+ ],
+ "This asset type cannot go on the timeline.": [
+  "components/timeline/SourceViewerPanel.tsx:188:jsx"
+ ],
+ "Export project (.zip)": [
+  "components/timeline/TopBar.tsx:135"
+ ],
+ "Eased at both ends, straight through the middle.": [
+  "components/timeline/fadeShapes.ts:20"
+ ],
+ "Quieter through the middle — the soft part of the fade lasts longer.": [
+  "components/timeline/fadeShapes.ts:22"
+ ],
+ "Failed to generate": [
+  "components/timeline/TopBarPrompt.tsx:247"
+ ],
+ "Describe the music you want to generate…": [
+  "components/timeline/TopBarPrompt.tsx:314"
+ ],
+ "Enter text to speak…": [
+  "components/timeline/TopBarPrompt.tsx:316"
+ ],
+ "Type a prompt and pick a model to generate": [
+  "components/timeline/TopBarPrompt.tsx:392"
+ ],
+ "Describe a video and press Enter…": [
+  "components/timeline/AddClipMenu.tsx:709"
+ ],
+ "Type text to speak and press Enter…": [
+  "components/timeline/AddClipMenu.tsx:711"
+ ],
+ "Describe an image and press Enter…": [
+  "components/timeline/AddClipMenu.tsx:712"
+ ],
+ "No timeline sequences are currently open. ": [
+  "components/timeline/timelineAgentBridge.ts:702"
+ ],
+ "New sequence": [
+  "components/timeline/TimelineEditor.tsx:292"
+ ],
+ "Untitled sequence": [
+  "components/timeline/TimelineEditor.tsx:835"
+ ],
+ "Export failed": [
+  "components/timeline/TimelineEditor.tsx:1072"
+ ],
+ "Exporting video": [
+  "components/timeline/TimelineEditor.tsx:1072"
+ ],
+ "Keep cut and retain handles": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:29"
+ ],
+ "Extend into available space": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:30"
+ ],
+ "Extend and ripple later clips": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:31"
+ ],
+ "Could not load extension models. Try again when connected.": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:152"
+ ],
+ "Connect a provider with a video extension model to use Extend.": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:153"
+ ],
+ "Close preview": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:232"
+ ],
+ "Preview extension": [
+  "components/timeline/Inspector/ExtendClipPanel.tsx:233"
+ ],
+ "This is the active take — select a different take before deleting it.": [
+  "components/timeline/Inspector/ClipVersionHistory.tsx:312"
+ ],
+ "Math.abs(point.x - next.x)": [
+  "components/timeline/Inspector/ToneCurveEditor.tsx:156:jsx"
+ ],
+ "New take requires a video clip.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:226"
+ ],
+ "This clip has no accepted take.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:234"
+ ],
+ "The video edit model catalog could not be loaded. Retry to check compatible providers.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:278"
+ ],
+ "No compatible video edit model is available. Add a provider or install a local model that supports video_to_video.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:280"
+ ],
+ "The edit was cancelled. The accepted media was left unchanged.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:285"
+ ],
+ "The edit expired before it finished. The captured request is available to retry.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:287"
+ ],
+ "The source clip was deleted before the edit finished. The result was kept for inspection and was not applied.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:289"
+ ],
+ "The provider failed this edit. The accepted media was left unchanged.": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:291"
+ ],
+ "Edit instruction": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:325"
+ ],
+ "New take direction": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:415"
+ ],
+ "New take": [
+  "components/timeline/Inspector/AIEditClipPanel.tsx:425"
+ ],
+ "The line delivery could not be submitted. Check the Script voice and connection.": [
+  "components/timeline/Inspector/LineDeliveryPanel.tsx:76"
+ ],
+ "Columns are source time (ms, read-only), value, and easing: ": [
+  "components/timeline/Inspector/ClipCustomCurves.tsx:402"
+ ],
+ "Columns are time (0..1 across the animation), value, and easing: ": [
+  "components/timeline/Inspector/ClipCustomCurves.tsx:403"
+ ],
+ "None (hard cut)": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:49"
+ ],
+ "Dip to color": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:51"
+ ],
+ "Overlap this clip with the previous one on the same track to cross-fade.": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:59"
+ ],
+ "This clip pushes the outgoing one off the frame.": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:64"
+ ],
+ "This clip slides in over a stationary outgoing one.": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:65"
+ ],
+ "The outgoing clip scales up while this one scales in.": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:66"
+ ],
+ "Transition color": [
+  "components/timeline/Inspector/ClipTransitionSection.tsx:254"
+ ],
+ "Caption color": [
+  "components/timeline/Inspector/ClipCaptionStyle.tsx:189"
+ ],
+ "Caption spoken-word color": [
+  "components/timeline/Inspector/ClipCaptionStyle.tsx:199"
+ ],
+ "Caption outline color": [
+  "components/timeline/Inspector/ClipCaptionStyle.tsx:231"
+ ],
+ "Caption scrim color": [
+  "components/timeline/Inspector/ClipCaptionStyle.tsx:256"
+ ],
+ "No subject selected.": [
+  "components/timeline/Inspector/ClipTracking.tsx:112"
+ ],
+ "Tracking subject…": [
+  "components/timeline/Inspector/ClipTracking.tsx:131"
+ ],
+ "Track subject": [
+  "components/timeline/Inspector/ClipTracking.tsx:131"
+ ],
+ "Checking tracking providers and models.": [
+  "components/timeline/Inspector/ClipTracking.tsx:140"
+ ],
+ "Tracking models could not be loaded. Try again when connected.": [
+  "components/timeline/Inspector/ClipTracking.tsx:142"
+ ],
+ "No subject-tracking provider or model is available.": [
+  "components/timeline/Inspector/ClipTracking.tsx:144"
+ ],
+ "Tracking is running and will update this timeline when it finishes.": [
+  "components/timeline/Inspector/ClipTracking.tsx:146"
+ ],
+ "Choose a shape clip…": [
+  "components/timeline/Inspector/ClipAnimations.tsx:370"
+ ],
+ "Failed to duplicate clip": [
+  "components/timeline/Inspector/ClipActions.tsx:69",
+  "components/timeline/Tracks/useClipMenuActions.ts:90"
+ ],
+ "Failed to create copy": [
+  "components/timeline/Inspector/ClipActions.tsx:87",
+  "components/timeline/Tracks/useClipMenuActions.ts:99"
+ ],
+ "Unlocked — successful generations replace current output": [
+  "components/timeline/Inspector/ClipActions.tsx:170",
+  "components/sketch/Inspector/LayerActions.tsx:315"
+ ],
+ "Unlock clip": [
+  "components/timeline/Inspector/ClipActions.tsx:174"
+ ],
+ "Text content": [
+  "components/timeline/Inspector/ClipTextStyleSection.tsx:69"
+ ],
+ "Text color": [
+  "components/timeline/Inspector/ClipTextStyleSection.tsx:70"
+ ],
+ "Text stroke color": [
+  "components/timeline/Inspector/ClipTextStyleSection.tsx:71"
+ ],
+ "Text shadow color": [
+  "components/timeline/Inspector/ClipTextStyleSection.tsx:72"
+ ],
+ "Text background color": [
+  "components/timeline/Inspector/ClipTextStyleSection.tsx:73"
+ ],
+ "This clip has no model asset yet.": [
+  "components/timeline/Inspector/useModel3DSessionNames.ts:70"
+ ],
+ "This clip's model could not be loaded.": [
+  "components/timeline/Inspector/useModel3DSessionNames.ts:103"
+ ],
+ "Describe the video…": [
+  "components/timeline/Inspector/DirectGenClipPanel.tsx:369"
+ ],
+ "Describe the music…": [
+  "components/timeline/Inspector/DirectGenClipPanel.tsx:371"
+ ],
+ "Type text to speak…": [
+  "components/timeline/Inspector/DirectGenClipPanel.tsx:373"
+ ],
+ "Marker + cut every clip at the playhead": [
+  "components/timeline/transcript/SlashCommandNode.tsx:49"
+ ],
+ "Video seek aborted": [
+  "components/timeline/render/OffscreenVideoPool.ts:42"
+ ],
+ "Choose a WT-1, BL-1, or DR-1 preset to edit this track’s instrument.": [
+  "components/timeline/Tracks/TrackInstrumentPanel.tsx:105:jsx"
+ ],
+ "Drop one asset at a time onto a track.": [
+  "components/timeline/Tracks/TrackLane.tsx:275"
+ ],
+ "Click or focus a key and press Enter": [
+  "components/timeline/Tracks/FableSynthInstrumentEditors.tsx:298:jsx"
+ ],
+ "Filter bypassed. Enable to shape this pad.": [
+  "components/timeline/Tracks/FableSynthInstrumentEditors.tsx:912:jsx"
+ ],
+ "Wavetable synthesizer": [
+  "components/timeline/Tracks/FableSynthInstrumentEditors.tsx:965"
+ ],
+ "Drum synthesizer": [
+  "components/timeline/Tracks/FableSynthInstrumentEditors.tsx:966"
+ ],
+ "Unlock track": [
+  "components/timeline/Tracks/TrackHeader.tsx:741",
+  "components/timeline/Tracks/TrackHeader.tsx:746"
+ ],
+ "Effects chain (empty)": [
+  "components/timeline/Tracks/TrackHeader.tsx:827"
+ ],
+ "Time ruler — click or drag to set playhead": [
+  "components/timeline/Tracks/TimeRuler.tsx:603"
+ ],
+ "Move the playhead inside the clip to split it.": [
+  "components/timeline/Tracks/useClipMenuActions.ts:81"
+ ],
+ "Cross-fade in": [
+  "components/timeline/Tracks/ClipContextMenu.tsx:103"
+ ],
+ "Fade in and out": [
+  "components/timeline/Tracks/ClipContextMenu.tsx:114"
+ ],
+ "Velocity ±": [
+  "components/timeline/pianoRoll/PianoRoll.tsx:843:jsx"
+ ],
+ "Could not initialize raster frame renderer.": [
+  "components/timeline/preview/rasterClipFrames.ts:55"
+ ],
+ "Tracked subject": [
+  "components/timeline/preview/TrackingOverlay.tsx:164"
+ ],
+ "Video made no decoding progress for 15 seconds": [
+  "components/timeline/preview/videoHealth.ts:46"
+ ],
+ "This browser has no WebGL, so 3D clips cannot be drawn here.": [
+  "components/timeline/preview/Model3DLayerSource.ts:338"
+ ],
+ "Preview canvas context was lost": [
+  "components/timeline/preview/PreviewCompositor.tsx:478"
+ ],
+ "Preview renderer could not initialize": [
+  "components/timeline/preview/PreviewCompositor.tsx:497"
+ ],
+ "Preview image could not be decoded": [
+  "components/timeline/preview/PreviewCompositor.tsx:1111"
+ ],
+ "Timeline preview failed": [
+  "components/timeline/preview/PreviewRecovery.tsx:98"
+ ],
+ "Probe aborted": [
+  "components/timeline/preview/bakeDecoding.ts:144"
+ ],
+ "WebGPU not supported in this browser": [
+  "components/timeline/preview/gpu/compositor.ts:103"
+ ],
+ "No WebGPU adapter available": [
+  "components/timeline/preview/gpu/compositor.ts:109"
+ ],
+ "Failed to get WebGPU canvas context": [
+  "components/timeline/preview/gpu/compositor.ts:133"
+ ],
+ "WebGPU initialization failed": [
+  "components/timeline/preview/gpu/createCompositor.ts:47"
+ ],
+ "Failed to get 2D canvas context": [
+  "components/timeline/preview/gpu/canvas2dCompositor.ts:61"
+ ],
+ "Failed to load 3D model. Only .glb/.gltf are supported.": [
+  "components/model_editor/Model3DEditor.tsx:472"
+ ],
+ "Failed to export model": [
+  "components/model_editor/Model3DEditor.tsx:620"
+ ],
+ "No workflow ID or data provided": [
+  "components/graph_view/WorkflowGraphView.tsx:155"
+ ],
+ "Turn off pen pressure": [
+  "components/sketch/SketchModal.tsx:262"
+ ],
+ "Turn on pen pressure": [
+  "components/sketch/SketchModal.tsx:263"
+ ],
+ "Toggle canvas resize handles": [
+  "components/sketch/SketchCanvasSizePanel.tsx:223"
+ ],
+ "No image documents are currently open. ": [
+  "components/sketch/sketchAgentBridge.ts:470"
+ ],
+ "Expand group": [
+  "components/sketch/LayerItem.tsx:247"
+ ],
+ "Collapse group": [
+  "components/sketch/LayerItem.tsx:247"
+ ],
+ "Input hidden": [
+  "components/sketch/LayerItem.tsx:450"
+ ],
+ "Output hidden": [
+  "components/sketch/LayerItem.tsx:470"
+ ],
+ "Make a selection first.": [
+  "components/sketch/SelectionActionBar.tsx:229"
+ ],
+ "No image document is open.": [
+  "components/sketch/SelectionActionBar.tsx:232",
+  "components/sketch/Inspector/CreateGeneratedLayerDialog.tsx:219"
+ ],
+ "Canvas is not ready yet.": [
+  "components/sketch/SelectionActionBar.tsx:235"
+ ],
+ "Describe the edit…": [
+  "components/sketch/SelectionActionBar.tsx:450"
+ ],
+ "Inpaint prompt": [
+  "components/sketch/SelectionActionBar.tsx:453"
+ ],
+ "Edit prompt": [
+  "components/sketch/SelectionActionBar.tsx:453"
+ ],
+ "Inpaint — regenerate the selected region using your prompt and the selection as a mask.": [
+  "components/sketch/SelectionActionBar.tsx:485"
+ ],
+ "Edit — transform the whole frame from your prompt.": [
+  "components/sketch/SelectionActionBar.tsx:486"
+ ],
+ "Failed to create canvas context for resize": [
+  "components/sketch/sam/resizeForInference.ts:38"
+ ],
+ "Failed to load image for resize": [
+  "components/sketch/sam/resizeForInference.ts:44"
+ ],
+ "Failed to duplicate layer": [
+  "components/sketch/Inspector/LayerActions.tsx:190"
+ ],
+ "Failed to start layer generation": [
+  "components/sketch/Inspector/LayerActions.tsx:226"
+ ],
+ "Failed to cancel generation": [
+  "components/sketch/Inspector/LayerActions.tsx:239"
+ ],
+ "Cancel generation": [
+  "components/sketch/Inspector/LayerActions.tsx:261"
+ ],
+ "Cancel layer generation": [
+  "components/sketch/Inspector/LayerActions.tsx:286"
+ ],
+ "Unlock layer": [
+  "components/sketch/Inspector/LayerActions.tsx:319"
+ ],
+ "No stale layers.": [
+  "components/sketch/Inspector/SketchAIToolbar.tsx:88"
+ ],
+ "Collapse versions": [
+  "components/sketch/Inspector/LayerVersionList.tsx:120",
+  "components/sketch/Inspector/LayerVersionList.tsx:126"
+ ],
+ "Expand versions": [
+  "components/sketch/Inspector/LayerVersionList.tsx:120",
+  "components/sketch/Inspector/LayerVersionList.tsx:126"
+ ],
+ "Failed to create layer.": [
+  "components/sketch/Inspector/CreateGeneratedLayerDialog.tsx:221"
+ ],
+ "Create layer": [
+  "components/sketch/Inspector/CreateGeneratedLayerDialog.tsx:240"
+ ],
+ "Failed to load image data": [
+  "components/sketch/serialization/index.ts:137"
+ ],
+ "Failed to create blob from canvas": [
+  "components/sketch/serialization/index.ts:351"
+ ],
+ "Model not available": [
+  "components/sketch/tool-settings-panels/segmentSettingsPanel.tsx:168"
+ ],
+ "Cutout layers": [
+  "components/sketch/tool-settings-panels/segmentSettingsPanel.tsx:278"
+ ],
+ "Mask layers": [
+  "components/sketch/tool-settings-panels/segmentSettingsPanel.tsx:278"
+ ],
+ "Concept prompt": [
+  "components/sketch/tool-settings-panels/segmentSettingsPanel.tsx:295"
+ ],
+ "Freehand lasso": [
+  "components/sketch/tool-settings-panels/selectSettingsPanel.tsx:93"
+ ],
+ "Tol.": [
+  "components/sketch/tool-settings-panels/selectSettingsPanel.tsx:119:jsx"
+ ],
+ "Could not check the model": [
+  "components/sketch/hooks/useSegmentation.ts:271"
+ ],
+ "The selected layer has no image data to segment.": [
+  "components/sketch/hooks/useSegmentation.ts:290"
+ ],
+ "Inference failed": [
+  "components/sketch/hooks/useSegmentation.ts:350"
+ ],
+ "Fill with Background Color": [
+  "components/sketch/shortcuts/actionRegistry.ts:67"
+ ],
+ "Fill with Foreground Color": [
+  "components/sketch/shortcuts/actionRegistry.ts:68"
+ ],
+ "Fit to Screen": [
+  "components/sketch/shortcuts/actionRegistry.ts:80"
+ ],
+ "Magic wand worker failed": [
+  "components/sketch/selection/magicWandWorker.ts:59"
+ ],
+ "Magic wand request aborted": [
+  "components/sketch/selection/magicWandAsync.ts:28"
+ ],
+ "No color": [
+  "components/inputs/ColorPicker.tsx:205"
+ ],
+ "Write a brief before directing.": [
+  "hooks/storyboard/useDirectScreenplay.ts:116"
+ ],
+ "Pick a model before directing.": [
+  "hooks/storyboard/useDirectScreenplay.ts:136"
+ ],
+ "The server rejected the save.": [
+  "hooks/storyboard/useStoryboardServerSync.ts:379"
+ ],
+ "Could not submit the production candidate.": [
+  "hooks/storyboard/useGenerateShot.ts:257"
+ ],
+ "Could not submit the render.": [
+  "hooks/storyboard/useGenerateShot.ts:258"
+ ],
+ "Could not start the render.": [
+  "hooks/storyboard/useGenerateShot.ts:273"
+ ],
+ "Choose a video model before revising this shot.": [
+  "hooks/storyboard/useGenerateShot.ts:615"
+ ],
+ "JS script save failed": [
+  "hooks/jsScript/jsScriptSaveRegistry.ts:53"
+ ],
+ "The designer did not return a design. Try again, or write the sections by hand.": [
+  "hooks/game/useDesignGame.ts:181"
+ ],
+ "Connect a provider to design this, or start from one of the examples.": [
+  "hooks/game/useDesignGame.ts:182"
+ ],
+ "This script is not open.": [
+  "hooks/script/useWriteScript.ts:160"
+ ],
+ "Write a brief before writing the script.": [
+  "hooks/script/useWriteScript.ts:175"
+ ],
+ "Pick a model before writing the script.": [
+  "hooks/script/useWriteScript.ts:193"
+ ],
+ "That voice returned no audio.": [
+  "hooks/script/useVoiceSamples.ts:143"
+ ],
+ "No media devices available": [
+  "hooks/browser/useVideoRecorder.ts:63",
+  "hooks/browser/useWaveRecorder.ts:56"
+ ],
+ "No devices found": [
+  "hooks/browser/useVideoRecorder.ts:83",
+  "hooks/browser/useWaveRecorder.ts:76"
+ ],
+ "No video input devices found": [
+  "hooks/browser/useVideoRecorder.ts:174"
+ ],
+ "Failed to start preview": [
+  "hooks/browser/useVideoRecorder.ts:227"
+ ],
+ "No video stream available. Start preview first.": [
+  "hooks/browser/useVideoRecorder.ts:241"
+ ],
+ "Failed to start recording": [
+  "hooks/browser/useVideoRecorder.ts:290"
+ ],
+ "Could not start recording.": [
+  "hooks/browser/useMicrophoneRecorder.ts:61"
+ ],
+ "No audio input devices found": [
+  "hooks/browser/useWaveRecorder.ts:131"
+ ],
+ "The planner did not return a plan. Try again, or edit the steps by hand.": [
+  "hooks/workflow/usePlanWorkflow.ts:336"
+ ],
+ "Connect a provider to plan this, or start from one of the examples.": [
+  "hooks/workflow/usePlanWorkflow.ts:337"
+ ],
+ "The test run completed without producing output.": [
+  "hooks/workflow/useBuildFromPlan.ts:191",
+  "hooks/workflow/useBuildFromPlan.ts:275"
+ ],
+ "The test run failed.": [
+  "hooks/workflow/useBuildFromPlan.ts:202"
+ ],
+ "The build was canceled.": [
+  "hooks/workflow/useBuildFromPlan.ts:210"
+ ],
+ "The graph validates, but part of the plan is unwired.": [
+  "hooks/workflow/useBuildFromPlan.ts:485"
+ ],
+ "The test run did not return a job id.": [
+  "hooks/workflow/useBuildFromPlan.ts:582"
+ ],
+ "The selected clip is no longer available.": [
+  "hooks/timeline/useTrackObject.ts:98"
+ ],
+ "The clip has no source video to track.": [
+  "hooks/timeline/useTrackObject.ts:103"
+ ],
+ "The source changed. Select the subject again.": [
+  "hooks/timeline/useTrackObject.ts:109"
+ ],
+ "No executable subject-tracking model is available.": [
+  "hooks/timeline/useTrackObject.ts:115"
+ ],
+ "The clip has no valid source tracking window.": [
+  "hooks/timeline/useTrackObject.ts:126"
+ ],
+ "This sequence has no markers yet.": [
+  "hooks/timeline/useTimelineAgentBridge.ts:337"
+ ],
+ "This sequence has no beat plan yet; run ui_timeline_plan_beats first.": [
+  "hooks/timeline/useTimelineAgentBridge.ts:373"
+ ],
+ "Clip created as a draft — set a provider, model and voice, then regenerate.": [
+  "hooks/timeline/useTimelineAgentBridge.ts:689"
+ ],
+ "Clip created as a draft — no model resolved. Set a provider and model, then regenerate.": [
+  "hooks/timeline/useTimelineAgentBridge.ts:690"
+ ],
+ "Timeline autosave is not ready.": [
+  "hooks/timeline/useTimelineAutosave.ts:111"
+ ],
+ "Production generation failed before producing a candidate.": [
+  "hooks/timeline/useTimelineDirectGenJob.ts:425"
+ ],
+ "Not a text-to-video clip.": [
+  "hooks/timeline/useTimelineDirectGenJob.ts:1061"
+ ],
+ "The production request could not be submitted.": [
+  "hooks/timeline/useTimelineDirectGenJob.ts:1176"
+ ],
+ "Could not create adaptation.": [
+  "hooks/timeline/useCreateFormatAdaptation.ts:144"
+ ],
+ "Unsupported file type": [
+  "hooks/handlers/dropHandlerUtils.ts:82",
+  "hooks/handlers/dropHandlerUtils.ts:148"
+ ],
+ "Failed to add file as node": [
+  "hooks/handlers/dropHandlerUtils.ts:111"
+ ],
+ "Failed to upload file as asset": [
+  "hooks/handlers/dropHandlerUtils.ts:166"
+ ],
+ "Failed to process JSON file": [
+  "hooks/handlers/dropHandlerUtils.ts:235"
+ ],
+ "Failed to process CSV file": [
+  "hooks/handlers/dropHandlerUtils.ts:256"
+ ],
+ "Failed to upload file from clipboard:": [
+  "hooks/handlers/useClipboardContentPaste.ts:444"
+ ],
+ "Failed to upload clipboard image:": [
+  "hooks/handlers/useClipboardContentPaste.ts:494"
+ ],
+ "Failed to create layer": [
+  "hooks/sketch/useCreateGeneratedLayer.ts:67"
+ ],
+ "Failed to append version": [
+  "hooks/sketch/useGenerateLayer.ts:365"
+ ],
+ "That file could not be read as an image.": [
+  "hooks/sketch/useUploadFirstLayer.ts:29"
+ ],
+ "This document has no layer to place the image on.": [
+  "hooks/sketch/useUploadFirstLayer.ts:66"
+ ],
+ "The provider refused this prompt. Reword it and try again.": [
+  "hooks/sketch/useDirectGenJob.ts:180"
+ ],
+ "The provider took too long to answer. Try again.": [
+  "hooks/sketch/useDirectGenJob.ts:187"
+ ],
+ "The connection dropped before the image came back. Try again.": [
+  "hooks/sketch/useDirectGenJob.ts:194"
+ ],
+ "The provider refused the request.": [
+  "hooks/sketch/useDirectGenJob.ts:201"
+ ],
+ "The provider refused the request and gave no reason.": [
+  "hooks/sketch/useDirectGenJob.ts:202"
+ ],
+ "This layer has no prompt to render.": [
+  "hooks/sketch/useDirectGenJob.ts:263"
+ ],
+ "This layer has no source image to work from.": [
+  "hooks/sketch/useDirectGenJob.ts:293"
+ ],
+ "The source layer this was built from is gone.": [
+  "hooks/sketch/useDirectGenJob.ts:304"
+ ],
+ "The source layer is empty, so there is nothing to work from.": [
+  "hooks/sketch/useDirectGenJob.ts:318"
+ ],
+ "The source image could not be prepared.": [
+  "hooks/sketch/useDirectGenJob.ts:336"
+ ],
+ "The request finished without an image.": [
+  "hooks/sketch/useDirectGenJob.ts:409"
+ ],
+ "The image came back but could not be placed on the canvas.": [
+  "hooks/sketch/useDirectGenJob.ts:490"
+ ],
+ "Inpaint setup failed": [
+  "hooks/sketch/useInpaintHere.ts:158"
+ ],
+ "Failed to load code editor": [
+  "hooks/editor/useMonacoEditor.ts:81"
+ ],
+ "Error updating asset.": [
+  "serverState/useAssetUpdate.ts:62",
+  "serverState/useAssets.ts:315"
+ ],
+ "Error deleting assets.": [
+  "serverState/useAssetDeletion.ts:36"
+ ],
+ "Error creating folder.": [
+  "serverState/useAssets.ts:303"
+ ],
+ "Error deleting asset.": [
+  "serverState/useAssets.ts:309"
+ ],
+ "Extension generation failed.": [
+  "lib/timelineExtension.ts:125"
+ ],
+ "WebSocket connection attempt failed": [
+  "lib/websocket/GlobalWebSocketManager.ts:196"
+ ],
+ "Client disconnect": [
+  "lib/websocket/WebSocketManager.ts:234"
+ ],
+ "WebSocket error occurred": [
+  "lib/websocket/WebSocketManager.ts:391"
+ ],
+ "Connection timeout": [
+  "lib/websocket/WebSocketManager.ts:699"
+ ],
+ "The request was aborted.": [
+  "lib/websocket/rpcRequest.ts:57"
+ ],
+ "What the workflow should do — the planner's input.": [
+  "lib/tools/builtin/workflowSetup.ts:153"
+ ],
+ "Kind of workflow. Biases which node types the planner sees.": [
+  "lib/tools/builtin/workflowSetup.ts:164"
+ ],
+ "Where the guided flow should resume.": [
+  "lib/tools/builtin/workflowSetup.ts:170",
+  "lib/tools/builtin/gameSetup.ts:171"
+ ],
+ "The step to change. Omit with op 'add'.": [
+  "lib/tools/builtin/workflowSetup.ts:236"
+ ],
+ "What to do with the step.": [
+  "lib/tools/builtin/workflowSetup.ts:240"
+ ],
+ "Delete a layer from the specified image document.": [
+  "lib/tools/builtin/sketch.ts:120"
+ ],
+ "Make a layer the active layer (subsequent edits target it).": [
+  "lib/tools/builtin/sketch.ts:145"
+ ],
+ "For image-to-image: the layer to transform.": [
+  "lib/tools/builtin/sketch.ts:242"
+ ],
+ "Name for the layer created when `target` is omitted.": [
+  "lib/tools/builtin/sketch.ts:324"
+ ],
+ "Pen pressure in [0,1]; omit for an even, mouse-like stroke.": [
+  "lib/tools/builtin/sketch.ts:381"
+ ],
+ "Edge hardness — 1 is crisp, 0 is a soft airbrushed falloff.": [
+  "lib/tools/builtin/sketch.ts:411"
+ ],
+ "Connect the last point back to the first, closing the shape.": [
+  "lib/tools/builtin/sketch.ts:415"
+ ],
+ "Fill color (hex/rgba); defaults to the foreground color.": [
+  "lib/tools/builtin/sketch.ts:479"
+ ],
+ "Color matching tolerance (0-255, default 16).": [
+  "lib/tools/builtin/sketch.ts:485"
+ ],
+ "True to fill connected pixels only (default true).": [
+  "lib/tools/builtin/sketch.ts:489"
+ ],
+ "End point in canvas pixels.": [
+  "lib/tools/builtin/sketch.ts:519"
+ ],
+ "Type of shape.": [
+  "lib/tools/builtin/sketch.ts:555"
+ ],
+ "Origin / start X coordinate in canvas pixels.": [
+  "lib/tools/builtin/sketch.ts:556"
+ ],
+ "Origin / start Y coordinate in canvas pixels.": [
+  "lib/tools/builtin/sketch.ts:557"
+ ],
+ "Width in canvas pixels (for rect, ellipse, polygon, star).": [
+  "lib/tools/builtin/sketch.ts:562"
+ ],
+ "Fill color (hex/rgba); omit for transparent fill.": [
+  "lib/tools/builtin/sketch.ts:571"
+ ],
+ "Corner radius for rounded rectangles.": [
+  "lib/tools/builtin/sketch.ts:582"
+ ],
+ "Number of vertices for polygons and stars (e.g. 5).": [
+  "lib/tools/builtin/sketch.ts:588"
+ ],
+ "Inner radius for star shapes.": [
+  "lib/tools/builtin/sketch.ts:592"
+ ],
+ "Polyline vertices for lasso/polygon shapes.": [
+  "lib/tools/builtin/sketch.ts:650"
+ ],
+ "Feather radius in pixels (default 0).": [
+  "lib/tools/builtin/sketch.ts:655"
+ ],
+ "Vertical translation in pixels (default 0).": [
+  "lib/tools/builtin/sketch.ts:685"
+ ],
+ "Vertical scale factor (default 1).": [
+  "lib/tools/builtin/sketch.ts:693"
+ ],
+ "Flip horizontally (default false).": [
+  "lib/tools/builtin/sketch.ts:701"
+ ],
+ "Flip vertically (default false).": [
+  "lib/tools/builtin/sketch.ts:705"
+ ],
+ "Contrast delta in [-1, 1].": [
+  "lib/tools/builtin/sketch.ts:752"
+ ],
+ "Exposure EV adjustment in [-2, 2].": [
+  "lib/tools/builtin/sketch.ts:758"
+ ],
+ "Crop origin X in canvas pixels.": [
+  "lib/tools/builtin/sketch.ts:813"
+ ],
+ "Crop origin Y in canvas pixels.": [
+  "lib/tools/builtin/sketch.ts:814"
+ ],
+ "Crop width in pixels.": [
+  "lib/tools/builtin/sketch.ts:815"
+ ],
+ "Crop height in pixels.": [
+  "lib/tools/builtin/sketch.ts:816"
+ ],
+ "Flattened composite of all visible layers (PNG).": [
+  "lib/tools/builtin/sketch.ts:875"
+ ],
+ "Multiple layers to render (ids/names).": [
+  "lib/tools/builtin/sketch.ts:901"
+ ],
+ "Optional base name for the uploaded asset file(s).": [
+  "lib/tools/builtin/sketch.ts:911"
+ ],
+ "Port name — a JavaScript identifier the body reads or emits.": [
+  "lib/tools/builtin/jsscript.ts:26"
+ ],
+ "Case name, unique within the script.": [
+  "lib/tools/builtin/jsscript.ts:35"
+ ],
+ "Input bag, keyed by declared input port name.": [
+  "lib/tools/builtin/jsscript.ts:38"
+ ],
+ "Expected final value per declared output handle.": [
+  "lib/tools/builtin/jsscript.ts:48"
+ ],
+ "The emit calls the run must make, in order.": [
+  "lib/tools/builtin/jsscript.ts:52"
+ ],
+ "The full new JavaScript body.": [
+  "lib/tools/builtin/jsscript.ts:72"
+ ],
+ "The complete new input port list, when changing inputs.": [
+  "lib/tools/builtin/jsscript.ts:89",
+  "lib/tools/builtin/code.ts:66"
+ ],
+ "The complete new output port list, when changing outputs.": [
+  "lib/tools/builtin/jsscript.ts:93",
+  "lib/tools/builtin/code.ts:70"
+ ],
+ "Menu grouping, e.g. 'Text' or 'My API'. Free text.": [
+  "lib/tools/builtin/jsscript.ts:126"
+ ],
+ "The complete new case list.": [
+  "lib/tools/builtin/jsscript.ts:167"
+ ],
+ "Input bag keyed by declared input port name.": [
+  "lib/tools/builtin/jsscript.ts:188"
+ ],
+ "TTS provider id, e.g. 'elevenlabs', 'openai'.": [
+  "lib/tools/builtin/script.ts:35"
+ ],
+ "TTS model id for the provider.": [
+  "lib/tools/builtin/script.ts:36"
+ ],
+ "Voice id/name within the provider/model.": [
+  "lib/tools/builtin/script.ts:37"
+ ],
+ "Provider-specific synthesis knobs (stability, speed, …).": [
+  "lib/tools/builtin/script.ts:41"
+ ],
+ "Where the script sits in the guided flow.": [
+  "lib/tools/builtin/script.ts:65"
+ ],
+ "What the script is about.": [
+  "lib/tools/builtin/script.ts:66"
+ ],
+ "The format, which sets the cast shape and section layout.": [
+  "lib/tools/builtin/script.ts:70"
+ ],
+ "The language to write it in.": [
+  "lib/tools/builtin/script.ts:79"
+ ],
+ "No workflow editors are open.": [
+  "lib/tools/builtin/workflow.ts:34"
+ ],
+ "The concrete visual to render: subject plus setting.": [
+  "lib/tools/builtin/storyboard.ts:91"
+ ],
+ "Id of the scene this shot belongs to, from `scenes`.": [
+  "lib/tools/builtin/storyboard.ts:102"
+ ],
+ "Discriminator — always the literal 'screenplay'.": [
+  "lib/tools/builtin/storyboard.ts:125"
+ ],
+ "The shots, in order. Each needs an `action`.": [
+  "lib/tools/builtin/storyboard.ts:128"
+ ],
+ "What the piece is for.": [
+  "lib/tools/builtin/storyboard.ts:132"
+ ],
+ "The look applied to every shot (alias of styleBible).": [
+  "lib/tools/builtin/storyboard.ts:136"
+ ],
+ "The genre this screenplay was directed in.": [
+  "lib/tools/builtin/storyboard.ts:142"
+ ],
+ "The screenplay": [
+  "lib/tools/builtin/storyboard.ts:220",
+  "lib/tools/builtin/storyboard.ts:656"
+ ],
+ "The entity cast": [
+  "lib/tools/builtin/storyboard.ts:245"
+ ],
+ "The shot": [
+  "lib/tools/builtin/storyboard.ts:292"
+ ],
+ "Direction for the crew. Never enters a render prompt.": [
+  "lib/tools/builtin/storyboard.ts:322"
+ ],
+ "The shot edit": [
+  "lib/tools/builtin/storyboard.ts:356"
+ ],
+ "The keyframe": [
+  "lib/tools/builtin/storyboard.ts:381"
+ ],
+ "The clip": [
+  "lib/tools/builtin/storyboard.ts:408"
+ ],
+ "The revised clip": [
+  "lib/tools/builtin/storyboard.ts:437"
+ ],
+ "The script link": [
+  "lib/tools/builtin/storyboard.ts:466"
+ ],
+ "The re-projection": [
+  "lib/tools/builtin/storyboard.ts:489",
+  "lib/tools/builtin/storyboard.ts:515"
+ ],
+ "One shot, or a list of them.": [
+  "lib/tools/builtin/storyboard.ts:533"
+ ],
+ "The duration source": [
+  "lib/tools/builtin/storyboard.ts:542"
+ ],
+ "What the piece is for — the Director's input.": [
+  "lib/tools/builtin/storyboard.ts:572"
+ ],
+ "The setup": [
+  "lib/tools/builtin/storyboard.ts:621"
+ ],
+ "The move": [
+  "lib/tools/builtin/storyboard.ts:692"
+ ],
+ "The duplicate": [
+  "lib/tools/builtin/storyboard.ts:712"
+ ],
+ "The deletion": [
+  "lib/tools/builtin/storyboard.ts:733"
+ ],
+ "The scene edit": [
+  "lib/tools/builtin/storyboard.ts:763"
+ ],
+ "Insert after this scene. Appended when omitted or null.": [
+  "lib/tools/builtin/storyboard.ts:782"
+ ],
+ "The scene": [
+  "lib/tools/builtin/storyboard.ts:788"
+ ],
+ "The merge": [
+  "lib/tools/builtin/storyboard.ts:808"
+ ],
+ "The style": [
+  "lib/tools/builtin/storyboard.ts:844"
+ ],
+ "The version": [
+  "lib/tools/builtin/storyboard.ts:872"
+ ],
+ "The version deletion": [
+  "lib/tools/builtin/storyboard.ts:899"
+ ],
+ "Id of the stored image asset to attach (not a URL).": [
+  "lib/tools/builtin/storyboard.ts:919"
+ ],
+ "The still": [
+  "lib/tools/builtin/storyboard.ts:933"
+ ],
+ "Delete a node from the workflow graph.": [
+  "lib/tools/builtin/deleteNode.ts:8"
+ ],
+ "The new full content to write into the editor.": [
+  "lib/tools/builtin/editorTools.ts:65"
+ ],
+ "The replacement text.": [
+  "lib/tools/builtin/editorTools.ts:81"
+ ],
+ "The text to insert at the cursor position.": [
+  "lib/tools/builtin/editorTools.ts:101"
+ ],
+ "Id of the Code node whose assistant dialog is open.": [
+  "lib/tools/builtin/code.ts:19"
+ ],
+ "Port name — a JavaScript identifier the code reads or returns.": [
+  "lib/tools/builtin/code.ts:24"
+ ],
+ "The full new JavaScript code body.": [
+  "lib/tools/builtin/code.ts:49"
+ ],
+ "Open a workflow tab and switch to it by workflow id.": [
+  "lib/tools/builtin/uiActions.ts:48"
+ ],
+ "Copy text to clipboard.": [
+  "lib/tools/builtin/uiActions.ts:131"
+ ],
+ "Paste text from clipboard.": [
+  "lib/tools/builtin/uiActions.ts:141"
+ ],
+ "Update a node's properties (data.properties).": [
+  "lib/tools/builtin/updateNodeData.ts:20"
+ ],
+ "Delete an edge from the workflow graph.": [
+  "lib/tools/builtin/deleteEdge.ts:8"
+ ],
+ "Widget type, e.g. 'Heading', 'TextInput', 'Button'.": [
+  "lib/tools/builtin/puck.ts:81"
+ ],
+ "Initial props (label, text, binding, events, ...).": [
+  "lib/tools/builtin/puck.ts:85"
+ ],
+ "Insertion index within the target list.": [
+  "lib/tools/builtin/puck.ts:106"
+ ],
+ "Props to merge.": [
+  "lib/tools/builtin/puck.ts:150"
+ ],
+ "Widget id to remove — a component inside the app.": [
+  "lib/tools/builtin/puck.ts:169"
+ ],
+ "Operation id. Derived from the name when omitted.": [
+  "lib/tools/builtin/puck.ts:368"
+ ],
+ "Display name, e.g. 'Translate'.": [
+  "lib/tools/builtin/puck.ts:369"
+ ],
+ "Id of the workflow this operation runs.": [
+  "lib/tools/builtin/puck.ts:372"
+ ],
+ "Pin a workflow version. Omitted means latest.": [
+  "lib/tools/builtin/puck.ts:377"
+ ],
+ "Operation id to update.": [
+  "lib/tools/builtin/puck.ts:427"
+ ],
+ "Point the operation at a different workflow.": [
+  "lib/tools/builtin/puck.ts:432"
+ ],
+ "Operation id to remove.": [
+  "lib/tools/builtin/puck.ts:492"
+ ],
+ "Variable id. Derived from the name when omitted.": [
+  "lib/tools/builtin/puck.ts:536"
+ ],
+ "Display name.": [
+  "lib/tools/builtin/puck.ts:537",
+  "lib/tools/builtin/puck.ts:664"
+ ],
+ "Initial value.": [
+  "lib/tools/builtin/puck.ts:542"
+ ],
+ "Persist across sessions. User scope only.": [
+  "lib/tools/builtin/puck.ts:547"
+ ],
+ "Variable id to update.": [
+  "lib/tools/builtin/puck.ts:577"
+ ],
+ "Variable id to remove.": [
+  "lib/tools/builtin/puck.ts:619"
+ ],
+ "Kind of document the binding addresses.": [
+  "lib/tools/builtin/puck.ts:635"
+ ],
+ "Project whose documents of this kind the app may reach.": [
+  "lib/tools/builtin/puck.ts:669"
+ ],
+ "Id of one pinned document.": [
+  "lib/tools/builtin/puck.ts:670"
+ ],
+ "Operation the key belongs to. Defaults to the first one.": [
+  "lib/tools/builtin/puck.ts:764"
+ ],
+ "Operation id to run.": [
+  "lib/tools/builtin/puck.ts:769"
+ ],
+ "Operation id whose runs to cancel.": [
+  "lib/tools/builtin/puck.ts:771"
+ ],
+ "This app has no widgets yet — add one with ui_app_add_component.": [
+  "lib/tools/builtin/puck.ts:821"
+ ],
+ "Per-run timeout in milliseconds.": [
+  "lib/tools/builtin/puck.ts:913"
+ ],
+ "Output JPEG width in pixels. Default 512, max 1024.": [
+  "lib/tools/builtin/timeline.ts:735"
+ ],
+ "That tool's own input, minus timeline_id.": [
+  "lib/tools/builtin/timeline.ts:1194"
+ ],
+ "The object's uuid or its name (case-insensitive).": [
+  "lib/tools/builtin/model3d.ts:26"
+ ],
+ "Delete an object (and its children) from the 3D editor scene.": [
+  "lib/tools/builtin/model3d.ts:68"
+ ],
+ "Kind of document to open, as named in the ui_context block.": [
+  "lib/tools/builtin/openDocument.ts:171"
+ ],
+ "Id of the document to open.": [
+  "lib/tools/builtin/openDocument.ts:172"
+ ],
+ "Move a node to an absolute canvas position.": [
+  "lib/tools/builtin/moveNode.ts:8"
+ ],
+ "The premise — the designer's input.": [
+  "lib/tools/builtin/gameSetup.ts:140"
+ ],
+ "Manifest template id, e.g. 'platformer'.": [
+  "lib/tools/builtin/gameSetup.ts:144"
+ ],
+ "The Godot project name, and the export directory's slug.": [
+  "lib/tools/builtin/gameSetup.ts:168"
+ ],
+ "Template id this design is for. Defaults to the stored one.": [
+  "lib/tools/builtin/gameSetup.ts:222"
+ ],
+ "Cast members to patch, keyed by their slot id.": [
+  "lib/tools/builtin/gameSetup.ts:285"
+ ],
+ "Enemies to patch, keyed by their slot id.": [
+  "lib/tools/builtin/gameSetup.ts:295"
+ ],
+ "Music model, or null to keep the template's placeholder loop.": [
+  "lib/tools/builtin/gameSetup.ts:410"
+ ],
+ "Defaults to the stored project name, then the design's title.": [
+  "lib/tools/builtin/gameSetup.ts:421"
+ ],
+ "What moves in the shot, in one line.": [
+  "lib/storyboard/cameraPass.ts:101"
+ ],
+ "The look itself, pasted verbatim into image prompts.": [
+  "lib/storyboard/userStyle.ts:41"
+ ],
+ "Not a positive number. The shot imported without a duration.": [
+  "lib/storyboard/parseShotlistCsv.ts:252"
+ ],
+ "This model": [
+  "lib/storyboard/providerError.ts:35"
+ ],
+ "Pick another model below.": [
+  "lib/storyboard/providerError.ts:41"
+ ],
+ "Check the key in Settings, or pick a model from another provider.": [
+  "lib/storyboard/providerError.ts:47"
+ ],
+ "Wait and try again, or pick another model below.": [
+  "lib/storyboard/providerError.ts:53"
+ ],
+ "Workflow failed": [
+  "lib/workflow/browserWorkerClient.ts:205",
+  "lib/workflow/browserWorkflowRunner.ts:446"
+ ],
+ "Job failed": [
+  "lib/workflow/runInlineGraphJob.ts:215"
+ ],
+ "Failed to encode masked inpaint result": [
+  "lib/sketch/maskInpaintResult.ts:61"
+ ]
+}
