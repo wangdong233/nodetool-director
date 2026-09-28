@@ -6,6 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { i18n } from "../../i18n";
 import type { Tutorial } from "./tutorialsData";
 
 const styles = (
@@ -184,7 +185,7 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
             <span className="duration-inline">{tutorial.durationLabel}</span>
           )}
         </span>
-        <h3 className="title">{tutorial.title}</h3>
+        <h3 className="title">{i18n.t(`tools:tutorials.${tutorial.id}.title`, { defaultValue: tutorial.title })}</h3>
         <p className="tagline">{tutorial.tagline}</p>
       </span>
     </button>

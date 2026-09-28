@@ -168,6 +168,11 @@ describe("catalog key parity (CI completeness guard)", () => {
     const fullLiteralRefs = new Set<string>();
     const quotedLiterals = new Set<string>();
     const objectKeys = new Set<string>();
+    // Deep template leaves: inside backtick templates, a chunk ending in
+    // `.ident` before a ${…} interpolation or the closing backtick references
+    // a leaf by name (e.g. `tools:menus.providers.${meta.key}.credentialLabel`)
+    // — the leaf name is a real reference the other two sets cannot see.
+    const templateLeafRefs = new Set<string>();
     for (const m of allSource.matchAll(/([a-z0-9]+):([^"'`\s]{1,160})["`']/g)) {
       fullLiteralRefs.add(`${m[1]}:${m[2]}`);
     }
@@ -190,7 +195,14 @@ describe("catalog key parity (CI completeness guard)", () => {
             j++;
           }
           if (j < n && s.charCodeAt(j) === q && j - i > 1) {
-            quotedLiterals.add(s.slice(i + 1, j));
+            const content = s.slice(i + 1, j);
+            quotedLiterals.add(content);
+            if (q === 96) {
+              for (const chunk of content.split(/\$\{[^}]*\}/)) {
+                const m3 = chunk.match(/\.([A-Za-z0-9_-]+)$/);
+                if (m3) templateLeafRefs.add(m3[1]);
+              }
+            }
           }
           i = j + 1;
           continue;
@@ -227,6 +239,13 @@ describe("catalog key parity (CI completeness guard)", () => {
         }
         i++;
       }
+    }
+    // Union with a naive regex pass: the scanner is quote-aware but desyncs on
+    // regex literals containing quote chars (/["']/); the naive pass can't
+    // cross any quote so it survives those, while missing apostrophe-bearing
+    // strings the scanner catches. Union covers both failure modes.
+    for (const m of allSource.matchAll(/["'`]([^"'`\n]{1,160})["'`]/g)) {
+      quotedLiterals.add(m[1]);
     }
     const prefixPresent = new Map<string, boolean>();
 
@@ -271,7 +290,14 @@ describe("catalog key parity (CI completeness guard)", () => {
         "settings:general.",
         "settings:vaults.",
         "settings:storage.",
-        "settings:defModels."
+        "settings:defModels.",
+        "tools:ctx.",
+        "tools:menus.",
+        "tools:tutorials.",
+        "tools:misc.",
+        "catalog:snippets.",
+        "catalog:shortcuts.",
+        "catalog:dataTypes."
       ];
       let dynamicallyUsed = false;
       const parts = key.split(".");
@@ -287,7 +313,11 @@ describe("catalog key parity (CI completeness guard)", () => {
           // Non-identifier leaves (regex-shaped) fall back to the original
           // scan; identifier-shaped leaves — every real key — hit the Sets.
           if (/^[A-Za-z0-9_-]+$/.test(leaf)) {
-            if (quotedLiterals.has(leaf) || objectKeys.has(leaf)) {
+            if (
+              quotedLiterals.has(leaf) ||
+              objectKeys.has(leaf) ||
+              templateLeafRefs.has(leaf)
+            ) {
               dynamicallyUsed = true;
             }
           } else {

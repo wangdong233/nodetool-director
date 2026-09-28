@@ -134,7 +134,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
           </Text>
         </FlexRow>
 
-        <Text className="description">{config?.description}</Text>
+        <Text className="description">{config ? i18n.t(`tools:menus.searchProviders.${config.id}.description`, { defaultValue: config.description }) : ""}</Text>
       </div>
 
       {config && (

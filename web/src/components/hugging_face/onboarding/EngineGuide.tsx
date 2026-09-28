@@ -121,7 +121,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           {pack.name}
         </Text>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.4 }}>
-          {pack.description}
+          {pack.descriptionKey ? i18n.t(pack.descriptionKey, { defaultValue: pack.description }) : pack.description}
         </Caption>
       </FlexColumn>
       {isInstalled ? (

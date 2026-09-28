@@ -415,7 +415,7 @@ const TutorialsPage: React.FC = () => {
               <span className="dur">{active.durationLabel}</span>
             </div>
 
-            <h2 className="tut-title">{active.title}</h2>
+            <h2 className="tut-title">{i18n.t(`tools:tutorials.${active.id}.title`, { defaultValue: active.title })}</h2>
             <p className="tut-desc">{active.description}</p>
 
             <section className="tut-learn">
