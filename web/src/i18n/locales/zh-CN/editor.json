@@ -2608,7 +2608,8 @@
     "githubRepository": "GitHub 仓库",
     "nodeToolForum": "NodeTool 论坛",
     "edit": "编辑",
-    "openaiCompatibleEndpoints": "OpenAI 兼容端点"
+    "openaiCompatibleEndpoints": "OpenAI 兼容端点",
+    "linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours": "关联你的 Telegram 账号，即可在 Telegram 里与 NodeTool 智能体对话。你的线程、素材与额度都归你。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

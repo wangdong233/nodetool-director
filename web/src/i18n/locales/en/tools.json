@@ -202,6 +202,9 @@
       },
       "dataforseo": {
         "description": "Professional SEO and search intelligence platform."
+      },
+      "serpapi": {
+        "description": "Fast and reliable search API with Google, Bing, and other engines."
       }
     },
     "secretValueIsRequired": "Secret value is required",

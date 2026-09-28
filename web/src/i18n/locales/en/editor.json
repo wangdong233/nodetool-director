@@ -2608,7 +2608,8 @@
     "githubRepository": "GitHub Repository",
     "nodeToolForum": "NodeTool Forum",
     "edit": "Edit",
-    "openaiCompatibleEndpoints": "OpenAI-compatible endpoints"
+    "openaiCompatibleEndpoints": "OpenAI-compatible endpoints",
+    "linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours": "Link your Telegram account to chat with your NodeTool agent from Telegram. Your threads, assets, and budget stay yours."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

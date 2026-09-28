@@ -335,6 +335,32 @@
     "DASHSCOPE_BASE_URL": {
       "label": "DashScope Base URL",
       "description": "阿里云 DashScope OpenAI 兼容服务的 Base URL。"
-    }
+    },
+    "OPENAI_API_KEY": {
+      "get": "获取 OpenAI API 密钥"
+    },
+    "ANTHROPIC_API_KEY": {
+      "get": "获取 Anthropic API 密钥"
+    },
+    "GEMINI_API_KEY": {
+      "get": "获取 Gemini API 密钥"
+    },
+    "OPENROUTER_API_KEY": {
+      "get": "获取 OpenRouter API 密钥"
+    },
+    "HF_TOKEN": {},
+    "REPLICATE_API_TOKEN": {
+      "get": "获取 Replicate 令牌"
+    },
+    "GOOGLE_APP_PASSWORD": {},
+    "ELEVENLABS_API_KEY": {},
+    "FAL_API_KEY": {},
+    "SERPAPI_API_KEY": {},
+    "DATA_FOR_SEO_LOGIN": {},
+    "BRAVE_API_KEY": {},
+    "APIFY_API_TOKEN": {},
+    "KIMI_API_KEY": {},
+    "DASHSCOPE_API_KEY": {},
+    "AKI_API_KEY": {}
   }
 }

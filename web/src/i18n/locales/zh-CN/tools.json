@@ -202,6 +202,9 @@
       },
       "dataforseo": {
         "description": "专业的 SEO 与搜索情报平台。"
+      },
+      "serpapi": {
+        "description": "快速可靠的网页搜索 API，覆盖 Google、Bing 等引擎。"
       }
     },
     "secretValueIsRequired": "密钥值不能为空",

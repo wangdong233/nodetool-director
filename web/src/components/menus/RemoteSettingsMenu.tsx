@@ -331,8 +331,7 @@ const SettingItem = memo(function SettingItem({
               SETTING_TOOLTIPS[setting.env_var] || ""
             }
           >
-            {SETTING_BUTTON_TITLES[setting.env_var] ||
-              "GET YOUR API KEY"}
+            {i18n.t(`settings:remote.${setting.env_var}.get`, { defaultValue: SETTING_BUTTON_TITLES[setting.env_var] || "GET YOUR API KEY" })}
           </ExternalLink>
         </div>
       )}

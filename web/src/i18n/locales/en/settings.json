@@ -335,6 +335,54 @@
     "KIE_TIMEOUT_SECONDS": {
       "label": "Kie Timeout Seconds",
       "description": "Global timeout in seconds for Kie.ai API calls (0 = use default per-model timeout)"
+    },
+    "OPENAI_API_KEY": {
+      "get": "Go to OpenAI API key page"
+    },
+    "ANTHROPIC_API_KEY": {
+      "get": "Go to Anthropic console"
+    },
+    "GEMINI_API_KEY": {
+      "get": "Go to Google AI Studio to get your API key"
+    },
+    "OPENROUTER_API_KEY": {
+      "get": "Go to OpenRouter keys page"
+    },
+    "HF_TOKEN": {
+      "get": "Go to Hugging Face tokens page"
+    },
+    "REPLICATE_API_TOKEN": {
+      "get": "Go to Replicate API tokens page"
+    },
+    "GOOGLE_APP_PASSWORD": {
+      "get": "Go to Google account app passwords page"
+    },
+    "ELEVENLABS_API_KEY": {
+      "get": "Go to ElevenLabs subscription page"
+    },
+    "FAL_API_KEY": {
+      "get": "Go to Fal.ai dashboard"
+    },
+    "SERPAPI_API_KEY": {
+      "get": "Go to SerpAPI key management page"
+    },
+    "DATA_FOR_SEO_LOGIN": {
+      "get": "Go to DataForSEO dashboard"
+    },
+    "BRAVE_API_KEY": {
+      "get": "Go to Brave Search API dashboard"
+    },
+    "APIFY_API_TOKEN": {
+      "get": "Go to Apify console integrations page"
+    },
+    "KIMI_API_KEY": {
+      "get": "Go to Moonshot (Kimi) platform API keys page"
+    },
+    "DASHSCOPE_API_KEY": {
+      "get": "Go to Alibaba Cloud Model Studio API keys page"
+    },
+    "AKI_API_KEY": {
+      "get": "Go to AKI.IO to sign up and get your API key"
     }
   }
 }

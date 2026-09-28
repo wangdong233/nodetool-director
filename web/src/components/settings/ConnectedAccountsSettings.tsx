@@ -168,8 +168,7 @@ const ConnectedAccountsSettings = () => {
         {!isLoading && !linked && showPending === null && (
           <FlexColumn gap={SPACING.md}>
             <Caption>
-              Link your Telegram account to chat with your NodeTool agent from
-              Telegram. Your threads, assets, and budget stay yours.
+              {i18n.t("editor:ui.linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours")}
             </Caption>
             <FlexRow>
               <EditorButton

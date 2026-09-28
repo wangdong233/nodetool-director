@@ -263,7 +263,7 @@ const FoldersSettings = () => {
                               type="text"
                               autoComplete="off"
                               id={`${setting.env_var.toLowerCase()}-input`}
-                              label={setting.env_var.replace(/_/g, " ")}
+                              label={i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: setting.env_var.replace(/_/g, " ") })}
                               value={settingValues[setting.env_var] || ""}
                               onChange={(e) =>
                                 handleChange(setting.env_var, e.target.value)
@@ -275,7 +275,7 @@ const FoldersSettings = () => {
                           </FlexRow>
                           {setting.description && (
                             <Text className="description">
-                              {setting.description}
+                              {i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
                             </Text>
                           )}
                         </div>
