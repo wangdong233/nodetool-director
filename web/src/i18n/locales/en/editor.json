@@ -2643,7 +2643,23 @@
       "image": "Sketch",
       "workflow": "Workflow",
       "game": "Game"
-    }
+    },
+    "compatInputs": "Inputs: {{v}}",
+    "compatProviderModel": "Provider/model: {{v}}",
+    "compatExecution": "Execution: {{v}}",
+    "compatRequiredSetup": "Required setup: {{v}}",
+    "compatRuntime": "Runtime: {{v}}",
+    "compatUnknown": "Unknown: {{v}}",
+    "execLocalAndProviderHosted": "Local and provider-hosted",
+    "execLocal": "Local",
+    "execProviderHosted": "Provider-hosted",
+    "execUnknownNotDeclared": "Unknown — execution location is not declared",
+    "estimatedCost": "Estimated cost: {{v}}",
+    "notSelectedSuffix": "{{v}} (not selected)",
+    "estimatedCostAtLeast": "Estimated cost: at least {{cost}}; {{unknown}}",
+    "estimatedCostUnknown": "Estimated cost: unknown — {{unknown}}",
+    "nodeHasNoPublishedPrice": "{{n}} node has no published price",
+    "nodesHaveNoPublishedPrice": "{{n}} nodes have no published price"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

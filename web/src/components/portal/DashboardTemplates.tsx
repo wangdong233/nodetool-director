@@ -211,15 +211,18 @@ interface TemplateRowProps {
 
 const formatTemplateCost = (estimate: WorkflowCostEstimateDetail): string => {
   if (estimate.unknown_count === 0) {
-    return `Estimated cost: ${formatUsd(estimate.total)}`;
+    return i18n.t("editor:ui.estimatedCost", { v: formatUsd(estimate.total) });
   }
 
-  const unknownNodes = `${estimate.unknown_count} node${
-    estimate.unknown_count === 1 ? " has" : "s have"
-  } no published price`;
+  const unknownNodes = i18n.t(
+    estimate.unknown_count === 1
+      ? "editor:ui.nodeHasNoPublishedPrice"
+      : "editor:ui.nodesHaveNoPublishedPrice",
+    { n: estimate.unknown_count }
+  );
   return estimate.total > 0
-    ? `Estimated cost: at least ${formatUsd(estimate.total)}; ${unknownNodes}`
-    : `Estimated cost: unknown — ${unknownNodes}`;
+    ? i18n.t("editor:ui.estimatedCostAtLeast", { cost: formatUsd(estimate.total), unknown: unknownNodes })
+    : i18n.t("editor:ui.estimatedCostUnknown", { unknown: unknownNodes });
 };
 
 const TemplateRow = memo(function TemplateRow({

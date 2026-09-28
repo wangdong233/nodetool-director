@@ -2643,7 +2643,23 @@
       "image": "图稿",
       "workflow": "工作流",
       "game": "游戏"
-    }
+    },
+    "compatInputs": "输入：{{v}}",
+    "compatProviderModel": "服务商/模型：{{v}}",
+    "compatExecution": "执行方式：{{v}}",
+    "compatRequiredSetup": "需配置：{{v}}",
+    "compatRuntime": "运行时：{{v}}",
+    "compatUnknown": "未知：{{v}}",
+    "execLocalAndProviderHosted": "本地与云端",
+    "execLocal": "本地",
+    "execProviderHosted": "云端",
+    "execUnknownNotDeclared": "未知——未声明执行位置",
+    "estimatedCost": "预计费用：{{v}}",
+    "notSelectedSuffix": "{{v}}（未选择）",
+    "estimatedCostAtLeast": "预计费用:至少 {{cost}};{{unknown}}",
+    "estimatedCostUnknown": "预计费用:未知——{{unknown}}",
+    "nodeHasNoPublishedPrice": "{{n}} 个节点无公示价格",
+    "nodesHaveNoPublishedPrice": "{{n}} 个节点无公示价格"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
