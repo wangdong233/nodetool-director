@@ -2343,7 +2343,15 @@
     "use": "Use",
     "vectorCollections": "Vector Collections",
     "website": "Website",
-    "wire": "Wire"
+    "wire": "Wire",
+    "assembling": "Assembling…",
+    "assembleVideo": "Assemble video",
+    "sendToTimeline": "Send to timeline",
+    "rebuildLinkedTimeline": "Rebuild linked timeline…",
+    "copied2": "Copied!",
+    "bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices": "Bring your own keys. You pay every provider directly, at their published prices.",
+    "cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime": "Cloud is in alpha — expect rough edges and occasional downtime. For work that has to ship today,",
+    "runNodeToolStudioOnYourOwnMachine": "run NodeTool Studio on your own machine"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

@@ -238,7 +238,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
+            {copied ? i18n.t("editor:ui.copied2") : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">

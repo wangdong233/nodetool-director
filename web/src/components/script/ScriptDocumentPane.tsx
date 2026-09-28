@@ -970,12 +970,12 @@ const ScriptDocumentPane = ({
             }
           >
             {assembling
-              ? "Assembling…"
+              ? i18n.t("editor:ui.assembling")
               : storyboardId
-                ? "Assemble video"
+                ? i18n.t("editor:ui.assembleVideo")
                 : timelineId
                   ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
-                  : "Send to timeline"}
+                  : i18n.t("editor:ui.sendToTimeline")}
           </EditorButton>
         )}
         {hasVoicedLine && (

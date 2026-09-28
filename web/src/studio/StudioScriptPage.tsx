@@ -109,7 +109,7 @@ const StudioScriptPage = () => {
               });
           }}
         >
-          {assembling ? "Assembling…" : i18n.t("editor:ui.createVideo", { defaultValue: "Create video" })}
+          {assembling ? i18n.t("editor:ui.assembling") : i18n.t("editor:ui.createVideo", { defaultValue: "Create video" })}
         </EditorButton>
       </span>
     </Tooltip>

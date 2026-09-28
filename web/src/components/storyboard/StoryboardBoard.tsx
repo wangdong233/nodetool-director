@@ -1492,9 +1492,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 disabled={!onAssemble || assembling || !hasRenderedShot}
               >
                 {assembling
-                  ? "Assembling…"
+                  ? i18n.t("editor:ui.assembling")
                   : timelineId
-                    ? "Rebuild linked timeline…"
+                    ? i18n.t("editor:ui.rebuildLinkedTimeline")
                     : i18n.t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
               </EditorButton>
             </FlexRow>

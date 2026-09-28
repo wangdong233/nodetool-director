@@ -101,14 +101,12 @@ function Login() {
 
       <div className="footnotes">
         <Caption size="small" color="secondary">
-          Bring your own keys. You pay every provider directly, at their
-          published prices.
+          {i18n.t("editor:ui.bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices")}
         </Caption>
         <Caption size="small" color="secondary">
-          Cloud is in alpha — expect rough edges and occasional downtime. For
-          work that has to ship today,{" "}
+          {i18n.t("editor:ui.cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime")}{" "}
           <ExternalLink href={STUDIO_URL} size="small" iconVariant="arrow">
-            run NodeTool Studio on your own machine
+            {i18n.t("editor:ui.runNodeToolStudioOnYourOwnMachine")}
           </ExternalLink>
           .
         </Caption>

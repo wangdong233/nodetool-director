@@ -2343,7 +2343,15 @@
     "use": "使用",
     "vectorCollections": "向量合集",
     "website": "网站",
-    "wire": "接线"
+    "wire": "接线",
+    "assembling": "正在组装…",
+    "assembleVideo": "组装视频",
+    "sendToTimeline": "发送到时间线",
+    "rebuildLinkedTimeline": "重建关联时间线…",
+    "copied2": "已复制!",
+    "bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices": "自带密钥。你直接按各服务商公布的价格付费。",
+    "cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime": "云端尚在 alpha——会有粗糙之处和偶发停机。今天就必须交付的工作，",
+    "runNodeToolStudioOnYourOwnMachine": "可在你自己的机器上运行 NodeTool Studio"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
