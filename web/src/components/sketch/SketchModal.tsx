@@ -259,8 +259,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <Tooltip
               title={
                 headerPenPressureOn
-                  ? "Turn off pen pressure"
-                  : "Turn on pen pressure"
+                  ? i18n.t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" })
+                  : i18n.t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
               }
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
               enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}

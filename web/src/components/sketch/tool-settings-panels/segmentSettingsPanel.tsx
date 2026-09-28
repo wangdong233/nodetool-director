@@ -165,9 +165,9 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               }}
             >
               {modelInfo.status === "not-installed" &&
-                (modelInfo.errorMessage ?? "Model not available")}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.modelNotAvailable", { defaultValue: "Model not available" }))}
               {modelInfo.status === "error" &&
-                (modelInfo.errorMessage ?? "Connection failed")}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.connectionFailed", { defaultValue: "Connection failed" }))}
               {modelInfo.status === "checking" && "Checking…"}
             </Text>
           )}
@@ -275,7 +275,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
           }
           label={
             <Text sx={{ ...TYPOGRAPHY.sans.label }}>
-              {settings.outputCutouts ? "Cutout layers" : "Mask layers"}
+              {settings.outputCutouts ? i18n.t("sketch:attrs.cutoutLayers", { defaultValue: "Cutout layers" }) : i18n.t("sketch:attrs.maskLayers", { defaultValue: "Mask layers" })}
             </Text>
           }
           sx={{ ml: 0, mr: 0 }}
@@ -292,7 +292,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               onChange({ conceptPrompt: event.target.value })
             }
             placeholder={i18n.t("editor:ui.describeTheObject", { defaultValue: "Describe the object" })}
-            inputProps={{ "aria-label": "Concept prompt" }}
+            inputProps={{ "aria-label": i18n.t("sketch:attrs.conceptPrompt", { defaultValue: "Concept prompt" }) }}
             // Wide enough for the placeholder to read in full, and it keeps
             // the bar from being dominated by one text field.
             sx={{ width: 200 }}

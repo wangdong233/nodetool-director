@@ -25,3 +25,10 @@ export const MODEL_ROLE_LABEL: Readonly<Record<string, string>> = {
   video: "Video model",
   audio: "Voice model"
 };
+
+export const MODEL_ROLE_LABEL_KEYS: Readonly<Record<string, string>> = {
+  language: "storyboard:attrs.languageModel",
+  image: "storyboard:attrs.imageModel",
+  video: "storyboard:attrs.videoModel",
+  audio: "storyboard:attrs.voiceModel"
+};

@@ -28,6 +28,7 @@ import {
   buildStyleDescriptorContent,
   buildUserStyle
 } from "../../../lib/storyboard/userStyle";
+import { i18n } from "../../../i18n";
 
 /** What the descriptor call is allowed to answer with. */
 const STYLE_MAX_OUTPUT_TOKENS = 1024;
@@ -85,11 +86,11 @@ export function useGameCustomStyle({
       setError(null);
       const references = files.slice(0, MAX_STYLE_REFERENCES);
       if (references.length === 0) {
-        setError("Pick at least one reference image.");
+        setError(i18n.t("storyboard:attrs.pickAtLeastOneReferenceImage", { defaultValue: "Pick at least one reference image." }));
         return false;
       }
       if (!model?.id) {
-        setError("Pick a model before adding a style.");
+        setError(i18n.t("storyboard:attrs.pickAModelBeforeAddingAStyle", { defaultValue: "Pick a model before adding a style." }));
         return false;
       }
 
@@ -118,7 +119,7 @@ export function useGameCustomStyle({
           null
         );
         if (!draft) {
-          setError("The model did not describe these references.");
+          setError(i18n.t("storyboard:attrs.theModelDidNotDescribeTheseReferences", { defaultValue: "The model did not describe these references." }));
           return false;
         }
 
@@ -130,14 +131,14 @@ export function useGameCustomStyle({
           descriptor: draft.descriptor
         });
         if (!entity) {
-          setError("The style could not be saved.");
+          setError(i18n.t("storyboard:attrs.theStyleCouldNotBeSaved", { defaultValue: "The style could not be saved." }));
           return false;
         }
         onApply(entity);
         return true;
       } catch (cause) {
         setError(
-          cause instanceof Error ? cause.message : "The style could not be made."
+          cause instanceof Error ? cause.message : i18n.t("storyboard:attrs.theStyleCouldNotBeMade", { defaultValue: "The style could not be made." })
         );
         return false;
       } finally {

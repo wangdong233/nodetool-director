@@ -30,6 +30,7 @@ import {
   registerStoryboardSaver,
   type StoryboardSaveResult
 } from "./storyboardSaveRegistry";
+import { i18n } from "../../i18n";
 
 const AUTOSAVE_DEBOUNCE_MS = 750;
 const RETRY_DELAY_MS = 5_000;
@@ -376,7 +377,7 @@ export const useStoryboardServerSync = (
       isCasConflict: isConflict,
       isRetryableError: (error) => !isPermanentSaveError(error),
       onStatus: (status) => {
-        if (status === "error") reportFailure("The server rejected the save.");
+        if (status === "error") reportFailure(i18n.t("storyboard:attrs.theServerRejectedTheSave", { defaultValue: "The server rejected the save." }));
       }
     });
 

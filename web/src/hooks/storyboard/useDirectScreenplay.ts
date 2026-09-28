@@ -61,6 +61,7 @@ import {
   verifyImportedFdx,
   verifyImportedPlainText
 } from "../../lib/storyboard/verifyImportedText";
+import { i18n } from "../../i18n";
 
 interface UseDirectScreenplayResult {
   /**
@@ -113,7 +114,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
       // An imported script that is used verbatim carries the words itself, so
       // the brief beside it is optional (F3).
       if (brief.length === 0 && imported?.preserveWords !== true) {
-        setError("Write a brief before directing.");
+        setError(i18n.t("storyboard:attrs.writeABriefBeforeDirecting", { defaultValue: "Write a brief before directing." }));
         return false;
       }
       // Tell the Director about the board's cast so the screenplay references
@@ -133,7 +134,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
           : brief;
       const model = board?.directorModel;
       if (!model?.id) {
-        setError("Pick a model before directing.");
+        setError(i18n.t("storyboard:attrs.pickAModelBeforeDirecting", { defaultValue: "Pick a model before directing." }));
         return false;
       }
       setError(null);

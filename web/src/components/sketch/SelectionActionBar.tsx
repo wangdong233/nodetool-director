@@ -226,13 +226,13 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         setJobLayerId(null);
         switch (result.reason) {
           case "no-selection":
-            setError("Make a selection first.");
+            setError(i18n.t("sketch:attrs.makeASelectionFirst", { defaultValue: "Make a selection first." }));
             break;
           case "no-document":
-            setError("No image document is open.");
+            setError(i18n.t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
             break;
           case "no-canvas":
-            setError("Canvas is not ready yet.");
+            setError(i18n.t("sketch:attrs.canvasIsNotReadyYet", { defaultValue: "Canvas is not ready yet." }));
             break;
           case "error":
             setError(result.message ?? "Generation failed.");
@@ -447,10 +447,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           placeholder={
             mode === "inpaint"
               ? "Replace selection with…"
-              : "Describe the edit…"
+              : i18n.t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
           }
           compact
-          aria-label={mode === "inpaint" ? "Inpaint prompt" : "Edit prompt"}
+          aria-label={mode === "inpaint" ? i18n.t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : i18n.t("sketch:attrs.editPrompt", { defaultValue: "Edit prompt" })}
           data-testid="sketch-selection-inpaint-prompt"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !generateDisabled) {
@@ -482,8 +482,8 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         <Tooltip
           title={
             mode === "inpaint"
-              ? "Inpaint — regenerate the selected region using your prompt and the selection as a mask."
-              : "Edit — transform the whole frame from your prompt."
+              ? i18n.t("sketch:attrs.inpaintRegenerateTheSelectedRegionUsingYourPromptAndTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate the selected region using your prompt and the selection as a mask." })
+              : i18n.t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt", { defaultValue: "Edit — transform the whole frame from your prompt." })
           }
           delay={TOOLTIP_ENTER_DELAY}
           placement={placeAbove ? "top" : "bottom"}

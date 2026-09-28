@@ -29,6 +29,38 @@ export interface StoryboardGenre {
   still: string;
 }
 
+
+
+export const GENRE_TITLE_KEYS: Record<string, string> = {
+  "action": "storyboard:attrs.genreAction",
+  "animation": "timeline:attrs.animation",
+  "comedy": "storyboard:attrs.genreComedy",
+  "commercial": "storyboard:attrs.genreCommercial",
+  "documentary": "storyboard:attrs.genreDocumentary",
+  "drama": "storyboard:attrs.genreDrama",
+  "educational": "storyboard:attrs.genreEducational",
+  "fantasy": "storyboard:attrs.genreFantasy",
+  "horror": "storyboard:attrs.genreHorror",
+  "mystery": "storyboard:attrs.genreMystery",
+  "romance": "storyboard:attrs.genreRomance",
+  "thriller": "storyboard:attrs.genreThriller"
+};
+
+export const GENRE_DESCRIPTION_KEYS: Record<string, string> = {
+  "action": "storyboard:attrs.fastCutsHandheldWeightMotionAcrossTheFrame",
+  "animation": "storyboard:attrs.drawnOrRenderedFramesAndExaggeratedTimingWithNoCameraToObey",
+  "comedy": "storyboard:attrs.wideFramingHeldBeatsTheJokeLandingOnTheCut",
+  "commercial": "storyboard:attrs.productInFocusCleanLightOneClaimPerShot",
+  "documentary": "storyboard:attrs.observedFramingAndAvailableLightSubjectsSpeakingForThemselves",
+  "drama": "storyboard:attrs.closeCoverageAndLongTakesFacesCarryingTheScene",
+  "educational": "storyboard:attrs.oneIdeaPerShotAndPlainFramingWithRoomForAVoiceOverIt",
+  "fantasy": "storyboard:attrs.builtWorldsAndWideVistasLightDoingWhatTheSunCannot",
+  "horror": "storyboard:attrs.darkFramesWithheldRevealsACameraSlowerThanYouWantIt",
+  "mystery": "storyboard:attrs.partialViewsAndShadowInformationHeldBackAShotLonger",
+  "romance": "storyboard:attrs.warmLightAndTwoshotsClosenessMeasuredInLensLength",
+  "thriller": "storyboard:attrs.tightFramingAndARestlessCameraTensionBuiltBetweenCuts"
+};
+
 const genre = (
   id: string,
   label: string,

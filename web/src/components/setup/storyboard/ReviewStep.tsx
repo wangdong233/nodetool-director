@@ -131,7 +131,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     );
   });
   const validationReason = invalidDuration
-    ? "Enter a positive duration in seconds, or clear it to leave timing unspecified."
+    ? i18n.t("storyboard:attrs.enterAPositiveDurationInSecondsOrClearItToLeaveTimingUnspecified", { defaultValue: "Enter a positive duration in seconds, or clear it to leave timing unspecified." })
     : productionAuthoringBlocker(shots);
   useEffect(() => {
     onValidationChange?.(validationReason);

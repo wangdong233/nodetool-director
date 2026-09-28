@@ -204,7 +204,7 @@ const RequestCard = memo(function RequestCard({
     row.status === "stopped"
       ? "Stopped tracking; provider may still finish and charge"
       : row.awaitingReview
-        ? "Completed · awaiting review"
+        ? i18n.t("storyboard:attrs.completedAwaitingReview", { defaultValue: "Completed · awaiting review" })
         : row.status;
   return (
     <Box sx={cardSx}>

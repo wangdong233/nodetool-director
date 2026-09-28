@@ -14,6 +14,7 @@ import { trpc } from "../../../lib/trpc";
 import type { TTSModel } from "../../../stores/ApiTypes";
 import { useInStudio } from "../../../studio/StudioContext";
 import { STUDIO_VOICES } from "../../../studio/curatedModels";
+import { i18n } from "../../../i18n";
 
 /** One voice option in a speaker's model and voice controls. */
 export interface SetupVoice {
@@ -88,7 +89,7 @@ export function useSetupVoices(): SetupVoicesResult {
       !inStudio && isError
         ? error instanceof Error
           ? error.message
-          : "The voice list could not be loaded."
+          : i18n.t("storyboard:attrs.theVoiceListCouldNotBeLoaded", { defaultValue: "The voice list could not be loaded." })
         : null,
     retry,
     noProvider: !inStudio && !isLoading && !isError && voices.length === 0

@@ -83,7 +83,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         // makes a second workflow nobody asked for.
         disabled: pickingId !== null,
         disabledReason:
-          pickingId === example.id ? "Copying this one" : "Copying an example"
+          pickingId === example.id ? i18n.t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : i18n.t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
       })),
     [matches, pickingId]
   );
@@ -134,13 +134,13 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         <EmptyState
           title={
             examples.length === 0
-              ? "This install ships no examples"
-              : "No example matches that"
+              ? i18n.t("storyboard:attrs.thisInstallShipsNoExamples", { defaultValue: "This install ships no examples" })
+              : i18n.t("storyboard:attrs.noExampleMatchesThat", { defaultValue: "No example matches that" })
           }
           description={
             examples.length === 0
-              ? "Describe the task instead, or start with a blank canvas."
-              : "Try another word, or describe the task instead."
+              ? i18n.t("storyboard:attrs.describeTheTaskInsteadOrStartWithABlankCanvas", { defaultValue: "Describe the task instead, or start with a blank canvas." })
+              : i18n.t("storyboard:attrs.tryAnotherWordOrDescribeTheTaskInstead", { defaultValue: "Try another word, or describe the task instead." })
           }
         />
       ) : (

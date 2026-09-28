@@ -187,7 +187,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
       } catch (err) {
         removeLayer(newLayerId);
         setDuplicateError(
-          err instanceof Error ? err.message : "Failed to duplicate layer"
+          err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToDuplicateLayer", { defaultValue: "Failed to duplicate layer" })
         );
       } finally {
         duplicateBusyRef.current = false;
@@ -223,7 +223,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
         setGenerationError(
           err instanceof Error
             ? err.message
-            : "Failed to start layer generation"
+            : i18n.t("sketch:attrs.failedToStartLayerGeneration", { defaultValue: "Failed to start layer generation" })
         );
       } finally {
         generatePendingRef.current = false;
@@ -236,7 +236,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
         await cancelLayerGeneration();
       } catch (err) {
         setGenerationError(
-          err instanceof Error ? err.message : "Failed to cancel generation"
+          err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToCancelGeneration", { defaultValue: "Failed to cancel generation" })
         );
       }
     }, [cancelLayerGeneration]);
@@ -258,7 +258,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
           <Tooltip
             title={
               isActive
-                ? "Cancel generation"
+                ? i18n.t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" })
                 : generatePending
                   ? "Starting…"
                   : "Generate layer from the bound workflow and overrides"
@@ -283,7 +283,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
                 }
                 disableRipple
                 aria-label={
-                  isActive ? "Cancel layer generation" : "Generate layer"
+                  isActive ? i18n.t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : "Generate layer"
                 }
                 data-testid="layer-action-generate"
               >
@@ -312,11 +312,11 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             tooltip={
               isLocked
                 ? "Locked — successful generations do not replace current output"
-                : "Unlocked — successful generations replace current output"
+                : i18n.t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={isLocked}
             onClick={handleToggleLock}
-            aria-label={isLocked ? "Unlock layer" : "Lock layer"}
+            aria-label={isLocked ? i18n.t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : "Lock layer"}
             data-testid="layer-action-lock"
           />
 

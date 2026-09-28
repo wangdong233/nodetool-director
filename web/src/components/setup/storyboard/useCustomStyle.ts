@@ -30,6 +30,7 @@ import {
   buildUserStyle,
   type StyleSource
 } from "../../../lib/storyboard/userStyle";
+import { i18n } from "../../../i18n";
 
 export { MAX_STYLE_REFERENCES };
 
@@ -80,13 +81,13 @@ export function useCustomStyle(boardId: string): CustomStyleResult {
       setError(null);
       const references = files.slice(0, MAX_STYLE_REFERENCES);
       if (references.length === 0) {
-        setError("Pick at least one reference image.");
+        setError(i18n.t("storyboard:attrs.pickAtLeastOneReferenceImage", { defaultValue: "Pick at least one reference image." }));
         return false;
       }
       const board = useStoryboardStore.getState().getBoard(boardId);
       const model = board?.directorModel;
       if (!model?.id) {
-        setError("Pick a model before adding a style.");
+        setError(i18n.t("storyboard:attrs.pickAModelBeforeAddingAStyle", { defaultValue: "Pick a model before adding a style." }));
         return false;
       }
 
@@ -120,7 +121,7 @@ export function useCustomStyle(boardId: string): CustomStyleResult {
           current
         );
         if (!draft) {
-          setError("The model did not describe these references.");
+          setError(i18n.t("storyboard:attrs.theModelDidNotDescribeTheseReferences", { defaultValue: "The model did not describe these references." }));
           return false;
         }
 
@@ -132,7 +133,7 @@ export function useCustomStyle(boardId: string): CustomStyleResult {
           descriptor: draft.descriptor
         });
         if (!entity) {
-          setError("The style could not be saved.");
+          setError(i18n.t("storyboard:attrs.theStyleCouldNotBeSaved", { defaultValue: "The style could not be saved." }));
           return false;
         }
         // The new entity is not in the query's cache yet, so it is handed to
@@ -143,7 +144,7 @@ export function useCustomStyle(boardId: string): CustomStyleResult {
         return true;
       } catch (cause) {
         setError(
-          cause instanceof Error ? cause.message : "The style could not be made."
+          cause instanceof Error ? cause.message : i18n.t("storyboard:attrs.theStyleCouldNotBeMade", { defaultValue: "The style could not be made." })
         );
         return false;
       } finally {

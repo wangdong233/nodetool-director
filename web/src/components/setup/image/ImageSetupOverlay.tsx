@@ -129,7 +129,7 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
         asset_id: assetId,
         uri: `asset://${assetId}`
       };
-      const name = animate ? "Image to video" : "Image canvas";
+      const name = animate ? i18n.t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" }) : i18n.t("storyboard:attrs.imageCanvas", { defaultValue: "Image canvas" });
       const workflow = await createWorkflow({
         name,
         description: "",

@@ -100,7 +100,7 @@ const reportFailure = (error: unknown, what: string): void => {
     type: "error",
     alert: true,
     dismissable: true,
-    content: `${what} ${getErrorMessage(error, "Try again.")}`
+    content: `${what} ${getErrorMessage(error, i18n.t("storyboard:attrs.tryAgain2", { defaultValue: "Try again." }))}`
   });
 };
 
@@ -331,7 +331,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
         "The flip could not be saved."
       );
     } catch (error) {
-      reportFailure(error, "The still could not be flipped.");
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeFlipped", { defaultValue: "The still could not be flipped." }));
     } finally {
       setBusy(false);
     }
@@ -365,10 +365,10 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           onLeave?.();
         },
         onFailed: (error) =>
-          reportFailure(error, "The still could not be opened for editing.")
+          reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }))
       });
     } catch (error) {
-      reportFailure(error, "The still could not be opened for editing.");
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
     } finally {
       setBusy(false);
     }

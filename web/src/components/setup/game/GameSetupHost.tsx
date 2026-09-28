@@ -181,8 +181,8 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
       capability: "text_to_speech",
       emptyMessage:
         "No connected provider offers a sound-effect node. The template's own sounds are kept.",
-      placeholderLabel: "Keep the placeholder sounds",
-      placeholderDescription: "The template's own sound files, no generation"
+      placeholderLabel: i18n.t("storyboard:attrs.keepThePlaceholderSounds", { defaultValue: "Keep the placeholder sounds" }),
+      placeholderDescription: i18n.t("storyboard:attrs.theTemplatesOwnSoundFilesNoGeneration", { defaultValue: "The template's own sound files, no generation" })
     }),
     [providersLoading, sfxNodeTypes]
   );
@@ -205,8 +205,8 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
       capability: "text_to_music",
       emptyMessage:
         "No connected provider offers a music model. The template's own loop is kept.",
-      placeholderLabel: "Keep the placeholder music",
-      placeholderDescription: "The template's own music loop, no generation"
+      placeholderLabel: i18n.t("storyboard:attrs.keepThePlaceholderMusic", { defaultValue: "Keep the placeholder music" }),
+      placeholderDescription: i18n.t("storyboard:attrs.theTemplatesOwnMusicLoopNoGeneration", { defaultValue: "The template's own music loop, no generation" })
     }),
     [music, musicModels]
   );

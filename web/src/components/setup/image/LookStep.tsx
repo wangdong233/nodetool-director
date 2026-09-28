@@ -230,18 +230,18 @@ export function useLookStep(): LookStepControls {
     availability === "loading"
       ? "Loading the image models"
       : availability === "error"
-        ? "The image models could not be loaded"
+        ? i18n.t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" })
         : availability === "no-provider"
-          ? "Connect an image provider first"
+          ? i18n.t("storyboard:attrs.connectAnImageProviderFirst", { defaultValue: "Connect an image provider first" })
           : availability === "no-model"
-            ? "No image model can render a picture yet"
+            ? i18n.t("storyboard:attrs.noImageModelCanRenderAPictureYet", { defaultValue: "No image model can render a picture yet" })
             : modelMissing
-              ? "That model is no longer offered — pick another"
+              ? i18n.t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" })
               : sizePresets.length === 0
-                ? "That model has no size supported by this guided flow"
+                ? i18n.t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" })
                 : sizeUnsupported
-                  ? "Pick a size supported by this image model"
-                  : "Pick an image model";
+                  ? i18n.t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" })
+                  : i18n.t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" });
 
   return {
     styleChoice: persisted.styleChoice,

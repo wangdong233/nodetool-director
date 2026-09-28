@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useSketchStore } from "../../components/sketch/state/useSketchStore";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
+import { i18n } from "../../i18n";
 
 interface CreateGeneratedLayerOptions {
   workflowId: string;
@@ -64,7 +65,7 @@ export function useCreateGeneratedLayer(): UseCreateGeneratedLayerResult {
           ok: false,
           reason: "error",
           message:
-            err instanceof Error ? err.message : "Failed to create layer"
+            err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToCreateLayer2", { defaultValue: "Failed to create layer" })
         };
       } finally {
         busyRef.current = false;

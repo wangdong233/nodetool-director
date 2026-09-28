@@ -108,7 +108,7 @@ const GenerateReferenceDialog = ({
       setError(
         cause instanceof Error
           ? cause.message
-          : "The reference image could not be generated."
+          : i18n.t("storyboard:attrs.theReferenceImageCouldNotBeGenerated", { defaultValue: "The reference image could not be generated." })
       );
     } finally {
       setGenerating(false);
@@ -215,8 +215,8 @@ export const ReferenceStep = ({
             : assetsLoading
               ? "Loading assets"
               : assetId
-                ? "Change reference"
-                : "Choose from assets"}
+                ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
+                : i18n.t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
         </EditorButton>
         <EditorButton
           variant="outlined"

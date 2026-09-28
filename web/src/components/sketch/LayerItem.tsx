@@ -244,7 +244,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
         {isGroup ? (
           <IconButton
             size="small"
-            aria-label={layer.collapsed ? "Expand group" : "Collapse group"}
+            aria-label={layer.collapsed ? i18n.t("sketch:attrs.expandGroup", { defaultValue: "Expand group" }) : i18n.t("sketch:attrs.collapseGroup", { defaultValue: "Collapse group" })}
             onClick={(e) => {
               e.stopPropagation();
               onToggleGroupCollapsed?.(layer.id);
@@ -447,7 +447,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
             }}
           >
             <Tooltip
-              title={layer.exposedAsInput === false ? "Input hidden" : ""}
+              title={layer.exposedAsInput === false ? i18n.t("sketch:attrs.inputHidden", { defaultValue: "Input hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsInput !== false}
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -467,7 +467,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               />
             </Tooltip>
             <Tooltip
-              title={layer.exposedAsOutput === false ? "Output hidden" : ""}
+              title={layer.exposedAsOutput === false ? i18n.t("sketch:attrs.outputHidden", { defaultValue: "Output hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsOutput !== false}
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}

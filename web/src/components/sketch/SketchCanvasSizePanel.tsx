@@ -220,7 +220,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
             checked={canvasResizeHandlesEnabled}
             onChange={(_, checked) => onCanvasResizeHandlesEnabledChange(checked)}
             inputProps={{
-              "aria-label": "Toggle canvas resize handles"
+              "aria-label": i18n.t("sketch:attrs.toggleCanvasResizeHandles", { defaultValue: "Toggle canvas resize handles" })
             }}
           />
         </Tooltip>

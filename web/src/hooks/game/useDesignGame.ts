@@ -36,6 +36,7 @@ import {
 import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
 import { useGameSetupWriter } from "./useGameSetup";
+import { i18n } from "../../i18n";
 
 /** How much the designer is allowed to answer with. */
 const DESIGN_MAX_OUTPUT_TOKENS = 4096;
@@ -178,8 +179,8 @@ export const useDesignGame = (workflowId: string): UseDesignGameResult => {
         }
         if (!resolved) {
           const reason = input.model?.id
-            ? "The designer did not return a design. Try again, or write the sections by hand."
-            : "Connect a provider to design this, or start from one of the examples.";
+            ? i18n.t("storyboard:attrs.theDesignerDidNotReturnADesignTryAgainOrWriteTheSectionsByHand", { defaultValue: "The designer did not return a design. Try again, or write the sections by hand." })
+            : i18n.t("storyboard:attrs.connectAProviderToDesignThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to design this, or start from one of the examples." });
           setError(reason);
           return reason;
         }

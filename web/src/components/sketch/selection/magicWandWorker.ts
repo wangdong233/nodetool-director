@@ -4,6 +4,7 @@ import {
   magicWandFromRgba,
   magicWandNonContiguousFromRgba
 } from "./selectionMask";
+import { i18n } from "../../../i18n";
 
 interface MagicWandWorkerRequest {
   id: number;
@@ -56,7 +57,7 @@ workerScope.addEventListener("message", (event: MessageEvent<MagicWandWorkerRequ
   } catch (error) {
     const response: MagicWandWorkerResponse = {
       id: event.data.id,
-      error: error instanceof Error ? error.message : "Magic wand worker failed"
+      error: error instanceof Error ? error.message : i18n.t("sketch:attrs.magicWandWorkerFailed", { defaultValue: "Magic wand worker failed" })
     };
     workerScope.postMessage(response);
   }

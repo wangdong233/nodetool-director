@@ -144,7 +144,7 @@ const StoryboardEntitiesFieldInner: React.FC<StoryboardEntitiesFieldProps> = ({
           <FlexColumn gap={1} sx={{ p: 2, maxWidth: 280 }}>
             <Text size="small">
               {(allEntities ?? []).length === 0
-                ? "No entities yet."
+                ? i18n.t("storyboard:attrs.noEntitiesYet2", { defaultValue: "No entities yet." })
                 : "All entities are already on this board."}
             </Text>
             {(allEntities ?? []).length === 0 && (

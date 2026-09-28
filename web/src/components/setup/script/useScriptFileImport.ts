@@ -25,6 +25,7 @@ import {
   scriptSourcePatch,
   type ImportedScript
 } from "../../../lib/script/importedScript";
+import { i18n } from "../../../i18n";
 
 /** What the text picker offers. TXT and FDX never reach the route. */
 export const SCRIPT_TEXT_ACCEPT = ".txt,.pdf,.docx,.fdx,application/pdf,text/plain";
@@ -143,7 +144,7 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
         setError(
           cause instanceof Error
             ? cause.message
-            : "This subtitle file could not be read."
+            : i18n.t("storyboard:attrs.thisSubtitleFileCouldNotBeRead", { defaultValue: "This subtitle file could not be read." })
         );
       } finally {
         setImporting(false);

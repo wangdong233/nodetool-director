@@ -160,6 +160,23 @@ const DRAFT_LABELS: Record<ShotDraftKey, string> = {
   renderMode: "Render mode"
 };
 
+const DRAFT_LABEL_KEYS: Record<ShotDraftKey, string> = {
+  slug: "storyboard:attrs.shotTitle",
+  sceneId: "storyboard:attrs.slugline",
+  lighting: "storyboard:attrs.sceneLighting",
+  action: "storyboard:attrs.description",
+  dialogue: "storyboard:attrs.dialogue",
+  durationSeconds: "storyboard:attrs.estimatedRunningTime",
+  durationSource: "storyboard:attrs.durationSource",
+  framing: "storyboard:attrs.size",
+  angle: "storyboard:attrs.perspective",
+  movement: "storyboard:attrs.movement",
+  equipment: "storyboard:attrs.equipment",
+  lens: "storyboard:attrs.focalLength",
+  notes: "storyboard:attrs.notes",
+  renderMode: "storyboard:attrs.renderMode"
+};
+
 const shotNumberSx = {
   ...TYPOGRAPHY.mono.caption,
   color: "text.secondary",
@@ -821,9 +838,9 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               const current = draftFromShot(shot, scene);
               return (
                 <FlexColumn key={key} gap={SPACING.xs}>
-                  <Label>{DRAFT_LABELS[key]}</Label>
-                  <Caption color="secondary">{`Your edit: ${String(draft[key] ?? "Not set")}`}</Caption>
-                  <Caption color="secondary">{`Current: ${String(current[key] ?? "Not set")}`}</Caption>
+                  <Label>{i18n.t(DRAFT_LABEL_KEYS[key], { defaultValue: DRAFT_LABELS[key] })}</Label>
+                  <Caption color="secondary">{`Your edit: ${String(draft[key] ?? i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
+                  <Caption color="secondary">{`Current: ${String(current[key] ?? i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
                 </FlexColumn>
               );
             })}

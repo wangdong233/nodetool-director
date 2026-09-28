@@ -187,7 +187,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       {
         id: "outputs",
         header: i18n.t("editor:ui.outputs", { defaultValue: "Outputs" }),
-        subheader: "What it hands back.",
+        subheader: i18n.t("storyboard:attrs.whatItHandsBack", { defaultValue: "What it hands back." }),
         rows: plan.outputs.map((output, index) => ({
           id: `output-${index}`,
           label: `Output ${index + 1}`,
@@ -367,7 +367,7 @@ const StepRow: React.FC<StepRowProps> = ({
           <FlexColumn gap={GAP.normal}>
             <Caption component="span">
               {step.node_type === null
-                ? "The plan could not name a node for this step. Pick one."
+                ? i18n.t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." })
                 : `"${step.node_type}" is not a node type this install has. Pick one.`}
             </Caption>
             <Autocomplete
@@ -393,7 +393,7 @@ const StepRow: React.FC<StepRowProps> = ({
             </Caption>
             <Chip compact color="success" label={step.node_type ?? ""} />
             <EditorButton variant="text" onClick={() => setPicking(!picking)}>
-              {picking ? "Keep it" : "Change"}
+              {picking ? i18n.t("storyboard:attrs.keepIt", { defaultValue: "Keep it" }) : "Change"}
             </EditorButton>
           </FlexRow>
           {/* The plan names a node the registry has — but not always the one

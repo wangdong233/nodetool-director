@@ -15,6 +15,7 @@ import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { selectionToMaskDataUrl } from "../../lib/sketch/selectionMaskImage";
+import { i18n } from "../../i18n";
 
 export type SelectionGenMode = "inpaint" | "edit";
 
@@ -155,7 +156,7 @@ export function useInpaintHere(): UseInpaintHereResult {
         return {
           ok: false,
           reason: "error",
-          message: err instanceof Error ? err.message : "Inpaint setup failed"
+          message: err instanceof Error ? err.message : i18n.t("sketch:attrs.inpaintSetupFailed", { defaultValue: "Inpaint setup failed" })
         };
       } finally {
         busyRef.current = false;

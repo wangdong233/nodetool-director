@@ -489,7 +489,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip ? "View clip fullscreen" : "View still fullscreen"
+            previewClip ? i18n.t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : i18n.t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -557,7 +557,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             data-testid="shot-render-error"
             sx={{ color: "error.main", minWidth: 0 }}
           >
-            {renderError ?? "The render failed. Try again."}
+            {renderError ?? i18n.t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
           </Caption>
           {!readOnly && (
             <EditorButton

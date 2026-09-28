@@ -117,13 +117,13 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
           </Text>
           <ToolbarIconButton
             icon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            tooltip={expanded ? "Collapse versions" : "Expand versions"}
+            tooltip={expanded ? i18n.t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : i18n.t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
             size="small"
             onClick={(e) => {
               e.stopPropagation();
               toggleExpanded();
             }}
-            aria-label={expanded ? "Collapse versions" : "Expand versions"}
+            aria-label={expanded ? i18n.t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : i18n.t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
           />
         </FlexRow>
 

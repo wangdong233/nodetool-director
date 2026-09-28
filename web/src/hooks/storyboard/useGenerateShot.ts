@@ -68,6 +68,7 @@ import { fetchShotDurationSeconds } from "./useShotDuration";
 import { CLIP_RESOLUTION, STILL_RESOLUTION } from "./renderSpec";
 import { getErrorMessage } from "../../utils/errorHandling";
 import { useLastModelStore } from "../../stores/lastModelStore";
+import { i18n } from "../../i18n";
 
 /**
  * Shots with a start in flight, before `registerJob` marks them active in the
@@ -254,8 +255,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
               errorMessage: getErrorMessage(
                 error,
                 production
-                  ? "Could not submit the production candidate."
-                  : "Could not submit the render."
+                  ? i18n.t("storyboard:attrs.couldNotSubmitTheProductionCandidate", { defaultValue: "Could not submit the production candidate." })
+                  : i18n.t("storyboard:attrs.couldNotSubmitTheRender", { defaultValue: "Could not submit the render." })
               )
             });
           unsubscribeShotJob(requestId);
@@ -270,7 +271,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
             shot.id,
             boardId,
             kind,
-            getErrorMessage(error, "Could not start the render."),
+            getErrorMessage(error, i18n.t("storyboard:attrs.couldNotStartTheRender", { defaultValue: "Could not start the render." })),
             mediaEdit,
             acceptedShotStatus
           );
@@ -612,7 +613,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
         );
       }
       if (!model) {
-        return failPreflight("Choose a video model before revising this shot.");
+        return failPreflight(i18n.t("storyboard:attrs.chooseAVideoModelBeforeRevisingThisShot", { defaultValue: "Choose a video model before revising this shot." }));
       }
       const selectedModel = videoModels.find(
         (candidate) =>

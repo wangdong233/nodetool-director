@@ -140,7 +140,7 @@ const EntitySetupHost = ({
       setDetails((current) => ({
         ...current,
         name:
-          current.name.trim().length > 0 ? current.name : "Untitled entity",
+          current.name.trim().length > 0 ? current.name : i18n.t("storyboard:attrs.untitledEntity", { defaultValue: "Untitled entity" }),
         descriptor:
           current.descriptor.trim().length > 0
             ? current.descriptor
@@ -199,14 +199,14 @@ const EntitySetupHost = ({
       {
         stage: "details",
         label: i18n.t("storyboard:attrs.details", { defaultValue: "Details" }),
-        primaryLabel: "Choose a reference",
+        primaryLabel: i18n.t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
         canAdvance:
           details.name.trim().length > 0 &&
           details.descriptor.trim().length > 0,
         blockedReason:
           details.name.trim().length === 0
-            ? "Name the entity"
-            : "Describe the traits to preserve",
+            ? i18n.t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
+            : i18n.t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
         render: () =>
           createElement(DetailsStep, {
             value: details,
@@ -222,7 +222,7 @@ const EntitySetupHost = ({
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
-          ? "Could not verify your entity library"
+          ? i18n.t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
           : entitiesLoading
             ? "Loading your entity library"
             : "Choose a reference image",
@@ -244,9 +244,9 @@ const EntitySetupHost = ({
       {
         stage: "review",
         label: i18n.t("storyboard:attrs.review", { defaultValue: "Review" }),
-        primaryLabel: "Create entity",
+        primaryLabel: i18n.t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
         pending: saveEntity.isPending,
-        pendingLabel: "Creating your entity",
+        pendingLabel: i18n.t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
         render: () =>
           referenceAssetId
             ? createElement(ReviewStep, {

@@ -317,7 +317,7 @@ export const useVideoSetupFlow = ({
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0 && !contextError,
         blockedReason:
-          contextError ?? "Describe the video, or bring your own media",
+          contextError ?? i18n.t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }),
         render: () =>
           createElement(IdeaStep, {
             // The blank escape hatch and the last step land in the same place:
@@ -336,22 +336,22 @@ export const useVideoSetupFlow = ({
         // the plan the creator edited, so coming back here and pressing on
         // returns them to it rather than replacing it (F15).
         primaryLabel: planIsCurrent
-          ? "Continue to the beats"
+          ? i18n.t("storyboard:attrs.continueToTheBeats", { defaultValue: "Continue to the beats" })
           : hasPlan
             ? "Re-plan the beats"
-            : "Plan the beats",
+            : i18n.t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
         canAdvance:
           videoFormatById(formatId) !== null && director.model !== null,
         blockedReason:
           videoFormatById(formatId) === null
-            ? "Pick a video template"
-            : "Pick a model to draft the beats",
+            ? i18n.t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" })
+            : i18n.t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
         generation: planIsCurrent
           ? undefined
           : {
               result: `Draft ${videoFormatById(formatId)?.beatCount ?? "the"} beats`,
               next: hasPlan
-                ? "The brief or template changed. Your edited plan will guide the new beats."
+                ? i18n.t("storyboard:attrs.theBriefOrTemplateChangedYourEditedPlanWillGuideTheNewBeats", { defaultValue: "The brief or template changed. Your edited plan will guide the new beats." })
                 : "Review the beats and timing. Media comes later in Look.",
               model: director.model
                 ? toLanguageModelValue(director.model)
@@ -364,7 +364,7 @@ export const useVideoSetupFlow = ({
         footerControls: (context) =>
           createElement(DirectorModelPicker, { readOnly: context.readOnly }),
         pending: planning,
-        pendingLabel: "Planning the beats",
+        pendingLabel: i18n.t("storyboard:attrs.planningTheBeats", { defaultValue: "Planning the beats" }),
         render: () => createElement(FormatStep),
         // The Director runs here and writes text only — no clip, no job (D4,
         // criterion 3). A refused run leaves the creator on the format step
@@ -374,7 +374,7 @@ export const useVideoSetupFlow = ({
       {
         stage: "review",
         label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
-        primaryLabel: "Continue to look",
+        primaryLabel: i18n.t("storyboard:attrs.continueToLook", { defaultValue: "Continue to look" }),
         canAdvance:
           hasPlan &&
           emptyBeats === 0 &&
@@ -385,7 +385,7 @@ export const useVideoSetupFlow = ({
           productionAuthoringBlocker(beats ?? []) ??
           (hasPlan
             ? `Fill in ${emptyBeats} beat${emptyBeats === 1 ? "" : "s"}: every beat needs a description and a length`
-            : "Plan the beats first — there is nothing to review yet"),
+            : i18n.t("storyboard:attrs.planTheBeatsFirstThereIsNothingToReviewYet", { defaultValue: "Plan the beats first — there is nothing to review yet" })),
         // `Re-plan` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot leave the plan while the plan
         // is being rewritten under them (F2).

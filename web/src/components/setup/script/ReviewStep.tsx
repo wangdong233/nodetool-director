@@ -251,8 +251,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         result={`Rewrite ${words} words, keeping the lines it keeps`}
         next={
           source
-            ? "This replaces your imported words with the model's. Your own text is dropped."
-            : "Edits you have made are given to the writer as context."
+            ? i18n.t("storyboard:attrs.thisReplacesYourImportedWordsWithTheModelsYourOwnTextIsDropped", { defaultValue: "This replaces your imported words with the model's. Your own text is dropped." })
+            : i18n.t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })
         }
         model={writerModel}
         brief={setup?.brief ?? ""}

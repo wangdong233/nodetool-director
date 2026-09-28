@@ -62,6 +62,12 @@ const STATUS_META: Record<LineStatus, { status: StatusType; label: string }> = {
   voiced: { status: "success", label: "Voiced" }
 };
 
+const STATUS_LABEL_KEYS: Record<LineStatus, string> = {
+  draft: "storyboard:attrs.notVoiced",
+  stale: "storyboard:attrs.stale",
+  voiced: "storyboard:attrs.voiced"
+};
+
 const ScriptLineEntry = ({
   scriptId,
   line,
@@ -87,7 +93,7 @@ const ScriptLineEntry = ({
     try {
       await voiceLine(scriptId, line.id);
     } catch (error) {
-      onError(getErrorMessage(error, "Voicing failed"));
+      onError(getErrorMessage(error, i18n.t("storyboard:attrs.voicingFailed", { defaultValue: "Voicing failed" })));
     }
   }, [scriptId, line.id, onError]);
 
@@ -103,14 +109,14 @@ const ScriptLineEntry = ({
         {line.text}
       </Text>
       <FlexRow align="center" gap={SPACING.micro} sx={{ flexShrink: 0 }}>
-        <StatusIndicator status={meta.status} label={meta.label} />
+        <StatusIndicator status={meta.status} label={i18n.t(STATUS_LABEL_KEYS[status], { defaultValue: meta.label })} />
         {voicing ? (
           <LoadingSpinner size={20} />
         ) : (
           <Tooltip
             title={
               !canVoice
-                ? "Open the script to voice this line"
+                ? i18n.t("storyboard:attrs.openTheScriptToVoiceThisLine", { defaultValue: "Open the script to voice this line" })
                 : voice
                   ? status === "stale"
                     ? "Re-voice line"

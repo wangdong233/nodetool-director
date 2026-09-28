@@ -26,11 +26,11 @@ interface CreativeContextFieldsProps {
 }
 
 const TEXT_FIELDS = [
-  ["product_name", "Product name"],
-  ["product_description", "Product description"],
-  ["audience", "Audience"],
-  ["objective", "Objective"],
-  ["tone", "Tone"]
+  ["product_name", "Product name", "storyboard:attrs.productName"],
+  ["product_description", "Product description", "storyboard:attrs.productDescription"],
+  ["audience", "Audience", "storyboard:attrs.audience"],
+  ["objective", "Objective", "storyboard:attrs.objective"],
+  ["tone", "Tone", "storyboard:attrs.tone"]
 ] as const;
 
 interface ContextTextProps {
@@ -70,7 +70,7 @@ export default function CreativeContextFields({
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const error =
     invalidFields.length > 0
-      ? "Context was not saved. Use at most 64 claims per list and 32 references."
+      ? i18n.t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." })
       : undefined;
   useEffect(() => {
     onValidationChange?.(error);
@@ -99,10 +99,10 @@ export default function CreativeContextFields({
           Leave fields blank when they do not apply. Claims use one line per
           claim.
         </Caption>
-        {TEXT_FIELDS.map(([key, label]) => (
+        {TEXT_FIELDS.map(([key, label, labelKey]) => (
           <ContextText
             key={`${key}:${value?.[key] ?? ""}`}
-            label={label}
+            label={i18n.t(labelKey, { defaultValue: label })}
             value={value?.[key] ?? ""}
             multiline={key === "product_description"}
             onCommit={(text) => update({ [key]: text.trim() || undefined })}

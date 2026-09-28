@@ -65,11 +65,11 @@ const ScriptLinkControlInner = ({
         disabled={disabled || extracting || (!scriptId && !hasShots)}
         title={
           scriptId
-            ? "Open the script this board's words come from"
-            : "Project this board's dialogue and narration into a script"
+            ? i18n.t("storyboard:attrs.openTheScriptThisBoardsWordsComeFrom", { defaultValue: "Open the script this board's words come from" })
+            : i18n.t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })
         }
       >
-        {scriptId ? "Open script" : extracting ? "Extracting…" : "Extract script"}
+        {scriptId ? i18n.t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? "Extracting…" : i18n.t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>

@@ -103,7 +103,7 @@ export function productionFields({
       : binding?.audio_asset_id
         ? "Bound to a recorded audio take."
         : binding?.text
-          ? "Uses local speech. Production voice and audio resolution are unavailable in this setup."
+          ? i18n.t("storyboard:attrs.usesLocalSpeechProductionVoiceAndAudioResolutionAreUnavailableInThisSetup", { defaultValue: "Uses local speech. Production voice and audio resolution are unavailable in this setup." })
           : undefined;
   const availabilityHint =
     "On-camera speech is unavailable in this guided flow. Choose Off-camera or None.";
@@ -124,7 +124,7 @@ export function productionFields({
         { value: "problem", label: "Problem" },
         { value: "demonstration", label: "Demonstration" },
         { value: "proof", label: "Proof" },
-        { value: "cta", label: "Call to action" },
+        { value: "cta", label: i18n.t("storyboard:attrs.callToAction", { defaultValue: "Call to action" }) },
         { value: "story", label: "Story" }
       ],
       onChange: (editorial_purpose) => {
@@ -144,7 +144,7 @@ export function productionFields({
       options: [
         { value: "", label: "Unspecified" },
         { value: "actor_to_camera", label: "Actor to camera" },
-        { value: "product_close_up", label: "Product close-up" },
+        { value: "product_close_up", label: i18n.t("storyboard:attrs.productCloseup", { defaultValue: "Product close-up" }) },
         { value: "lifestyle_b_roll", label: "Lifestyle B-roll" },
         { value: "generated_scene", label: "Generated scene" }
       ],

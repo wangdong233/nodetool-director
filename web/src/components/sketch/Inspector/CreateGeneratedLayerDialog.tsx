@@ -216,9 +216,9 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         onCreated?.(result.layerId);
         handleClose();
       } else if (result.reason === "no-document") {
-        setError("No image document is open.");
+        setError(i18n.t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
       } else if (result.reason === "error") {
-        setError(result.message ?? "Failed to create layer.");
+        setError(result.message ?? i18n.t("sketch:attrs.failedToCreateLayer", { defaultValue: "Failed to create layer." }));
       }
     }, [
       createGeneratedLayer,
@@ -237,7 +237,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
           showActions
           onConfirm={() => void handleConfirm()}
           onCancel={handleClose}
-          confirmText={isBusy ? "Creating…" : "Create layer"}
+          confirmText={isBusy ? "Creating…" : i18n.t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
           confirmDisabled={confirmDisabled}
           PaperProps={{ css: dialogStyles() }}
         >

@@ -199,8 +199,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             ) : null}
             <Caption color="secondary">
               {references.length > 0
-                ? "The refinement reads these when it writes your brief."
-                : "These stay with the document as you set it up."}
+                ? i18n.t("storyboard:attrs.theRefinementReadsTheseWhenItWritesYourBrief", { defaultValue: "The refinement reads these when it writes your brief." })
+                : i18n.t("storyboard:attrs.theseStayWithTheDocumentAsYouSetItUp", { defaultValue: "These stay with the document as you set it up." })}
             </Caption>
           </FlexColumn>
         ) : null}

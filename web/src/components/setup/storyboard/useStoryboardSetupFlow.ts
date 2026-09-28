@@ -270,7 +270,7 @@ export const useStoryboardSetupFlow = ({
     reviewError ??
     productionAuthoringBlocker(shots ?? []) ??
     (!hasScreenplay
-      ? "Write at least one shot"
+      ? i18n.t("storyboard:attrs.writeAtLeastOneShot", { defaultValue: "Write at least one shot" })
       : emptyShots > 0
         ? `Describe ${emptyShots === 1 ? "the shot" : `the ${emptyShots} shots`} with an empty action line`
         : undefined);
@@ -287,7 +287,7 @@ export const useStoryboardSetupFlow = ({
           !contextError &&
           (brief.trim().length > 0 || imported?.preserveWords === true),
         blockedReason:
-          contextError ?? "Write a sentence, or bring your own script",
+          contextError ?? i18n.t("storyboard:attrs.writeASentenceOrBringYourOwnScript", { defaultValue: "Write a sentence, or bring your own script" }),
         render: () =>
           createElement(IdeaStep, {
             boardId,
@@ -304,12 +304,12 @@ export const useStoryboardSetupFlow = ({
         stage: "genre",
         label: i18n.t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: upToDate
-          ? "Continue to your screenplay"
+          ? i18n.t("storyboard:attrs.continueToYourScreenplay", { defaultValue: "Continue to your screenplay" })
           : hasScreenplay
             ? "Re-direct your screenplay"
             : "Generate screenplay",
         canAdvance: genre.length > 0,
-        blockedReason: "Pick a genre",
+        blockedReason: i18n.t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
         pending: directing,
         pendingLabel: `Writing ${shotCount} shots`,
         // What the run costs, in the same shape every other flow shows before

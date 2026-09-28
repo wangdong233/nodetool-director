@@ -244,7 +244,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "paste",
-        title: source ? "Paste different words" : "Paste your script",
+        title: source ? i18n.t("storyboard:attrs.pasteDifferentWords", { defaultValue: "Paste different words" }) : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" }),
         description: i18n.t("editor:ui.wordsKeptExactlyAsWritten", { defaultValue: "Words you already have, kept exactly as you wrote them" }),
         onSelect: () => {
           setPasted("");
@@ -320,16 +320,16 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={5}
-          label={source ? "Notes for the writer" : "Your script"}
+          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : "Your script"}
           hideLabel
           placeholder={
             source
-              ? "Optional: say who reads what, or how to split the lines."
-              : "Describe the topic, audience and message for a new script."
+              ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." })
+              : i18n.t("storyboard:attrs.describeTheTopicAudienceAndMessageForANewScript", { defaultValue: "Describe the topic, audience and message for a new script." })
           }
           helperText={
             source
-              ? "Your imported words are kept as written. Anything here only guides how they are split and who reads them."
+              ? i18n.t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." })
               : "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words."
           }
           onChange={handleChange}
@@ -380,7 +380,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <Dialog
         open={pasting}
         onClose={() => setPasting(false)}
-        title={source ? "Replace your script" : "Paste your script"}
+        title={source ? "Replace your script" : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
         showActions
         confirmText={i18n.t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         onConfirm={usePasted}

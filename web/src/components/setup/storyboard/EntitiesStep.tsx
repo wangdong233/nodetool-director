@@ -175,7 +175,7 @@ export const EntitiesStep = ({
       setAssistError(
         error instanceof Error
           ? error.message
-          : "Could not find entities in the story."
+          : i18n.t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
       );
     } finally {
       if (mountedRef.current) {
@@ -208,7 +208,7 @@ export const EntitiesStep = ({
     const model =
       useStoryboardStore.getState().getBoard(boardId)?.imageModel ?? null;
     if (!model?.id) {
-      setAssistError("Pick a reference image model first.");
+      setAssistError(i18n.t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
       return;
     }
     setCreatingKeys((current) => new Set(current).add(key));
@@ -251,7 +251,7 @@ export const EntitiesStep = ({
     } catch (error) {
       if (!mountedRef.current) return;
       setAssistError(
-        error instanceof Error ? error.message : "The entity could not be made."
+        error instanceof Error ? error.message : i18n.t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
       );
     } finally {
       if (mountedRef.current) {
@@ -327,10 +327,10 @@ export const EntitiesStep = ({
             disabled={suggesting}
           >
             {suggesting
-              ? "Finding entities"
+              ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
               : suggestions.length > 0
                 ? "Refresh suggestions"
-                : "Find entities"}
+                : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
           </EditorButton>
         </FlexRow>
 
@@ -496,13 +496,13 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? "No entities selected"
-                      : "No matching entities"
+                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
+                      : i18n.t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
                   }
                   description={
                     onlySelected && !query
                       ? "Browse your library to choose references for this storyboard."
-                      : "Try another name or change the selected filter."
+                      : i18n.t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
                   }
                   size="small"
                 />

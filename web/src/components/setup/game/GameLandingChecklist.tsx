@@ -115,14 +115,14 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
         label={i18n.t("editor:ui.assetsChecked", { defaultValue: "Assets checked" })}
         detail={
           run.total === 0
-            ? "This project keeps the template's own art"
+            ? i18n.t("storyboard:attrs.thisProjectKeepsTheTemplatesOwnArt", { defaultValue: "This project keeps the template's own art" })
             : `${run.checked} of ${run.total}`
         }
       />
       <Line
         done={exported}
         label={i18n.t("storyboard:attrs.exported", { defaultValue: "Exported" })}
-        detail={run.directory ?? "Waiting for the export node"}
+        detail={run.directory ?? i18n.t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })}
       />
       <VerificationLine
         state={run.verification.status}
@@ -211,7 +211,7 @@ const verificationLine = (
     case "passed":
       return {
         label: `Verified with Godot ${godot}`,
-        detail: "The project opened and ran headlessly"
+        detail: i18n.t("storyboard:attrs.theProjectOpenedAndRanHeadlessly", { defaultValue: "The project opened and ran headlessly" })
       };
     case "running":
       return {
@@ -236,12 +236,12 @@ const verificationLine = (
     case "interrupted":
       return {
         label: i18n.t("editor:ui.verificationInterrupted", { defaultValue: "Verification interrupted" }),
-        detail: verification.reason ?? "The run was cancelled"
+        detail: verification.reason ?? i18n.t("storyboard:attrs.theRunWasCancelled", { defaultValue: "The run was cancelled" })
       };
     default:
       return {
         label: i18n.t("editor:ui.verificationQueued", { defaultValue: "Verification queued" }),
-        detail: "Waiting for the export node"
+        detail: i18n.t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })
       };
   }
 };

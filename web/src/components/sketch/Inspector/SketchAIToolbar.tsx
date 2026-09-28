@@ -85,7 +85,7 @@ const SketchAIToolbarInner: React.FC = () => {
         <Tooltip
           title={
             staleCount === 0
-              ? "No stale layers."
+              ? i18n.t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." })
               : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
           }
           delay={TOOLTIP_ENTER_DELAY}

@@ -1,9 +1,10 @@
 import type { Shortcut } from "../../config/shortcuts";
-import { ACTION_MAP } from "./shortcuts/actionRegistry";
+import { ACTION_MAP, ACTION_LABEL_KEYS } from "./shortcuts/actionRegistry";
 import {
   BINDING_CATALOG,
   type BindingEntry
 } from "./shortcuts/bindingCatalog";
+import { i18n } from "../../i18n";
 
 function bindingToWinKeyCombo(entry: BindingEntry): string[] {
   const combo: string[] = [];
@@ -27,7 +28,7 @@ function bindingToWinKeyCombo(entry: BindingEntry): string[] {
 
 function bindingToShortcut(entry: BindingEntry, index: number): Shortcut {
   const meta = ACTION_MAP.get(entry.actionId);
-  const title = meta?.label ?? entry.actionId;
+  const title = i18n.t(ACTION_LABEL_KEYS[entry.actionId] ?? "", { defaultValue: meta?.label ?? entry.actionId });
 
   let description: string | undefined;
   if (entry.scope === "mode:transform") {

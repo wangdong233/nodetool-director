@@ -153,7 +153,7 @@ export const DetailsStep = ({
             onSelect: onStartBlank,
             disabled: startingBlank,
             disabledReason: startingBlank
-              ? "Making your canvas…"
+              ? i18n.t("storyboard:attrs.makingYourCanvas", { defaultValue: "Making your canvas…" })
               : undefined
           }
         ]}

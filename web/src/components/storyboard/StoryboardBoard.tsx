@@ -165,6 +165,60 @@ const SHOT_COUNT_OPTIONS = [3, 4, 5, 6, 8, 10, 12].map((n) => ({
   label: `${n} shots`
 }));
 
+// Stills can come from a plain generator or an editing model; the latter can
+// take entity reference images, so the picker offers both.
+const STILL_MODEL_TASKS: ImageModelTask[] = ["text_to_image", "image_to_image"];
+
+const clipTaskForShot = (shot: Shot): VideoModelTask => {
+  const mode = shotRenderMode(shot);
+  return mode === "reference"
+    ? "reference_to_video"
+    : mode === "direct"
+      ? "text_to_video"
+      : "image_to_video";
+};
+
+/**
+ * The clip tasks a board can ask for, keyed off the helper that produces them
+ * so the labels cannot drift from it. A shot renders one of three ways; the
+ * rest of `VideoModelTask` (revision, lip sync, upscaling, interpolation,
+ * outpainting) never reaches this picker.
+ */
+type ClipModelTask = ReturnType<typeof requiredVideoTasksForShots>[number];
+
+const CLIP_TASK_LABELS: Record<ClipModelTask, string> = {
+  image_to_video: "Animate stills",
+  text_to_video: "Generate from prompts",
+  reference_to_video: "Use entity references"
+};
+
+const CLIP_TASK_LABEL_KEYS: Record<ClipModelTask, string> = {
+  image_to_video: "storyboard:attrs.animateStills",
+  text_to_video: "storyboard:attrs.generateFromPrompts",
+  reference_to_video: "storyboard:attrs.useEntityReferences"
+};
+
+const imageValue = (model: ShotModelRef): ImageModelValue => ({
+  type: "image_model",
+  id: model.id,
+  provider: model.provider,
+  name: model.name ?? model.id,
+  path: ""
+});
+
+const videoValue = (model: ShotModelRef): VideoModelValue => ({
+  type: "video_model",
+  id: model.id,
+  provider: model.provider,
+  name: model.name ?? model.id
+});
+
+// The model pickers are custom buttons, not InputBase controls; hold them at
+// the shared form-control height. Scoped to the picker's own class so no
+// other button that ends up inside the field is affected.
+const modelFieldSx = {
+  "& .select-model-button": { minHeight: `${CONTROL.height.lg}px` }
+} as const;
 const FORM_STACK_BELOW = 860;
 
 const settingsRailSx = {
@@ -1142,7 +1196,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       assembleError ??
                       (hasShots
                         ? "Re-directing rewrites the screenplay and replaces every shot."
-                        : "Direct writes the screenplay and seeds your shots.")}
+                        : i18n.t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", { defaultValue: "Direct writes the screenplay and seeds your shots." }))}
                   </Caption>
                   <EditorButton
                     variant="contained"
@@ -1213,7 +1267,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             {clipModelTasks.map((task) => (
               <FormField
                 key={task}
-                label={CLIP_TASK_LABELS[task]}
+                label={i18n.t(CLIP_TASK_LABEL_KEYS[task], { defaultValue: CLIP_TASK_LABELS[task] })}
                 sx={modelFieldSx}
               >
                 <VideoModelSelect
@@ -1262,7 +1316,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <FlexColumn gap={SPACING.xs}>
             <Text>
               {replacedClipCount === null
-                ? "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
+                ? i18n.t("storyboard:attrs.thisReplacesEveryClipOwnedByThisStoryboardAndItsLinkedScriptIncludingTrimsAndEditsMadeToThoseClips", { defaultValue: "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips." })
                 : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
             </Text>
             <Caption color="secondary">
@@ -1341,8 +1395,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             title="No shots yet"
             description={
               readOnly
-                ? "This storyboard has no shots."
-                : "Write a brief and press Direct to generate a screenplay of shots."
+                ? i18n.t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." })
+                : i18n.t("storyboard:attrs.writeABriefAndPressDirectToGenerateAScreenplayOfShots", { defaultValue: "Write a brief and press Direct to generate a screenplay of shots." })
             }
           />
         ) : (
@@ -1441,7 +1495,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                   ? "Assembling…"
                   : timelineId
                     ? "Rebuild linked timeline…"
-                    : "Create timeline"}
+                    : i18n.t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
               </EditorButton>
             </FlexRow>
             {!hasRenderedShot && (

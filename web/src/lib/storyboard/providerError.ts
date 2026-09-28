@@ -9,6 +9,7 @@
  * because a message we do not recognise is still better than "something went
  * wrong".
  */
+import { i18n } from "../../i18n";
 
 /** What went wrong, and what the creator can do about it. */
 export interface DirectorFailure {
@@ -32,31 +33,31 @@ export function describeDirectorFailure(
   raw: string,
   model?: { id: string; provider: string } | null
 ): DirectorFailure {
-  const named = model?.id ? `${model.provider}/${model.id}` : "This model";
+  const named = model?.id ? `${model.provider}/${model.id}` : i18n.t("storyboard:attrs.thisModel", { defaultValue: "This model" });
   const text = raw.trim();
 
   if (/\b404\b|no longer available|does not exist|NOT_FOUND/i.test(text)) {
     return {
       message: `${named} is not available on your account.`,
-      hint: "Pick another model below."
+      hint: i18n.t("storyboard:attrs.pickAnotherModelBelow", { defaultValue: "Pick another model below." })
     };
   }
   if (/\b401\b|\b403\b|authentication|invalid[ _-]?api[ _-]?key|unauthorized/i.test(text)) {
     return {
       message: `Your ${model?.provider ?? "provider"} API key was refused.`,
-      hint: "Check the key in Settings, or pick a model from another provider."
+      hint: i18n.t("storyboard:attrs.checkTheKeyInSettingsOrPickAModelFromAnotherProvider", { defaultValue: "Check the key in Settings, or pick a model from another provider." })
     };
   }
   if (/\b429\b|quota|credits|rate limit/i.test(text)) {
     return {
       message: `${named} is out of quota or rate limited.`,
-      hint: "Wait and try again, or pick another model below."
+      hint: i18n.t("storyboard:attrs.waitAndTryAgainOrPickAnotherModelBelow", { defaultValue: "Wait and try again, or pick another model below." })
     };
   }
   if (/\b5\d\d\b|timeout|timed out|ECONNRESET|network/i.test(text)) {
     return {
       message: `${named} did not answer.`,
-      hint: "Try again."
+      hint: i18n.t("storyboard:attrs.tryAgain2", { defaultValue: "Try again." })
     };
   }
   return { message: firstSentence(text) || "The Director run failed." };

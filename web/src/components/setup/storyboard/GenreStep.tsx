@@ -30,7 +30,7 @@ import {
   genreByLabel,
   genreStill,
   type StoryboardGenre
-} from "./genres";
+, GENRE_TITLE_KEYS, GENRE_DESCRIPTION_KEYS } from "./genres";
 
 export interface GenreStepProps {
   boardId: string;
@@ -60,7 +60,9 @@ const SHOT_OPTIONS = [3, 4, 6, 8, 10, 12].map((count) => ({
 const toOption = (item: StoryboardGenre): OptionCardItem => ({
   id: item.id,
   title: item.label,
+  titleKey: GENRE_TITLE_KEYS[item.id],
   description: item.description,
+  descriptionKey: GENRE_DESCRIPTION_KEYS[item.id],
   image: genreStill(item)
 });
 

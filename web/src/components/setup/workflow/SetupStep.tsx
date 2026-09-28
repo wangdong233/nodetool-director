@@ -44,7 +44,7 @@ import {
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
-import { MODEL_ROLE_LABEL, MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import { MODEL_ROLE_LABEL, MODEL_ROLE_LABEL_KEYS, MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { i18n } from "../../../i18n";
 
 /**
@@ -197,7 +197,7 @@ const BuildDisclosure: React.FC<{
   const chosen = roles
     .map((role) => {
       const tile = role.tiles.find((option) => option.id === role.selectedId);
-      return tile ? `${MODEL_ROLE_LABEL[role.role] ?? role.role}: ${tile.title}` : null;
+      return tile ? `${i18n.t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role })}: ${tile.title}` : null;
     })
     .filter((entry): entry is string => entry !== null);
 
@@ -216,12 +216,12 @@ const BuildDisclosure: React.FC<{
       <Text size="small" color="secondary">
         {plan.inputs.length > 0
           ? "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates."
-          : "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates."}
+          : i18n.t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates." })}
       </Text>
       <Text size="small">
         {chosen.length > 0
           ? `Runs on ${chosen.join(" · ")}`
-          : "This plan needs no model of its own."}
+          : i18n.t("storyboard:attrs.thisPlanNeedsNoModelOfItsOwn", { defaultValue: "This plan needs no model of its own." })}
       </Text>
       <Caption color="secondary">
         Cost is unknown until the run returns — it depends on what each step
@@ -233,7 +233,7 @@ const BuildDisclosure: React.FC<{
 
 /** One role's tile row, with the four states a model query can be in (F14). */
 const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
-  const label = MODEL_ROLE_LABEL[role.role] ?? role.role;
+  const label = i18n.t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role });
   const selection = role.selectedId?.split(":") ?? [];
   const selectedProvider = selection.length > 1 ? selection[0] : undefined;
   const selectedModel = selection.length > 1 ? selection.slice(1).join(":") : "";

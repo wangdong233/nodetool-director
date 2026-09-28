@@ -91,6 +91,13 @@ const STATUS_TEXT: Record<string, string> = {
   failed: "This one failed"
 };
 
+const STATUS_TEXT_KEYS: Record<string, string> = {
+  draft: "storyboard:attrs.waitingToStart",
+  queued: "editor:ui.queued",
+  generating: "storyboard:attrs.rendering",
+  failed: "storyboard:attrs.thisOneFailed"
+};
+
 /** Statuses that mean the request has not settled yet. */
 const PENDING = new Set(["draft", "queued", "generating"]);
 
@@ -176,7 +183,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
     async (layerId: string, destination: "entity" | "canvas" | "video") => {
       setActions((current) => ({
         ...current,
-        [layerId]: { state: "saving", message: "Opening destination…" }
+        [layerId]: { state: "saving", message: i18n.t("storyboard:attrs.openingDestination", { defaultValue: "Opening destination…" }) }
       }));
       try {
         if (destination === "entity") {
@@ -191,7 +198,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             message:
               destination === "entity"
                 ? "Saved to entities."
-                : "Opened in a new node canvas."
+                : i18n.t("storyboard:attrs.openedInANewNodeCanvas", { defaultValue: "Opened in a new node canvas." })
           }
         }));
       } catch {
@@ -199,7 +206,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           ...current,
           [layerId]: {
             state: "failed",
-            message: "Could not open that destination. Try again."
+            message: i18n.t("storyboard:attrs.couldNotOpenThatDestinationTryAgain", { defaultValue: "Could not open that destination. Try again." })
           }
         }));
       }
@@ -293,7 +300,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }}
                 >
                   <Caption color="secondary">
-                    {STATUS_TEXT[tile.status] ?? "Rendering"}
+                    {i18n.t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", { defaultValue: STATUS_TEXT[tile.status] ?? "Rendering" })}
                   </Caption>
                 </Box>
               )}
@@ -318,8 +325,8 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
               {(
                 [
                   ["entity", "Save to entities"],
-                  ["canvas", "New node canvas"],
-                  ["video", "Image to video"]
+                  ["canvas", i18n.t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
+                  ["video", i18n.t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
                 ] as const
               ).map(([destination, label]) => (
                 <EditorButton
@@ -370,7 +377,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? "Making more…" : "Make more variations"}
+          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : i18n.t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
         <EditorButton variant="text" onClick={onBackToSettings}>
           Back to generation settings

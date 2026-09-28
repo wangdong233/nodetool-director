@@ -175,7 +175,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
             {
               id: "enemies",
               header: i18n.t("editor:ui.enemies", { defaultValue: "Enemies" }),
-              subheader: "What each one does in the loop.",
+              subheader: i18n.t("storyboard:attrs.whatEachOneDoesInTheLoop", { defaultValue: "What each one does in the loop." }),
               rows: [],
               groups: design.enemies.map((enemy) => ({
                 id: `enemy-${enemy.slot_id}`,

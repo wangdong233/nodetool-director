@@ -216,7 +216,7 @@ export const gameGenerationLine = (estimate: GameCostEstimate): string => {
 export const gameCostLine = (estimate: GameCostEstimate): string =>
   estimate.total !== null && estimate.total > 0
     ? `About ${formatUsd(estimate.total)}`
-    : "Cost unknown until the first asset returns";
+    : i18n.t("storyboard:attrs.costUnknownUntilTheFirstAssetReturns", { defaultValue: "Cost unknown until the first asset returns" });
 
 /** What the image picker lists: the models that draw text to image. */
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];

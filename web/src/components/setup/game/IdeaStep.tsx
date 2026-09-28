@@ -91,7 +91,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         onSelect: () => setPicker("blank"),
         disabled: templates.length === 0 || exportingBlank,
         disabledReason: exportingBlank
-          ? "Exporting the template…"
+          ? i18n.t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
           : templates.length === 0
             ? "Reading the shipped templates…"
             : undefined
@@ -128,8 +128,8 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           </Text>
           <Caption color="secondary" component="p">
             {blank
-              ? "The template with its placeholder art, exported and ready to open in Godot."
-              : "Pick the loop and skip straight to the design."}
+              ? i18n.t("storyboard:attrs.theTemplateWithItsPlaceholderArtExportedAndReadyToOpenInGodot", { defaultValue: "The template with its placeholder art, exported and ready to open in Godot." })
+              : i18n.t("storyboard:attrs.pickTheLoopAndSkipStraightToTheDesign", { defaultValue: "Pick the loop and skip straight to the design." })}
           </Caption>
         </FlexColumn>
         <OptionCardGrid

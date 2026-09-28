@@ -43,6 +43,7 @@ import {
   rasterizeSegmentationToDocumentSpace
 } from "../sam";
 import type { SamModelInfo } from "../sam";
+import { i18n } from "../../../i18n";
 
 interface UseSegmentationParams {
   canvasRef: RefObject<SketchCanvasRef | null>;
@@ -268,7 +269,7 @@ export function useSegmentation({
       setErrorMessage(null);
       setStatus("idle");
     } catch (err) {
-      fail("Could not check the model", err);
+      fail(i18n.t("sketch:attrs.couldNotCheckTheModel", { defaultValue: "Could not check the model" }), err);
     }
   }, [fail]);
 
@@ -347,7 +348,7 @@ export function useSegmentation({
           setStatus("idle");
           return;
         }
-        fail("Inference failed", err);
+        fail(i18n.t("sketch:attrs.inferenceFailed", { defaultValue: "Inference failed" }), err);
       }
     },
     [exportLayerPixels]

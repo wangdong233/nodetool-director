@@ -186,14 +186,14 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
   );
   const modelOptions = useMemo(
     () => [
-      { value: "", label: "Choose a model" },
+      { value: "", label: i18n.t("storyboard:attrs.chooseAModel", { defaultValue: "Choose a model" }) },
       ...models.map((model) => ({ value: model.id, label: model.label }))
     ],
     [models]
   );
   const voiceOptions = useMemo(
     () => [
-      { value: "", label: "Choose a voice" },
+      { value: "", label: i18n.t("storyboard:attrs.chooseAVoice", { defaultValue: "Choose a voice" }) },
       ...(selectedModel?.voices.map((voice) => ({
         value: voice.id,
         label: voice.label
@@ -268,7 +268,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
         <Caption color="secondary" component="p">
           {hasLine
             ? `Samples read: “${spoken}”`
-            : "This speaker has no lines yet, so there is nothing to sample."}
+            : i18n.t("storyboard:attrs.thisSpeakerHasNoLinesYetSoThereIsNothingToSample", { defaultValue: "This speaker has no lines yet, so there is nothing to sample." })}
         </Caption>
         {/* Every audition is a speech call, so the step says so before one is
             pressed rather than after it is billed (F23). */}

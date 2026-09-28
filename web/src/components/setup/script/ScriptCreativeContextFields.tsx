@@ -28,15 +28,17 @@ const listFromValue = (value: string): string[] | undefined => {
 };
 
 const TEXT_FIELDS = [
-  ["product_name", "Product name", "Optional name used in production direction."],
+  ["product_name", "Product name", "Optional name used in production direction.", "storyboard:attrs.productName", "storyboard:attrs.optionalNameUsedInProductionDirection"],
   [
     "product_description",
     "Product description",
-    "What the product looks like or does."
+    "What the product looks like or does.",
+    "storyboard:attrs.productDescription",
+    "storyboard:attrs.whatTheProductLooksLikeOrDoes"
   ],
-  ["audience", "Audience", "Who this script is for."],
-  ["objective", "Objective", "What the video should achieve."],
-  ["tone", "Tone", "The desired delivery and mood."]
+  ["audience", "Audience", "Who this script is for.", "storyboard:attrs.audience", "storyboard:attrs.whoThisScriptIsFor"],
+  ["objective", "Objective", "What the video should achieve.", "storyboard:attrs.objective", "storyboard:attrs.whatTheVideoShouldAchieve"],
+  ["tone", "Tone", "The desired delivery and mood.", "storyboard:attrs.tone", "storyboard:attrs.theDesiredDeliveryAndMood"]
 ] as const;
 
 export const ScriptCreativeContextFields: React.FC<
@@ -68,12 +70,12 @@ export const ScriptCreativeContextFields: React.FC<
           Optional context for visual production. The script still owns its words.
         </Caption>
       </FlexColumn>
-      {TEXT_FIELDS.map(([key, label, helperText]) => (
+      {TEXT_FIELDS.map(([key, label, helperText, labelKey, helperKey]) => (
         <TextInput
           key={key}
-          label={label}
+          label={i18n.t(labelKey, { defaultValue: label })}
           value={typeof context[key] === "string" ? context[key] : ""}
-          helperText={helperText}
+          helperText={i18n.t(helperKey, { defaultValue: helperText })}
           onChange={(event) =>
             update({
               [key]:

@@ -116,7 +116,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
       {settings.mode === "magic_wand" ? (
         <>
           <Box className="setting-row">
-            <Text className="setting-label">Tol.</Text>
+            <Text className="setting-label">{i18n.t("sketch:attrs.tol", { defaultValue: "Tol." })}</Text>
             <Slider
               sx={sketchSliderSx}
               size="small"

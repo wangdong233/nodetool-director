@@ -200,8 +200,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">
                 {locked
-                  ? "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing."
-                  : "The Director structures this text into scenes and shots."}
+                  ? i18n.t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
+                  : i18n.t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
               </Caption>
               <FlexRow gap={GAP.normal} wrap>
                 <EditorButton

@@ -14,6 +14,7 @@ import { useCallback, useState } from "react";
 import { useSketchStore } from "../../components/sketch/state/useSketchStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
+import { i18n } from "../../i18n";
 
 /** Natural size of a picked file, measured before it is placed. */
 const measure = (file: File): Promise<{ width: number; height: number }> =>
@@ -63,7 +64,7 @@ export function useUploadFirstLayer(
         const sketch = useSketchStore.getState();
         const first = sketch.document.layers[0];
         if (!first) {
-          setError("This document has no layer to place the image on.");
+          setError(i18n.t("sketch:attrs.thisDocumentHasNoLayerToPlaceTheImageOn", { defaultValue: "This document has no layer to place the image on." }));
           return false;
         }
         sketch.resizeCanvas(size.width, size.height);

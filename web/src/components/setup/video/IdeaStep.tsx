@@ -151,7 +151,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       setDragging(false);
       const media = files.filter(isMediaFile);
       if (media.length === 0) {
-        setError("Drop video, audio or images. Nothing else goes on a track.");
+        setError(i18n.t("storyboard:attrs.dropVideoAudioOrImagesNothingElseGoesOnATrack", { defaultValue: "Drop video, audio or images. Nothing else goes on a track." }));
         return;
       }
       await runImport(media);
@@ -178,7 +178,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
-        disabledReason: importing ? "Uploading your files…" : undefined
+        disabledReason: importing ? i18n.t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
       },
       {
         id: "script",
@@ -188,7 +188,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         disabled: !onStartFromScript,
         disabledReason: onStartFromScript
           ? undefined
-          : "Not available here. Start a script from the project screen."
+          : i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
       },
       {
         id: "blank",
