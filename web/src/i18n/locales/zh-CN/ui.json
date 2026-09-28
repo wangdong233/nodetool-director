@@ -29,6 +29,7 @@
     "zoomControls": "缩放控件",
     "zoomIn": "放大",
     "zoomOut": "缩小",
-    "breadcrumb": "面包屑导航"
+    "breadcrumb": "面包屑导航",
+    "skipToMainContent": "跳到主内容"
   }
 }

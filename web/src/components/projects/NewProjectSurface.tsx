@@ -1829,7 +1829,7 @@ const NewProjectSurface = ({
                 </Caption>
               ) : (
                 <Caption color="muted">
-                  Pick a skill to start from, or just describe what you want.
+                  {i18n.t("editor:ui.pickASkillToStartFromOrJustDescribeWhatYouWant")}
                 </Caption>
               )}
             </FlexColumn>
@@ -1861,10 +1861,10 @@ const NewProjectSurface = ({
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              Blank document
+              {i18n.t("editor:ui.blankDocument")}
             </Caption>
             <Caption color="muted">
-              — opens as a loose tab, outside any project
+              {i18n.t("editor:ui.opensAsALooseTabOutsideAnyProject")}
             </Caption>
             <Box sx={{ flex: 1 }} />
             <EditorButton
@@ -1872,14 +1872,14 @@ const NewProjectSurface = ({
               density="compact"
               onClick={handleOpenExamples}
             >
-              Browse examples
+              {i18n.t("editor:ui.browseExamples")}
             </EditorButton>
             <EditorButton
               variant="text"
               density="compact"
               onClick={handleOpenTutorials}
             >
-              Tutorials
+              {i18n.t("editor:ui.tutorials")}
             </EditorButton>
           </FlexRow>
           <Box

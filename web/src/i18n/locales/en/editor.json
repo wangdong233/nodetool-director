@@ -1596,7 +1596,12 @@
       "provider-call": "Failed provider call",
       "notification": "Error notification",
       "manual": "Manual report"
-    }
+    },
+    "pickASkillToStartFromOrJustDescribeWhatYouWant": "Pick a skill to start from, or just describe what you want.",
+    "blankDocument": "Blank document",
+    "opensAsALooseTabOutsideAnyProject": "— opens as a loose tab, outside any project",
+    "browseExamples": "Browse examples",
+    "tutorials": "Tutorials"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
