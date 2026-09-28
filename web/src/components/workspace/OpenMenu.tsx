@@ -88,9 +88,9 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             {starters.map((starter) => (
               <MenuItemPrimitive
                 key={starter.id}
-                label={starter.title}
+                label={i18n.t(`editor:ui.menuFlowTitle.${starter.id}`, { defaultValue: starter.title })}
                 icon={starter.icon}
-                secondary={starter.description}
+                secondary={i18n.t(`editor:ui.${starter.descriptionKey ?? ""}`, { defaultValue: starter.description })}
                 onClick={() => void starter.start()}
                 disabled={busy}
               />
@@ -101,7 +101,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             {entries.map((entry) => (
               <MenuItemPrimitive
                 key={entry.key}
-                label={entry.menuLabel}
+                label={i18n.t(`editor:ui.menuLabel.${entry.key}`, { defaultValue: entry.menuLabel })}
                 icon={entry.icon}
                 hasSubmenu={entry.submenu !== undefined}
                 onClick={() =>

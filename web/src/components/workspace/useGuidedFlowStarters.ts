@@ -37,6 +37,8 @@ import { i18n } from "../../i18n";
 export interface GuidedFlowStarter {
   id: EntryFlowId;
   title: string;
+  /** i18n leaf key under editor:ui for the localized description. */
+  descriptionKey?: string;
   description: string;
   icon: ReactNode;
   /** Start in the selected project, or the supplied project id. */
@@ -276,6 +278,7 @@ export const useGuidedFlowStarters = (
       return {
         id: card.id,
         title,
+        descriptionKey: card.descriptionKey,
         description: card.description ?? "",
         icon: GUIDED_FLOW_ICONS[card.id],
         start: (projectId?: string) => startById[card.id](projectId)

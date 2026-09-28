@@ -2620,7 +2620,30 @@
     "browserExtensionStep3": "开启右上角\"开发者模式\"。",
     "browserExtensionStep4": "点击\"加载已解压的扩展程序\"，选择扩展文件夹。",
     "browserExtensionStep5": "打开要自动化的网站，点击 Nodetool 扩展，按\"附加到此标签页\"。",
-    "enable": "启用"
+    "enable": "启用",
+    "menuLabel": {
+      "workflow": "新建工作流",
+      "chat": "新建对话",
+      "text": "新建文本文件…",
+      "image": "新建图稿",
+      "svg": "新建 SVG",
+      "video": "新建时间线",
+      "storyboard": "新建分镜…",
+      "app": "新建应用",
+      "script": "新建脚本",
+      "jsscript": "新建 JS 脚本",
+      "skill": "新建技能",
+      "model3d": "新建 3D 模型"
+    },
+    "menuFlowTitle": {
+      "entity": "实体",
+      "storyboard": "分镜",
+      "video": "时间线",
+      "script": "脚本",
+      "image": "图稿",
+      "workflow": "工作流",
+      "game": "游戏"
+    }
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

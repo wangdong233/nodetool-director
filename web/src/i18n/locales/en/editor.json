@@ -2620,7 +2620,30 @@
     "browserExtensionStep3": "Enable “Developer mode” (top-right).",
     "browserExtensionStep4": "Click “Load unpacked” and select the extension folder.",
     "browserExtensionStep5": "Open a site to automate, click the Nodetool extension, and press “Attach to this tab”.",
-    "enable": "Enable"
+    "enable": "Enable",
+    "menuLabel": {
+      "workflow": "New workflow",
+      "chat": "New chat",
+      "text": "New text file…",
+      "image": "New sketch",
+      "svg": "New SVG",
+      "video": "New timeline",
+      "storyboard": "New storyboard…",
+      "app": "New app",
+      "script": "New script",
+      "jsscript": "New JS script",
+      "skill": "New skill",
+      "model3d": "New 3D model"
+    },
+    "menuFlowTitle": {
+      "entity": "Entity",
+      "storyboard": "Storyboard",
+      "video": "Timeline",
+      "script": "Script",
+      "image": "Sketch",
+      "workflow": "Workflow",
+      "game": "Game"
+    }
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
