@@ -169,7 +169,7 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
         <Dialog
           open={deleteDialogOpen}
           onClose={handleDeleteCancel}
-          title={i18n.t("editor:ui.Delete version", { defaultValue: "Delete version?" })}
+          title={i18n.t("editor:ui.deleteVersion")}
           onConfirm={handleDeleteConfirm}
           confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
           cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
