@@ -139,7 +139,7 @@ const ProviderRow = memo(function ProviderRow({
           </Caption>
           {handListed > 0 && (
             <Caption size="smaller" sx={{ opacity: 0.45 }}>
-              {handListed} model{handListed === 1 ? "" : "s"} listed by hand
+              {i18n.t("editor:ui.modelsListedByHand", { n: handListed })}
             </Caption>
           )}
           {testResult?.counts && testResult.ok && (
@@ -414,8 +414,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             OpenAI-compatible endpoints
           </Text>
           <Caption sx={{ opacity: 0.55 }}>
-            Point NodeTool at any proxy or gateway that speaks the OpenAI API.
-            Its chat, image and video models appear in the matching nodes.
+            {i18n.t("editor:ui.pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi")}
           </Caption>
         </FlexColumn>
         <EditorButton
@@ -425,7 +424,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
           startIcon={<AddIcon sx={{ fontSize: 16 }} />}
           onClick={handleAdd}
         >
-          Add endpoint
+          {i18n.t("editor:ui.addEndpoint")}
         </EditorButton>
       </FlexRow>
 

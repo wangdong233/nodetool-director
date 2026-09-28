@@ -139,9 +139,9 @@ export const ProviderCard = memo(function ProviderCard({
 
   const statusTone = isUnavailable ? "warning" : "secondary";
   const statusLabel = isUnavailable
-    ? "Unavailable"
+    ? i18n.t("editor:ui.unavailable")
     : isConnected
-      ? "Connected"
+      ? i18n.t("editor:ui.connected")
       : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" });
 
   const handleConnect = useCallback(() => {
@@ -251,7 +251,7 @@ export const ProviderCard = memo(function ProviderCard({
                 lineHeight: 1.4
               }}
             >
-              {meta.note}
+              {i18n.t(`tools:menus.providers.${meta.key}.note`, { defaultValue: meta.note })}
             </Caption>
           )}
         </FlexColumn>
@@ -371,7 +371,7 @@ export const ProviderCard = memo(function ProviderCard({
               window.open(meta.docsUrl, "_blank", "noopener,noreferrer")
             }
           >
-            Docs
+            {i18n.t("editor:ui.docs")}
           </EditorButton>
 
           {meta.oauth &&
@@ -411,7 +411,7 @@ export const ProviderCard = memo(function ProviderCard({
                 onClick={handleTest}
                 disabled={testing}
               >
-                {testing ? "Testing…" : "Test"}
+                {testing ? i18n.t("editor:ui.testing") : i18n.t("editor:ui.test2")}
               </EditorButton>
               <EditorButton
                 density="compact"
@@ -857,7 +857,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 
         if (allInSection.length === 0) return null;
 
-        const sectionTitle = SECTION_TITLES[sectionKey];
+        const sectionTitle = i18n.t(`tools:menus.sections.${sectionKey}`, { defaultValue: SECTION_TITLES[sectionKey] });
         const isAdvanced = sectionKey === "advanced";
 
         const section = (
@@ -957,14 +957,14 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                     }}
                   />
                   <Text size="big">
-                    {editingSecret?.is_configured ? "Update" : "Connect"}{" "}
+                    {editingSecret?.is_configured ? i18n.t("editor:ui.update2") : i18n.t("editor:ui.connect2")}{" "}
                     {meta?.name || editingSecret.key}
                   </Text>
                 </FlexRow>
               }
               onConfirm={handleSave}
               onCancel={handleCloseDialog}
-              confirmText={editingSecret?.is_configured ? "Update" : "Connect"}
+              confirmText={editingSecret?.is_configured ? i18n.t("editor:ui.update2") : i18n.t("editor:ui.connect2")}
               cancelText="Cancel"
               confirmDisabled={!allFieldsFilled}
             >
@@ -1092,7 +1092,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}
           >
-            All API keys are encrypted in the database and never exposed.
+            {i18n.t("editor:ui.allApiKeysAreEncryptedInTheDatabaseAndNeverExposed")}
           </Caption>
           <EditorButton
             density="compact"
@@ -1108,7 +1108,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
             }
             sx={{ alignSelf: "flex-start", marginTop: theme.spacing(1) }}
           >
-            Learn more
+            {i18n.t("editor:ui.learnMore")}
           </EditorButton>
         </FlexColumn>
       </FlexRow>
@@ -1146,7 +1146,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
-      title: "Troubleshooting",
+      title: i18n.t("editor:ui.troubleshooting"),
       subtitle: i18n.t("tools:menus.commonIssuesFixes", {
         defaultValue: "Common issues & fixes"
       }),
@@ -1252,7 +1252,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <Text size="small">{i18n.t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
-          Get free credits and offers from our partner providers.
+          {i18n.t("editor:ui.getFreeCreditsAndOffersFromOurPartnerProviders")}
         </Caption>
         <EditorButton
           density="compact"

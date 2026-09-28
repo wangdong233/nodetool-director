@@ -326,5 +326,28 @@
       "tagline": "Timeline editor · trim, arrange, caption",
       "task": "Place two clips, trim their cut, add a caption, and preview the finished sequence."
     }
+  },
+  "sections": {
+    "popular": "Popular",
+    "language": "Language Models",
+    "media": "Media Generation",
+    "gateways": "Gateways & Hubs",
+    "search": "Web Search",
+    "compute": "Compute & Local",
+    "advanced": "Services & Advanced"
+  },
+  "providers": {
+    "FAL_API_KEY": {
+      "description": "For exact cost tracking, use an admin key (fal.ai dashboard → Keys → scope \"Admin\"). NodeTool reads each request's actual billing from FAL; a standard key only yields estimates."
+    },
+    "COMFY_API_KEY": {
+      "description": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key."
+    },
+    "CODEX_SUBSCRIPTION": {
+      "note": "Signs in with your ChatGPT account."
+    },
+    "CLAUDE_SUBSCRIPTION": {
+      "note": "Shares the credentials used by Claude Code."
+    }
   }
 }
