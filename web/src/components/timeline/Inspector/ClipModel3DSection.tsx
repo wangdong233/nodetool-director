@@ -268,7 +268,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     ariaLabel={i18n.t("timeline:attrs.cameraElevation", { defaultValue: "Camera elevation" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Lens">
+                <InspectorRow label={i18n.t("editor:ui.lens", { defaultValue: "Lens" })}>
                   <InspectorPillInput
                     value={camera.fovDeg.toFixed(1)}
                     unit="°"
@@ -359,7 +359,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               </InspectorRow>
             )}
 
-            <InspectorRow label="Bake">
+            <InspectorRow label={i18n.t("editor:ui.bake", { defaultValue: "Bake" })}>
               <FlexColumn gap={SPACING.xs}>
                 <Button
                   size="small"

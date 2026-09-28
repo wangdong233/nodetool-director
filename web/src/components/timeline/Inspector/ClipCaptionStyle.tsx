@@ -165,7 +165,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
           unmountOnExit
         >
           <FlexColumn css={sectionContentStyles(theme)}>
-            <InspectorRow label="Font">
+            <InspectorRow label={i18n.t("editor:ui.font", { defaultValue: "Font" })}>
               <FontPicker
                 label={i18n.t("timeline:attrs.captionFontFamily", { defaultValue: "Caption font family" })}
                 value={style?.fontFamily}

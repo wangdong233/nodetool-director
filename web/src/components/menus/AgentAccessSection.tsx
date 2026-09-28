@@ -359,7 +359,7 @@ const AgentAccessSection = () => {
         onClose={() => setGrantToRevoke(null)}
         title={i18n.t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         showActions
-        confirmText="Disconnect"
+        confirmText={i18n.t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
         cancelText="Cancel"
         isLoading={revokeGrant.isPending}
         onCancel={() => setGrantToRevoke(null)}

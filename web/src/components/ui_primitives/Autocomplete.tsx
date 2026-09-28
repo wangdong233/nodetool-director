@@ -63,7 +63,7 @@ export interface AutocompleteProps<
  * <Autocomplete
  *   freeSolo
  *   options={suggestions}
- *   label="Tags"
+ *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
  *   placeholder="Add tag..."
  * />
  *

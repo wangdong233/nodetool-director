@@ -292,7 +292,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
               onChange={handleTextChange}
               inputProps={TEXT_CONTENT_INPUT_PROPS}
             />
-            <InspectorRow label="Font">
+            <InspectorRow label={i18n.t("editor:ui.font", { defaultValue: "Font" })}>
               <FontPicker
                 label={i18n.t("timeline:attrs.textFontFamily", { defaultValue: "Text font family" })}
                 value={textStyle.fontFamily}

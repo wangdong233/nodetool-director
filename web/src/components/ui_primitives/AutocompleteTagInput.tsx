@@ -6,7 +6,7 @@
  *
  * @example
  * <AutocompleteTagInput
- *   label="Tags"
+ *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
  *   value={tags}
  *   onChange={setTags}
  *   suggestions={["image", "audio", "video"]}

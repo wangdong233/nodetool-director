@@ -367,14 +367,14 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <LinkOffIcon sx={{ fontSize: 18 }} />
               </ListItemIcon>
-              <ListItemText primary="Disconnect" secondary="Edit the value manually" />
+              <ListItemText primary={i18n.t("editor:ui.disconnect", { defaultValue: "Disconnect" })} secondary="Edit the value manually" />
             </EditorMenuItem>
           )}
 
           {compatibleOptions.length === 0 && (
             <EditorMenuItem disabled>
               <ListItemText
-                primary="No compatible outputs in previous steps"
+                primary={i18n.t("editor:ui.noCompatibleOutputsInPreviousSteps", { defaultValue: "No compatible outputs in previous steps" })}
                 secondary={
                   activeProp
                     ? `This field takes ${formatType(activeProp.type)}`

@@ -110,7 +110,7 @@ export const DetailsStep = ({
         label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
         value={value.name}
         onChange={(event) => onChange({ ...value, name: event.target.value })}
-        placeholder="Nova"
+        placeholder={i18n.t("editor:ui.nova", { defaultValue: "Nova" })}
         autoFocus
       />
       <TextInput

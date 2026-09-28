@@ -722,7 +722,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleTemperatureChange}
                 />
                 <InspectorSliderRow
-                  label="Tint"
+                  label={i18n.t("editor:ui.tint", { defaultValue: "Tint" })}
                   min={-1}
                   max={1}
                   step={0.01}

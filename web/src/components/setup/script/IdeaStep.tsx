@@ -382,7 +382,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         onClose={() => setPasting(false)}
         title={source ? "Replace your script" : "Paste your script"}
         showActions
-        confirmText="Use this text"
+        confirmText={i18n.t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         onConfirm={usePasted}
         onCancel={() => setPasting(false)}
         fullWidth

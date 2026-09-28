@@ -307,7 +307,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
           anchorEl={resolutionAnchor}
           open={!!resolutionAnchor}
           onClose={() => setResolutionAnchor(null)}
-          header="Resolution"
+          header={i18n.t("editor:ui.resolution", { defaultValue: "Resolution" })}
           value={resolutionId}
           options={resolutionOptions}
           onChange={handleResolutionResize}

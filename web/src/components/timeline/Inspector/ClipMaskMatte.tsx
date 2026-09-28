@@ -228,7 +228,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Mask"
+              title={i18n.t("editor:ui.mask", { defaultValue: "Mask" })}
               icon={<CropFreeOutlinedIcon />}
               checked={mask !== undefined}
               onCheckedChange={handleMaskEnabled}
@@ -256,7 +256,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                 </InspectorRow>
                 {mask.kind === "path" ? (
                   <>
-                    <InspectorRow label="Path">
+                    <InspectorRow label={i18n.t("editor:ui.path", { defaultValue: "Path" })}>
                       <TextCommitField
                         value={mask.d ?? ""}
                         ariaLabel={i18n.t("timeline:attrs.maskPathData", { defaultValue: "Mask path data" })}

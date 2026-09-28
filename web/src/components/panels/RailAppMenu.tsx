@@ -148,7 +148,7 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
 
   return (
     <>
-      <Tooltip title="Menu" placement="right-start">
+      <Tooltip title={i18n.t("editor:ui.menu", { defaultValue: "Menu" })} placement="right-start">
         <button
           ref={anchorRef}
           type="button"

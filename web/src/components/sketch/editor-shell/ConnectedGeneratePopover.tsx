@@ -323,7 +323,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
               anchorEl={resolutionAnchor}
               open={!!resolutionAnchor}
               onClose={() => setResolutionAnchor(null)}
-              header="Resolution"
+              header={i18n.t("editor:ui.resolution", { defaultValue: "Resolution" })}
               value={resolution}
               options={resolutionOptions}
               onChange={handleResolutionChange}

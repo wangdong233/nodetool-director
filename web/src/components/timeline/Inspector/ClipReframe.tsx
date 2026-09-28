@@ -162,7 +162,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             onChange={setFocusY}
           />
           <InspectorSliderRow
-            label="Zoom"
+            label={i18n.t("editor:ui.zoom", { defaultValue: "Zoom" })}
             value={zoom}
             display={`${zoom.toFixed(2)}×`}
             min={1}

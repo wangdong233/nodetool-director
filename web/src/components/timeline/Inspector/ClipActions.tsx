@@ -201,7 +201,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           title={i18n.t("timeline:attrs.replaceOutput", { defaultValue: "Replace Output" })}
           onConfirm={handleConfirmReplace}
           onCancel={handleCancelReplace}
-          confirmText="Replace"
+          confirmText={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
           cancelText="Cancel"
           showActions
         >

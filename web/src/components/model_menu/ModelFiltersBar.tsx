@@ -109,7 +109,7 @@ const ModelFiltersBar: React.FC = () => {
             setSizeBucket(null);
           }}
         >
-          <ListItemText primary="Any size" />
+          <ListItemText primary={i18n.t("editor:ui.anySize", { defaultValue: "Any size" })} />
         </EditorMenuItem>
         {sizeOptions.map((s) => (
           <EditorMenuItem

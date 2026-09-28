@@ -195,7 +195,7 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
             <ToggleOption value="image2" aria-label={i18n.t("editor:ui.image2", { defaultValue: "Image 2" })}>
               Img 2
             </ToggleOption>
-            <ToggleOption value="mask" aria-label="Mask">
+            <ToggleOption value="mask" aria-label={i18n.t("editor:ui.mask", { defaultValue: "Mask" })}>
               Mask
             </ToggleOption>
             <ToggleOption value="result" aria-label={i18n.t("editor:ui.result", { defaultValue: "Result" })}>

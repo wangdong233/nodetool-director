@@ -480,7 +480,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
           />
           <TextInput
-            label="Slug"
+            label={i18n.t("editor:ui.slug", { defaultValue: "Slug" })}
             value={draft.slug}
             onChange={handleSlugChange}
             fullWidth
@@ -561,7 +561,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={Boolean(pendingDelete)}
         title={i18n.t("editor:ui.removeEndpoint", { defaultValue: "Remove endpoint" })}
         content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
-        confirmText="Remove"
+        confirmText={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
         cancelText="Cancel"
         onConfirm={confirmDelete}
         onClose={handleCancelDelete}

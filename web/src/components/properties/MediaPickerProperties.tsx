@@ -206,7 +206,7 @@ export const MediaResolutionImageProperty = memo<PropertyProps>((props) => {
     <OptionPicker<string>
       {...props}
       options={options}
-      header="Image Resolution"
+      header={i18n.t("editor:ui.imageResolution", { defaultValue: "Image Resolution" })}
       icon={<DisplaySettingsIcon fontSize="small" />}
       defaultValue="1K"
     />
@@ -229,7 +229,7 @@ export const MediaResolutionVideoProperty = memo<PropertyProps>((props) => {
     <OptionPicker<string>
       {...props}
       options={options}
-      header="Video Resolution"
+      header={i18n.t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
       icon={<DisplaySettingsIcon fontSize="small" />}
       defaultValue="1080p"
     />

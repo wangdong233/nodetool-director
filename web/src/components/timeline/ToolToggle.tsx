@@ -251,7 +251,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <GridGoldenratioOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Bars"
+        label={i18n.t("editor:ui.bars", { defaultValue: "Bars" })}
         shortcut="the ruler counts bars and beats, not seconds"
         active={rulerMode === "bars"}
         compact={compact}

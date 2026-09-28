@@ -67,7 +67,7 @@ const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
   return (
     <>
       <div style={containerStyle}>
-        <PropertyLabel name="Data Type" id={id} />
+        <PropertyLabel name={i18n.t("editor:ui.dataType", { defaultValue: "Data Type" })} id={id} />
         <Select
           value={dataType}
           onChange={handleDataTypeChange}

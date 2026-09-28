@@ -308,7 +308,7 @@ const DeploySection = memo(function DeploySection({
           {url && (
             <FlexRow align="center" gap={SPACING.md} fullWidth>
               <TextInput
-                label="Link"
+                label={i18n.t("editor:ui.link", { defaultValue: "Link" })}
                 size="small"
                 value={url}
                 slotProps={{ htmlInput: { readOnly: true } }}

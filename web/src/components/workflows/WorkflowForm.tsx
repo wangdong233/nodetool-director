@@ -258,7 +258,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         </FormField>
 
         <AutocompleteTagInput
-          label="Tags"
+          label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
           value={localWorkflow.tags || []}
           onChange={(tags) => {
             const uniqueTags = Array.from(new Set(tags.map(t => t.trim().toLowerCase()).filter(t => t.length > 0)));

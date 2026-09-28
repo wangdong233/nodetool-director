@@ -186,7 +186,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
         <DialogActionButtons
           onCancel={handleCloseMenu}
           onConfirm={handleCreateFolder}
-          confirmText="Create Folder"
+          confirmText={i18n.t("editor:ui.createFolder", { defaultValue: "Create Folder" })}
         />
       </Popover>
     </>

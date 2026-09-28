@@ -101,7 +101,7 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
         onClose={() => !remove.isPending && setConfirmingDelete(false)}
         title={`Delete ${project.name}?`}
         onConfirm={confirmDelete}
-        confirmText="Delete project"
+        confirmText={i18n.t("editor:ui.deleteProject", { defaultValue: "Delete project" })}
         cancelText="Cancel"
         destructive
         isLoading={remove.isPending}

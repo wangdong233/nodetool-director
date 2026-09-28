@@ -152,7 +152,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
           </div>
         ) : sortedModels.length === 0 ? (
           <EditorMenuItem disabled>
-            <ListItemText primary="No models available" />
+            <ListItemText primary={i18n.t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })} />
           </EditorMenuItem>
         ) : (
           sortedModels.map((model) => (

@@ -58,7 +58,7 @@ const WorkflowListProperty = (props: PropertyProps<WorkflowValue[] | null>) => {
         multiple
         value={workflowIds}
         onChange={handleChange}
-        input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
+        input={<OutlinedInput id="select-multiple-chip" label={i18n.t("editor:ui.chip", { defaultValue: "Chip" })} />}
         renderValue={renderSelectedValue}
       >
         {isLoading && <NodeMenuItem disabled>Loading…</NodeMenuItem>}

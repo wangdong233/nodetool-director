@@ -172,7 +172,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow gap={0.5} align="center" sx={{ flexWrap: "wrap" }}>
           <MediaOptionChip
             icon={<TvIcon fontSize="small" />}
-            header="Resolution"
+            header={i18n.t("editor:ui.resolution", { defaultValue: "Resolution" })}
             value={resolution}
             options={resolutionOptions}
             onChange={(r) => applySize(r, aspectRatio)}
@@ -187,7 +187,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
               <MediaOptionChip
                 icon={<TuneIcon fontSize="small" />}
                 label={`Strength ${(binding.strength ?? DEFAULT_STRENGTH).toFixed(2)}`}
-                header="Edit Strength"
+                header={i18n.t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
                 value={binding.strength ?? DEFAULT_STRENGTH}
                 options={strengthOptions}
                 onChange={(s) => patchBinding(layer.id, { strength: s })}
@@ -195,7 +195,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
               <MediaOptionChip
                 icon={<LayersIcon fontSize="small" />}
                 label={`${binding.numInferenceSteps ?? DEFAULT_STEPS} steps`}
-                header="Inference Steps"
+                header={i18n.t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
                 value={binding.numInferenceSteps ?? DEFAULT_STEPS}
                 options={stepsOptions}
                 onChange={(n) =>

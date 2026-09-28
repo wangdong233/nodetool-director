@@ -299,7 +299,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
 
             {isPath && (
               <>
-                <InspectorRow label="Path">
+                <InspectorRow label={i18n.t("editor:ui.path", { defaultValue: "Path" })}>
                   <TextCommitField
                     value={shapeStyle.d ?? ""}
                     ariaLabel={i18n.t("timeline:attrs.shapePathData", { defaultValue: "Shape path data" })}
@@ -378,7 +378,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                 ariaLabel={i18n.t("timeline:attrs.shapeStrokeWidth", { defaultValue: "Shape stroke width" })}
               />
             </InspectorRow>
-            <InspectorRow label="Dash">
+            <InspectorRow label={i18n.t("editor:ui.dash", { defaultValue: "Dash" })}>
               <TextCommitField
                 value={formatNumberList(shapeStyle.dash)}
                 ariaLabel={i18n.t("timeline:attrs.shapeDashPattern", { defaultValue: "Shape dash pattern" })}
@@ -394,7 +394,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                 onChange={handleLineCapChange}
               />
             </InspectorRow>
-            <InspectorRow label="Join">
+            <InspectorRow label={i18n.t("editor:ui.join", { defaultValue: "Join" })}>
               <InspectorSelect
                 label={i18n.t("timeline:attrs.shapeLineJoin", { defaultValue: "Shape line join" })}
                 value={shapeStyle.lineJoin ?? "miter"}

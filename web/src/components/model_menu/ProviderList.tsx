@@ -716,7 +716,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         ) : (
           <ListItemText
             className="model-menu__all-providers-text"
-            primary="All providers"
+            primary={i18n.t("editor:ui.allProviders", { defaultValue: "All providers" })}
             primaryTypographyProps={{
               sx: { fontSize: (theme) => theme.vars.fontSizeSmall }
             }}

@@ -334,7 +334,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Data"
+              label={i18n.t("editor:ui.data", { defaultValue: "Data" })}
               value={systemInfo.dataPath}
               copyable
               onCopy={handleCopy}

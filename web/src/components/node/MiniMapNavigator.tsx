@@ -255,7 +255,7 @@ const MiniMapNavigator: React.FC = () => {
                 )}
               </ListItemIcon>
               <ListItemText
-                primary="Default Colors"
+                primary={i18n.t("editor:ui.defaultColors", { defaultValue: "Default Colors" })}
                 primaryTypographyProps={{
                   fontSize: "var(--fontSizeNormal)"
                 }}
@@ -280,7 +280,7 @@ const MiniMapNavigator: React.FC = () => {
                 )}
               </ListItemIcon>
               <ListItemText
-                primary="Color by Type"
+                primary={i18n.t("editor:ui.colorByType", { defaultValue: "Color by Type" })}
                 primaryTypographyProps={{
                   fontSize: "var(--fontSizeNormal)"
                 }}

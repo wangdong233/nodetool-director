@@ -19,7 +19,7 @@
  *   tags={tags}
  *   onTagsChange={setTags}
  *   placeholder="Add a tag..."
- *   label="Tags"
+ *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
  * />
  */
 

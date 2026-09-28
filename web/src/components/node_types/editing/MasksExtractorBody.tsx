@@ -213,7 +213,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
             <ToggleOption value="image" aria-label={i18n.t("home:entry.image.title", { defaultValue: "Image" })}>
               Image
             </ToggleOption>
-            <ToggleOption value="mask" aria-label="Mask">
+            <ToggleOption value="mask" aria-label={i18n.t("editor:ui.mask", { defaultValue: "Mask" })}>
               Mask
             </ToggleOption>
           </ToggleGroup>

@@ -449,14 +449,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
                 variant="no-results"
                 title={i18n.t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
                 description="Try a different search term."
-                actionText="Clear search"
+                actionText={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onAction={() => setQuery("")}
               />
             ) : category !== "all" ? (
               <EmptyState
                 variant="no-results"
                 title={i18n.t("editor:ui.noTemplatesInThisCategory", { defaultValue: "No templates in this category" })}
-                actionText="Show all templates"
+                actionText={i18n.t("editor:ui.showAllTemplates", { defaultValue: "Show all templates" })}
                 onAction={() => setCategory("all")}
               />
             ) : (

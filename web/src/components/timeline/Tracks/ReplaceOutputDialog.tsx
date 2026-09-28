@@ -36,7 +36,7 @@ export const ReplaceOutputDialog: React.FC<ReplaceOutputDialogProps> = memo(
         title={i18n.t("editor:ui.replaceClip", { defaultValue: "Replace Clip" })}
         onConfirm={handleConfirm}
         onCancel={onClose}
-        confirmText="Replace"
+        confirmText={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
         cancelText="Cancel"
         showActions
       >

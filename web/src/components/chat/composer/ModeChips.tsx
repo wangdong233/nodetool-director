@@ -141,7 +141,7 @@ function MusicModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
         label={`${params.duration} Sec`}
-        header="Target Duration"
+        header={i18n.t("editor:ui.targetDuration", { defaultValue: "Target Duration" })}
         title={`Target duration: ${params.duration} seconds. The model may adjust or ignore this.`}
         value={params.duration}
         options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}
@@ -179,7 +179,7 @@ function ImageModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Image Resolution"
+        header={i18n.t("editor:ui.imageResolution", { defaultValue: "Image Resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -196,7 +196,7 @@ function ImageModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AppsIcon fontSize="small" />}
         label={`${params.variations}`}
-        header="Number of Variations"
+        header={i18n.t("editor:ui.numberOfVariations", { defaultValue: "Number of Variations" })}
         value={params.variations}
         options={VARIATIONS_OPTIONS}
         onChange={(variations) => setParams({ variations })}
@@ -251,7 +251,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Image Resolution"
+        header={i18n.t("editor:ui.imageResolution", { defaultValue: "Image Resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -268,7 +268,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<TuneIcon fontSize="small" />}
         label={`Strength ${params.strength.toFixed(2)}`}
-        header="Edit Strength"
+        header={i18n.t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
         value={params.strength}
         options={STRENGTH_OPTIONS}
         onChange={(strength) => setParams({ strength })}
@@ -277,7 +277,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<LayersIcon fontSize="small" />}
         label={`${params.numInferenceSteps} steps`}
-        header="Inference Steps"
+        header={i18n.t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
         value={params.numInferenceSteps}
         options={STEPS_OPTIONS}
         onChange={(numInferenceSteps) => setParams({ numInferenceSteps })}
@@ -286,7 +286,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AppsIcon fontSize="small" />}
         label={`${params.variations}`}
-        header="Number of Variations"
+        header={i18n.t("editor:ui.numberOfVariations", { defaultValue: "Number of Variations" })}
         value={params.variations}
         options={VARIATIONS_OPTIONS}
         onChange={(variations) => setParams({ variations })}
@@ -331,7 +331,7 @@ function VideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video Resolution"
+        header={i18n.t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -394,7 +394,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
         label={`${params.duration} Sec`}
-        header="Clip Duration"
+        header={i18n.t("editor:ui.clipDuration", { defaultValue: "Clip Duration" })}
         value={params.duration}
         options={durationOptions}
         onChange={(duration) => setParams({ duration })}
@@ -403,7 +403,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video Resolution"
+        header={i18n.t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -420,7 +420,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<LayersIcon fontSize="small" />}
         label={`${params.numInferenceSteps} steps`}
-        header="Inference Steps"
+        header={i18n.t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
         value={params.numInferenceSteps}
         options={STEPS_OPTIONS}
         onChange={(numInferenceSteps) => setParams({ numInferenceSteps })}
@@ -457,7 +457,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
         label={`${params.duration} Sec`}
-        header="Clip Duration"
+        header={i18n.t("editor:ui.clipDuration", { defaultValue: "Clip Duration" })}
         value={params.duration}
         options={durationOptions}
         onChange={(duration) => setParams({ duration })}
@@ -466,7 +466,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video Resolution"
+        header={i18n.t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -483,7 +483,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<VolumeUpIcon fontSize="small" />}
         label={params.useReferenceVideoAudio ? "Reference audio" : "Model audio"}
-        header="Audio Source"
+        header={i18n.t("editor:ui.audioSource", { defaultValue: "Audio Source" })}
         value={params.useReferenceVideoAudio ? "on" : "off"}
         options={REFERENCE_AUDIO_OPTIONS}
         onChange={(value) =>
@@ -541,7 +541,7 @@ function AudioModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<SpeedIcon fontSize="small" />}
         label={`${params.speed}x`}
-        header="Speech Rate"
+        header={i18n.t("editor:ui.speechRate", { defaultValue: "Speech Rate" })}
         value={params.speed}
         options={SPEED_OPTIONS}
         onChange={(speed) => setParams({ speed })}
@@ -550,7 +550,7 @@ function AudioModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AudiotrackIcon fontSize="small" />}
         label={params.format.toUpperCase()}
-        header="Audio Format"
+        header={i18n.t("editor:ui.audioFormat", { defaultValue: "Audio Format" })}
         value={params.format}
         options={AUDIO_FORMAT_OPTIONS}
         onChange={(format) => setParams({ format })}

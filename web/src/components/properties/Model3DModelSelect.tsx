@@ -174,12 +174,12 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
       >
         {isLoading && (
           <EditorMenuItem disabled>
-            <ListItemText primary="Loading models..." />
+            <ListItemText primary={i18n.t("editor:ui.loadingModels", { defaultValue: "Loading models..." })} />
           </EditorMenuItem>
         )}
         {!isLoading && filteredModels.length === 0 && (
           <EditorMenuItem disabled>
-            <ListItemText primary="No 3D models available" />
+            <ListItemText primary={i18n.t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} />
           </EditorMenuItem>
         )}
         {Object.entries(modelsByProvider).map(([provider, providerModels], index) => (

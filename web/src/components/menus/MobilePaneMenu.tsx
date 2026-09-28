@@ -223,7 +223,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary="Add Agent" 
+                primary={i18n.t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
                 secondary="AI agent for processing"
               />
             </ListItemButton>
@@ -239,7 +239,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="String Input"
+                primary={i18n.t("editor:ui.stringInput", { defaultValue: "String Input" })}
                 secondary="Text input field"
               />
             </ListItemButton>
@@ -252,7 +252,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Integer Input"
+                primary={i18n.t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
                 secondary="Whole number input"
               />
             </ListItemButton>
@@ -265,7 +265,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Float Input"
+                primary={i18n.t("editor:ui.floatInput", { defaultValue: "Float Input" })}
                 secondary="Decimal number input"
               />
             </ListItemButton>
@@ -278,7 +278,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Chat Input"
+                primary={i18n.t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
                 secondary="Chat message input"
               />
             </ListItemButton>

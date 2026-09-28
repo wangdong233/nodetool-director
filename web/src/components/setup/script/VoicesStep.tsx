@@ -389,7 +389,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
             onChange={setLanguage}
           />
           <SelectField
-            label="Pace"
+            label={i18n.t("editor:ui.pace", { defaultValue: "Pace" })}
             value={pace}
             options={PACES}
             onChange={setPace}

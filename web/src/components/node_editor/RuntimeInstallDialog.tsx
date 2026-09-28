@@ -187,7 +187,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
       onConfirm={allInstalled ? onClose : handleInstall}
       onCancel={onClose}
       confirmText={confirmText}
-      cancelText="Later"
+      cancelText={i18n.t("editor:ui.later", { defaultValue: "Later" })}
       isLoading={installing}
     >
       <FlexColumn gap={2}>

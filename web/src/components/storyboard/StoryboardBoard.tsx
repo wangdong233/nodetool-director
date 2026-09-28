@@ -1237,7 +1237,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           onClose={() => setConfirmRedirect(false)}
           title="Re-direct this storyboard?"
           onConfirm={handleConfirmRedirect}
-          confirmText="Re-direct"
+          confirmText={i18n.t("editor:ui.reDirect", { defaultValue: "Re-direct" })}
           destructive
         >
           <FlexColumn gap={SPACING.xs}>
@@ -1256,7 +1256,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           onClose={() => setAssembleConfirmOpen(false)}
           title="Rebuild linked timeline?"
           onConfirm={handleConfirmAssemble}
-          confirmText="Rebuild timeline"
+          confirmText={i18n.t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
           destructive
         >
           <FlexColumn gap={SPACING.xs}>

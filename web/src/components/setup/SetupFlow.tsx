@@ -693,8 +693,8 @@ export function SetupFlow<Stage extends string>({
         title="Change flow?"
         showActions
         destructive
-        confirmText="Discard and choose"
-        cancelText="Keep this draft"
+        confirmText={i18n.t("editor:ui.discardAndChoose", { defaultValue: "Discard and choose" })}
+        cancelText={i18n.t("editor:ui.keepThisDraft", { defaultValue: "Keep this draft" })}
         onConfirm={() => void handleChangeFlow()}
         onCancel={() => setConfirmingChange(false)}
         maxWidth="xs"

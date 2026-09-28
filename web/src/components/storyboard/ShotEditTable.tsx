@@ -154,7 +154,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           {numbering.scene || "—"}
         </Text>
       </Cell>
-      <Cell label="Shot">
+      <Cell label={i18n.t("editor:ui.shot", { defaultValue: "Shot" })}>
         <Text sx={readOnlyCellSx} data-testid="cell-shot">
           {numbering.shot || "—"}
         </Text>

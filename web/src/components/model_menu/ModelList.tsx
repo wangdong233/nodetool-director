@@ -491,7 +491,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                 </Box>
               </>
             }
-            actionText="Open Settings"
+            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
             onAction={handleOpenSettings}
           />
         ) : (
@@ -522,7 +522,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                 .
               </>
             }
-            actionText="Open Settings"
+            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
             onAction={handleOpenSettings}
           />
         )

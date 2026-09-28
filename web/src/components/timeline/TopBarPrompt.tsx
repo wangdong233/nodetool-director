@@ -424,7 +424,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
             anchorEl={videoModelAnchorRef.current}
             open
             onClose={() => setVideoModelOpen(false)}
-            header="Video model"
+            header={i18n.t("editor:ui.videoModel", { defaultValue: "Video model" })}
             value={selectedModel?.id ?? ""}
             options={curatedClipOptions}
             onChange={(id) => {
@@ -471,7 +471,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         anchorEl={resolutionAnchor}
         open={!!resolutionAnchor}
         onClose={() => setResolutionAnchor(null)}
-        header="Video Resolution"
+        header={i18n.t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
         value={resolution}
         options={resolutionOptions}
         onChange={(r) => setResolution(r)}
@@ -569,7 +569,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
         label={`${musicDuration} Sec`}
-        header="Target Duration"
+        header={i18n.t("editor:ui.targetDuration", { defaultValue: "Target Duration" })}
         title={`Target duration: ${musicDuration} seconds. The model may adjust or ignore this.`}
         value={musicDuration}
         options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}

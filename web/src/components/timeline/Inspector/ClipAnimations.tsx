@@ -654,7 +654,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
           />
           {stagger !== undefined && (
             <>
-              <InspectorRow label="Unit">
+              <InspectorRow label={i18n.t("editor:ui.unit", { defaultValue: "Unit" })}>
                 <InspectorSelect
                   label={`${animation.role} animation stagger unit`}
                   value={stagger.unit}
@@ -662,7 +662,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
                   onChange={handleStaggerUnitChange}
                 />
               </InspectorRow>
-              <InspectorRow label="From">
+              <InspectorRow label={i18n.t("editor:ui.from", { defaultValue: "From" })}>
                 <InspectorSelect
                   label={`${animation.role} animation stagger from`}
                   value={stagger.from ?? "start"}
