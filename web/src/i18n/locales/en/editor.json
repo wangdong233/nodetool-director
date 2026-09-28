@@ -236,7 +236,8 @@
     "resizeAria": "Resize panel",
     "workerConnected": "Worker {{state}}",
     "stateConnected": "connected",
-    "stateDisconnected": "disconnected"
+    "stateDisconnected": "disconnected",
+    "stateOffline": "offline"
   },
   "ui": {
     "addNode": "Add node",

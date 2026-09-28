@@ -565,7 +565,7 @@ const PanelBottom: React.FC = () => {
                 className={`status-dot ${isConnected ? "" : "disconnected"}`}
                 aria-hidden
               />
-              <span>{isConnected ? "connected" : "offline"}</span>
+              <span>{isConnected ? i18n.t("editor:bottom.stateConnected") : i18n.t("editor:bottom.stateOffline")}</span>
               <span className="sep" aria-hidden>·</span>
               <span>{workerLabel}</span>
               <WorkerStatusIndicator />

@@ -236,7 +236,8 @@
     "resizeAria": "调整面板大小",
     "workerConnected": "Worker {{state}}",
     "stateConnected": "已连接",
-    "stateDisconnected": "已断开"
+    "stateDisconnected": "已断开",
+    "stateOffline": "已离线"
   },
   "ui": {
     "addNode": "添加节点",
