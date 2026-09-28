@@ -348,19 +348,41 @@
     "OPENROUTER_API_KEY": {
       "get": "获取 OpenRouter API 密钥"
     },
-    "HF_TOKEN": {},
+    "HF_TOKEN": {
+      "get": "Go to Hugging Face tokens page"
+    },
     "REPLICATE_API_TOKEN": {
       "get": "获取 Replicate 令牌"
     },
-    "GOOGLE_APP_PASSWORD": {},
-    "ELEVENLABS_API_KEY": {},
-    "FAL_API_KEY": {},
-    "SERPAPI_API_KEY": {},
-    "DATA_FOR_SEO_LOGIN": {},
-    "BRAVE_API_KEY": {},
-    "APIFY_API_TOKEN": {},
-    "KIMI_API_KEY": {},
-    "DASHSCOPE_API_KEY": {},
-    "AKI_API_KEY": {}
+    "GOOGLE_APP_PASSWORD": {
+      "get": "获取 Google 应用密码"
+    },
+    "ELEVENLABS_API_KEY": {
+      "get": "获取 ElevenLabs 密钥"
+    },
+    "FAL_API_KEY": {
+      "get": "获取 FAL 密钥"
+    },
+    "SERPAPI_API_KEY": {
+      "get": "Go to SerpAPI key management page"
+    },
+    "DATA_FOR_SEO_LOGIN": {
+      "get": "获取 DataForSEO 登录"
+    },
+    "BRAVE_API_KEY": {
+      "get": "获取 Brave Search 密钥"
+    },
+    "APIFY_API_TOKEN": {
+      "get": "获取 Apify 令牌"
+    },
+    "KIMI_API_KEY": {
+      "get": "Go to Moonshot (Kimi) platform API keys page"
+    },
+    "DASHSCOPE_API_KEY": {
+      "get": "获取 DashScope 密钥"
+    },
+    "AKI_API_KEY": {
+      "get": "获取 AKI 密钥"
+    }
   }
 }
