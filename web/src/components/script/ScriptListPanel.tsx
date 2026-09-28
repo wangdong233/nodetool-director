@@ -32,7 +32,7 @@ export const CreateScriptButton = memo(function CreateScriptButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createScript.mutateAsync({
-        name: "Untitled script",
+        name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
         projectId: creationProjectId()
       });
       openTab({

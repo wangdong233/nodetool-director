@@ -200,7 +200,11 @@ const SynthKnobInner: React.FC<SynthKnobProps> = ({
       className="knob nodrag"
       role="slider"
       tabIndex={0}
-      aria-label={spec.label}
+      aria-label={
+        spec.labelKey
+          ? i18n.t(spec.labelKey, { defaultValue: spec.label })
+          : spec.label
+      }
       aria-valuemin={spec.min}
       aria-valuemax={spec.max}
       aria-valuenow={value}
@@ -247,7 +251,11 @@ const SynthKnobInner: React.FC<SynthKnobProps> = ({
           />
         </svg>
       </div>
-      <span className="knob-label">{spec.label}</span>
+      <span className="knob-label">
+        {spec.labelKey
+          ? i18n.t(spec.labelKey, { defaultValue: spec.label })
+          : spec.label}
+      </span>
       <span className="knob-value">{formatKnobValue(spec, value)}</span>
     </div>
   );

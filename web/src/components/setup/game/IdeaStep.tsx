@@ -77,8 +77,8 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
     () => [
       {
         id: "template",
-        title: "Start from a template",
-        description: "Pick the loop and skip straight to the design",
+        title: i18n.t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" }),
+        description: i18n.t("editor:ui.pickLoopSkipToDesign", { defaultValue: "Pick the loop and skip straight to the design" }),
         onSelect: () => setPicker("template"),
         disabled: templates.length === 0,
         disabledReason:
@@ -86,8 +86,8 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: "Export a blank template",
-        description: "A running project with placeholder art, fill it later",
+        title: i18n.t("editor:ui.exportBlankTemplate", { defaultValue: "Export a blank template" }),
+        description: i18n.t("editor:ui.runningProjectPlaceholderArt", { defaultValue: "A running project with placeholder art, fill it later" }),
         onSelect: () => setPicker("blank"),
         disabled: templates.length === 0 || exportingBlank,
         disabledReason: exportingBlank
@@ -98,14 +98,14 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the plan and place nodes yourself",
+        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: "Tutorial",
-        description: "Walk one project end to end, with the steps explained",
+        title: i18n.t("editor:ui.tutorial", { defaultValue: "Tutorial" }),
+        description: i18n.t("editor:ui.walkOneProjectEndToEnd", { defaultValue: "Walk one project end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],

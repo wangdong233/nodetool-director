@@ -245,7 +245,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       {
         id: "paste",
         title: source ? "Paste different words" : "Paste your script",
-        description: "Words you already have, kept exactly as you wrote them",
+        description: i18n.t("editor:ui.wordsKeptExactlyAsWritten", { defaultValue: "Words you already have, kept exactly as you wrote them" }),
         onSelect: () => {
           setPasted("");
           setPasting(true);
@@ -253,24 +253,24 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "upload",
-        title: "Upload a file",
-        description: "TXT, PDF, DOCX or Final Draft",
+        title: i18n.t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" }),
+        description: i18n.t("editor:ui.txtPdfDocxFinalDraft", { defaultValue: "TXT, PDF, DOCX or Final Draft" }),
         onSelect: () => textInput.current?.click(),
         disabled: imports.importing,
         disabledReason: imports.importing ? "Reading your file…" : undefined
       },
       {
         id: "subtitles",
-        title: "Import subtitles",
-        description: "SRT or VTT — each cue becomes a timed line",
+        title: i18n.t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" }),
+        description: i18n.t("editor:ui.srtOrVttEachCueTimedLine", { defaultValue: "SRT or VTT — each cue becomes a timed line" }),
         onSelect: () => subtitleInput.current?.click(),
         disabled: imports.importing,
         disabledReason: imports.importing ? "Reading your file…" : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank script",
-        description: "Skip the questions and write it yourself",
+        title: i18n.t("editor:ui.startWithBlankScript", { defaultValue: "Start with a blank script" }),
+        description: i18n.t("editor:ui.skipQuestionsWriteYourself", { defaultValue: "Skip the questions and write it yourself" }),
         onSelect: onStartBlank
       }
     ],

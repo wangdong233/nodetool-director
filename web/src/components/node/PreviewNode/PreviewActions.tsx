@@ -80,7 +80,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
   const handleCopyError = useCallback((_err: Error) => {
     addNotification({
       type: "error",
-      content: "Failed to copy to clipboard"
+      content: i18n.t("editor:notify.copyFailed", { defaultValue: "Failed to copy to clipboard" })
     });
   }, [addNotification]);
 

@@ -52,7 +52,7 @@ const StoryboardLinkControlInner = ({
       type: "storyboard",
       ref: storyboardId,
       mode: "edit",
-      title: "Storyboard"
+      title: i18n.t("editor:ui.storyboard", { defaultValue: "Storyboard" })
     });
   }, [openTab, storyboardId]);
 

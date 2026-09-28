@@ -45,7 +45,7 @@ const ScopeToggleInternal: React.FC<ScopeToggleProps> = ({
       exclusive
       segmented
       onChange={handleChange}
-      aria-label="model scope"
+      aria-label={i18n.t("editor:ui.modelScope", { defaultValue: "model scope" })}
     >
       <ToggleOption value="local" aria-label="local models">
         Local

@@ -460,7 +460,7 @@ const PropertyDropzone = ({
               src={uri}
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen; clipboard-write"
-              title="PDF viewer"
+              title={i18n.t("editor:ui.pdfViewer", { defaultValue: "PDF viewer" })}
             />
           );
         }

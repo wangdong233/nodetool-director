@@ -258,7 +258,7 @@ export const MediaDurationProperty = memo<PropertyProps>((props) => {
     <OptionPicker<number>
       {...props}
       options={options}
-      header="Duration"
+      header={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}
       icon={<AccessTimeIcon fontSize="small" />}
       defaultValue={4}
       formatLabel={(v) => `${v} Sec`}
@@ -285,7 +285,7 @@ export const MediaStrengthProperty = memo<PropertyProps>((props) => {
     <OptionPicker<number>
       {...props}
       options={options}
-      header="Strength"
+      header={i18n.t("timeline:attrs.strength", { defaultValue: "Strength" })}
       icon={<TuneIcon fontSize="small" />}
       defaultValue={0.65}
       formatLabel={(v) => `${v.toFixed(2)} · ${strengthDescription(v)}`}

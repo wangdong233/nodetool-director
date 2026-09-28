@@ -18,6 +18,7 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
+import { i18n } from "../../i18n";
 
 export type PMTab = "software" | "packs";
 
@@ -38,6 +39,13 @@ const runtimeGroup = (id: string) => RUNTIME_GROUP[id] ?? "media";
 /** Prefix marking an optional-node-pack (menu visibility) row id, to keep it
  *  distinct from builtin pack ids. */
 const OPTIONAL_PREFIX = "optional:";
+
+const TITLE_KEYS: Record<string, string> = {
+  language: "editor:ui.languages",
+  media: "editor:ui.mediaDocs",
+  ai: "editor:ui.aiRuntimes",
+  thirdparty: "editor:ui.thirdParty"
+};
 
 const TITLES: Record<string, string> = {
   all: "All runtimes",
@@ -323,18 +331,18 @@ export function usePackageManager(params: {
           { id: "all", label: "All runtimes", count: statuses.length },
           {
             id: "language",
-            label: "Languages",
+            label: i18n.t("editor:ui.languages", { defaultValue: "Languages" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "language")
               .length
           },
           {
             id: "media",
-            label: "Media & docs",
+            label: i18n.t("editor:ui.mediaDocs", { defaultValue: "Media & docs" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "media").length
           },
           {
             id: "ai",
-            label: "AI runtimes",
+            label: i18n.t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "ai").length
           }
         ]
@@ -343,7 +351,7 @@ export function usePackageManager(params: {
           { id: "python", label: "Registry", count: pythonPacks.length },
           {
             id: "thirdparty",
-            label: "Third-party",
+            label: i18n.t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
             count: thirdPartyPacks.length
           }
         ];
@@ -399,7 +407,7 @@ export function usePackageManager(params: {
         : inCat;
       const filtered = applyChips(searched, [
         { id: "all", label: "All", pred: () => true },
-        { id: "installed", label: "Installed", pred: (p) => p.installed },
+        { id: "installed", label: i18n.t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
         { id: "available", label: "Not installed", pred: (p) => !p.installed }
       ]);
       rows = filtered.map((rt) => {
@@ -460,12 +468,12 @@ export function usePackageManager(params: {
         { id: "all", label: "All", pred: () => true },
         {
           id: "installed",
-          label: "Installed",
+          label: i18n.t("editor:ui.installed", { defaultValue: "Installed" }),
           pred: (p) => !!p.installed && !p.installed.hasUpdate
         },
         {
           id: "updates",
-          label: "Updates",
+          label: i18n.t("settings:general.secUpdates", { defaultValue: "Updates" }),
           pred: (p) => !!p.installed?.hasUpdate
         },
         { id: "available", label: "Available", pred: (p) => !p.installed }
@@ -538,7 +546,9 @@ export function usePackageManager(params: {
       isSoftware,
       isThirdParty,
       categories,
-      title: TITLES[cat] ?? "Packages",
+      title: TITLE_KEYS[cat]
+        ? i18n.t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
+        : (TITLES[cat] ?? "Packages"),
       subtitle: isSoftware ? SUBTITLES.software : (SUBTITLES[cat] ?? ""),
       count: baseCount,
       chips: notice ? [] : chips,

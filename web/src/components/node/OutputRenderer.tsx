@@ -626,7 +626,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
               src={uri}
               sandbox=""
               style={IFRAME_STYLE}
-              title="HTML output"
+              title={i18n.t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
             />
           );
         }
@@ -649,7 +649,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             srcDoc={html}
             sandbox=""
             style={IFRAME_STYLE}
-            title="HTML output"
+            title={i18n.t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
           />
         );
       }
@@ -670,7 +670,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             <iframe
               src={uri}
               style={IFRAME_PDF_STYLE}
-              title="PDF output"
+              title={i18n.t("editor:ui.pdfOutput", { defaultValue: "PDF output" })}
             />
           );
         }

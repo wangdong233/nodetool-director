@@ -33,6 +33,7 @@ import {
 import { BriefModelFooterField } from "./BriefModelSelect";
 import { ReviewStep } from "./ReviewStep";
 import { UseCaseStep } from "./UseCaseStep";
+import { i18n } from "../../../i18n";
 
 /** A document's stage, with the field's absence read as `done` (PRD § 6.4). */
 export const useImageSetupStage = (): SketchSetupStage =>
@@ -143,7 +144,7 @@ export const useImageSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0,
         blockedReason: "Describe the image, or upload one to edit",
@@ -156,7 +157,7 @@ export const useImageSetupFlow = ({
         // Use case and review are both step 2, so they collapse into one
         // stepper entry (PRD § 6.2).
         stage: "useCase",
-        label: "Brief",
+        label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: briefIsCurrent
           ? "Continue to the brief"
           : "Refine the brief",
@@ -174,7 +175,7 @@ export const useImageSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Brief",
+        label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: "Continue to look",
         canAdvance: promptIsWritable,
         blockedReason: "Write what the image shows before choosing the look",
@@ -195,7 +196,7 @@ export const useImageSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
         primaryLabel: "Generate your image",
         canAdvance: look.canAdvance,
         blockedReason: look.blockedReason,

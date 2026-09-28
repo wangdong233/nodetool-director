@@ -24,19 +24,33 @@ export const gameTemplateArt = (id: string): string =>
 
 /** Title and one line per shipped template id (game-prd § 4.2). */
 export const GAME_TEMPLATE_COPY: Readonly<
-  Record<string, { title: string; description: string }>
+  Record<
+    string,
+    {
+      title: string;
+      titleKey?: string;
+      description: string;
+      descriptionKey?: string;
+    }
+  >
 > = {
   platformer: {
     title: "Platformer",
-    description: "Run, jump and stomp across a side-scrolling level."
+    titleKey: "editor:ui.platformer",
+    description: "Run, jump and stomp across a side-scrolling level.",
+    descriptionKey: "editor:ui.runJumpStompSideScrolling"
   },
   topdown: {
     title: "Top-down",
-    description: "Explore a room-by-room world from above."
+    titleKey: "editor:ui.topDown",
+    description: "Explore a room-by-room world from above.",
+    descriptionKey: "editor:ui.exploreRoomByRoomFromAbove"
   },
   shmup: {
     title: "Shoot-em-up",
-    description: "Fly, dodge and shoot through waves of enemies."
+    titleKey: "editor:ui.shootEmUp",
+    description: "Fly, dodge and shoot through waves of enemies.",
+    descriptionKey: "editor:ui.flyDodgeShootThroughWaves"
   }
 };
 
@@ -64,6 +78,9 @@ export const templateCards = (
     return {
       id: template.id,
       title: copy?.title ?? template.id,
+      ...(copy?.titleKey
+        ? { titleKey: copy.titleKey, descriptionKey: copy.descriptionKey }
+        : {}),
       description: copy?.description,
       meta: templateMeta(template),
       image: gameTemplateArt(template.id)

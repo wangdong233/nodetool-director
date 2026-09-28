@@ -354,7 +354,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: "Select images",
+        title: i18n.t("editor:ui.selectImages", { defaultValue: "Select images" }),
         filters: [
           { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"] }
         ],

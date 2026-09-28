@@ -45,7 +45,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
       open={open}
       onClose={onCancel}
       title={i18n.t("editor:ui.saveToMyNodes", { defaultValue: "Save to My Nodes" })}
-      confirmText="Save"
+      confirmText={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
       isLoading={busy}
       confirmDisabled={!valid}
       onCancel={onCancel}
@@ -69,7 +69,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
           autoFocus={!askName}
           value={category}
           onChange={(event) => setCategory(event.target.value)}
-          helperText="Where the node appears under My Nodes."
+          helperText={i18n.t("editor:ui.whereNodeAppearsUnderMyNodes", { defaultValue: "Where the node appears under My Nodes." })}
         />
       </FlexColumn>
     </Dialog>

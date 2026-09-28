@@ -102,7 +102,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: "Upload an image to edit",
+        title: i18n.t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" }),
         description:
           "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF.",
         onSelect: () => fileInput.current?.click(),
@@ -111,8 +111,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the brief and paint it yourself",
+        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: i18n.t("editor:ui.skipBriefPaintItYourself", { defaultValue: "Skip the brief and paint it yourself" }),
         onSelect: onStartBlank
       }
     ],

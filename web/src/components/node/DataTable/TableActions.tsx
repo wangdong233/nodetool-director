@@ -96,7 +96,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
     }
     writeClipboard(JSON.stringify(dataToStringify), true);
     addNotification({
-      content: "Copied to clipboard",
+      content: i18n.t("editor:ui.copiedToClipboard2", { defaultValue: "Copied to clipboard" }),
       type: "success",
       alert: true
     });
@@ -267,7 +267,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
       const text = await navigator.clipboard.readText();
       if (!text.trim()) {
         addNotification({
-          content: "Clipboard is empty",
+          content: i18n.t("editor:ui.clipboardIsEmpty", { defaultValue: "Clipboard is empty" }),
           type: "warning",
           alert: true
         });
@@ -346,7 +346,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
         
         if (newRows.length === 0) {
           addNotification({
-            content: "No data rows to paste",
+            content: i18n.t("editor:ui.noDataRowsToPaste", { defaultValue: "No data rows to paste" }),
             type: "warning",
             alert: true
           });
@@ -372,7 +372,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
       }
     } catch (_error) {
       addNotification({
-        content: "Failed to paste from clipboard",
+        content: i18n.t("editor:ui.failedToPasteFromClipboard", { defaultValue: "Failed to paste from clipboard" }),
         type: "error",
         alert: true
       });
@@ -406,7 +406,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     addNotification({
-      content: "Exported as CSV",
+      content: i18n.t("editor:ui.exportedAsCsv", { defaultValue: "Exported as CSV" }),
       type: "success",
       alert: true
     });

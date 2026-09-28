@@ -482,7 +482,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         </FormField>
         <FormField
           label={i18n.t("editor:ui.description", { defaultValue: "Description" })}
-          helperText="Matched against the agent objective (words >=4 chars)"
+          helperText={i18n.t("editor:ui.matchedAgainstAgentObjective", { defaultValue: "Matched against the agent objective (words >=4 chars)" })}
         >
           <TextInput
             value={description}

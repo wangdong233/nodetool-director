@@ -34,7 +34,7 @@ const SourceToggleInternal: React.FC<SourceToggleProps> = ({
       exclusive
       segmented
       onChange={handleChange}
-      aria-label="model source"
+      aria-label={i18n.t("editor:ui.modelSource", { defaultValue: "model source" })}
     >
       <ToggleOption value="onboarding" aria-label="get started">
         Get Started

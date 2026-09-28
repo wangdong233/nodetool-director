@@ -357,7 +357,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
       console.error("Error in handleAddToAssets:", error);
       addNotification({
         type: "error",
-        content: "Failed to add preview to assets"
+        content: i18n.t("editor:ui.failedToAddPreviewToAssets", { defaultValue: "Failed to add preview to assets" })
       });
     }
   }, [previewOutput, props.id, createAsset, addNotification]);
@@ -371,13 +371,13 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
       });
       addNotification({
         type: "success",
-        content: "Download started successfully"
+        content: i18n.t("editor:ui.downloadStartedSuccessfully", { defaultValue: "Download started successfully" })
       });
     } catch (error) {
       console.error("Error in handleDownload:", error);
       addNotification({
         type: "error",
-        content: "Failed to start download"
+        content: i18n.t("editor:ui.failedToStartDownload", { defaultValue: "Failed to start download" })
       });
     }
   }, [previewOutput, displayResult, props.id, addNotification]);

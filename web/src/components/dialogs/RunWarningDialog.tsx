@@ -45,7 +45,7 @@ const RunWarningDialog: React.FC = () => {
       onConfirm={handleConfirm}
       onCancel={handleCancel}
       confirmText={isConcurrent ? "Start second run" : "Run anyway"}
-      cancelText="Cancel"
+      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       content={
         <FlexColumn gap={1.5}>
           {isConcurrent ? (

@@ -62,6 +62,7 @@ import {
   gameCostLine,
   type GameModelRow
 } from "./LookStep";
+import { i18n } from "../../../i18n";
 
 const FLOW_LABELS = { title: "Game" } as const;
 
@@ -358,7 +359,7 @@ export const useGameSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0,
         blockedReason: "Describe your game",
@@ -386,7 +387,7 @@ export const useGameSetupFlow = ({
         // Template and review are both step 2, so they collapse into one
         // stepper entry (PRD § 6.2).
         stage: "template",
-        label: "Design",
+        label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
         // Coming back to this step with the design it produced still answering
         // the brief and template on screen, the button continues to that design
         // instead of throwing it away and calling the model again.
@@ -456,7 +457,7 @@ export const useGameSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Design",
+        label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
         primaryLabel: "Continue to look",
         // Criterion 4: every cast entry named and described, every slot with a
         // prompt. The reason names the first one that is missing.
@@ -495,7 +496,7 @@ export const useGameSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Build",
+        label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
         primaryLabel: "Build your game",
         canAdvance:
           styleChoice !== null &&

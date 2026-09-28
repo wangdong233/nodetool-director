@@ -54,6 +54,7 @@ import { WorkflowIdeaStep } from "./IdeaStep";
 import { WorkflowReviewStep } from "./ReviewStep";
 import { WorkflowSetupStep } from "./SetupStep";
 import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
+import { i18n } from "../../../i18n";
 
 const FLOW_LABELS = { title: "Workflow" } as const;
 
@@ -267,7 +268,7 @@ export const useWorkflowSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: !browsingExamples && brief.trim().length > 0,
         blockedReason: browsingExamples
@@ -301,7 +302,7 @@ export const useWorkflowSetupFlow = ({
         // Category and review are both step 2, so they collapse into one
         // stepper entry (PRD § 6.2).
         stage: "category",
-        label: "Plan",
+        label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
         // Coming back to this step with the plan it produced still answering
         // the brief and category on screen, the button continues to that plan
         // instead of throwing it away and calling the model again (F15).
@@ -374,7 +375,7 @@ export const useWorkflowSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Plan",
+        label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
         primaryLabel: "Continue to setup",
         // Criterion 4 and D23, plus the content gate: a step with no title, or
         // an output with no name, builds a node nobody can read afterwards, so
@@ -428,7 +429,7 @@ export const useWorkflowSetupFlow = ({
       },
       {
         stage: "setup",
-        label: "Build",
+        label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
         primaryLabel: "Build your workflow",
         // The label the PRD fixes (Appendix A) names the build, and § 11.3
         // makes the run part of it. The line beside the button says so before

@@ -265,8 +265,18 @@ const OptionalPacksSection = () => {
                 <div className="pack-row" key={pack.id}>
                   <LabeledSwitch
                     size="small"
-                    label={pack.label}
-                    description={pack.description}
+                    label={
+                      pack.labelKey
+                        ? i18n.t(pack.labelKey, { defaultValue: pack.label })
+                        : pack.label
+                    }
+                    description={
+                      pack.descriptionKey
+                        ? i18n.t(pack.descriptionKey, {
+                            defaultValue: pack.description
+                          })
+                        : pack.description
+                    }
                     checked={enabledPackIds.includes(pack.id)}
                     onChange={(checked) => setPackEnabled(pack.id, checked)}
                   />

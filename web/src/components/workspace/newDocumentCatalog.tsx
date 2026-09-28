@@ -334,14 +334,14 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("timeline", async () => {
         const sequence = await createTimeline.mutateAsync({
-          name: "Untitled timeline",
+          name: i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
           projectId: targetProject()
         });
         openTab({
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
-          title: sequence.name || "Untitled timeline",
+          title: sequence.name || i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
           projectId: sequence.projectId
         });
       }),
@@ -352,7 +352,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("storyboard", async () => {
         const created = await createStoryboard.mutateAsync({
-          name: "Untitled storyboard",
+          name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
           projectId: targetProject()
         });
         openTab({
@@ -388,7 +388,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("app", async () => {
         const created = await createApplication.mutateAsync({
-          name: "Untitled app",
+          name: i18n.t("editor:ui.untitledApp", { defaultValue: "Untitled app" }),
           description: "",
           projectId: targetProject()
         });
@@ -407,7 +407,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("script", async () => {
         const created = await createScript.mutateAsync({
-          name: "Untitled script",
+          name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
           projectId: targetProject()
         });
         openTab({
@@ -423,9 +423,9 @@ export const useNewDocumentCatalog = (
 
   const createJsScriptDocument = useCallback(
     () =>
-      runCreate("JS script", async () => {
+      runCreate(i18n.t("editor:ui.jsScript", { defaultValue: "JS script" }), async () => {
         const created = await createJsScript.mutateAsync({
-          name: "Untitled JS script",
+          name: i18n.t("editor:ui.untitledJsScript", { defaultValue: "Untitled JS script" }),
           projectId: targetProject()
         });
         openTab({
@@ -445,7 +445,7 @@ export const useNewDocumentCatalog = (
         const created = await createSkill.mutateAsync({
           id: newDocumentId(),
           name: `skill-${Date.now().toString(36)}`,
-          description: "A reusable skill for the NodeTool agent.",
+          description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
           content:
             "# New skill\n\nDescribe what this skill does and when the agent should use it."
         });
@@ -461,7 +461,7 @@ export const useNewDocumentCatalog = (
 
   const createModel = useCallback(
     () =>
-      runCreate("3D model", async () => {
+      runCreate(i18n.t("editor:ui.model3d", { defaultValue: "3D model" }), async () => {
         const asset = await createProjectAsset(await createBlankModelFile());
         openCreatedTab({
           type: "model3d",
@@ -564,7 +564,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "model3d",
-      label: "3D model",
+      label: "3D model", labelKey: "model3d",
       menuLabel: "New 3D model",
       type: "model3d",
       icon: <ViewInArOutlinedIcon fontSize="small" />,

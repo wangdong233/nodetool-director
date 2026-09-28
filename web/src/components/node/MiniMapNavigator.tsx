@@ -118,32 +118,32 @@ const MiniMapNavigator: React.FC = () => {
     () => [
       {
         category: NodeTypeCategory.Input,
-        label: "Input Nodes",
+        label: i18n.t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Input, isDarkMode)
       },
       {
         category: NodeTypeCategory.Constant,
-        label: "Constant Nodes",
+        label: i18n.t("editor:ui.constantNodes", { defaultValue: "Constant Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Constant, isDarkMode)
       },
       {
         category: NodeTypeCategory.Processing,
-        label: "Processing Nodes",
+        label: i18n.t("editor:ui.processingNodes", { defaultValue: "Processing Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Processing, isDarkMode)
       },
       {
         category: NodeTypeCategory.Group,
-        label: "Group Nodes",
+        label: i18n.t("editor:ui.groupNodes", { defaultValue: "Group Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Group, isDarkMode)
       },
       {
         category: NodeTypeCategory.Comment,
-        label: "Comment Nodes",
+        label: i18n.t("editor:ui.commentNodes", { defaultValue: "Comment Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Comment, isDarkMode)
       },
       {
         category: NodeTypeCategory.Output,
-        label: "Output Nodes",
+        label: i18n.t("editor:ui.outputNodes", { defaultValue: "Output Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Output, isDarkMode)
       }
     ],

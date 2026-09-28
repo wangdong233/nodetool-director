@@ -273,7 +273,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
   const mockMetadata: NodeMetadata = useMemo(
     () => ({
       title: computedHeaderTitle || nodeTitle || "Missing Node",
-      description: "This node is missing",
+      description: i18n.t("editor:ui.thisNodeIsMissing", { defaultValue: "This node is missing" }),
       namespace: resolvedNamespace,
       node_type: resolvedType || "unknown",
       layout: "default",
@@ -284,7 +284,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         {
           name: "output",
           type: { type: "any", optional: true, type_args: [] },
-          description: "Default output",
+          description: i18n.t("editor:ui.defaultOutput", { defaultValue: "Default output" }),
           stream: false
         }
       ],

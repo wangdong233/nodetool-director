@@ -203,7 +203,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         {pricing.source === "live" && (
           <span
             style={{ marginRight: 3, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label="live price"
+            aria-label={i18n.t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>

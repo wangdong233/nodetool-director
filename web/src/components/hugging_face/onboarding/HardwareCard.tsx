@@ -128,7 +128,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
     <>
       <ModelStat
         icon={<DeveloperBoardIcon sx={{ fontSize: 14 }} />}
-        label="GPU memory"
+        label={i18n.t("editor:ui.gpuMemory", { defaultValue: "GPU memory" })}
         value={gb(profile.vramGb)}
       />
       <ModelStat
@@ -150,7 +150,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
         Set GPU memory
       </Caption>
       <SelectField
-        label="GPU memory budget"
+        label={i18n.t("editor:ui.gpuMemoryBudget", { defaultValue: "GPU memory budget" })}
         hideLabel
         variant="outlined"
         value={selectValue}

@@ -126,7 +126,7 @@ const SearchProviderSetupDialog: React.FC = () => {
       onConfirm={handleSave}
       onCancel={dismiss}
       confirmText={i18n.t("editor:ui.saveContinue", { defaultValue: "Save & continue" })}
-      cancelText="Cancel"
+      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       confirmDisabled={!allFilled}
       isLoading={saving}
       content={

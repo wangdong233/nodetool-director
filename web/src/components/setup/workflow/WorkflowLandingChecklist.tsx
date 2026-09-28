@@ -29,18 +29,21 @@ import type {
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
-  Record<WorkflowSetupRunMode, { label: string; detail: string }>
+  Record<WorkflowSetupRunMode, { label: string; labelKey: string; detail: string }>
 > = {
   manual: {
     label: "Continue on canvas",
+    labelKey: "editor:ui.continueOnCanvas",
     detail: "Adjust inputs or run the workflow from the canvas."
   },
   app: {
     label: "Create Mini App",
+    labelKey: "editor:ui.createMiniApp",
     detail: "Create and open a Mini App backed by this workflow."
   },
   trigger: {
     label: "Add a trigger",
+    labelKey: "editor:ui.addTrigger",
     detail: "Open the trigger-node picker on this canvas."
   }
 };
@@ -196,7 +199,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
             onClick={() => void onNextStep()}
             disabled={nextStepPending}
           >
-            {next.label}
+            {i18n.t(next.labelKey, { defaultValue: next.label })}
           </EditorButton>
           <Caption color="secondary">{next.detail}</Caption>
         </FlexRow>

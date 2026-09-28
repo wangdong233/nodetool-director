@@ -510,7 +510,7 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
       console.error("VideoPreview: add to assets failed", error);
       addNotification({
         type: "error",
-        content: "Failed to add video to assets"
+        content: i18n.t("editor:ui.failedToAddVideoToAssets", { defaultValue: "Failed to add video to assets" })
       });
     }
   }, [value, nodeId, createAsset, addNotification]);

@@ -92,7 +92,7 @@ export const ScriptCreativeContextFields: React.FC<
           multiline
           rows={3}
           value={listValue(context.approved_claims)}
-          helperText="One approved fact per line."
+          helperText={i18n.t("editor:ui.oneApprovedFactPerLine", { defaultValue: "One approved fact per line." })}
           onChange={(event) =>
             update({ approved_claims: listFromValue(event.target.value) })
           }
@@ -106,7 +106,7 @@ export const ScriptCreativeContextFields: React.FC<
           multiline
           rows={3}
           value={listValue(context.prohibited_claims)}
-          helperText="One claim to avoid per line."
+          helperText={i18n.t("editor:ui.oneClaimToAvoidPerLine", { defaultValue: "One claim to avoid per line." })}
           onChange={(event) =>
             update({ prohibited_claims: listFromValue(event.target.value) })
           }

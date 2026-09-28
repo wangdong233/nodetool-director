@@ -388,7 +388,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
         <img
           ref={imageRef}
           src={imageUrl}
-          alt="Generated image output"
+          alt={i18n.t("editor:ui.generatedImageOutput", { defaultValue: "Generated image output" })}
           onLoad={handleImageLoad}
           style={imageStyle}
           onDoubleClick={handleDoubleClick}

@@ -44,6 +44,7 @@ import { FormatStep, WriterModelFooterField } from "./FormatStep";
 import { IdeaStep } from "./IdeaStep";
 import { ReviewStep } from "./ReviewStep";
 import { VoicesStep } from "./VoicesStep";
+import { i18n } from "../../../i18n";
 
 /**
  * A script's stage, with the field's absence read as `done` (PRD § 6.4).
@@ -225,7 +226,7 @@ export const useScriptSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         // Imported words are enough on their own: they say what the script is,
         // and the brief beside them is a note for the attribution pass (F3).
@@ -243,7 +244,7 @@ export const useScriptSetupFlow = ({
         // Format and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "format",
-        label: "Format",
+        label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
         primaryLabel: needsWrite
           ? hasLines
             ? "Rewrite"
@@ -276,7 +277,7 @@ export const useScriptSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Format",
+        label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
         primaryLabel: "Continue to voices",
         // Empty lines produce no take and no audio, so they are caught before
         // the creator pays for the rest of the script (F20).
@@ -299,7 +300,7 @@ export const useScriptSetupFlow = ({
       },
       {
         stage: "voices",
-        label: "Voices",
+        label: i18n.t("editor:ui.voices", { defaultValue: "Voices" }),
         primaryLabel: "Voice your script",
         canAdvance: castNeedingVoice === 0 && hasLines,
         blockedReason: hasLines

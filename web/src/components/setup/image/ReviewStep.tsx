@@ -99,7 +99,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () => [
       {
         id: "brief",
-        header: "Your brief",
+        header: i18n.t("editor:ui.yourBrief", { defaultValue: "Your brief" }),
         subheader: "Edit anything here before it is rendered.",
         rows: FIELD_LABELS.map(([field, label]) => ({
           id: field,

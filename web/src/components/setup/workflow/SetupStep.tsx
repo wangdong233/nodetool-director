@@ -59,17 +59,23 @@ export const RUN_MODE_CARDS = [
   {
     id: "manual",
     title: "Run by hand",
-    description: "After the test run, you open it and press run."
+    titleKey: "editor:ui.runByHand",
+    description: "After the test run, you open it and press run.",
+    descriptionKey: "editor:ui.afterTestRunOpenAndPressRun"
   },
   {
     id: "app",
     title: "App with a form",
-    description: "After the test run, put a shareable form over the inputs."
+    titleKey: "editor:ui.appWithForm",
+    description: "After the test run, put a shareable form over the inputs.",
+    descriptionKey: "editor:ui.afterTestRunShareableForm"
   },
   {
     id: "trigger",
     title: "On a trigger",
-    description: "After the test run, a schedule or a webhook starts it."
+    titleKey: "editor:ui.onTrigger",
+    description: "After the test run, a schedule or a webhook starts it.",
+    descriptionKey: "editor:ui.afterTestRunScheduleOrWebhook"
   }
 ] as const;
 

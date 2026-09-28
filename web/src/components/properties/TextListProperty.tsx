@@ -320,7 +320,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: "Select text files",
+        title: i18n.t("editor:ui.selectTextFiles", { defaultValue: "Select text files" }),
         filters: [
           { name: "Text Files", extensions: ["txt", "md", "json", "csv", "xml", "html", "htm", "yaml", "yml", "log", "ini", "cfg", "conf"] }
         ],

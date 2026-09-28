@@ -1041,7 +1041,7 @@ const ScriptDocumentPane = ({
         {isEmpty && (
           <EmptyState
             title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
-            description="Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them."
+            description={i18n.t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
             actionText={readOnly ? undefined : "Add first line"}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />

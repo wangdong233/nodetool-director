@@ -82,22 +82,22 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
     { label: string; bg: string; fg: string }
   > = {
     alwaysOn: {
-      label: "Always on",
+      label: i18n.t("editor:ui.alwaysOn", { defaultValue: "Always on" }),
       bg: theme.vars.palette.action.selected,
       fg: theme.vars.palette.text.secondary
     },
     installed: {
-      label: "Installed",
+      label: i18n.t("editor:ui.installed", { defaultValue: "Installed" }),
       bg: `rgba(${theme.vars.palette.success.mainChannel} / 0.14)`,
       fg: theme.vars.palette.success.main
     },
     update: {
-      label: "Update available",
+      label: i18n.t("editor:ui.updateAvailable", { defaultValue: "Update available" }),
       bg: `rgba(${theme.vars.palette.warning.mainChannel} / 0.16)`,
       fg: theme.vars.palette.warning.main
     },
     notInstalled: {
-      label: "Not installed",
+      label: i18n.t("editor:ui.notInstalled", { defaultValue: "Not installed" }),
       bg: theme.vars.palette.action.hover,
       fg: theme.vars.palette.text.secondary
     }

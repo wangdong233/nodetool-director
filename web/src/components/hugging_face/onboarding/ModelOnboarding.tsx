@@ -199,7 +199,7 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
           exclusive
           segmented
           onChange={(_e, value) => value && setFilter(value as Filter)}
-          aria-label="filter recommended models by capability"
+          aria-label={i18n.t("editor:ui.filterRecommendedByCapability", { defaultValue: "filter recommended models by capability" })}
         >
           <ToggleOption value="all" aria-label="all capabilities">
             All

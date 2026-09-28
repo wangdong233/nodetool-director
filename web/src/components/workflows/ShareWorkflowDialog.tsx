@@ -72,7 +72,7 @@ const ShareWorkflowDialog = ({
       } catch {
         addNotification({
           type: "error",
-          content: "Failed to create share link",
+          content: i18n.t("editor:ui.failedToCreateShareLink", { defaultValue: "Failed to create share link" }),
           alert: true
         });
         return;

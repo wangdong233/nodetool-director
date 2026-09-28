@@ -188,7 +188,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
 
         <TextInput
           label={i18n.t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
-          helperText="Pasted verbatim into every prompt that uses this entity."
+          helperText={i18n.t("editor:ui.pastedVerbatimIntoEveryPrompt", { defaultValue: "Pasted verbatim into every prompt that uses this entity." })}
           value={descriptor}
           onChange={(e) => setDescriptor(e.target.value)}
           multiline

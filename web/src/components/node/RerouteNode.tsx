@@ -263,7 +263,7 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
                 defaultValue={title}
                 autoFocus
                 aria-label={i18n.t("editor:ui.rerouteLabel", { defaultValue: "Reroute label" })}
-                placeholder="label"
+                placeholder={i18n.t("editor:ui.labelPlaceholder", { defaultValue: "label" })}
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
               />

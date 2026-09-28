@@ -98,7 +98,7 @@ const ListTable: React.FC<ListTableProps> = ({
           ]
         : []),
       {
-        title: "Index",
+        title: i18n.t("editor:ui.indexLabel", { defaultValue: "Index" }),
         field: "rownum",
         formatter: "rownum" as Formatter,
         hozAlign: "left" as ColumnDefinitionAlign,
@@ -110,7 +110,7 @@ const ListTable: React.FC<ListTableProps> = ({
         cssClass: "row-numbers"
       },
       {
-        title: "Value",
+        title: i18n.t("appbuilder:attrs.value", { defaultValue: "Value" }),
         field: "value",
         editable: editable,
         frozen: !editable,

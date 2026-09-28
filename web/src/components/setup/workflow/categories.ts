@@ -27,42 +27,54 @@ const CATEGORIES: readonly Omit<WorkflowCategory, "image">[] = [
   {
     id: "content-pipeline",
     title: "Content pipeline",
+    titleKey: "editor:ui.contentPipeline",
     description: "Text in, drafted and formatted text out.",
+    descriptionKey: "editor:ui.textInDraftedTextOut",
     plannerTerms: ["text", "summarize", "template", "format", "write"],
     defaultRunMode: "manual"
   },
   {
     id: "media-batch",
     title: "Media batch",
+    titleKey: "editor:ui.mediaBatch",
     description: "The same render over a list of inputs.",
+    descriptionKey: "editor:ui.sameRenderOverListOfInputs",
     plannerTerms: ["image", "video", "audio", "batch", "generate"],
     defaultRunMode: "manual"
   },
   {
     id: "data-extraction",
     title: "Data extraction",
+    titleKey: "editor:ui.dataExtraction",
     description: "Pull structured fields out of documents or pages.",
+    descriptionKey: "editor:ui.pullStructuredFieldsOut",
     plannerTerms: ["extract", "pdf", "document", "parse", "dataframe"],
     defaultRunMode: "app"
   },
   {
     id: "research-agent",
     title: "Research agent",
+    titleKey: "editor:ui.researchAgent",
     description: "An agent that searches, reads and reports back.",
+    descriptionKey: "editor:ui.agentSearchesReadsReports",
     plannerTerms: ["agent", "search", "browser", "research", "summarize"],
     defaultRunMode: "app"
   },
   {
     id: "trigger-automation",
     title: "Automation on a trigger",
+    titleKey: "editor:ui.automationOnTrigger",
     description: "Runs on a schedule or a webhook, with no one watching.",
+    descriptionKey: "editor:ui.runsOnScheduleOrWebhook",
     plannerTerms: ["trigger", "schedule", "webhook", "automation", "email"],
     defaultRunMode: "trigger"
   },
   {
     id: "chat-app",
     title: "Chat app",
+    titleKey: "editor:ui.chatApp",
     description: "A conversation with your data behind it.",
+    descriptionKey: "editor:ui.conversationWithDataBehind",
     plannerTerms: ["chat", "message", "agent", "collection", "retrieval"],
     defaultRunMode: "app"
   }

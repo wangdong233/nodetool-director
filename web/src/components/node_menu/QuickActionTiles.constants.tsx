@@ -95,6 +95,7 @@ const hexToRgba = (hex: string, alpha: number) => {
 const buildConstantNode = ({
   key,
   label,
+  labelKey,
   nodeType,
   iconType
 }: {
@@ -108,6 +109,7 @@ const buildConstantNode = ({
   return {
     key,
     label,
+    labelKey,
     nodeType,
     icon: (
       <IconForType
@@ -168,6 +170,7 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   buildConstantNode({
     key: "constant-audio",
     label: "Audio",
+    labelKey: "audio",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[5],
     iconType: "audio"
   }),

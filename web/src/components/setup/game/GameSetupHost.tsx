@@ -127,7 +127,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
 
   const imageRow = useMemo<GameRowAvailability>(
     () => ({
-      label: "Image model",
+      label: i18n.t("editor:ui.imageModel", { defaultValue: "Image model" }),
       tiles: imageModels.map(
         (model): OptionCardItem => ({
           id: model.id,
@@ -168,7 +168,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
 
   const sfxRow = useMemo<GameRowAvailability>(
     () => ({
-      label: "Sound effects",
+      label: i18n.t("editor:ui.soundEffects", { defaultValue: "Sound effects" }),
       tiles: sfxNodeTypes.map(
         (node): OptionCardItem => ({
           id: node.node_type,
@@ -189,7 +189,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
 
   const musicRow = useMemo<GameRowAvailability>(
     () => ({
-      label: "Music",
+      label: i18n.t("storyboard:attrs.music", { defaultValue: "Music" }),
       tiles: musicModels.map(
         (model): OptionCardItem => ({
           id: model.id,

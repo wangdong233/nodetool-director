@@ -24,6 +24,7 @@ import { i18n } from "../../../i18n";
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
   label: string;
+  labelKey?: string;
   color: "default" | "success" | "warning";
 }[] = [
   { value: "all", label: "All", color: "default" },
@@ -31,6 +32,7 @@ const AVAILABILITY_FILTERS: {
   {
     value: "download_required",
     label: "Download required",
+    labelKey: "editor:ui.downloadRequired",
     color: "warning"
   },
   { value: "unavailable", label: "Unavailable", color: "default" }
@@ -153,10 +155,10 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
 
       {source === "installed" && (
         <FilterRow label={i18n.t("editor:ui.status", { defaultValue: "Status" })}>
-          {AVAILABILITY_FILTERS.map(({ value, label, color }) => (
+          {AVAILABILITY_FILTERS.map(({ value, label, labelKey, color }) => (
             <Chip
               key={value}
-              label={`${label} ${availabilityCounts[value]}`}
+              label={`${labelKey ? i18n.t(labelKey, { defaultValue: label }) : label} ${availabilityCounts[value]}`}
               compact
               color={color}
               active={selectedAvailability === value}

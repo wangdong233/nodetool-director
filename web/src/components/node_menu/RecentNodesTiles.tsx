@@ -382,7 +382,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         title={i18n.t("editor:ui.clearRecentNodes")}
         content={i18n.t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone")}
         confirmText={i18n.t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         notificationMessage="Recent nodes cleared"
         notificationType="success"
       />

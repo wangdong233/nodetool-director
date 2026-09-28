@@ -101,7 +101,14 @@ const MorePanel: React.FC<MorePanelProps> = ({
         <FlexColumn padding={PADDING.spacious} gap={SPACING.lg}>
           {filteredGroups.map((group) => (
             <FlexColumn key={group.id}>
-              <SectionHeader title={group.label} size="small" />
+              <SectionHeader
+              title={
+                group.labelKey
+                  ? i18n.t(group.labelKey, { defaultValue: group.label })
+                  : group.label
+              }
+              size="small"
+            />
               <ListGroup compact flush>
                 {group.categories.map((category) => (
                   <MorePanelCategoryRow

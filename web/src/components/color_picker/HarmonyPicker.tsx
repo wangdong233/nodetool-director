@@ -124,9 +124,13 @@ const HarmonyPicker: React.FC<HarmonyPickerProps> = ({
         >
           <div className="harmony-header">
             <div>
-              <Text className="harmony-title">{harmony.name}</Text>
+              <Text className="harmony-title">
+                {i18n.t(harmony.nameKey, { defaultValue: harmony.name })}
+              </Text>
               <Text className="harmony-description">
-                {harmony.description}
+                {i18n.t(harmony.descriptionKey, {
+                  defaultValue: harmony.description
+                })}
               </Text>
             </div>
             <CopyButton

@@ -318,7 +318,7 @@ const AudioListProperty = (props: PropertyProps<AudioItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: "Select audio files",
+        title: i18n.t("editor:ui.selectAudioFiles", { defaultValue: "Select audio files" }),
         filters: [
           { name: "Audio", extensions: ["mp3", "wav", "ogg", "m4a", "flac", "aac"] }
         ],

@@ -364,7 +364,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            helperText="A label to recognise this template, e.g. “A40 image worker”."
+            helperText={i18n.t("editor:ui.labelToRecogniseThisTemplate", { defaultValue: "A label to recognise this template, e.g. “A40 image worker”." })}
             fullWidth
             compact
           />
@@ -376,7 +376,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             options={TARGET_OPTIONS}
             variant="outlined"
             size="small"
-            description="Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace."
+            description={i18n.t("editor:ui.whereGpuIsRented", { defaultValue: "Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace." })}
           />
 
           {apiKeyMissing && (
@@ -428,7 +428,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
               options={VCPU_OPTIONS}
               variant="outlined"
               size="small"
-              description="Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor."
+              description={i18n.t("editor:ui.numberOfVirtualCpus", { defaultValue: "Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor." })}
             />
           )}
 
@@ -437,7 +437,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             value={disk}
             onChange={(e) => setDisk(e.target.value)}
             type="number"
-            helperText="Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous."
+            helperText={i18n.t("editor:ui.persistentVolumeForModelCache", { defaultValue: "Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous." })}
             fullWidth
             compact
           />
@@ -447,7 +447,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             value={idleTimeout}
             onChange={(e) => setIdleTimeout(e.target.value)}
             type="number"
-            helperText="Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never."
+            helperText={i18n.t("editor:ui.idleThisLongPause", { defaultValue: "Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never." })}
             fullWidth
             compact
           />
@@ -474,13 +474,13 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 options={IMAGE_PRESETS}
                 variant="outlined"
                 size="small"
-                description="ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node."
+                description={i18n.t("editor:ui.comfyUiWorkerFrontsServer", { defaultValue: "ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node." })}
               />
               <TextInput
                 label={i18n.t("editor:ui.workerImage", { defaultValue: "Worker image" })}
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                helperText="Container image the provider runs. Pick a preset above, or set your own worker build."
+                helperText={i18n.t("editor:ui.containerImageProviderRuns", { defaultValue: "Container image the provider runs. Pick a preset above, or set your own worker build." })}
                 fullWidth
                 compact
               />
@@ -491,14 +491,14 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 options={TOKEN_POLICY_OPTIONS}
                 variant="outlined"
                 size="small"
-                description="Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere."
+                description={i18n.t("editor:ui.generateIssuesFreshAuthToken", { defaultValue: "Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere." })}
               />
               <TextInput
                 label={i18n.t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
                 value={maxLifetime}
                 onChange={(e) => setMaxLifetime(e.target.value)}
                 type="number"
-                helperText="Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap."
+                helperText={i18n.t("editor:ui.hardCapWorkerTerminated", { defaultValue: "Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap." })}
                 fullWidth
                 compact
               />

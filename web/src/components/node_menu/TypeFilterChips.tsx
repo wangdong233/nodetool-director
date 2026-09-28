@@ -45,17 +45,26 @@ const TYPE_CHIP_ICON_CONTAINER_STYLE = { width: 16, height: 16 } as const;
 type TypeOption = {
   value: string;
   label: string;
+  labelKey?: string;
 };
 
 const ALL_INPUT_OPTION: TypeOption = {
   value: "",
-  label: "All input types"
+  label: "All input types",
+  labelKey: "editor:ui.allInputTypes"
 };
 
 const ALL_OUTPUT_OPTION: TypeOption = {
   value: "",
-  label: "All output types"
+  label: "All output types",
+  labelKey: "editor:ui.allOutputTypes"
 };
+
+/** Resolve a type option's label at render so zh lands (module consts stay pure data). */
+const typeOptionLabel = (option: TypeOption): string =>
+  option.labelKey
+    ? i18n.t(option.labelKey, { defaultValue: option.label })
+    : option.label;
 
 const typeFilterChipsStyles = (theme: Theme) =>
   css({
@@ -303,7 +312,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
           return options;
         }
         return options.filter((option) =>
-          `${option.label} ${option.value}`
+          `${typeOptionLabel(option)} ${option.value}`
             .toLowerCase()
             .includes(normalizedQuery)
         );
@@ -466,7 +475,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => option.label}
+              getOptionLabel={(option) => typeOptionLabel(option)}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }
@@ -517,7 +526,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => option.label}
+              getOptionLabel={(option) => typeOptionLabel(option)}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }

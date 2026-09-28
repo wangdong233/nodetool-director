@@ -306,7 +306,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       console.error("Error in handleAddToAssets:", error);
       addNotification({
         type: "error",
-        content: "Failed to add output to assets"
+        content: i18n.t("editor:ui.failedToAddOutputToAssets", { defaultValue: "Failed to add output to assets" })
       });
     }
   }, [outputValue, props.id, createAsset, addNotification]);
@@ -320,13 +320,13 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       });
       addNotification({
         type: "success",
-        content: "Download started successfully"
+        content: i18n.t("editor:ui.downloadStartedSuccessfully", { defaultValue: "Download started successfully" })
       });
     } catch (error) {
       console.error("Error in handleDownload:", error);
       addNotification({
         type: "error",
-        content: "Failed to start download"
+        content: i18n.t("editor:ui.failedToStartDownload", { defaultValue: "Failed to start download" })
       });
     }
   }, [outputValue, result, props.id, addNotification]);

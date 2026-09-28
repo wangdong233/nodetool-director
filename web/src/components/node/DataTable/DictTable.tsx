@@ -68,14 +68,14 @@ const DictTable: React.FC<DictTableProps> = ({
           ]
         : []),
       {
-        title: "Key",
+        title: i18n.t("editor:ui.keyLabel", { defaultValue: "Key" }),
         field: "key",
         editable: true,
         headerHozAlign: "left" as ColumnDefinitionAlign,
         cssClass: "key"
       },
       {
-        title: "Value",
+        title: i18n.t("appbuilder:attrs.value", { defaultValue: "Value" }),
         field: "value",
         editable: editable,
         frozen: !editable,

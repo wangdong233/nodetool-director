@@ -253,7 +253,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
       removeFavorite(nodeType);
       addNotification({
         type: "info",
-        content: "Node removed from favorites",
+        content: i18n.t("editor:ui.nodeRemovedFromFavorites", { defaultValue: "Node removed from favorites" }),
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },
@@ -381,7 +381,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
         title={i18n.t("editor:ui.clearAllFavorites")}
         content={`This removes all ${favorites.length} favorite nodes. This cannot be undone.`}
         confirmText={i18n.t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         notificationMessage="Favorites cleared"
         notificationType="success"
       />

@@ -150,7 +150,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         ...plan.steps,
         {
           id: `step-${plan.steps.length + 1}-${Date.now()}`,
-          title: "New step",
+          title: i18n.t("editor:ui.newStep", { defaultValue: "New step" }),
           summary: "",
           node_type: null
         }
@@ -166,14 +166,14 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     () => [
       {
         id: "inputs",
-        header: "Inputs",
+        header: i18n.t("editor:ui.inputs", { defaultValue: "Inputs" }),
         subheader:
           "What the workflow is given when it runs. You set the sample values on the next step.",
         rows: plan.inputs.map((input, index) => ({
           id: `input-${index}`,
           label: `${input.name} (${input.type})`,
           value: String(input.sample ?? ""),
-          placeholder: "No sample yet",
+          placeholder: i18n.t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
           readOnly: true,
           onChange: () => undefined
         }))
@@ -186,7 +186,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     () => [
       {
         id: "outputs",
-        header: "Outputs",
+        header: i18n.t("editor:ui.outputs", { defaultValue: "Outputs" }),
         subheader: "What it hands back.",
         rows: plan.outputs.map((output, index) => ({
           id: `output-${index}`,

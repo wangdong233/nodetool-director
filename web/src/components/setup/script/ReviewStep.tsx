@@ -144,7 +144,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         rows: section.lines.flatMap((line) => [
           {
             id: `${line.id}-speaker`,
-            label: "Speaker",
+            label: i18n.t("editor:ui.speaker", { defaultValue: "Speaker" }),
             hideLabel: true,
             compact: true,
             value: line.speakerId ?? "",
@@ -153,9 +153,9 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           },
           {
             id: line.id,
-            label: "Line",
+            label: i18n.t("editor:ui.scriptLine", { defaultValue: "Line" }),
             hideLabel: true,
-            placeholder: "Line",
+            placeholder: i18n.t("editor:ui.scriptLine", { defaultValue: "Line" }),
             value: line.text,
             multiline: true,
             onChange: (value: string) => setLineText(line.id, value)
@@ -165,7 +165,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             : [
                 {
                   id: `${line.id}-direction`,
-                  label: "Direction",
+                  label: i18n.t("editor:ui.direction", { defaultValue: "Direction" }),
                   value: line.direction,
                   readOnly: true,
                   onChange: () => undefined
@@ -179,7 +179,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             : [
                 {
                   id: `${line.id}-target`,
-                  label: "Target length",
+                  label: i18n.t("editor:ui.targetLength", { defaultValue: "Target length" }),
                   value: `${(line.targetDurationMs / 1000).toFixed(1)}s`,
                   readOnly: true,
                   onChange: () => undefined

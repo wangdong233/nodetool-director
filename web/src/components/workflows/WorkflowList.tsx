@@ -386,8 +386,8 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
             <EmptyState
               variant="error"
               title={i18n.t("editor:ui.couldntLoadWorkflows", { defaultValue: "Couldn't load workflows" })}
-              description="Try again later."
-              actionText="Retry"
+              description={i18n.t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+              actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </FlexColumn>

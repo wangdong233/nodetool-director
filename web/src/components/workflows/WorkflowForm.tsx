@@ -293,12 +293,12 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         <WorkspaceSelect
           value={localWorkflow.workspace_id ?? undefined}
           onChange={handleWorkspaceChange}
-          helperText="Associate a workspace folder with this workflow for agent access"
+          helperText={i18n.t("editor:ui.associateWorkspaceFolder", { defaultValue: "Associate a workspace folder with this workflow for agent access" })}
         />
 
         <FormField
           label={i18n.t("editor:ui.toolName", { defaultValue: "Tool Name" })}
-          helperText="Identifier for API/tool usage. Letters, numbers, underscores only."
+          helperText={i18n.t("editor:ui.identifierForApiToolUsage", { defaultValue: "Identifier for API/tool usage. Letters, numbers, underscores only." })}
         >
           <TextInput
             name="tool_name"

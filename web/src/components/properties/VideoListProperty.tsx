@@ -293,7 +293,7 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: "Select videos",
+        title: i18n.t("editor:ui.selectVideos", { defaultValue: "Select videos" }),
         filters: [
           { name: "Video", extensions: ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv"] }
         ],

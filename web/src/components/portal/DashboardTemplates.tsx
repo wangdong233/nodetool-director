@@ -297,6 +297,14 @@ const TemplateRow = memo(function TemplateRow({
           </span>
         )}
       </span>
+      {category && (
+        <span className="tpl-cat">
+          <span className="cat-dot" style={{ background: category.color }} />
+          {category.labelKey
+            ? i18n.t(category.labelKey, { defaultValue: category.label })
+            : category.label}
+        </span>
+      )}
     </button>
   );
 });
@@ -422,7 +430,9 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
                 }
               >
                 <span className="cat-dot" style={{ background: cat.color }} />
-                {cat.label}
+                {cat.labelKey
+                  ? i18n.t(cat.labelKey, { defaultValue: cat.label })
+                  : cat.label}
               </button>
             );
           })}

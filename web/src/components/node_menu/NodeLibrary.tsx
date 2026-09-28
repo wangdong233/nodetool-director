@@ -472,7 +472,13 @@ const NodeLibrary = memo<NodeLibraryProps>(
                   onClick={() => onSubcategoryChange(sub.id)}
                 >
                   <span className="nl-cat-icon">{sub.icon}</span>
-                  <span className="nl-cat-label">{sub.label}</span>
+                  <span className="nl-cat-label">
+                    {"labelKey" in sub && sub.labelKey
+                      ? i18n.t(`editor:ui.${sub.labelKey}`, {
+                          defaultValue: sub.label
+                        })
+                      : sub.label}
+                  </span>
                   <span className="nl-cat-count">{counts[sub.id] ?? 0}</span>
                 </button>
               ))}

@@ -215,12 +215,12 @@ const verificationLine = (
       };
     case "running":
       return {
-        label: "Verification running",
+        label: i18n.t("editor:ui.verificationRunning", { defaultValue: "Verification running" }),
         detail: "Godot checks are in progress"
       };
     case "failed":
       return {
-        label: "Verification failed",
+        label: i18n.t("editor:ui.verificationFailed", { defaultValue: "Verification failed" }),
         detail: verification.reason ?? "Godot rejected the exported project"
       };
     case "unavailable":
@@ -230,17 +230,17 @@ const verificationLine = (
             detail: verification.reason ?? "Godot verification is unavailable"
           }
         : {
-            label: "Verification unavailable",
+            label: i18n.t("editor:ui.verificationUnavailable", { defaultValue: "Verification unavailable" }),
             detail: verification.reason ?? "Godot verification could not run"
           };
     case "interrupted":
       return {
-        label: "Verification interrupted",
+        label: i18n.t("editor:ui.verificationInterrupted", { defaultValue: "Verification interrupted" }),
         detail: verification.reason ?? "The run was cancelled"
       };
     default:
       return {
-        label: "Verification queued",
+        label: i18n.t("editor:ui.verificationQueued", { defaultValue: "Verification queued" }),
         detail: "Waiting for the export node"
       };
   }

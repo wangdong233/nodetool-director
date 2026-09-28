@@ -102,20 +102,20 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     () => [
       {
         id: "example",
-        title: "Start from an example",
-        description: "Browse the shipped workflows and copy one",
+        title: i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
+        description: i18n.t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
         onSelect: () => onBrowseExamples(true)
       },
       {
         id: "import",
-        title: "Import a workflow",
-        description: "JSON, or a DSL .ts file",
+        title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
+        description: i18n.t("editor:ui.jsonOrDslTsFile", { defaultValue: "JSON, or a DSL .ts file" }),
         onSelect: () => importInput.current?.click()
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the plan and place nodes yourself",
+        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank
       }
     ],
@@ -162,7 +162,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           label={i18n.t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
           placeholder={i18n.t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
-          helperText="Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it."
+          helperText={i18n.t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
           onChange={handleChange}
         />
 

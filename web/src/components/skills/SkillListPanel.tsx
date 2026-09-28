@@ -39,7 +39,7 @@ export const CreateSkillButton = () => {
       const created = await createSkill.mutateAsync({
         id: newDocumentId(),
         name: `skill-${Date.now().toString(36)}`,
-        description: "A reusable skill for the NodeTool agent.",
+        description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
         content: "# New skill\n\nDescribe what this skill does and when the agent should use it."
       });
       openTab({

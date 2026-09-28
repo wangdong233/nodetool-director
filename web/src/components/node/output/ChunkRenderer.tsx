@@ -28,7 +28,7 @@ export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
         srcDoc={(chunk.content as string) ?? ""}
         sandbox=""
         style={{ width: "100%", minHeight: 320, border: "none" }}
-        title="HTML chunk output"
+        title={i18n.t("editor:ui.htmlChunkOutput", { defaultValue: "HTML chunk output" })}
       />
     );
   }

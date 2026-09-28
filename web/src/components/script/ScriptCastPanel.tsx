@@ -269,7 +269,7 @@ const ScriptCastPanel = ({
       {cast.length === 0 ? (
         <EmptyState
           title={i18n.t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
-          description="Add a speaker, pick a voice, then click a line's name to assign it."
+          description={i18n.t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
           actionText={readOnly ? undefined : "Add speaker"}
           onAction={readOnly ? undefined : onAdd}
         />
