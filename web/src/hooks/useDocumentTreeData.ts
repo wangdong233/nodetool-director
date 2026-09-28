@@ -51,6 +51,17 @@ const UNTITLED: Record<DocumentTreeLeafType, string> = {
   jsscript: "Untitled JS script"
 };
 
+const UNTITLED_KEYS: Record<DocumentTreeLeafType, string> = {
+  workflow: "editor:ui.untitledWorkflow",
+  application: "editor:ui.untitledApp",
+  sketch: "editor:ui.untitledSketch",
+  script: "editor:ui.untitledScript",
+  storyboard: "storyboard:attrs.untitledStoryboard",
+  timeline: "timeline:list.untitled",
+  entity: "storyboard:attrs.untitledEntity",
+  jsscript: "editor:ui.untitledJsScript"
+};
+
 const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
   workflow: "Workflow",
   application: "App",
@@ -109,7 +120,7 @@ export const useDocumentTreeData = (
       const leaves = byType.get(type) ?? [];
       leaves.push({
         id: document.id,
-        name: document.name || UNTITLED[type],
+        name: document.name || i18n.t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
         type,
         typeLabel: TYPE_LABELS[type],
         projectId,

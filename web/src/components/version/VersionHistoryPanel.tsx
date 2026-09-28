@@ -521,8 +521,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               </Text>
               <Caption size="smaller" color="muted">
                 {isCompareMode
-                  ? "Pick two versions to see what changed."
-                  : "Click any entry to see its graph and metadata here."}
+                  ? i18n.t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." })
+                  : i18n.t("editor:ui.clickAnyEntryToSeeItsGraphAndMetadataHere", { defaultValue: "Click any entry to see its graph and metadata here." })}
               </Caption>
             </FlexColumn>
           )}

@@ -117,9 +117,9 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
         return connected
 
-          ? "Input on top (click for bottom; edge stays connected)"
+          ? i18n.t("editor:ui.inputOnTopClickForBottomEdgeStaysConnected", { defaultValue: "Input on top (click for bottom; edge stays connected)" })
 
-          : "Input on top — click for bottom labeled row";
+          : i18n.t("editor:ui.inputOnTopClickForBottomLabeledRow", { defaultValue: "Input on top — click for bottom labeled row" });
 
       }
 
@@ -127,9 +127,9 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
         return connected
 
-          ? "Input on bottom (click to hide; disconnects edge)"
+          ? i18n.t("editor:ui.inputOnBottomClickToHideDisconnectsEdge", { defaultValue: "Input on bottom (click to hide; disconnects edge)" })
 
-          : "Input on bottom — click to hide";
+          : i18n.t("editor:ui.inputOnBottomClickToHide", { defaultValue: "Input on bottom — click to hide" });
 
       }
 

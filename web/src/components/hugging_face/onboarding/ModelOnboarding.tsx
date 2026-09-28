@@ -33,7 +33,8 @@ import {
   ONBOARDING_MODELS,
   sortModelsByFit,
   type OnboardingCapability,
-  type OnboardingModel
+  type OnboardingModel,
+  CAPABILITY_LABEL_KEYS
 } from "./onboardingCatalog";
 
 interface ModelOnboardingProps {
@@ -208,9 +209,9 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
             <ToggleOption
               key={capability}
               value={capability}
-              aria-label={CAPABILITY_LABELS[capability]}
+              aria-label={i18n.t(CAPABILITY_LABEL_KEYS[capability], { defaultValue: CAPABILITY_LABELS[capability] })}
             >
-              {CAPABILITY_LABELS[capability]}
+              {i18n.t(CAPABILITY_LABEL_KEYS[capability], { defaultValue: CAPABILITY_LABELS[capability] })}
             </ToggleOption>
           ))}
         </ToggleGroup>
@@ -222,7 +223,7 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
             sx={{ mt: SPACING.xs }}
           >
             <Text size="small" weight={600} color="secondary">
-              {CAPABILITY_LABELS[group.capability]}
+              {i18n.t(CAPABILITY_LABEL_KEYS[group.capability], { defaultValue: CAPABILITY_LABELS[group.capability] })}
             </Text>
             {group.entries.map((entry) => (
               <OnboardingModelRow

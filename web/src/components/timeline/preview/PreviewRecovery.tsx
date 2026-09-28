@@ -95,7 +95,7 @@ export function PreviewRecovery({
       const terminal = attempts.current >= MAX_AUTOMATIC_RETRIES;
       const context: BugReportContext = {
         source: "panel-crash",
-        summary: "Timeline preview failed",
+        summary: i18n.t("timeline:attrs.timelinePreviewFailed", { defaultValue: "Timeline preview failed" }),
         errorText: history.current.join("\n\n"),
         nodeDetail: JSON.stringify({
           timelineId,

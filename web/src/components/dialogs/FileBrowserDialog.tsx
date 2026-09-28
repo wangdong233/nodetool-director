@@ -541,7 +541,7 @@ function FileBrowserDialog({
       handleNavigate(created);
     } catch (err) {
       setNewFolderError(
-        err instanceof Error ? err.message : "Could not create the folder"
+        err instanceof Error ? err.message : i18n.t("editor:ui.couldNotCreateTheFolder", { defaultValue: "Could not create the folder" })
       );
     }
   }, [newFolderName, currentPath, handleNavigate]);

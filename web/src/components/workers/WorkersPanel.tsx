@@ -200,7 +200,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
   const statusHint = isBooting
     ? "GPU up — worker still loading"
     : isRunning && isHealthy
-      ? "Worker is answering — safe to attach"
+      ? i18n.t("editor:ui.workerIsAnsweringSafeToAttach", { defaultValue: "Worker is answering — safe to attach" })
       : null;
 
   return (

@@ -840,7 +840,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
             {selectedNotes.map(note => `${pitchName(note.pitch)} · velocity ${note.velocity}`).slice(0, 1).join("") || "Click to add a note"}
             {selectedNotes.length > 1 ? ` · ${selectedNotes.length} selected` : ""}
           </Caption>
-          <Caption color="muted">Velocity ±</Caption>
+          <Caption color="muted">{i18n.t("timeline:attrs.velocity2", { defaultValue: "Velocity ±" })}</Caption>
           <Slider aria-label={i18n.t("editor:ui.selectedNoteVelocity", { defaultValue: "Selected note velocity" })} min={1} max={127} step={1}
             density="compact" sx={{ width: 96 }} disabled={selectedNotes.length === 0}
             value={selectedVelocity} valueLabelDisplay="auto"

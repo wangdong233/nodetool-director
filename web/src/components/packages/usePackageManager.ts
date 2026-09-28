@@ -41,10 +41,13 @@ const runtimeGroup = (id: string) => RUNTIME_GROUP[id] ?? "media";
 const OPTIONAL_PREFIX = "optional:";
 
 const TITLE_KEYS: Record<string, string> = {
+  all: "editor:ui.allRuntimes",
   language: "editor:ui.languages",
   media: "editor:ui.mediaDocs",
   ai: "editor:ui.aiRuntimes",
-  thirdparty: "editor:ui.thirdParty"
+  thirdparty: "editor:ui.thirdParty",
+  included: "editor:ui.includedPacks",
+  python: "editor:ui.registryPacks"
 };
 
 const TITLES: Record<string, string> = {

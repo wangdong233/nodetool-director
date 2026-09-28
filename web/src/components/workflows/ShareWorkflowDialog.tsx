@@ -36,8 +36,8 @@ const ROLE_LABELS: Record<ShareRole, string> = {
 };
 
 const ROLE_OPTIONS = [
-  { value: "viewer", label: ROLE_LABELS.viewer },
-  { value: "editor", label: ROLE_LABELS.editor }
+  { value: "viewer", label: ROLE_LABELS.viewer, labelKey: "editor:ui.canView" },
+  { value: "editor", label: ROLE_LABELS.editor, labelKey: "editor:ui.canEdit" }
 ] as const;
 
 interface ShareWorkflowDialogProps {
@@ -190,7 +190,7 @@ const ShareWorkflowDialog = ({
                 label=""
                 size="small"
                 value={collaborator.role}
-                options={ROLE_OPTIONS}
+                options={ROLE_OPTIONS.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
                 disabled={setRole.isPending}
                 onChange={(value) =>
                   setRole.mutate({

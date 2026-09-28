@@ -186,7 +186,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 type="color"
                 value={style?.color ?? DEFAULT_COLOR}
                 onChange={(event) => setField("color", event.target.value)}
-                inputProps={{ "aria-label": "Caption color" }}
+                inputProps={{ "aria-label": i18n.t("timeline:attrs.captionColor", { defaultValue: "Caption color" }) }}
               />
             </InspectorRow>
             <InspectorRow label={i18n.t("timeline:attrs.spoken", { defaultValue: "Spoken" })}>
@@ -196,7 +196,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 onChange={(event) =>
                   setField("activeColor", event.target.value)
                 }
-                inputProps={{ "aria-label": "Caption spoken-word color" }}
+                inputProps={{ "aria-label": i18n.t("timeline:attrs.captionSpokenwordColor", { defaultValue: "Caption spoken-word color" }) }}
               />
             </InspectorRow>
             <InspectorRow label={i18n.t("timeline:attrs.bottom", { defaultValue: "Bottom" })}>
@@ -228,7 +228,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                       widthPx: outline.widthPx
                     })
                   }
-                  inputProps={{ "aria-label": "Caption outline color" }}
+                  inputProps={{ "aria-label": i18n.t("timeline:attrs.captionOutlineColor", { defaultValue: "Caption outline color" }) }}
                 />
               </InspectorRow>
             )}
@@ -253,7 +253,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                         color: event.target.value
                       })
                     }
-                    inputProps={{ "aria-label": "Caption scrim color" }}
+                    inputProps={{ "aria-label": i18n.t("timeline:attrs.captionScrimColor", { defaultValue: "Caption scrim color" }) }}
                   />
                 </InspectorRow>
                 <InspectorRow label={i18n.t("timeline:attrs.scrimRadius", { defaultValue: "Scrim radius" })}>

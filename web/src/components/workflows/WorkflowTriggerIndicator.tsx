@@ -40,7 +40,7 @@ const WorkflowTriggerIndicatorInternal: React.FC<
     : failing
       ? `Trigger armed — last run failed: ${armed.find((r) => r.last_error)?.last_error}`
       : armed.length === 1
-        ? "Trigger armed"
+        ? i18n.t("editor:ui.triggerArmed", { defaultValue: "Trigger armed" })
         : `${armed.length} triggers armed`;
 
   return (

@@ -184,7 +184,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {error ? "Failed to load SVG" : "SVG not found"}
+          {error ? i18n.t("editor:ui.failedToLoadSVG", { defaultValue: "Failed to load SVG" }) : "SVG not found"}
         </Text>
       </FlexColumn>
     );

@@ -47,7 +47,7 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError("Paste kie.ai API documentation first.");
+        setError(i18n.t("editor:ui.pasteKieaiAPIDocumentationFirst", { defaultValue: "Paste kie.ai API documentation first." }));
         return;
       }
       if (!force && lastAutoLoadedModelInfoRef.current === modelInfo) {
@@ -119,7 +119,7 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load schema"
+          err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" })
         );
       } finally {
         setLoading(false);

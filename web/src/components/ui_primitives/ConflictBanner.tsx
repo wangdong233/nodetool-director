@@ -20,6 +20,7 @@ import { Caption } from "./Caption";
 import { EditorButton } from "../editor_ui/EditorButton";
 import { SPACING } from "./spacing";
 import { BORDER_RADIUS, TYPOGRAPHY } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface ConflictBannerConflict {
   /** Stable id of the merge unit, used as the React key and in callbacks. */
@@ -70,10 +71,10 @@ function ConflictRow({
   const toggleLabel = hasDraft
     ? showDetail
       ? "Hide diff"
-      : "View diff"
+      : i18n.t("editor:ui.viewDiff", { defaultValue: "View diff" })
     : showDetail
       ? "Hide external value"
-      : "View external value";
+      : i18n.t("editor:ui.viewExternalValue", { defaultValue: "View external value" });
   return (
     <FlexColumn gap={0.25}>
       <FlexRow align="center" justify="space-between">
@@ -99,14 +100,14 @@ function ConflictRow({
         <FlexRow gap={SPACING.md} align="stretch">
           {hasDraft && (
             <FlexColumn gap={0.25} sx={{ flex: 1, minWidth: 0 }}>
-              <Caption>Your edit</Caption>
+              <Caption>{i18n.t("editor:ui.yourEdit", { defaultValue: "Your edit" })}</Caption>
               <Box component="pre" sx={valuePaneSx}>
                 {conflict.draftDetail}
               </Box>
             </FlexColumn>
           )}
           <FlexColumn gap={0.25} sx={{ flex: hasDraft ? 1 : undefined, minWidth: 0 }}>
-            {hasDraft && <Caption>External</Caption>}
+            {hasDraft && <Caption>{i18n.t("editor:ui.external", { defaultValue: "External" })}</Caption>}
             <Box component="pre" sx={valuePaneSx}>
               {conflict.detail}
             </Box>

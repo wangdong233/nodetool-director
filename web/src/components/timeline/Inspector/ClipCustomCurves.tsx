@@ -399,8 +399,8 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
         ))}
         <Caption color="muted">
           {sourceAnchored
-            ? "Columns are source time (ms, read-only), value, and easing: "
-            : "Columns are time (0..1 across the animation), value, and easing: "}
+            ? i18n.t("timeline:attrs.columnsAreSourceTimeMsReadonlyValueAndEasing", { defaultValue: "Columns are source time (ms, read-only), value, and easing: " })
+            : i18n.t("timeline:attrs.columnsAreTime01AcrossTheAnimationValueAndEasing", { defaultValue: "Columns are time (0..1 across the animation), value, and easing: " })}
           {EASING_HINT}
         </Caption>
         <Button

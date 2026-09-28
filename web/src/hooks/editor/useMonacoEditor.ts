@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 // reached this hook — including the inspector, which mounts with the workspace
 // — so the app downloaded the code editor on every boot.
 import type * as monaco from "monaco-editor";
+import { i18n } from "../../i18n";
 
 // Configure Monaco loader to use local files instead of CDN
 // This must be done before importing @monaco-editor/react
@@ -78,7 +79,7 @@ export function useMonacoEditor(): MonacoEditorResult {
       setMonacoEditor(() => mod.default as MonacoComponent);
       isLoadedRef.current = true;
     } catch {
-      setMonacoLoadError("Failed to load code editor");
+      setMonacoLoadError(i18n.t("editor:ui.failedToLoadCodeEditor", { defaultValue: "Failed to load code editor" }));
     } finally {
       isLoadingRef.current = false;
       setIsMonacoLoading(false);

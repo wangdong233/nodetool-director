@@ -49,12 +49,12 @@ import { useCostsDashboard } from "./useCostsDashboard";
 import { i18n } from "../../i18n";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
-const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
-  { value: "execution", label: "Execution" },
-  { value: "nodeType", label: "Node type" },
-  { value: "workflow", label: "Workflow" },
-  { value: "provider", label: "Provider" },
-  { value: "model", label: "Model" }
+const GROUP_OPTIONS: { value: GroupByKey; label: string; labelKey: string }[] = [
+  { value: "execution", label: "Execution", labelKey: "editor:ui.execution" },
+  { value: "nodeType", label: "Node type", labelKey: "editor:ui.nodeType" },
+  { value: "workflow", label: "Workflow", labelKey: "editor:ui.workflow" },
+  { value: "provider", label: "Provider", labelKey: "editor:ui.provider" },
+  { value: "model", label: "Model", labelKey: "editor:asset.info.model" }
 ];
 
 const segmentedSx = (theme: Theme): SxProps<Theme> => ({
@@ -530,7 +530,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           >
             {GROUP_OPTIONS.map((o) => (
               <ToggleOption key={o.value} value={o.value}>
-                {o.label}
+                {i18n.t(o.labelKey, { defaultValue: o.label })}
               </ToggleOption>
             ))}
           </ToggleGroup>

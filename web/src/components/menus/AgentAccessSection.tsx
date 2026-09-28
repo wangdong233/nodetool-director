@@ -40,10 +40,10 @@ type OauthGrant = agentAccess.OauthGrantSummary;
 /** Lifetimes the UI offers. "Never" is the default: a token in a config file
  * that silently stops working months later is a bad afternoon. */
 const EXPIRY_OPTIONS = [
-  { value: "never", label: "No expiry" },
-  { value: "30", label: "30 days" },
-  { value: "90", label: "90 days" },
-  { value: "365", label: "1 year" }
+  { value: "never", label: "No expiry", labelKey: "editor:ui.noExpiry" },
+  { value: "30", label: "30 days", labelKey: "editor:ui.30Days" },
+  { value: "90", label: "90 days", labelKey: "editor:ui.90Days" },
+  { value: "365", label: "1 year", labelKey: "editor:ui.1Year" }
 ] as const;
 
 /**
@@ -128,7 +128,7 @@ const AgentAccessSection = () => {
       trpcClient.agentAccess.revokeToken.mutate({ id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-tokens"] });
-      addNotification({ type: "info", alert: true, content: "Token revoked" });
+      addNotification({ type: "info", alert: true, content: i18n.t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
     }
   });
 
@@ -235,7 +235,7 @@ const AgentAccessSection = () => {
         <SelectField
           label={i18n.t("editor:ui.expires", { defaultValue: "Expires" })}
           value={expiry}
-          options={EXPIRY_OPTIONS}
+          options={EXPIRY_OPTIONS.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
           size="small"
           onChange={setExpiry}
         />
@@ -261,7 +261,7 @@ const AgentAccessSection = () => {
             <CopyButton value={freshToken} tooltip={i18n.t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
           </FlexRow>
 
-          <Caption>Claude Code — run this</Caption>
+          <Caption>{i18n.t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.cli}
@@ -269,7 +269,7 @@ const AgentAccessSection = () => {
             <CopyButton value={snippets.cli} tooltip={i18n.t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
           </FlexRow>
 
-          <Caption>Or paste into an MCP client config file</Caption>
+          <Caption>{i18n.t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
           <FlexRow align="flex-start" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.json}
@@ -300,7 +300,7 @@ const AgentAccessSection = () => {
                     {formatStamp(token.last_used_at)} ·{" "}
                     {token.expires_at
                       ? `Expires ${formatStamp(token.expires_at)}`
-                      : "No expiry"}
+                      : i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
                   </Text>
                 </FlexColumn>
                 <NavButton

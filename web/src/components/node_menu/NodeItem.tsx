@@ -199,7 +199,7 @@ const NodeItem = memo(function NodeItem({
       addNotification({
         type: "info",
         content: wasAdded
-          ? "Node added to favorites"
+          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" })
           : "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });

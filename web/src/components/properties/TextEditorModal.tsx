@@ -1277,13 +1277,13 @@ const TextEditorModal = ({
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={focusMode ? "Exit focus mode" : "Focus mode (hide panels)"}
+                title={focusMode ? i18n.t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusModeHidePanels", { defaultValue: "Focus mode (hide panels)" })}
               >
                 <button
                   type="button"
                   className={`button ${focusMode ? "active" : ""}`}
                   onClick={() => setFocusMode((v) => !v)}
-                  aria-label={focusMode ? "Exit focus mode" : "Focus mode"}
+                  aria-label={focusMode ? i18n.t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusMode", { defaultValue: "Focus mode" })}
                 >
                   {focusMode ? <OpenInFullIcon /> : <CloseFullscreenIcon />}
                 </button>

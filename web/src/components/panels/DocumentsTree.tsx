@@ -287,7 +287,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   const errorContext = useMemo<BugReportContext>(
     () => ({
       source: "panel-crash",
-      summary: "Project documents failed to load",
+      summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
       errorText: error?.message,
       stackTrace: error?.stack
     }),
@@ -408,11 +408,11 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? "No matching documents" : "No documents yet"}
+            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : i18n.t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
             description={
               query.trim()
                 ? "Try a different search term."
-                : "Documents created in this project will appear here."
+                : i18n.t("editor:ui.documentsCreatedInThisProjectWillAppearHere", { defaultValue: "Documents created in this project will appear here." })
             }
           />
         </FlexColumn>

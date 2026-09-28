@@ -79,7 +79,7 @@ export const useFileHandlers = () => {
               defaultValue: "Unsupported file type: "
             }) + (file.type || file.name)
         });
-        return { success: false, error: "Unsupported file type" };
+        return { success: false, error: i18n.t("editor:ui.unsupportedFileType2", { defaultValue: "Unsupported file type" }) };
       }
 
       const nodeMetadata = getMetadata(nodeType);
@@ -108,7 +108,7 @@ export const useFileHandlers = () => {
         try {
           return addLocalFileNode(file, localPath, position);
         } catch (error) {
-          const err = createErrorMessage(error, "Failed to add file as node");
+          const err = createErrorMessage(error, i18n.t("editor:ui.failedToAddFileAsNode", { defaultValue: "Failed to add file as node" }));
           return {
             success: false,
             error: err instanceof AppError ? err.detail : err.message
@@ -145,7 +145,7 @@ export const useFileHandlers = () => {
                 defaultValue: "Unsupported file type: "
               }) + file.type
           });
-          return { success: false, error: "Unsupported file type" };
+          return { success: false, error: i18n.t("editor:ui.unsupportedFileType2", { defaultValue: "Unsupported file type" }) };
         }
 
         const nodeMetadata = getMetadata(nodeType);
@@ -163,7 +163,7 @@ export const useFileHandlers = () => {
 
         return { success: true };
       } catch (error) {
-        const err = createErrorMessage(error, "Failed to upload file as asset");
+        const err = createErrorMessage(error, i18n.t("editor:ui.failedToUploadFileAsAsset", { defaultValue: "Failed to upload file as asset" }));
         return {
           success: false,
           error: err instanceof AppError ? err.detail : err.message
@@ -214,7 +214,7 @@ export const useFileHandlers = () => {
               name: file.name,
               error
             });
-            const err = createErrorMessage(error, "Failed to create workflow");
+            const err = createErrorMessage(error, i18n.t("editor:ui.failedToCreateWorkflow", { defaultValue: "Failed to create workflow" }));
             return {
               success: false,
               error: err instanceof AppError ? err.detail : err.message
@@ -232,7 +232,7 @@ export const useFileHandlers = () => {
           name: file.name,
           error
         });
-        const err = createErrorMessage(error, "Failed to process JSON file");
+        const err = createErrorMessage(error, i18n.t("editor:ui.failedToProcessJSONFile", { defaultValue: "Failed to process JSON file" }));
         return {
           success: false,
           error: err instanceof AppError ? err.detail : err.message
@@ -253,7 +253,7 @@ export const useFileHandlers = () => {
           return await handleGenericFile(file, position);
         }
       } catch (error) {
-        const err = createErrorMessage(error, "Failed to process CSV file");
+        const err = createErrorMessage(error, i18n.t("editor:ui.failedToProcessCSVFile", { defaultValue: "Failed to process CSV file" }));
         return {
           success: false,
           error: err instanceof AppError ? err.detail : err.message

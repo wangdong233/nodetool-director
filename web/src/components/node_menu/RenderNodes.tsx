@@ -287,12 +287,12 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
               Browse Nodes
             </Text>
             <ul>
-              <li>Click on the namespaces to the left</li>
+              <li>{i18n.t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
             </ul>
 
             <Text size="normal" weight={600}>{i18n.t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
             <ul>
-              <li>Type in the search bar to search for nodes.</li>
+              <li>{i18n.t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
             </ul>
 
             <Text size="normal" weight={600}>{i18n.t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>

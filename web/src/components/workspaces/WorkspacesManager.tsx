@@ -303,7 +303,7 @@ const WorkspacesManager: React.FC = () => {
               <Text size="small">
                 {canManage
                   ? "Add a workspace to allow agents to access local folders"
-                  : "This deployment manages your workspace for you"}
+                  : i18n.t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })}
               </Text>
             </Box>
           )}

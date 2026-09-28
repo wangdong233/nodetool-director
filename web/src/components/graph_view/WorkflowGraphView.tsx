@@ -47,6 +47,7 @@ import CustomEdge from "../node_editor/CustomEdge";
 import ControlEdge from "../node_editor/ControlEdge";
 import type { Workflow } from "../../stores/ApiTypes";
 import { usePlaceholderNodeTypes } from "../node_types/usePlaceholderNodeTypes";
+import { i18n } from "../../i18n";
 
 const edgeTypes = { default: CustomEdge, control: ControlEdge };
 
@@ -152,7 +153,7 @@ function GraphInner() {
         } else if (workflowId && workflowId !== "json") {
           workflow = await fetchWorkflowById(workflowId);
         } else {
-          setError("No workflow ID or data provided");
+          setError(i18n.t("editor:ui.noWorkflowIDOrDataProvided", { defaultValue: "No workflow ID or data provided" }));
           return;
         }
 

@@ -78,7 +78,15 @@ const KIND_LABELS: Readonly<Record<string, string>> = {
   manual: "Manual"
 };
 
-const kindLabel = (kind: string): string => KIND_LABELS[kind] ?? kind;
+const KIND_LABEL_KEYS: Readonly<Record<string, string>> = {
+  webhook: "editor:ui.webhook",
+  schedule: "editor:ui.schedule",
+  file_watch: "editor:ui.fileWatch",
+  manual: "timeline:history.manual"
+};
+
+const kindLabel = (kind: string): string =>
+  KIND_LABELS[kind] ? i18n.t(KIND_LABEL_KEYS[kind] ?? kind, { defaultValue: KIND_LABELS[kind] }) : kind;
 
 const formatLastFired = (iso: string | null): string => {
   if (!iso) return "Never";
@@ -98,6 +106,15 @@ const SWITCH_DESCRIPTIONS = {
   active: "Listens for events and starts a run per event."
 } satisfies Readonly<Record<ActivationState, string>>;
 
+const SWITCH_DESCRIPTION_KEYS: Record<ActivationState, string> = {
+  loading: "editor:ui.checkingTriggerStatus",
+  error: "editor:ui.couldNotLoadTriggerStatusCheckYourConnectionAndRetry",
+  unregistered: "editor:ui.saveTheWorkflowFirstActivationNeedsASavedTriggerRegistration",
+  inactive: "editor:ui.listensForEventsAndStartsARunPerEvent",
+  mixed: "editor:ui.someTriggersAreArmedTurnThisOnToArmTheRest",
+  active: "editor:ui.listensForEventsAndStartsARunPerEvent"
+};
+
 const STATUS_LABELS = {
   loading: "Loading",
   error: "Unavailable",
@@ -106,6 +123,15 @@ const STATUS_LABELS = {
   mixed: "Partly active",
   active: "Active"
 } satisfies Readonly<Record<ActivationState, string>>;
+
+const STATUS_LABEL_KEYS: Record<ActivationState, string> = {
+  loading: "editor:ui.loading",
+  error: "editor:ui.unavailable",
+  unregistered: "editor:ui.notRegistered",
+  inactive: "editor:ui.inactive",
+  mixed: "editor:ui.partlyActive",
+  active: "editor:ui.active"
+};
 
 const STATUS_KINDS = {
   loading: "pending",
@@ -317,14 +343,14 @@ const TriggerActivationButton: React.FC = () => {
             <Text size="big">{i18n.t("ui2:attrs.triggers", { defaultValue: "Triggers" })}</Text>
             <StatusIndicator
               status={STATUS_KINDS[state]}
-              label={STATUS_LABELS[state]}
+              label={i18n.t(STATUS_LABEL_KEYS[state], { defaultValue: STATUS_LABELS[state] })}
               size="small"
             />
           </FlexRow>
 
           <LabeledSwitch
             label={i18n.t("editor:ui.workflowActive", { defaultValue: "Workflow active" })}
-            description={SWITCH_DESCRIPTIONS[state]}
+            description={i18n.t(SWITCH_DESCRIPTION_KEYS[state], { defaultValue: SWITCH_DESCRIPTIONS[state] })}
             checked={state === "active"}
             onChange={(next) => {
               void handleToggle(next);
@@ -387,7 +413,7 @@ const TriggerActivationButton: React.FC = () => {
                     onChange={(next) => reg && handleRowToggle(reg.id, next)}
                     id={`trigger-enabled-${nodeId}`}
                   />
-                  {isLoading && <Caption>Checking status…</Caption>}
+                  {isLoading && <Caption>{i18n.t("editor:ui.checkingStatus", { defaultValue: "Checking status…" })}</Caption>}
                   {isError && (
                     <Caption color="error">
                       Could not load trigger status.

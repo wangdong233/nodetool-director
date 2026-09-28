@@ -244,7 +244,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       await directGen.start(clipId);
       setPrompt("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate");
+      setError(err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToGenerate", { defaultValue: "Failed to generate" }));
     } finally {
       setBusy(false);
     }
@@ -311,9 +311,9 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       onKeyDown={handleKeyDown}
       placeholder={
         mode === "music"
-          ? "Describe the music you want to generate…"
+          ? i18n.t("timeline:attrs.describeTheMusicYouWantToGenerate", { defaultValue: "Describe the music you want to generate…" })
           : mode === "audio"
-            ? "Enter text to speak…"
+            ? i18n.t("timeline:attrs.enterTextToSpeak", { defaultValue: "Enter text to speak…" })
             : compact
               ? "Generate a video…"
               : "Generate a video at the playhead…"
@@ -389,7 +389,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       aria-label={`Generate ${mode}`}
       // Native tooltip still fires on a disabled button: say why it is off.
       title={
-        canSubmit ? undefined : "Type a prompt and pick a model to generate"
+        canSubmit ? undefined : i18n.t("timeline:attrs.typeAPromptAndPickAModelToGenerate", { defaultValue: "Type a prompt and pick a model to generate" })
       }
       sx={{
         flexShrink: 0,

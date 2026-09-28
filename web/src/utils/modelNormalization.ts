@@ -54,7 +54,7 @@ export function executionForDisplay(
     }) as ModelExecutionAvailability["label"],
     reason:
       execution.state === "download_required"
-        ? "Download the model files before using it locally."
+        ? i18n.t("editor:ui.downloadTheModelFilesBeforeUsingItLocally", { defaultValue: "Download the model files before using it locally." })
         : execution.runtime_name
           ? `Runs through ${execution.runtime_name} on this device.`
           : "Runs on this device."

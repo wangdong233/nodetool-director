@@ -109,7 +109,7 @@ const GoogleWorkspaceCard = () => {
             <FlexRow align="center" gap={SPACING.sm}>
               <Text>Google Workspace</Text>
               <Chip
-                label={isConnected ? "Connected" : "Not connected"}
+                label={isConnected ? "Connected" : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" })}
                 color={isConnected ? "success" : "default"}
                 size="small"
               />
@@ -119,7 +119,7 @@ const GoogleWorkspaceCard = () => {
                 ? `Drive, Gmail, Docs, Sheets and Calendar${
                     account ? ` as ${account}` : ""
                   }`
-                : "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar."}
+                : i18n.t("editor:ui.connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar", { defaultValue: "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar." })}
             </Caption>
           </FlexColumn>
         </FlexRow>

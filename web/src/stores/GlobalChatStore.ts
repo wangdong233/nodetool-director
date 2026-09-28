@@ -60,6 +60,7 @@ import {
 } from "../core/chat/threadRuntime";
 import { isObjectLike, isString } from "../utils/typePredicates";
 import { creationProjectId } from "./WorkspaceTabsStore";
+import { i18n } from "../i18n";
 
 // Include additional runtime statuses used during message streaming
 type ChatStatus =
@@ -767,7 +768,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
           } catch (error) {
             console.error("Failed to establish WebSocket connection:", error);
             set({
-              error: "Failed to connect to chat service",
+              error: i18n.t("editor:ui.failedToConnectToChatService", { defaultValue: "Failed to connect to chat service" }),
               status: "failed"
             });
             throw error;
@@ -1208,7 +1209,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
           // ChatSendOutcome).
           console.error("Failed to send message:", error);
           const errorMessage =
-            error instanceof Error ? error.message : "Failed to send message";
+            error instanceof Error ? error.message : i18n.t("editor:ui.failedToSendMessage", { defaultValue: "Failed to send message" });
           set((state) => ({
             error: errorMessage,
             ...threadRuntimeUpdate(state, tid, {
@@ -1269,7 +1270,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
             error:
               error instanceof Error
                 ? error.message
-                : "Failed to load chat threads"
+                : i18n.t("editor:ui.failedToLoadChatThreads", { defaultValue: "Failed to load chat threads" })
           });
         } finally {
           set({ isLoadingThreads: false });
@@ -1612,7 +1613,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
               error:
                 error instanceof Error
                   ? error.message
-                  : "Failed to load messages"
+                  : i18n.t("editor:ui.failedToLoadMessages", { defaultValue: "Failed to load messages" })
             });
             return get().messageCache[threadId] || [];
           }
@@ -1809,9 +1810,9 @@ const useGlobalChatStore = create<GlobalChatState>()(
         } catch (error) {
           console.error("Failed to send stop signal:", error);
           set((state) => ({
-            error: "Failed to stop generation",
+            error: i18n.t("editor:ui.failedToStopGeneration", { defaultValue: "Failed to stop generation" }),
             ...threadRuntimeUpdate(state, tid, {
-              error: "Failed to stop generation",
+              error: i18n.t("editor:ui.failedToStopGeneration", { defaultValue: "Failed to stop generation" }),
               status: "error",
               statusMessage: null,
               sendMessageTimeoutId: null

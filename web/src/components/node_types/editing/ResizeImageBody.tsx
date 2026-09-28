@@ -337,7 +337,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                   id={`resize-image-width-${id}`}
                   nodeId={id}
                   name="width"
-                  description={widthProperty.description ?? "Target width"}
+                  description={widthProperty.description ?? i18n.t("editor:ui.targetWidth", { defaultValue: "Target width" })}
                   value={widthValue}
                   min={mode === "dimensions" ? 0 : (widthProperty.min ?? 1)}
                   max={widthProperty.max ?? 8192}
@@ -356,8 +356,8 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                 isActive={chainLocked}
                 icon={<LinkOffIcon fontSize="small" />}
                 activeIcon={<LinkIcon fontSize="small" />}
-                tooltip={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-                ariaLabel={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
+                tooltip={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
+                ariaLabel={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
                 onClick={() => setChainLocked((v) => !v)}
               />
             )}
@@ -367,7 +367,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                   id={`resize-image-height-${id}`}
                   nodeId={id}
                   name="height"
-                  description={heightProperty.description ?? "Target height"}
+                  description={heightProperty.description ?? i18n.t("editor:ui.targetHeight", { defaultValue: "Target height" })}
                   value={heightValue}
                   min={mode === "dimensions" ? 0 : (heightProperty.min ?? 1)}
                   max={heightProperty.max ?? 8192}

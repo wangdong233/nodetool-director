@@ -253,7 +253,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
     setError(null);
     const url = resolveMediaUrl(getUrlRef.current);
     if (!url) {
-      setError("This audio asset has no URL to load.");
+      setError(i18n.t("editor:ui.thisAudioAssetHasNoURLToLoad", { defaultValue: "This audio asset has no URL to load." }));
       setLoading(false);
       return;
     }
@@ -485,7 +485,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
             ? `Selection ${formatTime(selection.start)} – ${formatTime(
                 selection.end
               )} (${formatTime(selection.end - selection.start)})`
-            : "Drag to select · Click to seek"}
+            : i18n.t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
         </Caption>
         <PlaybackClock playhead={playhead} duration={duration} />
       </FlexRow>

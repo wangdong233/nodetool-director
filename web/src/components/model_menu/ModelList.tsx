@@ -289,11 +289,11 @@ function ModelList<TModel extends ModelSelectorModel>({
       const isActive = index === activeIndex;
       const tooltipTitle =
         execution.state !== "ready"
-          ? (execution.reason ?? "This model is not ready to use.")
+          ? (execution.reason ?? i18n.t("editor:ui.thisModelIsNotReadyToUse", { defaultValue: "This model is not ready to use." }))
           : !providerEnabled && !hasKey
-            ? "Enable provider and add API key in Settings to use this model"
+            ? i18n.t("editor:ui.enableProviderAndAddAPIKeyInSettingsToUseThisModel", { defaultValue: "Enable provider and add API key in Settings to use this model" })
             : !providerEnabled
-              ? "Enable provider in the left sidebar to use this model"
+              ? i18n.t("editor:ui.enableProviderInTheLeftSidebarToUseThisModel", { defaultValue: "Enable provider in the left sidebar to use this model" })
               : !hasKey
                 ? "Add API key in Settings to use this model"
                 : "";

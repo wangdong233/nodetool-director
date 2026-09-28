@@ -469,7 +469,7 @@ const Model3DEditor = ({
         setLoadError(
           error instanceof Error
             ? error.message
-            : "Failed to load 3D model. Only .glb/.gltf are supported."
+            : i18n.t("editor:ui.failedToLoad3DModelOnlyGlbgltfAreSupported", { defaultValue: "Failed to load 3D model. Only .glb/.gltf are supported." })
         );
       }
     );
@@ -617,7 +617,7 @@ const Model3DEditor = ({
     } catch (error) {
       console.error("[Model3DEditor] Failed to export GLB:", error);
       setLoadError(
-        error instanceof Error ? error.message : "Failed to export model"
+        error instanceof Error ? error.message : i18n.t("editor:ui.failedToExportModel", { defaultValue: "Failed to export model" })
       );
     } finally {
       savingRef.current = false;

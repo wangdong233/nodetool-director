@@ -1,6 +1,7 @@
 import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect, useRef, useState, useCallback } from "react";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { Asset } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 export type VideoRecorderProps = {
   onChange: (asset: Asset) => void;
@@ -60,7 +61,7 @@ export function useVideoRecorder({
 
   const fetchDevices = useCallback(() => {
     if (!navigator.mediaDevices) {
-      setError("No media devices available");
+      setError(i18n.t("editor:ui.noMediaDevicesAvailable", { defaultValue: "No media devices available" }));
       return;
     }
     console.info("Fetching video/audio devices");
@@ -80,7 +81,7 @@ export function useVideoRecorder({
       })
       .then((devices) => {
         if (!devices) {
-          setError("No devices found");
+          setError(i18n.t("editor:ui.noDevicesFound", { defaultValue: "No devices found" }));
           return;
         }
         const videoInputs = devices.filter(
@@ -171,7 +172,7 @@ export function useVideoRecorder({
 
         if (videoInputs.length === 0) {
           setTimeout(() => {
-            setError("No video input devices found");
+            setError(i18n.t("editor:ui.noVideoInputDevicesFound", { defaultValue: "No video input devices found" }));
           }, 2000);
         }
       })
@@ -224,7 +225,7 @@ export function useVideoRecorder({
       const errorMessage =
         previewError instanceof Error
           ? previewError.message
-          : "Failed to start preview";
+          : i18n.t("editor:ui.failedToStartPreview", { defaultValue: "Failed to start preview" });
       setError(errorMessage);
       setIsLoading(false);
     }
@@ -238,7 +239,7 @@ export function useVideoRecorder({
     }
 
     if (!streamRef.current) {
-      setError("No video stream available. Start preview first.");
+      setError(i18n.t("editor:ui.noVideoStreamAvailableStartPreviewFirst", { defaultValue: "No video stream available. Start preview first." }));
       return;
     }
 
@@ -287,7 +288,7 @@ export function useVideoRecorder({
       const errorMessage =
         recordError instanceof Error
           ? recordError.message
-          : "Failed to start recording";
+          : i18n.t("editor:ui.failedToStartRecording", { defaultValue: "Failed to start recording" });
       setError(errorMessage);
       setIsLoading(false);
     }

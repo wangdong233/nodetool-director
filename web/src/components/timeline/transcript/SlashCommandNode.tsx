@@ -38,6 +38,8 @@ interface SlashCommand {
   /** Full `ns:key` for the label; resolved at render. */
   labelKey?: string;
   hint: string;
+  /** Full `ns:key` for the hint; resolved at render. */
+  hintKey?: string;
   run: (doc: TimelineStoreApi, playback: TimelinePlaybackStoreApi) => void;
 }
 
@@ -47,6 +49,7 @@ const COMMANDS: SlashCommand[] = [
     label: "New scene",
     labelKey: "timeline:attrs.newScene",
     hint: "Marker + cut every clip at the playhead",
+    hintKey: "timeline:attrs.marker+CutEveryClipAtThePlayhead",
     run: (doc, playback) => {
       const { currentTimeMs } = playback.getState();
       const { addScene, markers } = doc.getState();
@@ -225,7 +228,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
               onMouseEnter={() => setActive(i)}
             >
               <span className="cmd-label">{cmdLabel(c)}</span>
-              <span className="cmd-hint">{c.hint}</span>
+              <span className="cmd-hint">{i18n.t(c.hintKey ?? "", { defaultValue: c.hint })}</span>
             </li>
           ))
         )}

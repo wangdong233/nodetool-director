@@ -26,6 +26,7 @@ import { OAuthManualCompletionDialog } from "../oauth/OAuthManualCompletionDialo
 import useSecretsStore from "../../stores/SecretsStore";
 import type { SecretValidation } from "../../stores/SecretsStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { PROVIDER_TAGLINE_KEYS, PROVIDER_COST_HINT_KEYS } from "./providerOnboardingCatalog";
 import type { OnboardingProvider } from "./providerOnboardingCatalog";
 import { i18n } from "../../i18n";
 
@@ -180,7 +181,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
           : null
       );
     } catch {
-      setSaveError("Couldn't save the key. Check your connection and try again.");
+      setSaveError(i18n.t("editor:ui.couldntSaveTheKeyCheckYourConnectionAndTryAgain", { defaultValue: "Couldn't save the key. Check your connection and try again." }));
     } finally {
       setSaving(false);
     }
@@ -195,9 +196,9 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
     setSaving(true);
     setSaveError(null);
     try {
-      await persistKey(trimmed, "rejected", "The provider rejected this key.");
+      await persistKey(trimmed, "rejected", i18n.t("editor:ui.theProviderRejectedThisKey", { defaultValue: "The provider rejected this key." }));
     } catch {
-      setSaveError("Couldn't save the key. Check your connection and try again.");
+      setSaveError(i18n.t("editor:ui.couldntSaveTheKeyCheckYourConnectionAndTryAgain", { defaultValue: "Couldn't save the key. Check your connection and try again." }));
     } finally {
       setSaving(false);
     }
@@ -214,9 +215,9 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
       setStoredCredentialStatus(statusFromValidation(result));
       setStatusDetail(
         result.status === "invalid"
-          ? "The provider rejected the stored key."
+          ? i18n.t("editor:ui.theProviderRejectedTheStoredKey", { defaultValue: "The provider rejected the stored key." })
           : result.status === "unverifiable"
-            ? "The stored key could not be verified."
+            ? i18n.t("editor:ui.theStoredKeyCouldNotBeVerified", { defaultValue: "The stored key could not be verified." })
             : null
       );
     } catch {
@@ -288,7 +289,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
               </Text>
             </FlexRow>
             <Caption size="small" sx={{ lineHeight: 1.5 }}>
-              {provider.tagline}
+              {i18n.t(PROVIDER_TAGLINE_KEYS[provider.id] ?? "", { defaultValue: provider.tagline })}
             </Caption>
           </FlexColumn>
 
@@ -437,7 +438,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 Get a {provider.name} key
               </EditorButton>
               <Caption size="smaller" >
-                {provider.costHint}
+                {i18n.t(PROVIDER_COST_HINT_KEYS[provider.id] ?? "", { defaultValue: provider.costHint })}
               </Caption>
             </FlexRow>
             {rejected && (

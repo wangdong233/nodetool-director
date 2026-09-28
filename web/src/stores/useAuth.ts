@@ -13,6 +13,7 @@ import {
   markWorkspaceGrantPending,
   syncGoogleProviderToken
 } from "../lib/googleSession";
+import { i18n } from "../i18n";
 
 /**
  * `access_type=offline` is what yields a refresh token, and Google only
@@ -320,7 +321,7 @@ export const useAuth = create<LoginStore>((set, get) => ({
       // will also fire and update the state.
       set({ session: null, user: null, state: "logged_out", error: null });
     } catch (error: unknown) {
-      const errorMessage = createErrorMessage(error, "Failed to sign out");
+      const errorMessage = createErrorMessage(error, i18n.t("editor:ui.failedToSignOut", { defaultValue: "Failed to sign out" }));
       console.info("Auth: Sign out error", errorMessage);
       // If sign-out fails, remain in an error state but clear session/user
       set({

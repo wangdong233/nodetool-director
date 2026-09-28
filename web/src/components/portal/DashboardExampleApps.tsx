@@ -250,7 +250,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : "Unknown error" })
+        content: i18n.t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
       });
     }
   });

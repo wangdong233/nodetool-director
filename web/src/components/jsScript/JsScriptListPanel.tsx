@@ -161,11 +161,11 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title={filterValue ? "No matching JS scripts" : "No JS scripts yet"}
+            title={filterValue ? i18n.t("editor:ui.noMatchingJSScripts", { defaultValue: "No matching JS scripts" }) : i18n.t("editor:ui.noJSScriptsYet", { defaultValue: "No JS scripts yet" })}
             description={
               filterValue
                 ? "Try a different search term."
-                : "Create a new JS script with the + button above."
+                : i18n.t("editor:ui.createANewJSScriptWithThe+ButtonAbove", { defaultValue: "Create a new JS script with the + button above." })
             }
           />
         </FlexColumn>

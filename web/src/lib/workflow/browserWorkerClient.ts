@@ -17,6 +17,7 @@ import type {
   BrowserGraphJobResult
 } from "./browserRunnerCore";
 import type { SandboxModuleRecord } from "./sandboxModuleCatalog";
+import { i18n } from "../../i18n";
 
 interface ReadyMessage {
   type: "ready";
@@ -202,7 +203,7 @@ export function runBrowserGraphJobInWorker(
         } else {
           const error =
             data.error ??
-            (data.status === "cancelled" ? "Cancelled" : "Workflow failed");
+            (data.status === "cancelled" ? "Cancelled" : i18n.t("editor:ui.workflowFailed", { defaultValue: "Workflow failed" }));
           console[data.status === "cancelled" ? "warn" : "error"](
             `[browserRunner] ${data.status} in ${elapsed()} (job ${jobId}): ${error}`
           );

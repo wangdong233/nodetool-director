@@ -14,6 +14,7 @@ import {
   clearRunSignatures
 } from "../../stores/runSignatures";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export type InlineGraph = WorkflowGraph;
 
@@ -212,7 +213,7 @@ export async function runInlineGraphJob(
       finish({
         success: false,
         outputs,
-        error: errMsg && errMsg.length > 0 ? errMsg : "Job failed"
+        error: errMsg && errMsg.length > 0 ? errMsg : i18n.t("editor:ui.jobFailed", { defaultValue: "Job failed" })
       });
       return;
     }
@@ -266,7 +267,7 @@ export async function runInlineGraphJob(
     finish({
       success: false,
       outputs,
-      error: err instanceof Error ? err.message : "Failed to start job"
+      error: err instanceof Error ? err.message : i18n.t("editor:ui.failedToStartJob", { defaultValue: "Failed to start job" })
     });
     return await resultPromise;
   }

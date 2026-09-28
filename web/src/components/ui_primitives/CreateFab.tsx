@@ -22,6 +22,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
+import { i18n } from "../../i18n";
 
 export interface CreateFabProps extends Omit<FabProps, "children"> {
   /**
@@ -88,7 +89,7 @@ export const CreateFab = memo(
     ) => {
       const theme = useTheme();
 
-      const tooltipText = tooltip ?? label ?? "Create new";
+      const tooltipText = tooltip ?? label ?? i18n.t("editor:ui.createNew", { defaultValue: "Create new" });
 
       const getColorStyles = () => {
         switch (fabColor) {

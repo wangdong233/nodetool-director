@@ -1,5 +1,6 @@
 import { useNotificationStore } from "../stores/NotificationStore";
 import { isFunction } from "./typePredicates";
+import { i18n } from "../i18n";
 
 type ModelDirectory = "huggingface" | "ollama";
 
@@ -147,12 +148,12 @@ export async function openInExplorer(path: string): Promise<void> {
   try {
     debugLog("Calling explorer.openModelPath", { path });
     const result = await explorer.openModelPath(path);
-    handleExplorerResult(result, "Unable to open the requested path.");
+    handleExplorerResult(result, i18n.t("editor:ui.unableToOpenTheRequestedPath", { defaultValue: "Unable to open the requested path." }));
     debugLog("openInExplorer completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open path in explorer:", error);
     debugLog("openInExplorer threw", error);
-    notify("error", "Could not open folder in file explorer.");
+    notify("error", i18n.t("editor:ui.couldNotOpenFolderInFileExplorer", { defaultValue: "Could not open folder in file explorer." }));
   }
 }
 
@@ -169,12 +170,12 @@ export async function openHuggingfacePath(): Promise<void> {
   try {
     debugLog("Calling explorer.openModelDirectory for huggingface");
     const result = await explorer.openModelDirectory("huggingface");
-    handleExplorerResult(result, "Could not open HuggingFace folder.");
+    handleExplorerResult(result, i18n.t("editor:ui.couldNotOpenHuggingFaceFolder", { defaultValue: "Could not open HuggingFace folder." }));
     debugLog("openHuggingfacePath completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open HuggingFace path:", error);
     debugLog("openHuggingfacePath threw", error);
-    notify("error", "Could not open HuggingFace folder.");
+    notify("error", i18n.t("editor:ui.couldNotOpenHuggingFaceFolder", { defaultValue: "Could not open HuggingFace folder." }));
   }
 }
 
@@ -191,12 +192,12 @@ export async function openOllamaPath(): Promise<void> {
   try {
     debugLog("Calling explorer.openModelDirectory for ollama");
     const result = await explorer.openModelDirectory("ollama");
-    handleExplorerResult(result, "Could not open Ollama folder.");
+    handleExplorerResult(result, i18n.t("editor:ui.couldNotOpenOllamaFolder", { defaultValue: "Could not open Ollama folder." }));
     debugLog("openOllamaPath completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open Ollama path:", error);
     debugLog("openOllamaPath threw", error);
-    notify("error", "Could not open Ollama folder.");
+    notify("error", i18n.t("editor:ui.couldNotOpenOllamaFolder", { defaultValue: "Could not open Ollama folder." }));
   }
 }
 
@@ -214,12 +215,12 @@ export async function openInstallationPath(): Promise<void> {
   try {
     debugLog("Calling explorer.openSystemDirectory for installation");
     const result = await explorer.openSystemDirectory("installation");
-    handleExplorerResult(result, "Could not open Nodetool installation folder.");
+    handleExplorerResult(result, i18n.t("editor:ui.couldNotOpenNodetoolInstallationFolder", { defaultValue: "Could not open Nodetool installation folder." }));
     debugLog("openInstallationPath completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open installation path:", error);
     debugLog("openInstallationPath threw", error);
-    notify("error", "Could not open Nodetool installation folder.");
+    notify("error", i18n.t("editor:ui.couldNotOpenNodetoolInstallationFolder", { defaultValue: "Could not open Nodetool installation folder." }));
   }
 }
 
@@ -237,12 +238,12 @@ export async function openLogsPath(): Promise<void> {
   try {
     debugLog("Calling explorer.openSystemDirectory for logs");
     const result = await explorer.openSystemDirectory("logs");
-    handleExplorerResult(result, "Could not open Nodetool logs folder.");
+    handleExplorerResult(result, i18n.t("editor:ui.couldNotOpenNodetoolLogsFolder", { defaultValue: "Could not open Nodetool logs folder." }));
     debugLog("openLogsPath completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open logs path:", error);
     debugLog("openLogsPath threw", error);
-    notify("error", "Could not open Nodetool logs folder.");
+    notify("error", i18n.t("editor:ui.couldNotOpenNodetoolLogsFolder", { defaultValue: "Could not open Nodetool logs folder." }));
   }
 }
 
@@ -260,12 +261,12 @@ export async function openAssetsPath(): Promise<void> {
   try {
     debugLog("Calling explorer.openSystemDirectory for assets");
     const result = await explorer.openSystemDirectory("assets");
-    handleExplorerResult(result, "Could not open Nodetool assets folder.");
+    handleExplorerResult(result, i18n.t("editor:ui.couldNotOpenNodetoolAssetsFolder", { defaultValue: "Could not open Nodetool assets folder." }));
     debugLog("openAssetsPath completed");
   } catch (error) {
     console.error("[fileExplorer] Failed to open assets path:", error);
     debugLog("openAssetsPath threw", error);
-    notify("error", "Could not open Nodetool assets folder.");
+    notify("error", i18n.t("editor:ui.couldNotOpenNodetoolAssetsFolder", { defaultValue: "Could not open Nodetool assets folder." }));
   }
 }
 

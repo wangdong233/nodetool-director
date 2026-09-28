@@ -26,7 +26,8 @@ import {
   ONBOARDING_ENGINES,
   ONBOARDING_NODE_PACKS,
   type OnboardingEngine,
-  type OnboardingNodePack
+  type OnboardingNodePack,
+  ENGINE_TAGLINE_KEYS
 } from "./onboardingCatalog";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
@@ -56,7 +57,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
           {statusChip}
         </FlexRow>
         <Caption sx={{ color: theme.vars.palette.primary.main }}>
-          {engine.tagline}
+          {i18n.t(ENGINE_TAGLINE_KEYS[engine.id] ?? "", { defaultValue: engine.tagline })}
         </Caption>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5, flex: 1 }}>
           {engine.description}
@@ -205,8 +206,8 @@ const EngineGuide: React.FC = () => {
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? "Install the packs that add the nodes you want to use."
-                : "Node packs install from the desktop app's Package Manager."}
+                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." })
+                : i18n.t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
             </Caption>
           </FlexColumn>
           <EditorButton

@@ -889,12 +889,12 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
       <div className="node-history-overlay overlay-top-right">
         <div className="overlay-cluster">
           <ToolbarIconButton
-            title={hasTextToOpen ? "Open full text" : "Open in viewer"}
+            title={hasTextToOpen ? i18n.t("editor:ui.openFullText", { defaultValue: "Open full text" }) : i18n.t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
             size="small"
             onClick={handleOpenViewer}
             disabled={!canOpen}
             className="overlay-icon-btn"
-            aria-label={hasTextToOpen ? "Open full text" : "Open in viewer"}
+            aria-label={hasTextToOpen ? i18n.t("editor:ui.openFullText", { defaultValue: "Open full text" }) : i18n.t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
           >
             <OpenInFullIcon />
           </ToolbarIconButton>

@@ -42,9 +42,9 @@ type Version = RouterOutputs["applications"]["versions"][number];
 type BudgetPeriod = RouterOutputs["applications"]["setBudget"]["period"];
 
 const PERIOD_OPTIONS = [
-  { value: "day", label: "Per day" },
-  { value: "month", label: "Per month" },
-  { value: "total", label: "Lifetime" }
+  { value: "day", label: "Per day", labelKey: "editor:ui.perDay" },
+  { value: "month", label: "Per month", labelKey: "editor:ui.perMonth" },
+  { value: "total", label: "Lifetime", labelKey: "editor:ui.lifetime" }
 ] as const;
 
 const isBudgetPeriod = (value: string): value is BudgetPeriod =>
@@ -195,7 +195,7 @@ const BudgetSection = memo(function BudgetSection({
         label={i18n.t("editor:ui.period", { defaultValue: "Period" })}
         value={period}
         onChange={handlePeriodChange}
-        options={PERIOD_OPTIONS}
+        options={PERIOD_OPTIONS.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
         size="small"
       />
       <TextInput
@@ -292,7 +292,7 @@ const DeploySection = memo(function DeploySection({
             label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
             context={{
               source: "panel-crash",
-              summary: "Public link status failed to load",
+              summary: i18n.t("editor:ui.publicLinkStatusFailedToLoad", { defaultValue: "Public link status failed to load" }),
               errorText: error?.message,
               stackTrace: error instanceof Error ? error.stack : undefined
             }}
@@ -352,7 +352,7 @@ const DeploySection = memo(function DeploySection({
                 label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
-                  summary: "Public link creation failed",
+                  summary: i18n.t("editor:ui.publicLinkCreationFailed", { defaultValue: "Public link creation failed" }),
                   errorText: deploy.error.message,
                   stackTrace:
                     deploy.error instanceof Error ? deploy.error.stack : undefined
@@ -369,7 +369,7 @@ const DeploySection = memo(function DeploySection({
                 label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
-                  summary: "Public link withdrawal failed",
+                  summary: i18n.t("editor:ui.publicLinkWithdrawalFailed", { defaultValue: "Public link withdrawal failed" }),
                   errorText: undeploy.error.message,
                   stackTrace:
                     undeploy.error instanceof Error
@@ -498,7 +498,7 @@ const ApplicationGovernancePanel = ({
               ? `Serving version ${released.version} — ${capabilitySummary(
                   released
                 )}`
-              : "Nothing released yet."}
+              : i18n.t("editor:ui.nothingReleasedYet", { defaultValue: "Nothing released yet." })}
           </Caption>
         </FlexColumn>
         <Button

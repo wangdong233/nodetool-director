@@ -29,6 +29,7 @@ import {
 } from "./ScriptStore";
 import { syncLineClipToTimeline } from "./timelineSync";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /** Speech-to-text default for word-level take timing (best-effort). */
 interface AsrConfig {
@@ -253,7 +254,7 @@ export function readVoicingRun(setup: unknown): VoicingRun | null {
           ? [
               {
                 lineId: entry.lineId,
-                error: isString(entry.error) ? entry.error : "Voicing failed"
+                error: isString(entry.error) ? entry.error : i18n.t("editor:ui.voicingFailed", { defaultValue: "Voicing failed" })
               }
             ]
           : []

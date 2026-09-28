@@ -304,7 +304,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                 mt: 0.5
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? i18n.t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -316,7 +316,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                   wordBreak: "break-word"
                 }}
               >
-                {creditsData.detail ?? "Credits unavailable"}
+                {creditsData.detail ?? i18n.t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {falCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink

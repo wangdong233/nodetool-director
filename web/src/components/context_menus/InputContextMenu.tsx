@@ -1081,7 +1081,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <AutoAwesomeIcon />
               </span>
-              <Text size="small">Create value with AI…</Text>
+              <Text size="small">{i18n.t("editor:ui.createValueWithAI", { defaultValue: "Create value with AI…" })}</Text>
             </Box>
           )}
         </Box>

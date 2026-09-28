@@ -743,12 +743,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               </Tooltip>
             )}
 
-            <Tooltip title={track.locked ? "Unlock track" : "Lock track"}>
+            <Tooltip title={track.locked ? i18n.t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : "Lock track"}>
               <button
                 type="button"
                 css={track.locked ? iconButtonOffCss : iconButtonOnCss}
                 onClick={() => setTrackLocked(track.id, !track.locked)}
-                aria-label={track.locked ? "Unlock track" : "Lock track"}
+                aria-label={track.locked ? i18n.t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : "Lock track"}
                 aria-pressed={track.locked}
               >
                 {track.locked ? <LockOutlinedIcon /> : <LockOpenOutlinedIcon />}
@@ -829,7 +829,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               <Tooltip
                 title={
                   effectsCount === 0
-                    ? "Effects chain (empty)"
+                    ? i18n.t("timeline:attrs.effectsChainEmpty", { defaultValue: "Effects chain (empty)" })
                     : `Effects chain (${effectsCount})`
                 }
               >

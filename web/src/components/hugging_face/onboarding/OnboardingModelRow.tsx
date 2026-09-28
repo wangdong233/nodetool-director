@@ -23,7 +23,8 @@ import {
   FIT_LABELS,
   getEngine,
   type FitLevel,
-  type OnboardingModel
+  type OnboardingModel,
+  FIT_LABEL_KEYS
 } from "./onboardingCatalog";
 
 interface OnboardingModelRowProps {
@@ -100,7 +101,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
 
         <FlexColumn gap={SPACING.xs} align="flex-end" sx={{ flexShrink: 0 }}>
           <Chip
-            label={FIT_LABELS[fit]}
+            label={i18n.t(FIT_LABEL_KEYS[fit], { defaultValue: FIT_LABELS[fit] })}
             compact
             color={FIT_COLOR[fit]}
             variant={fit === "unknown" ? "outlined" : "filled"}

@@ -58,7 +58,7 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
       }}
     >
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, borderBottom: "1px solid", borderColor: "divider" }}>
-        <Text size="small">{data?.project.id === projectId ? data.project.name : "Current project"}</Text>
+        <Text size="small">{data?.project.id === projectId ? data.project.name : i18n.t("editor:ui.currentProject", { defaultValue: "Current project" })}</Text>
         <Caption color="muted">Documents · {documents.length}</Caption>
       </FlexColumn>
       <ScrollArea sx={{ flex: 1, minHeight: 0, p: SPACING.sm }}>

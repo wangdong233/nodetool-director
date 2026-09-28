@@ -273,7 +273,7 @@ const QuickAddNodeDialog: React.FC<QuickAddNodeDialogProps> = ({
           <Command.List className="command-list">
             <Command.Empty className="empty-state">
               <Text size="small">
-                {searchTerm ? "No matching nodes found" : "Type to search for nodes..."}
+                {searchTerm ? i18n.t("editor:ui.noMatchingNodesFound", { defaultValue: "No matching nodes found" }) : i18n.t("editor:ui.typeToSearchForNodes", { defaultValue: "Type to search for nodes..." })}
               </Text>
             </Command.Empty>
 

@@ -210,7 +210,7 @@ const ConnectedAccountsSettings = () => {
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>Waiting for Telegram to confirm the link…</Caption>
+              <Caption>{i18n.t("editor:ui.waitingForTelegramToConfirmTheLink", { defaultValue: "Waiting for Telegram to confirm the link…" })}</Caption>
             </FlexRow>
             <FlexRow>
               <EditorButton variant="text" onClick={handleCancel}>

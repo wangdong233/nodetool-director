@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAssetStore } from "../stores/AssetStore";
 import { useNotificationStore } from "../stores/NotificationStore";
+import { i18n } from "../i18n";
 
 export const useAssetDeletion = () => {
   const addNotification = useNotificationStore(
@@ -33,7 +34,7 @@ export const useAssetDeletion = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: "Error deleting assets.",
+        content: i18n.t("editor:ui.errorDeletingAssets", { defaultValue: "Error deleting assets." }),
         dismissable: false
       });
     }

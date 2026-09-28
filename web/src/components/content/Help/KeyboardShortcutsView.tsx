@@ -360,7 +360,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
         sx={{ mb: 2 }}
       >
         <ToggleOption value="mac">macOS</ToggleOption>
-        <ToggleOption value="win">Windows/Linux</ToggleOption>
+        <ToggleOption value="win">{i18n.t("editor:ui.windowsLinux", { defaultValue: "Windows/Linux" })}</ToggleOption>
       </ToggleGroup>
 
       <ToggleGroup

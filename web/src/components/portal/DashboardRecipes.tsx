@@ -307,7 +307,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
         disabled={installing}
         onClick={() => onInstall(app.slug)}
       >
-        {installing ? "Installing…" : "Install app"}
+        {installing ? "Installing…" : i18n.t("editor:ui.installApp", { defaultValue: "Install app" })}
       </button>
     </div>
   );

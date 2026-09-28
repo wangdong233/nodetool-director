@@ -734,7 +734,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                         label={i18n.t("common:action.reportBug")}
                         context={{
                           source: "app-crash",
-                          summary: "Error loading application metadata",
+                          summary: i18n.t("editor:ui.errorLoadingApplicationMetadata", { defaultValue: "Error loading application metadata" }),
                           errorText: metadataError
                         }}
                       />

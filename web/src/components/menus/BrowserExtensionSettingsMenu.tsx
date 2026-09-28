@@ -108,8 +108,8 @@ const BrowserExtensionSettingsMenu = () => {
               isLoading
                 ? "Checking…"
                 : connected
-                  ? "Extension connected"
-                  : "Not connected"
+                  ? i18n.t("editor:ui.extensionConnected", { defaultValue: "Extension connected" })
+                  : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" })
             }
             color={connected ? "success" : "default"}
           />

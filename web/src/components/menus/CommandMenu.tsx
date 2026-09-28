@@ -250,7 +250,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         });
       } catch (error) {
         addNotification({
-          content: `Failed to save workflow: ${error instanceof Error ? error.message : "Unknown error"}`,
+          content: `Failed to save workflow: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`,
           type: "error",
           alert: true
         });
@@ -321,7 +321,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
       addNotification({
         type: "error",
         alert: true,
-        content: `Failed to export bundle: ${error instanceof Error ? error.message : "Unknown error"}`
+        content: `Failed to export bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
       });
     }
   }, [currentWorkflow, addNotification]);
@@ -359,7 +359,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "error",
           alert: true,
-          content: `Failed to import bundle: ${error instanceof Error ? error.message : "Unknown error"}`
+          content: `Failed to import bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
         });
       }
       if (bundleInputRef.current) bundleInputRef.current.value = "";
@@ -572,7 +572,7 @@ const ViewCommands = memo(function ViewCommands() {
         onSelect={() => executeAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid ? "Turn Off Snap to Grid" : "Snap to Grid"}
+        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" }) : "Snap to Grid"}
       </Command.Item>
       <Command.Item
         onSelect={() => executeAndClose(() => handleFitView({ padding: 0.5 }))}
@@ -702,7 +702,7 @@ const AppCommands = memo(function AppCommands() {
       addNotification({
         type: "error",
         alert: true,
-        content: `Failed to export app bundle: ${error instanceof Error ? error.message : "Unknown error"}`
+        content: `Failed to export app bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
       });
     }
   }, [applicationId, applicationName, addNotification]);
@@ -730,7 +730,7 @@ const AppCommands = memo(function AppCommands() {
         addNotification({
           type: "error",
           alert: true,
-          content: `Failed to import app bundle: ${error instanceof Error ? error.message : "Unknown error"}`
+          content: `Failed to import app bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
         });
       }
       if (appBundleInputRef.current) appBundleInputRef.current.value = "";

@@ -27,7 +27,7 @@ const ChainEditorPage: React.FC = () => {
         if (workflowId) {
           const data = await trpcClient.workflows.get.query({ id: workflowId });
           if (!data) {
-            setError("Workflow not found");
+            setError(i18n.t("editor:ui.workflowNotFound", { defaultValue: "Workflow not found" }));
             return;
           }
           loadWorkflow(data as Workflow);
@@ -35,7 +35,7 @@ const ChainEditorPage: React.FC = () => {
           newWorkflow();
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load workflow");
+        setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadWorkflow", { defaultValue: "Failed to load workflow" }));
       } finally {
         setLoading(false);
       }

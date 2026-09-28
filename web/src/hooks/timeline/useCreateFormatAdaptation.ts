@@ -12,6 +12,7 @@ import {
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { trpcClient } from "../../trpc/client";
 import { invalidateTimelineGetQuery } from "../../stores/storyboard/timelineSync";
+import { i18n } from "../../i18n";
 
 export type AdaptFormatStrategy = "center" | "smart" | "track";
 
@@ -142,7 +143,7 @@ export function useCreateFormatAdaptation(
         const message =
           cause instanceof Error
             ? cause.message
-            : "Could not create adaptation.";
+            : i18n.t("timeline:attrs.couldNotCreateAdaptation", { defaultValue: "Could not create adaptation." });
         setError(message);
         return [];
       } finally {

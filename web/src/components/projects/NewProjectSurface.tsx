@@ -871,7 +871,7 @@ const NewProjectSurface = ({
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New video";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newVideo", { defaultValue: "New video" });
       setStarting(true);
       try {
         const references = await uploadComposerReferences(droppedFiles);
@@ -1002,7 +1002,7 @@ const NewProjectSurface = ({
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New image";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newImage", { defaultValue: "New image" });
       setStarting(true);
       try {
         const references = await uploadComposerReferences(droppedFiles);
@@ -1114,7 +1114,7 @@ const NewProjectSurface = ({
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New game";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newGame", { defaultValue: "New game" });
       setStarting(true);
       try {
         const created = await createWorkflow({

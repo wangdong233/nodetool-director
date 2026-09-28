@@ -140,7 +140,7 @@ const JsScriptRunConsole = ({
           disabled={running || readOnly || tests.length === 0}
           onClick={onTest}
         >
-          {tests.length === 0 ? "No tests" : `Test (${tests.length})`}
+          {tests.length === 0 ? i18n.t("editor:ui.noTests", { defaultValue: "No tests" }) : `Test (${tests.length})`}
         </EditorButton>
         {running && (
           <Text size="small" color="secondary">

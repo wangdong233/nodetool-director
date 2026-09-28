@@ -123,12 +123,12 @@ const EditorStatusBar = ({
     <Box className="editor-status-bar" css={styles(theme)}>
       <div className="stats">
         <div className="stat-item">
-          <span className="label">Words:</span>
+          <span className="label">{i18n.t("editor:ui.words", { defaultValue: "Words:" })}</span>
           <span className="value">{wordCount.toLocaleString()}</span>
         </div>
         <span className="stat-dot" />
         <div className="stat-item">
-          <span className="label">Chars:</span>
+          <span className="label">{i18n.t("editor:ui.chars", { defaultValue: "Chars:" })}</span>
           <span className="value">{charCount.toLocaleString()}</span>
         </div>
         <span className="stat-dot" />
@@ -140,7 +140,7 @@ const EditorStatusBar = ({
           <>
             <span className="stat-dot" />
             <div className="stat-item">
-              <span className="label">Vars:</span>
+              <span className="label">{i18n.t("editor:ui.vars", { defaultValue: "Vars:" })}</span>
               <span className="value">{varCount.toLocaleString()}</span>
             </div>
           </>

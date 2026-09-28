@@ -3,6 +3,7 @@ import { StateIconButton, BORDER_RADIUS } from "../ui_primitives";
 import ColorizeIcon from "@mui/icons-material/Colorize";
 import type { Theme } from "@mui/material/styles";
 import { isEyeDropperSupported } from "./EyedropperButton.helpers";
+import { i18n } from "../../i18n";
 
 interface EyedropperButtonProps {
   onColorPicked: (color: string) => void;
@@ -43,7 +44,7 @@ const EyedropperButton: React.FC<EyedropperButtonProps> = ({
   return (
     <StateIconButton
       icon={<ColorizeIcon fontSize="small" />}
-      tooltip={isPicking ? "Picking color..." : "Pick color from screen"}
+      tooltip={isPicking ? i18n.t("editor:ui.pickingColor", { defaultValue: "Picking color..." }) : i18n.t("editor:ui.pickColorFromScreen", { defaultValue: "Pick color from screen" })}
       onClick={handleClick}
       disabled={disabled || isPicking}
       isLoading={isPicking}

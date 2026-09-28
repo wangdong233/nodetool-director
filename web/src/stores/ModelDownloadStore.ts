@@ -5,6 +5,7 @@ import { trpc } from "../lib/trpc";
 import { useHfCacheStatusStore } from "./HfCacheStatusStore";
 import type { ModelScope } from "./ModelManagerStore";
 import { isNumber, isObjectLike, isString } from "../utils/typePredicates";
+import { i18n } from "../i18n";
 
 const DOWNLOAD_STATUSES = [
   "pending",
@@ -186,7 +187,7 @@ export const useModelDownloadStore = create<ModelDownloadStore>((set, get) => ({
           download.status === "start"
         ) {
           get().updateDownload(id, {
-            message: "Connection lost. Download may still be running on server."
+            message: i18n.t("editor:ui.connectionLostDownloadMayStillBeRunningOnServer", { defaultValue: "Connection lost. Download may still be running on server." })
           });
         }
       });
@@ -519,7 +520,7 @@ export const useModelDownloadStore = create<ModelDownloadStore>((set, get) => ({
           message:
             error instanceof Error
               ? error.message
-              : "Failed to connect to download service"
+              : i18n.t("editor:ui.failedToConnectToDownloadService", { defaultValue: "Failed to connect to download service" })
         });
       }
     }
@@ -548,7 +549,7 @@ export const useModelDownloadStore = create<ModelDownloadStore>((set, get) => ({
       // active status in hasActiveDownloads, so the spinner stops).
       get().updateDownload(id, {
         status: "cancelled",
-        message: "Could not reach server to cancel; download may still be running on server."
+        message: i18n.t("editor:ui.couldNotReachServerToCancelDownloadMayStillBeRunningOnServer", { defaultValue: "Could not reach server to cancel; download may still be running on server." })
       });
       return false;
     }

@@ -18,6 +18,7 @@
 import { EventEmitter } from "../EventEmitter";
 import { pack, unpack } from "msgpackr";
 import { isFunction, isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export type ConnectionState =
   | "disconnected"
@@ -231,7 +232,7 @@ export class WebSocketManager extends EventEmitter<WebSocketManagerEvents> {
     }
 
     if (this.ws) {
-      this.ws.close(1000, "Client disconnect");
+      this.ws.close(1000, i18n.t("editor:ui.clientDisconnect", { defaultValue: "Client disconnect" }));
     } else {
       this.transitionTo("disconnected");
     }

@@ -109,7 +109,7 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
           <Caption color="muted" aria-live="polite">
             {active?.region
               ? `Selected at ${active.sourceMs} source ms: ${Math.round(active.region.x * 100)}%, ${Math.round(active.region.y * 100)}%, ${Math.round(active.region.width * 100)}% wide, ${Math.round(active.region.height * 100)}% high.`
-              : "No subject selected."}
+              : i18n.t("timeline:attrs.noSubjectSelected", { defaultValue: "No subject selected." })}
           </Caption>
           {active && (
             <EditorButton onClick={() => select(null)}>{i18n.t("timeline:attrs.stopSelecting", { defaultValue: "Stop selecting" })}</EditorButton>
@@ -128,7 +128,7 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
             onClick={() => void start()}
             data-testid="track-object"
           >
-            {status === "pending" ? "Tracking subject…" : "Track subject"}
+            {status === "pending" ? i18n.t("timeline:attrs.trackingSubject", { defaultValue: "Tracking subject…" }) : i18n.t("timeline:attrs.trackSubject", { defaultValue: "Track subject" })}
           </EditorButton>
           {error && (
             <Caption color="error" role="alert">
@@ -137,13 +137,13 @@ const TrackingSection: React.FC<ClipTrackingProps> = ({ clip }) => {
           )}
           <Caption color="muted" aria-live="polite">
             {isLoadingModel
-              ? "Checking tracking providers and models."
+              ? i18n.t("timeline:attrs.checkingTrackingProvidersAndModels", { defaultValue: "Checking tracking providers and models." })
               : modelError
-                ? "Tracking models could not be loaded. Try again when connected."
+                ? i18n.t("timeline:attrs.trackingModelsCouldNotBeLoadedTryAgainWhenConnected", { defaultValue: "Tracking models could not be loaded. Try again when connected." })
                 : !model
-                  ? "No subject-tracking provider or model is available."
+                  ? i18n.t("timeline:attrs.noSubjecttrackingProviderOrModelIsAvailable", { defaultValue: "No subject-tracking provider or model is available." })
                   : status === "pending"
-                    ? "Tracking is running and will update this timeline when it finishes."
+                    ? i18n.t("timeline:attrs.trackingIsRunningAndWillUpdateThisTimelineWhenItFinishes", { defaultValue: "Tracking is running and will update this timeline when it finishes." })
                     : active?.region
                       ? `Using ${model.name}. Ready to track the selected subject.`
                       : `Using ${model.name}. Select a subject rectangle to begin.`}

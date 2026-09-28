@@ -311,7 +311,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                 mt: 0.5,
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? i18n.t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -323,7 +323,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   wordBreak: "break-word",
                 }}
               >
-                {creditsData.detail ?? "Credits unavailable"}
+                {creditsData.detail ?? i18n.t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {kieCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink

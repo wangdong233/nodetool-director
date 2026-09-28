@@ -473,7 +473,7 @@ const VoiceAllButton = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {lineCount === 0
-              ? "Every line is already voiced."
+              ? i18n.t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
               : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
                   priced ? ` · about ${formatUsd(cost)}` : ""
                 }${
@@ -513,7 +513,7 @@ const VoiceAllButton = ({
         startIcon={<GraphicEqIcon fontSize="small" />}
         onClick={onClick}
       >
-        {priced ? `Voice all · ~${formatUsd(cost)}` : "Voice all"}
+        {priced ? `Voice all · ~${formatUsd(cost)}` : i18n.t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
       </EditorButton>
     </Tooltip>
   );
@@ -907,7 +907,7 @@ const ScriptDocumentPane = ({
           (voicingAll ? (
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner size={18} />
-              <Text size="smaller">Voicing…</Text>
+              <Text size="smaller">{i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" })}</Text>
             </FlexRow>
           ) : (
             <VoiceAllButton
@@ -928,8 +928,8 @@ const ScriptDocumentPane = ({
           <Tooltip
             title={
               hasVoicedLine
-                ? "Play current takes in order"
-                : "Voice at least one line to play"
+                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
+                : i18n.t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
             }
           >
             <span>
@@ -964,9 +964,9 @@ const ScriptDocumentPane = ({
             title={
               hasVoicedLine
                 ? storyboardId
-                  ? "Cut the linked storyboard's shots and these takes into one timeline"
+                  ? i18n.t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
                   : undefined
-                : "Voice at least one line to send it to a timeline"
+                : i18n.t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
             }
           >
             {assembling
@@ -974,7 +974,7 @@ const ScriptDocumentPane = ({
               : storyboardId
                 ? "Assemble video"
                 : timelineId
-                  ? "Update timeline"
+                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
                   : "Send to timeline"}
           </EditorButton>
         )}
@@ -1006,7 +1006,7 @@ const ScriptDocumentPane = ({
                 tooltip={
                   hasVoicedLine
                     ? undefined
-                    : "Voice at least one line to export subtitles"
+                    : i18n.t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
                 }
                 onClick={() => {
                   setMoreAnchor(null);

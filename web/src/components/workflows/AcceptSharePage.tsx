@@ -57,7 +57,7 @@ const AcceptSharePage = () => {
       ) : (
         <>
           <LoadingSpinner />
-          <Text size="small">Opening shared workflow…</Text>
+          <Text size="small">{i18n.t("editor:ui.openingSharedWorkflow", { defaultValue: "Opening shared workflow…" })}</Text>
         </>
       )}
     </FlexColumn>

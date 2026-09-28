@@ -313,7 +313,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                   <Text size="small" color="secondary">
                     {status
                       ? installStateText(status)
-                      : "Installed outside the current install ledger, so its mode is unknown here."}
+                      : i18n.t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
                   </Text>
                 </FlexColumn>
                 {needsTrust && (
@@ -324,7 +324,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? "Verifying…" : "Trust and rebuild"}
+                    {busy === pack.name ? "Verifying…" : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -368,7 +368,7 @@ const InstallPanel = memo(function InstallPanel({
       if (!api) {
         setStatus({
           kind: "err",
-          message: "Node pack install is not available in this build."
+          message: i18n.t("editor:ui.nodePackInstallIsNotAvailableInThisBuild", { defaultValue: "Node pack install is not available in this build." })
         });
         return;
       }
@@ -423,7 +423,7 @@ const InstallPanel = memo(function InstallPanel({
           placeholder={i18n.t("tools:menus.packageSpecPlaceholder", {
             defaultValue: "@scope/package or package@version"
           })}
-          slotProps={{ htmlInput: { "aria-label": "Package to install" } }}
+          slotProps={{ htmlInput: { "aria-label": i18n.t("editor:ui.packageToInstall", { defaultValue: "Package to install" }) } }}
           fullWidth
           disabled={status.kind === "installing"}
         />

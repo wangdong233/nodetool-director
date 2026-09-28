@@ -346,7 +346,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           </Caption>
 
           {sections.length === 0 ? (
-            <Caption>Nothing was captured to attach to this report.</Caption>
+            <Caption>{i18n.t("editor:ui.nothingWasCapturedToAttachToThisReport", { defaultValue: "Nothing was captured to attach to this report." })}</Caption>
           ) : (
             sections.map((section) => (
               <FlexColumn

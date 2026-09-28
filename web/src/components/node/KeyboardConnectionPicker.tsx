@@ -319,7 +319,7 @@ export const KeyboardConnectionPicker = ({
                   <Text>{option.nodeTitle}</Text>
                   <Caption color="muted">{option.handleTitle}</Caption>
                   <Caption color="muted">
-                    {option.kind === "existing" ? "Existing node" : "Create node"}
+                    {option.kind === "existing" ? i18n.t("editor:ui.existingNode", { defaultValue: "Existing node" }) : i18n.t("editor:ui.createNode", { defaultValue: "Create node" })}
                   </Caption>
                 </FlexRow>
               </EditorButton>

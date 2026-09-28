@@ -25,6 +25,7 @@ import {
   workspaceFileDownloadPath,
   workspaceFileName
 } from "./workspaceFileRef";
+import { i18n } from "../../i18n";
 
 interface WorkspaceFileSurfaceProps {
   /** `${workspaceId}::${path}` — see workspaceFileRef.ts. */
@@ -46,7 +47,7 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
       <Text size="normal" weight={600}>
         {name}
       </Text>
-      <Caption>No preview available for this file type.</Caption>
+      <Caption>{i18n.t("editor:ui.noPreviewAvailableForThisFileType", { defaultValue: "No preview available for this file type." })}</Caption>
       <Button variant="outlined" size="small" onClick={handleDownload}>
         Download
       </Button>

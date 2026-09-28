@@ -19,7 +19,7 @@ export const EmailRenderer: React.FC<{ value: Email }> = ({ value }) => {
     <div css={outputStyles(theme)}>
       <div className="email-header">
         <p>
-          <strong>From:</strong> {value.sender}
+          <strong>{i18n.t("editor:ui.from2", { defaultValue: "From:" })}</strong> {value.sender}
         </p>
         <p>
           <strong>To:</strong> {value.to}

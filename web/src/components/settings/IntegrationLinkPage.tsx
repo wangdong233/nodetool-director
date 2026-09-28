@@ -24,6 +24,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 type LinkProvider = "telegram" | "discord";
 
@@ -78,7 +79,7 @@ const IntegrationLinkPage = () => {
           {describe.isLoading && !expired && (
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>Checking this link…</Caption>
+              <Caption>{i18n.t("editor:ui.checkingThisLink", { defaultValue: "Checking this link…" })}</Caption>
             </FlexRow>
           )}
 

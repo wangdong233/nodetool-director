@@ -68,7 +68,7 @@ const MobileRailLauncher: React.FC = () => {
       <ToolbarIconButton
         className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
         onClick={toggle}
-        ariaLabel={isVisible ? "Close panel" : "Open left panel"}
+        ariaLabel={isVisible ? i18n.t("editor:ui.closePanel", { defaultValue: "Close panel" }) : i18n.t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
         aria-expanded={isVisible}
         tabIndex={-1}
         icon={<MenuIcon />}

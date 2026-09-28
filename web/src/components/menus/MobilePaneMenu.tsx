@@ -195,7 +195,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Paste" 
-                secondary={!isClipboardValid ? "No valid nodes in clipboard" : "Paste copied nodes"}
+                secondary={!isClipboardValid ? i18n.t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : i18n.t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
               />
             </ListItemButton>
           </ListItem>

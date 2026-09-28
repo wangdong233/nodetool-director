@@ -706,10 +706,10 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       onKeyDown={handlePromptKeyDown}
                       placeholder={
                         directGenKind === "video"
-                          ? "Describe a video and press Enter…"
+                          ? i18n.t("timeline:attrs.describeAVideoAndPressEnter", { defaultValue: "Describe a video and press Enter…" })
                           : directGenKind === "audio"
-                            ? "Type text to speak and press Enter…"
-                            : "Describe an image and press Enter…"
+                            ? i18n.t("timeline:attrs.typeTextToSpeakAndPressEnter", { defaultValue: "Type text to speak and press Enter…" })
+                            : i18n.t("timeline:attrs.describeAnImageAndPressEnter", { defaultValue: "Describe an image and press Enter…" })
                       }
                       multiline
                       minRows={2}

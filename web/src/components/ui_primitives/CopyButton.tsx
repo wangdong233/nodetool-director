@@ -162,7 +162,7 @@ export const CopyButton = memo(
       }, [value, disabled, writeClipboard, onCopySuccess, onCopyError]);
 
       const tooltipText =
-        state === "error" ? "Nothing to copy" : state === "copied" ? "Copied!" : tooltip;
+        state === "error" ? i18n.t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? "Copied!" : tooltip;
 
       const iconSize =
         buttonSize === "small"

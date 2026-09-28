@@ -204,7 +204,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
       } else if (content.image?.uri || content.image?.asset_id) {
         imageSource = resolvedImageUri;
       } else {
-        return <div>Error: No image source available</div>;
+        return <div>{i18n.t("editor:ui.errorNoImageSourceAvailable", { defaultValue: "Error: No image source available" })}</div>;
       }
 
       return (

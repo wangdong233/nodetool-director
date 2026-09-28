@@ -44,7 +44,7 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
 
   const handleLoad = useCallback(async (force = false) => {
     if (!modelInfo) {
-      setError("Node definition not found.");
+      setError(i18n.t("editor:ui.nodeDefinitionNotFound", { defaultValue: "Node definition not found." }));
       return;
     }
     setError(null);
@@ -116,7 +116,7 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
         })
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load schema");
+      setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" }));
     } finally {
       setLoading(false);
     }

@@ -75,7 +75,7 @@ async function installAll(
     } catch (err: unknown) {
       setRowState(rt.id, {
         status: "failed",
-        error: createErrorMessage(err, "Install failed").message,
+        error: createErrorMessage(err, i18n.t("editor:ui.installFailed", { defaultValue: "Install failed" })).message,
       });
       allInstalled = false;
     }
@@ -176,7 +176,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
       ? "Installing…"
       : failedCount > 0
         ? "Retry"
-        : "Install all";
+        : i18n.t("editor:ui.installAll2", { defaultValue: "Install all" });
 
   return (
     <Dialog

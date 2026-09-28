@@ -3,6 +3,7 @@ import { AssetUpdate, useAssetStore } from "../stores/AssetStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useAssetGridStoreApi } from "../stores/AssetGridStore";
 import { AssetList } from "../stores/ApiTypes";
+import { i18n } from "../i18n";
 
 export const useAssetUpdate = () => {
   const queryClient = useQueryClient();
@@ -59,7 +60,7 @@ export const useAssetUpdate = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: "Error updating asset.",
+        content: i18n.t("editor:ui.errorUpdatingAsset", { defaultValue: "Error updating asset." }),
         dismissable: false,
       });
     },

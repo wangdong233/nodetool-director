@@ -645,7 +645,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           {hasChildren && (
             <div style={POPOVER_ROW_STYLE}>
               <span style={menuTextStyle}>
-                {someChildrenBypassed ? "Enable all nodes" : "Disable all nodes"}
+                {someChildrenBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
               </span>
               <BypassGroupButton
                 isBypassed={someChildrenBypassed}
@@ -674,7 +674,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           <b>REMOVE NODES FROM GROUP</b>
         </div>
         <ul>
-          <li>Drag out while holding CTRL | ⌘ key</li>
+          <li>{i18n.t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>
           <li>{i18n.t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
         </ul>
       </div>

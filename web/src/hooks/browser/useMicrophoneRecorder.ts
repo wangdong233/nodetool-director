@@ -5,6 +5,7 @@ import {
   useRef,
   useState
 } from "react";
+import { i18n } from "../../i18n";
 
 export type MicrophoneRecorderStatus =
   | "idle"
@@ -58,7 +59,7 @@ function describeStartError(err: unknown): string {
   if (name === "NotFoundError" || name === "OverconstrainedError") {
     return "No microphone was found.";
   }
-  return err instanceof Error ? err.message : "Could not start recording.";
+  return err instanceof Error ? err.message : i18n.t("editor:ui.couldNotStartRecording", { defaultValue: "Could not start recording." });
 }
 
 /**

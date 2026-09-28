@@ -148,7 +148,7 @@ export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
           applyWorkflowSelection(workflow);
         } catch (err) {
           setError(
-            err instanceof Error ? err.message : "Failed to load workflow"
+            err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadWorkflow", { defaultValue: "Failed to load workflow" })
           );
         } finally {
           setLoading(false);

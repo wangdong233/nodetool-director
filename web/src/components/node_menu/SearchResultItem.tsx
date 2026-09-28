@@ -253,7 +253,7 @@ const SearchResultItem = memo(function SearchResultItem({
       addNotification({
         type: "info",
         content: next
-          ? "Node added to favorites"
+          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" })
           : "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
@@ -467,8 +467,8 @@ const SearchResultItem = memo(function SearchResultItem({
             onClick={handleToggleExpand}
             onKeyDown={handleExpandKeyDown}
             aria-expanded={isExpanded}
-            aria-label={isExpanded ? "Collapse details" : "Show details"}
-            title={isExpanded ? "Collapse details" : "Show details"}
+            aria-label={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
+            title={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
           >
             <ExpandMoreIcon />
           </div>
@@ -490,7 +490,7 @@ const SearchResultItem = memo(function SearchResultItem({
         <Box className="io-info">
           {node.properties.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">Input:</span>
+              <span className="io-label">{i18n.t("editor:ui.input", { defaultValue: "Input:" })}</span>
               <Box className="io-items">
                 {node.properties.slice(0, 6).map((prop) => (
                   <span
@@ -516,7 +516,7 @@ const SearchResultItem = memo(function SearchResultItem({
           )}
           {node.outputs.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">Output:</span>
+              <span className="io-label">{i18n.t("editor:ui.output", { defaultValue: "Output:" })}</span>
               <Box className="io-items">
                 {node.outputs.map((output) => (
                   <span

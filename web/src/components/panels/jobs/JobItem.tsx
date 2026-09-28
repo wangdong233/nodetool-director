@@ -332,7 +332,7 @@ const JobItem = ({ job }: { job: Job }) => {
     job.status === "scheduled" ||
     job.status === "starting"
   ) {
-    metaText = ["In queue", clockLabel(job.started_at)].filter(Boolean).join(
+    metaText = [i18n.t("editor:ui.inQueue", { defaultValue: "In queue" }), clockLabel(job.started_at)].filter(Boolean).join(
       " · "
     );
   } else if (job.status === "cancelled") {

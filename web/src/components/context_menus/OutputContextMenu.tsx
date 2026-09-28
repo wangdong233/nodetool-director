@@ -649,7 +649,7 @@ const OutputContextMenu: React.FC = () => {
                 sx={actionRowStyles}
               >
                 <span className="icon-bg"><AutoAwesomeIcon /></span>
-                <Text size="small">Transform this output…</Text>
+                <Text size="small">{i18n.t("editor:ui.transformThisOutput", { defaultValue: "Transform this output…" })}</Text>
               </Box>
             )}
           </Box>

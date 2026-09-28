@@ -360,7 +360,7 @@ const AssetActions = ({
           }}
           onChange={handleSizeFilter}
           displayEmpty
-          inputProps={{ "aria-label": "Filter by size" }}
+          inputProps={{ "aria-label": i18n.t("editor:ui.filterBySize", { defaultValue: "Filter by size" }) }}
           tabIndex={-1}
         >
           {SIZE_FILTERS.map((filter) => (

@@ -403,12 +403,12 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
                 title={i18n.t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
                 description={
                   filterValue && selectedTags.length > 0
-                    ? "Try adjusting your search term or tag filters."
+                    ? i18n.t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." })
                     : filterValue
                       ? "Try a different search term."
                       : selectedTags.length > 0
-                        ? "Try removing some tag filters."
-                        : "No workflows match the current filters."
+                        ? i18n.t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." })
+                        : i18n.t("editor:ui.noWorkflowsMatchTheCurrentFilters", { defaultValue: "No workflows match the current filters." })
                 }
               />
             ) : (

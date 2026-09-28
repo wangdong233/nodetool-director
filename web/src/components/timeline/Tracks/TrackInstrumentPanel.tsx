@@ -102,7 +102,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
             <InstrumentKeyboard start={instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />
           </div>}
-          {instrument.type === "subtractive" ? <Caption color="muted">Choose a WT-1, BL-1, or DR-1 preset to edit this track’s instrument.</Caption> : (
+          {instrument.type === "subtractive" ? <Caption color="muted">{i18n.t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           <Caption color="muted">

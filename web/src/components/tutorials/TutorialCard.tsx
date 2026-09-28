@@ -186,7 +186,7 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
           )}
         </span>
         <h3 className="title">{i18n.t(`tools:tutorials.${tutorial.id}.title`, { defaultValue: tutorial.title })}</h3>
-        <p className="tagline">{tutorial.tagline}</p>
+        <p className="tagline">{i18n.t(`tools:tutorials.${tutorial.id}.tagline`, { defaultValue: tutorial.tagline })}</p>
       </span>
     </button>
   );

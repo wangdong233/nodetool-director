@@ -426,7 +426,7 @@ const ToolCallRow: React.FC<{
             {hasArgs && (
               <FlexColumn gap={SPACING.xs}>
                 <Caption className="tool-section-title">
-                  {isSubtask ? "Other arguments" : "Arguments"}
+                  {isSubtask ? i18n.t("editor:ui.otherArguments", { defaultValue: "Other arguments" }) : "Arguments"}
                 </Caption>
                 <PrettyJson value={displayArgs} />
               </FlexColumn>

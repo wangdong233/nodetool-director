@@ -1,6 +1,7 @@
 /**
  * Validation utilities for identifiers (property names, output names, etc.)
  */
+import { i18n } from "../i18n";
 
 /** Result of identifier validation */
 export interface ValidationResult {
@@ -17,14 +18,14 @@ export function validateIdentifierName(name: string): ValidationResult {
   if (trimmedName.length === 0) {
     return {
       isValid: false,
-      error: "Name cannot be empty"
+      error: i18n.t("editor:ui.nameCannotBeEmpty", { defaultValue: "Name cannot be empty" })
     };
   }
 
   if (/^[0-9]/.test(trimmedName)) {
     return {
       isValid: false,
-      error: "Name cannot start with a number. Use a letter or underscore instead."
+      error: i18n.t("editor:ui.nameCannotStartWithANumberUseALetterOrUnderscoreInstead", { defaultValue: "Name cannot start with a number. Use a letter or underscore instead." })
     };
   }
 

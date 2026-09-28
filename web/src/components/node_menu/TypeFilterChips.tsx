@@ -383,7 +383,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               onClick={handleApiProviderClick}
             />
           </Box>
-          <span className="quick-label">Output:</span>
+          <span className="quick-label">{i18n.t("editor:ui.output", { defaultValue: "Output:" })}</span>
           <Box className="type-chips filter-section">
             {TYPE_CATEGORIES.map((type) => (
               <Tooltip

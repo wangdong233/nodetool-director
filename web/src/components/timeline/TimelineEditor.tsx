@@ -294,7 +294,7 @@ const PreviewRegion: React.FC<{
                 disabled={createSequencePending}
                 aria-label={i18n.t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending ? "Creating…" : "New sequence"}
+                {createSequencePending ? "Creating…" : i18n.t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>
@@ -865,7 +865,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   const handleCreateNewSequence = useCallback(() => {
     createTimeline.reset();
     createTimeline.mutate(
-      { name: "Untitled sequence", projectId: projectIdForNewSequence },
+      { name: i18n.t("timeline:attrs.untitledSequence", { defaultValue: "Untitled sequence" }), projectId: projectIdForNewSequence },
       {
         onSuccess: (created) => {
           const next = new URLSearchParams(searchParams);
@@ -1102,7 +1102,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       <Dialog
         open={isExporting || hasExportError}
         onClose={isExporting ? undefined : clearExportError}
-        title={hasExportError ? "Export failed" : "Exporting video"}
+        title={hasExportError ? i18n.t("timeline:attrs.exportFailed", { defaultValue: "Export failed" }) : i18n.t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
         actions={exportDialogActions}
       >
         {exportError != null ? (

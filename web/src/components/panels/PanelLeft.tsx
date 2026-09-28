@@ -909,7 +909,7 @@ const MobilePanelLeft: React.FC<{
             className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
             css={mobileLauncherStyles(theme)}
             onClick={isVisible ? onClose : onOpen}
-            ariaLabel={isVisible ? "Close panel" : "Open left panel"}
+            ariaLabel={isVisible ? i18n.t("editor:ui.closePanel", { defaultValue: "Close panel" }) : i18n.t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
             aria-expanded={isVisible}
             tabIndex={-1}
             icon={<MenuIcon />}

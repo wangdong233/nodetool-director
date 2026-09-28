@@ -60,7 +60,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         sx={{ whiteSpace: "pre-wrap" }}
       >
         {error
-          ? "Error loading preview."
+          ? i18n.t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." })
           : isLoading
           ? "Loading preview..."
           : memoizedPreviewText}

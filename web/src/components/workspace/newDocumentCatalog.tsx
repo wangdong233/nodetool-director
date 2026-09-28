@@ -493,7 +493,7 @@ export const useNewDocumentCatalog = (
     {
       key: "text",
       label: "Text", labelKey: "text",
-      menuLabel: "New text file…",
+      menuLabel: i18n.t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
@@ -525,7 +525,7 @@ export const useNewDocumentCatalog = (
     {
       key: "storyboard",
       label: "Storyboard", labelKey: "storyboard",
-      menuLabel: "New storyboard…",
+      menuLabel: i18n.t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"

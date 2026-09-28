@@ -21,6 +21,7 @@ import { i18n } from "../../i18n";
 import {
   QUICK_ACTION_BUTTONS,
   CONSTANT_NODES,
+  QUICK_ACTION_LABEL_KEYS,
   type QuickActionDefinition
 } from "./QuickActionTiles.constants";
 
@@ -291,7 +292,6 @@ const QuickActionTiles = memo(function QuickActionTiles() {
         {QUICK_ACTION_BUTTONS.map((definition) => {
           const {
             key,
-            label,
             nodeType,
             icon,
             gradient,
@@ -300,6 +300,9 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             hoverShadow = shadow,
             iconColor
           } = definition;
+          const label = QUICK_ACTION_LABEL_KEYS[key]
+            ? i18n.t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            : definition.label;
           return (
             <Tooltip
               key={key}
@@ -360,7 +363,6 @@ const QuickActionTiles = memo(function QuickActionTiles() {
         {CONSTANT_NODES.map((definition) => {
           const {
             key,
-            label,
             nodeType,
             icon,
             gradient,
@@ -369,6 +371,9 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             hoverShadow = shadow,
             iconColor
           } = definition;
+          const label = QUICK_ACTION_LABEL_KEYS[key]
+            ? i18n.t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            : definition.label;
           return (
             <Tooltip
               key={key}

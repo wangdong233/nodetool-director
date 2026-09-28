@@ -14,6 +14,7 @@ import {
   FlexColumn,
   FlexRow, getSpacingPx, SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const consoleStyles = (theme: Theme) =>
   css({
@@ -94,7 +95,7 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
         <pre ref={preRef} css={consoleStyles(theme)}>
           {lines.length > 0
             ? lines.join("\n")
-            : "No output yet. Logs appear here during install."}
+            : i18n.t("editor:ui.noOutputYetLogsAppearHereDuringInstall", { defaultValue: "No output yet. Logs appear here during install." })}
         </pre>
       )}
     </FlexColumn>

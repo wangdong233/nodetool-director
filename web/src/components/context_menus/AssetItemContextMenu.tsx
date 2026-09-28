@@ -127,7 +127,7 @@ const AssetItemContextMenu = () => {
       const contentTypeLabel = asset.content_type.startsWith("image/")
         ? "Image"
         : asset.content_type.startsWith("video/")
-        ? "Video info"
+        ? i18n.t("editor:ui.videoInfo", { defaultValue: "Video info" })
         : asset.content_type.startsWith("audio/")
         ? "Audio info"
         : "Content";

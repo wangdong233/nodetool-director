@@ -3315,7 +3315,7 @@ export const createTimelineStore = (
               content:
                 error instanceof Error
                   ? `Isolate subject failed: ${error.message}`
-                  : "Isolate subject failed."
+                  : i18n.t("timeline:attrs.isolateSubjectFailed", { defaultValue: "Isolate subject failed." })
             });
             return null;
           }

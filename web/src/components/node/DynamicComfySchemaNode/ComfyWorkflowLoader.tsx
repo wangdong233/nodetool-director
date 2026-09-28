@@ -69,7 +69,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
           applySchema(resolveComfySchema(parseComfyWorkflowJson(value)));
         } catch (err) {
           setSchema(null);
-          setError(err instanceof Error ? err.message : "Failed to parse");
+          setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToParse", { defaultValue: "Failed to parse" }));
         }
       },
       [applySchema]
@@ -89,7 +89,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
           }
         } catch (err) {
           setSchema(null);
-          setError(err instanceof Error ? err.message : "Failed to load file");
+          setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadFile", { defaultValue: "Failed to load file" }));
         }
       },
       [applySchema]
@@ -240,7 +240,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 <Text size="small">{summary}</Text>
                 {schema.availableParams.length > 0 && (
                   <>
-                    <Caption>Expose additional parameters as inputs:</Caption>
+                    <Caption>{i18n.t("editor:ui.exposeAdditionalParametersAsInputs", { defaultValue: "Expose additional parameters as inputs:" })}</Caption>
                     <ScrollArea style={{ maxHeight: 180 }}>
                       <FlexColumn gap={0}>
                         {schema.availableParams.map((param) => (

@@ -436,15 +436,15 @@ const TutorialsPage: React.FC = () => {
                 <div className="tut-task-grid">
                   <div>
                     <h3>{i18n.t("ui2:attrs.startHere", { defaultValue: "Start here" })}</h3>
-                    <p>{active.startingState}</p>
+                    <p>{i18n.t(`tools:tutorials.${active.id}.startingState`, { defaultValue: active.startingState })}</p>
                   </div>
                   <div>
                     <h3>{i18n.t("ui2:attrs.yourTask", { defaultValue: "Your task" })}</h3>
-                    <p>{active.task}</p>
+                    <p>{i18n.t(`tools:tutorials.${active.id}.task`, { defaultValue: active.task })}</p>
                   </div>
                   <div>
                     <h3>{i18n.t("ui2:attrs.checkTheResult", { defaultValue: "Check the result" })}</h3>
-                    <p>{active.result}</p>
+                    <p>{i18n.t(`tools:tutorials.${active.id}.result`, { defaultValue: active.result })}</p>
                   </div>
                 </div>
               </section>
@@ -458,7 +458,7 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? "Opening task…" : "Open task"}
+                  {openingTask ? i18n.t("editor:ui.openingTask", { defaultValue: "Opening task…" }) : i18n.t("editor:ui.openTask", { defaultValue: "Open task" })}
                 </EditorButton>
               ) : (
                 <EditorButton variant="contained" onClick={() => navigate("/workspace")}>

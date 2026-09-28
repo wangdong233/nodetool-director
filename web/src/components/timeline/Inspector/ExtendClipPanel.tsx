@@ -24,11 +24,11 @@ import {
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { i18n } from "../../../i18n";
 
-const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string }> =
+const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string; labelKey: string }> =
   [
-    { value: "keep-cut", label: "Keep cut and retain handles" },
-    { value: "available-space", label: "Extend into available space" },
-    { value: "ripple", label: "Extend and ripple later clips" }
+    { value: "keep-cut", label: "Keep cut and retain handles", labelKey: "timeline:attrs.keepCutAndRetainHandles" },
+    { value: "available-space", label: "Extend into available space", labelKey: "timeline:attrs.extendIntoAvailableSpace" },
+    { value: "ripple", label: "Extend and ripple later clips", labelKey: "timeline:attrs.extendAndRippleLaterClips" }
   ];
 
 const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
@@ -149,8 +149,8 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 title={i18n.t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
                 description={
                   modelError
-                    ? "Could not load extension models. Try again when connected."
-                    : "Connect a provider with a video extension model to use Extend."
+                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
+                    : i18n.t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
                 }
               />
             ) : (
@@ -229,8 +229,8 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     }
                   >
                     {preview === take.assetId
-                      ? "Close preview"
-                      : "Preview extension"}
+                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
+                      : i18n.t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
                   </EditorButton>
                   {preview === take.assetId && (
                     <VideoPlayer
@@ -246,7 +246,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                         handleApplyCandidate(job.request, option.value)
                       }
                     >
-                      {option.label}
+                      {i18n.t(option.labelKey, { defaultValue: option.label })}
                     </EditorButton>
                   ))}
                 </>

@@ -27,6 +27,7 @@ import {
   rebaseTimelineSnapshots,
   timelineTypedDocumentOf
 } from "./timelineExternalMerge";
+import { i18n } from "../../i18n";
 
 interface DocumentSnapshot {
   sequenceId: string | null;
@@ -111,7 +112,7 @@ export function useTimelineAutosave(
   const flush = useCallback(async (): Promise<TimelineAutosaveFlushResult> => {
     const controller = controllerRef.current;
     if (!controller) {
-      return { ok: false, error: "Timeline autosave is not ready." };
+      return { ok: false, error: i18n.t("timeline:attrs.timelineAutosaveIsNotReady", { defaultValue: "Timeline autosave is not ready." }) };
     }
     return controller.flush();
   }, []);

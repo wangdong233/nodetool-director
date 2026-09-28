@@ -31,7 +31,7 @@ const EmptyCollectionState = () => {
           No collections found. Create one to get started.
         </Text>
 
-        <Text>With a collection, you can:</Text>
+        <Text>{i18n.t("editor:ui.withACollectionYouCan", { defaultValue: "With a collection, you can:" })}</Text>
         <ul
           style={{
             paddingLeft: getSpacingPx(SPACING.xl),
@@ -39,7 +39,7 @@ const EmptyCollectionState = () => {
             listStyle: "disc"
           }}
         >
-          <li>Index text and images as vector embeddings</li>
+          <li>{i18n.t("editor:ui.indexTextAndImagesAsVectorEmbeddings", { defaultValue: "Index text and images as vector embeddings" })}</li>
           <li>{i18n.t("ui2:attrs.performSemanticSimilaritySearches", { defaultValue: "Perform semantic similarity searches" })}</li>
           <li>{i18n.t("ui2:attrs.filterSearchResultsUsingMetadata", { defaultValue: "Filter search results using metadata" })}</li>
           <li>{i18n.t("ui2:attrs.batchProcessLargeSetsOfDocuments", { defaultValue: "Batch process large sets of documents" })}</li>

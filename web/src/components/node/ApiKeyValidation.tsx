@@ -18,7 +18,7 @@ const ApiKeyValidation: React.FC<ApiKeyValidationProps> = React.memo(
       openProviderOnboarding({
         highlightSecretKey:
           getRequiredSecretKeyForNamespace(nodeNamespace) ?? undefined,
-        reason: "This node needs a provider key. Connect it to run the node."
+        reason: i18n.t("editor:ui.thisNodeNeedsAProviderKeyConnectItToRunTheNode", { defaultValue: "This node needs a provider key. Connect it to run the node." })
       });
     }, [nodeNamespace]);
 

@@ -20,6 +20,7 @@ import {
   type PackageConsoleSlice,
   type PackageOpState
 } from "./packageStorePlumbing";
+import { i18n } from "../i18n";
 
 /** Display names for the runtimes the server reports (it sends bare ids). */
 const SERVER_RUNTIME_LABELS: Record<string, string> = {
@@ -80,8 +81,8 @@ const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
             id,
             name: SERVER_RUNTIME_LABELS[id] ?? id,
             description: installed
-              ? "Installed on the server."
-              : "Not installed on the server.",
+              ? i18n.t("editor:ui.installedOnTheServer", { defaultValue: "Installed on the server." })
+              : i18n.t("editor:ui.notInstalledOnTheServer", { defaultValue: "Not installed on the server." }),
             installed,
             installing: false
           })),
@@ -90,7 +91,7 @@ const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
       } catch (err: unknown) {
         set({
           isLoading: false,
-          error: createErrorMessage(err, "Failed to load runtime packages")
+          error: createErrorMessage(err, i18n.t("editor:ui.failedToLoadRuntimePackages", { defaultValue: "Failed to load runtime packages" }))
             .message
         });
       }
@@ -106,7 +107,7 @@ const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
     } catch (err: unknown) {
       set({
         isLoading: false,
-        error: createErrorMessage(err, "Failed to load runtime packages")
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToLoadRuntimePackages", { defaultValue: "Failed to load runtime packages" }))
           .message
       });
     }
@@ -146,7 +147,7 @@ const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
       if (next) set({ installLocation: next });
     } catch (err: unknown) {
       set({
-        error: createErrorMessage(err, "Failed to set install location").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToSetInstallLocation", { defaultValue: "Failed to set install location" })).message
       });
     }
   }

@@ -17,7 +17,7 @@ import {
 } from "../../ui_primitives";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { ModelStat } from "../ModelStat";
-import { TIER_LABELS, type HardwareProfile } from "./useHardwareProfile";
+import { TIER_LABELS, type HardwareProfile, TIER_LABEL_KEYS } from "./useHardwareProfile";
 import { i18n } from "../../../i18n";
 
 interface HardwareCardProps {
@@ -105,9 +105,9 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
             Your machine
           </Text>
           {profile.tier && (
-            <Tooltip title={TIER_LABELS[profile.tier]} delay={400}>
+            <Tooltip title={i18n.t(TIER_LABEL_KEYS[profile.tier], { defaultValue: TIER_LABELS[profile.tier] })} delay={400}>
               <Chip
-                label={tierName(TIER_LABELS[profile.tier])}
+                label={tierName(i18n.t(TIER_LABEL_KEYS[profile.tier], { defaultValue: TIER_LABELS[profile.tier] }))}
                 compact
                 variant="outlined"
                 sx={{ cursor: "help" }}
@@ -138,7 +138,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
       />
       <ModelStat
         label={i18n.t("editor:ui.modelBudget", { defaultValue: "Model budget" })}
-        value={profile.budgetGb != null ? `${profile.budgetGb} GB` : "Not set"}
+        value={profile.budgetGb != null ? `${profile.budgetGb} GB` : i18n.t("editor:ui.notSet", { defaultValue: "Not set" })}
         highlight
       />
     </>

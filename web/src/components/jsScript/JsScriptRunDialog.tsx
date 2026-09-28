@@ -183,7 +183,7 @@ const JsScriptRunDialog = ({
                 <Text size="small" color="secondary">
                   {streaming
                     ? "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]."
-                    : "Each input uses the control for its declared type."}
+                    : i18n.t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
                 </Text>
                 {inputs.map((port) =>
                   usesJsonField(port, streaming) ? (

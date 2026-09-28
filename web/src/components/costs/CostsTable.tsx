@@ -360,7 +360,7 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
           <>
             <HeaderText>
               {groupBy === "nodeType"
-                ? "Node type"
+                ? i18n.t("editor:ui.nodeType", { defaultValue: "Node type" })
                 : groupBy === "workflow"
                   ? "Workflow"
                   : groupBy === "provider"

@@ -144,7 +144,7 @@ const MCPSettingsMenu = () => {
           type: "error",
           alert: true,
           content:
-            result.error ?? "Could not find the NodeTool extension bundle."
+            result.error ?? i18n.t("editor:ui.couldNotFindTheNodeToolExtensionBundle", { defaultValue: "Could not find the NodeTool extension bundle." })
         });
       } else if (result.opened) {
         addNotification({
@@ -180,7 +180,7 @@ const MCPSettingsMenu = () => {
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
           Connect AI coding assistants to NodeTool via the{" "}
-          <strong>Model Context Protocol</strong>. When installed, Claude Code,
+          <strong>{i18n.t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>. When installed, Claude Code,
           Codex, and OpenCode can use NodeTool workflows, assets, nodes, and
           collections as tools.
         </Text>

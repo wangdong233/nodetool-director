@@ -66,15 +66,15 @@ const StoryboardLinkControlInner = ({
         disabled={deriving}
         title={
           storyboardId
-            ? "Open the storyboard derived from this script"
-            : "Derive a storyboard: one shot per line, linked to it"
+            ? i18n.t("editor:ui.openTheStoryboardDerivedFromThisScript", { defaultValue: "Open the storyboard derived from this script" })
+            : i18n.t("editor:ui.deriveAStoryboardOneShotPerLineLinkedToIt", { defaultValue: "Derive a storyboard: one shot per line, linked to it" })
         }
       >
         {storyboardId
-          ? "Open storyboard"
+          ? i18n.t("editor:ui.openStoryboard", { defaultValue: "Open storyboard" })
           : deriving
             ? "Creating…"
-            : "Create storyboard"}
+            : i18n.t("editor:ui.createStoryboard", { defaultValue: "Create storyboard" })}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>

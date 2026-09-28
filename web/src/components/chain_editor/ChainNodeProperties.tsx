@@ -259,7 +259,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                       >
                         {sourceNode
                           ? `${sourceIndex + 1} · ${sourceNode.metadata.title}`
-                          : "Missing source"}
+                          : i18n.t("editor:ui.missingSource", { defaultValue: "Missing source" })}
                         {mapping.sourceOutput &&
                         sourceNode &&
                         sourceNode.metadata.outputs.length > 1

@@ -356,7 +356,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
         <FlexColumn gap={0.5}>
           <Caption>{i18n.t("sketch:attrs.layers", { defaultValue: "Layers" })}</Caption>
           {layers.length === 0 ? (
-            <div className="empty">No layers yet - add one below.</div>
+            <div className="empty">{i18n.t("timeline:attrs.noLayersYetAddOneBelow", { defaultValue: "No layers yet - add one below." })}</div>
           ) : (
             <div className="layer-stack">
               {stack.map(({ layer, index, state, image }) => (

@@ -116,10 +116,10 @@ const DRAG_RAIL = 20;
 export const TEXT_INSET = DRAG_RAIL + SPACING.xl * 4 + GUTTER + SPACING.xl * 4;
 
 const PAUSE_AFTER_MS = [
-  { ms: 0, label: "No pause after" },
-  { ms: 500, label: "0.5s pause" },
-  { ms: 1000, label: "1s pause" },
-  { ms: 2000, label: "2s pause" }
+  { ms: 0, label: "No pause after", labelKey: "editor:ui.noPauseAfter" },
+  { ms: 500, label: "0.5s pause", labelKey: "editor:ui.05sPause" },
+  { ms: 1000, label: "1s pause", labelKey: "editor:ui.1sPause" },
+  { ms: 2000, label: "2s pause", labelKey: "editor:ui.2sPause" }
 ] as const;
 
 let speakerCounter = 0;
@@ -234,7 +234,7 @@ const SpeakerPicker = ({
           readOnly
             ? label
             : cast.length
-              ? "Change speaker"
+              ? i18n.t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" })
               : "Add a speaker"
         }
       >
@@ -412,7 +412,7 @@ const ScriptLineRow = ({
     try {
       await voiceLine(scriptId, line.id);
     } catch (error) {
-      setVoiceError(getErrorMessage(error, "Voicing failed"));
+      setVoiceError(getErrorMessage(error, i18n.t("editor:ui.voicingFailed", { defaultValue: "Voicing failed" })));
     }
   }, [scriptId, line.id]);
 
@@ -573,7 +573,7 @@ const ScriptLineRow = ({
         Stale
       </Text>
     ) : (
-      <Tooltip title={status === "voiced" ? "Voiced" : "Not voiced yet"}>
+      <Tooltip title={status === "voiced" ? "Voiced" : i18n.t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
         <Box
           sx={{
             width: 6,
@@ -605,7 +605,7 @@ const ScriptLineRow = ({
           <MenuItemPrimitive
             key={option.ms}
             compact
-            label={option.label}
+            label={i18n.t(option.labelKey, { defaultValue: option.label })}
             selected={pauseMs === option.ms}
             onClick={() => setPause(option.ms)}
           />

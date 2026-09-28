@@ -153,7 +153,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
       <div className="model-actions">
         <CopyButton
           value={model.repo_id || model.id}
-          tooltip={isOllama ? "Copy model name" : "Copy repo ID"}
+          tooltip={isOllama ? i18n.t("editor:ui.copyModelName", { defaultValue: "Copy model name" }) : i18n.t("editor:ui.copyRepoID", { defaultValue: "Copy repo ID" })}
           nodrag={false}
         />
         {canShowExplorerButton && !isProduction && isElectron && (

@@ -95,6 +95,7 @@ import { extractVideoFrames } from "../../components/timeline/Tracks/clipThumbna
 import { renderRasterClipFrames } from "../../components/timeline/preview/rasterClipFrames";
 import { persistFormatAdaptations } from "./useCreateFormatAdaptation";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 const KIND_TO_MODEL_KIND = {
   "text-to-video": "video",
@@ -687,8 +688,8 @@ export const useTimelineAgentBridge = (sequenceId: string | null): void => {
         } else if (!canGenerate) {
           note =
             kind === "text-to-audio" && !voice
-              ? "Clip created as a draft — set a provider, model and voice, then regenerate."
-              : "Clip created as a draft — no model resolved. Set a provider and model, then regenerate.";
+              ? i18n.t("timeline:attrs.clipCreatedAsADraftSetAProviderModelAndVoiceThenRegenerate", { defaultValue: "Clip created as a draft — set a provider, model and voice, then regenerate." })
+              : i18n.t("timeline:attrs.clipCreatedAsADraftNoModelResolvedSetAProviderAndModelThenRegenerate", { defaultValue: "Clip created as a draft — no model resolved. Set a provider and model, then regenerate." });
         } else {
           const requestId = await startDirectGen(clipId);
           generationStarted = requestId !== null;

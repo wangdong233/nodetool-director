@@ -234,7 +234,7 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
               id={`resize-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty.description ?? "Target width"}
+              description={widthProperty.description ?? i18n.t("editor:ui.targetWidth", { defaultValue: "Target width" })}
               value={widthValue}
               min={widthProperty.min ?? 1}
               max={widthProperty.max ?? 8192}
@@ -252,8 +252,8 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
           isActive={chainLocked}
           icon={<LinkOffIcon fontSize="small" />}
           activeIcon={<LinkIcon fontSize="small" />}
-          tooltip={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-          ariaLabel={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
+          tooltip={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
+          ariaLabel={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
           onClick={() => setChainLocked((v) => !v)}
         />
         <div className="dim-field">
@@ -262,7 +262,7 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
               id={`resize-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty.description ?? "Target height"}
+              description={heightProperty.description ?? i18n.t("editor:ui.targetHeight", { defaultValue: "Target height" })}
               value={heightValue}
               min={heightProperty.min ?? 1}
               max={heightProperty.max ?? 8192}

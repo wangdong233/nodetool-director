@@ -41,7 +41,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError("Paste a Replicate model identifier first.");
+        setError(i18n.t("editor:ui.pasteAReplicateModelIdentifierFirst", { defaultValue: "Paste a Replicate model identifier first." }));
         return;
       }
       setError(null);
@@ -112,7 +112,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load schema"
+          err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" })
         );
       } finally {
         setLoading(false);

@@ -76,7 +76,7 @@ const WorkflowCostEstimatePanelInternal: React.FC<
             <Caption>
               {summary?.hasItems
                 ? `${summary.isTotalLowerBound ? "≥ " : summary.isTotalApproximate ? "~" : ""}${summary.totalLabel}${summary.unknownCount > 0 ? " · incomplete" : " / run"}`
-                : "Per run"}
+                : i18n.t("editor:ui.perRun", { defaultValue: "Per run" })}
             </Caption>
           </FlexRow>
         }

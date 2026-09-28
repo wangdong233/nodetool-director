@@ -73,7 +73,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
       instructions: instructions.trim() || undefined
     });
     if (!requestId) {
-      setError("The line delivery could not be submitted. Check the Script voice and connection.");
+      setError(i18n.t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
     } else {
       setInstructions("");
     }

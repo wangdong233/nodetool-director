@@ -8,7 +8,8 @@ import { CLIP_FADE_SHAPES, type ClipFadeShape } from "@nodetool-ai/timeline";
 import { ContextMenu, MenuItemPrimitive } from "../../ui_primitives";
 import {
   CLIP_FADE_SHAPE_HINTS,
-  CLIP_FADE_SHAPE_LABELS
+  CLIP_FADE_SHAPE_LABELS,
+  CLIP_FADE_SHAPE_HINT_KEYS
 } from "../fadeShapes";
 import type { ClipFadeEdge } from "./useClipFade";
 import { i18n } from "../../../i18n";
@@ -42,7 +43,7 @@ export function ClipFadeShapeMenu({
         <MenuItemPrimitive
           key={shape}
           label={CLIP_FADE_SHAPE_LABELS[shape]}
-          tooltip={CLIP_FADE_SHAPE_HINTS[shape]}
+          tooltip={i18n.t(CLIP_FADE_SHAPE_HINT_KEYS[shape], { defaultValue: CLIP_FADE_SHAPE_HINTS[shape] })}
           selected={shape === current}
           compact
           onClick={() => {

@@ -94,7 +94,7 @@ const SpeakerRow = ({
   const isDangling =
     !!speaker.entityId && !!entities && !linkedEntity;
   const entityOptions = [
-    { value: "", label: "No entity" },
+    { value: "", label: i18n.t("editor:ui.noEntity", { defaultValue: "No entity" }) },
     ...(entities ?? []).map((e) => ({
       value: e.id,
       label: `${e.name} · ${e.kind}`

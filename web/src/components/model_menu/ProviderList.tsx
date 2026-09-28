@@ -762,7 +762,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                         : b.label === "Server"
                           ? "Server: Runs on the configured NodeTool server."
                           : b.label === "Unavailable"
-                            ? "Unavailable: No ready execution target was reported."
+                            ? i18n.t("editor:ui.unavailableNoReadyExecutionTargetWasReported", { defaultValue: "Unavailable: No ready execution target was reported." })
                             : "API: Input is sent to the provider. Provider billing applies.";
                   return (
                     <Tooltip
@@ -996,7 +996,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                       {renderBadges()}
                       <Tooltip
                         className="model-menu__provider-toggle-tooltip"
-                        title={enabled ? "Disable provider" : "Enable provider"}
+                        title={enabled ? i18n.t("editor:ui.disableProvider", { defaultValue: "Disable provider" }) : i18n.t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
                       >
                         <Box
                           data-provider={p}
@@ -1045,8 +1045,8 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
           onClick={handleToggleProvider}
         >
           {menuProvider && isProviderEnabled(menuProvider)
-            ? "Disable provider"
-            : "Enable provider"}
+            ? i18n.t("editor:ui.disableProvider", { defaultValue: "Disable provider" })
+            : i18n.t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
         </EditorMenuItem>
       </EditorMenu>
     </List>

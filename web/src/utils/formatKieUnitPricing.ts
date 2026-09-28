@@ -1,5 +1,6 @@
 import type { KieUnitPricing } from "../stores/ApiTypes";
 import { relativeTime } from "./formatDateAndTime";
+import { i18n } from "../i18n";
 
 export function isKieVagueBillingSummary(p: Pick<KieUnitPricing, "billing_unit" | "tier_count">): boolean {
   if ((p.tier_count ?? 1) > 1) {
@@ -74,7 +75,7 @@ export function formatKieUnitPricingTooltip(p: KieUnitPricing): string {
 
   return [
     vague ? `${perUnit} (lowest tier — see kie.ai for full pricing)` : perUnit,
-    vague ? "Varies by resolution, duration, and quality." : null,
+    vague ? i18n.t("editor:ui.variesByResolutionDurationAndQuality", { defaultValue: "Varies by resolution, duration, and quality." }) : null,
     usd,
     when,
     `Model: ${p.model_id}`,

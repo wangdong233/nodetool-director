@@ -32,7 +32,7 @@ const ProviderOnboardingDialog: React.FC = () => {
   const providers = useMemo(() => providersForCapability(capability), [capability]);
   const groups = [
     { title: "Sign in with your account", providers: providers.filter((p) => p.oauth) },
-    { title: "Use an API key", providers: providers.filter((p) => !p.oauth) }
+    { title: i18n.t("editor:ui.useAnAPIKey", { defaultValue: "Use an API key" }), providers: providers.filter((p) => !p.oauth) }
   ];
   const showLocal = (isElectron || isLocalhost) &&
     (!capability || capability === "generate_message" || capability === "generate_embedding");
@@ -62,9 +62,9 @@ const ProviderOnboardingDialog: React.FC = () => {
           <Text sx={{ maxWidth: "60ch" }}>
             {reason ?? (capability
               ? `Connect a provider for ${CAPABILITY_LABELS[capability]} to continue.`
-              : "Choose an account or API key to use models in your workflows.")}
+              : i18n.t("editor:ui.chooseAnAccountOrAPIKeyToUseModelsInYourWorkflows", { defaultValue: "Choose an account or API key to use models in your workflows." }))}
           </Text>
-          <Caption size="small">Your API usage is billed directly to your provider account.</Caption>
+          <Caption size="small">{i18n.t("editor:ui.yourAPIUsageIsBilledDirectlyToYourProviderAccount", { defaultValue: "Your API usage is billed directly to your provider account." })}</Caption>
         </FlexColumn>
         {groups.filter((group) => group.providers.length > 0).map((group) => (
           <FlexColumn key={group.title} gap={SPACING.md}>
@@ -85,8 +85,8 @@ const ProviderOnboardingDialog: React.FC = () => {
           <FlexRow align="center" gap={SPACING.lg} wrap>
             <Box component="img" src={ollamaIcon} alt="" sx={{ width: 28, height: 28, ...theme.applyStyles("dark", { filter: "invert(1)" }) }} />
             <FlexColumn gap={SPACING.xs} sx={{ flex: "1 1 180px" }}>
-              <Text size="small">Prefer local models?</Text>
-              <Caption>Install Ollama and download a model to run on your machine.</Caption>
+              <Text size="small">{i18n.t("editor:ui.preferLocalModels", { defaultValue: "Prefer local models?" })}</Text>
+              <Caption>{i18n.t("editor:ui.installOllamaAndDownloadAModelToRunOnYourMachine", { defaultValue: "Install Ollama and download a model to run on your machine." })}</Caption>
             </FlexColumn>
             <EditorButton component="a" href="https://ollama.com/download" target="_blank" rel="noopener noreferrer" variant="text" endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}>{i18n.t("ui2:attrs.getOllama", { defaultValue: "Get Ollama" })}</EditorButton>
           </FlexRow>

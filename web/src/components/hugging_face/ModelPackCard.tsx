@@ -256,7 +256,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
 
         <ToolbarIconButton
           icon={<ExpandMoreIcon />}
-          tooltip={expanded ? "Collapse model pack details" : "Expand model pack details"}
+          tooltip={expanded ? i18n.t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : i18n.t("editor:ui.expandModelPackDetails", { defaultValue: "Expand model pack details" })}
           onClick={handleToggleExpanded}
           sx={{
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",

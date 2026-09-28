@@ -11,6 +11,7 @@ import { create } from "zustand";
 import { trpcClient } from "../trpc/client";
 import { createErrorMessage } from "../utils/errorHandling";
 import { loadMetadata } from "../serverState/useMetadata";
+import { i18n } from "../i18n";
 
 type PackStatus = "loaded" | "skipped" | "error";
 
@@ -106,7 +107,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
     } catch (err: unknown) {
       set({
         isLoading: false,
-        error: createErrorMessage(err, "Failed to load packs").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToLoadPacks", { defaultValue: "Failed to load packs" })).message
       });
     }
   },
@@ -117,7 +118,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
       set({ builtins: res.packs });
     } catch (err: unknown) {
       set({
-        error: createErrorMessage(err, "Failed to load built-in packs").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToLoadBuiltinPacks", { defaultValue: "Failed to load built-in packs" })).message
       });
     }
   },
@@ -135,7 +136,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
       return true;
     } catch (err: unknown) {
       set({
-        error: createErrorMessage(err, "Failed to update built-in pack").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToUpdateBuiltinPack", { defaultValue: "Failed to update built-in pack" })).message
       });
       return false;
     }
@@ -156,7 +157,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
         const refreshed = await trpcClient.packs.reload.mutate();
         set({ packs: refreshed.packs });
       } catch (err: unknown) {
-        set({ error: createErrorMessage(err, "Failed to update pack trust").message });
+        set({ error: createErrorMessage(err, i18n.t("editor:ui.failedToUpdatePackTrust", { defaultValue: "Failed to update pack trust" })).message });
       }
     };
     const run = trustMutation.then(task);
@@ -173,7 +174,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
         set({ packs: refreshed.packs });
       } catch (err: unknown) {
         set({
-          error: createErrorMessage(err, "Failed to update allowUnlisted setting").message
+          error: createErrorMessage(err, i18n.t("editor:ui.failedToUpdateAllowUnlistedSetting", { defaultValue: "Failed to update allowUnlisted setting" })).message
         });
       }
     };
@@ -192,7 +193,7 @@ const usePacksStore = create<PacksStore>((set, get) => ({
     } catch (err: unknown) {
       set({
         isLoading: false,
-        error: createErrorMessage(err, "Failed to reload packs").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToReloadPacks", { defaultValue: "Failed to reload packs" })).message
       });
     }
   }

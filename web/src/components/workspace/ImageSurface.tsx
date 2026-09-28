@@ -9,6 +9,7 @@ import {
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import type { WorkspaceTabMode } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 
 interface ImageSurfaceProps {
   refId: string;
@@ -46,7 +47,7 @@ const ImageSurface = ({ refId, mode, active }: ImageSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {error ? "Failed to load image" : "Image not found"}
+          {error ? i18n.t("editor:ui.failedToLoadImage", { defaultValue: "Failed to load image" }) : i18n.t("editor:ui.imageNotFound", { defaultValue: "Image not found" })}
         </Text>
       </FlexColumn>
     );

@@ -609,7 +609,7 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         set((state) => ({
           tabs: state.tabs.map((tab) =>
             tab.type === "guided-flow" && tab.ref === ref
-              ? { ...tab, setupTarget: target, title: target?.name ?? "New flow" }
+              ? { ...tab, setupTarget: target, title: target?.name ?? i18n.t("editor:ui.newFlow", { defaultValue: "New flow" }) }
               : tab
           )
         })),

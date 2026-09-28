@@ -14,6 +14,7 @@ import type { ActiveLayer } from "@nodetool-ai/timeline/render";
 
 import { Model3DLayerSource } from "../preview/Model3DLayerSource";
 import { useAssetUrl } from "../Tracks/useAssetUrl";
+import { i18n } from "../../../i18n";
 
 /** What the inspector knows about a 3D clip's model right now. */
 export interface Model3DSessionNames {
@@ -67,7 +68,7 @@ export function useModel3DSessionNames(
 
   useEffect(() => {
     if (!assetId) {
-      setNames(unavailable("This clip has no model asset yet."));
+      setNames(unavailable(i18n.t("timeline:attrs.thisClipHasNoModelAssetYet", { defaultValue: "This clip has no model asset yet." })));
       return;
     }
     // The asset url resolves asynchronously; the source would forget an entry
@@ -100,7 +101,7 @@ export function useModel3DSessionNames(
       } else if (state?.status === "unavailable") {
         setNames(unavailable(state.message));
       } else {
-        setNames(unavailable("This clip's model could not be loaded."));
+        setNames(unavailable(i18n.t("timeline:attrs.thisClipsModelCouldNotBeLoaded", { defaultValue: "This clip's model could not be loaded." })));
       }
     };
     // Both arms: the pool reports a failure as a state, but a rejected load

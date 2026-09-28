@@ -222,6 +222,34 @@ export const ONBOARDING_PROVIDERS: OnboardingProvider[] = [
 ];
 
 /** Human-readable label for a required capability, for the dialog subtitle. */
+export const PROVIDER_TAGLINE_KEYS: Record<string, string> = {
+  "meshy": "editor:ui.generate3DModelsFromTextOrImages",
+  "openai": "editor:ui.GPTForChatPlusImageSpeechAndEmbeddings",
+  "claude": "editor:ui.useAClaudeProOrMaxSubscriptionNoAPIKey",
+  "huggingface": "editor:ui.thousandsOfOpenModelsForImageChatAndAudio",
+  "anthropic": "editor:ui.claudeModelsForReasoningWritingAndAgents",
+  "gemini": "editor:ui.geminiForChatAndImagesVeoForVideo",
+  "groq": "editor:ui.veryFastOpenmodelChatOnCustomHardware",
+  "mistral": "editor:ui.europeanOpenModelsForChatAndEmbeddings",
+  "fal": "editor:ui.fastImageAndVideoGenerationFLUXAndMore",
+  "replicate": "editor:ui.runOpenImageVideoAndAudioModelsInTheCloud",
+  "elevenlabs": "editor:ui.highqualityNaturalTexttospeechVoices"
+};
+
+export const PROVIDER_COST_HINT_KEYS: Record<string, string> = {
+  "meshy": "editor:ui.usageIsBilledToYourMeshyAccount",
+  "openai": "editor:ui.payPerToken0155Per1MTokensDependingOnTheModel",
+  "claude": "editor:ui.includedInYourClaudeSubscriptionNoPertokenAPIBill",
+  "huggingface": "editor:ui.payForComputeTimeOnServerlessInferenceProviders",
+  "anthropic": "editor:ui.payPerToken02515Per1MTokensDependingOnTheModel",
+  "gemini": "editor:ui.payPerTokenWithAGenerousFreeTierToExperiment",
+  "groq": "editor:ui.lowPertokenPricingAmongTheCheapestForOpenModels",
+  "mistral": "editor:ui.payPerTokenCompetitivePricingForOpenModels",
+  "fal": "editor:ui.payPerGenerationPricedPerImageOrPerSecondOfVideo",
+  "replicate": "editor:ui.payForComputeByTheSecondWhileAModelRuns",
+  "elevenlabs": "editor:ui.payPerCharacterOfSpeechGenerated"
+};
+
 export const CAPABILITY_LABELS = {
   generate_message: "chat and language models",
   text_to_image: "image generation",

@@ -252,7 +252,7 @@ const ProjectListSurface = () => {
               </Caption>
             )}
             <Box sx={{ flex: 1 }} />
-            <Caption color="muted">Drag onto a project card to move it in</Caption>
+            <Caption color="muted">{i18n.t("editor:ui.dragOntoAProjectCardToMoveItIn", { defaultValue: "Drag onto a project card to move it in" })}</Caption>
           </FlexRow>
           <FlexRow gap={SPACING.lg} wrap>
             {loose.map((document) => (

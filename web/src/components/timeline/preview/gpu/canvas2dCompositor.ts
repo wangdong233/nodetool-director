@@ -15,6 +15,7 @@ import type {
   CompositorInitResult,
   TimelineCompositor
 } from "./types";
+import { i18n } from "../../../../i18n";
 
 /**
  * Canvas2D fallback for the timeline preview compositor.
@@ -60,7 +61,7 @@ export class Canvas2DCompositor implements TimelineCompositor {
     // failed), the 2D request returns null and the fallback can't reuse it.
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      return { ok: false, reason: "Failed to get 2D canvas context" };
+      return { ok: false, reason: i18n.t("timeline:attrs.failedToGet2DCanvasContext", { defaultValue: "Failed to get 2D canvas context" }) };
     }
     this.ctx = ctx;
     this.canvasWidth = canvas.width;

@@ -128,7 +128,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             >
               {isString((ollamaError as { detail?: unknown })?.detail)
                 ? (ollamaError as { detail?: string }).detail
-                : "Please check that Ollama is running"}
+                : i18n.t("editor:ui.pleaseCheckThatOllamaIsRunning", { defaultValue: "Please check that Ollama is running" })}
             </Caption>
             {isElectron ? (
               <Caption

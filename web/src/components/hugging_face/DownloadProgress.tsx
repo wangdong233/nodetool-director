@@ -371,7 +371,7 @@ export const DownloadProgress: React.FC<{
           <Text size="small">
             {download.status === "start"
               ? "Starting download..."
-              : "Pending download..."}
+              : i18n.t("editor:ui.pendingDownload", { defaultValue: "Pending download..." })}
           </Text>
         </FlexRow>
       )}
@@ -415,7 +415,7 @@ export const DownloadProgress: React.FC<{
               <Tooltip
                 title={
                   isDisconnected
-                    ? "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates."
+                    ? i18n.t("editor:ui.websocketConnectionLostTheDownloadMayStillBeRunningOnTheServerClickReconnectToRestoreProgressUpdates", { defaultValue: "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates." })
                     : `No progress received for ${timeSinceUpdate}. The download may have stalled or the connection was lost. Try cancelling and restarting the download.`
                 }
               >

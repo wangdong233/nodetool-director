@@ -276,7 +276,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
           <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>
-            {needle ? "No matching projects" : "No named projects yet"}
+            {needle ? i18n.t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : i18n.t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
           </Caption>
         )}
       </ContextMenu>

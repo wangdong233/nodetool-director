@@ -168,8 +168,8 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
       capability: "generate_message",
       reason:
         isElectron || isLocalhost
-          ? "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key."
-          : "Chat needs a language model. Connect a provider to start."
+          ? i18n.t("editor:ui.chatNeedsALanguageModelSignInWithClaudeOrOpenAIOrConnectAnyProviderWithAnAPIKey", { defaultValue: "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key." })
+          : i18n.t("editor:ui.chatNeedsALanguageModelConnectAProviderToStart", { defaultValue: "Chat needs a language model. Connect a provider to start." })
     });
   }, []);
 

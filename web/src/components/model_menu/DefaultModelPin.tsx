@@ -76,12 +76,12 @@ const DefaultModelPin: React.FC<DefaultModelPinProps> = memo(
           size={size}
           tooltip={
             isDefault
-              ? "Default for new nodes of this type — click to clear"
+              ? i18n.t("editor:ui.defaultForNewNodesOfThisTypeClickToClear", { defaultValue: "Default for new nodes of this type — click to clear" })
               : "Set as default for new nodes of this type"
           }
           tooltipPlacement="top"
           ariaLabel={
-            isDefault ? "Clear default model" : "Set as default model"
+            isDefault ? i18n.t("editor:ui.clearDefaultModel", { defaultValue: "Clear default model" }) : "Set as default model"
           }
         />
       </span>

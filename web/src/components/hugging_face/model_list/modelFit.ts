@@ -77,6 +77,26 @@ const goal = (
   tasks: string[]
 ): ModelGoal => ({ id, label, description, tasks: new Set(tasks) });
 
+export const GOAL_LABEL_KEYS: Record<string, string> = {
+  "chat": "editor:chat.docsLabel",
+  "image-gen": "editor:ui.createImages",
+  "vision": "editor:ui.understandImages",
+  "transcribe": "editor:ui.transcribeSpeech",
+  "speech": "editor:ui.generateSpeechAudio",
+  "video": "editor:ui.createVideo",
+  "embedding": "editor:ui.searchRAG"
+};
+
+export const GOAL_DESCRIPTION_KEYS: Record<string, string> = {
+  "chat": "editor:ui.writeReasonAndUseToolsWithALanguageModel",
+  "image-gen": "editor:ui.generateOrRestyleImagesFromPrompts",
+  "vision": "editor:ui.describeClassifyOrAnalyzeImagesAndDocuments",
+  "transcribe": "editor:ui.turnAudioRecordingsIntoText",
+  "speech": "editor:ui.voiceLinesNarrationAndSoundFromText",
+  "video": "editor:ui.generateVideoFromPromptsOrStillImages",
+  "embedding": "editor:ui.embeddingsForSemanticSearchOverYourDocuments"
+};
+
 /**
  * The goal catalog. Matching runs over a model's `type` and `pipeline_tag`,
  * both normalized to the Hub's dash-cased task names.

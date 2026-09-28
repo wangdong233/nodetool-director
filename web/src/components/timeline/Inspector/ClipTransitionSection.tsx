@@ -45,14 +45,14 @@ type TransitionMode =
   | "zoom";
 
 const TRANSITION_MODES = [
-  { value: "auto", label: "Auto" },
-  { value: "none", label: "None (hard cut)" },
-  { value: "crossfade", label: "Crossfade" },
-  { value: "dipToColor", label: "Dip to color" },
-  { value: "wipe", label: "Wipe" },
-  { value: "push", label: "Push" },
-  { value: "slide", label: "Slide" },
-  { value: "zoom", label: "Zoom" }
+  { value: "auto", label: "Auto", labelKey: "timeline:history.auto" },
+  { value: "none", label: "None (hard cut)", labelKey: "timeline:attrs.noneHardCut" },
+  { value: "crossfade", label: "Crossfade", labelKey: "timeline:attrs.crossfade" },
+  { value: "dipToColor", label: "Dip to color", labelKey: "timeline:attrs.dipToColor" },
+  { value: "wipe", label: "Wipe", labelKey: "timeline:attrs.wipe" },
+  { value: "push", label: "Push", labelKey: "timeline:attrs.push" },
+  { value: "slide", label: "Slide", labelKey: "timeline:attrs.slide" },
+  { value: "zoom", label: "Zoom", labelKey: "editor:ui.zoom" }
 ] as const;
 
 const MODE_HINTS: Record<TransitionMode, string> = {
@@ -64,6 +64,17 @@ const MODE_HINTS: Record<TransitionMode, string> = {
   push: "This clip pushes the outgoing one off the frame.",
   slide: "This clip slides in over a stationary outgoing one.",
   zoom: "The outgoing clip scales up while this one scales in."
+};
+
+const MODE_HINT_KEYS: Record<TransitionMode, string> = {
+  auto: "timeline:attrs.overlapThisClipWithThePreviousOneOnTheSameTrackToCrossfade",
+  none: "timeline:attrs.alwaysAHardCutEvenWhenClipsOverlap",
+  crossfade: "timeline:attrs.bothClipsFadeAcrossTheWindowMeasuredFromThisClipsStart",
+  dipToColor: "timeline:attrs.bothClipsFadeThroughASolidColourThatPeaksAtTheMidpoint",
+  wipe: "timeline:attrs.aFeatheredEdgeRevealsThisClipOverTheOutgoingOne",
+  push: "timeline:attrs.thisClipPushesTheOutgoingOneOffTheFrame",
+  slide: "timeline:attrs.thisClipSlidesInOverAStationaryOutgoingOne",
+  zoom: "timeline:attrs.theOutgoingClipScalesUpWhileThisOneScalesIn"
 };
 
 const DEFAULT_DURATION_MS = 500;
@@ -226,7 +237,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
               <InspectorSelect
                 label={i18n.t("timeline:attrs.transitionType", { defaultValue: "Transition type" })}
                 value={mode}
-                options={TRANSITION_MODES}
+                options={TRANSITION_MODES.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
                 onChange={handleModeChange}
               />
             </InspectorRow>
@@ -251,7 +262,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                   onChange={(event) =>
                     patchField({ color: event.target.value })
                   }
-                  inputProps={{ "aria-label": "Transition color" }}
+                  inputProps={{ "aria-label": i18n.t("timeline:attrs.transitionColor", { defaultValue: "Transition color" }) }}
                 />
               </InspectorRow>
             )}
@@ -287,7 +298,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
               />
             )}
 
-            <Caption color="muted">{MODE_HINTS[mode]}</Caption>
+            <Caption color="muted">{i18n.t(MODE_HINT_KEYS[mode], { defaultValue: MODE_HINTS[mode] })}</Caption>
           </FlexColumn>
         </CollapsibleSection>
       </>

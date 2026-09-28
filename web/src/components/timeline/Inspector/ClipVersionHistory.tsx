@@ -309,7 +309,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? "This is the active take — select a different take before deleting it."
+                  ? i18n.t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
                   : `Delete ${displayName}`
               }
               disabled={active}

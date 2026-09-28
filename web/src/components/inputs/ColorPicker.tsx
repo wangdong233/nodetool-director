@@ -202,7 +202,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
                 backgroundColor: cellColor || "transparent"
               }}
               aria-label={
-                cellColor === null ? "No color" : `Color ${cellColor}`
+                cellColor === null ? i18n.t("editor:ui.noColor", { defaultValue: "No color" }) : `Color ${cellColor}`
               }
               onClick={handleColorCellButtonClick}
             />

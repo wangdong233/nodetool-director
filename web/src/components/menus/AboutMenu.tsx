@@ -172,7 +172,7 @@ const AboutMenu: React.FC = memo(() => {
         const info = await window.api?.settings?.getSystemInfo();
         setSystemInfo(info ?? null);
       } catch (err) {
-        setError("Failed to load system information");
+        setError(i18n.t("editor:ui.failedToLoadSystemInformation", { defaultValue: "Failed to load system information" }));
         console.error("Failed to fetch system info:", err);
       } finally {
         setLoading(false);

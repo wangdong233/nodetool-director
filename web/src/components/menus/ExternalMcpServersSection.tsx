@@ -239,11 +239,11 @@ const ServerRow = memo(function ServerRow({
             >
               {probe.ok
                 ? probe.tools.length === 0
-                  ? "Connected. The server offers no tools."
+                  ? i18n.t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." })
                   : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
                       .map((tool) => tool.name)
                       .join(", ")}`
-                : (probe.error ?? "Could not connect.")}
+                : (probe.error ?? i18n.t("editor:ui.couldNotConnect", { defaultValue: "Could not connect." }))}
             </Caption>
           )}
         </FlexColumn>
@@ -431,7 +431,7 @@ export const ExternalMcpServersSection = memo(
           ? "Stdio servers are not available on this deployment."
           : draft.command.trim()
             ? null
-            : "Enter a command.";
+            : i18n.t("editor:ui.enterACommand", { defaultValue: "Enter a command." });
 
     const handleSave = useCallback(() => {
       saveMutation.mutate(configFrom(draft));
@@ -535,7 +535,7 @@ export const ExternalMcpServersSection = memo(
               size="small"
               errorMessage={
                 duplicateId
-                  ? "That id is already in use."
+                  ? i18n.t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." })
                   : (draftIdError ?? undefined)
               }
               helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
@@ -550,7 +550,7 @@ export const ExternalMcpServersSection = memo(
               description={
                 stdioEnabled
                   ? undefined
-                  : "This deployment cannot run commands; only HTTP servers connect."
+                  : i18n.t("editor:ui.thisDeploymentCannotRunCommandsOnlyHTTPServersConnect", { defaultValue: "This deployment cannot run commands; only HTTP servers connect." })
               }
             />
             {draft.type === "stdio" ? (

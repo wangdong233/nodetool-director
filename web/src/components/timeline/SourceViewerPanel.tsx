@@ -185,7 +185,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
           {mediaType === "image" && (
             <ResponsiveImage locator={locator} alt={asset.name} fit="contain" />
           )}
-          {!mediaType && <Caption>This asset type cannot go on the timeline.</Caption>}
+          {!mediaType && <Caption>{i18n.t("timeline:attrs.thisAssetTypeCannotGoOnTheTimeline", { defaultValue: "This asset type cannot go on the timeline." })}</Caption>}
         </div>
 
         <InspectorRow label={i18n.t("timeline:source.in", { defaultValue: "In" })}>

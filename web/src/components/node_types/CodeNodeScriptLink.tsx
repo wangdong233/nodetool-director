@@ -112,7 +112,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
           }}
           title={`${linkedName ?? link.id} v${link.version}`}
         >
-          {`${isCustomCodeNode(nodeType, data) ? "My node" : "Linked to"} ${
+          {`${isCustomCodeNode(nodeType, data) ? i18n.t("editor:ui.myNode", { defaultValue: "My node" }) : "Linked to"} ${
             linkedName ?? link.id
           } v${link.version}`}
         </Caption>

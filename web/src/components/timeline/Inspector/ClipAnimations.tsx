@@ -367,7 +367,7 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
 
     const options = useMemo(
       () => [
-        { value: CHOOSE_SHAPE_CLIP, label: "Choose a shape clip…" },
+        { value: CHOOSE_SHAPE_CLIP, label: i18n.t("timeline:attrs.chooseAShapeClip", { defaultValue: "Choose a shape clip…" }) },
         ...shapeClips.map((candidate) => ({
           value: candidate.id,
           label: candidate.name || candidate.id

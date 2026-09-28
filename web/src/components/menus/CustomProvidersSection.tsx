@@ -460,7 +460,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         fullWidth
         title={
           <Text size="normal" weight={600}>
-            {editingSlug ? "Edit endpoint" : "Add OpenAI-compatible endpoint"}
+            {editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
           </Text>
         }
         onConfirm={handleSave}
@@ -495,7 +495,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
             errorMessage={
               duplicateSlug
-                ? "That slug is already in use."
+                ? i18n.t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." })
                 : (slugError ?? undefined)
             }
             helperText={`Provider id: custom_${draft.slug || "…"}`}

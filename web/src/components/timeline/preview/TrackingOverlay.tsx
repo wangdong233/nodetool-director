@@ -7,6 +7,7 @@ import {
   sourcePointToReframeViewport
 } from "./ReframeFocusOverlay";
 import type { TrackingRectangle } from "./useTrackingSelection";
+import { i18n } from "../../../i18n";
 
 interface TrackingOverlayProps {
   region: TrackingRectangle | null;
@@ -161,7 +162,7 @@ export function TrackingOverlay(
         height={frameHeight}
         viewBox={`0 0 ${frameWidth} ${frameHeight}`}
         role={onChange ? "group" : "img"}
-        aria-label={onChange ? "Select tracking subject" : "Tracked subject"}
+        aria-label={onChange ? "Select tracking subject" : i18n.t("timeline:attrs.trackedSubject", { defaultValue: "Tracked subject" })}
         aria-describedby={descriptionId}
         tabIndex={onChange ? 0 : undefined}
         style={{

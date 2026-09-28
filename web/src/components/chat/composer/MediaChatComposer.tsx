@@ -457,28 +457,28 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "image") {
       return isMobile
-        ? "Describe an image…"
-        : "Describe the image you want to generate…";
+        ? i18n.t("editor:ui.describeAnImage", { defaultValue: "Describe an image…" })
+        : i18n.t("editor:ui.describeTheImageYouWantToGenerate", { defaultValue: "Describe the image you want to generate…" });
     }
     if (mode === "image_edit") {
       return isMobile
-        ? "Describe the edits…"
-        : "Describe the edits to apply to the dropped image…";
+        ? i18n.t("editor:ui.describeTheEdits", { defaultValue: "Describe the edits…" })
+        : i18n.t("editor:ui.describeTheEditsToApplyToTheDroppedImage", { defaultValue: "Describe the edits to apply to the dropped image…" });
     }
     if (mode === "video") {
       return isMobile
-        ? "Describe a video…"
-        : "Describe your video… like a man drinking a cup of coffee…";
+        ? i18n.t("editor:ui.describeAVideo", { defaultValue: "Describe a video…" })
+        : i18n.t("editor:ui.describeYourVideoLikeAManDrinkingACupOfCoffee", { defaultValue: "Describe your video… like a man drinking a cup of coffee…" });
     }
     if (mode === "image_to_video") {
       return isMobile
-        ? "Describe the animation…"
-        : "Describe how the dropped image should animate…";
+        ? i18n.t("editor:ui.describeTheAnimation", { defaultValue: "Describe the animation…" })
+        : i18n.t("editor:ui.describeHowTheDroppedImageShouldAnimate", { defaultValue: "Describe how the dropped image should animate…" });
     }
     if (mode === "reference_to_video") {
       return isMobile
-        ? "Describe the shot…"
-        : "Describe the shot — the attached images and videos are the references…";
+        ? i18n.t("editor:ui.describeTheShot", { defaultValue: "Describe the shot…" })
+        : i18n.t("editor:ui.describeTheShotTheAttachedImagesAndVideosAreTheReferences", { defaultValue: "Describe the shot — the attached images and videos are the references…" });
     }
     if (mode === "audio") {
       return "Type the text you want spoken…";
@@ -498,12 +498,12 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "chat" && permissionMode === "plan") {
       return isMobile
-        ? "Describe the work to plan…"
-        : "Describe the work. The agent will propose a plan, not run it.";
+        ? i18n.t("editor:ui.describeTheWorkToPlan", { defaultValue: "Describe the work to plan…" })
+        : i18n.t("editor:ui.describeTheWorkTheAgentWillProposeAPlanNotRunIt", { defaultValue: "Describe the work. The agent will propose a plan, not run it." });
     }
     return isMobile
-      ? "Message… or @ to add an asset"
-      : "Continue the thread — or type @ to add an asset…";
+      ? i18n.t("editor:ui.messageOr@ToAddAnAsset", { defaultValue: "Message… or @ to add an asset" })
+      : i18n.t("editor:ui.continueTheThreadOrType@ToAddAnAsset", { defaultValue: "Continue the thread — or type @ to add an asset…" });
   }, [mode, isMobile, placeholderOverride, permissionMode]);
 
   const isMediaMode =

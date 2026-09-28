@@ -142,7 +142,7 @@ const OAuthConsentPage = () => {
           <AlertBanner severity="error">
             {mutationError instanceof Error
               ? mutationError.message
-              : "Could not complete this request."}
+              : i18n.t("editor:ui.couldNotCompleteThisRequest", { defaultValue: "Could not complete this request." })}
           </AlertBanner>
         )}
 

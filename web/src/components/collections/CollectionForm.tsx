@@ -200,7 +200,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
           <Text size="small" color="error">
             {createMutation.error instanceof Error
               ? createMutation.error.message
-              : "Failed to create collection"}
+              : i18n.t("editor:ui.failedToCreateCollection", { defaultValue: "Failed to create collection" })}
           </Text>
         </Box>
       )}

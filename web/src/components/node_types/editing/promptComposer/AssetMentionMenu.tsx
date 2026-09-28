@@ -201,11 +201,11 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
   const emptyMessage =
     activeTab === "recent"
       ? queryString
-        ? "No recent assets match."
-        : "No assets used yet. Generate or drag one in."
+        ? i18n.t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." })
+        : i18n.t("editor:ui.noAssetsUsedYetGenerateOrDragOneIn", { defaultValue: "No assets used yet. Generate or drag one in." })
       : queryString
-        ? "No assets match."
-        : "No saved assets yet.";
+        ? i18n.t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." })
+        : i18n.t("editor:ui.noSavedAssetsYet", { defaultValue: "No saved assets yet." });
 
   const handleGridScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!hasMore || !onLoadMore) {

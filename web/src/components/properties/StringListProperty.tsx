@@ -113,7 +113,7 @@ const StringListProperty = (props: PropertyProps<string[]>) => {
           <NodeTextField
             {...params}
             fullWidth
-            placeholder={strings.length === 0 ? "Enter values..." : ""}
+            placeholder={strings.length === 0 ? i18n.t("editor:ui.enterValues", { defaultValue: "Enter values..." }) : ""}
             sx={textFieldSx}
           />
         )}

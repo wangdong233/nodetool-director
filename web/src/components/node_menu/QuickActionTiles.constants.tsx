@@ -81,6 +81,23 @@ export const QUICK_ACTION_BUTTONS: QuickActionDefinition[] = [
   buildQuickAction("replicate-dynamic", "Replicate", QUICK_ACTION_AI_NODE_TYPES[16], <ApiIcon />, rgb(59, 130, 246), rgb(129, 140, 248), "#2563eb")
 ];
 
+export const QUICK_ACTION_LABEL_KEYS: Readonly<Record<string, string>> = {
+  "agent": "editor:ui.agent",
+  "code": "editor:ui.code",
+  "text-to-image": "editor:ui.textToImage",
+  "image-to-image": "editor:ui.imageToImage",
+  "upscale": "editor:ui.upscale",
+  "remove-background": "editor:ui.removeBackground",
+  "relight": "editor:ui.relight",
+  "vectorize": "editor:ui.vectorize",
+  "text-to-video": "editor:ui.textToVideo",
+  "image-to-video": "editor:ui.imageToVideo",
+  "video-to-video": "editor:ui.videoToVideo",
+  "lip-sync": "editor:ui.lipSync",
+  "text-to-speech": "editor:ui.textToSpeech",
+  "speech-to-text": "editor:ui.speechToText"
+};
+
 const hexToRgba = (hex: string, alpha: number) => {
   const cleanHex = hex.replace("#", "");
   if (cleanHex.length !== 6) {

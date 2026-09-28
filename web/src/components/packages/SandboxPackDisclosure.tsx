@@ -20,6 +20,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { trpc } from "../../lib/trpc";
+import { i18n } from "../../i18n";
 
 /** What installing and importing a sandbox pack means, in the design's words. */
 export const SANDBOX_PACK_CONSENT_TEXT =
@@ -83,7 +84,7 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
           density="compact"
           onClick={() => setShowDocs((current) => !current)}
         >
-          {showDocs ? "Hide documentation" : "View documentation"}
+          {showDocs ? "Hide documentation" : i18n.t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
         </EditorButton>
       </FlexRow>
       {showDocs && docsQuery.data === null && (

@@ -6,6 +6,7 @@ import type { Theme } from "@mui/material/styles";
 
 import { Caption, FlexColumn, SPACING_PX } from "../ui_primitives";
 import { looksLikeSvg, sanitizeSvgMarkup } from "../../utils/sanitizeSvg";
+import { i18n } from "../../i18n";
 
 interface SvgPreviewProps {
   /** SVG markup to paint. */
@@ -68,7 +69,7 @@ const SvgPreview = ({ markup }: SvgPreviewProps) => {
   if (html === null) {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
-        <Caption>No &lt;svg&gt; element to render</Caption>
+        <Caption>{i18n.t("editor:ui.noSvgElementToRender", { defaultValue: "No &lt;svg&gt; element to render" })}</Caption>
       </FlexColumn>
     );
   }

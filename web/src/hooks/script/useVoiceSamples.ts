@@ -24,6 +24,7 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /** The provider/model/voice a sample is spoken by. */
 export interface SampleVoice {
@@ -140,7 +141,7 @@ export function useVoiceSamples(speed?: number): VoiceSamplesResult {
           samples.set(
             key,
             assetId === undefined
-              ? { pending: false, error: "That voice returned no audio." }
+              ? { pending: false, error: i18n.t("editor:ui.thatVoiceReturnedNoAudio", { defaultValue: "That voice returned no audio." }) }
               : { pending: false, assetId }
           );
         })

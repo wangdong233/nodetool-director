@@ -102,12 +102,12 @@ const MemoryPage: React.FC = () => {
         <EmptyState
           variant={searching || kind ? "no-results" : "empty"}
           title={
-            searching || kind ? "No memory matches" : "Nothing remembered yet"
+            searching || kind ? i18n.t("editor:ui.noMemoryMatches", { defaultValue: "No memory matches" }) : i18n.t("editor:ui.nothingRememberedYet", { defaultValue: "Nothing remembered yet" })
           }
           description={
             searching || kind
-              ? "No memory contains all of those words."
-              : "The agent records project notes and the assets it creates as it works. They show up here."
+              ? i18n.t("editor:ui.noMemoryContainsAllOfThoseWords", { defaultValue: "No memory contains all of those words." })
+              : i18n.t("editor:ui.theAgentRecordsProjectNotesAndTheAssetsItCreatesAsItWorksTheyShowUpHere", { defaultValue: "The agent records project notes and the assets it creates as it works. They show up here." })
           }
         />
       );

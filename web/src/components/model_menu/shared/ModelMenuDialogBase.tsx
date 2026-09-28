@@ -776,7 +776,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
                       • {pe.provider}:{" "}
                       {pe.error instanceof Error
                         ? pe.error.message
-                        : "Unknown error"}
+                        : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}
                     </Caption>
                   ))}
                 </Box>
@@ -798,7 +798,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
 
       {body}
       <FlexRow justify="space-between" align="center" sx={{ px: SPACING.lg, py: SPACING.md, flexShrink: 0, borderTop: `1px solid ${theme.vars.palette.divider}` }}>
-        <Caption>Missing a provider?</Caption>
+        <Caption>{i18n.t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
         <EditorButton variant="text" size="small" startIcon={<AddIcon />} onClick={openSetup}>
           Add providers
         </EditorButton>

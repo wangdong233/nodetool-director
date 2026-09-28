@@ -214,55 +214,117 @@
   },
   "tutorials": {
     "app-assistant": {
-      "title": "搭建一个小程序"
+      "title": "搭建一个小程序",
+      "result": "应用显示完整回答，输入/输出控件保持绑定。",
+      "startingState": "示例页，Mini App 画廊可随时浏览。",
+      "tagline": "应用搭建 · 操作、设置、控件",
+      "task": "打开一个 Mini App，填好输入，在应用界面上运行一次。"
     },
     "ask-ai": {
-      "title": "问问 AI"
+      "title": "问问 AI",
+      "result": "回答流入输出，后续节点仍可使用。",
+      "startingState": "一块新的工作流画布，输入输出通路为空。",
+      "tagline": "问题进，流式回答出",
+      "task": "把问题输入接到 LLM 节点，让它解释一段 API，然后运行。"
     },
     "chat-agent-qa": {
-      "title": "询问对话智能体"
+      "title": "询问对话智能体",
+      "result": "对话先展示网页搜索调用，随后流式给出回答。",
+      "startingState": "一个新的全局对话，输入框为空。",
+      "tagline": "全局对话 · 工具调用实时可见",
+      "task": "问一个需要联网搜索的时事问题。"
     },
     "combine-inputs": {
-      "title": "合并两个输入"
+      "title": "合并两个输入",
+      "result": "预览显示填好两个输入值的完整模板。",
+      "startingState": "一块新的工作流画布，两个文本输入待连接。",
+      "tagline": "用模板合并多个值",
+      "task": "把名称与主题输入接到模板提示词，填入两个值并运行。"
     },
     "connect-run": {
-      "title": "连线并运行"
+      "title": "连线并运行",
+      "result": "预览显示 HELLO NODETOOL，每个连通节点汇报完成。",
+      "startingState": "一块新的工作流画布，准备连接一个小图。",
+      "tagline": "沿着连通的图从输入看到输出",
+      "task": "把文本输入接到 Uppercase 再接到 Preview，用 hello nodetool 运行，查看输出。"
     },
     "describe-image": {
-      "title": "描述一张图像"
+      "title": "描述一张图像",
+      "result": "视觉模型回答了对图像的描述，可在下游输出中使用。",
+      "startingState": "一块新的工作流画布，图像输入待填。",
+      "tagline": "给 AI 看图，换回文字",
+      "task": "添加一张图片，连到 Agent 节点，运行图来描述画面内容。"
     },
     "first-workflow": {
-      "title": "搭建你的第一个工作流"
+      "title": "搭建你的第一个工作流",
+      "result": "图运行完成，生成的图像出现在画布上。",
+      "startingState": "引导式工作流搭建中的一个新工作流。",
+      "tagline": "文本 → 润色 → 图像，一步到位",
+      "task": "搭一个文生图的图：文本输入、润色步骤、图像生成器，然后运行它。"
     },
     "jsscript-assistant": {
-      "title": "编写 JS 脚本"
+      "title": "编写 JS 脚本",
+      "tagline": "JS 脚本 · 端口、主体、已存测试"
     },
     "jsscript-repair": {
-      "title": "让测试拦住问题"
+      "title": "让测试拦住问题",
+      "tagline": "JS 脚本 · 先红，修复后转绿"
     },
     "list-generator": {
-      "title": "生成一个列表"
+      "title": "生成一个列表",
+      "result": "输出包含多个列表项，可传给下游节点。",
+      "startingState": "一块新的工作流画布，尚未连接任何节点。",
+      "tagline": "一条提示词，多个结果",
+      "task": "把主题输入接到可生成列表的 LLM 节点，运行它获取周末出行点子。"
     },
     "script-assistant": {
-      "title": "撰写脚本并配音"
+      "title": "撰写脚本并配音",
+      "result": "脚本包含阵容说话人、写好的台词，以及每个说话人的录音条目。",
+      "startingState": "一个新脚本，还没有阵容和对白。",
+      "tagline": "脚本编辑器 · 阵容、台词、条目",
+      "task": "向助手要一份双说话人短剧本，然后让它为台词配音。"
     },
     "sketch-assistant": {
-      "title": "通过对话编辑图稿"
+      "title": "通过对话编辑图稿",
+      "result": "罩色图层出现在图层面板中，带所设混合模式与不透明度。",
+      "startingState": "一张新建图稿，图层栈为空。",
+      "tagline": "图稿编辑器 · 助手来画这一层",
+      "task": "让助手加一个柔和罩色图层，并设定混合模式与不透明度。"
     },
     "sketch-correction": {
-      "title": "中途修正，无需推倒重来"
+      "title": "中途修正，无需推倒重来",
+      "result": "既有图层原位修改，图层数保持不变。",
+      "startingState": "一张新图稿，等着助手来编辑。",
+      "tagline": "图稿编辑器 · 第二次要求会修改第一次",
+      "task": "做一次助手编辑，再让它减弱效果且不新建图层。"
     },
     "storyboard-ask": {
-      "title": "生成消耗前先询问"
+      "title": "生成消耗前先询问",
+      "result": "助手先等待再花费，得到你的回答后生成明确的镜头清单。",
+      "startingState": "一个新分镜，没有镜头，也未开始渲染。",
+      "tagline": "分镜 · 先问清，不瞎猜",
+      "task": "给助手一份不完整的简报，回答它的追问，然后批准分镜板。"
     },
     "storyboard-assistant": {
-      "title": "编排分镜表"
+      "title": "编排分镜表",
+      "result": "分镜板包含已批准的镜头清单，每镜都有渲染好的静帧。",
+      "startingState": "一个新分镜，镜头清单为空。",
+      "tagline": "分镜 · 先导演，后静帧",
+      "task": "描述一个短片，检查生成的镜头清单，批准后开始渲染。"
     },
     "summarize-text": {
-      "title": "总结一篇文档"
+      "title": "总结一篇文档",
+      "result": "预览包含更短的要点，原文仍可对照查看。",
+      "startingState": "一块新的工作流画布，文本通路为空。",
+      "tagline": "长文进，要点出",
+      "task": "把长文喂给 Summarizer 节点，运行后把摘要送到 Preview。"
     },
     "timeline-trim-arrange": {
-      "title": "剪出一场戏"
+      "title": "剪出一场戏",
+      "result": "时间线播放排好的剪辑，字幕与对白对齐。",
+      "startingState": "一条新时间线，轨道为空，没有片段。",
+      "tagline": "时间线编辑器 · 修剪、编排、字幕",
+      "task": "放两个片段，修剪剪切点，加字幕，预览成品序列。"
     }
   }
 }

@@ -399,7 +399,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             description={
               target === "runpod"
                 ? "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models."
-                : "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money."
+                : i18n.t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
             }
           />
           {gpu === CUSTOM_GPU && (
@@ -413,8 +413,8 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
               onChange={(e) => setCustomGpu(e.target.value)}
               helperText={
                 target === "runpod"
-                  ? "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”."
-                  : "Exact Vast name, e.g. “RTX_6000Ada”."
+                  ? i18n.t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." })
+                  : i18n.t("editor:ui.exactVastNameEgRTX_6000Ada", { defaultValue: "Exact Vast name, e.g. “RTX_6000Ada”." })
               }
               fullWidth
               compact

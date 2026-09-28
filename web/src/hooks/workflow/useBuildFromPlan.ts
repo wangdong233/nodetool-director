@@ -33,6 +33,7 @@ import useResultsStore from "../../stores/ResultsStore";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
+import { i18n } from "../../i18n";
 
 export const workflowBuildStatuses = [
   "built",
@@ -188,7 +189,7 @@ const readRunResponse = (value: unknown): RunResponse => {
     return output === undefined || output === null
       ? {
           status: "failed",
-          error: "The test run completed without producing output.",
+          error: i18n.t("editor:ui.theTestRunCompletedWithoutProducingOutput", { defaultValue: "The test run completed without producing output." }),
           jobId
         }
       : { status: "completed-with-output", output, error: null, jobId };
@@ -199,7 +200,7 @@ const readRunResponse = (value: unknown): RunResponse => {
       error:
         typeof value["error"] === "string"
           ? value["error"]
-          : "The test run failed.",
+          : i18n.t("editor:ui.theTestRunFailed", { defaultValue: "The test run failed." }),
       jobId
     };
   }
@@ -272,7 +273,7 @@ const waitForRunCompletion = async (
         if (value === undefined) {
           finish({
             status: "failed",
-            error: "The test run completed without producing output."
+            error: i18n.t("editor:ui.theTestRunCompletedWithoutProducingOutput", { defaultValue: "The test run completed without producing output." })
           });
           return;
         }
@@ -482,7 +483,7 @@ export const useBuildFromPlan = (
               ? `The graph failed validation with ${validationErrors.length} error${
                   validationErrors.length === 1 ? "" : "s"
                 }.`
-              : "The graph validates, but part of the plan is unwired."
+              : i18n.t("editor:ui.theGraphValidatesButPartOfThePlanIsUnwired", { defaultValue: "The graph validates, but part of the plan is unwired." })
           );
           await setSetup({ [WORKFLOW_BUILD_KEY]: workflowBuildRecord(failed) });
           setResult(failed);
@@ -579,7 +580,7 @@ export const useBuildFromPlan = (
               placement.nodes.length,
               placement.issues,
               validationErrors,
-              { started: true, error: "The test run did not return a job id." },
+              { started: true, error: i18n.t("editor:ui.theTestRunDidNotReturnAJobId", { defaultValue: "The test run did not return a job id." }) },
               "The sample run could not be tracked because it did not return a job id."
             );
           }

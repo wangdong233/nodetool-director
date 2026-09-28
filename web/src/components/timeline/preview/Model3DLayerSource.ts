@@ -32,6 +32,7 @@ import type {
   Model3DRenderSession,
   Model3DSessionOptions
 } from "@nodetool-ai/video-nodes/nodes/model3d/render3d-core";
+import { i18n } from "../../../i18n";
 
 export type { Model3DRenderSession, Model3DSessionOptions };
 
@@ -335,7 +336,7 @@ export class Model3DLayerSource {
       this.settle(clipId, entry, {
         status: "unavailable",
         reason: "no_webgl",
-        message: "This browser has no WebGL, so 3D clips cannot be drawn here."
+        message: i18n.t("timeline:attrs.thisBrowserHasNoWebGLSo3DClipsCannotBeDrawnHere", { defaultValue: "This browser has no WebGL, so 3D clips cannot be drawn here." })
       });
       return;
     }

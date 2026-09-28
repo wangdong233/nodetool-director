@@ -7,6 +7,7 @@ import { CopyButton, Text, EditorButton, Box, MOTION, BORDER_RADIUS, Z_INDEX, ge
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
+import { i18n } from "./i18n";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -182,7 +183,7 @@ const ErrorBoundary: React.FC = () => {
       ? error.message
       : "An unknown error occurred" + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : "No stack trace available";
+    error instanceof Error ? error.stack : i18n.t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
 
@@ -237,7 +238,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : "Copy error"}
+            {copied ? "Copied!" : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">

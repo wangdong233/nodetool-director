@@ -91,7 +91,7 @@ const TakeRow = ({
   return (
     <FlexRow align="center" gap={SPACING.sm} fullWidth>
       <ToolbarIconButton
-        tooltip={isCurrent ? "Current take" : "Use this take"}
+        tooltip={isCurrent ? i18n.t("editor:ui.currentTake", { defaultValue: "Current take" }) : i18n.t("editor:ui.useThisTake", { defaultValue: "Use this take" })}
         onClick={useTake}
         icon={
           <CheckCircleIcon

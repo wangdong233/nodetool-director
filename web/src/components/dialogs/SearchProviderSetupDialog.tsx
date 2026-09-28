@@ -94,7 +94,7 @@ const SearchProviderSetupDialog: React.FC = () => {
         content:
           error instanceof Error
             ? error.message
-            : "Failed to save search provider",
+            : i18n.t("editor:ui.failedToSaveSearchProvider", { defaultValue: "Failed to save search provider" }),
         type: "error",
         alert: true
       });
@@ -134,7 +134,7 @@ const SearchProviderSetupDialog: React.FC = () => {
           <Text>
             {nodeNames
               ? `${nodeNames} uses a web-search tool, but no search provider is configured. `
-              : "This agent uses a web-search tool, but no search provider is configured. "}
+              : i18n.t("editor:ui.thisAgentUsesAWebsearchToolButNoSearchProviderIsConfigured", { defaultValue: "This agent uses a web-search tool, but no search provider is configured. " })}
             Add one below to run the workflow.
           </Text>
 

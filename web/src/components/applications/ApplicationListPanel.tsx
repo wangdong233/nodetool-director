@@ -131,7 +131,7 @@ export const CreateApplicationFromWorkflowButton = memo(
           setCreateError(
             error instanceof Error
               ? error.message
-              : "Could not create the app from this workflow."
+              : i18n.t("editor:ui.couldNotCreateTheAppFromThisWorkflow", { defaultValue: "Could not create the app from this workflow." })
           );
         }
       },

@@ -42,6 +42,14 @@ const TAB_PLACEHOLDERS = {
   result: "Run the node to composite"
 } satisfies Record<MaskTab, string>;
 
+
+const TAB_PLACEHOLDER_KEYS: Record<MaskTab, string> = {
+  image1: "editor:ui.connectImage1",
+  image2: "editor:ui.connectImage2",
+  mask: "editor:ui.connectAMask",
+  result: "editor:ui.runTheNodeToComposite"
+};
+
 const styles = (theme: Theme) =>
   css({
     "&.mask-body": {
@@ -175,7 +183,7 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
     <div css={cssStyles} className="mask-body" data-bespoke-body="Mask">
       <HandleColumn id={id} properties={imageHandles} />
       <div className="preview-area">
-        <ImagePreview value={tabValue} placeholder={TAB_PLACEHOLDERS[tab]} />
+        <ImagePreview value={tabValue} placeholder={i18n.t(TAB_PLACEHOLDER_KEYS[tab], { defaultValue: TAB_PLACEHOLDERS[tab] })} />
       </div>
 
       <FlexColumn className="controls" gap={0.5}>

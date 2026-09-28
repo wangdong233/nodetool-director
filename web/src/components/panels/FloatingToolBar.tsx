@@ -571,7 +571,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
   const runTooltip = isStopping
     ? "Stopping workflow"
     : runControlLabel.startsWith("Error")
-      ? `${runControlDetail ?? "Workflow failed to start"}. Click to retry the entire workflow.`
+      ? `${runControlDetail ?? i18n.t("editor:ui.workflowFailedToStart", { defaultValue: "Workflow failed to start" })}. Click to retry the entire workflow.`
       : queuePosition != null
         ? `Queued (#${queuePosition})`
         : pendingRunCount > 0

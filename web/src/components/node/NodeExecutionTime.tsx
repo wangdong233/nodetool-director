@@ -87,7 +87,7 @@ const NodeExecutionTime: React.FC<NodeExecutionTimeProps> = ({
         weight={500}
         sx={isError ? TEXT_SX_ERROR : TEXT_SX_SUCCESS}
       >
-        {isError ? "Failed in" : "Completed in"}
+        {isError ? i18n.t("editor:ui.failedIn", { defaultValue: "Failed in" }) : i18n.t("editor:ui.completedIn", { defaultValue: "Completed in" })}
         <Box
           component="span"
           sx={DURATION_SPAN_SX}

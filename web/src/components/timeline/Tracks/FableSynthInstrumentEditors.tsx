@@ -295,7 +295,7 @@ export const InstrumentKeyboard = ({
   <Panel
     title="KEYS"
     className="fs-keys-panel"
-    head={<Caption>Click or focus a key and press Enter</Caption>}
+    head={<Caption>{i18n.t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
   >
     <div className="fs-keys">
       <div className="fs-white-keys">
@@ -909,7 +909,7 @@ const DrumEditor = ({
                 </div>
               </>
             ) : (
-              <Caption>Filter bypassed. Enable to shape this pad.</Caption>
+              <Caption>{i18n.t("timeline:attrs.filterBypassedEnableToShapeThisPad", { defaultValue: "Filter bypassed. Enable to shape this pad." })}</Caption>
             )}
           </Panel>
           <Panel title="OUTPUT" accent="b">
@@ -962,8 +962,8 @@ const FableSynthInstrumentEditor = ({
           {instrument.type === "bass"
             ? "Bass synthesizer"
             : instrument.type === "wavetable"
-              ? "Wavetable synthesizer"
-              : "Drum synthesizer"}
+              ? i18n.t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" })
+              : i18n.t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}
         </Caption>
         <EditorButton
           size="small"

@@ -115,7 +115,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
     } catch (err) {
       // The request stays open: the run is still waiting, and the user can
       // correct a paste and try again rather than losing the turn.
-      setError(err instanceof Error ? err.message : "Could not save the key.");
+      setError(err instanceof Error ? err.message : i18n.t("editor:ui.couldNotSaveTheKey", { defaultValue: "Could not save the key." }));
       setSaving(false);
     }
   }, [approvalId, onResolve, request.key, updateSecret, value]);

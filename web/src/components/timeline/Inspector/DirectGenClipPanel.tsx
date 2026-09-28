@@ -366,11 +366,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 
   const promptPlaceholder =
     kind === "video"
-      ? "Describe the video…"
+      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" })
       : kind === "music"
-        ? "Describe the music…"
+        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
         : kind === "audio"
-          ? "Type text to speak…"
+          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
           : "Describe the image…";
 
   const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";

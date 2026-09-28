@@ -124,7 +124,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
       } catch (error: unknown) {
         console.error("Deletion error:", error);
 
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" });
 
         const isNotFound =
           errorMessage.includes("Not Found") || errorMessage.includes("404");

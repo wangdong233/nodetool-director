@@ -66,7 +66,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         setDuplicateError(
-          err instanceof Error ? err.message : "Failed to duplicate clip"
+          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToDuplicateClip", { defaultValue: "Failed to duplicate clip" })
         );
       } finally {
         duplicateBusyRef.current = false;
@@ -84,7 +84,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         setDuplicateError(
-          err instanceof Error ? err.message : "Failed to create copy"
+          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToCreateCopy", { defaultValue: "Failed to create copy" })
         );
       }
     }, [clipId, duplicateOffsetMs, regenerateAsCopy, selectClip]);
@@ -167,11 +167,11 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             tooltip={
               clip.locked
                 ? "Locked — successful generations do not replace current output"
-                : "Unlocked — successful generations replace current output"
+                : i18n.t("timeline:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={clip.locked}
             onClick={handleToggleLock}
-            aria-label={clip.locked ? "Unlock clip" : "Lock clip"}
+            aria-label={clip.locked ? i18n.t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : "Lock clip"}
             data-testid="clip-action-lock"
           />
 

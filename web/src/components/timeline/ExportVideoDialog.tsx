@@ -28,9 +28,15 @@ import { i18n } from "../../i18n";
 
 const FORMAT_OPTIONS: readonly SelectOption[] = [
   { value: "mp4", label: "MP4 (H.264)" },
-  { value: "webm", label: i18n.t("timeline:export.webm", { defaultValue: "WebM (VP9)" }) },
+  { value: "webm", label: "WebM (VP9)" },
   { value: "png_sequence", label: "PNG sequence (.zip)" }
 ];
+
+const FORMAT_LABEL_KEYS: Record<string, string> = {
+  mp4: "timeline:export.MP4H264",
+  webm: "timeline:export.webm",
+  png_sequence: "timeline:export.PNGSequenceZip"
+};
 
 /** One line under the picker saying what the choice actually produces. */
 const FORMAT_NOTE: Record<BrowserExportFormat, string> = {
@@ -38,6 +44,12 @@ const FORMAT_NOTE: Record<BrowserExportFormat, string> = {
   webm: "VP9 video with Opus audio.",
   png_sequence:
     "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio."
+};
+
+const FORMAT_NOTE_KEYS: Record<BrowserExportFormat, string> = {
+  mp4: "timeline:export.playsEverywhereNoTransparency",
+  webm: "timeline:export.VP9VideoWithOpusAudio",
+  png_sequence: "timeline:export.onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio"
 };
 
 /** What the dialog hands back when the user starts the render. */
@@ -54,6 +66,12 @@ const ALPHA_NOTE: Record<BrowserExportFormat, string> = {
   mp4: "MP4 carries no alpha channel. Choose WebM or a PNG sequence.",
   webm: "Composites over a transparent ground and keeps the alpha channel.",
   png_sequence: "Every PNG keeps its alpha channel."
+};
+
+const ALPHA_NOTE_KEYS: Record<BrowserExportFormat, string> = {
+  mp4: "timeline:export.MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence",
+  webm: "timeline:export.compositesOverATransparentGroundAndKeepsTheAlphaChannel",
+  png_sequence: "timeline:export.everyPNGKeepsItsAlphaChannel"
 };
 
 export interface ExportVideoDialogProps {
@@ -110,10 +128,10 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
           label={i18n.t("timeline:export.format", { defaultValue: "Format" })}
           value={format}
           onChange={handleFormatChange}
-          options={FORMAT_OPTIONS}
+          options={FORMAT_OPTIONS.map((o) => ({ ...o, label: i18n.t(FORMAT_LABEL_KEYS[o.value] ?? "", { defaultValue: o.label }) }))}
         />
         <Text size="small" sx={{ color: "text.secondary" }}>
-          {FORMAT_NOTE[format]}
+          {i18n.t(FORMAT_NOTE_KEYS[format], { defaultValue: FORMAT_NOTE[format] })}
         </Text>
         <LabeledSwitch
           id="timeline-export-alpha"
@@ -122,7 +140,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
           checked={alpha}
           onChange={setAlpha}
           disabled={format === "mp4"}
-          description={ALPHA_NOTE[format]}
+          description={i18n.t(ALPHA_NOTE_KEYS[format], { defaultValue: ALPHA_NOTE[format] })}
         />
       </FlexColumn>
     </Dialog>

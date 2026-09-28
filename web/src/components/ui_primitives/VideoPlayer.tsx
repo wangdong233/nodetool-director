@@ -410,7 +410,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
             className="fullscreen-button"
             size="small"
             onClick={handleToggleFullscreen}
-            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            aria-label={isFullscreen ? i18n.t("editor:ui.exitFullscreen", { defaultValue: "Exit fullscreen" }) : "Enter fullscreen"}
           >
             {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
           </IconButton>

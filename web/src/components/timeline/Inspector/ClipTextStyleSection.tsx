@@ -290,7 +290,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
               minRows={3}
               fullWidth
               onChange={handleTextChange}
-              inputProps={TEXT_CONTENT_INPUT_PROPS}
+              inputProps={{ ...TEXT_CONTENT_INPUT_PROPS, "aria-label": i18n.t("timeline:attrs.textContent", { defaultValue: "Text content" }) }}
             />
             <InspectorRow label={i18n.t("editor:ui.font", { defaultValue: "Font" })}>
               <FontPicker
@@ -328,7 +328,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                 type="color"
                 value={textStyle.color}
                 onChange={handleColorChange}
-                inputProps={TEXT_COLOR_INPUT_PROPS}
+                inputProps={{ ...TEXT_COLOR_INPUT_PROPS, "aria-label": i18n.t("timeline:attrs.textColor", { defaultValue: "Text color" }) }}
               />
             </InspectorRow>
             <InspectorRow label={i18n.t("timeline:attrs.align", { defaultValue: "Align" })}>
@@ -378,7 +378,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     type="color"
                     value={textStyle.stroke.color}
                     onChange={handleStrokeColorChange}
-                    inputProps={STROKE_COLOR_INPUT_PROPS}
+                    inputProps={{ ...STROKE_COLOR_INPUT_PROPS, "aria-label": i18n.t("timeline:attrs.textStrokeColor", { defaultValue: "Text stroke color" }) }}
                   />
                 </InspectorRow>
                 <InspectorRow label={i18n.t("timeline:attrs.strokeWidth", { defaultValue: "Stroke width" })}>
@@ -405,7 +405,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     type="color"
                     value={textStyle.shadow.color}
                     onChange={handleShadowColorChange}
-                    inputProps={SHADOW_COLOR_INPUT_PROPS}
+                    inputProps={{ ...SHADOW_COLOR_INPUT_PROPS, "aria-label": i18n.t("timeline:attrs.textShadowColor", { defaultValue: "Text shadow color" }) }}
                   />
                 </InspectorRow>
                 <InspectorRow label={i18n.t("timeline:attrs.shadowBlur", { defaultValue: "Shadow blur" })}>
@@ -450,7 +450,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
                     type="color"
                     value={textStyle.background.color}
                     onChange={handleBackgroundColorChange}
-                    inputProps={BACKGROUND_COLOR_INPUT_PROPS}
+                    inputProps={{ ...BACKGROUND_COLOR_INPUT_PROPS, "aria-label": i18n.t("timeline:attrs.textBackgroundColor", { defaultValue: "Text background color" }) }}
                   />
                 </InspectorRow>
                 <InspectorRow label={i18n.t("timeline:attrs.backgroundPadding", { defaultValue: "Background padding" })}>

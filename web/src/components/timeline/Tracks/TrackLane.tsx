@@ -323,7 +323,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       // Multi-asset drags are not supported for clip creation — guide the user.
       if (dragData.type === "assets-multiple") {
-        showWarning("Drop one asset at a time onto a track.", true);
+        showWarning(i18n.t("timeline:attrs.dropOneAssetAtATimeOntoATrack", { defaultValue: "Drop one asset at a time onto a track." }), true);
         return;
       }
 

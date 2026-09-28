@@ -247,7 +247,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
           title={
             genspendSnapshotOn
               ? `Prices read from the genspend.io catalog snapshot of ${genspendSnapshotOn}`
-              : "Prices ship with the app; a nightly sync moves them"
+              : i18n.t("editor:ui.pricesShipWithTheAppANightlySyncMovesThem", { defaultValue: "Prices ship with the app; a nightly sync moves them" })
           }
           arrow
         >

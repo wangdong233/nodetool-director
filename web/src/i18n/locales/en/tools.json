@@ -214,55 +214,117 @@
   },
   "tutorials": {
     "app-assistant": {
-      "title": "Build a mini app"
+      "title": "Build a mini app",
+      "result": "The app displays a completed answer and its input/output widgets remain bound.",
+      "startingState": "The Examples page with the mini-app gallery ready to browse.",
+      "tagline": "App builder · operation, setting, widgets",
+      "task": "Open a mini app, provide its input, and run it once from the app surface."
     },
     "ask-ai": {
-      "title": "Ask the AI"
+      "title": "Ask the AI",
+      "result": "The answer streams into the output and remains available to the next node.",
+      "startingState": "A new workflow canvas with an empty input and output path.",
+      "tagline": "A question in, a streamed answer out",
+      "task": "Connect a question input to an LLM node, ask for a short API explanation, and run it."
     },
     "chat-agent-qa": {
-      "title": "Ask the chat agent"
+      "title": "Ask the chat agent",
+      "result": "The chat shows a web-search tool call followed by a streamed answer.",
+      "startingState": "A new Global Chat conversation with an empty composer.",
+      "tagline": "Global Chat · tool calls, streamed live",
+      "task": "Ask a current-facts question that requires a web search."
     },
     "combine-inputs": {
-      "title": "Combine two inputs"
+      "title": "Combine two inputs",
+      "result": "Preview shows the completed template with both input values substituted.",
+      "startingState": "A new workflow canvas with two text inputs ready to connect.",
+      "tagline": "Merge values with a template",
+      "task": "Connect name and topic inputs to a template prompt, fill both values, and run it."
     },
     "connect-run": {
-      "title": "Connect & run"
+      "title": "Connect & run",
+      "result": "Preview shows HELLO NODETOOL and each connected node reports completion.",
+      "startingState": "A new workflow canvas ready for a small connected graph.",
+      "tagline": "Follow a connected graph from input to output",
+      "task": "Connect a text input to Uppercase and then to Preview, run it with hello nodetool, and inspect the output."
     },
     "describe-image": {
-      "title": "Describe an image"
+      "title": "Describe an image",
+      "result": "The vision response describes the image and is available in the downstream output.",
+      "startingState": "A new workflow canvas with an image input ready to fill.",
+      "tagline": "Show the AI a picture, get words back",
+      "task": "Add an image, connect it to an Agent, and run the graph to describe what is visible."
     },
     "first-workflow": {
-      "title": "Build your first workflow"
+      "title": "Build your first workflow",
+      "result": "The graph completes and the generated image appears on the canvas.",
+      "startingState": "A new workflow in the guided workflow setup.",
+      "tagline": "Text → enhance → image, end to end",
+      "task": "Build a text-to-image graph with a text input, an enhancement step, and an image generator, then run it."
     },
     "jsscript-assistant": {
-      "title": "Write a JS script"
+      "title": "Write a JS script",
+      "tagline": "JS scripts · ports, body, saved test"
     },
     "jsscript-repair": {
-      "title": "A test catches it"
+      "title": "A test catches it",
+      "tagline": "JS scripts · red, then the repair, then green"
     },
     "list-generator": {
-      "title": "Generate a list"
+      "title": "Generate a list",
+      "result": "The output contains multiple list items that can be passed to a downstream node.",
+      "startingState": "A new workflow canvas with no nodes connected.",
+      "tagline": "One prompt, many results",
+      "task": "Connect a topic input to a list-generating LLM node and run it for weekend trip ideas."
     },
     "script-assistant": {
-      "title": "Write and voice a script"
+      "title": "Write and voice a script",
+      "result": "The script contains cast speakers, written lines, and an audio take for each speaker.",
+      "startingState": "A new script with no cast or dialogue.",
+      "tagline": "Script editor · cast, lines, takes",
+      "task": "Ask the assistant for a short two-speaker script, then have it voice the lines."
     },
     "sketch-assistant": {
-      "title": "Edit a sketch by asking"
+      "title": "Edit a sketch by asking",
+      "result": "The wash layer appears in the layer panel with the requested blend mode and opacity.",
+      "startingState": "A new sketch with a blank layer stack.",
+      "tagline": "Sketch editor · the assistant paints the layer",
+      "task": "Ask the assistant to add a soft wash layer and set its blend mode and opacity."
     },
     "sketch-correction": {
-      "title": "Correct it without starting over"
+      "title": "Correct it without starting over",
+      "result": "The existing layer is amended in place and the layer count stays unchanged.",
+      "startingState": "A new sketch ready for an assistant-led edit.",
+      "tagline": "Sketch editor · the second ask amends the first",
+      "task": "Make one assistant edit, then ask it to reduce the effect without creating another layer."
     },
     "storyboard-ask": {
-      "title": "It asks before it spends"
+      "title": "It asks before it spends",
+      "result": "The assistant waits before spending, then creates the clarified shot list after your answer.",
+      "startingState": "A new storyboard with no shots and no render started.",
+      "tagline": "Storyboard · a question, not a guess",
+      "task": "Give the assistant an incomplete brief, answer its follow-up question, and approve the board."
     },
     "storyboard-assistant": {
-      "title": "Board a shot list"
+      "title": "Board a shot list",
+      "result": "The board contains an approved shot list with a rendered still for each shot.",
+      "startingState": "A new storyboard with an empty shot list.",
+      "tagline": "Storyboard · direction, then stills",
+      "task": "Describe a short piece, review the generated shot list, and approve it for rendering."
     },
     "summarize-text": {
-      "title": "Summarize a document"
+      "title": "Summarize a document",
+      "result": "Preview contains a shorter set of key points while the source remains available for comparison.",
+      "startingState": "A new workflow canvas with an empty text path.",
+      "tagline": "Long text in, key points out",
+      "task": "Feed a long passage into a Summarizer node, run it, and send the summary to Preview."
     },
     "timeline-trim-arrange": {
-      "title": "Cut a scene together"
+      "title": "Cut a scene together",
+      "result": "The timeline plays the arranged cut with the caption aligned to the dialogue.",
+      "startingState": "A new timeline with empty tracks and no clips.",
+      "tagline": "Timeline editor · trim, arrange, caption",
+      "task": "Place two clips, trim their cut, add a caption, and preview the finished sequence."
     }
   }
 }

@@ -21,6 +21,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import { copyAssetToClipboard, isClipboardSupported, getClipboardSupportMessage } from "../../utils/clipboardUtils";
 import { isElectron } from "../../utils/browser";
+import { i18n } from "../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -326,7 +327,7 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
 
     const tooltipText =
       state === "error"
-        ? "Failed to copy"
+        ? i18n.t("editor:ui.failedToCopy", { defaultValue: "Failed to copy" })
         : state === "copied"
           ? "Copied!"
           : tooltip || getDefaultTooltip();

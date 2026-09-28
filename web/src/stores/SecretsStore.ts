@@ -4,6 +4,7 @@ import { createErrorMessage } from "../utils/errorHandling";
 import { SecretResponse } from "./ApiTypes";
 import { queryClient } from "../queryClient";
 import { isString } from "../utils/typePredicates";
+import { i18n } from "../i18n";
 
 /**
  * What the server learned by probing a credential. `unverifiable` is its own
@@ -68,7 +69,7 @@ const useSecretsStore = create<SecretsStore>((set, get) => ({
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       set({
-        error: createErrorMessage(error, "Failed to load secrets").message,
+        error: createErrorMessage(error, i18n.t("editor:ui.failedToLoadSecrets", { defaultValue: "Failed to load secrets" })).message,
         isLoading: false
       });
       throw error;
@@ -100,7 +101,7 @@ const useSecretsStore = create<SecretsStore>((set, get) => ({
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       set({
-        error: createErrorMessage(error, "Failed to update secret").message
+        error: createErrorMessage(error, i18n.t("editor:ui.failedToUpdateSecret", { defaultValue: "Failed to update secret" })).message
       });
       throw error;
     }
@@ -116,7 +117,7 @@ const useSecretsStore = create<SecretsStore>((set, get) => ({
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       set({
-        error: createErrorMessage(error, "Failed to delete secret").message
+        error: createErrorMessage(error, i18n.t("editor:ui.failedToDeleteSecret", { defaultValue: "Failed to delete secret" })).message
       });
       throw error;
     }
@@ -134,7 +135,7 @@ const useSecretsStore = create<SecretsStore>((set, get) => ({
       return {
         status: "unverifiable" as const,
         valid: false,
-        message: "Couldn't reach the server to check the key."
+        message: i18n.t("editor:ui.couldntReachTheServerToCheckTheKey", { defaultValue: "Couldn't reach the server to check the key." })
       };
     }
   }

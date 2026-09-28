@@ -251,7 +251,7 @@ export const useDropHandler = (): UseDropHandlerResult => {
               );
               addNotification({
                 type: "error",
-                content: `Failed to load asset: ${error instanceof Error ? error.message : "Unknown error"}`,
+                content: `Failed to load asset: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`,
                 alert: true
               });
             }
@@ -266,7 +266,7 @@ export const useDropHandler = (): UseDropHandlerResult => {
             console.error(`[drop] Failed to load asset ${asset.id}`, error);
             addNotification({
               type: "error",
-              content: `Failed to load asset: ${error instanceof Error ? error.message : "Unknown error"}`,
+              content: `Failed to load asset: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`,
               alert: true
             });
           }

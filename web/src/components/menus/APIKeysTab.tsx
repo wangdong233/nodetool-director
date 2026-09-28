@@ -142,7 +142,7 @@ export const ProviderCard = memo(function ProviderCard({
     ? "Unavailable"
     : isConnected
       ? "Connected"
-      : "Not connected";
+      : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" });
 
   const handleConnect = useCallback(() => {
     onConnect(secret);
@@ -331,7 +331,7 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {hasKey ? "Key stored" : "Signed in"}, but this server does not
+              {hasKey ? i18n.t("editor:ui.keyStored", { defaultValue: "Key stored" }) : "Signed in"}, but this server does not
               offer {meta.name}. Its models stay out of the model menu.
             </Caption>
           )}
@@ -1249,7 +1249,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <CardGiftcardIcon
             sx={{ color: theme.vars.palette.primary.main, fontSize: "1.2em" }}
           />
-          <Text size="small">Need API credits?</Text>
+          <Text size="small">{i18n.t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
           Get free credits and offers from our partner providers.

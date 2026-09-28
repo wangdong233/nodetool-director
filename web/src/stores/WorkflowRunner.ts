@@ -42,6 +42,7 @@ import { queryClient } from "../queryClient";
 import { clearRunSignatures, recordRunSignatures } from "./runSignatures";
 import { computeRunSignatures } from "../utils/computeRunSignatures";
 import { getNodeGenerations } from "./nodeGenerationAccessor";
+import { i18n } from "../i18n";
 
 /**
  * Title for a run: the node's name for a single-node run, otherwise the
@@ -486,7 +487,7 @@ export const createWorkflowRunnerStore = (
           jobReplayCursor: 0,
           isBrowserRun: false,
           queuePosition: null,
-          statusMessage: "Workflow starting...",
+          statusMessage: i18n.t("editor:ui.workflowStarting", { defaultValue: "Workflow starting..." }),
           notifications: [],
           state: "connecting"
         });
@@ -512,7 +513,7 @@ export const createWorkflowRunnerStore = (
               statusMessage:
                 error instanceof Error
                   ? error.message
-                  : "Failed to resolve auth session"
+                  : i18n.t("editor:ui.failedToResolveAuthSession", { defaultValue: "Failed to resolve auth session" })
             });
           }
           throw error instanceof Error ? error : new Error(String(error));
@@ -677,7 +678,7 @@ export const createWorkflowRunnerStore = (
           state: "error",
           job_id: null,
           statusMessage:
-            error instanceof Error ? error.message : "Failed to start job"
+            error instanceof Error ? error.message : i18n.t("editor:ui.failedToStartJob", { defaultValue: "Failed to start job" })
         });
         throw error;
       }

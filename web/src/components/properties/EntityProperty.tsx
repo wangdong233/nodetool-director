@@ -79,7 +79,7 @@ const EntityProperty = (props: PropertyProps<Entity | Entity[] | null>) => {
     [multiple, onChange, selected]
   );
 
-  const addLabel = multiple ? "Add entity" : "Pick entity";
+  const addLabel = multiple ? "Add entity" : i18n.t("editor:ui.pickEntity", { defaultValue: "Pick entity" });
 
   return (
     <>
