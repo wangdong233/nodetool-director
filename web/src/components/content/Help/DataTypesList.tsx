@@ -13,6 +13,7 @@ import {
 } from "../../ui_primitives";
 import { DataType } from "../../../config/data_types";
 import { IconForType } from "../../../config/IconForType";
+import { i18n } from "../../../i18n";
 
 interface DataTypesListProps {
   title: string;
@@ -117,7 +118,9 @@ const DataTypesList = ({
                   flex: 1
                 }}
               >
-                {type.description}
+                {i18n.t(`catalog:dataTypes.${type.descriptionKey ?? ""}`, {
+                  defaultValue: type.description
+                })}
               </Text>
             </FlexRow>
           ))}

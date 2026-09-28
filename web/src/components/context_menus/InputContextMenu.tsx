@@ -32,7 +32,7 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import { Edge, useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import { NodeMetadata, TypeMetadata } from "../../stores/ApiTypes";
-import { labelForType } from "../../config/data_types";
+import { displayLabelForType, labelForType } from "../../config/data_types";
 import { isCollectType, isConnectable, Slugify } from "../../utils/TypeHandler";
 import { CODE_NODE_TYPE } from "../../constants/nodeTypes";
 import { useNodes } from "../../contexts/NodeContext";
@@ -1008,7 +1008,7 @@ const InputContextMenu: React.FC = () => {
                 <PushPinIcon />
               </span>
               <Text size="small">
-                {`Create ${labelForType(collectElementType?.type || "")} Constant`}
+                {`Create ${displayLabelForType(collectElementType?.type || "")} Constant`}
               </Text>
             </Box>
           )}
@@ -1024,7 +1024,7 @@ const InputContextMenu: React.FC = () => {
                 <InputIcon />
               </span>
               <Text size="small">
-                {`Create ${labelForType(collectElementType?.type || "")} Input`}
+                {`Create ${displayLabelForType(collectElementType?.type || "")} Input`}
               </Text>
             </Box>
           )}

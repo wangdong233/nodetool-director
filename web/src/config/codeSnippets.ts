@@ -39,6 +39,8 @@ interface SnippetInputDeclaration {
   type: string;
   default?: unknown;
   description?: string;
+  /** i18n key under catalog:snippets.* — resolves `description` at render. */
+  descriptionKey?: string;
   min?: number;
   max?: number;
 }
@@ -46,7 +48,11 @@ interface SnippetInputDeclaration {
 export interface CodeSnippet {
   id: string;
   title: string;
+  /** i18n key under catalog:snippets.* — resolves `title` at render. */
+  titleKey?: string;
   description: string;
+  /** i18n key under catalog:snippets.* — resolves `description` at render. */
+  descriptionKey?: string;
   category: SnippetCategory;
   code: string;
   tags: string[];
@@ -90,7 +96,9 @@ export const CODE_SNIPPETS: CodeSnippet[] = [
   {
     id: "bool-conditional",
     title: "Conditional Switch",
+    titleKey: "conditionalSwitch",
     description: "Return one of two values based on a condition",
+    descriptionKey: "returnOneOfTwoValuesBasedOnACondition",
     category: "Boolean & Logic",
     code: "return { output: inputs.condition ? inputs.if_true : inputs.if_false };",
     tags: ["conditional", "switch", "ternary", "if", "else"]
@@ -98,7 +106,9 @@ export const CODE_SNIPPETS: CodeSnippet[] = [
   {
     id: "bool-and",
     title: "Logical AND",
+    titleKey: "logicalAND",
     description: "Logical AND of two booleans",
+    descriptionKey: "logicalANDOfTwoBooleans",
     category: "Boolean & Logic",
     code: "return { output: inputs.a && inputs.b };",
     tags: ["and", "logical", "&&"]
@@ -106,7 +116,9 @@ export const CODE_SNIPPETS: CodeSnippet[] = [
   {
     id: "bool-or",
     title: "Logical OR",
+    titleKey: "logicalOR",
     description: "Logical OR of two booleans",
+    descriptionKey: "logicalOROfTwoBooleans",
     category: "Boolean & Logic",
     code: "return { output: inputs.a || inputs.b };",
     tags: ["or", "logical", "||"]
@@ -114,7 +126,9 @@ export const CODE_SNIPPETS: CodeSnippet[] = [
   {
     id: "bool-not",
     title: "Not",
+    titleKey: "not",
     description: "Negate a boolean value",
+    descriptionKey: "negateABooleanValue",
     category: "Boolean & Logic",
     code: "return { output: !inputs.value };",
     tags: ["not", "negate", "invert", "!"]
@@ -122,7 +136,9 @@ export const CODE_SNIPPETS: CodeSnippet[] = [
   {
     id: "bool-compare",
     title: "Compare",
+    titleKey: "compare",
     description: "Compare two values (==, !=, >, <, >=, <=)",
+    descriptionKey: "compareTwoValues",
     category: "Boolean & Logic",
     code: `// Change the operator as needed: ==, !=, >, <, >=, <=
 return { output: inputs.a > inputs.b };`,
@@ -131,7 +147,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "bool-is-none",
     title: "Is None",
+    titleKey: "isNone",
     description: "Check if a value is null or undefined",
+    descriptionKey: "checkIfAValueIsNullOrUndefined",
     category: "Boolean & Logic",
     code: "return { output: inputs.value === null || inputs.value === undefined };",
     tags: ["none", "null", "undefined", "empty", "check"]
@@ -139,7 +157,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "bool-is-in",
     title: "Is In",
+    titleKey: "isIn",
     description: "Check if a value is in a list",
+    descriptionKey: "checkIfAValueIsInAList",
     category: "Boolean & Logic",
     code: "return { output: inputs.list.includes(inputs.value) };",
     tags: ["in", "includes", "contains", "member"]
@@ -148,6 +168,7 @@ return { output: inputs.a > inputs.b };`,
     id: "bool-all",
     title: "All",
     description: "Check if all values are truthy",
+    descriptionKey: "checkIfAllValuesAreTruthy",
     category: "Boolean & Logic",
     code: "return { output: inputs.values.every(Boolean) };",
     tags: ["all", "every", "truthy"]
@@ -155,7 +176,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "bool-some",
     title: "Some",
+    titleKey: "some",
     description: "Check if any value is truthy",
+    descriptionKey: "checkIfAnyValueIsTruthy",
     category: "Boolean & Logic",
     code: "return { output: inputs.values.some(Boolean) };",
     tags: ["some", "any", "truthy"]
@@ -168,6 +191,7 @@ return { output: inputs.a > inputs.b };`,
     id: "math-add",
     title: "Add",
     description: "Add two numbers",
+    descriptionKey: "addTwoNumbers",
     category: "Math",
     code: "return { output: inputs.a + inputs.b };",
     tags: ["add", "plus", "sum", "+"]
@@ -175,7 +199,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-subtract",
     title: "Subtract",
+    titleKey: "subtract",
     description: "Subtract b from a",
+    descriptionKey: "subtractBFromA",
     category: "Math",
     code: "return { output: inputs.a - inputs.b };",
     tags: ["subtract", "minus", "difference", "-"]
@@ -184,6 +210,7 @@ return { output: inputs.a > inputs.b };`,
     id: "math-multiply",
     title: "Multiply",
     description: "Multiply two numbers",
+    descriptionKey: "multiplyTwoNumbers",
     category: "Math",
     code: "return { output: inputs.a * inputs.b };",
     tags: ["multiply", "product", "times", "*"]
@@ -191,7 +218,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-divide",
     title: "Divide",
+    titleKey: "divide",
     description: "Divide a by b",
+    descriptionKey: "divideAByB",
     category: "Math",
     code: "return { output: inputs.a / inputs.b };",
     tags: ["divide", "quotient", "/"]
@@ -199,7 +228,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-modulus",
     title: "Modulus",
+    titleKey: "modulus",
     description: "Remainder of a divided by b",
+    descriptionKey: "remainderOfADividedByB",
     category: "Math",
     code: "return { output: inputs.a % inputs.b };",
     tags: ["modulus", "remainder", "mod", "%"]
@@ -207,7 +238,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-power",
     title: "Power",
+    titleKey: "power",
     description: "Raise base to the power of exponent",
+    descriptionKey: "raiseBaseToThePowerOfExponent",
     category: "Math",
     code: "return { output: Math.pow(inputs.base, inputs.exponent) };",
     tags: ["power", "exponent", "pow", "**"]
@@ -215,7 +248,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-sqrt",
     title: "Square Root",
+    titleKey: "squareRoot",
     description: "Calculate the square root",
+    descriptionKey: "calculateTheSquareRoot",
     category: "Math",
     code: "return { output: Math.sqrt(inputs.value) };",
     tags: ["sqrt", "square root", "root"]
@@ -223,7 +258,9 @@ return { output: inputs.a > inputs.b };`,
   {
     id: "math-abs",
     title: "Absolute Value",
+    titleKey: "absoluteValue",
     description: "Get the absolute value",
+    descriptionKey: "getTheAbsoluteValue",
     category: "Math",
     code: "return { output: Math.abs(inputs.value) };",
     tags: ["abs", "absolute"]
@@ -232,6 +269,7 @@ return { output: inputs.a > inputs.b };`,
     id: "math-round",
     title: "Round",
     description: "Round to nearest integer (or to decimal places)",
+    descriptionKey: "roundToNearestIntegerOrToDecimalPlaces",
     category: "Math",
     code: `// Round to N decimal places (0 for integer)
 const places = 0;
@@ -241,7 +279,9 @@ return { output: Math.round(inputs.value * 10**places) / 10**places };`,
   {
     id: "math-min-max",
     title: "Min / Max",
+    titleKey: "minMax",
     description: "Find the minimum or maximum of values",
+    descriptionKey: "findTheMinimumOrMaximumOfValues",
     category: "Math",
     code: `return {
   min: Math.min(inputs.a, inputs.b),
@@ -252,7 +292,9 @@ return { output: Math.round(inputs.value * 10**places) / 10**places };`,
   {
     id: "math-clamp",
     title: "Clamp",
+    titleKey: "clamp",
     description: "Clamp a value between min and max",
+    descriptionKey: "clampAValueBetweenMinAndMax",
     category: "Math",
     code: "return { output: Math.min(Math.max(inputs.value, inputs.min), inputs.max) };",
     tags: ["clamp", "constrain", "limit", "bound"]
@@ -260,7 +302,9 @@ return { output: Math.round(inputs.value * 10**places) / 10**places };`,
   {
     id: "math-trig",
     title: "Trigonometry",
+    titleKey: "trigonometry",
     description: "sin, cos, tan and their inverses",
+    descriptionKey: "sinCosTanAndTheirInverses",
     category: "Math",
     code: `return {
   sin: Math.sin(inputs.angle),
@@ -272,7 +316,9 @@ return { output: Math.round(inputs.value * 10**places) / 10**places };`,
   {
     id: "math-random",
     title: "Random Number",
+    titleKey: "randomNumber",
     description: "Generate a random number in a range",
+    descriptionKey: "generateARandomNumberInARange",
     category: "Math",
     code: `const min = 0, max = 100;
 return { output: Math.random() * (max - min) + min };`,
@@ -285,7 +331,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-join",
     title: "Join Array",
+    titleKey: "joinArray",
     description: "Join array of strings with a separator",
+    descriptionKey: "joinArrayOfStringsWithASeparator",
     category: "Text",
     code: `return { output: inputs.items.join(", ") };`,
     tags: ["join", "implode", "separator", "array"]
@@ -294,6 +342,7 @@ return { output: Math.random() * (max - min) + min };`,
     id: "text-replace",
     title: "Replace",
     description: "Replace all occurrences of a substring",
+    descriptionKey: "replaceAllOccurrencesOfASubstring",
     category: "Text",
     code: `return { output: inputs.text.replaceAll(inputs.search, inputs.replacement) };`,
     tags: ["replace", "substitute", "swap"]
@@ -301,7 +350,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-split",
     title: "Split",
+    titleKey: "split",
     description: "Split a string into an array",
+    descriptionKey: "splitAStringIntoAnArray",
     category: "Text",
     code: `return { output: inputs.text.split(", ") };`,
     tags: ["split", "explode", "tokenize", "array"]
@@ -309,7 +360,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-upper-lower",
     title: "Upper / Lower Case",
+    titleKey: "upperLowerCase",
     description: "Convert text to upper or lower case",
+    descriptionKey: "convertTextToUpperOrLowerCase",
     category: "Text",
     code: `return {
   upper: inputs.text.toUpperCase(),
@@ -320,7 +373,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-trim",
     title: "Trim",
+    titleKey: "trim",
     description: "Remove whitespace from start and end",
+    descriptionKey: "removeWhitespaceFromStartAndEnd",
     category: "Text",
     code: "return { output: inputs.text.trim() };",
     tags: ["trim", "strip", "whitespace"]
@@ -328,7 +383,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-template",
     title: "Template String",
+    titleKey: "templateString",
     description: "Format a string with variables",
+    descriptionKey: "formatAStringWithVariables",
     category: "Text",
     code: "return { output: `Hello ${inputs.name}, you have ${inputs.count} items.` };",
     tags: ["template", "format", "interpolate", "string"]
@@ -336,7 +393,9 @@ return { output: Math.random() * (max - min) + min };`,
   {
     id: "text-regex",
     title: "Regex Match",
+    titleKey: "regexMatch",
     description: "Match text against a regular expression",
+    descriptionKey: "matchTextAgainstARegularExpression",
     category: "Text",
     code: `const matches = inputs.text.match(/pattern/g) || [];
 return { output: matches, found: matches.length > 0 };`,
@@ -345,7 +404,9 @@ return { output: matches, found: matches.length > 0 };`,
   {
     id: "text-to-string",
     title: "To String",
+    titleKey: "toString",
     description: "Convert any value to a string representation",
+    descriptionKey: "convertAnyValueToAStringRepresentation",
     category: "Text",
     code: "return { output: JSON.stringify(inputs.value, null, 2) };",
     tags: ["toString", "stringify", "convert", "repr", "cast"]
@@ -353,7 +414,9 @@ return { output: matches, found: matches.length > 0 };`,
   {
     id: "text-pad",
     title: "Pad String",
+    titleKey: "padString",
     description: "Pad a string to a fixed length",
+    descriptionKey: "padAStringToAFixedLength",
     category: "Text",
     code: `return {
   padStart: String(inputs.value).padStart(inputs.length, "0"),
@@ -368,7 +431,9 @@ return { output: matches, found: matches.length > 0 };`,
   {
     id: "list-length",
     title: "List Length",
+    titleKey: "listLength",
     description: "Get the number of items in a list",
+    descriptionKey: "getTheNumberOfItemsInAList",
     category: "List",
     code: "return { output: inputs.list.length };",
     tags: ["length", "count", "size"]
@@ -376,7 +441,9 @@ return { output: matches, found: matches.length > 0 };`,
   {
     id: "list-get",
     title: "Get Element",
+    titleKey: "getElement",
     description: "Get an element by index (supports negative indexing)",
+    descriptionKey: "getAnElementByIndexSupportsNegativeIndexing",
     category: "List",
     code: `const i = inputs.index < 0 ? inputs.list.length + inputs.index : inputs.index;
 return { output: inputs.list[i] };`,
@@ -386,6 +453,7 @@ return { output: inputs.list[i] };`,
     id: "list-append",
     title: "Append",
     description: "Add an item to the end of a list",
+    descriptionKey: "addAnItemToTheEndOfAList",
     category: "List",
     code: "return { output: [...inputs.list, inputs.item] };",
     tags: ["append", "push", "add"]
@@ -393,7 +461,9 @@ return { output: inputs.list[i] };`,
   {
     id: "list-extend",
     title: "Extend / Merge",
+    titleKey: "extendMerge",
     description: "Combine two lists",
+    descriptionKey: "combineTwoLists",
     category: "List",
     code: "return { output: [...inputs.a, ...inputs.b] };",
     tags: ["extend", "merge", "combine", "concat"]
@@ -401,7 +471,9 @@ return { output: inputs.list[i] };`,
   {
     id: "list-slice",
     title: "Slice",
+    titleKey: "slice",
     description: "Extract a portion of a list",
+    descriptionKey: "extractAPortionOfAList",
     category: "List",
     code: "return { output: inputs.list.slice(inputs.start, inputs.end) };",
     tags: ["slice", "substring", "subarray", "range"]
@@ -410,6 +482,7 @@ return { output: inputs.list[i] };`,
     id: "list-filter",
     title: "Filter",
     description: "Filter items matching a condition",
+    descriptionKey: "filterItemsMatchingACondition",
     category: "List",
     code: "return { output: inputs.items.filter(x => x > inputs.threshold) };",
     tags: ["filter", "select", "where", "condition"]
@@ -417,7 +490,9 @@ return { output: inputs.list[i] };`,
   {
     id: "list-map",
     title: "Map / Transform",
+    titleKey: "mapTransform",
     description: "Transform each item in a list",
+    descriptionKey: "transformEachItemInAList",
     category: "List",
     code: "return { output: inputs.items.map(x => x * 2) };",
     tags: ["map", "transform", "each", "apply"]
@@ -425,7 +500,9 @@ return { output: inputs.list[i] };`,
   {
     id: "list-sort",
     title: "Sort",
+    titleKey: "sort",
     description: "Sort a list (ascending or custom)",
+    descriptionKey: "sortAListAscendingOrCustom",
     category: "List",
     code: `// Ascending number sort; for strings use: [...list].sort()
 return { output: [...inputs.list].sort((a, b) => a - b) };`,
@@ -434,7 +511,9 @@ return { output: [...inputs.list].sort((a, b) => a - b) };`,
   {
     id: "list-reverse",
     title: "Reverse",
+    titleKey: "reverse",
     description: "Reverse the order of a list",
+    descriptionKey: "reverseTheOrderOfAList",
     category: "List",
     code: "return { output: [...inputs.list].reverse() };",
     tags: ["reverse", "flip"]
@@ -442,7 +521,9 @@ return { output: [...inputs.list].sort((a, b) => a - b) };`,
   {
     id: "list-unique",
     title: "Unique / Dedupe",
+    titleKey: "uniqueDedupe",
     description: "Remove duplicate values",
+    descriptionKey: "removeDuplicateValues",
     category: "List",
     code: "return { output: [...new Set(inputs.list)] };",
     tags: ["unique", "dedupe", "distinct", "set"]
@@ -450,7 +531,9 @@ return { output: [...inputs.list].sort((a, b) => a - b) };`,
   {
     id: "list-flatten",
     title: "Flatten",
+    titleKey: "flatten",
     description: "Flatten nested arrays",
+    descriptionKey: "flattenNestedArrays",
     category: "List",
     code: `// depth: Infinity for full flatten, or a number
 return { output: inputs.list.flat(Infinity) };`,
@@ -459,7 +542,9 @@ return { output: inputs.list.flat(Infinity) };`,
   {
     id: "list-chunk",
     title: "Chunk",
+    titleKey: "chunk",
     description: "Split a list into chunks of a given size",
+    descriptionKey: "splitAListIntoChunksOfAGivenSize",
     category: "List",
     code: `const chunks = [];
 for (let i = 0; i < inputs.list.length; i += inputs.size) {
@@ -471,7 +556,9 @@ return { output: chunks };`,
   {
     id: "list-sum",
     title: "Sum",
+    titleKey: "sum",
     description: "Sum all numbers in a list",
+    descriptionKey: "sumAllNumbersInAList",
     category: "List",
     code: "return { output: inputs.list.reduce((a, b) => a + b, 0) };",
     tags: ["sum", "total", "add"]
@@ -479,7 +566,9 @@ return { output: chunks };`,
   {
     id: "list-average",
     title: "Average",
+    titleKey: "average",
     description: "Calculate the average of a list",
+    descriptionKey: "calculateTheAverageOfAList",
     category: "List",
     code: `return { output: inputs.list.reduce((a, b) => a + b, 0) / inputs.list.length };`,
     tags: ["average", "mean", "avg"]
@@ -487,7 +576,9 @@ return { output: chunks };`,
   {
     id: "list-min-max",
     title: "List Min / Max",
+    titleKey: "listMinMax",
     description: "Find the minimum and maximum values in a list",
+    descriptionKey: "findTheMinimumAndMaximumValuesInAList",
     category: "List",
     code: `return {
   min: Math.min(...inputs.list),
@@ -499,6 +590,7 @@ return { output: chunks };`,
     id: "list-range",
     title: "Range",
     description: "Generate a list of numbers",
+    descriptionKey: "generateAListOfNumbers",
     category: "List",
     code: `const start = 0, end = 10, step = 1;
 const result = [];
@@ -509,7 +601,9 @@ return { output: result };`,
   {
     id: "list-shuffle",
     title: "Shuffle",
+    titleKey: "shuffle",
     description: "Randomly shuffle a list (Fisher-Yates)",
+    descriptionKey: "randomlyShuffleAListFisherYates",
     category: "List",
     code: `const arr = [...inputs.list];
 for (let i = arr.length - 1; i > 0; i--) {
@@ -522,7 +616,9 @@ return { output: arr };`,
   {
     id: "list-intersection",
     title: "Intersection",
+    titleKey: "intersection",
     description: "Find common elements between two lists",
+    descriptionKey: "findCommonElementsBetweenTwoLists",
     category: "List",
     code: `const setB = new Set(inputs.b);
 return { output: inputs.a.filter(x => setB.has(x)) };`,
@@ -531,7 +627,9 @@ return { output: inputs.a.filter(x => setB.has(x)) };`,
   {
     id: "list-union",
     title: "Union",
+    titleKey: "union",
     description: "Combine two lists, removing duplicates",
+    descriptionKey: "combineTwoListsRemovingDuplicates",
     category: "List",
     code: "return { output: [...new Set([...inputs.a, ...inputs.b])] };",
     tags: ["union", "merge", "combine", "unique"]
@@ -540,6 +638,7 @@ return { output: inputs.a.filter(x => setB.has(x)) };`,
     id: "list-difference",
     title: "Difference",
     description: "Find elements in a that are not in b",
+    descriptionKey: "findElementsInAThatAreNotInB",
     category: "List",
     code: `const setB = new Set(inputs.b);
 return { output: inputs.a.filter(x => !setB.has(x)) };`,
@@ -548,7 +647,9 @@ return { output: inputs.a.filter(x => !setB.has(x)) };`,
   {
     id: "list-group-by",
     title: "Group By",
+    titleKey: "groupBy",
     description: "Group items by a key",
+    descriptionKey: "groupItemsByAKey",
     category: "List",
     code: `const groups = {};
 for (const item of inputs.items) {
@@ -561,7 +662,9 @@ return { output: groups };`,
   {
     id: "list-reduce",
     title: "Reduce",
+    titleKey: "reduce",
     description: "Reduce a list to a single value",
+    descriptionKey: "reduceAListToASingleValue",
     category: "List",
     code: `return { output: inputs.list.reduce((acc, item) => acc + item, 0) };`,
     tags: ["reduce", "fold", "accumulate", "aggregate"]
@@ -569,6 +672,7 @@ return { output: groups };`,
   {
     id: "list-repeat-each",
     title: "Repeat Each Item",
+    titleKey: "repeatEachItem",
     description:
       "Repeat each list item consecutively N times: [A,B] x 2 → [A,A,B,B]",
     category: "List",
@@ -579,7 +683,9 @@ return { output: inputs.list.flatMap(item => Array(times).fill(item)) };`,
   {
     id: "list-repeat-value",
     title: "Repeat Value",
+    titleKey: "repeatValue",
     description: "Duplicate a single value into a list N times",
+    descriptionKey: "duplicateASingleValueIntoAListNTimes",
     category: "List",
     code: `const times = 3;
 return { output: Array(times).fill(inputs.value) };`,
@@ -588,6 +694,7 @@ return { output: Array(times).fill(inputs.value) };`,
   {
     id: "list-tile",
     title: "Tile List",
+    titleKey: "tileList",
     description:
       "Repeat an entire list end-to-end N times: [A,B] x 2 → [A,B,A,B]",
     category: "List",
@@ -604,6 +711,7 @@ return { output };`,
   {
     id: "dict-get",
     title: "Get Value",
+    titleKey: "getValue",
     description:
       "Get a value from a dictionary by key (supports dot paths like 'a.b.c')",
     category: "Dictionary",
@@ -617,7 +725,9 @@ return { output: value };`,
   {
     id: "dict-set",
     title: "Set / Update",
+    titleKey: "setUpdate",
     description: "Set or update a key in a dictionary",
+    descriptionKey: "setOrUpdateAKeyInADictionary",
     category: "Dictionary",
     code: "return { output: { ...inputs.dict, [inputs.key]: inputs.value } };",
     tags: ["set", "update", "put", "assign"]
@@ -625,7 +735,9 @@ return { output: value };`,
   {
     id: "dict-remove",
     title: "Remove Key",
+    titleKey: "removeKey",
     description: "Remove a key from a dictionary",
+    descriptionKey: "removeAKeyFromADictionary",
     category: "Dictionary",
     code: `const { [inputs.key]: _, ...rest } = inputs.dict;
 return { output: rest };`,
@@ -634,7 +746,9 @@ return { output: rest };`,
   {
     id: "dict-keys-values",
     title: "Keys / Values",
+    titleKey: "keysValues",
     description: "Get all keys or values from a dictionary",
+    descriptionKey: "getAllKeysOrValuesFromADictionary",
     category: "Dictionary",
     code: `return {
   keys: Object.keys(inputs.dict),
@@ -645,7 +759,9 @@ return { output: rest };`,
   {
     id: "dict-merge",
     title: "Merge Dictionaries",
+    titleKey: "mergeDictionaries",
     description: "Merge two or more dictionaries",
+    descriptionKey: "mergeTwoOrMoreDictionaries",
     category: "Dictionary",
     code: "return { output: { ...inputs.a, ...inputs.b } };",
     tags: ["merge", "combine", "spread", "assign"]
@@ -653,7 +769,9 @@ return { output: rest };`,
   {
     id: "dict-filter",
     title: "Filter Dictionary",
+    titleKey: "filterDictionary",
     description: "Filter entries by a condition",
+    descriptionKey: "filterEntriesByACondition",
     category: "Dictionary",
     code: `return { output: Object.fromEntries(
   Object.entries(inputs.dict).filter(([k, v]) => v !== null)
@@ -663,7 +781,9 @@ return { output: rest };`,
   {
     id: "dict-zip",
     title: "Zip Keys & Values",
+    titleKey: "zipKeysValues",
     description: "Create a dictionary from parallel key and value arrays",
+    descriptionKey: "createADictionaryFromParallelKeyAndValueArrays",
     category: "Dictionary",
     code: `return { output: Object.fromEntries(
   inputs.keys.map((k, i) => [k, inputs.values[i]])
@@ -673,7 +793,9 @@ return { output: rest };`,
   {
     id: "dict-pick",
     title: "Pick Keys",
+    titleKey: "pickKeys",
     description: "Select specific keys from a dictionary",
+    descriptionKey: "selectSpecificKeysFromADictionary",
     category: "Dictionary",
     code: `const picked = ['key1', 'key2'];
 return { output: Object.fromEntries(
@@ -684,7 +806,9 @@ return { output: Object.fromEntries(
   {
     id: "dict-omit",
     title: "Omit Keys",
+    titleKey: "omitKeys",
     description: "Remove specific keys from a dictionary",
+    descriptionKey: "removeSpecificKeysFromADictionary",
     category: "Dictionary",
     code: `const omitted = ['key1', 'key2'];
 return { output: Object.fromEntries(
@@ -695,7 +819,9 @@ return { output: Object.fromEntries(
   {
     id: "dict-to-json",
     title: "To JSON",
+    titleKey: "toJSON",
     description: "Serialize a dictionary to JSON string",
+    descriptionKey: "serializeADictionaryToJSONString",
     category: "Dictionary",
     code: "return { output: JSON.stringify(inputs.dict, null, 2) };",
     tags: ["json", "stringify", "serialize"]
@@ -703,7 +829,9 @@ return { output: Object.fromEntries(
   {
     id: "dict-argmax",
     title: "Arg Max",
+    titleKey: "argMax",
     description: "Find the key with the highest value",
+    descriptionKey: "findTheKeyWithTheHighestValue",
     category: "Dictionary",
     code: `const entries = Object.entries(inputs.dict);
 const [maxKey] = entries.reduce((a, b) => a[1] > b[1] ? a : b);
@@ -713,7 +841,9 @@ return { output: maxKey };`,
   {
     id: "dict-map-values",
     title: "Map Values",
+    titleKey: "mapValues",
     description: "Transform all values in a dictionary",
+    descriptionKey: "transformAllValuesInADictionary",
     category: "Dictionary",
     code: `return { output: Object.fromEntries(
   Object.entries(inputs.dict).map(([k, v]) => [k, v * 2])
@@ -727,7 +857,9 @@ return { output: maxKey };`,
   {
     id: "date-today",
     title: "Today / Now",
+    titleKey: "todayNow",
     description: "Get the current date or datetime",
+    descriptionKey: "getTheCurrentDateOrDatetime",
     category: "Date & Time",
     code: `const now = new Date();
 return {
@@ -740,7 +872,9 @@ return {
   {
     id: "date-parse",
     title: "Parse Date",
+    titleKey: "parseDate",
     description: "Parse a date string",
+    descriptionKey: "parseADateString",
     category: "Date & Time",
     code: `const d = new Date(inputs.dateString);
 return { output: d.toISOString() };`,
@@ -749,7 +883,9 @@ return { output: d.toISOString() };`,
   {
     id: "date-format",
     title: "Format Date",
+    titleKey: "formatDate",
     description: "Format a date into a readable string",
+    descriptionKey: "formatADateIntoAReadableString",
     category: "Date & Time",
     code: `const d = new Date(inputs.dateString);
 return {
@@ -763,7 +899,9 @@ return {
   {
     id: "date-add",
     title: "Add Time",
+    titleKey: "addTime",
     description: "Add days, hours, or minutes to a date",
+    descriptionKey: "addDaysHoursOrMinutesToADate",
     category: "Date & Time",
     code: `const d = new Date(inputs.dateString);
 d.setDate(d.getDate() + inputs.days);
@@ -775,7 +913,9 @@ return { output: d.toISOString() };`,
   {
     id: "date-diff",
     title: "Date Difference",
+    titleKey: "dateDifference",
     description: "Calculate the difference between two dates",
+    descriptionKey: "calculateTheDifferenceBetweenTwoDates",
     category: "Date & Time",
     code: `const a = new Date(inputs.dateA), b = new Date(inputs.dateB);
 const ms = Math.abs(a - b);
@@ -789,7 +929,9 @@ return {
   {
     id: "date-weekday",
     title: "Day of Week",
+    titleKey: "dayOfWeek",
     description: "Get the day of the week",
+    descriptionKey: "getTheDayOfTheWeek",
     category: "Date & Time",
     code: `const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const d = new Date(inputs.dateString);
@@ -799,7 +941,9 @@ return { output: days[d.getDay()], index: d.getDay() };`,
   {
     id: "date-range",
     title: "Date Range",
+    titleKey: "dateRange",
     description: "Generate a list of dates between start and end",
+    descriptionKey: "generateAListOfDatesBetweenStartAndEnd",
     category: "Date & Time",
     code: `const dates = [];
 const d = new Date(inputs.start);
@@ -814,6 +958,7 @@ return { output: dates };`,
   {
     id: "date-start-end",
     title: "Start / End of Period",
+    titleKey: "startEndOfPeriod",
     description:
       "Start and end of the day, week, month, or year containing a date",
     category: "Date & Time",
@@ -840,7 +985,9 @@ return {
   {
     id: "date-constant",
     title: "Make Date",
+    titleKey: "makeDate",
     description: "Build a date object from year, month, and day numbers",
+    descriptionKey: "buildADateObjectFromYearMonthAndDayNumbers",
     category: "Date & Time",
     code: `// month is 1-12, day is 1-31
 return { output: { year: inputs.year, month: inputs.month, day: inputs.day } };`,
@@ -849,6 +996,7 @@ return { output: { year: inputs.year, month: inputs.month, day: inputs.day } };`
   {
     id: "date-constant-datetime",
     title: "Make Date Time",
+    titleKey: "makeDateTime",
     description:
       "Build a datetime object from year, month, day, hour, minute, and second",
     category: "Date & Time",
@@ -884,7 +1032,9 @@ return {
   {
     id: "uuid-v4",
     title: "Generate UUID v4",
+    titleKey: "generateUUIDV4",
     description: "Generate a random UUID v4",
+    descriptionKey: "generateARandomUUIDV4",
     category: "UUID",
     code: "return { output: crypto.randomUUID() };",
     tags: ["uuid", "v4", "random", "generate", "id"]
@@ -892,7 +1042,9 @@ return {
   {
     id: "uuid-validate",
     title: "Validate UUID",
+    titleKey: "validateUUID",
     description: "Check if a string is a valid UUID",
+    descriptionKey: "checkIfAStringIsAValidUUID",
     category: "UUID",
     code: `const re = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 return { output: re.test(inputs.value) };`,
@@ -910,7 +1062,9 @@ return { output: re.test(inputs.value) };`,
   {
     id: "json-parse",
     title: "Parse JSON",
+    titleKey: "parseJSON",
     description: "Parse a JSON string into an object",
+    descriptionKey: "parseAJSONStringIntoAnObject",
     category: "JSON",
     code: "return { output: JSON.parse(inputs.text) };",
     tags: ["json", "parse", "decode", "string", "convert"]
@@ -918,7 +1072,9 @@ return { output: re.test(inputs.value) };`,
   {
     id: "json-stringify",
     title: "Stringify JSON",
+    titleKey: "stringifyJSON",
     description: "Convert an object to a formatted JSON string",
+    descriptionKey: "convertAnObjectToAFormattedJSONString",
     category: "JSON",
     code: "return { output: JSON.stringify(data, null, 2) };",
     tags: ["json", "stringify", "encode", "format"]
@@ -926,6 +1082,7 @@ return { output: re.test(inputs.value) };`,
   {
     id: "json-path",
     title: "Get JSON Path",
+    titleKey: "getJSONPath",
     description:
       "Extract a value using dot-path notation (e.g. 'user.address.city')",
     category: "JSON",
@@ -939,7 +1096,9 @@ return { output: value };`,
   {
     id: "json-filter",
     title: "Filter JSON Array",
+    titleKey: "filterJSONArray",
     description: "Filter an array of objects by a key-value match",
+    descriptionKey: "filterAnArrayOfObjectsByAKeyvalueMatch",
     category: "JSON",
     code: `return { output: data.filter(item => item[inputs.key] === inputs.value) };`,
     tags: ["json", "filter", "array", "query", "search"]
@@ -947,7 +1106,9 @@ return { output: value };`,
   {
     id: "json-csv-parse",
     title: "Parse CSV",
+    titleKey: "parseCSV",
     description: "Parse CSV text into an array of objects",
+    descriptionKey: "parseCSVTextIntoAnArrayOfObjects",
     category: "JSON",
     code: `const lines = inputs.text.trim().split("\\n");
 const headers = lines[0].split(",").map(h => h.trim());
@@ -965,6 +1126,7 @@ return { output: rows };`,
   {
     id: "stream-foreach",
     title: "Yield Each Item",
+    titleKey: "yieldEachItem",
     description:
       "Emit each item from a list as a separate output (streaming producer)",
     category: "Streaming",
@@ -976,7 +1138,9 @@ return { output: rows };`,
   {
     id: "stream-collect",
     title: "Collect Items",
+    titleKey: "collectItems",
     description: "Accumulate streaming items into a list",
+    descriptionKey: "accumulateStreamingItemsIntoAList",
     category: "Streaming",
     code: `state.items = [...(state.items || []), inputs.input];
 return { output: [...state.items] };`,
@@ -985,7 +1149,9 @@ return { output: [...state.items] };`,
   {
     id: "stream-filter",
     title: "Stream Filter",
+    titleKey: "streamFilter",
     description: "Filter a stream — return {} to drop an item",
+    descriptionKey: "filterAStreamReturnToDropAnItem",
     category: "Streaming",
     code: `// Return {} to drop the item, or { output: value } to pass it through
 return inputs.value > inputs.threshold ? { output: inputs.value } : {};`,
@@ -994,7 +1160,9 @@ return inputs.value > inputs.threshold ? { output: inputs.value } : {};`,
   {
     id: "stream-counter",
     title: "Stream Counter",
+    titleKey: "streamCounter",
     description: "Count items passing through a stream",
+    descriptionKey: "countItemsPassingThroughAStream",
     category: "Streaming",
     code: `state.count = (state.count || 0) + 1;
 return { output: inputs.input, count: state.count };`,
@@ -1003,7 +1171,9 @@ return { output: inputs.input, count: state.count };`,
   {
     id: "stream-batch",
     title: "Stream Batch",
+    titleKey: "streamBatch",
     description: "Collect N items then emit as a batch",
+    descriptionKey: "collectNItemsThenEmitAsABatch",
     category: "Streaming",
     code: `const batchSize = 5;
 state.items = [...(state.items || []), inputs.input];
@@ -1022,7 +1192,9 @@ return {};`,
   {
     id: "file-read",
     title: "Read File",
+    titleKey: "readFile",
     description: "Read a text file from the workspace",
+    descriptionKey: "readATextFileFromTheWorkspace",
     category: "Files",
     code: `const content = await workspace.read(inputs.path);
 return { output: content };`,
@@ -1035,6 +1207,7 @@ return { output: content };`,
   {
     id: "file-write",
     title: "Write File",
+    titleKey: "writeFile",
     description:
       "Write text content to a workspace file, creating parent directories",
     category: "Files",
@@ -1050,7 +1223,9 @@ return { output: inputs.path };`,
   {
     id: "file-append",
     title: "Append To File",
+    titleKey: "appendToFile",
     description: "Append text to a workspace file, creating it when missing",
+    descriptionKey: "appendTextToAWorkspaceFileCreatingItWhenMissing",
     category: "Files",
     code: `const info = await workspace.stat(inputs.path);
 const existing = info.exists ? await workspace.read(inputs.path) : "";
@@ -1066,7 +1241,9 @@ return { output: inputs.path };`,
   {
     id: "file-list",
     title: "List Files",
+    titleKey: "listFiles",
     description: "List the entry names of a workspace directory",
+    descriptionKey: "listTheEntryNamesOfAWorkspaceDirectory",
     category: "Files",
     code: `const files = await workspace.list(inputs.path);
 return { output: files };`,
@@ -1077,6 +1254,7 @@ return { output: files };`,
   {
     id: "file-list-match",
     title: "Find Files",
+    titleKey: "findFiles",
     description:
       "Find files matching a wildcard pattern, optionally recursing; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1117,7 +1295,9 @@ return { output: found, file: found[0] ?? "" };`,
   {
     id: "file-read-binary",
     title: "Read Binary File",
+    titleKey: "readBinaryFile",
     description: "Read a workspace file as a base64 string",
+    descriptionKey: "readAWorkspaceFileAsABase64String",
     category: "Files",
     code: `const bytes = await workspace.readBytes(inputs.path);
 return { output: toBase64(bytes) };`,
@@ -1130,7 +1310,9 @@ return { output: toBase64(bytes) };`,
   {
     id: "file-write-binary",
     title: "Write Binary File",
+    titleKey: "writeBinaryFile",
     description: "Write base64 content to a workspace file as raw bytes",
+    descriptionKey: "writeBase64ContentToAWorkspaceFileAsRawBytes",
     category: "Files",
     code: `await workspace.writeBytes(inputs.path, fromBase64(inputs.content));
 return { output: inputs.path };`,
@@ -1144,6 +1326,7 @@ return { output: inputs.path };`,
   {
     id: "file-exists",
     title: "File Exists",
+    titleKey: "fileExists",
     description:
       "Check whether a path exists; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1155,6 +1338,7 @@ return { output: inputs.path };`,
   {
     id: "file-stat",
     title: "File Info",
+    titleKey: "fileInfo",
     description:
       "Size, kind and timestamps of a path in one call; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1194,6 +1378,7 @@ return {
   {
     id: "file-mkdir",
     title: "Create Directory",
+    titleKey: "createDirectory",
     description:
       "Create a directory and its parents; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1206,6 +1391,7 @@ return { output: inputs.path };`,
   {
     id: "file-copy",
     title: "Copy File",
+    titleKey: "copyFile",
     description:
       "Copy a file, creating the destination directory; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1221,6 +1407,7 @@ return { output: inputs.destination };`,
   {
     id: "file-move",
     title: "Move File",
+    titleKey: "moveFile",
     description:
       "Move or rename a file, creating the destination directory; paths outside the workspace need Allow Host Filesystem",
     category: "Files",
@@ -1236,6 +1423,7 @@ return { output: inputs.destination };`,
   {
     id: "file-workspace-dir",
     title: "Workspace Directory",
+    titleKey: "workspaceDirectory",
     description:
       "Absolute path of the workspace root — the base for relative paths",
     category: "Files",
@@ -1250,7 +1438,9 @@ return { output: inputs.destination };`,
   {
     id: "text-extract",
     title: "Extract Substring",
+    titleKey: "extractSubstring",
     description: "Extract a portion of text by start/end index",
+    descriptionKey: "extractAPortionOfTextByStartendIndex",
     category: "Text",
     code: `return { output: inputs.text.slice(inputs.start, inputs.end) };`,
     tags: ["extract", "substring", "slice", "range"]
@@ -1258,7 +1448,9 @@ return { output: inputs.destination };`,
   {
     id: "text-chunk",
     title: "Chunk Text",
+    titleKey: "chunkText",
     description: "Split text into word-based chunks with optional overlap",
+    descriptionKey: "splitTextIntoWordbasedChunksWithOptionalOverlap",
     category: "Text",
     code: `const chunkSize = 100, overlap = 0;
 const words = inputs.text.split(" ");
@@ -1273,7 +1465,9 @@ return { output: chunks };`,
   {
     id: "text-title-case",
     title: "Title Case",
+    titleKey: "titleCase",
     description: "Convert text to title case (capitalize each word)",
+    descriptionKey: "convertTextToTitleCaseCapitalizeEachWord",
     category: "Text",
     code: `return { output: inputs.text.replace(/\\w\\S*/g, w =>
   w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
@@ -1283,7 +1477,9 @@ return { output: chunks };`,
   {
     id: "text-capitalize",
     title: "Capitalize",
+    titleKey: "capitalize",
     description: "Capitalize only the first character",
+    descriptionKey: "capitalizeOnlyTheFirstCharacter",
     category: "Text",
     code: `return { output: inputs.text.charAt(0).toUpperCase() + inputs.text.slice(1).toLowerCase() };`,
     tags: ["capitalize", "first", "letter", "sentence"]
@@ -1291,7 +1487,9 @@ return { output: chunks };`,
   {
     id: "text-starts-with",
     title: "Starts With",
+    titleKey: "startsWith",
     description: "Check if text starts with a prefix",
+    descriptionKey: "checkIfTextStartsWithAPrefix",
     category: "Text",
     code: `return { output: inputs.text.startsWith(inputs.prefix) };`,
     tags: ["starts", "prefix", "check", "begins"]
@@ -1299,7 +1497,9 @@ return { output: chunks };`,
   {
     id: "text-ends-with",
     title: "Ends With",
+    titleKey: "endsWith",
     description: "Check if text ends with a suffix",
+    descriptionKey: "checkIfTextEndsWithASuffix",
     category: "Text",
     code: `return { output: inputs.text.endsWith(inputs.suffix) };`,
     tags: ["ends", "suffix", "check", "extension"]
@@ -1307,7 +1507,9 @@ return { output: chunks };`,
   {
     id: "text-contains",
     title: "Contains",
+    titleKey: "contains",
     description: "Check if text contains a substring (case-insensitive option)",
+    descriptionKey: "checkIfTextContainsASubstringCaseinsensitiveOption",
     category: "Text",
     code: `// case insensitive: text.toLowerCase().includes(sub.toLowerCase())
 return { output: inputs.text.includes(inputs.substring) };`,
@@ -1316,7 +1518,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-is-empty",
     title: "Is Empty",
+    titleKey: "isEmpty",
     description: "Check if text is empty or only whitespace",
+    descriptionKey: "checkIfTextIsEmptyOrOnlyWhitespace",
     category: "Text",
     code: `return { output: inputs.text.trim().length === 0 };`,
     tags: ["empty", "blank", "whitespace", "check"]
@@ -1324,7 +1528,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-collapse-whitespace",
     title: "Collapse Whitespace",
+    titleKey: "collapseWhitespace",
     description: "Replace runs of whitespace with a single space",
+    descriptionKey: "replaceRunsOfWhitespaceWithASingleSpace",
     category: "Text",
     code: `return { output: inputs.text.trim().replace(/\\s+/g, " ") };`,
     tags: ["whitespace", "collapse", "normalize", "clean"]
@@ -1332,7 +1538,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-remove-punctuation",
     title: "Remove Punctuation",
+    titleKey: "removePunctuation",
     description: "Remove punctuation characters from text",
+    descriptionKey: "removePunctuationCharactersFromText",
     category: "Text",
     code: `return { output: inputs.text.replace(/[!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\`{|}~]/g, "") };`,
     tags: ["punctuation", "remove", "clean", "strip"]
@@ -1340,7 +1548,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-strip-accents",
     title: "Strip Accents",
+    titleKey: "stripAccents",
     description: "Remove accent marks, keeping base characters",
+    descriptionKey: "removeAccentMarksKeepingBaseCharacters",
     category: "Text",
     code: `return { output: inputs.text.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "") };`,
     tags: ["accents", "diacritics", "normalize", "unicode"]
@@ -1348,7 +1558,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-slugify",
     title: "Slugify",
+    titleKey: "slugify",
     description: "Convert text to a URL-safe slug",
+    descriptionKey: "convertTextToAURLsafeSlug",
     category: "Text",
     code: `return { output: inputs.text
   .normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "")
@@ -1362,7 +1574,9 @@ return { output: inputs.text.includes(inputs.substring) };`,
   {
     id: "text-count-tokens",
     title: "Count Tokens",
+    titleKey: "countTokens",
     description: "Count LLM tokens in text with tiktoken",
+    descriptionKey: "countLLMTokensInTextWithTiktoken",
     category: "Text",
     code: `import { count } from "@nodetool-ai/sandbox-tokens";
 return { output: await count(inputs.text, "cl100k_base") };`,
@@ -1381,7 +1595,9 @@ return { output: await count(inputs.text, "cl100k_base") };`,
   {
     id: "text-length",
     title: "Measure Length",
+    titleKey: "measureLength",
     description: "Count characters, words, or lines in text",
+    descriptionKey: "countCharactersWordsOrLinesInText",
     category: "Text",
     code: `return {
   chars: inputs.text.length,
@@ -1393,7 +1609,9 @@ return { output: await count(inputs.text, "cl100k_base") };`,
   {
     id: "text-index-of",
     title: "Index Of",
+    titleKey: "indexOf",
     description: "Find the position of a substring",
+    descriptionKey: "findThePositionOfASubstring",
     category: "Text",
     code: `return { output: inputs.text.indexOf(inputs.substring) };`,
     tags: ["index", "find", "position", "search", "indexOf"]
@@ -1401,7 +1619,9 @@ return { output: await count(inputs.text, "cl100k_base") };`,
   {
     id: "text-surround",
     title: "Surround / Wrap",
+    titleKey: "surroundWrap",
     description: "Wrap text with a prefix and suffix",
+    descriptionKey: "wrapTextWithAPrefixAndSuffix",
     category: "Text",
     code: `return { output: inputs.prefix + inputs.text + inputs.suffix };`,
     tags: ["surround", "wrap", "prefix", "suffix", "bracket"]
@@ -1409,7 +1629,9 @@ return { output: await count(inputs.text, "cl100k_base") };`,
   {
     id: "text-truncate",
     title: "Truncate",
+    titleKey: "truncate",
     description: "Truncate text to a max length with optional ellipsis",
+    descriptionKey: "truncateTextToAMaxLengthWithOptionalEllipsis",
     category: "Text",
     code: `const maxLen = 100, ellipsis = "...";
 if (inputs.text.length <= maxLen) return { output: inputs.text };
@@ -1419,7 +1641,9 @@ return { output: inputs.text.slice(0, maxLen - ellipsis.length) + ellipsis };`,
   {
     id: "text-compare",
     title: "Compare Text",
+    titleKey: "compareText",
     description: "Compare two strings (equal, less, greater)",
+    descriptionKey: "compareTwoStringsEqualLessGreater",
     category: "Text",
     code: `const result = inputs.a < inputs.b ? "less" : inputs.a > inputs.b ? "greater" : "equal";
 return { output: result, equal: inputs.a === inputs.b };`,
@@ -1428,6 +1652,7 @@ return { output: result, equal: inputs.a === inputs.b };`,
   {
     id: "text-has-length",
     title: "Check Length",
+    titleKey: "checkLength",
     description:
       "Check text length against a minimum, maximum, or exact length",
     category: "Text",
@@ -1456,7 +1681,9 @@ return { output: true };`,
   {
     id: "regex-extract-groups",
     title: "Extract Regex Groups",
+    titleKey: "extractRegexGroups",
     description: "Extract capture groups from the first match",
+    descriptionKey: "extractCaptureGroupsFromTheFirstMatch",
     category: "Regex",
     code: `const match = new RegExp(inputs.pattern).exec(inputs.text);
 return { output: match ? match.slice(1) : [] };`,
@@ -1465,7 +1692,9 @@ return { output: match ? match.slice(1) : [] };`,
   {
     id: "regex-find-all",
     title: "Find All Matches",
+    titleKey: "findAllMatches",
     description: "Find all occurrences of a pattern",
+    descriptionKey: "findAllOccurrencesOfAPattern",
     category: "Regex",
     code: `const matches = [...inputs.text.matchAll(new RegExp(inputs.pattern, "g"))].map(m => m[0]);
 return { output: matches };`,
@@ -1474,7 +1703,9 @@ return { output: matches };`,
   {
     id: "regex-replace",
     title: "Regex Replace",
+    titleKey: "regexReplace",
     description: "Replace text matching a regex pattern",
+    descriptionKey: "replaceTextMatchingARegexPattern",
     category: "Regex",
     code: `return { output: inputs.text.replace(new RegExp(inputs.pattern, "g"), inputs.replacement) };`,
     tags: ["regex", "replace", "substitute", "gsub"]
@@ -1482,7 +1713,9 @@ return { output: matches };`,
   {
     id: "regex-split",
     title: "Regex Split",
+    titleKey: "regexSplit",
     description: "Split text using a regex delimiter",
+    descriptionKey: "splitTextUsingARegexDelimiter",
     category: "Regex",
     code: `return { output: inputs.text.split(new RegExp(inputs.pattern)) };`,
     tags: ["regex", "split", "tokenize", "delimiter"]
@@ -1490,7 +1723,9 @@ return { output: matches };`,
   {
     id: "regex-validate",
     title: "Regex Validate",
+    titleKey: "regexValidate",
     description: "Check if text matches a regex pattern",
+    descriptionKey: "checkIfTextMatchesARegexPattern",
     category: "Regex",
     code: `return { output: new RegExp(inputs.pattern).test(inputs.text) };`,
     tags: ["regex", "validate", "test", "check", "match"]
@@ -1498,7 +1733,9 @@ return { output: matches };`,
   {
     id: "regex-match-groups",
     title: "Match with Groups",
+    titleKey: "matchWithGroups",
     description: "Find all matches and extract a specific capture group",
+    descriptionKey: "findAllMatchesAndExtractASpecificCaptureGroup",
     category: "Regex",
     code: `const group = 1; // 0 = full match, 1+ = capture group
 const matches = [...inputs.text.matchAll(new RegExp(inputs.pattern, "g"))]
@@ -1510,7 +1747,9 @@ return { output: matches };`,
   {
     id: "regex-replace-limited",
     title: "Replace N Times",
+    titleKey: "replaceNTimes",
     description: "Replace only the first N occurrences of a pattern",
+    descriptionKey: "replaceOnlyTheFirstNOccurrencesOfAPattern",
     category: "Regex",
     code: `let count = 0;
 const maxReplacements = 2;
@@ -1529,7 +1768,9 @@ return { output: result };`,
   {
     id: "json-extract-path",
     title: "Extract JSONPath",
+    titleKey: "extractJSONPath",
     description: "Extract values using dot-path with wildcard support",
+    descriptionKey: "extractValuesUsingDotpathWithWildcardSupport",
     category: "JSON",
     code: `// Supports: $.store.book[0].title, $.store.*, $.items[*].name
 const tokens = inputs.path.replace(/^\\$\\.?/, "").replace(/\\[(\\d+)\\]/g, ".$1").split(".").filter(Boolean);
@@ -1555,7 +1796,9 @@ return { output: current.length === 1 ? current[0] : current };`,
   {
     id: "path-basename",
     title: "Basename / File Name",
+    titleKey: "basenameFileName",
     description: "Get the file name from a path, with and without extension",
+    descriptionKey: "getTheFileNameFromAPathWithAndWithoutExtension",
     category: "Path",
     code: `const p = String(inputs.path).replace(/\\/+$/, "");
 const base = p.slice(p.lastIndexOf("/") + 1);
@@ -1575,7 +1818,9 @@ return { output: base, stem: ext ? base.slice(0, -ext.length) : base };`,
   {
     id: "path-dirname",
     title: "Dirname / Get Directory",
+    titleKey: "dirnameGetDirectory",
     description: "Get the directory containing a path",
+    descriptionKey: "getTheDirectoryContainingAPath",
     category: "Path",
     code: `const p = String(inputs.path).replace(/(?!^)\\/+$/, "");
 const i = p.lastIndexOf("/");
@@ -1585,7 +1830,9 @@ return { output: i < 0 ? "." : i === 0 ? "/" : p.slice(0, i) };`,
   {
     id: "path-split",
     title: "Split Path",
+    titleKey: "splitPath",
     description: "Split a path into directory and file name",
+    descriptionKey: "splitAPathIntoDirectoryAndFileName",
     category: "Path",
     code: `const p = String(inputs.path).replace(/(?!^)\\/+$/, "");
 const i = p.lastIndexOf("/");
@@ -1598,6 +1845,7 @@ return {
   {
     id: "path-split-extension",
     title: "Split Extension",
+    titleKey: "splitExtension",
     description:
       "Split a path into root and extension (dotfiles have no extension)",
     category: "Path",
@@ -1619,7 +1867,9 @@ return { root: extension ? p.slice(0, -extension.length) : p, extension };`,
   {
     id: "path-join",
     title: "Join Paths",
+    titleKey: "joinPaths",
     description: "Join path components into one normalized path",
+    descriptionKey: "joinPathComponentsIntoOneNormalizedPath",
     category: "Path",
     code: `const joined = inputs.paths.map(String).filter(Boolean).join("/");
 const abs = joined.startsWith("/");
@@ -1638,7 +1888,9 @@ return { output: trail && !result.endsWith("/") ? result + "/" : result };`,
   {
     id: "path-normalize",
     title: "Normalize Path",
+    titleKey: "normalizePath",
     description: "Collapse redundant separators, '.' and '..' segments",
+    descriptionKey: "collapseRedundantSeparatorsAndSegments",
     category: "Path",
     code: `const p = String(inputs.path);
 const abs = p.startsWith("/");
@@ -1657,7 +1909,9 @@ return { output: trail && !result.endsWith("/") ? result + "/" : result };`,
   {
     id: "path-absolute",
     title: "Absolute Path",
+    titleKey: "absolutePath",
     description: "Resolve a path against a base directory",
+    descriptionKey: "resolveAPathAgainstABaseDirectory",
     category: "Path",
     code: `const base = "/workspace"; // directory relative paths resolve against
 const p = String(inputs.path);
@@ -1674,6 +1928,7 @@ return { output: "/" + out.join("/") };`,
   {
     id: "path-relative",
     title: "Relative Path",
+    titleKey: "relativePath",
     description:
       "Path from a start directory to a target (both anchored the same way)",
     category: "Path",
@@ -1704,7 +1959,9 @@ return { output: [...up, ...to.slice(i)].join("/") };`,
   {
     id: "path-info",
     title: "Path Info",
+    titleKey: "pathInfo",
     description: "All components of a path in one dictionary",
+    descriptionKey: "allComponentsOfAPathInOneDictionary",
     category: "Path",
     code: `const base_dir = "/workspace"; // directory relative paths resolve against
 const p = String(inputs.path);
@@ -1745,7 +2002,9 @@ return {
   {
     id: "path-to-string",
     title: "Path To String",
+    titleKey: "pathToString",
     description: "Get the raw string from a file path value",
+    descriptionKey: "getTheRawStringFromAFilePathValue",
     category: "Path",
     code: `return {
   output: typeof inputs.file_path === "string" ? inputs.file_path : String(inputs.file_path?.path ?? "")
@@ -1755,7 +2014,9 @@ return {
   {
     id: "path-match",
     title: "File Name Match",
+    titleKey: "fileNameMatch",
     description: "Match a file name against a Unix wildcard pattern",
+    descriptionKey: "matchAFileNameAgainstAUnixWildcardPattern",
     category: "Path",
     code: `const case_sensitive = true; // set false to ignore case
 // Wildcards: * matches any run of characters, ? matches one
@@ -1782,7 +2043,9 @@ return { output: rx.test(String(inputs.filename)) };`,
   {
     id: "path-filter-names",
     title: "Filter File Names",
+    titleKey: "filterFileNames",
     description: "Keep the file names matching a Unix wildcard pattern",
+    descriptionKey: "keepTheFileNamesMatchingAUnixWildcardPattern",
     category: "Path",
     code: `const case_sensitive = true; // set false to ignore case
 // Wildcards: * matches any run of characters, ? matches one
@@ -1817,7 +2080,9 @@ return { output: inputs.filenames.map(String).filter((name) => rx.test(name)) };
   {
     id: "svg-rect",
     title: "Rectangle",
+    titleKey: "rectangle",
     description: "SVG rectangle element with position, size, and styling",
+    descriptionKey: "svgRectangleElementWithPositionSizeAndStyling",
     category: "SVG",
     code: `return {
   output: {
@@ -1845,7 +2110,9 @@ return { output: inputs.filenames.map(String).filter((name) => rx.test(name)) };
   {
     id: "svg-circle",
     title: "Circle",
+    titleKey: "circle",
     description: "SVG circle element with center, radius, and styling",
+    descriptionKey: "svgCircleElementWithCenterRadiusAndStyling",
     category: "SVG",
     code: `return {
   output: {
@@ -1873,7 +2140,9 @@ return { output: inputs.filenames.map(String).filter((name) => rx.test(name)) };
   {
     id: "svg-ellipse",
     title: "Ellipse",
+    titleKey: "ellipse",
     description: "SVG ellipse element with center, x/y radii, and styling",
+    descriptionKey: "svgEllipseElementWithCenterXyRadiiAndStyling",
     category: "SVG",
     code: `return {
   output: {
@@ -1902,6 +2171,7 @@ return { output: inputs.filenames.map(String).filter((name) => rx.test(name)) };
     id: "svg-line",
     title: "Line",
     description: "SVG line element between two points",
+    descriptionKey: "svgLineElementBetweenTwoPoints",
     category: "SVG",
     code: `return {
   output: {
@@ -1928,6 +2198,7 @@ return { output: inputs.filenames.map(String).filter((name) => rx.test(name)) };
     id: "svg-polygon",
     title: "Polygon",
     description: "SVG polygon element from a list of vertices",
+    descriptionKey: "svgPolygonElementFromAListOfVertices",
     category: "SVG",
     code: `// points: "x1,y1 x2,y2 x3,y3 ..."
 return {
@@ -1958,6 +2229,7 @@ return {
     id: "svg-path",
     title: "Path",
     description: "SVG path element from path data commands",
+    descriptionKey: "svgPathElementFromPathDataCommands",
     category: "SVG",
     code: `// path_data: the "d" attribute, e.g. "M10 10 C 20 20, 40 20, 50 10"
 return {
@@ -1987,7 +2259,9 @@ return {
   {
     id: "svg-text",
     title: "Text Element",
+    titleKey: "textElement",
     description: "SVG text element with font, size, color, and anchor",
+    descriptionKey: "svgTextElementWithFontSizeColorAndAnchor",
     category: "SVG",
     code: `// text_anchor: start | middle | end. Content is escaped when the
 // document is serialized, so pass it through raw.
@@ -2015,7 +2289,8 @@ return {
       text_anchor: {
         type: "str",
         default: "start",
-        description: "start | middle | end"
+        description: "start | middle | end",
+        descriptionKey: "startMiddleEnd"
       }
     },
     outputs: { output: "svg_element" }
@@ -2023,7 +2298,9 @@ return {
   {
     id: "svg-gaussian-blur",
     title: "Gaussian Blur Filter",
+    titleKey: "gaussianBlurFilter",
     description: "SVG blur filter definition, referenced by filter=url(#id)",
+    descriptionKey: "svgBlurFilterDefinitionReferencedByFilterurlid",
     category: "SVG",
     code: `const id = "blur1"; // elements reference it as filter="url(#blur1)"
 return {
@@ -2044,6 +2321,7 @@ return {
   {
     id: "svg-drop-shadow",
     title: "Drop Shadow Filter",
+    titleKey: "dropShadowFilter",
     description:
       "SVG drop shadow filter definition, referenced by filter=url(#id)",
     category: "SVG",
@@ -2144,6 +2422,7 @@ return {
     id: "svg-transform",
     title: "Transform",
     description: "Translate, rotate, and scale an SVG element",
+    descriptionKey: "translateRotateAndScaleAnSVGElement",
     category: "SVG",
     code: `const parts = [];
 if (inputs.translate_x || inputs.translate_y) {
@@ -2178,7 +2457,9 @@ return { output: { ...inputs.content, attributes } };`,
   {
     id: "svg-clip-path",
     title: "Clip Path",
+    titleKey: "clipPath",
     description: "Clip an SVG element with the shape of another element",
+    descriptionKey: "clipAnSVGElementWithTheShapeOfAnotherElement",
     category: "SVG",
     code: `const id = "clip1";
 return {
@@ -2198,7 +2479,8 @@ return {
       content: { type: "svg_element" },
       clip_content: {
         type: "svg_element",
-        description: "Element whose shape clips `content`"
+        description: "Element whose shape clips `content`",
+        descriptionKey: "elementWhoseShapeClipsContent"
       }
     },
     outputs: { output: "svg_element" }
@@ -2210,7 +2492,9 @@ return {
   {
     id: "http-get-text",
     title: "GET Text",
+    titleKey: "getText",
     description: "Fetch text content from a URL",
+    descriptionKey: "fetchTextContentFromAURL",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, { headers: { ...inputs.headers } });
 return { output: await res.text(), status: res.status };`,
@@ -2220,6 +2504,7 @@ return { output: await res.text(), status: res.status };`,
     id: "http-get-json",
     title: "GET JSON",
     description: "Fetch and parse JSON from a URL",
+    descriptionKey: "fetchAndParseJSONFromAURL",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, { headers: { Accept: "application/json", ...inputs.headers } });
 if (res.json === undefined) throw new Error("Response is not JSON (status " + res.status + ")");
@@ -2229,7 +2514,9 @@ return { output: res.json, status: res.status };`,
   {
     id: "http-get-bytes",
     title: "GET Bytes",
+    titleKey: "getBytes",
     description: "Download binary data from a URL as a Uint8Array",
+    descriptionKey: "downloadBinaryDataFromAURLAsAUint8Array",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, { headers: { ...inputs.headers } });
 return { output: await res.bytes(), status: res.status };`,
@@ -2248,6 +2535,7 @@ return { output: await res.bytes(), status: res.status };`,
     id: "http-post",
     title: "POST JSON",
     description: "Send a POST request with a JSON body",
+    descriptionKey: "sendAPOSTRequestWithAJSONBody",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, {
   method: "POST",
@@ -2261,6 +2549,7 @@ return { output: res.json === undefined ? res.body : res.json, status: res.statu
     id: "http-put",
     title: "PUT JSON",
     description: "Send a PUT request with a JSON body",
+    descriptionKey: "sendAPUTRequestWithAJSONBody",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, {
   method: "PUT",
@@ -2274,6 +2563,7 @@ return { output: res.json === undefined ? res.body : res.json, status: res.statu
     id: "http-patch",
     title: "PATCH JSON",
     description: "Send a PATCH request with a JSON body",
+    descriptionKey: "sendAPATCHRequestWithAJSONBody",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, {
   method: "PATCH",
@@ -2296,6 +2586,7 @@ return { output: res.json === undefined ? res.body : res.json, status: res.statu
     id: "http-delete",
     title: "DELETE",
     description: "Send a DELETE request and report whether it succeeded",
+    descriptionKey: "sendADELETERequestAndReportWhetherItSucceeded",
     category: "HTTP",
     code: `const res = await fetch(inputs.url, { method: "DELETE", headers: { ...inputs.headers } });
 return { output: res.ok, status: res.status };`,
@@ -2304,7 +2595,9 @@ return { output: res.ok, status: res.status };`,
   {
     id: "http-bearer-auth",
     title: "Request with Bearer Token",
+    titleKey: "requestWithBearerToken",
     description: "Call an API with a bearer token read from the secret store",
+    descriptionKey: "callAnAPIWithABearerTokenReadFromTheSecretStore",
     category: "HTTP",
     code: `// Rename the secret to whatever you stored under Settings -> Secrets
 const token = await getSecret("API_TOKEN");
@@ -2326,7 +2619,9 @@ return { output: res.json === undefined ? res.body : res.json, status: res.statu
   {
     id: "http-graphql-query",
     title: "GraphQL Query",
+    titleKey: "graphqlQuery",
     description: "Run a GraphQL query or mutation against any endpoint",
+    descriptionKey: "runAGraphQLQueryOrMutationAgainstAnyEndpoint",
     category: "HTTP",
     code: `// Add operationName here for multi-operation documents
 const res = await fetch(inputs.url, {
@@ -2350,6 +2645,7 @@ return { data: json.data ?? null, errors: json.errors ?? [], status: res.status 
   {
     id: "http-graphql-auth",
     title: "GraphQL Query with Auth",
+    titleKey: "graphqlQueryWithAuth",
     description:
       "Run a GraphQL query with a bearer token from the secret store",
     category: "HTTP",
@@ -2378,7 +2674,9 @@ return { data: json.data ?? null, errors: json.errors ?? [], status: res.status 
   {
     id: "http-graphql-batch",
     title: "GraphQL Batch Query",
+    titleKey: "graphqlBatchQuery",
     description: "Send several GraphQL operations in one batched request",
+    descriptionKey: "sendSeveralGraphQLOperationsInOneBatchedRequest",
     category: "HTTP",
     code: `// queries: [{ query, variables?, operationName? }, ...]
 const res = await fetch(inputs.url, {
@@ -2402,7 +2700,9 @@ return { output: Array.isArray(json) ? json : [json], status: res.status };`,
   {
     id: "http-graphql-introspection",
     title: "GraphQL Introspection",
+    titleKey: "graphqlIntrospection",
     description: "Fetch a GraphQL endpoint's schema via an introspection query",
+    descriptionKey: "fetchAGraphQLEndpointsSchemaViaAnIntrospectionQuery",
     category: "HTTP",
     code: `const query = "{ __schema { queryType { name } mutationType { name } subscriptionType { name } " +
   "types { name kind fields { name type { name kind ofType { name kind } } } } } }";
@@ -2430,7 +2730,9 @@ return { output: res.json ?? {}, types: schema ? schema.types.map(t => t.name) :
   {
     id: "md-extract-headers",
     title: "Extract Headers",
+    titleKey: "extractHeaders",
     description: "Extract markdown headers as an outline (level, text, index)",
+    descriptionKey: "extractMarkdownHeadersAsAnOutlineLevelTextIndex",
     category: "Markdown",
     code: `const maxLevel = 6; // deepest header level to keep (1-6)
 const headers = [];
@@ -2455,7 +2757,9 @@ return { output: headers };`,
   {
     id: "md-extract-links",
     title: "Extract Links",
+    titleKey: "extractLinks",
     description: "Extract inline links and autolinks from markdown",
+    descriptionKey: "extractInlineLinksAndAutolinksFromMarkdown",
     category: "Markdown",
     code: `const includeTitles = true; // keep the [text] part as the link title
 const links = [];
@@ -2471,7 +2775,9 @@ return { output: links };`,
   {
     id: "md-extract-code-blocks",
     title: "Extract Code Blocks",
+    titleKey: "extractCodeBlocks",
     description: "Extract fenced code blocks and their languages from markdown",
+    descriptionKey: "extractFencedCodeBlocksAndTheirLanguagesFromMarkdown",
     category: "Markdown",
     code: `const blocks = [];
 for (const m of String(inputs.markdown).matchAll(/\`\`\`(\\w*)\\n([\\s\\S]*?)\\n\`\`\`/g)) {
@@ -2491,7 +2797,9 @@ return { output: blocks };`,
   {
     id: "md-extract-bullet-lists",
     title: "Extract Bullet Lists",
+    titleKey: "extractBulletLists",
     description: "Extract unordered lists from markdown, grouped per list",
+    descriptionKey: "extractUnorderedListsFromMarkdownGroupedPerList",
     category: "Markdown",
     code: `const lists = [];
 let current = [];
@@ -2515,7 +2823,9 @@ return { output: lists };`,
   {
     id: "md-extract-numbered-lists",
     title: "Extract Numbered Lists",
+    titleKey: "extractNumberedLists",
     description: "Extract ordered lists from markdown, grouped per list",
+    descriptionKey: "extractOrderedListsFromMarkdownGroupedPerList",
     category: "Markdown",
     code: `const lists = [];
 let current = [];
@@ -2539,7 +2849,9 @@ return { output: lists };`,
   {
     id: "md-extract-tables",
     title: "Extract Table",
+    titleKey: "extractTable",
     description: "Convert the first markdown table into dataframe rows",
+    descriptionKey: "convertTheFirstMarkdownTableIntoDataframeRows",
     category: "Markdown",
     code: `const table = [];
 for (const line of String(inputs.markdown).split("\\n")) {
@@ -2574,6 +2886,7 @@ return { output: { rows } };`,
     id: "html-base-url",
     title: "Base URL",
     description: "Extract scheme + host (the site root) from a full URL",
+    descriptionKey: "extractSchemeHostTheSiteRootFromAFullURL",
     category: "HTML",
     code: `const parsed = new URL(inputs.url);
 return { output: parsed.protocol + "//" + parsed.host };`,
@@ -2591,6 +2904,7 @@ return { output: parsed.protocol + "//" + parsed.host };`,
   {
     id: "html-extract-links",
     title: "Extract Links",
+    titleKey: "extractLinks",
     description:
       "Extract every <a href> with its text, classified internal or external",
     category: "HTML",
@@ -2631,6 +2945,7 @@ return { links, href: links[0]?.href ?? "", text: links[0]?.text ?? "" };`,
   {
     id: "html-extract-images",
     title: "Extract Images",
+    titleKey: "extractImages",
     description:
       "Collect every <img src> from HTML, resolved against a base URL",
     category: "HTML",
@@ -2656,7 +2971,9 @@ return { images, image: images[0] ?? { uri: "", type: "image" } };`,
   {
     id: "html-extract-audio",
     title: "Extract Audio",
+    titleKey: "extractAudio",
     description: "Collect <audio> and <audio><source> sources from HTML",
+    descriptionKey: "collectAudioAndAudiosourceSourcesFromHTML",
     category: "HTML",
     code: `import { select } from "@nodetool-ai/sandbox-html";
 const baseUrl = ""; // page URL — resolves relative src values
@@ -2683,6 +3000,7 @@ return { audios, audio: audios[0] ?? { uri: "", type: "audio" } };`,
   {
     id: "html-extract-videos",
     title: "Extract Videos",
+    titleKey: "extractVideos",
     description:
       "Collect <video>, <video><source> and <iframe> sources from HTML",
     category: "HTML",
@@ -2713,7 +3031,9 @@ return { videos, video: videos[0] ?? { uri: "", type: "video" } };`,
   {
     id: "html-extract-metadata",
     title: "Extract Metadata",
+    titleKey: "extractMetadata",
     description: "Read the page title and the description / keywords meta tags",
+    descriptionKey: "readThePageTitleAndTheDescriptionKeywordsMetaTags",
     category: "HTML",
     code: `import { select } from "@nodetool-ai/sandbox-html";
 const first = async (selector, attr) =>
@@ -2742,7 +3062,9 @@ return {
   {
     id: "validate-email",
     title: "Validate Email",
+    titleKey: "validateEmail",
     description: "Check whether a value is a syntactically valid email address",
+    descriptionKey: "checkWhetherAValueIsASyntacticallyValidEmailAddress",
     category: "Validation",
     code: `return { output: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z][A-Za-z0-9-]*$/.test(String(inputs.value).trim()) };`,
     tags: ["validate", "email", "check", "address", "valid"]
@@ -2750,7 +3072,9 @@ return {
   {
     id: "validate-url",
     title: "Validate URL",
+    titleKey: "validateURL",
     description: "Check whether a value is a syntactically valid absolute URL",
+    descriptionKey: "checkWhetherAValueIsASyntacticallyValidAbsoluteURL",
     category: "Validation",
     code: `let ok = false;
 try {
@@ -2765,7 +3089,9 @@ return { output: ok };`,
   {
     id: "validate-ip",
     title: "Validate IP Address",
+    titleKey: "validateIPAddress",
     description: "Check whether a value is a valid IPv4 or IPv6 address",
+    descriptionKey: "checkWhetherAValueIsAValidIPv4OrIPv6Address",
     category: "Validation",
     code: `const v = String(inputs.value);
 const SEG = /^(25[0-5]|2[0-4]\\d|1\\d\\d|\\d{1,2})$/;
@@ -2799,6 +3125,7 @@ return { is_ip: v4 || v6, is_ipv4: v4, is_ipv6: v6 };`,
   {
     id: "validate-string",
     title: "Validate String",
+    titleKey: "validateString",
     description:
       "Run common string checks at once and return one bool per check",
     category: "Validation",
@@ -2840,6 +3167,7 @@ return {
   {
     id: "validate-sanitize",
     title: "Sanitize String",
+    titleKey: "sanitizeString",
     description:
       "HTML-escape and trim a string, plus the normalized email when applicable",
     category: "Validation",
@@ -2879,6 +3207,7 @@ return {
   {
     id: "gmail-search",
     title: "Gmail Search",
+    titleKey: "gmailSearch",
     description:
       "Search Gmail and return the matching messages (id, subject, from, date, snippet, body)",
     category: "Email",
@@ -2899,7 +3228,9 @@ return { messages };`,
   {
     id: "gmail-add-label",
     title: "Gmail Add Label",
+    titleKey: "gmailAddLabel",
     description: "Apply a Gmail label to one message by id",
+    descriptionKey: "applyAGmailLabelToOneMessageById",
     category: "Email",
     code: `import { gmail_modify_labels } from "@nodetool-ai/sandbox-nodetool/google";
 
@@ -2918,7 +3249,9 @@ return { message_id: inputs.message_id };`,
   {
     id: "gmail-archive",
     title: "Gmail Archive",
+    titleKey: "gmailArchive",
     description: "Archive a Gmail message by removing it from the inbox",
+    descriptionKey: "archiveAGmailMessageByRemovingItFromTheInbox",
     category: "Email",
     code: `import { gmail_modify_labels } from "@nodetool-ai/sandbox-nodetool/google";
 
@@ -2939,6 +3272,7 @@ return { message_id: inputs.message_id };`,
   {
     id: "image-grid",
     title: "Combine Image Grid",
+    titleKey: "combineImageGrid",
     description:
       "Lay a list of images out in a grid and return the combined image",
     category: "Image",

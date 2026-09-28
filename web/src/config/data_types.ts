@@ -1,3 +1,5 @@
+import { i18n } from "../i18n";
+
 function stringToColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -34,10 +36,14 @@ type SpectraKey = keyof typeof SpectraNode;
 export interface DataType {
   value: string;
   label: string;
+  /** i18n key under catalog:dataTypes.* — resolves `label` at render. */
+  labelKey?: string;
   namespace: string;
   name: string;
   slug: string;
   description: string;
+  /** i18n key under catalog:dataTypes.* — resolves `description` at render. */
+  descriptionKey?: string;
   /**
    * Core 500 tone for this type as HEX.
    * (Light / dark variants are derived in CSS).
@@ -80,7 +86,9 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "notype",
     label: "No Type",
+    labelKey: "noType",
     description: "No output or type not specified.",
+    descriptionKey: "noOutputOrTypeNotSpecified",
     color: "#A7B1BF",
     textColor: "dark",
     name: "",
@@ -187,6 +195,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "game_slot",
     label: "Game Slot",
+    labelKey: "gameSlot",
     description:
       "One asset slot a game template declares — a sprite sheet, a tileset, a background, a sound effect or a music loop — carrying the sizes and counts it needs.",
     color: colour("spatial"),
@@ -199,6 +208,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "slot_fill",
     label: "Slot Fill",
+    labelKey: "slotFill",
     description:
       "A generated asset accepted for a game slot: the grid, frame ranges and loop flags the Godot writer reads.",
     color: colour("spatial"),
@@ -211,6 +221,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "bool",
     label: "Boolean",
+    labelKey: "boolean",
     description:
       "Logical true or false value. Used for conditions, toggles, and binary choices.",
     color: colour("boolean"),
@@ -223,6 +234,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "chunk",
     label: "Chunk",
+    labelKey: "chunk",
     description:
       "Partial data from a streaming response. Used in real-time chat and generation workflows.",
     color: colour("collection"),
@@ -247,6 +259,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "dataframe",
     label: "Dataframe",
+    labelKey: "dataframe",
     description:
       "Tabular data with rows and columns. Used for CSV data, analytics, and data processing.",
     color: colour("collection"),
@@ -271,6 +284,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "dict",
     label: "Dictionary",
+    labelKey: "dictionary",
     description:
       "Key-value pairs collection. Used for structured data, configurations, and JSON objects.",
     color: colour("collection"),
@@ -283,6 +297,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "enum",
     label: "Enumeration",
+    labelKey: "enumeration",
     description:
       "A predefined set of named options. Used for dropdowns and fixed-choice selections.",
     color: colour("collection"),
@@ -295,6 +310,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "file",
     label: "File",
+    labelKey: "file",
     description:
       "Reference to an uploaded file. Used for file inputs and attachments.",
     color: colour("reference"),
@@ -379,6 +395,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "tensor",
     label: "Tensor",
+    labelKey: "tensor",
     description:
       "Multi-dimensional numerical array. Used for ML model inputs, embeddings, and computations.",
     color: colour("matrix"),
@@ -403,6 +420,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "union",
     label: "Union",
+    labelKey: "union",
     description:
       "Value that can be one of several specified types. Enables flexible type handling.",
     color: colour("reference"),
@@ -439,6 +457,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "asr_model",
     label: "ASR Model",
+    labelKey: "asrModel",
     description:
       "Reference to an automatic speech recognition model for transcribing audio.",
     color: colour("reference"),
@@ -451,6 +470,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "bytes",
     label: "Bytes",
+    labelKey: "bytes",
     description:
       "Raw binary data (e.g. downloaded file bodies). Typically converted to assets or decoded downstream.",
     color: colour("reference"),
@@ -463,6 +483,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "collection",
     label: "Collection",
+    labelKey: "collection",
     description:
       "Reference to a vector / document collection used for retrieval and indexing (e.g. RAG).",
     color: colour("collection"),
@@ -487,6 +508,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "image_size",
     label: "Image size",
+    labelKey: "imageSize",
     description:
       "Structured width/height (and related) dimensions for generation or preprocessing nodes.",
     color: colour("scalar"),
@@ -499,6 +521,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "llama_cpp_model",
     label: "Llama.cpp model",
+    labelKey: "llamacppModel",
     description:
       "Reference to a local GGUF / llama.cpp–compatible checkpoint for LlamaCpp-backed nodes.",
     color: colour("reference"),
@@ -511,6 +534,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "llama_model",
     label: "Llama model (HF)",
+    labelKey: "llamaModelHF",
     description:
       "Reference to a Hugging Face/transformers-compatible Llama-family model selector.",
     color: colour("reference"),
@@ -535,6 +559,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "mistral_model",
     label: "Mistral model",
+    labelKey: "mistralModel",
     description:
       "Reference to a Mistral model for nodes that expose provider-specific selectors.",
     color: colour("reference"),
@@ -547,6 +572,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "model_3d_model",
     label: "3D pipeline model",
+    labelKey: "3dPipelineModel",
     description:
       "Provider selector for 3D generation APIs (e.g. Meshy), distinct from an output model_3d asset.",
     color: colour("reference"),
@@ -559,6 +585,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "none",
     label: "None",
+    labelKey: "none",
     description:
       "No meaningful output value — used for nodes that exist for side effects (e.g. delete/move) rather than wiring data onward.",
     color: colour("execution"),
@@ -583,6 +610,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "thread",
     label: "Thread",
+    labelKey: "thread",
     description:
       "Conversation thread containing a sequence of messages for chat interactions.",
     color: colour("textual"),
@@ -595,6 +623,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "model_ref",
     label: "Model Reference",
+    labelKey: "modelReference",
     description:
       "Reference to a machine learning model file or repository for inference.",
     color: colour("reference"),
@@ -619,6 +648,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "tjs.cached",
     label: "Transformers.js model (tjs.*)",
+    labelKey: "transformersjsModelTjs",
     description:
       "Cached Transformers.js / ONNX hub model selectors. Ports use runtime-specific names such as tjs.text_generation or tjs.text_classification; they behave like model references for browser-side inference.",
     color: colour("reference"),
@@ -631,6 +661,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "torch_tensor",
     label: "Torch tensor",
+    labelKey: "torchTensor",
     description:
       "PyTorch-backed tensor blob (often latents). Used mainly by Hugging Face–side nodes and Python interoperability.",
     color: colour("matrix"),
@@ -643,6 +674,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "tts_model",
     label: "TTS model",
+    labelKey: "ttsModel",
     description:
       "Reference to a text-to-speech model for speech synthesis pipelines.",
     color: colour("reference"),
@@ -655,6 +687,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "music_model",
     label: "Music model",
+    labelKey: "musicModel",
     description:
       "Reference to a text-to-music model for music generation pipelines.",
     color: colour("reference"),
@@ -667,6 +700,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "audio_to_audio_model",
     label: "Audio to audio model",
+    labelKey: "audioToAudioModel",
     description:
       "Reference to a model that rewrites a recording: voice change, isolation, stem separation, super-resolution.",
     color: colour("reference"),
@@ -703,6 +737,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "datetime",
     label: "DateTime",
+    labelKey: "datetime",
     description:
       "Date and time value with timezone support. Used for scheduling and timestamps.",
     color: colour("scalar"),
@@ -716,6 +751,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
     value: "date",
     label: "Date",
     description: "Calendar date without a time component.",
+    descriptionKey: "calendarDateWithoutATimeComponent",
     color: colour("scalar"),
     textColor: "var(--palette-action-active)",
     name: "",
@@ -762,6 +798,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   {
     value: "np_array",
     label: "NumPy Array",
+    labelKey: "numpyArray",
     description:
       "NumPy array for numerical computing. Used for scientific data and ML operations.",
     color: colour("matrix"),
@@ -820,12 +857,34 @@ export function colorForType(type: string): string {
 
 export function descriptionForType(type: string): string {
   const n = normalizeTypeName(type.replace(/^nodetool\./, ""));
-  return bundledDataTypeForTypeName(n)?.description || "";
+  const hit = bundledDataTypeForTypeName(n);
+  if (hit) {
+    return i18n.t(`catalog:dataTypes.${hit.descriptionKey ?? ""}`, {
+      defaultValue: hit.description
+    });
+  }
+  return "";
 }
 
 export function labelForType(type: string): string {
   const n = normalizeTypeName(type.replace(/^nodetool\./, ""));
   return bundledDataTypeForTypeName(n)?.label || "";
+}
+
+/**
+ * Display-form label — translated when the table carries a labelKey.
+ * `labelForType` stays untranslated because callers build node-type
+ * identifiers (e.g. `nodetool.${label}Input`) from its result.
+ */
+export function displayLabelForType(type: string): string {
+  const n = normalizeTypeName(type.replace(/^nodetool\./, ""));
+  const hit = bundledDataTypeForTypeName(n);
+  if (hit) {
+    return i18n.t(`catalog:dataTypes.${hit.labelKey ?? ""}`, {
+      defaultValue: hit.label
+    });
+  }
+  return "";
 }
 
 // Alphabetical ordering for ease of lookup
