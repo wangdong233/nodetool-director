@@ -385,7 +385,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
-    <Command.Group heading="Workflow">
+    <Command.Group heading={i18n.t("editor:ui.cmWorkflow")}>
       <Command.Item onSelect={() => executeAndClose(handleRun)}>
         <PlayArrowRoundedIcon /> Run Entire Workflow
       </Command.Item>
@@ -464,7 +464,7 @@ const EditCommands = memo(function EditCommands({
   }, [surroundWithGroup, selectedNodes]);
 
   return (
-    <Command.Group heading="Edit">
+    <Command.Group heading={i18n.t("editor:ui.cmEdit")}>
       <Command.Item onSelect={() => executeAndClose(undo)}>
         <UndoRoundedIcon /> Undo
       </Command.Item>
@@ -511,7 +511,7 @@ const LayoutCommands = memo(function LayoutCommands() {
   const selectionActions = useSelectionActions();
 
   return (
-    <Command.Group heading="Layout & Alignment">
+    <Command.Group heading={i18n.t("editor:ui.cmLayoutAlignment")}>
       <Command.Item
         onSelect={() =>
           executeAndClose(() => alignNodes({ arrangeSpacing: false }))
@@ -561,7 +561,7 @@ const ViewCommands = memo(function ViewCommands() {
   const setSnapToGrid = useSettingsStore((state) => state.setSnapToGrid);
 
   return (
-    <Command.Group heading="View">
+    <Command.Group heading={i18n.t("editor:ui.cmView")}>
       <Command.Item
         onSelect={() => executeAndClose(toggleVisible)}
       >
@@ -617,7 +617,7 @@ const PanelCommands = memo(function PanelCommands() {
   );
 
   return (
-    <Command.Group heading="Panels">
+    <Command.Group heading={i18n.t("editor:ui.cmPanels")}>
       <Command.Item
         onSelect={() => executeAndClose(rightPanelToggle)}
       >
@@ -654,7 +654,7 @@ const HelpCommands = memo(function HelpCommands() {
   );
 
   return (
-    <Command.Group heading="Help">
+    <Command.Group heading={i18n.t("editor:ui.cmHelp")}>
       <Command.Item
         onSelect={() =>
           executeAndClose(() =>
@@ -748,7 +748,7 @@ const AppCommands = memo(function AppCommands() {
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />
-      <Command.Group heading="App">
+      <Command.Group heading={i18n.t("editor:ui.cmApp")}>
         {applicationId && (
           <Command.Item onSelect={() => executeAndClose(exportApp)}>
             <FolderZipRoundedIcon /> Export App as Bundle (.app.json)
@@ -785,7 +785,7 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
   if (!workflows) { return null; }
 
   return (
-    <Command.Group heading="Workflows">
+    <Command.Group heading={i18n.t("editor:ui.cmWorkflows")}>
       {workflows.workflows.map((workflow) => (
         <Command.Item
           key={workflow.id}

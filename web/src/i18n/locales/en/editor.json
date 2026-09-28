@@ -2666,7 +2666,17 @@
     "nApps": "{{n}} apps",
     "oneApp": "{{n}} app",
     "nWorkflowsNodes": "{{apps}} · {{steps}} workflows · {{nodes}} nodes",
-    "addAllNAsWorkflows": "Add all {{n}} as workflows"
+    "addAllNAsWorkflows": "Add all {{n}} as workflows",
+    "cmWorkflow": "Workflow",
+    "cmEdit": "Edit",
+    "cmLayoutAlignment": "Layout & Alignment",
+    "cmView": "View",
+    "cmPanels": "Panels",
+    "cmHelp": "Help",
+    "cmApp": "App",
+    "cmWorkflows": "Workflows",
+    "view2": "View",
+    "hide2": "Hide"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

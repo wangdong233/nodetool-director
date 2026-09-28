@@ -2666,7 +2666,17 @@
     "nApps": "{{n}} 个应用",
     "oneApp": "{{n}} 个应用",
     "nWorkflowsNodes": "{{apps}} · {{steps}} 个工作流 · {{nodes}} 个节点",
-    "addAllNAsWorkflows": "将全部 {{n}} 个添加为工作流"
+    "addAllNAsWorkflows": "将全部 {{n}} 个添加为工作流",
+    "cmWorkflow": "工作流",
+    "cmEdit": "编辑",
+    "cmLayoutAlignment": "布局与对齐",
+    "cmView": "视图",
+    "cmPanels": "面板",
+    "cmHelp": "帮助",
+    "cmApp": "应用",
+    "cmWorkflows": "工作流",
+    "view2": "查看",
+    "hide2": "隐藏"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

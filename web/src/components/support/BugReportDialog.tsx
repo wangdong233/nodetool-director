@@ -384,7 +384,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                         }))
                       }
                     >
-                      {revealed[section.id] ? "Hide" : "View"}
+                      {revealed[section.id] ? i18n.t("editor:ui.hide2") : i18n.t("editor:ui.view2")}
                     </EditorButton>
                   </FlexRow>
                 </FlexRow>
