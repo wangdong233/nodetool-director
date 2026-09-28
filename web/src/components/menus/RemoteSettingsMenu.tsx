@@ -61,26 +61,32 @@ const SEARCH_RELATED_SETTINGS = new Set([
 const META_SECTION_GROUPS: ReadonlyArray<{
   key: string;
   label: string;
+  /** i18n leaf key under `tools:menus.` for this section heading. */
+  labelKey?: string;
   groups: ReadonlyArray<string>;
 }> = [
   {
     key: "local-model-servers",
     label: "Local Model Servers",
+    labelKey: "localModelServers",
     groups: ["vLLM", "Ollama", "LlamaCpp", "NodeLlamaCpp", "LMStudio", "TransformersJs"]
   },
   {
     key: "provider-options",
     label: "Provider Options",
+    labelKey: "providerOptions",
     groups: ["ZAI", "KIE"]
   },
   {
     key: "observability",
     label: "Observability",
+    labelKey: "observability",
     groups: ["Observability", "Traceloop"]
   },
   {
     key: "data-and-storage",
     label: "Data & Storage",
+    labelKey: "dataStorage",
     groups: ["NodeSupabase", "Supabase"]
   },
   { key: "other", label: "Other", groups: [] }
@@ -498,7 +504,9 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Your settings have been saved successfully",
+            content: i18n.t("tools:menus.yourSettingsHaveBeenSavedSuccessfully", {
+              defaultValue: "Your settings have been saved successfully"
+            }),
             type: "success",
             alert: true
           });
@@ -547,7 +555,11 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                         id={sec.key}
                         className="settings-heading"
                       >
-                        {sec.label}
+                        {section.labelKey
+                          ? i18n.t(`tools:menus.${section.labelKey}`, {
+                              defaultValue: sec.label
+                            })
+                          : sec.label}
                       </Text>
                       {visibleSettings.map((setting) => (
                         <SettingItem

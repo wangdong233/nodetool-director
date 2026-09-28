@@ -232,7 +232,9 @@ const WorkflowCommands = memo(function WorkflowCommands() {
     addNotification({
       type: "info",
       alert: true,
-      content: "Copied workflow JSON to Clipboard!"
+      content: i18n.t("tools:menus.copiedWorkflowJsonToClipboard", {
+        defaultValue: "Copied workflow JSON to Clipboard!"
+      })
     });
   }, [writeClipboard, workflowJSON, addNotification]);
 
@@ -301,7 +303,9 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to import workflow — invalid JSON file"
+          content: i18n.t("tools:menus.failedToImportWorkflowInvalidJsonFile", {
+            defaultValue: "Failed to import workflow — invalid JSON file"
+          })
         });
       }
       if (fileInputRef.current) fileInputRef.current.value = "";

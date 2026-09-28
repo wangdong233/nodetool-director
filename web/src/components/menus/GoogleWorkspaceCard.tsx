@@ -82,7 +82,9 @@ const GoogleWorkspaceCard = () => {
       });
     } catch {
       addNotification({
-        content: "Failed to disconnect Google Workspace",
+        content: i18n.t("tools:menus.failedToDisconnectGoogleWorkspace", {
+          defaultValue: "Failed to disconnect Google Workspace"
+        }),
         type: "error",
         alert: true
       });

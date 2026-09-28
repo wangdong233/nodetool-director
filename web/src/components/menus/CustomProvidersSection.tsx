@@ -283,7 +283,9 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: "Provider removed"
+        content: i18n.t("tools:menus.providerRemoved", {
+          defaultValue: "Provider removed"
+        })
       });
     }
   });
@@ -431,7 +433,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         <EmptyState
           variant="no-results"
           title={i18n.t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
-          description="Add a base URL and an API key to use any OpenAI-compatible provider."
+          description={i18n.t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", {
+            defaultValue:
+              "Add a base URL and an API key to use any OpenAI-compatible provider."
+          })}
         />
       ) : (
         <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -504,10 +509,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             variant="outlined"
             size="small"
             errorMessage={urlError ?? undefined}
-            helperText="Include the version path the endpoint serves, usually /v1."
+            helperText={i18n.t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", {
+              defaultValue: "Include the version path the endpoint serves, usually /v1."
+            })}
           />
           <TextInput
-            label="API key"
+            label={i18n.t("tools:menus.apiKey2", { defaultValue: "API key" })}
             type="password"
             value={draft.apiKey}
             onChange={handleApiKeyChange}
@@ -526,7 +533,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             placeholder={i18n.t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
             variant="outlined"
             size="small"
-            helperText="Comma-separated model ids, for endpoints with no /models route."
+            helperText={i18n.t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", {
+              defaultValue:
+                "Comma-separated model ids, for endpoints with no /models route."
+            })}
           />
           <TextInput
             label={i18n.t("editor:ui.imageModels", { defaultValue: "Image models" })}
@@ -536,7 +546,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             placeholder={i18n.t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
             variant="outlined"
             size="small"
-            helperText="Detected from the model list. Add ids that Test misses. Calls go to /images/generations."
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", {
+              defaultValue:
+                "Detected from the model list. Add ids that Test misses. Calls go to /images/generations."
+            })}
           />
           <TextInput
             label={i18n.t("editor:ui.videoModels", { defaultValue: "Video models" })}
@@ -546,7 +559,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             placeholder={i18n.t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
             variant="outlined"
             size="small"
-            helperText="Detected from the model list. Add ids that Test misses. Calls go to /videos."
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", {
+              defaultValue:
+                "Detected from the model list. Add ids that Test misses. Calls go to /videos."
+            })}
           />
           <Caption sx={{ opacity: 0.6 }}>
             The URL and key are encrypted and stored per account. The same

@@ -472,7 +472,10 @@ export const ExternalMcpServersSection = memo(
           <EmptyState
             variant="no-results"
             title={i18n.t("editor:ui.noExternalServers", { defaultValue: "No external servers" })}
-            description="Add a command or a URL. Its tools join the agent's toolbelt on the next message."
+            description={i18n.t("tools:menus.addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage", {
+              defaultValue:
+                "Add a command or a URL. Its tools join the agent's toolbelt on the next message."
+            })}
           />
         ) : (
           <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -572,7 +575,10 @@ export const ExternalMcpServersSection = memo(
                   placeholder="blender-mcp"
                   variant="outlined"
                   size="small"
-                  helperText="One argument per line, so a path with a space stays one argument."
+                  helperText={i18n.t("tools:menus.oneArgumentPerLineSoAPathWithASpaceStaysOneArgument", {
+                    defaultValue:
+                      "One argument per line, so a path with a space stays one argument."
+                  })}
                 />
                 <TextInput
                   label={i18n.t("editor:ui.environment", { defaultValue: "Environment" })}
@@ -584,7 +590,10 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"HF_TOKEN=${HF_TOKEN}\nDEBUG=1"}
                   variant="outlined"
                   size="small"
-                  helperText="One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  helperText={i18n.t("tools:menus.oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", {
+                    defaultValue:
+                      "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  })}
                 />
                 <TextInput
                   label={i18n.t("editor:ui.workingDirectory", { defaultValue: "Working directory" })}
@@ -607,7 +616,9 @@ export const ExternalMcpServersSection = memo(
                   variant="outlined"
                   size="small"
                   errorMessage={transportError ?? undefined}
-                  helperText="Streamable HTTP, with SSE as the fallback."
+                  helperText={i18n.t("tools:menus.streamableHTTPWithSSEAsTheFallback", {
+                    defaultValue: "Streamable HTTP, with SSE as the fallback."
+                  })}
                 />
                 <TextInput
                   label={i18n.t("editor:ui.headers", { defaultValue: "Headers" })}
@@ -619,7 +630,10 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"Authorization=Bearer ${HF_TOKEN}"}
                   variant="outlined"
                   size="small"
-                  helperText="One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  helperText={i18n.t("tools:menus.oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", {
+                    defaultValue:
+                      "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  })}
                 />
               </>
             )}

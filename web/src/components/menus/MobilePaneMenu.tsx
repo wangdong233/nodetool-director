@@ -208,7 +208,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Fit Screen" 
-                secondary="Center all nodes in view"
+                secondary={i18n.t("tools:menus.centerAllNodesInView", { defaultValue: "Center all nodes in view" })}
               />
             </ListItemButton>
           </ListItem>
@@ -224,7 +224,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary={i18n.t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
-                secondary="AI agent for processing"
+                secondary={i18n.t("tools:menus.aiAgentForProcessing", { defaultValue: "AI agent for processing" })}
               />
             </ListItemButton>
           </ListItem>
@@ -240,7 +240,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary={i18n.t("editor:ui.stringInput", { defaultValue: "String Input" })}
-                secondary="Text input field"
+                secondary={i18n.t("tools:menus.textInputField", { defaultValue: "Text input field" })}
               />
             </ListItemButton>
           </ListItem>
@@ -253,7 +253,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary={i18n.t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
-                secondary="Whole number input"
+                secondary={i18n.t("tools:menus.wholeNumberInput", { defaultValue: "Whole number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -266,7 +266,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary={i18n.t("editor:ui.floatInput", { defaultValue: "Float Input" })}
-                secondary="Decimal number input"
+                secondary={i18n.t("tools:menus.decimalNumberInput", { defaultValue: "Decimal number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -279,7 +279,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary={i18n.t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
-                secondary="Chat message input"
+                secondary={i18n.t("tools:menus.chatMessageInput", { defaultValue: "Chat message input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -292,7 +292,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Image Input"
-                secondary="Image file input"
+                secondary={i18n.t("tools:menus.imageFileInput", { defaultValue: "Image file input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -308,7 +308,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Add Comment" 
-                secondary="Text comment note"
+                secondary={i18n.t("tools:menus.textCommentNote", { defaultValue: "Text comment note" })}
               />
             </ListItemButton>
           </ListItem>
@@ -321,7 +321,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Add Group"
-                secondary="Group container for nodes"
+                secondary={i18n.t("tools:menus.groupContainerForNodes", { defaultValue: "Group container for nodes" })}
               />
             </ListItemButton>
           </ListItem>

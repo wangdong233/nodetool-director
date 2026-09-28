@@ -420,7 +420,9 @@ const InstallPanel = memo(function InstallPanel({
               handleInstall();
             }
           }}
-          placeholder="@scope/package or package@version"
+          placeholder={i18n.t("tools:menus.packageSpecPlaceholder", {
+            defaultValue: "@scope/package or package@version"
+          })}
           slotProps={{ htmlInput: { "aria-label": "Package to install" } }}
           fullWidth
           disabled={status.kind === "installing"}

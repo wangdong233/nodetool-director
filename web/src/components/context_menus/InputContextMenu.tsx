@@ -141,38 +141,43 @@ const getNodePathsForType = (
  */
 const LIST_CONSTANT_PATHS: Record<
   string,
-  { constantPath: string; inputPath: string; label: string }
+  { constantPath: string; inputPath: string; label: string; labelKey: string }
 > = {
   image: {
     constantPath: "nodetool.constant.ImageList",
     inputPath: "nodetool.input.ImageListInput",
-    label: "Image List"
+    label: "Image List",
+    labelKey: "imageList"
   },
   video: {
     constantPath: "nodetool.constant.VideoList",
     inputPath: "nodetool.input.VideoListInput",
-    label: "Video List"
+    label: "Video List",
+    labelKey: "videoList"
   },
   audio: {
     constantPath: "nodetool.constant.AudioList",
     inputPath: "nodetool.input.AudioListInput",
-    label: "Audio List"
+    label: "Audio List",
+    labelKey: "audioList"
   },
   text: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.TextListInput",
-    label: "Text List"
+    label: "Text List",
+    labelKey: "textList"
   },
   str: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.StringListInput",
-    label: "Text List"
+    label: "Text List",
+    labelKey: "textList"
   }
 };
 
 const getListConstantPathForElementType = (
   elementTypeName: string
-): { constantPath: string; inputPath: string; label: string } | null =>
+): { constantPath: string; inputPath: string; label: string; labelKey: string } | null =>
   LIST_CONSTANT_PATHS[elementTypeName] ?? null;
 
 const InputContextMenu: React.FC = () => {
@@ -239,7 +244,11 @@ const InputContextMenu: React.FC = () => {
   const promptNodeMetadata =
     type?.type === "str" ? getMetadata("nodetool.text.Prompt") : null;
 
-  const specializedListLabel = specializedListPaths?.label;
+  const specializedListLabel = specializedListPaths
+    ? i18n.t(`tools:ctx.${specializedListPaths.labelKey}`, {
+        defaultValue: specializedListPaths.label
+      })
+    : undefined;
 
   const isEnumType = type?.type === "enum";
 

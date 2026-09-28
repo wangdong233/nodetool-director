@@ -221,7 +221,11 @@ export const ProviderCard = memo(function ProviderCard({
           }}
         >
           <FlexRow align="center" gap={SPACING.md} wrap>
-            <Text>{meta.name}</Text>
+            <Text>
+              {i18n.t(`tools:menus.providers.${meta.key}.name`, {
+                defaultValue: meta.name
+              })}
+            </Text>
             {meta.tag && (
               <Chip
                 label={meta.tag}
@@ -236,7 +240,9 @@ export const ProviderCard = memo(function ProviderCard({
             )}
           </FlexRow>
           <Caption size="small" sx={{ lineHeight: 1.5 }}>
-            {meta.description}
+            {i18n.t(`tools:menus.providers.${meta.key}.description`, {
+              defaultValue: meta.description
+            })}
           </Caption>
           {meta.note && (
             <Caption
@@ -686,7 +692,9 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         ) {
           addNotification({
             type: "error",
-            content: "All fields are required",
+            content: i18n.t("tools:menus.allFieldsAreRequired", {
+              defaultValue: "All fields are required"
+            }),
             dismissable: true
           });
           return;
@@ -702,7 +710,9 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         if (!formValue) {
           addNotification({
             type: "error",
-            content: "Secret value is required",
+            content: i18n.t("tools:menus.secretValueIsRequired", {
+              defaultValue: "Secret value is required"
+            }),
             dismissable: true
           });
           return;
@@ -964,12 +974,18 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                 {meta?.combinedCredential ? (
                   <>
                     <TextInput
-                      label={meta.combinedCredential.label}
+                      label={i18n.t(
+                        `tools:menus.providers.${meta.key}.credentialLabel`,
+                        { defaultValue: meta.combinedCredential.label }
+                      )}
                       type="password"
                       value={formValue}
                       onChange={(e) => setFormValue(e.target.value)}
                       fullWidth
-                      placeholder={meta.combinedCredential.placeholder}
+                      placeholder={i18n.t(
+                        `tools:menus.providers.${meta.key}.credentialPlaceholder`,
+                        { defaultValue: meta.combinedCredential.placeholder }
+                      )}
                       autoFocus
                       variant="outlined"
                       size="small"
@@ -1008,7 +1024,9 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                 ) : (
                   <>
                     <TextInput
-                      label="API Key"
+                      label={i18n.t("tools:menus.apiKey", {
+                        defaultValue: "API Key"
+                      })}
                       type="password"
                       value={formValue}
                       onChange={(e) => setFormValue(e.target.value)}
@@ -1108,20 +1126,30 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
   const quickLinks = [
     {
       icon: <ModelTrainingIcon sx={{ fontSize: "1.2em" }} />,
-      title: "Supported Models",
-      subtitle: "See models by provider",
+      title: i18n.t("tools:menus.supportedModels", {
+        defaultValue: "Supported Models"
+      }),
+      subtitle: i18n.t("tools:menus.seeModelsByProvider", {
+        defaultValue: "See models by provider"
+      }),
       href: docsLink("providers")
     },
     {
       icon: <MenuBookIcon sx={{ fontSize: "1.2em" }} />,
-      title: "API Documentation",
-      subtitle: "Provider guides & links",
+      title: i18n.t("tools:menus.apiDocumentation", {
+        defaultValue: "API Documentation"
+      }),
+      subtitle: i18n.t("tools:menus.providerGuidesLinks", {
+        defaultValue: "Provider guides & links"
+      }),
       href: docsUrl("providers")
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
       title: "Troubleshooting",
-      subtitle: "Common issues & fixes",
+      subtitle: i18n.t("tools:menus.commonIssuesFixes", {
+        defaultValue: "Common issues & fixes"
+      }),
       href: docsLink("troubleshooting")
     }
   ];

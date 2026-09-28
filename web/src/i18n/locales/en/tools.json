@@ -1,4 +1,268 @@
 {
   "attrs": {},
-  "ui": {}
+  "ui": {},
+  "ctx": {
+    "audioList": "Audio List",
+    "imageList": "Image List",
+    "textList": "Text List",
+    "videoList": "Video List"
+  },
+  "menus": {
+    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "Add a base URL and an API key to use any OpenAI-compatible provider.",
+    "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "Add a command or a URL. Its tools join the agent's toolbelt on the next message.",
+    "aiAgentForProcessing": "AI agent for processing",
+    "allFieldsAreRequired": "All fields are required",
+    "apiDocumentation": "API Documentation",
+    "apiKey": "API Key",
+    "apiKey2": "API key",
+    "centerAllNodesInView": "Center all nodes in view",
+    "chatMessageInput": "Chat message input",
+    "clientDisconnected": "Client disconnected",
+    "commaSeparatedModelIdsForEndpointsWithNoModelsRoute": "Comma-separated model ids, for endpoints with no /models route.",
+    "commonIssuesFixes": "Common issues & fixes",
+    "copiedToClipboard": "Copied to clipboard!",
+    "copiedWorkflowJsonToClipboard": "Copied workflow JSON to Clipboard!",
+    "dataStorage": "Data & Storage",
+    "decimalNumberInput": "Decimal number input",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "Detected from the model list. Add ids that Test misses. Calls go to /images/generations.",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "Detected from the model list. Add ids that Test misses. Calls go to /videos.",
+    "failedToCopySystemInformationToClipboard": "Failed to copy system information to clipboard",
+    "failedToDisconnectGoogleWorkspace": "Failed to disconnect Google Workspace",
+    "failedToImportWorkflowInvalidJsonFile": "Failed to import workflow — invalid JSON file",
+    "folderSettingsHaveBeenSavedSuccessfully": "Folder settings have been saved successfully",
+    "groupContainerForNodes": "Group container for nodes",
+    "imageFileInput": "Image file input",
+    "includeTheVersionPathTheEndpointServesUsuallyV1": "Include the version path the endpoint serves, usually /v1.",
+    "localModelServers": "Local Model Servers",
+    "npmPackages": "NPM Packages",
+    "observability": "Observability",
+    "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "One argument per line, so a path with a space stays one argument.",
+    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
+    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
+    "packageSpecPlaceholder": "@scope/package or package@version",
+    "providerGuidesLinks": "Provider guides & links",
+    "providerOptions": "Provider Options",
+    "providerRemoved": "Provider removed",
+    "providers": {
+      "AKI_API_KEY": {
+        "description": "AKI.IO AI Model Hub."
+      },
+      "ANTHROPIC_API_KEY": {
+        "description": "Claude models for advanced reasoning."
+      },
+      "APIFY_API_TOKEN": {
+        "description": "Web search via Apify Google Search Scraper."
+      },
+      "ATLASCLOUD_API_KEY": {
+        "description": "Chat, image, and video models behind one key."
+      },
+      "BRAVE_API_KEY": {
+        "description": "Brave Search web API."
+      },
+      "CEREBRAS_API_KEY": {
+        "description": "Fast LLM inference on Cerebras hardware."
+      },
+      "CLAUDE_SUBSCRIPTION": {
+        "description": "Use a Claude Pro or Max subscription instead of API credits."
+      },
+      "CODEX_SUBSCRIPTION": {
+        "description": "Use Codex models through your ChatGPT subscription."
+      },
+      "COHERE_API_KEY": {
+        "description": "Embed v4 text embeddings and reranking."
+      },
+      "DASHSCOPE_API_KEY": {
+        "description": "Qwen models via Alibaba Cloud Model Studio."
+      },
+      "DATA_FOR_SEO_LOGIN": {
+        "description": "Web search via DataForSEO."
+      },
+      "DEEPSEEK_API_KEY": {
+        "description": "State-of-the-art open models."
+      },
+      "ELEVENLABS_API_KEY": {
+        "description": "High-quality text-to-speech services."
+      },
+      "EVOLINK_API_KEY": {
+        "description": "GPT, Claude, Gemini, DeepSeek and more through one gateway."
+      },
+      "FAL_API_KEY": {
+        "description": "Serverless AI image and video generation."
+      },
+      "GEMINI_API_KEY": {
+        "description": "Google Gemini AI models and services."
+      },
+      "GITHUB_CLIENT_ID": {
+        "description": "OAuth App credentials for GitHub PKCE flow."
+      },
+      "GMI_API_KEY": {
+        "description": "Open-weight LLMs through GMI's OpenAI-compatible API."
+      },
+      "GOOGLE_MAIL_USER": {
+        "description": "Email address and app password for Google mail integration."
+      },
+      "GROQ_API_KEY": {
+        "description": "Ultra-fast LLM inference on LPU hardware."
+      },
+      "HF_TOKEN": {
+        "description": "Inference providers and model hub access."
+      },
+      "HIGGSFIELD_API_KEY_ID": {
+        "credentialLabel": "API key",
+        "credentialPlaceholder": "Paste key-id:secret",
+        "description": "Curated image and video generation models."
+      },
+      "JINA_API_KEY": {
+        "description": "Jina embeddings and reranker models."
+      },
+      "KIE_API_KEY": {
+        "description": "Kie.ai unified model access."
+      },
+      "KIMI_API_KEY": {
+        "description": "Moonshot AI models via Kimi API."
+      },
+      "LLAMA_API_KEY": {
+        "description": "Bearer auth for a local llama-server instance."
+      },
+      "MESHY_API_KEY": {
+        "description": "3D model generation."
+      },
+      "META_API_KEY": {
+        "description": "Meta's Muse Spark models for agentic and coding work."
+      },
+      "MINIMAX_API_KEY": {
+        "description": "MiniMax AI models."
+      },
+      "MISTRAL_API_KEY": {
+        "description": "Mistral AI models and embeddings."
+      },
+      "NODE_SUPABASE_KEY": {
+        "description": "Supabase service key for user-provided nodes."
+      },
+      "OPENAI_API_KEY": {
+        "description": "GPT models, images, embeddings, and more."
+      },
+      "OPENROUTER_API_KEY": {
+        "description": "Access multiple AI models through one API."
+      },
+      "REPLICATE_API_TOKEN": {
+        "description": "Run models on Replicate's cloud infrastructure."
+      },
+      "REVE_API_KEY": {
+        "description": "Image creation, editing, and remix with strong prompt adherence."
+      },
+      "RODIN_API_KEY": {
+        "description": "Rodin AI 3D model generation."
+      },
+      "RUNPOD_API_KEY": {
+        "description": "Rent GPU pods to run NodeTool workers."
+      },
+      "SERPAPI_API_KEY": {
+        "description": "Web search via SerpAPI."
+      },
+      "SERVER_AUTH_TOKEN": {
+        "description": "Bearer token to secure NodeTool server endpoints.",
+        "name": "Server Auth Token"
+      },
+      "TOGETHER_API_KEY": {
+        "description": "Open-source models through Together API."
+      },
+      "TOPAZ_API_KEY": {
+        "description": "Topaz Labs image and video enhancement."
+      },
+      "TRACELOOP_API_KEY": {
+        "description": "OpenLLMetry trace export to Traceloop."
+      },
+      "VAST_API_KEY": {
+        "description": "Rent marketplace GPUs to run NodeTool workers."
+      },
+      "VOYAGE_API_KEY": {
+        "description": "High-quality text and multimodal embeddings."
+      },
+      "XAI_API_KEY": {
+        "description": "Grok models via xAI's API."
+      },
+      "ZHIPU_API_KEY": {
+        "description": "GLM models via Z.AI's OpenAI-compatible API."
+      }
+    },
+    "searchProviders": {
+      "apify": {
+        "description": "Reliable Google search scraping via Apify actors."
+      },
+      "brave": {
+        "description": "Privacy-focused search with a free tier — a good default."
+      },
+      "dataforseo": {
+        "description": "Professional SEO and search intelligence platform."
+      }
+    },
+    "secretValueIsRequired": "Secret value is required",
+    "seeModelsByProvider": "See models by provider",
+    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, with SSE as the fallback.",
+    "supportedModels": "Supported Models",
+    "systemInformationCopiedToClipboard": "System information copied to clipboard!",
+    "textCommentNote": "Text comment note",
+    "textInputField": "Text input field",
+    "wholeNumberInput": "Whole number input",
+    "yourSettingsHaveBeenSavedSuccessfully": "Your settings have been saved successfully"
+  },
+  "misc": {
+    "onboardingPacks": {
+      "ollama": "Chat and embedding nodes backed by your local Ollama models."
+    }
+  },
+  "tutorials": {
+    "app-assistant": {
+      "title": "Build a mini app"
+    },
+    "ask-ai": {
+      "title": "Ask the AI"
+    },
+    "chat-agent-qa": {
+      "title": "Ask the chat agent"
+    },
+    "combine-inputs": {
+      "title": "Combine two inputs"
+    },
+    "connect-run": {
+      "title": "Connect & run"
+    },
+    "describe-image": {
+      "title": "Describe an image"
+    },
+    "first-workflow": {
+      "title": "Build your first workflow"
+    },
+    "jsscript-assistant": {
+      "title": "Write a JS script"
+    },
+    "jsscript-repair": {
+      "title": "A test catches it"
+    },
+    "list-generator": {
+      "title": "Generate a list"
+    },
+    "script-assistant": {
+      "title": "Write and voice a script"
+    },
+    "sketch-assistant": {
+      "title": "Edit a sketch by asking"
+    },
+    "sketch-correction": {
+      "title": "Correct it without starting over"
+    },
+    "storyboard-ask": {
+      "title": "It asks before it spends"
+    },
+    "storyboard-assistant": {
+      "title": "Board a shot list"
+    },
+    "summarize-text": {
+      "title": "Summarize a document"
+    },
+    "timeline-trim-arrange": {
+      "title": "Cut a scene together"
+    }
+  }
 }

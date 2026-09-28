@@ -188,7 +188,9 @@ const AboutMenu: React.FC = memo(() => {
       addNotification({
         type: "info",
         alert: true,
-        content: "Copied to clipboard!"
+        content: i18n.t("tools:menus.copiedToClipboard", {
+          defaultValue: "Copied to clipboard!"
+        })
       });
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
@@ -240,14 +242,18 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       addNotification({
         type: "info",
         alert: true,
-        content: "System information copied to clipboard!"
+        content: i18n.t("tools:menus.systemInformationCopiedToClipboard", {
+          defaultValue: "System information copied to clipboard!"
+        })
       });
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to copy system information to clipboard"
+        content: i18n.t("tools:menus.failedToCopySystemInformationToClipboard", {
+          defaultValue: "Failed to copy system information to clipboard"
+        })
       });
     }
   }, [systemInfo, addNotification]);
@@ -346,7 +352,9 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               onCopy={handleCopy}
             />
             <InfoRow
-              label="NPM Packages"
+              label={i18n.t("tools:menus.npmPackages", {
+                defaultValue: "NPM Packages"
+              })}
               value={systemInfo.optionalNodePath}
               copyable
               onCopy={handleCopy}

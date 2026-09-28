@@ -120,6 +120,13 @@ export interface OnboardingNodePack {
   repoId: string;
   name: string;
   description: string;
+  /**
+   * Full i18n key (namespace included) for the localized description —
+   * rendered by the consumer as
+   * `i18n.t(pack.descriptionKey, { defaultValue: pack.description })`.
+   * Module-scope tables must not call i18n.t directly (freeze class).
+   */
+  descriptionKey?: string;
   capabilities: OnboardingCapability[];
 }
 
@@ -142,6 +149,7 @@ export const ONBOARDING_NODE_PACKS: readonly OnboardingNodePack[] = [
     repoId: "nodetool-ai/nodetool-ollama",
     name: "Ollama",
     description: "Chat and embedding nodes backed by your local Ollama models.",
+    descriptionKey: "tools:misc.onboardingPacks.ollama",
     capabilities: ["chat", "embedding"]
   }
 ];

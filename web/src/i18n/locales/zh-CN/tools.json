@@ -1,4 +1,268 @@
 {
   "attrs": {},
-  "ui": {}
+  "ui": {},
+  "ctx": {
+    "audioList": "音频列表",
+    "imageList": "图像列表",
+    "textList": "文本列表",
+    "videoList": "视频列表"
+  },
+  "menus": {
+    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加基础 URL 和 API 密钥，即可使用任何 OpenAI 兼容的提供商。",
+    "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "添加一条命令或一个 URL。其工具会在下一条消息加入智能体的工具箱。",
+    "aiAgentForProcessing": "用于处理的 AI 智能体",
+    "allFieldsAreRequired": "所有字段均为必填",
+    "apiDocumentation": "API 文档",
+    "apiKey": "API 密钥",
+    "apiKey2": "API 密钥",
+    "centerAllNodesInView": "将所有节点在视图中居中",
+    "chatMessageInput": "对话消息输入",
+    "clientDisconnected": "客户端已断开连接",
+    "commaSeparatedModelIdsForEndpointsWithNoModelsRoute": "以逗号分隔的模型 id，用于没有 /models 路由的端点。",
+    "commonIssuesFixes": "常见问题与修复",
+    "copiedToClipboard": "已复制到剪贴板！",
+    "copiedWorkflowJsonToClipboard": "已复制工作流 JSON 到剪贴板！",
+    "dataStorage": "数据与存储",
+    "decimalNumberInput": "小数输入",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /images/generations。",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /videos。",
+    "failedToCopySystemInformationToClipboard": "复制系统信息到剪贴板失败",
+    "failedToDisconnectGoogleWorkspace": "断开 Google Workspace 失败",
+    "failedToImportWorkflowInvalidJsonFile": "导入工作流失败 — 无效的 JSON 文件",
+    "folderSettingsHaveBeenSavedSuccessfully": "文件夹设置已成功保存",
+    "groupContainerForNodes": "节点分组容器",
+    "imageFileInput": "图像文件输入",
+    "includeTheVersionPathTheEndpointServesUsuallyV1": "填入端点所提供的版本路径，通常是 /v1。",
+    "localModelServers": "本地模型服务",
+    "npmPackages": "NPM 包",
+    "observability": "可观测性",
+    "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "每行一个参数，这样含空格的路径仍会被视为一个参数。",
+    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 Header=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥读取名为 NAME 的密钥。",
+    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 KEY=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥读取名为 NAME 的密钥。",
+    "packageSpecPlaceholder": "@scope/package 或 package@version",
+    "providerGuidesLinks": "提供商指南与链接",
+    "providerOptions": "提供商选项",
+    "providerRemoved": "已移除提供商",
+    "providers": {
+      "AKI_API_KEY": {
+        "description": "AKI.IO AI 模型中心。"
+      },
+      "ANTHROPIC_API_KEY": {
+        "description": "面向高级推理的 Claude 模型。"
+      },
+      "APIFY_API_TOKEN": {
+        "description": "通过 Apify Google Search Scraper 进行网络搜索。"
+      },
+      "ATLASCLOUD_API_KEY": {
+        "description": "一个密钥即可使用对话、图像与视频模型。"
+      },
+      "BRAVE_API_KEY": {
+        "description": "Brave Search 网络 API。"
+      },
+      "CEREBRAS_API_KEY": {
+        "description": "Cerebras 硬件上的快速 LLM 推理。"
+      },
+      "CLAUDE_SUBSCRIPTION": {
+        "description": "使用 Claude Pro 或 Max 订阅，无需 API 额度。"
+      },
+      "CODEX_SUBSCRIPTION": {
+        "description": "通过你的 ChatGPT 订阅使用 Codex 模型。"
+      },
+      "COHERE_API_KEY": {
+        "description": "Embed v4 文本嵌入与重排。"
+      },
+      "DASHSCOPE_API_KEY": {
+        "description": "通过阿里云 Model Studio 使用 Qwen 模型。"
+      },
+      "DATA_FOR_SEO_LOGIN": {
+        "description": "通过 DataForSEO 进行网络搜索。"
+      },
+      "DEEPSEEK_API_KEY": {
+        "description": "最先进的开放模型。"
+      },
+      "ELEVENLABS_API_KEY": {
+        "description": "高质量文本转语音服务。"
+      },
+      "EVOLINK_API_KEY": {
+        "description": "通过一个网关使用 GPT、Claude、Gemini、DeepSeek 等。"
+      },
+      "FAL_API_KEY": {
+        "description": "无服务器 AI 图像与视频生成。"
+      },
+      "GEMINI_API_KEY": {
+        "description": "Google Gemini AI 模型与服务。"
+      },
+      "GITHUB_CLIENT_ID": {
+        "description": "GitHub PKCE 流程的 OAuth App 凭据。"
+      },
+      "GMI_API_KEY": {
+        "description": "通过 GMI 的 OpenAI 兼容 API 使用开放权重 LLM。"
+      },
+      "GOOGLE_MAIL_USER": {
+        "description": "用于 Google 邮件集成的电子邮件地址与应用专用密码。"
+      },
+      "GROQ_API_KEY": {
+        "description": "LPU 硬件上的超快 LLM 推理。"
+      },
+      "HF_TOKEN": {
+        "description": "推理提供商与模型中心访问。"
+      },
+      "HIGGSFIELD_API_KEY_ID": {
+        "credentialLabel": "API 密钥",
+        "credentialPlaceholder": "粘贴 key-id:secret",
+        "description": "精选的图像与视频生成模型。"
+      },
+      "JINA_API_KEY": {
+        "description": "Jina 嵌入与重排模型。"
+      },
+      "KIE_API_KEY": {
+        "description": "Kie.ai 统一模型访问。"
+      },
+      "KIMI_API_KEY": {
+        "description": "通过 Kimi API 使用 Moonshot AI 模型。"
+      },
+      "LLAMA_API_KEY": {
+        "description": "本地 llama-server 实例的 Bearer 认证。"
+      },
+      "MESHY_API_KEY": {
+        "description": "3D 模型生成。"
+      },
+      "META_API_KEY": {
+        "description": "Meta 的 Muse Spark 模型，面向智能体与编程工作。"
+      },
+      "MINIMAX_API_KEY": {
+        "description": "MiniMax AI 模型。"
+      },
+      "MISTRAL_API_KEY": {
+        "description": "Mistral AI 模型与嵌入。"
+      },
+      "NODE_SUPABASE_KEY": {
+        "description": "供用户自带节点使用的 Supabase 服务密钥。"
+      },
+      "OPENAI_API_KEY": {
+        "description": "GPT 模型、图像、嵌入等。"
+      },
+      "OPENROUTER_API_KEY": {
+        "description": "通过一个 API 访问多种 AI 模型。"
+      },
+      "REPLICATE_API_TOKEN": {
+        "description": "在 Replicate 的云基础设施上运行模型。"
+      },
+      "REVE_API_KEY": {
+        "description": "图像创作、编辑与再混合，提示词贴合度高。"
+      },
+      "RODIN_API_KEY": {
+        "description": "Rodin AI 3D 模型生成。"
+      },
+      "RUNPOD_API_KEY": {
+        "description": "租用 GPU pod 来运行 NodeTool worker。"
+      },
+      "SERPAPI_API_KEY": {
+        "description": "通过 SerpAPI 进行网络搜索。"
+      },
+      "SERVER_AUTH_TOKEN": {
+        "description": "用于保护 NodeTool 服务器端点的 Bearer 令牌。",
+        "name": "服务器认证令牌"
+      },
+      "TOGETHER_API_KEY": {
+        "description": "通过 Together API 使用开源模型。"
+      },
+      "TOPAZ_API_KEY": {
+        "description": "Topaz Labs 图像与视频增强。"
+      },
+      "TRACELOOP_API_KEY": {
+        "description": "将 OpenLLMetry 链路追踪导出到 Traceloop。"
+      },
+      "VAST_API_KEY": {
+        "description": "租用市场 GPU 来运行 NodeTool worker。"
+      },
+      "VOYAGE_API_KEY": {
+        "description": "高质量文本与多模态嵌入。"
+      },
+      "XAI_API_KEY": {
+        "description": "通过 xAI 的 API 使用 Grok 模型。"
+      },
+      "ZHIPU_API_KEY": {
+        "description": "通过 Z.AI 的 OpenAI 兼容 API 使用 GLM 模型。"
+      }
+    },
+    "searchProviders": {
+      "apify": {
+        "description": "通过 Apify Actor 实现可靠的 Google 搜索抓取。"
+      },
+      "brave": {
+        "description": "注重隐私的搜索，带免费额度——是不错的默认选择。"
+      },
+      "dataforseo": {
+        "description": "专业的 SEO 与搜索情报平台。"
+      }
+    },
+    "secretValueIsRequired": "密钥值不能为空",
+    "seeModelsByProvider": "按提供商查看模型",
+    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, 以 SSE 作为回退。",
+    "supportedModels": "支持的模型",
+    "systemInformationCopiedToClipboard": "系统信息已复制到剪贴板！",
+    "textCommentNote": "文本注释便签",
+    "textInputField": "文本输入字段",
+    "wholeNumberInput": "整数输入",
+    "yourSettingsHaveBeenSavedSuccessfully": "你的设置已成功保存"
+  },
+  "misc": {
+    "onboardingPacks": {
+      "ollama": "由本地 Ollama 模型支持的对话与嵌入节点。"
+    }
+  },
+  "tutorials": {
+    "app-assistant": {
+      "title": "搭建一个小程序"
+    },
+    "ask-ai": {
+      "title": "问问 AI"
+    },
+    "chat-agent-qa": {
+      "title": "询问对话智能体"
+    },
+    "combine-inputs": {
+      "title": "合并两个输入"
+    },
+    "connect-run": {
+      "title": "连线并运行"
+    },
+    "describe-image": {
+      "title": "描述一张图像"
+    },
+    "first-workflow": {
+      "title": "搭建你的第一个工作流"
+    },
+    "jsscript-assistant": {
+      "title": "编写 JS 脚本"
+    },
+    "jsscript-repair": {
+      "title": "让测试拦住问题"
+    },
+    "list-generator": {
+      "title": "生成一个列表"
+    },
+    "script-assistant": {
+      "title": "撰写脚本并配音"
+    },
+    "sketch-assistant": {
+      "title": "通过对话编辑图稿"
+    },
+    "sketch-correction": {
+      "title": "中途修正，无需推倒重来"
+    },
+    "storyboard-ask": {
+      "title": "生成消耗前先询问"
+    },
+    "storyboard-assistant": {
+      "title": "编排分镜表"
+    },
+    "summarize-text": {
+      "title": "总结一篇文档"
+    },
+    "timeline-trim-arrange": {
+      "title": "剪出一场戏"
+    }
+  }
 }

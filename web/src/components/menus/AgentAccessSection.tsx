@@ -146,7 +146,9 @@ const AgentAccessSection = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: "Client disconnected"
+        content: i18n.t("tools:menus.clientDisconnected", {
+          defaultValue: "Client disconnected"
+        })
       });
     },
     onError: (err) => {

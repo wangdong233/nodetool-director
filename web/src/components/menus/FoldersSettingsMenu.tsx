@@ -169,7 +169,9 @@ const FoldersSettings = () => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Folder settings have been saved successfully",
+            content: i18n.t("tools:menus.folderSettingsHaveBeenSavedSuccessfully", {
+              defaultValue: "Folder settings have been saved successfully"
+            }),
             type: "success",
             alert: true
           });
