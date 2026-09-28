@@ -769,7 +769,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
               title={
                 <Box sx={{ maxWidth: 300 }}>
                   <Caption size="small">
-                    Failed to load models from:
+                    {i18n.t("editor:ui.failedToLoadModelsFrom")}
                   </Caption>
                   {providerErrors.map((pe) => (
                     <Caption key={pe.provider} component="div" sx={{ mt: 0.5 }}>

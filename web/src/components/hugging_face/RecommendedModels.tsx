@@ -182,7 +182,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
             onClick={openHuggingfacePath}
           >
             <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            Open HuggingFace folder
+            {i18n.t("editor:ui.openHuggingFaceFolder")}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -190,7 +190,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
             onClick={openOllamaPath}
           >
             <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            Open Ollama folder
+            {i18n.t("editor:ui.openOllamaFolder")}
           </EditorButton>
         </FlexRow>
       )}

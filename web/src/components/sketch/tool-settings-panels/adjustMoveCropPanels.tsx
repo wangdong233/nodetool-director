@@ -265,7 +265,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
 export const NoSettingsMessage = memo(function NoSettingsMessage() {
   return (
     <Text sx={{ ...sketchHintTextSx }}>
-      No settings for this tool.
+      {i18n.t("editor:ui.noSettingsForThisTool")}
     </Text>
   );
 });

@@ -679,7 +679,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <div className="output value" style={DOCUMENT_LINK_STYLE}>
               <a href={uri} target="_blank" rel="noreferrer">
-                Open document
+                {i18n.t("editor:ui.openDocument")}
               </a>
             </div>
           );

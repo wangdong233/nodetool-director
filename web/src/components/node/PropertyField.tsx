@@ -236,7 +236,7 @@ const PropertyField: React.FC<PropertyFieldProps> = ({
             handleTooltipPosition="left"
           />
           <Caption size="smaller" color="muted">
-            Unavailable for the selected model; disconnect to hide.
+            {i18n.t("editor:ui.unavailableForTheSelectedModelDisconnectToHide")}
           </Caption>
         </div>
       ) : showFields ? (

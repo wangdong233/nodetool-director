@@ -14,6 +14,7 @@ import {
 } from "./ui_primitives";
 import GoogleAuthButton from "./buttons/GoogleAuthButton";
 import Logo from "./Logo";
+import { i18n } from "../i18n";
 
 const STUDIO_URL = "https://nodetool.ai/studio";
 
@@ -87,7 +88,7 @@ function Login() {
           Cloud · Alpha
         </Caption>
         <Text component="h1" size="giant" className="headline">
-          You direct the vision. The agent builds the film.
+          {i18n.t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}
         </Text>
         <Text component="p" size="normal" className="subhead">
           Describe your idea. The agent writes the script, boards every scene,

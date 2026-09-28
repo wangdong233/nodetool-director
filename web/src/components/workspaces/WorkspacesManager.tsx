@@ -232,10 +232,10 @@ const WorkspacesManager: React.FC = () => {
           ) : error ? (
             <Box className="empty-state">
               <Text color="error" sx={{ mb: 1 }}>
-                Unable to load workspaces
+                {i18n.t("editor:ui.unableToLoadWorkspaces")}
               </Text>
               <Text size="small" color="secondary" sx={{ mb: 2 }}>
-                Check your connection and try again
+                {i18n.t("editor:ui.checkYourConnectionAndTryAgain")}
               </Text>
               <EditorButton variant="outlined" onClick={handleRetry}>
                 Retry

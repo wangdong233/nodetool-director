@@ -202,7 +202,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
                   <FlexColumn className="asset-rename-notice-container" gap={SPACING.none}>
                     <Text className="asset-rename-notice notice" size="small">
                       <span>Multiple assets selected:</span> <br />
-                      Names will be appended with a number.
+                      {i18n.t("editor:ui.namesWillBeAppendedWithANumber")}
                     </Text>
                   </FlexColumn>
                 )}

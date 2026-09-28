@@ -191,7 +191,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
             <Box>
               <Box>{getShortcutTooltip("resetZoom")}</Box>
               <Box sx={{ mt: 0.5, fontSize: "var(--fontSizeSmaller)", opacity: 0.8 }}>
-                Click for zoom presets
+                {i18n.t("editor:ui.clickForZoomPresets")}
               </Box>
             </Box>
           }

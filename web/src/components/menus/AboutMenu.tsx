@@ -406,7 +406,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
             }}
           >
             <ContentCopyIcon sx={{ fontSize: "1.2em" }} />
-            Copy all system information
+            {i18n.t("editor:ui.copyAllSystemInformation")}
           </Text>
         </Box>
       )}
@@ -474,7 +474,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Terms of Use
+            {i18n.t("editor:ui.termsOfUse")}
           </a>
         </FlexColumn>
       </div>

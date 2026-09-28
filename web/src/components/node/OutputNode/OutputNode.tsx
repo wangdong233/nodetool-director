@@ -431,7 +431,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
 
           {result === null || result === undefined && (
             <Text className="hint">
-              Exposes data to App Mode
+              {i18n.t("editor:ui.exposesDataToAppMode")}
             </Text>
           )}
           <PreviewActions

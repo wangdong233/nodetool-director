@@ -202,7 +202,7 @@ const EngineGuide: React.FC = () => {
         <FlexRow gap={SPACING.xs} align="center" justify="space-between">
           <FlexColumn gap={SPACING.micro}>
             <Text size="big" weight={600}>
-              Node packs
+              {i18n.t("editor:ui.nodePacks")}
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available

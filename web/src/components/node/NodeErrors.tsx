@@ -208,7 +208,7 @@ const NodeErrorsImpl: React.FC<{
             aria-label={i18n.t("editor:ui.viewLogsForThisNodeAndRun", { defaultValue: "View logs for this node and run" })}
           >
             <ListAltIcon sx={{ fontSize: "0.9em" }} />
-            View logs
+            {i18n.t("editor:ui.viewLogs")}
           </button>
         </Tooltip>
         <Tooltip title={i18n.t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}>

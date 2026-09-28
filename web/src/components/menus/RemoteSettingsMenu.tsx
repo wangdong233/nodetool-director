@@ -601,7 +601,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       )}
       {isSuccess && !hasVisibleSettings && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          No settings available
+          {i18n.t("editor:ui.noSettingsAvailable")}
         </Text>
       )}
     </>

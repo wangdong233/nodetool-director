@@ -115,7 +115,7 @@ const BrowserExtensionSettingsMenu = () => {
           />
           {!connected && !isLoading && (
             <Text size="small" sx={{ opacity: 0.7 }}>
-              Install and attach the extension to see it here.
+              {i18n.t("editor:ui.installAndAttachTheExtensionToSeeItHere")}
             </Text>
           )}
         </FlexRow>

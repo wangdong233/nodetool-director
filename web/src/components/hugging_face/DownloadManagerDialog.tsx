@@ -145,14 +145,14 @@ const DownloadManagerDialog: React.FC = () => {
                   startIcon={<FolderOutlined />}
                   onClick={openHuggingfacePath}
                 >
-                  Open HuggingFace folder
+                  {i18n.t("editor:ui.openHuggingFaceFolder")}
                 </EditorButton>
                 <EditorButton
                   variant="outlined"
                   startIcon={<FolderOutlined />}
                   onClick={openOllamaPath}
                 >
-                  Open Ollama folder
+                  {i18n.t("editor:ui.openOllamaFolder")}
                 </EditorButton>
               </Box>
             </>

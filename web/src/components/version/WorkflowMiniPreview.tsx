@@ -15,6 +15,7 @@ import React, { useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { Caption, FlexColumn, Surface, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { Graph } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 // Data structure that has graph - can be WorkflowVersion or Workflow
 interface WorkflowWithGraph {
@@ -261,7 +262,7 @@ export const WorkflowMiniPreview: React.FC<WorkflowMiniPreviewProps> = ({
               letterSpacing: "0.08em"
             }}
           >
-            Empty workflow
+            {i18n.t("editor:ui.emptyWorkflow")}
           </Caption>
         </FlexColumn>
       </Surface>

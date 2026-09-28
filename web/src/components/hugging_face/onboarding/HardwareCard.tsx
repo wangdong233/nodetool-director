@@ -102,7 +102,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
       <FlexColumn sx={{ minWidth: 0 }}>
         <FlexRow gap={SPACING.xs} align="center" sx={{ flexWrap: "wrap" }}>
           <Text size="normal" weight={600}>
-            Your machine
+            {i18n.t("editor:ui.yourMachine")}
           </Text>
           {profile.tier && (
             <Tooltip title={i18n.t(TIER_LABEL_KEYS[profile.tier], { defaultValue: TIER_LABELS[profile.tier] })} delay={400}>

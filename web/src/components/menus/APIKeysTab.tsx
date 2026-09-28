@@ -317,7 +317,7 @@ export const ProviderCard = memo(function ProviderCard({
                   whiteSpace: "nowrap"
                 }}
               >
-                Connected via OAuth
+                {i18n.t("editor:ui.connectedViaOAuth")}
               </Caption>
             </FlexRow>
           )}
@@ -460,7 +460,7 @@ const ProviderHero = memo(function ProviderHero() {
         Models &amp; Providers
       </Text>
       <Text color="secondary" sx={{ maxWidth: "65ch" }}>
-        Connect your accounts or add API keys to use models in your workflows.
+        {i18n.t("editor:ui.connectYourAccountsOrAddAPIKeysToUseModelsInYourWorkflows")}
       </Text>
     </FlexColumn>
   );
@@ -1268,7 +1268,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
             )
           }
         >
-          View offers
+          {i18n.t("editor:ui.viewOffers")}
         </EditorButton>
       </Card>
     </FlexColumn>

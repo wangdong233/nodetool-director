@@ -524,7 +524,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             startIcon={<FolderOpenIcon />}
             onClick={handleOpenInFolder}
           >
-            Open in Folder
+            {i18n.t("editor:ui.openInFolder")}
           </EditorButton>
           {Boolean(window.api?.shell?.openPath) && (
             <EditorButton
@@ -555,7 +555,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               sx={{ fontSize: 40, opacity: 0.3, color: "text.secondary" }}
             />
             <Text size="small" color="secondary">
-              No workspace selected
+              {i18n.t("editor:ui.noWorkspaceSelected")}
             </Text>
             <Caption color="secondary">
               Select a workspace above or create one
@@ -598,7 +598,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               sx={{ fontSize: 36, opacity: 0.3, color: "text.secondary" }}
             />
             <Text size="small" color="secondary">
-              Workspace is empty
+              {i18n.t("editor:ui.workspaceIsEmpty")}
             </Text>
             <Caption color="secondary">
               Add files to your workspace folder to see them here

@@ -412,7 +412,7 @@ const PropertyDropzone = ({
                   src={uri as string}
                   aria-label={filename || "Audio"}
                 >
-                  Your browser does not support the audio element.
+                  {i18n.t("editor:ui.yourBrowserDoesNotSupportTheAudioElement")}
                 </audio>
                 <p className="centered uppercase">{filename}</p>
                 <AudioPlayer filename={filename} source={uri as string} />
@@ -442,7 +442,7 @@ const PropertyDropzone = ({
                   src={uri}
                   aria-label={filename || "Video"}
                 >
-                  Your browser does not support the video element.
+                  {i18n.t("editor:ui.yourBrowserDoesNotSupportTheVideoElement")}
                 </video>
                 <p className="centered uppercase">{filename}</p>
               </>

@@ -7,6 +7,7 @@ import { useAssetById } from "../../serverState/useAssetById";
 import { FlexColumn, LoadingSpinner, Text } from "../ui_primitives";
 import TextDocumentEditor from "./TextDocumentEditor";
 import TextPreview from "./TextPreview";
+import { i18n } from "../../i18n";
 
 interface TextSurfaceProps {
   refId: string;
@@ -52,7 +53,7 @@ const TextSurface = ({ refId, mode }: TextSurfaceProps) => {
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
         <Text size="normal" weight={600}>
-          Failed to load text asset
+          {i18n.t("editor:ui.failedToLoadTextAsset")}
         </Text>
       </FlexColumn>
     );

@@ -1395,7 +1395,7 @@ const TextEditorModal = ({
                     onClick={handleInsertVarClick}
                   >
                     <AddIcon />
-                    Insert var
+                    {i18n.t("editor:ui.insertVar")}
                   </button>
                 )}
               </div>

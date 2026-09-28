@@ -192,7 +192,7 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
           color="secondary"
           style={{ marginBottom: getSpacingPx(SPACING.xl) }}
         >
-          You can right click selected assets and download them before deleting.
+          {i18n.t("editor:ui.youCanRightClickSelectedAssetsAndDownloadThemBeforeDeleting")}
         </Text>
         {isPreparingDelete ? (
           <LoadingSpinner size="small" />

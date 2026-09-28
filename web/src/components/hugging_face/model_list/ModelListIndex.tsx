@@ -504,7 +504,7 @@ const ModelListIndex: React.FC = () => {
         sx={{ textAlign: "center" }}
       >
         <Text size="big" color="error">
-          Could not load models
+          {i18n.t("editor:ui.couldNotLoadModels")}
         </Text>
         <Text size="normal" color="secondary" sx={{ maxWidth: 600 }}>
           {errorMessage}

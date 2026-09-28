@@ -341,7 +341,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
                       marginTop: getSpacingPx(SPACING.xs)
                     }}
                   >
-                    Click to place · Drag to canvas
+                    {i18n.t("editor:ui.clickToPlaceDragToCanvas")}
                   </div>
                 </div>
               }

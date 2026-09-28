@@ -284,7 +284,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
               Later
             </EditorButton>
             <EditorButton variant="contained" onClick={handleOpenIssue}>
-              Open GitHub issue
+              {i18n.t("editor:ui.openGitHubIssue")}
             </EditorButton>
           </FlexRow>
         </FlexColumn>

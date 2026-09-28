@@ -11,6 +11,7 @@ import { memo, useCallback, useState, type MouseEvent } from "react";
 import { useLinkedWorkflows, type LinkedWorkflow } from "../../hooks/useApplications";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import {
+import { i18n } from "../../i18n";
   Button,
   Caption,
   Chip,
@@ -81,7 +82,7 @@ const LinkedWorkflowsMenu = ({
         {links.length === 0 && (
           <MenuItem disabled>
             <Caption color="secondary">
-              This app binds no workflow yet.
+              {i18n.t("editor:ui.thisAppBindsNoWorkflowYet")}
             </Caption>
           </MenuItem>
         )}

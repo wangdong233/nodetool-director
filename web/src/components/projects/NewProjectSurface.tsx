@@ -1950,7 +1950,7 @@ const NewProjectSurface = ({
         <FlexColumn sx={{ width: 300, py: SPACING.micro }}>
           {(entities ?? []).length === 0 ? (
             <Caption color="secondary" sx={{ px: SPACING.md, py: SPACING.sm }}>
-              The entity library is empty.
+              {i18n.t("editor:ui.theEntityLibraryIsEmpty")}
             </Caption>
           ) : (
             (entities ?? []).map((entity) => (

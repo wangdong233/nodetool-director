@@ -184,7 +184,7 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
           Choose your genre
         </Text>
         <Text size="normal" color="secondary">
-          Tone, pacing and framing follow your choice. You can change it later.
+          {i18n.t("editor:ui.tonePacingAndFramingFollowYourChoiceYouCanChangeItLater")}
         </Text>
       </FlexColumn>
       <OptionCardGrid

@@ -185,7 +185,7 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
           <FlexColumn align="center" gap={SPACING.sm} sx={{ textAlign: "center" }}>
             <KeyRoundedIcon className="welcome-icon" />
             <Text className="welcome-title">
-              Connect an AI provider to get started
+              {i18n.t("editor:ui.connectAnAIProviderToGetStarted")}
             </Text>
             <Text className="welcome-subtitle" sx={{ maxWidth: 520 }}>
               {SETUP_SUBTITLE}

@@ -252,7 +252,7 @@ const AgentAccessSection = () => {
       {freshToken && (
         <FlexColumn gap={1} sx={{ mb: 2 }}>
           <AlertBanner severity="success">
-            Copy this now — it is shown once and cannot be retrieved again.
+            {i18n.t("editor:ui.copyThisNowItIsShownOnceAndCannotBeRetrievedAgain")}
           </AlertBanner>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>

@@ -189,7 +189,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
     return (
       <Box sx={{ py: 1.5, textAlign: "center" }}>
         <Text size="smaller" color="secondary" sx={{ fontStyle: "italic" }}>
-          No configurable properties
+          {i18n.t("editor:ui.noConfigurableProperties")}
         </Text>
       </Box>
     );

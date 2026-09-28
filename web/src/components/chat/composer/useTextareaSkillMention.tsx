@@ -130,7 +130,7 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
     ))}
     {skills.length === 0 && (
       <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-        No matching skills
+        {i18n.t("editor:ui.noMatchingSkills")}
       </Text>
     )}
   </Surface>

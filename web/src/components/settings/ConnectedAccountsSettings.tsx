@@ -129,7 +129,7 @@ const ConnectedAccountsSettings = () => {
             {confirmingDisconnect ? (
               <FlexRow align="center" gap={SPACING.md}>
                 <Caption>
-                  Disconnect this account? The bot will stop answering it.
+                  {i18n.t("editor:ui.disconnectThisAccountTheBotWillStopAnsweringIt")}
                 </Caption>
                 <EditorButton
                   color="error"
@@ -159,7 +159,7 @@ const ConnectedAccountsSettings = () => {
             )}
             {unlink.isError && (
               <AlertBanner severity="error">
-                Could not disconnect this account. Try again.
+                {i18n.t("editor:ui.couldNotDisconnectThisAccountTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -183,7 +183,7 @@ const ConnectedAccountsSettings = () => {
             </FlexRow>
             {createCode.isError && (
               <AlertBanner severity="error">
-                Could not start linking. Try again.
+                {i18n.t("editor:ui.couldNotStartLinkingTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -193,7 +193,7 @@ const ConnectedAccountsSettings = () => {
           <FlexColumn gap={SPACING.md}>
             {showPending.deepLink ? (
               <ExternalLink href={showPending.deepLink}>
-                Open Telegram and press Start
+                {i18n.t("editor:ui.openTelegramAndPressStart")}
               </ExternalLink>
             ) : (
               <Caption>

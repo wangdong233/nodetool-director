@@ -473,7 +473,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
           />
           {!displayResult && (
             <Text className="hint">
-              Displays any data from connected nodes
+              {i18n.t("editor:ui.displaysAnyDataFromConnectedNodes")}
             </Text>
           )}
           <PreviewActions

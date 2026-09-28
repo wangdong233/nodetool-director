@@ -156,7 +156,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             )}
             {!examplesLoading && exampleStoryboards.length === 0 && (
               <Caption color="secondary" sx={{ px: 2, py: 1.5 }}>
-                No example storyboards are available.
+                {i18n.t("editor:ui.noExampleStoryboardsAreInstalled")}
               </Caption>
             )}
             {exampleStoryboards.map((example) => (

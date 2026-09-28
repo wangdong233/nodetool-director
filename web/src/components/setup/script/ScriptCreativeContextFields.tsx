@@ -67,7 +67,7 @@ export const ScriptCreativeContextFields: React.FC<
       <FlexColumn gap={GAP.micro}>
         <Text size="normal" weight={600} component="h3">{i18n.t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}</Text>
         <Caption color="secondary" component="p">
-          Optional context for visual production. The script still owns its words.
+          {i18n.t("editor:ui.optionalContextForVisualProductionTheScriptStillOwnsItsWords")}
         </Caption>
       </FlexColumn>
       {TEXT_FIELDS.map(([key, label, helperText, labelKey, helperKey]) => (

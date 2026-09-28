@@ -8,6 +8,7 @@ import { useTheme } from "@mui/material/styles";
 import { GraphDiff } from "../../utils/graphDiff";
 import { Graph, Node } from "../../stores/ApiTypes";
 import { Caption, FlexColumn, FlexRow, Surface, Tooltip, BORDER_RADIUS } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface GraphVisualDiffProps {
   diff: GraphDiff;
@@ -229,7 +230,7 @@ export const GraphVisualDiff: React.FC<GraphVisualDiffProps> = ({
           justify="center"
         >
           <Caption color="secondary">
-            No changes to display
+            {i18n.t("editor:ui.noChangesToDisplay")}
           </Caption>
         </FlexColumn>
       </Surface>

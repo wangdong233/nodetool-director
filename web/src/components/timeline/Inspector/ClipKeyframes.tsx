@@ -146,7 +146,7 @@ export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
         <FlexColumn gap={SPACING.sm} sx={{ py: SPACING.xs }}>
           {!inside && (
             <Caption sx={{ opacity: 0.7 }}>
-              Move the playhead over the clip to set keyframes.
+              {i18n.t("editor:ui.moveThePlayheadOverTheClipToSetKeyframes")}
             </Caption>
           )}
           {keyframePropertiesFor(clip).map((property) => (

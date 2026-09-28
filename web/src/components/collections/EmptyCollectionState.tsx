@@ -28,7 +28,7 @@ const EmptyCollectionState = () => {
 
       <FlexColumn gap={2}>
         <Text size="big">
-          No collections found. Create one to get started.
+          {i18n.t("editor:ui.noCollectionsFoundCreateOneToGetStarted")}
         </Text>
 
         <Text>{i18n.t("editor:ui.withACollectionYouCan", { defaultValue: "With a collection, you can:" })}</Text>

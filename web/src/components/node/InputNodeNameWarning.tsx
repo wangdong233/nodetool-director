@@ -47,7 +47,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
         }}
       >
         <WarningAmberOutlinedIcon sx={{ fontSize: "var(--fontSizeSmall)" }} />
-        Name required
+        {i18n.t("editor:ui.nameRequired")}
       </Text>
     </Tooltip>
   );

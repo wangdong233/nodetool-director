@@ -93,7 +93,7 @@ export const WorkflowFormWidget: React.FC<WorkflowFormWidgetProps> = ({
         {heading}
         {io.inputs.length === 0 ? (
           <Caption color="secondary">
-            This form shows every input of its operation when the app runs.
+            {i18n.t("editor:ui.thisFormShowsEveryInputOfItsOperationWhenTheAppRuns")}
           </Caption>
         ) : (
           io.inputs.map((input) => (

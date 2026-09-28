@@ -388,7 +388,7 @@ const PromptComposerBodyInner: React.FC<PromptComposerBodyProps> = ({
               }
               placeholder={
                 <div className="composer-placeholder">
-                  Write a prompt… @ to mention an asset
+                  {i18n.t("editor:ui.writeAPrompt@ToMentionAnAsset")}
                 </div>
               }
               ErrorBoundary={LexicalErrorBoundary}

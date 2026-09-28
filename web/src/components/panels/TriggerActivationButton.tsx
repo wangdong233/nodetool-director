@@ -416,7 +416,7 @@ const TriggerActivationButton: React.FC = () => {
                   {isLoading && <Caption>{i18n.t("editor:ui.checkingStatus", { defaultValue: "Checking status…" })}</Caption>}
                   {isError && (
                     <Caption color="error">
-                      Could not load trigger status.
+                      {i18n.t("editor:ui.couldNotLoadTriggerStatus")}
                     </Caption>
                   )}
                   {schedule && <Caption>{schedule}</Caption>}
@@ -447,7 +447,7 @@ const TriggerActivationButton: React.FC = () => {
                       disabled={!reg?.enabled || fireTrigger.isPending}
                       onClick={() => reg && handleFire(reg.id)}
                     >
-                      Fire now
+                      {i18n.t("editor:ui.fireNow")}
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>

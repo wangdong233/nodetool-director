@@ -940,7 +940,7 @@ const ScriptDocumentPane = ({
                 onClick={play}
                 disabled={!hasVoicedLine}
               >
-                Play through
+                {i18n.t("editor:ui.playThrough")}
               </EditorButton>
             </span>
           </Tooltip>

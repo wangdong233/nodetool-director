@@ -162,7 +162,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {references.length > 0 || entityNames.length > 0 ? (
           <FlexColumn gap={GAP.normal}>
             <Text size="small" component="h3">
-              Came with your prompt
+              {i18n.t("editor:ui.cameWithYourPrompt")}
             </Text>
             {references.length > 0 ? (
               <FlexRow

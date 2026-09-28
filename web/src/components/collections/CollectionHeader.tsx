@@ -38,7 +38,7 @@ const CollectionHeader = () => {
       >
         <InfoIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
         <Text size="small" weight={600}>
-          What are collections?
+          {i18n.t("editor:ui.whatAreCollections")}
         </Text>
       </FlexRow>
       <Popover

@@ -217,10 +217,10 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
       return (
         <Box css={cssStyles}>
           <Text size="small" color="error" sx={{ mb: 1 }}>
-            Unable to load workspaces
+            {i18n.t("editor:ui.unableToLoadWorkspaces")}
           </Text>
           <Caption color="secondary">
-            Check your connection or try again later
+            {i18n.t("editor:ui.checkYourConnectionOrTryAgainLater")}
           </Caption>
         </Box>
       );

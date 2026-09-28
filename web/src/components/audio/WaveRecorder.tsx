@@ -175,7 +175,7 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                 left: "0.5em"
               }}
             >
-              No audio input devices found.
+              {i18n.t("editor:ui.noAudioInputDevicesFound")}
             </Text>
           )}
         </div>

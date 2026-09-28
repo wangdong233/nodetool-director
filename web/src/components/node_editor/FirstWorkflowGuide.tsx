@@ -91,19 +91,19 @@ const FirstWorkflowGuide = ({
         {started ? (
           <FlexColumn component="ol" gap={SPACING.sm} sx={{ m: 0, p: 0 }}>
             <ReadinessItem complete={readiness.input}>
-              Input added
+              {i18n.t("editor:ui.inputAdded")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.output}>
-              Output added
+              {i18n.t("editor:ui.outputAdded")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.connection}>
-              Input connected to output
+              {i18n.t("editor:ui.inputConnectedToOutput")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.saved}>
-              Workflow saved
+              {i18n.t("editor:ui.workflowSaved")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.run}>
-              Workflow run completed
+              {i18n.t("editor:ui.workflowRunCompleted")}
             </ReadinessItem>
           </FlexColumn>
         ) : (
@@ -112,7 +112,7 @@ const FirstWorkflowGuide = ({
               Add the two-node starter
             </EditorButton>
             <EditorButton variant="outlined" onClick={onChooseOwn}>
-              Choose my own nodes
+              {i18n.t("editor:ui.chooseMyOwnNodes")}
             </EditorButton>
           </FlexRow>
         )}

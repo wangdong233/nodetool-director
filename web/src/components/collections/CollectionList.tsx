@@ -201,7 +201,7 @@ const CollectionList = () => {
         <Dialog open={true} onClose={handleClearIndexErrors} title={i18n.t("editor:ui.indexingReport", { defaultValue: "Indexing report" })}>
           <FlexColumn gap={2}>
             <Text>
-              The following files encountered errors during indexing:
+              {i18n.t("editor:ui.theFollowingFilesEncounteredErrorsDuringIndexing")}
             </Text>
             <ListGroup compact flush sx={{ pl: 2 }}>
               {indexErrors.map((error) => (

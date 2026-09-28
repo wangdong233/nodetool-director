@@ -640,7 +640,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         fullWidth
       >
         <Text size="small" color="secondary">
-          No 3D model loaded
+          {i18n.t("editor:ui.no3DModelLoaded")}
         </Text>
       </FlexColumn>
     );

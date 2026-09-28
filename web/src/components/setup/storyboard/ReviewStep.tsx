@@ -427,7 +427,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}</Text>
         <Text size="normal" color="secondary">
-          Edit anything here. It is the text your storyboard is drawn from.
+          {i18n.t("editor:ui.editAnythingHereItIsTheTextYourStoryboardIsDrawnFrom")}
         </Text>
       </FlexColumn>
       {importNotice ? (

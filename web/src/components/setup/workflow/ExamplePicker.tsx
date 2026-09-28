@@ -93,7 +93,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" })}</Text>
         <Text size="normal" color="secondary">
-          Pick one and we copy it onto your canvas. Nothing runs.
+          {i18n.t("editor:ui.pickOneAndWeCopyItOntoYourCanvasNothingRuns")}
         </Text>
       </FlexColumn>
 

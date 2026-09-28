@@ -272,7 +272,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
 
       <FormSection label={i18n.t("editor:ui.execution", { defaultValue: "Execution" })} className="settings-section">
         <Caption sx={{ display: "block" }}>
-          Configure how this workflow runs and can be triggered
+          {i18n.t("editor:ui.configureHowThisWorkflowRunsAndCanBeTriggered")}
         </Caption>
 
         <FormField label={i18n.t("editor:ui.runMode", { defaultValue: "Run Mode" })}>

@@ -4,6 +4,7 @@ import { css } from "@emotion/react";
 import React, { memo } from "react";
 import { Asset } from "../../stores/ApiTypes";
 import { Text, Box } from "../ui_primitives";
+import { i18n } from "../../i18n";
 interface VideoViewerProps {
   asset?: Asset;
   url?: string;
@@ -39,7 +40,7 @@ const VideoViewer: React.FC<VideoViewerProps> = memo(function VideoViewer({ asse
         preload="metadata"
         src={asset?.get_url || url || ""}
       >
-        Your browser does not support the video element.
+        {i18n.t("editor:ui.yourBrowserDoesNotSupportTheVideoElement")}
       </video>
       <Text size="big" color="secondary">
         {asset?.name}

@@ -330,7 +330,7 @@ const DeploySection = memo(function DeploySection({
                 disabled={undeploy.isPending}
                 onClick={handleUndeploy}
               >
-                Withdraw link
+                {i18n.t("editor:ui.withdrawLink")}
               </Button>
             ) : (
               <Button
@@ -339,7 +339,7 @@ const DeploySection = memo(function DeploySection({
                 disabled={deploy.isPending}
                 onClick={handleDeploy}
               >
-                Create public link
+                {i18n.t("editor:ui.createPublicLink")}
               </Button>
             )}
           </FlexRow>
@@ -507,7 +507,7 @@ const ApplicationGovernancePanel = ({
           disabled={publish.isPending}
           onClick={handlePublish}
         >
-          Publish new version
+          {i18n.t("editor:ui.publishNewVersion")}
         </Button>
       </FlexRow>
       {publish.isError && (

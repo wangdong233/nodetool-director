@@ -168,7 +168,7 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
             className="plan-approval-dismiss"
             onClick={handleDismiss}
           >
-            Don't run
+            {i18n.t("editor:ui.donTRun")}
           </EditorButton>
         </FlexRow>
       </FlexColumn>

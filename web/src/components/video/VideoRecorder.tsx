@@ -234,7 +234,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                 left: "0.5em"
               }}
             >
-              No video input devices found.
+              {i18n.t("editor:ui.noVideoInputDevicesFound")}
             </Text>
           )}
 

@@ -21,6 +21,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
+import { i18n } from "../../i18n";
 
 /** The types a script port can carry, as the type system names them. */
 const PORT_TYPES = [
@@ -88,7 +89,7 @@ const JsScriptPortsEditor = ({
       </FlexRow>
       {ports.length === 0 ? (
         <Text size="small" color="secondary">
-          None declared.
+          {i18n.t("editor:ui.noneDeclared")}
         </Text>
       ) : (
         ports.map((port, index) => (

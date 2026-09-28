@@ -101,7 +101,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           }}
         >
           <LoadingSpinner inline size={12} thickness={5} color="inherit" />
-          Checking cache…
+          {i18n.t("editor:ui.checkingCache")}
         </Box>
       )}
       {onDownload && canDownload && !downloaded && !isCheckingCache && (

@@ -253,7 +253,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           sx={{ alignItems: "center", justifyContent: "center" }}
         >
           <Caption sx={{ color: "error.main" }}>
-            Failed to load text content
+            {i18n.t("editor:ui.failedToLoadTextContent")}
           </Caption>
         </FlexColumn>
       );

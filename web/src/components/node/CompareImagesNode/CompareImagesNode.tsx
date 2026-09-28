@@ -253,7 +253,7 @@ const CompareImagesNode: React.FC<CompareImagesNodeProps> = (props) => {
             />
           ) : (
             <Text className="hint">
-              Connect two images and run workflow to compare
+              {i18n.t("editor:ui.connectTwoImagesAndRunWorkflowToCompare")}
             </Text>
           )}
         </div>

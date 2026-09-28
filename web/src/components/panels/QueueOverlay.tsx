@@ -206,7 +206,7 @@ const RunningCard = memo(function RunningCard({
           >
             <VisibilityIcon sx={{ fontSize: 12 }} />
             <Text size="smaller" sx={{ color: "primary.main" }}>
-              On canvas
+              {i18n.t("editor:ui.onCanvas")}
             </Text>
           </FlexRow>
         )}

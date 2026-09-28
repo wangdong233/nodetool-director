@@ -131,7 +131,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
         <KeyRoundedIcon fontSize="small" />
         <FlexColumn gap={0}>
           <Text size="small" weight={500}>
-            Enter a credential
+            {i18n.t("editor:ui.enterACredential")}
           </Text>
           <Text size="smaller" color="secondary">
             Saved to your secret store. The agent never sees the value.
@@ -157,7 +157,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             target="_blank"
             rel="noreferrer noopener"
           >
-            Where to get this key
+            {i18n.t("editor:ui.whereToGetThisKey")}
           </a>
         )}
       </div>
@@ -185,7 +185,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleDecline}
             startIcon={<CloseRoundedIcon />}
           >
-            Not now
+            {i18n.t("editor:ui.notNow")}
           </EditorButton>
           <EditorButton
             variant="contained"

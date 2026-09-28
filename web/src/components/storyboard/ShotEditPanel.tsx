@@ -808,7 +808,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
       >
         <Text>{i18n.t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
         <Caption color="secondary">
-          Version choices, deletions, flips and uploads are already saved.
+          {i18n.t("editor:ui.versionChoicesDeletionsFlipsAndUploadsAreAlreadySaved")}
         </Caption>
       </Dialog>
 

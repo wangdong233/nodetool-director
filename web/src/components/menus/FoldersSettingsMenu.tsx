@@ -205,7 +205,7 @@ const FoldersSettings = () => {
                 System Folders
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                Open important Nodetool directories in your file explorer.
+                {i18n.t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
@@ -230,7 +230,7 @@ const FoldersSettings = () => {
                 Model Folders
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                Open model cache directories in your file explorer.
+                {i18n.t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton

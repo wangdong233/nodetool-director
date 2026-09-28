@@ -1360,7 +1360,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                   </>
                 ) : (
                   <Text className="hint">
-                    Click to open sketch editor
+                    {i18n.t("editor:ui.clickToOpenSketchEditor")}
                   </Text>
                 )}
               </div>

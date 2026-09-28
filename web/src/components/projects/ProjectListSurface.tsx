@@ -244,7 +244,7 @@ const ProjectListSurface = () => {
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              Not in a project
+              {i18n.t("editor:ui.notInAProject")}
             </Caption>
             {looseTotal > loose.length && (
               <Caption color="muted">

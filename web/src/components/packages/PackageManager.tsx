@@ -260,7 +260,7 @@ function PackageManager() {
                 weight={600}
                 sx={{ textTransform: "uppercase", letterSpacing: "0.09em" }}
               >
-                Install location
+                {i18n.t("editor:ui.installLocation")}
               </Text>
               <Text size="small" family="secondary" truncate>
                 {model.installLocation || "Default conda environment"}
@@ -395,7 +395,7 @@ function PackageManager() {
                 <SearchOutlinedIcon sx={{ fontSize: 20 }} />
               </FlexRow>
               <Text size="normal" weight={600} color="secondary">
-                No packs match
+                {i18n.t("editor:ui.noPacksMatch")}
               </Text>
               <Text size="small" color="secondary" sx={{ maxWidth: "40ch" }}>
                 Try a different search term or switch the status filter back to

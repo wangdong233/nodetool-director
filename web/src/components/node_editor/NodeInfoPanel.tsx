@@ -375,7 +375,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
                 {nodeInfo.namespace}
               </Text>
               <Text component="span" sx={{ display: "block" }}>
-                Click to show in NodeMenu
+                {i18n.t("editor:ui.clickToShowInNodeMenu")}
               </Text>
             </span>
           }

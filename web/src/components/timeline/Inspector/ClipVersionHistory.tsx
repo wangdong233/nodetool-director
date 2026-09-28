@@ -420,7 +420,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
       >
         {clip.locked && (
           <Caption color="secondary" sx={{ px: 1, pt: 0.5 }}>
-            Unlock the clip to swap generations.
+            {i18n.t("editor:ui.unlockTheClipToSwapGenerations")}
           </Caption>
         )}
         <div css={stripStyles(theme)}>

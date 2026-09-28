@@ -79,7 +79,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
     return (
       <Box sx={emptySx} className="storyboard-preview storyboard-preview--empty">
         <Caption color="secondary">
-          Nothing to preview yet — generate stills or clips first.
+          {i18n.t("editor:ui.nothingToPreviewYetGenerateStillsOrClipsFirst")}
         </Caption>
       </Box>
     );

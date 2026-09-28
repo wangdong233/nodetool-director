@@ -163,7 +163,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s your game?
+            {i18n.t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
             Tell us the premise. We&apos;ll pick a template, write the design,

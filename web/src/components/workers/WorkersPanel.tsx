@@ -554,7 +554,7 @@ const WorkersPanel: React.FC = () => {
           </FlexRow>
         ) : shownInstances.length === 0 ? (
           <Caption size="small">
-            No workers running. Start one to rent a GPU for your graphs.
+            {i18n.t("editor:ui.noWorkersRunningStartOneToRentAGPUForYourGraphs")}
           </Caption>
         ) : (
           shownInstances.map((instance) => (

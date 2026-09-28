@@ -176,7 +176,7 @@ const JsScriptRunDialog = ({
           <FlexColumn gap={SPACING.md} sx={{ minWidth: { xs: 0, sm: 380 } }}>
             {inputs.length === 0 ? (
               <Text size="small" color="secondary">
-                This script declares no inputs. Run it as it is.
+                {i18n.t("editor:ui.thisScriptDeclaresNoInputsRunItAsItIs")}
               </Text>
             ) : (
               <>

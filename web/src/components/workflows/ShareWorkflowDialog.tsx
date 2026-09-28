@@ -120,14 +120,14 @@ const ShareWorkflowDialog = ({
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("viewer")}
           >
-            Copy view link
+            {i18n.t("editor:ui.copyViewLink")}
           </EditorButton>
           <EditorButton
             variant="outlined"
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("editor")}
           >
-            Copy edit link
+            {i18n.t("editor:ui.copyEditLink")}
           </EditorButton>
         </FlexRow>
 

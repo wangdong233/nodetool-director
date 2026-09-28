@@ -315,11 +315,11 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
 
         <FlexColumn gap={1}>
           <Text size="small" weight={600}>
-            Existing profiles
+            {i18n.t("editor:ui.existingProfiles")}
           </Text>
           {profiles.length === 0 ? (
             <Caption size="small">
-              No profiles yet. Create one below.
+              {i18n.t("editor:ui.noProfilesYetCreateOneBelow")}
             </Caption>
           ) : (
             profiles.map((profile) => (
@@ -352,7 +352,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
         <FlexColumn gap={2}>
           <FlexColumn gap={0.5}>
             <Text size="small" weight={600}>
-              Create a profile
+              {i18n.t("editor:ui.createAProfile")}
             </Text>
             <Caption size="small">
               A profile is a saved template. Provisioning it rents one GPU box

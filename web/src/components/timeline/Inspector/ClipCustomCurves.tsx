@@ -377,7 +377,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
       <FlexColumn gap={SPACING.md}>
         {sourceAnchored && (
           <Caption color="muted">
-            Keyframes are placed on the media clock (source ms)
+            {i18n.t("editor:ui.keyframesArePlacedOnTheMediaClockSourceMs")}
           </Caption>
         )}
         {bakedFrom && (

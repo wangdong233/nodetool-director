@@ -24,7 +24,7 @@ const NodeStatus: React.FC<NodeStatusProps> = ({ status }) => {
       color="warning"
       css={statusCss}
     >
-      Model is booting, taking minutes.
+      {i18n.t("editor:ui.modelIsBootingTakingMinutes")}
     </Text>
   );
 };

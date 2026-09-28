@@ -89,7 +89,7 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
       </FlexRow>
       {showDocs && docsQuery.data === null && (
         <Text size="small" color="secondary">
-          This package publishes no documentation.
+          {i18n.t("editor:ui.thisPackagePublishesNoDocumentation")}
         </Text>
       )}
       {showDocs && docsQuery.data && (

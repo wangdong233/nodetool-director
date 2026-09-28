@@ -535,7 +535,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     if (parseClipEffectType(effect.type)) {
       return (
         <Caption color="muted">
-          This effect still applies. Use the Color section to adjust color.
+          {i18n.t("editor:ui.thisEffectStillAppliesUseTheColorSectionToAdjustColor")}
         </Caption>
       );
     }

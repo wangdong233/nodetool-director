@@ -506,7 +506,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
 
           <FlexRow className="modal-footer" align="center" justify="space-between" fullWidth>
             <Caption color="secondary">
-              Press Esc to close
+              {i18n.t("editor:ui.pressEscToClose")}
             </Caption>
             <FlexRow className="footer-actions" align="center">
               <EditorButton variant="outlined" density="compact" onClick={onClose}>

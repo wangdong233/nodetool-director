@@ -310,7 +310,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label}</div>
                   <div style={tooltipSubtitleStyle}>
-                    Click to place · Shift-click to auto add
+                    {i18n.t("editor:ui.clickToPlaceShiftClickToAutoAdd")}
                   </div>
                 </div>
               }
@@ -381,7 +381,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label} Constant</div>
                   <div style={tooltipSubtitleStyle}>
-                    Click to place
+                    {i18n.t("editor:ui.clickToPlace")}
                   </div>
                 </div>
               }

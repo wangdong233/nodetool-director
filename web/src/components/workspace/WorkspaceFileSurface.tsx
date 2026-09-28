@@ -76,7 +76,7 @@ const WorkspaceFileSurface = ({ refId, mode }: WorkspaceFileSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          Invalid workspace file reference
+          {i18n.t("editor:ui.invalidWorkspaceFileReference")}
         </Text>
       </FlexColumn>
     );

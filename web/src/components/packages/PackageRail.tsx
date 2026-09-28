@@ -184,7 +184,7 @@ const PackageRail = ({
         borderTop: `1px solid ${theme.vars.palette.divider}`
       })}
     >
-      Changes take effect after the NodeTool server restarts.
+      {i18n.t("editor:ui.changesTakeEffectAfterTheNodeToolServerRestarts")}
     </Text>
   </FlexColumn>
 );

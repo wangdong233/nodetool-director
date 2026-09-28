@@ -246,7 +246,7 @@ const OutputSelectPanel: React.FC<OutputSelectPanelProps> = memo(
           </Text>
         </FlexRow>
         <Caption sx={{ color: "text.secondary" }}>
-          This workflow has multiple output nodes. Pick one:
+          {i18n.t("editor:ui.thisWorkflowHasMultipleOutputNodesPickOne")}
         </Caption>
         <FlexColumn gap={0}>
           {outputs.map((out) => (

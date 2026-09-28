@@ -235,7 +235,7 @@ const OptionalPacksSection = () => {
         <div css={popoverStyles(theme)}>
           <FlexColumn gap={1}>
             <Text size="normal" weight={600}>
-              Optional node packs
+              {i18n.t("editor:ui.optionalNodePacks")}
             </Text>
             <Text size="small" color="secondary">
               Advanced and niche nodes are tucked into optional packs to keep
@@ -370,7 +370,7 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexRow justify="flex-end">
                   <TextLink asButton onClick={handleManagePacks}>
-                    More packs…
+                    {i18n.t("editor:ui.morePacks")}
                   </TextLink>
                 </FlexRow>
               </>

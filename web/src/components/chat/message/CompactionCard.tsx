@@ -113,7 +113,7 @@ const CompactionCard: React.FC<CompactionCardProps> = ({ content }) => {
           <FlexRow align="center" gap={SPACING.xs}>
             <UnfoldLessRoundedIcon className="compaction-icon" />
             <Text size="small" className="compaction-title">
-              Earlier conversation summarized
+              {i18n.t("editor:ui.earlierConversationSummarized")}
             </Text>
           </FlexRow>
         }
@@ -124,7 +124,7 @@ const CompactionCard: React.FC<CompactionCardProps> = ({ content }) => {
           </Text>
         ) : (
           <Caption className="compaction-summary">
-            The summary is empty.
+            {i18n.t("editor:ui.theSummaryIsEmpty")}
           </Caption>
         )}
       </CollapsibleSection>

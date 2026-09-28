@@ -329,7 +329,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <p>
             {selectedPathString ? (
               <>
-                Nothing found in this namespace for
+                {i18n.t("editor:ui.nothingFoundInThisNamespaceFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -337,7 +337,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
               </>
             ) : (
               <>
-                Nothing found for
+                {i18n.t("editor:ui.nothingFoundFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -371,7 +371,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
             padding: getSpacingPx(SPACING.xl)
           }}
         >
-          Install additional node packs
+          {i18n.t("editor:ui.installAdditionalNodePacks")}
         </EditorButton>
       </div>
     </div>

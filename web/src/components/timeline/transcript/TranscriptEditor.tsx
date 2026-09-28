@@ -913,7 +913,7 @@ const EditorBody: React.FC<{
           }
           placeholder={
             <div className="transcript-placeholder">
-              Click Write to start, or import audio to edit it as text…
+              {i18n.t("editor:ui.clickWriteToStartOrImportAudioToEditItAsText")}
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}

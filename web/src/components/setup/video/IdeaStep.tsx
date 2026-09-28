@@ -221,10 +221,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s the video?
+            {i18n.t("editor:ui.whatSTheVideo")}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll plan the beats and cut it on the timeline.
+            {i18n.t("editor:ui.weLlPlanTheBeatsAndCutItOnTheTimeline")}
           </Text>
         </FlexColumn>
 

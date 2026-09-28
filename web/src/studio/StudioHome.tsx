@@ -274,7 +274,7 @@ const StudioHome = () => {
       >
         <FlexColumn align="center" gap={SPACING.sm} sx={{ pt: SPACING.xl }}>
           <Text size="giant" weight={600}>
-            Make a video
+            {i18n.t("editor:ui.makeAVideo")}
           </Text>
           <Text size="normal" color="secondary">
             Pick where to start. Each one takes a sentence and returns a

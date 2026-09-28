@@ -672,7 +672,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       )}
       {isError && (
         <div className="model-menu__providers-error is-error" style={{ padding: 8 }}>
-          Error loading providers
+          {i18n.t("editor:ui.errorLoadingProviders")}
         </div>
       )}
       <ListItemButton
@@ -1038,7 +1038,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
           disabled={!menuProvider || !getProviderUrl(menuProvider)}
           onClick={handleOpenWebsite}
         >
-          Open provider website
+          {i18n.t("editor:ui.openProviderWebsite")}
         </EditorMenuItem>
         <EditorMenuItem
           className="model-menu__provider-context-menu-item model-menu__provider-context-menu-item--toggle"

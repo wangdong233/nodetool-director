@@ -156,7 +156,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
             onClick={onPlayTest}
             disabled={!exported}
           >
-            Play-test with the agent
+            {i18n.t("editor:ui.playTestWithTheAgent")}
           </EditorButton>
           <EditorButton variant="text" onClick={onRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
         </FlexRow>

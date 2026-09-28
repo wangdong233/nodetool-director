@@ -342,7 +342,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
                 {selectedAssets.length} assets selected:
               </span>{" "}
               <br />
-              They will be moved to the new folder.
+              {i18n.t("editor:ui.theyWillBeMovedToTheNewFolder")}
             </Text>
           </div>
         )}

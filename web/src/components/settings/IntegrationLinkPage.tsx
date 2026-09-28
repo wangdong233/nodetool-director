@@ -86,7 +86,7 @@ const IntegrationLinkPage = () => {
           {expired && (
             <>
               <AlertBanner severity="error">
-                This link code has expired or was already used. Send the bot
+                {i18n.t("editor:ui.thisLinkCodeHasExpiredOrWasAlreadyUsedSendTheBot")}
                 <strong> /link </strong>
                 again to get a new one.
               </AlertBanner>
@@ -110,7 +110,7 @@ const IntegrationLinkPage = () => {
               </Caption>
               {confirm.isError && (
                 <AlertBanner severity="error">
-                  Could not complete the link. The code may have just expired.
+                  {i18n.t("editor:ui.couldNotCompleteTheLinkTheCodeMayHaveJustExpired")}
                 </AlertBanner>
               )}
               <FlexRow gap={SPACING.md}>

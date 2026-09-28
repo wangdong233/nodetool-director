@@ -292,10 +292,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s the script about?
+            {i18n.t("editor:ui.whatSTheScriptAbout")}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll write it in lines you can voice.
+            {i18n.t("editor:ui.weLlWriteItInLinesYouCanVoice")}
           </Text>
         </FlexColumn>
 

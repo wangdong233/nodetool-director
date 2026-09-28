@@ -541,7 +541,7 @@ const PreviewRecommendedModels: React.FC = () => {
         Recommended Models
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 3, display: "block" }}>
-        These models are recommended for the selected node.
+        {i18n.t("editor:ui.theseModelsAreRecommendedForTheSelectedNode")}
       </Text>
       <Suspense fallback={<LoadingSpinner />}>
         <RecommendedModels

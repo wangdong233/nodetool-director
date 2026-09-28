@@ -258,7 +258,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 <CreateNewFolderOutlinedIcon fontSize="small" />
               </span>
               <Text size="normal" weight={500} sx={{ color: "inherit" }}>
-                New folder…
+                {i18n.t("editor:ui.newFolder")}
               </Text>
             </div>
           )}

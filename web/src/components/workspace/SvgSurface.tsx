@@ -194,7 +194,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Caption sx={{ color: "error.main" }}>
-          Failed to load SVG content
+          {i18n.t("editor:ui.failedToLoadSVGContent")}
         </Caption>
       </FlexColumn>
     );

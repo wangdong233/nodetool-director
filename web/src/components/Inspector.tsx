@@ -758,7 +758,7 @@ const Inspector: React.FC = () => {
               </div>
               <div className="inspector-namespace">
                 <span className="inspector-namespace-text">
-                  Metadata unavailable for some nodes
+                  {i18n.t("editor:ui.metadataUnavailableForSomeNodes")}
                 </span>
               </div>
             </div>
@@ -836,7 +836,7 @@ const Inspector: React.FC = () => {
                 ))
               ) : (
                 <Caption size="smaller" color="muted" sx={{ padding: `${getSpacingPx(SPACING.xs)} 0` }}>
-                  No shared editable properties across the selected nodes.
+                  {i18n.t("editor:ui.noSharedEditablePropertiesAcrossTheSelectedNodes")}
                 </Caption>
               )}
             </ScrollArea>
@@ -1072,7 +1072,7 @@ const Inspector: React.FC = () => {
                   </div>
                   {metadata.properties.length === 0 ? (
                     <Caption size="smaller" color="muted">
-                      No inputs.
+                      {i18n.t("editor:ui.noInputs")}
                     </Caption>
                   ) : (
                     metadata.properties.map((property) => (
@@ -1089,7 +1089,7 @@ const Inspector: React.FC = () => {
                   </div>
                   {metadata.outputs.length === 0 ? (
                     <Caption size="smaller" color="muted">
-                      No outputs.
+                      {i18n.t("editor:ui.noOutputs")}
                     </Caption>
                   ) : (
                     metadata.outputs.map((output) => (
@@ -1110,7 +1110,7 @@ const Inspector: React.FC = () => {
                   if (!raw) {
                     return (
                       <Caption size="smaller" color="muted">
-                        No description provided for this node.
+                        {i18n.t("editor:ui.noDescriptionProvidedForThisNode")}
                       </Caption>
                     );
                   }

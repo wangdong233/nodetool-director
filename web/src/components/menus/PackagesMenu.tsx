@@ -398,7 +398,7 @@ const InstallPanel = memo(function InstallPanel({
   return (
     <FlexColumn gap={1}>
       <Text size="normal" weight={600}>
-        Install a pack
+        {i18n.t("editor:ui.installAPack")}
       </Text>
       <Text size="small" color="secondary">
         Paste an npm package name, e.g. <code>@acme/cool-nodes</code> or{" "}
@@ -505,7 +505,7 @@ function PackagesMenu() {
     <FlexColumn gap={3.5} sx={{ maxWidth: 880 }}>
       <FlexColumn gap={1.75}>
         <Text size="normal" weight={600}>
-          Trust defaults
+          {i18n.t("editor:ui.trustDefaults")}
         </Text>
         <FlexRow
           gap={3}

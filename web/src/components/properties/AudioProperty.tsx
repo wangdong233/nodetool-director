@@ -109,7 +109,7 @@ const AudioProperty = (props: PropertyProps) => {
               onClick={toggle}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
             >
-              Click to start microphone
+              {i18n.t("editor:ui.clickToStartMicrophone")}
             </div>
           )}
           <div className="controls-row">

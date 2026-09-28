@@ -171,7 +171,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
           Choose your format
         </Text>
         <Text size="normal" color="secondary">
-          It sets who speaks and how the script is laid out.
+          {i18n.t("editor:ui.itSetsWhoSpeaksAndHowTheScriptIsLaidOut")}
         </Text>
       </FlexColumn>
 

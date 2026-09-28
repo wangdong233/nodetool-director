@@ -582,7 +582,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             Hold CTRL or ⌘ key + click <br />
             <br />
             <b>EDIT GROUP TITLE:</b> <br />
-            Double click the label
+            {i18n.t("editor:ui.doubleClickTheLabel")}
           </span>
         }
       >

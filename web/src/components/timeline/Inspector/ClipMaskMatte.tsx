@@ -524,7 +524,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
               <>
                 {status === "failed" && (
                   <Caption color="error">
-                    The last run failed. Nothing was cut — try again.
+                    {i18n.t("editor:ui.theLastRunFailedNothingWasCutTryAgain")}
                   </Caption>
                 )}
                 <EditorButton
@@ -583,7 +583,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
 
                 {status === "failed" && (
                   <Caption color="error">
-                    The last run failed. The result before it is still in use.
+                    {i18n.t("editor:ui.theLastRunFailedTheResultBeforeItIsStillInUse")}
                   </Caption>
                 )}
                 {stale && status !== "failed" && (

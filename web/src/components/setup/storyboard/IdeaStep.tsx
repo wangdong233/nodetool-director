@@ -179,10 +179,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s your story?
+            {i18n.t("editor:ui.whatSYourStory")}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll turn it into a screenplay and storyboard.
+            {i18n.t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard")}
           </Text>
         </FlexColumn>
 

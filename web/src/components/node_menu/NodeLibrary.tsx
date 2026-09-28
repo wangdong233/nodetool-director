@@ -533,7 +533,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             ) : (
               <div className="nl-info-empty">
                 <Text component="span" size="small" color="secondary">
-                  Drag a node onto the canvas. Hover for details.
+                  {i18n.t("editor:ui.dragANodeOntoTheCanvasHoverForDetails")}
                 </Text>
               </div>
             )}

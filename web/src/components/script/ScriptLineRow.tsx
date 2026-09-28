@@ -495,7 +495,7 @@ const ScriptLineRow = ({
         {orphaned && (
           <Tooltip title={i18n.t("editor:ui.noStoryboardShotCoversThisLine", { defaultValue: "No storyboard shot covers this line" })}>
             <Text size="smaller" color="warning">
-              No shot
+              {i18n.t("editor:ui.noShot")}
             </Text>
           </Tooltip>
         )}

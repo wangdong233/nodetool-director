@@ -96,6 +96,7 @@ import { textMeasurer } from "./textMeasure";
 import { PreviewRecovery } from "./PreviewRecovery";
 import { watchVideoHealth } from "./videoHealth";
 import { type PreviewFailureHandler } from "./previewFailure";
+import { i18n } from "../../../i18n";
 
 interface PlaceholderLayer {
   clipId: string;
@@ -1916,7 +1917,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
             }}
           >
             <span style={{ fontSize: theme.fontSizeSmall }}>
-              Preview rendering unavailable
+              {i18n.t("editor:ui.previewRenderingUnavailable")}
             </span>
           </div>
         )}

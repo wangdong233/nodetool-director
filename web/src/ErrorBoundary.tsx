@@ -248,10 +248,10 @@ const ErrorBoundary: React.FC = () => {
             target="_blank"
             rel="noreferrer"
           >
-            Join our Discord
+            {i18n.t("editor:ui.joinOurDiscord")}
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            Email hello@nodetool.ai
+            {i18n.t("editor:ui.emailHello@nodetoolAi")}
           </a>
         </Box>
       </Box>

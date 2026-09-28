@@ -60,7 +60,7 @@ const JsScriptSecretsEditor = ({
       </FlexRow>
       {secrets.length === 0 ? (
         <Text size="small" color="secondary">
-          The body reads no secrets.
+          {i18n.t("editor:ui.theBodyReadsNoSecrets")}
         </Text>
       ) : (
         secrets.map((name, index) => (

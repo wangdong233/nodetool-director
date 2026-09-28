@@ -456,7 +456,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   marginBottom: getSpacingPx(SPACING.xl)
                 }}
               >
-                Filter nodes by input and output data types
+                {i18n.t("editor:ui.filterNodesByInputAndOutputDataTypes")}
               </Text>
             </Box>
 

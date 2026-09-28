@@ -144,7 +144,7 @@ const TextPreview = ({ asset }: TextPreviewProps) => {
       return (
         <FlexColumn className="status">
           <Text size="normal" weight={600} sx={{ color: "error.main" }}>
-            Failed to load text content
+            {i18n.t("editor:ui.failedToLoadTextContent")}
           </Text>
         </FlexColumn>
       );

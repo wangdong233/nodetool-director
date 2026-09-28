@@ -122,7 +122,7 @@ export function NoteSelectionInspector({
         />
       ))}
       <Caption color="muted">
-        Pitch/start move the group. Length/velocity set all selected notes.
+        {i18n.t("editor:ui.pitchStartMoveTheGroupLengthVelocitySetAllSelectedNotes")}
       </Caption>
     </FlexRow>
   );

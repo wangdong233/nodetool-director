@@ -132,7 +132,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
         {todos.length === 0 ? (
           <div className="empty-state">
             <Text size="small">
-              No tasks yet. The agent will list its plan here as it works.
+              {i18n.t("editor:ui.noTasksYetTheAgentWillListItsPlanHereAsItWorks")}
             </Text>
           </div>
         ) : (

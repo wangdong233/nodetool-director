@@ -191,7 +191,7 @@ const MCPSettingsMenu = () => {
           <>
             <div className="settings-section">
               <Text sx={{ fontWeight: 500, mb: 0.5 }}>
-                Install on this machine
+                {i18n.t("editor:ui.installOnThisMachine")}
               </Text>
               {data.defaultUrl && (
                 <Text

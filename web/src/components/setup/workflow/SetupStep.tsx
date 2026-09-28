@@ -135,7 +135,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{i18n.t("storyboard:attrs.modelsAndHowItRuns", { defaultValue: "Models and how it runs" })}</Text>
         <Text size="normal" color="secondary">
-          Pick what each step runs on, and how you want to start it.
+          {i18n.t("editor:ui.pickWhatEachStepRunsOnAndHowYouWantToStartIt")}
         </Text>
       </FlexColumn>
 
@@ -161,7 +161,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
         <FlexColumn gap={GAP.normal}>
           <Text size="normal" component="h3">{i18n.t("storyboard:attrs.sampleInputs", { defaultValue: "Sample inputs" })}</Text>
           <Caption color="secondary" component="p">
-            The values the test run uses. Change them to something of yours.
+            {i18n.t("editor:ui.theValuesTheTestRunUsesChangeThemToSomethingOfYours")}
           </Caption>
           {plan.inputs.map((input) => (
             <TextInput

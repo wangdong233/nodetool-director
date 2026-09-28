@@ -124,7 +124,7 @@ const NotificationButton: React.FC = React.memo(() => {
               sx={{ fontSize: "var(--fontSizeNormal)" }}
               weight={400}
             >
-              No notifications
+              {i18n.t("editor:ui.noNotifications")}
             </Text>
           ) : (
             <Box role="list" aria-label={`Notification list, ${notifications.length} item${notifications.length > 1 ? "s" : ""}`}>

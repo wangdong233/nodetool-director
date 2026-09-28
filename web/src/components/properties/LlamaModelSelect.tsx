@@ -120,7 +120,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
         ) : ollamaError ? (
           <div style={{ padding: getSpacingPx(SPACING.md), maxWidth: 300 }}>
             <Text size="small" color="error" sx={{ mb: 1 }}>
-              Could not load Ollama models
+              {i18n.t("editor:ui.couldNotLoadOllamaModels")}
             </Text>
             <Caption
               color="secondary"

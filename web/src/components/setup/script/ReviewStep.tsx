@@ -282,7 +282,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <FlexRow gap={GAP.normal} align="center" wrap>
         <EditorButton variant="text" size="small" onClick={onOpenEditor}>{i18n.t("storyboard:attrs.openTheEditorWithoutVoicing", { defaultValue: "Open the editor without voicing" })}</EditorButton>
         <Caption color="secondary">
-          Finish here with the text. You can voice it in the editor later.
+          {i18n.t("editor:ui.finishHereWithTheTextYouCanVoiceItInTheEditorLater")}
         </Caption>
       </FlexRow>
     </FlexColumn>

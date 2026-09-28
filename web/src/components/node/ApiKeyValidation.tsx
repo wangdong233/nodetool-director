@@ -57,7 +57,7 @@ const ApiKeyValidation: React.FC<ApiKeyValidationProps> = React.memo(
               borderRadius: ".1em"
             }}
           >
-            Connect provider
+            {i18n.t("editor:ui.connectProvider")}
           </EditorButton>
         </>
       );

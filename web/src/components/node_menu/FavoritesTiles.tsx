@@ -331,7 +331,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
                 <div>
                   <div>{displayName}</div>
                   <div style={tooltipHintStyle}>
-                    Click to place · Drag to canvas
+                    {i18n.t("editor:ui.clickToPlaceDragToCanvas")}
                   </div>
                 </div>
               }

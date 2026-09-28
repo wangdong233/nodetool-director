@@ -183,7 +183,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
           )}
           {readyTracks.length === 0 && (
             <Caption color="muted">
-              Track a subject first to use “Follow selected object.”
+              {i18n.t("editor:ui.trackASubjectFirstToUseFollowSelectedObject")}
             </Caption>
           )}
           {smartUnavailable && (

@@ -156,7 +156,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
               />
             </div>
             <EditorButton variant="outlined" onClick={() => setPickerOpen(true)}>
-              Change image
+              {i18n.t("editor:ui.changeImage")}
             </EditorButton>
           </FlexRow>
         </FlexColumn>

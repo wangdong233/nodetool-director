@@ -123,7 +123,7 @@ const QueuePanel = memo(function QueuePanel() {
     return (
       <Box sx={{ p: 2 }}>
         <Text size="small" color="error">
-          Error loading jobs
+          {i18n.t("editor:ui.errorLoadingJobs")}
         </Text>
       </Box>
     );

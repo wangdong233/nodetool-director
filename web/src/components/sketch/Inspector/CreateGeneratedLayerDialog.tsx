@@ -243,7 +243,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         >
           <FlexColumn gap={1.5}>
             <Caption color="secondary">
-              Pick any workflow whose graph has an image output node.
+              {i18n.t("editor:ui.pickAnyWorkflowWhoseGraphHasAnImageOutputNode")}
             </Caption>
 
             {/* autoFocus is skipped on touch, where the virtual keyboard
@@ -335,7 +335,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
             {requiresOutputPick && selectedWorkflow && (
               <FlexColumn gap={1}>
                 <Text size="small">
-                  This workflow has multiple image outputs. Pick one:
+                  {i18n.t("editor:ui.thisWorkflowHasMultipleImageOutputsPickOne")}
                 </Text>
                 <FlexRow gap={0.5} sx={{ flexWrap: "wrap" }}>
                   {selectedWorkflow.outputNodes.map((node) => (
