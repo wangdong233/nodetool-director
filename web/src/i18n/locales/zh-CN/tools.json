@@ -184,6 +184,9 @@
       },
       "ZHIPU_API_KEY": {
         "description": "通过 Z.AI 的 OpenAI 兼容 API 使用 GLM 模型。"
+      },
+      "COMFY_API_KEY": {
+        "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
       }
     },
     "searchProviders": {
@@ -205,7 +208,16 @@
     "textCommentNote": "文本注释便签",
     "textInputField": "文本输入字段",
     "wholeNumberInput": "整数输入",
-    "yourSettingsHaveBeenSavedSuccessfully": "你的设置已成功保存"
+    "yourSettingsHaveBeenSavedSuccessfully": "你的设置已成功保存",
+    "sections": {
+      "popular": "热门",
+      "language": "语言模型",
+      "media": "媒体生成",
+      "gateways": "网关与聚合",
+      "search": "网页搜索",
+      "compute": "算力与本地",
+      "advanced": "服务与高级"
+    }
   },
   "misc": {
     "onboardingPacks": {
@@ -325,29 +337,6 @@
       "startingState": "一条新时间线，轨道为空，没有片段。",
       "tagline": "时间线编辑器 · 修剪、编排、字幕",
       "task": "放两个片段，修剪剪切点，加字幕，预览成品序列。"
-    }
-  },
-  "sections": {
-    "popular": "热门",
-    "language": "语言模型",
-    "media": "媒体生成",
-    "gateways": "网关与聚合",
-    "search": "网页搜索",
-    "compute": "算力与本地",
-    "advanced": "服务与高级"
-  },
-  "providers": {
-    "FAL_API_KEY": {
-      "description": "精确计费用管理员密钥（fal.ai 控制台 → Keys → 权限选 \"Admin\")。NodeTool 读取 FAL 每次请求的实际账单；普通密钥只能得到估算值。"
-    },
-    "COMFY_API_KEY": {
-      "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
-    },
-    "CODEX_SUBSCRIPTION": {
-      "note": "使用你的 ChatGPT 账号登录。"
-    },
-    "CLAUDE_SUBSCRIPTION": {
-      "note": "共享 Claude Code 所用的凭据。"
     }
   }
 }
