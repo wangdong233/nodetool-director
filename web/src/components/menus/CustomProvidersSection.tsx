@@ -181,7 +181,7 @@ const ProviderRow = memo(function ProviderRow({
           onClick={handleTest}
           disabled={testing}
         >
-          {testing ? "Testing…" : "Test"}
+          {testing ? i18n.t("editor:ui.testing") : i18n.t("editor:ui.test")}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -189,7 +189,7 @@ const ProviderRow = memo(function ProviderRow({
           size="small"
           onClick={handleEdit}
         >
-          Edit
+          {i18n.t("editor:ui.edit")}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -411,7 +411,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       >
         <FlexColumn gap={0.5}>
           <Text size="normal" weight={600}>
-            OpenAI-compatible endpoints
+            {i18n.t("editor:ui.openaiCompatibleEndpoints")}
           </Text>
           <Caption sx={{ opacity: 0.55 }}>
             {i18n.t("editor:ui.pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi")}
