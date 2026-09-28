@@ -2679,7 +2679,9 @@
     "hide2": "Hide",
     "noMediaAt": "No media at {{n}}s",
     "nSec": "{{n}} Sec",
-    "cloud2": "Cloud"
+    "cloud2": "Cloud",
+    "describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit": "Describe your idea. The agent writes the script, boards every scene, generates the footage, and cuts a multi-track timeline you can still edit.",
+    "signInWithGoogle2": "Sign in with Google"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

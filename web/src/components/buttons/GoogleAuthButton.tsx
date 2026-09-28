@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo, useCallback } from "react";
 import useAuth from "../../stores/useAuth";
+import { i18n } from "../../i18n";
 
 const styles = (_theme: Theme) => ({
   svg: {
@@ -51,7 +52,7 @@ const GoogleAuthButton = memo(function GoogleAuthButton() {
             </svg>
           </div>
           <span className="gsi-material-button-contents">
-            Sign in with Google
+            {i18n.t("editor:ui.signInWithGoogle2")}
           </span>
         </div>
       </button>

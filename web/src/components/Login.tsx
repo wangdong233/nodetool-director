@@ -91,9 +91,7 @@ function Login() {
           {i18n.t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}
         </Text>
         <Text component="p" size="normal" className="subhead">
-          Describe your idea. The agent writes the script, boards every scene,
-          generates the footage, and cuts a multi-track timeline you can still
-          edit.
+          {i18n.t("editor:ui.describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit")}
         </Text>
       </div>
 

@@ -2679,7 +2679,9 @@
     "hide2": "隐藏",
     "noMediaAt": "{{n}}s 处无媒体",
     "nSec": "{{n}} 秒",
-    "cloud2": "云端"
+    "cloud2": "云端",
+    "describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit": "描述你的想法。智能体撰写脚本、为每个场景出分镜、生成画面,并剪出一条仍可继续编辑的多轨时间线。",
+    "signInWithGoogle2": "使用 Google 登录"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
