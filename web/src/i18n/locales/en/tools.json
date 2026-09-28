@@ -234,7 +234,8 @@
     "failedToDeleteSecret": "Failed to delete secret: {{error}}",
     "tags": {
       "Popular": "Popular"
-    }
+    },
+    "other": "Other"
   },
   "misc": {
     "onboardingPacks": {

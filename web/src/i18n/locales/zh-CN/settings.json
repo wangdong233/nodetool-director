@@ -176,6 +176,165 @@
     "intCatCredentials": "凭据",
     "folders": "文件夹",
     "connectedAccounts": "已连接账号",
-    "nodetoolApiToken": "Nodetool API 令牌"
+    "nodetoolApiToken": "Nodetool API 令牌",
+    "localModelServers": "本地模型服务",
+    "providerOptions": "提供商选项",
+    "observability": "可观测性",
+    "dataStorage": "数据与存储",
+    "other": "其他"
+  },
+  "remote": {
+    "FONT_PATH": {
+      "label": "字体路径",
+      "description": "图像处理节点（如 RenderText）所用字体文件夹的位置。未指定时使用系统默认字体。"
+    },
+    "BLENDER_PATH": {
+      "label": "Blender 路径",
+      "description": "nodetool.blender 节点所用 Blender 可执行文件路径。未指定时按 PATH 与常见安装位置查找。"
+    },
+    "VECTORSTORE_DB_PATH": {
+      "label": "向量库路径",
+      "description": "sqlite-vec 向量数据库文件位置。用于语义检索与 RAG 应用的嵌入存取。"
+    },
+    "USERS_FILE": {
+      "label": "用户文件",
+      "description": "多用户 Bearer 令牌认证的 users.yaml 路径。本地部署默认 ~/.config/nodetool/users.yaml。"
+    },
+    "TRANSFORMERS_JS_CACHE_DIR": {
+      "label": "Transformers JS 缓存目录",
+      "description": "Transformers.js(@huggingface/transformers）模型下载缓存目录。默认 <data-dir>/transformers-js-cache。与 Python HuggingFace Hub 缓存分离，因磁盘布局不同。"
+    },
+    "VLLM_BASE_URL": {
+      "label": "vLLM Base URL",
+      "description": "vLLM OpenAI 兼容服务的 Base URL（如 http://localhost:7777)。"
+    },
+    "OLLAMA_CONTEXT_LENGTH": {
+      "label": "Ollama 上下文长度",
+      "description": "Ollama 模型的上下文窗口大小（令牌数）。未设置时由提供商向模型查询默认值。"
+    },
+    "LLAMA_CPP_URL": {
+      "label": "llama.cpp URL",
+      "description": "llama.cpp 服务的 Base URL（如 http://127.0.0.1:8080)。"
+    },
+    "LLAMA_CPP_CONTEXT_LENGTH": {
+      "label": "llama.cpp 上下文长度",
+      "description": "llama.cpp 模型的上下文窗口大小（令牌数）。默认 128000。"
+    },
+    "NODE_LLAMA_CPP_MODELS_DIR": {
+      "label": "Node llama.cpp 模型目录",
+      "description": "进程内 llama.cpp 推理所用本地 GGUF 模型文件目录。默认为平台 llama.cpp 缓存目录。"
+    },
+    "NODE_LLAMA_CPP_GPU_BACKEND": {
+      "label": "Node llama.cpp GPU 后端",
+      "description": "进程内 llama.cpp 推理的 GPU 后端。'auto' 由 node-llama-cpp 自动选择最佳后端。"
+    },
+    "LMSTUDIO_API_URL": {
+      "label": "LM Studio API URL",
+      "description": "LM Studio OpenAI 兼容服务的 Base URL（如 http://localhost:1234)。"
+    },
+    "NODE_SUPABASE_URL": {
+      "label": "节点 Supabase URL",
+      "description": "用户自定义节点使用的 Supabase 项目 URL（与核心 SUPABASE_URL 分离）。"
+    },
+    "NODE_SUPABASE_SCHEMA": {
+      "label": "节点 Supabase 模式",
+      "description": "用户/节点 Supabase 表的可选模式（未设置时默认 public)。"
+    },
+    "NODE_SUPABASE_TABLE_PREFIX": {
+      "label": "节点 Supabase 表前缀",
+      "description": "用户/节点 Supabase 表的可选前缀，避免与核心表冲突。"
+    },
+    "TRACELOOP_ENABLED": {
+      "label": "启用 Traceloop",
+      "description": "启用 Traceloop OpenLLMetry 追踪。"
+    },
+    "TRACELOOP_APP_NAME": {
+      "label": "Traceloop 应用名",
+      "description": "覆盖 OpenLLMetry 应用名（默认为服务名）。"
+    },
+    "TRACELOOP_BASE_URL": {
+      "label": "Traceloop Base URL",
+      "description": "覆盖 Traceloop OTLP Base URL。"
+    },
+    "TRACELOOP_DISABLE_BATCH": {
+      "label": "禁用 Traceloop 批处理",
+      "description": "本地开发时禁用 Traceloop 批量 span 处理。"
+    },
+    "ZAI_USE_CODING_PLAN": {
+      "label": "智谱用编码套餐",
+      "description": "使用智谱 Z.AI 编码套餐端点而非普通端点。"
+    },
+    "KIE_TIMEOUT_SECONDS": {
+      "label": "Kie 超时秒数",
+      "description": "Kie.ai API 调用的全局超时秒数（0=按模型默认超时）。"
+    },
+    "AUTOSAVE_ENABLED": {
+      "label": "启用自动保存",
+      "description": "按固定间隔自动保存工作流。"
+    },
+    "AUTOSAVE_INTERVAL_MINUTES": {
+      "label": "自动保存间隔(分钟)",
+      "description": "自动保存工作流的时间间隔。"
+    },
+    "AUTOSAVE_MIN_INTERVAL_SECONDS": {
+      "label": "自动保存最小间隔(秒)",
+      "description": "两次自动保存之间的最小间隔。"
+    },
+    "AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW": {
+      "label": "每个工作流自动保存上限",
+      "description": "每个工作流保留的最近自动保存数量上限。"
+    },
+    "AUTOSAVE_KEEP_DAYS": {
+      "label": "自动保存保留天数",
+      "description": "超期的自动保存会被移除。"
+    },
+    "MAX_CONCURRENT_JOBS": {
+      "label": "最大并行任务数",
+      "description": "可同时运行的任务数量上限。"
+    },
+    "MAX_CONCURRENT_RUNS_PER_WORKFLOW": {
+      "label": "每工作流最大并行运行数",
+      "description": "同一工作流可同时进行的运行数。"
+    },
+    "NODETOOL_AGENT_TURN_COST_CAP_USD": {
+      "label": "智能体单轮费用上限(美元)",
+      "description": "一次智能体运行的服务商花费上限，单位美元（默认 5.00)。整个运行共享此额度：子智能体、后台子任务与智能体节点都从同一额度预留，而非各自开额。最坏情况会越限的轮次在调用前即被拒绝，运行停止并提示该上限。设为 0 表示完全不设限（纯本地安装的常见选择）——清空该值会恢复默认，因为空设置与未设置无法区分。"
+    },
+    "NODETOOL_AGENT_TURN_DEADLINE_MS": {
+      "label": "智能体单轮时限(毫秒)",
+      "description": "一次智能体运行的挂钟时间上限，毫秒（默认 1800000，即 30 分钟）。每次模型轮次与工具调用前检查，卡在慢服务商上的运行会终止而非挂起。"
+    },
+    "NODETOOL_AGENT_MAX_CONCURRENCY": {
+      "label": "智能体最大并发",
+      "description": "一次智能体运行可同时开启的服务商对话数上限（默认 8)。整个运行共享，防止步骤扇出中的子智能体扇出乘出数百个并发调用。"
+    },
+    "NODETOOL_AGENT_MAX_TURNS": {
+      "label": "智能体最大轮数",
+      "description": "一次智能体运行可执行的总模型轮数上限（默认 200)，跨其启动的所有循环计数。这是无价格本地模型下依然成立的约束（美元上限无法适用时）。"
+    },
+    "NODETOOL_AGENT_UNPRICED_TOKEN_CEILING": {
+      "label": "无价模型令牌上限",
+      "description": "价格目录未覆盖模型的单轮提示令牌上限（默认 400000)。无价模型没有最坏情况成本可预留，自由放行会使美元上限形同虚设，故以规模设限。此类轮次计为无价而非免费。"
+    },
+    "NODETOOL_CHAT_COMPACTION_TOKENS": {
+      "label": "对话压缩令牌阈值",
+      "description": "一次对话轮在摘要其前文之前，线程的估算提示规模（令牌数）。"
+    },
+    "NODETOOL_CHAT_COMPACTION_KEEP_TURNS": {
+      "label": "对话压缩保留轮数",
+      "description": "压缩后保留的最近轮数。"
+    },
+    "NODETOOL_COMPACTION_MODEL": {
+      "label": "压缩模型",
+      "description": "用于对话摘要的模型。"
+    },
+    "SERP_PROVIDER": {
+      "label": "搜索服务商",
+      "description": "网页搜索服务商。"
+    },
+    "DASHSCOPE_BASE_URL": {
+      "label": "DashScope Base URL",
+      "description": "阿里云 DashScope OpenAI 兼容服务的 Base URL。"
+    }
   }
 }

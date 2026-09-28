@@ -234,7 +234,8 @@
     "failedToDeleteSecret": "删除密钥失败:{{error}}",
     "tags": {
       "Popular": "热门"
-    }
+    },
+    "other": "其他"
   },
   "misc": {
     "onboardingPacks": {

@@ -89,7 +89,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
     labelKey: "dataStorage",
     groups: ["NodeSupabase", "Supabase"]
   },
-  { key: "other", label: "Other", groups: [] }
+  { key: "other", label: "Other", labelKey: "other", groups: [] }
 ];
 
 /** Inverted, lowercased lookup: registry group (lowercase) → meta-section key. */
@@ -112,11 +112,13 @@ interface MetaSection {
   key: string;
   label: string;
   entries: MetaSectionEntry[];
+  labelKey?: string;
 }
 
 interface DisplayedGroup {
   id: string;
   label: string;
+  labelKey?: string;
 }
 
 /**
@@ -147,7 +149,7 @@ const partitionByMetaSection = (
       }
     }
     if (entries.length > 0) {
-      sections.push({ key: section.key, label: section.label, entries });
+      sections.push({ key: section.key, label: section.label, labelKey: section.labelKey, entries });
     }
   }
   return sections;
@@ -185,7 +187,7 @@ export const getDisplayedSettingGroups = (
   const result: DisplayedGroup[] = [];
   for (const section of META_SECTION_GROUPS) {
     if (presentKeys.has(section.key)) {
-      result.push({ id: section.key, label: section.label });
+      result.push({ id: section.key, label: section.label, labelKey: section.labelKey });
     }
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
@@ -287,7 +289,7 @@ const SettingItem = memo(function SettingItem({
           <InputLabel
             id={`${setting.env_var.toLowerCase()}-label`}
           >
-            {formatSettingLabel(setting.env_var)}
+            {i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           </InputLabel>
           <Select
             labelId={`${setting.env_var.toLowerCase()}-label`}
@@ -308,7 +310,7 @@ const SettingItem = memo(function SettingItem({
           type={setting.is_secret ? "password" : "text"}
           autoComplete="off"
           id={`${setting.env_var.toLowerCase()}-input`}
-          label={formatSettingLabel(setting.env_var)}
+          label={i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           value={value || ""}
           onChange={handleChange}
           variant="standard"
@@ -318,7 +320,7 @@ const SettingItem = memo(function SettingItem({
       )}
       {setting.description && (
         <Text className="description">
-          {setting.description}
+          {i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
         </Text>
       )}
       {SETTING_LINKS[setting.env_var] && (
@@ -346,7 +348,7 @@ interface RemoteSettingsProps {
 
 const settingMatches = (setting: SettingWithValue, search: string): boolean =>
   matchesSearch(
-    `${formatSettingLabel(setting.env_var)} ${setting.env_var} ${setting.description ?? ""}`,
+    `${i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })} ${setting.env_var} ${i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description ?? "" })}`,
     search
   );
 

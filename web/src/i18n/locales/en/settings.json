@@ -176,6 +176,165 @@
     "intCatCredentials": "Credentials",
     "folders": "Folders",
     "connectedAccounts": "Connected Accounts",
-    "nodetoolApiToken": "Nodetool API Token"
+    "nodetoolApiToken": "Nodetool API Token",
+    "localModelServers": "Local Model Servers",
+    "providerOptions": "Provider Options",
+    "observability": "Observability",
+    "dataStorage": "Data & Storage",
+    "other": "Other"
+  },
+  "remote": {
+    "FONT_PATH": {
+      "label": "Font Path",
+      "description": "Location of font folder used by image processing nodes like RenderText. If not specified, the system will use default fonts."
+    },
+    "BLENDER_PATH": {
+      "label": "Blender Path",
+      "description": "Path to the Blender executable used by the nodetool.blender nodes. If not specified, the nodes look for blender on PATH and in the well-known install locations."
+    },
+    "VECTORSTORE_DB_PATH": {
+      "label": "Vectorstore DB Path",
+      "description": "Location of the sqlite-vec vector database file. Used to store and retrieve embeddings for semantic search and RAG applications."
+    },
+    "USERS_FILE": {
+      "label": "Users File",
+      "description": "Path to users.yaml file for multi-user bearer token authentication. Defaults to ~/.config/nodetool/users.yaml for local deployments."
+    },
+    "TRANSFORMERS_JS_CACHE_DIR": {
+      "label": "Transformers JS Cache Dir",
+      "description": "Cache directory for Transformers.js (@huggingface/transformers) model downloads. Defaults to <data-dir>/transformers-js-cache. This is separate from the Python HuggingFace Hub cache because the on-disk layout differs."
+    },
+    "AUTOSAVE_ENABLED": {
+      "label": "Autosave Enabled",
+      "description": "Enable automatic saving of workflow versions (default: true)"
+    },
+    "AUTOSAVE_INTERVAL_MINUTES": {
+      "label": "Autosave Interval Minutes",
+      "description": "Interval in minutes between automatic workflow autosaves (default: 5, range: 1-60)"
+    },
+    "AUTOSAVE_MIN_INTERVAL_SECONDS": {
+      "label": "Autosave Min Interval Seconds",
+      "description": "Minimum interval in seconds between autosaves to prevent duplicates (default: 30)"
+    },
+    "AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW": {
+      "label": "Autosave Max Versions Per Workflow",
+      "description": "Maximum number of autosave versions to keep per workflow (default: 20)"
+    },
+    "AUTOSAVE_KEEP_DAYS": {
+      "label": "Autosave Keep Days",
+      "description": "Number of days to keep autosave versions before cleanup (default: 7)"
+    },
+    "MAX_CONCURRENT_JOBS": {
+      "label": "Max Concurrent Jobs",
+      "description": "Maximum number of workflow runs a single client can execute at once (default: 4). Additional runs are queued and start automatically as running ones finish, preventing provider/API overload."
+    },
+    "MAX_CONCURRENT_RUNS_PER_WORKFLOW": {
+      "label": "Max Concurrent Runs Per Workflow",
+      "description": "Maximum number of concurrent runs of the same workflow before additional runs queue (default: 4). Only applies to runs that opt into concurrency (e.g. timeline/sketch generation); canvas runs always stay sequential per workflow. Also bounded by MAX_CONCURRENT_JOBS."
+    },
+    "NODETOOL_AGENT_TURN_COST_CAP_USD": {
+      "label": "Nodetool Agent Turn Cost Cap Usd",
+      "description": "Ceiling on provider spend for one agent run, in US dollars (default: 5.00). The whole run shares it: sub-agents, background subtasks, and agent nodes reserve against the same cap rather than opening their own. A turn whose worst case would cross it is refused before the call, and the run stops with a message naming the cap. Set it to 0 for no cap at all, which is what a local-only install wants — clearing the value restores the default instead, because an empty setting is indistinguishable from an unset one."
+    },
+    "NODETOOL_AGENT_TURN_DEADLINE_MS": {
+      "label": "Nodetool Agent Turn Deadline Ms",
+      "description": "Wall-clock bound on one agent run, in milliseconds (default: 1800000, i.e. 30 minutes). Checked before every model turn and every tool call, so a run that stalls on a slow provider ends instead of hanging."
+    },
+    "NODETOOL_AGENT_MAX_CONCURRENCY": {
+      "label": "Nodetool Agent Max Concurrency",
+      "description": "Maximum provider conversations an agent run may have open at once (default: 8). Shared by the whole run, so a fan-out of sub-agents inside a fan-out of steps cannot multiply into hundreds of simultaneous calls."
+    },
+    "NODETOOL_AGENT_MAX_TURNS": {
+      "label": "Nodetool Agent Max Turns",
+      "description": "Maximum model turns an agent run may make in total (default: 200), counted across every loop it starts. This is the bound that still holds for a local model with no price, where the dollar cap cannot apply."
+    },
+    "NODETOOL_AGENT_UNPRICED_TOKEN_CEILING": {
+      "label": "Nodetool Agent Unpriced Token Ceiling",
+      "description": "Prompt-token ceiling for a turn on a model the price catalog does not cover (default: 400000). An unpriced model has no worst-case cost to reserve, so admitting it freely would make the dollar cap advisory; this bounds it by size instead. Such turns are counted as unpriced rather than as free spend."
+    },
+    "NODETOOL_CHAT_COMPACTION_TOKENS": {
+      "label": "Nodetool Chat Compaction Tokens",
+      "description": "Estimated prompt size, in tokens, at which a chat turn summarizes the earlier part of its thread before calling the model (default: 120000). The estimate tokenizes the message text and tool calls and scores each attached image, audio, video or document at a fixed per-modality figure. It misses the tool definitions the same turn sends, so leave room under the model's context window rather than setting it close. A provider that holds the conversation itself (a resumed session, the Claude Agent SDK) is not measured this way; it compacts when it reports that the transcript no longer fits."
+    },
+    "NODETOOL_CHAT_COMPACTION_KEEP_TURNS": {
+      "label": "Nodetool Chat Compaction Keep Turns",
+      "description": "How many of the most recent user turns a compaction leaves verbatim (default: 4). Everything before them becomes the summary. The cut always lands on a user message, so a tool call is never separated from its result."
+    },
+    "NODETOOL_COMPACTION_MODEL": {
+      "label": "Nodetool Compaction Model",
+      "description": "Model that writes the compaction summary, as `provider/model` or a bare model id on the turn's own provider. Unset, the turn summarizes with the model it is already running. A summarizer that fails leaves the thread uncompacted and the turn runs against the full history."
+    },
+    "VLLM_BASE_URL": {
+      "label": "vLLM Base URL",
+      "description": "Base URL for the vLLM OpenAI-compatible server (e.g., http://localhost:7777)"
+    },
+    "OLLAMA_CONTEXT_LENGTH": {
+      "label": "Ollama Context Length",
+      "description": "Context window size (in tokens) for Ollama models. If not set, the provider will query the model for its default context length."
+    },
+    "LLAMA_CPP_URL": {
+      "label": "Llama Cpp URL",
+      "description": "Base URL for the llama.cpp server (e.g., http://127.0.0.1:8080)."
+    },
+    "LLAMA_CPP_CONTEXT_LENGTH": {
+      "label": "Llama Cpp Context Length",
+      "description": "Context window size (in tokens) for llama.cpp models. Defaults to 128000."
+    },
+    "NODE_LLAMA_CPP_MODELS_DIR": {
+      "label": "Node Llama Cpp Models Dir",
+      "description": "Directory containing local GGUF model files for in-process llama.cpp inference. Defaults to the platform llama.cpp cache directory."
+    },
+    "NODE_LLAMA_CPP_GPU_BACKEND": {
+      "label": "Node Llama Cpp Gpu Backend",
+      "description": "GPU backend for in-process llama.cpp inference. 'auto' lets node-llama-cpp detect the best backend."
+    },
+    "LMSTUDIO_API_URL": {
+      "label": "Lmstudio API URL",
+      "description": "Base URL for the LM Studio OpenAI-compatible server (e.g., http://localhost:1234)"
+    },
+    "NODE_SUPABASE_URL": {
+      "label": "Node Supabase URL",
+      "description": "Supabase project URL used by user-provided nodes (separate from core SUPABASE_URL)"
+    },
+    "NODE_SUPABASE_SCHEMA": {
+      "label": "Node Supabase Schema",
+      "description": "Optional schema for user/node Supabase tables (defaults to public when unset)"
+    },
+    "NODE_SUPABASE_TABLE_PREFIX": {
+      "label": "Node Supabase Table Prefix",
+      "description": "Optional prefix applied to user/node Supabase tables to avoid clashes with core tables"
+    },
+    "TRACELOOP_ENABLED": {
+      "label": "Traceloop Enabled",
+      "description": "Enable Traceloop OpenLLMetry tracing"
+    },
+    "TRACELOOP_APP_NAME": {
+      "label": "Traceloop App Name",
+      "description": "Override the OpenLLMetry application name (defaults to service name)"
+    },
+    "TRACELOOP_BASE_URL": {
+      "label": "Traceloop Base URL",
+      "description": "Override the Traceloop OTLP base URL"
+    },
+    "TRACELOOP_DISABLE_BATCH": {
+      "label": "Traceloop Disable Batch",
+      "description": "Disable Traceloop batch span processing for local development"
+    },
+    "SERP_PROVIDER": {
+      "label": "SERP Provider",
+      "description": "Select which search provider to use for web search operations."
+    },
+    "ZAI_USE_CODING_PLAN": {
+      "label": "Zai Use Coding Plan",
+      "description": "Use Z.AI coding plan endpoint instead of normal endpoint"
+    },
+    "DASHSCOPE_BASE_URL": {
+      "label": "Dashscope Base URL",
+      "description": "Base URL for Alibaba Cloud Model Studio's OpenAI-compatible endpoint. Model Studio keys are region-scoped; set this to your region's endpoint (default: https://dashscope-intl.aliyuncs.com/compatible-mode/v1, the international/Singapore region)"
+    },
+    "KIE_TIMEOUT_SECONDS": {
+      "label": "Kie Timeout Seconds",
+      "description": "Global timeout in seconds for Kie.ai API calls (0 = use default per-model timeout)"
+    }
   }
 }
