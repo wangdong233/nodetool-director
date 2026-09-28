@@ -93,7 +93,7 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
       >
         <FlexRow gap={1} align="baseline">
           <Text size="big" weight={600}>
-            Spend over time
+            {i18n.t("editor:ui.spendOverTime")}
           </Text>
           <Text size="small" color="secondary">
             {rangeLabel}

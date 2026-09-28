@@ -239,11 +239,11 @@ const CostsDashboard: React.FC = () => {
                 color: theme.vars.palette.text.primary
               }}
             >
-              Costs
+              {i18n.t("editor:ui.costsTitle")}
             </Text>
             {view ? (
               <Text size="normal" color="secondary">
-                Spend per node execution across{" "}
+                {i18n.t("editor:ui.spendPerNodeExecution")} {i18n.t("editor:ui.across2")}
                 <Text
                   component="span"
                   weight={600}
@@ -255,7 +255,7 @@ const CostsDashboard: React.FC = () => {
               </Text>
             ) : (
               <Text size="normal" color="secondary">
-                Spend per node execution
+                {i18n.t("editor:ui.spendPerNodeExecution")}
               </Text>
             )}
           </FlexColumn>
@@ -278,7 +278,7 @@ const CostsDashboard: React.FC = () => {
               <>
                 <FilterDropdown
                   icon={<FilterListIcon sx={{ fontSize: 16 }} />}
-                  label={providersAllSelected ? "All providers" : "Providers"}
+                  label={providersAllSelected ? i18n.t("editor:ui.allProviders") : i18n.t("editor:ui.providers")}
                   count={
                     providersAllSelected
                       ? String(providerUniverse.length)
@@ -303,7 +303,7 @@ const CostsDashboard: React.FC = () => {
 
                 <FilterDropdown
                   icon={<AccountTreeIcon sx={{ fontSize: 15 }} />}
-                  label={workflowsAllSelected ? "All workflows" : "Workflows"}
+                  label={workflowsAllSelected ? i18n.t("editor:ui.allWorkflows") : i18n.t("editor:ui.workflows2")}
                   count={
                     workflowsAllSelected
                       ? undefined
@@ -351,7 +351,7 @@ const CostsDashboard: React.FC = () => {
                   }}
                 >
                   <FileDownloadIcon sx={{ fontSize: 17 }} />
-                  Export CSV
+                  {i18n.t("editor:ui.exportCsv")}
                 </Box>
               </>
             )}
@@ -365,7 +365,7 @@ const CostsDashboard: React.FC = () => {
         ) : isError ? (
           <StateMessage>
             <Text color="secondary">
-              Couldn&apos;t load cost data. Please try again.
+              {i18n.t("editor:ui.couldntLoadCostDataPleaseTryAgain")}
             </Text>
           </StateMessage>
         ) : view ? (
@@ -438,7 +438,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           icon={AttachMoneyIcon}
           value={total.whole}
           decimal={total.decimal}
-          caption={`vs prior ${range}`}
+          caption={`${i18n.t("editor:ui.vsPrior")} ${range}`}
           badge={
             delta === null ? undefined : (
               <FlexRow
@@ -468,13 +468,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           label={i18n.t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
           icon={GridViewIcon}
           value={String(stats.executionCount)}
-          caption={`${stats.failedCount} failed · ${stats.workflowCount} workflows`}
+          caption={`${stats.failedCount} ${i18n.t("editor:ui.failed2")} · ${stats.workflowCount} ${i18n.t("editor:ui.workflows3")}`}
         />
         <CostStatCard
           label={i18n.t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
           icon={ShowChartIcon}
           value={formatMoney(stats.avgPerExecution)}
-          caption="across all node types"
+          caption={i18n.t("editor:ui.acrossAllNodeTypes")}
         />
         <CostStatCard
           label={i18n.t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
@@ -487,7 +487,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               ? `${formatMoney(driver.cost)} · ${formatPercent(
                   driverShare
                 )} of spend`
-              : "no spend yet"
+              : i18n.t("editor:ui.noSpendYet")
           }
         />
       </FlexRow>
@@ -499,7 +499,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           providers={view.providers}
           stackOrder={view.stackOrder}
           activeProviders={providerSel ?? undefined}
-          rangeLabel={`daily · last ${view.days.length} days`}
+          rangeLabel={`${i18n.t("editor:ui.dailyLast")} ${view.days.length} ${i18n.t("editor:ui.days")}`}
         />
       </Box>
 
@@ -520,7 +520,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               color: theme.vars.palette.text.disabled
             }}
           >
-            Group by
+            {i18n.t("editor:ui.groupBy")}
           </Text>
           <ToggleGroup
             exclusive

@@ -386,7 +386,7 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
       {executions.length === 0 && (
         <Box sx={{ padding: `${getSpacingPx(SPACING.xxxl)} ${getSpacingPx(SPACING.xxl)}`, textAlign: "center" }}>
           <Text size="small" color="secondary">
-            No executions match the current filters.
+            {i18n.t("editor:ui.noExecutionsMatchTheCurrentFilters")}
           </Text>
         </Box>
       )}
