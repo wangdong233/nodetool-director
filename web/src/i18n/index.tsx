@@ -131,6 +131,9 @@ export { I18nextProvider } from "react-i18next";
 /** React hook for the settings switcher: current language + setter. */
 export function useAppLanguage(): {
   language: AppLanguage;
+  /** Bumps on EVERY languageChanged emit — a stable dep for memo/effect
+   *  re-resolution when the async zh bundle lands or the user switches. */
+  version: number;
   setLanguage: (language: AppLanguage) => Promise<void>;
 } {
   const [state, setState] = useState(() => ({
@@ -146,7 +149,7 @@ export function useAppLanguage(): {
     instance.on("languageChanged", onChange);
     return () => instance.off("languageChanged", onChange);
   }, []);
-  return { language: state.language, setLanguage: changeAppLanguage };
+  return { language: state.language, version: state.version, setLanguage: changeAppLanguage };
 }
 
 /** Test seam: reset to English and clear persistence between tests. */

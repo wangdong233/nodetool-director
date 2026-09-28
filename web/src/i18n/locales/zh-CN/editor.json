@@ -1226,5 +1226,31 @@
     "useThisText": "使用这段文字",
     "videoResolution": "视频分辨率",
     "zoom": "缩放"
+  },
+  "studio": {
+    "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
+    "creditTooltip": "{{plan}} 套餐——已用 {{spent}}/{{granted}} 额度。1 额度=1 美分生成费。点击管理。",
+    "creditsLoading": "额度…",
+    "creditsUnavailable": "额度不可用",
+    "creditsRemaining": "{{n}} 额度",
+    "studioBack": "Studio",
+    "orStartBlank": "或从空白开始：",
+    "layVoicedLines": "把配音台词铺到时间线上并打开视频编辑器。",
+    "assembling": "正在组装…",
+    "createVideo": "创建视频",
+    "selected": "当前",
+    "switchTo": "切换到 {{plan}}",
+    "creditsMeterNote": "额度只计量 NodeTool 托管模型——其它服务请自带密钥。",
+    "workspaceAdded": "工作区已添加",
+    "workspaceRemoved": "工作区已移除",
+    "defaultWorkspace": "默认工作区",
+    "setAsDefault": "设为默认",
+    "adding": "添加中…",
+    "addWorkspace": "添加工作区",
+    "noMatchingJs": "没有匹配的 JS 脚本",
+    "connecting": "连接中",
+    "tryAgain": "稍后再试。",
+    "loadingModels": "正在加载模型…",
+    "planCredits": "套餐与额度"
   }
 }

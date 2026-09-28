@@ -37,13 +37,14 @@ import {
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
 import StudioShell from "./StudioShell";
-import { i18n } from "../i18n";
+import { i18n, useAppLanguage } from "../i18n";
 
 type DockTab = "cast" | "assistant";
 
 const StudioScriptPage = () => {
   const { scriptId = "" } = useParams<{ scriptId: string }>();
   const theme = useTheme();
+  const { version: languageVersion } = useAppLanguage();
   const navigate = useNavigate();
   const ensureScript = useScriptStore((state) => state.ensureScript);
   const title = useScriptTitle(scriptId);
@@ -80,14 +81,16 @@ const StudioScriptPage = () => {
       { value: "cast", label: i18n.t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
       { value: "assistant", label: i18n.t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
     ],
-    []
+    // Re-resolve when the language changes (including the async zh bundle
+    // landing at boot) — an empty dep array freezes English for the session.
+    [languageVersion]
   );
 
   const createVideo = (
     <Tooltip
       title={
         assembleError ??
-        "Lay the voiced lines onto a timeline and open the video editor."
+        i18n.t("editor:studio.layVoicedLines", { defaultValue: "Lay the voiced lines onto a timeline and open the video editor." })
       }
     >
       <span>

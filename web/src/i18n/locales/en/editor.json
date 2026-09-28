@@ -1226,5 +1226,31 @@
     "useThisText": "Use this text",
     "videoResolution": "Video Resolution",
     "zoom": "Zoom"
+  },
+  "studio": {
+    "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
+    "creditTooltip": "{{plan}} plan — {{spent}} of {{granted}} credits used. 1 credit = 1¢ of generation. Click to manage.",
+    "creditsLoading": "credits…",
+    "creditsUnavailable": "credits unavailable",
+    "creditsRemaining": "{{n}} credits",
+    "studioBack": "Studio",
+    "orStartBlank": "or start blank:",
+    "layVoicedLines": "Lay the voiced lines onto a timeline and open the video editor.",
+    "assembling": "Assembling…",
+    "createVideo": "Create video",
+    "selected": "Selected",
+    "switchTo": "Switch to {{plan}}",
+    "creditsMeterNote": "Credits meter NodeTool's managed models only — bring your own keys for everything else.",
+    "workspaceAdded": "Workspace added",
+    "workspaceRemoved": "Workspace removed",
+    "defaultWorkspace": "Default workspace",
+    "setAsDefault": "Set as default",
+    "adding": "Adding…",
+    "addWorkspace": "Add Workspace",
+    "noMatchingJs": "No matching JS scripts",
+    "connecting": "Connecting",
+    "tryAgain": "Try again later.",
+    "loadingModels": "Loading models...",
+    "planCredits": "Plan & credits"
   }
 }

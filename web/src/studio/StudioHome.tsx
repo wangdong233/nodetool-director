@@ -291,7 +291,7 @@ const StudioHome = () => {
           />
           <FlexRow align="center" gap={SPACING.sm} wrap>
             <Text size="smaller" color="secondary" sx={{ flex: 1 }}>
-              or start blank:
+              {i18n.t("editor:studio.orStartBlank", { defaultValue: "or start blank:" })}
             </Text>
             <BlankStart
               icon={<TheatersRoundedIcon />}

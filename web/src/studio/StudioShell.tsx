@@ -23,20 +23,21 @@ import {
 import { useStudioCredits } from "./useStudioCredits";
 import { useStudioAssistantModel } from "./useStudioAssistantModel";
 import { StudioProvider } from "./StudioContext";
+import { i18n } from "../i18n";
 
 const CreditsChip = () => {
   const navigate = useNavigate();
   const { status, remaining, loading, unavailable } = useStudioCredits();
   const title = unavailable
-    ? "Couldn't load the credit balance. Click to retry from the account page."
+    ? i18n.t("editor:studio.creditLoadFailed", { defaultValue: "Couldn't load the credit balance. Click to retry from the account page." })
     : status
-      ? `${status.plan.name} plan — ${status.spentCredits} of ${status.grantedCredits} credits used. 1 credit = 1¢ of generation. Click to manage.`
-      : "Plan & credits";
+      ? i18n.t("editor:studio.creditTooltip", { defaultValue: "{{plan}} plan — {{spent}} of {{granted}} credits used. 1 credit = 1¢ of generation. Click to manage.", plan: status.plan.name, spent: String(status.spentCredits), granted: String(status.grantedCredits) })
+      : i18n.t("editor:studio.planCredits", { defaultValue: "Plan & credits" })
   const label = loading
-    ? "credits…"
+    ? i18n.t("editor:studio.creditsLoading", { defaultValue: "credits…" })
     : unavailable
-      ? "credits unavailable"
-      : `${remaining} credits`;
+      ? i18n.t("editor:studio.creditsUnavailable", { defaultValue: "credits unavailable" })
+      : i18n.t("editor:studio.creditsRemaining", { defaultValue: "{{n}} credits", n: String(remaining) })
   return (
     <Tooltip title={title}>
       <span>
@@ -93,7 +94,7 @@ const StudioShell = ({
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => navigate("/studio")}
             >
-              Studio
+              {i18n.t("editor:studio.studioBack", { defaultValue: "Studio" })}
             </EditorButton>
           )}
           {!showBack && (

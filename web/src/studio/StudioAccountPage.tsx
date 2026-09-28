@@ -149,7 +149,9 @@ const StudioAccountPage = () => {
                           disabled={current || setPlan.isPending}
                           onClick={() => setPlan.mutate({ planId: plan.id })}
                         >
-                          {current ? "Selected" : "Switch to " + plan.name}
+                          {current
+                            ? i18n.t("editor:studio.selected", { defaultValue: "Selected" })
+                            : i18n.t("editor:studio.switchTo", { defaultValue: "Switch to {{plan}}", plan: plan.name })}
                         </EditorButton>
                       </FlexColumn>
                     </Card>
