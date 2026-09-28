@@ -74,8 +74,7 @@ const OAuthConsentPage = () => {
         >
           <Text sx={{ fontWeight: 500 }}>{i18n.t("ui2:attrs.noAuthorizationRequest", { defaultValue: "No authorization request" })}</Text>
           <Text className="description">
-            This page needs a request_id. Restart the connection from your
-            MCP client.
+            {i18n.t("ui2:attrs.thisPageNeedsARequestIdRestartTheConnectionFromYourMCPClient", { defaultValue: "This page needs a request_id. Restart the connection from your MCP client." })}
           </Text>
         </FlexColumn>
       </FlexColumn>
@@ -99,11 +98,10 @@ const OAuthConsentPage = () => {
           sx={{ maxWidth: "480px", textAlign: "center" }}
         >
           <Text sx={{ fontWeight: 500 }}>
-            Request expired or already handled
+            {i18n.t("ui2:attrs.requestExpiredOrAlreadyHandled", { defaultValue: "Request expired or already handled" })}
           </Text>
           <Text className="description">
-            This authorization request is no longer valid. Restart the
-            connection from your MCP client.
+            {i18n.t("ui2:attrs.thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient", { defaultValue: "This authorization request is no longer valid. Restart the connection from your MCP client." })}
           </Text>
         </FlexColumn>
       </FlexColumn>
@@ -117,7 +115,7 @@ const OAuthConsentPage = () => {
           {request.client_name}
         </Text>
         <Text className="description">
-          wants to connect to your NodeTool account.
+          {i18n.t("ui2:attrs.wantsToConnectToYourNodeToolAccount", { defaultValue: "wants to connect to your NodeTool account." })}
         </Text>
 
         <FlexColumn gap={1} sx={{ mt: 1 }}>
@@ -133,8 +131,7 @@ const OAuthConsentPage = () => {
 
         {request.loopback_only && (
           <AlertBanner severity="warning">
-            This client only redirects to localhost. Make sure you started
-            this connection yourself.
+            {i18n.t("ui2:attrs.thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself", { defaultValue: "This client only redirects to localhost. Make sure you started this connection yourself." })}
           </AlertBanner>
         )}
 

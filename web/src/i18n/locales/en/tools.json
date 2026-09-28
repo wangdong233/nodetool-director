@@ -217,7 +217,17 @@
       "search": "Web Search",
       "compute": "Compute & Local",
       "advanced": "Services & Advanced"
-    }
+    },
+    "languageModels": "Language Models",
+    "mediaGeneration": "Media Generation",
+    "gatewaysAndHubs": "Gateways & Hubs",
+    "webSearch": "Web Search",
+    "computeAndLocal": "Compute & Local",
+    "servicesAndAdvanced": "Services & Advanced",
+    "nameApiKeyUpdated": "{{name}} API key updated",
+    "failedToUpdateSecret": "Failed to update secret: {{error}}",
+    "nameApiKeyDeleted": "{{name}} API key deleted",
+    "failedToDeleteSecret": "Failed to delete secret: {{error}}"
   },
   "misc": {
     "onboardingPacks": {

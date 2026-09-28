@@ -743,7 +743,15 @@
     "removeFades": "Remove fades",
     "lockTrack": "Lock track",
     "fullscreen": "Fullscreen",
-    "selectTrackingSubject": "Select tracking subject"
+    "selectTrackingSubject": "Select tracking subject",
+    "alpha": "Alpha",
+    "luma": "Luma",
+    "enableTheMaskToCutThisClip": "Enable the mask to cut this clip to a rectangle, an ellipse or an SVG path.",
+    "svgPathDataInNormalizedSpace": "SVG path data in normalized 0..1 space. M, L, C, Q and Z.",
+    "theSourceClipDrivesThisLayersAlpha": "The source clip drives this layer's alpha and stops drawing itself.",
+    "cutsAMaskFromThisClipsOwnSource": "Cuts a mask from this clip's own source, so it stays aligned through every trim and split.",
+    "theClipHasMovedPastWhatThisMatteCovers": "The clip has moved past what this matte covers. Regenerate to cut it again.",
+    "regenerateRunsTheModelAgain": "Regenerate runs the model again and keeps this result as a version."
   },
   "shortcuts": {
     "tools": "Tools",

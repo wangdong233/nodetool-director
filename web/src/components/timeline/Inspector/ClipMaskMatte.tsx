@@ -50,7 +50,7 @@ import {
   InspectorToggleRow
 } from "./InspectorPrimitives";
 import { TextCommitField } from "./InspectorMotionFields";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 const MASK_KINDS = [
   { value: "rect", label: "Rectangle" },
@@ -62,6 +62,18 @@ const MATTE_MODES = [
   { value: "alpha", label: "Alpha" },
   { value: "luma", label: "Luma" }
 ] as const;
+
+// labelKey pattern (registry §5): module tables keep their English labels as
+// defaultValue anchors; consumers resolve per-language at render time.
+const MASK_KIND_LABEL_KEYS: Record<(typeof MASK_KINDS)[number]["value"], string> = {
+  rect: "catalog:snippets.rectangle",
+  ellipse: "catalog:snippets.ellipse",
+  path: "editor:ui.path"
+};
+const MATTE_MODE_LABEL_KEYS: Record<(typeof MATTE_MODES)[number]["value"], string> = {
+  alpha: "timeline:attrs.alpha",
+  luma: "timeline:attrs.luma"
+};
 
 const DEFAULT_MASK: ClipMask = {
   kind: "rect",
@@ -99,6 +111,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
     const patchClip = useTimelineStore((s) => s.patchClip);
     const [maskOpen, setMaskOpen] = usePersistedFold("mask");
     const [matteOpen, setMatteOpen] = usePersistedFold("matte");
+    const { version: languageVersion } = useAppLanguage();
 
     // Every other clip is a candidate matte source; a clip cannot matte itself.
     // Only the id and the name reach the option list, so a shallow-compared
@@ -210,13 +223,13 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
 
     const sourceOptions = useMemo(
       () => [
-        { value: NO_MATTE, label: "None" },
+        { value: NO_MATTE, label: i18n.t("catalog:dataTypes.none", { defaultValue: "None" }) },
         ...clipNames.map((candidate) => ({
           value: candidate.id,
           label: candidate.name || candidate.id
         }))
       ],
-      [clipNames]
+        [clipNames, languageVersion]
     );
 
     const mask = clip.mask;
@@ -241,8 +254,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
             {mask === undefined ? (
               <Caption color="muted">
-                Enable the mask to cut this clip to a rectangle, an ellipse or
-                an SVG path.
+{i18n.t("timeline:attrs.enableTheMaskToCutThisClip", { defaultValue: "Enable the mask to cut this clip to a rectangle, an ellipse or an SVG path." })}
               </Caption>
             ) : (
               <>
@@ -250,7 +262,10 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                   <InspectorSelect
                     label={i18n.t("timeline:attrs.maskShape", { defaultValue: "Mask shape" })}
                     value={mask.kind}
-                    options={MASK_KINDS}
+                    options={MASK_KINDS.map((kind) => ({
+                      value: kind.value,
+                      label: i18n.t(MASK_KIND_LABEL_KEYS[kind.value], { defaultValue: kind.label })
+                    }))}
                     onChange={handleMaskKindChange}
                   />
                 </InspectorRow>
@@ -265,7 +280,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                       />
                     </InspectorRow>
                     <Caption color="muted">
-                      SVG path data in normalized 0..1 space. M, L, C, Q and Z.
+{i18n.t("timeline:attrs.svgPathDataInNormalizedSpace", { defaultValue: "SVG path data in normalized 0..1 space. M, L, C, Q and Z." })}
                     </Caption>
                   </>
                 ) : (
@@ -353,7 +368,10 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                       <InspectorSelect
                         label={i18n.t("timeline:attrs.matteMode", { defaultValue: "Matte mode" })}
                         value={matte.mode}
-                        options={MATTE_MODES}
+                        options={MATTE_MODES.map((mode) => ({
+                          value: mode.value,
+                          label: i18n.t(MATTE_MODE_LABEL_KEYS[mode.value], { defaultValue: mode.label })
+                        }))}
                         onChange={handleMatteModeChange}
                       />
                     </InspectorRow>
@@ -365,8 +383,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                   </>
                 )}
                 <Caption color="muted">
-                  The source clip drives this layer&apos;s alpha and stops
-                  drawing itself.
+{i18n.t("timeline:attrs.theSourceClipDrivesThisLayersAlpha", { defaultValue: "The source clip drives this layer's alpha and stops drawing itself." })}
                 </Caption>
               </FlexColumn>
             </CollapsibleSection>
@@ -401,6 +418,7 @@ function versionLabel(createdAt: string): string {
 const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
   ({ clip }) => {
     const [open, setOpen] = usePersistedFold("subjectMatte");
+    const { version: languageVersion } = useAppLanguage();
     const isolateSubject = useTimelineStore((s) => s.isolateSubject);
     const setKnobs = useTimelineStore((s) => s.setGeneratedMatteKnobs);
     const selectVersion = useTimelineStore(
@@ -479,13 +497,13 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
         b.createdAt.localeCompare(a.createdAt)
       );
       return [
-        { value: result.assetId, label: "Current" },
+        { value: result.assetId, label: i18n.t("editor:ui.current", { defaultValue: "Current" }) },
         ...stored.map((version) => ({
           value: version.assetId,
           label: versionLabel(version.createdAt)
         }))
       ];
-    }, [result]);
+    }, [result, languageVersion]);
 
     return (
       <>
@@ -536,8 +554,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   data-testid="isolate-subject"
                 >{i18n.t("timeline:attrs.isolateSubject", { defaultValue: "Isolate subject" })}</EditorButton>
                 <Caption color="muted">
-                  Cuts a mask from this clip&apos;s own source, so it stays
-                  aligned through every trim and split.
+{i18n.t("timeline:attrs.cutsAMaskFromThisClipsOwnSource", { defaultValue: "Cuts a mask from this clip's own source, so it stays aligned through every trim and split." })}
                 </Caption>
               </>
             )}
@@ -588,8 +605,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                 )}
                 {stale && status !== "failed" && (
                   <Caption color="warning">
-                    The clip has moved past what this matte covers. Regenerate
-                    to cut it again.
+{i18n.t("timeline:attrs.theClipHasMovedPastWhatThisMatteCovers", { defaultValue: "The clip has moved past what this matte covers. Regenerate to cut it again." })}
                   </Caption>
                 )}
 
@@ -613,8 +629,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   >{i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
                 <Caption color="muted">
-                  Regenerate runs the model again and keeps this result as a
-                  version.
+{i18n.t("timeline:attrs.regenerateRunsTheModelAgain", { defaultValue: "Regenerate runs the model again and keeps this result as a version." })}
                 </Caption>
               </>
             )}

@@ -238,10 +238,7 @@ const OptionalPacksSection = () => {
               {i18n.t("editor:ui.optionalNodePacks")}
             </Text>
             <Text size="small" color="secondary">
-              Advanced and niche nodes are tucked into optional packs to keep
-              this menu focused. Turn on what you need — they appear in the list
-              right away. Search always finds every node, even when its pack is
-              off.
+              {i18n.t("editor:ui.advancedAndNicheNodesAreTuckedIntoOptionalPacks", { defaultValue: "Advanced and niche nodes are tucked into optional packs to keep this menu focused. Turn on what you need — they appear in the list right away. Search always finds every node, even when its pack is off." })}
             </Text>
 
             <Divider />
@@ -252,10 +249,10 @@ const OptionalPacksSection = () => {
               </Text>
               <FlexRow gap={1.5} align="center">
                 <TextLink asButton onClick={() => enableAll()}>
-                  Show all
+                  {i18n.t("editor:ui.showAll", { defaultValue: "Show all" })}
                 </TextLink>
                 <TextLink asButton onClick={() => disableAll()}>
-                  Hide all
+                  {i18n.t("editor:ui.hideAll", { defaultValue: "Hide all" })}
                 </TextLink>
               </FlexRow>
             </FlexRow>
@@ -289,11 +286,10 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexColumn gap={0.25}>
                   <Text size="small" weight={600}>
-                    Providers
+                    {i18n.t("editor:ui.providers")}
                   </Text>
                   <Text size="small" color="secondary">
-                    Provider nodes appear once you add their API key — setting a
-                    key enables the pack automatically.
+                    {i18n.t("editor:ui.providerNodesAppearOnceYouAddTheirAPIKey", { defaultValue: "Provider nodes appear once you add their API key — setting a key enables the pack automatically." })}
                   </Text>
                 </FlexColumn>
                 <FlexColumn gap={0.25}>
@@ -314,18 +310,19 @@ const OptionalPacksSection = () => {
                           <span className="key-set">
                             <CheckCircleOutlineIcon />
                             <Text size="small" color="inherit">
-                              Key set
+                              {i18n.t("editor:ui.keySet", { defaultValue: "Key set" })}
                             </Text>
                           </span>
                         ) : (
                           <TextLink
                             asButton
                             onClick={openApiKeys}
-                            title={`Add ${getSecretDisplayName(
-                              provider.requiredKey
-                            )}`}
+                            title={i18n.t("editor:ui.addName", {
+                              defaultValue: "Add {{name}}",
+                              name: getSecretDisplayName(provider.requiredKey)
+                            })}
                           >
-                            Add API key
+                            {i18n.t("editor:ui.addApiKey", { defaultValue: "Add API key" })}
                           </TextLink>
                         )}
                       </FlexRow>
@@ -340,10 +337,10 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexColumn gap={0.25}>
                   <Text size="small" weight={600}>
-                    Local packs
+                    {i18n.t("editor:ui.localPacks", { defaultValue: "Local packs" })}
                   </Text>
                   <Text size="small" color="secondary">
-                    Run locally — no API key required.
+                    {i18n.t("editor:ui.runLocallyNoAPIKeyRequired", { defaultValue: "Run locally — no API key required." })}
                   </Text>
                 </FlexColumn>
                 <FlexColumn gap={0.25}>

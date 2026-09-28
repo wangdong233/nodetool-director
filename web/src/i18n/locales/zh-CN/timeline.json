@@ -743,7 +743,15 @@
     "removeFades": "移除淡入淡出",
     "lockTrack": "锁定轨道",
     "fullscreen": "全屏",
-    "selectTrackingSubject": "选择跟踪主体"
+    "selectTrackingSubject": "选择跟踪主体",
+    "alpha": "Alpha",
+    "luma": "亮度",
+    "enableTheMaskToCutThisClip": "启用遮罩,可将此片段裁为矩形、椭圆或 SVG 路径。",
+    "svgPathDataInNormalizedSpace": "SVG 路径数据,位于归一化 0..1 空间。M、L、C、Q 与 Z。",
+    "theSourceClipDrivesThisLayersAlpha": "源片段驱动此图层的不透明度,且自身不再绘制。",
+    "cutsAMaskFromThisClipsOwnSource": "从此片段自身的源画面切出遮罩,因此无论怎样裁剪、拆分都保持对齐。",
+    "theClipHasMovedPastWhatThisMatteCovers": "片段已超出此遮罩的覆盖范围。请重新生成以再次切出。",
+    "regenerateRunsTheModelAgain": "“重新生成”会再次运行模型,并将当前结果保留为一个版本。"
   },
   "shortcuts": {
     "tools": "工具",

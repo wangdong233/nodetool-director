@@ -342,6 +342,11 @@
     "yourTokens": "你的令牌",
     "zoomControls": "缩放控制",
     "zoomIn": "放大",
-    "zoomOut": "缩小"
+    "zoomOut": "缩小",
+    "thisPageNeedsARequestIdRestartTheConnectionFromYourMCPClient": "本页面需要 request_id。请从你的 MCP 客户端重新发起连接。",
+    "requestExpiredOrAlreadyHandled": "请求已过期或已被处理",
+    "thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient": "该授权请求已失效。请从你的 MCP 客户端重新发起连接。",
+    "wantsToConnectToYourNodeToolAccount": "想要连接你的 NodeTool 账户。",
+    "thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself": "此客户端仅重定向到 localhost。请确认该连接是你自己发起的。"
   }
 }

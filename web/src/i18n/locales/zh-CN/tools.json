@@ -217,7 +217,17 @@
       "search": "网页搜索",
       "compute": "算力与本地",
       "advanced": "服务与高级"
-    }
+    },
+    "languageModels": "语言模型",
+    "mediaGeneration": "媒体生成",
+    "gatewaysAndHubs": "网关与枢纽",
+    "webSearch": "网页搜索",
+    "computeAndLocal": "算力与本地",
+    "servicesAndAdvanced": "服务与高级",
+    "nameApiKeyUpdated": "已更新 {{name}} API 密钥",
+    "failedToUpdateSecret": "更新密钥失败:{{error}}",
+    "nameApiKeyDeleted": "已删除 {{name}} API 密钥",
+    "failedToDeleteSecret": "删除密钥失败:{{error}}"
   },
   "misc": {
     "onboardingPacks": {
