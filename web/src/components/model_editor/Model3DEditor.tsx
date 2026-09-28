@@ -898,7 +898,7 @@ const Model3DEditor = ({
         <FlexColumn className="side-panel right" fullHeight>
           <FlexRow className="panel-header">
             <Text size="small" weight={600}>
-              Properties
+              {i18n.t("editor:ui.properties")}
             </Text>
           </FlexRow>
           <PropertiesPanel object={selectedObject} tick={tick} onChanged={bump} />

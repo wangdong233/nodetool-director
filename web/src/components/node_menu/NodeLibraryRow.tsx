@@ -177,7 +177,7 @@ const NodeLibraryRow = memo<NodeLibraryRowProps>(
           {node.title}
           {node.deprecated && (
             <Caption component="span" sx={{ marginLeft: getSpacingPx(SPACING.sm), color: "warning.main" }}>
-              Deprecated
+              {i18n.t("editor:ui.deprecated")}
             </Caption>
           )}
         </Text>

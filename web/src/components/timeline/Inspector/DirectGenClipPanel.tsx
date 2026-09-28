@@ -405,13 +405,13 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                   value="text-to-image"
                   data-testid="direct-gen-mode-t2i"
                 >
-                  Text → Image
+                  {i18n.t("editor:ui.textImage")}
                 </ToggleOption>
                 <ToggleOption
                   value="image-to-image"
                   data-testid="direct-gen-mode-i2i"
                 >
-                  Image → Image
+                  {i18n.t("editor:ui.imageImage")}
                 </ToggleOption>
               </ToggleGroup>
             )}

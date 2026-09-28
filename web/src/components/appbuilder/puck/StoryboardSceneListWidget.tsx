@@ -231,7 +231,7 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
                     disabled={busy || index === shots.length - 1}
                     onClick={() => writeShots(swap(shots, index, index + 1))}
                   >
-                    Down
+                    {i18n.t("editor:ui.down")}
                   </EditorButton>
                   {allowRemove ? (
                     <EditorButton

@@ -727,7 +727,7 @@ const PreviewIndex: React.FC = () => {
       }}
     >
       <Text size="big" weight={600} sx={{ mb: 1, display: "block" }}>
-        Component Previews
+        {i18n.t("editor:ui.componentPreviews")}
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 4, display: "block" }}>
         Isolated component views for documentation screenshots. Navigate to{" "}

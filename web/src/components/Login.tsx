@@ -85,7 +85,7 @@ function Login() {
           enableText
         />
         <Caption className="alpha-badge" size="smaller" color="warning">
-          Cloud · Alpha
+          {i18n.t("editor:ui.cloudAlpha")}
         </Caption>
         <Text component="h1" size="giant" className="headline">
           {i18n.t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}

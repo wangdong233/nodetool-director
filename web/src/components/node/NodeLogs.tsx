@@ -169,7 +169,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
         <DialogTitle className="dialog-title" id={titleId}>
           <FlexRow gap={1} align="center">
             <Text size="normal" weight={600} component="h6">
-              Node Logs
+              {i18n.t("editor:ui.nodeLogs")}
             </Text>
             <Chip size="small" label={`${count}`} />
             <CopyButton

@@ -533,7 +533,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               startIcon={<OpenInNewIcon />}
               onClick={handleOpenExternally}
             >
-              Open Externally
+              {i18n.t("editor:ui.openExternally")}
             </EditorButton>
           )}
         </div>
@@ -565,7 +565,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               onClick={handleManageWorkspace}
               sx={{ mt: 1 }}
             >
-              Create Workspace
+              {i18n.t("editor:ui.createWorkspace")}
             </EditorButton>
           </div>
         ) : files.length > 0 ? (

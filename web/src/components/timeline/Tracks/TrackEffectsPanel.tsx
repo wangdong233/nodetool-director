@@ -1308,7 +1308,7 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
       </FlexColumn>
       <Tooltip title={i18n.t("timeline:attrs.dragTToSetThresholdRToSetRatioScrollOnTToChangeKneeWidth", { defaultValue: "Drag T to set threshold, R to set ratio. Scroll on T to change knee width." })}>
         <Text size="smaller" color="secondary">
-          Drag T = threshold · R = ratio · scroll T = knee
+          {i18n.t("editor:ui.dragT=ThresholdR=RatioScrollT=Knee")}
         </Text>
       </Tooltip>
     </FlexColumn>

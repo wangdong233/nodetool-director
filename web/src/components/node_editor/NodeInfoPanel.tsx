@@ -446,7 +446,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
           startIcon={<OpenInNewIcon fontSize="small" />}
           onClick={handleFocusClick}
         >
-          Focus
+          {i18n.t("editor:ui.focus")}
         </EditorButton>
       </Box>
     </Box >

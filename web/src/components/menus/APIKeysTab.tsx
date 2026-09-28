@@ -419,7 +419,7 @@ export const ProviderCard = memo(function ProviderCard({
                 size="small"
                 onClick={handleManage}
               >
-                Manage
+                {i18n.t("editor:ui.manage")}
               </EditorButton>
               <ToolbarIconButton
                 tooltip={i18n.t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
@@ -1175,7 +1175,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
         }}
       >
         <Text size="small" sx={{ marginBottom: theme.spacing(3) }}>
-          Quick Links
+          {i18n.t("editor:ui.quickLinks")}
         </Text>
         <FlexColumn sx={{ gap: theme.spacing(0.5) }}>
           {quickLinks.map((link) => (

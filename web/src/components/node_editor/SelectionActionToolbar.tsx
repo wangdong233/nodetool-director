@@ -343,7 +343,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
               color="muted"
               sx={CAPTION_SX}
             >
-              Distribute
+              {i18n.t("editor:ui.distribute")}
             </Caption>
             <FlexRow gap={0.5} align="center">
               {distributeActions.map((button) => (

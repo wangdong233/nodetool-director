@@ -146,7 +146,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
                 rel="noopener noreferrer"
                 sx={{ color: "primary.main", textDecoration: "underline" }}
               >
-                Download Ollama →
+                {i18n.t("editor:ui.downloadOllama")}
               </Caption>
             )}
           </div>

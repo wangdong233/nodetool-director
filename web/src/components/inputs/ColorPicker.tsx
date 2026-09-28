@@ -214,7 +214,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
               size="small"
               onClick={handleOpenModal}
             >
-              Custom Color…
+              {i18n.t("editor:ui.customColor")}
             </Button>
           )}
         </div>

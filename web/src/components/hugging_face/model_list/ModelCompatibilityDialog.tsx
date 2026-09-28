@@ -231,7 +231,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
             <FlexRow gap={1} align="center">
               <AutoAwesomeRoundedIcon sx={{ color: "primary.main", fontSize: 20 }} />
               <Text size="normal" weight={600} component="span" sx={{ letterSpacing: -0.2 }}>
-                Node Compatibility
+                {i18n.t("editor:ui.nodeCompatibility")}
               </Text>
             </FlexRow>
             <Caption
@@ -290,7 +290,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
               <FlexRow gap={1} align="center">
                 <CheckCircleOutlineRoundedIcon sx={{ color: "text.secondary", fontSize: 18 }} />
                 <Text size="small" weight={600}>
-                  Compatible Nodes
+                  {i18n.t("editor:ui.compatibleNodes")}
                 </Text>
               </FlexRow>
               <Caption sx={{ color: "text.disabled", fontWeight: 500 }}>

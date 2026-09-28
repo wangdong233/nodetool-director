@@ -104,7 +104,7 @@ class SearchErrorBoundary extends Component<
             className="retry-button"
             density="normal"
           >
-            Try Again
+            {i18n.t("editor:ui.tryAgain")}
           </EditorButton>
           <ReportBugButton
             label={i18n.t("common:action.reportBug", { defaultValue: "Report a bug" })}

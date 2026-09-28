@@ -271,7 +271,7 @@ function PackageManager() {
                   density="compact"
                   onClick={model.onChangeLocation}
                 >
-                  Change…
+                  {i18n.t("editor:ui.change")}
                 </EditorButton>
               </Box>
             </FlexRow>

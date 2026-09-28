@@ -178,7 +178,7 @@ const ConnectedAccountsSettings = () => {
                 disabled={createCode.isPending}
                 onClick={handleConnect}
               >
-                Connect Telegram
+                {i18n.t("editor:ui.connectTelegram")}
               </EditorButton>
             </FlexRow>
             {createCode.isError && (

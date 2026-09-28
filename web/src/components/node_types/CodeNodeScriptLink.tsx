@@ -124,7 +124,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
             title={i18n.t("editor:ui.repinThisNodeToTheScriptsCurrentContent", { defaultValue: "Re-pin this node to the script's current content" })}
             onClick={() => void guard("re-pin the script", updateToLatest)}
           >
-            Update
+            {i18n.t("editor:ui.update")}
           </EditorButton>
           <EditorButton
             density="compact"
@@ -140,7 +140,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
             sx={BUTTON_SX}
             onClick={detach}
           >
-            Detach
+            {i18n.t("editor:ui.detach")}
           </EditorButton>
         </FlexRow>
         {saveDialog}
@@ -178,7 +178,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
           void guard("extract the script", () => extractToScript(NEW_SCRIPT_NAME))
         }
       >
-        Extract
+        {i18n.t("editor:ui.extract")}
       </EditorButton>
       <EditorButton
         density="compact"

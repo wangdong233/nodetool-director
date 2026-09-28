@@ -237,7 +237,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                KIE pricing
+                {i18n.t("editor:ui.kiePricing")}
               </Caption>
               <Text
                 sx={{

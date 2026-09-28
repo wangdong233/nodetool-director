@@ -1359,7 +1359,7 @@ const TextEditorModal = ({
                   onClick={handleFindClick}
                 >
                   <SearchIcon />
-                  Find
+                  {i18n.t("editor:ui.find")}
                 </button>
                 {!readOnly && (
                   <button

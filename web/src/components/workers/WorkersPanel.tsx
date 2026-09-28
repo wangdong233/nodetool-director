@@ -127,7 +127,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
             onClick={handleProvision}
             disabled={!effective || isProvisioning}
           >
-            Provision
+            {i18n.t("editor:ui.provision")}
           </EditorButton>
         </FlexRow>
       }
@@ -243,7 +243,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy}
               onClick={onDetach}
             >
-              Detach
+              {i18n.t("editor:ui.detach")}
             </EditorButton>
           ) : isPaused ? (
             <EditorButton
@@ -288,7 +288,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
             disabled={stopping}
             onClick={() => onTerminate(instance.id)}
           >
-            Terminate
+            {i18n.t("editor:ui.terminate")}
           </EditorButton>
         </FlexRow>
       </FlexRow>

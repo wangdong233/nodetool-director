@@ -227,7 +227,7 @@ const FoldersSettings = () => {
           {canOpenFolders && (
             <div className="settings-section">
               <Text size="big" id="model-folders">
-                Model Folders
+                {i18n.t("editor:ui.modelFolders")}
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
                 {i18n.t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}

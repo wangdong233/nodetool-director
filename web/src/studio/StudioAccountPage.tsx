@@ -103,7 +103,7 @@ const StudioAccountPage = () => {
 
             <FlexColumn gap={SPACING.sm} sx={{ width: "100%", maxWidth: 880 }}>
               <Text size="small" weight={600} color="secondary">
-                Plans
+                {i18n.t("editor:ui.plans")}
               </Text>
               <FlexRow gap={SPACING.lg} wrap>
                 {status.plans.map((plan) => {

@@ -312,7 +312,7 @@ const MiniMapNavigator: React.FC = () => {
               px: 1
             }}
           >
-            Node Types
+            {i18n.t("editor:ui.nodeTypes")}
           </Text>
           <List dense disablePadding>
             {legendItems.map((item) => (

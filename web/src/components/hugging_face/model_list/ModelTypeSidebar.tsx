@@ -75,7 +75,7 @@ const ModelTypeSidebar: React.FC = () => {
           opacity: 0.7
         }}
       >
-        Model Categories
+        {i18n.t("editor:ui.modelCategories")}
       </Text>
     <List className="model-type-list" sx={{ padding: 0 }}>
       {modelTypes

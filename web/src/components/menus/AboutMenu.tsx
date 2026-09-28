@@ -304,7 +304,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       </div>
 
       <Text size="big" id="operating-system">
-        Operating System
+        {i18n.t("editor:ui.operatingSystem")}
       </Text>
       <div className="settings-section">
         {systemInfo ? (
@@ -324,7 +324,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && !isProduction && (
         <>
           <Text size="big" id="installation-paths">
-            Installation Paths
+            {i18n.t("editor:ui.installationPaths")}
           </Text>
           <div className="settings-section">
             <InfoRow
@@ -366,7 +366,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && (
         <>
           <Text size="big" id="features">
-            Features & Versions
+            {i18n.t("editor:ui.featuresVersions")}
           </Text>
           <div className="settings-section">
             <InfoRow label={i18n.t("editor:ui.python", { defaultValue: "Python" })} value={systemInfo.pythonVersion} />
@@ -452,7 +452,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Website
+            {i18n.t("editor:ui.website")}
           </a>
           <a
             href="https://nodetool.ai/privacy"
@@ -463,7 +463,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Privacy Policy
+            {i18n.t("editor:ui.privacyPolicy")}
           </a>
           <a
             href="https://nodetool.ai/terms"

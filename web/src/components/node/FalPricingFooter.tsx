@@ -230,7 +230,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
               letterSpacing: "0.05em"
             }}
           >
-            FAL pricing
+            {i18n.t("editor:ui.falPricing")}
           </Caption>
           <Text
             sx={{

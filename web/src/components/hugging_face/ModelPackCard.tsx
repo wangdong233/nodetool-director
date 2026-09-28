@@ -273,7 +273,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             color="secondary"
             sx={{ mb: 1 }}
           >
-            Included Models:
+            {i18n.t("editor:ui.includedModels")}
           </Text>
           <List dense disablePadding>
             {pack.models.map((model) => (

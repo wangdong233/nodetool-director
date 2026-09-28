@@ -248,7 +248,7 @@ const OptionalPacksSection = () => {
 
             <FlexRow align="center" justify="space-between">
               <Text size="small" weight={600}>
-                Categories
+                {i18n.t("editor:ui.categories")}
               </Text>
               <FlexRow gap={1.5} align="center">
                 <TextLink asButton onClick={() => enableAll()}>

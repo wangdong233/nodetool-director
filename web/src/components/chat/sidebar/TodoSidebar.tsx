@@ -120,7 +120,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
           weight={600}
           sx={{ letterSpacing: 0.6, textTransform: "uppercase" }}
         >
-          Tasks
+          {i18n.t("editor:ui.tasks")}
         </Text>
         {todos.length > 0 && (
           <Text size="smaller" sx={{ opacity: 0.6 }}>

@@ -150,7 +150,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
           <Box sx={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 0.5, color: "text.secondary" }}>
             <LoadingSpinner inline size={12} thickness={5} color="inherit" />
             <Text sx={{ fontSize: theme.vars.fontSizeSmall, color: "text.secondary" }}>
-              Checking…
+              {i18n.t("editor:ui.checking")}
             </Text>
           </Box>
         ) : downloaded ? (
@@ -164,7 +164,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
               startIcon={<Check sx={{ fontSize: "1.1em" }} />}
               sx={{ flexShrink: 0 }}
             >
-              Use
+              {i18n.t("editor:ui.use")}
             </EditorButton>
           </Tooltip>
         ) : (

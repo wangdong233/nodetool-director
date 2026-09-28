@@ -304,7 +304,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
             value="lazy"
             title={i18n.t("editor:ui.leashDragTipStaysPutInsideADeadZoneThenTrailsTheCursorAlongAStraightLine")}
           >
-            Drag
+            {i18n.t("editor:ui.drag")}
           </SketchModeOption>
         </SketchModeToggle>
       )}
@@ -320,7 +320,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
         sx={{ flexWrap: "wrap" }}
       >
         <SketchModeOption value="off" title={i18n.t("editor:ui.noAngleSnap", { defaultValue: "No angle snap." })}>
-          Free
+          {i18n.t("editor:ui.free")}
         </SketchModeOption>
         {STROKE_ASSIST_ANGLE_OPTIONS.map((angle) => (
           <SketchModeOption
@@ -513,7 +513,7 @@ export const PencilSettingsPanel = memo(function PencilSettingsPanel({
             value="pixel"
             title={i18n.t("editor:ui.pixelArtModeEachDabIsACrispNNSquareCenteredOnThePixelUnderTheCursor")}
           >
-            Pixel
+            {i18n.t("editor:ui.pixel")}
           </SketchModeOption>
           <SketchModeOption
             value="soft"

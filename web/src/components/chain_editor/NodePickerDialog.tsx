@@ -182,7 +182,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
           {!hasSearch ? (
             <FlexColumn gap={2}>
               <Text size="small" weight={600} color="secondary">
-                Quick Actions
+                {i18n.t("editor:ui.quickActions")}
               </Text>
               <div css={tileStyles}>
                 {QUICK_ACTION_BUTTONS.map((action) => (

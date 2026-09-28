@@ -329,7 +329,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
       />
       <Tooltip title="This node type is missing. Search the node menu for a replacement or install the package that provides it.">
         <Text size="big" className="missing-node-text">
-          Missing Node
+          {i18n.t("editor:ui.missingNode")}
         </Text>
       </Tooltip>
 

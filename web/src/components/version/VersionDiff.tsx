@@ -264,7 +264,7 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
           <Caption
             sx={{ display: "block", mb: 1, fontWeight: 500 }}
           >
-            Connection Changes
+            {i18n.t("editor:ui.connectionChanges")}
           </Caption>
           <List dense disablePadding>
             {diff.addedEdges.map((edge) => (

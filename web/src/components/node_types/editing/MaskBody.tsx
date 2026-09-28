@@ -198,10 +198,10 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
             aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
             <ToggleOption value="image1" aria-label={i18n.t("editor:ui.image1", { defaultValue: "Image 1" })}>
-              Img 1
+              {i18n.t("editor:ui.img1")}
             </ToggleOption>
             <ToggleOption value="image2" aria-label={i18n.t("editor:ui.image2", { defaultValue: "Image 2" })}>
-              Img 2
+              {i18n.t("editor:ui.img2")}
             </ToggleOption>
             <ToggleOption value="mask" aria-label={i18n.t("editor:ui.mask", { defaultValue: "Mask" })}>
               Mask

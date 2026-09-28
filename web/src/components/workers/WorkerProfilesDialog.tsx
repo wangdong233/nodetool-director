@@ -297,7 +297,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             disabled={!canCreate}
             aria-label={i18n.t("editor:ui.createProfile", { defaultValue: "Create profile" })}
           >
-            Create Profile
+            {i18n.t("editor:ui.createProfile")}
           </EditorButton>
         </FlexRow>
       }

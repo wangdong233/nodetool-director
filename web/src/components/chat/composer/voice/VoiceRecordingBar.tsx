@@ -99,7 +99,7 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
         <FlexRow className="wave-slot" gap={1} align="center">
           <LoadingSpinner variant="circular" size={16} />
           <Text size="small" color="secondary">
-            Transcribing…
+            {i18n.t("editor:ui.transcribing")}
           </Text>
         </FlexRow>
       </div>

@@ -380,7 +380,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
               <MenuItem value={CREATE_NEW_VALUE}>
                 <span className="create-option">
                   <AddIcon fontSize="small" />
-                  Create New Workspace
+                  {i18n.t("editor:ui.createNewWorkspace")}
                 </span>
               </MenuItem>
             )}

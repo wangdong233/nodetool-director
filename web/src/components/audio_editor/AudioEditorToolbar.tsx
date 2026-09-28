@@ -218,13 +218,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         Fade out
       </EditorButton>
       <EditorButton size="small" onClick={onNormalize}>
-        Normalize
+        {i18n.t("editor:ui.normalize")}
       </EditorButton>
       <EditorButton size="small" onClick={onAmplify}>
         Amplify
       </EditorButton>
       <EditorButton size="small" onClick={onQuieten}>
-        Quieten
+        {i18n.t("editor:ui.quieten")}
       </EditorButton>
       <EditorButton size="small" onClick={onReverse}>
         Reverse

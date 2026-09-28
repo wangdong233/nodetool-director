@@ -324,7 +324,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
 
       <div>
         <Caption color="secondary">
-          Color Stops
+          {i18n.t("editor:ui.colorStops")}
         </Caption>
         <div className="stops-container" style={{ background: cssOutput }}>
           {gradient.stops.map((stop, index) => (

@@ -421,7 +421,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             startIcon={<FilterListIcon fontSize="small" />}
             onClick={handleOpenMenu}
           >
-            Filters
+            {i18n.t("editor:ui.filters")}
           </EditorButton>
           <span className="node-count">
             {totalNodeCount} {totalNodeCount === 1 ? "node" : "nodes"}
@@ -465,7 +465,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              Input Type
+              {i18n.t("editor:ui.inputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -516,7 +516,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              Output Type
+              {i18n.t("editor:ui.outputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"

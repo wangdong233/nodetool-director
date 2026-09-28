@@ -121,7 +121,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           variant="contained"
           startIcon={<Check sx={{ fontSize: "1.25em" }} />}
         >
-          Use
+          {i18n.t("editor:ui.use")}
         </EditorButton>
       )}
       {downloaded && !onSelect && (

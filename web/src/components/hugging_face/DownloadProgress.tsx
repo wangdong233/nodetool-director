@@ -523,7 +523,7 @@ export const DownloadProgress: React.FC<{
               }}
               className="cancel-button"
             >
-              Cancel Download
+              {i18n.t("editor:ui.cancelDownload")}
             </EditorButton>
           </Tooltip>
         </>

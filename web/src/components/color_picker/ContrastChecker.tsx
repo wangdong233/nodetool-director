@@ -211,7 +211,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
         <Caption
           sx={{ textAlign: "center", display: "block", color: "grey.500" }}
         >
-          Contrast Ratio
+          {i18n.t("editor:ui.contrastRatio")}
         </Caption>
       </div>
 
@@ -236,7 +236,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
 
       <div className="color-blindness-section">
         <Text className="color-blindness-title">
-          Color Blindness Preview
+          {i18n.t("editor:ui.colorBlindnessPreview")}
         </Text>
         <div className="color-blindness-grid">
           {colorBlindnessSimulations.map((sim) => (

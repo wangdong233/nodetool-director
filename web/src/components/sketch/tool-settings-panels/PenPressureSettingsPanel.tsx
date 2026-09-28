@@ -98,7 +98,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         className="setting-label"
         title={i18n.t("editor:ui.pressureExponentBeforeMapping1=LinearHigher=NeedFirmerPressureForFullSize")}
       >
-        Curve
+        {i18n.t("editor:ui.curve")}
       </Text>
       <Slider
         sx={sketchSliderSx}

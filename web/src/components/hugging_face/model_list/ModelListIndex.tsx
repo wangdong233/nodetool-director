@@ -526,7 +526,7 @@ const ModelListIndex: React.FC = () => {
                 sx={{ textDecoration: "underline" }}
                 color="primary"
               >
-                Download Ollama →
+                {i18n.t("editor:ui.downloadOllama")}
               </Text>
             )}
           </FlexColumn>

@@ -801,7 +801,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 Solid
               </ToggleOption>
               <ToggleOption value="wireframe" size="small">
-                Wire
+                {i18n.t("editor:ui.wire")}
               </ToggleOption>
             </ToggleGroup>
 
