@@ -211,6 +211,9 @@
     "generatedLayer": "生成图层",
     "prompt": "提示词",
     "generateLayer2": "生成图层",
-    "lockLayer": "锁定图层"
+    "lockLayer": "锁定图层",
+    "backgroundColor": "背景色",
+    "foregroundColor": "前景色",
+    "saveAndClose": "保存并关闭"
   }
 }

@@ -751,7 +751,15 @@
     "theSourceClipDrivesThisLayersAlpha": "The source clip drives this layer's alpha and stops drawing itself.",
     "cutsAMaskFromThisClipsOwnSource": "Cuts a mask from this clip's own source, so it stays aligned through every trim and split.",
     "theClipHasMovedPastWhatThisMatteCovers": "The clip has moved past what this matte covers. Regenerate to cut it again.",
-    "regenerateRunsTheModelAgain": "Regenerate runs the model again and keeps this result as a version."
+    "regenerateRunsTheModelAgain": "Regenerate runs the model again and keeps this result as a version.",
+    "overlapThisClipWithThePreviousOneOnTheSameTrackToCrossfade": "Overlap this clip with the previous one on the same track to crossfade.",
+    "alwaysAHardCutEvenWhenClipsOverlap": "Always a hard cut, even when clips overlap.",
+    "bothClipsFadeAcrossTheWindowMeasuredFromThisClipsStart": "Both clips fade across the window, measured from this clip's start.",
+    "bothClipsFadeThroughASolidColourThatPeaksAtTheMidpoint": "Both clips fade through a solid colour that peaks at the midpoint.",
+    "aFeatheredEdgeRevealsThisClipOverTheOutgoingOne": "A feathered edge reveals this clip over the outgoing one.",
+    "thisClipPushesTheOutgoingOneOffTheFrame": "This clip pushes the outgoing one off the frame.",
+    "thisClipSlidesInOverAStationaryOutgoingOne": "This clip slides in over a stationary outgoing one.",
+    "theOutgoingClipScalesUpWhileThisOneScalesIn": "The outgoing clip scales up while this one scales in."
   },
   "shortcuts": {
     "tools": "Tools",

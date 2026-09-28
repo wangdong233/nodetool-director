@@ -211,6 +211,9 @@
     "generatedLayer": "Generated Layer",
     "prompt": "Prompt",
     "generateLayer2": "Generate layer",
-    "lockLayer": "Lock layer"
+    "lockLayer": "Lock layer",
+    "backgroundColor": "Background Color",
+    "foregroundColor": "Foreground Color",
+    "saveAndClose": "Save & Close"
   }
 }

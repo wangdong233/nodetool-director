@@ -751,7 +751,15 @@
     "theSourceClipDrivesThisLayersAlpha": "源片段驱动此图层的不透明度,且自身不再绘制。",
     "cutsAMaskFromThisClipsOwnSource": "从此片段自身的源画面切出遮罩,因此无论怎样裁剪、拆分都保持对齐。",
     "theClipHasMovedPastWhatThisMatteCovers": "片段已超出此遮罩的覆盖范围。请重新生成以再次切出。",
-    "regenerateRunsTheModelAgain": "“重新生成”会再次运行模型,并将当前结果保留为一个版本。"
+    "regenerateRunsTheModelAgain": "“重新生成”会再次运行模型,并将当前结果保留为一个版本。",
+    "overlapThisClipWithThePreviousOneOnTheSameTrackToCrossfade": "与同轨道上一片段交叠即可交叉淡化。",
+    "alwaysAHardCutEvenWhenClipsOverlap": "始终硬切，即使片段交叠。",
+    "bothClipsFadeAcrossTheWindowMeasuredFromThisClipsStart": "两片段在窗口内同时淡变，以本片段起点计量。",
+    "bothClipsFadeThroughASolidColourThatPeaksAtTheMidpoint": "两片段经纯色淡变，色峰在交接中点。",
+    "aFeatheredEdgeRevealsThisClipOverTheOutgoingOne": "羽化边缘将本片段渐显于出片段之上。",
+    "thisClipPushesTheOutgoingOneOffTheFrame": "本片段将出片段推出画面。",
+    "thisClipSlidesInOverAStationaryOutgoingOne": "本片段滑入，压过静止的出片段。",
+    "theOutgoingClipScalesUpWhileThisOneScalesIn": "出片段放大，本片段缩入。"
   },
   "shortcuts": {
     "tools": "工具",
