@@ -283,7 +283,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
   return (
     <Box>
       <Text size="big" id="application">
-        Application
+        {i18n.t("editor:ui.application2")}
       </Text>
       <div className="settings-section">
         <InfoRow label={i18n.t("editor:ui.version", { defaultValue: "Version" })} value={VERSION} />
@@ -412,7 +412,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       )}
 
       <Text size="big" id="links">
-        Links
+        {i18n.t("editor:ui.links")}
       </Text>
       <div className="settings-section">
         <FlexColumn
@@ -430,7 +430,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            GitHub Repository
+            {i18n.t("editor:ui.githubRepository")}
           </a>
           <a
             href="https://forum.nodetool.ai"
@@ -441,7 +441,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            NodeTool Forum
+            {i18n.t("editor:ui.nodeToolForum")}
           </a>
           <a
             href="https://nodetool.ai"

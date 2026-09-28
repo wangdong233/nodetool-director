@@ -161,5 +161,21 @@
     "notifUpdateFail": "Could not update history limits: {{error}}",
     "notifCleanFail": "History cleanup failed: {{error}}",
     "notifCompactFail": "Database compaction failed: {{error}}"
+  },
+  "sidebar": {
+    "aboutCatApplication": "Application",
+    "aboutCatResources": "Resources",
+    "aboutApplication": "Application",
+    "aboutOperatingSystem": "Operating System",
+    "aboutFeaturesVersions": "Features & Versions",
+    "aboutInstallationPaths": "Installation Paths",
+    "aboutLinks": "Links",
+    "intCatConfiguration": "Configuration",
+    "intCatAccounts": "Accounts",
+    "intCatServers": "Servers",
+    "intCatCredentials": "Credentials",
+    "folders": "Folders",
+    "connectedAccounts": "Connected Accounts",
+    "nodetoolApiToken": "Nodetool API Token"
   }
 }

@@ -291,6 +291,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "settings:vaults.",
         "settings:storage.",
         "settings:defModels.",
+        "settings:sidebar.",
         "tools:ctx.",
         "tools:menus.",
         "tools:tutorials.",

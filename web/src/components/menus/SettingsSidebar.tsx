@@ -4,11 +4,13 @@ import { i18n } from "../../i18n";
 interface SidebarItem {
   id: string;
   label: string;
+  labelKey?: string;
 }
 
 export interface SidebarSection {
   category: string;
   items: SidebarItem[];
+  categoryKey?: string;
 }
 
 interface SettingsSidebarProps {
@@ -41,7 +43,7 @@ const SettingsSidebar = ({
           {section.category ? (
             <p className="settings-sidebar-category">
               <span className="settings-sidebar-category-label">
-                {section.category}
+                {i18n.t(`settings:sidebar.${section.categoryKey ?? ""}`, { defaultValue: section.category })}
               </span>
             </p>
           ) : null}
@@ -57,7 +59,7 @@ const SettingsSidebar = ({
                   aria-current={isActive ? "true" : undefined}
                   onClick={handleItemClick}
                 >
-                  {item.label}
+                  {i18n.t(`settings:sidebar.${item.labelKey ?? ""}`, { defaultValue: item.label })}
                 </button>
               );
             })}

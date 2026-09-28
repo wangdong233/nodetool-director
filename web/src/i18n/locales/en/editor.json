@@ -2602,7 +2602,11 @@
     "fromTaskToRunningGraph": "From a task to a running graph, with the plan reviewed first.",
     "fromSentenceToRunningGodotProject": "From a sentence to a running Godot project, assets checked.",
     "gameLevel": "Level",
-    "scriptLine": "Line"
+    "scriptLine": "Line",
+    "application2": "Application",
+    "links": "Links",
+    "githubRepository": "GitHub Repository",
+    "nodeToolForum": "NodeTool Forum"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

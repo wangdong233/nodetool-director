@@ -161,5 +161,21 @@
     "notifUpdateFail": "无法更新历史限制：{{error}}",
     "notifCleanFail": "历史清理失败：{{error}}",
     "notifCompactFail": "数据库压缩失败：{{error}}"
+  },
+  "sidebar": {
+    "aboutCatApplication": "应用",
+    "aboutCatResources": "资源",
+    "aboutApplication": "应用",
+    "aboutOperatingSystem": "操作系统",
+    "aboutFeaturesVersions": "特性与版本",
+    "aboutInstallationPaths": "安装路径",
+    "aboutLinks": "链接",
+    "intCatConfiguration": "配置",
+    "intCatAccounts": "账号",
+    "intCatServers": "服务器",
+    "intCatCredentials": "凭据",
+    "folders": "文件夹",
+    "connectedAccounts": "已连接账号",
+    "nodetoolApiToken": "Nodetool API 令牌"
   }
 }

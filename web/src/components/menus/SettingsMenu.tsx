@@ -504,18 +504,20 @@ function SettingsPage() {
   const integrationsSidebarSections = useMemo(() => {
     const configItems = [
       ...getDisplayedSettingGroups(remoteSettings ?? []),
-      { id: "folders", label: "Folders" }
+      { id: "folders", label: "Folders", labelKey: "folders" }
     ];
     return [
-      { category: "Configuration", items: configItems },
+      { category: "Configuration", categoryKey: "intCatConfiguration", items: configItems },
       {
         category: "Accounts",
-        items: [{ id: "connected-accounts", label: "Connected Accounts" }]
+        categoryKey: "intCatAccounts",
+        items: [{ id: "connected-accounts", label: "Connected Accounts", labelKey: "connectedAccounts" }]
       },
       ...(isLocalhost
         ? [
             {
               category: "Servers",
+              categoryKey: "intCatServers",
               items: [
                 { id: "mcp-integration", label: i18n.t("editor:ui.mcpServers", { defaultValue: "MCP Servers" }) },
                 { id: "browser-extension", label: i18n.t("editor:ui.browserExtension", { defaultValue: "Browser Extension" }) }
@@ -527,8 +529,9 @@ function SettingsPage() {
         ? [
             {
               category: "Credentials",
+              categoryKey: "intCatCredentials",
               items: [
-                { id: "nodetool-api-token", label: "Nodetool API Token" }
+                { id: "nodetool-api-token", label: "Nodetool API Token", labelKey: "nodetoolApiToken" }
               ]
             }
           ]
