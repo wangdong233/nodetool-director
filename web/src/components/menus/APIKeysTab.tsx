@@ -457,7 +457,7 @@ const ProviderHero = memo(function ProviderHero() {
   return (
     <FlexColumn gap={SPACING.md}>
       <Text component="h2" size="big">
-        Models &amp; Providers
+        {i18n.t("editor:ui.modelsProviders")}
       </Text>
       <Text color="secondary" sx={{ maxWidth: "65ch" }}>
         {i18n.t("editor:ui.connectYourAccountsOrAddAPIKeysToUseModelsInYourWorkflows")}
