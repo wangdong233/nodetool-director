@@ -272,8 +272,8 @@ const WorkspacesManager: React.FC = () => {
                       }
                       tooltip={
                         workspace.is_default
-                          ? "Default workspace"
-                          : "Set as default"
+                          ? i18n.t("editor:ui.defaultWorkspace2")
+                          : i18n.t("editor:ui.setAsDefault2")
                       }
                       onClick={() => handleToggleDefault(workspace)}
                       sx={{
@@ -302,7 +302,7 @@ const WorkspacesManager: React.FC = () => {
               <Text>{i18n.t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}</Text>
               <Text size="small">
                 {canManage
-                  ? "Add a workspace to allow agents to access local folders"
+                  ? i18n.t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders")
                   : i18n.t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })}
               </Text>
             </Box>
@@ -316,7 +316,7 @@ const WorkspacesManager: React.FC = () => {
                 fullWidth
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Adding…" : "Add Workspace"}
+                {createMutation.isPending ? i18n.t("editor:ui.adding") : i18n.t("editor:ui.addWorkspace2")}
               </EditorButton>
             </div>
           )}

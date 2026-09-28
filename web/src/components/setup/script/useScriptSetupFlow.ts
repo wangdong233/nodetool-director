@@ -191,7 +191,7 @@ export const useScriptSetupFlow = ({
       const written = await write(scriptId, { rewrite });
       if (!written) {
         throw new Error(
-          writeErrorRef.current ?? "The writer did not return a script."
+          writeErrorRef.current ?? i18n.t("editor:ui.theWriterDidNotReturnAScript")
         );
       }
     },

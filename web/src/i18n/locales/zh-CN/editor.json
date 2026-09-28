@@ -2063,7 +2063,29 @@
     "workstationTheLargestLocalModels": "工作站——最大的本地模型",
     "writeReasonAndUseToolsWithALanguageModel": "用语言模型写作、推理并调用工具",
     "adjustInputsOrRunTheWorkflowFromTheCanvas": "调整输入，或直接在画布上运行工作流。",
-    "windowsLinux": "Windows/Linux"
+    "windowsLinux": "Windows/Linux",
+    "pickASkillToStartFromOrJustDescribeWhatYouWant": "选择一个技能开始，或直接描述你想要的内容。",
+    "blankDocument": "空白文档",
+    "opensAsALooseTabOutsideAnyProject": "——作为独立标签页打开，不属于任何项目",
+    "browseExamples": "浏览示例",
+    "tutorials": "教程",
+    "selectTextToSpeechModel": "选择语音合成模型",
+    "selectASRModel2": "选择语音识别模型",
+    "selectAudioToAudioModel2": "选择音频到音频模型",
+    "selectFolder": "选择文件夹",
+    "selectImageGenerationModel": "选择图像生成模型",
+    "selectAModel": "选择模型",
+    "selectEditModel": "选择编辑模型",
+    "selectI2VModel": "选择图生视频模型",
+    "selectReferenceModel": "选择参考模型",
+    "selectModelLower": "选择模型",
+    "model3d": "3D 模型",
+    "defaultWorkspace2": "默认工作区",
+    "setAsDefault2": "设为默认",
+    "addAWorkspaceToAllowAgentsToAccessLocalFolders": "添加工作区以允许智能体访问本地文件夹",
+    "adding": "正在添加…",
+    "addWorkspace2": "添加工作区",
+    "theWriterDidNotReturnAScript": "撰写器未返回脚本。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
@@ -2076,6 +2098,8 @@
     "layVoicedLines": "把配音台词铺到时间线上并打开视频编辑器。",
     "selected": "当前",
     "switchTo": "切换到 {{plan}}",
-    "planCredits": "套餐与额度"
+    "planCredits": "套餐与额度",
+    "workspaceAdded": "工作区已添加",
+    "workspaceRemoved": "工作区已移除"
   }
 }

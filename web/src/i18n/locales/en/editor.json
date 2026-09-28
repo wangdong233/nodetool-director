@@ -2063,7 +2063,29 @@
     "workstationTheLargestLocalModels": "Workstation — the largest local models",
     "writeReasonAndUseToolsWithALanguageModel": "Write, reason, and use tools with a language model",
     "adjustInputsOrRunTheWorkflowFromTheCanvas": "Adjust inputs or run the workflow from the canvas.",
-    "windowsLinux": "Windows/Linux"
+    "windowsLinux": "Windows/Linux",
+    "pickASkillToStartFromOrJustDescribeWhatYouWant": "Pick a skill to start from, or just describe what you want.",
+    "blankDocument": "Blank document",
+    "opensAsALooseTabOutsideAnyProject": "— opens as a loose tab, outside any project",
+    "browseExamples": "Browse examples",
+    "tutorials": "Tutorials",
+    "selectTextToSpeechModel": "Select Text-to-Speech Model",
+    "selectASRModel2": "Select ASR Model",
+    "selectAudioToAudioModel2": "Select Audio-to-Audio Model",
+    "selectFolder": "Select Folder",
+    "selectImageGenerationModel": "Select Image Generation Model",
+    "selectAModel": "Select a model",
+    "selectEditModel": "Select Edit Model",
+    "selectI2VModel": "Select I2V Model",
+    "selectReferenceModel": "Select Reference Model",
+    "selectModelLower": "Select model",
+    "model3d": "3D model",
+    "defaultWorkspace2": "Default workspace",
+    "setAsDefault2": "Set as default",
+    "addAWorkspaceToAllowAgentsToAccessLocalFolders": "Add a workspace to allow agents to access local folders",
+    "adding": "Adding…",
+    "addWorkspace2": "Add Workspace",
+    "theWriterDidNotReturnAScript": "The writer did not return a script."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
@@ -2076,6 +2098,8 @@
     "layVoicedLines": "Lay the voiced lines onto a timeline and open the video editor.",
     "selected": "Selected",
     "switchTo": "Switch to {{plan}}",
-    "planCredits": "Plan & credits"
+    "planCredits": "Plan & credits",
+    "workspaceAdded": "Workspace added",
+    "workspaceRemoved": "Workspace removed"
   }
 }

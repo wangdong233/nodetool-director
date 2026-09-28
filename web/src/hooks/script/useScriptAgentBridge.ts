@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useMemo, useRef } from "react";
+import { i18n } from "../../i18n";
 import type { ScriptSetup } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import {
@@ -172,7 +173,7 @@ export const useScriptAgentBridge = (scriptId: string): void => {
         });
         if (!written) {
           throw new Error(
-            writeErrorRef.current ?? "The writer did not return a script."
+            writeErrorRef.current ?? i18n.t("editor:ui.theWriterDidNotReturnAScript")
           );
         }
         const snapshot = getSnapshot();
