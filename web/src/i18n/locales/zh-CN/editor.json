@@ -1324,21 +1324,8 @@
     "studioBack": "Studio",
     "orStartBlank": "或从空白开始：",
     "layVoicedLines": "把配音台词铺到时间线上并打开视频编辑器。",
-    "assembling": "正在组装…",
-    "createVideo": "创建视频",
     "selected": "当前",
     "switchTo": "切换到 {{plan}}",
-    "creditsMeterNote": "额度只计量 NodeTool 托管模型——其它服务请自带密钥。",
-    "workspaceAdded": "工作区已添加",
-    "workspaceRemoved": "工作区已移除",
-    "defaultWorkspace": "默认工作区",
-    "setAsDefault": "设为默认",
-    "adding": "添加中…",
-    "addWorkspace": "添加工作区",
-    "noMatchingJs": "没有匹配的 JS 脚本",
-    "connecting": "连接中",
-    "tryAgain": "稍后再试。",
-    "loadingModels": "正在加载模型…",
     "planCredits": "套餐与额度"
   }
 }

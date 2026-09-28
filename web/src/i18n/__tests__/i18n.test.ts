@@ -156,6 +156,79 @@ describe("catalog key parity (CI completeness guard)", () => {
     collect(uiEn, "ui", "");
     collect(ui2En, "ui2", "");
     collect(appbuilderEn, "appbuilder", "");
+    collect(catalogEn, "catalog", "");
+    collect(toolsEn, "tools", "");
+
+    // Single-pass extraction (r25 perf): the original per-key loop ran a fresh
+    // regex + includes() over the ~40MB allSource for every leaf × every
+    // dynamic prefix (~50k full-string scans ≈ 15min). Extract the reference
+    // sets once with a quote-aware scanner (naive regex extraction desyncs on
+    // quote parity — "it's" and template backticks swallow later matches);
+    // per-key checks become Set lookups with the original's semantics.
+    const fullLiteralRefs = new Set<string>();
+    const quotedLiterals = new Set<string>();
+    const objectKeys = new Set<string>();
+    for (const m of allSource.matchAll(/([a-z0-9]+):([^"'`\s]{1,160})["`']/g)) {
+      fullLiteralRefs.add(`${m[1]}:${m[2]}`);
+    }
+    {
+      const s = allSource;
+      const n = s.length;
+      let i = 0;
+      while (i < n) {
+        const code = s.charCodeAt(i);
+        if (code === 34 || code === 39 || code === 96) {
+          // " ' ` — scan a string literal with escape + newline rules
+          const q = code;
+          let j = i + 1;
+          while (j < n) {
+            const d = s.charCodeAt(j);
+            if (d === 92) { j += 2; continue; } // backslash escape
+            if (d === q) break;
+            if (d === 10 && q !== 96) break; // unterminated ' or " line
+            if (j - i > 300) break; // runaway cap
+            j++;
+          }
+          if (j < n && s.charCodeAt(j) === q && j - i > 1) {
+            quotedLiterals.add(s.slice(i + 1, j));
+          }
+          i = j + 1;
+          continue;
+        }
+        if (code === 123 || code === 44) {
+          // { or , — capture `key:` / `key=` object-literal shapes
+          let j = i + 1;
+          while (j < n) {
+            const d = s.charCodeAt(j);
+            if (d === 32 || d === 9 || d === 10 || d === 13) j++;
+            else break;
+          }
+          let k = j;
+          const kd = s.charCodeAt(k);
+          if (kd === 34 || kd === 39 || kd === 96) k++;
+          let m2 = k;
+          while (m2 < n) {
+            const d = s.charCodeAt(m2);
+            if ((d >= 48 && d <= 57) || (d >= 65 && d <= 90) || (d >= 97 && d <= 122) || d === 45 || d === 95) m2++;
+            else break;
+          }
+          if (m2 > k) {
+            let p = m2;
+            const pd = s.charCodeAt(p);
+            if (pd === 34 || pd === 39 || pd === 96) p++;
+            while (p < n) {
+              const d = s.charCodeAt(p);
+              if (d === 32 || d === 9 || d === 10 || d === 13) p++;
+              else break;
+            }
+            const qd = s.charCodeAt(p);
+            if (qd === 58 || qd === 61) objectKeys.add(s.slice(k, m2));
+          }
+        }
+        i++;
+      }
+    }
+    const prefixPresent = new Map<string, boolean>();
 
     const dead: string[] = [];
     for (const [ns, key] of leafKeys) {
@@ -164,11 +237,13 @@ describe("catalog key parity (CI completeness guard)", () => {
       // "common:action.close" passes as a substring of "common:action.closeTab"
       // (r16-R1), and it also short-circuits before the boundary test can
       // run. The prefix-free sibling reference grants nothing to other keys.
-      const escPath = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const fullLiteral = new RegExp(
-        `${ns.replace("/", "\\/")}:${escPath}["\`]`
-      );
-      if (fullLiteral.test(allSource)) continue;
+      if (fullLiteralRefs.has(`${ns}:${key}`)) continue;
+      // Keys with chars outside the extraction class (apostrophes etc.) can't
+      // land in fullLiteralRefs — fall back to the original anchored regex.
+      if (!/^[A-Za-z0-9_.+-]+$/.test(key)) {
+        const escPath = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        if (new RegExp(`${ns}:${escPath}["\`]`).test(allSource)) continue;
+      }
       // Only whitelisted subtrees may build keys dynamically (a template
       // `ns:subtree.${…}` exists in src). Inside one, a leaf still needs
       // corroboration: the key name as a quoted literal (helper call site)
@@ -200,19 +275,28 @@ describe("catalog key parity (CI completeness guard)", () => {
       ];
       let dynamicallyUsed = false;
       const parts = key.split(".");
-      const esc = parts[parts.length - 1].replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-      );
+      const leaf = parts[parts.length - 1];
       for (const prefix of DYNAMIC_SUBTREES) {
+        if (!prefixPresent.has(prefix)) {
+          prefixPresent.set(prefix, allSource.includes(prefix));
+        }
         if (
-          allSource.includes(prefix) &&
+          prefixPresent.get(prefix) &&
           `${ns}:${parts.slice(0, -1).join(".")}.`.startsWith(prefix)
         ) {
-          const literal = new RegExp(`["'\`]${esc}["'\`]`);
-          const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
-          if (literal.test(allSource) || objectKey.test(allSource)) {
-            dynamicallyUsed = true;
+          // Non-identifier leaves (regex-shaped) fall back to the original
+          // scan; identifier-shaped leaves — every real key — hit the Sets.
+          if (/^[A-Za-z0-9_-]+$/.test(leaf)) {
+            if (quotedLiterals.has(leaf) || objectKeys.has(leaf)) {
+              dynamicallyUsed = true;
+            }
+          } else {
+            const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const literal = new RegExp(`["'\`]${esc}["'\`]`);
+            const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
+            if (literal.test(allSource) || objectKey.test(allSource)) {
+              dynamicallyUsed = true;
+            }
           }
         }
       }
