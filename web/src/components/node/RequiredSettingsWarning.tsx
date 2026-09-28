@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import { Text, EditorButton, FlexColumn, SPACING } from "../ui_primitives";
 import { openSettingsTab } from "../workspace/openPageTab";
 import { useRequiredSettings } from "../../hooks/useRequiredSettings";
@@ -16,6 +16,7 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
       openSettingsTab("providers");
     }, []);
 
+    const { version: languageVersion } = useAppLanguage();
     const content = useMemo(() => {
       if (missingSettings.length === 0) {
         return null;
@@ -58,7 +59,7 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
           </EditorButton>
         </FlexColumn>
       );
-    }, [missingSettings, handleOpenSettings]);
+    }, [languageVersion, missingSettings, handleOpenSettings]);
 
     return content;
   }

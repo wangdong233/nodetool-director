@@ -30,7 +30,7 @@ import {
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import PanelToolbar from "../panels/PanelToolbar";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   Caption,
   Chip,
@@ -248,6 +248,7 @@ export const TimelineVersionHistoryPanel: React.FC<
     [versions]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const toolbarActions = useMemo(
     () => (
       <EditorButton
@@ -259,7 +260,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       </EditorButton>
     ),
-    [openSaveDialog, sequenceId, isCreatingVersion]
+    [languageVersion, openSaveDialog, sequenceId, isCreatingVersion]
   );
 
   return (

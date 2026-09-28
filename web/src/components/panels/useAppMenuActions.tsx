@@ -70,7 +70,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     return total > 0 ? Math.round((done / total) * 100) : 0;
   }, [downloads]);
 
-  const { language } = useAppLanguage(); // re-render on language change (R5-2)
+  const { language, version: languageVersion } = useAppLanguage(); // re-render on language change (R5-2)
 
   return useMemo(() => {
     const actions: AppMenuAction[] = [
@@ -177,6 +177,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
 
     return actions;
   }, [
+    languageVersion,
     openPage,
     finish,
     handleOpenHelp,

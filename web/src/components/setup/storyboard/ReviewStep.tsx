@@ -52,7 +52,7 @@ import {
 } from "../video/productionAuthoring";
 import { productionRequirementsFrom } from "../../../hooks/storyboard/productionContext";
 import type { GenerationModel } from "../generationEstimate";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 import {
   forgetPreviousScreenplay,
   usePreviousScreenplay
@@ -156,6 +156,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     return numbers;
   }, [shots]);
 
+  const { version: languageVersion } = useAppLanguage();
   const importNotice = useMemo(() => {
     if (!notice) {
       return null;
@@ -185,7 +186,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       title: i18n.t("storyboard:attrs.someLinesNotInAnyShot", { defaultValue: "Some lines are not in any shot" }),
       body: notice.missingLines.join(" · ")
     };
-  }, [notice, shotNumbers]);
+  }, [languageVersion, notice, shotNumbers]);
 
   // What the creator is looking at, in one line: a screenplay is long, and
   // the scroll gives no sense of its size while reading it.
@@ -409,6 +410,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       })
     ];
   }, [
+    languageVersion,
     boardId,
     lengths,
     scenes,

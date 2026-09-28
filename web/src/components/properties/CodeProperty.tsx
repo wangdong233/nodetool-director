@@ -36,7 +36,7 @@ import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -162,6 +162,7 @@ const CodeProperty = ({
     [theme]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>
@@ -183,7 +184,7 @@ const CodeProperty = ({
         />
       </>
     ),
-    [code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
+    [languageVersion, code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
   );
 
   useInspectorHeaderSupplementalRegistration(

@@ -17,7 +17,7 @@ import { Tooltip, ToolbarIconButton, MOTION } from "../ui_primitives";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 import type { ExposedInputPlacement } from "../../utils/exposedInputs";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 
 
@@ -111,6 +111,7 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
 
 
+    const { version: languageVersion } = useAppLanguage();
     const title = useMemo(() => {
 
       if (placement === "handle") {
@@ -135,7 +136,7 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
       return "Show as input on top";
 
-    }, [connected, placement]);
+    }, [languageVersion, connected, placement]);
 
 
 

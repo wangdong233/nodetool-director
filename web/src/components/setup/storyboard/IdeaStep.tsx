@@ -48,7 +48,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { ExampleBriefs } from "../ExampleBriefs";
 import { ShotlistReport } from "./ShotlistReport";
 import { SCRIPT_ACCEPT, useScriptImport } from "./useScriptImport";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 import {
   SHOTLIST_ACCEPT,
   SHOTLIST_TEMPLATE_URL,
@@ -130,6 +130,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     [brief, examples]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
@@ -161,7 +162,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         onSelect: onOpenTutorial
       }
     ],
-    [onOpenTutorial, onStartBlank, script.importing, shotlist.importing]
+    [languageVersion, onOpenTutorial, onStartBlank, script.importing, shotlist.importing]
   );
 
   return (

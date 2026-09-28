@@ -17,7 +17,7 @@ import TableActions from "./TableActions";
 import { tableStyles } from "../../../styles/TableStyles";
 import { useTheme } from "@mui/material/styles";
 import type { TableData } from "./TableActions";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 export type DictDataType = "int" | "string" | "datetime" | "float";
 
@@ -44,6 +44,7 @@ const DictTable: React.FC<DictTableProps> = ({
   const [showSelect, setShowSelect] = useState(false);
   const [selectedRows, setSelectedRows] = useState<RowComponent[]>([]);
 
+  const { version: languageVersion } = useAppLanguage();
   const columns = useMemo(
     () => [
       ...(showSelect
@@ -99,7 +100,7 @@ const DictTable: React.FC<DictTableProps> = ({
             : undefined
       }
     ],
-    [data_type, editable, showSelect]
+    [languageVersion, data_type, editable, showSelect]
   );
 
   const onCellEdited = useCallback(

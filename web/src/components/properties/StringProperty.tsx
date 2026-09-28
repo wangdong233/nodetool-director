@@ -16,7 +16,7 @@ import ConnectedBadge from "./ConnectedBadge";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const propertyStyles = (theme: Theme) =>
   css({
@@ -91,6 +91,7 @@ const StringProperty = ({
     });
   }, []);
 
+  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>
@@ -110,7 +111,7 @@ const StringProperty = ({
         />
       </>
     ),
-    [inspectorToolbarActionSx, toggleExpand, value]
+    [languageVersion, inspectorToolbarActionSx, toggleExpand, value]
   );
 
   useInspectorHeaderSupplementalRegistration(

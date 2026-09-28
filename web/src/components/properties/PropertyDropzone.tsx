@@ -19,7 +19,7 @@ import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface PropertyDropzoneProps {
   asset: Asset | undefined;
@@ -356,6 +356,7 @@ const PropertyDropzone = ({
     handleDropzoneClick();
   }, [handleDropzoneClick]);
 
+  const { version: languageVersion } = useAppLanguage();
   const renderViewer = useMemo(() => {
     switch (contentType.split("/")[0]) {
       case "image": {
@@ -487,7 +488,7 @@ const PropertyDropzone = ({
       default:
         return null;
     }
-  }, [contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
+  }, [languageVersion, contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
 
   return (
     <div css={styles(theme)}>

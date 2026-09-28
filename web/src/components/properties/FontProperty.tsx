@@ -7,7 +7,7 @@ import Select from "../inputs/Select";
 import { trpcClient } from "../../trpc/client";
 import type { FontEntry } from "@nodetool-ai/protocol/api-schemas/fonts.js";
 import { isObjectLike } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 /**
  * The fonts endpoint returns the bundled families first, then the system ones
@@ -54,6 +54,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
       ? value.name
       : "";
 
+  const { version: languageVersion } = useAppLanguage();
   const options = useMemo(() => {
     if (!fonts || isLoading || isError)
       {return [{ value: "", label: i18n.t("editor:ui.selectAFont") }];}
@@ -65,7 +66,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
         label: font.portable ? `${font.name} · portable` : font.name
       }))
     ];
-  }, [fonts, isLoading, isError]);
+  }, [languageVersion, fonts, isLoading, isError]);
 
   return (
     <div className="font-property">

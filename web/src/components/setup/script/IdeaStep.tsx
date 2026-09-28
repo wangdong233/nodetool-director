@@ -47,7 +47,7 @@ import type { ScriptSetupAttachment } from "./scriptSetupContext";
 import { ExampleBriefs } from "../ExampleBriefs";
 import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 import {
   SCRIPT_SUBTITLE_ACCEPT,
   SCRIPT_TEXT_ACCEPT,
@@ -240,6 +240,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     setSetup(scriptId, scriptSourcePatch(null));
   }, [scriptId, setSetup]);
 
+  const { version: languageVersion } = useAppLanguage();
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
@@ -274,7 +275,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         onSelect: onStartBlank
       }
     ],
-    [imports.importing, onStartBlank, source]
+    [languageVersion, imports.importing, onStartBlank, source]
   );
 
   return (

@@ -26,7 +26,7 @@ import {
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import EntitySetupHost from "../setup/entity/EntitySetupHost";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -60,6 +60,7 @@ const EntityLibraryInternal: React.FC = () => {
     [deleteEntity]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const content = useMemo(() => {
     if (isLoading) {
       return (
@@ -91,7 +92,7 @@ const EntityLibraryInternal: React.FC = () => {
         ))}
       </AutoGrid>
     );
-  }, [isLoading, entities, handleAdd, handleEdit, handleRemove]);
+  }, [languageVersion, isLoading, entities, handleAdd, handleEdit, handleRemove]);
 
   if (creating) {
     return (

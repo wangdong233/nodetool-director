@@ -50,7 +50,7 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -422,6 +422,7 @@ const ModelListIndex: React.FC = () => {
     setSourceInitialized
   ]);
 
+  const { version: languageVersion } = useAppLanguage();
   const emptyState = useMemo(() => {
     if (modelSearchTerm) {
       return {
@@ -460,7 +461,7 @@ const ModelListIndex: React.FC = () => {
       description:
         "Try adjusting the size filter or selecting a different category."
     };
-  }, [modelSearchTerm, source, scope]);
+  }, [languageVersion, modelSearchTerm, source, scope]);
 
   if (isLoading) {
     return (

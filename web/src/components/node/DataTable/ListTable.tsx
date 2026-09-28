@@ -17,7 +17,7 @@ import TableActions from "./TableActions";
 import { useTheme } from "@mui/material/styles";
 import isEqual from "../../../utils/isEqual";
 import type { TableData } from "./TableActions";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 export type ListDataType = "int" | "string" | "datetime" | "float";
 
@@ -74,6 +74,7 @@ const ListTable: React.FC<ListTableProps> = ({
   const [selectedRows, setSelectedRows] = useState<RowComponent[]>([]);
   const [showSelect, setShowSelect] = useState(true);
 
+  const { version: languageVersion } = useAppLanguage();
   const columns = useMemo(
     () => [
       ...(showSelect
@@ -134,7 +135,7 @@ const ListTable: React.FC<ListTableProps> = ({
             : undefined
       }
     ],
-    [data_type, editable, showSelect]
+    [languageVersion, data_type, editable, showSelect]
   );
 
   const tabulatorData = useMemo(

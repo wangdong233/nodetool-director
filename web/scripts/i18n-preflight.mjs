@@ -6,7 +6,7 @@ import { join, relative } from "node:path";
 
 const ROOTS = ["src/components", "src/studio", "src/hooks", "src/lib", "src/utils", "src/config", "src/stores"];
 const SKIP = new Set(["__tests__", "stories", "demo", "i18n", "__mocks__", "node_modules"]);
-const issues = { frozen: [], wired_ok: 0, scanned: 0 };
+const issues = { frozen: [], scanned: 0 };
 
 function* walk(dir) {
   for (const e of readdirSync(dir)) {
@@ -17,35 +17,135 @@ function* walk(dir) {
   }
 }
 
-// 1. FROZEN: module-level or empty-dep-memo i18n.t (r21 F-1 class)
+// r26 F6: precise scan. The previous line-based heuristic looked forward from
+// `useMemo(` for a line ending in `]`, which (a) over-extended past blocks
+// closed with `]);` and matched i18n.t calls from later code (128 false
+// positives), and (b) stopped at an array literal's own `],` instead of the
+// deps array (missing the already-correct StudioScriptPage memo). Scan the
+// real source instead: find every useMemo( call, extract the full call with
+// balanced parens (string-literal aware, so "/*" inside a URL no longer eats
+// the rest of the file), take the trailing dep array, and require a
+// languageVersion dep when the memo body calls i18n.t.
+
+function matchForward(src, openPos, openCh, closeCh) {
+  let depth = 0;
+  for (let i = openPos; i < src.length; i++) {
+    const c = src[i];
+    if (c === '"' || c === "'" || c === "`") {
+      const q = c;
+      i++;
+      while (i < src.length) {
+        if (src[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (src[i] === q) break;
+        i++;
+      }
+      continue;
+    }
+    if (c === openCh) depth++;
+    else if (c === closeCh) {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function matchBackward(src, closePos, openCh, closeCh) {
+  let depth = 0;
+  for (let i = closePos; i >= 0; i--) {
+    const c = src[i];
+    if (c === '"' || c === "'" || c === "`") {
+      const q = c;
+      i--;
+      while (i >= 0) {
+        if (src[i] === q && src[i - 1] !== "\\") break;
+        i--;
+      }
+      continue;
+    }
+    if (c === closeCh) depth++;
+    else if (c === openCh) {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function frozenUseMemoIssues(src, relPath) {
+  const issues = [];
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    const c = src[i];
+    if (c === '"' || c === "'" || c === "`") {
+      const q = c;
+      i++;
+      while (i < n) {
+        if (src[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (src[i] === q) break;
+        i++;
+      }
+      i++;
+      continue;
+    }
+    if (c === "/" && src[i + 1] === "/") {
+      const j = src.indexOf("\n", i);
+      i = j === -1 ? n : j;
+      continue;
+    }
+    if (c === "/" && src[i + 1] === "*") {
+      const j = src.indexOf("*/", i + 2);
+      i = j === -1 ? n : j + 2;
+      continue;
+    }
+    if (src.startsWith("useMemo(", i)) {
+      const openParen = i + "useMemo(".length - 1;
+      const closeParen = matchForward(src, openParen, "(", ")");
+      if (closeParen !== -1) {
+        let k = closeParen - 1;
+        while (k > openParen && /\s/.test(src[k])) k--;
+        let depsText = null;
+        let bodyEnd = closeParen;
+        if (src[k] === "]") {
+          const openBracket = matchBackward(src, k, "[", "]");
+          if (openBracket !== -1) {
+            depsText = src.slice(openBracket, k + 1);
+            bodyEnd = openBracket;
+          }
+        }
+        const body = src.slice(i, bodyEnd);
+        // A memo with NO dep array recomputes every render — the locale can
+        // never freeze, so only memos that HAVE deps are in scope here.
+        if (depsText !== null && /i18n\.t\(/.test(body)) {
+          const depsOk =
+            /(^|[^\w$.])languageVersion($|[^\w$])/.test(depsText) ||
+            /(^|[^\w$.])version($|[^\w$])/.test(depsText);
+          if (!depsOk) {
+            const line = src.slice(0, i).split("\n").length;
+            issues.push(`${relPath}:${line} useMemo(i18n.t) deps lack languageVersion`);
+          }
+        }
+      }
+      i += "useMemo(".length;
+      continue;
+    }
+    i++;
+  }
+  return issues;
+}
+
 for (const root of ROOTS) {
   for (const fp of walk(root)) {
     const src = readFileSync(fp, "utf8");
     issues.scanned++;
-    // strip comments for both checks
-    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-    // module scope: i18n.t before first component boundary heuristics — use line scan
-    const lines = code.split("\n");
-    let depth = 0, inComponent = false;
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i];
-      if (/useMemo\(/.test(l)) {
-        // find the dep array end
-        let j = i, depLine = "";
-        while (j < lines.length && !/\],?\s*$/.test(depLine = lines[j])) j++;
-        // r26 F6: ANY useMemo whose body calls i18n.t must have a language
-        // version dep — empty deps AND stale deps both freeze the locale.
-        let bodyHasT = false;
-        for (let k = i; k <= j; k++) if (/i18n\.t\(/.test(lines[k])) { bodyHasT = true; break; }
-        if (bodyHasT) {
-          const depsOk = /languageVersion|\bversion\b/.test(depLine);
-          if (!depsOk) {
-            issues.frozen.push(`${relative(process.cwd(), fp)}:${i + 1} useMemo(i18n.t) deps lack languageVersion`);
-          }
-        }
-        i = j;
-      }
-    }
+    issues.frozen.push(...frozenUseMemoIssues(src, relative(process.cwd(), fp)));
   }
 }
 console.log(`scanned ${issues.scanned} files`);

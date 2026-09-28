@@ -24,7 +24,7 @@ import {
   type SelectOption
 } from "../ui_primitives";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const FORMAT_OPTIONS: readonly SelectOption[] = [
   { value: "mp4", label: "MP4 (H.264)" },
@@ -106,6 +106,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
     onClose();
   }, [format, alpha, onExport, onClose]);
 
+  const { version: languageVersion } = useAppLanguage();
   const actions = useMemo(
     () => (
       <>
@@ -113,7 +114,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
         <EditorButton variant="contained" size="small" onClick={handleExport}>{i18n.t("timeline:attrs.export", { defaultValue: "Export" })}</EditorButton>
       </>
     ),
-    [onClose, handleExport]
+    [languageVersion, onClose, handleExport]
   );
 
   return (

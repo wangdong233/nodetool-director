@@ -16,7 +16,7 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -49,6 +49,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     return fetchedModels.find((m) => m.id === value);
   }, [fetchedModels, value]);
 
+  const { version: languageVersion } = useAppLanguage();
   const displayInfo = useMemo(() => {
     if (currentSelectedModelDetails) {
       // Try to split by colon first (HF style)
@@ -99,7 +100,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     }
 
     return { label: i18n.t("editor:ui.selectImageModel"), secondaryLabel: undefined };
-  }, [currentSelectedModelDetails, value]);
+  }, [languageVersion, currentSelectedModelDetails, value]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

@@ -116,7 +116,7 @@ import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsCo
 // the server rasterizer registers (D8). Imported by the editor rather than
 // globally so a session that never opens a timeline never fetches them.
 import "./fonts.css";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Phone drag handle — 6px is under any reasonable touch target. */
@@ -459,6 +459,7 @@ const MobilePanelSheet: React.FC<{
   useEffect(() => {
     if (activeTab !== tab) onTabChange(activeTab);
   }, [activeTab, tab, onTabChange]);
+  const { version: languageVersion } = useAppLanguage();
   const tabs: TabItem[] = useMemo(
     () =>
       availableTabs.map((t) => ({
@@ -468,7 +469,7 @@ const MobilePanelSheet: React.FC<{
           : (t.label ?? ""),
         icon: t.icon
       })),
-    [availableTabs]
+    [availableTabs, languageVersion]
   );
 
   const tabRail = (

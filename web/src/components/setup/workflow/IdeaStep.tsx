@@ -33,7 +33,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSetup";
 import type { Workflow } from "../../../stores/ApiTypes";
 import { WorkflowExamplePicker } from "./ExamplePicker";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -98,6 +98,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     [onImport]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
@@ -119,7 +120,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         onSelect: onStartBlank
       }
     ],
-    [onBrowseExamples, onStartBlank]
+    [languageVersion, onBrowseExamples, onStartBlank]
   );
 
   if (browsingExamples) {

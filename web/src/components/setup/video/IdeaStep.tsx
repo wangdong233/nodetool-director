@@ -44,7 +44,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -170,6 +170,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     [examples]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
@@ -197,7 +198,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         onSelect: onStartBlank
       }
     ],
-    [importing, onStartBlank, onStartFromScript]
+    [languageVersion, importing, onStartBlank, onStartFromScript]
   );
 
   return (

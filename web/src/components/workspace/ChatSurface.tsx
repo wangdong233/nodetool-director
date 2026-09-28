@@ -19,7 +19,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import DocumentLoadStatus from "./DocumentLoadStatus";
 import { buildUiContext } from "../../lib/chat/uiContext";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const whenChatStoreHydrated = (): Promise<void> => {
   const persistApi = useGlobalChatStore.persist;
@@ -223,6 +223,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
     [refId]
   );
 
+  const { version: languageVersion } = useAppLanguage();
   const noMessagesPlaceholder = useMemo(
     () =>
       loadingThread ? (
@@ -230,7 +231,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
       ) : (
         <WelcomePlaceholder onSuggestionClick={handleSuggestionClick} />
       ),
-    [loadingThread, handleSuggestionClick]
+    [languageVersion, loadingThread, handleSuggestionClick]
   );
 
   const handleNewChat = useCallback(async () => {

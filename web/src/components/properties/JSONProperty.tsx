@@ -12,7 +12,7 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import TextEditorModal from "./TextEditorModal";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface JSONValue {
   type: "json";
@@ -179,6 +179,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
     void loadMonacoIfNeeded();
   }, [loadMonacoIfNeeded]);
 
+  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>
@@ -198,7 +199,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         />
       </>
     ),
-    [inspectorToolbarActionSx, toggleExpand, value]
+    [languageVersion, inspectorToolbarActionSx, toggleExpand, value]
   );
 
   useInspectorHeaderSupplementalRegistration(

@@ -23,7 +23,7 @@ import { remarkEntityMentions } from "./remarkEntityMentions";
 import { remarkResourceMentions } from "./remarkResourceMentions";
 import { isNumber, isString } from "../../../utils/typePredicates";
 import "../../../styles/markdown/github-markdown.css";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"];
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".mkv", ".m4v", ".ogv"];
@@ -352,6 +352,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
   content,
   onInsertCode
 }) => {
+  const { version: languageVersion } = useAppLanguage();
   const components = useMemo(
     () => ({
       code: (props: React.ComponentPropsWithoutRef<"code">) => <CodeBlock {...props} onInsert={onInsertCode} />,
@@ -409,7 +410,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
         return <a {...props} target="_blank" rel="noopener noreferrer" />;
       }
     }),
-    [onInsertCode]
+    [languageVersion, onInsertCode]
   );
 
   return (

@@ -49,7 +49,7 @@ import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 /** Textarea growth caps. The mobile one matches the composer stylesheet — on a
  *  phone the keyboard already owns most of the screen. */
@@ -451,6 +451,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       textareaRef
     });
 
+  const { version: languageVersion } = useAppLanguage();
   const placeholder = useMemo(() => {
     if (placeholderOverride) {
       return placeholderOverride;
@@ -504,7 +505,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     return isMobile
       ? i18n.t("editor:ui.messageOr@ToAddAnAsset", { defaultValue: "Message… or @ to add an asset" })
       : i18n.t("editor:ui.continueTheThreadOrType@ToAddAnAsset", { defaultValue: "Continue the thread — or type @ to add an asset…" });
-  }, [mode, isMobile, placeholderOverride, permissionMode]);
+  }, [languageVersion, mode, isMobile, placeholderOverride, permissionMode]);
 
   const isMediaMode =
     mode === "image" ||
@@ -548,6 +549,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     if (mode === "music") return { model: musicParams.model, label: "music" };
     return null;
   }, [
+    languageVersion,
     mode,
     chatModel,
     imageParams.model,
@@ -703,7 +705,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   const chatProviderLabel = useMemo(() => {
     if (!isModelSelected(chatModel)) return i18n.t("editor:ui.selectModelLower");
     return chatModel.name || chatModel.id;
-  }, [chatModel]);
+  }, [languageVersion, chatModel]);
 
   const isDisabled = disabled || isBusy;
 

@@ -35,7 +35,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { InspectorSectionTitle, InspectorSliderRow } from "./InspectorPrimitives";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 interface AIEditClipPanelProps {
   clipId: string;
@@ -221,6 +221,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     }
   }, [catalogModel, clip, eligibility.ok, instruction, selectedModel, startEdit]);
 
+  const { version: languageVersion } = useAppLanguage();
   const newTakeEligibility = useMemo(() => {
     if (!clip || clip.mediaType !== "video") {
       return { ok: false as const, reason: i18n.t("timeline:attrs.newTakeRequiresAVideoClip", { defaultValue: "New take requires a video clip." }) };
@@ -232,7 +233,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     return activeTake
       ? getReplayRecipe(activeTake)
       : { ok: false as const, reason: i18n.t("timeline:attrs.thisClipHasNoAcceptedTake", { defaultValue: "This clip has no accepted take." }) };
-  }, [clip]);
+  }, [languageVersion, clip]);
 
   const handleNewTake = useCallback(async () => {
     if (!clip || !newTakeEligibility.ok) return;
