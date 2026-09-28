@@ -47,8 +47,8 @@ const ScopeToggleInternal: React.FC<ScopeToggleProps> = ({
       onChange={handleChange}
       aria-label={i18n.t("editor:ui.modelScope", { defaultValue: "model scope" })}
     >
-      <ToggleOption value="local" aria-label="local models">
-        Local
+      <ToggleOption value="local" aria-label={i18n.t("editor:ui.localModels", { defaultValue: "local models" })}>
+        {i18n.t("ui2:attrs.local", { defaultValue: "Local" })}
       </ToggleOption>
       <Tooltip title={OLD_IMAGE_TOOLTIP} disabled={supported}>
         <span>

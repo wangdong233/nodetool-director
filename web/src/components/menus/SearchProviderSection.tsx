@@ -129,8 +129,8 @@ const SearchProviderSection = memo(function SearchProviderSection({
             }}
           >
             {hasAllCredentials
-              ? "✓ Credentials configured"
-              : "✗ Missing credentials"}
+              ? i18n.t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
+              : i18n.t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
           </Text>
         </FlexRow>
 

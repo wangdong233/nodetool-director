@@ -145,7 +145,7 @@ const MemoryPage: React.FC = () => {
             sx={{ maxWidth: 360, width: "100%" }}
           />
           <Text size="small" sx={{ opacity: 0.6, flexShrink: 0 }}>
-            {visible.length === 1 ? "1 memory" : `${visible.length} memories`}
+            {visible.length === 1 ? i18n.t("editor:ui.oneMemory", { defaultValue: "1 memory" }) : i18n.t("editor:ui.nMemories", { defaultValue: "{{n}} memories", n: visible.length })}
           </Text>
         </FlexRow>
         {kinds.length > 1 && (

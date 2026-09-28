@@ -247,10 +247,10 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             }}
           >
             {allDownloaded
-              ? "All Downloaded"
+              ? i18n.t("editor:ui.allDownloaded", { defaultValue: "All Downloaded" })
               : someDownloaded
-                ? `Download ${pack.models.length - downloadedModels.size} Remaining`
-                : "Download All"}
+                ? i18n.t("editor:ui.downloadNRemaining", { defaultValue: "Download {{n}} Remaining", n: pack.models.length - downloadedModels.size })
+                : i18n.t("editor:ui.downloadAll", { defaultValue: "Download All" })}
           </EditorButton>
         </Tooltip>
 

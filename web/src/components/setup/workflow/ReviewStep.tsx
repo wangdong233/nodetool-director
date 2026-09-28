@@ -226,8 +226,8 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       {blocked.unknownNodeTypes > 0 ? (
         <Caption color="secondary" component="p">
           {blocked.unknownNodeTypes === 1
-            ? "1 step names no node this install has. Pick one below to continue."
-            : `${blocked.unknownNodeTypes} steps name no node this install has. Pick one for each below to continue.`}
+            ? i18n.t("storyboard:attrs.oneStepNamesNoNodeThisInstallHasPickOneBelowToContinue", { defaultValue: "1 step names no node this install has. Pick one below to continue." })
+            : i18n.t("storyboard:attrs.stepsNameNoNodeThisInstallHasPickOneForEachBelowToContinue", { defaultValue: "{{count}} steps name no node this install has. Pick one for each below to continue.", count: blocked.unknownNodeTypes })}
         </Caption>
       ) : null}
 

@@ -113,7 +113,7 @@ const LinkedWorkflowsMenu = ({
                 </FlexRow>
                 <Caption color={broken ? "error" : "secondary"}>
                   {broken
-                    ? `${link.workflowId} — ${link.error?.message ?? "could not be loaded"}`
+                    ? `${link.workflowId} — ${link.error?.message ?? i18n.t("editor:ui.couldNotBeLoaded", { defaultValue: "could not be loaded" })}`
                     : usedBy(link)}
                 </Caption>
               </FlexColumn>

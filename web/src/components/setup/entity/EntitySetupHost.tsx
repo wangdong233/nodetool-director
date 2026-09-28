@@ -224,8 +224,8 @@ const EntitySetupHost = ({
         blockedReason: entitiesError
           ? i18n.t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
           : entitiesLoading
-            ? "Loading your entity library"
-            : "Choose a reference image",
+            ? i18n.t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
+            : i18n.t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
         render: () =>
           createElement(ReferenceStep, {
             name: details.name,

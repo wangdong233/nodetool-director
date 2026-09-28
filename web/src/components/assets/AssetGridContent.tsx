@@ -388,7 +388,7 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
             }
             description={
               workflowFilter
-                ? "Run the workflow to generate assets, or drop files here to add inputs."
+                ? i18n.t("editor:ui.runTheWorkflowToGenerateAssetsOrDropFilesHereToAddInputs", { defaultValue: "Run the workflow to generate assets, or drop files here to add inputs." })
                 : i18n.t("editor:ui.dropFilesHereOrUseTheUploadButtonToAddAssets", { defaultValue: "Drop files here or use the upload button to add assets" })
             }
             size="small"

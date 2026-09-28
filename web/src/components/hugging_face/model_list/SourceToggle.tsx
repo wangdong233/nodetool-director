@@ -36,16 +36,16 @@ const SourceToggleInternal: React.FC<SourceToggleProps> = ({
       onChange={handleChange}
       aria-label={i18n.t("editor:ui.modelSource", { defaultValue: "model source" })}
     >
-      <ToggleOption value="onboarding" aria-label="get started">
-        Get Started
+      <ToggleOption value="onboarding" aria-label={i18n.t("editor:ui.getStartedAria", { defaultValue: "get started" })}>
+        {i18n.t("editor:ui.getStarted", { defaultValue: "Get Started" })}
       </ToggleOption>
-      <ToggleOption value="installed" aria-label="installed models">
-        Installed
+      <ToggleOption value="installed" aria-label={i18n.t("editor:ui.installedModels", { defaultValue: "installed models" })}>
+        {i18n.t("editor:ui.installed", { defaultValue: "Installed" })}
       </ToggleOption>
-      <ToggleOption value="recommended" aria-label="recommended models">
-        Recommended
+      <ToggleOption value="recommended" aria-label={i18n.t("editor:ui.recommendedModels", { defaultValue: "recommended models" })}>
+        {i18n.t("editor:ui.recommended", { defaultValue: "Recommended" })}
       </ToggleOption>
-      <ToggleOption value="hub" aria-label="search hugging face hub">
+      <ToggleOption value="hub" aria-label={i18n.t("editor:ui.searchHuggingFaceHub", { defaultValue: "search hugging face hub" })}>
         Hub
       </ToggleOption>
     </ToggleGroup>

@@ -202,8 +202,8 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
         disabled={preset.samplePending === true || preset.disabled === true}
       >
         {preset.samplePending === true
-          ? "Generating sample…"
-          : `Hear ${preset.title}`}
+          ? i18n.t("storyboard:attrs.generatingSample2", { defaultValue: "Generating sample…" })
+          : i18n.t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: preset.title })}
       </EditorButton>
     </Box>
   );

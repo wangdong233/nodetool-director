@@ -719,7 +719,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           ))}
           {options.length === 0 && (
             <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-              No options
+              {i18n.t("editor:ui.noOptions", { defaultValue: "No options" })}
             </Text>
           )}
         </FlexColumn>

@@ -894,7 +894,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isImage && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip={isSvg ? "Edit SVG" : "Edit Image"}
+              tooltip={isSvg ? i18n.t("editor:ui.editSvg", { defaultValue: "Edit SVG" }) : i18n.t("editor:ui.editImage", { defaultValue: "Edit Image" })}
               onClick={handleOpenImageEditor}
               className="button edit"
               nodrag={false}
@@ -968,7 +968,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset && !compareMode && (
             <ToolbarIconButton
               icon={<InfoOutlinedIcon />}
-              tooltip={showInfo ? "Hide info" : "Show info"}
+              tooltip={showInfo ? i18n.t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : i18n.t("editor:ui.showInfo", { defaultValue: "Show info" })}
               onClick={toggleInfo}
               className="button info"
               nodrag={false}

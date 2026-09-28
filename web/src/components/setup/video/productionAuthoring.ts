@@ -97,16 +97,16 @@ export function productionFields({
   // read-only field of its own, which read as a filled-in value and put the
   // explanation a row below the select it explains.
   const bindingHint = !canBind
-    ? "Add voiceover or dialogue before choosing a speech mode."
+    ? i18n.t("timeline:attrs.addVoiceoverOrDialogueBeforeChoosingASpeechMode", { defaultValue: "Add voiceover or dialogue before choosing a speech mode." })
     : binding?.script_line_id
-      ? "Bound to a Script line. Edit the words and the voice in Script."
+      ? i18n.t("timeline:attrs.boundToAScriptLineEditTheWordsAndTheVoiceInScript", { defaultValue: "Bound to a Script line. Edit the words and the voice in Script." })
       : binding?.audio_asset_id
-        ? "Bound to a recorded audio take."
+        ? i18n.t("timeline:attrs.boundToARecordedAudioTake", { defaultValue: "Bound to a recorded audio take." })
         : binding?.text
           ? i18n.t("storyboard:attrs.usesLocalSpeechProductionVoiceAndAudioResolutionAreUnavailableInThisSetup", { defaultValue: "Uses local speech. Production voice and audio resolution are unavailable in this setup." })
           : undefined;
   const availabilityHint =
-    "On-camera speech is unavailable in this guided flow. Choose Off-camera or None.";
+    i18n.t("timeline:attrs.onCameraSpeechIsUnavailableInThisGuidedFlowChooseOffCameraOrNone", { defaultValue: "On-camera speech is unavailable in this guided flow. Choose Off-camera or None." });
   const speechHint = [bindingHint, availabilityHint]
     .filter((part): part is string => part !== undefined)
     .join(" ");
@@ -119,13 +119,13 @@ export function productionFields({
       compact: true,
       value: current?.editorial_purpose ?? "",
       options: [
-        { value: "", label: "Unspecified" },
-        { value: "hook", label: "Hook" },
-        { value: "problem", label: "Problem" },
-        { value: "demonstration", label: "Demonstration" },
-        { value: "proof", label: "Proof" },
+        { value: "", label: i18n.t("timeline:attrs.unspecified", { defaultValue: "Unspecified" }) },
+        { value: "hook", label: i18n.t("timeline:attrs.hook", { defaultValue: "Hook" }) },
+        { value: "problem", label: i18n.t("timeline:attrs.problem", { defaultValue: "Problem" }) },
+        { value: "demonstration", label: i18n.t("timeline:attrs.demonstration", { defaultValue: "Demonstration" }) },
+        { value: "proof", label: i18n.t("timeline:attrs.proof", { defaultValue: "Proof" }) },
         { value: "cta", label: i18n.t("storyboard:attrs.callToAction", { defaultValue: "Call to action" }) },
-        { value: "story", label: "Story" }
+        { value: "story", label: i18n.t("editor:ui.story", { defaultValue: "Story" }) }
       ],
       onChange: (editorial_purpose) => {
         onChange(
@@ -142,11 +142,11 @@ export function productionFields({
       compact: true,
       value: current?.visual_treatment ?? "",
       options: [
-        { value: "", label: "Unspecified" },
-        { value: "actor_to_camera", label: "Actor to camera" },
+        { value: "", label: i18n.t("timeline:attrs.unspecified", { defaultValue: "Unspecified" }) },
+        { value: "actor_to_camera", label: i18n.t("timeline:attrs.actorToCamera", { defaultValue: "Actor to camera" }) },
         { value: "product_close_up", label: i18n.t("storyboard:attrs.productCloseup", { defaultValue: "Product close-up" }) },
-        { value: "lifestyle_b_roll", label: "Lifestyle B-roll" },
-        { value: "generated_scene", label: "Generated scene" }
+        { value: "lifestyle_b_roll", label: i18n.t("timeline:attrs.lifestyleBRoll", { defaultValue: "Lifestyle B-roll" }) },
+        { value: "generated_scene", label: i18n.t("timeline:attrs.generatedScene", { defaultValue: "Generated scene" }) }
       ],
       onChange: (visual_treatment) => {
         onChange(

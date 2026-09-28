@@ -139,7 +139,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: "PDF, DOCX, FDX",
         onSelect: () => scriptInput.current?.click(),
         disabled: script.importing,
-        disabledReason: script.importing ? "Reading your file…" : undefined
+        disabledReason: script.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "shotlist",
@@ -147,7 +147,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: i18n.t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
         disabled: shotlist.importing,
-        disabledReason: shotlist.importing ? "Reading your file…" : undefined
+        disabledReason: shotlist.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
@@ -240,7 +240,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           slotProps={{ input: { readOnly: locked } }}
           helperText={
             locked
-              ? "Held while your file is the script. Edit as text to change the words here."
+              ? i18n.t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
               : undefined
           }
         />

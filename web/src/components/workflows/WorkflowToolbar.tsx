@@ -287,7 +287,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
           {onToggleFavorites && (
             <ToolbarIconButton
               icon={showFavoritesOnly ? <StarIcon /> : <StarBorderIcon />}
-              tooltip={`${showFavoritesOnly ? "Show all workflows" : "Show favorites only"}`}
+              tooltip={showFavoritesOnly ? i18n.t("editor:ui.showAllWorkflows", { defaultValue: "Show all workflows" }) : i18n.t("editor:ui.showFavoritesOnly", { defaultValue: "Show favorites only" })}
               onClick={onToggleFavorites}
               tooltipPlacement="top"
               active={showFavoritesOnly}

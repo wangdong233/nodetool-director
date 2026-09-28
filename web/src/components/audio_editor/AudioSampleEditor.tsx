@@ -414,7 +414,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
         <EmptyState
           variant="error"
           title={i18n.t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
-          description={error ?? "Audio could not be decoded."}
+          description={error ?? i18n.t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
           actionText={i18n.t("ui2:attrs.done", { defaultValue: "Done" })}
           onAction={onClose}
         />

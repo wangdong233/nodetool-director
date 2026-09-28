@@ -187,7 +187,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
           result.status === "completed-with-output"
             ? outputDetail(result.output ?? result.testRun.output)
             : result.status === "running"
-              ? "Running with your sample inputs"
+              ? i18n.t("storyboard:attrs.runningWithYourSampleInputs", { defaultValue: "Running with your sample inputs" })
               : (result.testRun.error ??
                 (validated
                   ? i18n.t("storyboard:attrs.notStartedPartOfThePlanIsUnwired", { defaultValue: "Not started — part of the plan is unwired" })

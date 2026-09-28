@@ -520,7 +520,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             onChange={handleApiKeyChange}
             fullWidth
             placeholder={
-              editingSlug ? "Leave blank to keep the stored key" : "Optional"
+              editingSlug ? i18n.t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : i18n.t("editor:ui.optional", { defaultValue: "Optional" })
             }
             variant="outlined"
             size="small"

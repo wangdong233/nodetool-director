@@ -285,7 +285,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
         tooltip={
           <div className="tooltip-span">
             <div className="tooltip-title">
-              {majorityBypassed ? "Enable Nodes" : "Disable Nodes"}
+              {majorityBypassed ? i18n.t("editor:ui.enableNodes", { defaultValue: "Enable Nodes" }) : i18n.t("editor:ui.disableNodes", { defaultValue: "Disable Nodes" })}
             </div>
             <div className="tooltip-key">
               <kbd>B</kbd>

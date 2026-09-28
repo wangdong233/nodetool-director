@@ -513,9 +513,9 @@ export function usePackageManager(params: {
 
     const notice =
       isSoftware && !rtAvailable
-        ? "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes."
+        ? i18n.t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
         : cat === "python" && !pyAvailable
-          ? "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs."
+          ? i18n.t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
           : null;
 
     const consoleModel = isSoftware

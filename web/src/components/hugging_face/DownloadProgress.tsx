@@ -370,7 +370,7 @@ export const DownloadProgress: React.FC<{
           <LoadingSpinner size="small" />
           <Text size="small">
             {download.status === "start"
-              ? "Starting download..."
+              ? i18n.t("editor:ui.startingDownload", { defaultValue: "Starting download..." })
               : i18n.t("editor:ui.pendingDownload", { defaultValue: "Pending download..." })}
           </Text>
         </FlexRow>
@@ -509,7 +509,7 @@ export const DownloadProgress: React.FC<{
                 color: isStalled ? "var(--palette-warning-main)" : undefined
               }}
             >
-              ETA: {isStalled ? "Unknown (stalled)" : eta || "-"}
+              ETA: {isStalled ? i18n.t("editor:ui.unknownStalled", { defaultValue: "Unknown (stalled)" }) : eta || "-"}
             </Text>
           </Box>
           <Tooltip title={i18n.t("editor:ui.stopTheCurrentDownloadYouCanRestartItLater", { defaultValue: "Stop the current download. You can restart it later." })}>

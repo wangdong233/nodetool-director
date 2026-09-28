@@ -190,7 +190,7 @@ export const getDisplayedSettingGroups = (
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
     if (section.key === "local-model-servers") {
-      result.push({ id: "search-provider", label: "Search Provider" });
+      result.push({ id: "search-provider", label: i18n.t("editor:ui.searchProvider", { defaultValue: "Search provider" }) });
     }
   }
   return result;

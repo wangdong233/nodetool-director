@@ -179,7 +179,7 @@ const BudgetSection = memo(function BudgetSection({
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load the budget: ${error?.message ?? "try again later."}`}
+        {i18n.t("editor:ui.couldNotLoadTheBudget", { defaultValue: "Could not load the budget: {{message}}", message: error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
       </AlertBanner>
     );
   }
@@ -286,7 +286,7 @@ const DeploySection = memo(function DeploySection({
       ) : isError ? (
         <FlexColumn gap={SPACING.xs}>
           <AlertBanner severity="error">
-            {`Could not load the public link: ${error?.message ?? "try again later."}`}
+            {i18n.t("editor:ui.couldNotLoadThePublicLink", { defaultValue: "Could not load the public link: {{message}}", message: error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
           </AlertBanner>
           <ReportBugButton
             label={i18n.t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
@@ -400,7 +400,7 @@ const InvocationsSection = memo(function InvocationsSection({
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load invocations: ${error?.message ?? "try again later."}`}
+        {i18n.t("editor:ui.couldNotLoadInvocations", { defaultValue: "Could not load invocations: {{message}}", message: error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
       </AlertBanner>
     );
   }
@@ -529,7 +529,7 @@ const ApplicationGovernancePanel = ({
           <LoadingSpinner text={i18n.t("editor:ui.loadingVersions")} />
         ) : isError ? (
           <AlertBanner severity="error">
-            {`Could not load versions: ${error?.message ?? "try again later."}`}
+            {i18n.t("editor:ui.couldNotLoadVersions", { defaultValue: "Could not load versions: {{message}}", message: error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
           </AlertBanner>
         ) : sortedVersions.length === 0 ? (
           <EmptyState

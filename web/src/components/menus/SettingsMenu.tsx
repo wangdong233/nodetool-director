@@ -169,7 +169,7 @@ const SearchItem = React.memo(function SearchItem({
 function SettingsPage() {
   // Subscribe so raw-i18n.t reads (t18) re-render on language change — the
   // language switcher lives inside this page and must flip it live.
-  useAppLanguage();
+  const { version: languageVersion } = useAppLanguage();
   const section = useSettingsPageStore((state) => state.section);
   const setSection = useSettingsPageStore((state) => state.setSection);
   const session = useAuth((state) => state.session);
@@ -517,8 +517,8 @@ function SettingsPage() {
             {
               category: "Servers",
               items: [
-                { id: "mcp-integration", label: "MCP Servers" },
-                { id: "browser-extension", label: "Browser Extension" }
+                { id: "mcp-integration", label: i18n.t("editor:ui.mcpServers", { defaultValue: "MCP Servers" }) },
+                { id: "browser-extension", label: i18n.t("editor:ui.browserExtension", { defaultValue: "Browser Extension" }) }
               ]
             }
           ]
@@ -534,7 +534,7 @@ function SettingsPage() {
           ]
         : [])
     ];
-  }, [remoteSettings, session?.access_token]);
+  }, [languageVersion, remoteSettings, session?.access_token]);
 
   const sidebarSections =
     section === "general"

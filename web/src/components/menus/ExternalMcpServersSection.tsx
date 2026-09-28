@@ -428,7 +428,7 @@ export const ExternalMcpServersSection = memo(
       draft.type === "http"
         ? urlError(draft.url)
         : !stdioEnabled
-          ? "Stdio servers are not available on this deployment."
+          ? i18n.t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." })
           : draft.command.trim()
             ? null
             : i18n.t("editor:ui.enterACommand", { defaultValue: "Enter a command." });
@@ -500,7 +500,7 @@ export const ExternalMcpServersSection = memo(
           fullWidth
           title={
             <Text size="big">
-              {editingId ? "Edit MCP server" : "Add MCP server"}
+              {editingId ? i18n.t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : i18n.t("editor:ui.addMcpServer", { defaultValue: "Add MCP server" })}
             </Text>
           }
           onConfirm={handleSave}

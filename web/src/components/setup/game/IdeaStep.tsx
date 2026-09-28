@@ -134,7 +134,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           </Caption>
         </FlexColumn>
         <OptionCardGrid
-          label={blank ? "Blank template" : "Template"}
+          label={blank ? i18n.t("storyboard:attrs.blankTemplate", { defaultValue: "Blank template" }) : i18n.t("storyboard:attrs.template", { defaultValue: "Template" })}
           options={cards}
           onSelect={(id) => {
             setPicker(null);

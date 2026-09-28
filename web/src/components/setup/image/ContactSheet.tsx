@@ -197,7 +197,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             state: "saved",
             message:
               destination === "entity"
-                ? "Saved to entities."
+                ? i18n.t("storyboard:attrs.savedToEntities", { defaultValue: "Saved to entities." })
                 : i18n.t("storyboard:attrs.openedInANewNodeCanvas", { defaultValue: "Opened in a new node canvas." })
           }
         }));

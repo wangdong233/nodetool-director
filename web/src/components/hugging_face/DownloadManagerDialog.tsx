@@ -100,7 +100,7 @@ const DownloadManagerDialog: React.FC = () => {
       fullWidth
     >
       <DialogTitle sx={{ color: "inherit", position: "relative" }}>
-        {hasActiveDownloads ? "Download Progress" : "Model Downloads"}
+        {hasActiveDownloads ? i18n.t("editor:ui.downloadProgress", { defaultValue: "Download Progress" }) : i18n.t("editor:ui.modelDownloads", { defaultValue: "Model Downloads" })}
         <CloseButton
           onClick={closeDialog}
           className="title-close"

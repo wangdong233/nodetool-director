@@ -202,8 +202,8 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
           onChange={(_e, value) => value && setFilter(value as Filter)}
           aria-label={i18n.t("editor:ui.filterRecommendedByCapability", { defaultValue: "filter recommended models by capability" })}
         >
-          <ToggleOption value="all" aria-label="all capabilities">
-            All
+          <ToggleOption value="all" aria-label={i18n.t("editor:ui.allCapabilities", { defaultValue: "all capabilities" })}>
+            {i18n.t("editor:ui.all", { defaultValue: "All" })}
           </ToggleOption>
           {availableCapabilities.map((capability) => (
             <ToggleOption

@@ -81,15 +81,14 @@ export const OAuthManualCompletionDialog = ({
           </Text>
         ) : (
           <Text size="small">
-            {label} sends the browser to{" "}
-            <code>{prompt.redirectUri ?? "a local address"}</code>, which only
-            exists on your own machine — so this server never sees it. Approve
-            the sign-in, then copy the whole address the browser ends up on (an
-            error page is expected) and paste it below.
+            {label}{" "}
+            {i18n.t("editor:ui.oauthRedirectExplainer1", { defaultValue: "sends the browser to" })}{" "}
+            <code>{prompt.redirectUri ?? i18n.t("editor:ui.aLocalAddress", { defaultValue: "a local address" })}</code>
+            {i18n.t("editor:ui.oauthRedirectExplainer2", { defaultValue: ", which only exists on your own machine — so this server never sees it. Approve the sign-in, then copy the whole address the browser ends up on (an error page is expected) and paste it below." })}
           </Text>
         )}
         <TextInput
-          label={prompt.input === "code" ? "Authorization code" : "Redirect address"}
+          label={prompt.input === "code" ? i18n.t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : i18n.t("editor:ui.redirectAddress", { defaultValue: "Redirect address" })}
           placeholder={
             prompt.input === "code"
               ? "code#state"

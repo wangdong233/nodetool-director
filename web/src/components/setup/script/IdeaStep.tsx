@@ -258,7 +258,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: i18n.t("editor:ui.txtPdfDocxFinalDraft", { defaultValue: "TXT, PDF, DOCX or Final Draft" }),
         onSelect: () => textInput.current?.click(),
         disabled: imports.importing,
-        disabledReason: imports.importing ? "Reading your file…" : undefined
+        disabledReason: imports.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "subtitles",
@@ -266,7 +266,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: i18n.t("editor:ui.srtOrVttEachCueTimedLine", { defaultValue: "SRT or VTT — each cue becomes a timed line" }),
         onSelect: () => subtitleInput.current?.click(),
         disabled: imports.importing,
-        disabledReason: imports.importing ? "Reading your file…" : undefined
+        disabledReason: imports.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",

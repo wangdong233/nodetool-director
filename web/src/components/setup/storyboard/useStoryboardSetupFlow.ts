@@ -306,8 +306,8 @@ export const useStoryboardSetupFlow = ({
         primaryLabel: upToDate
           ? i18n.t("storyboard:attrs.continueToYourScreenplay", { defaultValue: "Continue to your screenplay" })
           : hasScreenplay
-            ? "Re-direct your screenplay"
-            : "Generate screenplay",
+            ? i18n.t("storyboard:attrs.reDirectYourScreenplay", { defaultValue: "Re-direct your screenplay" })
+            : i18n.t("storyboard:attrs.generateScreenplay", { defaultValue: "Generate screenplay" }),
         canAdvance: genre.length > 0,
         blockedReason: i18n.t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
         pending: directing,

@@ -144,9 +144,9 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         ref={anchorRef}
         icon={<FolderIcon fontSize="small" />}
         label={
-          isMobile || compact ? undefined : selected?.name || "Workspace"
+          isMobile || compact ? undefined : selected?.name || i18n.t("editor:ui.workspace", { defaultValue: "Workspace" })
         }
-        title={selected?.path ?? "Select a workspace folder"}
+        title={selected?.path ?? i18n.t("editor:ui.selectAWorkspaceFolder", { defaultValue: "Select a workspace folder" })}
         active={open}
         showChevron={false}
         truncate

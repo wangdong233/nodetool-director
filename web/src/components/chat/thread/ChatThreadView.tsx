@@ -502,8 +502,8 @@ const ChatThreadView: React.FC<ChatThreadViewProps> = ({
                   disabled={loadingHistoryThread === visibleThreadId}
                 >
                   {loadingHistoryThread === visibleThreadId
-                    ? "Loading older messages…"
-                    : "Load older messages"}
+                    ? i18n.t("editor:ui.loadingOlderMessages", { defaultValue: "Loading older messages…" })
+                    : i18n.t("editor:ui.loadOlderMessages", { defaultValue: "Load older messages" })}
                 </EditorButton>
               )}
             </FlexRow>

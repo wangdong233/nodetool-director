@@ -338,7 +338,7 @@ export const useVideoSetupFlow = ({
         primaryLabel: planIsCurrent
           ? i18n.t("storyboard:attrs.continueToTheBeats", { defaultValue: "Continue to the beats" })
           : hasPlan
-            ? "Re-plan the beats"
+            ? i18n.t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" })
             : i18n.t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
         canAdvance:
           videoFormatById(formatId) !== null && director.model !== null,

@@ -129,8 +129,8 @@ const AssetItemContextMenu = () => {
         : asset.content_type.startsWith("video/")
         ? i18n.t("editor:ui.videoInfo", { defaultValue: "Video info" })
         : asset.content_type.startsWith("audio/")
-        ? "Audio info"
-        : "Content";
+        ? i18n.t("editor:ui.audioInfo", { defaultValue: "Audio info" })
+        : i18n.t("editor:ui.content", { defaultValue: "Content" });
 
       addNotification({
         type: "success",

@@ -756,11 +756,11 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                 {badges.map((b) => {
                   const tooltipTitle =
                     b.label === "HF"
-                      ? "HuggingFace: Models from the Hugging Face Hub."
+                      ? i18n.t("editor:ui.huggingfaceModelsFromTheHuggingFaceHub", { defaultValue: "HuggingFace: Models from the Hugging Face Hub." })
                       : b.label === "Local"
-                        ? "Local: Runs locally on your machine."
+                        ? i18n.t("editor:ui.localRunsLocallyOnYourMachine", { defaultValue: "Local: Runs locally on your machine." })
                         : b.label === "Server"
-                          ? "Server: Runs on the configured NodeTool server."
+                          ? i18n.t("editor:ui.serverRunsOnTheConfiguredNodetoolServer", { defaultValue: "Server: Runs on the configured NodeTool server." })
                           : b.label === "Unavailable"
                             ? i18n.t("editor:ui.unavailableNoReadyExecutionTargetWasReported", { defaultValue: "Unavailable: No ready execution target was reported." })
                             : "API: Input is sent to the provider. Provider billing applies.";
@@ -959,7 +959,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                         sx={{ mr: 1 }}
                         onClick={handleStopPropagation}
                       >
-                        <Tooltip className="model-menu__provider-missing-key-tooltip" title="API key required">
+                        <Tooltip className="model-menu__provider-missing-key-tooltip" title={i18n.t("editor:ui.apiKeyRequired", { defaultValue: "API key required" })}>
                           <InfoOutlinedIcon
                             className="model-menu__provider-missing-key-icon"
                             sx={{

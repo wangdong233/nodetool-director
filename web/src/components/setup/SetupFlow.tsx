@@ -534,8 +534,8 @@ export function SetupFlow<Stage extends string>({
               </AlertBanner>
               <Text size="normal" color="secondary">
                 {canceling
-                  ? "Stopping the canceled request before retry is available."
-                  : "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft."}
+                  ? i18n.t("storyboard:attrs.stoppingTheCanceledRequestBeforeRetryIsAvailable", { defaultValue: "Stopping the canceled request before retry is available." })
+                  : i18n.t("storyboard:attrs.retryWhenYouAreReadyANewRequestWillBeStartedDeliberatelyAndTheCanceledRequestCannotReplaceThisDraft", { defaultValue: "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft." })}
               </Text>
             </FlexColumn>
           ) : error ? (

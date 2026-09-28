@@ -683,7 +683,19 @@
     "textContent": "文字内容",
     "textShadowColor": "文字阴影色",
     "textStrokeColor": "文字描边色",
-    "wipe": "擦除"
+    "wipe": "擦除",
+    "unspecified": "未指定",
+    "hook": "钩子",
+    "problem": "痛点",
+    "demonstration": "演示",
+    "proof": "佐证",
+    "actorToCamera": "演员对镜头",
+    "lifestyleBRoll": "生活方式空镜",
+    "generatedScene": "生成场景",
+    "addVoiceoverOrDialogueBeforeChoosingASpeechMode": "请先添加旁白或对白,再选择语音模式。",
+    "boundToAScriptLineEditTheWordsAndTheVoiceInScript": "已绑定到脚本台词。请在脚本中编辑台词与配音。",
+    "boundToARecordedAudioTake": "已绑定到录制的音频。",
+    "onCameraSpeechIsUnavailableInThisGuidedFlowChooseOffCameraOrNone": "引导流程不支持出镜语音。请选择画外音或无。"
   },
   "shortcuts": {
     "tools": "工具",

@@ -70,10 +70,10 @@ function ConflictRow({
   const hasDetail = conflict.detail != null;
   const toggleLabel = hasDraft
     ? showDetail
-      ? "Hide diff"
+      ? i18n.t("editor:ui.hideDiff", { defaultValue: "Hide diff" })
       : i18n.t("editor:ui.viewDiff", { defaultValue: "View diff" })
     : showDetail
-      ? "Hide external value"
+      ? i18n.t("editor:ui.hideExternalValue", { defaultValue: "Hide external value" })
       : i18n.t("editor:ui.viewExternalValue", { defaultValue: "View external value" });
   return (
     <FlexColumn gap={0.25}>

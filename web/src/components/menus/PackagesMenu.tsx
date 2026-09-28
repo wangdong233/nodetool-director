@@ -586,9 +586,9 @@ function PackagesMenu() {
             })}
           >
             <Text size="small" color="secondary">
-              No node packs discovered. Install one with{" "}
+              {i18n.t("editor:ui.noNodePacksDiscoveredInstallOneWith", { defaultValue: "No node packs discovered. Install one with " })}{" "}
               <code>npm install &lt;pack&gt;</code>
-              {isElectron ? " or via the field above." : "."}
+              {isElectron ? i18n.t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
             </Text>
           </FlexRow>
         ) : (

@@ -295,7 +295,7 @@ function ModelList<TModel extends ModelSelectorModel>({
             : !providerEnabled
               ? i18n.t("editor:ui.enableProviderInTheLeftSidebarToUseThisModel", { defaultValue: "Enable provider in the left sidebar to use this model" })
               : !hasKey
-                ? "Add API key in Settings to use this model"
+                ? i18n.t("editor:ui.addApiKeyInSettingsToUseThisModel", { defaultValue: "Add API key in Settings to use this model" })
                 : "";
       return (
         <Tooltip disableInteractive title={tooltipTitle}>

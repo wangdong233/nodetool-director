@@ -27,15 +27,15 @@ const AVAILABILITY_FILTERS: {
   labelKey?: string;
   color: "default" | "success" | "warning";
 }[] = [
-  { value: "all", label: "All", color: "default" },
-  { value: "ready", label: "Ready", color: "success" },
+  { value: "all", label: "All", labelKey: "editor:ui.all", color: "default" },
+  { value: "ready", label: "Ready", labelKey: "editor:ui.ready", color: "success" },
   {
     value: "download_required",
     label: "Download required",
     labelKey: "editor:ui.downloadRequired",
     color: "warning"
   },
-  { value: "unavailable", label: "Unavailable", color: "default" }
+  { value: "unavailable", label: "Unavailable", labelKey: "editor:ui.unavailable", color: "default" }
 ];
 
 interface FilterRowProps {
@@ -181,7 +181,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => (value === 0 ? "All" : `${value} GB`)}
+            valueLabelFormat={(value) => (value === 0 ? i18n.t("editor:ui.all", { defaultValue: "All" }) : `${value} GB`)}
             step={1}
             min={0}
             max={50}
@@ -196,7 +196,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             borderRadius: BORDER_RADIUS.sm
           }}
         >
-          {maxModelSizeGB === 0 ? "All sizes" : `${maxModelSizeGB} GB`}
+          {maxModelSizeGB === 0 ? i18n.t("editor:ui.allSizes", { defaultValue: "All sizes" }) : `${maxModelSizeGB} GB`}
         </Text>
       </FilterRow>
     </Box>

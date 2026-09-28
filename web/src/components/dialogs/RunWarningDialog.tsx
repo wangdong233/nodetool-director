@@ -39,12 +39,12 @@ const RunWarningDialog: React.FC = () => {
       onClose={handleCancel}
       title={
         isConcurrent
-          ? "Start another entire workflow run?"
-          : "Run the entire workflow?"
+          ? i18n.t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" })
+          : i18n.t("editor:ui.runTheEntireWorkflow", { defaultValue: "Run the entire workflow?" })
       }
       onConfirm={handleConfirm}
       onCancel={handleCancel}
-      confirmText={isConcurrent ? "Start second run" : "Run anyway"}
+      confirmText={isConcurrent ? i18n.t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : i18n.t("editor:ui.runAnyway", { defaultValue: "Run anyway" })}
       cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       content={
         <FlexColumn gap={1.5}>

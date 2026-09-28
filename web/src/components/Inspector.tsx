@@ -504,7 +504,7 @@ const ValidationErrorBanner: React.FC<ValidationErrorBannerProps> = ({
     <div className="validation-banner" role="alert">
       <div className="validation-banner-title">
         <WarningAmberOutlinedIcon fontSize="small" />
-        {errors.length === 1 ? "1 issue" : `${errors.length} issues`} to fix
+        {errors.length === 1 ? i18n.t("editor:ui.oneIssueToFix", { defaultValue: "1 issue to fix" }) : i18n.t("editor:ui.nIssuesToFix", { defaultValue: "{{n}} issues to fix", n: errors.length })}
       </div>
       {errors.map((err) => (
         <button

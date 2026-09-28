@@ -377,7 +377,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     aria-controls={expanded ? keyFieldId : undefined}
                     onClick={() => setExpanded((v) => !v)}
                   >
-                    {provider.oauth ? "Use API key" : "Add API key"}
+                    {provider.oauth ? i18n.t("editor:ui.useApiKey", { defaultValue: "Use API key" }) : i18n.t("editor:ui.addApiKey", { defaultValue: "Add API key" })}
                   </EditorButton>
                 )}
               </>

@@ -329,7 +329,7 @@ export const EntitiesStep = ({
             {suggesting
               ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
               : suggestions.length > 0
-                ? "Refresh suggestions"
+                ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
                 : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
           </EditorButton>
         </FlexRow>
@@ -501,7 +501,7 @@ export const EntitiesStep = ({
                   }
                   description={
                     onlySelected && !query
-                      ? "Browse your library to choose references for this storyboard."
+                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
                       : i18n.t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
                   }
                   size="small"

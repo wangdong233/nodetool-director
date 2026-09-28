@@ -211,9 +211,9 @@ export const ReferenceStep = ({
           disabled={assetsLoading || assetsError}
         >
           {assetsError
-            ? "Assets unavailable"
+            ? i18n.t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" })
             : assetsLoading
-              ? "Loading assets"
+              ? i18n.t("editor:explorer.loading", { defaultValue: "Loading assets" })
               : assetId
                 ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
                 : i18n.t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}

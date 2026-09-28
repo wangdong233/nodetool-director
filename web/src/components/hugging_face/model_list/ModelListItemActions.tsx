@@ -128,8 +128,8 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
         <Tooltip
           title={
             handleShowInExplorer && !isProduction && isElectron
-              ? "Show in Explorer"
-              : "Downloaded"
+              ? i18n.t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" })
+              : i18n.t("editor:ui.downloaded", { defaultValue: "Downloaded" })
           }
           delay={TOOLTIP_ENTER_DELAY * 2}
           nextDelay={TOOLTIP_ENTER_NEXT_DELAY}

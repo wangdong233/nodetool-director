@@ -77,7 +77,7 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? "Hide console" : "Show console"}
+          {open ? i18n.t("editor:ui.hideConsole", { defaultValue: "Hide console" }) : i18n.t("editor:ui.showConsole", { defaultValue: "Show console" })}
           {lines.length > 0 ? ` (${lines.length})` : ""}
         </EditorButton>
         {open && lines.length > 0 && (

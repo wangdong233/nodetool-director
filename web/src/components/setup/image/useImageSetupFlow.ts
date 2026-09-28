@@ -101,7 +101,7 @@ export const useImageSetupFlow = ({
     const refinedOk = await expandBrief();
     if (!refinedOk) {
       throw new Error(
-        refineErrorRef.current ?? "The model did not return a brief."
+        refineErrorRef.current ?? i18n.t("storyboard:attrs.theModelDidNotReturnABrief", { defaultValue: "The model did not return a brief." })
       );
     }
   }, [expandBrief]);
@@ -164,7 +164,7 @@ export const useImageSetupFlow = ({
         canAdvance: (useCase ?? "").length > 0,
         blockedReason: "Pick an image use case",
         pending: refining,
-        pendingLabel: "Refining the brief",
+        pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
         generation: briefIsCurrent ? undefined : refineSummary,
         footerControls: (context) =>
           createElement(BriefModelFooterField, { readOnly: context.readOnly }),
@@ -183,7 +183,7 @@ export const useImageSetupFlow = ({
         // The shell reads it too, so nothing moves the creator on while the
         // brief they are reading is being replaced (F2).
         pending: refining,
-        pendingLabel: "Refining the brief",
+        pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
         render: () =>
           createElement(ReviewStep, {
             onReRefine: reRefine,
@@ -197,7 +197,7 @@ export const useImageSetupFlow = ({
       {
         stage: "look",
         label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
-        primaryLabel: "Generate your image",
+        primaryLabel: i18n.t("storyboard:attrs.generateYourImage", { defaultValue: "Generate your image" }),
         canAdvance: look.canAdvance,
         blockedReason: look.blockedReason,
         primaryDetail: look.primaryDetail,

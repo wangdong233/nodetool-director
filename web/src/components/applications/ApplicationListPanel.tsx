@@ -328,8 +328,8 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
           icon={DashboardCustomizeOutlinedIcon}
           secondary={
             app.operationCount === 1
-              ? "1 operation"
-              : `${app.operationCount} operations`
+              ? i18n.t("editor:ui.oneOperation", { defaultValue: "1 operation" })
+              : i18n.t("editor:ui.nOperations", { defaultValue: "{{n}} operations", n: app.operationCount })
           }
           active={app.id === activeApplicationId}
           editing={app.id === editingId}

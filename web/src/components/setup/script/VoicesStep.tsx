@@ -300,17 +300,17 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             aria-label={
               selectedVoice
                 ? `Hear ${selectedVoice.label} for ${speaker.name}`
-                : `Hear voice for ${speaker.name}`
+                : i18n.t("storyboard:attrs.hearVoiceForName", { defaultValue: "Hear voice for {{name}}", name: speaker.name })
             }
             onClick={() => {
               if (selectedVoice) void play(selectedVoice, line);
             }}
           >
             {sample?.pending
-              ? "Generating sample"
+              ? i18n.t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" })
               : selectedVoice
-                ? `Hear ${selectedVoice.label}`
-                : "Hear voice"}
+                ? i18n.t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: selectedVoice.label })
+                : i18n.t("storyboard:attrs.hearVoice", { defaultValue: "Hear voice" })}
           </EditorButton>
         ) : null}
       </FlexRow>

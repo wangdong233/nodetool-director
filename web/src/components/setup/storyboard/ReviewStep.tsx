@@ -497,7 +497,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             disabled={rewriting}
             onClick={onRewrite}
           >
-            {rewriting ? "Rewriting screenplay…" : "Rewrite from brief"}
+            {rewriting ? i18n.t("storyboard:attrs.rewritingScreenplay", { defaultValue: "Rewriting screenplay…" }) : i18n.t("storyboard:attrs.rewriteFromBrief", { defaultValue: "Rewrite from brief" })}
           </EditorButton>
         </FlexRow>
         <Suspense

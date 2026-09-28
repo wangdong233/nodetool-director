@@ -356,34 +356,34 @@ const PropertyContextMenuComponent: React.FC = () => {
             onClick={handleToggleExposedInput}
             label={
               isExposedHandle
-                ? "Hide Input Handle (Top)"
-                : "Show As Input Handle (Top)"
+                ? i18n.t("editor:ui.hideInputHandleTop", { defaultValue: "Hide Input Handle (Top)" })
+                : i18n.t("editor:ui.showAsInputHandleTop", { defaultValue: "Show As Input Handle (Top)" })
             }
             addButtonClassName="toggle-exposed-input"
             IconComponent={<ArrowForwardIcon />}
             tooltip={
               isExposedHandle
                 ? isConnected
-                  ? "Hide top input handle (disconnects edge)"
-                  : "Hide top input handle"
-                : "Show as handle on the left/top of the node (no label)"
+                  ? i18n.t("editor:ui.hideTopInputHandleDisconnectsEdge", { defaultValue: "Hide top input handle (disconnects edge)" })
+                  : i18n.t("editor:ui.hideTopInputHandle", { defaultValue: "Hide top input handle" })
+                : i18n.t("editor:ui.showAsHandleOnTheLeftTopOfTheNodeNoLabel", { defaultValue: "Show as handle on the left/top of the node (no label)" })
             }
           />
           <ContextMenuItem
             onClick={handleToggleExposedInputLabeled}
             label={
               isExposedLabeled
-                ? "Hide Labeled Input (Bottom)"
-                : "Show Labeled Input (Bottom)"
+                ? i18n.t("editor:ui.hideLabeledInputBottom", { defaultValue: "Hide Labeled Input (Bottom)" })
+                : i18n.t("editor:ui.showLabeledInputBottom", { defaultValue: "Show Labeled Input (Bottom)" })
             }
             addButtonClassName="toggle-exposed-input-labeled"
             IconComponent={<ArrowForwardIcon />}
             tooltip={
               isExposedLabeled
                 ? isConnected
-                  ? "Hide labeled input at bottom (disconnects edge)"
-                  : "Hide labeled input at bottom"
-                : "Show input at bottom with parameter title and editor"
+                  ? i18n.t("editor:ui.hideLabeledInputAtBottomDisconnectsEdge", { defaultValue: "Hide labeled input at bottom (disconnects edge)" })
+                  : i18n.t("editor:ui.hideLabeledInputAtBottom", { defaultValue: "Hide labeled input at bottom" })
+                : i18n.t("editor:ui.showInputAtBottomWithParameterTitleAndEditor", { defaultValue: "Show input at bottom with parameter title and editor" })
             }
           />
         </>

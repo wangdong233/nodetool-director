@@ -112,7 +112,7 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
       title={i18n.t("editor:ui.addYourOwnStyle", { defaultValue: "Add your own style" })}
       showActions
       onConfirm={handleSubmit}
-      confirmText={saving ? "Reading your references…" : "Add style"}
+      confirmText={saving ? i18n.t("storyboard:attrs.readingYourReferences", { defaultValue: "Reading your references…" }) : i18n.t("storyboard:attrs.addStyle", { defaultValue: "Add style" })}
       isLoading={saving}
       confirmDisabled={saving || files.length === 0}
       cancelDisabled={saving}

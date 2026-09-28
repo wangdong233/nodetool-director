@@ -31,7 +31,7 @@ const ProviderOnboardingDialog: React.FC = () => {
   );
   const providers = useMemo(() => providersForCapability(capability), [capability]);
   const groups = [
-    { title: "Sign in with your account", providers: providers.filter((p) => p.oauth) },
+    { title: i18n.t("editor:ui.signInWithYourAccount", { defaultValue: "Sign in with your account" }), providers: providers.filter((p) => p.oauth) },
     { title: i18n.t("editor:ui.useAnAPIKey", { defaultValue: "Use an API key" }), providers: providers.filter((p) => !p.oauth) }
   ];
   const showLocal = (isElectron || isLocalhost) &&

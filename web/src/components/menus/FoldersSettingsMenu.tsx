@@ -288,7 +288,7 @@ const FoldersSettings = () => {
               <div className="save-button-container">
                 <NavButton
                   icon={<SaveIcon />}
-                  label="SAVE FOLDER SETTINGS"
+                  label={i18n.t("editor:ui.saveFolderSettings", { defaultValue: "SAVE FOLDER SETTINGS" })}
                   onClick={handleSave}
                   color="primary"
                   className="save-button"

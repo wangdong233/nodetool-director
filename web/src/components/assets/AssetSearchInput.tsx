@@ -373,8 +373,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   }, [focusOnTyping, debouncedSetSearchTerm]);
 
   const effectivePlaceholder = isGlobalSearchMode
-    ? "Search all assets..."
-    : "Search current folder...";
+    ? i18n.t("editor:ui.searchAllAssets", { defaultValue: "Search all assets..." })
+    : i18n.t("editor:ui.searchCurrentFolder", { defaultValue: "Search current folder..." });
 
   return (
     <div
@@ -393,8 +393,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
       <Tooltip
         title={
           isGlobalSearchMode
-            ? "Switch to local search"
-            : "Switch to global search"
+            ? i18n.t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" })
+            : i18n.t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" })
         }
       >
         <button
@@ -412,7 +412,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
 
       <input
         id="asset-search-input"
-        aria-label={isGlobalSearchMode ? "Search all assets" : "Search current folder"}
+        aria-label={isGlobalSearchMode ? i18n.t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : i18n.t("editor:ui.searchCurrentFolder2", { defaultValue: "Search current folder" })}
         className="search-input"
         ref={inputRef}
         type="text"

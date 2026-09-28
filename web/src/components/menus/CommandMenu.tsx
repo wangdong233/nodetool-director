@@ -566,7 +566,7 @@ const ViewCommands = memo(function ViewCommands() {
         onSelect={() => executeAndClose(toggleVisible)}
       >
         {visible ? <MapOutlinedIcon /> : <MapRoundedIcon />}
-        {visible ? "Hide Mini Map" : "Show Mini Map"}
+        {visible ? i18n.t("editor:ui.hideMiniMap", { defaultValue: "Hide Mini Map" }) : i18n.t("editor:ui.showMiniMap", { defaultValue: "Show Mini Map" })}
       </Command.Item>
       <Command.Item
         onSelect={() => executeAndClose(() => setSnapToGrid(!snapToGrid))}

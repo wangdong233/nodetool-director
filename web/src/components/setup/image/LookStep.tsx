@@ -228,7 +228,7 @@ export function useLookStep(): LookStepControls {
 
   const blockedReason =
     availability === "loading"
-      ? "Loading the image models"
+      ? i18n.t("storyboard:attrs.loadingTheImageModels", { defaultValue: "Loading the image models…" })
       : availability === "error"
         ? i18n.t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" })
         : availability === "no-provider"

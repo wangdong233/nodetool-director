@@ -42,12 +42,12 @@ interface ModelListHeaderProps {
   workerSupported: boolean;
 }
 
-const SORT_OPTIONS: { value: ModelSortField; label: string }[] = [
-  { value: "fit", label: "Best fit" },
-  { value: "name", label: "Name" },
-  { value: "size", label: "Size" },
-  { value: "downloads", label: "Downloads" },
-  { value: "likes", label: "Likes" }
+const SORT_OPTIONS: { value: ModelSortField; label: string; labelKey?: string }[] = [
+  { value: "fit", label: "Best fit", labelKey: "editor:ui.bestFit" },
+  { value: "name", label: "Name", labelKey: "appbuilder:attrs.name" },
+  { value: "size", label: "Size", labelKey: "ui2:attrs.size" },
+  { value: "downloads", label: "Downloads", labelKey: "nav:rail.downloads" },
+  { value: "likes", label: "Likes", labelKey: "editor:ui.likes" }
 ];
 
 /**
@@ -198,7 +198,7 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
 
         <FlexRow align="center" gap={SPACING.xs}>
           <Text size="small" color="secondary" sx={{ whiteSpace: "nowrap" }}>
-            Sort
+            {i18n.t("editor:ui.sort", { defaultValue: "Sort" })}
           </Text>
           <Box sx={toolbarSelectSx(theme)}>
             <SelectField
@@ -207,7 +207,10 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
               variant="outlined"
               value={sortField}
               onChange={handleSortFieldChange}
-              options={SORT_OPTIONS}
+              options={SORT_OPTIONS.map(({ value, label, labelKey }) => ({
+                value,
+                label: labelKey ? i18n.t(labelKey, { defaultValue: label }) : label
+              }))}
             />
           </Box>
           <ToolbarIconButton

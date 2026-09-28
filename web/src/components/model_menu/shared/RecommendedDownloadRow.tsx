@@ -171,8 +171,8 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
           <Tooltip
             title={
               model.size_on_disk
-                ? `Download ${formatBytes(model.size_on_disk)} to ${targetLabel ?? "this computer"}`
-                : `Downloads to ${targetLabel ?? "this computer"}`
+                ? i18n.t("editor:ui.downloadNToTarget", { defaultValue: "Download {{size}} to {{target}}", size: formatBytes(model.size_on_disk), target: targetLabel ?? i18n.t("editor:ui.thisComputer", { defaultValue: "this computer" }) })
+                : i18n.t("editor:ui.downloadsToTarget", { defaultValue: "Downloads to {{target}}", target: targetLabel ?? i18n.t("editor:ui.thisComputer", { defaultValue: "this computer" }) })
             }
           >
             <EditorButton

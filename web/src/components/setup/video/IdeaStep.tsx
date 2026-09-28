@@ -305,7 +305,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       <ResponsiveImage
                         locator={reference.uri}
                         preferThumbnail
-                        alt={reference.name ?? "Reference image"}
+                        alt={reference.name ?? i18n.t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
                         fit="cover"
                         borderRadius={BORDER_RADIUS.sm}
                         showErrorFallback
@@ -317,7 +317,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       <Caption color="secondary">
                         {binding
                           ? `${binding.kind} conditioning`
-                          : "inspiration only"}
+                          : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
                       </Caption>
                     </FlexColumn>
                   );
@@ -332,7 +332,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     label={`${entity.name} · ${
                       creativeContext?.reference_bindings?.find(
                         (binding) => binding.entity_id === entity.id
-                      )?.kind ?? "inspiration only"
+                      )?.kind ?? i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
                     }`}
                     size="small"
                   />

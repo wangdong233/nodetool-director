@@ -683,7 +683,19 @@
     "textContent": "Text content",
     "textShadowColor": "Text shadow color",
     "textStrokeColor": "Text stroke color",
-    "wipe": "Wipe"
+    "wipe": "Wipe",
+    "unspecified": "Unspecified",
+    "hook": "Hook",
+    "problem": "Problem",
+    "demonstration": "Demonstration",
+    "proof": "Proof",
+    "actorToCamera": "Actor to camera",
+    "lifestyleBRoll": "Lifestyle B-roll",
+    "generatedScene": "Generated scene",
+    "addVoiceoverOrDialogueBeforeChoosingASpeechMode": "Add voiceover or dialogue before choosing a speech mode.",
+    "boundToAScriptLineEditTheWordsAndTheVoiceInScript": "Bound to a Script line. Edit the words and the voice in Script.",
+    "boundToARecordedAudioTake": "Bound to a recorded audio take.",
+    "onCameraSpeechIsUnavailableInThisGuidedFlowChooseOffCameraOrNone": "On-camera speech is unavailable in this guided flow. Choose Off-camera or None."
   },
   "shortcuts": {
     "tools": "Tools",

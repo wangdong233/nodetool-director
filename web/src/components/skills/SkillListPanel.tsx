@@ -203,11 +203,11 @@ const SkillListPanel = () => {
         id={skill.id}
         name={skill.name}
         fallbackName="Untitled skill"
-        renameLabel="Skill name"
+        renameLabel={i18n.t("editor:ui.skillName", { defaultValue: "Skill name" })}
         // A lock, and "Built in" under the name: enough to tell the two apart
         // at a glance without a second list or a heading.
         icon={skill.system ? LockOutlinedIcon : AutoAwesomeIcon}
-        secondary={skill.system ? "Built in" : undefined}
+        secondary={skill.system ? i18n.t("editor:ui.builtIn", { defaultValue: "Built in" }) : undefined}
         active={skill.id === activeSkillId}
         editing={!skill.system && skill.id === editingId}
         onOpen={handleOpen}

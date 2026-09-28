@@ -7,6 +7,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import type { NodeMetadata, Workflow } from "../../stores/ApiTypes";
 import type { ChainNode, ChainConnection, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible, autoMapInputs, buildConnections, chainToGraph } from "./chainTypes";
+import { i18n } from "../../i18n";
 
 function generateId(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -353,7 +354,7 @@ export const useChainEditorStore = create<ChainEditorState>((set, get) => ({
   },
 
   newWorkflow: (name) => {
-    set({ chain: [], connections: [], workflowId: null, workflowName: name ?? "Untitled Workflow" });
+    set({ chain: [], connections: [], workflowId: null, workflowName: name ?? i18n.t("editor:ui.untitledWorkflow", { defaultValue: "Untitled workflow" }) });
   },
 
   setWorkflowName: (name) => {

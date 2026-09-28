@@ -221,17 +221,17 @@ const verificationLine = (
     case "failed":
       return {
         label: i18n.t("editor:ui.verificationFailed", { defaultValue: "Verification failed" }),
-        detail: verification.reason ?? "Godot rejected the exported project"
+        detail: verification.reason ?? i18n.t("storyboard:attrs.godotRejectedTheExportedProject", { defaultValue: "Godot rejected the exported project" })
       };
     case "unavailable":
       return missingGodot(verification.reason)
         ? {
-            label: `Godot not found on this server — open the folder in Godot ${godot} to verify`,
-            detail: verification.reason ?? "Godot verification is unavailable"
+            label: i18n.t("storyboard:attrs.godotNotFoundOnThisServerOpenTheFolderInGodotToVerify", { defaultValue: "Godot not found on this server — open the folder in Godot {{version}} to verify", version: godot }),
+            detail: verification.reason ?? i18n.t("storyboard:attrs.godotVerificationIsUnavailable", { defaultValue: "Godot verification is unavailable" })
           }
         : {
             label: i18n.t("editor:ui.verificationUnavailable", { defaultValue: "Verification unavailable" }),
-            detail: verification.reason ?? "Godot verification could not run"
+            detail: verification.reason ?? i18n.t("storyboard:attrs.godotVerificationCouldNotRun", { defaultValue: "Godot verification could not run" })
           };
     case "interrupted":
       return {

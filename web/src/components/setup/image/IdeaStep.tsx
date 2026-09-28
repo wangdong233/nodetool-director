@@ -104,10 +104,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         id: "upload",
         title: i18n.t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" }),
         description:
-          "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF.",
+          i18n.t("storyboard:attrs.opensTheEditorImmediatelyWithYourImageAsTheFirstLayerSkipsTheGuidedBriefPngJpegWebpOrGif", { defaultValue: "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF." }),
         onSelect: () => fileInput.current?.click(),
         disabled: upload.uploading,
-        disabledReason: upload.uploading ? "Reading your file…" : undefined
+        disabledReason: upload.uploading ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
