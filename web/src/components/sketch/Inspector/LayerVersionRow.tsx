@@ -171,8 +171,8 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
           onClose={handleDeleteCancel}
           title={i18n.t("editor:ui.Delete version", { defaultValue: "Delete version?" })}
           onConfirm={handleDeleteConfirm}
-          confirmText="Delete"
-          cancelText="Cancel"
+          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
           destructive
         >
           This version will be permanently removed. The underlying job and asset

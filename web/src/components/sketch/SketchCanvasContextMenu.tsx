@@ -167,7 +167,11 @@ const ToolGridButton = memo(function ToolGridButton({
     <ButtonBase
       onClick={onClick}
       onDoubleClick={onDoubleClick}
-      aria-label={definition.label}
+      aria-label={
+        definition.labelKey
+          ? i18n.t(definition.labelKey, { defaultValue: definition.label })
+          : definition.label
+      }
       sx={{
         position: "relative",
         minHeight: compact ? 44 : 64,
@@ -205,7 +209,11 @@ const ToolGridButton = memo(function ToolGridButton({
         compact={compact}
         selected={selected}
         shortcut={shortcut || undefined}
-        label={definition.label}
+        label={
+          definition.labelKey
+            ? i18n.t(definition.labelKey, { defaultValue: definition.label })
+            : definition.label
+        }
         icon={
           <Icon
             sx={{
@@ -498,7 +506,11 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
         <SketchToolIconLabel
           className="sketch-context-menu__header-tool"
           direction="row"
-          label={activeDefinition.label}
+          label={
+            activeDefinition.labelKey
+              ? i18n.t(activeDefinition.labelKey, { defaultValue: activeDefinition.label })
+              : activeDefinition.label
+          }
           icon={<ActiveIcon sx={{ fontSize: 22 }} />}
           sx={{ flex: "0 1 auto", minWidth: 0 }}
         />

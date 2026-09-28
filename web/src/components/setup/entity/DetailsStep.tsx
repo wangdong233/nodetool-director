@@ -18,27 +18,37 @@ import {
 const ENTITY_KINDS: readonly {
   id: EntityKind;
   title: string;
+  titleKey?: string;
   description: string;
+  descriptionKey?: string;
 }[] = [
   {
     id: "character",
     title: "Character",
-    description: "A person or creature that stays recognizable."
+    titleKey: "storyboard:attrs.character",
+    description: "A person or creature that stays recognizable.",
+    descriptionKey: "storyboard:attrs.personOrCreatureStaysRecognizable"
   },
   {
     id: "location",
     title: "Location",
-    description: "A place with a consistent setting and atmosphere."
+    titleKey: "storyboard:attrs.location",
+    description: "A place with a consistent setting and atmosphere.",
+    descriptionKey: "storyboard:attrs.placeWithConsistentSetting"
   },
   {
     id: "style",
     title: "Style",
-    description: "A visual language to apply across generations."
+    titleKey: "storyboard:attrs.style",
+    description: "A visual language to apply across generations.",
+    descriptionKey: "storyboard:attrs.visualLanguageAcrossGenerations"
   },
   {
     id: "prop",
     title: "Prop",
-    description: "A product or object that should keep its appearance."
+    titleKey: "storyboard:attrs.prop",
+    description: "A product or object that should keep its appearance.",
+    descriptionKey: "storyboard:attrs.productOrObjectKeepsAppearance"
   }
 ];
 
@@ -115,12 +125,12 @@ export const DetailsStep = ({
       />
       <TextInput
         label={i18n.t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
-        helperText="This text is added to every prompt that uses the entity. Describe only stable visual traits."
+        helperText={i18n.t("storyboard:attrs.addedToEveryPromptStableTraits", { defaultValue: "This text is added to every prompt that uses the entity. Describe only stable visual traits." })}
         value={value.descriptor}
         onChange={(event) =>
           onChange({ ...value, descriptor: event.target.value })
         }
-        placeholder="A young astronaut with cropped black hair and a worn orange flight suit"
+        placeholder={i18n.t("storyboard:attrs.youngAstronautExample", { defaultValue: "A young astronaut with cropped black hair and a worn orange flight suit" })}
         multiline
         rows={4}
       />
@@ -128,7 +138,7 @@ export const DetailsStep = ({
         label={i18n.t("storyboard:attrs.tagsOptional", { defaultValue: "Tags (optional)" })}
         value={value.tags}
         onChange={(event) => onChange({ ...value, tags: event.target.value })}
-        placeholder="hero, space"
+        placeholder={i18n.t("storyboard:attrs.heroSpace", { defaultValue: "hero, space" })}
       />
     </FlexColumn>
     {onStartBlank === undefined ? null : (
@@ -137,7 +147,7 @@ export const DetailsStep = ({
         alternatives={[
           {
             id: "blank",
-            title: "Start with a blank reference",
+            title: i18n.t("storyboard:attrs.startWithBlankReference", { defaultValue: "Start with a blank reference" }),
             description:
               "A plain canvas as the reference image — fill the details yourself",
             onSelect: onStartBlank,

@@ -47,6 +47,13 @@ function bindingToShortcut(entry: BindingEntry, index: number): Shortcut {
   };
 }
 
+/** Full `ns:key` for the scope descriptions above; pure data, resolved at render. */
+export const SKETCH_SHORTCUT_DESCRIPTION_KEYS: Readonly<Record<string, string>> = {
+  "While the transform tool is active": "sketch:attrs.whileTransformToolActive",
+  "While the crop tool is active": "sketch:attrs.whileCropToolActive",
+  "When focus is in the Layers panel": "sketch:attrs.whenFocusInLayersPanel"
+};
+
 /** Shortcut rows for {@link KeyboardShortcutsView} in the image editor. */
 export const SKETCH_KEYBOARD_SHORTCUTS: Shortcut[] = BINDING_CATALOG.map(
   (entry, index) => bindingToShortcut(entry, index)

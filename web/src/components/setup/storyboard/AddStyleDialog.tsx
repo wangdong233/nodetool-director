@@ -116,7 +116,7 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
       isLoading={saving}
       confirmDisabled={saving || files.length === 0}
       cancelDisabled={saving}
-      cancelText="Cancel"
+      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       onCancel={handleCancel}
     >
       <FlexColumn gap={GAP.comfortable}>

@@ -295,7 +295,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     <CollapsibleSection
       title={
         <InspectorSectionTitle
-          title="AI Edit"
+          title={i18n.t("timeline:attrs.aiEdit", { defaultValue: "AI Edit" })}
           icon={<AutoAwesomeOutlinedIcon />}
         />
       }

@@ -59,6 +59,8 @@ const DEFAULT_RELEASE_MS = 150;
 
 interface PropertyPreset {
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   /** Where the curve rests and where it peaks, in the property's own units. */
   low: number;
   high: number;
@@ -77,6 +79,7 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   opacity: { label: "Opacity", low: 0.6, high: 1, scrub: { step: 0.01 } },
   offsetX: {
     label: "Position X",
+    labelKey: "timeline:attrs.positionX",
     low: -20,
     high: 20,
     unit: "px",
@@ -84,6 +87,7 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   },
   offsetY: {
     label: "Position Y",
+    labelKey: "timeline:attrs.positionY",
     low: -20,
     high: 20,
     unit: "px",
@@ -91,9 +95,17 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   }
 };
 
+/** Resolve a preset's label at render so zh lands (module table stays pure data). */
+const presetLabel = (property: AudioDriveProperty): string => {
+  const preset = PROPERTY_PRESETS[property];
+  return preset.labelKey
+    ? i18n.t(preset.labelKey, { defaultValue: preset.label })
+    : preset.label;
+};
+
 const PROPERTY_OPTIONS = AUDIO_DRIVE_PROPERTIES.map((property) => ({
   value: property,
-  label: PROPERTY_PRESETS[property].label
+  label: property
 }));
 
 const SCRUB_SENSITIVITY = { step: 0.05, min: 0.25, max: 4 };
@@ -397,7 +409,10 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                 <InspectorSelect
                   label={i18n.t("timeline:attrs.propertyToDrive", { defaultValue: "Property to drive" })}
                   value={property}
-                  options={PROPERTY_OPTIONS}
+                  options={PROPERTY_OPTIONS.map((o) => ({
+                    ...o,
+                    label: presetLabel(o.value as AudioDriveProperty)
+                  }))}
                   onChange={handleProperty}
                   disabled={pending}
                   grow
@@ -501,7 +516,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
               {previewPoints.length > 0 && (
                 <BakedCurvePreview
                   points={previewPoints}
-                  label={`${preset.label} from audio`}
+                  label={`${presetLabel(property)} from audio`}
                 />
               )}
             </>

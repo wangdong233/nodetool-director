@@ -174,16 +174,16 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "media",
-        title: "Drop your media",
-        description: "Video, audio and images land on the timeline in order",
+        title: i18n.t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" }),
+        description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
         disabledReason: importing ? "Uploading your files…" : undefined
       },
       {
         id: "script",
-        title: "Start from a script",
-        description: "Write the words first, then send them to the timeline",
+        title: i18n.t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
+        description: i18n.t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
         onSelect: onStartFromScript ?? (() => undefined),
         disabled: !onStartFromScript,
         disabledReason: onStartFromScript
@@ -192,8 +192,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: "Start with a blank timeline",
-        description: "Skip the plan and cut it yourself",
+        title: i18n.t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
+        description: i18n.t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
         onSelect: onStartBlank
       }
     ],

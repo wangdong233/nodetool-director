@@ -195,7 +195,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <PointerIcon />
       </ToolButton>
       <ToolButton
-        label="Cut"
+        label={i18n.t("common:action.cut", { defaultValue: "Cut" })}
         shortcut="C"
         active={activeTool === "cut"}
         compact={compact}

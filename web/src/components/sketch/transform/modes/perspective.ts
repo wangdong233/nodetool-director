@@ -24,6 +24,7 @@ const VISIBLE_HANDLES: readonly TransformHandle[] = [
 export const PerspectiveMode: TransformModeHandler = {
   id: "perspective",
   label: "Perspective",
+  labelKey: "sketch:attrs.perspective",
   tooltip:
     "Perform a four-point perspective transformation. Drag handles to apply perspective; Shift to constrain.",
   visibleInToolbar: true,

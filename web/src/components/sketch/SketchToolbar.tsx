@@ -93,7 +93,10 @@ const styles = (theme: Theme) =>
   });
 
 function renderToolButton(def: ToolDefinition, selectMode: SelectToolMode) {
-  const { tool, label, Icon } = def;
+  const { tool, Icon } = def;
+  const label = def.labelKey
+    ? i18n.t(def.labelKey, { defaultValue: def.label })
+    : def.label;
   const actionId = getToolShortcutActionId(tool, selectMode);
   const shortcut = actionId ? displayCombo(actionId) : "";
   const tooltipText = shortcut ? `${label} (${shortcut})` : label;

@@ -362,6 +362,7 @@ export class CropTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "crop",
   label: "Crop",
+  labelKey: "sketch:attrs.cropTool",
   Icon: CropIcon,
   group: "shape"
 };

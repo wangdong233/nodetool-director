@@ -316,6 +316,7 @@ export class FillTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "fill",
   label: "Fill",
+  labelKey: "ui2:attrs.fill",
   Icon: FormatColorFillIcon,
   group: "painting"
 };

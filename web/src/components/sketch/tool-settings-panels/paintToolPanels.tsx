@@ -137,23 +137,27 @@ interface StrokeAssistSettingsPanelProps<T extends StrokeAssistToolSettings> {
 const STROKE_ASSIST_PRESETS: Array<{
   value: Exclude<StrokeAssistPreset, "custom">;
   label: string;
+  labelKey?: string;
   tooltip: string;
 }> = [
   {
     value: "smooth",
     label: "Smooth",
+    labelKey: "editor:ui.smooth",
     tooltip:
       "Rolling-average stabilizer. Filters jitter while the tip keeps following the cursor — good for general drawing."
   },
   {
     value: "lazy",
     label: "Lazy",
+    labelKey: "sketch:attrs.lazy",
     tooltip:
       "Rope/leash. Tip stays still until the cursor exceeds a dead-zone radius, then trails behind in a straight line. Best for slow, deliberate inking."
   },
   {
     value: "inking",
     label: "Ink",
+    labelKey: "sketch:attrs.ink",
     tooltip:
       "Lazy leash + 45° angle snap. Long strokes lock to nearest 45° direction — for clean axis-aligned linework."
   }
@@ -244,9 +248,13 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
         >
           Off
         </SketchModeOption>
-        {STROKE_ASSIST_PRESETS.map(({ value, label, tooltip }) => (
-          <SketchModeOption key={value} value={value} title={tooltip}>
-            {label}
+        {STROKE_ASSIST_PRESETS.map(({ value, label, labelKey, tooltip }) => (
+          <SketchModeOption
+            key={value}
+            value={value}
+            title={tooltip}
+          >
+            {labelKey ? i18n.t(labelKey, { defaultValue: label }) : label}
           </SketchModeOption>
         ))}
         <SketchModeOption
@@ -608,7 +616,7 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
           </SketchModeOption>
           <SketchModeOption
             value="pencil"
-            title="Erase with crisp pencil dabs — follows the pencil tool's Pixel/Soft toggle."
+            title={i18n.t("sketch:attrs.eraseWithCrispPencilDabs", { defaultValue: "Erase with crisp pencil dabs — follows the pencil tool's Pixel/Soft toggle." })}
           >
             Pencil
           </SketchModeOption>

@@ -151,14 +151,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     rows: [
       {
         id: `${beat.id}-prompt`,
-        label: "Beat",
+        label: i18n.t("timeline:attrs.beat", { defaultValue: "Beat" }),
         value: beat.prompt,
         multiline: true,
         onChange: (value: string) => updateBeat(beat.id, { prompt: value })
       },
       {
         id: `${beat.id}-duration`,
-        label: "Seconds",
+        label: i18n.t("timeline:attrs.seconds", { defaultValue: "Seconds" }),
         value: lengths[beat.id] ?? secondsText(beat.duration_ms),
         placeholder: rangeText,
         compact: true,
@@ -167,7 +167,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-transition`,
-        label: "Transition",
+        label: i18n.t("timeline:attrs.transition", { defaultValue: "Transition" }),
         value: beat.transition ?? PLAIN_CUT,
         // A closed set the renderer already enumerates, so it is a select:
         // typed free text left the row holding a word the cut has no
@@ -182,13 +182,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-voiceover`,
-        label: "Voiceover",
+        label: i18n.t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" }),
         readOnly:
           !!beat.production?.speech_binding?.script_line_id ||
           !!beat.production?.speech_binding?.audio_asset_id,
         value: beat.voiceover ?? beat.production?.speech_binding?.text ?? "",
         multiline: true,
-        placeholder: "Leave empty for no line over this beat",
+        placeholder: i18n.t("timeline:attrs.leaveEmptyForNoLineOverBeat", { defaultValue: "Leave empty for no line over this beat" }),
         onChange: (value: string) => {
           const production =
             beat.production?.speech_binding?.text && value.trim()

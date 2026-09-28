@@ -318,17 +318,27 @@ PreviewRegion.displayName = "PreviewRegion";
 
 type InspectorTab = "inspector" | "source" | "instrument" | "agent" | "history" | "script";
 
-const INSPECTOR_TABS = [
+type InspectorTabDef = {
+  value: InspectorTab;
+  label?: string;
+  labelKey?: string;
+  labelDefault?: string;
+  icon: React.ReactElement;
+};
+
+const INSPECTOR_TABS: InspectorTabDef[] = [
   { value: "inspector", labelKey: "timeline:editor.inspector", labelDefault: "Inspector", icon: <TuneOutlinedIcon /> },
   { value: "instrument", labelKey: "timeline:editor.instruments", labelDefault: "Instruments", icon: <TuneOutlinedIcon /> },
   { value: "source", labelKey: "timeline:editor.source", labelDefault: "Source", icon: <MovieFilterOutlinedIcon /> },
   { value: "agent", labelKey: "timeline:editor.assistant", labelDefault: "Assistant", icon: <AutoAwesomeIcon /> },
-  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon /> } (i18n: timeline batch 2 — editor chrome (tabs resolved per render))
+  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon /> }
 ];
 
-const SCRIPT_TAB = {
+const SCRIPT_TAB: InspectorTabDef = {
   value: "script",
   label: "Script",
+  labelKey: "editor:ui.script",
+  labelDefault: "Script",
   icon: <SubtitlesOutlinedIcon fontSize="small" />
 };
 
@@ -453,10 +463,9 @@ const MobilePanelSheet: React.FC<{
     () =>
       availableTabs.map((t) => ({
         value: t.value,
-        label:
-          "labelKey" in t
-            ? i18n.t(t.labelKey, { defaultValue: t.labelDefault })
-            : t.label,
+        label: t.labelKey
+          ? i18n.t(t.labelKey, { defaultValue: t.labelDefault ?? t.label })
+          : (t.label ?? ""),
         icon: t.icon
       })),
     [availableTabs]

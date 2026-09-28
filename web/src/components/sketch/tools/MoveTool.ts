@@ -503,6 +503,7 @@ export class MoveTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "move",
   label: "Move",
+  labelKey: "timeline:shortcuts.move",
   Icon: OpenWithIcon,
   group: "painting"
 };

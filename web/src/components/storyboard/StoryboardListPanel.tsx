@@ -35,14 +35,14 @@ export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createStoryboard.mutateAsync({
-        name: "Untitled storyboard",
+        name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId: creationProjectId()
       });
       openTab({
         type: "storyboard",
         ref: created.id,
         mode: "edit",
-        title: created.name || "Untitled storyboard",
+        title: created.name || i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId: created.projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -89,7 +89,7 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
         type: "storyboard",
         ref: id,
         mode: "edit",
-        title: name || "Untitled storyboard",
+        title: name || i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -193,7 +193,7 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
         <ListPanelItem
           id={board.id}
           name={board.name}
-          fallbackName="Untitled storyboard"
+          fallbackName={i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })}
           renameLabel="Storyboard name"
           icon={DashboardOutlinedIcon}
           active={board.id === activeStoryboardId}

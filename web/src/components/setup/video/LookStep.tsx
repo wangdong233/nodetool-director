@@ -695,7 +695,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
         <FlexColumn gap={GAP.normal}>
           <LabeledSwitch
             label={i18n.t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" })}
-            description="Reads each beat's line over its clip"
+            description={i18n.t("timeline:attrs.readsEachBeatsLineOverItsClip", { defaultValue: "Reads each beat's line over its clip" })}
             checked={voiceOn}
             onChange={onVoiceChange}
           />

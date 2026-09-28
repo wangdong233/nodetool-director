@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 /**
  * Flatten the live sketch composite and write it into an image asset.
@@ -26,7 +27,7 @@ export function useSaveSketchToAsset(assetId: string | undefined) {
     if (!dataUrl) {
       useNotificationStore.getState().addNotification({
         type: "error",
-        content: "Nothing to save yet — the canvas is still loading."
+        content: i18n.t("sketch:attrs.nothingToSaveCanvasLoading", { defaultValue: "Nothing to save yet — the canvas is still loading." })
       });
       return;
     }
@@ -41,7 +42,7 @@ export function useSaveSketchToAsset(assetId: string | undefined) {
       invalidateQueries(["asset", assetId]);
       useNotificationStore.getState().addNotification({
         type: "success",
-        content: "Saved edits to image."
+        content: i18n.t("sketch:attrs.savedEditsToImage", { defaultValue: "Saved edits to image." })
       });
     } catch (error) {
       useNotificationStore.getState().addNotification({

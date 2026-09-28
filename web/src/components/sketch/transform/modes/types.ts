@@ -52,6 +52,8 @@ export interface TransformModeHandler {
   id: TransformMode;
   /** Display label for the toolbar button. */
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   /** Optional tooltip describing the mode (toolbar hover). */
   tooltip?: string;
   /** Whether the toolbar should surface this mode as a user-pickable button. */

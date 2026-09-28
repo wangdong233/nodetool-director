@@ -74,7 +74,7 @@ function createSketchDragImage(name: string): HTMLElement {
   container.appendChild(icon);
 
   const label = document.createElement("div");
-  label.textContent = name || "Untitled sketch";
+  label.textContent = name || i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" });
   label.style.cssText = `
     min-width: 0;
     overflow: hidden;
@@ -177,7 +177,7 @@ export const CreateSketchButton = memo(function CreateSketchButton() {
     try {
       const sketch = await createSketch.mutateAsync({
         id: newDocumentId(),
-        name: "Untitled sketch",
+        name: i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" }),
         projectId: creationProjectId()
       });
       if (location.pathname.startsWith("/workspace")) {

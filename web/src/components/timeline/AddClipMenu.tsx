@@ -557,7 +557,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
         trackId,
         startMs,
         durationMs: ADJUSTMENT_CLIP_DURATION_MS,
-        name: "Adjustment",
+        name: i18n.t("timeline:attrs.adjustment", { defaultValue: "Adjustment" }),
         mediaType: "adjustment",
         sourceType: "imported",
         status: "generated",

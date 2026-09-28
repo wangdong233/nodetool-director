@@ -67,7 +67,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title="Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in."
+        title={i18n.t("sketch:attrs.sizeOpacityAtMinimumPressure", { defaultValue: "Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in." })}
       >
         Light end
       </Text>

@@ -26,8 +26,12 @@ export interface VideoFormat {
   id: string;
   /** Card title, e.g. "15s ad". */
   title: string;
+  /** Full `ns:key` for the card title; resolved at render. */
+  titleKey?: string;
   /** One line under the title. */
   description: string;
+  /** Full `ns:key` for the description; resolved at render. */
+  descriptionKey?: string;
   durationMs: number;
   width: number;
   height: number;
@@ -56,7 +60,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "ad-15",
     title: "15s ad",
+    titleKey: "timeline:attrs.15sAd",
     description: "One idea, one product, out before anyone scrolls.",
+    descriptionKey: "timeline:attrs.oneIdeaOneProductOutBeforeScrolls",
     durationMs: 15_000,
     width: 1920,
     height: 1080,
@@ -68,7 +74,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "spot-30",
     title: "30s spot",
+    titleKey: "timeline:attrs.30sSpot",
     description: "Room for a turn: setup, product, payoff.",
+    descriptionKey: "timeline:attrs.roomForTurnSetupProductPayoff",
     durationMs: 30_000,
     width: 1920,
     height: 1080,
@@ -80,7 +88,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "explainer-60",
     title: "60s explainer",
+    titleKey: "timeline:attrs.60sExplainer",
     description: "A narrated minute that teaches one thing.",
+    descriptionKey: "timeline:attrs.aNarratedMinuteThatTeachesOneThing",
     durationMs: 60_000,
     width: 1920,
     height: 1080,
@@ -92,7 +102,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "social-9x16",
     title: "9:16 social clip",
+    titleKey: "timeline:attrs.916SocialClip",
     description: "Vertical, fast, built for a phone held upright.",
+    descriptionKey: "timeline:attrs.verticalFastForPhoneUpright",
     durationMs: 20_000,
     width: 1080,
     height: 1920,
@@ -104,7 +116,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "trailer",
     title: "Trailer",
+    titleKey: "timeline:attrs.trailer",
     description: "Cut to a rising score, ending on a title.",
+    descriptionKey: "timeline:attrs.cutToRisingScoreEndingOnTitle",
     durationMs: 45_000,
     width: 1920,
     height: 1080,
@@ -116,7 +130,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "music-video",
     title: "Music video",
+    titleKey: "timeline:attrs.musicVideo",
     description: "Pictures carried by the track, no narration.",
+    descriptionKey: "timeline:attrs.picturesCarriedByTrackNoNarration",
     durationMs: 60_000,
     width: 1920,
     height: 1080,
@@ -128,7 +144,9 @@ export const VIDEO_FORMATS: readonly VideoFormat[] = [
   {
     id: "slideshow",
     title: "Slideshow",
+    titleKey: "timeline:attrs.slideshow",
     description: "Held frames with a line read over each.",
+    descriptionKey: "timeline:attrs.heldFramesWithLineReadOverEach",
     durationMs: 40_000,
     width: 1920,
     height: 1080,

@@ -542,7 +542,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <MediaOptionChip
                   icon={<AccessTimeIcon fontSize="small" />}
                   label={`${videoDuration} Sec`}
-                  header="Duration"
+                  header={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}
                   value={videoDuration}
                   options={durationOptions}
                   onChange={handleDurationChange}

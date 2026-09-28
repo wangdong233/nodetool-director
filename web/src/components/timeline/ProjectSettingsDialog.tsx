@@ -68,13 +68,13 @@ const RESOLUTION_PRESETS: readonly ResolutionPreset[] = [
 
 const RESOLUTION_OPTIONS: readonly SelectOption[] = [
   ...RESOLUTION_PRESETS.map((p) => ({ value: p.value, label: p.label })),
-  { value: CUSTOM, label: i18n.t("timeline:project.custom", { defaultValue: "Custom…" }) }
+  { value: CUSTOM, label: "Custom…" }
 ];
 
 const FPS_PRESETS = [24, 25, 30, 50, 60] as const;
 const FPS_OPTIONS: readonly SelectOption[] = [
   ...FPS_PRESETS.map((f) => ({ value: String(f), label: `${f} fps` })),
-  { value: CUSTOM, label: i18n.t("timeline:project.custom", { defaultValue: "Custom…" }) }
+  { value: CUSTOM, label: "Custom…" }
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
       onConfirm={() => void handleApply()}
       onCancel={onClose}
       confirmText={i18n.t("timeline:project.apply", { defaultValue: "Apply" })}
-      cancelText="Cancel"
+      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       isLoading={isSaving}
       confirmDisabled={!allValid || !dirty || isSaving}
       minWidth="min(440px, 100vw - 32px)"
@@ -239,7 +239,16 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             variant="outlined"
             value={resolutionPreset}
             onChange={handleResolutionPreset}
-            options={RESOLUTION_OPTIONS}
+            options={RESOLUTION_OPTIONS.map((o) =>
+              o.value === CUSTOM
+                ? {
+                    ...o,
+                    label: i18n.t("timeline:project.custom", {
+                      defaultValue: o.label
+                    })
+                  }
+                : o
+            )}
             size="small"
           />
           <FlexRow gap={1.5} align="flex-start" sx={{ mt: 2 }}>
@@ -285,12 +294,21 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
                 variant="outlined"
                 value={fpsPreset}
                 onChange={handleFpsPreset}
-                options={FPS_OPTIONS}
+                options={FPS_OPTIONS.map((o) =>
+                  o.value === CUSTOM
+                    ? {
+                        ...o,
+                        label: i18n.t("timeline:project.custom", {
+                          defaultValue: o.label
+                        })
+                      }
+                    : o
+                )}
                 size="small"
               />
             </FlexColumn>
             <TextInput
-              label="fps"
+              label={i18n.t("timeline:attrs.fps", { defaultValue: "fps" })}
               type="number"
               size="small"
               value={fpsText}

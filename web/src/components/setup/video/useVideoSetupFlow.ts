@@ -41,6 +41,7 @@ import {
   REVIEW_REQUIRED
 } from "./productionAuthoring";
 import { assetIdFromLocator } from "../../../utils/mediaRef";
+import { i18n } from "../../../i18n";
 
 /**
  * A sequence's stage, with the field's absence read as `done` — an old
@@ -312,7 +313,7 @@ export const useVideoSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0 && !contextError,
         blockedReason:
@@ -330,7 +331,7 @@ export const useVideoSetupFlow = ({
         // Format and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "format",
-        label: "Beats",
+        label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
         // A plan that still answers the brief and format on the document is
         // the plan the creator edited, so coming back here and pressing on
         // returns them to it rather than replacing it (F15).
@@ -372,7 +373,7 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Beats",
+        label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
         primaryLabel: "Continue to look",
         canAdvance:
           hasPlan &&
@@ -403,7 +404,7 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
         primaryLabel: "Generate your video",
         canAdvance: !productionBlocker && look.canAdvance,
         blockedReason: productionBlocker ?? look.blockedReason,

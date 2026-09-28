@@ -26,6 +26,7 @@ const VISIBLE_HANDLES: readonly TransformHandle[] = [
 export const DistortMode: TransformModeHandler = {
   id: "distort",
   label: "Deform",
+  labelKey: "sketch:attrs.deform",
   tooltip:
     "Drag a corner to move it on its own, producing a free four-point quad. Shift constrains to one axis.",
   visibleInToolbar: true,

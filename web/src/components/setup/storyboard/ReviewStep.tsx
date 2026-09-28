@@ -171,7 +171,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       const rest = named.length - NAMED_SHOT_LIMIT;
       return {
         severity: "warning" as const,
-        title: "Your script was kept as written",
+        title: i18n.t("storyboard:attrs.scriptKeptAsWritten", { defaultValue: "Your script was kept as written" }),
         body: `The Director changed the words or the order of ${listed}${
           rest > 0 ? ` and ${rest} more` : ""
         }. The imported text was put back.`
@@ -182,7 +182,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     }
     return {
       severity: "info" as const,
-      title: "Some lines are not in any shot",
+      title: i18n.t("storyboard:attrs.someLinesNotInAnyShot", { defaultValue: "Some lines are not in any shot" }),
       body: notice.missingLines.join(" · ")
     };
   }, [notice, shotNumbers]);
@@ -218,11 +218,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     const groups = sceneOrder(shots, scenes);
     const screenplaySection: PlanReviewSection = {
       id: "screenplay",
-      header: "Title",
+      header: i18n.t("storyboard:attrs.title", { defaultValue: "Title" }),
       rows: [
         {
           id: "title",
-          label: "Title",
+          label: i18n.t("storyboard:attrs.title", { defaultValue: "Title" }),
           hideLabel: true,
           value: title,
           onChange: (value: string) => setTitle(boardId, value)
@@ -247,7 +247,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // STUDIO — I` says nothing about where it is set.
                 {
                   id: `${sceneId}:slugline`,
-                  label: "Slugline",
+                  label: i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.slugline ?? "",
@@ -257,11 +257,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 },
                 {
                   id: `${sceneId}:lighting`,
-                  label: "Lighting",
+                  label: i18n.t("storyboard:attrs.lighting", { defaultValue: "Lighting" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.lighting ?? "",
-                  placeholder: "How the scene is lit",
+                  placeholder: i18n.t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" }),
                   onChange: (value: string) =>
                     updateScene(boardId, sceneId, { lighting: value })
                 }
@@ -310,7 +310,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                   productionRequirementsFrom(shot)?.speech_binding?.text ??
                   "",
                 multiline: true,
-                placeholder: "Dialogue",
+                placeholder: i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
                 addLabel: "Add dialogue",
                 onChange: (value: string) => {
                   const current = productionRequirementsFrom(shot);
@@ -340,7 +340,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // shot too: the block's heading says which shot they are on,
                 // and `Shot 1 · Seconds` wrapped to two lines in the narrow
                 // column while its neighbours took one.
-                label: "Seconds",
+                label: i18n.t("storyboard:attrs.seconds", { defaultValue: "Seconds" }),
                 compact: true,
                 value:
                   lengths[shot.id] ??

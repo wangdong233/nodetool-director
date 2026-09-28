@@ -277,7 +277,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
                 variant="empty"
                 size="small"
                 title={i18n.t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
-                description="None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here."
+                description={i18n.t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
               />
             )}
 

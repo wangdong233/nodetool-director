@@ -7,6 +7,7 @@ import {
   deterministicFingerprint
 } from "../../../hooks/storyboard/productionContext";
 import type { PlanReviewField } from "../PlanReview";
+import { i18n } from "../../../i18n";
 
 export const REVIEW_REQUIRED =
   "Production context changed. Return to the plan, review it, and continue to Look.";
@@ -114,7 +115,7 @@ export function productionFields({
   return [
     {
       id: `${id}:purpose`,
-      label: "Editorial purpose",
+      label: i18n.t("timeline:attrs.editorialPurpose", { defaultValue: "Editorial purpose" }),
       compact: true,
       value: current?.editorial_purpose ?? "",
       options: [
@@ -137,7 +138,7 @@ export function productionFields({
     },
     {
       id: `${id}:treatment`,
-      label: "Visual treatment",
+      label: i18n.t("timeline:attrs.visualTreatment", { defaultValue: "Visual treatment" }),
       compact: true,
       value: current?.visual_treatment ?? "",
       options: [
@@ -158,7 +159,7 @@ export function productionFields({
     },
     {
       id: `${id}:takes`,
-      label: "Requested takes",
+      label: i18n.t("timeline:attrs.requestedTakes", { defaultValue: "Requested takes" }),
       compact: true,
       value: String(current?.requested_take_count ?? 1),
       options: [1, 2, 3].map((count) => ({
@@ -169,7 +170,7 @@ export function productionFields({
     },
     {
       id: `${id}:speech`,
-      label: "Speech mode",
+      label: i18n.t("timeline:attrs.speechMode", { defaultValue: "Speech mode" }),
       value: current?.speech_mode ?? "none",
       readOnly: !canBind,
       hint: speechHint,
@@ -178,7 +179,7 @@ export function productionFields({
         { value: "off_camera", label: "Off-camera" },
         {
           value: "on_camera",
-          label: "On-camera (unavailable in guided flow)",
+          label: i18n.t("timeline:attrs.onCameraUnavailableInGuidedFlow", { defaultValue: "On-camera (unavailable in guided flow)" }),
           disabled: true
         }
       ],
@@ -202,7 +203,7 @@ export function productionFields({
       ? [
           {
             id: `${id}:line`,
-            label: "Script line",
+            label: i18n.t("timeline:attrs.scriptLine", { defaultValue: "Script line" }),
             value: binding?.script_line_id ?? "",
             options: linkedLineIds.map((lineId) => ({
               value: lineId,
@@ -215,10 +216,10 @@ export function productionFields({
       : []),
     {
       id: `${id}:direction`,
-      label: "Production direction",
+      label: i18n.t("timeline:attrs.productionDirection", { defaultValue: "Production direction" }),
       value: current?.local_direction ?? "",
       multiline: true,
-      placeholder: "Optional performance or camera direction",
+      placeholder: i18n.t("timeline:attrs.optionalPerformanceOrCameraDirection", { defaultValue: "Optional performance or camera direction" }),
       onChange: (local_direction) =>
         change({
           local_direction: local_direction.trim() ? local_direction : undefined

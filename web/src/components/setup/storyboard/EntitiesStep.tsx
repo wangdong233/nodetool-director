@@ -365,7 +365,7 @@ export const EntitiesStep = ({
             ) ? (
               <FormField
                 label={i18n.t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
-                helperText="Used only for missing entities you choose to create. The same model carries into the Look step."
+                helperText={i18n.t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." })}
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
                 <ImageModelSelect

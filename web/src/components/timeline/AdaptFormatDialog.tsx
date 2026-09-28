@@ -130,7 +130,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
       confirmText={
         formats.size > 1 ? i18n.t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : i18n.t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
       }
-      cancelText="Cancel"
+      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       confirmDisabled={cannotCreate}
       isLoading={isCreating}
     >

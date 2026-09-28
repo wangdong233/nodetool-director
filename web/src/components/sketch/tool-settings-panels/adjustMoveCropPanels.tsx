@@ -202,7 +202,11 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
           {getToolbarTransformModes().map((modeHandler) => {
             const button = (
               <SketchModeOption key={modeHandler.id} value={modeHandler.id}>
-                {modeHandler.label}
+                {modeHandler.labelKey
+                  ? i18n.t(modeHandler.labelKey, {
+                      defaultValue: modeHandler.label
+                    })
+                  : modeHandler.label}
               </SketchModeOption>
             );
             return modeHandler.tooltip ? (

@@ -195,7 +195,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
 
     const group = makeClip({
       trackId: topTrackId,
-      name: "Group",
+      name: i18n.t("timeline:attrs.group", { defaultValue: "Group" }),
       mediaType: "group",
       sourceType: "imported",
       status: "generated",
@@ -392,7 +392,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
           actions={[
             {
               icon: <DeleteOutlineOutlinedIcon />,
-              label: "Delete selection",
+              label: i18n.t("timeline:attrs.deleteSelection", { defaultValue: "Delete selection" }),
               onClick: () => deleteSelected(selectedClipIds),
               variant: "danger"
             }

@@ -517,7 +517,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   icon={<OpenWithOutlinedIcon />}
                   action={{
                     icon: <RestartAltOutlinedIcon />,
-                    label: "Reset transform",
+                    label: i18n.t("editor:ui.resetTransform", { defaultValue: "Reset transform" }),
                     onClick: handleResetTransform
                   }}
                 />
@@ -655,7 +655,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onCheckedChange={handleColorEnabledChange}
                   action={{
                     icon: <RestartAltOutlinedIcon />,
-                    label: "Reset color",
+                    label: i18n.t("timeline:attrs.resetColor", { defaultValue: "Reset color" }),
                     onClick: handleClearColor,
                     disabled: !color
                   }}
@@ -700,7 +700,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleSaturationChange}
                 />
                 <InspectorSliderRow
-                  label="Hue"
+                  label={i18n.t("timeline:attrs.hue", { defaultValue: "Hue" })}
                   min={-180}
                   max={180}
                   step={1}

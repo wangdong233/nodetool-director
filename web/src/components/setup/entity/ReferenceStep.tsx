@@ -142,7 +142,7 @@ const GenerateReferenceDialog = ({
         />
         <FormField
           label={i18n.t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
-          helperText="Used to create the reference image."
+          helperText={i18n.t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." })}
         >
           <ImageModelSelect
             value={model}

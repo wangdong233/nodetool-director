@@ -662,12 +662,12 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       trackId: track.id,
       startMs: contextMenuPos.startMs,
       durationMs: DEFAULT_TEXT_CLIP_DURATION_MS,
-      name: "Text",
+      name: i18n.t("editor:ui.text", { defaultValue: "Text" }),
       mediaType: "text",
       sourceType: "imported",
       status: "generated",
       textStyle: {
-        text: "Text",
+        text: i18n.t("editor:ui.text", { defaultValue: "Text" }),
         fontSizePx: DEFAULT_TEXT_CLIP_FONT_SIZE_PX,
         color: DEFAULT_TEXT_CLIP_COLOR
       }

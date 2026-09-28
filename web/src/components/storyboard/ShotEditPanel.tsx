@@ -538,7 +538,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         type: "script",
         ref: scriptId,
         mode: "edit",
-        title: "Script"
+        title: i18n.t("editor:ui.script", { defaultValue: "Script" })
       });
       onClose();
     });

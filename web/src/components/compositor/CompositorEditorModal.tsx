@@ -54,7 +54,7 @@ const styles = (theme: Theme) =>
 
 const CompositorEditorModalInner: React.FC<CompositorEditorModalProps> = ({
   open,
-  title = "Compositor",
+  title = i18n.t("editor:ui.compositor", { defaultValue: "Compositor" }),
   onClose,
   ...editorProps
 }) => {

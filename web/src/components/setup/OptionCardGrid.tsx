@@ -25,8 +25,12 @@ import { i18n } from "../../i18n";
 export interface OptionCardItem {
   id: string;
   title: string;
+  /** Full `ns:key` for the title; resolved at render so module tables stay pure data. */
+  titleKey?: string;
   /** One line under the title. */
   description?: string;
+  /** Full `ns:key` for the description; resolved at render. */
+  descriptionKey?: string;
   /**
    * The card's numbers, on their own line under the description — a format's
    * "15s · 16:9 · 30fps". They are what the choice decides, so they do not
@@ -72,18 +76,24 @@ const CardText: React.FC<{ option: OptionCardItem; onImage: boolean }> = ({
   // Over a still, every line takes the overlay's colour: the muted greys the
   // text cards use are unreadable against a photograph.
   const inherit = onImage ? { color: "inherit" } : undefined;
+  const title = option.titleKey
+    ? i18n.t(option.titleKey, { defaultValue: option.title })
+    : option.title;
+  const description = option.descriptionKey
+    ? i18n.t(option.descriptionKey, { defaultValue: option.description })
+    : option.description;
   return (
     <FlexColumn gap={GAP.tight}>
       <Text size="normal" component="span" sx={inherit}>
-        {option.title}
+        {title}
       </Text>
-      {option.description ? (
+      {description ? (
         <Caption
           component="span"
           color={onImage ? undefined : "secondary"}
           sx={inherit}
         >
-          {option.description}
+          {description}
         </Caption>
       ) : null}
       {option.meta ? (

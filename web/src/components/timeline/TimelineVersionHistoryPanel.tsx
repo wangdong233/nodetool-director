@@ -49,10 +49,16 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 
+const SAVE_TYPE_LABEL_KEYS = {
+  manual: "timeline:history.manual",
+  autosave: "timeline:history.auto",
+  restore: "timeline:history.restore"
+} satisfies Record<TimelineVersionSaveType, string>;
+
 const SAVE_TYPE_LABEL = {
-  manual: i18n.t("timeline:history.manual", { defaultValue: "Manual" }),
-  autosave: i18n.t("timeline:history.auto", { defaultValue: "Auto" }),
-  restore: i18n.t("timeline:history.restore", { defaultValue: "Restore" })
+  manual: "Manual",
+  autosave: "Auto",
+  restore: "Restore"
 } satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_COLOR = {
@@ -106,7 +112,9 @@ const VersionRow: React.FC<VersionRowProps> = memo(
             v{version.version}
           </Text>
           <Chip
-            label={SAVE_TYPE_LABEL[version.saveType]}
+            label={i18n.t(SAVE_TYPE_LABEL_KEYS[version.saveType], {
+              defaultValue: SAVE_TYPE_LABEL[version.saveType]
+            })}
             color={SAVE_TYPE_COLOR[version.saveType]}
             compact
             size="small"
@@ -324,7 +332,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         }
         onConfirm={handleConfirmRestore}
         onCancel={clearRestoreTarget}
-        confirmText="Restore"
+        confirmText={i18n.t("timeline:history.restore", { defaultValue: "Restore" })}
       >
         <FlexColumn gap={1} sx={{ maxWidth: 420 }}>
           <Text color="secondary">
@@ -344,7 +352,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         title={deleteTarget ? `Delete v${deleteTarget.version}?` : "Delete?"}
         onConfirm={handleConfirmDelete}
         onCancel={clearDeleteTarget}
-        confirmText="Delete"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
         destructive
       >
         <Text color="secondary">{i18n.t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>

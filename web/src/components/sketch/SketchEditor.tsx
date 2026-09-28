@@ -757,7 +757,7 @@ function SketchEditor({
               open={assistantPanelOpen}
               onClose={() => setAssistantPanelOpen(false)}
               title={i18n.t("sketch:attrs.assistant", { defaultValue: "Assistant" })}
-              ariaLabel="AI assistant panel"
+              ariaLabel={i18n.t("sketch:attrs.aiAssistantPanel", { defaultValue: "AI assistant panel" })}
               maxHeight="85vh"
             >
               <FlexColumn

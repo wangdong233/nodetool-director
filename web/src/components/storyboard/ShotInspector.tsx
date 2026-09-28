@@ -267,7 +267,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
         onClose={() => setIterateOpen(false)}
         title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
         onConfirm={handleIterateConfirm}
-        confirmText="Iterate"
+        confirmText={i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
         confirmDisabled={iterateText.trim().length === 0}
       >
         <FlexColumn gap={SPACING.xs}>
@@ -277,7 +277,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           </Caption>
           <TextInput
             value={iterateText}
-            placeholder="e.g. make it darker, add rain"
+            placeholder={i18n.t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
             onChange={(e) => setIterateText(e.target.value)}
             multiline
             rows={3}
@@ -291,7 +291,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
         onClose={() => setConfirmDelete(false)}
         title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
         destructive
       >
         <Text>

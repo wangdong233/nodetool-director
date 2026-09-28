@@ -92,7 +92,7 @@ const getViewportScale = (
 const SketchRenderer: React.FC<SketchRendererProps> = ({
   document,
   className,
-  ariaLabel = "Sketch preview",
+  ariaLabel = i18n.t("editor:ui.sketchPreview", { defaultValue: "Sketch preview" }),
   isolatedLayerId = null,
   showDimensions = false,
   preferCanvas2d = false

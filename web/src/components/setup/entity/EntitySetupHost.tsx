@@ -198,7 +198,7 @@ const EntitySetupHost = ({
     () => [
       {
         stage: "details",
-        label: "Details",
+        label: i18n.t("storyboard:attrs.details", { defaultValue: "Details" }),
         primaryLabel: "Choose a reference",
         canAdvance:
           details.name.trim().length > 0 &&
@@ -217,7 +217,7 @@ const EntitySetupHost = ({
       },
       {
         stage: "reference",
-        label: "Reference",
+        label: i18n.t("storyboard:attrs.reference", { defaultValue: "Reference" }),
         primaryLabel: "Review entity",
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
@@ -243,7 +243,7 @@ const EntitySetupHost = ({
       },
       {
         stage: "review",
-        label: "Review",
+        label: i18n.t("storyboard:attrs.review", { defaultValue: "Review" }),
         primaryLabel: "Create entity",
         pending: saveEntity.isPending,
         pendingLabel: "Creating your entity",

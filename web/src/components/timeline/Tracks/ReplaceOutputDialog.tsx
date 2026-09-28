@@ -37,7 +37,7 @@ export const ReplaceOutputDialog: React.FC<ReplaceOutputDialogProps> = memo(
         onConfirm={handleConfirm}
         onCancel={onClose}
         confirmText={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         showActions
       >
         <Text size="small" sx={{ mb: 1 }}>

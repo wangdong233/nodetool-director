@@ -35,6 +35,8 @@ import { i18n } from "../../../i18n";
 interface SlashCommand {
   id: string;
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   hint: string;
   run: (doc: TimelineStoreApi, playback: TimelinePlaybackStoreApi) => void;
 }
@@ -43,6 +45,7 @@ const COMMANDS: SlashCommand[] = [
   {
     id: "scene",
     label: "New scene",
+    labelKey: "timeline:attrs.newScene",
     hint: "Marker + cut every clip at the playhead",
     run: (doc, playback) => {
       const { currentTimeMs } = playback.getState();
@@ -52,6 +55,10 @@ const COMMANDS: SlashCommand[] = [
     }
   }
 ];
+
+/** Resolve a command label at render so zh lands (module table stays pure data). */
+const cmdLabel = (cmd: SlashCommand): string =>
+  cmd.labelKey ? i18n.t(cmd.labelKey, { defaultValue: cmd.label }) : cmd.label;
 
 // ── Styles ──────────────────────────────────────────────────────────────────
 
@@ -140,7 +147,9 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
   const matches = useMemo(
     () =>
       COMMANDS.filter((c) =>
-        c.label.toLowerCase().includes(query.trim().toLowerCase())
+        cmdLabel(c)
+          .toLowerCase()
+          .includes(query.trim().toLowerCase())
       ),
     [query]
   );
@@ -215,7 +224,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
               }}
               onMouseEnter={() => setActive(i)}
             >
-              <span className="cmd-label">{c.label}</span>
+              <span className="cmd-label">{cmdLabel(c)}</span>
               <span className="cmd-hint">{c.hint}</span>
             </li>
           ))

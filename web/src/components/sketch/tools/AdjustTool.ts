@@ -25,6 +25,7 @@ export class AdjustTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "adjust",
   label: "Adjustments",
+  labelKey: "sketch:attrs.adjustments",
   Icon: ContrastIcon,
   group: "shape"
 };

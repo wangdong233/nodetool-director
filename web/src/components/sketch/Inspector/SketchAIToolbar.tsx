@@ -117,7 +117,7 @@ const SketchAIToolbarInner: React.FC = () => {
         onConfirm={() => void handleConfirmRegen()}
         onCancel={() => setConfirmRegenOpen(false)}
         confirmText={i18n.t("editor:ui.reGenerate", { defaultValue: "Re-generate" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         showActions
       >
         <Text size="small" sx={{ mb: 1 }}>

@@ -4,6 +4,7 @@ import { saveSketchDocument } from "../../stores/sketch/SketchSessionStore";
 import { useSketchInstance } from "../../stores/sketch/SketchInstance";
 import { trpc } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n } from "../../i18n";
 
 export function useSaveSketchDocument() {
   const utils = trpc.useUtils();
@@ -21,7 +22,7 @@ export function useSaveSketchDocument() {
         utils.sketch.get.setData({ id: saved.id }, saved);
       });
       useNotificationStore.getState().addNotification({
-        content: "Sketch saved.",
+        content: i18n.t("sketch:attrs.sketchSaved", { defaultValue: "Sketch saved." }),
         type: "success",
         alert: false,
         dedupeKey: `sketch-manual-save:${session.documentId}`,

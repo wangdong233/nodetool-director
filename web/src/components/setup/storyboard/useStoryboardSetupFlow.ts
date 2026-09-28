@@ -49,6 +49,7 @@ import {
   reviewFingerprintOf,
   REVIEW_REQUIRED
 } from "../video/productionAuthoring";
+import { i18n } from "../../../i18n";
 
 /**
  * A board's stage, with the field's absence read as `done` — an old board has
@@ -278,7 +279,7 @@ export const useStoryboardSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         // An imported script that is kept verbatim is the story, so the brief
         // beside it is optional (F3).
@@ -301,7 +302,7 @@ export const useStoryboardSetupFlow = ({
         // Genre and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "genre",
-        label: "Story",
+        label: i18n.t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: upToDate
           ? "Continue to your screenplay"
           : hasScreenplay
@@ -358,7 +359,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Story",
+        label: i18n.t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: "Set up entities",
         canAdvance: reviewBlockedReason === undefined,
         blockedReason: reviewBlockedReason,
@@ -386,7 +387,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "entities",
-        label: "Entities",
+        label: i18n.t("storyboard:attrs.entities", { defaultValue: "Entities" }),
         primaryLabel: "Choose the look",
         canAdvance: entityIds.length > 0,
         blockedReason: "Select or create an entity, or skip this step",
@@ -400,7 +401,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
         // The price sits beside the button, not inside its name: a label that
         // grows a dollar amount is a label nobody can scan (F23).
         primaryLabel: "Generate your storyboard",

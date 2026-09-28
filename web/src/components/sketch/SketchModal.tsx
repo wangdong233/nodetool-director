@@ -24,7 +24,10 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import CheckIcon from "@mui/icons-material/Check";
 import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 import SketchEditor, { SketchEditorHandle } from "./SketchEditor";
-import { SKETCH_KEYBOARD_SHORTCUTS } from "./sketchKeyboardShortcuts";
+import {
+  SKETCH_KEYBOARD_SHORTCUTS,
+  SKETCH_SHORTCUT_DESCRIPTION_KEYS
+} from "./sketchKeyboardShortcuts";
 import { PenPressureSettingsPanel } from "./ToolSettingsPanels";
 import KeyboardShortcutsView from "../content/Help/KeyboardShortcutsView";
 import { ShortcutsSearchableList } from "../content/Help/ShortcutsSearchableList";
@@ -120,9 +123,23 @@ interface SketchModalProps {
   onExportMask?: (dataUrl: string | null) => void;
 }
 
+
+/** Resolve shortcut scope descriptions at render so zh lands (module table stays pure data). */
+const localizeSketchShortcuts = () =>
+  SKETCH_KEYBOARD_SHORTCUTS.map((s) =>
+    s.description && SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description]
+      ? {
+          ...s,
+          description: i18n.t(SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description], {
+            defaultValue: s.description
+          })
+        }
+      : s
+  );
+
 const SketchModal: React.FC<SketchModalProps> = ({
   open,
-  title = "Image Editor",
+  title = i18n.t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" }),
   initialDocument,
   onClose,
   onDocumentChange,
@@ -527,7 +544,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <ShortcutsSearchableList
-                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
+                      shortcuts={localizeSketchShortcuts()}
                       searchPlaceholder="Search shortcuts"
                       rootSx={{ flex: 1, minHeight: 0 }}
                       scrollSx={{ flex: 1, minHeight: 0 }}
@@ -544,7 +561,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <KeyboardShortcutsView
-                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
+                      shortcuts={localizeSketchShortcuts()}
                       listenToPhysicalKeyboard
                       imageEditorShortcuts
                     />

@@ -134,7 +134,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: "Upload your file",
+        title: i18n.t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
         description: "PDF, DOCX, FDX",
         onSelect: () => scriptInput.current?.click(),
         disabled: script.importing,
@@ -142,22 +142,22 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "shotlist",
-        title: "Import your shotlist",
-        description: "CSV, one row per shot",
+        title: i18n.t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
+        description: i18n.t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
         disabled: shotlist.importing,
         disabledReason: shotlist.importing ? "Reading your file…" : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank storyboard",
-        description: "Skip the story and go straight to the board",
+        title: i18n.t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
+        description: i18n.t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: "Take the tutorial",
-        description: "Walk one board end to end, with the steps explained",
+        title: i18n.t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
+        description: i18n.t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],

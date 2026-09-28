@@ -177,7 +177,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
     try {
       const timeline = await createTimeline.mutateAsync({
         id: newDocumentId(),
-        name: "Untitled video",
+        name: i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" }),
         projectId: creationProjectId()
       });
       if (location.pathname.startsWith("/workspace")) {

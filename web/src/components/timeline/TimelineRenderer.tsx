@@ -62,7 +62,7 @@ const firstPreviewTime = (sequence: TimelineSequence): number => {
 const TimelineRendererContent: React.FC<TimelineRendererProps> = ({
   sequence,
   className,
-  ariaLabel = "Timeline preview",
+  ariaLabel = i18n.t("editor:ui.timelinePreview", { defaultValue: "Timeline preview" }),
   showMetadata = false
 }) => {
   const theme = useTheme();

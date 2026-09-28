@@ -230,7 +230,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="3D Model"
+              title={i18n.t("appbuilder:attrs.3dModel", { defaultValue: "3D Model" })}
               icon={<ViewInArOutlinedIcon />}
             />
           }

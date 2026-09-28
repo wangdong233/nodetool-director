@@ -631,7 +631,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           onClose={handleCloseIterate}
           title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
           onConfirm={handleIterateConfirm}
-          confirmText="Iterate"
+          confirmText={i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
           confirmDisabled={iterateText.trim().length === 0}
         >
           <FlexColumn gap={SPACING.xs}>
@@ -641,7 +641,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             </Caption>
             <TextInput
               value={iterateText}
-              placeholder="e.g. make it darker, add rain"
+              placeholder={i18n.t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
               onChange={(event) => setIterateText(event.target.value)}
               multiline
               rows={3}
@@ -665,7 +665,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           onClose={handleCloseDeleteConfirm}
           title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
           onConfirm={handleDeleteConfirmed}
-          confirmText="Delete"
+          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
           destructive
         >
           <Text>

@@ -25,6 +25,7 @@ const VISIBLE_HANDLES: readonly TransformHandle[] = [
 export const ScaleMode: TransformModeHandler = {
   id: "scale",
   label: "Scale",
+  labelKey: "timeline:attrs.scale",
   visibleInToolbar: true,
   visibleHandles: VISIBLE_HANDLES,
   supportsRotate: true,

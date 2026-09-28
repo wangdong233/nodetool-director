@@ -5,6 +5,7 @@ import { useSketchInstance } from "../../stores/sketch/SketchInstance";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 /**
  * Flatten the live sketch composite into a NEW image asset in a chosen folder
@@ -34,7 +35,7 @@ export function useSaveSketchAsAsset() {
       if (!dataUrl) {
         useNotificationStore.getState().addNotification({
           type: "error",
-          content: "Nothing to save yet — the canvas is still loading."
+          content: i18n.t("sketch:attrs.nothingToSaveCanvasLoading", { defaultValue: "Nothing to save yet — the canvas is still loading." })
         });
         return;
       }
@@ -61,7 +62,7 @@ export function useSaveSketchAsAsset() {
         });
         useNotificationStore.getState().addNotification({
           type: "success",
-          content: "Saved sketch as image asset."
+          content: i18n.t("sketch:attrs.savedSketchAsImageAsset", { defaultValue: "Saved sketch as image asset." })
         });
       } catch (error) {
         useNotificationStore.getState().addNotification({

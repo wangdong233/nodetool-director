@@ -54,6 +54,7 @@ const buttonStyles = (theme: Theme, compact: boolean) =>
   });
 
 interface TrackTypeOption {
+  labelKey?: string;
   type: TimelineTrack["type"];
   label: string;
   icon: React.ReactNode;
@@ -63,21 +64,25 @@ const TRACK_TYPES: TrackTypeOption[] = [
   {
     type: "video",
     label: "Video",
+    labelKey: "editor:ui.video",
     icon: <VideocamOutlinedIcon fontSize="small" />
   },
   {
     type: "audio",
     label: "Audio",
+    labelKey: "timeline:attrs.audio",
     icon: <AudiotrackOutlinedIcon fontSize="small" />
   },
   {
     type: "overlay",
     label: "Overlay",
+    labelKey: "sketch:attrs.overlay",
     icon: <LayersOutlinedIcon fontSize="small" />
   },
   {
     type: "subtitle",
     label: "Subtitle",
+    labelKey: "timeline:attrs.subtitle",
     icon: <SubtitlesOutlinedIcon fontSize="small" />
   },
   {
@@ -136,7 +141,11 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         {TRACK_TYPES.map((opt) => (
           <MenuItemPrimitive
             key={opt.type}
-            label={opt.label}
+            label={
+              opt.labelKey
+                ? i18n.t(opt.labelKey, { defaultValue: opt.label })
+                : opt.label
+            }
             icon={opt.icon}
             onClick={() => handleSelect(opt.type)}
           />

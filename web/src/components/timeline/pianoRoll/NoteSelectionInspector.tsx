@@ -2,6 +2,7 @@ import React from "react";
 import { moveNotes, setVelocity } from "@nodetool-ai/timeline";
 import type { MidiNote } from "@nodetool-ai/timeline";
 import { Caption, FlexRow, SPACING, TextInput } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface Props {
   notes: readonly MidiNote[];
@@ -30,7 +31,7 @@ export function NoteSelectionInspector({
   const length = common("durationTick");
   const fields = [
     {
-      label: "Lowest pitch (MIDI)",
+      label: i18n.t("timeline:attrs.lowestPitchMidi", { defaultValue: "Lowest pitch (MIDI)" }),
       value: first ? lowest : null,
       min: 0,
       max: 127,
@@ -42,7 +43,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: "Start beat",
+      label: i18n.t("timeline:attrs.startBeat", { defaultValue: "Start beat" }),
       value: first ? 1 + start / beatTicks : null,
       min: 1,
       step: 1 / beatTicks,
@@ -53,7 +54,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: "Length (beats)",
+      label: i18n.t("timeline:attrs.lengthBeats", { defaultValue: "Length (beats)" }),
       value: length === null ? null : length / beatTicks,
       min: 1 / beatTicks,
       step: 1 / beatTicks,
@@ -68,7 +69,7 @@ export function NoteSelectionInspector({
         )
     },
     {
-      label: "Velocity",
+      label: i18n.t("timeline:attrs.velocity", { defaultValue: "Velocity" }),
       value: common("velocity"),
       min: 1,
       max: 127,

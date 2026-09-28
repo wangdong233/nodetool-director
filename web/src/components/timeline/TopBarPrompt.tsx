@@ -454,7 +454,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         anchorEl={durationAnchor}
         open={!!durationAnchor}
         onClose={() => setDurationAnchor(null)}
-        header="Duration"
+        header={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}
         value={duration}
         options={durationOptions}
         onChange={(d) => setDuration(d)}
@@ -510,7 +510,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         label={
           inStudio
             ? (STUDIO_VOICES.find((option) => option.id === audio?.voice)
-                ?.label ?? "Voice")
+                ?.label ?? i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" }))
             : audio?.model.name || "Select TTS Model"
         }
         active={audioModelOpen}
@@ -523,7 +523,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
             anchorEl={audioModelAnchorRef.current}
             open
             onClose={closeAudioModel}
-            header="Voice"
+            header={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
             value={audio?.voice ?? ""}
             options={STUDIO_VOICES.map((option) => ({
               id: option.id,
@@ -548,8 +548,8 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         <OptionChip
           menu="option"
           icon={<RecordVoiceOverIcon fontSize="small" />}
-          label={audio.voice || "Voice"}
-          header="Voice"
+          label={audio.voice || i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+          header={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
           value={audio.voice}
           options={voiceOptions}
           onChange={(voice) => setAudioSelection({ ...audio, voice })}

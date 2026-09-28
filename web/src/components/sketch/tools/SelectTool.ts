@@ -623,6 +623,7 @@ export class SelectTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "select",
   label: "Select",
+  labelKey: "timeline:tools.select",
   Icon: SelectAllIcon,
   group: "painting"
 };

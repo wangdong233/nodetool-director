@@ -925,7 +925,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           title={i18n.t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
           content={`Remove track "${track.name}" and all its clips?`}
           confirmText={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
-          cancelText="Cancel"
+          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         />
       </>
     );
