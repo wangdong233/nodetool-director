@@ -1,0 +1,6 @@
+{
+  "comment": "Page-sweep adjudicated-English master list. A Latin line matching one of these patterns is expected-English (registry §3); everything else on a zh page is a finding.",
+  "exact": ["Personal", "Workflow", "Workflows", "Worker", "worker:local", "worker:remote", "SVG", "PNG", "JPEG", "WebP", "GIF", "PDF", "DOCX", "CSV", "JSON", "YAML", "MP4", "Discord", "GitHub", "Telegram", "Ollama", "HuggingFace", "NodeTool", "NodeTool Studio", "RunPod", "Vast", "Blender", "Godot", "API", "GPU", "CPU", "TTS", "LLM", "MCP", "URL", "ID", "SSH", "HTTP", "RSS"],
+  "prefix": ["Ad Maker", "AI Spokesperson", "Brand & Social", "Concept Studio", "Beat sync editing", "Caption titles", "Color motion", "Commercial beat sheet", "Explainer storyboard", "Frame composition", "Godot game", "Launch commercial", "hello@", "R-G-B", "RTX", "A100", "H100", "L40S", "4090", "A5000"],
+  "contains": ["· Alpha", "open source"]
+}
