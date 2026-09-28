@@ -228,7 +228,7 @@ export const ProviderCard = memo(function ProviderCard({
             </Text>
             {meta.tag && (
               <Chip
-                label={meta.tag}
+                label={i18n.t("tools:menus.tags." + meta.tag, { defaultValue: meta.tag })}
                 compact
                 variant="outlined"
                 color="primary"
@@ -442,7 +442,7 @@ export const ProviderCard = memo(function ProviderCard({
               size="small"
               onClick={handleConnect}
             >
-              Connect
+              {i18n.t("editor:ui.connect2")}
             </EditorButton>
           )}
         </FlexRow>

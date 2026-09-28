@@ -87,7 +87,8 @@
         "description": "通过一个网关使用 GPT、Claude、Gemini、DeepSeek 等。"
       },
       "FAL_API_KEY": {
-        "description": "无服务器 AI 图像与视频生成。"
+        "description": "无服务器 AI 图像与视频生成。",
+        "note": "精确计费用管理员密钥(fal.ai 控制台 → Keys → 权限选 \"Admin\")。NodeTool 读取 FAL 每次请求的实际账单;普通密钥只能得到估算值。"
       },
       "GEMINI_API_KEY": {
         "description": "Google Gemini AI 模型与服务。"
@@ -227,7 +228,10 @@
     "nameApiKeyUpdated": "已更新 {{name}} API 密钥",
     "failedToUpdateSecret": "更新密钥失败:{{error}}",
     "nameApiKeyDeleted": "已删除 {{name}} API 密钥",
-    "failedToDeleteSecret": "删除密钥失败:{{error}}"
+    "failedToDeleteSecret": "删除密钥失败:{{error}}",
+    "tags": {
+      "Popular": "热门"
+    }
   },
   "misc": {
     "onboardingPacks": {

@@ -87,7 +87,8 @@
         "description": "GPT, Claude, Gemini, DeepSeek and more through one gateway."
       },
       "FAL_API_KEY": {
-        "description": "Serverless AI image and video generation."
+        "description": "Serverless AI image and video generation.",
+        "note": "For exact cost tracking, use an admin key (fal.ai dashboard → Keys → scope \"Admin\"). NodeTool reads each request's actual billing from FAL; a standard key only yields estimates."
       },
       "GEMINI_API_KEY": {
         "description": "Google Gemini AI models and services."
@@ -227,7 +228,10 @@
     "nameApiKeyUpdated": "{{name}} API key updated",
     "failedToUpdateSecret": "Failed to update secret: {{error}}",
     "nameApiKeyDeleted": "{{name}} API key deleted",
-    "failedToDeleteSecret": "Failed to delete secret: {{error}}"
+    "failedToDeleteSecret": "Failed to delete secret: {{error}}",
+    "tags": {
+      "Popular": "Popular"
+    }
   },
   "misc": {
     "onboardingPacks": {
