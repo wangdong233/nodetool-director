@@ -2676,7 +2676,10 @@
     "cmApp": "App",
     "cmWorkflows": "Workflows",
     "view2": "View",
-    "hide2": "Hide"
+    "hide2": "Hide",
+    "noMediaAt": "No media at {{n}}s",
+    "nSec": "{{n}} Sec",
+    "cloud2": "Cloud"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

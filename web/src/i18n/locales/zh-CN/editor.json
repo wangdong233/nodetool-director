@@ -2676,7 +2676,10 @@
     "cmApp": "应用",
     "cmWorkflows": "工作流",
     "view2": "查看",
-    "hide2": "隐藏"
+    "hide2": "隐藏",
+    "noMediaAt": "{{n}}s 处无媒体",
+    "nSec": "{{n}} 秒",
+    "cloud2": "云端"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -95,7 +95,7 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
     const theme = useTheme();
 
     const modeStatus: StatusType = mode === "cloud" ? "success" : "info";
-    const modeLabel = mode === "cloud" ? "Cloud" : "Local";
+    const modeLabel = mode === "cloud" ? i18n.t("editor:ui.cloud2") : i18n.t("editor:ui.execLocal");
     const ModeIcon = mode === "cloud" ? CloudIcon : ComputerIcon;
 
     return (

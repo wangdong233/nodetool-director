@@ -1931,7 +1931,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
               ▶
             </span>
             <span style={{ fontSize: theme.fontSizeSmall, opacity: 0.25 }}>
-              No media at {Math.round(currentTimeMs / 1000)}s
+              {i18n.t("editor:ui.noMediaAt", { n: Math.round(currentTimeMs / 1000) })}
             </span>
           </div>
         )}

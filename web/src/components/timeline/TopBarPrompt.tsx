@@ -405,7 +405,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
           : null)
       }}
     >
-      {compact ? null : "Generate"}
+      {compact ? null : i18n.t("editor:ui.generate")}
     </EditorButton>
   );
 
@@ -447,7 +447,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
 
       <MediaControlChip
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${duration} Sec`}
+        label={i18n.t("editor:ui.nSec", { n: duration })}
         active={!!durationAnchor}
         onClick={(e) => setDurationAnchor(e.currentTarget)}
         showChevron={false}
@@ -570,11 +570,11 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       <OptionChip
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${musicDuration} Sec`}
+        label={i18n.t("editor:ui.nSec", { n: musicDuration })}
         header={i18n.t("editor:ui.targetDuration", { defaultValue: "Target Duration" })}
         title={`Target duration: ${musicDuration} seconds. The model may adjust or ignore this.`}
         value={musicDuration}
-        options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}
+        options={MUSIC_DURATIONS.map((id) => ({ id, label: i18n.t("editor:ui.nSec", { n: id }) }))}
         onChange={setMusicDuration}
       />
     </>
