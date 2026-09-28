@@ -25,7 +25,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
 
   return (
     <Tooltip
-      title="Input nodes require a name for the workflow to run. Please set a unique name for this input."
+      title={i18n.t("editor:ui.inputNodesRequireANameForTheWorkflowToRunPleaseSetAUniqueNameForThisInput")}
       placement="top"
     >
       <Text

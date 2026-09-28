@@ -66,7 +66,7 @@ const SketchAIToolbarInner: React.FC = () => {
         }}
       >
         <Tooltip
-          title="Generate Layer — bind a new layer to any workflow with an image output."
+          title={i18n.t("editor:ui.generateLayerBindANewLayerToAnyWorkflowWithAnImageOutput")}
           delay={TOOLTIP_ENTER_DELAY}
           placement="bottom"
         >

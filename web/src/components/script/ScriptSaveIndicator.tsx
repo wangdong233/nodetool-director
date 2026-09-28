@@ -64,7 +64,7 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
 
   if (status === "reloaded") {
     return (
-      <Tooltip title="This script was edited elsewhere, so the newer server version was loaded.">
+      <Tooltip title={i18n.t("editor:ui.thisScriptWasEditedElsewhereSoTheNewerServerVersionWasLoaded")}>
         <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
           <HistoryIcon color="warning" sx={{ fontSize: 16 }} />
           <Text size="smaller" color="warning">

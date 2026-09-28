@@ -379,7 +379,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
         </FlexRow>
         {isLoading ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-            <LoadingSpinner size="large" text="Loading workflows" />
+            <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingWorkflows")} />
           </FlexColumn>
         ) : isError ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
@@ -396,7 +396,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
             {showFavoritesOnly ? (
               <EmptyState
                 title={i18n.t("editor:ui.noFavoriteWorkflows", { defaultValue: "No favorite workflows" })}
-                description="Click the star icon on a workflow to add it to your favorites."
+                description={i18n.t("editor:ui.clickTheStarIconOnAWorkflowToAddItToYourFavorites")}
               />
             ) : data?.workflows && data.workflows.length > 0 ? (
               <EmptyState
@@ -414,7 +414,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
             ) : (
               <EmptyState
                 title={i18n.t("editor:ui.noWorkflowsYet", { defaultValue: "No workflows yet" })}
-                description="Create your first workflow with the + button above."
+                description={i18n.t("editor:ui.createYourFirstWorkflowWithThe+ButtonAbove")}
               />
             )}
           </FlexColumn>

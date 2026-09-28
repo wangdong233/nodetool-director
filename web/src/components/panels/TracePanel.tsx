@@ -475,7 +475,7 @@ const TracePanel: React.FC = () => {
           <EmptyState
             variant="empty"
             title={i18n.t("editor:ui.noTraceData", { defaultValue: "No trace data" })}
-            description="Run a workflow to see the execution trace"
+            description={i18n.t("editor:ui.runAWorkflowToSeeTheExecutionTrace")}
             size="small"
           />
         ) : (

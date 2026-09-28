@@ -266,7 +266,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
           }}
           suggestions={tagOptions}
           placeholder={i18n.t("editor:ui.typeOrSelectTags", { defaultValue: "Type or select tags..." })}
-          description="Select from suggestions or type custom tags (press Enter to add)"
+          description={i18n.t("editor:ui.selectFromSuggestionsOrTypeCustomTagsPressEnterToAdd")}
         />
       </FormSection>
 

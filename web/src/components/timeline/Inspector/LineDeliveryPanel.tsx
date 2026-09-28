@@ -59,7 +59,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           variant="empty"
           size="small"
           title={i18n.t("timeline:attrs.lineContextUnavailable", { defaultValue: "Line context unavailable" })}
-          description="Reopen the linked Script before revising this voiceover."
+          description={i18n.t("editor:ui.reopenTheLinkedScriptBeforeRevisingThisVoiceover")}
         />
       </CollapsibleSection>
     );

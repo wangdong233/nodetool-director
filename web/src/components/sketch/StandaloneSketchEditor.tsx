@@ -251,7 +251,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
             <EmptyState
               variant="error"
               title={i18n.t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
-              description="The image document you requested does not exist or you do not have access to it."
+              description={i18n.t("editor:ui.theImageDocumentYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
             />
           </FlexColumn>
         );

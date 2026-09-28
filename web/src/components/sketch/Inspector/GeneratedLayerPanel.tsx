@@ -176,7 +176,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
             variant="empty"
             size="small"
             title={i18n.t("editor:ui.noWorkflowBinding", { defaultValue: "No workflow binding" })}
-            description="This layer does not have a generated-layer binding yet."
+            description={i18n.t("editor:ui.thisLayerDoesNotHaveAGeneratedLayerBindingYet")}
           />
         </Panel>
       );
@@ -215,7 +215,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
               <EmptyState
                 variant="error"
                 size="small"
-                description="Failed to load workflow inputs."
+                description={i18n.t("editor:ui.failedToLoadWorkflowInputs")}
               />
             )}
             {!isLoading && !isError && workflow && (
@@ -224,7 +224,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
                   <EmptyState
                     variant="empty"
                     size="small"
-                    description="This workflow has no editable input parameters."
+                    description={i18n.t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
                   />
                 ) : nodeStoreForForm ? (
                   <NodeContext.Provider value={nodeStoreForForm}>

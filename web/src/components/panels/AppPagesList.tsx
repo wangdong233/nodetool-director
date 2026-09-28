@@ -115,7 +115,7 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
         <EmptyState
           variant="no-results"
           title={i18n.t("editor:ui.noPanelsFound", { defaultValue: "No panels found" })}
-          description="No panels match your search."
+          description={i18n.t("editor:ui.noPanelsMatchYourSearch")}
           size="small"
         />
       )}

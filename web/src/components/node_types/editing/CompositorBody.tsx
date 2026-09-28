@@ -400,7 +400,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
       <HandleColumn id={id} properties={handleProperties} />
       <div className="preview-area">
         {previewSrc ? (
-          <img src={previewSrc} alt="Composited output" />
+          <img src={previewSrc} alt={i18n.t("editor:ui.compositedOutput")} />
         ) : (
           <CheckerDropzone
             message="Add layers, then run"

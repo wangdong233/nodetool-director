@@ -149,7 +149,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Add Node"
+      title={i18n.t("editor:ui.addNode")}
       minWidth="min(520px, 100vw - 32px)"
     >
       <FlexColumn gap={2} sx={{ minHeight: 400, maxHeight: "70vh" }}>
@@ -158,7 +158,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
         <TextInput
           fullWidth
           size="small"
-          placeholder="Search nodes..."
+          placeholder={i18n.t("editor:ui.searchNodes")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus={autoFocusEnabled}

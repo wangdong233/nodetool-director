@@ -252,7 +252,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               autoFocus={autoFocusEnabled}
               compact
               size="small"
-              placeholder="Search workflows…"
+              placeholder={i18n.t("editor:ui.searchWorkflows")}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               fullWidth
@@ -268,7 +268,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               <EmptyState
                 variant="error"
                 size="small"
-                description="Could not load workflows."
+                description={i18n.t("editor:ui.couldNotLoadWorkflows")}
               />
             )}
 

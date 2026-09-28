@@ -96,7 +96,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title="Pressure exponent before mapping: 1 = linear; higher = need firmer pressure for full size"
+        title={i18n.t("editor:ui.pressureExponentBeforeMapping1=LinearHigher=NeedFirmerPressureForFullSize")}
       >
         Curve
       </Text>

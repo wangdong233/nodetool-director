@@ -64,7 +64,7 @@ const LegacyAppRedirect = () => {
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" sx={{ height: "100vh" }}>
-        <LoadingSpinner size="large" text="Looking for this app" />
+        <LoadingSpinner size="large" text={i18n.t("editor:ui.lookingForThisApp")} />
       </FlexColumn>
     );
   }
@@ -80,7 +80,7 @@ const LegacyAppRedirect = () => {
         <EmptyState
           variant="error"
           title={i18n.t("editor:ui.appNotFound", { defaultValue: "App not found" })}
-          description="No app is built on this workflow. Open the Apps panel to create one."
+          description={i18n.t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne")}
         />
       </FlexColumn>
     );

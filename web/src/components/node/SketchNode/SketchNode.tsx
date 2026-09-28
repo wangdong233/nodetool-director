@@ -1346,7 +1346,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                     <img
                       className="preview-image"
                       src={displayPreviewUri}
-                      alt="Image editor preview"
+                      alt={i18n.t("editor:ui.imageEditorPreview")}
                     />
                     <div className="edit-overlay">
                       <EditIcon

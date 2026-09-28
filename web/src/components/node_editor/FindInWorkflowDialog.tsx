@@ -338,7 +338,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               aria-label={i18n.t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
               className="search-input"
               type="text"
-              placeholder="Find nodes..."
+              placeholder={i18n.t("editor:ui.findNodes")}
               value={searchTerm}
               onChange={handleInputChange}
             />

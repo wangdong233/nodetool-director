@@ -300,7 +300,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 id={`canvas-width-${id}`}
                 nodeId={id}
                 name="width"
-                description="Target canvas width"
+                description={i18n.t("editor:ui.targetCanvasWidth")}
                 value={Number(props.width ?? 512)}
                 onChange={(_, v) => setNumberProp("width", Math.max(1, Math.round(v)))}
                 onChangeComplete={() => setPropertyComplete()}
@@ -315,7 +315,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 id={`canvas-height-${id}`}
                 nodeId={id}
                 name="height"
-                description="Target canvas height"
+                description={i18n.t("editor:ui.targetCanvasHeight")}
                 value={Number(props.height ?? 512)}
                 onChange={(_, v) => setNumberProp("height", Math.max(1, Math.round(v)))}
                 onChangeComplete={() => setPropertyComplete()}

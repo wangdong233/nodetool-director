@@ -182,7 +182,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <EmptyState
               variant="empty"
               size="small"
-              description="No workflow is bound to this clip."
+              description={i18n.t("editor:ui.noWorkflowIsBoundToThisClip")}
             />
           )}
 
@@ -201,7 +201,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 <EmptyState
                   variant="error"
                   size="small"
-                  description="Failed to load workflow inputs."
+                  description={i18n.t("editor:ui.failedToLoadWorkflowInputs")}
                 />
               )}
               {!isLoading && !isError && workflow && (
@@ -210,7 +210,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                     <EmptyState
                       variant="empty"
                       size="small"
-                      description="This workflow has no editable input parameters."
+                      description={i18n.t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
                     />
                   ) : nodeStoreForForm ? (
                     <NodeContext.Provider value={nodeStoreForForm}>

@@ -607,7 +607,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
 
         return (
           <div className="audio" style={AUDIO_WRAPPER_STYLE}>
-            <React.Suspense fallback={<LoadingSpinner size="small" text="Loading audio player" />}>
+            <React.Suspense fallback={<LoadingSpinner size="small" text={i18n.t("editor:ui.loadingAudioPlayer")} />}>
               <LazyAudioPlayer
                 source={audioSource}
                 mimeType={mimeType}
@@ -753,14 +753,14 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
         return (
           <EmptyState
             title={i18n.t("editor:ui.noSketchSelected", { defaultValue: "No sketch selected" })}
-            description="Choose a sketch document to preview it here."
+            description={i18n.t("editor:ui.chooseASketchDocumentToPreviewItHere")}
           />
         );
       }
       case "timeline": {
         if (timelineSequence) {
           return (
-            <React.Suspense fallback={<LoadingSpinner size="small" text="Loading timeline preview" />}>
+            <React.Suspense fallback={<LoadingSpinner size="small" text={i18n.t("editor:ui.loadingTimelinePreview")} />}>
               <LazyTimelineRenderer
                 sequence={timelineSequence}
                 ariaLabel={i18n.t("editor:ui.timelineOutputPreview", { defaultValue: "Timeline output preview" })}
@@ -784,7 +784,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
         return (
           <EmptyState
             title={i18n.t("editor:ui.noTimelineSelected", { defaultValue: "No timeline selected" })}
-            description="Choose a timeline sequence to preview it here."
+            description={i18n.t("editor:ui.chooseATimelineSequenceToPreviewItHere")}
           />
         );
       }

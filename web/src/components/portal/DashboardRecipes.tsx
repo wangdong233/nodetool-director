@@ -446,14 +446,14 @@ const DashboardRecipes: React.FC = () => {
         </p>
         {isLoading ? (
           <div className="rcp-loading">
-            <LoadingSpinner size="medium" text="Loading recipes" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingRecipes")} />
           </div>
         ) : isError ? (
           <div className="rcp-empty">
             <EmptyState
               variant="error"
               title={i18n.t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
-              description="Try again in a moment."
+              description={i18n.t("editor:ui.tryAgainInAMoment")}
               actionText="Retry"
               onAction={() => refetch()}
             />

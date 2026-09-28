@@ -46,7 +46,7 @@ const SketchInspectorInner: React.FC = () => {
         variant="empty"
         size="small"
         title={`${selectedLayerIds.length} layers selected`}
-        description="Select a single layer to inspect."
+        description={i18n.t("editor:ui.selectASingleLayerToInspect")}
       />
     );
   } else if (!layer) {
@@ -55,7 +55,7 @@ const SketchInspectorInner: React.FC = () => {
         variant="empty"
         size="small"
         title={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })}
-        description="Select a layer to inspect."
+        description={i18n.t("editor:ui.selectALayerToInspect")}
       />
     );
   } else if (

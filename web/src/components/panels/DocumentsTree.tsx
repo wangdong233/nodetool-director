@@ -357,7 +357,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
       {!isMobile && (
         <PanelHeadline
           title={i18n.t("editor:ui.documents", { defaultValue: "Documents" })}
-          description="Open documents in the current project."
+          description={i18n.t("editor:ui.openDocumentsInTheCurrentProject")}
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
@@ -371,7 +371,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text="Loading documents" />
+          <LoadingSpinner text={i18n.t("editor:ui.loadingDocuments")} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn

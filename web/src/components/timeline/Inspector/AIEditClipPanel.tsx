@@ -442,7 +442,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               <LoadingSpinner
                 variant="dots"
                 size="small"
-                text="Editing video…"
+                text={i18n.t("editor:ui.editingVideo")}
               />
             )}
             {errorMessage && (

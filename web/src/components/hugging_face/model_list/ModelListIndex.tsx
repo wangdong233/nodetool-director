@@ -474,7 +474,7 @@ const ModelListIndex: React.FC = () => {
           textAlign: "center"
         }}
       >
-        <LoadingSpinner size="medium" text="Loading models" />
+        <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingModels")} />
       </Box>
     );
   }

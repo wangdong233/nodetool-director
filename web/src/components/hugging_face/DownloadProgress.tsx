@@ -386,7 +386,7 @@ export const DownloadProgress: React.FC<{
         </Tooltip>
       )}
       {download.status === "cancelled" && (
-        <Tooltip title="Download was cancelled. You can restart it from the model browser.">
+        <Tooltip title={i18n.t("editor:ui.downloadWasCancelledYouCanRestartItFromTheModelBrowser")}>
           <Chip
             label={i18n.t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
             size="small"

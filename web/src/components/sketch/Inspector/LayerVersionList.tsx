@@ -148,7 +148,7 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
                 variant="empty"
                 size="small"
                 title={i18n.t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
-                description="Successful generations will appear here"
+                description={i18n.t("editor:ui.successfulGenerationsWillAppearHere")}
               />
             )}
 

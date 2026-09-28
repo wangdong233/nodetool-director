@@ -685,7 +685,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
               value={reportedModelValue}
               onChange={handleReportedModel}
               options={reportedModelOptions}
-              description="Every model your configured providers render clips with. You can change it in the editor."
+              description={i18n.t("editor:ui.everyModelYourConfiguredProvidersRenderClipsWithYouCanChangeItInTheEditor")}
             />
           </Box>
         ) : null}
@@ -733,7 +733,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
                 value={reportedVoiceValue}
                 onChange={handleReportedVoice}
                 options={reportedVoiceOptions}
-                description="Every voice your configured providers read lines with."
+                description={i18n.t("editor:ui.everyVoiceYourConfiguredProvidersReadLinesWith")}
               />
             </Box>
           ) : null}

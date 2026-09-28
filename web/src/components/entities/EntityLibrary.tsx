@@ -73,7 +73,7 @@ const EntityLibraryInternal: React.FC = () => {
         <EmptyState
           variant="empty"
           title={i18n.t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description="Tag an image as a character, location, style, or prop to reuse it across shots."
+          description={i18n.t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropToReuseItAcrossShots")}
           actionText={i18n.t("editor:ui.addEntity", { defaultValue: "Add entity" })}
           onAction={handleAdd}
         />

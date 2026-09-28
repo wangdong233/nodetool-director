@@ -257,7 +257,7 @@ const QuickAddNodeDialog: React.FC<QuickAddNodeDialogProps> = ({
       open={open}
       onClose={handleClose}
       className="quick-add-node-dialog"
-      aria-label="Quick add node"
+      aria-label={i18n.t("editor:ui.quickAddNode")}
     >
       <div css={cssStyles}>
         <Command label={i18n.t("editor:ui.quickAddNode", { defaultValue: "Quick Add Node" })} className="command-menu" shouldFilter={false}>

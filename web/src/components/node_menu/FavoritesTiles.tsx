@@ -295,7 +295,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
         <EmptyState
           size="small"
           title={i18n.t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
-          description="Click the star next to any node to add it here."
+          description={i18n.t("editor:ui.clickTheStarNextToAnyNodeToAddItHere")}
         />
       </Box>
     );
@@ -378,7 +378,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearFavorites}
-        title="Clear all favorites?"
+        title={i18n.t("editor:ui.clearAllFavorites")}
         content={`This removes all ${favorites.length} favorite nodes. This cannot be undone.`}
         confirmText={i18n.t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
         cancelText="Cancel"

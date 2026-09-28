@@ -225,7 +225,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 fullWidth
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Folder name…"
+                placeholder={i18n.t("editor:ui.folderName")}
                 disabled={busy}
                 inputProps={{ "aria-label": "New folder name" }}
                 onKeyDown={(e) => {

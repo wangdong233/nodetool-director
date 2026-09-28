@@ -117,7 +117,7 @@ const JsScriptSettingsPanel = ({
             checked={document.palette !== undefined}
             disabled={readOnly}
             onChange={handleShowInMenu}
-            description="Adds this script to My Nodes, so it drops onto a graph like any node."
+            description={i18n.t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode")}
           />
           {document.palette !== undefined ? (
             <TextInput

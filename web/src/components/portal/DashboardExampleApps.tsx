@@ -286,14 +286,14 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
         </p>
         {isLoading ? (
           <div className="apps-loading">
-            <LoadingSpinner size="medium" text="Loading apps" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingApps")} />
           </div>
         ) : isError ? (
           <div className="apps-empty">
             <EmptyState
               variant="error"
               title={i18n.t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
-              description="Try again in a moment."
+              description={i18n.t("editor:ui.tryAgainInAMoment")}
               actionText="Retry"
               onAction={() => refetch()}
             />
@@ -303,7 +303,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
             <EmptyState
               variant="no-data"
               title={i18n.t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
-              description="Example apps will appear here when the server ships them."
+              description={i18n.t("editor:ui.exampleAppsWillAppearHereWhenTheServerShipsThem")}
             />
           </div>
         ) : (

@@ -482,7 +482,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <EmptyState
                   variant="empty"
                   size="small"
-                  description="No source clips with a rendered asset are available."
+                  description={i18n.t("editor:ui.noSourceClipsWithARenderedAssetAreAvailable")}
                 />
               ) : (
                 <SelectField

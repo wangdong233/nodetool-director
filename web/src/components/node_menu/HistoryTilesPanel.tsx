@@ -49,7 +49,7 @@ const HistoryTilesPanel = memo(() => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
               title={i18n.t("editor:ui.noRecentNodesYet", { defaultValue: "No recent nodes yet" })}
-              description="Nodes you use will appear here."
+              description={i18n.t("editor:ui.nodesYouUseWillAppearHere")}
             />
           </FlexColumn>
         ) : (

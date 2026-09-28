@@ -430,14 +430,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
 
         {isLoading ? (
           <div className="tpl-loading">
-            <LoadingSpinner size="medium" text="Loading templates" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTemplates")} />
           </div>
         ) : isError ? (
           <div className="tpl-empty">
             <EmptyState
               variant="error"
               title={i18n.t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
-              description="Try again in a moment."
+              description={i18n.t("editor:ui.tryAgainInAMoment")}
               actionText="Retry"
               onAction={() => refetch()}
             />
@@ -448,7 +448,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               <EmptyState
                 variant="no-results"
                 title={i18n.t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
-                description="Try a different search term."
+                description={i18n.t("editor:ui.tryADifferentSearchTerm")}
                 actionText={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onAction={() => setQuery("")}
               />
@@ -463,7 +463,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               <EmptyState
                 variant="no-data"
                 title={i18n.t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
-                description="Templates will appear here when available."
+                description={i18n.t("editor:ui.templatesWillAppearHereWhenAvailable")}
               />
             )}
           </div>

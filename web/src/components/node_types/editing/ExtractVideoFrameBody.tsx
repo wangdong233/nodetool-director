@@ -572,7 +572,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
               id={`extract-frame-${id}`}
               nodeId={id}
               name="frame"
-              description="Frame to extract"
+              description={i18n.t("editor:ui.frameToExtract")}
               value={frame}
               onChange={(_, v) => handleFrameChange(Math.round(v))}
               onChangeComplete={commitCurrent}

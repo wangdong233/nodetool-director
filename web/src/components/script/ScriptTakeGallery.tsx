@@ -158,7 +158,7 @@ const ScriptTakeGallery = ({
       <Box sx={{ minWidth: 260, padding: SPACING.md }}>
         <EmptyState
           title={i18n.t("editor:ui.noTakesYet", { defaultValue: "No takes yet" })}
-          description="Voice this line to create the first take."
+          description={i18n.t("editor:ui.voiceThisLineToCreateTheFirstTake")}
         />
       </Box>
     );

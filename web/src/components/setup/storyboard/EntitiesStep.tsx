@@ -452,12 +452,12 @@ export const EntitiesStep = ({
       </FlexRow>
 
       {isLoading ? (
-        <LoadingSpinner text="Loading entities" />
+        <LoadingSpinner text={i18n.t("editor:ui.loadingEntities")} />
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
           title={i18n.t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description="Create one from a generated or uploaded image, or skip this step."
+          description={i18n.t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep")}
           size="small"
         />
       ) : (

@@ -288,13 +288,13 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
         >
           <SketchModeOption
             value="stabilizer"
-            title="Rolling-average smoothing — tip follows the cursor along a low-pass-filtered path."
+            title={i18n.t("editor:ui.rollingAverageSmoothingTipFollowsTheCursorAlongALowPassFilteredPath")}
           >
             Stabilizer
           </SketchModeOption>
           <SketchModeOption
             value="lazy"
-            title="Leash drag — tip stays put inside a dead-zone, then trails the cursor along a straight line."
+            title={i18n.t("editor:ui.leashDragTipStaysPutInsideADeadZoneThenTrailsTheCursorAlongAStraightLine")}
           >
             Drag
           </SketchModeOption>
@@ -503,13 +503,13 @@ export const PencilSettingsPanel = memo(function PencilSettingsPanel({
         >
           <SketchModeOption
             value="pixel"
-            title="Pixel-art mode. Each dab is a crisp N×N square centered on the pixel under the cursor."
+            title={i18n.t("editor:ui.pixelArtModeEachDabIsACrispNNSquareCenteredOnThePixelUnderTheCursor")}
           >
             Pixel
           </SketchModeOption>
           <SketchModeOption
             value="soft"
-            title="Soft mode. Antialiased circular dabs — feels like a small brush."
+            title={i18n.t("editor:ui.softModeAntialiasedCircularDabsFeelsLikeASmallBrush")}
           >
             Soft
           </SketchModeOption>
@@ -602,7 +602,7 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
         >
           <SketchModeOption
             value="brush"
-            title="Erase with the current brush stamp (soft / hard / spray follow brush settings)."
+            title={i18n.t("editor:ui.eraseWithTheCurrentBrushStampSoftHardSprayFollowBrushSettings")}
           >
             Brush
           </SketchModeOption>

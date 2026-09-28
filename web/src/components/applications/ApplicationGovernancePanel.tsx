@@ -174,7 +174,7 @@ const BudgetSection = memo(function BudgetSection({
     });
   }, [applicationId, maxInvocations, maxUsd, period, setBudget]);
 
-  if (isLoading) return <LoadingSpinner text="Loading budget" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingBudget")} />;
 
   if (isError) {
     return (
@@ -273,7 +273,7 @@ const DeploySection = memo(function DeploySection({
     ? `${window.location.origin}${appDeploymentPath(deployment.token)}`
     : null;
 
-  if (isLoading) return <LoadingSpinner text="Loading link" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingLink")} />;
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
@@ -395,7 +395,7 @@ const InvocationsSection = memo(function InvocationsSection({
   const { data, isLoading, isError, error } =
     useApplicationInvocations(applicationId);
 
-  if (isLoading) return <LoadingSpinner text="Loading invocations" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingInvocations")} />;
 
   if (isError) {
     return (
@@ -413,7 +413,7 @@ const InvocationsSection = memo(function InvocationsSection({
       {invocations.length === 0 ? (
         <EmptyState
           title={i18n.t("editor:ui.noInvocationsYet", { defaultValue: "No invocations yet" })}
-          description="Runs of the released app show up here with their cost."
+          description={i18n.t("editor:ui.runsOfTheReleasedAppShowUpHereWithTheirCost")}
         />
       ) : (
         <FlexColumn gap={SPACING.sm} fullWidth>
@@ -526,7 +526,7 @@ const ApplicationGovernancePanel = ({
       <FlexColumn gap={SPACING.md} fullWidth>
         <SectionHeader title={i18n.t("editor:ui.versions", { defaultValue: "Versions" })} />
         {isLoading ? (
-          <LoadingSpinner text="Loading versions" />
+          <LoadingSpinner text={i18n.t("editor:ui.loadingVersions")} />
         ) : isError ? (
           <AlertBanner severity="error">
             {`Could not load versions: ${error?.message ?? "try again later."}`}
@@ -534,7 +534,7 @@ const ApplicationGovernancePanel = ({
         ) : sortedVersions.length === 0 ? (
           <EmptyState
             title={i18n.t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
-            description="Publish the app to cut its first version."
+            description={i18n.t("editor:ui.publishTheAppToCutItsFirstVersion")}
           />
         ) : (
           <FlexColumn gap={SPACING.md} fullWidth>

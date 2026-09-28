@@ -79,7 +79,7 @@ const SearchResultsPanel: React.FC<SearchResultsPanelProps> = ({
       <EmptyState
         variant="no-results"
         title={i18n.t("editor:ui.noMatchingNodes", { defaultValue: "No matching nodes" })}
-        description="Try a different search term or adjust your filters."
+        description={i18n.t("editor:ui.tryADifferentSearchTermOrAdjustYourFilters")}
         size="small"
       />
     );

@@ -263,7 +263,7 @@ const PreviewRegion: React.FC<{
       }
     >
       {isLoading ? (
-        <LoadingSpinner text="Loading sequence…" />
+        <LoadingSpinner text={i18n.t("editor:ui.loadingSequence")} />
       ) : sequenceUnavailable ? (
         <FlexColumn
           align="center"
@@ -274,7 +274,7 @@ const PreviewRegion: React.FC<{
           <EmptyState
             variant="error"
             title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
-            description="The timeline sequence you requested does not exist or you do not have access to it."
+            description={i18n.t("editor:ui.theTimelineSequenceYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
             {onRetryFetch ? (

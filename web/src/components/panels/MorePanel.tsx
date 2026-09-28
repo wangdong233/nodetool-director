@@ -81,7 +81,7 @@ const MorePanel: React.FC<MorePanelProps> = ({
       {!isMobile && (
         <PanelHeadline
           title={i18n.t("nav:tabs.more", { defaultValue: "More" })}
-          description="Search and open additional panels."
+          description={i18n.t("editor:ui.searchAndOpenAdditionalPanels")}
         />
       )}
       <FlexColumn padding={PADDING.spacious} gap={SPACING.md}>

@@ -81,7 +81,7 @@ const Unavailable: React.FC = () => (
     <EmptyState
       variant="error"
       title={i18n.t("editor:ui.thisAppIsNotAvailable", { defaultValue: "This app is not available" })}
-      description="The link may have been withdrawn, or the app may not be published."
+      description={i18n.t("editor:ui.theLinkMayHaveBeenWithdrawnOrTheAppMayNotBePublished")}
     />
   </FlexColumn>
 );
@@ -97,7 +97,7 @@ const Updated: React.FC = () => (
     <EmptyState
       variant="empty"
       title={i18n.t("editor:ui.thisAppHasBeenUpdated", { defaultValue: "This app has been updated" })}
-      description="Reload the page to run the version the owner just published."
+      description={i18n.t("editor:ui.reloadThePageToRunTheVersionTheOwnerJustPublished")}
     />
   </FlexColumn>
 );
@@ -223,7 +223,7 @@ const PublicAppPage: React.FC = () => {
         <EmptyState
           variant="empty"
           title={i18n.t("editor:ui.nothingToShow", { defaultValue: "Nothing to show" })}
-          description="This app was published without any widgets."
+          description={i18n.t("editor:ui.thisAppWasPublishedWithoutAnyWidgets")}
         />
       </FlexColumn>
     );

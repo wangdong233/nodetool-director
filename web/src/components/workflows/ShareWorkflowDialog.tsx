@@ -169,7 +169,7 @@ const ShareWorkflowDialog = ({
           <EmptyState
             variant="empty"
             title={i18n.t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
-            description="Copy a link above and send it to someone."
+            description={i18n.t("editor:ui.copyALinkAboveAndSendItToSomeone")}
           />
         )}
         {collaborators.map((collaborator) => (

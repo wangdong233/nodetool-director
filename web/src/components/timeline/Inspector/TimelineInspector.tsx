@@ -373,7 +373,7 @@ const TimelineInspectorContent: React.FC = memo(() => {
           variant="empty"
           size="small"
           title={i18n.t("timeline:attrs.noSelection", { defaultValue: "No selection" })}
-          description="Select a clip on the timeline to edit its properties."
+          description={i18n.t("editor:ui.selectAClipOnTheTimelineToEditItsProperties")}
         />
       </Panel>
     );

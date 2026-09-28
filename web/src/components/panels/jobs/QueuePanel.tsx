@@ -131,17 +131,17 @@ const QueuePanel = memo(function QueuePanel() {
 
   return (
     <FlexRow sx={{ flex: 1, minHeight: 0, height: "100%" }}>
-      <JobColumn title={i18n.t("editor:ui.running", { defaultValue: "Running" })} jobs={running} emptyText="Nothing running" />
-      <JobColumn title={i18n.t("editor:ui.queued", { defaultValue: "Queued" })} jobs={queued} emptyText="Queue is empty" />
+      <JobColumn title={i18n.t("editor:ui.running", { defaultValue: "Running" })} jobs={running} emptyText={i18n.t("editor:ui.nothingRunning")} />
+      <JobColumn title={i18n.t("editor:ui.queued", { defaultValue: "Queued" })} jobs={queued} emptyText={i18n.t("editor:ui.queueIsEmpty")} />
       <JobColumn
         title={i18n.t("editor:ui.completed", { defaultValue: "Completed" })}
         jobs={completed}
-        emptyText="No completed jobs"
+        emptyText={i18n.t("editor:ui.noCompletedJobs")}
       />
       <JobColumn
         title={i18n.t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
         jobs={cancelled}
-        emptyText="Nothing cancelled"
+        emptyText={i18n.t("editor:ui.nothingCancelled")}
         last
       />
     </FlexRow>

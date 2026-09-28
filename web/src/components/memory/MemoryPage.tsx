@@ -180,7 +180,7 @@ const MemoryPage: React.FC = () => {
           }
         }}
         title={i18n.t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
-        content="Delete this memory? This cannot be undone."
+        content={i18n.t("editor:ui.deleteThisMemoryThisCannotBeUndone")}
         confirmText="Delete"
         cancelText="Cancel"
       />

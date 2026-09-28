@@ -165,11 +165,11 @@ export const CreateApplicationFromWorkflowButton = memo(
               </AlertBanner>
             ) : null}
             {isLoading ? (
-              <LoadingSpinner text="Loading workflows" />
+              <LoadingSpinner text={i18n.t("editor:ui.loadingWorkflows")} />
             ) : workflows.length === 0 ? (
               <EmptyState
                 title={i18n.t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
-                description="Create a workflow first, then build an app on top of it."
+                description={i18n.t("editor:ui.createAWorkflowFirstThenBuildAnAppOnTopOfIt")}
               />
             ) : (
               <FlexColumn className="workflow-options" gap={0.5}>
