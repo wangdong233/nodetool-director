@@ -279,7 +279,7 @@ const EditorVariablesPanel = ({
                   allowEmpty
                   unstyled
                   selectOnFocus={false}
-                  placeholder="value"
+                  placeholder={i18n.t("editor:ui.valueLabel", { defaultValue: "value" })}
                   ariaLabel={`Value for ${variable.name}`}
                   onEditingChange={stopEditing}
                   onCommit={(next) => onSetValue(variable.name, next)}
@@ -298,7 +298,7 @@ const EditorVariablesPanel = ({
                 value=""
                 editing
                 unstyled
-                placeholder="variable name"
+                placeholder={i18n.t("editor:ui.variableName", { defaultValue: "variable name" })}
                 ariaLabel={i18n.t("editor:ui.newVariableName", { defaultValue: "New variable name" })}
                 sanitize={sanitizeVariableName}
                 onEditingChange={closeAdd}

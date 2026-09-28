@@ -1,6 +1,7 @@
 import type { Message } from "../../../stores/ApiTypes";
 import { ThreadInfo } from "../types/thread.types";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /** Server-assigned title, else the opening user message, else a placeholder. */
 export const threadPreview = (
@@ -22,7 +23,7 @@ export const threadPreview = (
     // `text` can be null even on a text block — never stringify "undefined".
     text = content[0].text ?? "";
   } else {
-    text = "[Media message]";
+    text = i18n.t("editor:ui.mediaMessage", { defaultValue: "[Media message]" });
   }
   if (!text) {
     return "New conversation";

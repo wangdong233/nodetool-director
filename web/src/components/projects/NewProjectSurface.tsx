@@ -680,7 +680,7 @@ const NewProjectSurface = ({
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: "New chat",
+        title: i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
         projectId
       });
       useOnboardingStore.getState().markStep("describe-idea");
@@ -726,7 +726,7 @@ const NewProjectSurface = ({
           type: "project-new",
           ref: PROJECT_NEW_REF,
           mode: "view",
-          title: "Home"
+          title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
         });
       }
       const ref = crypto.randomUUID();
@@ -1022,7 +1022,7 @@ const NewProjectSurface = ({
             type: "project-new",
             ref: PROJECT_NEW_REF,
             mode: "view",
-            title: "Home"
+            title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
           });
         }
         openTab({

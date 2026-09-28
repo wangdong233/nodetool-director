@@ -193,7 +193,7 @@ const treeViewStyles = (theme: Theme) => ({
 
 const createErrorItem = (itemId: string): TreeViewItem => ({
   id: `${itemId}/error`,
-  label: "⚠️ Access denied",
+  label: i18n.t("editor:ui.accessDenied", { defaultValue: "⚠️ Access denied" }),
   children: undefined,
   className: "error-item"
 });
@@ -211,7 +211,7 @@ const fileToTreeItem = (file: FileInfo): TreeViewItem => {
     item.children = [
       {
         id: file.path + "/loading",
-        label: "loading...",
+        label: i18n.t("editor:ui.loadingDots", { defaultValue: "loading..." }),
         className: "loading-item",
         children: []
       }
@@ -273,7 +273,9 @@ const depthOf = (path: string): number => path.split("/").length;
 
 const shouldLoadChildren = (item: TreeViewItem | undefined): boolean => {
   return Boolean(
-    item?.children?.length === 1 && item.children[0].label === "loading..."
+    item?.children?.length === 1 &&
+      item.children[0].label ===
+        i18n.t("editor:ui.loadingDots", { defaultValue: "loading..." })
   );
 };
 
@@ -578,7 +580,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
                 }
               }}
               items={files}
-              aria-label="workspace file browser"
+              aria-label={i18n.t("editor:ui.workspaceFileBrowser", { defaultValue: "workspace file browser" })}
               selectedItems={selectedFilePath}
               sx={treeViewStyles(theme)}
               slotProps={{

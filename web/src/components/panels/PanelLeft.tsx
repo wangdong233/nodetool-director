@@ -641,7 +641,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="JS Scripts"
+              title={i18n.t("nav:qa.jsscripts.label", { defaultValue: "JS Scripts" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateJsScriptButton />}

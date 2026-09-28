@@ -539,7 +539,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     if (mode === "reference_to_video") {
       return {
         model: referenceToVideoParams.model,
-        label: "reference to video"
+        label: i18n.t("editor:ui.referenceToVideoModelKind", { defaultValue: "reference to video" })
       };
     }
     if (mode === "audio") {

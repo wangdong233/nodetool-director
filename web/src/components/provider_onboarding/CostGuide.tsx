@@ -23,25 +23,25 @@ interface CostPoint {
   body: string;
 }
 
-const COST_POINTS: CostPoint[] = [
+const costPoints = (): CostPoint[] => [
   {
     icon: <DataUsageOutlinedIcon sx={{ fontSize: 18 }} />,
-    title: "Chat is billed in tokens",
+    title: i18n.t("editor:ui.chatBilledInTokens", { defaultValue: "Chat is billed in tokens" }),
     body: "A token is roughly ¾ of a word. Providers charge for the tokens you send (your prompt) and the tokens the model writes back. A short chat costs a fraction of a cent; long documents cost more."
   },
   {
     icon: <ImageOutlinedIcon sx={{ fontSize: 18 }} />,
-    title: "Images, audio, and video are billed per result",
+    title: i18n.t("editor:ui.imagesAudioVideoBilledPerResult", { defaultValue: "Images, audio, and video are billed per result" }),
     body: "Instead of tokens, these are usually priced per image, per second of audio or video, or per second of compute the model runs. A single image is typically a few cents."
   },
   {
     icon: <PaymentsOutlinedIcon sx={{ fontSize: 18 }} />,
-    title: "You pay the provider, not NodeTool",
+    title: i18n.t("editor:ui.youPayTheProviderNotNodetool", { defaultValue: "You pay the provider, not NodeTool" }),
     body: "Your API key bills your own account with each provider directly. NodeTool never adds a markup and never sees your card — set spending limits in the provider's dashboard to stay in control."
   },
   {
     icon: <SavingsOutlinedIcon sx={{ fontSize: 18 }} />,
-    title: "Start cheap or free",
+    title: i18n.t("editor:ui.startCheapOrFree", { defaultValue: "Start cheap or free" }),
     body: "Several providers give free credits or a free tier to experiment. Smaller and faster models cost much less than the largest ones — a great way to try things before scaling up."
   }
 ];
@@ -69,7 +69,7 @@ const CostGuide: React.FC = () => {
       }
     >
       <FlexColumn gap={SPACING.sm} sx={{ mt: SPACING.sm }}>
-        {COST_POINTS.map((point) => (
+        {costPoints().map((point) => (
           <Card
             key={point.title}
             variant="outlined"

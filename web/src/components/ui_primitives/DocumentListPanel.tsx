@@ -15,6 +15,7 @@ import { FlexColumn } from "./FlexColumn";
 import { listPanelStyles } from "./listPanelStyles";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Text } from "./Text";
+import { i18n } from "../../i18n";
 
 export interface DocumentListPanelDocument {
   id: string;
@@ -101,8 +102,8 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         onConfirm={onConfirmDelete}
         title={`Delete ${singular}`}
         content={`Delete "${deleteTarget?.name ?? ""}"? This cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       />
       <div className="list-panel-search">
         <CategorySearchBar

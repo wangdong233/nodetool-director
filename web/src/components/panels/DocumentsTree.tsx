@@ -238,12 +238,18 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? "Collapse" : "Expand"} ${group.label}`}
+          aria-label={`${expanded ? "Collapse" : "Expand"} ${
+        group.labelKey
+          ? i18n.t(group.labelKey, { defaultValue: group.label })
+          : group.label
+      }`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: "var(--fontSizeBig)" }} />
         <Text size="small" truncate>
-          {group.label}
+          {group.labelKey
+            ? i18n.t(group.labelKey, { defaultValue: group.label })
+            : group.label}
         </Text>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}

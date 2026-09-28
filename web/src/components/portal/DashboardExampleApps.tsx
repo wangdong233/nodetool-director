@@ -294,7 +294,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
               variant="error"
               title={i18n.t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
               description={i18n.t("editor:ui.tryAgainInAMoment")}
-              actionText="Retry"
+              actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>

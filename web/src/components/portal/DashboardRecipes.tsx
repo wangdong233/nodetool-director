@@ -454,7 +454,7 @@ const DashboardRecipes: React.FC = () => {
               variant="error"
               title={i18n.t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
               description={i18n.t("editor:ui.tryAgainInAMoment")}
-              actionText="Retry"
+              actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>

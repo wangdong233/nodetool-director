@@ -32,6 +32,7 @@ import { newScriptSetupDocument } from "../setup/script/useScriptSetupFlow";
 import { newVideoSetupDocument } from "../setup/video/useVideoSetupFlow";
 import { startImageFlow } from "../setup/image/startImageFlow";
 import { openPageTab } from "./openPageTab";
+import { i18n } from "../../i18n";
 
 export interface GuidedFlowStarter {
   id: EntryFlowId;
@@ -106,7 +107,7 @@ export const useGuidedFlowStarters = (
       runStart("storyboard", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createStoryboard.mutateAsync({
-          name: "Untitled storyboard",
+          name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
           projectId,
           document: newStoryboardSetupDocument("")
         });
@@ -126,7 +127,7 @@ export const useGuidedFlowStarters = (
       runStart("video", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const sequence = await createTimeline.mutateAsync({
-          name: "Untitled timeline",
+          name: i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
           projectId
         });
         // `timeline.create` takes no document, so the setup lands as one
@@ -142,7 +143,11 @@ export const useGuidedFlowStarters = (
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
-          title: sequence.name || "Untitled timeline",
+          title:
+            sequence.name ||
+            i18n.t("timeline:attrs.untitledTimeline", {
+              defaultValue: "Untitled timeline"
+            }),
           projectId: sequence.projectId
         });
       }),
@@ -154,7 +159,7 @@ export const useGuidedFlowStarters = (
       runStart("script", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createScript.mutateAsync({
-          name: "Untitled script",
+          name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
           projectId,
           document: newScriptSetupDocument("")
         });
@@ -174,7 +179,7 @@ export const useGuidedFlowStarters = (
       runStart("image", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const started = await startImageFlow({
-          name: "Untitled sketch",
+          name: i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" }),
           projectId,
           brief: ""
         });
@@ -194,7 +199,7 @@ export const useGuidedFlowStarters = (
       runStart("workflow", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createWorkflow({
-          name: "Untitled workflow",
+          name: i18n.t("editor:ui.untitledWorkflow", { defaultValue: "Untitled workflow" }),
           description: "",
           tags: [],
           access: "private",
@@ -205,7 +210,11 @@ export const useGuidedFlowStarters = (
           type: "workflow",
           ref: created.id,
           mode: "edit",
-          title: created.name || "Untitled workflow",
+          title:
+            created.name ||
+            i18n.t("editor:ui.untitledWorkflow", {
+              defaultValue: "Untitled workflow"
+            }),
           projectId
         });
       }),
@@ -217,7 +226,7 @@ export const useGuidedFlowStarters = (
       runStart("game", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createWorkflow({
-          name: "Untitled game",
+          name: i18n.t("editor:ui.untitledGame", { defaultValue: "Untitled game" }),
           description: "",
           tags: [],
           access: "private",
@@ -228,7 +237,11 @@ export const useGuidedFlowStarters = (
           type: "workflow",
           ref: created.id,
           mode: "edit",
-          title: created.name || "Untitled game",
+          title:
+            created.name ||
+            i18n.t("editor:ui.untitledGame", {
+              defaultValue: "Untitled game"
+            }),
           projectId
         });
       }),

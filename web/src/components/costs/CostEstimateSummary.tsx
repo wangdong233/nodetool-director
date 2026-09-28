@@ -144,7 +144,10 @@ export interface CostEstimateSummaryProps {
 const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
   estimate,
   unavailableMessage = "Open a workflow to see its cost estimate.",
-  emptyMessage = "Add a node that uses an AI model to estimate a run's cost.",
+  emptyMessage = i18n.t("editor:ui.addNodeUsingAiModelToEstimate", {
+    defaultValue:
+      "Add a node that uses an AI model to estimate a run's cost."
+  }),
   showPriceCredit = true
 }) => {
   const theme = useTheme();

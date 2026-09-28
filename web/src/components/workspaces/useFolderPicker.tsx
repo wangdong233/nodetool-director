@@ -21,7 +21,7 @@ export function useFolderPicker() {
     if (hasNativeDialog() && window.api?.dialog) {
       try {
         const result = await window.api.dialog.openFolder({
-          title: "Select Workspace Folder"
+          title: i18n.t("editor:ui.selectWorkspaceFolder", { defaultValue: "Select Workspace Folder" })
         });
         if (!result.canceled && result.filePaths.length > 0) {
           return result.filePaths[0];

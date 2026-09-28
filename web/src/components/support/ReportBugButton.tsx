@@ -20,7 +20,7 @@ interface ReportBugButtonProps {
 
 const ReportBugButton = ({
   context,
-  label = "Report",
+  label = i18n.t("editor:ui.reportLabel", { defaultValue: "Report" }),
   variant = "text",
   size = "small",
   className

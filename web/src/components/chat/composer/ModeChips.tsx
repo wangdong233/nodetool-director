@@ -83,17 +83,17 @@ const { strengthOptions: STRENGTH_OPTIONS, stepsOptions: STEPS_OPTIONS } =
   buildImageEditOptions();
 
 /** Whether the first reference video's own audio survives into the result. */
-const REFERENCE_AUDIO_OPTIONS: MediaOption<string>[] = [
+const referenceAudioOptions = (): MediaOption<string>[] => [
   {
     id: "off",
-    label: "Model audio",
-    description: "let the model score the clip",
+    label: i18n.t("editor:ui.modelAudio", { defaultValue: "Model audio" }),
+    description: i18n.t("editor:ui.letModelScoreClip", { defaultValue: "let the model score the clip" }),
     icon: <VolumeUpIcon fontSize="small" />
   },
   {
     id: "on",
-    label: "Reference audio",
-    description: "keep the reference video's track",
+    label: i18n.t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }),
+    description: i18n.t("editor:ui.keepReferenceVideoTrack", { defaultValue: "keep the reference video's track" }),
     icon: <VolumeUpIcon fontSize="small" />
   }
 ];
@@ -482,10 +482,18 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
       <OptionChip
         menu="option"
         icon={<VolumeUpIcon fontSize="small" />}
-        label={params.useReferenceVideoAudio ? "Reference audio" : "Model audio"}
+        label={
+          params.useReferenceVideoAudio
+            ? i18n.t("editor:ui.referenceAudio", {
+                defaultValue: "Reference audio"
+              })
+            : i18n.t("editor:ui.modelAudio", {
+                defaultValue: "Model audio"
+              })
+        }
         header={i18n.t("editor:ui.audioSource", { defaultValue: "Audio Source" })}
         value={params.useReferenceVideoAudio ? "on" : "off"}
-        options={REFERENCE_AUDIO_OPTIONS}
+        options={referenceAudioOptions()}
         onChange={(value) =>
           setParams({ useReferenceVideoAudio: value === "on" })
         }
@@ -530,9 +538,9 @@ function AudioModeChips({ openModelPickerRef }: ClusterProps) {
         label={
           params.voice
             ? params.voice.charAt(0).toUpperCase() + params.voice.slice(1)
-            : "Voice"
+            : i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })
         }
-        header="Voice"
+        header={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
         value={params.voice}
         options={voiceOptions}
         onChange={(voice) => setParams({ voice })}

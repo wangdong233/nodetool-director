@@ -410,7 +410,9 @@ export const LogsTable: React.FC<LogsTableProps> = ({
   rows,
   rowHeight = 36,
   height,
-  emptyText = "No logs to display",
+  emptyText = i18n.t("editor:ui.noLogsToDisplay", {
+    defaultValue: "No logs to display"
+  }),
   severities,
   autoScroll = true,
   showTimestampColumn = true,

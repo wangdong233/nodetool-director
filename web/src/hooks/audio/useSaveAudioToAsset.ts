@@ -8,6 +8,7 @@ import {
   type AudioSample
 } from "../../components/audio_editor/audioSample";
 import type { Asset } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 /**
  * Encode the edited sample to 16-bit PCM WAV and overwrite the asset's bytes.
@@ -39,7 +40,7 @@ export function useSaveAudioToAsset(asset: Asset | undefined) {
         }
         useNotificationStore.getState().addNotification({
           type: "success",
-          content: "Saved edits to audio."
+          content: i18n.t("editor:ui.savedEditsToAudio", { defaultValue: "Saved edits to audio." })
         });
       } catch (error) {
         useNotificationStore.getState().addNotification({

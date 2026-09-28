@@ -415,7 +415,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
           variant="error"
           title={i18n.t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
           description={error ?? "Audio could not be decoded."}
-          actionText="Done"
+          actionText={i18n.t("ui2:attrs.done", { defaultValue: "Done" })}
           onAction={onClose}
         />
       </FlexColumn>

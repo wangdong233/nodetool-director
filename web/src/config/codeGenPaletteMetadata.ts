@@ -11,6 +11,7 @@
  * cases, so appending the aliases makes each of them a way to reach the entry.
  */
 import type { NodeMetadata } from "../stores/ApiTypes";
+import { i18n } from "../i18n";
 
 export const CODE_GEN_PALETTE_NODE_TYPE = "nodetool.code.WriteCodeWithAI";
 
@@ -34,7 +35,9 @@ const DESCRIPTION =
 
 export function codeGenPaletteMetadata(): NodeMetadata {
   return {
-    title: "Write Code with AI",
+    title: i18n.t("editor:ui.writeCodeWithAi", {
+      defaultValue: "Write Code with AI"
+    }),
     description: `${DESCRIPTION}\n    ${CODE_GEN_PALETTE_ALIASES.join(", ")}`,
     namespace: "nodetool.code",
     node_type: CODE_GEN_PALETTE_NODE_TYPE,

@@ -135,17 +135,23 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
       {
         type: "protanopia" as const,
         label: "Protanopia",
-        description: "Red-blind"
+        labelKey: "editor:ui.protanopia",
+        description: "Red-blind",
+        descriptionKey: "editor:ui.redBlind"
       },
       {
         type: "deuteranopia" as const,
         label: "Deuteranopia",
-        description: "Green-blind"
+        labelKey: "editor:ui.deuteranopia",
+        description: "Green-blind",
+        descriptionKey: "editor:ui.greenBlind"
       },
       {
         type: "tritanopia" as const,
         label: "Tritanopia",
-        description: "Blue-blind"
+        labelKey: "editor:ui.tritanopia",
+        description: "Blue-blind",
+        descriptionKey: "editor:ui.blueBlind"
       }
     ],
     []
@@ -235,7 +241,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
         <div className="color-blindness-grid">
           {colorBlindnessSimulations.map((sim) => (
             <div key={sim.type} className="color-blindness-preview">
-              <span className="cb-label">{sim.label}</span>
+              <span className="cb-label">{i18n.t(sim.labelKey, { defaultValue: sim.label })}</span>
               <div className="cb-colors">
                 <div
                   className="cb-swatch"
@@ -248,7 +254,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
                   title={`Background: ${sim.background}`}
                 />
               </div>
-              <span className="cb-label">{sim.description}</span>
+              <span className="cb-label">{i18n.t(sim.descriptionKey, { defaultValue: sim.description })}</span>
             </div>
           ))}
         </div>

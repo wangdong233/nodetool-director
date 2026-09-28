@@ -131,7 +131,7 @@ const MemoryPage: React.FC = () => {
     <ManagerPageLayout
       icon={<PsychologyOutlinedIcon sx={{ fontSize: 22 }} />}
       title={i18n.t("editor:ui.memory", { defaultValue: "Memory" })}
-      subtitle="What the agent remembers across every conversation — project notes and the resources they refer to."
+      subtitle={i18n.t("editor:ui.whatTheAgentRemembers", { defaultValue: "What the agent remembers across every conversation — project notes and the resources they refer to." })}
     >
       <FlexColumn gap={SPACING.md} sx={{ width: "100%" }}>
         <FlexRow align="center" justify="space-between" gap={SPACING.md}>
@@ -151,7 +151,7 @@ const MemoryPage: React.FC = () => {
         {kinds.length > 1 && (
           <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
             <Chip
-              label="All"
+              label={i18n.t("common:typeFilters.all", { defaultValue: "All" })}
               compact
               variant="outlined"
               active={kind === null}
@@ -181,8 +181,8 @@ const MemoryPage: React.FC = () => {
         }}
         title={i18n.t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
         content={i18n.t("editor:ui.deleteThisMemoryThisCannotBeUndone")}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </ManagerPageLayout>
   );

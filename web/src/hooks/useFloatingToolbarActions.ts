@@ -20,6 +20,7 @@ import { useBottomPanelStore } from "../stores/BottomPanelStore";
 import { usePanelStore } from "../stores/PanelStore";
 import { useMiniMapStore } from "../stores/MiniMapStore";
 import { useNotificationStore } from "../stores/NotificationStore";
+import { i18n } from "../i18n";
 
 interface FloatingToolbarActions {
   handleRun: () => Promise<void>;
@@ -144,7 +145,7 @@ export const useFloatingToolbarActions = (): FloatingToolbarActions => {
             w.graph,
             "checkpoint",
             {
-              description: "Before execution",
+              description: i18n.t("editor:ui.beforeExecution", { defaultValue: "Before execution" }),
               force: true,
               maxVersions: autosave.maxVersionsPerWorkflow,
               expectedUpdatedAt: w.updated_at ?? undefined

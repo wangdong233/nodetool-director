@@ -228,8 +228,8 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       <DialogActionButtons
         onConfirm={executeDeletion}
         onCancel={handleClose}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         isLoading={isLoading}
         confirmDisabled={isAssetTreeLoading || showRootFolderWarning}
         destructive={true}

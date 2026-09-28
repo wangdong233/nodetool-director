@@ -18,6 +18,7 @@ import { shallow } from "zustand/shallow";
 import { instantiatePaletteNode } from "../../utils/instantiatePaletteNode";
 import useMetadataStore from "../../stores/MetadataStore";
 import { blockToConstant } from "./useGenerationToCanvas";
+import { i18n } from "../../i18n";
 
 /** Horizontal spacing between nodes when dropping multiple assets */
 const MULTI_NODE_HORIZONTAL_SPACING = 250;
@@ -160,7 +161,7 @@ export const useDropHandler = (): UseDropHandlerResult => {
           if (!metadata) {
             addNotification({
               type: "error",
-              content: "Could not create sketch node: metadata is missing.",
+              content: i18n.t("editor:ui.couldNotCreateSketchNode", { defaultValue: "Could not create sketch node: metadata is missing." }),
               alert: true
             });
             return;
@@ -182,7 +183,7 @@ export const useDropHandler = (): UseDropHandlerResult => {
           if (!metadata) {
             addNotification({
               type: "error",
-              content: "Could not create timeline node: metadata is missing.",
+              content: i18n.t("editor:ui.couldNotCreateTimelineNode", { defaultValue: "Could not create timeline node: metadata is missing." }),
               alert: true
             });
             return;

@@ -99,7 +99,7 @@ const CollectionItem = ({
       addNotification({
         alert: true,
         type: "success",
-        content: "Collection updated successfully"
+        content: i18n.t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
       });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },

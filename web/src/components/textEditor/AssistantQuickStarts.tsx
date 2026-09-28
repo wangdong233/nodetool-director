@@ -28,22 +28,22 @@ const buildQuickStarts = (propertyName: string): QuickStart[] => {
   return [
     {
       icon: <AutoFixHighIcon />,
-      label: "Draft a prompt from scratch",
+      label: i18n.t("editor:ui.draftPromptFromScratch", { defaultValue: "Draft a prompt from scratch" }),
       prompt: `Draft ${target} from scratch. Ask me about the goal and audience if you need to, then write a clear, well-structured prompt.`
     },
     {
       icon: <DataObjectIcon />,
-      label: "Add input variables",
+      label: i18n.t("editor:ui.addInputVariables", { defaultValue: "Add input variables" }),
       prompt: `Rewrite ${target} to use {{ variable }} placeholders for the key inputs so it works as a reusable template.`
     },
     {
       icon: <NotesIcon />,
-      label: "Make it more concise",
+      label: i18n.t("editor:ui.makeItMoreConcise", { defaultValue: "Make it more concise" }),
       prompt: `Make ${target} more concise without losing any important instructions or constraints.`
     },
     {
       icon: <ArticleOutlinedIcon />,
-      label: "Add a system role & sections",
+      label: i18n.t("editor:ui.addSystemRoleAndSections", { defaultValue: "Add a system role & sections" }),
       prompt: `Restructure ${target} with a clear system role and labeled sections (context, task, constraints, output format).`
     }
   ];

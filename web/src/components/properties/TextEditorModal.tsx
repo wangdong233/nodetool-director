@@ -1163,7 +1163,14 @@ const TextEditorModal = ({
   const typeLabel = propertyType
     ? TYPE_LABELS[propertyType] ?? propertyType
     : null;
-  const languageLabel = LANGUAGE_LABELS[language] ?? language;
+  // Resolve at render so zh lands (module map stays pure data). English
+  // matches the map key verbatim, so only "Plain Text" carries a key for now.
+  const languageLabel =
+    language === "plaintext" || language === "text" || language === ""
+      ? i18n.t("editor:ui.plainText", {
+          defaultValue: LANGUAGE_LABELS[language] ?? language
+        })
+      : (LANGUAGE_LABELS[language] ?? language);
   const showVariablesPanel = variablesVisible && !focusMode;
   const showAssistant = assistantVisible && !focusMode;
 

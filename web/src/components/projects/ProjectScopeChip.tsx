@@ -78,7 +78,7 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
             <MenuItemPrimitive
               key={entry.id}
               label={entry.name}
-              secondary="Switch to"
+              secondary={i18n.t("editor:ui.switchTo", { defaultValue: "Switch to" })}
               compact
               onClick={() => {
                 close();

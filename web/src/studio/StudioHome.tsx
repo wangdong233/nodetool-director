@@ -159,7 +159,7 @@ const StudioHome = () => {
     creatingRef.current = true;
     setCreating("storyboard");
     createStoryboard
-      .mutateAsync({ name: "Untitled storyboard", projectId: creationProjectId() })
+      .mutateAsync({ name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }), projectId: creationProjectId() })
       .then((created) => navigate(`/studio/storyboard/${created.id}`))
       .finally(() => {
         creatingRef.current = false;
@@ -176,7 +176,7 @@ const StudioHome = () => {
     setCreating("storyboard");
     createStoryboard
       .mutateAsync({
-        name: "Untitled storyboard",
+        name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId: creationProjectId(),
         document: newStoryboardSetupDocument("")
       })
@@ -196,7 +196,7 @@ const StudioHome = () => {
     setCreating("script");
     createScript
       .mutateAsync({
-        name: "Untitled script",
+        name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
         projectId: creationProjectId(),
         document: newScriptSetupDocument("")
       })
@@ -215,7 +215,7 @@ const StudioHome = () => {
     setCreating("timeline");
     createTimeline
       .mutateAsync({
-        name: "Untitled video",
+        name: i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" }),
         projectId: creationProjectId()
       })
       .then(async (created) => {
@@ -252,7 +252,7 @@ const StudioHome = () => {
     creatingRef.current = true;
     setCreating("script");
     createScript
-      .mutateAsync({ name: "Untitled script", projectId: creationProjectId() })
+      .mutateAsync({ name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }), projectId: creationProjectId() })
       .then((created) => navigate(`/studio/script/${created.id}`))
       .finally(() => {
         creatingRef.current = false;

@@ -142,7 +142,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onPressSpaceWhenEmpty,
   focusSearchInput = true,
   focusOnTyping = false,
-  placeholder = "Search...",
+  placeholder = i18n.t("editor:ui.searchDots", { defaultValue: "Search..." }),
   maxWidth = "unset",
   debounceTime = 50,
   searchTerm: externalSearchTerm = "",

@@ -50,7 +50,9 @@ const EntityAssetPickerDialogInternal: React.FC<
   onClose,
   onPick,
   projectId,
-  title = "Pick a reference image",
+  title = i18n.t("editor:ui.pickAReferenceImage", {
+    defaultValue: "Pick a reference image"
+  }),
   assetIds,
   excludedAssetIds,
   emptyTitle = "No images",

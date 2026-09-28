@@ -35,7 +35,7 @@ const LanguageModelSelect: React.FC<LanguageModelSelectProps> = ({
   provider,
   allowedProviders,
   requireToolSupport,
-  placeholder = "Select Model",
+  placeholder = i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" }),
   recommendedModels,
   modelPacks,
   disabled

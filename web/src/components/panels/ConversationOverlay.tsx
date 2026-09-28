@@ -345,7 +345,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
         console.error("Failed to delete conversation:", err);
         addNotification({
           type: "error",
-          content: "Could not delete the conversation. Please try again."
+          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
         });
       });
     },

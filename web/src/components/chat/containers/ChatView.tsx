@@ -372,7 +372,7 @@ const ChatView = ({
       console.error("Failed to copy the conversation:", error);
       addNotification({
         type: "error",
-        content: "Could not copy the conversation."
+        content: i18n.t("editor:ui.couldNotCopyConversation", { defaultValue: "Could not copy the conversation." })
       });
     }
   }, [messages, writeClipboard, addNotification]);

@@ -76,8 +76,8 @@ const CopyProjectDocumentAction = ({
         onClose={closeDialog}
         title={`Copy ${document.name}`}
         onConfirm={confirmCopy}
-        confirmText="Copy"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.copy", { defaultValue: "Copy" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         confirmDisabled={!destinationProjectId}
         isLoading={copy.isPending}
       >

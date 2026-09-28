@@ -157,8 +157,8 @@ const ThreadList: React.FC<ThreadListProps> = ({
           onConfirm={handleConfirmDelete}
           title={i18n.t("editor:ui.deleteConversation", { defaultValue: "Delete conversation" })}
           content={`Delete "${pendingLabel}"? This cannot be undone.`}
-          confirmText="Delete"
-          cancelText="Cancel"
+          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         />
       )}
     </div>

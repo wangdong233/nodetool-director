@@ -118,7 +118,13 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {blank ? "Export a blank template" : "Start from a template"}
+            {blank
+              ? i18n.t("editor:ui.exportBlankTemplate", {
+                  defaultValue: "Export a blank template"
+                })
+              : i18n.t("editor:ui.startFromATemplate", {
+                  defaultValue: "Start from a template"
+                })}
           </Text>
           <Caption color="secondary" component="p">
             {blank

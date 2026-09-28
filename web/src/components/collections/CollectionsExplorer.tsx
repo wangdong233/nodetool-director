@@ -12,7 +12,7 @@ const CollectionsExplorer: React.FC = () => (
   <ManagerPageLayout
     icon={<LibraryBooksOutlinedIcon sx={{ fontSize: 22 }} />}
     title={i18n.t("nav:rail.collections", { defaultValue: "Collections" })}
-    subtitle="Searchable document collections for RAG workflows — drop in PDFs, Markdown, HTML, or transcripts."
+    subtitle={i18n.t("editor:ui.searchableDocumentCollections", { defaultValue: "Searchable document collections for RAG workflows — drop in PDFs, Markdown, HTML, or transcripts." })}
     docsTopic="collections"
   >
     <CollectionList />

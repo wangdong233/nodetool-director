@@ -102,7 +102,7 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
         title={`Delete ${project.name}?`}
         onConfirm={confirmDelete}
         confirmText={i18n.t("editor:ui.deleteProject", { defaultValue: "Delete project" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
         isLoading={remove.isPending}
       >

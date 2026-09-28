@@ -143,7 +143,7 @@ function FileBrowserDialog({
   open,
   onClose,
   onConfirm,
-  title = "Select File",
+  title = i18n.t("editor:ui.selectFile", { defaultValue: "Select File" }),
   initialPath = "~",
   selectionMode = "file"
 }: FileBrowserDialogProps) {

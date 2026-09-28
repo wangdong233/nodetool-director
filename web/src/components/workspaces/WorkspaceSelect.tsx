@@ -171,7 +171,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
         addNotification({
           type: "success",
           alert: true,
-          content: "Workspace added",
+          content: i18n.t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
           dismissable: true
         });
       },

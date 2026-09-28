@@ -17,6 +17,7 @@ import { useDuplicateNodes } from "../useDuplicate";
 import { useCopyPaste } from "../handlers/useCopyPaste";
 import { useToggleCollapse } from "./useToggleCollapse";
 import { shallow } from "zustand/shallow";
+import { i18n } from "../../i18n";
 
 interface UseNodeContextMenuReturn {
   menuPosition: { x: number; y: number } | null;
@@ -119,7 +120,7 @@ export function useNodeContextMenu(): UseNodeContextMenuReturn {
       addNotification({
         type: "info",
         alert: true,
-        content: "Copied node data to the clipboard"
+        content: i18n.t("editor:ui.copiedNodeDataToClipboard", { defaultValue: "Copied node data to the clipboard" })
       });
       writeClipboard(JSON.stringify(nodeData, null, 2), true, true);
       closeContextMenu();

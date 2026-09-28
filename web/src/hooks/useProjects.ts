@@ -14,6 +14,7 @@ import {
   type WorkspaceTabType
 } from "../stores/WorkspaceTabsStore";
 import { useNotificationStore } from "../stores/NotificationStore";
+import { i18n } from "../i18n";
 
 /**
  * Open the surface a project is started from. One tab, so every entry point —
@@ -28,7 +29,7 @@ export const useOpenNewProjectTab = () => {
         type: "project-new",
         ref: PROJECT_NEW_REF,
         mode: "view",
-        title: "Home"
+        title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
       }),
     [openTab]
   );

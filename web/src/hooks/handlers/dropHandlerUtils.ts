@@ -22,6 +22,7 @@ import { createErrorMessage, AppError } from "../../utils/errorHandling";
 import { Graph, Workflow } from "../../stores/ApiTypes";
 import { shallow } from "zustand/shallow";
 import { getLocalFilePath, pathToFileUri } from "../../utils/localFile";
+import { i18n } from "../../i18n";
 
 export type FileHandlerResult = {
   success: boolean;
@@ -73,7 +74,10 @@ export const useFileHandlers = () => {
         addNotification({
           type: "warning",
           alert: true,
-          content: "Unsupported file type: " + (file.type || file.name)
+          content:
+            i18n.t("editor:ui.unsupportedFileType", {
+              defaultValue: "Unsupported file type: "
+            }) + (file.type || file.name)
         });
         return { success: false, error: "Unsupported file type" };
       }
@@ -136,7 +140,10 @@ export const useFileHandlers = () => {
           addNotification({
             type: "warning",
             alert: true,
-            content: "Unsupported file type: " + file.type
+            content:
+              i18n.t("editor:ui.unsupportedFileType", {
+                defaultValue: "Unsupported file type: "
+              }) + file.type
           });
           return { success: false, error: "Unsupported file type" };
         }
@@ -196,7 +203,7 @@ export const useFileHandlers = () => {
           try {
             const createdWorkflow = await createWorkflow({
               name: jsonData.name || file.name,
-              description: "created from json",
+              description: i18n.t("editor:ui.createdFromJson", { defaultValue: "created from json" }),
               access: "private",
               graph: jsonData.graph
             });

@@ -62,7 +62,7 @@ interface CategorySearchBarProps {
 const CategorySearchBar = memo(function CategorySearchBar({
   value,
   onChange,
-  placeholder = "Filter...",
+  placeholder = i18n.t("editor:ui.filterDots", { defaultValue: "Filter..." }),
   ref
 }: CategorySearchBarProps) {
   const theme = useTheme();

@@ -28,6 +28,7 @@ import type {
   NodeData
 } from "../../stores/NodeData";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 type JsScriptPort = jsScripts.JsScriptPort;
 
@@ -145,7 +146,7 @@ export function useCodeNodeScriptLink(
       }
       const created = await createVersion.mutateAsync({
         id: scriptId,
-        name: "Linked from a Code node"
+        name: i18n.t("editor:ui.linkedFromCodeNode", { defaultValue: "Linked from a Code node" })
       });
       return created.version;
     },

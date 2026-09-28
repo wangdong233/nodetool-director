@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
+import { i18n } from "../i18n";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -25,6 +26,7 @@ export interface DocumentTreeLeaf {
 export interface DocumentTreeGroup {
   readonly id: "workflows" | "apps" | "creative" | "agents";
   readonly label: string;
+  readonly labelKey?: string;
   readonly children: readonly DocumentTreeLeaf[];
 }
 
@@ -68,6 +70,7 @@ const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
 const GROUPS: readonly {
   readonly id: DocumentTreeGroup["id"];
   readonly label: string;
+  readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
   { id: "workflows", label: "Workflows", types: ["workflow"] },
@@ -75,6 +78,7 @@ const GROUPS: readonly {
   {
     id: "creative",
     label: "Creative documents",
+    labelKey: "editor:ui.creativeDocuments",
     types: ["sketch", "script", "storyboard", "timeline", "entity"]
   },
   { id: "agents", label: "Agents & code", types: ["jsscript"] }
@@ -116,6 +120,7 @@ export const useDocumentTreeData = (
     return GROUPS.map((group) => ({
       id: group.id,
       label: group.label,
+      ...(group.labelKey ? { labelKey: group.labelKey } : {}),
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
   }, [indexQuery.data, projectId]);

@@ -45,6 +45,7 @@ interface ModeItem {
   label: string;
   labelKey?: string;
   description?: string;
+  descriptionKey?: string;
   icon: React.ReactNode;
   enabled: boolean;
 }
@@ -84,6 +85,7 @@ const MODES: ModeItem[] = [
     id: "reference_to_video",
     label: "Reference to Video", labelKey: "referenceToVideo",
     description: "several references, one shot",
+    descriptionKey: "editor:ui.severalReferencesOneShot",
     icon: <BurstModeIcon fontSize="small" />,
     enabled: true
   },
@@ -238,7 +240,9 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
                 </Text>
                 {m.description && (
                   <Caption size="smaller" color="secondary">
-                    {m.description}
+                    {m.descriptionKey && m.description
+                      ? i18n.t(m.descriptionKey, { defaultValue: m.description })
+                      : m.description}
                   </Caption>
                 )}
                 {!m.enabled && (

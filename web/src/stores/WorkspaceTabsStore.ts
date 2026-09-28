@@ -14,6 +14,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuth } from "./useAuth";
+import { i18n } from "../i18n";
 
 export type WorkspaceTabType =
   | "workflow"
@@ -368,7 +369,7 @@ export const seedTabsFromLegacy = (): Pick<
     type: "workflow",
     ref,
     mode: "edit",
-    title: "Loading…"
+    title: i18n.t("common:status.loading", { defaultValue: "Loading…" })
   }));
 
   let activeTabId: string | null = tabs.length > 0 ? tabs[0].id : null;

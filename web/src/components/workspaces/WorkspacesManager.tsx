@@ -135,7 +135,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: "Workspace added",
+        content: i18n.t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
         dismissable: true
       });
     },
@@ -175,7 +175,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: "Workspace removed",
+        content: i18n.t("editor:studio.workspaceRemoved", { defaultValue: "Workspace removed" }),
         dismissable: true
       });
     },

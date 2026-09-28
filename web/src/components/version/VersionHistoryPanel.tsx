@@ -330,7 +330,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
           exclusive
           onChange={handleFilterChange}
           compact
-          aria-label="version filter"
+          aria-label={i18n.t("editor:ui.versionFilter", { defaultValue: "version filter" })}
         >
           <ToggleOption value="all" aria-label="all">{i18n.t("common:sizeFilters.all", { defaultValue: "All" })}</ToggleOption>
           <ToggleOption value="manual" aria-label="manual">{i18n.t("timeline:history.manual", { defaultValue: "Manual" })}</ToggleOption>
@@ -535,7 +535,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         title={i18n.t("editor:ui.deleteThisVersion", { defaultValue: "Delete this version?" })}
         onConfirm={handleConfirmDelete}
         onCancel={handleCloseDeleteDialog}
-        confirmText="Delete"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
         destructive
       >
         <Text color="secondary">{i18n.t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>

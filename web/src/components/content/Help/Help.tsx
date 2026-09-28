@@ -236,7 +236,7 @@ const Help = ({
                 className="help-tabs"
                 value={helpIndex}
                 onChange={handleChange}
-                aria-label="help tabs"
+                aria-label={i18n.t("editor:ui.helpTabs", { defaultValue: "help tabs" })}
               >
                 <Tab label={i18n.t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })} id="help-tab-0" />
                 <Tab label={i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })} id="help-tab-1" />

@@ -4,6 +4,7 @@ import { formatByteSize } from "./formatUtils";
 import ModelIcon from "../icons/data_types/nodetool/model.svg";
 import PetsIcon from "@mui/icons-material/Pets";
 import { SPACING, getSpacingPx } from "../components/ui_primitives";
+import { i18n } from "../i18n";
 
 export const prettifyModelType = (type: string): JSX.Element | string => {
   if (type === "All") {return type;}
@@ -60,7 +61,7 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
     <>
       <img
         src={ModelIcon}
-        alt="Model"
+        alt={i18n.t("editor:asset.info.model", { defaultValue: "Model" })}
         style={{
           width: "20px",
           marginRight: getSpacingPx(SPACING.md),
