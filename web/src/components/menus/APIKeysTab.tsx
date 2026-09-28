@@ -331,8 +331,13 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {hasKey ? i18n.t("editor:ui.keyStored", { defaultValue: "Key stored" }) : "Signed in"}, but this server does not
-              offer {meta.name}. Its models stay out of the model menu.
+              {i18n.t("editor:ui.keyStoredButThisServerDoesNotOffer", {
+                defaultValue: "{{state}}, but this server does not offer {{name}}. Its models stay out of the model menu.",
+                state: hasKey
+                  ? i18n.t("editor:ui.keyStored", { defaultValue: "Key stored" })
+                  : i18n.t("editor:ui.signedIn", { defaultValue: "Signed in" }),
+                name: meta.name
+              })}
             </Caption>
           )}
           {testResult && (

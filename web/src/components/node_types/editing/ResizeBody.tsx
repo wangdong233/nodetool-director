@@ -252,8 +252,8 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
           isActive={chainLocked}
           icon={<LinkOffIcon fontSize="small" />}
           activeIcon={<LinkIcon fontSize="small" />}
-          tooltip={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
-          ariaLabel={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
+          tooltip={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
+          ariaLabel={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
           onClick={() => setChainLocked((v) => !v)}
         />
         <div className="dim-field">

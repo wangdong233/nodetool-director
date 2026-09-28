@@ -2530,7 +2530,20 @@
     "addEndpoint": "Add endpoint",
     "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "Point NodeTool at any proxy or gateway that speaks the OpenAI API. Its chat, image and video models appear in the matching nodes.",
     "modelsListedByHand": "{{n}} models listed by hand",
-    "cancelled2": "Cancelled"
+    "cancelled2": "Cancelled",
+    "signedIn": "Signed in",
+    "keyStoredButThisServerDoesNotOffer": "{{state}}, but this server does not offer {{name}}. Its models stay out of the model menu.",
+    "addOpenAICompatibleEndpoint": "Add OpenAI-compatible endpoint",
+    "verifying": "Verifying…",
+    "setAsDefaultModel": "Set as default model",
+    "showDetails": "Show details",
+    "linkedTo": "Linked to",
+    "lockAspectRatio2": "Lock aspect ratio",
+    "hideDocumentation": "Hide documentation",
+    "installing": "Installing…",
+    "loading2": "Loading...",
+    "askAgent": "Ask Agent",
+    "svgNotFound": "SVG not found"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

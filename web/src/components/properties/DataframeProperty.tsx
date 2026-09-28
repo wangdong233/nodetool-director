@@ -274,7 +274,7 @@ const DataframeProperty = ({
         <div className="dropzone-content">
           <UploadFileIcon />
           <span className="dropzone-text">
-            {isLoading ? "Loading..." : i18n.t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
+            {isLoading ? i18n.t("editor:ui.loading2", { defaultValue: "Loading..." }) : i18n.t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
           </span>
           <span className="dropzone-subtext">Supported: CSV, XLSX, XLS</span>
         </div>

@@ -393,7 +393,7 @@ const StepRow: React.FC<StepRowProps> = ({
             </Caption>
             <Chip compact color="success" label={step.node_type ?? ""} />
             <EditorButton variant="text" onClick={() => setPicking(!picking)}>
-              {picking ? i18n.t("storyboard:attrs.keepIt", { defaultValue: "Keep it" }) : "Change"}
+              {picking ? i18n.t("storyboard:attrs.keepIt", { defaultValue: "Keep it" }) : i18n.t("storyboard:attrs.change", { defaultValue: "Change" })}
             </EditorButton>
           </FlexRow>
           {/* The plan names a node the registry has — but not always the one

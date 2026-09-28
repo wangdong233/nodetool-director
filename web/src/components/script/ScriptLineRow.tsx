@@ -573,7 +573,7 @@ const ScriptLineRow = ({
         Stale
       </Text>
     ) : (
-      <Tooltip title={status === "voiced" ? "Voiced" : i18n.t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
+      <Tooltip title={status === "voiced" ? i18n.t("storyboard:attrs.voiced", { defaultValue: "Voiced" }) : i18n.t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
         <Box
           sx={{
             width: 6,

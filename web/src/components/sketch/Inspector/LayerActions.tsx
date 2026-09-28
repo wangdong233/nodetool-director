@@ -283,7 +283,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
                 }
                 disableRipple
                 aria-label={
-                  isActive ? i18n.t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : "Generate layer"
+                  isActive ? i18n.t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : i18n.t("sketch:attrs.generateLayer2", { defaultValue: "Generate layer" })
                 }
                 data-testid="layer-action-generate"
               >
@@ -316,7 +316,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             }
             active={isLocked}
             onClick={handleToggleLock}
-            aria-label={isLocked ? i18n.t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : "Lock layer"}
+            aria-label={isLocked ? i18n.t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : i18n.t("sketch:attrs.lockLayer", { defaultValue: "Lock layer" })}
             data-testid="layer-action-lock"
           />
 

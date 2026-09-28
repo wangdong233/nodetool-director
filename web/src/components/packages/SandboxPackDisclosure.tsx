@@ -84,7 +84,7 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
           density="compact"
           onClick={() => setShowDocs((current) => !current)}
         >
-          {showDocs ? "Hide documentation" : i18n.t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
+          {showDocs ? i18n.t("editor:ui.hideDocumentation", { defaultValue: "Hide documentation" }) : i18n.t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
         </EditorButton>
       </FlexRow>
       {showDocs && docsQuery.data === null && (

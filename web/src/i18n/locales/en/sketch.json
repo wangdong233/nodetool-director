@@ -209,6 +209,8 @@
     "switchToMarchingAnts": "Switch to marching ants",
     "switchToMaskOverlay": "Switch to mask overlay",
     "generatedLayer": "Generated Layer",
-    "prompt": "Prompt"
+    "prompt": "Prompt",
+    "generateLayer2": "Generate layer",
+    "lockLayer": "Lock layer"
   }
 }

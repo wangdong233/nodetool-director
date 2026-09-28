@@ -657,6 +657,14 @@
     "vertical": "9:16 — Vertical",
     "square": "1:1 — Square",
     "classic": "4:3 — Classic",
-    "cinematic": "21:9 — Cinematic"
+    "cinematic": "21:9 — Cinematic",
+    "replaceYourScript": "Replace your script",
+    "change": "Change",
+    "extracting": "Extracting…",
+    "hideTakes": "Hide takes",
+    "preparing": "Preparing…",
+    "downloadZip": "Download ZIP",
+    "directing": "Directing…",
+    "direct": "Direct"
   }
 }

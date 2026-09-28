@@ -321,7 +321,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={5}
-          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : "Your script"}
+          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : i18n.t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
           hideLabel
           placeholder={
             source
@@ -381,7 +381,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <Dialog
         open={pasting}
         onClose={() => setPasting(false)}
-        title={source ? "Replace your script" : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
+        title={source ? i18n.t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
         showActions
         confirmText={i18n.t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         onConfirm={usePasted}

@@ -13,7 +13,7 @@ export const EmptyThreadList: React.FC<{ isFiltered?: boolean }> = ({
     <li css={createStyles(theme)}>
       <EmptyState
         variant="empty"
-        title={isFiltered ? i18n.t("editor:ui.noMatchingConversations", { defaultValue: "No matching conversations" }) : "No conversations yet"}
+        title={isFiltered ? i18n.t("editor:ui.noMatchingConversations", { defaultValue: "No matching conversations" }) : i18n.t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
         description={
           isFiltered
             ? "Try a different search term."

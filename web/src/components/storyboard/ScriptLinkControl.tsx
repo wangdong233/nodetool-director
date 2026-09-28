@@ -69,7 +69,7 @@ const ScriptLinkControlInner = ({
             : i18n.t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })
         }
       >
-        {scriptId ? i18n.t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? "Extracting…" : i18n.t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
+        {scriptId ? i18n.t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? i18n.t("storyboard:attrs.extracting", { defaultValue: "Extracting…" }) : i18n.t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>

@@ -209,6 +209,8 @@
     "switchToMarchingAnts": "切换为蚁行线",
     "switchToMaskOverlay": "切换为蒙版叠加",
     "generatedLayer": "生成图层",
-    "prompt": "提示词"
+    "prompt": "提示词",
+    "generateLayer2": "生成图层",
+    "lockLayer": "锁定图层"
   }
 }

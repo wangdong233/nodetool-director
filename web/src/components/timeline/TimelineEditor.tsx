@@ -294,7 +294,7 @@ const PreviewRegion: React.FC<{
                 disabled={createSequencePending}
                 aria-label={i18n.t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending ? "Creating…" : i18n.t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
+                {createSequencePending ? i18n.t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : i18n.t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>

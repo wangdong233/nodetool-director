@@ -237,7 +237,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
           showActions
           onConfirm={() => void handleConfirm()}
           onCancel={handleClose}
-          confirmText={isBusy ? "Creating…" : i18n.t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
+          confirmText={isBusy ? i18n.t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : i18n.t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
           confirmDisabled={confirmDisabled}
           PaperProps={{ css: dialogStyles() }}
         >

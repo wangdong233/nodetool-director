@@ -132,7 +132,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
                 <MenuItemPrimitive
                   icon={<FolderZipOutlinedIcon fontSize="small" />}
                   label={
-                    isExportingBundle ? "Exporting…" : i18n.t("timeline:attrs.exportProjectZip", { defaultValue: "Export project (.zip)" })
+                    isExportingBundle ? i18n.t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("timeline:attrs.exportProjectZip", { defaultValue: "Export project (.zip)" })
                   }
                   disabled={isExportingBundle}
                   onClick={runFromMenu(onExportBundle)}

@@ -657,6 +657,14 @@
     "vertical": "9:16 — 竖屏",
     "square": "1:1 — 方形",
     "classic": "4:3 — 经典",
-    "cinematic": "21:9 — 影视级"
+    "cinematic": "21:9 — 影视级",
+    "replaceYourScript": "替换你的脚本",
+    "change": "更改",
+    "extracting": "提取中…",
+    "hideTakes": "隐藏条目",
+    "preparing": "准备中…",
+    "downloadZip": "下载 ZIP",
+    "directing": "执导中…",
+    "direct": "执导"
   }
 }

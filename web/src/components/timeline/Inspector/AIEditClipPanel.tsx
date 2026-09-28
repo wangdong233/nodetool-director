@@ -423,7 +423,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   onClick={() => void handleNewTake()}
                   data-testid="new-take-submit"
                 >
-                  {newTakeActive ? "Generating new take…" : i18n.t("timeline:attrs.newTake", { defaultValue: "New take" })}
+                  {newTakeActive ? i18n.t("timeline:attrs.generatingNewTake", { defaultValue: "Generating new take…" }) : i18n.t("timeline:attrs.newTake", { defaultValue: "New take" })}
                 </EditorButton>
               </FlexColumn>
             )}

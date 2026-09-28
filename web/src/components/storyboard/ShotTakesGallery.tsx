@@ -359,7 +359,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
             "&:hover": { color: "text.primary", bgcolor: "c_overlay_subtle" }
           }}
         >
-          {expanded ? "Hide takes" : i18n.t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
+          {expanded ? i18n.t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : i18n.t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
         </EditorButton>
       </FlexRow>
 

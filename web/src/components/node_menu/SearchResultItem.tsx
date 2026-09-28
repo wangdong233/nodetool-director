@@ -467,8 +467,8 @@ const SearchResultItem = memo(function SearchResultItem({
             onClick={handleToggleExpand}
             onKeyDown={handleExpandKeyDown}
             aria-expanded={isExpanded}
-            aria-label={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
-            title={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
+            aria-label={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details" })}
+            title={isExpanded ? i18n.t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details" })}
           >
             <ExpandMoreIcon />
           </div>

@@ -1165,9 +1165,9 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            tooltip={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : "Fullscreen"}
+            tooltip={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("timeline:attrs.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreen}
-            aria-label={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : "Fullscreen"}
+            aria-label={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("timeline:attrs.fullscreen", { defaultValue: "Fullscreen" })}
             size="small"
             className="timeline-preview__fullscreen"
           />

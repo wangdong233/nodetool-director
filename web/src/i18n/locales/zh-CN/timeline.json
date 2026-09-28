@@ -736,7 +736,14 @@
     "noneUngrouped": "无(未分组)",
     "zeroOrMore": "0 或更大",
     "generateAVideo": "生成一个视频…",
-    "generateAVideoAtThePlayhead": "在播放头处生成一个视频…"
+    "generateAVideoAtThePlayhead": "在播放头处生成一个视频…",
+    "generatingNewTake": "正在生成新条目…",
+    "lockClip": "锁定片段",
+    "removeTransition": "移除转场",
+    "removeFades": "移除淡入淡出",
+    "lockTrack": "锁定轨道",
+    "fullscreen": "全屏",
+    "selectTrackingSubject": "选择跟踪主体"
   },
   "shortcuts": {
     "tools": "工具",

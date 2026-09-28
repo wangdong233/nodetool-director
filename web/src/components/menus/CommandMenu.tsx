@@ -572,7 +572,7 @@ const ViewCommands = memo(function ViewCommands() {
         onSelect={() => executeAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" }) : "Snap to Grid"}
+        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" }) : i18n.t("settings:general.lblSnapToGrid", { defaultValue: "Snap to Grid" })}
       </Command.Item>
       <Command.Item
         onSelect={() => executeAndClose(() => handleFitView({ padding: 0.5 }))}

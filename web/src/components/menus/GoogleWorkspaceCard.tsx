@@ -109,7 +109,7 @@ const GoogleWorkspaceCard = () => {
             <FlexRow align="center" gap={SPACING.sm}>
               <Text>Google Workspace</Text>
               <Chip
-                label={isConnected ? "Connected" : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" })}
+                label={isConnected ? i18n.t("ui2:attrs.connected", { defaultValue: "Connected" }) : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" })}
                 color={isConnected ? "success" : "default"}
                 size="small"
               />

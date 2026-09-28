@@ -162,7 +162,7 @@ export function TrackingOverlay(
         height={frameHeight}
         viewBox={`0 0 ${frameWidth} ${frameHeight}`}
         role={onChange ? "group" : "img"}
-        aria-label={onChange ? "Select tracking subject" : i18n.t("timeline:attrs.trackedSubject", { defaultValue: "Tracked subject" })}
+        aria-label={onChange ? i18n.t("timeline:attrs.selectTrackingSubject", { defaultValue: "Select tracking subject" }) : i18n.t("timeline:attrs.trackedSubject", { defaultValue: "Tracked subject" })}
         aria-describedby={descriptionId}
         tabIndex={onChange ? 0 : undefined}
         style={{

@@ -126,7 +126,7 @@ export function ClipContextMenu({
         onClick={run(actions.duplicate)}
       />
       <MenuItemPrimitive
-        label={hasTransition ? "Remove transition" : i18n.t("timeline:attrs.crossfadeIn", { defaultValue: "Cross-fade in" })}
+        label={hasTransition ? i18n.t("timeline:attrs.removeTransition", { defaultValue: "Remove transition" }) : i18n.t("timeline:attrs.crossfadeIn", { defaultValue: "Cross-fade in" })}
         icon={<GradientOutlinedIcon fontSize="small" />}
         compact
         onClick={run(() =>
@@ -137,7 +137,7 @@ export function ClipContextMenu({
       />
       {canFade && (
         <MenuItemPrimitive
-          label={hasFade ? "Remove fades" : i18n.t("timeline:attrs.fadeInAndOut", { defaultValue: "Fade in and out" })}
+          label={hasFade ? i18n.t("timeline:attrs.removeFades", { defaultValue: "Remove fades" }) : i18n.t("timeline:attrs.fadeInAndOut", { defaultValue: "Fade in and out" })}
           icon={<GraphicEqOutlinedIcon fontSize="small" />}
           compact
           onClick={run(() =>

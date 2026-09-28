@@ -171,7 +171,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             }
             active={clip.locked}
             onClick={handleToggleLock}
-            aria-label={clip.locked ? i18n.t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : "Lock clip"}
+            aria-label={clip.locked ? i18n.t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : i18n.t("timeline:attrs.lockClip", { defaultValue: "Lock clip" })}
             data-testid="clip-action-lock"
           />
 

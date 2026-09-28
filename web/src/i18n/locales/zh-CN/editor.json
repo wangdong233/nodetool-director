@@ -2530,7 +2530,20 @@
     "addEndpoint": "添加端点",
     "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "把 NodeTool 指向任何兼容 OpenAI API 的代理或网关。其对话、图像与视频模型会出现在对应节点中。",
     "modelsListedByHand": "手工登记了 {{n}} 个模型",
-    "cancelled2": "已取消"
+    "cancelled2": "已取消",
+    "signedIn": "已登录",
+    "keyStoredButThisServerDoesNotOffer": "{{state}},但此服务器不提供 {{name}}。其模型不会出现在模型菜单中。",
+    "addOpenAICompatibleEndpoint": "添加 OpenAI 兼容端点",
+    "verifying": "验证中…",
+    "setAsDefaultModel": "设为默认模型",
+    "showDetails": "显示详情",
+    "linkedTo": "链接到",
+    "lockAspectRatio2": "锁定宽高比",
+    "hideDocumentation": "隐藏文档",
+    "installing": "安装中…",
+    "loading2": "加载中...",
+    "askAgent": "问 Agent",
+    "svgNotFound": "未找到 SVG"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

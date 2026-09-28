@@ -324,7 +324,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? "Verifying…" : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
+                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
                   </EditorButton>
                 )}
               </FlexRow>

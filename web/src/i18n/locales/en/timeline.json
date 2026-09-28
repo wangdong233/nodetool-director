@@ -736,7 +736,14 @@
     "noneUngrouped": "None (ungrouped)",
     "zeroOrMore": "0 or more",
     "generateAVideo": "Generate a video…",
-    "generateAVideoAtThePlayhead": "Generate a video at the playhead…"
+    "generateAVideoAtThePlayhead": "Generate a video at the playhead…",
+    "generatingNewTake": "Generating new take…",
+    "lockClip": "Lock clip",
+    "removeTransition": "Remove transition",
+    "removeFades": "Remove fades",
+    "lockTrack": "Lock track",
+    "fullscreen": "Fullscreen",
+    "selectTrackingSubject": "Select tracking subject"
   },
   "shortcuts": {
     "tools": "Tools",

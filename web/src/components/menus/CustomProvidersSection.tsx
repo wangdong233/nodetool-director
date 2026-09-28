@@ -459,7 +459,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         fullWidth
         title={
           <Text size="normal" weight={600}>
-            {editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
+            {editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : i18n.t("editor:ui.addOpenAICompatibleEndpoint", { defaultValue: "Add OpenAI-compatible endpoint" })}
           </Text>
         }
         onConfirm={handleSave}
