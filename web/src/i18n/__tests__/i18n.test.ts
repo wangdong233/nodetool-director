@@ -9,6 +9,8 @@ import storyboardEn from "../locales/en/storyboard.json";
 import uiEn from "../locales/en/ui.json";
 import ui2En from "../locales/en/ui2.json";
 import appbuilderEn from "../locales/en/appbuilder.json";
+import catalogEn from "../locales/en/catalog.json";
+import toolsEn from "../locales/en/tools.json";
 import commonZh from "../locales/zh-CN/common.json";
 import navZh from "../locales/zh-CN/nav.json";
 import settingsZh from "../locales/zh-CN/settings.json";
@@ -20,6 +22,8 @@ import storyboardZh from "../locales/zh-CN/storyboard.json";
 import uiZh from "../locales/zh-CN/ui.json";
 import ui2Zh from "../locales/zh-CN/ui2.json";
 import appbuilderZh from "../locales/zh-CN/appbuilder.json";
+import catalogZh from "../locales/zh-CN/catalog.json";
+import toolsZh from "../locales/zh-CN/tools.json";
 import {
   changeAppLanguage,
   i18n,
@@ -100,6 +104,8 @@ describe("catalog key parity (CI completeness guard)", () => {
     ["ui", uiEn, uiZh],
     ["ui2", ui2En, ui2Zh],
     ["appbuilder", appbuilderEn, appbuilderZh],
+    ["catalog", catalogEn, catalogZh],
+    ["tools", toolsEn, toolsZh],
   ];
 
   it.each(suites)("%s: en and zh-CN carry exactly the same key set", (_ns, en, zh) => {
