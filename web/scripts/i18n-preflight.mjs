@@ -33,9 +33,14 @@ for (const root of ROOTS) {
         // find the dep array end
         let j = i, depLine = "";
         while (j < lines.length && !/\],?\s*$/.test(depLine = lines[j])) j++;
-        if (/\[\s*\]\s*,?\s*$/.test(depLine) || /\[\s*\]\s*\)/.test(depLine)) {
-          for (let k = i; k <= j; k++) if (/i18n\.t\(/.test(lines[k])) {
-            issues.frozen.push(`${relative(process.cwd(), fp)}:${i + 1} useMemo([]) i18n.t`); break;
+        // r26 F6: ANY useMemo whose body calls i18n.t must have a language
+        // version dep — empty deps AND stale deps both freeze the locale.
+        let bodyHasT = false;
+        for (let k = i; k <= j; k++) if (/i18n\.t\(/.test(lines[k])) { bodyHasT = true; break; }
+        if (bodyHasT) {
+          const depsOk = /languageVersion|\bversion\b/.test(depLine);
+          if (!depsOk) {
+            issues.frozen.push(`${relative(process.cwd(), fp)}:${i + 1} useMemo(i18n.t) deps lack languageVersion`);
           }
         }
         i = j;
