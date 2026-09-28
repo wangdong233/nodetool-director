@@ -229,7 +229,7 @@ const ServerRow = memo(function ServerRow({
             {summary}
           </Caption>
           <Caption size="smaller" sx={{ opacity: 0.45 }}>
-            Tools appear as {`${MCP_TOOL_PREFIX}${server.id}_<tool>`}
+            {i18n.t("editor:ui.toolsAppearAs", { ref: `${MCP_TOOL_PREFIX}${server.id}_<tool>` })}
           </Caption>
           {probe && (
             <Caption
@@ -257,7 +257,7 @@ const ServerRow = memo(function ServerRow({
           onClick={handleProbe}
           disabled={probing}
         >
-          {probing ? "Connecting…" : "Test"}
+          {probing ? i18n.t("editor:ui.connecting") : i18n.t("editor:ui.test")}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -265,7 +265,7 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleToggle}
         >
-          {server.enabled ? "Disable" : "Enable"}
+          {server.enabled ? i18n.t("editor:ui.disable") : i18n.t("editor:ui.enable")}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -453,8 +453,7 @@ export const ExternalMcpServersSection = memo(
           <FlexColumn gap={0.5}>
             <Text size="big">{i18n.t("ui2:attrs.externalServers", { defaultValue: "External servers" })}</Text>
             <Caption sx={{ opacity: 0.55 }}>
-              Give the agent the tools of any MCP server: Blender, Hugging
-              Face, or a script of your own. Works with every model provider.
+              {i18n.t("editor:ui.giveTheAgentTheToolsOfAnyMcpServer")}
             </Caption>
           </FlexColumn>
           <EditorButton
@@ -464,7 +463,7 @@ export const ExternalMcpServersSection = memo(
             startIcon={<AddIcon sx={{ fontSize: 16 }} />}
             onClick={handleAdd}
           >
-            Add server
+            {i18n.t("editor:ui.addServer")}
           </EditorButton>
         </FlexRow>
 

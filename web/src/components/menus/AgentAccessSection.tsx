@@ -194,8 +194,7 @@ const AgentAccessSection = () => {
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
       <Text sx={{ fontWeight: 500, mb: 0.5 }}>{i18n.t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
       <Text className="description" sx={{ mb: 1 }}>
-        Point Claude Code, Claude Desktop, or any MCP client at this server over
-        HTTP. Create a token below and paste the configuration it produces.
+        {i18n.t("editor:ui.pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp")}
       </Text>
 
       {connection && !connection.enabled && (
@@ -208,9 +207,7 @@ const AgentAccessSection = () => {
 
       {connection?.auth_mode === "none" && (
         <AlertBanner severity="info" sx={{ mb: 1 }}>
-          This server checks no credential — it trusts its own network. A token
-          still works and is the safer choice if you reach it from anywhere but
-          this machine.
+          {i18n.t("editor:ui.thisServerChecksNoCredentialItTrustsItsOwnNetwork")}
         </AlertBanner>
       )}
 

@@ -2609,7 +2609,18 @@
     "nodeToolForum": "NodeTool Forum",
     "edit": "Edit",
     "openaiCompatibleEndpoints": "OpenAI-compatible endpoints",
-    "linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours": "Link your Telegram account to chat with your NodeTool agent from Telegram. Your threads, assets, and budget stay yours."
+    "linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours": "Link your Telegram account to chat with your NodeTool agent from Telegram. Your threads, assets, and budget stay yours.",
+    "giveTheAgentTheToolsOfAnyMcpServer": "Give the agent the tools of any MCP server: Blender, Hugging Face, or a script of your own. Works with every model provider.",
+    "addServer": "Add server",
+    "toolsAppearAs": "Tools appear as {{ref}}",
+    "pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp": "Point Claude Code, Claude Desktop, or any MCP client at this server over HTTP. Create a token below and paste the configuration it produces.",
+    "thisServerChecksNoCredentialItTrustsItsOwnNetwork": "This server checks no credential — it trusts its own network. A token still works and is the safer choice if you reach it from anywhere but this machine.",
+    "browserExtensionStep1": "Download the extension (or use the build folder below).",
+    "browserExtensionStep2": "Open chrome://extensions in the Chrome you use for the target sites.",
+    "browserExtensionStep3": "Enable “Developer mode” (top-right).",
+    "browserExtensionStep4": "Click “Load unpacked” and select the extension folder.",
+    "browserExtensionStep5": "Open a site to automate, click the Nodetool extension, and press “Attach to this tab”.",
+    "enable": "Enable"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

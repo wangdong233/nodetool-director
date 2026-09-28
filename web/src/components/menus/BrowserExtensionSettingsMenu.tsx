@@ -28,6 +28,14 @@ async function copyText(text: string): Promise<void> {
   await navigator.clipboard.writeText(text);
 }
 
+const STEP_KEYS: readonly string[] = [
+  "browserExtensionStep1",
+  "browserExtensionStep2",
+  "browserExtensionStep3",
+  "browserExtensionStep4",
+  "browserExtensionStep5"
+];
+
 const STEPS: readonly string[] = [
   "Download the extension (or use the build folder below).",
   "Open chrome://extensions in the Chrome you use for the target sites.",
@@ -123,7 +131,7 @@ const BrowserExtensionSettingsMenu = () => {
         <FlexColumn gap={0.5} sx={{ mb: 1.5 }}>
           {STEPS.map((step, i) => (
             <Text key={i} size="small">
-              {i + 1}. {step}
+              {i + 1}. {i18n.t(`editor:ui.${STEP_KEYS[i]}`, { defaultValue: step })}
             </Text>
           ))}
         </FlexColumn>
