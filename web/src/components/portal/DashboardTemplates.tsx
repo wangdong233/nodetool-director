@@ -382,10 +382,10 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
 
   const visible = fullPage ? filtered : filtered.slice(0, MAX_VISIBLE);
   const countLabel = fullPage
-    ? `${filtered.length} example${filtered.length === 1 ? "" : "s"}`
+    ? i18n.t("editor:ui.nExamples", { n: filtered.length })
     : visible.length === filtered.length
       ? `${filtered.length}`
-      : `${visible.length} of ${filtered.length}`;
+      : i18n.t("editor:ui.nOfMExamples", { shown: visible.length, total: filtered.length });
 
   return (
     <section
@@ -416,7 +416,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
             aria-pressed={category === "all"}
             onClick={() => setCategory("all")}
           >
-            All
+            {i18n.t("editor:ui.catAll")}
           </button>
           {TOP_CATEGORIES.map((cat) => {
             const active = category === cat.id;

@@ -2659,7 +2659,14 @@
     "estimatedCostAtLeast": "预计费用:至少 {{cost}};{{unknown}}",
     "estimatedCostUnknown": "预计费用:未知——{{unknown}}",
     "nodeHasNoPublishedPrice": "{{n}} 个节点无公示价格",
-    "nodesHaveNoPublishedPrice": "{{n}} 个节点无公示价格"
+    "nodesHaveNoPublishedPrice": "{{n}} 个节点无公示价格",
+    "nExamples": "{{n}} 个示例",
+    "nOfMExamples": "{{shown}} / {{total}}",
+    "catAll": "全部",
+    "nApps": "{{n}} 个应用",
+    "oneApp": "{{n}} 个应用",
+    "nWorkflowsNodes": "{{apps}} · {{steps}} 个工作流 · {{nodes}} 个节点",
+    "addAllNAsWorkflows": "将全部 {{n}} 个添加为工作流"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -350,8 +350,7 @@ const RecipeCard = memo(function RecipeCard({
             <span className="rcp-outcome">{recipe.outcome}</span>
           </span>
           <span className="rcp-meta">
-            {recipe.apps.length} {recipe.apps.length === 1 ? "app" : "apps"} ·{" "}
-            {recipe.steps.length} workflows · {recipe.nodeCount} nodes
+                        {i18n.t("editor:ui.nWorkflowsNodes", { apps: i18n.t(recipe.apps.length === 1 ? "editor:ui.oneApp" : "editor:ui.nApps", { n: recipe.apps.length }), steps: recipe.steps.length, nodes: recipe.nodeCount })}
           </span>
         </button>
         {primaryApp && (
@@ -403,7 +402,7 @@ const RecipeCard = memo(function RecipeCard({
           >
             {adding
               ? "Adding…"
-              : `Add all ${recipe.steps.length} as workflows`}
+              : i18n.t("editor:ui.addAllNAsWorkflows", { n: recipe.steps.length })}
           </button>
           {recipe.caveats.map((caveat) => (
             <p key={caveat} className="rcp-caveat">

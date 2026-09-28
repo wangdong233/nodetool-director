@@ -2659,7 +2659,14 @@
     "estimatedCostAtLeast": "Estimated cost: at least {{cost}}; {{unknown}}",
     "estimatedCostUnknown": "Estimated cost: unknown — {{unknown}}",
     "nodeHasNoPublishedPrice": "{{n}} node has no published price",
-    "nodesHaveNoPublishedPrice": "{{n}} nodes have no published price"
+    "nodesHaveNoPublishedPrice": "{{n}} nodes have no published price",
+    "nExamples": "{{n}} examples",
+    "nOfMExamples": "{{shown}} / {{total}}",
+    "catAll": "All",
+    "nApps": "{{n}} apps",
+    "oneApp": "{{n}} app",
+    "nWorkflowsNodes": "{{apps}} · {{steps}} workflows · {{nodes}} nodes",
+    "addAllNAsWorkflows": "Add all {{n}} as workflows"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
