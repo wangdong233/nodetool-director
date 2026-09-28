@@ -203,7 +203,7 @@ export function runBrowserGraphJobInWorker(
         } else {
           const error =
             data.error ??
-            (data.status === "cancelled" ? "Cancelled" : i18n.t("editor:ui.workflowFailed", { defaultValue: "Workflow failed" }));
+            (data.status === "cancelled" ? i18n.t("editor:ui.cancelled2") : i18n.t("editor:ui.workflowFailed", { defaultValue: "Workflow failed" }));
           console[data.status === "cancelled" ? "warn" : "error"](
             `[browserRunner] ${data.status} in ${elapsed()} (job ${jobId}): ${error}`
           );

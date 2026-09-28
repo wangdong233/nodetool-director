@@ -2529,7 +2529,8 @@
     "getFreeCreditsAndOffersFromOurPartnerProviders": "领取合作服务商的免费额度与优惠。",
     "addEndpoint": "添加端点",
     "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "把 NodeTool 指向任何兼容 OpenAI API 的代理或网关。其对话、图像与视频模型会出现在对应节点中。",
-    "modelsListedByHand": "手工登记了 {{n}} 个模型"
+    "modelsListedByHand": "手工登记了 {{n}} 个模型",
+    "cancelled2": "已取消"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

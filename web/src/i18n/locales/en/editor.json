@@ -2529,7 +2529,8 @@
     "getFreeCreditsAndOffersFromOurPartnerProviders": "Get free credits and offers from our partner providers.",
     "addEndpoint": "Add endpoint",
     "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "Point NodeTool at any proxy or gateway that speaks the OpenAI API. Its chat, image and video models appear in the matching nodes.",
-    "modelsListedByHand": "{{n}} models listed by hand"
+    "modelsListedByHand": "{{n}} models listed by hand",
+    "cancelled2": "Cancelled"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
