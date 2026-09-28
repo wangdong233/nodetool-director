@@ -1612,7 +1612,8 @@
     "selectEditModel": "选择编辑模型",
     "selectI2VModel": "选择图生视频模型",
     "selectReferenceModel": "选择参考模型",
-    "selectModelLower": "选择模型"
+    "selectModelLower": "选择模型",
+    "model3d": "3D 模型"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

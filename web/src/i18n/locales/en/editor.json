@@ -1612,7 +1612,8 @@
     "selectEditModel": "Select Edit Model",
     "selectI2VModel": "Select I2V Model",
     "selectReferenceModel": "Select Reference Model",
-    "selectModelLower": "Select model"
+    "selectModelLower": "Select model",
+    "model3d": "3D model"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
