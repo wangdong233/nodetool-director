@@ -138,15 +138,15 @@ const CollectionList = () => {
           {collections?.collections.length ? <CollectionHeader /> : null}
           {isLoading ? (
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4 }}>
-              <LoadingSpinner size="large" text="Loading collections" />
+              <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingCollections", { defaultValue: "Loading collections" })} />
             </FlexColumn>
           ) : error ? (
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4, px: 2 }}>
               <EmptyState
                 variant="error"
                 title={i18n.t("editor:ui.couldnTLoadCollections", { defaultValue: "Couldn't load collections" })}
-                description="Try again later."
-                actionText="Retry"
+                description={i18n.t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+                actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
                 onAction={() => fetchCollections()}
               />
             </FlexColumn>
@@ -189,8 +189,8 @@ const CollectionList = () => {
         onClose={cancelDelete}
         title={i18n.t("editor:ui.Delete this collection", { defaultValue: "Delete this collection?" })}
         onConfirm={confirmDelete}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
       >
         This will permanently delete the collection &quot;{deleteTarget}

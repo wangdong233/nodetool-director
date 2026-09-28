@@ -11,7 +11,8 @@
     "dismiss": "关闭",
     "duplicate": "创建副本",
     "copy": "复制",
-    "cut": "剪切"
+    "cut": "剪切",
+    "remove": "移除"
   },
   "status": {
     "loading": "加载中…"

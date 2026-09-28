@@ -12,7 +12,7 @@ const WorkspacesPage: React.FC = () => (
   <ManagerPageLayout
     icon={<FolderSpecialOutlinedIcon sx={{ fontSize: 22 }} />}
     title={i18n.t("nav:rail.workspaces", { defaultValue: "Workspaces" })}
-    subtitle="Sandboxed folders that agents and workflows can read, write, and organize files in."
+    subtitle={i18n.t("editor:ui.sandboxedFoldersThatAgentsAndWorkflowsCanReadWriteAndOrganizeFilesIn", { defaultValue: "Sandboxed folders that agents and workflows can read, write, and organize files in." })}
     docsTopic="workspaces"
   >
     <WorkspacesManager />

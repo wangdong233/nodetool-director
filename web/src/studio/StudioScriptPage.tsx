@@ -37,6 +37,7 @@ import {
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
 import StudioShell from "./StudioShell";
+import { i18n } from "../i18n";
 
 type DockTab = "cast" | "assistant";
 
@@ -76,8 +77,8 @@ const StudioScriptPage = () => {
 
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: "Cast", icon: <GroupsIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      { value: "cast", label: i18n.t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
+      { value: "assistant", label: i18n.t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
     ],
     []
   );

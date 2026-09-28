@@ -336,8 +336,8 @@ const WorkspacesManager: React.FC = () => {
             not be deleted.
           </Text>
         }
-        confirmText="Remove"
-        cancelText="Cancel"
+        confirmText={i18n.t("common:action.remove", { defaultValue: "Remove" })}
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </>
   );

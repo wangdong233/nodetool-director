@@ -201,7 +201,7 @@ const PublicAppPage: React.FC = () => {
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" sx={{ height: "100vh" }}>
-        <LoadingSpinner size="large" text="Loading app" />
+        <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />
       </FlexColumn>
     );
   }

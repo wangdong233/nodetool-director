@@ -1152,6 +1152,18 @@
     "whatThisScriptDoes": "What this script does",
     "whenToUseThisSkill": "When to use this skill",
     "workspaceExplorer": "Workspace Explorer",
-    "yourVideo": "Your video"
+    "yourVideo": "Your video",
+    "editVideo": "Edit video",
+    "planCredits": "Plan & credits",
+    "cast": "Cast",
+    "assistant": "Assistant",
+    "current": "Current",
+    "whatAreYouMaking": "What are you making?",
+    "newStoryboard": "New storyboard",
+    "tryAgainLater": "Try again later.",
+    "loadingCollections": "Loading collections",
+    "loadingJSScripts": "Loading JS scripts",
+    "loadingApp": "Loading app",
+    "sandboxedFoldersThatAgentsAndWorkflowsCanReadWriteAndOrganizeFilesIn": "Sandboxed folders that agents and workflows can read, write, and organize files in."
   }
 }

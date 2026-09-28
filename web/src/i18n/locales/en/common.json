@@ -11,7 +11,8 @@
     "dismiss": "Dismiss",
     "duplicate": "Duplicate",
     "copy": "Copy",
-    "cut": "Cut"
+    "cut": "Cut",
+    "remove": "Remove"
   },
   "status": {
     "loading": "Loading…"

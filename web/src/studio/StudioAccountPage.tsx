@@ -23,6 +23,7 @@ import {
 import { trpc } from "../trpc/client";
 import { useStudioCredits } from "./useStudioCredits";
 import StudioShell from "./StudioShell";
+import { i18n } from "../i18n";
 
 const TOPUP_CREDITS = 1_000;
 
@@ -43,7 +44,7 @@ const StudioAccountPage = () => {
   const topup = trpc.credits.topup.useMutation(onSettled);
 
   return (
-    <StudioShell title="Plan & credits">
+    <StudioShell title={i18n.t("editor:ui.planCredits", { defaultValue: "Plan & credits" })}>
       <FlexColumn
         align="center"
         gap={SPACING.xl}
@@ -130,7 +131,7 @@ const StudioAccountPage = () => {
                           <Text size="big" weight={600}>
                             {plan.name}
                           </Text>
-                          {current && <Chip compact label="Current" />}
+                          {current && <Chip compact label={i18n.t("editor:ui.current", { defaultValue: "Current" })} />}
                         </FlexRow>
                         <Text size="normal">
                           {plan.monthlyCredits.toLocaleString()} credits / month

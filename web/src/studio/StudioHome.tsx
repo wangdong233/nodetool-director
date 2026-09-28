@@ -47,6 +47,7 @@ import type {
   StudioProject
 } from "./groupLinkedProjects";
 import { creationProjectId } from "../stores/WorkspaceTabsStore";
+import { i18n } from "../i18n";
 
 const KIND_LABEL = {
   storyboard: "Storyboard",
@@ -283,7 +284,7 @@ const StudioHome = () => {
 
         <FlexColumn gap={SPACING.md} sx={{ width: "100%", maxWidth: 720 }}>
           <OptionCardGrid
-            label="What are you making?"
+            label={i18n.t("editor:ui.whatAreYouMaking", { defaultValue: "What are you making?" })}
             options={STUDIO_ENTRY_CARDS}
             onSelect={handleEntryCard}
             minColumnWidth={200}
@@ -294,14 +295,14 @@ const StudioHome = () => {
             </Text>
             <BlankStart
               icon={<TheatersRoundedIcon />}
-              label="New storyboard"
+              label={i18n.t("editor:ui.newStoryboard", { defaultValue: "New storyboard" })}
               busy={creating === "storyboard"}
               disabled={creating !== null}
               onStart={startStoryboard}
             />
             <BlankStart
               icon={<RecordVoiceOverRoundedIcon />}
-              label="New script"
+              label={i18n.t("editor:ui.newScript", { defaultValue: "New script" })}
               busy={creating === "script"}
               disabled={creating !== null}
               onStart={startScript}

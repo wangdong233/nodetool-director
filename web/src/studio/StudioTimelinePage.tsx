@@ -16,6 +16,7 @@ import { LoadingSpinner } from "../components/ui_primitives";
 import { trpc } from "../trpc/client";
 import VideoSetupHost from "../components/setup/video/VideoSetupHost";
 import StudioShell from "./StudioShell";
+import { i18n } from "../i18n";
 
 const TimelineEditor = lazy(
   () => import("../components/timeline/TimelineEditor")
@@ -43,7 +44,7 @@ const StudioTimelinePage = () => {
   const inSetup = !finished && query.isSuccess && stage !== "done";
 
   return (
-    <StudioShell title="Edit video">
+    <StudioShell title={i18n.t("editor:ui.editVideo", { defaultValue: "Edit video" })}>
       {query.isPending ? (
         <LoadingSpinner />
       ) : inSetup ? (

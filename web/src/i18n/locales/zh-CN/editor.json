@@ -1152,6 +1152,18 @@
     "whatThisScriptDoes": "此脚本做什么",
     "whenToUseThisSkill": "何时使用此技能",
     "workspaceExplorer": "工作区浏览器",
-    "yourVideo": "你的视频"
+    "yourVideo": "你的视频",
+    "editVideo": "编辑视频",
+    "planCredits": "套餐与额度",
+    "cast": "角色",
+    "assistant": "助手",
+    "current": "当前",
+    "whatAreYouMaking": "你在做什么？",
+    "newStoryboard": "新建分镜",
+    "tryAgainLater": "稍后再试。",
+    "loadingCollections": "正在加载集合",
+    "loadingJSScripts": "正在加载 JS 脚本",
+    "loadingApp": "正在加载应用",
+    "sandboxedFoldersThatAgentsAndWorkflowsCanReadWriteAndOrganizeFilesIn": "沙箱文件夹，智能体与工作流可在其中读写并整理文件。"
   }
 }

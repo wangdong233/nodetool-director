@@ -138,7 +138,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
 
       {isLoading ? (
         <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-          <LoadingSpinner size="large" text="Loading JS scripts" />
+          <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingJSScripts", { defaultValue: "Loading JS scripts" })} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
