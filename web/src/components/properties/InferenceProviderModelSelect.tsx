@@ -166,8 +166,7 @@ const InferenceProviderModelSelect = ({
                                 ? "Loading models..."
                                 : modelsError
                                     ? "Error loading models"
-                                    : "Select a model"
-                        }
+                                    : i18n.t("editor:ui.selectAModel")}
                     />
                 </div>
             )}

@@ -701,7 +701,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   );
 
   const chatProviderLabel = useMemo(() => {
-    if (!isModelSelected(chatModel)) return "Select model";
+    if (!isModelSelected(chatModel)) return i18n.t("editor:ui.selectModelLower");
     return chatModel.name || chatModel.id;
   }, [chatModel]);
 

@@ -10,7 +10,7 @@ const FilePathProperty = (props: PropertyProps) => (
   <BasePathProperty
     {...props}
     pathType="file_path"
-    dialogTitle="Select File"
+    dialogTitle={i18n.t("editor:ui.selectFile")}
     onlyDirs={false}
   />
 );

@@ -46,8 +46,8 @@ const MorePanelCategoryRow = ({
   return (
     <ListItemRow
       icon={category.icon}
-      primary={category.label}
-      secondary={category.description}
+      primary={i18n.t(`nav:qa.${category.id}.label`, { defaultValue: category.label })}
+      secondary={i18n.t(`nav:qa.${category.id}.description`, { defaultValue: category.description })}
       onClick={handleClick}
     />
   );
@@ -70,7 +70,7 @@ const MorePanel: React.FC<MorePanelProps> = ({
       if (!normalizedQuery) {
         return true;
       }
-      return `${group.label} ${category.label} ${category.description}`
+      return `${group.label} ${i18n.t(`nav:qa.${category.id}.label`, { defaultValue: category.label })} ${i18n.t(`nav:qa.${category.id}.description`, { defaultValue: category.description })}`
         .toLowerCase()
         .includes(normalizedQuery);
     })

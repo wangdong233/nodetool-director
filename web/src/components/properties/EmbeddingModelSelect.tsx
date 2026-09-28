@@ -46,9 +46,9 @@ const EmbeddingModelSelect: React.FC<EmbeddingModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select Model"}
+        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel")}
         secondaryLabel={currentSelectedModelDetails?.provider}
-        subLabel="Select Embedding Model"
+        subLabel={i18n.t("editor:ui.selectEmbeddingModel")}
         onClick={handleClick}
       />
       <EmbeddingModelMenuDialog

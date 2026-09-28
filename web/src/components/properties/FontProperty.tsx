@@ -56,10 +56,10 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
 
   const options = useMemo(() => {
     if (!fonts || isLoading || isError)
-      {return [{ value: "", label: "Select a font" }];}
+      {return [{ value: "", label: i18n.t("editor:ui.selectAFont") }];}
 
     return [
-      { value: "", label: "Select a font" },
+      { value: "", label: i18n.t("editor:ui.selectAFont") },
       ...fonts.map((font) => ({
         value: font.name,
         label: font.portable ? `${font.name} · portable` : font.name

@@ -46,8 +46,8 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select Model"}
-        subLabel="Select ASR Model"
+        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel")}
+        subLabel={i18n.t("editor:ui.selectASRModel2")}
         onClick={handleClick}
       />
       <ASRModelMenuDialog

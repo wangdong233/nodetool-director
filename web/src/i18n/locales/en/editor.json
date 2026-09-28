@@ -1601,7 +1601,17 @@
     "blankDocument": "Blank document",
     "opensAsALooseTabOutsideAnyProject": "— opens as a loose tab, outside any project",
     "browseExamples": "Browse examples",
-    "tutorials": "Tutorials"
+    "tutorials": "Tutorials",
+    "selectTextToSpeechModel": "Select Text-to-Speech Model",
+    "selectASRModel2": "Select ASR Model",
+    "selectAudioToAudioModel2": "Select Audio-to-Audio Model",
+    "selectFolder": "Select Folder",
+    "selectImageGenerationModel": "Select Image Generation Model",
+    "selectAModel": "Select a model",
+    "selectEditModel": "Select Edit Model",
+    "selectI2VModel": "Select I2V Model",
+    "selectReferenceModel": "Select Reference Model",
+    "selectModelLower": "Select model"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

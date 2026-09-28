@@ -131,7 +131,7 @@ function MusicModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<AudiotrackIcon fontSize="small" />}
-        label={params.model?.name || "Select Music Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectMusicModel")}
         picker={{
           kind: "music",
           onPick: handlePickMusic
@@ -165,7 +165,7 @@ function ImageModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={null}
-        label={params.model?.name || "Select Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectModel")}
         picker={{
           kind: "image",
           task: "text_to_image",
@@ -219,7 +219,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<AutoFixHighIcon fontSize="small" />}
-        label={params.model?.name || "Select Edit Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectEditModel")}
         picker={{
           kind: "image",
           task: "image_to_image",
@@ -309,7 +309,7 @@ function VideoModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<MovieIcon fontSize="small" />}
-        label={params.model?.name || "Select Video Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectVideoModel")}
         picker={{
           kind: "video",
           task: "text_to_video",
@@ -362,7 +362,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<MovieFilterIcon fontSize="small" />}
-        label={params.model?.name || "Select I2V Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectI2VModel")}
         picker={{
           kind: "video",
           task: "image_to_video",
@@ -443,7 +443,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<BurstModeIcon fontSize="small" />}
-        label={params.model?.name || "Select Reference Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectReferenceModel")}
         picker={{
           kind: "video",
           task: "reference_to_video",
@@ -523,7 +523,7 @@ function AudioModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={<GraphicEqIcon fontSize="small" />}
-        label={params.model?.name || "Select TTS Model"}
+        label={params.model?.name || i18n.t("editor:ui.selectTTSModel")}
         picker={{
           kind: "tts",
           onPick: (model) => {

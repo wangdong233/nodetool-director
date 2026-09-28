@@ -1601,7 +1601,17 @@
     "blankDocument": "空白文档",
     "opensAsALooseTabOutsideAnyProject": "——作为独立标签页打开，不属于任何项目",
     "browseExamples": "浏览示例",
-    "tutorials": "教程"
+    "tutorials": "教程",
+    "selectTextToSpeechModel": "选择语音合成模型",
+    "selectASRModel2": "选择语音识别模型",
+    "selectAudioToAudioModel2": "选择音频到音频模型",
+    "selectFolder": "选择文件夹",
+    "selectImageGenerationModel": "选择图像生成模型",
+    "selectAModel": "选择模型",
+    "selectEditModel": "选择编辑模型",
+    "selectI2VModel": "选择图生视频模型",
+    "selectReferenceModel": "选择参考模型",
+    "selectModelLower": "选择模型"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

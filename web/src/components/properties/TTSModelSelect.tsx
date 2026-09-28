@@ -189,9 +189,9 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
         ref={buttonRef}
         active={!!modelId}
         label={
-          currentSelectedModelDetails?.name || modelId || "Select TTS Model"
+          currentSelectedModelDetails?.name || modelId || i18n.t("editor:ui.selectTTSModel")
         }
-        subLabel="Select Text-to-Speech Model"
+        subLabel={i18n.t("editor:ui.selectTextToSpeechModel")}
         onClick={handleClick}
       />
 

@@ -98,7 +98,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
       return { label: value, secondaryLabel: undefined };
     }
 
-    return { label: "Select Image Model", secondaryLabel: undefined };
+    return { label: i18n.t("editor:ui.selectImageModel"), secondaryLabel: undefined };
   }, [currentSelectedModelDetails, value]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
@@ -149,7 +149,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
         active={!!value}
         label={displayInfo.label}
         secondaryLabel={displayInfo.secondaryLabel}
-        subLabel="Select Image Generation Model"
+        subLabel={i18n.t("editor:ui.selectImageGenerationModel")}
         onClick={handleClick}
         disabled={disabled}
       />
