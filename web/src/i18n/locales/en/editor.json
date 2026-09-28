@@ -2557,7 +2557,6 @@
     "areYouSureYouWantToDeleteTheApiKey": "Are you sure you want to delete the {{name}} API key?",
     "allAPIKeysAreEncryptedInTheDatabaseAndNeverExposed": "All API keys are encrypted in the database and never exposed.",
     "learnMore": "Learn more",
-    "getFreeCreditsAndOffersFromOurPartnerProviders": "Get free credits and offers from our partner providers.",
     "skippedFilesOverLimit": "Skipped {{count}} file(s) over {{limit}}",
     "couldNotBuildTheReport": "Could not build the report: {{error}}",
     "toYourDownloads": "to your downloads.",
@@ -2574,7 +2573,16 @@
     "addName": "Add {{name}}",
     "localPacks": "Local packs",
     "runLocallyNoAPIKeyRequired": "Run locally — no API key required.",
-    "advancedAndNicheNodesAreTuckedIntoOptionalPacks": "Advanced and niche nodes are tucked into optional packs to keep this menu focused. Turn on what you need — they appear in the list right away. Search always finds every node, even when its pack is off."
+    "advancedAndNicheNodesAreTuckedIntoOptionalPacks": "Advanced and niche nodes are tucked into optional packs to keep this menu focused. Turn on what you need — they appear in the list right away. Search always finds every node, even when its pack is off.",
+    "connected": "Connected",
+    "update2": "Update",
+    "connect2": "Connect",
+    "docs": "Docs",
+    "troubleshooting": "Troubleshooting",
+    "addEndpoint": "Add endpoint",
+    "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "Point NodeTool at any proxy or gateway that speaks the OpenAI API. Its chat, image and video models appear in the matching nodes.",
+    "modelsListedByHand": "{{n}} models listed by hand",
+    "getFreeCreditsAndOffersFromOurPartnerProviders": "Get free credits and offers from our partner providers."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

@@ -2557,7 +2557,6 @@
     "areYouSureYouWantToDeleteTheApiKey": "确定要删除 {{name}} 的 API 密钥吗?",
     "allAPIKeysAreEncryptedInTheDatabaseAndNeverExposed": "所有 API 密钥都在数据库中加密存储,绝不外泄。",
     "learnMore": "了解更多",
-    "getFreeCreditsAndOffersFromOurPartnerProviders": "从我们的合作伙伴提供商获取免费额度与优惠。",
     "skippedFilesOverLimit": "已跳过 {{count}} 个超过 {{limit}} 的文件",
     "couldNotBuildTheReport": "无法生成报告:{{error}}",
     "toYourDownloads": "到你的下载文件夹。",
@@ -2574,7 +2573,16 @@
     "addName": "添加 {{name}}",
     "localPacks": "本地包",
     "runLocallyNoAPIKeyRequired": "本地运行——无需 API 密钥。",
-    "advancedAndNicheNodesAreTuckedIntoOptionalPacks": "高级和冷门节点收纳在可选包中,让此菜单保持聚焦。按需开启——它们会立即出现在列表中。即使包已关闭,搜索也始终能找到每个节点。"
+    "advancedAndNicheNodesAreTuckedIntoOptionalPacks": "高级和冷门节点收纳在可选包中,让此菜单保持聚焦。按需开启——它们会立即出现在列表中。即使包已关闭,搜索也始终能找到每个节点。",
+    "connected": "已连接",
+    "update2": "更新",
+    "connect2": "连接",
+    "docs": "文档",
+    "troubleshooting": "故障排查",
+    "addEndpoint": "添加端点",
+    "pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi": "把 NodeTool 指向任何兼容 OpenAI API 的代理或网关。其对话、图像与视频模型会出现在对应节点中。",
+    "modelsListedByHand": "手工登记了 {{n}} 个模型",
+    "getFreeCreditsAndOffersFromOurPartnerProviders": "从我们的合作伙伴提供商获取免费额度与优惠。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
