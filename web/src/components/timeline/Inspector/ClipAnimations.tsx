@@ -42,7 +42,6 @@ import { usePersistedFold } from "./usePersistedFold";
 import { ClipCustomCurves, makeCustomAnimation } from "./ClipCustomCurves";
 import { EasingField, TextCommitField } from "./InspectorMotionFields";
 import { isNumber } from "../../../utils/typePredicates";
-import { useAppLanguage } from "../../../i18n";
 import {
   shapeClipToFollowPathParams,
   type FollowPathParams
@@ -367,7 +366,6 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
       )
     );
 
-    const { version: languageVersion } = useAppLanguage();
     const options = useMemo(
       () => [
         { value: CHOOSE_SHAPE_CLIP, label: t("timeline:attrs.chooseAShapeClip", { defaultValue: "Choose a shape clip…" }) },
@@ -376,7 +374,7 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
           label: candidate.name || candidate.id
         }))
       ],
-      [languageVersion, shapeClips]
+      [t, shapeClips]
     );
 
     const handlePick = useCallback(

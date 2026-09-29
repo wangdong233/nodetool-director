@@ -51,7 +51,6 @@ import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** The languages the flow offers to write and read in. */
@@ -186,13 +185,12 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
       speaker.voice?.model === model.model &&
       speaker.voice.provider === model.provider
   );
-  const { version: languageVersion } = useAppLanguage();
   const modelOptions = useMemo(
     () => [
       { value: "", label: t("storyboard:attrs.chooseAModel", { defaultValue: "Choose a model" }) },
       ...models.map((model) => ({ value: model.id, label: model.label }))
     ],
-    [languageVersion, models]
+    [t, models]
   );
   const voiceOptions = useMemo(
     () => [
@@ -202,7 +200,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
         label: voice.label
       })) ?? [])
     ],
-    [languageVersion, selectedModel]
+    [t, selectedModel]
   );
 
   const bindVoice = useCallback(

@@ -29,7 +29,6 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface GameIdeaStepProps {
@@ -75,7 +74,6 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
 
   const cards = useMemo(() => templateCards(templates), [templates]);
 
-  const { version: languageVersion } = useAppLanguage();
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
@@ -112,7 +110,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         onSelect: onOpenTutorial
       }
     ],
-    [languageVersion, exportingBlank, onOpenTutorial, onStartBlank, templates.length]
+    [t, exportingBlank, onOpenTutorial, onStartBlank, templates.length]
   );
 
   if (picker !== null) {
