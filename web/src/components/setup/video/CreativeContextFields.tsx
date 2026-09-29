@@ -17,7 +17,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
@@ -64,13 +64,14 @@ export default function CreativeContextFields({
   onChange,
   onValidationChange
 }: CreativeContextFieldsProps) {
+  const { t } = useTranslation();
   const [pickerKind, setPickerKind] = useState<ProductionReferenceKind | null>(
     null
   );
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const error =
     invalidFields.length > 0
-      ? i18n.t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." })
+      ? t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." })
       : undefined;
   useEffect(() => {
     onValidationChange?.(error);
@@ -90,7 +91,7 @@ export default function CreativeContextFields({
   };
   return (
     <CollapsibleSection
-      title={i18n.t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
+      title={t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
       defaultOpen={false}
       unmountOnExit
     >
@@ -102,7 +103,7 @@ export default function CreativeContextFields({
         {TEXT_FIELDS.map(([key, label, labelKey]) => (
           <ContextText
             key={`${key}:${value?.[key] ?? ""}`}
-            label={i18n.t(labelKey, { defaultValue: label })}
+            label={t(labelKey, { defaultValue: label })}
             value={value?.[key] ?? ""}
             multiline={key === "product_description"}
             onCommit={(text) => update({ [key]: text.trim() || undefined })}

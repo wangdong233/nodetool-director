@@ -31,7 +31,7 @@ import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import type { Workflow, WorkflowList } from "../../../stores/ApiTypes";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowExamplePickerProps {
   /** Copies the picked example. The host owns where the copy lands. */
@@ -50,6 +50,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
   error = null,
   onCancel
 }) => {
+  const { t } = useTranslation();
   const loadTemplates = useWorkflowManager((state) => state.loadTemplates);
   const [query, setQuery] = useState("");
   const { data, isLoading, isError, refetch } = useQuery<WorkflowList>({
@@ -83,7 +84,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         // makes a second workflow nobody asked for.
         disabled: pickingId !== null,
         disabledReason:
-          pickingId === example.id ? i18n.t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : i18n.t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
+          pickingId === example.id ? t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
       })),
     [matches, pickingId]
   );
@@ -91,9 +92,9 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" })}</Text>
         <Text size="normal" color="secondary">
-          {i18n.t("editor:ui.pickOneAndWeCopyItOntoYourCanvasNothingRuns")}
+          {t("editor:ui.pickOneAndWeCopyItOntoYourCanvasNothingRuns")}
         </Text>
       </FlexColumn>
 
@@ -103,7 +104,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         <SearchInput
           value={query}
           onChange={setQuery}
-          placeholder={i18n.t("storyboard:attrs.searchExamples", { defaultValue: "Search examples" })}
+          placeholder={t("storyboard:attrs.searchExamples", { defaultValue: "Search examples" })}
           showClear
         />
         <EditorButton variant="text" onClick={onCancel}>
@@ -114,7 +115,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       {isLoading ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">{i18n.t("storyboard:attrs.readingTheExamplesThisInstallShips", { defaultValue: "Reading the examples this install ships…" })}</Caption>
+          <Caption color="secondary" component="span">{t("storyboard:attrs.readingTheExamplesThisInstallShips", { defaultValue: "Reading the examples this install ships…" })}</Caption>
         </FlexRow>
       ) : isError ? (
         <AlertBanner
@@ -125,27 +126,27 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
               onClick={() => {
                 void refetch();
               }}
-            >{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
+            >{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
-          <Caption component="span">{i18n.t("storyboard:attrs.couldNotReadTheExamples", { defaultValue: "Could not read the examples." })}</Caption>
+          <Caption component="span">{t("storyboard:attrs.couldNotReadTheExamples", { defaultValue: "Could not read the examples." })}</Caption>
         </AlertBanner>
       ) : matches.length === 0 ? (
         <EmptyState
           title={
             examples.length === 0
-              ? i18n.t("storyboard:attrs.thisInstallShipsNoExamples", { defaultValue: "This install ships no examples" })
-              : i18n.t("storyboard:attrs.noExampleMatchesThat", { defaultValue: "No example matches that" })
+              ? t("storyboard:attrs.thisInstallShipsNoExamples", { defaultValue: "This install ships no examples" })
+              : t("storyboard:attrs.noExampleMatchesThat", { defaultValue: "No example matches that" })
           }
           description={
             examples.length === 0
-              ? i18n.t("storyboard:attrs.describeTheTaskInsteadOrStartWithABlankCanvas", { defaultValue: "Describe the task instead, or start with a blank canvas." })
-              : i18n.t("storyboard:attrs.tryAnotherWordOrDescribeTheTaskInstead", { defaultValue: "Try another word, or describe the task instead." })
+              ? t("storyboard:attrs.describeTheTaskInsteadOrStartWithABlankCanvas", { defaultValue: "Describe the task instead, or start with a blank canvas." })
+              : t("storyboard:attrs.tryAnotherWordOrDescribeTheTaskInstead", { defaultValue: "Try another word, or describe the task instead." })
           }
         />
       ) : (
         <OptionCardGrid
-          label={i18n.t("storyboard:attrs.exampleWorkflows", { defaultValue: "Example workflows" })}
+          label={t("storyboard:attrs.exampleWorkflows", { defaultValue: "Example workflows" })}
           options={options}
           onSelect={(id) => {
             const example = matches.find((entry) => entry.id === id);
@@ -160,7 +161,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       {pickingId !== null ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">{i18n.t("storyboard:attrs.copyingTheExample", { defaultValue: "Copying the example…" })}</Caption>
+          <Caption color="secondary" component="span">{t("storyboard:attrs.copyingTheExample", { defaultValue: "Copying the example…" })}</Caption>
         </FlexRow>
       ) : null}
     </FlexColumn>

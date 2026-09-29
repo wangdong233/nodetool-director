@@ -52,7 +52,7 @@ import {
   useRovingRadioGroup
 } from "./SetupCardButton";
 import type { RovingRadioItemProps } from "./SetupCardButton";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface PresetTile {
   id: string;
@@ -171,6 +171,7 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
   preset,
   autoPlay
 }) => {
+  const { t } = useTranslation();
   const holder = useRef<HTMLDivElement>(null);
   const handlePlay = useCallback(() => {
     preset.onPlaySample?.();
@@ -202,8 +203,8 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
         disabled={preset.samplePending === true || preset.disabled === true}
       >
         {preset.samplePending === true
-          ? i18n.t("storyboard:attrs.generatingSample2", { defaultValue: "Generating sample…" })
-          : i18n.t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: preset.title })}
+          ? t("storyboard:attrs.generatingSample2", { defaultValue: "Generating sample…" })
+          : t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: preset.title })}
       </EditorButton>
     </Box>
   );

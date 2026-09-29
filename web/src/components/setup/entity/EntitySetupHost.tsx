@@ -28,6 +28,7 @@ import {
   writeEntitySetupDraft,
   type EntitySetupStage
 } from "./entitySetupDraft";
+import { useTranslation } from "react-i18next";
 
 export interface EntitySetupHostProps {
   readonly projectId?: string;
@@ -74,6 +75,7 @@ const EntitySetupHost = ({
   onFinish,
   onChangeFlow
 }: EntitySetupHostProps) => {
+  const { t } = useTranslation();
   const recoveredDraft = useMemo(
     () => readEntitySetupDraft(draftKey ?? projectId),
     [draftKey, projectId]
@@ -198,15 +200,15 @@ const EntitySetupHost = ({
     () => [
       {
         stage: "details",
-        label: i18n.t("storyboard:attrs.details", { defaultValue: "Details" }),
-        primaryLabel: i18n.t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
+        label: t("storyboard:attrs.details", { defaultValue: "Details" }),
+        primaryLabel: t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
         canAdvance:
           details.name.trim().length > 0 &&
           details.descriptor.trim().length > 0,
         blockedReason:
           details.name.trim().length === 0
-            ? i18n.t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
-            : i18n.t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
+            ? t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
+            : t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
         render: () =>
           createElement(DetailsStep, {
             value: details,
@@ -217,15 +219,15 @@ const EntitySetupHost = ({
       },
       {
         stage: "reference",
-        label: i18n.t("storyboard:attrs.reference", { defaultValue: "Reference" }),
+        label: t("storyboard:attrs.reference", { defaultValue: "Reference" }),
         primaryLabel: "Review entity",
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
-          ? i18n.t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
+          ? t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
           : entitiesLoading
-            ? i18n.t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
-            : i18n.t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
+            ? t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
+            : t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
         render: () =>
           createElement(ReferenceStep, {
             name: details.name,
@@ -243,10 +245,10 @@ const EntitySetupHost = ({
       },
       {
         stage: "review",
-        label: i18n.t("storyboard:attrs.review", { defaultValue: "Review" }),
-        primaryLabel: i18n.t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
+        label: t("storyboard:attrs.review", { defaultValue: "Review" }),
+        primaryLabel: t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
         pending: saveEntity.isPending,
-        pendingLabel: i18n.t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
+        pendingLabel: t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
         render: () =>
           referenceAssetId
             ? createElement(ReviewStep, {

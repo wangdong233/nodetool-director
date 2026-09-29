@@ -26,7 +26,7 @@ import {
 } from "../../ui_primitives";
 import type { GenerationModel } from "../generationEstimate";
 import { MAX_STYLE_REFERENCES, STYLE_ACCEPT } from "./useCustomStyle";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // The estimate pulls in the provider price tables; nothing needs them until
 // the dialog is open.
@@ -54,6 +54,7 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
   onClose,
   onSubmit
 }) => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState<File[]>([]);
   const input = useRef<HTMLInputElement>(null);
   // Which reference a pick replaces, or null when it is appended.
@@ -109,14 +110,14 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
     <Dialog
       open={open}
       onClose={handleCancel}
-      title={i18n.t("editor:ui.addYourOwnStyle", { defaultValue: "Add your own style" })}
+      title={t("editor:ui.addYourOwnStyle", { defaultValue: "Add your own style" })}
       showActions
       onConfirm={handleSubmit}
-      confirmText={saving ? i18n.t("storyboard:attrs.readingYourReferences", { defaultValue: "Reading your references…" }) : i18n.t("storyboard:attrs.addStyle", { defaultValue: "Add style" })}
+      confirmText={saving ? t("storyboard:attrs.readingYourReferences", { defaultValue: "Reading your references…" }) : t("storyboard:attrs.addStyle", { defaultValue: "Add style" })}
       isLoading={saving}
       confirmDisabled={saving || files.length === 0}
       cancelDisabled={saving}
-      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       onCancel={handleCancel}
     >
       <FlexColumn gap={GAP.comfortable}>
@@ -127,14 +128,14 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
         <EditorButton
           onClick={handleAdd}
           disabled={saving || files.length >= MAX_STYLE_REFERENCES}
-        >{i18n.t("storyboard:attrs.chooseReferences", { defaultValue: "Choose references" })}</EditorButton>
+        >{t("storyboard:attrs.chooseReferences", { defaultValue: "Choose references" })}</EditorButton>
         <input
           type="file"
           hidden
           multiple
           ref={input}
           accept={STYLE_ACCEPT}
-          aria-label={i18n.t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
+          aria-label={t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
           onChange={handlePicked}
         />
         {files.length > 0 ? (
@@ -167,21 +168,21 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
                     disabled={saving}
                     aria-label={`Replace ${file.name}`}
                     onClick={() => openPicker(index)}
-                  >{i18n.t("storyboard:attrs.replace", { defaultValue: "Replace" })}</EditorButton>
+                  >{t("storyboard:attrs.replace", { defaultValue: "Replace" })}</EditorButton>
                   <EditorButton
                     variant="text"
                     size="small"
                     disabled={saving}
                     aria-label={`Remove ${file.name}`}
                     onClick={() => handleRemove(index)}
-                  >{i18n.t("storyboard:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
+                  >{t("storyboard:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
               </FlexRow>
             ))}
           </FlexColumn>
         ) : null}
         <Suspense
-          fallback={<Caption color="secondary">{i18n.t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
+          fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
             result="Describe your references as a style you can reuse"

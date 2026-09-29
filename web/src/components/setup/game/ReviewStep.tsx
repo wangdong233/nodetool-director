@@ -30,7 +30,7 @@ import {
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { REVIEW_CONTENT_WIDTH } from "../reviewStyles";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameReviewStepProps {
   design: GameDesign;
@@ -64,6 +64,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
   filled = [],
   error = null
 }) => {
+  const { t } = useTranslation();
   const patch = useMemo(
     () => (fields: Partial<GameDesign>) =>
       onDesignChange({ ...design, ...fields }),
@@ -114,33 +115,33 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
     return [
       {
         id: "design",
-        header: i18n.t("editor:ui.yourGame", { defaultValue: "Your game" }),
+        header: t("editor:ui.yourGame", { defaultValue: "Your game" }),
         rows: [
           {
             id: "title",
-            label: i18n.t("storyboard:attrs.title", { defaultValue: "Title" }),
+            label: t("storyboard:attrs.title", { defaultValue: "Title" }),
             value: design.title,
             onChange: (value: string) => patch({ title: value })
           },
           {
             id: "premise",
-            label: i18n.t("editor:ui.premise", { defaultValue: "Premise" }),
+            label: t("editor:ui.premise", { defaultValue: "Premise" }),
             value: design.premise,
             multiline: true,
             onChange: (value: string) => patch({ premise: value })
           },
           {
             id: "core_loop",
-            label: i18n.t("editor:ui.coreLoop", { defaultValue: "Core loop" }),
+            label: t("editor:ui.coreLoop", { defaultValue: "Core loop" }),
             value: design.core_loop,
             multiline: true,
             onChange: (value: string) => patch({ core_loop: value })
           },
           {
             id: "player_verbs",
-            label: i18n.t("editor:ui.playerVerbs", { defaultValue: "Player verbs" }),
+            label: t("editor:ui.playerVerbs", { defaultValue: "Player verbs" }),
             value: design.player_verbs.join(", "),
-            placeholder: i18n.t("editor:ui.moveJumpShoot", { defaultValue: "move, jump, shoot" }),
+            placeholder: t("editor:ui.moveJumpShoot", { defaultValue: "move, jump, shoot" }),
             onChange: (value: string) =>
               patch({
                 player_verbs: value
@@ -151,20 +152,20 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           },
           {
             id: "level",
-            label: i18n.t("editor:ui.gameLevel", { defaultValue: "Level" }),
+            label: t("editor:ui.gameLevel", { defaultValue: "Level" }),
             value: design.level,
             multiline: true,
             onChange: (value: string) => patch({ level: value })
           },
           {
             id: "win",
-            label: i18n.t("editor:ui.winCondition", { defaultValue: "Win" }),
+            label: t("editor:ui.winCondition", { defaultValue: "Win" }),
             value: design.win,
             onChange: (value: string) => patch({ win: value })
           },
           {
             id: "lose",
-            label: i18n.t("editor:ui.loseCondition", { defaultValue: "Lose" }),
+            label: t("editor:ui.loseCondition", { defaultValue: "Lose" }),
             value: design.lose,
             onChange: (value: string) => patch({ lose: value })
           }
@@ -174,8 +175,8 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         ? [
             {
               id: "enemies",
-              header: i18n.t("editor:ui.enemies", { defaultValue: "Enemies" }),
-              subheader: i18n.t("storyboard:attrs.whatEachOneDoesInTheLoop", { defaultValue: "What each one does in the loop." }),
+              header: t("editor:ui.enemies", { defaultValue: "Enemies" }),
+              subheader: t("storyboard:attrs.whatEachOneDoesInTheLoop", { defaultValue: "What each one does in the loop." }),
               rows: [],
               groups: design.enemies.map((enemy) => ({
                 id: `enemy-${enemy.slot_id}`,
@@ -184,14 +185,14 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
                 rows: [
                   {
                     id: `enemy-${enemy.slot_id}-name`,
-                    label: i18n.t("editor:asset.info.name", { defaultValue: "Name" }),
+                    label: t("editor:asset.info.name", { defaultValue: "Name" }),
                     value: enemy.name,
                     onChange: (value: string) =>
                       patchEnemy(enemy.slot_id, { name: value })
                   },
                   {
                     id: `enemy-${enemy.slot_id}-behaviour`,
-                    label: i18n.t("editor:ui.behaviour", { defaultValue: "Behaviour" }),
+                    label: t("editor:ui.behaviour", { defaultValue: "Behaviour" }),
                     value: enemy.behaviour,
                     multiline: true,
                     onChange: (value: string) =>
@@ -204,7 +205,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         : []),
       {
         id: "cast",
-        header: i18n.t("editor:ui.cast", { defaultValue: "Cast" }),
+        header: t("editor:ui.cast", { defaultValue: "Cast" }),
         subheader:
           "Silhouette, colours and proportions — no pose. Every frame of this character's sheet carries it.",
         rows: [],
@@ -215,14 +216,14 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           rows: [
             {
               id: `cast-${member.slot_id}-name`,
-              label: i18n.t("editor:asset.info.name", { defaultValue: "Name" }),
+              label: t("editor:asset.info.name", { defaultValue: "Name" }),
               value: member.name,
               onChange: (value: string) =>
                 patchCast(member.slot_id, { name: value })
             },
             {
               id: `cast-${member.slot_id}-descriptor`,
-              label: i18n.t("editor:ui.descriptor", { defaultValue: "Descriptor" }),
+              label: t("editor:ui.descriptor", { defaultValue: "Descriptor" }),
               value: member.descriptor,
               multiline: true,
               onChange: (value: string) =>
@@ -233,7 +234,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       },
       {
         id: "slots",
-        header: i18n.t("editor:ui.assetPrompts", { defaultValue: "Asset prompts" }),
+        header: t("editor:ui.assetPrompts", { defaultValue: "Asset prompts" }),
         subheader:
           "The subject of each asset. The style, the pixel size and the sheet layout are added when it is generated.",
         rows: [],
@@ -248,7 +249,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
               hideLabel: true,
               value: promptOf(slot.id),
               multiline: true,
-              placeholder: i18n.t("editor:ui.whatThisAssetShows", { defaultValue: "What this asset shows" }),
+              placeholder: t("editor:ui.whatThisAssetShows", { defaultValue: "What this asset shows" }),
               onChange: (value: string) => patchPrompt(slot.id, value)
             }
           ]
@@ -263,7 +264,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourDesign", { defaultValue: "Your design" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.yourDesign", { defaultValue: "Your design" })}</Text>
         <Text size="normal" color="secondary">
           Read it, change anything, then choose the look. Nothing is generated
           yet.

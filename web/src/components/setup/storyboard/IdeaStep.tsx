@@ -48,12 +48,13 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { ExampleBriefs } from "../ExampleBriefs";
 import { ShotlistReport } from "./ShotlistReport";
 import { SCRIPT_ACCEPT, useScriptImport } from "./useScriptImport";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 import {
   SHOTLIST_ACCEPT,
   SHOTLIST_TEMPLATE_URL,
   useShotlistImport
 } from "./useShotlistImport";
+import { useTranslation } from "react-i18next";
 
 /** How many example loglines are offered as inspiration (PRD § 7.1). */
 const INSPIRATION_COUNT = 3;
@@ -73,6 +74,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onOpenTutorial,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const brief = useStoryboardStore(
     (state) => state.boards[boardId]?.brief ?? ""
   );
@@ -135,30 +137,30 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: i18n.t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
+        title: t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
         description: "PDF, DOCX, FDX",
         onSelect: () => scriptInput.current?.click(),
         disabled: script.importing,
-        disabledReason: script.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
+        disabledReason: script.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "shotlist",
-        title: i18n.t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
-        description: i18n.t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
+        title: t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
+        description: t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
         disabled: shotlist.importing,
-        disabledReason: shotlist.importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
+        disabledReason: shotlist.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
-        title: i18n.t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
-        description: i18n.t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
+        title: t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
+        description: t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: i18n.t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
-        description: i18n.t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
+        title: t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
+        description: t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],
@@ -180,10 +182,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {i18n.t("editor:ui.whatSYourStory")}
+            {t("editor:ui.whatSYourStory")}
           </Text>
           <Text size="normal" color="secondary">
-            {i18n.t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard")}
+            {t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard")}
           </Text>
         </FlexColumn>
 
@@ -201,27 +203,27 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">
                 {locked
-                  ? i18n.t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
-                  : i18n.t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
+                  ? t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
+                  : t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
               </Caption>
               <FlexRow gap={GAP.normal} wrap>
                 <EditorButton
                   variant="outlined"
                   size="small"
                   onClick={replaceSource}
-                >{i18n.t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}</EditorButton>
+                >{t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}</EditorButton>
                 {locked ? (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={editAsText}
-                  >{i18n.t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}</EditorButton>
+                  >{t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}</EditorButton>
                 ) : (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={removeSource}
-                  >{i18n.t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}</EditorButton>
+                  >{t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}</EditorButton>
                 )}
               </FlexRow>
             </FlexColumn>
@@ -233,14 +235,14 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus={!locked}
           multiline
           rows={5}
-          label={i18n.t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
+          label={t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
           hideLabel
-          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnoughOrPasteAFullScript", { defaultValue: "One sentence is enough, or paste a full script." })}
+          placeholder={t("storyboard:attrs.oneSentenceIsEnoughOrPasteAFullScript", { defaultValue: "One sentence is enough, or paste a full script." })}
           onChange={handleChange}
           slotProps={{ input: { readOnly: locked } }}
           helperText={
             locked
-              ? i18n.t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
+              ? t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
               : undefined
           }
         />
@@ -268,11 +270,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           under the rail, next to the card that needs it. */}
       <FlexColumn gap={GAP.normal}>
         <AlternativesColumn
-          label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+          label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
           alternatives={alternatives}
         />
         <Caption color="secondary" component="p">
-          <a href={SHOTLIST_TEMPLATE_URL} download>{i18n.t("storyboard:attrs.downloadTheCSVTemplate", { defaultValue: "Download the CSV template" })}</a>
+          <a href={SHOTLIST_TEMPLATE_URL} download>{t("storyboard:attrs.downloadTheCSVTemplate", { defaultValue: "Download the CSV template" })}</a>
         </Caption>
       </FlexColumn>
 
@@ -282,7 +284,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={scriptInput}
         accept={SCRIPT_ACCEPT}
-        aria-label={i18n.t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" })}
+        aria-label={t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" })}
         onChange={handlePicked(script.importFile)}
       />
       <input
@@ -290,7 +292,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={shotlistInput}
         accept={SHOTLIST_ACCEPT}
-        aria-label={i18n.t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" })}
+        aria-label={t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" })}
         onChange={handlePicked(shotlist.importFile)}
       />
 

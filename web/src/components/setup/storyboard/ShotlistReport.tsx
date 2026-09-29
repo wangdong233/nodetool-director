@@ -20,7 +20,7 @@ import {
   Text
 } from "../../ui_primitives";
 import type { ShotlistReportEntry } from "../../../lib/storyboard/parseShotlistCsv";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ShotlistReportProps {
   open: boolean;
@@ -34,36 +34,39 @@ export const ShotlistReport: React.FC<ShotlistReportProps> = ({
   shotCount,
   entries,
   onClose
-}) => (
-  <Dialog open={open} onClose={onClose} title={i18n.t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
-    <FlexColumn gap={GAP.normal}>
-      <Text size="normal">
-        {shotCount} shot{shotCount === 1 ? "" : "s"} imported. These values did
-        not come with them.
-      </Text>
-      <FlexColumn
-        gap={GAP.tight}
-        component="ul"
-        sx={{ listStyle: "none", margin: 0, padding: 0, "& li": { listStyle: "none" } }}
-      >
-        {entries.map((entry) => (
-          <Caption
-            key={`${entry.row}:${entry.column}:${entry.value}`}
-            component="li"
-            color="secondary"
-          >
-            Row {entry.row}, {entry.column}
-            {entry.value === "" ? "" : ` — “${entry.value}”`}: {entry.reason}
-          </Caption>
-        ))}
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Dialog open={open} onClose={onClose} title={t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
+      <FlexColumn gap={GAP.normal}>
+        <Text size="normal">
+          {shotCount} shot{shotCount === 1 ? "" : "s"} imported. These values did
+          not come with them.
+        </Text>
+        <FlexColumn
+          gap={GAP.tight}
+          component="ul"
+          sx={{ listStyle: "none", margin: 0, padding: 0, "& li": { listStyle: "none" } }}
+        >
+          {entries.map((entry) => (
+            <Caption
+              key={`${entry.row}:${entry.column}:${entry.value}`}
+              component="li"
+              color="secondary"
+            >
+              Row {entry.row}, {entry.column}
+              {entry.value === "" ? "" : ` — “${entry.value}”`}: {entry.reason}
+            </Caption>
+          ))}
+        </FlexColumn>
+        {/* One way out: the import already wrote the board, so there is nothing
+            here to confirm or cancel. */}
+        <FlexRow justify="flex-end">
+          <EditorButton onClick={onClose}>{t("storyboard:attrs.continue", { defaultValue: "Continue" })}</EditorButton>
+        </FlexRow>
       </FlexColumn>
-      {/* One way out: the import already wrote the board, so there is nothing
-          here to confirm or cancel. */}
-      <FlexRow justify="flex-end">
-        <EditorButton onClick={onClose}>{i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" })}</EditorButton>
-      </FlexRow>
-    </FlexColumn>
-  </Dialog>
-);
+    </Dialog>
+  );
+};
 
 export default ShotlistReport;

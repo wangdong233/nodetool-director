@@ -29,7 +29,8 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameIdeaStepProps {
   brief: string;
@@ -62,6 +63,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
   onStartBlank,
   onOpenTutorial
 }) => {
+  const { t } = useTranslation();
   const [picker, setPicker] = useState<Picker>(null);
 
   const handleChange = useCallback(
@@ -78,8 +80,8 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
     () => [
       {
         id: "template",
-        title: i18n.t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" }),
-        description: i18n.t("editor:ui.pickLoopSkipToDesign", { defaultValue: "Pick the loop and skip straight to the design" }),
+        title: t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" }),
+        description: t("editor:ui.pickLoopSkipToDesign", { defaultValue: "Pick the loop and skip straight to the design" }),
         onSelect: () => setPicker("template"),
         disabled: templates.length === 0,
         disabledReason:
@@ -87,26 +89,26 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: i18n.t("editor:ui.exportBlankTemplate", { defaultValue: "Export a blank template" }),
-        description: i18n.t("editor:ui.runningProjectPlaceholderArt", { defaultValue: "A running project with placeholder art, fill it later" }),
+        title: t("editor:ui.exportBlankTemplate", { defaultValue: "Export a blank template" }),
+        description: t("editor:ui.runningProjectPlaceholderArt", { defaultValue: "A running project with placeholder art, fill it later" }),
         onSelect: () => setPicker("blank"),
         disabled: templates.length === 0 || exportingBlank,
         disabledReason: exportingBlank
-          ? i18n.t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
+          ? t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
           : templates.length === 0
             ? "Reading the shipped templates…"
             : undefined
       },
       {
         id: "blank",
-        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
+        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: i18n.t("editor:ui.tutorial", { defaultValue: "Tutorial" }),
-        description: i18n.t("editor:ui.walkOneProjectEndToEnd", { defaultValue: "Walk one project end to end, with the steps explained" }),
+        title: t("editor:ui.tutorial", { defaultValue: "Tutorial" }),
+        description: t("editor:ui.walkOneProjectEndToEnd", { defaultValue: "Walk one project end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],
@@ -120,21 +122,21 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
             {blank
-              ? i18n.t("editor:ui.exportBlankTemplate", {
+              ? t("editor:ui.exportBlankTemplate", {
                   defaultValue: "Export a blank template"
                 })
-              : i18n.t("editor:ui.startFromATemplate", {
+              : t("editor:ui.startFromATemplate", {
                   defaultValue: "Start from a template"
                 })}
           </Text>
           <Caption color="secondary" component="p">
             {blank
-              ? i18n.t("storyboard:attrs.theTemplateWithItsPlaceholderArtExportedAndReadyToOpenInGodot", { defaultValue: "The template with its placeholder art, exported and ready to open in Godot." })
-              : i18n.t("storyboard:attrs.pickTheLoopAndSkipStraightToTheDesign", { defaultValue: "Pick the loop and skip straight to the design." })}
+              ? t("storyboard:attrs.theTemplateWithItsPlaceholderArtExportedAndReadyToOpenInGodot", { defaultValue: "The template with its placeholder art, exported and ready to open in Godot." })
+              : t("storyboard:attrs.pickTheLoopAndSkipStraightToTheDesign", { defaultValue: "Pick the loop and skip straight to the design." })}
           </Caption>
         </FlexColumn>
         <OptionCardGrid
-          label={blank ? i18n.t("storyboard:attrs.blankTemplate", { defaultValue: "Blank template" }) : i18n.t("storyboard:attrs.template", { defaultValue: "Template" })}
+          label={blank ? t("storyboard:attrs.blankTemplate", { defaultValue: "Blank template" }) : t("storyboard:attrs.template", { defaultValue: "Template" })}
           options={cards}
           onSelect={(id) => {
             setPicker(null);
@@ -164,7 +166,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {i18n.t("editor:ui.whatSYourGame")}
+            {t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
             Tell us the premise. We&apos;ll pick a template, write the design,
@@ -177,9 +179,9 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label={i18n.t("storyboard:attrs.thePremise", { defaultValue: "The premise" })}
+          label={t("storyboard:attrs.thePremise", { defaultValue: "The premise" })}
           hideLabel
-          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnoughWhoYouPlayWhatYouDoAndWhatStopsYou", { defaultValue: "One sentence is enough: who you play, what you do, and what stops you." })}
+          placeholder={t("storyboard:attrs.oneSentenceIsEnoughWhoYouPlayWhatYouDoAndWhatStopsYou", { defaultValue: "One sentence is enough: who you play, what you do, and what stops you." })}
           onChange={handleChange}
         />
 
@@ -191,7 +193,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
     </Box>

@@ -18,7 +18,7 @@ import EntityAssetPickerDialog from "../../entities/EntityAssetPickerDialog";
 import EntityEditorDialog from "../../entities/EntityEditorDialog";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   AlertBanner,
   BORDER_RADIUS,
@@ -82,6 +82,7 @@ export const EntitiesStep = ({
   boardId,
   readOnly = false
 }: EntitiesStepProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { data: entities, isLoading } = useEntities();
   const saveEntity = useSaveEntity();
@@ -175,7 +176,7 @@ export const EntitiesStep = ({
       setAssistError(
         error instanceof Error
           ? error.message
-          : i18n.t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
+          : t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
       );
     } finally {
       if (mountedRef.current) {
@@ -208,7 +209,7 @@ export const EntitiesStep = ({
     const model =
       useStoryboardStore.getState().getBoard(boardId)?.imageModel ?? null;
     if (!model?.id) {
-      setAssistError(i18n.t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
+      setAssistError(t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
       return;
     }
     setCreatingKeys((current) => new Set(current).add(key));
@@ -251,7 +252,7 @@ export const EntitiesStep = ({
     } catch (error) {
       if (!mountedRef.current) return;
       setAssistError(
-        error instanceof Error ? error.message : i18n.t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
+        error instanceof Error ? error.message : t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
       );
     } finally {
       if (mountedRef.current) {
@@ -297,7 +298,7 @@ export const EntitiesStep = ({
       sx={{ maxWidth: 1040, width: "100%", minWidth: 0 }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big" component="h1">{i18n.t("storyboard:attrs.keepPeopleAndPlacesConsistent", { defaultValue: "Keep people and places consistent" })}</Text>
+        <Text size="big" component="h1">{t("storyboard:attrs.keepPeopleAndPlacesConsistent", { defaultValue: "Keep people and places consistent" })}</Text>
         <Text color="secondary" sx={{ maxWidth: "65ch" }}>
           Choose the characters, places, and props that need to look consistent
           across shots.
@@ -315,7 +316,7 @@ export const EntitiesStep = ({
             gap={SPACING.xs}
             sx={{ flexGrow: 1, flexShrink: 1, flexBasis: SETUP_MEDIA_WIDTH }}
           >
-            <Label component="h2">{i18n.t("storyboard:attrs.suggestedFromYourStory", { defaultValue: "Suggested from your story" })}</Label>
+            <Label component="h2">{t("storyboard:attrs.suggestedFromYourStory", { defaultValue: "Suggested from your story" })}</Label>
             <Caption>
               Find recurring references in your screenplay. Create only the ones
               you want to use.
@@ -327,17 +328,17 @@ export const EntitiesStep = ({
             disabled={suggesting}
           >
             {suggesting
-              ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
+              ? t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
               : suggestions.length > 0
-                ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
-                : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
+                ? t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
+                : t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
           </EditorButton>
         </FlexRow>
 
         {assistError ? (
           <AlertBanner
             severity="error"
-            title={i18n.t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })}
+            title={t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })}
             action={
               <ReportBugButton
                 context={{
@@ -364,8 +365,8 @@ export const EntitiesStep = ({
                 )
             ) ? (
               <FormField
-                label={i18n.t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
-                helperText={i18n.t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." })}
+                label={t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
+                helperText={t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." })}
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
                 <ImageModelSelect
@@ -439,7 +440,7 @@ export const EntitiesStep = ({
 
       <FlexRow gap={SPACING.xl} wrap align="center">
         <FlexRow gap={SPACING.md} wrap align="baseline">
-          <Label component="h2">{i18n.t("storyboard:attrs.yourEntityLibrary", { defaultValue: "Your entity library" })}</Label>
+          <Label component="h2">{t("storyboard:attrs.yourEntityLibrary", { defaultValue: "Your entity library" })}</Label>
           <Caption role="status">
             {selectedEntities.length} selected for this storyboard
           </Caption>
@@ -448,16 +449,16 @@ export const EntitiesStep = ({
           variant="outlined"
           startIcon={<AddPhotoAlternateOutlinedIcon />}
           onClick={() => setPickerOpen(true)}
-        >{i18n.t("storyboard:attrs.createEntityFromAnImage", { defaultValue: "Create entity from an image" })}</EditorButton>
+        >{t("storyboard:attrs.createEntityFromAnImage", { defaultValue: "Create entity from an image" })}</EditorButton>
       </FlexRow>
 
       {isLoading ? (
-        <LoadingSpinner text={i18n.t("editor:ui.loadingEntities")} />
+        <LoadingSpinner text={t("editor:ui.loadingEntities")} />
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
-          title={i18n.t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description={i18n.t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep")}
+          title={t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
+          description={t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep")}
           size="small"
         />
       ) : (
@@ -479,7 +480,7 @@ export const EntitiesStep = ({
               <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder={i18n.t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
+                placeholder={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
                 fullWidth
               />
             </FlexColumn>
@@ -487,7 +488,7 @@ export const EntitiesStep = ({
               variant={onlySelected ? "outlined" : "text"}
               aria-pressed={onlySelected}
               onClick={() => setOnlySelected(!onlySelected)}
-            >{i18n.t("storyboard:attrs.selectedOnly", { defaultValue: "Selected only" })}</EditorButton>
+            >{t("storyboard:attrs.selectedOnly", { defaultValue: "Selected only" })}</EditorButton>
           </FlexRow>
           <ScrollArea maxHeight="min(48vh, 480px)">
             <FlexColumn gap={SPACING.xl}>
@@ -496,13 +497,13 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
-                      : i18n.t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
+                      ? t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
+                      : t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
                   }
                   description={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
-                      : i18n.t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
+                      ? t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
+                      : t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
                   }
                   size="small"
                 />

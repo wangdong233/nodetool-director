@@ -310,7 +310,10 @@ def classify(m, b):
     # const NAME = <...> arrow  (uppercase NAME)
     if b.get("arrow_at") is not None:
         for kend in {k, kparen}:
-            seg = m[max(0, kend - 120):kend + 1]
+            # W1 fix (B0 gap #8): window 120 -> 800; long multi-member
+            # annotations (ModelAvailabilityNote) left the const name outside
+            # the probe window, dropping the component to "helper".
+            seg = m[max(0, kend - 800):kend + 1]
             # W1 fix (B0 gap #6): the type-annotation skip is [^=] not
             # [^=;] — `const CardText: React.FC<{ a: X; b: Y }> =` has `;`
             # inside the generic, and B0's class stopped there, dropping the

@@ -9,7 +9,7 @@ import {
 } from "../../ui_primitives";
 import { AlternativesColumn } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   SETUP_OPTION_MIN_WIDTH,
   SETUP_WIDE_CONTENT_WIDTH
@@ -78,88 +78,91 @@ export const DetailsStep = ({
   onChange,
   onStartBlank,
   startingBlank = false
-}: DetailsStepProps) => (
-  <Box
-    sx={{
-      display: "grid",
-      gridTemplateColumns:
-        onStartBlank === undefined
-          ? "1fr"
-          : {
-              xs: "1fr",
-              md: "minmax(0, 2fr) minmax(240px, 1fr)"
-            },
-      gap: GAP.spacious,
-      alignItems: "start",
-      maxWidth: SETUP_WIDE_CONTENT_WIDTH
-    }}
-  >
-    <FlexColumn gap={GAP.spacious}>
-      <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h1">{i18n.t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}</Text>
-        <Text color="secondary">
-          Give the entity a stable name and the description generation prompts
-          should reuse.
-        </Text>
+}: DetailsStepProps) => {
+  const { t } = useTranslation();
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns:
+          onStartBlank === undefined
+            ? "1fr"
+            : {
+                xs: "1fr",
+                md: "minmax(0, 2fr) minmax(240px, 1fr)"
+              },
+        gap: GAP.spacious,
+        alignItems: "start",
+        maxWidth: SETUP_WIDE_CONTENT_WIDTH
+      }}
+    >
+      <FlexColumn gap={GAP.spacious}>
+        <FlexColumn gap={GAP.tight}>
+          <Text size="big" component="h1">{t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}</Text>
+          <Text color="secondary">
+            Give the entity a stable name and the description generation prompts
+            should reuse.
+          </Text>
+        </FlexColumn>
+
+        <OptionCardGrid
+          label={t("storyboard:attrs.entityType", { defaultValue: "Entity type" })}
+          options={ENTITY_KINDS}
+          selectedId={value.kind}
+          onSelect={(kind) => {
+            const selected = ENTITY_KINDS.find((option) => option.id === kind);
+            if (selected) {
+              onChange({ ...value, kind: selected.id });
+            }
+          }}
+          minColumnWidth={SETUP_OPTION_MIN_WIDTH}
+        />
+
+        <TextInput
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
+          value={value.name}
+          onChange={(event) => onChange({ ...value, name: event.target.value })}
+          placeholder={t("editor:ui.nova", { defaultValue: "Nova" })}
+          autoFocus
+        />
+        <TextInput
+          label={t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
+          helperText={t("storyboard:attrs.addedToEveryPromptStableTraits", { defaultValue: "This text is added to every prompt that uses the entity. Describe only stable visual traits." })}
+          value={value.descriptor}
+          onChange={(event) =>
+            onChange({ ...value, descriptor: event.target.value })
+          }
+          placeholder={t("storyboard:attrs.youngAstronautExample", { defaultValue: "A young astronaut with cropped black hair and a worn orange flight suit" })}
+          multiline
+          rows={4}
+        />
+        <TextInput
+          label={t("storyboard:attrs.tagsOptional", { defaultValue: "Tags (optional)" })}
+          value={value.tags}
+          onChange={(event) => onChange({ ...value, tags: event.target.value })}
+          placeholder={t("storyboard:attrs.heroSpace", { defaultValue: "hero, space" })}
+        />
       </FlexColumn>
-
-      <OptionCardGrid
-        label={i18n.t("storyboard:attrs.entityType", { defaultValue: "Entity type" })}
-        options={ENTITY_KINDS}
-        selectedId={value.kind}
-        onSelect={(kind) => {
-          const selected = ENTITY_KINDS.find((option) => option.id === kind);
-          if (selected) {
-            onChange({ ...value, kind: selected.id });
-          }
-        }}
-        minColumnWidth={SETUP_OPTION_MIN_WIDTH}
-      />
-
-      <TextInput
-        label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
-        value={value.name}
-        onChange={(event) => onChange({ ...value, name: event.target.value })}
-        placeholder={i18n.t("editor:ui.nova", { defaultValue: "Nova" })}
-        autoFocus
-      />
-      <TextInput
-        label={i18n.t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
-        helperText={i18n.t("storyboard:attrs.addedToEveryPromptStableTraits", { defaultValue: "This text is added to every prompt that uses the entity. Describe only stable visual traits." })}
-        value={value.descriptor}
-        onChange={(event) =>
-          onChange({ ...value, descriptor: event.target.value })
-        }
-        placeholder={i18n.t("storyboard:attrs.youngAstronautExample", { defaultValue: "A young astronaut with cropped black hair and a worn orange flight suit" })}
-        multiline
-        rows={4}
-      />
-      <TextInput
-        label={i18n.t("storyboard:attrs.tagsOptional", { defaultValue: "Tags (optional)" })}
-        value={value.tags}
-        onChange={(event) => onChange({ ...value, tags: event.target.value })}
-        placeholder={i18n.t("storyboard:attrs.heroSpace", { defaultValue: "hero, space" })}
-      />
-    </FlexColumn>
-    {onStartBlank === undefined ? null : (
-      <AlternativesColumn
-        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
-        alternatives={[
-          {
-            id: "blank",
-            title: i18n.t("storyboard:attrs.startWithBlankReference", { defaultValue: "Start with a blank reference" }),
-            description:
-              "A plain canvas as the reference image — fill the details yourself",
-            onSelect: onStartBlank,
-            disabled: startingBlank,
-            disabledReason: startingBlank
-              ? i18n.t("storyboard:attrs.makingYourCanvas", { defaultValue: "Making your canvas…" })
-              : undefined
-          }
-        ]}
-      />
-    )}
-  </Box>
-);
+      {onStartBlank === undefined ? null : (
+        <AlternativesColumn
+          label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+          alternatives={[
+            {
+              id: "blank",
+              title: t("storyboard:attrs.startWithBlankReference", { defaultValue: "Start with a blank reference" }),
+              description:
+                "A plain canvas as the reference image — fill the details yourself",
+              onSelect: onStartBlank,
+              disabled: startingBlank,
+              disabledReason: startingBlank
+                ? t("storyboard:attrs.makingYourCanvas", { defaultValue: "Making your canvas…" })
+                : undefined
+            }
+          ]}
+        />
+      )}
+    </Box>
+  );
+};
 
 export default DetailsStep;

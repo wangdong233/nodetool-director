@@ -20,7 +20,7 @@ import {
 import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { SetupCardButton, useRovingRadioGroup } from "./SetupCardButton";
 import type { SetupCardGridMode } from "./SetupCardButton";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface OptionCardItem {
   id: string;
@@ -73,14 +73,15 @@ const CardText: React.FC<{ option: OptionCardItem; onImage: boolean }> = ({
   option,
   onImage
 }) => {
+  const { t } = useTranslation();
   // Over a still, every line takes the overlay's colour: the muted greys the
   // text cards use are unreadable against a photograph.
   const inherit = onImage ? { color: "inherit" } : undefined;
   const title = option.titleKey
-    ? i18n.t(option.titleKey, { defaultValue: option.title })
+    ? t(option.titleKey, { defaultValue: option.title })
     : option.title;
   const description = option.descriptionKey
-    ? i18n.t(option.descriptionKey, { defaultValue: option.description })
+    ? t(option.descriptionKey, { defaultValue: option.description })
     : option.description;
   return (
     <FlexColumn gap={GAP.tight}>

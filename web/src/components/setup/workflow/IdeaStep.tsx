@@ -33,7 +33,8 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSetup";
 import type { Workflow } from "../../../stores/ApiTypes";
 import { WorkflowExamplePicker } from "./ExamplePicker";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -74,6 +75,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   importError = null,
   onDismissImportError
 }) => {
+  const { t } = useTranslation();
   const setup = useWorkflowSetupDocument(workflowId);
   const brief = setup?.brief ?? "";
   const importInput = useRef<HTMLInputElement>(null);
@@ -103,20 +105,20 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     () => [
       {
         id: "example",
-        title: i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
-        description: i18n.t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
+        title: t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
+        description: t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
         onSelect: () => onBrowseExamples(true)
       },
       {
         id: "import",
-        title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
-        description: i18n.t("editor:ui.jsonOrDslTsFile", { defaultValue: "JSON, or a DSL .ts file" }),
+        title: t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
+        description: t("editor:ui.jsonOrDslTsFile", { defaultValue: "JSON, or a DSL .ts file" }),
         onSelect: () => importInput.current?.click()
       },
       {
         id: "blank",
-        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
+        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank
       }
     ],
@@ -148,7 +150,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     >
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
-          <Text size="big" component="h2">{i18n.t("storyboard:attrs.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}</Text>
+          <Text size="big" component="h2">{t("storyboard:attrs.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}</Text>
           <Text size="normal" color="secondary">
             Describe the task. We&apos;ll plan the steps and check what it needs
             before building.
@@ -160,10 +162,10 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label={i18n.t("storyboard:attrs.theTask", { defaultValue: "The task" })}
+          label={t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
-          placeholder={i18n.t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
-          helperText={i18n.t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
+          placeholder={t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
+          helperText={t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
           onChange={handleChange}
         />
 
@@ -181,7 +183,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -191,7 +193,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         hidden
         ref={importInput}
         accept={WORKFLOW_IMPORT_ACCEPT}
-        aria-label={i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" })}
+        aria-label={t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" })}
         onChange={handlePicked}
       />
     </Box>

@@ -32,7 +32,7 @@ import {
   useDirectGenPendingStore
 } from "../../../hooks/timeline/directGenPending";
 import { formatSeconds } from "./ReviewStep";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface VideoLandingStripProps {
   /** Renders the finished cut. The editor already owns the action. */
@@ -63,6 +63,7 @@ export function remainingMs(
 const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
   onExport
 }) => {
+  const { t } = useTranslation();
   const stage = useTimelineStore((state) => state.setup?.stage);
   const clips = useTimelineStore((state) => state.clips);
   const setScriptEnabled = useTimelineStore((state) => state.setScriptEnabled);
@@ -103,7 +104,7 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       align="center"
       padding={PADDING.compact}
       role="region"
-      aria-label={i18n.t("storyboard:attrs.videoNextSteps", { defaultValue: "Video next steps" })}
+      aria-label={t("storyboard:attrs.videoNextSteps", { defaultValue: "Video next steps" })}
     >
       {rendering.length > 0 ? (
         <Text size="small" color="secondary" role="status">
@@ -120,8 +121,8 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       ) : null}
       {done ? (
         <>
-          <Caption color="secondary">{i18n.t("storyboard:attrs.next", { defaultValue: "Next:" })}</Caption>
-          <EditorButton variant="text" onClick={onExport} disabled={!onExport}>{i18n.t("storyboard:attrs.export", { defaultValue: "Export" })}</EditorButton>
+          <Caption color="secondary">{t("storyboard:attrs.next", { defaultValue: "Next:" })}</Caption>
+          <EditorButton variant="text" onClick={onExport} disabled={!onExport}>{t("storyboard:attrs.export", { defaultValue: "Export" })}</EditorButton>
           <EditorButton variant="text" onClick={handleCaptions}>
             Add captions
           </EditorButton>

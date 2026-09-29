@@ -22,7 +22,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { videoFormatById } from "./formats";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   productionFields,
   productionPatch,
@@ -86,6 +86,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   replanPending,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const beats = useTimelineStore((state) => state.setup?.beats);
   const formatId = useTimelineStore((state) => state.setup?.format);
   const updateBeat = useTimelineStore((state) => state.updateBeat);
@@ -151,14 +152,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     rows: [
       {
         id: `${beat.id}-prompt`,
-        label: i18n.t("timeline:attrs.beat", { defaultValue: "Beat" }),
+        label: t("timeline:attrs.beat", { defaultValue: "Beat" }),
         value: beat.prompt,
         multiline: true,
         onChange: (value: string) => updateBeat(beat.id, { prompt: value })
       },
       {
         id: `${beat.id}-duration`,
-        label: i18n.t("timeline:attrs.seconds", { defaultValue: "Seconds" }),
+        label: t("timeline:attrs.seconds", { defaultValue: "Seconds" }),
         value: lengths[beat.id] ?? secondsText(beat.duration_ms),
         placeholder: rangeText,
         compact: true,
@@ -167,7 +168,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-transition`,
-        label: i18n.t("timeline:attrs.transition", { defaultValue: "Transition" }),
+        label: t("timeline:attrs.transition", { defaultValue: "Transition" }),
         value: beat.transition ?? PLAIN_CUT,
         // A closed set the renderer already enumerates, so it is a select:
         // typed free text left the row holding a word the cut has no
@@ -182,13 +183,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-voiceover`,
-        label: i18n.t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" }),
+        label: t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" }),
         readOnly:
           !!beat.production?.speech_binding?.script_line_id ||
           !!beat.production?.speech_binding?.audio_asset_id,
         value: beat.voiceover ?? beat.production?.speech_binding?.text ?? "",
         multiline: true,
-        placeholder: i18n.t("timeline:attrs.leaveEmptyForNoLineOverBeat", { defaultValue: "Leave empty for no line over this beat" }),
+        placeholder: t("timeline:attrs.leaveEmptyForNoLineOverBeat", { defaultValue: "Leave empty for no line over this beat" }),
         onChange: (value: string) => {
           const production =
             beat.production?.speech_binding?.text && value.trim()
@@ -221,7 +222,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.reviewYourBeats", { defaultValue: "Review your beats" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.reviewYourBeats", { defaultValue: "Review your beats" })}</Text>
         <FlexRow gap={GAP.normal} align="baseline">
           <Text size="normal" color={over ? "warning" : "secondary"}>
             {format

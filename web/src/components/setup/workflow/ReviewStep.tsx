@@ -50,6 +50,7 @@ import {
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 
 export interface WorkflowReviewStepProps {
@@ -72,6 +73,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
   providerConfigured,
   error = null
 }) => {
+  const { t } = useTranslation();
   const metadata = useMetadataStore((state) => state.metadata);
 
   // Every type the registry has: the field is the fix for a step the planner
@@ -166,14 +168,14 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     () => [
       {
         id: "inputs",
-        header: i18n.t("editor:ui.inputs", { defaultValue: "Inputs" }),
+        header: t("editor:ui.inputs", { defaultValue: "Inputs" }),
         subheader:
           "What the workflow is given when it runs. You set the sample values on the next step.",
         rows: plan.inputs.map((input, index) => ({
           id: `input-${index}`,
           label: `${input.name} (${input.type})`,
           value: String(input.sample ?? ""),
-          placeholder: i18n.t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
+          placeholder: t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
           readOnly: true,
           onChange: () => undefined
         }))
@@ -186,8 +188,8 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     () => [
       {
         id: "outputs",
-        header: i18n.t("editor:ui.outputs", { defaultValue: "Outputs" }),
-        subheader: i18n.t("storyboard:attrs.whatItHandsBack", { defaultValue: "What it hands back." }),
+        header: t("editor:ui.outputs", { defaultValue: "Outputs" }),
+        subheader: t("storyboard:attrs.whatItHandsBack", { defaultValue: "What it hands back." }),
         rows: plan.outputs.map((output, index) => ({
           id: `output-${index}`,
           label: `Output ${index + 1}`,
@@ -211,7 +213,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourPlan", { defaultValue: "Your plan" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.yourPlan", { defaultValue: "Your plan" })}</Text>
         <Text size="normal" color="secondary">
           Review this plan, then choose models before building.
         </Text>
@@ -226,8 +228,8 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       {blocked.unknownNodeTypes > 0 ? (
         <Caption color="secondary" component="p">
           {blocked.unknownNodeTypes === 1
-            ? i18n.t("storyboard:attrs.oneStepNamesNoNodeThisInstallHasPickOneBelowToContinue", { defaultValue: "1 step names no node this install has. Pick one below to continue." })
-            : i18n.t("storyboard:attrs.stepsNameNoNodeThisInstallHasPickOneForEachBelowToContinue", { defaultValue: "{{count}} steps name no node this install has. Pick one for each below to continue.", count: blocked.unknownNodeTypes })}
+            ? t("storyboard:attrs.oneStepNamesNoNodeThisInstallHasPickOneBelowToContinue", { defaultValue: "1 step names no node this install has. Pick one below to continue." })
+            : t("storyboard:attrs.stepsNameNoNodeThisInstallHasPickOneForEachBelowToContinue", { defaultValue: "{{count}} steps name no node this install has. Pick one for each below to continue.", count: blocked.unknownNodeTypes })}
         </Caption>
       ) : null}
 
@@ -299,6 +301,7 @@ const StepRow: React.FC<StepRowProps> = ({
   onMove,
   onRemove
 }) => {
+  const { t } = useTranslation();
   const { step } = entry;
   const missingRole = entry.missingProvider;
   const [picking, setPicking] = useState(false);
@@ -342,7 +345,7 @@ const StepRow: React.FC<StepRowProps> = ({
             size="small"
             color="error"
             icon={<DeleteOutlineIcon fontSize="inherit" />}
-            tooltip={i18n.t("storyboard:attrs.removeStep", { defaultValue: "Remove step" })}
+            tooltip={t("storyboard:attrs.removeStep", { defaultValue: "Remove step" })}
             onClick={() => onRemove(step.id)}
             aria-label={`Remove step ${index + 1}`}
           />
@@ -353,7 +356,7 @@ const StepRow: React.FC<StepRowProps> = ({
         <TextInput
           label={`Step ${index + 1} description`}
           hideLabel
-          placeholder={i18n.t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
+          placeholder={t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
           value={step.summary}
           multiline
           onChange={(event) =>
@@ -363,17 +366,17 @@ const StepRow: React.FC<StepRowProps> = ({
       </Box>
 
       {entry.unknownNodeType ? (
-        <AlertBanner severity="error" title={i18n.t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
+        <AlertBanner severity="error" title={t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
           <FlexColumn gap={GAP.normal}>
             <Caption component="span">
               {step.node_type === null
-                ? i18n.t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." })
+                ? t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." })
                 : `"${step.node_type}" is not a node type this install has. Pick one.`}
             </Caption>
             <Autocomplete
               options={nodeTypeOptions}
               label={`Node type for step ${index + 1}`}
-              placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+              placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
                   node_type:
@@ -393,7 +396,7 @@ const StepRow: React.FC<StepRowProps> = ({
             </Caption>
             <Chip compact color="success" label={step.node_type ?? ""} />
             <EditorButton variant="text" onClick={() => setPicking(!picking)}>
-              {picking ? i18n.t("storyboard:attrs.keepIt", { defaultValue: "Keep it" }) : i18n.t("storyboard:attrs.change", { defaultValue: "Change" })}
+              {picking ? t("storyboard:attrs.keepIt", { defaultValue: "Keep it" }) : t("storyboard:attrs.change", { defaultValue: "Change" })}
             </EditorButton>
           </FlexRow>
           {/* The plan names a node the registry has — but not always the one
@@ -409,7 +412,7 @@ const StepRow: React.FC<StepRowProps> = ({
                 ) ?? null
               }
               label={`Node type for step ${index + 1}`}
-              placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+              placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
                   node_type:
@@ -434,7 +437,7 @@ const StepRow: React.FC<StepRowProps> = ({
                   reason: `Step ${index + 1} needs a ${missingRole} model.`
                 })
               }
-            >{i18n.t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
+            >{t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
           }
         >
           <Caption component="span">

@@ -45,7 +45,7 @@ import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore"
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { MODEL_ROLE_LABEL, MODEL_ROLE_LABEL_KEYS, MODEL_ROLE_ONBOARDING } from "./modelRoles";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * The three run modes, as cards (PRD § 11.3).
@@ -128,14 +128,15 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
   onRunModeChange,
   onSampleChange
 }) => {
+  const { t } = useTranslation();
   const runModeOptions = useMemo(() => [...RUN_MODE_CARDS], []);
 
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.modelsAndHowItRuns", { defaultValue: "Models and how it runs" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.modelsAndHowItRuns", { defaultValue: "Models and how it runs" })}</Text>
         <Text size="normal" color="secondary">
-          {i18n.t("editor:ui.pickWhatEachStepRunsOnAndHowYouWantToStartIt")}
+          {t("editor:ui.pickWhatEachStepRunsOnAndHowYouWantToStartIt")}
         </Text>
       </FlexColumn>
 
@@ -144,13 +145,13 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       ))}
 
       <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">{i18n.t("storyboard:attrs.howItRuns", { defaultValue: "How it runs" })}</Text>
+        <Text size="normal" component="h3">{t("storyboard:attrs.howItRuns", { defaultValue: "How it runs" })}</Text>
         <Caption color="secondary" component="p">
           Building runs it once with the sample inputs. This is how you start it
           after that.
         </Caption>
         <OptionCardGrid
-          label={i18n.t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
+          label={t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
           options={runModeOptions}
           selectedId={runMode}
           onSelect={(id) => onRunModeChange(id as WorkflowSetupRunMode)}
@@ -159,9 +160,9 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
 
       {plan.inputs.length > 0 ? (
         <FlexColumn gap={GAP.normal}>
-          <Text size="normal" component="h3">{i18n.t("storyboard:attrs.sampleInputs", { defaultValue: "Sample inputs" })}</Text>
+          <Text size="normal" component="h3">{t("storyboard:attrs.sampleInputs", { defaultValue: "Sample inputs" })}</Text>
           <Caption color="secondary" component="p">
-            {i18n.t("editor:ui.theValuesTheTestRunUsesChangeThemToSomethingOfYours")}
+            {t("editor:ui.theValuesTheTestRunUsesChangeThemToSomethingOfYours")}
           </Caption>
           {plan.inputs.map((input) => (
             <TextInput
@@ -194,10 +195,11 @@ const BuildDisclosure: React.FC<{
   plan: WorkflowSetupPlan;
   roles: readonly ModelRoleChoices[];
 }> = ({ plan, roles }) => {
+  const { t } = useTranslation();
   const chosen = roles
     .map((role) => {
       const tile = role.tiles.find((option) => option.id === role.selectedId);
-      return tile ? `${i18n.t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role })}: ${tile.title}` : null;
+      return tile ? `${t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role })}: ${tile.title}` : null;
     })
     .filter((entry): entry is string => entry !== null);
 
@@ -205,7 +207,7 @@ const BuildDisclosure: React.FC<{
     <FlexColumn
       gap={GAP.tight}
       role="region"
-      aria-label={i18n.t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
+      aria-label={t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
       sx={{
         borderTop: "1px solid",
         borderColor: "divider",
@@ -215,13 +217,13 @@ const BuildDisclosure: React.FC<{
       <Label>Build places the nodes and then runs it once</Label>
       <Text size="small" color="secondary">
         {plan.inputs.length > 0
-          ? i18n.t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceWithTheSampleInputsAboveThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates." })
-          : i18n.t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates." })}
+          ? t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceWithTheSampleInputsAboveThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates." })
+          : t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates." })}
       </Text>
       <Text size="small">
         {chosen.length > 0
           ? `Runs on ${chosen.join(" · ")}`
-          : i18n.t("storyboard:attrs.thisPlanNeedsNoModelOfItsOwn", { defaultValue: "This plan needs no model of its own." })}
+          : t("storyboard:attrs.thisPlanNeedsNoModelOfItsOwn", { defaultValue: "This plan needs no model of its own." })}
       </Text>
       <Caption color="secondary">
         Cost is unknown until the run returns — it depends on what each step
@@ -233,7 +235,8 @@ const BuildDisclosure: React.FC<{
 
 /** One role's tile row, with the four states a model query can be in (F14). */
 const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
-  const label = i18n.t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role });
+  const { t } = useTranslation();
+  const label = t(MODEL_ROLE_LABEL_KEYS[role.role] ?? "", { defaultValue: MODEL_ROLE_LABEL[role.role] ?? role.role });
   const selection = role.selectedId?.split(":") ?? [];
   const selectedProvider = selection.length > 1 ? selection[0] : undefined;
   const selectedModel = selection.length > 1 ? selection.slice(1).join(":") : "";
@@ -262,7 +265,7 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
         <AlertBanner
           severity="error"
           action={
-            <EditorButton variant="text" onClick={role.onRetry}>{i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
+            <EditorButton variant="text" onClick={role.onRetry}>{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
           <Caption component="span">
@@ -283,7 +286,7 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
                   reason: `This workflow needs a ${role.role} model.`
                 })
               }
-            >{i18n.t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
+            >{t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
           }
         >
           <Caption component="span">

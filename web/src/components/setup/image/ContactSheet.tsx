@@ -41,6 +41,7 @@ import {
 } from "../../../hooks/sketch/useDirectGenJob";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
@@ -118,6 +119,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   onSaveToLibrary,
   onOpenCanvas
 }) => {
+  const { t } = useTranslation();
   const bindings = useSketchSessionStore((state) => state.bindings);
   const { start } = useDirectGenJob();
   const [actions, setActions] = useState<
@@ -217,7 +219,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}</Text>
         <Text size="normal" color="secondary">
           Every variation stays on the document, so nothing you rendered is
           lost.
@@ -258,7 +260,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
       <Box
         role="group"
-        aria-label={i18n.t("storyboard:attrs.variations", { defaultValue: "Variations" })}
+        aria-label={t("storyboard:attrs.variations", { defaultValue: "Variations" })}
         sx={{
           display: "grid",
           gridTemplateColumns:
@@ -300,7 +302,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }}
                 >
                   <Caption color="secondary">
-                    {i18n.t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", { defaultValue: STATUS_TEXT[tile.status] ?? "Rendering" })}
+                    {t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", { defaultValue: STATUS_TEXT[tile.status] ?? "Rendering" })}
                   </Caption>
                 </Box>
               )}
@@ -321,12 +323,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 variant="contained"
                 disabled={!tile.assetId}
                 onClick={() => pick(tile.layerId)}
-              >{i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}</EditorButton>
+              >{t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}</EditorButton>
               {(
                 [
                   ["entity", "Save to entities"],
-                  ["canvas", i18n.t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
-                  ["video", i18n.t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
+                  ["canvas", t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
+                  ["video", t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
                 ] as const
               ).map(([destination, label]) => (
                 <EditorButton
@@ -355,7 +357,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                     void downloadVariation(tile.assetId, tile.label);
                   }
                 }}
-              >{i18n.t("storyboard:attrs.download", { defaultValue: "Download" })}</EditorButton>
+              >{t("storyboard:attrs.download", { defaultValue: "Download" })}</EditorButton>
             </FlexRow>
             {actions[tile.layerId] ? (
               <Text
@@ -377,12 +379,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : i18n.t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
+          {makeMorePending ? t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
         <EditorButton variant="text" onClick={onBackToSettings}>
           Back to generation settings
         </EditorButton>
-        <EditorButton variant="text" onClick={onOpenEditor}>{i18n.t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
+        <EditorButton variant="text" onClick={onOpenEditor}>{t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
       </FlexRow>
     </FlexColumn>
   );

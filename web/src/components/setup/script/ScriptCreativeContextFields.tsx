@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import type { CreativeContext } from "@nodetool-ai/protocol";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 import {
   Caption,
@@ -44,6 +44,7 @@ const TEXT_FIELDS = [
 export const ScriptCreativeContextFields: React.FC<
   ScriptCreativeContextFieldsProps
 > = ({ value, onChange }) => {
+  const { t } = useTranslation();
   const context = useMemo<CreativeContext>(
     () => value ?? ({ schema_version: 1 } as CreativeContext),
     [value]
@@ -62,20 +63,20 @@ export const ScriptCreativeContextFields: React.FC<
     <FlexColumn
       gap={GAP.normal}
       component="section"
-      aria-label={i18n.t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}
+      aria-label={t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}
     >
       <FlexColumn gap={GAP.micro}>
-        <Text size="normal" weight={600} component="h3">{i18n.t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}</Text>
+        <Text size="normal" weight={600} component="h3">{t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}</Text>
         <Caption color="secondary" component="p">
-          {i18n.t("editor:ui.optionalContextForVisualProductionTheScriptStillOwnsItsWords")}
+          {t("editor:ui.optionalContextForVisualProductionTheScriptStillOwnsItsWords")}
         </Caption>
       </FlexColumn>
       {TEXT_FIELDS.map(([key, label, helperText, labelKey, helperKey]) => (
         <TextInput
           key={key}
-          label={i18n.t(labelKey, { defaultValue: label })}
+          label={t(labelKey, { defaultValue: label })}
           value={typeof context[key] === "string" ? context[key] : ""}
-          helperText={i18n.t(helperKey, { defaultValue: helperText })}
+          helperText={t(helperKey, { defaultValue: helperText })}
           onChange={(event) =>
             update({
               [key]:
@@ -87,28 +88,28 @@ export const ScriptCreativeContextFields: React.FC<
         />
       ))}
       <FlexColumn gap={GAP.micro}>
-        <Label>{i18n.t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}</Label>
+        <Label>{t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}</Label>
         <TextInput
-          label={i18n.t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}
+          label={t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}
           hideLabel
           multiline
           rows={3}
           value={listValue(context.approved_claims)}
-          helperText={i18n.t("editor:ui.oneApprovedFactPerLine", { defaultValue: "One approved fact per line." })}
+          helperText={t("editor:ui.oneApprovedFactPerLine", { defaultValue: "One approved fact per line." })}
           onChange={(event) =>
             update({ approved_claims: listFromValue(event.target.value) })
           }
         />
       </FlexColumn>
       <FlexColumn gap={GAP.micro}>
-        <Label>{i18n.t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}</Label>
+        <Label>{t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}</Label>
         <TextInput
-          label={i18n.t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}
+          label={t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}
           hideLabel
           multiline
           rows={3}
           value={listValue(context.prohibited_claims)}
-          helperText={i18n.t("editor:ui.oneClaimToAvoidPerLine", { defaultValue: "One claim to avoid per line." })}
+          helperText={t("editor:ui.oneClaimToAvoidPerLine", { defaultValue: "One claim to avoid per line." })}
           onChange={(event) =>
             update({ prohibited_claims: listFromValue(event.target.value) })
           }

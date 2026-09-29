@@ -32,6 +32,7 @@ import {
 import type { BuildGameResult } from "../../../hooks/game/useBuildGame";
 import type { GameRunSummary, GameVerificationState } from "./gameRunSummary";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameLandingChecklistProps {
   result: BuildGameResult;
@@ -98,6 +99,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
   onPlayTest,
   onRegenerate
 }) => {
+  const { t } = useTranslation();
   const exported = run.directory !== null;
   const failure = gameFailureMessage(result, run);
   const verification = verificationLine(run.verification, godot);
@@ -105,24 +107,24 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         done
-        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${
           result.nodeCount === 1 ? "" : "s"
         } placed`}
       />
       <Line
         done={run.total > 0 && run.checked === run.total}
-        label={i18n.t("editor:ui.assetsChecked", { defaultValue: "Assets checked" })}
+        label={t("editor:ui.assetsChecked", { defaultValue: "Assets checked" })}
         detail={
           run.total === 0
-            ? i18n.t("storyboard:attrs.thisProjectKeepsTheTemplatesOwnArt", { defaultValue: "This project keeps the template's own art" })
+            ? t("storyboard:attrs.thisProjectKeepsTheTemplatesOwnArt", { defaultValue: "This project keeps the template's own art" })
             : `${run.checked} of ${run.total}`
         }
       />
       <Line
         done={exported}
-        label={i18n.t("storyboard:attrs.exported", { defaultValue: "Exported" })}
-        detail={run.directory ?? i18n.t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })}
+        label={t("storyboard:attrs.exported", { defaultValue: "Exported" })}
+        detail={run.directory ?? t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })}
       />
       <VerificationLine
         state={run.verification.status}
@@ -145,27 +147,27 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
             variant="contained"
             onClick={onOpenFolder}
             disabled={!exported}
-          >{i18n.t("storyboard:attrs.openProjectFolder", { defaultValue: "Open project folder" })}</EditorButton>
+          >{t("storyboard:attrs.openProjectFolder", { defaultValue: "Open project folder" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onDownload}
             disabled={run.archive === null}
-          >{i18n.t("storyboard:attrs.downloadProject", { defaultValue: "Download project" })}</EditorButton>
+          >{t("storyboard:attrs.downloadProject", { defaultValue: "Download project" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onPlayTest}
             disabled={!exported}
           >
-            {i18n.t("editor:ui.playTestWithTheAgent")}
+            {t("editor:ui.playTestWithTheAgent")}
           </EditorButton>
-          <EditorButton variant="text" onClick={onRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+          <EditorButton variant="text" onClick={onRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItPlays", { defaultValue: "This needs a fix before it plays" })}
+          title={t("storyboard:attrs.thisNeedsAFixBeforeItPlays", { defaultValue: "This needs a fix before it plays" })}
           action={
-            <EditorButton variant="text" onClick={onRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+            <EditorButton variant="text" onClick={onRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
           }
         >
           <Caption component="span">{failure.split("\n")[0]}</Caption>

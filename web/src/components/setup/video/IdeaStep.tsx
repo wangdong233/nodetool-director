@@ -45,6 +45,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
 import { i18n, useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -76,6 +77,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartFromScript,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const brief = useTimelineStore((state) => state.setup?.brief ?? "");
   const setSetup = useTimelineStore((state) => state.setSetup);
   const { importFiles, importing } = useSetupMediaImport();
@@ -175,26 +177,26 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "media",
-        title: i18n.t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" }),
-        description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
+        title: t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" }),
+        description: t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
-        disabledReason: importing ? i18n.t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
+        disabledReason: importing ? t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
       },
       {
         id: "script",
-        title: i18n.t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
-        description: i18n.t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
+        title: t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
+        description: t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
         onSelect: onStartFromScript ?? (() => undefined),
         disabled: !onStartFromScript,
         disabledReason: onStartFromScript
           ? undefined
-          : i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
+          : t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
       },
       {
         id: "blank",
-        title: i18n.t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
-        description: i18n.t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
+        title: t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
+        description: t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
         onSelect: onStartBlank
       }
     ],
@@ -222,10 +224,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {i18n.t("editor:ui.whatSTheVideo")}
+            {t("editor:ui.whatSTheVideo")}
           </Text>
           <Text size="normal" color="secondary">
-            {i18n.t("editor:ui.weLlPlanTheBeatsAndCutItOnTheTimeline")}
+            {t("editor:ui.weLlPlanTheBeatsAndCutItOnTheTimeline")}
           </Text>
         </FlexColumn>
 
@@ -234,9 +236,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label={i18n.t("editor:ui.yourVideo", { defaultValue: "Your video" })}
+          label={t("editor:ui.yourVideo", { defaultValue: "Your video" })}
           hideLabel
-          placeholder={i18n.t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
+          placeholder={t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
           onChange={handleChange}
           inputRef={briefField}
         />
@@ -248,7 +250,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         />
 
         {dragging ? (
-          <Caption color="secondary" role="status">{i18n.t("storyboard:attrs.dropToPlaceYourMediaOnTheTimeline", { defaultValue: "Drop to place your media on the timeline." })}</Caption>
+          <Caption color="secondary" role="status">{t("storyboard:attrs.dropToPlaceYourMediaOnTheTimeline", { defaultValue: "Drop to place your media on the timeline." })}</Caption>
         ) : null}
 
         {error ? (
@@ -290,9 +292,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           <FlexColumn
             gap={GAP.tight}
             role="group"
-            aria-label={i18n.t("storyboard:attrs.carriedFromYourProjectScreen", { defaultValue: "Carried from your project screen" })}
+            aria-label={t("storyboard:attrs.carriedFromYourProjectScreen", { defaultValue: "Carried from your project screen" })}
           >
-            <Caption color="muted">{i18n.t("storyboard:attrs.fromYourProjectScreen", { defaultValue: "From your project screen" })}</Caption>
+            <Caption color="muted">{t("storyboard:attrs.fromYourProjectScreen", { defaultValue: "From your project screen" })}</Caption>
             {references.length > 0 ? (
               <FlexRow gap={GAP.tight} wrap>
                 {references.map((reference) => {
@@ -305,7 +307,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       <ResponsiveImage
                         locator={reference.uri}
                         preferThumbnail
-                        alt={reference.name ?? i18n.t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
+                        alt={reference.name ?? t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
                         fit="cover"
                         borderRadius={BORDER_RADIUS.sm}
                         showErrorFallback
@@ -317,7 +319,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       <Caption color="secondary">
                         {binding
                           ? `${binding.kind} conditioning`
-                          : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
+                          : t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
                       </Caption>
                     </FlexColumn>
                   );
@@ -332,7 +334,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     label={`${entity.name} · ${
                       creativeContext?.reference_bindings?.find(
                         (binding) => binding.entity_id === entity.id
-                      )?.kind ?? i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
+                      )?.kind ?? t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
                     }`}
                     size="small"
                   />
@@ -351,7 +353,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -362,7 +364,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         multiple
         ref={mediaInput}
         accept={MEDIA_ACCEPT}
-        aria-label={i18n.t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" })}
+        aria-label={t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" })}
         onChange={handlePicked}
       />
     </Box>

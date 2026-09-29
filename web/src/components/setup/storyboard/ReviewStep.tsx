@@ -52,7 +52,7 @@ import {
 } from "../video/productionAuthoring";
 import { productionRequirementsFrom } from "../../../hooks/storyboard/productionContext";
 import type { GenerationModel } from "../generationEstimate";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 import {
   forgetPreviousScreenplay,
   usePreviousScreenplay
@@ -62,6 +62,7 @@ import type {
   PlanReviewGroup,
   PlanReviewSection
 } from "../PlanReview";
+import { useTranslation } from "react-i18next";
 
 // The estimate pulls in the provider price tables, which nothing on this step
 // needs until it is on screen — the shell lazy-loads it the same way.
@@ -104,6 +105,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   maxOutputTokens,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const shots = useStoryboardStore(
     (state) => state.boards[boardId]?.shots ?? NO_SHOTS
   );
@@ -131,7 +133,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     );
   });
   const validationReason = invalidDuration
-    ? i18n.t("storyboard:attrs.enterAPositiveDurationInSecondsOrClearItToLeaveTimingUnspecified", { defaultValue: "Enter a positive duration in seconds, or clear it to leave timing unspecified." })
+    ? t("storyboard:attrs.enterAPositiveDurationInSecondsOrClearItToLeaveTimingUnspecified", { defaultValue: "Enter a positive duration in seconds, or clear it to leave timing unspecified." })
     : productionAuthoringBlocker(shots);
   useEffect(() => {
     onValidationChange?.(validationReason);
@@ -172,7 +174,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       const rest = named.length - NAMED_SHOT_LIMIT;
       return {
         severity: "warning" as const,
-        title: i18n.t("storyboard:attrs.scriptKeptAsWritten", { defaultValue: "Your script was kept as written" }),
+        title: t("storyboard:attrs.scriptKeptAsWritten", { defaultValue: "Your script was kept as written" }),
         body: `The Director changed the words or the order of ${listed}${
           rest > 0 ? ` and ${rest} more` : ""
         }. The imported text was put back.`
@@ -183,10 +185,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     }
     return {
       severity: "info" as const,
-      title: i18n.t("storyboard:attrs.someLinesNotInAnyShot", { defaultValue: "Some lines are not in any shot" }),
+      title: t("storyboard:attrs.someLinesNotInAnyShot", { defaultValue: "Some lines are not in any shot" }),
       body: notice.missingLines.join(" · ")
     };
-  }, [languageVersion, notice, shotNumbers]);
+  }, [t, notice, shotNumbers]);
 
   // What the creator is looking at, in one line: a screenplay is long, and
   // the scroll gives no sense of its size while reading it.
@@ -219,11 +221,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     const groups = sceneOrder(shots, scenes);
     const screenplaySection: PlanReviewSection = {
       id: "screenplay",
-      header: i18n.t("storyboard:attrs.title", { defaultValue: "Title" }),
+      header: t("storyboard:attrs.title", { defaultValue: "Title" }),
       rows: [
         {
           id: "title",
-          label: i18n.t("storyboard:attrs.title", { defaultValue: "Title" }),
+          label: t("storyboard:attrs.title", { defaultValue: "Title" }),
           hideLabel: true,
           value: title,
           onChange: (value: string) => setTitle(boardId, value)
@@ -248,7 +250,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // STUDIO — I` says nothing about where it is set.
                 {
                   id: `${sceneId}:slugline`,
-                  label: i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
+                  label: t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.slugline ?? "",
@@ -258,11 +260,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 },
                 {
                   id: `${sceneId}:lighting`,
-                  label: i18n.t("storyboard:attrs.lighting", { defaultValue: "Lighting" }),
+                  label: t("storyboard:attrs.lighting", { defaultValue: "Lighting" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.lighting ?? "",
-                  placeholder: i18n.t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" }),
+                  placeholder: t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" }),
                   onChange: (value: string) =>
                     updateScene(boardId, sceneId, { lighting: value })
                 }
@@ -311,7 +313,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                   productionRequirementsFrom(shot)?.speech_binding?.text ??
                   "",
                 multiline: true,
-                placeholder: i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
+                placeholder: t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
                 addLabel: "Add dialogue",
                 onChange: (value: string) => {
                   const current = productionRequirementsFrom(shot);
@@ -341,7 +343,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // shot too: the block's heading says which shot they are on,
                 // and `Shot 1 · Seconds` wrapped to two lines in the narrow
                 // column while its neighbours took one.
-                label: i18n.t("storyboard:attrs.seconds", { defaultValue: "Seconds" }),
+                label: t("storyboard:attrs.seconds", { defaultValue: "Seconds" }),
                 compact: true,
                 value:
                   lengths[shot.id] ??
@@ -410,7 +412,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       })
     ];
   }, [
-    languageVersion,
+    t,
     boardId,
     lengths,
     scenes,
@@ -427,9 +429,9 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_WIDE_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{i18n.t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}</Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}</Text>
         <Text size="normal" color="secondary">
-          {i18n.t("editor:ui.editAnythingHereItIsTheTextYourStoryboardIsDrawnFrom")}
+          {t("editor:ui.editAnythingHereItIsTheTextYourStoryboardIsDrawnFrom")}
         </Text>
       </FlexColumn>
       {importNotice ? (
@@ -444,7 +446,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           believing it is wastes the edit. It is named, and the creator decides
           whether to keep it (F9). */}
       {usedFallback ? (
-        <AlertBanner severity="warning" title={i18n.t("storyboard:attrs.writtenHereNotByYourModel", { defaultValue: "Written here, not by your model" })}>
+        <AlertBanner severity="warning" title={t("storyboard:attrs.writtenHereNotByYourModel", { defaultValue: "Written here, not by your model" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
               Your model returned nothing usable, so this outline was built from
@@ -456,13 +458,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 size="small"
                 disabled={rewriting}
                 onClick={onRewrite}
-              >{i18n.t("storyboard:attrs.runTheDirectorAgain", { defaultValue: "Run the Director again" })}</EditorButton>
+              >{t("storyboard:attrs.runTheDirectorAgain", { defaultValue: "Run the Director again" })}</EditorButton>
               {onKeepFallback ? (
                 <EditorButton
                   variant="text"
                   size="small"
                   onClick={onKeepFallback}
-                >{i18n.t("storyboard:attrs.keepThisOutline", { defaultValue: "Keep this outline" })}</EditorButton>
+                >{t("storyboard:attrs.keepThisOutline", { defaultValue: "Keep this outline" })}</EditorButton>
               ) : null}
             </FlexRow>
           </FlexColumn>
@@ -472,15 +474,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           edited. Putting it back is one press for as long as the tab is
           open (F15). */}
       {replaced ? (
-        <AlertBanner severity="info" title={i18n.t("storyboard:attrs.rewrittenFromYourBrief", { defaultValue: "Rewritten from your brief" })}>
+        <AlertBanner severity="info" title={t("storyboard:attrs.rewrittenFromYourBrief", { defaultValue: "Rewritten from your brief" })}>
           <FlexRow gap={GAP.normal} align="center" wrap>
-            <Caption component="span">{i18n.t("storyboard:attrs.thePreviousScreenplayIsStillHere", { defaultValue: "The previous screenplay is still here." })}</Caption>
+            <Caption component="span">{t("storyboard:attrs.thePreviousScreenplayIsStillHere", { defaultValue: "The previous screenplay is still here." })}</Caption>
             <EditorButton
               variant="outlined"
               size="small"
               disabled={rewriting}
               onClick={handleRestore}
-            >{i18n.t("storyboard:attrs.restoreThePreviousScreenplay", { defaultValue: "Restore the previous screenplay" })}</EditorButton>
+            >{t("storyboard:attrs.restoreThePreviousScreenplay", { defaultValue: "Restore the previous screenplay" })}</EditorButton>
           </FlexRow>
         </AlertBanner>
       ) : null}
@@ -497,11 +499,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             disabled={rewriting}
             onClick={onRewrite}
           >
-            {rewriting ? i18n.t("storyboard:attrs.rewritingScreenplay", { defaultValue: "Rewriting screenplay…" }) : i18n.t("storyboard:attrs.rewriteFromBrief", { defaultValue: "Rewrite from brief" })}
+            {rewriting ? t("storyboard:attrs.rewritingScreenplay", { defaultValue: "Rewriting screenplay…" }) : t("storyboard:attrs.rewriteFromBrief", { defaultValue: "Rewrite from brief" })}
           </EditorButton>
         </FlexRow>
         <Suspense
-          fallback={<Caption color="secondary">{i18n.t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
+          fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
             result="Rewrite the screenplay from your brief"

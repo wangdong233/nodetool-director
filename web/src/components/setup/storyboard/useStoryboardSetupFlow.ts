@@ -49,7 +49,7 @@ import {
   reviewFingerprintOf,
   REVIEW_REQUIRED
 } from "../video/productionAuthoring";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * A board's stage, with the field's absence read as `done` — an old board has
@@ -115,6 +115,7 @@ export const useStoryboardSetupFlow = ({
   onFinish,
   onReviewed
 }: StoryboardSetupFlowOptions): SetupFlowConfig<StoryboardSetupStage> => {
+  const { t } = useTranslation();
   const stage = useStoryboardSetupStage(boardId);
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();
@@ -270,7 +271,7 @@ export const useStoryboardSetupFlow = ({
     reviewError ??
     productionAuthoringBlocker(shots ?? []) ??
     (!hasScreenplay
-      ? i18n.t("storyboard:attrs.writeAtLeastOneShot", { defaultValue: "Write at least one shot" })
+      ? t("storyboard:attrs.writeAtLeastOneShot", { defaultValue: "Write at least one shot" })
       : emptyShots > 0
         ? `Describe ${emptyShots === 1 ? "the shot" : `the ${emptyShots} shots`} with an empty action line`
         : undefined);
@@ -279,7 +280,7 @@ export const useStoryboardSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
+        label: t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         // An imported script that is kept verbatim is the story, so the brief
         // beside it is optional (F3).
@@ -287,7 +288,7 @@ export const useStoryboardSetupFlow = ({
           !contextError &&
           (brief.trim().length > 0 || imported?.preserveWords === true),
         blockedReason:
-          contextError ?? i18n.t("storyboard:attrs.writeASentenceOrBringYourOwnScript", { defaultValue: "Write a sentence, or bring your own script" }),
+          contextError ?? t("storyboard:attrs.writeASentenceOrBringYourOwnScript", { defaultValue: "Write a sentence, or bring your own script" }),
         render: () =>
           createElement(IdeaStep, {
             boardId,
@@ -302,14 +303,14 @@ export const useStoryboardSetupFlow = ({
         // Genre and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "genre",
-        label: i18n.t("editor:ui.story", { defaultValue: "Story" }),
+        label: t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: upToDate
-          ? i18n.t("storyboard:attrs.continueToYourScreenplay", { defaultValue: "Continue to your screenplay" })
+          ? t("storyboard:attrs.continueToYourScreenplay", { defaultValue: "Continue to your screenplay" })
           : hasScreenplay
-            ? i18n.t("storyboard:attrs.reDirectYourScreenplay", { defaultValue: "Re-direct your screenplay" })
-            : i18n.t("storyboard:attrs.generateScreenplay", { defaultValue: "Generate screenplay" }),
+            ? t("storyboard:attrs.reDirectYourScreenplay", { defaultValue: "Re-direct your screenplay" })
+            : t("storyboard:attrs.generateScreenplay", { defaultValue: "Generate screenplay" }),
         canAdvance: genre.length > 0,
-        blockedReason: i18n.t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
+        blockedReason: t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
         pending: directing,
         pendingLabel: `Writing ${shotCount} shots`,
         // What the run costs, in the same shape every other flow shows before
@@ -359,7 +360,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "review",
-        label: i18n.t("editor:ui.story", { defaultValue: "Story" }),
+        label: t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: "Set up entities",
         canAdvance: reviewBlockedReason === undefined,
         blockedReason: reviewBlockedReason,
@@ -387,7 +388,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "entities",
-        label: i18n.t("storyboard:attrs.entities", { defaultValue: "Entities" }),
+        label: t("storyboard:attrs.entities", { defaultValue: "Entities" }),
         primaryLabel: "Choose the look",
         canAdvance: entityIds.length > 0,
         blockedReason: "Select or create an entity, or skip this step",
@@ -401,7 +402,7 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "look",
-        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
+        label: t("editor:ui.look", { defaultValue: "Look" }),
         // The price sits beside the button, not inside its name: a label that
         // grows a dollar amount is a label nobody can scan (F23).
         primaryLabel: "Generate your storyboard",

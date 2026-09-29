@@ -26,6 +26,7 @@ import type {
   BuildFromPlanResult,
   WorkflowBuildStatus
 } from "../../../hooks/workflow/useBuildFromPlan";
+import { useTranslation } from "react-i18next";
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
@@ -144,6 +145,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
   nextStepPending = false,
   onAskAgent
 }) => {
+  const { t } = useTranslation();
   const validated = result.validationErrors.length === 0;
   const wired = result.issues.length === 0;
   const failure = buildFailureMessage(result);
@@ -153,17 +155,17 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         status="built"
-        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
       <Line
         status={validated && wired ? "validated" : "failed"}
-        label={i18n.t("storyboard:attrs.validated", { defaultValue: "Validated" })}
+        label={t("storyboard:attrs.validated", { defaultValue: "Validated" })}
         detail={
           validated
             ? wired
-              ? i18n.t("storyboard:attrs.noProblemsFound", { defaultValue: "No problems found" })
-              : i18n.t("storyboard:attrs.validatesButPartOfThePlanIsUnwired", { defaultValue: "Validates, but part of the plan is unwired" })
+              ? t("storyboard:attrs.noProblemsFound", { defaultValue: "No problems found" })
+              : t("storyboard:attrs.validatesButPartOfThePlanIsUnwired", { defaultValue: "Validates, but part of the plan is unwired" })
             : `${result.validationErrors.length} error${
                 result.validationErrors.length === 1 ? "" : "s"
               }`
@@ -182,16 +184,16 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
                 ? "running"
                 : result.status
         }
-        label={i18n.t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
+        label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
         detail={
           result.status === "completed-with-output"
             ? outputDetail(result.output ?? result.testRun.output)
             : result.status === "running"
-              ? i18n.t("storyboard:attrs.runningWithYourSampleInputs", { defaultValue: "Running with your sample inputs" })
+              ? t("storyboard:attrs.runningWithYourSampleInputs", { defaultValue: "Running with your sample inputs" })
               : (result.testRun.error ??
                 (validated
-                  ? i18n.t("storyboard:attrs.notStartedPartOfThePlanIsUnwired", { defaultValue: "Not started — part of the plan is unwired" })
-                  : i18n.t("storyboard:attrs.notStartedTheGraphDidNotValidate", { defaultValue: "Not started — the graph did not validate" })))
+                  ? t("storyboard:attrs.notStartedPartOfThePlanIsUnwired", { defaultValue: "Not started — part of the plan is unwired" })
+                  : t("storyboard:attrs.notStartedTheGraphDidNotValidate", { defaultValue: "Not started — the graph did not validate" })))
         }
       />
 
@@ -202,14 +204,14 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
             onClick={() => void onNextStep()}
             disabled={nextStepPending}
           >
-            {i18n.t(next.labelKey, { defaultValue: next.label })}
+            {t(next.labelKey, { defaultValue: next.label })}
           </EditorButton>
-          <Caption color="secondary">{i18n.t(next.detailKey, { defaultValue: next.detail })}</Caption>
+          <Caption color="secondary">{t(next.detailKey, { defaultValue: next.detail })}</Caption>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
+          title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
               Ask the agent

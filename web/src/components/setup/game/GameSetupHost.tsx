@@ -33,7 +33,7 @@ import { SetupFlow } from "../SetupFlow";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useGameSetupFlow, type GameRowAvailability } from "./useGameSetupFlow";
 import type { GameRowStatus } from "./LookStep";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** A model as a Look step tile row shows it. */
 interface RowModel {
@@ -91,6 +91,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
   onFinish,
   onChangeFlow
 }) => {
+  const { t } = useTranslation();
   const language = useLanguageModelsByProvider();
   const image = useImageModelsByProvider({ task: "text_to_image" });
   const music = useMusicModelsByProvider();
@@ -127,7 +128,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
 
   const imageRow = useMemo<GameRowAvailability>(
     () => ({
-      label: i18n.t("editor:ui.imageModel", { defaultValue: "Image model" }),
+      label: t("editor:ui.imageModel", { defaultValue: "Image model" }),
       tiles: imageModels.map(
         (model): OptionCardItem => ({
           id: model.id,
@@ -168,7 +169,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
 
   const sfxRow = useMemo<GameRowAvailability>(
     () => ({
-      label: i18n.t("editor:ui.soundEffects", { defaultValue: "Sound effects" }),
+      label: t("editor:ui.soundEffects", { defaultValue: "Sound effects" }),
       tiles: sfxNodeTypes.map(
         (node): OptionCardItem => ({
           id: node.node_type,
@@ -181,15 +182,15 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
       capability: "text_to_speech",
       emptyMessage:
         "No connected provider offers a sound-effect node. The template's own sounds are kept.",
-      placeholderLabel: i18n.t("storyboard:attrs.keepThePlaceholderSounds", { defaultValue: "Keep the placeholder sounds" }),
-      placeholderDescription: i18n.t("storyboard:attrs.theTemplatesOwnSoundFilesNoGeneration", { defaultValue: "The template's own sound files, no generation" })
+      placeholderLabel: t("storyboard:attrs.keepThePlaceholderSounds", { defaultValue: "Keep the placeholder sounds" }),
+      placeholderDescription: t("storyboard:attrs.theTemplatesOwnSoundFilesNoGeneration", { defaultValue: "The template's own sound files, no generation" })
     }),
     [providersLoading, sfxNodeTypes]
   );
 
   const musicRow = useMemo<GameRowAvailability>(
     () => ({
-      label: i18n.t("storyboard:attrs.music", { defaultValue: "Music" }),
+      label: t("storyboard:attrs.music", { defaultValue: "Music" }),
       tiles: musicModels.map(
         (model): OptionCardItem => ({
           id: model.id,
@@ -205,8 +206,8 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
       capability: "text_to_music",
       emptyMessage:
         "No connected provider offers a music model. The template's own loop is kept.",
-      placeholderLabel: i18n.t("storyboard:attrs.keepThePlaceholderMusic", { defaultValue: "Keep the placeholder music" }),
-      placeholderDescription: i18n.t("storyboard:attrs.theTemplatesOwnMusicLoopNoGeneration", { defaultValue: "The template's own music loop, no generation" })
+      placeholderLabel: t("storyboard:attrs.keepThePlaceholderMusic", { defaultValue: "Keep the placeholder music" }),
+      placeholderDescription: t("storyboard:attrs.theTemplatesOwnMusicLoopNoGeneration", { defaultValue: "The template's own music loop, no generation" })
     }),
     [music, musicModels]
   );
