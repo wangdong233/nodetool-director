@@ -53,6 +53,7 @@ import {
 
 import { docsLink, docsUrl } from "../../config/docsLinks";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // For multi-field credentials, find the parent provider (the one with fields array)
 const getParentProviderMeta = (key: string): ProviderMeta | undefined => {
@@ -97,6 +98,7 @@ export const ProviderCard = memo(function ProviderCard({
   onManage,
   onDelete
 }: ProviderCardProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const oauth = useOAuthConnection(meta.oauth ?? null);
   const validateSecret = useSecretsStore((s) => s.validateSecret);
@@ -139,10 +141,10 @@ export const ProviderCard = memo(function ProviderCard({
 
   const statusTone = isUnavailable ? "warning" : "secondary";
   const statusLabel = isUnavailable
-    ? i18n.t("editor:ui.unavailable")
+    ? t("editor:ui.unavailable")
     : isConnected
-      ? i18n.t("editor:ui.connected")
-      : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" });
+      ? t("editor:ui.connected")
+      : t("editor:ui.notConnected", { defaultValue: "Not connected" });
 
   const handleConnect = useCallback(() => {
     onConnect(secret);
@@ -222,13 +224,13 @@ export const ProviderCard = memo(function ProviderCard({
         >
           <FlexRow align="center" gap={SPACING.md} wrap>
             <Text>
-              {i18n.t(`tools:menus.providers.${meta.key}.name`, {
+              {t(`tools:menus.providers.${meta.key}.name`, {
                 defaultValue: meta.name
               })}
             </Text>
             {meta.tag && (
               <Chip
-                label={i18n.t("tools:menus.tags." + meta.tag, { defaultValue: meta.tag })}
+                label={t("tools:menus.tags." + meta.tag, { defaultValue: meta.tag })}
                 compact
                 variant="outlined"
                 color="primary"
@@ -240,7 +242,7 @@ export const ProviderCard = memo(function ProviderCard({
             )}
           </FlexRow>
           <Caption size="small" sx={{ lineHeight: 1.5 }}>
-            {i18n.t(`tools:menus.providers.${meta.key}.description`, {
+            {t(`tools:menus.providers.${meta.key}.description`, {
               defaultValue: meta.description
             })}
           </Caption>
@@ -251,7 +253,7 @@ export const ProviderCard = memo(function ProviderCard({
                 lineHeight: 1.4
               }}
             >
-              {i18n.t(`tools:menus.providers.${meta.key}.note`, { defaultValue: meta.note })}
+              {t(`tools:menus.providers.${meta.key}.note`, { defaultValue: meta.note })}
             </Caption>
           )}
         </FlexColumn>
@@ -317,7 +319,7 @@ export const ProviderCard = memo(function ProviderCard({
                   whiteSpace: "nowrap"
                 }}
               >
-                {i18n.t("editor:ui.connectedViaOAuth")}
+                {t("editor:ui.connectedViaOAuth")}
               </Caption>
             </FlexRow>
           )}
@@ -331,11 +333,11 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {i18n.t("editor:ui.keyStoredButThisServerDoesNotOffer", {
+              {t("editor:ui.keyStoredButThisServerDoesNotOffer", {
                 defaultValue: "{{state}}, but this server does not offer {{name}}. Its models stay out of the model menu.",
                 state: hasKey
-                  ? i18n.t("editor:ui.keyStored", { defaultValue: "Key stored" })
-                  : i18n.t("editor:ui.signedIn", { defaultValue: "Signed in" }),
+                  ? t("editor:ui.keyStored", { defaultValue: "Key stored" })
+                  : t("editor:ui.signedIn", { defaultValue: "Signed in" }),
                 name: meta.name
               })}
             </Caption>
@@ -376,7 +378,7 @@ export const ProviderCard = memo(function ProviderCard({
               window.open(meta.docsUrl, "_blank", "noopener,noreferrer")
             }
           >
-            {i18n.t("editor:ui.docs")}
+            {t("editor:ui.docs")}
           </EditorButton>
 
           {meta.oauth &&
@@ -402,8 +404,8 @@ export const ProviderCard = memo(function ProviderCard({
                 disabled={oauth.isConnecting}
               >
                 {oauth.isConnecting
-                  ? i18n.t("editor:ui.connecting", { defaultValue: "Connecting…" })
-                  : i18n.t("editor:ui.signInWith", { defaultValue: "Sign in with {{name}}", name: meta.name })}
+                  ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
+                  : t("editor:ui.signInWith", { defaultValue: "Sign in with {{name}}", name: meta.name })}
               </EditorButton>
             ))}
 
@@ -416,7 +418,7 @@ export const ProviderCard = memo(function ProviderCard({
                 onClick={handleTest}
                 disabled={testing}
               >
-                {testing ? i18n.t("editor:ui.testing", { defaultValue: "Testing…" }) : i18n.t("editor:ui.test", { defaultValue: "Test" })}
+                {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : t("editor:ui.test", { defaultValue: "Test" })}
               </EditorButton>
               <EditorButton
                 density="compact"
@@ -424,15 +426,15 @@ export const ProviderCard = memo(function ProviderCard({
                 size="small"
                 onClick={handleManage}
               >
-                {i18n.t("editor:ui.manage")}
+                {t("editor:ui.manage")}
               </EditorButton>
               <ToolbarIconButton
-                tooltip={i18n.t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
+                tooltip={t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
                 icon={<DeleteIcon fontSize="small" />}
                 size="small"
                 color="error"
                 onClick={handleDelete}
-                aria-label={i18n.t("editor:ui.deleteNameApiKey", { defaultValue: "Delete {{name}} API key", name: meta.name })}
+                aria-label={t("editor:ui.deleteNameApiKey", { defaultValue: "Delete {{name}} API key", name: meta.name })}
               />
             </>
           ) : (
@@ -442,7 +444,7 @@ export const ProviderCard = memo(function ProviderCard({
               size="small"
               onClick={handleConnect}
             >
-              {i18n.t("editor:ui.connect2")}
+              {t("editor:ui.connect2")}
             </EditorButton>
           )}
         </FlexRow>
@@ -459,13 +461,14 @@ export const ProviderCard = memo(function ProviderCard({
 });
 
 const ProviderHero = memo(function ProviderHero() {
+  const { t } = useTranslation();
   return (
     <FlexColumn gap={SPACING.md}>
       <Text component="h2" size="big">
-        {i18n.t("editor:ui.modelsProviders")}
+        {t("editor:ui.modelsProviders")}
       </Text>
       <Text color="secondary" sx={{ maxWidth: "65ch" }}>
-        {i18n.t("editor:ui.connectYourAccountsOrAddAPIKeysToUseModelsInYourWorkflows")}
+        {t("editor:ui.connectYourAccountsOrAddAPIKeysToUseModelsInYourWorkflows")}
       </Text>
     </FlexColumn>
   );
@@ -547,6 +550,7 @@ interface APIKeysTabContentProps {
 export const APIKeysTabContent = memo(function APIKeysTabContent({
   searchTerm = ""
 }: APIKeysTabContentProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const secrets = useSecretsStore((state) => state.secrets);
   const safeSecrets = useMemo(() => secrets ?? [], [secrets]);
@@ -832,15 +836,15 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {!hasContent && lowerSearch && (
         <EmptyState
           variant="no-results"
-          title={i18n.t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
-          description={i18n.t("editor:ui.noProvidersMatch", { defaultValue: 'No providers match "{{term}}"', term: searchTerm })}
+          title={t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
+          description={t("editor:ui.noProvidersMatch", { defaultValue: 'No providers match "{{term}}"', term: searchTerm })}
         />
       )}
 
       {connected.length > 0 && (
         <div>
           <SectionTitle
-            title={i18n.t("editor:ui.connectedProviders", { defaultValue: "Connected Providers" })}
+            title={t("editor:ui.connectedProviders", { defaultValue: "Connected Providers" })}
             count={connected.length}
             theme={theme}
           />
@@ -886,7 +890,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 
         if (allInSection.length === 0) return null;
 
-        const sectionTitle = i18n.t(`tools:menus.sections.${sectionKey}`, { defaultValue: SECTION_TITLES[sectionKey] });
+        const sectionTitle = t(`tools:menus.sections.${sectionKey}`, { defaultValue: SECTION_TITLES[sectionKey] });
         const isAdvanced = sectionKey === "advanced";
 
         const section = (
@@ -986,14 +990,14 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                     }}
                   />
                   <Text size="big">
-                    {editingSecret?.is_configured ? i18n.t("editor:ui.update2") : i18n.t("editor:ui.connect2")}{" "}
+                    {editingSecret?.is_configured ? t("editor:ui.update2") : t("editor:ui.connect2")}{" "}
                     {meta?.name || editingSecret.key}
                   </Text>
                 </FlexRow>
               }
               onConfirm={handleSave}
               onCancel={handleCloseDialog}
-              confirmText={editingSecret?.is_configured ? i18n.t("editor:ui.update2") : i18n.t("editor:ui.connect2")}
+              confirmText={editingSecret?.is_configured ? t("editor:ui.update2") : t("editor:ui.connect2")}
               cancelText="Cancel"
               confirmDisabled={!allFieldsFilled}
             >
@@ -1003,7 +1007,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                 {meta?.combinedCredential ? (
                   <>
                     <TextInput
-                      label={i18n.t(
+                      label={t(
                         `tools:menus.providers.${meta.key}.credentialLabel`,
                         { defaultValue: meta.combinedCredential.label }
                       )}
@@ -1011,7 +1015,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                       value={formValue}
                       onChange={(e) => setFormValue(e.target.value)}
                       fullWidth
-                      placeholder={i18n.t(
+                      placeholder={t(
                         `tools:menus.providers.${meta.key}.credentialPlaceholder`,
                         { defaultValue: meta.combinedCredential.placeholder }
                       )}
@@ -1020,7 +1024,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                       size="small"
                     />
                     <Caption>
-                      {i18n.t("editor:ui.pasteTheCompleteValueCopiedFromHiggsfield", { defaultValue: "Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately." })}
+                      {t("editor:ui.pasteTheCompleteValueCopiedFromHiggsfield", { defaultValue: "Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately." })}
                     </Caption>
                   </>
                 ) : isMultiField ? (
@@ -1038,33 +1042,33 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                           }))
                         }
                         fullWidth
-                        placeholder={i18n.t("editor:ui.enterLabel", { defaultValue: "Enter {{label}}", label: field.label.toLowerCase() })}
+                        placeholder={t("editor:ui.enterLabel", { defaultValue: "Enter {{label}}", label: field.label.toLowerCase() })}
                         autoFocus={field.key === meta.fields?.[0]?.key}
                         variant="outlined"
                         size="small"
                       />
                     ))}
                     <Caption sx={{}}>
-                      {i18n.t("editor:ui.allFieldsWillBeEncryptedAndStoredSecurely", { defaultValue: "All fields will be encrypted and stored securely. Never share them publicly." })}
+                      {t("editor:ui.allFieldsWillBeEncryptedAndStoredSecurely", { defaultValue: "All fields will be encrypted and stored securely. Never share them publicly." })}
                     </Caption>
                   </>
                 ) : (
                   <>
                     <TextInput
-                      label={i18n.t("tools:menus.apiKey", {
+                      label={t("tools:menus.apiKey", {
                         defaultValue: "API Key"
                       })}
                       type="password"
                       value={formValue}
                       onChange={(e) => setFormValue(e.target.value)}
                       fullWidth
-                      placeholder={i18n.t("editor:ui.pasteYourAPIKeyHere", { defaultValue: "Paste your API key here" })}
+                      placeholder={t("editor:ui.pasteYourAPIKeyHere", { defaultValue: "Paste your API key here" })}
                       autoFocus
                       variant="outlined"
                       size="small"
                     />
                     <Caption sx={{}}>
-                      {i18n.t("editor:ui.yourKeyWillBeEncryptedAndStoredSecurely", { defaultValue: "Your key will be encrypted and stored securely. Never share it publicly." })}
+                      {t("editor:ui.yourKeyWillBeEncryptedAndStoredSecurely", { defaultValue: "Your key will be encrypted and stored securely. Never share it publicly." })}
                     </Caption>
                   </>
                 )}
@@ -1078,13 +1082,13 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         open={deleteDialogOpen}
         onClose={handleCloseDelete}
         onConfirm={confirmDelete}
-        title={i18n.t("editor:ui.deleteAPIKey", { defaultValue: "Delete API Key" })}
-        content={i18n.t("editor:ui.areYouSureYouWantToDeleteTheApiKey", {
+        title={t("editor:ui.deleteAPIKey", { defaultValue: "Delete API Key" })}
+        content={t("editor:ui.areYouSureYouWantToDeleteTheApiKey", {
           defaultValue: "Are you sure you want to delete the {{name}} API key?",
           name: secretToDelete ? getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key : ""
         })}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </FlexColumn>
   );
@@ -1095,6 +1099,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 /* ------------------------------------------------------------------ */
 
 export const SecurityNotice = memo(function SecurityNotice() {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Card
@@ -1116,12 +1121,12 @@ export const SecurityNotice = memo(function SecurityNotice() {
           }}
         />
         <FlexColumn sx={{ minWidth: 0 }}>
-          <Text size="small">{i18n.t("ui2:attrs.yourSecretsAreSafe", { defaultValue: "Your secrets are safe" })}</Text>
+          <Text size="small">{t("ui2:attrs.yourSecretsAreSafe", { defaultValue: "Your secrets are safe" })}</Text>
           <Caption
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}
           >
-            {i18n.t("editor:ui.allAPIKeysAreEncryptedInTheDatabaseAndNeverExposed", { defaultValue: "All API keys are encrypted in the database and never exposed." })}
+            {t("editor:ui.allAPIKeysAreEncryptedInTheDatabaseAndNeverExposed", { defaultValue: "All API keys are encrypted in the database and never exposed." })}
           </Caption>
           <EditorButton
             density="compact"
@@ -1137,7 +1142,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
             }
             sx={{ alignSelf: "flex-start", marginTop: theme.spacing(1) }}
           >
-            {i18n.t("editor:ui.learnMore", { defaultValue: "Learn more" })}
+            {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
           </EditorButton>
         </FlexColumn>
       </FlexRow>
@@ -1150,33 +1155,34 @@ export const SecurityNotice = memo(function SecurityNotice() {
 /* ------------------------------------------------------------------ */
 
 export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const quickLinks = [
     {
       icon: <ModelTrainingIcon sx={{ fontSize: "1.2em" }} />,
-      title: i18n.t("tools:menus.supportedModels", {
+      title: t("tools:menus.supportedModels", {
         defaultValue: "Supported Models"
       }),
-      subtitle: i18n.t("tools:menus.seeModelsByProvider", {
+      subtitle: t("tools:menus.seeModelsByProvider", {
         defaultValue: "See models by provider"
       }),
       href: docsLink("providers")
     },
     {
       icon: <MenuBookIcon sx={{ fontSize: "1.2em" }} />,
-      title: i18n.t("tools:menus.apiDocumentation", {
+      title: t("tools:menus.apiDocumentation", {
         defaultValue: "API Documentation"
       }),
-      subtitle: i18n.t("tools:menus.providerGuidesLinks", {
+      subtitle: t("tools:menus.providerGuidesLinks", {
         defaultValue: "Provider guides & links"
       }),
       href: docsUrl("providers")
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
-      title: i18n.t("nav:settings.docsTopics.troubleshooting", { defaultValue: "Troubleshooting" }),
-      subtitle: i18n.t("tools:menus.commonIssuesFixes", {
+      title: t("nav:settings.docsTopics.troubleshooting", { defaultValue: "Troubleshooting" }),
+      subtitle: t("tools:menus.commonIssuesFixes", {
         defaultValue: "Common issues & fixes"
       }),
       href: docsLink("troubleshooting")
@@ -1204,7 +1210,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
         }}
       >
         <Text size="small" sx={{ marginBottom: theme.spacing(3) }}>
-          {i18n.t("editor:ui.quickLinks")}
+          {t("editor:ui.quickLinks")}
         </Text>
         <FlexColumn sx={{ gap: theme.spacing(0.5) }}>
           {quickLinks.map((link) => (
@@ -1278,10 +1284,10 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <CardGiftcardIcon
             sx={{ color: theme.vars.palette.primary.main, fontSize: "1.2em" }}
           />
-          <Text size="small">{i18n.t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
+          <Text size="small">{t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
-          {i18n.t("editor:ui.getFreeCreditsAndOffersFromOurPartnerProviders", { defaultValue: "Get free credits and offers from our partner providers." })}
+          {t("editor:ui.getFreeCreditsAndOffersFromOurPartnerProviders", { defaultValue: "Get free credits and offers from our partner providers." })}
         </Caption>
         <EditorButton
           density="compact"
@@ -1297,7 +1303,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
             )
           }
         >
-          {i18n.t("editor:ui.viewOffers")}
+          {t("editor:ui.viewOffers")}
         </EditorButton>
       </Card>
     </FlexColumn>
