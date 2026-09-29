@@ -49,7 +49,8 @@ import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Textarea growth caps. The mobile one matches the composer stylesheet — on a
  *  phone the keyboard already owns most of the screen. */
@@ -136,6 +137,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   hideModelPicker = false,
   threadId
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const styles = useMemo(() => createMediaComposerStyles(theme), [theme]);
@@ -458,28 +460,28 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "image") {
       return isMobile
-        ? i18n.t("editor:ui.describeAnImage", { defaultValue: "Describe an image…" })
-        : i18n.t("editor:ui.describeTheImageYouWantToGenerate", { defaultValue: "Describe the image you want to generate…" });
+        ? t("editor:ui.describeAnImage", { defaultValue: "Describe an image…" })
+        : t("editor:ui.describeTheImageYouWantToGenerate", { defaultValue: "Describe the image you want to generate…" });
     }
     if (mode === "image_edit") {
       return isMobile
-        ? i18n.t("editor:ui.describeTheEdits", { defaultValue: "Describe the edits…" })
-        : i18n.t("editor:ui.describeTheEditsToApplyToTheDroppedImage", { defaultValue: "Describe the edits to apply to the dropped image…" });
+        ? t("editor:ui.describeTheEdits", { defaultValue: "Describe the edits…" })
+        : t("editor:ui.describeTheEditsToApplyToTheDroppedImage", { defaultValue: "Describe the edits to apply to the dropped image…" });
     }
     if (mode === "video") {
       return isMobile
-        ? i18n.t("editor:ui.describeAVideo", { defaultValue: "Describe a video…" })
-        : i18n.t("editor:ui.describeYourVideoLikeAManDrinkingACupOfCoffee", { defaultValue: "Describe your video… like a man drinking a cup of coffee…" });
+        ? t("editor:ui.describeAVideo", { defaultValue: "Describe a video…" })
+        : t("editor:ui.describeYourVideoLikeAManDrinkingACupOfCoffee", { defaultValue: "Describe your video… like a man drinking a cup of coffee…" });
     }
     if (mode === "image_to_video") {
       return isMobile
-        ? i18n.t("editor:ui.describeTheAnimation", { defaultValue: "Describe the animation…" })
-        : i18n.t("editor:ui.describeHowTheDroppedImageShouldAnimate", { defaultValue: "Describe how the dropped image should animate…" });
+        ? t("editor:ui.describeTheAnimation", { defaultValue: "Describe the animation…" })
+        : t("editor:ui.describeHowTheDroppedImageShouldAnimate", { defaultValue: "Describe how the dropped image should animate…" });
     }
     if (mode === "reference_to_video") {
       return isMobile
-        ? i18n.t("editor:ui.describeTheShot", { defaultValue: "Describe the shot…" })
-        : i18n.t("editor:ui.describeTheShotTheAttachedImagesAndVideosAreTheReferences", { defaultValue: "Describe the shot — the attached images and videos are the references…" });
+        ? t("editor:ui.describeTheShot", { defaultValue: "Describe the shot…" })
+        : t("editor:ui.describeTheShotTheAttachedImagesAndVideosAreTheReferences", { defaultValue: "Describe the shot — the attached images and videos are the references…" });
     }
     if (mode === "audio") {
       return "Type the text you want spoken…";
@@ -499,13 +501,13 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "chat" && permissionMode === "plan") {
       return isMobile
-        ? i18n.t("editor:ui.describeTheWorkToPlan", { defaultValue: "Describe the work to plan…" })
-        : i18n.t("editor:ui.describeTheWorkTheAgentWillProposeAPlanNotRunIt", { defaultValue: "Describe the work. The agent will propose a plan, not run it." });
+        ? t("editor:ui.describeTheWorkToPlan", { defaultValue: "Describe the work to plan…" })
+        : t("editor:ui.describeTheWorkTheAgentWillProposeAPlanNotRunIt", { defaultValue: "Describe the work. The agent will propose a plan, not run it." });
     }
     return isMobile
-      ? i18n.t("editor:ui.messageOr@ToAddAnAsset", { defaultValue: "Message… or @ to add an asset" })
-      : i18n.t("editor:ui.continueTheThreadOrType@ToAddAnAsset", { defaultValue: "Continue the thread — or type @ to add an asset…" });
-  }, [languageVersion, mode, isMobile, placeholderOverride, permissionMode]);
+      ? t("editor:ui.messageOr@ToAddAnAsset", { defaultValue: "Message… or @ to add an asset" })
+      : t("editor:ui.continueTheThreadOrType@ToAddAnAsset", { defaultValue: "Continue the thread — or type @ to add an asset…" });
+  }, [t, mode, isMobile, placeholderOverride, permissionMode]);
 
   const isMediaMode =
     mode === "image" ||
@@ -540,7 +542,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     if (mode === "reference_to_video") {
       return {
         model: referenceToVideoParams.model,
-        label: i18n.t("editor:ui.referenceToVideoModelKind", { defaultValue: "reference to video" })
+        label: t("editor:ui.referenceToVideoModelKind", { defaultValue: "reference to video" })
       };
     }
     if (mode === "audio") {
@@ -549,7 +551,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     if (mode === "music") return { model: musicParams.model, label: "music" };
     return null;
   }, [
-    languageVersion,
+    t,
     mode,
     chatModel,
     imageParams.model,
@@ -703,9 +705,9 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   );
 
   const chatProviderLabel = useMemo(() => {
-    if (!isModelSelected(chatModel)) return i18n.t("editor:ui.selectModelLower");
+    if (!isModelSelected(chatModel)) return t("editor:ui.selectModelLower");
     return chatModel.name || chatModel.id;
-  }, [languageVersion, chatModel]);
+  }, [t, chatModel]);
 
   const isDisabled = disabled || isBusy;
 
@@ -740,7 +742,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
         <textarea
           ref={textareaRef}
           className="media-compose-input"
-          aria-label={i18n.t("editor:ui.messagePrompt", { defaultValue: "Message prompt" })}
+          aria-label={t("editor:ui.messagePrompt", { defaultValue: "Message prompt" })}
           aria-expanded={isSkillMenuOpen}
           aria-controls={isSkillMenuOpen ? skillMenuId : undefined}
           value={prompt}
@@ -904,7 +906,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                 className="media-generate-btn"
                 onClick={handleSend}
                 disabled={isDisabled || !canGenerate}
-                aria-label={i18n.t("editor:ui.generate", { defaultValue: "Generate" })}
+                aria-label={t("editor:ui.generate", { defaultValue: "Generate" })}
               >
                 Generate
               </button>
