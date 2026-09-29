@@ -19,6 +19,7 @@ import type {
   PendingSecretRequest,
   SecretRequestOutcome
 } from "../../../stores/GlobalChatStore";
+import { useTranslation } from "react-i18next";
 
 interface SecretRequestCardProps {
   approvalId: string;
@@ -88,6 +89,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
   request,
   onResolve
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const updateSecret = useSecretsStore((s) => s.updateSecret);
@@ -131,7 +133,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
         <KeyRoundedIcon fontSize="small" />
         <FlexColumn gap={0}>
           <Text size="small" weight={500}>
-            {i18n.t("editor:ui.enterACredential")}
+            {t("editor:ui.enterACredential")}
           </Text>
           <Text size="smaller" color="secondary">
             Saved to your secret store. The agent never sees the value.
@@ -157,7 +159,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             target="_blank"
             rel="noreferrer noopener"
           >
-            {i18n.t("editor:ui.whereToGetThisKey")}
+            {t("editor:ui.whereToGetThisKey")}
           </a>
         )}
       </div>
@@ -168,7 +170,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
           type="password"
           autoComplete="off"
           label={request.key}
-          placeholder={i18n.t("editor:ui.pasteTheKey", { defaultValue: "Paste the key" })}
+          placeholder={t("editor:ui.pasteTheKey", { defaultValue: "Paste the key" })}
           value={value}
           onChange={handleChange}
           disabled={saving}
@@ -185,7 +187,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleDecline}
             startIcon={<CloseRoundedIcon />}
           >
-            {i18n.t("editor:ui.notNow")}
+            {t("editor:ui.notNow")}
           </EditorButton>
           <EditorButton
             variant="contained"

@@ -301,13 +301,24 @@ def classify(m, b):
     # component? named function with uppercase first letter
     if b.get("name") and b["name"][:1].isupper():
         return "component"
+    # custom hook (A-R6: hook bodies are hookable like component bodies —
+    # `useAppMenuActions`'s return-memo sites were kept_global by B0's
+    # classifier, leaving a freeze surface the version retirement would
+    # expose). Only use<Uppercase> names count.
+    if b.get("name") and re.fullmatch(r"use[A-Z].*", b["name"]):
+        return "component"
     # const NAME = <...> arrow  (uppercase NAME)
     if b.get("arrow_at") is not None:
         for kend in {k, kparen}:
             seg = m[max(0, kend - 120):kend + 1]
+            # W1 fix (B0 gap #6): the type-annotation skip is [^=] not
+            # [^=;] — `const CardText: React.FC<{ a: X; b: Y }> =` has `;`
+            # inside the generic, and B0's class stopped there, dropping the
+            # component to "helper" (sites kept global / file left unmigrated).
             mm = re.search(
-                r"const\s+([A-Za-z_$][\w$]*)\s*(?::[^=;]*?)?=\s*$", seg, re.S)
-            if mm and mm.group(1)[:1].isupper():
+                r"const\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=\s*$", seg, re.S)
+            if mm and (mm.group(1)[:1].isupper()
+                       or re.fullmatch(r"use[A-Z].*", mm.group(1))):
                 return "component"
         # direct argument of memo( / forwardRef(  (possibly with generics)
         seg2 = m[max(0, kparen - 160):kparen + 1]
@@ -322,6 +333,44 @@ def enclosing(m, bodies, pos):
     hits = [b for b in bodies if b["start"] <= pos <= b["end"]]
     hits.sort(key=lambda b: (b["end"] - b["start"]))
     return hits
+
+
+
+def body_params_region(m, b):
+    """Text of body b's parameter list (masked), or None."""
+    if b.get("arrow_at") is not None:
+        pclose = m.rfind(")", 0, b["arrow_at"] + 1)
+        popen = match_back(m, pclose, "(", ")") if pclose >= 0 else -1
+        if popen >= 0:
+            return m[popen:b["arrow_at"]]
+    else:
+        k = m.rfind("function", 0, b["start"] + 1)
+        if k >= 0:
+            j = k
+            while j < b["start"] and m[j] != "(":
+                j += 1
+            if j < b["start"]:
+                pclose = match_fwd(m, j, "(", ")")
+                if 0 <= pclose < b["start"]:
+                    return m[j:pclose + 1]
+    return None
+
+
+def t_shadowed(m, chain, pos):
+    """W1 guard (B0 gap #7): a replaced `t(` site binds to the INNERMOST
+    enclosing scope — if any body in the chain has its own `t` (parameter or
+    local const/let), the hook t is shadowed there and the call breaks
+    (MCPSettingsMenu's `.map((t) => ...)` produced TS2349). Such sites stay
+    on global i18n."""
+    pat_param = re.compile(r"[(,{]\s*t\s*[,)}:]")
+    pat_local = re.compile(r"(?:^|[;\s])(?:const|let|var)\s+t\s*=")
+    for b in chain:
+        params = body_params_region(m, b)
+        if params and pat_param.search(params):
+            return True
+        if pat_local.search(m[b["start"] + 1:pos]):
+            return True
+    return False
 
 
 def first_statement_insert(src, body_start):
@@ -481,6 +530,7 @@ def transform(path, dry=False):
     hooks = 0
     memo_fixes = 0
     kept_event = kept_param = kept_module = replaced = 0
+    kept_shadow = 0
     owners = {}          # component body id -> True
     memos_to_fix = set() # memo callback body start
     report_lines = []
@@ -494,6 +544,11 @@ def transform(path, dry=False):
             report_lines.append(f"  keep(event) @{src[:pos].count(chr(10))+1}")
             continue
         comp = next((b for b in chain if b["kind"] == "component"), None)
+        if comp is not None and t_shadowed(m, chain, pos):
+            kept_shadow += 1
+            report_lines.append(
+                f"  keep(t-shadow) @{src[:pos].count(chr(10))+1}")
+            continue
         if comp is None:
             # classify the kept site: inside a parameter/signature region
             # (before some body's brace), or true module scope. A site with no
@@ -666,7 +721,7 @@ def transform(path, dry=False):
         "path": path, "status": "transformed" if not dry else "dry-run",
         "sites": len(sites), "replaced": replaced,
         "kept_event": kept_event, "kept_param": kept_param,
-        "kept_module": kept_module,
+        "kept_module": kept_module, "kept_shadow": kept_shadow,
         "hooks": hooks, "memo_deps_fixes": memo_fixes,
         "import_action": import_action, "detail": report_lines,
         "deps_before": deps_before_after, "expr_rewrites": expr_rewrites,
@@ -767,6 +822,7 @@ def main():
             agg["kept_event"] = agg.get("kept_event", 0) + r["kept_event"]
             agg["kept_param_default"] = agg.get("kept_param_default", 0) + r["kept_param"]
             agg["kept_module"] = agg.get("kept_module", 0) + r["kept_module"]
+            agg["kept_shadow"] = agg.get("kept_shadow", 0) + r.get("kept_shadow", 0)
         else:
             agg[r["status"]] = agg.get(r["status"], 0) + 1
     print("\n=== SUMMARY (by category) ===")
@@ -778,7 +834,7 @@ def main():
         st = r["status"]
         extras = {k: r[k] for k in ("sites", "replaced", "hooks",
                                     "memo_deps_fixes", "kept_event",
-                                    "kept_param", "kept_module",
+                                    "kept_param", "kept_module", "kept_shadow",
                                     "import_action") if k in r}
         print(f"  {os.path.relpath(r['path'], web_dir)}: {st} {extras if extras else ''}")
 

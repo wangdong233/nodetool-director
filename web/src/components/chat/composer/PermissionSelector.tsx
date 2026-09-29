@@ -9,6 +9,7 @@ import MediaControlChip from "./MediaControlChip";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { PermissionMode } from "../../../stores/ApiTypes";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ModeItem {
   id: PermissionMode;
@@ -110,6 +111,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
   threadId,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -156,7 +158,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         <div
           css={menuStyles(theme)}
           role="menu"
-          aria-label={i18n.t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
+          aria-label={t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
         >
           <Caption className="permission-menu-header" size="small">
             Permission mode

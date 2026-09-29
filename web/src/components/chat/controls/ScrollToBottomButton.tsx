@@ -1,6 +1,6 @@
 import React from "react";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   CircularActionButton,
   SPACING_PX,
@@ -21,11 +21,12 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
   isVisible,
   onClick
 }) => {
+  const { t } = useTranslation();
   return (
     <CircularActionButton
       icon={<ArrowDownwardIcon />}
       onClick={onClick}
-      tooltip={i18n.t("editor:ui.scrollToBottom", { defaultValue: "Scroll to bottom" })}
+      tooltip={t("editor:ui.scrollToBottom", { defaultValue: "Scroll to bottom" })}
       position="absolute"
       bottom={SPACING_PX.lg}
       left="50%"

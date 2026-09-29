@@ -50,7 +50,7 @@ import {
 } from "../../../hooks/useResolvedMediaUri";
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Edge length of a generated-media thumbnail tile (px). */
 const THUMBNAIL_SIZE = 120;
@@ -276,6 +276,7 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
   mediaContents,
   isPending = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const gen = message.media_generation ?? null;
@@ -409,7 +410,7 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
           {!isPending && isCanvasAvailable && mediaContents.length > 1 && (
             <ToolbarIconButton
               className="add-all-button"
-              tooltip={i18n.t("editor:ui.addAllToCanvas", { defaultValue: "Add all to canvas" })}
+              tooltip={t("editor:ui.addAllToCanvas", { defaultValue: "Add all to canvas" })}
               size="small"
               onClick={addAll}
             >
@@ -454,7 +455,7 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
+                    tooltip={t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >
@@ -474,11 +475,11 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
                 draggable
                 onDragStart={(e) => handleDragStart(e, c)}
               >
-                <VideoPlayer locator={c.video} label={i18n.t("editor:ui.generatedVideo", { defaultValue: "Generated video" })} />
+                <VideoPlayer locator={c.video} label={t("editor:ui.generatedVideo", { defaultValue: "Generated video" })} />
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
+                    tooltip={t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >
@@ -499,13 +500,13 @@ const MediaOutputGroup: React.FC<MediaOutputGroupProps> = ({
               >
                 <AudioPlayback
                   locator={c.audio}
-                  label={i18n.t("editor:ui.generatedAudio", { defaultValue: "Generated audio" })}
+                  label={t("editor:ui.generatedAudio", { defaultValue: "Generated audio" })}
                   sx={AUDIO_SX}
                 />
                 {isCanvasAvailable && (
                   <ToolbarIconButton
                     className="add-to-canvas-button"
-                    tooltip={i18n.t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
+                    tooltip={t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
                     size="small"
                     onClick={() => addOne(c)}
                   >

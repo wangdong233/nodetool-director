@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import type { TaskUpdate } from "../../../stores/ApiTypes";
 import TaskUpdateDisplay from "../../node/TaskUpdateDisplay";
 import { FlexColumn, ScrollArea, SPACING } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TASK_SIDEBAR_WIDTH = 360;
 
@@ -15,12 +15,13 @@ interface TaskUpdateSidebarProps {
 /** Desktop right rail for the task that the agent is currently running. */
 export const TaskUpdateSidebar = memo<TaskUpdateSidebarProps>(
   ({ taskUpdate }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     return (
       <FlexColumn
         component="aside"
-        aria-label={i18n.t("editor:ui.activeAgentTask", { defaultValue: "Active agent task" })}
+        aria-label={t("editor:ui.activeAgentTask", { defaultValue: "Active agent task" })}
         className="task-update-sidebar"
         fullHeight
         sx={{

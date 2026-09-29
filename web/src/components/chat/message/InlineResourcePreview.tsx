@@ -25,7 +25,7 @@ import {
   resolveTimelineSequence
 } from "../../node/outputValueResolvers";
 import ResourceChip from "./ResourceChip";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const LazySketchRenderer = React.lazy(
   () => import("../../sketch/SketchRenderer")
@@ -52,6 +52,7 @@ const frameSx = {
 } as const;
 
 const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
+  const { t } = useTranslation();
   const query = trpc.sketch.get.useQuery({ id }, { staleTime: 30_000 });
   const document = useMemo(
     () => resolveSketchDocument(query.data),
@@ -66,7 +67,7 @@ const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
         >
           <LazySketchRenderer
             document={document}
-            ariaLabel={i18n.t("editor:ui.sketchPreview", { defaultValue: "Sketch preview" })}
+            ariaLabel={t("editor:ui.sketchPreview", { defaultValue: "Sketch preview" })}
             showDimensions
           />
         </React.Suspense>
@@ -77,12 +78,13 @@ const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
     return <LoadingSpinner size="small" text="Loading sketch" />;
   }
   if (query.isError) {
-    return <Caption color="secondary">{i18n.t("ui2:attrs.couldNotLoadThisSketch", { defaultValue: "Could not load this sketch." })}</Caption>;
+    return <Caption color="secondary">{t("ui2:attrs.couldNotLoadThisSketch", { defaultValue: "Could not load this sketch." })}</Caption>;
   }
   return null;
 };
 
 const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
+  const { t } = useTranslation();
   const query = trpc.timeline.get.useQuery({ id }, { staleTime: 30_000 });
   const sequence = useMemo(
     () => resolveTimelineSequence(query.data),
@@ -97,7 +99,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
         >
           <LazyTimelineRenderer
             sequence={sequence}
-            ariaLabel={i18n.t("editor:ui.timelinePreview", { defaultValue: "Timeline preview" })}
+            ariaLabel={t("editor:ui.timelinePreview", { defaultValue: "Timeline preview" })}
             showMetadata
           />
         </React.Suspense>
@@ -108,7 +110,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
     return <LoadingSpinner size="small" text="Loading timeline" />;
   }
   if (query.isError) {
-    return <Caption color="secondary">{i18n.t("ui2:attrs.couldNotLoadThisTimeline", { defaultValue: "Could not load this timeline." })}</Caption>;
+    return <Caption color="secondary">{t("ui2:attrs.couldNotLoadThisTimeline", { defaultValue: "Could not load this timeline." })}</Caption>;
   }
   return null;
 };

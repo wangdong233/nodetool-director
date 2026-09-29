@@ -26,6 +26,7 @@ import {
   ToolbarIconButton
 } from "../ui_primitives";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Opens a thread as a chat tab, leaving the rest of the workspace in place. */
 const useOpenThreadTab = () => {
@@ -57,6 +58,7 @@ interface CreateChatButtonProps {
 export const CreateChatButton = memo(function CreateChatButton({
   projectId
 }: CreateChatButtonProps) {
+  const { t } = useTranslation();
   const createNewThread = useGlobalChatStore((state) => state.createNewThread);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -80,9 +82,9 @@ export const CreateChatButton = memo(function CreateChatButton({
   }, [createNewThread, openThreadTab, addNotification, projectId]);
 
   return (
-    <Tooltip title={i18n.t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
+    <Tooltip title={t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("editor:chat.newChat", { defaultValue: "New chat" })}
+        ariaLabel={t("editor:chat.newChat", { defaultValue: "New chat" })}
         onClick={() => void handleCreate()}
         tabIndex={-1}
         icon={<AddIcon />}
@@ -101,6 +103,7 @@ interface ChatListPanelProps {
 }
 
 const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
+  const { t } = useTranslation();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -136,7 +139,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
     (threadId: string) =>
       threads[threadId]
         ? threadPreview(threads[threadId].title, messageCache[threadId])
-        : i18n.t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
+        : t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
     [threads, messageCache]
   );
 
@@ -207,7 +210,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder={i18n.t("editor:chat.searchConversations", { defaultValue: "Search conversations…" })}
+          placeholder={t("editor:chat.searchConversations", { defaultValue: "Search conversations…" })}
         />
       </FlexColumn>
 
@@ -231,7 +234,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title={i18n.t("editor:chat.loadFailed", { defaultValue: "Could not load conversations" })}
+            title={t("editor:chat.loadFailed", { defaultValue: "Could not load conversations" })}
             description={threadsError}
           />
         </FlexColumn>
@@ -243,8 +246,8 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title={i18n.t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
-            description={i18n.t("editor:chat.noneYetDesc", { defaultValue: "Start a chat from the workspace New menu." })}
+            title={t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
+            description={t("editor:chat.noneYetDesc", { defaultValue: "Start a chat from the workspace New menu." })}
           />
         </FlexColumn>
       ) : (

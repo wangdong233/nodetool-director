@@ -5,7 +5,7 @@ import { ToolbarIconButton } from "../../../ui_primitives";
 import ASRModelMenuDialog from "../../../model_menu/ASRModelMenuDialog";
 import { VoiceRecordingBar } from "./VoiceRecordingBar";
 import { useVoiceInput } from "./useVoiceInput";
-import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface VoiceInputControlProps {
   /** Called with the transcript once a recording is accepted. */
@@ -29,6 +29,7 @@ export const VoiceInputControl = memo(function VoiceInputControl({
   overlayHost,
   disabled = false
 }: VoiceInputControlProps) {
+  const { t } = useTranslation();
   const micRef = useRef<HTMLButtonElement>(null);
   // Read after mount: refs are still null on the first render pass, and the
   // bar can be active on the very next one.
@@ -67,8 +68,8 @@ export const VoiceInputControl = memo(function VoiceInputControl({
       <ToolbarIconButton
         ref={micRef}
         className="voice-input-button"
-        aria-label={i18n.t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
-        tooltip={i18n.t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
+        aria-label={t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
+        tooltip={t("editor:ui.recordVoiceMessage", { defaultValue: "Record voice message" })}
         icon={<MicNoneRoundedIcon fontSize="small" />}
         onClick={startRecording}
         disabled={disabled || isActive}

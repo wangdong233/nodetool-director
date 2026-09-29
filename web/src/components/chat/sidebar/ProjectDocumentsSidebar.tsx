@@ -16,7 +16,7 @@ import { trpc } from "../../../trpc/client";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
 import { TYPE_COLOR, TYPE_GLYPH } from "../../workspace/tabTypeIdentity";
 import { documentStatusLine, type ProjectDocument } from "../../projects/projectStatus";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ProjectDocumentsSidebarProps {
   projectId: string | null;
@@ -24,6 +24,7 @@ interface ProjectDocumentsSidebarProps {
 }
 
 const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarProps) => {
+  const { t } = useTranslation();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const { data, isPending, error } = trpc.projects.get.useQuery(
     { id: projectId ?? "" },
@@ -46,7 +47,7 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
   return (
     <FlexColumn
       component="aside"
-      aria-label={i18n.t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
+      aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
       fullHeight
       sx={{
         width: { xs: "100%", md: "280px" },
@@ -58,18 +59,18 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
       }}
     >
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, borderBottom: "1px solid", borderColor: "divider" }}>
-        <Text size="small">{data?.project.id === projectId ? data.project.name : i18n.t("editor:ui.currentProject", { defaultValue: "Current project" })}</Text>
+        <Text size="small">{data?.project.id === projectId ? data.project.name : t("editor:ui.currentProject", { defaultValue: "Current project" })}</Text>
         <Caption color="muted">Documents · {documents.length}</Caption>
       </FlexColumn>
       <ScrollArea sx={{ flex: 1, minHeight: 0, p: SPACING.sm }}>
         {!projectId ? (
-          <Caption color="muted">{i18n.t("ui2:attrs.noProjectSelected", { defaultValue: "No project selected." })}</Caption>
+          <Caption color="muted">{t("ui2:attrs.noProjectSelected", { defaultValue: "No project selected." })}</Caption>
         ) : isPending ? (
           <LoadingSpinner />
         ) : error ? (
           <Caption color="error">{error.message}</Caption>
         ) : documents.length === 0 ? (
-          <Caption color="muted">{i18n.t("ui2:attrs.noDocumentsInThisProjectYet", { defaultValue: "No documents in this project yet." })}</Caption>
+          <Caption color="muted">{t("ui2:attrs.noDocumentsInThisProjectYet", { defaultValue: "No documents in this project yet." })}</Caption>
         ) : (
           <FlexColumn gap={SPACING.xs}>
             {documents.map((document) => (

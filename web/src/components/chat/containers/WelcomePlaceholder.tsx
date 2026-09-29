@@ -26,6 +26,7 @@ import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -152,6 +153,7 @@ interface WelcomePlaceholderProps {
 const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
   onSuggestionClick
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { providers, isLoading, error } = useLanguageModelProviders();
@@ -185,7 +187,7 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
           <FlexColumn align="center" gap={SPACING.sm} sx={{ textAlign: "center" }}>
             <KeyRoundedIcon className="welcome-icon" />
             <Text className="welcome-title">
-              {i18n.t("editor:ui.connectAnAIProviderToGetStarted")}
+              {t("editor:ui.connectAnAIProviderToGetStarted")}
             </Text>
             <Text className="welcome-subtitle" sx={{ maxWidth: 520 }}>
               {SETUP_SUBTITLE}

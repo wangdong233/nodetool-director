@@ -29,7 +29,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface MediaModeMenuProps {
   anchorEl: HTMLElement | null;
@@ -182,6 +182,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
   onChange,
   modes
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   return (
@@ -197,7 +198,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
         boxShadow: SHADOW(theme).lg
       }}
     >
-      <div css={cssStyles} role="menu" aria-label={i18n.t("editor:ui.generationMode", { defaultValue: "Generation mode" })}>
+      <div css={cssStyles} role="menu" aria-label={t("editor:ui.generationMode", { defaultValue: "Generation mode" })}>
         <Caption className="mode-menu-header" size="small">
           Mode
         </Caption>
@@ -236,12 +237,12 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
                 sx={{ flex: 1, minWidth: 0 }}
               >
                 <Text size="small" weight={500} sx={{ color: "inherit" }}>
-                  {i18n.t(`editor:ui.${"labelKey" in m ? m.labelKey : ""}`, { defaultValue: m.label })}
+                  {t(`editor:ui.${"labelKey" in m ? m.labelKey : ""}`, { defaultValue: m.label })}
                 </Text>
                 {m.description && (
                   <Caption size="smaller" color="secondary">
                     {m.descriptionKey && m.description
-                      ? i18n.t(m.descriptionKey, { defaultValue: m.description })
+                      ? t(m.descriptionKey, { defaultValue: m.description })
                       : m.description}
                   </Caption>
                 )}

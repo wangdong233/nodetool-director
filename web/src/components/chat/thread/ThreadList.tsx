@@ -11,7 +11,7 @@ import type { ThreadListProps } from "../types/thread.types";
 import { sortThreadsByDate } from "../utils/threadUtils";
 import { groupByDate } from "../../../utils/groupByDate";
 import { formatDayMonth } from "../../../utils/formatUtils";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type { ThreadInfo } from "../types/thread.types";
 
@@ -30,6 +30,7 @@ const ThreadList: React.FC<ThreadListProps> = ({
   getThreadPreview,
   isFiltered = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme<Theme>();
   const componentStyles = useMemo(() => createStyles(theme), [theme]);
   // The row whose deletion is awaiting confirmation, and the row currently
@@ -155,10 +156,10 @@ const ThreadList: React.FC<ThreadListProps> = ({
           open
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          title={i18n.t("editor:ui.deleteConversation", { defaultValue: "Delete conversation" })}
+          title={t("editor:ui.deleteConversation", { defaultValue: "Delete conversation" })}
           content={`Delete "${pendingLabel}"? This cannot be undone.`}
-          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+          confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         />
       )}
     </div>

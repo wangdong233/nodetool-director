@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 
 import type { RouterOutputs } from "../../../trpc/client";
 import { useSkills } from "../../../hooks/skills/useSkills";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   BORDER_RADIUS,
   SelectableListItem,
@@ -78,63 +78,66 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
   selectedIndex,
   onSelect,
   onHighlight
-}) => (
-  <Surface
-    role="listbox"
-    aria-label={i18n.t("editor:ui.skills", { defaultValue: "Skills" })}
-    elevation={2}
-    rounded="medium"
-    padding={1}
-    sx={{
-      minWidth: 280,
-      maxWidth: 420,
-      maxHeight: 320,
-      overflowY: "auto",
-      border: "1px solid",
-      borderColor: "divider"
-    }}
-  >
-    {skills.map((skill, index) => (
-      <SelectableListItem
-        key={skill.id}
-        role="option"
-        selected={index === selectedIndex}
-        aria-selected={index === selectedIndex}
-        data-testid={`skill-option-${skill.name}`}
-        onMouseDown={(event) => event.preventDefault()}
-        onMouseEnter={() => onHighlight(index)}
-        onClick={() => onSelect(index)}
-        paddingX={1}
-        paddingY={0.5}
-        gap={0}
-        sx={{
-          display: "block",
-          borderRadius: BORDER_RADIUS.sm
-        }}
-      >
-        <Text size="small" weight={500} component="div">
-          /{skill.name}
-        </Text>
-        {skill.description && (
-          <Text
-            size="smaller"
-            color="secondary"
-            truncate
-            component="div"
-            sx={{ mt: 0.5 }}
-          >
-            {skill.description}
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Surface
+      role="listbox"
+      aria-label={t("editor:ui.skills", { defaultValue: "Skills" })}
+      elevation={2}
+      rounded="medium"
+      padding={1}
+      sx={{
+        minWidth: 280,
+        maxWidth: 420,
+        maxHeight: 320,
+        overflowY: "auto",
+        border: "1px solid",
+        borderColor: "divider"
+      }}
+    >
+      {skills.map((skill, index) => (
+        <SelectableListItem
+          key={skill.id}
+          role="option"
+          selected={index === selectedIndex}
+          aria-selected={index === selectedIndex}
+          data-testid={`skill-option-${skill.name}`}
+          onMouseDown={(event) => event.preventDefault()}
+          onMouseEnter={() => onHighlight(index)}
+          onClick={() => onSelect(index)}
+          paddingX={1}
+          paddingY={0.5}
+          gap={0}
+          sx={{
+            display: "block",
+            borderRadius: BORDER_RADIUS.sm
+          }}
+        >
+          <Text size="small" weight={500} component="div">
+            /{skill.name}
           </Text>
-        )}
-      </SelectableListItem>
-    ))}
-    {skills.length === 0 && (
-      <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-        {i18n.t("editor:ui.noMatchingSkills")}
-      </Text>
-    )}
-  </Surface>
-);
+          {skill.description && (
+            <Text
+              size="smaller"
+              color="secondary"
+              truncate
+              component="div"
+              sx={{ mt: 0.5 }}
+            >
+              {skill.description}
+            </Text>
+          )}
+        </SelectableListItem>
+      ))}
+      {skills.length === 0 && (
+        <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
+          {t("editor:ui.noMatchingSkills")}
+        </Text>
+      )}
+    </Surface>
+  );
+};
 
 interface UseTextareaSkillMentionOptions {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;

@@ -19,7 +19,7 @@ import {
   reducedMotion
 } from "../../ui_primitives";
 import type { TodoItem } from "../../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TODO_SIDEBAR_WIDTH = 280;
 
@@ -102,6 +102,7 @@ const STATUS_ICONS = {
 } as const;
 
 export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const counts = useMemo(() => todos.reduce(
@@ -120,7 +121,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
           weight={600}
           sx={{ letterSpacing: 0.6, textTransform: "uppercase" }}
         >
-          {i18n.t("editor:ui.tasks")}
+          {t("editor:ui.tasks")}
         </Text>
         {todos.length > 0 && (
           <Text size="smaller" sx={{ opacity: 0.6 }}>
@@ -132,7 +133,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
         {todos.length === 0 ? (
           <div className="empty-state">
             <Text size="small">
-              {i18n.t("editor:ui.noTasksYetTheAgentWillListItsPlanHereAsItWorks")}
+              {t("editor:ui.noTasksYetTheAgentWillListItsPlanHereAsItWorks")}
             </Text>
           </div>
         ) : (

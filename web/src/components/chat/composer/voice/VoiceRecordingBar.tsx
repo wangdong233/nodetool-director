@@ -17,7 +17,7 @@ import {
   reducedMotion
 } from "../../../ui_primitives";
 import { RecordingWaveform } from "./RecordingWaveform";
-import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface VoiceRecordingBarProps {
   levelsRef: React.MutableRefObject<Float32Array>;
@@ -83,6 +83,7 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
   onConfirm,
   onCancel
 }: VoiceRecordingBarProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -94,12 +95,12 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
         css={cssStyles}
         className="voice-recording-bar"
         role="status"
-        aria-label={i18n.t("editor:ui.transcribingRecording", { defaultValue: "Transcribing recording" })}
+        aria-label={t("editor:ui.transcribingRecording", { defaultValue: "Transcribing recording" })}
       >
         <FlexRow className="wave-slot" gap={1} align="center">
           <LoadingSpinner variant="circular" size={16} />
           <Text size="small" color="secondary">
-            {i18n.t("editor:ui.transcribing")}
+            {t("editor:ui.transcribing")}
           </Text>
         </FlexRow>
       </div>
@@ -111,12 +112,12 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
       css={cssStyles}
       className="voice-recording-bar"
       role="group"
-      aria-label={i18n.t("editor:ui.voiceRecording", { defaultValue: "Voice recording" })}
+      aria-label={t("editor:ui.voiceRecording", { defaultValue: "Voice recording" })}
     >
       <ToolbarIconButton
         className="voice-cancel"
-        aria-label={i18n.t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
-        tooltip={i18n.t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
+        aria-label={t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
+        tooltip={t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
         icon={<CloseRoundedIcon fontSize="small" />}
         onClick={onCancel}
         variant="error"
@@ -130,8 +131,8 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
       </Text>
       <ToolbarIconButton
         className="voice-confirm"
-        aria-label={i18n.t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
-        tooltip={i18n.t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
+        aria-label={t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
+        tooltip={t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
         icon={<CheckRoundedIcon fontSize="small" />}
         onClick={onConfirm}
         variant="primary"

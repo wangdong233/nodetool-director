@@ -8,7 +8,7 @@
 import { memo } from "react";
 
 import { ToggleGroup, ToggleOption } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type MobileRail = "chat" | "documents" | "todos" | "task";
 
@@ -26,26 +26,29 @@ interface MobileRailTabsProps {
   onChange: (rail: MobileRail) => void;
 }
 
-const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => (
-  <ToggleGroup
-    className="mobile-rail-tabs"
-    value={value}
-    exclusive
-    segmented
-    size="small"
-    aria-label={i18n.t("editor:ui.conversationPanel", { defaultValue: "Conversation panel" })}
-    onChange={(_event, next: MobileRail | null) => {
-      if (next !== null) {
-        onChange(next);
-      }
-    }}
-  >
-    {available.map((rail) => (
-      <ToggleOption key={rail} value={rail}>
-        {RAIL_LABELS[rail]}
-      </ToggleOption>
-    ))}
-  </ToggleGroup>
-);
+const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => {
+  const { t } = useTranslation();
+  return (
+    <ToggleGroup
+      className="mobile-rail-tabs"
+      value={value}
+      exclusive
+      segmented
+      size="small"
+      aria-label={t("editor:ui.conversationPanel", { defaultValue: "Conversation panel" })}
+      onChange={(_event, next: MobileRail | null) => {
+        if (next !== null) {
+          onChange(next);
+        }
+      }}
+    >
+      {available.map((rail) => (
+        <ToggleOption key={rail} value={rail}>
+          {RAIL_LABELS[rail]}
+        </ToggleOption>
+      ))}
+    </ToggleGroup>
+  );
+};
 
 export default memo(MobileRailTabs);

@@ -49,6 +49,7 @@ import type {
   ChatOutgoingMessage,
   MediaGenerationRequest
 } from "../types/media.types";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -240,6 +241,7 @@ const ChatView = ({
   projectDocumentsSidebar,
   threadId
 }: ChatViewProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -451,14 +453,14 @@ const ChatView = ({
             {!isMobile && messages.length > 0 && (
               <ToolbarIconButton
                 onClick={handleCopyConversation}
-                tooltip={i18n.t("editor:ui.copyConversationAsMarkdown", { defaultValue: "Copy conversation as Markdown" })}
+                tooltip={t("editor:ui.copyConversationAsMarkdown", { defaultValue: "Copy conversation as Markdown" })}
                 icon={<ContentCopyIcon fontSize="small" />}
               />
             )}
             {showNewChatButton && onNewChat && (
               <ToolbarIconButton
                 onClick={onNewChat}
-                tooltip={i18n.t("editor:ui.newChat", { defaultValue: "New chat" })}
+                tooltip={t("editor:ui.newChat", { defaultValue: "New chat" })}
                 icon={<AddIcon fontSize="small" />}
               />
             )}
