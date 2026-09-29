@@ -17,7 +17,7 @@ import {
 import type { UnifiedModel } from "../../../stores/ApiTypes";
 import { formatBytes } from "../../../utils/modelFormatting";
 import { ModelStat } from "../ModelStat";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const DOCS_URL = "https://docs.nodetool.ai/models-and-providers";
 
@@ -27,6 +27,7 @@ interface LocalModelsHeroProps {
 
 /** What this machine currently holds: how many models, and how much disk. */
 const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const stats = useMemo(() => {
@@ -77,7 +78,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
         <FlexRow gap={SPACING.xl} align="flex-start">
           <ModelStat
             value={String(stats.count)}
-            label={i18n.t("editor:ui.installed", { defaultValue: "Installed" })}
+            label={t("editor:ui.installed", { defaultValue: "Installed" })}
             icon={
               <CheckCircleOutlineIcon
                 sx={{ fontSize: 14, color: theme.vars.palette.success.main }}
@@ -86,7 +87,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           />
           <ModelStat
             value={stats.size}
-            label={i18n.t("editor:ui.onDisk", { defaultValue: "On disk" })}
+            label={t("editor:ui.onDisk", { defaultValue: "On disk" })}
             icon={
               <StorageOutlinedIcon
                 sx={{ fontSize: 14, color: theme.vars.palette.text.secondary }}

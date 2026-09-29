@@ -12,7 +12,7 @@ import {
 } from "../ui_primitives";
 import CategoryIcon from "@mui/icons-material/Category";
 import StraightenIcon from "@mui/icons-material/Straighten";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import useModelFiltersStore, {
   SizeBucket,
   TypeTag
@@ -45,6 +45,7 @@ const sizeOptions: SizeBucket[] = [
 ];
 
 const ModelFiltersBar: React.FC = () => {
+  const { t } = useTranslation();
   const selectedTypes = useModelFiltersStore((state) => state.selectedTypes);
   const sizeBucket = useModelFiltersStore((state) => state.sizeBucket);
   const toggleType = useModelFiltersStore((state) => state.toggleType);
@@ -62,7 +63,7 @@ const ModelFiltersBar: React.FC = () => {
       {/* Type dropdown (multi) */}
       <ToolbarIconButton
         icon={<CategoryIcon fontSize="small" />}
-        tooltip={selectedTypes.length ? `Type: ${selectedTypes.join(", ")}` : i18n.t("editor:ui.filterByType", { defaultValue: "Filter by Type" })}
+        tooltip={selectedTypes.length ? `Type: ${selectedTypes.join(", ")}` : t("editor:ui.filterByType", { defaultValue: "Filter by Type" })}
         onClick={(e) => setTypeAnchor(e.currentTarget)}
         size="small"
         active={selectedTypes.length > 0 || openType}
@@ -91,7 +92,7 @@ const ModelFiltersBar: React.FC = () => {
       {/* Size dropdown (single) */}
       <ToolbarIconButton
         icon={<StraightenIcon fontSize="small" />}
-        tooltip={sizeBucket ? `Size: ${sizeBucket}` : i18n.t("editor:ui.filterBySize2", { defaultValue: "Filter by Size" })}
+        tooltip={sizeBucket ? `Size: ${sizeBucket}` : t("editor:ui.filterBySize2", { defaultValue: "Filter by Size" })}
         onClick={(e) => setSizeAnchor(e.currentTarget)}
         size="small"
         active={!!sizeBucket || openSize}
@@ -109,7 +110,7 @@ const ModelFiltersBar: React.FC = () => {
             setSizeBucket(null);
           }}
         >
-          <ListItemText primary={i18n.t("editor:ui.anySize", { defaultValue: "Any size" })} />
+          <ListItemText primary={t("editor:ui.anySize", { defaultValue: "Any size" })} />
         </EditorMenuItem>
         {sizeOptions.map((s) => (
           <EditorMenuItem

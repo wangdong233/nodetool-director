@@ -5,7 +5,7 @@ import {
   useASRModelMenuStore
 } from "../../stores/ModelMenuStore";
 import { useASRModelsByProvider } from "../../hooks/useModelsByProvider";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ASRModelMenuDialogProps {
   open: boolean;
@@ -24,6 +24,7 @@ function ASRModelMenuDialog({
   recommendedModels,
   modelPacks
 }: ASRModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useASRModelsByProvider();
   return (
     <ModelMenuDialogBase<ASRModel>
@@ -32,7 +33,7 @@ function ASRModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={i18n.t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
+      title={t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
       searchPlaceholder="Search speech-to-text models..."
       storeHook={useASRModelMenuStore}
       modelType="asr_model"

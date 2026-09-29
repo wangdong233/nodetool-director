@@ -63,6 +63,7 @@ import {
 } from "../../../utils/modelMenuNavigation";
 import type { ModelPack, UnifiedModel } from "../../../stores/ApiTypes";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
   open: boolean;
@@ -175,6 +176,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   setupCapability,
   setupProviderIds
 }: ModelMenuBaseProps<TModel>) {
+  const { t } = useTranslation();
   const {
     models,
     isLoading,
@@ -503,7 +505,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
           />
         }
-        label={i18n.t("editor:ui.favorites", { defaultValue: "Favorites" })}
+        label={t("editor:ui.favorites", { defaultValue: "Favorites" })}
         active={customView === "favorites"}
         horizontal={isMobile}
         onClick={handleSetFavoritesView}
@@ -515,7 +517,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
           />
         }
-        label={i18n.t("editor:ui.recent", { defaultValue: "Recent" })}
+        label={t("editor:ui.recent", { defaultValue: "Recent" })}
         active={customView === "recent"}
         horizontal={isMobile}
         onClick={handleSetRecentView}
@@ -685,7 +687,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           </Text>
           <ToolbarIconButton
             icon={<CloseIcon fontSize="small" />}
-            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
+            tooltip={t("sketch:attrs.close", { defaultValue: "Close" })}
             onClick={onClose}
             size="small"
             nodrag={false}
@@ -721,7 +723,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           </Box>
           <ToolbarIconButton
             icon={<RefreshIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.refreshModels", { defaultValue: "Refresh models" })}
+            tooltip={t("editor:ui.refreshModels", { defaultValue: "Refresh models" })}
             onClick={handleRefresh}
             disabled={!refetch || !!isFetching}
             size="small"
@@ -769,14 +771,14 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
               title={
                 <Box sx={{ maxWidth: 300 }}>
                   <Caption size="small">
-                    {i18n.t("editor:ui.failedToLoadModelsFrom")}
+                    {t("editor:ui.failedToLoadModelsFrom")}
                   </Caption>
                   {providerErrors.map((pe) => (
                     <Caption key={pe.provider} component="div" sx={{ mt: 0.5 }}>
                       • {pe.provider}:{" "}
                       {pe.error instanceof Error
                         ? pe.error.message
-                        : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}
+                        : t("editor:ui.unknownError", { defaultValue: "Unknown error" })}
                     </Caption>
                   ))}
                 </Box>
@@ -798,7 +800,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
 
       {body}
       <FlexRow justify="space-between" align="center" sx={{ px: SPACING.lg, py: SPACING.md, flexShrink: 0, borderTop: `1px solid ${theme.vars.palette.divider}` }}>
-        <Caption>{i18n.t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
+        <Caption>{t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
         <EditorButton variant="text" size="small" startIcon={<AddIcon />} onClick={openSetup}>
           Add providers
         </EditorButton>

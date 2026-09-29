@@ -19,7 +19,7 @@ import type {
 import { MODEL_GOALS, GOAL_LABEL_KEYS, GOAL_DESCRIPTION_KEYS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
@@ -69,6 +69,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
   source,
   availabilityCounts
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     selectedGoal,
@@ -128,9 +129,9 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
     >
       <FilterRow label="I want to">
         {MODEL_GOALS.map((goal) => (
-          <Tooltip key={goal.id} title={i18n.t(GOAL_DESCRIPTION_KEYS[goal.id] ?? "", { defaultValue: goal.description })} delay={400}>
+          <Tooltip key={goal.id} title={t(GOAL_DESCRIPTION_KEYS[goal.id] ?? "", { defaultValue: goal.description })} delay={400}>
             <Chip
-              label={i18n.t(GOAL_LABEL_KEYS[goal.id] ?? "", { defaultValue: goal.label })}
+              label={t(GOAL_LABEL_KEYS[goal.id] ?? "", { defaultValue: goal.label })}
               compact
               active={selectedGoal === goal.id}
               color={selectedGoal === goal.id ? "primary" : "default"}
@@ -140,7 +141,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         ))}
       </FilterRow>
 
-      <FilterRow label={i18n.t("editor:ui.format", { defaultValue: "Format" })}>
+      <FilterRow label={t("editor:ui.format", { defaultValue: "Format" })}>
         {MODEL_FORMATS.map((format) => (
           <Chip
             key={format.id}
@@ -154,11 +155,11 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
       </FilterRow>
 
       {source === "installed" && (
-        <FilterRow label={i18n.t("editor:ui.status", { defaultValue: "Status" })}>
+        <FilterRow label={t("editor:ui.status", { defaultValue: "Status" })}>
           {AVAILABILITY_FILTERS.map(({ value, label, labelKey, color }) => (
             <Chip
               key={value}
-              label={`${labelKey ? i18n.t(labelKey, { defaultValue: label }) : label} ${availabilityCounts[value]}`}
+              label={`${labelKey ? t(labelKey, { defaultValue: label }) : label} ${availabilityCounts[value]}`}
               compact
               color={color}
               active={selectedAvailability === value}
@@ -168,7 +169,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         </FilterRow>
       )}
 
-      <FilterRow label={i18n.t("editor:ui.maxSize", { defaultValue: "Max size" })}>
+      <FilterRow label={t("editor:ui.maxSize", { defaultValue: "Max size" })}>
         <FlexRow
           align="center"
           sx={{
@@ -177,11 +178,11 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
           }}
         >
           <NodeSlider
-            aria-label={i18n.t("editor:ui.maxModelSizeInGB", { defaultValue: "Max model size in GB" })}
+            aria-label={t("editor:ui.maxModelSizeInGB", { defaultValue: "Max model size in GB" })}
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => (value === 0 ? i18n.t("editor:ui.all", { defaultValue: "All" }) : `${value} GB`)}
+            valueLabelFormat={(value) => (value === 0 ? t("editor:ui.all", { defaultValue: "All" }) : `${value} GB`)}
             step={1}
             min={0}
             max={50}
@@ -196,7 +197,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             borderRadius: BORDER_RADIUS.sm
           }}
         >
-          {maxModelSizeGB === 0 ? i18n.t("editor:ui.allSizes", { defaultValue: "All sizes" }) : `${maxModelSizeGB} GB`}
+          {maxModelSizeGB === 0 ? t("editor:ui.allSizes", { defaultValue: "All sizes" }) : `${maxModelSizeGB} GB`}
         </Text>
       </FilterRow>
     </Box>

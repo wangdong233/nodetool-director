@@ -31,7 +31,7 @@ import ModelCompatibilityDialog from "./ModelCompatibilityDialog";
 import { classifyModelFit, estimateRequiredGb } from "./modelFit";
 import type { FitLevel } from "../onboarding/onboardingCatalog";
 import { executionForDisplay } from "../../../utils/modelNormalization";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const IMPORTANT_TAGS = new Set(["gguf", "mlx"]);
 
@@ -124,6 +124,7 @@ const ModelListItem: React.FC<
   isCheckingCache = false,
   fitBudgetGb = null
 }) => {
+  const { t } = useTranslation();
   const baseId = model.repo_id || model.id;
   const downloadId = model.path ? `${baseId}/${model.path}` : baseId;
   const download = useModelDownloadStore(
@@ -234,7 +235,7 @@ const ModelListItem: React.FC<
               ))}
               {model.pipeline_tag && (
                 <Tooltip
-                  title={i18n.t("editor:ui.viewTrendingModelsWithThisTagOnHuggingFace", { defaultValue: "View trending models with this tag on HuggingFace" })}
+                  title={t("editor:ui.viewTrendingModelsWithThisTagOnHuggingFace", { defaultValue: "View trending models with this tag on HuggingFace" })}
                   delay={TOOLTIP_ENTER_DELAY * 2}
                   nextDelay={TOOLTIP_ENTER_NEXT_DELAY * 2}
                 >

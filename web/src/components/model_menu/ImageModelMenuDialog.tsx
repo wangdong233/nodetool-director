@@ -2,7 +2,7 @@ import { memo } from "react";
 import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { ImageModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useImageModelMenuStore } from "../../stores/ModelMenuStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   useImageModelsByProvider,
   type ImageModelTask
@@ -27,6 +27,7 @@ function ImageModelMenuDialog({
   recommendedModels,
   modelPacks
 }: ImageModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useImageModelsByProvider({ task });
   return (
     <ModelMenuDialogBase<ImageModel>
@@ -35,7 +36,7 @@ function ImageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={i18n.t("editor:ui.selectImageModel", { defaultValue: "Select Image Model" })}
+      title={t("editor:ui.selectImageModel", { defaultValue: "Select Image Model" })}
       searchPlaceholder="Search image models..."
       storeHook={useImageModelMenuStore}
       modelType="image_model"

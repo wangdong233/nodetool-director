@@ -5,7 +5,7 @@ import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import { StateIconButton, MOTION } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface DefaultModelPinProps {
   /**
@@ -37,6 +37,7 @@ const DefaultModelPin: React.FC<DefaultModelPinProps> = memo(
     name = "",
     size = "small"
   }) {
+    const { t } = useTranslation();
     const current = useModelPreferencesStore((s) =>
       modelType ? s.defaults[modelType] : undefined
     );
@@ -76,12 +77,12 @@ const DefaultModelPin: React.FC<DefaultModelPinProps> = memo(
           size={size}
           tooltip={
             isDefault
-              ? i18n.t("editor:ui.defaultForNewNodesOfThisTypeClickToClear", { defaultValue: "Default for new nodes of this type — click to clear" })
+              ? t("editor:ui.defaultForNewNodesOfThisTypeClickToClear", { defaultValue: "Default for new nodes of this type — click to clear" })
               : "Set as default for new nodes of this type"
           }
           tooltipPlacement="top"
           ariaLabel={
-            isDefault ? i18n.t("editor:ui.clearDefaultModel", { defaultValue: "Clear default model" }) : i18n.t("editor:ui.setAsDefaultModel", { defaultValue: "Set as default model" })
+            isDefault ? t("editor:ui.clearDefaultModel", { defaultValue: "Clear default model" }) : t("editor:ui.setAsDefaultModel", { defaultValue: "Set as default model" })
           }
         />
       </span>

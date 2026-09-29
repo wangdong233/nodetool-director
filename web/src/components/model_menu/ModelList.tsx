@@ -33,6 +33,7 @@ import { executionForDisplay } from "../../utils/modelNormalization";
 
 import type { Theme } from "@mui/material/styles";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ROW_HEIGHT = 50;
 const DOWNLOAD_ROW_HEIGHT = 56;
@@ -185,6 +186,7 @@ function ModelList<TModel extends ModelSelectorModel>({
   modelType,
   downloadTargetLabel
 }: ModelListProps<TModel>) {
+  const { t } = useTranslation();
   const isFavorite = useModelPreferencesStore((s) => s.isFavorite);
   const getAvailability = useModelAvailability();
   const theme = useTheme();
@@ -459,7 +461,7 @@ function ModelList<TModel extends ModelSelectorModel>({
           <EmptyState
             variant="no-results"
             size="small"
-            title={i18n.t("editor:ui.noModelsFound", { defaultValue: "No models found" })}
+            title={t("editor:ui.noModelsFound", { defaultValue: "No models found" })}
             description={`No models match "${searchTerm}". Try a different term or enable more providers.`}
           />
         ) : hasDownloads ? (
@@ -467,7 +469,7 @@ function ModelList<TModel extends ModelSelectorModel>({
             variant="empty"
             size="small"
             icon={<DownloadIcon className="empty-icon" />}
-            title={i18n.t("editor:ui.noModelsYetLetsGetStarted", { defaultValue: "No models yet — let's get started" })}
+            title={t("editor:ui.noModelsYetLetsGetStarted", { defaultValue: "No models yet — let's get started" })}
             description={
               <>
                 Download a local model or add an API key for a cloud provider to
@@ -491,14 +493,14 @@ function ModelList<TModel extends ModelSelectorModel>({
                 </Box>
               </>
             }
-            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
+            actionText={t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
             onAction={handleOpenSettings}
           />
         ) : (
           <EmptyState
             variant="empty"
             size="small"
-            title={i18n.t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })}
+            title={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })}
             description={
               <>
                 Enable a provider in the left sidebar or add an API key in{" "}
@@ -522,7 +524,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                 .
               </>
             }
-            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
+            actionText={t("editor:ui.openSettings", { defaultValue: "Open Settings" })}
             onAction={handleOpenSettings}
           />
         )
@@ -542,7 +544,7 @@ function ModelList<TModel extends ModelSelectorModel>({
           getItemKey={getItemKey}
           getItemProps={getItemProps}
           scrollToIndex={scrollToIndex}
-          ariaLabel={i18n.t("editor:ui.models", { defaultValue: "Models" })}
+          ariaLabel={t("editor:ui.models", { defaultValue: "Models" })}
           renderItem={renderFlatRow}
         />
       )}

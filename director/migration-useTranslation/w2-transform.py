@@ -571,6 +571,29 @@ def paren_body_insert(src, m, comp):
     return (p, before), (e + 1, after)
 
 
+def body_binds_t(m, b):
+    """w2 fix #10: does this function body's PARAMS bind a name `t`?
+    A site inside such a body must stay on global i18n.t — the mechanical
+    `i18n.t(` -> `t(` rewrite would resolve to the param (e.g. timeline
+    `.map((t) => ({ label: i18n.t(t.labelKey, ...) }))` became a call of the
+    param object: `t(t.labelKey, ...)`)."""
+    if b.get("arrow_at") is not None:
+        pclose = m.rfind(")", 0, b["arrow_at"] + 1)
+        popen = match_back(m, pclose, "(", ")") if pclose >= 0 else -1
+        if popen < 0:
+            return False
+        params = m[popen + 1:pclose]
+    else:
+        popen = match_back(m, b["start"], "(", ")")
+        if popen < 0:
+            return False
+        pend = match_fwd(m, popen, "(", ")")
+        if pend < 0:
+            return False
+        params = m[popen + 1:pend]
+    return re.search(r"(?<![\w$.])t(?![\w$])", params) is not None
+
+
 def transform(path, dry=False):
     src = open(path).read()
     base = os.path.basename(path)
@@ -588,7 +611,7 @@ def transform(path, dry=False):
     edits = []           # (pos, old_len, new_text)
     hooks = 0
     memo_fixes = 0
-    kept_event = kept_param_or_module = replaced = 0
+    kept_event = kept_param_or_module = kept_t_shadow = replaced = 0
     owners = {}          # component body id -> True
     memos_to_fix = set() # memo callback body start
     report_lines = []
@@ -604,6 +627,14 @@ def transform(path, dry=False):
             kept_param_or_module += 1
             report_lines.append(
                 f"  keep(param/module) @{src[:pos].count(chr(10))+1}")
+            continue
+        # w2 fix #10: an intermediate function body binding a param `t`
+        # shadows the hook's t — keep the site global (safe direction).
+        comp_idx = chain.index(comp)
+        if any(body_binds_t(m, b) for b in chain[:comp_idx]):
+            kept_t_shadow += 1
+            report_lines.append(
+                f"  keep(t-shadow) @{src[:pos].count(chr(10))+1}")
             continue
         # inside a useMemo callback under this component? (R3)
         for b in chain:

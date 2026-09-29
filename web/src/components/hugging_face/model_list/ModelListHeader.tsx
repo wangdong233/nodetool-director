@@ -27,7 +27,7 @@ import { SourceToggle } from "./SourceToggle";
 import { HUB_RESULT_LIMIT } from "./useModels";
 import { useModelDownloadTarget } from "../../../hooks/useModelDownloadTarget";
 import { Caption, Tooltip } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ModelListHeaderProps {
   totalCount: number;
@@ -111,6 +111,7 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
   workerName,
   workerSupported
 }) => {
+  const { t } = useTranslation();
   const {
     modelSearchTerm,
     setModelSearchTerm,
@@ -198,18 +199,18 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
 
         <FlexRow align="center" gap={SPACING.xs}>
           <Text size="small" color="secondary" sx={{ whiteSpace: "nowrap" }}>
-            {i18n.t("editor:ui.sort", { defaultValue: "Sort" })}
+            {t("editor:ui.sort", { defaultValue: "Sort" })}
           </Text>
           <Box sx={toolbarSelectSx(theme)}>
             <SelectField
-              label={i18n.t("editor:ui.sortModelsBy", { defaultValue: "Sort models by" })}
+              label={t("editor:ui.sortModelsBy", { defaultValue: "Sort models by" })}
               hideLabel
               variant="outlined"
               value={sortField}
               onChange={handleSortFieldChange}
               options={SORT_OPTIONS.map(({ value, label, labelKey }) => ({
                 value,
-                label: labelKey ? i18n.t(labelKey, { defaultValue: label }) : label
+                label: labelKey ? t(labelKey, { defaultValue: label }) : label
               }))}
             />
           </Box>
@@ -224,7 +225,7 @@ const ModelListHeader: React.FC<ModelListHeaderProps> = ({
             tooltip={`Sort ${sortDirection === "asc" ? "ascending" : "descending"}`}
             onClick={toggleSortDirection}
             size="small"
-            aria-label={i18n.t("editor:ui.toggleSortDirection", { defaultValue: "Toggle sort direction" })}
+            aria-label={t("editor:ui.toggleSortDirection", { defaultValue: "Toggle sort direction" })}
             sx={{
               color: theme.vars.palette.text.secondary,
               "&:hover": { color: theme.vars.palette.text.primary }

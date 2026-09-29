@@ -1,18 +1,20 @@
 import React from "react";
 import { Tooltip, EditorButton, SPACING, getSpacingPx } from "../ui_primitives";
 import FolderIcon from "@mui/icons-material/Folder";
-import { i18n } from "../../i18n";
 import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
+import { useTranslation } from "react-i18next";
 
 export const ModelShowInExplorerButton: React.FC<{
   onClick: () => void;
   disabled?: boolean;
-}> = ({ onClick, disabled }) => (
+}> = ({ onClick, disabled }) => {
+  const { t } = useTranslation();
+  return (
   <Tooltip
-    title={i18n.t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })}
+    title={t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })}
     delay={TOOLTIP_ENTER_DELAY * 2}
     nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
   >
@@ -29,13 +31,15 @@ export const ModelShowInExplorerButton: React.FC<{
     </span>
   </Tooltip>
 );
+};
 
 export const HuggingFaceLink: React.FC<{
   modelId: string;
-}> = ({ modelId }) =>
-  !modelId.endsWith("safetensors") && (
+}> = ({ modelId }) => {
+  const { t } = useTranslation();
+  return !modelId.endsWith("safetensors") && (
     <Tooltip
-      title={i18n.t("editor:ui.View on Hugging Face", { defaultValue: "View on HuggingFace" })}
+      title={t("editor:ui.View on Hugging Face", { defaultValue: "View on HuggingFace" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
     >
@@ -58,13 +62,15 @@ export const HuggingFaceLink: React.FC<{
       </EditorButton>
     </Tooltip>
   );
+};
 
 export const OllamaLink: React.FC<{
   modelId: string;
 }> = ({ modelId }) => {
+  const { t } = useTranslation();
   return (
     <Tooltip
-      title={i18n.t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })}
+      title={t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
     >

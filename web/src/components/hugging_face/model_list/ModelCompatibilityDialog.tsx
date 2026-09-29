@@ -25,7 +25,7 @@ import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import TerminalRoundedIcon from "@mui/icons-material/TerminalRounded";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -131,6 +131,7 @@ const NodeList: React.FC<{
   label: string;
   isRecommended?: boolean;
 }> = ({ items, label, isRecommended }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   if (items.length === 0) {
     return (
@@ -156,7 +157,7 @@ const NodeList: React.FC<{
                 </Text>
                 {isRecommended && (
                   <Chip
-                    label={i18n.t("editor:ui.bestMatch", { defaultValue: "Best Match" })}
+                    label={t("editor:ui.bestMatch", { defaultValue: "Best Match" })}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -193,7 +194,7 @@ const NodeList: React.FC<{
             <div className="copy-button">
               <CopyButton
                 value={node.nodeType}
-                tooltip={i18n.t("editor:ui.copyNodeType", { defaultValue: "Copy node type" })}
+                tooltip={t("editor:ui.copyNodeType", { defaultValue: "Copy node type" })}
                 tooltipPlacement="left"
               />
             </div>
@@ -217,6 +218,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
   model,
   compatibility
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -231,7 +233,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
             <FlexRow gap={1} align="center">
               <AutoAwesomeRoundedIcon sx={{ color: "primary.main", fontSize: 20 }} />
               <Text size="normal" weight={600} component="span" sx={{ letterSpacing: -0.2 }}>
-                {i18n.t("editor:ui.nodeCompatibility")}
+                {t("editor:ui.nodeCompatibility")}
               </Text>
             </FlexRow>
             <Caption
@@ -290,7 +292,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
               <FlexRow gap={1} align="center">
                 <CheckCircleOutlineRoundedIcon sx={{ color: "text.secondary", fontSize: 18 }} />
                 <Text size="small" weight={600}>
-                  {i18n.t("editor:ui.compatibleNodes")}
+                  {t("editor:ui.compatibleNodes")}
                 </Text>
               </FlexRow>
               <Caption sx={{ color: "text.disabled", fontWeight: 500 }}>

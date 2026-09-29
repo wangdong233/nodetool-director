@@ -21,7 +21,7 @@ import { trpc } from "../../../lib/trpc";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { useModels } from "./useModels";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface DeleteModelDialogProps {
   modelId: string | null;
@@ -34,6 +34,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
   onClose,
   scope = "local"
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { allModels } = useModels(scope);
   const queryClient = useQueryClient();
@@ -124,7 +125,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
       } catch (error: unknown) {
         console.error("Deletion error:", error);
 
-        const errorMessage = error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" });
+        const errorMessage = error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" });
 
         const isNotFound =
           errorMessage.includes("Not Found") || errorMessage.includes("404");
