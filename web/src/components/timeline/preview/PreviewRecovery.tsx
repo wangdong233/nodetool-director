@@ -7,6 +7,8 @@ import {
   type ErrorInfo,
   type ReactNode
 } from "react";
+// Class component (D-registry §1 exemption): keeps global `i18n.t` — hooks
+// cannot live in a class body, no HOC conversion per the C merge ruling.
 import { openBugReport } from "../../../stores/BugReportStore";
 import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";

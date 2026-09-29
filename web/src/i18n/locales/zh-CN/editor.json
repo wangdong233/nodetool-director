@@ -2708,7 +2708,8 @@
     "estimatedFromSystemMemory": "依据系统内存估算——设置 GPU 显存可获得更精准的匹配。",
     "usingTheValueYouSet": "使用你设置的值。",
     "weCouldNotDetectYourHardwarePickYourGpuMemory": "未能检测到你的硬件。请选择 GPU 显存以获取推荐。",
-    "setGpuMemory": "设置 GPU 显存"
+    "setGpuMemory": "设置 GPU 显存",
+    "buildPlacesTheNodesAndThenRunsItOnce": "构建会放置节点并运行一次"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

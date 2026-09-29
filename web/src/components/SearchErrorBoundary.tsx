@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+// Class component (D-registry §1 exemption): keeps global `i18n.t` — hooks
+// cannot live in a class body, no HOC conversion per the C merge ruling.
 import { css } from "@emotion/react";
 import { Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";

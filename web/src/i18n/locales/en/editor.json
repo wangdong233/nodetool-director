@@ -2708,7 +2708,8 @@
     "estimatedFromSystemMemory": "Estimated from system memory — set your GPU's VRAM for a sharper match.",
     "usingTheValueYouSet": "Using the value you set.",
     "weCouldNotDetectYourHardwarePickYourGpuMemory": "We couldn't detect your hardware. Pick your GPU memory to get recommendations.",
-    "setGpuMemory": "Set GPU memory"
+    "setGpuMemory": "Set GPU memory",
+    "buildPlacesTheNodesAndThenRunsItOnce": "Build places the nodes and then runs it once"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

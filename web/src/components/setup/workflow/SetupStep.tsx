@@ -214,7 +214,7 @@ const BuildDisclosure: React.FC<{
         paddingTop: SPACING.lg
       }}
     >
-      <Label>Build places the nodes and then runs it once</Label>
+      <Label>{t("editor:ui.buildPlacesTheNodesAndThenRunsItOnce", { defaultValue: "Build places the nodes and then runs it once" })}</Label>
       <Text size="small" color="secondary">
         {plan.inputs.length > 0
           ? t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceWithTheSampleInputsAboveThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates." })

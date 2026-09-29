@@ -2,6 +2,7 @@
 import React, { useMemo } from "react";
 import type { CustomField } from "@puckeditor/core";
 import { useGetPuck } from "@puckeditor/core";
+import { i18n } from "../../i18n";
 
 import {
   SelectField,
@@ -147,7 +148,9 @@ const Picker: React.FC<{
  */
 export const bindingField = (
   mode: "write" | "read",
-  label = "Bind to"
+  // Param-default position (D§9 class): the hook's t is not visible here,
+  // so the fallback reads the global instance — live language at each call.
+  label = i18n.t("appbuilder:attrs.bindTo", { defaultValue: "Bind to" })
 ): CustomField<string> => ({
   type: "custom",
   label,
