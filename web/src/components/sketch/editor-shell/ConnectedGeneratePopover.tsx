@@ -59,7 +59,7 @@ import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import { SKETCH_SPACING } from "../sketchStyles";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Most recent direct-gen binding's model, to seed the form's picker. */
 function seedModelFromBindings() {
@@ -92,6 +92,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
   anchorEl,
   onClose
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const docW = useSketchStore((s) => s.document.canvas.width);
@@ -266,7 +267,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <TextInput
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder={i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
+            placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
             autoFocus
             multiline
             minRows={2}
@@ -323,7 +324,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
               anchorEl={resolutionAnchor}
               open={!!resolutionAnchor}
               onClose={() => setResolutionAnchor(null)}
-              header={i18n.t("editor:ui.resolution", { defaultValue: "Resolution" })}
+              header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
               value={resolution}
               options={resolutionOptions}
               onChange={handleResolutionChange}
@@ -350,7 +351,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <FlexRow justify="flex-end" fullWidth>
             <CostEstimateLine
               estimate={generationCostLine(costEstimate)}
-              title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
+              title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
             />
           </FlexRow>
 

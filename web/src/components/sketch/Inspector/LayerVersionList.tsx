@@ -23,7 +23,7 @@ import {
   useDeleteLayerVersion
 } from "../../../hooks/sketch/useLayerVersions";
 import { LayerVersionRow } from "./LayerVersionRow";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const sectionStyles = (theme: Theme) =>
   css({
@@ -49,6 +49,7 @@ interface LayerVersionListProps {
 
 export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
   ({ documentId, layerId }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [expanded, setExpanded] = useState(false);
 
@@ -117,13 +118,13 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
           </Text>
           <ToolbarIconButton
             icon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            tooltip={expanded ? i18n.t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : i18n.t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
+            tooltip={expanded ? t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
             size="small"
             onClick={(e) => {
               e.stopPropagation();
               toggleExpanded();
             }}
-            aria-label={expanded ? i18n.t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : i18n.t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
+            aria-label={expanded ? t("sketch:attrs.collapseVersions", { defaultValue: "Collapse versions" }) : t("sketch:attrs.expandVersions", { defaultValue: "Expand versions" })}
           />
         </FlexRow>
 
@@ -139,7 +140,7 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
               <EmptyState
                 variant="error"
                 size="small"
-                title={i18n.t("timeline:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}
+                title={t("timeline:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}
               />
             )}
 
@@ -147,8 +148,8 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
               <EmptyState
                 variant="empty"
                 size="small"
-                title={i18n.t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
-                description={i18n.t("editor:ui.successfulGenerationsWillAppearHere")}
+                title={t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
+                description={t("editor:ui.successfulGenerationsWillAppearHere")}
               />
             )}
 

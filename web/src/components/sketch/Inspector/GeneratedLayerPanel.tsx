@@ -34,7 +34,7 @@ import { workflowCostLine } from "../../costs/costLine";
 import { GeneratedLayerHeader } from "./GeneratedLayerHeader";
 import { LayerActions } from "./LayerActions";
 import { LayerVersionList } from "./LayerVersionList";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface GeneratedLayerPanelProps {
   layer: Layer;
@@ -90,6 +90,7 @@ const inputsContainerStyles = (theme: Theme) =>
 
 export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
   ({ layer }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const binding = useLayerBinding(layer.id);
     const documentId = useSketchSessionStore((s) => s.documentId);
@@ -175,8 +176,8 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
           <EmptyState
             variant="empty"
             size="small"
-            title={i18n.t("editor:ui.noWorkflowBinding", { defaultValue: "No workflow binding" })}
-            description={i18n.t("editor:ui.thisLayerDoesNotHaveAGeneratedLayerBindingYet")}
+            title={t("editor:ui.noWorkflowBinding", { defaultValue: "No workflow binding" })}
+            description={t("editor:ui.thisLayerDoesNotHaveAGeneratedLayerBindingYet")}
           />
         </Panel>
       );
@@ -201,7 +202,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
               <AlertBanner
                 severity="error"
                 compact
-                title={i18n.t("editor:ui.generationFailed", { defaultValue: "Generation failed" })}
+                title={t("editor:ui.generationFailed", { defaultValue: "Generation failed" })}
                 onClose={() => clearJob(layer.id)}
               >
                 {jobErrorMessage}
@@ -215,7 +216,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
               <EmptyState
                 variant="error"
                 size="small"
-                description={i18n.t("editor:ui.failedToLoadWorkflowInputs")}
+                description={t("editor:ui.failedToLoadWorkflowInputs")}
               />
             )}
             {!isLoading && !isError && workflow && (
@@ -224,7 +225,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
                   <EmptyState
                     variant="empty"
                     size="small"
-                    description={i18n.t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
+                    description={t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
                   />
                 ) : nodeStoreForForm ? (
                   <NodeContext.Provider value={nodeStoreForForm}>
@@ -248,7 +249,7 @@ export const GeneratedLayerPanel: React.FC<GeneratedLayerPanelProps> = memo(
             <FlexRow justify="flex-end" fullWidth sx={{ px: 0.5, pb: 0.5 }}>
               <CostEstimateLine
                 estimate={workflowCostLine(costEstimate)}
-                title={i18n.t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
+                title={t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
               />
             </FlexRow>
             <LayerActions layerId={layer.id} binding={binding} />

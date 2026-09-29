@@ -32,6 +32,7 @@ import { useCreateGeneratedLayer } from "../../../hooks/sketch/useCreateGenerate
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { isString } from "../../../utils/typePredicates";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const IMAGE_OUTPUT_TYPES = new Set([
   "nodetool.output.ImageOutput",
@@ -129,6 +130,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
   onClose: () => void;
   onCreated?: (layerId: string) => void;
 }> = ({ onClose, onCreated }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [filter, setFilter] = useState("");
     const autoFocusEnabled = useAutoFocusEnabled();
@@ -233,17 +235,17 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         <Dialog
           open
           onClose={handleClose}
-          title={i18n.t("editor:ui.createGeneratedLayer", { defaultValue: "Create generated layer" })}
+          title={t("editor:ui.createGeneratedLayer", { defaultValue: "Create generated layer" })}
           showActions
           onConfirm={() => void handleConfirm()}
           onCancel={handleClose}
-          confirmText={isBusy ? i18n.t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : i18n.t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
+          confirmText={isBusy ? t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
           confirmDisabled={confirmDisabled}
           PaperProps={{ css: dialogStyles() }}
         >
           <FlexColumn gap={1.5}>
             <Caption color="secondary">
-              {i18n.t("editor:ui.pickAnyWorkflowWhoseGraphHasAnImageOutputNode")}
+              {t("editor:ui.pickAnyWorkflowWhoseGraphHasAnImageOutputNode")}
             </Caption>
 
             {/* autoFocus is skipped on touch, where the virtual keyboard
@@ -252,7 +254,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               autoFocus={autoFocusEnabled}
               compact
               size="small"
-              placeholder={i18n.t("editor:ui.searchWorkflows")}
+              placeholder={t("editor:ui.searchWorkflows")}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               fullWidth
@@ -268,7 +270,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               <EmptyState
                 variant="error"
                 size="small"
-                description={i18n.t("editor:ui.couldNotLoadWorkflows")}
+                description={t("editor:ui.couldNotLoadWorkflows")}
               />
             )}
 
@@ -276,8 +278,8 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               <EmptyState
                 variant="empty"
                 size="small"
-                title={i18n.t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
-                description={i18n.t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
+                title={t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
+                description={t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
               />
             )}
 
@@ -335,7 +337,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
             {requiresOutputPick && selectedWorkflow && (
               <FlexColumn gap={1}>
                 <Text size="small">
-                  {i18n.t("editor:ui.thisWorkflowHasMultipleImageOutputsPickOne")}
+                  {t("editor:ui.thisWorkflowHasMultipleImageOutputsPickOne")}
                 </Text>
                 <FlexRow gap={0.5} sx={{ flexWrap: "wrap" }}>
                   {selectedWorkflow.outputNodes.map((node) => (

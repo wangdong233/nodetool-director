@@ -18,9 +18,10 @@ import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useRegenerateStaleLayers } from "../../../hooks/sketch/useRegenerateStaleLayers";
 import { CreateGeneratedLayerDialog } from "./CreateGeneratedLayerDialog";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const SketchAIToolbarInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Derive the counts directly via Zustand selectors so we don't iterate
   // every binding on every render of the toolbar.
@@ -66,7 +67,7 @@ const SketchAIToolbarInner: React.FC = () => {
         }}
       >
         <Tooltip
-          title={i18n.t("editor:ui.generateLayerBindANewLayerToAnyWorkflowWithAnImageOutput")}
+          title={t("editor:ui.generateLayerBindANewLayerToAnyWorkflowWithAnImageOutput")}
           delay={TOOLTIP_ENTER_DELAY}
           placement="bottom"
         >
@@ -85,7 +86,7 @@ const SketchAIToolbarInner: React.FC = () => {
         <Tooltip
           title={
             staleCount === 0
-              ? i18n.t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." })
+              ? t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." })
               : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
           }
           delay={TOOLTIP_ENTER_DELAY}
@@ -113,11 +114,11 @@ const SketchAIToolbarInner: React.FC = () => {
       <Dialog
         open={confirmRegenOpen}
         onClose={() => setConfirmRegenOpen(false)}
-        title={i18n.t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
+        title={t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
         onConfirm={() => void handleConfirmRegen()}
         onCancel={() => setConfirmRegenOpen(false)}
-        confirmText={i18n.t("editor:ui.reGenerate", { defaultValue: "Re-generate" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("editor:ui.reGenerate", { defaultValue: "Re-generate" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         showActions
       >
         <Text size="small" sx={{ mb: 1 }}>

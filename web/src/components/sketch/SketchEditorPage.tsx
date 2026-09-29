@@ -11,9 +11,10 @@ import { useParams } from "react-router-dom";
 
 import { EmptyState, FlexColumn } from "../ui_primitives";
 import StandaloneSketchEditor from "./StandaloneSketchEditor";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const SketchEditorPage: React.FC = memo(function SketchEditorPage() {
+  const { t } = useTranslation();
   const { documentId } = useParams<{ documentId: string }>();
 
   if (!documentId) {
@@ -25,8 +26,8 @@ const SketchEditorPage: React.FC = memo(function SketchEditorPage() {
       >
         <EmptyState
           variant="error"
-          title={i18n.t("sketch:attrs.noDocumentId", { defaultValue: "No document id" })}
-          description={i18n.t("editor:ui.theSketchRouteRequiresADocumentIdPathParameter")}
+          title={t("sketch:attrs.noDocumentId", { defaultValue: "No document id" })}
+          description={t("editor:ui.theSketchRouteRequiresADocumentIdPathParameter")}
         />
       </FlexColumn>
     );

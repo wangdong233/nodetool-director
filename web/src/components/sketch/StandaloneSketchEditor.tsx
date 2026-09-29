@@ -56,7 +56,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -116,6 +116,7 @@ const ConflictBannerHost: React.FC<{ documentId: string }> = ({ documentId }) =>
 
 const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
   function StandaloneSketchEditorBody({ documentId, headerActions, overlay }) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const styles = useMemo(() => containerStyles(theme), [theme]);
     const editorRef = useRef<SketchEditorHandle | null>(null);
@@ -237,7 +238,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <FileDownloadOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>{i18n.t("sketch:attrs.exportPNG", { defaultValue: "Export PNG" })}</ListItemText>
+        <ListItemText>{t("sketch:attrs.exportPNG", { defaultValue: "Export PNG" })}</ListItemText>
       </EditorMenuItem>
     ];
 
@@ -250,8 +251,8 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <FlexColumn align="center" justify="center" sx={centered}>
             <EmptyState
               variant="error"
-              title={i18n.t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
-              description={i18n.t("editor:ui.theImageDocumentYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
+              title={t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
+              description={t("editor:ui.theImageDocumentYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
             />
           </FlexColumn>
         );

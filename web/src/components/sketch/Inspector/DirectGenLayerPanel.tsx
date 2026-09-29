@@ -50,7 +50,7 @@ import { useDirectGenJob } from "../../../hooks/sketch/useDirectGenJob";
 import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Defaults for image-to-image controls when the binding has no explicit
 // value yet — same as the media chat composer's image_edit defaults.
@@ -66,6 +66,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
   layer,
   binding
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const patchBinding = useSketchSessionStore((s) => s.patchBinding);
   const layers = useSketchStore((s) => s.document.layers);
@@ -160,8 +161,8 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <TextInput
           value={binding.prompt ?? ""}
           onChange={(e) => patchBinding(layer.id, { prompt: e.target.value })}
-          placeholder={i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
-          aria-label={i18n.t("editor:ui.imagePrompt", { defaultValue: "Image prompt" })}
+          placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
+          aria-label={t("editor:ui.imagePrompt", { defaultValue: "Image prompt" })}
           sx={{ "& .MuiOutlinedInput-root": sketchFieldSx }}
           multiline
           minRows={3}
@@ -172,7 +173,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow gap={0.5} align="center" sx={{ flexWrap: "wrap" }}>
           <MediaOptionChip
             icon={<TvIcon fontSize="small" />}
-            header={i18n.t("editor:ui.resolution", { defaultValue: "Resolution" })}
+            header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
             value={resolution}
             options={resolutionOptions}
             onChange={(r) => applySize(r, aspectRatio)}
@@ -187,7 +188,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
               <MediaOptionChip
                 icon={<TuneIcon fontSize="small" />}
                 label={`Strength ${(binding.strength ?? DEFAULT_STRENGTH).toFixed(2)}`}
-                header={i18n.t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
+                header={t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
                 value={binding.strength ?? DEFAULT_STRENGTH}
                 options={strengthOptions}
                 onChange={(s) => patchBinding(layer.id, { strength: s })}
@@ -195,7 +196,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
               <MediaOptionChip
                 icon={<LayersIcon fontSize="small" />}
                 label={`${binding.numInferenceSteps ?? DEFAULT_STEPS} steps`}
-                header={i18n.t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
+                header={t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
                 value={binding.numInferenceSteps ?? DEFAULT_STEPS}
                 options={stepsOptions}
                 onChange={(n) =>
@@ -209,11 +210,11 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         {isImageToImage &&
           (sourceLayerOptions.length === 0 ? (
             <Caption color="secondary">
-              {i18n.t("editor:ui.noSourceLayersAvailablePaintSomethingOnALayerFirst")}
+              {t("editor:ui.noSourceLayersAvailablePaintSomethingOnALayerFirst")}
             </Caption>
           ) : (
             <SelectField
-              label={i18n.t("timeline:editor.source", { defaultValue: "Source" })}
+              label={t("timeline:editor.source", { defaultValue: "Source" })}
               value={binding.sourceLayerId ?? ""}
               onChange={(v) =>
                 patchBinding(layer.id, { sourceLayerId: v ? v : null })
@@ -226,7 +227,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow justify="flex-end" fullWidth>
           <CostEstimateLine
             estimate={generationCostLine(costEstimate)}
-            title={i18n.t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
+            title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
           />
         </FlexRow>
 
@@ -236,7 +237,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             variant="text"
             color="inherit"
             onClick={() => cancel(layer.id)}
-          >{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+          >{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
         ) : (
           <EditorButton
             size="small"

@@ -10,7 +10,7 @@
 import React, { memo } from "react";
 import type { Layer } from "../types";
 import { summarizeLayerImageReference } from "../types";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   CollapsibleSection,
@@ -27,6 +27,7 @@ interface ImportedLayerPanelProps {
 
 export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
   ({ layer }) => {
+    const { t } = useTranslation();
     const ref = layer.imageReference;
     return (
       <Panel
@@ -41,10 +42,10 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
                 {layer.name}
               </Label>
             </FlexRow>
-            <Caption color="secondary">{i18n.t("ui2:attrs.importedLayer", { defaultValue: "Imported layer" })}</Caption>
+            <Caption color="secondary">{t("ui2:attrs.importedLayer", { defaultValue: "Imported layer" })}</Caption>
           </FlexColumn>
 
-          <CollapsibleSection title={i18n.t("timeline:editor.source", { defaultValue: "Source" })} defaultOpen>
+          <CollapsibleSection title={t("timeline:editor.source", { defaultValue: "Source" })} defaultOpen>
             {ref ? (
               <FlexColumn gap={0.5}>
                 <Text size="small">
@@ -55,7 +56,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
                 </Text>
               </FlexColumn>
             ) : (
-              <Caption color="secondary">{i18n.t("ui2:attrs.noImageSourceRecorded", { defaultValue: "No image source recorded." })}</Caption>
+              <Caption color="secondary">{t("ui2:attrs.noImageSourceRecorded", { defaultValue: "No image source recorded." })}</Caption>
             )}
           </CollapsibleSection>
         </FlexColumn>

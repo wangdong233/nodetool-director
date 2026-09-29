@@ -11,7 +11,7 @@ import {
 } from "../../ui_primitives";
 import { sketchSliderSx } from "../sketchStyles";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   DEFAULT_PRESSURE_CURVE,
   DEFAULT_PRESSURE_MIN_SCALE,
@@ -41,6 +41,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
   omitSensitivitySwitch = false,
   inlineRow = false
 }: PenPressureSettingsPanelProps) {
+  const { t } = useTranslation();
   const affectsGroup = (
     <SketchModeToggle
       value={settings.pressureAffects || "both"}
@@ -52,9 +53,9 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         }
       }}
     >
-      <SketchModeOption value="size">{i18n.t("ui2:attrs.size", { defaultValue: "Size" })}</SketchModeOption>
-      <SketchModeOption value="opacity">{i18n.t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</SketchModeOption>
-      <SketchModeOption value="both">{i18n.t("ui2:attrs.both", { defaultValue: "Both" })}</SketchModeOption>
+      <SketchModeOption value="size">{t("ui2:attrs.size", { defaultValue: "Size" })}</SketchModeOption>
+      <SketchModeOption value="opacity">{t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</SketchModeOption>
+      <SketchModeOption value="both">{t("ui2:attrs.both", { defaultValue: "Both" })}</SketchModeOption>
     </SketchModeToggle>
   );
 
@@ -67,7 +68,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title={i18n.t("sketch:attrs.sizeOpacityAtMinimumPressure", { defaultValue: "Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in." })}
+        title={t("sketch:attrs.sizeOpacityAtMinimumPressure", { defaultValue: "Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in." })}
       >
         Light end
       </Text>
@@ -96,9 +97,9 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title={i18n.t("editor:ui.pressureExponentBeforeMapping1=LinearHigher=NeedFirmerPressureForFullSize")}
+        title={t("editor:ui.pressureExponentBeforeMapping1=LinearHigher=NeedFirmerPressureForFullSize")}
       >
-        {i18n.t("editor:ui.curve")}
+        {t("editor:ui.curve")}
       </Text>
       <Slider
         sx={sketchSliderSx}
@@ -143,7 +144,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <>
       {!omitSensitivitySwitch ? (
         <Box className="setting-row" sx={{ alignItems: "center" }}>
-          <Text className="setting-label">{i18n.t("ui2:attrs.pressure", { defaultValue: "Pressure" })}</Text>
+          <Text className="setting-label">{t("ui2:attrs.pressure", { defaultValue: "Pressure" })}</Text>
           <Switch
             size="small"
             checked={settings.pressureSensitivity ?? true}

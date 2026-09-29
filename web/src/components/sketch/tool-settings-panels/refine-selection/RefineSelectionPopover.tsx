@@ -27,7 +27,7 @@ import { sketchSliderSx } from "../../sketchStyles";
 import { cloneSelectionMask, MAX_SELECTION_FEATHER_RADIUS } from "../../selection";
 import type { SelectSettings, Selection } from "../../types";
 import { useSketchStore } from "../../state";
-import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const MAX_BORDER_WIDTH = 64;
 const MAX_MODIFY_PX = 64;
@@ -136,6 +136,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
   onSmoothSelectionBorders,
   onConvertSelectionToBorder
 }: RefineSelectionPopoverProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [modifyPx, setModifyPx] = useState(1);
   const expandCurrentSelection = useSketchStore(
@@ -224,7 +225,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
     >
       <FlexColumn gap={1.5} sx={{ width: 340 }}>
         <RefineRow
-          label={i18n.t("editor:ui.modify", { defaultValue: "Modify" })}
+          label={t("editor:ui.modify", { defaultValue: "Modify" })}
           value={modifyPx}
           min={1}
           max={MAX_MODIFY_PX}
@@ -252,7 +253,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label={i18n.t("timeline:attrs.feather", { defaultValue: "Feather" })}
+          label={t("timeline:attrs.feather", { defaultValue: "Feather" })}
           value={settings.featherRadius}
           min={0}
           max={MAX_SELECTION_FEATHER_RADIUS}
@@ -270,7 +271,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label={i18n.t("editor:ui.smooth", { defaultValue: "Smooth" })}
+          label={t("editor:ui.smooth", { defaultValue: "Smooth" })}
           value={null}
           action={
             <ApplyButton
@@ -285,7 +286,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <RefineRow
-          label={i18n.t("editor:ui.border", { defaultValue: "Border" })}
+          label={t("editor:ui.border", { defaultValue: "Border" })}
           value={settings.borderWidth}
           min={1}
           max={MAX_BORDER_WIDTH}
@@ -303,7 +304,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         />
 
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
-          <EditorButton variant="outlined" onClick={handleCancel}>{i18n.t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+          <EditorButton variant="outlined" onClick={handleCancel}>{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
             Apply
           </EditorButton>

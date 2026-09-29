@@ -37,6 +37,7 @@ import {
 import { cn } from "../../editor_ui/editorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const actionsRowStyles = (theme: Theme) =>
   css({
@@ -127,6 +128,7 @@ interface LayerActionsProps {
 
 export const LayerActions: React.FC<LayerActionsProps> = memo(
   ({ layerId, binding }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -253,12 +255,12 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
     return (
       <>
         <FlexRow css={actionsRowStyles(theme)}>
-          <span css={sectionLabelStyles(theme)}>{i18n.t("ui2:attrs.layer", { defaultValue: "Layer" })}</span>
+          <span css={sectionLabelStyles(theme)}>{t("ui2:attrs.layer", { defaultValue: "Layer" })}</span>
 
           <Tooltip
             title={
               isActive
-                ? i18n.t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" })
+                ? t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" })
                 : generatePending
                   ? "Starting…"
                   : "Generate layer from the bound workflow and overrides"
@@ -283,7 +285,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
                 }
                 disableRipple
                 aria-label={
-                  isActive ? i18n.t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : i18n.t("sketch:attrs.generateLayer2", { defaultValue: "Generate layer" })
+                  isActive ? t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : t("sketch:attrs.generateLayer2", { defaultValue: "Generate layer" })
                 }
                 data-testid="layer-action-generate"
               >
@@ -294,10 +296,10 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
+            tooltip={t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy || !documentId}
-            aria-label={i18n.t("editor:ui.duplicateLayer", { defaultValue: "Duplicate layer" })}
+            aria-label={t("editor:ui.duplicateLayer", { defaultValue: "Duplicate layer" })}
             data-testid="layer-action-duplicate"
           />
 
@@ -311,30 +313,30 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             }
             tooltip={
               isLocked
-                ? i18n.t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
-                : i18n.t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
+                ? t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
+                : t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={isLocked}
             onClick={handleToggleLock}
-            aria-label={isLocked ? i18n.t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : i18n.t("sketch:attrs.lockLayer", { defaultValue: "Lock layer" })}
+            aria-label={isLocked ? t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : t("sketch:attrs.lockLayer", { defaultValue: "Lock layer" })}
             data-testid="layer-action-lock"
           />
 
           <ToolbarIconButton
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.revertClearTheCurrentGenerationBackToDraft", { defaultValue: "Revert — clear the current generation back to draft" })}
+            tooltip={t("editor:ui.revertClearTheCurrentGenerationBackToDraft", { defaultValue: "Revert — clear the current generation back to draft" })}
             onClick={handleRevert}
             disabled={!binding.lastGeneratedHash}
-            aria-label={i18n.t("editor:ui.revertLayerToDraft", { defaultValue: "Revert layer to draft" })}
+            aria-label={t("editor:ui.revertLayerToDraft", { defaultValue: "Revert layer to draft" })}
             data-testid="layer-action-revert"
           />
 
           {binding.workflowId && documentId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip={i18n.t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
+              tooltip={t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
               onClick={handleOpenInNodeEditor}
-              aria-label={i18n.t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
+              aria-label={t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
               data-testid="layer-action-open-in-editor"
             />
           )}

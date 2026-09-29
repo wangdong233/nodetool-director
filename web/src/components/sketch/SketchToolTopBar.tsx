@@ -41,7 +41,7 @@ import {
 import type { SamModelInfo } from "./sam";
 import { ToolSettingsPanel } from "./ToolSettingsPanels";
 import { settingRowChildrenSx } from "./sketchStyles";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -224,6 +224,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
   settingsCollapsed = false,
   onToggleSettingsCollapsed
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -240,7 +241,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
         {onToggleSettingsCollapsed && (
           <Tooltip
             title={
-              settingsCollapsed ? i18n.t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : i18n.t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
+              settingsCollapsed ? t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
             }
           >
             <IconButton
@@ -248,7 +249,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
               onClick={onToggleSettingsCollapsed}
               aria-expanded={!settingsCollapsed}
               aria-label={
-                settingsCollapsed ? i18n.t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : i18n.t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
+                settingsCollapsed ? t("sketch:attrs.showToolSettings", { defaultValue: "Show tool settings" }) : t("sketch:attrs.hideToolSettings", { defaultValue: "Hide tool settings" })
               }
               data-testid="sketch-toggle-tool-settings"
             >

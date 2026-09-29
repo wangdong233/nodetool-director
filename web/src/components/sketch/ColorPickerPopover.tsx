@@ -40,7 +40,7 @@ import {
   hsvToRgb
 } from "./types";
 import { SKETCH_FONT, SKETCH_SPACING, SKETCH_Z_INDEX, SKETCH_COLORS, SKETCH_TOOLTIP_DELAY_MS, toggleButtonSmallSx, colorPickerSliderThumbSx } from "./sketchStyles";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const SV_SIZE = 160;
 const HUE_HEIGHT = 12;
@@ -67,6 +67,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   onColorChange,
   onClose
 }) => {
+  const { t } = useTranslation();
   const open = Boolean(anchorEl);
   const [mode, setMode] = useState<ColorMode>("hex");
 
@@ -205,11 +206,11 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       }}
     >
       <FlexRow className="color-picker__header" align="center" justify="flex-end" sx={{ minHeight: "22px", mt: `-${SKETCH_SPACING.md}`, mr: `-${SKETCH_SPACING.md}`, mb: SKETCH_SPACING.xs }}>
-        <Tooltip title={i18n.t("sketch:attrs.cancelKeepPreviousColor", { defaultValue: "Cancel — keep previous color" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+        <Tooltip title={t("sketch:attrs.cancelKeepPreviousColor", { defaultValue: "Cancel — keep previous color" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
           <IconButton
             size="small"
             onClick={handleCancel}
-            aria-label={i18n.t("sketch:attrs.cancelColorChange", { defaultValue: "Cancel color change" })}
+            aria-label={t("sketch:attrs.cancelColorChange", { defaultValue: "Cancel color change" })}
             sx={{ p: SKETCH_SPACING.xs, color: SKETCH_COLORS.textSecondary, "&:hover": { color: SKETCH_COLORS.textPrimary, bgcolor: "rgba(255,255,255,0.06)" } }}
           >
             <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />

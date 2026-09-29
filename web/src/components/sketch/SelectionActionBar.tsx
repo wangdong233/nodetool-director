@@ -57,6 +57,7 @@ import type { Point } from "./types";
 import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;
@@ -116,6 +117,7 @@ function docToCss(
 const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
   containerRef
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const selection = useSketchStore((s) => s.selection);
@@ -415,7 +417,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             as a mask). The picked mode drives the model filter and the run. */}
         <FlexRow gap={0} sx={{ flexShrink: 0, mr: 0.5 }}>
           <Tooltip
-            title={i18n.t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt(imagetoimageNoMask)", { defaultValue: "Edit — transform the whole frame from your prompt (image-to-image, no mask)." })}
+            title={t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt(imagetoimageNoMask)", { defaultValue: "Edit — transform the whole frame from your prompt (image-to-image, no mask)." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -424,10 +426,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("edit")}
               data-testid="sketch-selection-mode-edit"
-            >{i18n.t("sketch:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
+            >{t("sketch:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
           </Tooltip>
           <Tooltip
-            title={i18n.t("sketch:attrs.inpaintRegenerateOnlyTheSelectedRegionUsingTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate only the selected region, using the selection as a mask." })}
+            title={t("sketch:attrs.inpaintRegenerateOnlyTheSelectedRegionUsingTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate only the selected region, using the selection as a mask." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -436,7 +438,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("inpaint")}
               data-testid="sketch-selection-mode-inpaint"
-            >{i18n.t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })}</EditorButton>
+            >{t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })}</EditorButton>
           </Tooltip>
         </FlexRow>
 
@@ -446,11 +448,11 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             mode === "inpaint"
-              ? i18n.t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" })
-              : i18n.t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
+              ? t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" })
+              : t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
           }
           compact
-          aria-label={mode === "inpaint" ? i18n.t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : i18n.t("sketch:attrs.editPrompt", { defaultValue: "Edit prompt" })}
+          aria-label={mode === "inpaint" ? t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : t("sketch:attrs.editPrompt", { defaultValue: "Edit prompt" })}
           data-testid="sketch-selection-inpaint-prompt"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !generateDisabled) {
@@ -482,8 +484,8 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         <Tooltip
           title={
             mode === "inpaint"
-              ? i18n.t("sketch:attrs.inpaintRegenerateTheSelectedRegionUsingYourPromptAndTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate the selected region using your prompt and the selection as a mask." })
-              : i18n.t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt", { defaultValue: "Edit — transform the whole frame from your prompt." })
+              ? t("sketch:attrs.inpaintRegenerateTheSelectedRegionUsingYourPromptAndTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate the selected region using your prompt and the selection as a mask." })
+              : t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt", { defaultValue: "Edit — transform the whole frame from your prompt." })
           }
           delay={TOOLTIP_ENTER_DELAY}
           placement={placeAbove ? "top" : "bottom"}
@@ -509,7 +511,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         </Tooltip>
 
         <Tooltip
-          title={i18n.t("sketch:attrs.removeClearTheSelectedPixelsFromTheActiveLayer", { defaultValue: "Remove — clear the selected pixels from the active layer." })}
+          title={t("sketch:attrs.removeClearTheSelectedPixelsFromTheActiveLayer", { defaultValue: "Remove — clear the selected pixels from the active layer." })}
           delay={TOOLTIP_ENTER_DELAY}
           placement={placeAbove ? "top" : "bottom"}
         >
@@ -521,7 +523,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               disabled={!clearActiveLayer}
               startIcon={<DeleteOutlineIcon fontSize="small" />}
               data-testid="sketch-selection-remove"
-            >{i18n.t("sketch:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
+            >{t("sketch:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
           </span>
         </Tooltip>
 
@@ -530,7 +532,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             them there. */}
         {mode === "inpaint" && (
           <Tooltip
-            title={i18n.t("sketch:attrs.refineMaskFeatherSmoothGrowShrinkOrBorderTheSelectionUsedForInpainting", { defaultValue: "Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting." })}
+            title={t("sketch:attrs.refineMaskFeatherSmoothGrowShrinkOrBorderTheSelectionUsedForInpainting", { defaultValue: "Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting." })}
             delay={TOOLTIP_ENTER_DELAY}
             placement={placeAbove ? "top" : "bottom"}
           >
@@ -541,12 +543,12 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               onClick={() => setRefineOpen((v) => !v)}
               startIcon={<TuneIcon fontSize="small" />}
               data-testid="sketch-selection-refine-edge"
-            >{i18n.t("sketch:attrs.refineMask", { defaultValue: "Refine mask" })}</EditorButton>
+            >{t("sketch:attrs.refineMask", { defaultValue: "Refine mask" })}</EditorButton>
           </Tooltip>
         )}
 
         <CloseButton
-          tooltip={i18n.t("sketch:attrs.dismissSelection", { defaultValue: "Dismiss selection" })}
+          tooltip={t("sketch:attrs.dismissSelection", { defaultValue: "Dismiss selection" })}
           tooltipPlacement={placeAbove ? "top" : "bottom"}
           onClick={handleClose}
           buttonSize="small"

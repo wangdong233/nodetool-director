@@ -29,6 +29,7 @@ import {
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -162,6 +163,7 @@ const SketchListItem = memo(function SketchListItem({
 });
 
 export const CreateSketchButton = memo(function CreateSketchButton() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const createSketch = trpc.sketch.create.useMutation({
     onSuccess: () => {
@@ -198,9 +200,9 @@ export const CreateSketchButton = memo(function CreateSketchButton() {
   }, [createSketch, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title={i18n.t("sketch:attrs.newSketch", { defaultValue: "New sketch" })} placement="right-start">
+    <Tooltip title={t("sketch:attrs.newSketch", { defaultValue: "New sketch" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("sketch:attrs.newSketch", { defaultValue: "New sketch" })}
+        ariaLabel={t("sketch:attrs.newSketch", { defaultValue: "New sketch" })}
         onClick={() => void handleCreate()}
         disabled={createSketch.isPending}
         tabIndex={-1}

@@ -18,7 +18,7 @@ import {
   StatusIndicator
 } from "../../ui_primitives";
 import { LAYER_STATUS_MAP } from "./layerStatusMapping";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 function formatTimestamp(isoString: string): string {
   try {
@@ -38,6 +38,7 @@ interface GeneratedLayerHeaderProps {
 
 export const GeneratedLayerHeader: React.FC<GeneratedLayerHeaderProps> = memo(
   ({ layer, binding }) => {
+    const { t } = useTranslation();
     const visual = LAYER_STATUS_MAP[binding.status];
     const latestVersion =
       binding.versions[binding.versions.length - 1] ?? null;
@@ -56,7 +57,7 @@ export const GeneratedLayerHeader: React.FC<GeneratedLayerHeaderProps> = memo(
           />
         </FlexRow>
 
-        <Caption color="secondary">{i18n.t("ui2:attrs.generatedLayer", { defaultValue: "Generated layer" })}</Caption>
+        <Caption color="secondary">{t("ui2:attrs.generatedLayer", { defaultValue: "Generated layer" })}</Caption>
 
         {latestVersion && (
           <Caption color="secondary">
