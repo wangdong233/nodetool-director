@@ -9,7 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import { CopyButton, Text, Caption, NotificationBadge, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SHADOW } from "../ui_primitives";
 import { useShallow } from "zustand/react/shallow";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const popoverStyles = css({
   paddingRight: "4em",
@@ -37,6 +37,7 @@ const getNotificationButtonLabel = (unreadCount: number): string => {
 };
 
 const NotificationButton: React.FC = React.memo(() => {
+  const { t } = useTranslation();
   const [notificationAnchor, setNotificationAnchor] =
     useState<null | HTMLElement>(null);
   const { notifications, lastDisplayedTimestamp, updateLastDisplayedTimestamp } =
@@ -72,7 +73,7 @@ const NotificationButton: React.FC = React.memo(() => {
         count={unreadCount}
         color="secondary"
         dot
-        tooltip={i18n.t("editor:ui.notifications", { defaultValue: "Notifications" })}
+        tooltip={t("editor:ui.notifications", { defaultValue: "Notifications" })}
         ariaLabel={getNotificationButtonLabel(unreadCount)}
       >
         <ToolbarIconButton
@@ -100,7 +101,7 @@ const NotificationButton: React.FC = React.memo(() => {
         <Box
           className="notification-container"
           role="region"
-          aria-label={i18n.t("editor:ui.notifications", { defaultValue: "Notifications" })}
+          aria-label={t("editor:ui.notifications", { defaultValue: "Notifications" })}
           sx={{
             p: 3,
             width: "600px",
@@ -124,7 +125,7 @@ const NotificationButton: React.FC = React.memo(() => {
               sx={{ fontSize: "var(--fontSizeNormal)" }}
               weight={400}
             >
-              {i18n.t("editor:ui.noNotifications")}
+              {t("editor:ui.noNotifications")}
             </Text>
           ) : (
             <Box role="list" aria-label={`Notification list, ${notifications.length} item${notifications.length > 1 ? "s" : ""}`}>
@@ -182,7 +183,7 @@ const NotificationButton: React.FC = React.memo(() => {
                   <CopyButton
                     value={notification.content}
                     className="copy-button"
-                    tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+                    tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
                   />
                   {notification.type === "error" ? (
                     <ReportBugButton

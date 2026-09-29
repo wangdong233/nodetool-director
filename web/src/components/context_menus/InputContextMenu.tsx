@@ -43,7 +43,7 @@ import NodeItem from "../node_menu/NodeItem";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 28;
 
@@ -181,6 +181,7 @@ const getListConstantPathForElementType = (
   LIST_CONSTANT_PATHS[elementTypeName] ?? null;
 
 const InputContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const getMetadata = useMetadataStore((state) => state.getMetadata);
   const allMetadata = useMetadataStore((state) => state.metadata);
@@ -245,7 +246,7 @@ const InputContextMenu: React.FC = () => {
     type?.type === "str" ? getMetadata("nodetool.text.Prompt") : null;
 
   const specializedListLabel = specializedListPaths
-    ? i18n.t(`tools:ctx.${specializedListPaths.labelKey}`, {
+    ? t(`tools:ctx.${specializedListPaths.labelKey}`, {
         defaultValue: specializedListPaths.label
       })
     : undefined;
@@ -943,12 +944,12 @@ const InputContextMenu: React.FC = () => {
           inputRef={searchInputRef}
           size="small"
           fullWidth
-          placeholder={i18n.t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
+          placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
           value={searchTerm}
           onChange={handleSearchChange}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={handleSearchKeyDown}
-          aria-label={i18n.t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
+          aria-label={t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
           sx={{
             "& .MuiOutlinedInput-root": {
               backgroundColor: "action.disabledBackground",
@@ -982,7 +983,7 @@ const InputContextMenu: React.FC = () => {
               endAdornment: searchTerm ? (
                 <InputAdornment position="end">
                   <ToolbarIconButton
-                    aria-label={i18n.t("editor:io.clearSearch", { defaultValue: "clear search" })}
+                    aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                     onClick={handleClearSearch}
                     size="small"
                     icon={<ClearIcon sx={{ fontSize: 16 }} />}
@@ -1067,7 +1068,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <EditNoteIcon />
               </span>
-              <Text size="small">{i18n.t("editor:asset.info.prompt", { defaultValue: "Prompt" })}</Text>
+              <Text size="small">{t("editor:asset.info.prompt", { defaultValue: "Prompt" })}</Text>
             </Box>
           )}
           {type != null && handleId != null && (
@@ -1081,7 +1082,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <AutoAwesomeIcon />
               </span>
-              <Text size="small">{i18n.t("editor:ui.createValueWithAI", { defaultValue: "Create value with AI…" })}</Text>
+              <Text size="small">{t("editor:ui.createValueWithAI", { defaultValue: "Create value with AI…" })}</Text>
             </Box>
           )}
         </Box>

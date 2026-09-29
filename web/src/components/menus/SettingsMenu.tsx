@@ -66,6 +66,7 @@ import {
   settingsTabLabel,
   tabHasMatches
 } from "./settingsSearch";
+import { useTranslation } from "react-i18next";
 
 const settingsDocsTopic = (section: SettingsSection): DocsTopic =>
   section === "providers" ? "providers" : "configuration";
@@ -167,8 +168,10 @@ const SearchItem = React.memo(function SearchItem({
 });
 
 function SettingsPage() {
-  // Subscribe so raw-i18n.t reads (t18) re-render on language change — the
-  // language switcher lives inside this page and must flip it live.
+  const { t } = useTranslation();
+  // Kept through the useTranslation migration: the hook above carries the
+  // language subscription (the switcher lives here and must flip live); the
+  // version counter retires in P2 (B-R4).
   const { version: languageVersion } = useAppLanguage();
   const section = useSettingsPageStore((state) => state.section);
   const setSection = useSettingsPageStore((state) => state.setSection);
@@ -400,14 +403,14 @@ function SettingsPage() {
         addNotification({
           type: "info",
           alert: true,
-          content: i18n.t("editor:notify.tokenCopied", { defaultValue: "Nodetool API Token copied to Clipboard!" })
+          content: t("editor:notify.tokenCopied", { defaultValue: "Nodetool API Token copied to Clipboard!" })
         });
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
         addNotification({
           type: "error",
           alert: true,
-          content: i18n.t("editor:notify.tokenCopyFailed", { defaultValue: "Failed to copy token to clipboard" })
+          content: t("editor:notify.tokenCopyFailed", { defaultValue: "Failed to copy token to clipboard" })
         });
       }
     }
@@ -449,7 +452,7 @@ function SettingsPage() {
   };
 
   const t18 = (key: string, fallback: string) =>
-    i18n.t(`settings:general.${key}`, { defaultValue: fallback });
+    t(`settings:general.${key}`, { defaultValue: fallback });
   // Option enum labels localize through the shared opts.* namespace keyed by
   // the option value; TIME_FORMAT (12h/24h) has no catalog entries and falls
   // back to its constant label.
@@ -463,7 +466,7 @@ function SettingsPage() {
   ): { value: T; label: string }[] =>
     options.map((o) => ({
       value: o.value,
-      label: i18n.t(`settings:general.opts.${String(o.value)}`, {
+      label: t(`settings:general.opts.${String(o.value)}`, {
         defaultValue: o.label
       })
     }));
@@ -519,8 +522,8 @@ function SettingsPage() {
               category: "Servers",
               categoryKey: "intCatServers",
               items: [
-                { id: "mcp-integration", label: i18n.t("editor:ui.mcpServers", { defaultValue: "MCP Servers" }) },
-                { id: "browser-extension", label: i18n.t("editor:ui.browserExtension", { defaultValue: "Browser Extension" }) }
+                { id: "mcp-integration", label: t("editor:ui.mcpServers", { defaultValue: "MCP Servers" }) },
+                { id: "browser-extension", label: t("editor:ui.browserExtension", { defaultValue: "Browser Extension" }) }
               ]
             }
           ]
@@ -537,7 +540,7 @@ function SettingsPage() {
           ]
         : [])
     ];
-  }, [languageVersion, remoteSettings, session?.access_token]);
+  }, [t, remoteSettings, session?.access_token]);
 
   const sidebarSections =
     section === "general"
@@ -611,7 +614,7 @@ function SettingsPage() {
         <header className="settings-page-header">
           <div className="settings-page-header__titles">
             <div className="settings-page-header__heading">
-              <h1 className="settings-page-header__title">{i18n.t("nav:settings.title")}</h1>
+              <h1 className="settings-page-header__title">{t("nav:settings.title")}</h1>
               <DocsHelpLink
                 topic={settingsDocsTopic(section)}
                 label={settingsDocsLabel(section)}
@@ -620,13 +623,13 @@ function SettingsPage() {
           </div>
           <div className="settings-page-header__search">
             <SearchInput
-              placeholder={i18n.t("settings:search.placeholder")}
+              placeholder={t("settings:search.placeholder")}
               value={searchTerm}
               onChange={setSearchTerm}
               size="medium"
               fullWidth
               showClear
-              ariaLabel={i18n.t("settings:search.placeholder")}
+              ariaLabel={t("settings:search.placeholder")}
             />
           </div>
         </header>
@@ -635,7 +638,7 @@ function SettingsPage() {
             <div className="sticky-header">
               <TabGroup
                 className="settings-tabs"
-                aria-label={i18n.t("settings:search.tabsLabel")}
+                aria-label={t("settings:search.tabsLabel")}
                 tabs={[...settingsTabItems()]}
                 value={section}
                 onChange={handleSectionChange}
@@ -663,13 +666,13 @@ function SettingsPage() {
                   <div className="settings-search-alts">
                     {!currentTabHasMatches && (
                       <Caption>
-                        {i18n.t("settings:search.noMatchesIn", { label: settingsTabLabel(section) })}
+                        {t("settings:search.noMatchesIn", { label: settingsTabLabel(section) })}
                       </Caption>
                     )}
                     {matchingOtherTabs.length > 0 && (
                       <>
                         <Caption>
-                          {currentTabHasMatches ? i18n.t("settings:search.alsoIn") : i18n.t("settings:search.see")}
+                          {currentTabHasMatches ? t("settings:search.alsoIn") : t("settings:search.see")}
                         </Caption>
                         {matchingOtherTabs.map((tab) => (
                           <TextLink
@@ -1181,7 +1184,7 @@ function SettingsPage() {
                         id="browser-extension"
                         className="settings-heading"
                       >
-                        {i18n.t("editor:ui.browserExtension")}
+                        {t("editor:ui.browserExtension")}
                       </Text>
                       <BrowserExtensionSettingsMenu />
                     </>

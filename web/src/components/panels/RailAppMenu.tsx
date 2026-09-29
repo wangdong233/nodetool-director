@@ -14,7 +14,7 @@ import type { MenuEventData } from "../../window";
 import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import Logo from "../Logo";
 import { useAppMenuActions } from "./useAppMenuActions";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   Popover,
   MenuItemPrimitive,
@@ -75,6 +75,7 @@ interface RailAppMenuProps {
  * browse sheet (AppPagesList), so the top row carries one menu, not two.
  */
 const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -148,13 +149,13 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
 
   return (
     <>
-      <Tooltip title={i18n.t("editor:ui.menu", { defaultValue: "Menu" })} placement="right-start">
+      <Tooltip title={t("editor:ui.menu", { defaultValue: "Menu" })} placement="right-start">
         <button
           ref={anchorRef}
           type="button"
           css={logoButtonStyles(theme)}
           className="rail-app-logo"
-          aria-label={i18n.t("editor:ui.openAppMenu", { defaultValue: "Open app menu" })}
+          aria-label={t("editor:ui.openAppMenu", { defaultValue: "Open app menu" })}
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}

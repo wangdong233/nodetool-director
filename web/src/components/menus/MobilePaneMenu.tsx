@@ -37,7 +37,7 @@ import {
   COMMENT_NODE_METADATA
 } from "../../utils/nodeUtils";
 import { shallow } from "zustand/shallow";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -88,6 +88,7 @@ interface MobilePaneMenuProps {
 }
 
 const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { handlePaste } = useCopyPaste();
   const reactFlowInstance = useReactFlow();
@@ -181,12 +182,12 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
     <MobileBottomSheet
       open={open}
       onClose={onClose}
-      title={i18n.t("editor:ui.canvasMenu", { defaultValue: "Canvas Menu" })}
-      ariaLabel={i18n.t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
+      title={t("editor:ui.canvasMenu", { defaultValue: "Canvas Menu" })}
+      ariaLabel={t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>
-          <div className="menu-section-title">{i18n.t("ui2:attrs.actions", { defaultValue: "Actions" })}</div>
+          <div className="menu-section-title">{t("ui2:attrs.actions", { defaultValue: "Actions" })}</div>
           <ListItem className={`menu-item ${!isClipboardValid ? "disabled" : ""}`}>
             <ListItemButton onClick={handlePasteAction} disabled={!isClipboardValid}>
               <ListItemIcon className="menu-item-icon">
@@ -195,7 +196,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Paste" 
-                secondary={!isClipboardValid ? i18n.t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : i18n.t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
+                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
               />
             </ListItemButton>
           </ListItem>
@@ -208,7 +209,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Fit Screen" 
-                secondary={i18n.t("tools:menus.centerAllNodesInView", { defaultValue: "Center all nodes in view" })}
+                secondary={t("tools:menus.centerAllNodesInView", { defaultValue: "Center all nodes in view" })}
               />
             </ListItemButton>
           </ListItem>
@@ -223,15 +224,15 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary={i18n.t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
-                secondary={i18n.t("tools:menus.aiAgentForProcessing", { defaultValue: "AI agent for processing" })}
+                primary={t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
+                secondary={t("tools:menus.aiAgentForProcessing", { defaultValue: "AI agent for processing" })}
               />
             </ListItemButton>
           </ListItem>
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">{i18n.t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" })}</div>
+          <div className="menu-section-title">{t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addInputNode} data-node-type="StringInput">
               <ListItemIcon className="menu-item-icon">
@@ -239,8 +240,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={i18n.t("editor:ui.stringInput", { defaultValue: "String Input" })}
-                secondary={i18n.t("tools:menus.textInputField", { defaultValue: "Text input field" })}
+                primary={t("editor:ui.stringInput", { defaultValue: "String Input" })}
+                secondary={t("tools:menus.textInputField", { defaultValue: "Text input field" })}
               />
             </ListItemButton>
           </ListItem>
@@ -252,8 +253,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={i18n.t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
-                secondary={i18n.t("tools:menus.wholeNumberInput", { defaultValue: "Whole number input" })}
+                primary={t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
+                secondary={t("tools:menus.wholeNumberInput", { defaultValue: "Whole number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -265,8 +266,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={i18n.t("editor:ui.floatInput", { defaultValue: "Float Input" })}
-                secondary={i18n.t("tools:menus.decimalNumberInput", { defaultValue: "Decimal number input" })}
+                primary={t("editor:ui.floatInput", { defaultValue: "Float Input" })}
+                secondary={t("tools:menus.decimalNumberInput", { defaultValue: "Decimal number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -278,8 +279,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={i18n.t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
-                secondary={i18n.t("tools:menus.chatMessageInput", { defaultValue: "Chat message input" })}
+                primary={t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
+                secondary={t("tools:menus.chatMessageInput", { defaultValue: "Chat message input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -292,14 +293,14 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Image Input"
-                secondary={i18n.t("tools:menus.imageFileInput", { defaultValue: "Image file input" })}
+                secondary={t("tools:menus.imageFileInput", { defaultValue: "Image file input" })}
               />
             </ListItemButton>
           </ListItem>
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">{i18n.t("ui2:attrs.organization", { defaultValue: "Organization" })}</div>
+          <div className="menu-section-title">{t("ui2:attrs.organization", { defaultValue: "Organization" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addComment}>
               <ListItemIcon className="menu-item-icon">
@@ -308,7 +309,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Add Comment" 
-                secondary={i18n.t("tools:menus.textCommentNote", { defaultValue: "Text comment note" })}
+                secondary={t("tools:menus.textCommentNote", { defaultValue: "Text comment note" })}
               />
             </ListItemButton>
           </ListItem>
@@ -321,7 +322,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Add Group"
-                secondary={i18n.t("tools:menus.groupContainerForNodes", { defaultValue: "Group container for nodes" })}
+                secondary={t("tools:menus.groupContainerForNodes", { defaultValue: "Group container for nodes" })}
               />
             </ListItemButton>
           </ListItem>

@@ -31,7 +31,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -80,6 +80,7 @@ function formatStamp(value: string | null): string {
 }
 
 const AgentAccessSection = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -128,7 +129,7 @@ const AgentAccessSection = () => {
       trpcClient.agentAccess.revokeToken.mutate({ id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-tokens"] });
-      addNotification({ type: "info", alert: true, content: i18n.t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
+      addNotification({ type: "info", alert: true, content: t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
     }
   });
 
@@ -146,7 +147,7 @@ const AgentAccessSection = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: i18n.t("tools:menus.clientDisconnected", {
+        content: t("tools:menus.clientDisconnected", {
           defaultValue: "Client disconnected"
         })
       });
@@ -192,9 +193,9 @@ const AgentAccessSection = () => {
 
   return (
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-      <Text sx={{ fontWeight: 500, mb: 0.5 }}>{i18n.t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
+      <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
       <Text className="description" sx={{ mb: 1 }}>
-        {i18n.t("editor:ui.pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp")}
+        {t("editor:ui.pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp")}
       </Text>
 
       {connection && !connection.enabled && (
@@ -207,38 +208,38 @@ const AgentAccessSection = () => {
 
       {connection?.auth_mode === "none" && (
         <AlertBanner severity="info" sx={{ mb: 1 }}>
-          {i18n.t("editor:ui.thisServerChecksNoCredentialItTrustsItsOwnNetwork")}
+          {t("editor:ui.thisServerChecksNoCredentialItTrustsItsOwnNetwork")}
         </AlertBanner>
       )}
 
       <FlexColumn gap={1} sx={{ mb: 2 }}>
-        <Caption>{i18n.t("ui2:attrs.serverURL", { defaultValue: "Server URL" })}</Caption>
+        <Caption>{t("ui2:attrs.serverURL", { defaultValue: "Server URL" })}</Caption>
         <FlexRow align="center" gap={1}>
           <div css={codeBox} style={{ flex: 1 }}>
             {url}
           </div>
-          <CopyButton value={url} tooltip={i18n.t("editor:ui.copyTheServerURL", { defaultValue: "Copy the server URL" })} />
+          <CopyButton value={url} tooltip={t("editor:ui.copyTheServerURL", { defaultValue: "Copy the server URL" })} />
         </FlexRow>
       </FlexColumn>
 
       <FlexRow align="flex-end" gap={1} sx={{ mb: 1 }}>
         <TextInput
-          label={i18n.t("editor:ui.tokenName", { defaultValue: "Token name" })}
-          placeholder={i18n.t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
+          label={t("editor:ui.tokenName", { defaultValue: "Token name" })}
+          placeholder={t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
           value={name}
           size="small"
           onChange={(event) => setName(event.target.value)}
         />
         <SelectField
-          label={i18n.t("editor:ui.expires", { defaultValue: "Expires" })}
+          label={t("editor:ui.expires", { defaultValue: "Expires" })}
           value={expiry}
-          options={EXPIRY_OPTIONS.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
+          options={EXPIRY_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
           size="small"
           onChange={setExpiry}
         />
         <NavButton
           icon={<AddCircleOutlineIcon />}
-          label={i18n.t("editor:ui.createToken", { defaultValue: "Create token" })}
+          label={t("editor:ui.createToken", { defaultValue: "Create token" })}
           color="primary"
           disabled={!name.trim() || createToken.isPending}
           onClick={handleCreate}
@@ -249,31 +250,31 @@ const AgentAccessSection = () => {
       {freshToken && (
         <FlexColumn gap={1} sx={{ mb: 2 }}>
           <AlertBanner severity="success">
-            {i18n.t("editor:ui.copyThisNowItIsShownOnceAndCannotBeRetrievedAgain")}
+            {t("editor:ui.copyThisNowItIsShownOnceAndCannotBeRetrievedAgain")}
           </AlertBanner>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {freshToken}
             </div>
-            <CopyButton value={freshToken} tooltip={i18n.t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
+            <CopyButton value={freshToken} tooltip={t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
           </FlexRow>
 
-          <Caption>{i18n.t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
+          <Caption>{t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.cli}
             </div>
-            <CopyButton value={snippets.cli} tooltip={i18n.t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
+            <CopyButton value={snippets.cli} tooltip={t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
           </FlexRow>
 
-          <Caption>{i18n.t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
+          <Caption>{t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
           <FlexRow align="flex-start" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.json}
             </div>
             <CopyButton
               value={snippets.json}
-              tooltip={i18n.t("editor:ui.copyTheConfiguration", { defaultValue: "Copy the configuration" })}
+              tooltip={t("editor:ui.copyTheConfiguration", { defaultValue: "Copy the configuration" })}
             />
           </FlexRow>
         </FlexColumn>
@@ -283,7 +284,7 @@ const AgentAccessSection = () => {
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
-          <Caption sx={{ mb: 0.5 }}>{i18n.t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
+          <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
           {tokens.map((token: TokenSummary) => (
             <div key={token.id} className="settings-item">
               <FlexRow align="center" justify="space-between" fullWidth>
@@ -297,12 +298,12 @@ const AgentAccessSection = () => {
                     {formatStamp(token.last_used_at)} ·{" "}
                     {token.expires_at
                       ? `Expires ${formatStamp(token.expires_at)}`
-                      : i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
+                      : t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
                   </Text>
                 </FlexColumn>
                 <NavButton
                   icon={<RemoveCircleOutlineIcon />}
-                  label={i18n.t("editor:ui.revoke", { defaultValue: "Revoke" })}
+                  label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                   disabled={revokeToken.isPending}
                   onClick={() => revokeToken.mutate(token.id)}
                   navSize="small"
@@ -319,10 +320,10 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
-        <Caption sx={{ mb: 0.5 }}>{i18n.t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
+        <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
         {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading…</Text>}
         {!grantsLoading && grants.length === 0 && (
-          <Text className="description">{i18n.t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
+          <Text className="description">{t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
         )}
         {grants.map((grant: OauthGrant) => (
           <div key={grant.id} className="settings-item">
@@ -338,7 +339,7 @@ const AgentAccessSection = () => {
               </FlexColumn>
               <NavButton
                 icon={<RemoveCircleOutlineIcon />}
-                label={i18n.t("editor:ui.revoke", { defaultValue: "Revoke" })}
+                label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                 disabled={revokeGrant.isPending}
                 onClick={() => setGrantToRevoke(grant)}
                 navSize="small"
@@ -356,9 +357,9 @@ const AgentAccessSection = () => {
       <Dialog
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
-        title={i18n.t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
+        title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         showActions
-        confirmText={i18n.t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
+        confirmText={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
         cancelText="Cancel"
         isLoading={revokeGrant.isPending}
         onCancel={() => setGrantToRevoke(null)}

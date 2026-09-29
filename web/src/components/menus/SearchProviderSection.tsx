@@ -26,7 +26,7 @@ import {
   type SerpProviderId
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;
@@ -39,6 +39,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
   onChange,
   search = ""
 }: SearchProviderSectionProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const selectedProvider = (settingValues["SERP_PROVIDER"] ||
     DEFAULT_SERP_PROVIDER) as SerpProviderId;
@@ -77,12 +78,12 @@ const SearchProviderSection = memo(function SearchProviderSection({
   return (
     <div className="settings-section">
       <Text size="big" id="search-provider" className="settings-heading">
-        {i18n.t("editor:ui.searchProvider")}
+        {t("editor:ui.searchProvider")}
       </Text>
 
       <div className="settings-item large">
         <FormControl variant="standard" fullWidth sx={{ marginBottom: getSpacingPx(SPACING.xxl) }}>
-          <InputLabel id="provider-select-label">{i18n.t("ui2:attrs.provider", { defaultValue: "Provider" })}</InputLabel>
+          <InputLabel id="provider-select-label">{t("ui2:attrs.provider", { defaultValue: "Provider" })}</InputLabel>
           <Select
             labelId="provider-select-label"
             id="provider-select"
@@ -129,12 +130,12 @@ const SearchProviderSection = memo(function SearchProviderSection({
             }}
           >
             {hasAllCredentials
-              ? i18n.t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
-              : i18n.t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
+              ? t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
+              : t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
           </Text>
         </FlexRow>
 
-        <Text className="description">{config ? i18n.t(`tools:menus.searchProviders.${config.id}.description`, { defaultValue: config.description }) : ""}</Text>
+        <Text className="description">{config ? t(`tools:menus.searchProviders.${config.id}.description`, { defaultValue: config.description }) : ""}</Text>
       </div>
 
       {config && (
@@ -177,7 +178,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
                   {isFilled && (
                     <Chip
                       icon={<CheckCircleIcon />}
-                      label={i18n.t("editor:ui.configured", { defaultValue: "Configured" })}
+                      label={t("editor:ui.configured", { defaultValue: "Configured" })}
                       size="small"
                       sx={{
                         marginTop: getSpacingPx(SPACING.md),

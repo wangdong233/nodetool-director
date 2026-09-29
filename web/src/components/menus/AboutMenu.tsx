@@ -9,6 +9,7 @@ import { isElectron, isProduction } from "../../lib/env";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { FlexRow, FlexColumn, Text, Caption, LoadingSpinner, Chip, Box, getSpacingPx, SPACING } from "../ui_primitives";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Note: This interface mirrors the SystemInfo type from window.d.ts
 // We use a local copy to avoid type export complexity
@@ -108,6 +109,7 @@ const FeatureStatus: React.FC<{
   available: boolean;
   version?: string | null;
 }> = memo(({ label, available, version }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -140,7 +142,7 @@ const FeatureStatus: React.FC<{
         ) : (
           <Chip
             icon={<CancelIcon />}
-            label={i18n.t("editor:ui.notAvailable", { defaultValue: "Not Available" })}
+            label={t("editor:ui.notAvailable", { defaultValue: "Not Available" })}
             size="small"
             color="default"
             variant="outlined"
@@ -153,6 +155,7 @@ const FeatureStatus: React.FC<{
 FeatureStatus.displayName = "FeatureStatus";
 
 const AboutMenu: React.FC = memo(() => {
+  const { t } = useTranslation();
   const [systemInfo, setSystemInfo] = useState<SystemInfoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -283,40 +286,40 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
   return (
     <Box>
       <Text size="big" id="application">
-        {i18n.t("editor:ui.application2")}
+        {t("editor:ui.application2")}
       </Text>
       <div className="settings-section">
-        <InfoRow label={i18n.t("editor:ui.version", { defaultValue: "Version" })} value={VERSION} />
+        <InfoRow label={t("editor:ui.version", { defaultValue: "Version" })} value={VERSION} />
         <InfoRow
-          label={i18n.t("editor:ui.gitCommit", { defaultValue: "Git Commit" })}
+          label={t("editor:ui.gitCommit", { defaultValue: "Git Commit" })}
           value={GIT_COMMIT_HASH}
           copyable
           onCopy={handleCopy}
         />
-        <InfoRow label={i18n.t("editor:ui.build", { defaultValue: "Build" })} value={BUILD_NUMBER} />
+        <InfoRow label={t("editor:ui.build", { defaultValue: "Build" })} value={BUILD_NUMBER} />
         {systemInfo && (
           <>
-            <InfoRow label={i18n.t("editor:ui.electron", { defaultValue: "Electron" })} value={systemInfo.electronVersion} />
-            <InfoRow label={i18n.t("editor:ui.chrome", { defaultValue: "Chrome" })} value={systemInfo.chromeVersion} />
-            <InfoRow label={i18n.t("editor:ui.nodejs", { defaultValue: "Node.js" })} value={systemInfo.nodeVersion} />
+            <InfoRow label={t("editor:ui.electron", { defaultValue: "Electron" })} value={systemInfo.electronVersion} />
+            <InfoRow label={t("editor:ui.chrome", { defaultValue: "Chrome" })} value={systemInfo.chromeVersion} />
+            <InfoRow label={t("editor:ui.nodejs", { defaultValue: "Node.js" })} value={systemInfo.nodeVersion} />
           </>
         )}
       </div>
 
       <Text size="big" id="operating-system">
-        {i18n.t("editor:ui.operatingSystem")}
+        {t("editor:ui.operatingSystem")}
       </Text>
       <div className="settings-section">
         {systemInfo ? (
           <>
             <InfoRow label="OS" value={systemInfo.os} />
-            <InfoRow label={i18n.t("editor:ui.version", { defaultValue: "Version" })} value={systemInfo.osVersion} />
-            <InfoRow label={i18n.t("editor:ui.architecture", { defaultValue: "Architecture" })} value={systemInfo.arch} />
+            <InfoRow label={t("editor:ui.version", { defaultValue: "Version" })} value={systemInfo.osVersion} />
+            <InfoRow label={t("editor:ui.architecture", { defaultValue: "Architecture" })} value={systemInfo.arch} />
           </>
         ) : (
           <>
-            <InfoRow label={i18n.t("editor:ui.platform", { defaultValue: "Platform" })} value={navigator.platform} />
-            <InfoRow label={i18n.t("editor:ui.userAgent", { defaultValue: "User Agent" })} value={navigator.userAgent} />
+            <InfoRow label={t("editor:ui.platform", { defaultValue: "Platform" })} value={navigator.platform} />
+            <InfoRow label={t("editor:ui.userAgent", { defaultValue: "User Agent" })} value={navigator.userAgent} />
           </>
         )}
       </div>
@@ -324,35 +327,35 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && !isProduction && (
         <>
           <Text size="big" id="installation-paths">
-            {i18n.t("editor:ui.installationPaths")}
+            {t("editor:ui.installationPaths")}
           </Text>
           <div className="settings-section">
             <InfoRow
-              label={i18n.t("editor:ui.application", { defaultValue: "Application" })}
+              label={t("editor:ui.application", { defaultValue: "Application" })}
               value={systemInfo.installPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label={i18n.t("editor:ui.condaEnvironment", { defaultValue: "Conda Environment" })}
+              label={t("editor:ui.condaEnvironment", { defaultValue: "Conda Environment" })}
               value={systemInfo.condaEnvPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label={i18n.t("editor:ui.data", { defaultValue: "Data" })}
+              label={t("editor:ui.data", { defaultValue: "Data" })}
               value={systemInfo.dataPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label={i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}
+              label={t("editor:bottom.logs", { defaultValue: "Logs" })}
               value={systemInfo.logsPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label={i18n.t("tools:menus.npmPackages", {
+              label={t("tools:menus.npmPackages", {
                 defaultValue: "NPM Packages"
               })}
               value={systemInfo.optionalNodePath}
@@ -366,17 +369,17 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && (
         <>
           <Text size="big" id="features">
-            {i18n.t("editor:ui.featuresVersions")}
+            {t("editor:ui.featuresVersions")}
           </Text>
           <div className="settings-section">
-            <InfoRow label={i18n.t("editor:ui.python", { defaultValue: "Python" })} value={systemInfo.pythonVersion} />
+            <InfoRow label={t("editor:ui.python", { defaultValue: "Python" })} value={systemInfo.pythonVersion} />
             <FeatureStatus
               label="CUDA (GPU)"
               available={systemInfo.cudaAvailable}
               version={systemInfo.cudaVersion}
             />
             <FeatureStatus
-              label={i18n.t("editor:ui.ollama", { defaultValue: "Ollama" })}
+              label={t("editor:ui.ollama", { defaultValue: "Ollama" })}
               available={systemInfo.ollamaInstalled}
               version={systemInfo.ollamaVersion}
             />
@@ -406,13 +409,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
             }}
           >
             <ContentCopyIcon sx={{ fontSize: "1.2em" }} />
-            {i18n.t("editor:ui.copyAllSystemInformation")}
+            {t("editor:ui.copyAllSystemInformation")}
           </Text>
         </Box>
       )}
 
       <Text size="big" id="links">
-        {i18n.t("editor:ui.links")}
+        {t("editor:ui.links")}
       </Text>
       <div className="settings-section">
         <FlexColumn
@@ -430,7 +433,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            {i18n.t("editor:ui.githubRepository")}
+            {t("editor:ui.githubRepository")}
           </a>
           <a
             href="https://forum.nodetool.ai"
@@ -441,7 +444,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            {i18n.t("editor:ui.nodeToolForum")}
+            {t("editor:ui.nodeToolForum")}
           </a>
           <a
             href="https://nodetool.ai"
@@ -452,7 +455,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            {i18n.t("editor:ui.website")}
+            {t("editor:ui.website")}
           </a>
           <a
             href="https://nodetool.ai/privacy"
@@ -463,7 +466,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            {i18n.t("editor:ui.privacyPolicy")}
+            {t("editor:ui.privacyPolicy")}
           </a>
           <a
             href="https://nodetool.ai/terms"
@@ -474,7 +477,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            {i18n.t("editor:ui.termsOfUse")}
+            {t("editor:ui.termsOfUse")}
           </a>
         </FlexColumn>
       </div>

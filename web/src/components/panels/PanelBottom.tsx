@@ -48,6 +48,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const HEADER_HEIGHT = 32;
 
@@ -451,6 +452,7 @@ const PanelBodyContent = memo(function PanelBodyContent({
 });
 
 const PanelBottom: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const path = useLocation().pathname;
@@ -540,7 +542,7 @@ const PanelBottom: React.FC = () => {
             onMouseDown={handleMouseDown}
             style={{ cursor: "ns-resize" }}
             role="slider"
-            aria-label={i18n.t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
+            aria-label={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
             aria-valuenow={panelSize}
             aria-valuemin={40}
             aria-valuemax={600}
@@ -553,11 +555,11 @@ const PanelBottom: React.FC = () => {
               className="status-cluster"
               role="status"
               aria-label={
-                i18n.t("editor:bottom.workerConnected", {
+                t("editor:bottom.workerConnected", {
                   defaultValue: "Worker {{state}}",
                   state: isConnected
-                    ? i18n.t("editor:bottom.stateConnected", { defaultValue: "connected" })
-                    : i18n.t("editor:bottom.stateDisconnected", { defaultValue: "disconnected" })
+                    ? t("editor:bottom.stateConnected", { defaultValue: "connected" })
+                    : t("editor:bottom.stateDisconnected", { defaultValue: "disconnected" })
                 })
               }
             >
@@ -565,7 +567,7 @@ const PanelBottom: React.FC = () => {
                 className={`status-dot ${isConnected ? "" : "disconnected"}`}
                 aria-hidden
               />
-              <span>{isConnected ? i18n.t("editor:bottom.stateConnected") : i18n.t("editor:bottom.stateOffline")}</span>
+              <span>{isConnected ? t("editor:bottom.stateConnected") : t("editor:bottom.stateOffline")}</span>
               <span className="sep" aria-hidden>·</span>
               <span>{workerLabel}</span>
               <WorkerStatusIndicator />
@@ -581,7 +583,7 @@ const PanelBottom: React.FC = () => {
                 />
               ))}
             </div>
-            <div className="meta-cluster" aria-label={i18n.t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
+            <div className="meta-cluster" aria-label={t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>

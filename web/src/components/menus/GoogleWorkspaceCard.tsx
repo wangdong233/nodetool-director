@@ -20,6 +20,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface GoogleTokensResponse {
   enabled: boolean;
@@ -39,6 +40,7 @@ const QUERY_KEY = ["oauth-token", "google"];
  * mode), where the integration does not exist.
  */
 const GoogleWorkspaceCard = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -109,7 +111,7 @@ const GoogleWorkspaceCard = () => {
             <FlexRow align="center" gap={SPACING.sm}>
               <Text>Google Workspace</Text>
               <Chip
-                label={isConnected ? i18n.t("ui2:attrs.connected", { defaultValue: "Connected" }) : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" })}
+                label={isConnected ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : t("editor:ui.notConnected", { defaultValue: "Not connected" })}
                 color={isConnected ? "success" : "default"}
                 size="small"
               />
@@ -119,7 +121,7 @@ const GoogleWorkspaceCard = () => {
                 ? `Drive, Gmail, Docs, Sheets and Calendar${
                     account ? ` as ${account}` : ""
                   }`
-                : i18n.t("editor:ui.connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar", { defaultValue: "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar." })}
+                : t("editor:ui.connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar", { defaultValue: "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar." })}
             </Caption>
           </FlexColumn>
         </FlexRow>

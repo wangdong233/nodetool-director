@@ -1,5 +1,5 @@
 import { useCallback, memo } from "react";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SidebarItem {
   id: string;
@@ -26,6 +26,7 @@ const SettingsSidebar = ({
   onSectionClick,
   footer
 }: SettingsSidebarProps) => {
+  const { t } = useTranslation();
   const handleItemClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const sectionId = event.currentTarget.dataset.sectionId;
@@ -37,13 +38,13 @@ const SettingsSidebar = ({
   );
 
   return (
-    <nav className="settings-sidebar" aria-label={i18n.t("editor:ui.settingsSections", { defaultValue: "Settings sections" })}>
+    <nav className="settings-sidebar" aria-label={t("editor:ui.settingsSections", { defaultValue: "Settings sections" })}>
       {sections.map((section) => (
         <div key={section.category || section.items[0]?.id} className="settings-sidebar-folder">
           {section.category ? (
             <p className="settings-sidebar-category">
               <span className="settings-sidebar-category-label">
-                {i18n.t(`settings:sidebar.${section.categoryKey ?? ""}`, { defaultValue: section.category })}
+                {t(`settings:sidebar.${section.categoryKey ?? ""}`, { defaultValue: section.category })}
               </span>
             </p>
           ) : null}
@@ -59,7 +60,7 @@ const SettingsSidebar = ({
                   aria-current={isActive ? "true" : undefined}
                   onClick={handleItemClick}
                 >
-                  {i18n.t(`settings:sidebar.${item.labelKey ?? ""}`, { defaultValue: item.label })}
+                  {t(`settings:sidebar.${item.labelKey ?? ""}`, { defaultValue: item.label })}
                 </button>
               );
             })}

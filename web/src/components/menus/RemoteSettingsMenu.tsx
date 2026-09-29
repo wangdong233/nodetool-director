@@ -30,6 +30,7 @@ import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -267,6 +268,7 @@ const SettingItem = memo(function SettingItem({
   value,
   onChange
 }: SettingItemProps) {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (
       e:
@@ -289,7 +291,7 @@ const SettingItem = memo(function SettingItem({
           <InputLabel
             id={`${setting.env_var.toLowerCase()}-label`}
           >
-            {i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
+            {t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           </InputLabel>
           <Select
             labelId={`${setting.env_var.toLowerCase()}-label`}
@@ -310,7 +312,7 @@ const SettingItem = memo(function SettingItem({
           type={setting.is_secret ? "password" : "text"}
           autoComplete="off"
           id={`${setting.env_var.toLowerCase()}-input`}
-          label={i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
+          label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           value={value || ""}
           onChange={handleChange}
           variant="standard"
@@ -320,7 +322,7 @@ const SettingItem = memo(function SettingItem({
       )}
       {setting.description && (
         <Text className="description">
-          {i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
+          {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
         </Text>
       )}
       {SETTING_LINKS[setting.env_var] && (
@@ -331,7 +333,7 @@ const SettingItem = memo(function SettingItem({
               SETTING_TOOLTIPS[setting.env_var] || ""
             }
           >
-            {i18n.t(`settings:remote.${setting.env_var}.get`, { defaultValue: SETTING_BUTTON_TITLES[setting.env_var] || "GET YOUR API KEY" })}
+            {t(`settings:remote.${setting.env_var}.get`, { defaultValue: SETTING_BUTTON_TITLES[setting.env_var] || "GET YOUR API KEY" })}
           </ExternalLink>
         </div>
       )}
@@ -352,6 +354,7 @@ const settingMatches = (setting: SettingWithValue, search: string): boolean =>
   );
 
 const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -557,7 +560,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                         className="settings-heading"
                       >
                         {section.labelKey
-                          ? i18n.t(`tools:menus.${section.labelKey}`, {
+                          ? t(`tools:menus.${section.labelKey}`, {
                               defaultValue: sec.label
                             })
                           : sec.label}
@@ -602,7 +605,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       )}
       {isSuccess && !hasVisibleSettings && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          {i18n.t("editor:ui.noSettingsAvailable")}
+          {t("editor:ui.noSettingsAvailable")}
         </Text>
       )}
     </>

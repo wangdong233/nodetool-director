@@ -115,6 +115,7 @@ import {
   isObjectLike,
   isString
 } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 type CommandMenuProps = {
   open: boolean;
@@ -185,6 +186,7 @@ const readImportedWorkflow = (
 };
 
 const WorkflowCommands = memo(function WorkflowCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   // Optimization: use shallow equality to prevent the CommandMenu from
   // re-rendering 60 times a second on unrelated node position updates
@@ -373,7 +375,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={fileInputRef}
         type="file"
         accept=".json"
-        aria-label={i18n.t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
+        aria-label={t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
         style={{ display: "none" }}
         onChange={handleImportFileChange}
       />
@@ -381,11 +383,11 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={bundleInputRef}
         type="file"
         accept=".nodetool,application/zip"
-        aria-label={i18n.t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
+        aria-label={t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
-    <Command.Group heading={i18n.t("editor:ui.cmWorkflow")}>
+    <Command.Group heading={t("editor:ui.cmWorkflow")}>
       <Command.Item onSelect={() => executeAndClose(handleRun)}>
         <PlayArrowRoundedIcon /> Run Entire Workflow
       </Command.Item>
@@ -436,6 +438,7 @@ const EditCommands = memo(function EditCommands({
   undo,
   redo
 }: HistoryActions) {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const { handleCopy, handlePaste, handleCut } = useCopyPaste();
   // Combine multiple useNodes subscriptions into a single selector with shallow equality
@@ -464,7 +467,7 @@ const EditCommands = memo(function EditCommands({
   }, [surroundWithGroup, selectedNodes]);
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmEdit")}>
+    <Command.Group heading={t("editor:ui.cmEdit")}>
       <Command.Item onSelect={() => executeAndClose(undo)}>
         <UndoRoundedIcon /> Undo
       </Command.Item>
@@ -506,12 +509,13 @@ const EditCommands = memo(function EditCommands({
 });
 
 const LayoutCommands = memo(function LayoutCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const alignNodes = useAlignNodes();
   const selectionActions = useSelectionActions();
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmLayoutAlignment")}>
+    <Command.Group heading={t("editor:ui.cmLayoutAlignment")}>
       <Command.Item
         onSelect={() =>
           executeAndClose(() => alignNodes({ arrangeSpacing: false }))
@@ -552,6 +556,7 @@ const LayoutCommands = memo(function LayoutCommands() {
 });
 
 const ViewCommands = memo(function ViewCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const visible = useMiniMapStore((state) => state.visible);
   const toggleVisible = useMiniMapStore((state) => state.toggleVisible);
@@ -561,18 +566,18 @@ const ViewCommands = memo(function ViewCommands() {
   const setSnapToGrid = useSettingsStore((state) => state.setSnapToGrid);
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmView")}>
+    <Command.Group heading={t("editor:ui.cmView")}>
       <Command.Item
         onSelect={() => executeAndClose(toggleVisible)}
       >
         {visible ? <MapOutlinedIcon /> : <MapRoundedIcon />}
-        {visible ? i18n.t("editor:ui.hideMiniMap", { defaultValue: "Hide Mini Map" }) : i18n.t("editor:ui.showMiniMap", { defaultValue: "Show Mini Map" })}
+        {visible ? t("editor:ui.hideMiniMap", { defaultValue: "Hide Mini Map" }) : t("editor:ui.showMiniMap", { defaultValue: "Show Mini Map" })}
       </Command.Item>
       <Command.Item
         onSelect={() => executeAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" }) : i18n.t("settings:general.lblSnapToGrid", { defaultValue: "Snap to Grid" })}
+        {snapToGrid ? t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" }) : t("settings:general.lblSnapToGrid", { defaultValue: "Snap to Grid" })}
       </Command.Item>
       <Command.Item
         onSelect={() => executeAndClose(() => handleFitView({ padding: 0.5 }))}
@@ -609,6 +614,7 @@ const ViewCommands = memo(function ViewCommands() {
 });
 
 const PanelCommands = memo(function PanelCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const rightPanelToggle = useRightPanelStore((state) => state.toggleInspector);
   const leftPanelToggle = usePanelStore((state) => state.handleViewChange);
@@ -617,7 +623,7 @@ const PanelCommands = memo(function PanelCommands() {
   );
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmPanels")}>
+    <Command.Group heading={t("editor:ui.cmPanels")}>
       <Command.Item
         onSelect={() => executeAndClose(rightPanelToggle)}
       >
@@ -648,13 +654,14 @@ const PanelCommands = memo(function PanelCommands() {
 });
 
 const HelpCommands = memo(function HelpCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const currentWorkflowId = useWorkflowManager(
     (state) => state.currentWorkflowId
   );
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmHelp")}>
+    <Command.Group heading={t("editor:ui.cmHelp")}>
       <Command.Item
         onSelect={() =>
           executeAndClose(() =>
@@ -678,6 +685,7 @@ const HelpCommands = memo(function HelpCommands() {
  * app, then opens it.
  */
 const AppCommands = memo(function AppCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -744,11 +752,11 @@ const AppCommands = memo(function AppCommands() {
         ref={appBundleInputRef}
         type="file"
         accept=".json,application/json"
-        aria-label={i18n.t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
+        aria-label={t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />
-      <Command.Group heading={i18n.t("editor:ui.cmApp")}>
+      <Command.Group heading={t("editor:ui.cmApp")}>
         {applicationId && (
           <Command.Item onSelect={() => executeAndClose(exportApp)}>
             <FolderZipRoundedIcon /> Export App as Bundle (.app.json)
@@ -766,6 +774,7 @@ const AppCommands = memo(function AppCommands() {
 const COMMAND_MENU_WORKFLOW_LIMIT = 100;
 
 const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
+  const { t } = useTranslation();
   const executeAndClose = useCommandMenu((state) => state.executeAndClose);
   const navigate = useNavigate();
   const load = useWorkflowManager((state) => state.load);
@@ -785,7 +794,7 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
   if (!workflows) { return null; }
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmWorkflows")}>
+    <Command.Group heading={t("editor:ui.cmWorkflows")}>
       {workflows.workflows.map((workflow) => (
         <Command.Item
           key={workflow.id}
@@ -814,6 +823,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
   redo,
   reactFlowWrapper
 }) => {
+  const { t } = useTranslation();
   const [pastePosition, setPastePosition] = useState({ x: 0, y: 0 });
   const input = useRef<HTMLInputElement>(null);
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -870,16 +880,16 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
       onClose={() => setOpen(false)}
       className="command-menu-dialog"
       css={styles()}
-      aria-label={i18n.t("editor:ui.commandMenu", { defaultValue: "Command menu" })}
+      aria-label={t("editor:ui.commandMenu", { defaultValue: "Command menu" })}
     >
-      <Command label={i18n.t("editor:ui.commandMenu", { defaultValue: "Command Menu" })} className="command-menu">
+      <Command label={t("editor:ui.commandMenu", { defaultValue: "Command Menu" })} className="command-menu">
         <CommandInput
           ref={input}
-          placeholder={i18n.t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search…" })}
-          aria-label={i18n.t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
+          placeholder={t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search…" })}
+          aria-label={t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
         />
         <Command.List>
-          <Command.Empty>{i18n.t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}</Command.Empty>
+          <Command.Empty>{t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}</Command.Empty>
           <WorkflowCommands />
           <AppCommands />
           <EditCommands undo={undo} redo={redo} />

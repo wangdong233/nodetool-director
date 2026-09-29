@@ -9,6 +9,7 @@ import ASRModelSelect from "../properties/ASRModelSelect";
 import VideoModelSelect from "../properties/VideoModelSelect";
 import { CODE_MODEL_PREFERENCE } from "../../hooks/useCodeAuthoringModel";
 import { i18n, useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const dm = (key: string, fallback: string) =>
   i18n.t(`settings:defModels.${key}`, { defaultValue: fallback });
@@ -130,6 +131,7 @@ function DefaultModelRow({
   onSelect,
   onClear
 }: DefaultModelRowProps) {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (value: unknown) => {
       const v = value as { provider?: string; id?: string; name?: string };
@@ -163,7 +165,7 @@ function DefaultModelRow({
         />
         {current && (
           <EditorButton size="small" onClick={handleClear}>
-            {i18n.t("common:action.clear", { defaultValue: "Clear" })}
+            {t("common:action.clear", { defaultValue: "Clear" })}
           </EditorButton>
         )}
       </FlexRow>

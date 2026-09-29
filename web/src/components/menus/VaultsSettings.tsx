@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Text, TextInput, EditorButton, FlexColumn, FlexRow } from "../ui_primitives";
 import { i18n, useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const vt = (key: string, fallback: string, options?: Record<string, string>) =>
   i18n.t(`settings:vaults.${key}`, { defaultValue: fallback, ...options });
@@ -28,6 +29,7 @@ interface VaultListResult {
  * (e.g. the web build running in a plain browser).
  */
 const VaultsSettings: React.FC = () => {
+  const { t } = useTranslation();
   // Subscribe so catalog reads re-render on language change.
   useAppLanguage();
   const vaultsApi = typeof window !== "undefined" ? window.api?.vaults : undefined;
@@ -106,7 +108,7 @@ const VaultsSettings: React.FC = () => {
   return (
     <div className="settings-section">
       <Text size="big" id="vaults" className="settings-heading">
-        {i18n.t("settings:general.secVaults", { defaultValue: "Vaults" })}
+        {t("settings:general.secVaults", { defaultValue: "Vaults" })}
       </Text>
       <Text className="description">
         {vt(

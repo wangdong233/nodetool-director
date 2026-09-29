@@ -29,6 +29,7 @@ import usePacksStore, {
 } from "../../stores/PacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 function statusColor(
   pack: PackInfo
@@ -67,6 +68,7 @@ const PackRow = memo(function PackRow({
   trusted,
   onTrustChange
 }: PackRowProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const hasDetails =
     pack.registered.length > 0 ||
@@ -107,7 +109,7 @@ const PackRow = memo(function PackRow({
         </FlexColumn>
         <FlexRow gap={1.5} align="center" sx={{ flexShrink: 0 }}>
           <LabeledSwitch
-            label={i18n.t("editor:ui.trusted", { defaultValue: "Trusted" })}
+            label={t("editor:ui.trusted", { defaultValue: "Trusted" })}
             checked={trusted}
             onChange={onTrustChange}
           />
@@ -228,6 +230,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
   packs: InstalledNodePack[];
   onChanged: () => void;
 }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<
     { name: string; ok: boolean; message: string } | null
@@ -313,7 +316,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                   <Text size="small" color="secondary">
                     {status
                       ? installStateText(status)
-                      : i18n.t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
+                      : t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
                   </Text>
                 </FlexColumn>
                 {needsTrust && (
@@ -324,7 +327,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
+                    {busy === pack.name ? t("editor:ui.verifying", { defaultValue: "Verifying…" }) : t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -350,6 +353,7 @@ const InstallPanel = memo(function InstallPanel({
 }: {
   onInstalled: () => void;
 }) {
+  const { t } = useTranslation();
   const [spec, setSpec] = useState("");
   const [status, setStatus] = useState<
     { kind: "idle" }
@@ -398,7 +402,7 @@ const InstallPanel = memo(function InstallPanel({
   return (
     <FlexColumn gap={1}>
       <Text size="normal" weight={600}>
-        {i18n.t("editor:ui.installAPack")}
+        {t("editor:ui.installAPack")}
       </Text>
       <Text size="small" color="secondary">
         Paste an npm package name, e.g. <code>@acme/cool-nodes</code> or{" "}
@@ -420,10 +424,10 @@ const InstallPanel = memo(function InstallPanel({
               handleInstall();
             }
           }}
-          placeholder={i18n.t("tools:menus.packageSpecPlaceholder", {
+          placeholder={t("tools:menus.packageSpecPlaceholder", {
             defaultValue: "@scope/package or package@version"
           })}
-          slotProps={{ htmlInput: { "aria-label": i18n.t("editor:ui.packageToInstall", { defaultValue: "Package to install" }) } }}
+          slotProps={{ htmlInput: { "aria-label": t("editor:ui.packageToInstall", { defaultValue: "Package to install" }) } }}
           fullWidth
           disabled={status.kind === "installing"}
         />
@@ -455,6 +459,7 @@ const InstallPanel = memo(function InstallPanel({
 });
 
 function PackagesMenu() {
+  const { t } = useTranslation();
   const {
     packs,
     trust,
@@ -505,7 +510,7 @@ function PackagesMenu() {
     <FlexColumn gap={3.5} sx={{ maxWidth: 880 }}>
       <FlexColumn gap={1.75}>
         <Text size="normal" weight={600}>
-          {i18n.t("editor:ui.trustDefaults")}
+          {t("editor:ui.trustDefaults")}
         </Text>
         <FlexRow
           gap={3}
@@ -586,9 +591,9 @@ function PackagesMenu() {
             })}
           >
             <Text size="small" color="secondary">
-              {i18n.t("editor:ui.noNodePacksDiscoveredInstallOneWith", { defaultValue: "No node packs discovered. Install one with " })}{" "}
+              {t("editor:ui.noNodePacksDiscoveredInstallOneWith", { defaultValue: "No node packs discovered. Install one with " })}{" "}
               <code>npm install &lt;pack&gt;</code>
-              {isElectron ? i18n.t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
+              {isElectron ? t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
             </Text>
           </FlexRow>
         ) : (

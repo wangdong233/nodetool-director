@@ -18,9 +18,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const WorkflowContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
   const nodeId = useContextMenuStore((state) => state.nodeId);
@@ -86,25 +87,25 @@ const WorkflowContextMenu: React.FC = () => {
       </MenuItem>
       <ContextMenuItem
         onClick={handleToggleFavorite}
-        label={isFavorite ? i18n.t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : i18n.t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
+        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
-      <ContextMenuItem onClick={handleEdit} label={i18n.t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />
+      <ContextMenuItem onClick={handleEdit} label={t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />
       <ContextMenuItem
         onClick={handleDuplicate}
-        label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
+        label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
       {onOpenAsApp && (
         <ContextMenuItem
           onClick={handleOpenAsApp}
-          label={i18n.t("editor:workflow.openAsApp", { defaultValue: "Open as App" })}
+          label={t("editor:workflow.openAsApp", { defaultValue: "Open as App" })}
           IconComponent={<StarIcon />}
         />
       )}
       <ContextMenuItem
         onClick={handleDelete}
-        label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        label={t("common:action.delete", { defaultValue: "Delete" })}
         addButtonClassName="delete"
         IconComponent={<DeleteIcon />}
       />

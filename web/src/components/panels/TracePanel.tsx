@@ -40,7 +40,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import PanelToolbar from "./PanelToolbar";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const EVENT_ICONS = {
   node_start: <PlayArrowIcon sx={{ fontSize: 14, color: "info.main" }} />,
@@ -170,6 +170,7 @@ interface LLMCallDetail {
 }
 
 function LLMDetail({ detail }: { detail: LLMCallDetail }) {
+  const { t } = useTranslation();
   return (
     <div>
       {detail.messages ? (
@@ -180,13 +181,13 @@ function LLMDetail({ detail }: { detail: LLMCallDetail }) {
       ) : null}
       {detail.response ? (
         <div className="llm-section">
-          <div className="llm-label">{i18n.t("ui2:attrs.response", { defaultValue: "Response" })}</div>
+          <div className="llm-label">{t("ui2:attrs.response", { defaultValue: "Response" })}</div>
           <pre>{isString(detail.response) ? detail.response : JSON.stringify(detail.response, null, 2)}</pre>
         </div>
       ) : null}
       {detail.tool_calls && detail.tool_calls.length > 0 ? (
         <div className="llm-section">
-          <div className="llm-label">{i18n.t("ui2:attrs.toolCalls", { defaultValue: "Tool Calls" })}</div>
+          <div className="llm-label">{t("ui2:attrs.toolCalls", { defaultValue: "Tool Calls" })}</div>
           <pre>{JSON.stringify(detail.tool_calls, null, 2)}</pre>
         </div>
       ) : null}
@@ -204,7 +205,7 @@ function LLMDetail({ detail }: { detail: LLMCallDetail }) {
       </div>
       {detail.error ? (
         <div className="llm-section">
-          <div className="llm-label" style={{ color: "var(--palette-error-main)" }}>{i18n.t("ui2:attrs.error", { defaultValue: "Error" })}</div>
+          <div className="llm-label" style={{ color: "var(--palette-error-main)" }}>{t("ui2:attrs.error", { defaultValue: "Error" })}</div>
           <pre>{String(detail.error)}</pre>
         </div>
       ) : null}
@@ -305,6 +306,7 @@ const TraceRow = memo(function TraceRow({
 });
 
 const TracePanel: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const runs = useTraceStore((s) => s.runs);
@@ -433,25 +435,25 @@ const TracePanel: React.FC = () => {
   return (
     <div css={cssStyles}>
       <PanelToolbar
-        title={i18n.t("editor:bottom.trace", { defaultValue: "Trace" })}
+        title={t("editor:bottom.trace", { defaultValue: "Trace" })}
         count={events.length}
         actions={
           <>
             <CopyButton
               value={copyValue}
-              tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+              tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
               disabled={events.length === 0}
               nodrag={false}
             />
             <DownloadButton
               onClick={handleExport}
-              tooltip={i18n.t("editor:ui.exportAsJSON", { defaultValue: "Export as JSON" })}
+              tooltip={t("editor:ui.exportAsJSON", { defaultValue: "Export as JSON" })}
               disabled={events.length === 0}
               nodrag={false}
             />
             <DeleteButton
               onClick={clear}
-              tooltip={i18n.t("editor:ui.clearTrace", { defaultValue: "Clear trace" })}
+              tooltip={t("editor:ui.clearTrace", { defaultValue: "Clear trace" })}
               iconVariant="clear"
               nodrag={false}
             />
@@ -460,7 +462,7 @@ const TracePanel: React.FC = () => {
       >
         {runs.length > 0 && selectedRunId ? (
           <SelectField
-            label={i18n.t("editor:ui.traceRun", { defaultValue: "Trace run" })}
+            label={t("editor:ui.traceRun", { defaultValue: "Trace run" })}
             hideLabel
             size="small"
             variant="standard"
@@ -474,8 +476,8 @@ const TracePanel: React.FC = () => {
         {events.length === 0 ? (
           <EmptyState
             variant="empty"
-            title={i18n.t("editor:ui.noTraceData", { defaultValue: "No trace data" })}
-            description={i18n.t("editor:ui.runAWorkflowToSeeTheExecutionTrace")}
+            title={t("editor:ui.noTraceData", { defaultValue: "No trace data" })}
+            description={t("editor:ui.runAWorkflowToSeeTheExecutionTrace")}
             size="small"
           />
         ) : (

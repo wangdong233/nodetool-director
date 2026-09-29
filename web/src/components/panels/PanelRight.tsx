@@ -24,7 +24,7 @@ import {
   PANEL_RESIZE_HANDLE_WIDTH
 } from "../../config/constants";
 import ContextMenus from "../context_menus/ContextMenus";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   MobileBottomSheet,
   FlexColumn,
@@ -111,6 +111,7 @@ const styles = (theme: Theme, bottomOffset: number, isVisible: boolean) =>
 
 
 const PanelRight: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const {
@@ -193,8 +194,8 @@ const PanelRight: React.FC = () => {
         <MobileBottomSheet
           open={isVisible}
           onClose={handleMobileSheetClose}
-          title={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })}
-          ariaLabel={i18n.t("editor:ui.inspectorPanel", { defaultValue: "Inspector panel" })}
+          title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
+          ariaLabel={t("editor:ui.inspectorPanel", { defaultValue: "Inspector panel" })}
         >
           <FlexColumn
             sx={{
@@ -230,7 +231,7 @@ const PanelRight: React.FC = () => {
             min={130}
             max={600}
             invert
-            ariaLabel={i18n.t("editor:ui.resizeInspectorPanel", { defaultValue: "Resize Inspector panel" })}
+            ariaLabel={t("editor:ui.resizeInspectorPanel", { defaultValue: "Resize Inspector panel" })}
             onResize={handlePanelResize}
             onResizeStart={() => setPanelDragging(true)}
             onResizeEnd={() => {

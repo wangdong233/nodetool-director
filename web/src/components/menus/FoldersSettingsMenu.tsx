@@ -24,6 +24,7 @@ import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface FolderButtonProps {
   label: string;
@@ -49,6 +50,7 @@ interface OpenFolderButtonProps {
 }
 
 const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
+  const { t } = useTranslation();
   const handleClick = useCallback(() => {
     if (settingValue) {
       openInExplorer(settingValue);
@@ -62,7 +64,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   return (
     <ToolbarIconButton
       icon={<FolderOutlinedIcon fontSize="small" />}
-      tooltip={i18n.t("editor:ui.openFolderInFileExplorer", { defaultValue: "Open folder in file explorer" })}
+      tooltip={t("editor:ui.openFolderInFileExplorer", { defaultValue: "Open folder in file explorer" })}
       onClick={handleClick}
       sx={{ ml: 1 }}
     />
@@ -72,6 +74,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
 OpenFolderButton.displayName = "OpenFolderButton";
 
 const FoldersSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -197,7 +200,7 @@ const FoldersSettings = () => {
         css={getSharedSettingsStyles(theme)}
       >
         <div className="settings-main-content">
-          <Text size="giant">{i18n.t("ui2:attrs.folderSettings", { defaultValue: "Folder Settings" })}</Text>
+          <Text size="giant">{t("ui2:attrs.folderSettings", { defaultValue: "Folder Settings" })}</Text>
 
           {canOpenSystemFolders && (
             <div className="settings-section">
@@ -205,19 +208,19 @@ const FoldersSettings = () => {
                 System Folders
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                {i18n.t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
+                {t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label={i18n.t("editor:ui.nodetoolInstallation", { defaultValue: "Nodetool Installation" })}
+                  label={t("editor:ui.nodetoolInstallation", { defaultValue: "Nodetool Installation" })}
                   onClick={openInstallationPath}
                 />
                 <FolderButton
-                  label={i18n.t("editor:ui.nodetoolLogs", { defaultValue: "Nodetool Logs" })}
+                  label={t("editor:ui.nodetoolLogs", { defaultValue: "Nodetool Logs" })}
                   onClick={openLogsPath}
                 />
                 <FolderButton
-                  label={i18n.t("editor:ui.assetsStorage", { defaultValue: "Assets Storage" })}
+                  label={t("editor:ui.assetsStorage", { defaultValue: "Assets Storage" })}
                   onClick={openAssetsPath}
                 />
               </FlexColumn>
@@ -227,18 +230,18 @@ const FoldersSettings = () => {
           {canOpenFolders && (
             <div className="settings-section">
               <Text size="big" id="model-folders">
-                {i18n.t("editor:ui.modelFolders")}
+                {t("editor:ui.modelFolders")}
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                {i18n.t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}
+                {t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label={i18n.t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace Models" })}
+                  label={t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace Models" })}
                   onClick={openHuggingfacePath}
                 />
                 <FolderButton
-                  label={i18n.t("editor:ui.ollamaModels", { defaultValue: "Ollama Models" })}
+                  label={t("editor:ui.ollamaModels", { defaultValue: "Ollama Models" })}
                   onClick={openOllamaPath}
                 />
               </FlexColumn>
@@ -263,7 +266,7 @@ const FoldersSettings = () => {
                               type="text"
                               autoComplete="off"
                               id={`${setting.env_var.toLowerCase()}-input`}
-                              label={i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: setting.env_var.replace(/_/g, " ") })}
+                              label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: setting.env_var.replace(/_/g, " ") })}
                               value={settingValues[setting.env_var] || ""}
                               onChange={(e) =>
                                 handleChange(setting.env_var, e.target.value)
@@ -275,7 +278,7 @@ const FoldersSettings = () => {
                           </FlexRow>
                           {setting.description && (
                             <Text className="description">
-                              {i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
+                              {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
                             </Text>
                           )}
                         </div>
@@ -288,7 +291,7 @@ const FoldersSettings = () => {
               <div className="save-button-container">
                 <NavButton
                   icon={<SaveIcon />}
-                  label={i18n.t("editor:ui.saveFolderSettings", { defaultValue: "SAVE FOLDER SETTINGS" })}
+                  label={t("editor:ui.saveFolderSettings", { defaultValue: "SAVE FOLDER SETTINGS" })}
                   onClick={handleSave}
                   color="primary"
                   className="save-button"

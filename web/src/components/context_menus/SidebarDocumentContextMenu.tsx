@@ -10,7 +10,7 @@ import {
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Right-click menu for sidebar document list items (timelines, sketches,
@@ -19,6 +19,7 @@ import { i18n } from "../../i18n";
  * row, which is the only one of the three a shipped document accepts.
  */
 const SidebarDocumentContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore(
     (state) => state.closeContextMenu
@@ -69,19 +70,19 @@ const SidebarDocumentContextMenu: React.FC = () => {
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleRename}
-          label={i18n.t("common:action.rename", { defaultValue: "Rename" })}
+          label={t("common:action.rename", { defaultValue: "Rename" })}
           IconComponent={<EditIcon />}
         />
       )}
       <ContextMenuItem
         onClick={handleDuplicate}
-        label={i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
+        label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleDelete}
-          label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+          label={t("common:action.delete", { defaultValue: "Delete" })}
           addButtonClassName="delete"
           IconComponent={<DeleteIcon />}
         />
