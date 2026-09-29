@@ -6,7 +6,7 @@ import {
   layerCanvasAffine,
   PREVIEW_OVERLAY_Z
 } from "@nodetool-ai/timeline/render";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ReframeGeometry {
   crop: ClipCrop;
@@ -109,6 +109,7 @@ export function ReframeFocusOverlay({
   onDragStart,
   onDragEnd
 }: ReframeFocusOverlayProps): React.ReactElement | null {
+  const { t } = useTranslation();
   const theme = useTheme();
   const dragging = useRef(false);
   if (
@@ -193,7 +194,7 @@ export function ReframeFocusOverlay({
       height={frameHeight}
       viewBox={`0 0 ${frameWidth} ${frameHeight}`}
       role="slider"
-      aria-label={i18n.t("ui2:attrs.reframeFocusPoint", { defaultValue: "Reframe focus point" })}
+      aria-label={t("ui2:attrs.reframeFocusPoint", { defaultValue: "Reframe focus point" })}
       aria-valuetext={`${Math.round(x * 100)}%, ${Math.round(y * 100)}%`}
       tabIndex={0}
       onPointerDown={begin}

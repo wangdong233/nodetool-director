@@ -29,6 +29,7 @@ import type { TimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import type { TimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
 import { FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../../ui_primitives";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ const Host = styled("span")(({ theme }) => ({
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
+  const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
   const docApi = useTimelineStoreApi();
   const playbackApi = useTimelinePlaybackStoreApi();
@@ -202,7 +204,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
         className="slash-input"
         value={query}
         spellCheck={false}
-        aria-label={i18n.t("editor:ui.slashCommand", { defaultValue: "Slash command" })}
+        aria-label={t("editor:ui.slashCommand", { defaultValue: "Slash command" })}
         onChange={(e) => {
           setQuery(e.target.value);
           setActive(0);
@@ -212,7 +214,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
       />
       <ul className="slash-menu">
         {matches.length === 0 ? (
-          <li className="slash-empty">{i18n.t("ui2:attrs.noCommands", { defaultValue: "No commands" })}</li>
+          <li className="slash-empty">{t("ui2:attrs.noCommands", { defaultValue: "No commands" })}</li>
         ) : (
           matches.map((c, i) => (
             <li
@@ -228,7 +230,7 @@ const SlashCommandMenu: React.FC<{ nodeKey: NodeKey }> = ({ nodeKey }) => {
               onMouseEnter={() => setActive(i)}
             >
               <span className="cmd-label">{cmdLabel(c)}</span>
-              <span className="cmd-hint">{i18n.t(c.hintKey ?? "", { defaultValue: c.hint })}</span>
+              <span className="cmd-hint">{t(c.hintKey ?? "", { defaultValue: c.hint })}</span>
             </li>
           ))
         )}

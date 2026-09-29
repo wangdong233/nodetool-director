@@ -12,7 +12,7 @@ import {
   CLIP_FADE_SHAPE_HINT_KEYS
 } from "../fadeShapes";
 import type { ClipFadeEdge } from "./useClipFade";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ClipFadeShapeMenuProps {
   edge: ClipFadeEdge;
@@ -29,6 +29,7 @@ export function ClipFadeShapeMenu({
   onSelect,
   onClose
 }: ClipFadeShapeMenuProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu
       open
@@ -43,7 +44,7 @@ export function ClipFadeShapeMenu({
         <MenuItemPrimitive
           key={shape}
           label={CLIP_FADE_SHAPE_LABELS[shape]}
-          tooltip={i18n.t(CLIP_FADE_SHAPE_HINT_KEYS[shape], { defaultValue: CLIP_FADE_SHAPE_HINTS[shape] })}
+          tooltip={t(CLIP_FADE_SHAPE_HINT_KEYS[shape], { defaultValue: CLIP_FADE_SHAPE_HINTS[shape] })}
           selected={shape === current}
           compact
           onClick={() => {

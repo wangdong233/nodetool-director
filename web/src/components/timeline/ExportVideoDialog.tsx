@@ -24,7 +24,8 @@ import {
   type SelectOption
 } from "../ui_primitives";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const FORMAT_OPTIONS: readonly SelectOption[] = [
   { value: "mp4", label: "MP4 (H.264)" },
@@ -90,6 +91,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
   onClose,
   onExport
 }) => {
+  const { t } = useTranslation();
   const [format, setFormat] = useState<BrowserExportFormat>("mp4");
   const [alpha, setAlpha] = useState(false);
 
@@ -110,38 +112,38 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
   const actions = useMemo(
     () => (
       <>
-        <EditorButton variant="outlined" size="small" onClick={onClose}>{i18n.t("timeline:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
-        <EditorButton variant="contained" size="small" onClick={handleExport}>{i18n.t("timeline:attrs.export", { defaultValue: "Export" })}</EditorButton>
+        <EditorButton variant="outlined" size="small" onClick={onClose}>{t("timeline:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+        <EditorButton variant="contained" size="small" onClick={handleExport}>{t("timeline:attrs.export", { defaultValue: "Export" })}</EditorButton>
       </>
     ),
-    [languageVersion, onClose, handleExport]
+    [t, onClose, handleExport]
   );
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={i18n.t("timeline:export.title", { defaultValue: "Export timeline" })}
+      title={t("timeline:export.title", { defaultValue: "Export timeline" })}
       actions={actions}
     >
       <FlexColumn gap={SPACING.md} sx={{ minWidth: 360, py: 1 }}>
         <SelectField
-          label={i18n.t("timeline:export.format", { defaultValue: "Format" })}
+          label={t("timeline:export.format", { defaultValue: "Format" })}
           value={format}
           onChange={handleFormatChange}
-          options={FORMAT_OPTIONS.map((o) => ({ ...o, label: i18n.t(FORMAT_LABEL_KEYS[o.value] ?? "", { defaultValue: o.label }) }))}
+          options={FORMAT_OPTIONS.map((o) => ({ ...o, label: t(FORMAT_LABEL_KEYS[o.value] ?? "", { defaultValue: o.label }) }))}
         />
         <Text size="small" sx={{ color: "text.secondary" }}>
-          {i18n.t(FORMAT_NOTE_KEYS[format], { defaultValue: FORMAT_NOTE[format] })}
+          {t(FORMAT_NOTE_KEYS[format], { defaultValue: FORMAT_NOTE[format] })}
         </Text>
         <LabeledSwitch
           id="timeline-export-alpha"
           size="small"
-          label={i18n.t("timeline:export.alpha", { defaultValue: ALPHA_LABEL })}
+          label={t("timeline:export.alpha", { defaultValue: ALPHA_LABEL })}
           checked={alpha}
           onChange={setAlpha}
           disabled={format === "mp4"}
-          description={i18n.t(ALPHA_NOTE_KEYS[format], { defaultValue: ALPHA_NOTE[format] })}
+          description={t(ALPHA_NOTE_KEYS[format], { defaultValue: ALPHA_NOTE[format] })}
         />
       </FlexColumn>
     </Dialog>

@@ -23,7 +23,7 @@ import { TimelineProvider } from "../../stores/timeline/TimelineInstance";
 import { useTimeline } from "../../hooks/useTimelineSequence";
 import { useLoadTimelineIntoStore } from "../../hooks/timeline/useLoadTimelineIntoStore";
 import { PreviewArea } from "./preview/PreviewArea";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -47,6 +47,7 @@ interface TimelinePlayerProps {
 
 const TimelinePlayerBody: React.FC<Omit<TimelinePlayerProps, "active">> = memo(
   ({ sequenceId }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const { data: sequence, isLoading, isError } = useTimeline(sequenceId);
 
@@ -59,12 +60,12 @@ const TimelinePlayerBody: React.FC<Omit<TimelinePlayerProps, "active">> = memo(
     return (
       <FlexColumn fullWidth fullHeight css={containerStyles(theme)}>
         {isLoading ? (
-          <LoadingSpinner text={i18n.t("editor:ui.loadingSequence")} />
+          <LoadingSpinner text={t("editor:ui.loadingSequence")} />
         ) : unavailable ? (
           <EmptyState
             variant="error"
-            title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
-            description={i18n.t("editor:ui.theTimelineSequenceYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
+            title={t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
+            description={t("editor:ui.theTimelineSequenceYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
           />
         ) : (
           <PreviewArea

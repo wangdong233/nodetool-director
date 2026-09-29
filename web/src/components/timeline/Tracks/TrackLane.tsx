@@ -64,6 +64,7 @@ import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { layoutTrackRows } from "./trackWindow";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;
@@ -114,6 +115,7 @@ interface TrackLaneProps {
 const CLIP_OVERSCAN_PX = 320;
 
 export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const timelineStore = useTimelineStoreApi();
   const msPerPx = useTimelineUIStore((s) => s.msPerPx);
@@ -751,7 +753,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
             generated-clip picker. */}
         {(track.type === "overlay" || track.type === "video") && (
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.addText", { defaultValue: "Add text" })}
+            label={t("timeline:attrs.addText", { defaultValue: "Add text" })}
             icon={<TitleIcon fontSize="small" />}
             onClick={handleAddText}
             compact
@@ -759,14 +761,14 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {track.type === "midi" ? (
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
+            label={t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddMidi}
             compact
           />
         ) : (
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
+            label={t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddClipFromMenu}
             compact
@@ -774,7 +776,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {menuGap && (
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
+            label={t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
             icon={<CompressOutlinedIcon fontSize="small" />}
             onClick={handleCloseGap}
             compact

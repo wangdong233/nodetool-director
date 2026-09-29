@@ -34,7 +34,7 @@ import {
   SPACING
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   InspectorDivider,
   InspectorRow,
@@ -69,6 +69,7 @@ interface ClipMidiSectionProps {
 
 export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
   ({ clip }) => {
+    const { t } = useTranslation();
     const [open, setOpen] = usePersistedFold("midi");
     const tempo = useTimelineStore((s) => resolveTempo(s));
     const transposeClip = useTimelineStore((s) => s.transposeClip);
@@ -137,12 +138,12 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label={i18n.t("timeline:attrs.notes", { defaultValue: "Notes" })}>
+            <InspectorRow label={t("timeline:attrs.notes", { defaultValue: "Notes" })}>
               <InspectorStaticValue
                 value={`${notes.length} (${audibleCount} audible)`}
               />
             </InspectorRow>
-            <InspectorRow label={i18n.t("timeline:attrs.startsAt", { defaultValue: "Starts at" })}>
+            <InspectorRow label={t("timeline:attrs.startsAt", { defaultValue: "Starts at" })}>
               <InspectorStaticValue
                 value={`${formatBarsBeats(clip.startMs, tempo)} · ${tempo.bpm} BPM`}
               />
@@ -153,10 +154,10 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
                 size="small"
                 variant="outlined"
                 onClick={handleEditNotes}
-              >{i18n.t("timeline:attrs.editNotes", { defaultValue: "Edit notes" })}</Button>
+              >{t("timeline:attrs.editNotes", { defaultValue: "Edit notes" })}</Button>
             </FlexRow>
 
-            <InspectorRow label={i18n.t("timeline:attrs.transpose", { defaultValue: "Transpose" })}>
+            <InspectorRow label={t("timeline:attrs.transpose", { defaultValue: "Transpose" })}>
               <FlexRow gap={SPACING.xs}>
                 {TRANSPOSE_STEPS.map((semitones) => (
                   <Button
@@ -172,22 +173,22 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
               </FlexRow>
             </InspectorRow>
 
-            <InspectorRow label={i18n.t("timeline:attrs.quantize", { defaultValue: "Quantize" })}>
+            <InspectorRow label={t("timeline:attrs.quantize", { defaultValue: "Quantize" })}>
               <InspectorSelect
-                label={i18n.t("timeline:attrs.quantizeDivision", { defaultValue: "Quantize division" })}
+                label={t("timeline:attrs.quantizeDivision", { defaultValue: "Quantize division" })}
                 value={division}
                 options={DIVISION_OPTIONS}
                 onChange={handleDivisionChange}
               />
               <InspectorSelect
-                label={i18n.t("timeline:attrs.quantizeTarget", { defaultValue: "Quantize target" })}
+                label={t("timeline:attrs.quantizeTarget", { defaultValue: "Quantize target" })}
                 value={target}
                 options={TARGET_OPTIONS}
                 onChange={handleTargetChange}
               />
             </InspectorRow>
             <InspectorSliderRow
-              label={i18n.t("timeline:attrs.strength", { defaultValue: "Strength" })}
+              label={t("timeline:attrs.strength", { defaultValue: "Strength" })}
               min={0}
               max={1}
               step={0.05}
@@ -196,11 +197,11 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
               onChange={setStrength}
             />
             <FlexRow justify="flex-end">
-              <Button size="small" variant="outlined" onClick={handleQuantize}>{i18n.t("timeline:attrs.applyQuantize", { defaultValue: "Apply quantize" })}</Button>
+              <Button size="small" variant="outlined" onClick={handleQuantize}>{t("timeline:attrs.applyQuantize", { defaultValue: "Apply quantize" })}</Button>
             </FlexRow>
 
             <InspectorSliderRow
-              label={i18n.t("timeline:attrs.velocity×", { defaultValue: "Velocity ×" })}
+              label={t("timeline:attrs.velocity×", { defaultValue: "Velocity ×" })}
               min={MIN_VELOCITY_FACTOR}
               max={MAX_VELOCITY_FACTOR}
               step={0.05}
@@ -214,7 +215,7 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
                 size="small"
                 variant="outlined"
                 onClick={handleScaleVelocity}
-              >{i18n.t("timeline:attrs.applyVelocity", { defaultValue: "Apply velocity" })}</Button>
+              >{t("timeline:attrs.applyVelocity", { defaultValue: "Apply velocity" })}</Button>
             </FlexRow>
 
             <Caption color="muted">

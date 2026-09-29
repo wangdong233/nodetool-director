@@ -53,6 +53,7 @@ import type {
 import { clipFitsTrack, makeClip } from "@nodetool-ai/timeline";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * An adjustment layer draws nothing of its own — like an authored text or
@@ -140,6 +141,7 @@ interface WorkflowListProps {
 
 const WorkflowList: React.FC<WorkflowListProps> = memo(
   ({ workflows, isLoading, searchQuery, onSelect, emptyLabel }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     const filtered = useMemo(
@@ -163,7 +165,7 @@ const WorkflowList: React.FC<WorkflowListProps> = memo(
     if (filtered.length === 0) {
       return (
         <EmptyState
-          title={searchQuery ? i18n.t("timeline:addClip.noMatches", { defaultValue: "No matches" }) : emptyLabel}
+          title={searchQuery ? t("timeline:addClip.noMatches", { defaultValue: "No matches" }) : emptyLabel}
           size="small"
         />
       );
@@ -230,6 +232,7 @@ interface OutputSelectPanelProps {
 
 const OutputSelectPanel: React.FC<OutputSelectPanelProps> = memo(
   ({ outputs, workflowName, onSelect, onBack }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     return (
@@ -237,16 +240,16 @@ const OutputSelectPanel: React.FC<OutputSelectPanelProps> = memo(
         <FlexRow align="center" gap={0.5}>
           <ToolbarIconButton
             icon={<ArrowBackIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:addClip.back", { defaultValue: "Back" })}
+            tooltip={t("timeline:addClip.back", { defaultValue: "Back" })}
             onClick={onBack}
-            aria-label={i18n.t("timeline:addClip.backToWorkflows", { defaultValue: "Back to workflow list" })}
+            aria-label={t("timeline:addClip.backToWorkflows", { defaultValue: "Back to workflow list" })}
           />
           <Text size="small" weight={500} sx={{ flex: 1 }}>
             Select output - {workflowName}
           </Text>
         </FlexRow>
         <Caption sx={{ color: "text.secondary" }}>
-          {i18n.t("editor:ui.thisWorkflowHasMultipleOutputNodesPickOne")}
+          {t("editor:ui.thisWorkflowHasMultipleOutputNodesPickOne")}
         </Caption>
         <FlexColumn gap={0}>
           {outputs.map((out) => (
@@ -295,6 +298,7 @@ interface Model3DPickerPanelProps {
  */
 const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
   ({ onSelect, onBack }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const modelsQuery = trpc.assets.list.useQuery(
       { content_type: "model", page_size: 200 },
@@ -307,11 +311,11 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
         <FlexRow align="center" gap={0.5}>
           <ToolbarIconButton
             icon={<ArrowBackIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.back", { defaultValue: "Back" })}
+            tooltip={t("editor:ui.back", { defaultValue: "Back" })}
             onClick={onBack}
-            aria-label={i18n.t("timeline:addClip.backToSources", { defaultValue: "Back to clip sources" })}
+            aria-label={t("timeline:addClip.backToSources", { defaultValue: "Back to clip sources" })}
           />
-          <Text size="small" weight={500} sx={{ flex: 1 }}>{i18n.t("timeline:attrs.pickA3DModel", { defaultValue: "Pick a 3D model" })}</Text>
+          <Text size="small" weight={500} sx={{ flex: 1 }}>{t("timeline:attrs.pickA3DModel", { defaultValue: "Pick a 3D model" })}</Text>
         </FlexRow>
         {modelsQuery.isLoading ? (
           <FlexRow justify="center" sx={{ py: 3 }}>
@@ -319,8 +323,8 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
           </FlexRow>
         ) : assets.length === 0 ? (
           <EmptyState
-            title={i18n.t("timeline:addClip.no3d", { defaultValue: "No 3D models" })}
-            description={i18n.t("timeline:addClip.no3dDesc", { defaultValue: "Upload a .glb or .gltf asset first." })}
+            title={t("timeline:addClip.no3d", { defaultValue: "No 3D models" })}
+            description={t("timeline:addClip.no3dDesc", { defaultValue: "Upload a .glb or .gltf asset first." })}
             size="small"
           />
         ) : (
@@ -389,6 +393,7 @@ interface AddClipMenuProps {
  */
 export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
   ({ trackId, startMs, trackType, anchorEl, onClose }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const directGenKind = trackDirectGenKind(trackType);
     const mediaTypeForClip = trackMediaType(trackType);
@@ -690,7 +695,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
           {!terminalOutputs && !pickingModel3D && (
             <>
               <FlexRow align="center" justify="space-between">
-                <Text size="small" weight={600}>{i18n.t("timeline:attrs.addGeneratedClip", { defaultValue: "Add Generated Clip" })}</Text>
+                <Text size="small" weight={600}>{t("timeline:attrs.addGeneratedClip", { defaultValue: "Add Generated Clip" })}</Text>
                 {isAdding && <LoadingSpinner size="small" />}
               </FlexRow>
 
@@ -706,10 +711,10 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       onKeyDown={handlePromptKeyDown}
                       placeholder={
                         directGenKind === "video"
-                          ? i18n.t("timeline:attrs.describeAVideoAndPressEnter", { defaultValue: "Describe a video and press Enter…" })
+                          ? t("timeline:attrs.describeAVideoAndPressEnter", { defaultValue: "Describe a video and press Enter…" })
                           : directGenKind === "audio"
-                            ? i18n.t("timeline:attrs.typeTextToSpeakAndPressEnter", { defaultValue: "Type text to speak and press Enter…" })
-                            : i18n.t("timeline:attrs.describeAnImageAndPressEnter", { defaultValue: "Describe an image and press Enter…" })
+                            ? t("timeline:attrs.typeTextToSpeakAndPressEnter", { defaultValue: "Type text to speak and press Enter…" })
+                            : t("timeline:attrs.describeAnImageAndPressEnter", { defaultValue: "Describe an image and press Enter…" })
                       }
                       multiline
                       minRows={2}
@@ -770,7 +775,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       css={workflowItemStyles(theme)}
                       role="button"
                       tabIndex={0}
-                      aria-label={i18n.t("timeline:addClip.add3dClip", { defaultValue: "Add a 3D model clip" })}
+                      aria-label={t("timeline:addClip.add3dClip", { defaultValue: "Add a 3D model clip" })}
                       data-testid="add-clip-model3d"
                       onClick={() => setPickingModel3D(true)}
                       onKeyDown={(e) => {
@@ -785,7 +790,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                         <Text size="small" weight={500}>
                           3D model
                         </Text>
-                        <Caption sx={{ color: "text.secondary" }}>{i18n.t("timeline:attrs.placeAGlTFAssetOnThisTrack", { defaultValue: "Place a glTF asset on this track" })}</Caption>
+                        <Caption sx={{ color: "text.secondary" }}>{t("timeline:attrs.placeAGlTFAssetOnThisTrack", { defaultValue: "Place a glTF asset on this track" })}</Caption>
                       </FlexColumn>
                     </FlexRow>
                   )}
@@ -799,7 +804,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       css={workflowItemStyles(theme)}
                       role="button"
                       tabIndex={0}
-                      aria-label={i18n.t("timeline:addClip.addAdjustment", { defaultValue: "Add an adjustment layer" })}
+                      aria-label={t("timeline:addClip.addAdjustment", { defaultValue: "Add an adjustment layer" })}
                       data-testid="add-clip-adjustment"
                       onClick={handleAddAdjustmentLayer}
                       onKeyDown={(e) => {
@@ -811,7 +816,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                     >
                       <TuneOutlinedIcon fontSize="small" />
                       <FlexColumn gap={0}>
-                        <Text size="small" weight={500}>{i18n.t("timeline:attrs.adjustmentLayer", { defaultValue: "Adjustment layer" })}</Text>
+                        <Text size="small" weight={500}>{t("timeline:attrs.adjustmentLayer", { defaultValue: "Adjustment layer" })}</Text>
                         <Caption sx={{ color: "text.secondary" }}>
                           Grade or blur every layer beneath it
                         </Caption>
@@ -846,7 +851,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder={i18n.t("timeline:addClip.search", { defaultValue: "Search…" })}
+                placeholder={t("timeline:addClip.search", { defaultValue: "Search…" })}
                 autoFocus
                 fullWidth
                 debounceMs={150}

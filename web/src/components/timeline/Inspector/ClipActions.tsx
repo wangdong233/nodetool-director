@@ -17,6 +17,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
 import { ToolbarIconButton, FlexRow, Text, Dialog, TextInput, Toast } from "../../ui_primitives";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ interface ClipActionsProps {
 
 export const ClipActions: React.FC<ClipActionsProps> = memo(
   ({ clipId, duplicateOffsetMs = 0 }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -139,19 +141,19 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
               panel; this toolbar is for clip operations only. */}
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
+            tooltip={t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy}
-            aria-label={i18n.t("timeline:attrs.duplicateClip", { defaultValue: "Duplicate clip" })}
+            aria-label={t("timeline:attrs.duplicateClip", { defaultValue: "Duplicate clip" })}
             data-testid="clip-action-duplicate"
           />
 
           {clip.sourceType === "generated" && (
             <ToolbarIconButton
               icon={<AutoAwesomeMotionIcon fontSize="small" />}
-              tooltip={i18n.t("timeline:attrs.regenerateAsNewClipDropsAFreshCopyBesideThisOneSoYouCanRollANewTakeWithoutLosingTheExistingRender", { defaultValue: "Regenerate as new clip — drops a fresh copy beside this one so you can roll a new take without losing the existing render" })}
+              tooltip={t("timeline:attrs.regenerateAsNewClipDropsAFreshCopyBesideThisOneSoYouCanRollANewTakeWithoutLosingTheExistingRender", { defaultValue: "Regenerate as new clip — drops a fresh copy beside this one so you can roll a new take without losing the existing render" })}
               onClick={handleRegenerateAsCopy}
-              aria-label={i18n.t("timeline:attrs.regenerateAsNewClip", { defaultValue: "Regenerate as new clip" })}
+              aria-label={t("timeline:attrs.regenerateAsNewClip", { defaultValue: "Regenerate as new clip" })}
               data-testid="clip-action-regenerate-as-copy"
             />
           )}
@@ -166,29 +168,29 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             }
             tooltip={
               clip.locked
-                ? i18n.t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
-                : i18n.t("timeline:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
+                ? t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
+                : t("timeline:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={clip.locked}
             onClick={handleToggleLock}
-            aria-label={clip.locked ? i18n.t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : i18n.t("timeline:attrs.lockClip", { defaultValue: "Lock clip" })}
+            aria-label={clip.locked ? t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : t("timeline:attrs.lockClip", { defaultValue: "Lock clip" })}
             data-testid="clip-action-lock"
           />
 
           <ToolbarIconButton
             icon={<ImageIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:attrs.replaceOutputPickAnExistingAssetWithoutRegenerating", { defaultValue: "Replace Output… — pick an existing asset without regenerating" })}
+            tooltip={t("timeline:attrs.replaceOutputPickAnExistingAssetWithoutRegenerating", { defaultValue: "Replace Output… — pick an existing asset without regenerating" })}
             onClick={handleOpenReplace}
-            aria-label={i18n.t("timeline:attrs.replaceClipOutput", { defaultValue: "Replace clip output" })}
+            aria-label={t("timeline:attrs.replaceClipOutput", { defaultValue: "Replace clip output" })}
             data-testid="clip-action-replace-output"
           />
 
           {clip.workflowId && sequenceId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip={i18n.t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
+              tooltip={t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
               onClick={handleOpenInNodeEditor}
-              aria-label={i18n.t("timeline:attrs.openClipWorkflowInNodeEditor", { defaultValue: "Open clip workflow in node editor" })}
+              aria-label={t("timeline:attrs.openClipWorkflowInNodeEditor", { defaultValue: "Open clip workflow in node editor" })}
               data-testid="clip-action-open-in-editor"
             />
           )}
@@ -198,11 +200,11 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         <Dialog
           open={replaceOpen}
           onClose={handleCancelReplace}
-          title={i18n.t("timeline:attrs.replaceOutput", { defaultValue: "Replace Output" })}
+          title={t("timeline:attrs.replaceOutput", { defaultValue: "Replace Output" })}
           onConfirm={handleConfirmReplace}
           onCancel={handleCancelReplace}
-          confirmText={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
-          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+          confirmText={t("editor:ui.replace", { defaultValue: "Replace" })}
+          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
           showActions
         >
           <Text size="small" sx={{ mb: 1 }}>
@@ -212,7 +214,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           <TextInput
             value={assetIdInput}
             onChange={(e) => setAssetIdInput(e.target.value)}
-            placeholder={i18n.t("timeline:attrs.assetID", { defaultValue: "Asset ID" })}
+            placeholder={t("timeline:attrs.assetID", { defaultValue: "Asset ID" })}
             inputProps={{ "aria-label": "Asset ID" }}
             fullWidth
             size="small"

@@ -2,7 +2,7 @@ import React from "react";
 import { moveNotes, setVelocity } from "@nodetool-ai/timeline";
 import type { MidiNote } from "@nodetool-ai/timeline";
 import { Caption, FlexRow, SPACING, TextInput } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   notes: readonly MidiNote[];
@@ -17,6 +17,7 @@ export function NoteSelectionInspector({
   beatTicks,
   onChange
 }: Props) {
+  const { t } = useTranslation();
   const selected = notes.filter((note) => selectedIds.has(note.id));
   const first = selected[0];
   const lowest = selected.reduce((min, note) => Math.min(min, note.pitch), 127);
@@ -31,7 +32,7 @@ export function NoteSelectionInspector({
   const length = common("durationTick");
   const fields = [
     {
-      label: i18n.t("timeline:attrs.lowestPitchMidi", { defaultValue: "Lowest pitch (MIDI)" }),
+      label: t("timeline:attrs.lowestPitchMidi", { defaultValue: "Lowest pitch (MIDI)" }),
       value: first ? lowest : null,
       min: 0,
       max: 127,
@@ -43,7 +44,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: i18n.t("timeline:attrs.startBeat", { defaultValue: "Start beat" }),
+      label: t("timeline:attrs.startBeat", { defaultValue: "Start beat" }),
       value: first ? 1 + start / beatTicks : null,
       min: 1,
       step: 1 / beatTicks,
@@ -54,7 +55,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: i18n.t("timeline:attrs.lengthBeats", { defaultValue: "Length (beats)" }),
+      label: t("timeline:attrs.lengthBeats", { defaultValue: "Length (beats)" }),
       value: length === null ? null : length / beatTicks,
       min: 1 / beatTicks,
       step: 1 / beatTicks,
@@ -69,7 +70,7 @@ export function NoteSelectionInspector({
         )
     },
     {
-      label: i18n.t("timeline:attrs.velocity", { defaultValue: "Velocity" }),
+      label: t("timeline:attrs.velocity", { defaultValue: "Velocity" }),
       value: common("velocity"),
       min: 1,
       max: 127,
@@ -122,7 +123,7 @@ export function NoteSelectionInspector({
         />
       ))}
       <Caption color="muted">
-        {i18n.t("editor:ui.pitchStartMoveTheGroupLengthVelocitySetAllSelectedNotes")}
+        {t("editor:ui.pitchStartMoveTheGroupLengthVelocitySetAllSelectedNotes")}
       </Caption>
     </FlexRow>
   );

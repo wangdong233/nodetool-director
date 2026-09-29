@@ -25,6 +25,7 @@ import {
   type PreviewFailureHandler
 } from "./previewFailure";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface PreviewRecoveryProps {
   readonly children: (
@@ -66,6 +67,7 @@ export function PreviewRecovery({
   onPause,
   timelineId
 }: PreviewRecoveryProps): ReactNode {
+  const { t } = useTranslation();
   const [generation, setGeneration] = useState(0);
   const [issue, setIssue] = useState<{
     message: string;
@@ -169,7 +171,7 @@ export function PreviewRecovery({
             action={
               <FlexRow gap={SPACING.xs}>
                 {issue.terminal && (
-                  <EditorButton onClick={retry}>{i18n.t("ui2:attrs.retryPreview", { defaultValue: "Retry preview" })}</EditorButton>
+                  <EditorButton onClick={retry}>{t("ui2:attrs.retryPreview", { defaultValue: "Retry preview" })}</EditorButton>
                 )}
                 <ReportBugButton context={issue.context} />
               </FlexRow>
@@ -177,8 +179,8 @@ export function PreviewRecovery({
           >
             {issue.message}{" "}
             {issue.terminal
-              ? i18n.t("timeline:attrs.automaticRecoveryFailedYourTimelineIsUnchanged", { defaultValue: "Automatic recovery failed. Your timeline is unchanged." })
-              : i18n.t("timeline:attrs.restartingPreview", { defaultValue: "Restarting preview…" })}
+              ? t("timeline:attrs.automaticRecoveryFailedYourTimelineIsUnchanged", { defaultValue: "Automatic recovery failed. Your timeline is unchanged." })
+              : t("timeline:attrs.restartingPreview", { defaultValue: "Restarting preview…" })}
           </AlertBanner>
         </Box>
       )}

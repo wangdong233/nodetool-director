@@ -16,7 +16,7 @@ import {
   ToggleOption
 } from "../../ui_primitives";
 import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type CurveChannel = "master" | "r" | "g" | "b";
 
@@ -88,6 +88,7 @@ const ToneCurveEditorInner: React.FC<ToneCurveEditorProps> = ({
   b,
   onPatch
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [channel, setChannel] = useState<CurveChannel>("master");
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -299,7 +300,7 @@ const ToneCurveEditorInner: React.FC<ToneCurveEditorProps> = ({
           exclusive
           quiet
           fullWidth
-          aria-label={i18n.t("timeline:attrs.curveChannel", { defaultValue: "Curve channel" })}
+          aria-label={t("timeline:attrs.curveChannel", { defaultValue: "Curve channel" })}
           onChange={(_event, value: CurveChannel | null) => {
             if (value) {
               setChannel(value);
@@ -312,7 +313,7 @@ const ToneCurveEditorInner: React.FC<ToneCurveEditorProps> = ({
             </ToggleOption>
           ))}
         </ToggleGroup>
-        <Button size="small" variant="text" onClick={reset}>{i18n.t("timeline:attrs.reset", { defaultValue: "Reset" })}</Button>
+        <Button size="small" variant="text" onClick={reset}>{t("timeline:attrs.reset", { defaultValue: "Reset" })}</Button>
       </FlexRow>
 
       <svg

@@ -772,6 +772,7 @@ def transform(path, dry=False):
         "path": path, "status": "transformed" if not dry else "dry-run",
         "sites": len(sites), "replaced": replaced,
         "kept_event": kept_event, "kept_param_or_module": kept_param_or_module,
+        "kept_t_shadow": kept_t_shadow,
         "hooks": hooks, "memo_deps_fixes": memo_fixes,
         "import_action": import_action, "detail": report_lines,
     }

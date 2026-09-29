@@ -39,7 +39,7 @@ import {
 } from "../../ui_primitives";
 import { useModel3DBake } from "../../../hooks/timeline/useModel3DBake";
 import { usePersistedFold } from "./usePersistedFold";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   InspectorDivider,
   InspectorPillInput,
@@ -104,6 +104,7 @@ export interface ClipModel3DSectionProps {
 
 export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
   ({ clip, model3dStyle }) => {
+    const { t } = useTranslation();
     const patchClip = useTimelineStore((s) => s.patchClip);
     const [open, setOpen] = usePersistedFold("model3d");
 
@@ -230,7 +231,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={i18n.t("appbuilder:attrs.3dModel", { defaultValue: "3D Model" })}
+              title={t("appbuilder:attrs.3dModel", { defaultValue: "3D Model" })}
               icon={<ViewInArOutlinedIcon />}
             />
           }
@@ -239,9 +240,9 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label={i18n.t("timeline:attrs.camera", { defaultValue: "Camera" })}>
+            <InspectorRow label={t("timeline:attrs.camera", { defaultValue: "Camera" })}>
               <InspectorSelect
-                label={i18n.t("timeline:attrs.cameraMode", { defaultValue: "Camera mode" })}
+                label={t("timeline:attrs.cameraMode", { defaultValue: "Camera mode" })}
                 value={camera.mode}
                 options={CAMERA_MODES}
                 onChange={handleModeChange}
@@ -250,14 +251,14 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
 
             {camera.mode === "orbit" && (
               <>
-                <InspectorRow label={i18n.t("timeline:attrs.orbit", { defaultValue: "Orbit" })}>
+                <InspectorRow label={t("timeline:attrs.orbit", { defaultValue: "Orbit" })}>
                   <InspectorPillInput
                     value={camera.azimuthDeg.toFixed(1)}
                     unit="°"
                     minWidth={64}
                     scrub={SCRUB_DEGREES}
                     onCommit={handleAzimuthCommit}
-                    ariaLabel={i18n.t("timeline:attrs.cameraAzimuth", { defaultValue: "Camera azimuth" })}
+                    ariaLabel={t("timeline:attrs.cameraAzimuth", { defaultValue: "Camera azimuth" })}
                   />
                   <InspectorPillInput
                     value={camera.elevationDeg.toFixed(1)}
@@ -265,17 +266,17 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_DEGREES}
                     onCommit={handleElevationCommit}
-                    ariaLabel={i18n.t("timeline:attrs.cameraElevation", { defaultValue: "Camera elevation" })}
+                    ariaLabel={t("timeline:attrs.cameraElevation", { defaultValue: "Camera elevation" })}
                   />
                 </InspectorRow>
-                <InspectorRow label={i18n.t("editor:ui.lens", { defaultValue: "Lens" })}>
+                <InspectorRow label={t("editor:ui.lens", { defaultValue: "Lens" })}>
                   <InspectorPillInput
                     value={camera.fovDeg.toFixed(1)}
                     unit="°"
                     minWidth={64}
                     scrub={SCRUB_FOV}
                     onCommit={handleFovCommit}
-                    ariaLabel={i18n.t("timeline:attrs.cameraFieldOfView", { defaultValue: "Camera field of view" })}
+                    ariaLabel={t("timeline:attrs.cameraFieldOfView", { defaultValue: "Camera field of view" })}
                   />
                   <InspectorPillInput
                     value={camera.zoom.toFixed(2)}
@@ -283,7 +284,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_ZOOM}
                     onCommit={handleZoomCommit}
-                    ariaLabel={i18n.t("timeline:attrs.cameraZoom", { defaultValue: "Camera zoom" })}
+                    ariaLabel={t("timeline:attrs.cameraZoom", { defaultValue: "Camera zoom" })}
                   />
                 </InspectorRow>
               </>
@@ -291,7 +292,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
 
             {camera.mode === "scene" && (
               <NamePickerRow
-                label={i18n.t("timeline:attrs.sceneCamera", { defaultValue: "Scene camera" })}
+                label={t("timeline:attrs.sceneCamera", { defaultValue: "Scene camera" })}
                 pickerLabel="Scene camera"
                 autoLabel="First camera"
                 value={camera.sceneCameraName ?? AUTO}
@@ -302,7 +303,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
             )}
 
             <NamePickerRow
-              label={i18n.t("timeline:attrs.animation", { defaultValue: "Animation" })}
+              label={t("timeline:attrs.animation", { defaultValue: "Animation" })}
               pickerLabel="glTF animation"
               autoLabel="All animations"
               value={model3dStyle.animation.clipName ?? AUTO}
@@ -311,30 +312,30 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               onChange={handleAnimationChange}
             />
             <InspectorToggleRow
-              label={i18n.t("ui2:attrs.loop", { defaultValue: "Loop" })}
+              label={t("ui2:attrs.loop", { defaultValue: "Loop" })}
               checked={model3dStyle.animation.loop}
               onChange={handleLoopChange}
             />
-            <InspectorRow label={i18n.t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}>
+            <InspectorRow label={t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}>
               <InspectorPillInput
                 value={model3dStyle.animation.speed.toFixed(2)}
                 unit="×"
                 scrub={SCRUB_SPEED}
                 onCommit={handleSpeedCommit}
-                ariaLabel={i18n.t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}
+                ariaLabel={t("timeline:attrs.animationSpeed", { defaultValue: "Animation speed" })}
               />
             </InspectorRow>
 
-            <InspectorRow label={i18n.t("timeline:attrs.lighting", { defaultValue: "Lighting" })}>
+            <InspectorRow label={t("timeline:attrs.lighting", { defaultValue: "Lighting" })}>
               <InspectorSelect
-                label={i18n.t("timeline:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
+                label={t("timeline:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
                 value={model3dStyle.lighting}
                 options={LIGHTING_PRESETS}
                 onChange={handleLightingChange}
               />
             </InspectorRow>
             <InspectorSliderRow
-              label={i18n.t("timeline:attrs.lightIntensity", { defaultValue: "Light intensity" })}
+              label={t("timeline:attrs.lightIntensity", { defaultValue: "Light intensity" })}
               min={0}
               max={4}
               step={0.05}
@@ -344,12 +345,12 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
             />
 
             <InspectorToggleRow
-              label={i18n.t("timeline:attrs.transparentBackground", { defaultValue: "Transparent background" })}
+              label={t("timeline:attrs.transparentBackground", { defaultValue: "Transparent background" })}
               checked={background.transparent}
               onChange={handleTransparentChange}
             />
             {!background.transparent && (
-              <InspectorRow label={i18n.t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}>
+              <InspectorRow label={t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}>
                 <TextInput
                   type="color"
                   value={background.color}
@@ -359,7 +360,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               </InspectorRow>
             )}
 
-            <InspectorRow label={i18n.t("editor:ui.bake", { defaultValue: "Bake" })}>
+            <InspectorRow label={t("editor:ui.bake", { defaultValue: "Bake" })}>
               <FlexColumn gap={SPACING.xs}>
                 <Button
                   size="small"
@@ -377,7 +378,7 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
                   <Chip
                     compact
                     color="warning"
-                    label={i18n.t("timeline:attrs.staleTheClipChangedSinceThisBake", { defaultValue: "Stale — the clip changed since this bake" })}
+                    label={t("timeline:attrs.staleTheClipChangedSinceThisBake", { defaultValue: "Stale — the clip changed since this bake" })}
                   />
                 )}
               </FlexColumn>

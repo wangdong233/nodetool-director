@@ -19,7 +19,7 @@ import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import type { RulerMode } from "../../stores/timeline/TimelineUIStore";
 import { Caption, FlexRow } from "../ui_primitives";
 import { formatTimecode } from "./Inspector/InspectorPrimitives.helpers";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const readoutSx = {
   fontFamily: "var(--fontFamily2)",
@@ -35,6 +35,7 @@ const format = (
   mode === "bars" ? formatBarsBeats(timeMs, tempo) : formatTimecode(timeMs, fps);
 
 export const PlayheadReadout: React.FC = memo(() => {
+  const { t } = useTranslation();
   const rulerMode = useTimelineUIStore((s) => s.rulerMode);
   const tempo = useTimelineStore((s) => resolveTempo(s));
   const fps = useTimelineStore((s) => s.fps);
@@ -70,7 +71,7 @@ export const PlayheadReadout: React.FC = memo(() => {
         ref={valueRef}
         sx={readoutSx}
         aria-live="off"
-        aria-label={i18n.t("timeline:status.playhead", { defaultValue: "Playhead position" })}
+        aria-label={t("timeline:status.playhead", { defaultValue: "Playhead position" })}
       />
     </FlexRow>
   );

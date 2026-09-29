@@ -97,6 +97,7 @@ import { PreviewRecovery } from "./PreviewRecovery";
 import { watchVideoHealth } from "./videoHealth";
 import { type PreviewFailureHandler } from "./previewFailure";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface PlaceholderLayer {
   clipId: string;
@@ -257,6 +258,7 @@ export const PreviewCompositor: React.FC = () => {
 };
 
 const PreviewSurface = memo((props: PreviewSurfaceProps) => {
+  const { t } = useTranslation();
   const { onFailure: reportFailure, onReady } = props;
   const theme = useTheme();
   const alive = useRef(true);
@@ -1917,7 +1919,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
             }}
           >
             <span style={{ fontSize: theme.fontSizeSmall }}>
-              {i18n.t("editor:ui.previewRenderingUnavailable")}
+              {t("editor:ui.previewRenderingUnavailable")}
             </span>
           </div>
         )}
@@ -1931,7 +1933,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
               ▶
             </span>
             <span style={{ fontSize: theme.fontSizeSmall, opacity: 0.25 }}>
-              {i18n.t("editor:ui.noMediaAt", { n: Math.round(currentTimeMs / 1000) })}
+              {t("editor:ui.noMediaAt", { n: Math.round(currentTimeMs / 1000) })}
             </span>
           </div>
         )}

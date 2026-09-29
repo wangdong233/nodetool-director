@@ -42,11 +42,12 @@ import { usePersistedFold } from "./usePersistedFold";
 import { ClipCustomCurves, makeCustomAnimation } from "./ClipCustomCurves";
 import { EasingField, TextCommitField } from "./InspectorMotionFields";
 import { isNumber } from "../../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 import {
   shapeClipToFollowPathParams,
   type FollowPathParams
 } from "./followPathParams";
+import { useTranslation } from "react-i18next";
 
 const ROLES: AnimationRole[] = ["in", "out", "emphasis", "loop"];
 const EASINGS: EasingId[] = EASING_IDS;
@@ -349,6 +350,7 @@ interface FollowPathShapePickerProps {
  */
 const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
   ({ onPick }) => {
+    const { t } = useTranslation();
     const shapeClips = useTimelineStore(
       useShallow((s) =>
         s.clips.flatMap((candidate) =>
@@ -368,7 +370,7 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
     const { version: languageVersion } = useAppLanguage();
     const options = useMemo(
       () => [
-        { value: CHOOSE_SHAPE_CLIP, label: i18n.t("timeline:attrs.chooseAShapeClip", { defaultValue: "Choose a shape clip…" }) },
+        { value: CHOOSE_SHAPE_CLIP, label: t("timeline:attrs.chooseAShapeClip", { defaultValue: "Choose a shape clip…" }) },
         ...shapeClips.map((candidate) => ({
           value: candidate.id,
           label: candidate.name || candidate.id
@@ -390,9 +392,9 @@ const FollowPathShapePicker: React.FC<FollowPathShapePickerProps> = memo(
     if (shapeClips.length === 0) return null;
 
     return (
-      <InspectorRow label={i18n.t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}>
+      <InspectorRow label={t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}>
         <InspectorSelect
-          label={i18n.t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}
+          label={t("timeline:attrs.useShapeClip", { defaultValue: "Use shape clip" })}
           value={CHOOSE_SHAPE_CLIP}
           options={options}
           onChange={handlePick}
@@ -428,6 +430,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
   onPatch,
   onDelete
 }) => {
+  const { t } = useTranslation();
   const preset = ANIMATION_PRESETS.find(
     (candidate) => candidate.id === animation.preset
   );
@@ -590,12 +593,12 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
       </FlexRow>
 
       <InspectorToggleRow
-        label={i18n.t("timeline:attrs.enabled", { defaultValue: "Enabled" })}
+        label={t("timeline:attrs.enabled", { defaultValue: "Enabled" })}
         checked={animation.enabled !== false}
         onChange={handleEnabledChange}
       />
 
-      <InspectorRow label={i18n.t("timeline:attrs.preset", { defaultValue: "Preset" })}>
+      <InspectorRow label={t("timeline:attrs.preset", { defaultValue: "Preset" })}>
         <InspectorSelect
           label={`${animation.role} animation preset`}
           value={animation.preset}
@@ -616,7 +619,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
               ariaLabel={`${animation.role} animation duration`}
             />
           </InspectorRow>
-          <InspectorRow label={i18n.t("timeline:attrs.delay", { defaultValue: "Delay" })}>
+          <InspectorRow label={t("timeline:attrs.delay", { defaultValue: "Delay" })}>
             <InspectorPillInput
               value={String(animation.delayMs ?? 0)}
               unit="ms"
@@ -636,7 +639,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
           onChange={handleEasingChange}
         />
       ) : (
-        <InspectorRow label={i18n.t("timeline:attrs.easing", { defaultValue: "Easing" })}>
+        <InspectorRow label={t("timeline:attrs.easing", { defaultValue: "Easing" })}>
           <InspectorSelect
             label={`${animation.role} animation easing`}
             value={animation.easing ?? preset?.defaultEasing ?? "linear"}
@@ -649,13 +652,13 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
       {staggerAvailable && !preset?.fullClip && (
         <>
           <InspectorToggleRow
-            label={i18n.t("timeline:attrs.stagger", { defaultValue: "Stagger" })}
+            label={t("timeline:attrs.stagger", { defaultValue: "Stagger" })}
             checked={stagger !== undefined}
             onChange={handleStaggerToggle}
           />
           {stagger !== undefined && (
             <>
-              <InspectorRow label={i18n.t("editor:ui.unit", { defaultValue: "Unit" })}>
+              <InspectorRow label={t("editor:ui.unit", { defaultValue: "Unit" })}>
                 <InspectorSelect
                   label={`${animation.role} animation stagger unit`}
                   value={stagger.unit}
@@ -663,7 +666,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
                   onChange={handleStaggerUnitChange}
                 />
               </InspectorRow>
-              <InspectorRow label={i18n.t("editor:ui.from", { defaultValue: "From" })}>
+              <InspectorRow label={t("editor:ui.from", { defaultValue: "From" })}>
                 <InspectorSelect
                   label={`${animation.role} animation stagger from`}
                   value={stagger.from ?? "start"}
@@ -671,7 +674,7 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
                   onChange={handleStaggerFromChange}
                 />
               </InspectorRow>
-              <InspectorRow label={i18n.t("timeline:attrs.offset", { defaultValue: "Offset" })}>
+              <InspectorRow label={t("timeline:attrs.offset", { defaultValue: "Offset" })}>
                 <InspectorPillInput
                   value={String(stagger.offsetMs)}
                   unit="ms"
@@ -721,6 +724,7 @@ interface ClipAnimationsProps {
 }
 
 export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("animate");
   const setClipAnimations = useTimelineStore(
     (state) => state.setClipAnimations
@@ -798,7 +802,7 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title={i18n.t("timeline:attrs.animate", { defaultValue: "Animate" })}
+            title={t("timeline:attrs.animate", { defaultValue: "Animate" })}
             icon={<AnimationOutlinedIcon />}
           />
         }
@@ -809,14 +813,14 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
         <FlexColumn gap={SPACING.md} sx={{ py: SPACING.xs }}>
           <FlexRow gap={SPACING.md} align="center">
             <InspectorSelect
-              label={i18n.t("timeline:attrs.newAnimationRole", { defaultValue: "New animation role" })}
+              label={t("timeline:attrs.newAnimationRole", { defaultValue: "New animation role" })}
               value={newRole}
               options={ROLE_OPTIONS}
               onChange={handleRoleChange}
               grow
             />
             <InspectorSelect
-              label={i18n.t("timeline:attrs.newAnimationPreset", { defaultValue: "New animation preset" })}
+              label={t("timeline:attrs.newAnimationPreset", { defaultValue: "New animation preset" })}
               value={newPreset}
               options={PRESET_OPTIONS_BY_ROLE[newRole]}
               onChange={setNewPreset}

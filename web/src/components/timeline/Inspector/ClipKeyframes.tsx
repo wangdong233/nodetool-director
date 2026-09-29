@@ -38,7 +38,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number }> = {
   opacity: { label: "Opacity", step: 0.05 },
@@ -61,6 +61,7 @@ const KeyframeRow: React.FC<{
   property: KeyframeProperty;
   atMs: number;
 }> = memo(({ clip, property, atMs }) => {
+  const { t } = useTranslation();
   const setClipKeyframe = useTimelineStore((s) => s.setClipKeyframe);
   const removeClipKeyframe = useTimelineStore((s) => s.removeClipKeyframe);
   const keyframeProperty = useTimelineUIStore((s) => s.keyframeProperty);
@@ -98,8 +99,8 @@ const KeyframeRow: React.FC<{
             activeIcon={<DiamondIcon fontSize="inherit" />}
             tooltip={
               keyed
-                ? i18n.t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
-                : `${i18n.t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${armed ? i18n.t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
+                ? t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
+                : `${t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${armed ? t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
             }
             aria-label={`${keyed ? "Remove" : "Add"} ${meta.label} keyframe`}
           />
@@ -120,6 +121,7 @@ const KeyframeRow: React.FC<{
 KeyframeRow.displayName = "KeyframeRow";
 
 export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("keyframes");
   const currentTimeMs = useTimelinePlaybackStore((s) => s.currentTimeMs);
   const atMs = Math.max(
@@ -146,7 +148,7 @@ export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
         <FlexColumn gap={SPACING.sm} sx={{ py: SPACING.xs }}>
           {!inside && (
             <Caption sx={{ opacity: 0.7 }}>
-              {i18n.t("editor:ui.moveThePlayheadOverTheClipToSetKeyframes")}
+              {t("editor:ui.moveThePlayheadOverTheClipToSetKeyframes")}
             </Caption>
           )}
           {keyframePropertiesFor(clip).map((property) => (

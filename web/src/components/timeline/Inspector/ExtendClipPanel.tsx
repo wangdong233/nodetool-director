@@ -22,7 +22,7 @@ import {
   VideoPlayer
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string; labelKey: string }> =
   [
@@ -32,6 +32,7 @@ const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string; lab
   ];
 
 const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
+  const { t } = useTranslation();
   const clip = useTimelineStore((state) =>
     state.clips.find((item) => item.id === clipId)
   );
@@ -131,7 +132,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   return (
     <CollapsibleSection
       title={
-        <InspectorSectionTitle title={i18n.t("timeline:attrs.extend", { defaultValue: "Extend" })} icon={<MoreTimeOutlinedIcon />} />
+        <InspectorSectionTitle title={t("timeline:attrs.extend", { defaultValue: "Extend" })} icon={<MoreTimeOutlinedIcon />} />
       }
       defaultOpen
     >
@@ -146,17 +147,17 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               <EmptyState
                 variant="empty"
                 size="small"
-                title={i18n.t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
+                title={t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
                 description={
                   modelError
-                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
-                    : i18n.t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
+                    ? t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
+                    : t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
                 }
               />
             ) : (
               <>
                 <SelectField
-                  label={i18n.t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
+                  label={t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
                   value={`${model.provider}:${model.id}`}
                   options={modelsForTask.map((item) => ({
                     value: `${item.provider}:${item.id}`,
@@ -166,7 +167,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   disabled={pending}
                 />
                 <SelectField
-                  label={i18n.t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
+                  label={t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
                   value={selectedDirection}
                   options={directionOptions}
                   onChange={(value) =>
@@ -175,7 +176,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   disabled={pending}
                 />
                 <TextInput
-                  label={i18n.t("timeline:attrs.addedSourceSeconds", { defaultValue: "Added source seconds" })}
+                  label={t("timeline:attrs.addedSourceSeconds", { defaultValue: "Added source seconds" })}
                   type="number"
                   value={duration}
                   onChange={(event) => setDuration(event.target.value)}
@@ -185,7 +186,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   fullWidth
                 />
                 <TextInput
-                  label={i18n.t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
+                  label={t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
                   value={intent}
                   onChange={(event) => setIntent(event.target.value)}
                   disabled={pending}
@@ -219,9 +220,9 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               {take ? (
                 <>
                   <Caption>
-                    {job.request.direction === "start" ? i18n.t("timeline:attrs.start", { defaultValue: "Start" }) : i18n.t("ui2:attrs.end", { defaultValue: "End" })}{" "}
-                    {i18n.t("timeline:attrs.extensionSeconds", { defaultValue: "extension, {{n}}s", n: job.request.addedSourceDurationMs / 1000 })}
-                    {accepted ? i18n.t("timeline:attrs.inUseSuffix", { defaultValue: " · In use" }) : i18n.t("timeline:attrs.candidateSuffix", { defaultValue: " · Candidate" })}
+                    {job.request.direction === "start" ? t("timeline:attrs.start", { defaultValue: "Start" }) : t("ui2:attrs.end", { defaultValue: "End" })}{" "}
+                    {t("timeline:attrs.extensionSeconds", { defaultValue: "extension, {{n}}s", n: job.request.addedSourceDurationMs / 1000 })}
+                    {accepted ? t("timeline:attrs.inUseSuffix", { defaultValue: " · In use" }) : t("timeline:attrs.candidateSuffix", { defaultValue: " · Candidate" })}
                   </Caption>
                   <EditorButton
                     onClick={() =>
@@ -229,13 +230,13 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     }
                   >
                     {preview === take.assetId
-                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
-                      : i18n.t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
+                      ? t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
+                      : t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
                   </EditorButton>
                   {preview === take.assetId && (
                     <VideoPlayer
                       locator={`asset://${take.assetId}`}
-                      label={i18n.t("timeline:attrs.extensionCandidate", { defaultValue: "Extension candidate" })}
+                      label={t("timeline:attrs.extensionCandidate", { defaultValue: "Extension candidate" })}
                     />
                   )}
                   {TIMING_OPTIONS.map((option) => (
@@ -246,17 +247,17 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                         handleApplyCandidate(job.request, option.value)
                       }
                     >
-                      {i18n.t(option.labelKey, { defaultValue: option.label })}
+                      {t(option.labelKey, { defaultValue: option.label })}
                     </EditorButton>
                   ))}
                 </>
               ) : job.status !== "running" ? (
                 <>
                   {job.error && <Caption color="error">{job.error}</Caption>}
-                  <EditorButton onClick={() => recover(job.request)}>{i18n.t("timeline:attrs.recoverExtension", { defaultValue: "Recover extension" })}</EditorButton>
+                  <EditorButton onClick={() => recover(job.request)}>{t("timeline:attrs.recoverExtension", { defaultValue: "Recover extension" })}</EditorButton>
                 </>
               ) : (
-                <Caption color="secondary">{i18n.t("timeline:attrs.extensionGenerationIsRunning", { defaultValue: "Extension generation is running." })}</Caption>
+                <Caption color="secondary">{t("timeline:attrs.extensionGenerationIsRunning", { defaultValue: "Extension generation is running." })}</Caption>
               )}
             </FlexColumn>
           );

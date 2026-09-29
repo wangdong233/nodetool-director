@@ -47,7 +47,7 @@ import { GeneratedClipTopBar } from "./GeneratedClipTopBar";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface GeneratedClipPanelProps {
   clipId: string;
@@ -95,6 +95,7 @@ const inputsContainerStyles = (theme: Theme) =>
 
 export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
   ({ clipId, additionalSections }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const setParamOverride = useTimelineStore((s) => s.setParamOverride);
@@ -182,7 +183,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <EmptyState
               variant="empty"
               size="small"
-              description={i18n.t("editor:ui.noWorkflowIsBoundToThisClip")}
+              description={t("editor:ui.noWorkflowIsBoundToThisClip")}
             />
           )}
 
@@ -190,7 +191,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title={i18n.t("timeline:attrs.inputs", { defaultValue: "Inputs" })}
+                  title={t("timeline:attrs.inputs", { defaultValue: "Inputs" })}
                   icon={<TuneOutlinedIcon />}
                 />
               }
@@ -201,7 +202,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 <EmptyState
                   variant="error"
                   size="small"
-                  description={i18n.t("editor:ui.failedToLoadWorkflowInputs")}
+                  description={t("editor:ui.failedToLoadWorkflowInputs")}
                 />
               )}
               {!isLoading && !isError && workflow && (
@@ -210,7 +211,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                     <EmptyState
                       variant="empty"
                       size="small"
-                      description={i18n.t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
+                      description={t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
                     />
                   ) : nodeStoreForForm ? (
                     <NodeContext.Provider value={nodeStoreForForm}>
@@ -236,7 +237,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
                   estimate={workflowCostLine(costEstimate)}
-                  title={i18n.t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
+                  title={t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
                 />
               </FlexRow>
               <EditorButton
@@ -253,7 +254,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 {isActive ? "Cancel" : generateLabel}
               </EditorButton>
               {isFailed && (
-                <Caption color="error" sx={{ textAlign: "center" }}>{i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
+                <Caption color="error" sx={{ textAlign: "center" }}>{t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
               )}
             </FlexColumn>
           )}

@@ -36,6 +36,7 @@ import {
   type TimelineAction,
   type TimelineKeyboardPreset
 } from "./timelineKeymap";
+import { useTranslation } from "react-i18next";
 
 interface Row {
   /** The action whose bindings fill the key column, or fixed keys for a
@@ -288,6 +289,7 @@ interface TimelineShortcutsDialogProps {
 /** Two-column masonry of grouped shortcut rows inside a standard Dialog. */
 export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
   memo(({ open, onClose }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const preset = useSettingsStore(
       (s) => s.settings.timelineKeyboardPreset
@@ -307,17 +309,17 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
       <Dialog
         open={open}
         onClose={onClose}
-        title={i18n.t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
+        title={t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
         minWidth="min(680px, 100vw - 32px)"
       >
         <FlexRow align="center" gap={1} sx={{ pb: 1 }}>
-          <Caption sx={groupTitleSx}>{i18n.t("timeline:attrs.layout", { defaultValue: "Layout" })}</Caption>
+          <Caption sx={groupTitleSx}>{t("timeline:attrs.layout", { defaultValue: "Layout" })}</Caption>
           <ToggleGroup
             value={preset}
             exclusive
             onChange={handlePreset}
             compact
-            aria-label={i18n.t("timeline:attrs.keyboardLayout", { defaultValue: "Keyboard layout" })}
+            aria-label={t("timeline:attrs.keyboardLayout", { defaultValue: "Keyboard layout" })}
           >
             {TIMELINE_KEYBOARD_PRESETS.map((p) => (
               <ToggleOption key={p} value={p}>
@@ -350,7 +352,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
           gap={0.5}
           sx={{ pt: 2, mt: 1, borderTop: `1px solid ${theme.vars.palette.divider}` }}
         >
-          <Caption sx={{ opacity: 0.7 }}>{i18n.t("ui2:attrs.press", { defaultValue: "Press" })}</Caption>
+          <Caption sx={{ opacity: 0.7 }}>{t("ui2:attrs.press", { defaultValue: "Press" })}</Caption>
           <ShortcutHint shortcut={["?"]} />
           <Caption sx={{ opacity: 0.7 }}>
             any time to toggle this panel · Ctrl also responds to ⌘ on macOS

@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from "react";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 import {
   isMediaTrackStale,
@@ -48,6 +48,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   sequence,
   mediaTracks
 }) => {
+  const { t } = useTranslation();
   const [formats, setFormats] = useState<Set<string>>(new Set(["9:16"]));
   const [strategy, setStrategy] = useState<AdaptFormatStrategy>("smart");
   const [safeMarginPercent, setSafeMarginPercent] = useState(10);
@@ -124,26 +125,26 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={i18n.t("timeline:adapt.title", { defaultValue: "Adapt format" })}
+      title={t("timeline:adapt.title", { defaultValue: "Adapt format" })}
       onConfirm={() => void handleCreate()}
       onCancel={onClose}
       confirmText={
-        formats.size > 1 ? i18n.t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : i18n.t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
+        formats.size > 1 ? t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
       }
-      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       confirmDisabled={cannotCreate}
       isLoading={isCreating}
     >
       <FlexColumn gap={SPACING.lg} sx={{ py: SPACING.md }}>
         <FlexColumn gap={SPACING.xs}>
-          <Label>{i18n.t("timeline:attrs.original", { defaultValue: "Original" })}</Label>
+          <Label>{t("timeline:attrs.original", { defaultValue: "Original" })}</Label>
           <Text size="small">
             {sequence ? `${sequence.width} × ${sequence.height}` : "—"}
           </Text>
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>{i18n.t("timeline:attrs.targetFormats", { defaultValue: "Target formats" })}</Label>
+          <Label>{t("timeline:attrs.targetFormats", { defaultValue: "Target formats" })}</Label>
           {FORMAT_OPTIONS.map((format) => (
             <Checkbox
               key={format.value}
@@ -156,25 +157,25 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>{i18n.t("timeline:attrs.strategy", { defaultValue: "Strategy" })}</Label>
+          <Label>{t("timeline:attrs.strategy", { defaultValue: "Strategy" })}</Label>
           <RadioSet value={strategy} onChange={handleStrategyChange}>
-            <Radio value="center" label={i18n.t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
+            <Radio value="center" label={t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
               value="smart"
-              label={i18n.t("timeline:adapt.smartReframe", { defaultValue: "Smart Reframe" })}
+              label={t("timeline:adapt.smartReframe", { defaultValue: "Smart Reframe" })}
               size="small"
               disabled={smartUnavailable}
             />
             <Radio
               value="track"
-              label={i18n.t("timeline:adapt.followObject", { defaultValue: "Follow selected object" })}
+              label={t("timeline:adapt.followObject", { defaultValue: "Follow selected object" })}
               size="small"
               disabled={readyTracks.length === 0}
             />
           </RadioSet>
           {strategy === "track" && (
             <SelectField
-              label={i18n.t("timeline:adapt.reframeSubject", { defaultValue: "Reframe subject" })}
+              label={t("timeline:adapt.reframeSubject", { defaultValue: "Reframe subject" })}
               value={trackId}
               onChange={setTrackId}
               options={trackOptions}
@@ -183,7 +184,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
           )}
           {readyTracks.length === 0 && (
             <Caption color="muted">
-              {i18n.t("editor:ui.trackASubjectFirstToUseFollowSelectedObject")}
+              {t("editor:ui.trackASubjectFirstToUseFollowSelectedObject")}
             </Caption>
           )}
           {smartUnavailable && (
@@ -196,7 +197,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
 
         <FlexColumn gap={SPACING.xs}>
           <FlexRow justify="space-between" align="center">
-            <Label>{i18n.t("timeline:attrs.safeMargin", { defaultValue: "Safe margin" })}</Label>
+            <Label>{t("timeline:attrs.safeMargin", { defaultValue: "Safe margin" })}</Label>
             <Text size="small">{safeMarginPercent}%</Text>
           </FlexRow>
           <Slider
@@ -207,7 +208,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
             onChange={(_event, value) =>
               setSafeMarginPercent(Array.isArray(value) ? value[0] : value)
             }
-            aria-label={i18n.t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}
+            aria-label={t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}
           />
         </FlexColumn>
 

@@ -32,7 +32,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { BORDER_RADIUS, FONT_SIZE_MONO } from "../../ui_primitives";
 import { computeBarRulerTicks } from "./tempoGrid";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface RulerColors {
   bg: string;
@@ -282,6 +282,7 @@ interface TimeRulerProps {
 
 export const TimeRuler: React.FC<TimeRulerProps> = memo(
   ({ totalWidthPx, headerWidthPx = 0 }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     // `scrollLeftPx` re-renders this on every scroll frame.
     const rootCss = useMemo(() => rulerStyles(theme), [theme]);
@@ -599,8 +600,8 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
           onPointerMove={handlePointerMove}
           aria-label={
             rulerMode === "bars"
-              ? i18n.t("timeline:attrs.barsRulerClickOrDragToSetPlayhead", { defaultValue: "Bars ruler — click or drag to set playhead" })
-              : i18n.t("timeline:attrs.timeRulerClickOrDragToSetPlayhead", { defaultValue: "Time ruler — click or drag to set playhead" })
+              ? t("timeline:attrs.barsRulerClickOrDragToSetPlayhead", { defaultValue: "Bars ruler — click or drag to set playhead" })
+              : t("timeline:attrs.timeRulerClickOrDragToSetPlayhead", { defaultValue: "Time ruler — click or drag to set playhead" })
           }
           role="slider"
           aria-valuemin={0}

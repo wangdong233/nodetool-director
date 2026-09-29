@@ -42,7 +42,7 @@ import { assetMediaType } from "./dnd/assetToClipAdapter";
 import { performSourceEdit, sourceRangeFor, type SourceEditKind } from "./sourceEdit";
 import { TIMELINE_KEYMAPS, bindingKeys } from "./timelineKeymap";
 import { useSettingsStore } from "../../stores/SettingsStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const panelStyles = (theme: Theme) =>
   css({
@@ -62,6 +62,7 @@ const mediaBoxStyles = (theme: Theme) =>
 const formatSeconds = (ms: number): string => (ms / 1000).toFixed(2);
 
 export const SourceViewerPanel: React.FC = memo(() => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const activeExplorer = usePanelStore((s) =>
     s.panel.activeView === "library" || s.panel.activeView === "assets"
@@ -164,7 +165,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
       css={panelStyles(theme)}
       data-testid="source-viewer"
       role="region"
-      aria-label={i18n.t("timeline:source.monitor", { defaultValue: "Source monitor" })}
+      aria-label={t("timeline:source.monitor", { defaultValue: "Source monitor" })}
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
@@ -185,15 +186,15 @@ export const SourceViewerPanel: React.FC = memo(() => {
           {mediaType === "image" && (
             <ResponsiveImage locator={locator} alt={asset.name} fit="contain" />
           )}
-          {!mediaType && <Caption>{i18n.t("timeline:attrs.thisAssetTypeCannotGoOnTheTimeline", { defaultValue: "This asset type cannot go on the timeline." })}</Caption>}
+          {!mediaType && <Caption>{t("timeline:attrs.thisAssetTypeCannotGoOnTheTimeline", { defaultValue: "This asset type cannot go on the timeline." })}</Caption>}
         </div>
 
-        <InspectorRow label={i18n.t("timeline:source.in", { defaultValue: "In" })}>
+        <InspectorRow label={t("timeline:source.in", { defaultValue: "In" })}>
           <FlexRow gap={SPACING.xs} align="center">
             <InspectorPillInput
               value={formatSeconds(range.inMs)}
               unit="s"
-              ariaLabel={i18n.t("timeline:source.inPoint", { defaultValue: "Source in point" })}
+              ariaLabel={t("timeline:source.inPoint", { defaultValue: "Source in point" })}
               onCommit={(raw) => {
                 const inMs = parseSeconds(raw);
                 if (inMs !== null) {
@@ -203,16 +204,16 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label={i18n.t("timeline:source.markIn", { defaultValue: "Mark source in (I)" })}>{i18n.t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
+              <Button size="small" variant="text" onClick={() => markSource("in")} aria-label={t("timeline:source.markIn", { defaultValue: "Mark source in (I)" })}>{t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
             )}
           </FlexRow>
         </InspectorRow>
-        <InspectorRow label={i18n.t("timeline:source.out", { defaultValue: "Out" })}>
+        <InspectorRow label={t("timeline:source.out", { defaultValue: "Out" })}>
           <FlexRow gap={SPACING.xs} align="center">
             <InspectorPillInput
               value={formatSeconds(range.outMs)}
               unit="s"
-              ariaLabel={i18n.t("timeline:source.outPoint", { defaultValue: "Source out point" })}
+              ariaLabel={t("timeline:source.outPoint", { defaultValue: "Source out point" })}
               onCommit={(raw) => {
                 const outMs = parseSeconds(raw);
                 if (outMs !== null) {
@@ -222,7 +223,7 @@ export const SourceViewerPanel: React.FC = memo(() => {
               }}
             />
             {mediaType === "video" && (
-              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label={i18n.t("timeline:source.markOut", { defaultValue: "Mark source out (O)" })}>{i18n.t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
+              <Button size="small" variant="text" onClick={() => markSource("out")} aria-label={t("timeline:source.markOut", { defaultValue: "Mark source out (O)" })}>{t("timeline:attrs.markHere", { defaultValue: "Mark here" })}</Button>
             )}
           </FlexRow>
         </InspectorRow>
@@ -233,13 +234,13 @@ export const SourceViewerPanel: React.FC = memo(() => {
 
         <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceAppend")} />}>
-            <Button size="small" variant="outlined" startIcon={<PlaylistAddOutlinedIcon />} onClick={() => run("append")} disabled={!mediaType}>{i18n.t("timeline:attrs.append", { defaultValue: "Append" })}</Button>
+            <Button size="small" variant="outlined" startIcon={<PlaylistAddOutlinedIcon />} onClick={() => run("append")} disabled={!mediaType}>{t("timeline:attrs.append", { defaultValue: "Append" })}</Button>
           </Tooltip>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceInsert")} />}>
-            <Button size="small" variant="outlined" startIcon={<KeyboardTabOutlinedIcon />} onClick={() => run("insert")} disabled={!mediaType}>{i18n.t("timeline:attrs.insert", { defaultValue: "Insert" })}</Button>
+            <Button size="small" variant="outlined" startIcon={<KeyboardTabOutlinedIcon />} onClick={() => run("insert")} disabled={!mediaType}>{t("timeline:attrs.insert", { defaultValue: "Insert" })}</Button>
           </Tooltip>
           <Tooltip title={<ShortcutHint shortcut={keys("sourceOverwrite")} />}>
-            <Button size="small" variant="outlined" startIcon={<FlipToFrontOutlinedIcon />} onClick={() => run("overwrite")} disabled={!mediaType}>{i18n.t("timeline:attrs.overwrite", { defaultValue: "Overwrite" })}</Button>
+            <Button size="small" variant="outlined" startIcon={<FlipToFrontOutlinedIcon />} onClick={() => run("overwrite")} disabled={!mediaType}>{t("timeline:attrs.overwrite", { defaultValue: "Overwrite" })}</Button>
           </Tooltip>
         </FlexRow>
       </FlexColumn>

@@ -34,7 +34,7 @@ import {
 import { formatTimecode, parseSeconds, parseTimecode } from "./InspectorPrimitives.helpers";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipAnimations } from "./ClipAnimations";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const SCRUB_DURATION = { step: 0.02, min: 0.01 };
 
@@ -46,6 +46,7 @@ interface ClipGroupPanelProps {
 
 export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
   ({ clip, onUngroup }) => {
+    const { t } = useTranslation();
     const [timingOpen, setTimingOpen] = usePersistedFold("timing");
     const [groupOpen, setGroupOpen] = usePersistedFold("group", true);
     const patchClip = useTimelineStore((s) => s.patchClip);
@@ -93,7 +94,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={i18n.t("timeline:attrs.group", { defaultValue: "Group" })}
+              title={t("timeline:attrs.group", { defaultValue: "Group" })}
               icon={<FolderOutlinedIcon />}
             />
           }
@@ -102,15 +103,15 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}>
+            <InspectorRow label={t("editor:asset.info.name", { defaultValue: "Name" })}>
               <InspectorPillInput
                 value={clip.name}
                 minWidth={140}
                 onCommit={handleName}
-                ariaLabel={i18n.t("timeline:attrs.groupName", { defaultValue: "Group name" })}
+                ariaLabel={t("timeline:attrs.groupName", { defaultValue: "Group name" })}
               />
             </InspectorRow>
-            <InspectorRow label={i18n.t("timeline:attrs.children", { defaultValue: "Children" })}>
+            <InspectorRow label={t("timeline:attrs.children", { defaultValue: "Children" })}>
               <InspectorStaticValue value={String(childCount)} />
             </InspectorRow>
             <Caption color="muted">
@@ -118,7 +119,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
               every clip that names it as a parent; each child keeps its own
               track, so layer order is unchanged.
             </Caption>
-            <Button size="small" variant="outlined" onClick={onUngroup}>{i18n.t("timeline:attrs.ungroup", { defaultValue: "Ungroup" })}</Button>
+            <Button size="small" variant="outlined" onClick={onUngroup}>{t("timeline:attrs.ungroup", { defaultValue: "Ungroup" })}</Button>
           </FlexColumn>
         </CollapsibleSection>
 
@@ -127,7 +128,7 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={i18n.t("timeline:attrs.timing", { defaultValue: "Timing" })}
+              title={t("timeline:attrs.timing", { defaultValue: "Timing" })}
               icon={<ScheduleOutlinedIcon />}
             />
           }
@@ -136,25 +137,25 @@ export const ClipGroupPanel: React.FC<ClipGroupPanelProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label={i18n.t("timeline:attrs.start", { defaultValue: "Start" })}>
+            <InspectorRow label={t("timeline:attrs.start", { defaultValue: "Start" })}>
               <InspectorPillInput
                 value={formatTimecode(clip.startMs, fps)}
                 minWidth={112}
                 onCommit={handleStart}
-                ariaLabel={i18n.t("timeline:attrs.startTimecode", { defaultValue: "Start timecode" })}
+                ariaLabel={t("timeline:attrs.startTimecode", { defaultValue: "Start timecode" })}
               />
             </InspectorRow>
-            <InspectorRow label={i18n.t("timeline:attrs.duration", { defaultValue: "Duration" })}>
+            <InspectorRow label={t("timeline:attrs.duration", { defaultValue: "Duration" })}>
               <InspectorPillInput
                 value={(clip.durationMs / 1000).toFixed(2)}
                 unit="s"
                 scrub={SCRUB_DURATION}
                 onCommit={handleDuration}
-                ariaLabel={i18n.t("timeline:attrs.durationInSeconds", { defaultValue: "Duration in seconds" })}
+                ariaLabel={t("timeline:attrs.durationInSeconds", { defaultValue: "Duration in seconds" })}
               />
             </InspectorRow>
             <InspectorToggleRow
-              label={i18n.t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
+              label={t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
               checked={!!clip.hidden}
               onChange={handleHidden}
             />

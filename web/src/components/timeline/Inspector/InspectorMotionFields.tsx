@@ -15,7 +15,7 @@ import React, { memo, useCallback, useState } from "react";
 import { parseEasing, type ShapeFill } from "@nodetool-ai/timeline";
 
 import { Caption, FlexColumn, SPACING, TextInput } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   InspectorPillInput,
   InspectorRow,
@@ -163,6 +163,7 @@ interface FillFieldsProps {
 /** Fill-type select plus the fields that type carries. */
 export const FillFields: React.FC<FillFieldsProps> = memo(
   ({ fill, labelPrefix, onChange }) => {
+    const { t } = useTranslation();
     const handleTypeChange = useCallback(
       (value: string) => {
         if (value === "none") {
@@ -206,7 +207,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
 
     return (
       <FlexColumn gap={SPACING.xs}>
-        <InspectorRow label={i18n.t("ui2:attrs.fill", { defaultValue: "Fill" })}>
+        <InspectorRow label={t("ui2:attrs.fill", { defaultValue: "Fill" })}>
           <InspectorSelect
             label={`${labelPrefix} type`}
             value={fill?.type ?? "none"}
@@ -215,7 +216,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
           />
         </InspectorRow>
         {fill?.type === "solid" && (
-          <InspectorRow label={i18n.t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
+          <InspectorRow label={t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
             <TextInput
               type="color"
               value={fill.color}
@@ -227,7 +228,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
           </InspectorRow>
         )}
         {fill?.type === "linear" && (
-          <InspectorRow label={i18n.t("timeline:attrs.angle", { defaultValue: "Angle" })}>
+          <InspectorRow label={t("timeline:attrs.angle", { defaultValue: "Angle" })}>
             <InspectorPillInput
               value={String(fill.angle)}
               unit="°"
@@ -242,7 +243,7 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
         )}
         {fill && fill.type !== "solid" && (
           <>
-            <InspectorRow label={i18n.t("timeline:attrs.stops", { defaultValue: "Stops" })}>
+            <InspectorRow label={t("timeline:attrs.stops", { defaultValue: "Stops" })}>
               <TextCommitField
                 value={formatGradientStops(fill.stops)}
                 ariaLabel={`${labelPrefix} stops`}

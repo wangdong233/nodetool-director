@@ -34,6 +34,7 @@ import {
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -167,6 +168,7 @@ const TimelineListItem = memo(function TimelineListItem({
 });
 
 export const CreateTimelineButton = memo(function CreateTimelineButton() {
+  const { t } = useTranslation();
   const createTimeline = useCreateTimeline();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -255,18 +257,18 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
 
   return (
     <FlexRow align="center" gap={SPACING.xs}>
-      <Tooltip title={i18n.t("timeline:list.newTimeline", { defaultValue: "New timeline" })} placement="right-start">
+      <Tooltip title={t("timeline:list.newTimeline", { defaultValue: "New timeline" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel={i18n.t("timeline:list.newTimeline", { defaultValue: "New timeline" })}
+          ariaLabel={t("timeline:list.newTimeline", { defaultValue: "New timeline" })}
           onClick={() => void handleCreate()}
           disabled={createTimeline.isPending}
           tabIndex={-1}
           icon={<AddIcon />}
         />
       </Tooltip>
-      <Tooltip title={i18n.t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })} placement="right-start">
+      <Tooltip title={t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel={i18n.t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })}
+          ariaLabel={t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })}
           onClick={handleImportClick}
           disabled={isImporting}
           tabIndex={-1}
@@ -277,7 +279,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         ref={fileInputRef}
         type="file"
         accept=".zip,application/zip"
-        aria-label={i18n.t("timeline:list.importTooltip", { defaultValue: "Import timeline archive" })}
+        aria-label={t("timeline:list.importTooltip", { defaultValue: "Import timeline archive" })}
         style={{ display: "none" }}
         onChange={(event) => void handleImportFile(event)}
       />

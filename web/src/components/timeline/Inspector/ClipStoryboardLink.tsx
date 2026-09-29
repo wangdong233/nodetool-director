@@ -16,7 +16,7 @@ import { Chip, FlexRow, BORDER_RADIUS, CONTROL, SPACING } from "../../ui_primiti
 import { colorForType } from "../../../config/data_types";
 import { hexToRgba } from "../../../utils/ColorUtils";
 import { useClipStoryboardLink } from "../../../hooks/timeline/useClipStoryboardLink";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Violet — the app's colour for anything picture-shaped. */
 const BOARD_COLOR = colorForType("video");
@@ -33,6 +33,7 @@ interface ClipStoryboardLinkProps {
 }
 
 const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
+  const { t } = useTranslation();
   const link = useClipStoryboardLink(
     clip.storyboardBoardId,
     clip.storyboardShotId
@@ -50,7 +51,7 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
         label={link.label}
         sx={chipSx}
         onClick={link.open}
-        title={i18n.t("timeline:attrs.openShotOnTheStoryboard", { defaultValue: "Open {{shot}} on the storyboard", shot: link.shot.slug ?? i18n.t("timeline:attrs.thisShot", { defaultValue: "this shot" }) })}
+        title={t("timeline:attrs.openShotOnTheStoryboard", { defaultValue: "Open {{shot}} on the storyboard", shot: link.shot.slug ?? t("timeline:attrs.thisShot", { defaultValue: "this shot" }) })}
       />
     </FlexRow>
   );

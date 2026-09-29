@@ -19,7 +19,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { BORDER_RADIUS, MOTION } from "../../ui_primitives";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export const TIMELINE_SCROLLBAR_HEIGHT_PX = 14;
 const MIN_THUMB_PX = 28;
@@ -117,6 +117,7 @@ interface TimelineScrollbarProps {
 
 export const TimelineScrollbar: React.FC<TimelineScrollbarProps> = memo(
   ({ contentWidthPx, viewportWidthPx, leftInsetPx, onScrollTo }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     // Subscribed here (rather than passed as a prop) so a pan frame only
     // re-renders this scrollbar, not the whole TracksRegion.
@@ -201,7 +202,7 @@ export const TimelineScrollbar: React.FC<TimelineScrollbarProps> = memo(
             onPointerCancel={handleThumbPointerUp}
             role="scrollbar"
             aria-orientation="horizontal"
-            aria-label={i18n.t("timeline:attrs.scrollTimelineHorizontally", { defaultValue: "Scroll timeline horizontally" })}
+            aria-label={t("timeline:attrs.scrollTimelineHorizontally", { defaultValue: "Scroll timeline horizontally" })}
             aria-valuemin={0}
             aria-valuemax={Math.round(maxScroll)}
             aria-valuenow={Math.round(Math.min(maxScroll, Math.max(0, scrollLeftPx)))}

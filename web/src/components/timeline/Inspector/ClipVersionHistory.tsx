@@ -48,7 +48,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TILE_PX = 56;
 
@@ -191,6 +191,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
     onRename,
     onDelete
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const getAsset = useAssetStore((s) => s.get);
     const [url, setUrl] = useState<string | undefined>(undefined);
@@ -279,12 +280,12 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              tooltip={active ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              aria-label={active ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               sx={actionIconSx}
             />
             {!active && (
@@ -309,7 +310,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? i18n.t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
+                  ? t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
                   : `Delete ${displayName}`
               }
               disabled={active}
@@ -330,6 +331,7 @@ interface ClipVersionHistoryProps {
 
 export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
   ({ clipId }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const applyTake = useTimelineStore((s) => s.applyTake);
@@ -420,7 +422,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
       >
         {clip.locked && (
           <Caption color="secondary" sx={{ px: 1, pt: 0.5 }}>
-            {i18n.t("editor:ui.unlockTheClipToSwapGenerations")}
+            {t("editor:ui.unlockTheClipToSwapGenerations")}
           </Caption>
         )}
         <div css={stripStyles(theme)}>
@@ -446,7 +448,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
         {editingVersion && (
           <div css={renameRowStyles(theme)}>
             <TextInput
-              label={i18n.t("timeline:attrs.takeLabel", { defaultValue: "Take label" })}
+              label={t("timeline:attrs.takeLabel", { defaultValue: "Take label" })}
               hideLabel
               compact
               autoFocus

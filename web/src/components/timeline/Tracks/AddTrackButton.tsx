@@ -22,7 +22,7 @@ import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { Popover, MenuItemPrimitive, MOTION, BORDER_RADIUS } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -98,6 +98,7 @@ interface AddTrackButtonProps {
 }
 
 export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addTrack = useTimelineStore((s) => s.addTrack);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -124,13 +125,13 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         type="button"
         css={buttonStyles(theme, compact)}
         onClick={handleOpen}
-        aria-label={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
-        title={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
+        aria-label={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
+        title={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
         aria-haspopup="menu"
         data-testid="add-track-button"
       >
         <AddIcon />
-        {!compact && <span>{i18n.t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
+        {!compact && <span>{t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
       </button>
       <Popover
         open={Boolean(anchorEl)}
@@ -143,7 +144,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
             key={opt.type}
             label={
               opt.labelKey
-                ? i18n.t(opt.labelKey, { defaultValue: opt.label })
+                ? t(opt.labelKey, { defaultValue: opt.label })
                 : opt.label
             }
             icon={opt.icon}
