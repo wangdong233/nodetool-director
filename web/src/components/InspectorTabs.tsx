@@ -1,5 +1,5 @@
 import React from "react";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
@@ -23,26 +23,29 @@ export const InspectorTabs: React.FC<InspectorTabsProps> = ({
   active,
   onChange,
   counts
-}) => (
-  <div className="inspector-tabs" role="tablist">
-    {TAB_DEFS.map((tab) => {
-      const count = counts[tab.value];
-      const isActive = active === tab.value;
-      return (
-        <button
-          key={tab.value}
-          type="button"
-          role="tab"
-          aria-selected={isActive}
-          className={`inspector-tab${isActive ? " is-active" : ""}`}
-          onClick={() => onChange(tab.value)}
-        >
-          {i18n.t(tab.labelKey, { defaultValue: tab.labelDefault })}
-          {tab.hasCount && count != null ? (
-            <span className="tab-count">{count}</span>
-          ) : null}
-        </button>
-      );
-    })}
-  </div>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="inspector-tabs" role="tablist">
+      {TAB_DEFS.map((tab) => {
+        const count = counts[tab.value];
+        const isActive = active === tab.value;
+        return (
+          <button
+            key={tab.value}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            className={`inspector-tab${isActive ? " is-active" : ""}`}
+            onClick={() => onChange(tab.value)}
+          >
+            {t(tab.labelKey, { defaultValue: tab.labelDefault })}
+            {tab.hasCount && count != null ? (
+              <span className="tab-count">{count}</span>
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+};

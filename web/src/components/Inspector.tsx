@@ -52,7 +52,7 @@ import {
 import { focusActiveWorkflowEditor } from "../utils/focusWorkflowEditor";
 import { getSharedEditableProperties } from "./inspector/multiEdit";
 import { useRightPanelStore } from "../stores/RightPanelStore";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_TYPE_METADATA: TypeMetadata = {
   type: "any",
@@ -463,6 +463,7 @@ const ValidationErrorBanner: React.FC<ValidationErrorBannerProps> = ({
   workflowId,
   nodeId
 }) => {
+  const { t } = useTranslation();
   const errors = useStoreWithEqualityFn(
     usePropertyValidationStore,
     (state) => {
@@ -504,7 +505,7 @@ const ValidationErrorBanner: React.FC<ValidationErrorBannerProps> = ({
     <div className="validation-banner" role="alert">
       <div className="validation-banner-title">
         <WarningAmberOutlinedIcon fontSize="small" />
-        {errors.length === 1 ? i18n.t("editor:ui.oneIssueToFix", { defaultValue: "1 issue to fix" }) : i18n.t("editor:ui.nIssuesToFix", { defaultValue: "{{n}} issues to fix", n: errors.length })}
+        {errors.length === 1 ? t("editor:ui.oneIssueToFix", { defaultValue: "1 issue to fix" }) : t("editor:ui.nIssuesToFix", { defaultValue: "{{n}} issues to fix", n: errors.length })}
       </div>
       {errors.map((err) => (
         <button
@@ -532,6 +533,7 @@ const TypeLabel: React.FC<{ type?: TypeMetadata | null }> = ({ type }) => {
 };
 
 const Inspector: React.FC = () => {
+  const { t } = useTranslation();
   const selectedNodes = useNodes(
     (state) => state.getSelectedNodes(),
     areNodesEqualIgnoringPosition
@@ -758,14 +760,14 @@ const Inspector: React.FC = () => {
               </div>
               <div className="inspector-namespace">
                 <span className="inspector-namespace-text">
-                  {i18n.t("editor:ui.metadataUnavailableForSomeNodes")}
+                  {t("editor:ui.metadataUnavailableForSomeNodes")}
                 </span>
               </div>
             </div>
             <div className="inspector-head-close">
               <CloseButton
                 onClick={handleInspectorClose}
-                tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
+                tooltip={t("editor:inspector.close", { defaultValue: "Close inspector" })}
                 buttonSize="small"
                 nodrag={false}
               />
@@ -792,7 +794,7 @@ const Inspector: React.FC = () => {
             <div className="inspector-head-close">
               <CloseButton
                 onClick={handleInspectorClose}
-                tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
+                tooltip={t("editor:inspector.close", { defaultValue: "Close inspector" })}
                 buttonSize="small"
                 nodrag={false}
               />
@@ -822,13 +824,13 @@ const Inspector: React.FC = () => {
                     />
                     {isMixed && (
                       <Tooltip
-                        title={i18n.t("editor:inspector.mixedValues", { defaultValue: "Mixed values across the selected nodes" })}
+                        title={t("editor:inspector.mixedValues", { defaultValue: "Mixed values across the selected nodes" })}
                         placement="top-start"
                         delay={200}
                       >
                         <span className="mixed-indicator">
                           <WarningAmberOutlinedIcon fontSize="small" />
-                          <span>{i18n.t("ui2:attrs.mixed", { defaultValue: "Mixed" })}</span>
+                          <span>{t("ui2:attrs.mixed", { defaultValue: "Mixed" })}</span>
                         </span>
                       </Tooltip>
                     )}
@@ -836,7 +838,7 @@ const Inspector: React.FC = () => {
                 ))
               ) : (
                 <Caption size="smaller" color="muted" sx={{ padding: `${getSpacingPx(SPACING.xs)} 0` }}>
-                  {i18n.t("editor:ui.noSharedEditablePropertiesAcrossTheSelectedNodes")}
+                  {t("editor:ui.noSharedEditablePropertiesAcrossTheSelectedNodes")}
                 </Caption>
               )}
             </ScrollArea>
@@ -854,7 +856,7 @@ const Inspector: React.FC = () => {
   }
 
   if (!metadata) {
-    return <Text size="small" color="secondary">{i18n.t("ui2:attrs.noMetadataAvailableForThisNode", { defaultValue: "No metadata available for this node" })}</Text>;
+    return <Text size="small" color="secondary">{t("ui2:attrs.noMetadataAvailableForThisNode", { defaultValue: "No metadata available for this node" })}</Text>;
   }
 
   return (
@@ -877,7 +879,7 @@ const Inspector: React.FC = () => {
               <div className="inspector-namespace">
                 <Tooltip
                   delay={TOOLTIP_ENTER_DELAY}
-                  title={i18n.t("editor:inspector.browseNamespace", { defaultValue: "Browse this namespace in the node menu" })}
+                  title={t("editor:inspector.browseNamespace", { defaultValue: "Browse this namespace in the node menu" })}
                   placement="bottom-start"
                 >
                   <button
@@ -892,7 +894,7 @@ const Inspector: React.FC = () => {
                 </Tooltip>
                 <CopyButton
                   value={metadata.namespace}
-                  tooltip={i18n.t("editor:inspector.copyNamespace", { defaultValue: "Copy namespace" })}
+                  tooltip={t("editor:inspector.copyNamespace", { defaultValue: "Copy namespace" })}
                   buttonSize="small"
                 />
               </div>
@@ -901,7 +903,7 @@ const Inspector: React.FC = () => {
           <div className="inspector-head-close">
             <CloseButton
               onClick={handleInspectorClose}
-              tooltip={i18n.t("editor:inspector.close", { defaultValue: "Close inspector" })}
+              tooltip={t("editor:inspector.close", { defaultValue: "Close inspector" })}
               buttonSize="small"
               nodrag={false}
             />
@@ -1072,7 +1074,7 @@ const Inspector: React.FC = () => {
                   </div>
                   {metadata.properties.length === 0 ? (
                     <Caption size="smaller" color="muted">
-                      {i18n.t("editor:ui.noInputs")}
+                      {t("editor:ui.noInputs")}
                     </Caption>
                   ) : (
                     metadata.properties.map((property) => (
@@ -1089,7 +1091,7 @@ const Inspector: React.FC = () => {
                   </div>
                   {metadata.outputs.length === 0 ? (
                     <Caption size="smaller" color="muted">
-                      {i18n.t("editor:ui.noOutputs")}
+                      {t("editor:ui.noOutputs")}
                     </Caption>
                   ) : (
                     metadata.outputs.map((output) => (
@@ -1110,7 +1112,7 @@ const Inspector: React.FC = () => {
                   if (!raw) {
                     return (
                       <Caption size="smaller" color="muted">
-                        {i18n.t("editor:ui.noDescriptionProvidedForThisNode")}
+                        {t("editor:ui.noDescriptionProvidedForThisNode")}
                       </Caption>
                     );
                   }
@@ -1145,7 +1147,7 @@ const Inspector: React.FC = () => {
                 })()}
                 <div className="help-meta">
                   <div className="help-meta-row">
-                    <span className="help-meta-key">{i18n.t("editor:asset.info.type", { defaultValue: "Type" })}</span>
+                    <span className="help-meta-key">{t("editor:asset.info.type", { defaultValue: "Type" })}</span>
                     <span
                       className="help-meta-value"
                       title={metadata.node_type}
@@ -1154,14 +1156,14 @@ const Inspector: React.FC = () => {
                     </span>
                   </div>
                   <div className="help-meta-row">
-                    <span className="help-meta-key">{i18n.t("ui2:attrs.namespace", { defaultValue: "Namespace" })}</span>
+                    <span className="help-meta-key">{t("ui2:attrs.namespace", { defaultValue: "Namespace" })}</span>
                     <span className="help-meta-value" title={metadata.namespace}>
                       {metadata.namespace}
                     </span>
                   </div>
                   {metadata.supports_dynamic_inputs ? (
                     <div className="help-meta-row">
-                      <span className="help-meta-key">{i18n.t("ui2:attrs.dynamic", { defaultValue: "Dynamic" })}</span>
+                      <span className="help-meta-key">{t("ui2:attrs.dynamic", { defaultValue: "Dynamic" })}</span>
                       <span className="help-meta-value">yes</span>
                     </div>
                   ) : null}

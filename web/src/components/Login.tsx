@@ -14,7 +14,7 @@ import {
 } from "./ui_primitives";
 import GoogleAuthButton from "./buttons/GoogleAuthButton";
 import Logo from "./Logo";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 const STUDIO_URL = "https://nodetool.ai/studio";
 
@@ -71,6 +71,7 @@ const styles = (theme: Theme) =>
   });
 
 function Login() {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -85,13 +86,13 @@ function Login() {
           enableText
         />
         <Caption className="alpha-badge" size="smaller" color="warning">
-          {i18n.t("editor:ui.cloudAlpha")}
+          {t("editor:ui.cloudAlpha")}
         </Caption>
         <Text component="h1" size="giant" className="headline">
-          {i18n.t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}
+          {t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}
         </Text>
         <Text component="p" size="normal" className="subhead">
-          {i18n.t("editor:ui.describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit")}
+          {t("editor:ui.describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit")}
         </Text>
       </div>
 
@@ -99,12 +100,12 @@ function Login() {
 
       <div className="footnotes">
         <Caption size="small" color="secondary">
-          {i18n.t("editor:ui.bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices")}
+          {t("editor:ui.bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices")}
         </Caption>
         <Caption size="small" color="secondary">
-          {i18n.t("editor:ui.cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime")}{" "}
+          {t("editor:ui.cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime")}{" "}
           <ExternalLink href={STUDIO_URL} size="small" iconVariant="arrow">
-            {i18n.t("editor:ui.runNodeToolStudioOnYourOwnMachine")}
+            {t("editor:ui.runNodeToolStudioOnYourOwnMachine")}
           </ExternalLink>
           .
         </Caption>
