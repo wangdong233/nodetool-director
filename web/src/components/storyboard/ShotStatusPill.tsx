@@ -57,8 +57,14 @@ export const shotPill = (
     return lifecycle;
   }
   return lifecycle
-    ? { ...lifecycle, label: `${lifecycle.label} · stale` }
-    : { tone: "neutral", label: "stale" };
+    ? {
+        ...lifecycle,
+        label: `${lifecycle.label} · ${i18n.t("storyboard:attrs.staleLower", { defaultValue: "stale" })}`
+      }
+    : {
+        tone: "neutral",
+        label: i18n.t("storyboard:attrs.staleLower", { defaultValue: "stale" })
+      };
 };
 
 /** The step the shot is on, before staleness is folded in. */
@@ -74,7 +80,10 @@ const lifecyclePill = (
     };
   }
   if (shot.status === "failed") {
-    return { tone: "failed", label: "failed" };
+    return {
+      tone: "failed",
+      label: i18n.t("storyboard:attrs.failed", { defaultValue: "failed" })
+    };
   }
   if (shot.clip) {
     return null;
@@ -82,15 +91,24 @@ const lifecyclePill = (
   // A shot fused into a sibling's generation has its picture but no clip of
   // its own, and a card that says "still" reads as a shot nobody has rendered.
   if (shot.covered_by) {
-    return { tone: "neutral", label: "covered" };
+    return {
+      tone: "neutral",
+      label: i18n.t("storyboard:attrs.covered", { defaultValue: "covered" })
+    };
   }
   if (shot.keyframe) {
     const clipQueued = jobStatus === "queued" || jobStatus === "running";
     return clipQueued
       ? { tone: "neutral", label: i18n.t("storyboard:attrs.stillClipQueued", { defaultValue: "still · clip queued" }) }
-      : { tone: "neutral", label: i18n.t("storyboard:attrs.still", { defaultValue: "Still" }) };
+      : {
+          tone: "neutral",
+          label: i18n.t("storyboard:attrs.stillLower", { defaultValue: "still" })
+        };
   }
-  return { tone: "neutral", label: "planned" };
+  return {
+    tone: "neutral",
+    label: i18n.t("storyboard:attrs.planned", { defaultValue: "planned" })
+  };
 };
 
 interface ShotStatusPillProps {
