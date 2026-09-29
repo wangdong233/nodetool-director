@@ -26,13 +26,15 @@ import {
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import EntitySetupHost from "../setup/entity/EntitySetupHost";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 const EntityLibraryInternal: React.FC = () => {
+  const { t } = useTranslation();
   const projectId =
     useWorkspaceTabsStore((state) => state.activeProjectId) ?? LOOSE_PROJECT_ID;
   const { data: entities, isLoading } = useEntities();
@@ -73,9 +75,9 @@ const EntityLibraryInternal: React.FC = () => {
       return (
         <EmptyState
           variant="empty"
-          title={i18n.t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description={i18n.t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropToReuseItAcrossShots")}
-          actionText={i18n.t("editor:ui.addEntity", { defaultValue: "Add entity" })}
+          title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
+          description={t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropToReuseItAcrossShots")}
+          actionText={t("editor:ui.addEntity", { defaultValue: "Add entity" })}
           onAction={handleAdd}
         />
       );
@@ -92,7 +94,7 @@ const EntityLibraryInternal: React.FC = () => {
         ))}
       </AutoGrid>
     );
-  }, [languageVersion, isLoading, entities, handleAdd, handleEdit, handleRemove]);
+  }, [t, isLoading, entities, handleAdd, handleEdit, handleRemove]);
 
   if (creating) {
     return (
@@ -114,7 +116,7 @@ const EntityLibraryInternal: React.FC = () => {
     <FlexColumn gap={SPACING.md} sx={{ p: 2, width: "100%" }}>
       <FlexRow align="center" justify="space-between">
         <FlexColumn gap={0}>
-          <Text size="big">{i18n.t("nav:rail.entities", { defaultValue: "Entities" })}</Text>
+          <Text size="big">{t("nav:rail.entities", { defaultValue: "Entities" })}</Text>
           <Caption>Reusable characters, locations, styles, and props</Caption>
         </FlexColumn>
         <EditorButton

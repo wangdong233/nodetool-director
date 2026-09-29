@@ -24,7 +24,7 @@ import {
   TextLink
 } from "../ui_primitives";
 import type { OAuthManualPrompt } from "../../hooks/useOAuthConnection";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface OAuthManualCompletionDialogProps {
   /** The pending login, or null when nothing is waiting on a paste. */
@@ -43,6 +43,7 @@ export const OAuthManualCompletionDialog = ({
   onSubmit,
   onCancel
 }: OAuthManualCompletionDialogProps) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
 
   const handleCancel = useCallback(() => {
@@ -82,13 +83,13 @@ export const OAuthManualCompletionDialog = ({
         ) : (
           <Text size="small">
             {label}{" "}
-            {i18n.t("editor:ui.oauthRedirectExplainer1", { defaultValue: "sends the browser to" })}{" "}
-            <code>{prompt.redirectUri ?? i18n.t("editor:ui.aLocalAddress", { defaultValue: "a local address" })}</code>
-            {i18n.t("editor:ui.oauthRedirectExplainer2", { defaultValue: ", which only exists on your own machine — so this server never sees it. Approve the sign-in, then copy the whole address the browser ends up on (an error page is expected) and paste it below." })}
+            {t("editor:ui.oauthRedirectExplainer1", { defaultValue: "sends the browser to" })}{" "}
+            <code>{prompt.redirectUri ?? t("editor:ui.aLocalAddress", { defaultValue: "a local address" })}</code>
+            {t("editor:ui.oauthRedirectExplainer2", { defaultValue: ", which only exists on your own machine — so this server never sees it. Approve the sign-in, then copy the whole address the browser ends up on (an error page is expected) and paste it below." })}
           </Text>
         )}
         <TextInput
-          label={prompt.input === "code" ? i18n.t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : i18n.t("editor:ui.redirectAddress", { defaultValue: "Redirect address" })}
+          label={prompt.input === "code" ? t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : t("editor:ui.redirectAddress", { defaultValue: "Redirect address" })}
           placeholder={
             prompt.input === "code"
               ? "code#state"
@@ -103,7 +104,7 @@ export const OAuthManualCompletionDialog = ({
         <Caption sx={{ opacity: 0.6 }}>
           Sign-in window closed?{" "}
           <TextLink href={prompt.authUrl} external>
-            {i18n.t("editor:ui.openItAgain")}
+            {t("editor:ui.openItAgain")}
           </TextLink>
           . The link expires after 10 minutes.
         </Caption>

@@ -44,6 +44,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export type SelectionMode = "file" | "directory";
 
@@ -147,6 +148,7 @@ function FileBrowserDialog({
   initialPath = "~",
   selectionMode = "file"
 }: FileBrowserDialogProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const [currentPath, setCurrentPath] = useState(initialPath);
@@ -706,7 +708,7 @@ function FileBrowserDialog({
         >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.upOneLevel", { defaultValue: "Up one level" })}
+            tooltip={t("editor:ui.upOneLevel", { defaultValue: "Up one level" })}
             onClick={handleUp}
             disabled={currentPath === "~" || currentPath === "/"}
             size="small"
@@ -749,14 +751,14 @@ function FileBrowserDialog({
             <SearchInput
               value={searchQuery}
               onChange={handleSearchQueryChange}
-              placeholder={i18n.t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder..." })}
+              placeholder={t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder..." })}
               fullWidth
             />
           </div>
 
           <ToolbarIconButton
             icon={<CreateNewFolderIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.newFolderHere", { defaultValue: "New folder here" })}
+            tooltip={t("editor:ui.newFolderHere", { defaultValue: "New folder here" })}
             onClick={handleStartNewFolder}
             size="small"
           />
@@ -764,9 +766,9 @@ function FileBrowserDialog({
           <RefreshButton
             onClick={handleRefresh}
             buttonSize="small"
-            tooltip={i18n.t("ui:attrs.refresh", { defaultValue: "Refresh" })}
+            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
           />
-          <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
+          <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
         </FlexRow>
 
         {newFolderName !== null && (
@@ -785,7 +787,7 @@ function FileBrowserDialog({
                 size="small"
                 autoFocus
                 value={newFolderName}
-                placeholder={i18n.t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
+                placeholder={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 onChange={handleNewFolderChange}
                 onKeyDown={handleNewFolderKeyDown}
                 sx={{ flex: 1 }}
@@ -937,7 +939,7 @@ function FileBrowserDialog({
           {selectedPath && (
             <CopyButton
               value={selectedPath}
-              tooltip={i18n.t("editor:ui.copyPath", { defaultValue: "Copy path" })}
+              tooltip={t("editor:ui.copyPath", { defaultValue: "Copy path" })}
               buttonSize="small"
             />
           )}

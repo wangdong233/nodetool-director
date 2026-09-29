@@ -20,7 +20,7 @@ import {
 } from "../ui_primitives";
 import type { RouterOutputs } from "../../trpc/client";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type Memory = RouterOutputs["memories"]["list"]["memories"][number];
 type Resource = Memory["resources"][number];
@@ -113,6 +113,7 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
   deleteDisabled,
   onOpenThread
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const imageAssets = memory.resources.filter(isImageAsset);
@@ -133,12 +134,12 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
         </FlexColumn>
         <FlexRow className="memory-actions" align="center" gap={SPACING.xs}>
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.openTheConversationThisCameFrom", { defaultValue: "Open the conversation this came from" })}
+            tooltip={t("editor:ui.openTheConversationThisCameFrom", { defaultValue: "Open the conversation this came from" })}
             onClick={() => onOpenThread(memory.thread_id)}
             icon={<ForumOutlinedIcon fontSize="small" />}
           />
           <DeleteButton
-            tooltip={i18n.t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
+            tooltip={t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
             onClick={() => onDelete(memory.id)}
             disabled={deleteDisabled}
           />

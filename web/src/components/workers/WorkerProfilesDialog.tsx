@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from "react";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   FlexColumn,
   FlexRow,
@@ -148,6 +148,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
   deleteProfile,
   apiKeyStatus
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [target, setTarget] = useState<WorkerTarget>("runpod");
   const [image, setImage] = useState(DEFAULT_WORKER_IMAGE);
@@ -284,7 +285,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={i18n.t("editor:ui.manageWorkerProfiles", { defaultValue: "Manage worker profiles" })}
+      title={t("editor:ui.manageWorkerProfiles", { defaultValue: "Manage worker profiles" })}
       minWidth={480}
       actions={
         <FlexRow gap={2}>
@@ -295,9 +296,9 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             variant="outlined"
             onClick={handleCreate}
             disabled={!canCreate}
-            aria-label={i18n.t("editor:ui.createProfile", { defaultValue: "Create profile" })}
+            aria-label={t("editor:ui.createProfile", { defaultValue: "Create profile" })}
           >
-            {i18n.t("editor:ui.createProfile")}
+            {t("editor:ui.createProfile")}
           </EditorButton>
         </FlexRow>
       }
@@ -315,11 +316,11 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
 
         <FlexColumn gap={1}>
           <Text size="small" weight={600}>
-            {i18n.t("editor:ui.existingProfiles")}
+            {t("editor:ui.existingProfiles")}
           </Text>
           {profiles.length === 0 ? (
             <Caption size="small">
-              {i18n.t("editor:ui.noProfilesYetCreateOneBelow")}
+              {t("editor:ui.noProfilesYetCreateOneBelow")}
             </Caption>
           ) : (
             profiles.map((profile) => (
@@ -352,7 +353,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
         <FlexColumn gap={2}>
           <FlexColumn gap={0.5}>
             <Text size="small" weight={600}>
-              {i18n.t("editor:ui.createAProfile")}
+              {t("editor:ui.createAProfile")}
             </Text>
             <Caption size="small">
               A profile is a saved template. Provisioning it rents one GPU box
@@ -361,22 +362,22 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           </FlexColumn>
 
           <TextInput
-            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
+            label={t("editor:asset.info.name", { defaultValue: "Name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            helperText={i18n.t("editor:ui.labelToRecogniseThisTemplate", { defaultValue: "A label to recognise this template, e.g. “A40 image worker”." })}
+            helperText={t("editor:ui.labelToRecogniseThisTemplate", { defaultValue: "A label to recognise this template, e.g. “A40 image worker”." })}
             fullWidth
             compact
           />
 
           <SelectField
-            label={i18n.t("editor:ui.provider", { defaultValue: "Provider" })}
+            label={t("editor:ui.provider", { defaultValue: "Provider" })}
             value={target}
             onChange={(value) => handleTargetChange(value as WorkerTarget)}
             options={TARGET_OPTIONS}
             variant="outlined"
             size="small"
-            description={i18n.t("editor:ui.whereGpuIsRented", { defaultValue: "Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace." })}
+            description={t("editor:ui.whereGpuIsRented", { defaultValue: "Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace." })}
           />
 
           {apiKeyMissing && (
@@ -398,23 +399,23 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             size="small"
             description={
               target === "runpod"
-                ? i18n.t("editor:ui.whichMachineToRent", { defaultValue: "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models." })
-                : i18n.t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
+                ? t("editor:ui.whichMachineToRent", { defaultValue: "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models." })
+                : t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
             }
           />
           {gpu === CUSTOM_GPU && (
             <TextInput
               label={
                 target === "runpod"
-                  ? i18n.t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" })
-                  : i18n.t("editor:ui.gpuIdVastGpuName", { defaultValue: "GPU id (Vast gpu_name)" })
+                  ? t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" })
+                  : t("editor:ui.gpuIdVastGpuName", { defaultValue: "GPU id (Vast gpu_name)" })
               }
               value={customGpu}
               onChange={(e) => setCustomGpu(e.target.value)}
               helperText={
                 target === "runpod"
-                  ? i18n.t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." })
-                  : i18n.t("editor:ui.exactVastNameEgRTX_6000Ada", { defaultValue: "Exact Vast name, e.g. “RTX_6000Ada”." })
+                  ? t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." })
+                  : t("editor:ui.exactVastNameEgRTX_6000Ada", { defaultValue: "Exact Vast name, e.g. “RTX_6000Ada”." })
               }
               fullWidth
               compact
@@ -428,26 +429,26 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
               options={VCPU_OPTIONS}
               variant="outlined"
               size="small"
-              description={i18n.t("editor:ui.numberOfVirtualCpus", { defaultValue: "Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor." })}
+              description={t("editor:ui.numberOfVirtualCpus", { defaultValue: "Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor." })}
             />
           )}
 
           <TextInput
-            label={i18n.t("editor:ui.diskGB", { defaultValue: "Disk (GB)" })}
+            label={t("editor:ui.diskGB", { defaultValue: "Disk (GB)" })}
             value={disk}
             onChange={(e) => setDisk(e.target.value)}
             type="number"
-            helperText={i18n.t("editor:ui.persistentVolumeForModelCache", { defaultValue: "Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous." })}
+            helperText={t("editor:ui.persistentVolumeForModelCache", { defaultValue: "Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous." })}
             fullWidth
             compact
           />
 
           <TextInput
-            label={i18n.t("editor:ui.idleTimeoutMinutes", { defaultValue: "Idle timeout (minutes)" })}
+            label={t("editor:ui.idleTimeoutMinutes", { defaultValue: "Idle timeout (minutes)" })}
             value={idleTimeout}
             onChange={(e) => setIdleTimeout(e.target.value)}
             type="number"
-            helperText={i18n.t("editor:ui.idleThisLongPause", { defaultValue: "Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never." })}
+            helperText={t("editor:ui.idleThisLongPause", { defaultValue: "Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never." })}
             fullWidth
             compact
           />
@@ -462,7 +463,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           >
             <FlexColumn gap={2} sx={{ pt: 1 }}>
               <SelectField
-                label={i18n.t("editor:ui.workerImagePreset", { defaultValue: "Worker image preset" })}
+                label={t("editor:ui.workerImagePreset", { defaultValue: "Worker image preset" })}
                 value={
                   IMAGE_PRESETS.some((p) => p.value === image)
                     ? image
@@ -474,31 +475,31 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 options={IMAGE_PRESETS}
                 variant="outlined"
                 size="small"
-                description={i18n.t("editor:ui.comfyUiWorkerFrontsServer", { defaultValue: "ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node." })}
+                description={t("editor:ui.comfyUiWorkerFrontsServer", { defaultValue: "ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node." })}
               />
               <TextInput
-                label={i18n.t("editor:ui.workerImage", { defaultValue: "Worker image" })}
+                label={t("editor:ui.workerImage", { defaultValue: "Worker image" })}
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                helperText={i18n.t("editor:ui.containerImageProviderRuns", { defaultValue: "Container image the provider runs. Pick a preset above, or set your own worker build." })}
+                helperText={t("editor:ui.containerImageProviderRuns", { defaultValue: "Container image the provider runs. Pick a preset above, or set your own worker build." })}
                 fullWidth
                 compact
               />
               <SelectField
-                label={i18n.t("editor:ui.tokenPolicy", { defaultValue: "Token policy" })}
+                label={t("editor:ui.tokenPolicy", { defaultValue: "Token policy" })}
                 value={tokenPolicy}
                 onChange={(value) => setTokenPolicy(value as TokenPolicy)}
                 options={TOKEN_POLICY_OPTIONS}
                 variant="outlined"
                 size="small"
-                description={i18n.t("editor:ui.generateIssuesFreshAuthToken", { defaultValue: "Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere." })}
+                description={t("editor:ui.generateIssuesFreshAuthToken", { defaultValue: "Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere." })}
               />
               <TextInput
-                label={i18n.t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
+                label={t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
                 value={maxLifetime}
                 onChange={(e) => setMaxLifetime(e.target.value)}
                 type="number"
-                helperText={i18n.t("editor:ui.hardCapWorkerTerminated", { defaultValue: "Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap." })}
+                helperText={t("editor:ui.hardCapWorkerTerminated", { defaultValue: "Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap." })}
                 fullWidth
                 compact
               />

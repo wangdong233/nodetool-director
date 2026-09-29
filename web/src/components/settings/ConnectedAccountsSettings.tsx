@@ -30,7 +30,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Providers this card can link. Telegram is the only bridge shipping today. */
 const PROVIDER = "telegram" as const;
@@ -53,6 +53,7 @@ function formatLinkedAt(value: string): string {
 }
 
 const ConnectedAccountsSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<PendingCode | null>(null);
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
@@ -129,7 +130,7 @@ const ConnectedAccountsSettings = () => {
             {confirmingDisconnect ? (
               <FlexRow align="center" gap={SPACING.md}>
                 <Caption>
-                  {i18n.t("editor:ui.disconnectThisAccountTheBotWillStopAnsweringIt")}
+                  {t("editor:ui.disconnectThisAccountTheBotWillStopAnsweringIt")}
                 </Caption>
                 <EditorButton
                   color="error"
@@ -159,7 +160,7 @@ const ConnectedAccountsSettings = () => {
             )}
             {unlink.isError && (
               <AlertBanner severity="error">
-                {i18n.t("editor:ui.couldNotDisconnectThisAccountTryAgain")}
+                {t("editor:ui.couldNotDisconnectThisAccountTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -168,7 +169,7 @@ const ConnectedAccountsSettings = () => {
         {!isLoading && !linked && showPending === null && (
           <FlexColumn gap={SPACING.md}>
             <Caption>
-              {i18n.t("editor:ui.linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours")}
+              {t("editor:ui.linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours")}
             </Caption>
             <FlexRow>
               <EditorButton
@@ -177,12 +178,12 @@ const ConnectedAccountsSettings = () => {
                 disabled={createCode.isPending}
                 onClick={handleConnect}
               >
-                {i18n.t("editor:ui.connectTelegram")}
+                {t("editor:ui.connectTelegram")}
               </EditorButton>
             </FlexRow>
             {createCode.isError && (
               <AlertBanner severity="error">
-                {i18n.t("editor:ui.couldNotStartLinkingTryAgain")}
+                {t("editor:ui.couldNotStartLinkingTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -192,7 +193,7 @@ const ConnectedAccountsSettings = () => {
           <FlexColumn gap={SPACING.md}>
             {showPending.deepLink ? (
               <ExternalLink href={showPending.deepLink}>
-                {i18n.t("editor:ui.openTelegramAndPressStart")}
+                {t("editor:ui.openTelegramAndPressStart")}
               </ExternalLink>
             ) : (
               <Caption>
@@ -205,11 +206,11 @@ const ConnectedAccountsSettings = () => {
               <Text size="small" family="secondary">
                 {showPending.code}
               </Text>
-              <CopyButton value={showPending.code} tooltip={i18n.t("editor:ui.copyTheLinkCode", { defaultValue: "Copy the link code" })} />
+              <CopyButton value={showPending.code} tooltip={t("editor:ui.copyTheLinkCode", { defaultValue: "Copy the link code" })} />
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>{i18n.t("editor:ui.waitingForTelegramToConfirmTheLink", { defaultValue: "Waiting for Telegram to confirm the link…" })}</Caption>
+              <Caption>{t("editor:ui.waitingForTelegramToConfirmTheLink", { defaultValue: "Waiting for Telegram to confirm the link…" })}</Caption>
             </FlexRow>
             <FlexRow>
               <EditorButton variant="text" onClick={handleCancel}>

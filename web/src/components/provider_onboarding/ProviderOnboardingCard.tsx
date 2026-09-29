@@ -29,6 +29,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { PROVIDER_TAGLINE_KEYS, PROVIDER_COST_HINT_KEYS } from "./providerOnboardingCatalog";
 import type { OnboardingProvider } from "./providerOnboardingCatalog";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type StoredCredentialStatus = "configured" | "verified" | "unavailable" | "rejected";
 
@@ -91,6 +92,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
   configured,
   defaultExpanded = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const keyFieldId = useId();
   const oauth = useOAuthConnection(provider.oauth ?? null);
@@ -289,7 +291,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
               </Text>
             </FlexRow>
             <Caption size="small" sx={{ lineHeight: 1.5 }}>
-              {i18n.t(PROVIDER_TAGLINE_KEYS[provider.id] ?? "", { defaultValue: provider.tagline })}
+              {t(PROVIDER_TAGLINE_KEYS[provider.id] ?? "", { defaultValue: provider.tagline })}
             </Caption>
           </FlexColumn>
 
@@ -333,7 +335,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     color: theme.vars.palette.success.main
                   }}
                 />
-                <Caption size="small">{i18n.t("ui2:attrs.connected", { defaultValue: "Connected" })}</Caption>
+                <Caption size="small">{t("ui2:attrs.connected", { defaultValue: "Connected" })}</Caption>
               </FlexRow>
             ) : (
               <>
@@ -377,7 +379,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     aria-controls={expanded ? keyFieldId : undefined}
                     onClick={() => setExpanded((v) => !v)}
                   >
-                    {provider.oauth ? i18n.t("editor:ui.useApiKey", { defaultValue: "Use API key" }) : i18n.t("editor:ui.addApiKey", { defaultValue: "Add API key" })}
+                    {provider.oauth ? t("editor:ui.useApiKey", { defaultValue: "Use API key" }) : t("editor:ui.addApiKey", { defaultValue: "Add API key" })}
                   </EditorButton>
                 )}
               </>
@@ -438,7 +440,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 Get a {provider.name} key
               </EditorButton>
               <Caption size="smaller" >
-                {i18n.t(PROVIDER_COST_HINT_KEYS[provider.id] ?? "", { defaultValue: provider.costHint })}
+                {t(PROVIDER_COST_HINT_KEYS[provider.id] ?? "", { defaultValue: provider.costHint })}
               </Caption>
             </FlexRow>
             {rejected && (

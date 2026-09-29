@@ -2,7 +2,7 @@
 import React, { memo, useCallback, useState } from "react";
 import { useRunWarningStore } from "../../stores/RunWarningStore";
 import { Dialog, Checkbox, Text, FlexColumn } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Confirmation shown before a "Run Entire Workflow" action that would execute many
@@ -10,6 +10,7 @@ import { i18n } from "../../i18n";
  * by {@link useRunWarningStore}.
  */
 const RunWarningDialog: React.FC = () => {
+  const { t } = useTranslation();
   const open = useRunWarningStore((s) => s.open);
   const kind = useRunWarningStore((s) => s.kind);
   const heavyCount = useRunWarningStore((s) => s.heavyCount);
@@ -39,13 +40,13 @@ const RunWarningDialog: React.FC = () => {
       onClose={handleCancel}
       title={
         isConcurrent
-          ? i18n.t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" })
-          : i18n.t("editor:ui.runTheEntireWorkflow", { defaultValue: "Run the entire workflow?" })
+          ? t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" })
+          : t("editor:ui.runTheEntireWorkflow", { defaultValue: "Run the entire workflow?" })
       }
       onConfirm={handleConfirm}
       onCancel={handleCancel}
-      confirmText={isConcurrent ? i18n.t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : i18n.t("editor:ui.runAnyway", { defaultValue: "Run anyway" })}
-      cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+      confirmText={isConcurrent ? t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : t("editor:ui.runAnyway", { defaultValue: "Run anyway" })}
+      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       content={
         <FlexColumn gap={1.5}>
           {isConcurrent ? (
@@ -65,7 +66,7 @@ const RunWarningDialog: React.FC = () => {
                 provider rate limits.
               </Text>
               <Checkbox
-                label={i18n.t("editor:ui.donTAskAgainForThisSession", { defaultValue: "Don't ask again for this session" })}
+                label={t("editor:ui.donTAskAgainForThisSession", { defaultValue: "Don't ask again for this session" })}
                 checked={dontAskAgain}
                 onChange={(_event, checked) => setDontAskAgain(checked)}
               />

@@ -29,7 +29,7 @@ import { trpc } from "../../../trpc/client";
 import { isConcurrencyConflict } from "../../../hooks/useApplications";
 import { useBoundResource } from "./useBoundResource";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import { tAttr } from "../i18nAttrs";
 
 interface StoryboardSceneListProps {
@@ -80,6 +80,7 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
   allowRemove = true,
   disabled
 }) => {
+  const { t } = useTranslation();
   const { binding, designMode, selected } = useBoundResource(
     resourceBindingId,
     true
@@ -190,7 +191,7 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
           {isLoading ? tAttr("Loading…") : tAttr("This resource has no scenes.")}
         </Caption>
       ) : shots.length === 0 ? (
-        <Caption color="secondary">{i18n.t("ui2:attrs.thisStoryboardHasNoScenesYet", { defaultValue: "This storyboard has no scenes yet." })}</Caption>
+        <Caption color="secondary">{t("ui2:attrs.thisStoryboardHasNoScenesYet", { defaultValue: "This storyboard has no scenes yet." })}</Caption>
       ) : (
         <Box
           component="ul"
@@ -231,7 +232,7 @@ export const StoryboardSceneListWidget: React.FC<StoryboardSceneListProps> = ({
                     disabled={busy || index === shots.length - 1}
                     onClick={() => writeShots(swap(shots, index, index + 1))}
                   >
-                    {i18n.t("editor:ui.down")}
+                    {t("editor:ui.down")}
                   </EditorButton>
                   {allowRemove ? (
                     <EditorButton

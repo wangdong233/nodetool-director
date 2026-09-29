@@ -45,7 +45,7 @@ import {
 } from "./puck/puckAgentBridge";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { tAttr, tAttrTpl } from "./i18nAttrs";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationAppBuilderProps {
   applicationId: string;
@@ -84,6 +84,7 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
   applicationId,
   onAgentWorkflowIdChange
 }) => {
+  const { t } = useTranslation();
   const { data: application, isLoading, isError, error } =
     useApplication(applicationId);
   const updateApplication = useUpdateApplication();
@@ -524,7 +525,7 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
     return (
       <LoadingSpinner
         size="large"
-        text={i18n.t("ui2:attrs.loadingDocument", {
+        text={t("ui2:attrs.loadingDocument", {
           defaultValue: "Loading {{label}}…",
           label: tAttr("App")
         })}

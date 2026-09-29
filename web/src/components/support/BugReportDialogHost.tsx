@@ -7,7 +7,6 @@
  */
 import { lazy, memo, Suspense } from "react";
 import { useBugReportStore } from "../../stores/BugReportStore";
-import { i18n } from "../../i18n";
 
 const BugReportDialog = lazy(() => import("./BugReportDialog"));
 

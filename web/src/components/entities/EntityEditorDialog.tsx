@@ -24,7 +24,7 @@ import { useSaveEntity } from "../../serverState/useEntities";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface EntityEditorDialogProps {
   open: boolean;
@@ -54,6 +54,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
   projectId,
   onSaved
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const saveEntity = useSaveEntity();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -139,7 +140,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     >
       <FlexColumn gap={SPACING.md} sx={{ pt: 1, minWidth: 360 }}>
         <FlexColumn gap={SPACING.xs}>
-          <Label>{i18n.t("ui2:attrs.image", { defaultValue: "Image" })}</Label>
+          <Label>{t("ui2:attrs.image", { defaultValue: "Image" })}</Label>
           <FlexRow gap={SPACING.md} align="center">
             <div
               style={{
@@ -156,13 +157,13 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
               />
             </div>
             <EditorButton variant="outlined" onClick={() => setPickerOpen(true)}>
-              {i18n.t("editor:ui.changeImage")}
+              {t("editor:ui.changeImage")}
             </EditorButton>
           </FlexRow>
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label>{i18n.t("ui2:attrs.kind", { defaultValue: "Kind" })}</Label>
+          <Label>{t("ui2:attrs.kind", { defaultValue: "Kind" })}</Label>
           <ToggleGroup
             value={kind}
             exclusive
@@ -179,7 +180,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         </FlexColumn>
 
         <TextInput
-          label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           value={name}
           onChange={(e) => setName(e.target.value)}
           size="small"
@@ -187,8 +188,8 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         />
 
         <TextInput
-          label={i18n.t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
-          helperText={i18n.t("editor:ui.pastedVerbatimIntoEveryPrompt", { defaultValue: "Pasted verbatim into every prompt that uses this entity." })}
+          label={t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
+          helperText={t("editor:ui.pastedVerbatimIntoEveryPrompt", { defaultValue: "Pasted verbatim into every prompt that uses this entity." })}
           value={descriptor}
           onChange={(e) => setDescriptor(e.target.value)}
           multiline
@@ -199,7 +200,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
 
         {kind === "character" && (
           <TextInput
-            label={i18n.t("editor:ui.voiceIdOptional", { defaultValue: "Voice id (optional)" })}
+            label={t("editor:ui.voiceIdOptional", { defaultValue: "Voice id (optional)" })}
             value={voiceId}
             onChange={(e) => setVoiceId(e.target.value)}
             size="small"
@@ -208,7 +209,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         )}
 
         <TextInput
-          label={i18n.t("editor:ui.tagsCommaseparated", { defaultValue: "Tags (comma-separated)" })}
+          label={t("editor:ui.tagsCommaseparated", { defaultValue: "Tags (comma-separated)" })}
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           size="small"

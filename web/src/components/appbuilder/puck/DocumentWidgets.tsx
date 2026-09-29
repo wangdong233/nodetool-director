@@ -31,7 +31,7 @@ import {
 import SketchRenderer from "../../sketch/SketchRenderer";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { tAttr } from "../i18nAttrs";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const LazyTimelineRenderer = React.lazy(async () => ({
   default: (await import("../../timeline/TimelineRenderer")).default
@@ -69,6 +69,7 @@ const frame = (height?: number): React.CSSProperties => ({
 export const SketchWidget: React.FC<
   DocumentWidgetProps & { showDimensions?: boolean }
 > = (props) => {
+  const { t } = useTranslation();
   const { value, designMode } = useReadBinding(props);
   const bound = firstItem(value);
 
@@ -93,7 +94,7 @@ export const SketchWidget: React.FC<
       <Box sx={frame(props.height)}>
         <SketchRenderer
           document={document}
-          ariaLabel={i18n.t("editor:ui.sketch", { defaultValue: "Sketch" })}
+          ariaLabel={t("editor:ui.sketch", { defaultValue: "Sketch" })}
           showDimensions={props.showDimensions ?? false}
         />
       </Box>
@@ -126,6 +127,7 @@ export const SketchWidget: React.FC<
 export const TimelineWidget: React.FC<
   DocumentWidgetProps & { showMetadata?: boolean }
 > = (props) => {
+  const { t } = useTranslation();
   const { value, designMode } = useReadBinding(props);
   const bound = firstItem(value);
 
@@ -153,7 +155,7 @@ export const TimelineWidget: React.FC<
         >
           <LazyTimelineRenderer
             sequence={sequence}
-            ariaLabel={i18n.t("editor:ui.timeline", { defaultValue: "Timeline" })}
+            ariaLabel={t("editor:ui.timeline", { defaultValue: "Timeline" })}
             showMetadata={props.showMetadata ?? true}
           />
         </React.Suspense>

@@ -21,7 +21,7 @@ import {
 } from "../ui_primitives";
 import ImageRefPreview from "../node/ImageRefPreview";
 import { getEntityKindChipSx } from "./entityKind";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface EntityCardProps {
   entity: Entity;
@@ -34,6 +34,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
   onEdit,
   onRemove
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const referenceImage = entity.reference_images?.[0];
 
@@ -110,7 +111,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
           {onEdit && (
             <ToolbarIconButton
               size="small"
-              title={i18n.t("editor:ui.editEntity", { defaultValue: "Edit entity" })}
+              title={t("editor:ui.editEntity", { defaultValue: "Edit entity" })}
               onClick={handleEdit}
             >
               <EditIcon fontSize="small" />
@@ -119,7 +120,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
           {onRemove && (
             <ToolbarIconButton
               size="small"
-              title={i18n.t("editor:ui.removeEntity", { defaultValue: "Remove entity" })}
+              title={t("editor:ui.removeEntity", { defaultValue: "Remove entity" })}
               onClick={handleRemove}
             >
               <DeleteOutlineIcon fontSize="small" />

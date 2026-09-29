@@ -10,7 +10,7 @@ import {
   type DayPoint
 } from "./costsData";
 import type { ProviderView } from "./costsView";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PLOT_HEIGHT = 240;
 const X_AXIS_HEIGHT = 22;
@@ -34,6 +34,7 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
   activeProviders,
   rangeLabel
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -93,7 +94,7 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
       >
         <FlexRow gap={1} align="baseline">
           <Text size="big" weight={600}>
-            {i18n.t("editor:ui.spendOverTime")}
+            {t("editor:ui.spendOverTime")}
           </Text>
           <Text size="small" color="secondary">
             {rangeLabel}

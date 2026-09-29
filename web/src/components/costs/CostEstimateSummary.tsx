@@ -20,6 +20,7 @@ import { Box, Caption, ExternalLink, Tooltip } from "../ui_primitives";
 import { genspendPricingCatalog } from "@nodetool-ai/model-pricing/genspend-catalog";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Date the shipped GenSpend prices last moved, e.g. "2026-07-29". */
 const genspendUpdatedOn = genspendPricingCatalog.updatedAt.slice(0, 10);
@@ -150,6 +151,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
   }),
   showPriceCredit = true
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const summary = useCostEstimateSummary(estimate);
 
@@ -172,10 +174,10 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
     <Box css={styles(theme)} className="cost-estimate-summary">
       <div className="cost-table">
         <div className="cost-row is-head">
-          <span className="cost-col-head">{i18n.t("ui2:attrs.node", { defaultValue: "Node" })}</span>
-          <span className="cost-col-head">{i18n.t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</span>
+          <span className="cost-col-head">{t("ui2:attrs.node", { defaultValue: "Node" })}</span>
+          <span className="cost-col-head">{t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
-            {i18n.t("editor:ui.units")}
+            {t("editor:ui.units")}
           </span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
             Cost
@@ -189,7 +191,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
               </span>
               {row.unknown ? (
                 <Tooltip title={row.unknownReason} arrow>
-                  <span className="cost-unknown" aria-label={i18n.t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })}>
+                  <span className="cost-unknown" aria-label={t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })}>
                     <HelpOutlineIcon fontSize="inherit" />
                   </span>
                 </Tooltip>
@@ -247,7 +249,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
           title={
             genspendSnapshotOn
               ? `Prices read from the genspend.io catalog snapshot of ${genspendSnapshotOn}`
-              : i18n.t("editor:ui.pricesShipWithTheAppANightlySyncMovesThem", { defaultValue: "Prices ship with the app; a nightly sync moves them" })
+              : t("editor:ui.pricesShipWithTheAppANightlySyncMovesThem", { defaultValue: "Prices ship with the app; a nightly sync moves them" })
           }
           arrow
         >

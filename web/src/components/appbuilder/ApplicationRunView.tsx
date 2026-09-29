@@ -27,7 +27,7 @@ import {
 import { parseApplicationDocument, type AppDocument } from "./appData";
 import AppRuntimeView from "./AppRuntimeView";
 import { tAttr, tAttrTpl } from "./i18nAttrs";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationRunViewProps {
   applicationId: string;
@@ -54,6 +54,7 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
   applicationId,
   previewDraft = false
 }) => {
+  const { t } = useTranslation();
   const { data: application, isLoading } = useApplication(applicationId);
   const { data: release, isLoading: releaseLoading } =
     useReleasedApplicationDocument(applicationId);
@@ -108,7 +109,7 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
     return (
       <LoadingSpinner
         size="large"
-        text={i18n.t("ui2:attrs.loadingDocument", {
+        text={t("ui2:attrs.loadingDocument", {
           defaultValue: "Loading {{label}}…",
           label: tAttr("App")
         })}

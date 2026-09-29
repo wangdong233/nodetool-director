@@ -20,7 +20,7 @@ import { Box, Caption, CollapsibleSection, FlexRow, Label, SPACING } from "../ui
 import { useWorkflowCostEstimate } from "../../hooks/useWorkflowCostEstimate";
 import { CostEstimateSummary } from "./CostEstimateSummary";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -56,6 +56,7 @@ interface WorkflowCostEstimatePanelProps {
 const WorkflowCostEstimatePanelInternal: React.FC<
   WorkflowCostEstimatePanelProps
 > = ({ workflowId, compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const estimate = useWorkflowCostEstimate(workflowId);
   const summary = useCostEstimateSummary(estimate);
@@ -72,11 +73,11 @@ const WorkflowCostEstimatePanelInternal: React.FC<
         }}
         title={
           <FlexRow gap={SPACING.md} justify="space-between" wrap>
-            <Label>{i18n.t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</Label>
+            <Label>{t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</Label>
             <Caption>
               {summary?.hasItems
                 ? `${summary.isTotalLowerBound ? "≥ " : summary.isTotalApproximate ? "~" : ""}${summary.totalLabel}${summary.unknownCount > 0 ? " · incomplete" : " / run"}`
-                : i18n.t("editor:ui.perRun", { defaultValue: "Per run" })}
+                : t("editor:ui.perRun", { defaultValue: "Per run" })}
             </Caption>
           </FlexRow>
         }
@@ -102,8 +103,8 @@ const WorkflowCostEstimatePanelInternal: React.FC<
   return (
     <Box css={styles(theme)} className="cost-estimate">
       <div className="cost-head">
-        <div className="cost-title">{i18n.t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</div>
-        <span className="cost-subtitle">{i18n.t("ui2:attrs.estimatedCostOfASingleRun", { defaultValue: "Estimated cost of a single run" })}</span>
+        <div className="cost-title">{t("ui2:attrs.costEstimate", { defaultValue: "Cost estimate" })}</div>
+        <span className="cost-subtitle">{t("ui2:attrs.estimatedCostOfASingleRun", { defaultValue: "Estimated cost of a single run" })}</span>
       </div>
       <CostEstimateSummary estimate={estimate} />
     </Box>

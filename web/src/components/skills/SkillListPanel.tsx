@@ -26,8 +26,10 @@ import {
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateSkillButton = () => {
+  const { t } = useTranslation();
   const createSkill = useCreateSkill();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -61,9 +63,9 @@ export const CreateSkillButton = () => {
   }, [handleCreate]);
 
   return (
-    <Tooltip title={i18n.t("editor:ui.newSkill", { defaultValue: "New skill" })} placement="right-start">
+    <Tooltip title={t("editor:ui.newSkill", { defaultValue: "New skill" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("editor:ui.newSkill", { defaultValue: "New skill" })}
+        ariaLabel={t("editor:ui.newSkill", { defaultValue: "New skill" })}
         onClick={handleCreateClick}
         disabled={createSkill.isPending}
         tabIndex={-1}

@@ -28,7 +28,7 @@ import {
   readGeometryParams
 } from "./geometryParams";
 import { isBoolean, isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -371,6 +371,7 @@ interface PropertiesPanelProps {
 }
 
 const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState("object");
   // `tick` is intentionally a render trigger: bumping it re-renders this panel
@@ -462,7 +463,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           </FlexRow>
           <Text size="smaller" color="secondary" sx={{ padding: `0 ${getSpacingPx(SPACING.md)}` }}>{object.type}</Text>
           <CheckboxRow
-            label={i18n.t("editor:ui.visible", { defaultValue: "Visible" })}
+            label={t("editor:ui.visible", { defaultValue: "Visible" })}
             checked={object.visible}
             onChange={(c) => {
               object.visible = c;
@@ -470,7 +471,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
             }}
           />
           <CheckboxRow
-            label={i18n.t("editor:ui.frustumCull", { defaultValue: "Frustum Cull" })}
+            label={t("editor:ui.frustumCull", { defaultValue: "Frustum Cull" })}
             checked={object.frustumCulled}
             onChange={(c) => {
               object.frustumCulled = c;
@@ -478,7 +479,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
             }}
           />
           <NumberRow
-            label={i18n.t("editor:ui.renderOrd", { defaultValue: "Render Ord" })}
+            label={t("editor:ui.renderOrd", { defaultValue: "Render Ord" })}
             value={object.renderOrder}
             integer
             step={1}
@@ -490,7 +491,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           {mesh && (
             <>
               <CheckboxRow
-                label={i18n.t("editor:ui.castShadow", { defaultValue: "Cast Shadow" })}
+                label={t("editor:ui.castShadow", { defaultValue: "Cast Shadow" })}
                 checked={mesh.castShadow}
                 onChange={(c) => {
                   mesh.castShadow = c;
@@ -498,7 +499,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 }}
               />
               <CheckboxRow
-                label={i18n.t("editor:ui.recvShadow", { defaultValue: "Recv Shadow" })}
+                label={t("editor:ui.recvShadow", { defaultValue: "Recv Shadow" })}
                 checked={mesh.receiveShadow}
                 onChange={(c) => {
                   mesh.receiveShadow = c;
@@ -512,16 +513,16 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
           <Text size="small" weight={600} className="section-title">
             Transform
           </Text>
-          <Vector3Row label={i18n.t("editor:ui.position", { defaultValue: "Position" })} vector={object.position} step={0.1} onChanged={onChanged} />
+          <Vector3Row label={t("editor:ui.position", { defaultValue: "Position" })} vector={object.position} step={0.1} onChanged={onChanged} />
           <Vector3Row
-            label={i18n.t("editor:ui.rotation", { defaultValue: "Rotation" })}
+            label={t("editor:ui.rotation", { defaultValue: "Rotation" })}
             vector={object.rotation}
             toDisplay={THREE.MathUtils.radToDeg}
             fromDisplay={THREE.MathUtils.degToRad}
             step={1}
             onChanged={onChanged}
           />
-          <Vector3Row label={i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })} vector={object.scale} step={0.1} onChanged={onChanged} />
+          <Vector3Row label={t("timeline:attrs.scale", { defaultValue: "Scale" })} vector={object.scale} step={0.1} onChanged={onChanged} />
 
           {light && (
             <>
@@ -529,9 +530,9 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               <Text size="small" weight={600} className="section-title">
                 Light
               </Text>
-              <ColorRow label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })} color={light.color} onChange={onChanged} />
+              <ColorRow label={t("timeline:attrs.color", { defaultValue: "Color" })} color={light.color} onChange={onChanged} />
               <NumberRow
-                label={i18n.t("editor:ui.intensity", { defaultValue: "Intensity" })}
+                label={t("editor:ui.intensity", { defaultValue: "Intensity" })}
                 value={light.intensity}
                 min={0}
                 step={0.1}
@@ -543,7 +544,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               {pointLight && (
                 <>
                   <NumberRow
-                    label={i18n.t("editor:ui.distance", { defaultValue: "Distance" })}
+                    label={t("editor:ui.distance", { defaultValue: "Distance" })}
                     value={pointLight.distance}
                     min={0}
                     step={0.5}
@@ -553,7 +554,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                     }}
                   />
                   <NumberRow
-                    label={i18n.t("ui2:attrs.decay", { defaultValue: "Decay" })}
+                    label={t("ui2:attrs.decay", { defaultValue: "Decay" })}
                     value={pointLight.decay}
                     min={0}
                     step={0.1}
@@ -580,7 +581,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 return (
                   <NumberRow
                     key={spec.key}
-                    label={i18n.t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
+                    label={t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
                     value={display}
                     integer={spec.kind === "int"}
                     min={isAngle ? 0 : spec.min}
@@ -616,7 +617,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 return current === undefined ? null : (
                   <NumberRow
                     key={spec.key}
-                    label={i18n.t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
+                    label={t(`editor:ui.${"labelKey" in spec ? spec.labelKey : ""}`, { defaultValue: spec.label })}
                     value={current}
                     min={spec.min}
                     max={spec.max}
@@ -633,7 +634,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
               })}
 
               <NumberRow
-                label={i18n.t("editor:ui.opacity", { defaultValue: "Opacity" })}
+                label={t("editor:ui.opacity", { defaultValue: "Opacity" })}
                 value={material.opacity}
                 min={0}
                 max={1}
@@ -649,7 +650,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 }}
               />
               <NumberRow
-                label={i18n.t("editor:ui.alphaTest", { defaultValue: "Alpha Test" })}
+                label={t("editor:ui.alphaTest", { defaultValue: "Alpha Test" })}
                 value={material.alphaTest}
                 min={0}
                 max={1}
@@ -668,7 +669,7 @@ const PropertiesPanel = ({ object, tick, onChanged }: PropertiesPanelProps) => {
                 <SelectField
                   className="select-field nodrag"
                   hideLabel
-                  label={i18n.t("ui2:attrs.side", { defaultValue: "Side" })}
+                  label={t("ui2:attrs.side", { defaultValue: "Side" })}
                   size="small"
                   value={String(material.side)}
                   options={SIDE_OPTIONS}

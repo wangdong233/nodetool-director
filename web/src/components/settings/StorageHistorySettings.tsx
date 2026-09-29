@@ -12,6 +12,7 @@ import {
   Text
 } from "../ui_primitives";
 import { i18n, useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const st = (key: string, fallback: string, options?: Record<string, string>) =>
   i18n.t(`settings:storage.${key}`, { defaultValue: fallback, ...options });
@@ -26,6 +27,7 @@ function formatBytes(bytes: number | null): string {
 }
 
 export default function StorageHistorySettings() {
+  const { t } = useTranslation();
   // Subscribe so catalog reads re-render on language change.
   useAppLanguage();
   const history = useStorageHistory();
@@ -254,7 +256,7 @@ export default function StorageHistorySettings() {
               })
         }
         confirmText={confirmation === "compact" ? st("confirmCompact", "Compact") : st("confirmClean", "Clean")}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </>
   );

@@ -23,9 +23,10 @@ import {
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
 import { navigateToRedirect } from "./navigate";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const OAuthConsentPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const requestId = searchParams.get("request_id") ?? "";
 
@@ -72,9 +73,9 @@ const OAuthConsentPage = () => {
           align="center"
           sx={{ maxWidth: "480px", textAlign: "center" }}
         >
-          <Text sx={{ fontWeight: 500 }}>{i18n.t("ui2:attrs.noAuthorizationRequest", { defaultValue: "No authorization request" })}</Text>
+          <Text sx={{ fontWeight: 500 }}>{t("ui2:attrs.noAuthorizationRequest", { defaultValue: "No authorization request" })}</Text>
           <Text className="description">
-            {i18n.t("ui2:attrs.thisPageNeedsARequestIdRestartTheConnectionFromYourMCPClient", { defaultValue: "This page needs a request_id. Restart the connection from your MCP client." })}
+            {t("ui2:attrs.thisPageNeedsARequestIdRestartTheConnectionFromYourMCPClient", { defaultValue: "This page needs a request_id. Restart the connection from your MCP client." })}
           </Text>
         </FlexColumn>
       </FlexColumn>
@@ -98,10 +99,10 @@ const OAuthConsentPage = () => {
           sx={{ maxWidth: "480px", textAlign: "center" }}
         >
           <Text sx={{ fontWeight: 500 }}>
-            {i18n.t("ui2:attrs.requestExpiredOrAlreadyHandled", { defaultValue: "Request expired or already handled" })}
+            {t("ui2:attrs.requestExpiredOrAlreadyHandled", { defaultValue: "Request expired or already handled" })}
           </Text>
           <Text className="description">
-            {i18n.t("ui2:attrs.thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient", { defaultValue: "This authorization request is no longer valid. Restart the connection from your MCP client." })}
+            {t("ui2:attrs.thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient", { defaultValue: "This authorization request is no longer valid. Restart the connection from your MCP client." })}
           </Text>
         </FlexColumn>
       </FlexColumn>
@@ -115,23 +116,23 @@ const OAuthConsentPage = () => {
           {request.client_name}
         </Text>
         <Text className="description">
-          {i18n.t("ui2:attrs.wantsToConnectToYourNodeToolAccount", { defaultValue: "wants to connect to your NodeTool account." })}
+          {t("ui2:attrs.wantsToConnectToYourNodeToolAccount", { defaultValue: "wants to connect to your NodeTool account." })}
         </Text>
 
         <FlexColumn gap={1} sx={{ mt: 1 }}>
           <FlexRow justify="space-between">
-            <Text className="description">{i18n.t("ui2:attrs.redirectsTo", { defaultValue: "Redirects to" })}</Text>
+            <Text className="description">{t("ui2:attrs.redirectsTo", { defaultValue: "Redirects to" })}</Text>
             <Text>{request.redirect_host}</Text>
           </FlexRow>
           <FlexRow justify="space-between">
-            <Text className="description">{i18n.t("ui2:attrs.access", { defaultValue: "Access" })}</Text>
+            <Text className="description">{t("ui2:attrs.access", { defaultValue: "Access" })}</Text>
             <Text>{request.scope}</Text>
           </FlexRow>
         </FlexColumn>
 
         {request.loopback_only && (
           <AlertBanner severity="warning">
-            {i18n.t("ui2:attrs.thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself", { defaultValue: "This client only redirects to localhost. Make sure you started this connection yourself." })}
+            {t("ui2:attrs.thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself", { defaultValue: "This client only redirects to localhost. Make sure you started this connection yourself." })}
           </AlertBanner>
         )}
 
@@ -139,21 +140,21 @@ const OAuthConsentPage = () => {
           <AlertBanner severity="error">
             {mutationError instanceof Error
               ? mutationError.message
-              : i18n.t("editor:ui.couldNotCompleteThisRequest", { defaultValue: "Could not complete this request." })}
+              : t("editor:ui.couldNotCompleteThisRequest", { defaultValue: "Could not complete this request." })}
           </AlertBanner>
         )}
 
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
           <NavButton
             icon={<CloseIcon />}
-            label={i18n.t("ui2:attrs.deny", { defaultValue: "Deny" })}
+            label={t("ui2:attrs.deny", { defaultValue: "Deny" })}
             disabled={busy}
             onClick={handleDeny}
             sx={{ padding: `${SPACING.sm}px ${SPACING.xl}px` }}
           />
           <NavButton
             icon={<CheckIcon />}
-            label={i18n.t("ui2:attrs.approve", { defaultValue: "Approve" })}
+            label={t("ui2:attrs.approve", { defaultValue: "Approve" })}
             color="primary"
             disabled={busy}
             onClick={handleApprove}

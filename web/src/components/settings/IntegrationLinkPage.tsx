@@ -24,7 +24,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type LinkProvider = "telegram" | "discord";
 
@@ -38,6 +38,7 @@ function providerLabel(provider: string): string {
 }
 
 const IntegrationLinkPage = () => {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const code = params.get("code") ?? "";
@@ -79,14 +80,14 @@ const IntegrationLinkPage = () => {
           {describe.isLoading && !expired && (
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>{i18n.t("editor:ui.checkingThisLink", { defaultValue: "Checking this link…" })}</Caption>
+              <Caption>{t("editor:ui.checkingThisLink", { defaultValue: "Checking this link…" })}</Caption>
             </FlexRow>
           )}
 
           {expired && (
             <>
               <AlertBanner severity="error">
-                {i18n.t("editor:ui.thisLinkCodeHasExpiredOrWasAlreadyUsedSendTheBot")}
+                {t("editor:ui.thisLinkCodeHasExpiredOrWasAlreadyUsedSendTheBot")}
                 <strong> /link </strong>
                 again to get a new one.
               </AlertBanner>
@@ -110,7 +111,7 @@ const IntegrationLinkPage = () => {
               </Caption>
               {confirm.isError && (
                 <AlertBanner severity="error">
-                  {i18n.t("editor:ui.couldNotCompleteTheLinkTheCodeMayHaveJustExpired")}
+                  {t("editor:ui.couldNotCompleteTheLinkTheCodeMayHaveJustExpired")}
                 </AlertBanner>
               )}
               <FlexRow gap={SPACING.md}>

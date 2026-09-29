@@ -48,7 +48,7 @@ import {
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { tAttr, tAttrOptions, tAttrTpl } from "./i18nAttrs";
 
 interface AppDataPanelProps {
@@ -317,6 +317,7 @@ const VariableRow: React.FC<{
   onPatch: (patch: Partial<VariableDeclaration>) => void;
   onRemove: () => void;
 }> = ({ variable, onPatch, onRemove }) => {
+  const { t } = useTranslation();
   const type = variable.type?.type;
   const error = variableDefaultError(variable.default, type);
   return (
@@ -374,7 +375,7 @@ const VariableRow: React.FC<{
       onChange={(checked) => onPatch({ persist: checked })}
     />
     {variable.scope !== "user" ? (
-      <Caption color="secondary">{i18n.t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
+      <Caption color="secondary">{t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
     ) : null}
   </EntryCard>
   );

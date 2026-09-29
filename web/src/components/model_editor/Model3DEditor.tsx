@@ -58,6 +58,7 @@ import {
   type Model3DToolHandler,
   type Model3DTransformPatch
 } from "./model3DToolBridge";
+import { useTranslation } from "react-i18next";
 
 type GizmoMode = "translate" | "rotate" | "scale";
 
@@ -379,6 +380,7 @@ const Model3DEditor = ({
   cameraPose,
   offlineLighting = false
 }: Model3DEditorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   // Persistent group that owns all editable content and is exported on save.
@@ -786,20 +788,20 @@ const Model3DEditor = ({
         <AddMenu onAdd={handleAdd} />
         <ToolbarIconButton
           icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.deleteSelectedDel", { defaultValue: "Delete selected (Del)" })}
+          tooltip={t("editor:ui.deleteSelectedDel", { defaultValue: "Delete selected (Del)" })}
           onClick={handleDelete}
           disabled={!selectedObject}
           size="small"
         />
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.frameScene", { defaultValue: "Frame scene" })}
+          tooltip={t("editor:ui.frameScene", { defaultValue: "Frame scene" })}
           onClick={() => setFitTrigger((t) => t + 1)}
           size="small"
         />
         <ToolbarIconButton
           icon={<GridOnIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.toggleGrid", { defaultValue: "Toggle grid" })}
+          tooltip={t("editor:ui.toggleGrid", { defaultValue: "Toggle grid" })}
           onClick={() => setShowGrid((v) => !v)}
           active={showGrid}
           size="small"
@@ -821,7 +823,7 @@ const Model3DEditor = ({
           >
             {isSaving ? "Saving…" : "Save"}
           </EditorButton>
-          <CloseButton onClick={onClose} tooltip={i18n.t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
+          <CloseButton onClick={onClose} tooltip={t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
         </FlexRow>
       </FlexRow>
 
@@ -898,7 +900,7 @@ const Model3DEditor = ({
         <FlexColumn className="side-panel right" fullHeight>
           <FlexRow className="panel-header">
             <Text size="small" weight={600}>
-              {i18n.t("editor:ui.properties")}
+              {t("editor:ui.properties")}
             </Text>
           </FlexRow>
           <PropertiesPanel object={selectedObject} tick={tick} onChanged={bump} />
@@ -910,7 +912,7 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel={i18n.t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
+            ariaLabel={t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
           >
             <FlexRow className="panel-header" justify="space-between" align="center">
               <FlexRow gap={1} align="center">
@@ -921,7 +923,7 @@ const Model3DEditor = ({
               </FlexRow>
               <CloseButton
                 onClick={() => toggleAssistant()}
-                tooltip={i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
+                tooltip={t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
               />
             </FlexRow>
             <div className="panel-body">

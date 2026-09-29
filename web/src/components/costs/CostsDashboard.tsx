@@ -46,7 +46,7 @@ import {
   type Execution
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
 const GROUP_OPTIONS: { value: GroupByKey; label: string; labelKey: string }[] = [
@@ -111,6 +111,7 @@ const matchesSearch = (
 };
 
 const CostsDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const [range, setRange] = useState<DateRange>("14d");
@@ -239,11 +240,11 @@ const CostsDashboard: React.FC = () => {
                 color: theme.vars.palette.text.primary
               }}
             >
-              {i18n.t("editor:ui.costsTitle")}
+              {t("editor:ui.costsTitle")}
             </Text>
             {view ? (
               <Text size="normal" color="secondary">
-                {i18n.t("editor:ui.spendPerNodeExecution")} {i18n.t("editor:ui.across2")}
+                {t("editor:ui.spendPerNodeExecution")} {t("editor:ui.across2")}
                 <Text
                   component="span"
                   weight={600}
@@ -255,7 +256,7 @@ const CostsDashboard: React.FC = () => {
               </Text>
             ) : (
               <Text size="normal" color="secondary">
-                {i18n.t("editor:ui.spendPerNodeExecution")}
+                {t("editor:ui.spendPerNodeExecution")}
               </Text>
             )}
           </FlexColumn>
@@ -278,7 +279,7 @@ const CostsDashboard: React.FC = () => {
               <>
                 <FilterDropdown
                   icon={<FilterListIcon sx={{ fontSize: 16 }} />}
-                  label={providersAllSelected ? i18n.t("editor:ui.allProviders") : i18n.t("editor:ui.providers")}
+                  label={providersAllSelected ? t("editor:ui.allProviders") : t("editor:ui.providers")}
                   count={
                     providersAllSelected
                       ? String(providerUniverse.length)
@@ -303,7 +304,7 @@ const CostsDashboard: React.FC = () => {
 
                 <FilterDropdown
                   icon={<AccountTreeIcon sx={{ fontSize: 15 }} />}
-                  label={workflowsAllSelected ? i18n.t("editor:ui.allWorkflows") : i18n.t("editor:ui.workflows2")}
+                  label={workflowsAllSelected ? t("editor:ui.allWorkflows") : t("editor:ui.workflows2")}
                   count={
                     workflowsAllSelected
                       ? undefined
@@ -351,7 +352,7 @@ const CostsDashboard: React.FC = () => {
                   }}
                 >
                   <FileDownloadIcon sx={{ fontSize: 17 }} />
-                  {i18n.t("editor:ui.exportCsv")}
+                  {t("editor:ui.exportCsv")}
                 </Box>
               </>
             )}
@@ -365,7 +366,7 @@ const CostsDashboard: React.FC = () => {
         ) : isError ? (
           <StateMessage>
             <Text color="secondary">
-              {i18n.t("editor:ui.couldntLoadCostDataPleaseTryAgain")}
+              {t("editor:ui.couldntLoadCostDataPleaseTryAgain")}
             </Text>
           </StateMessage>
         ) : view ? (
@@ -383,7 +384,7 @@ const CostsDashboard: React.FC = () => {
           />
         ) : (
           <StateMessage>
-            <Text color="secondary">{i18n.t("ui2:attrs.noCostDataForThisPeriod", { defaultValue: "No cost data for this period." })}</Text>
+            <Text color="secondary">{t("ui2:attrs.noCostDataForThisPeriod", { defaultValue: "No cost data for this period." })}</Text>
           </StateMessage>
         )}
       </Box>
@@ -416,6 +417,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   visibleCount,
   totalCount
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const segmentedStyles = useMemo(() => segmentedSx(theme), [theme]);
   const stats = view.stats;
@@ -434,11 +436,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       {/* stat cards */}
       <FlexRow gap={2} wrap sx={{ mb: 3 }}>
         <CostStatCard
-          label={i18n.t("editor:ui.totalSpend", { defaultValue: "Total spend" })}
+          label={t("editor:ui.totalSpend", { defaultValue: "Total spend" })}
           icon={AttachMoneyIcon}
           value={total.whole}
           decimal={total.decimal}
-          caption={`${i18n.t("editor:ui.vsPrior")} ${range}`}
+          caption={`${t("editor:ui.vsPrior")} ${range}`}
           badge={
             delta === null ? undefined : (
               <FlexRow
@@ -465,19 +467,19 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           }
         />
         <CostStatCard
-          label={i18n.t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
+          label={t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
           icon={GridViewIcon}
           value={String(stats.executionCount)}
-          caption={`${stats.failedCount} ${i18n.t("editor:ui.failed2")} · ${stats.workflowCount} ${i18n.t("editor:ui.workflows3")}`}
+          caption={`${stats.failedCount} ${t("editor:ui.failed2")} · ${stats.workflowCount} ${t("editor:ui.workflows3")}`}
         />
         <CostStatCard
-          label={i18n.t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
+          label={t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
           icon={ShowChartIcon}
           value={formatMoney(stats.avgPerExecution)}
-          caption={i18n.t("editor:ui.acrossAllNodeTypes")}
+          caption={t("editor:ui.acrossAllNodeTypes")}
         />
         <CostStatCard
-          label={i18n.t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
+          label={t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
           icon={BarChartIcon}
           value={driver ? driver.label : "—"}
           valueVariant="label"
@@ -487,7 +489,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               ? `${formatMoney(driver.cost)} · ${formatPercent(
                   driverShare
                 )} of spend`
-              : i18n.t("editor:ui.noSpendYet")
+              : t("editor:ui.noSpendYet")
           }
         />
       </FlexRow>
@@ -499,7 +501,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           providers={view.providers}
           stackOrder={view.stackOrder}
           activeProviders={providerSel ?? undefined}
-          rangeLabel={`${i18n.t("editor:ui.dailyLast")} ${view.days.length} ${i18n.t("editor:ui.days")}`}
+          rangeLabel={`${t("editor:ui.dailyLast")} ${view.days.length} ${t("editor:ui.days")}`}
         />
       </Box>
 
@@ -520,7 +522,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               color: theme.vars.palette.text.disabled
             }}
           >
-            {i18n.t("editor:ui.groupBy")}
+            {t("editor:ui.groupBy")}
           </Text>
           <ToggleGroup
             exclusive
@@ -530,7 +532,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           >
             {GROUP_OPTIONS.map((o) => (
               <ToggleOption key={o.value} value={o.value}>
-                {i18n.t(o.labelKey, { defaultValue: o.label })}
+                {t(o.labelKey, { defaultValue: o.label })}
               </ToggleOption>
             ))}
           </ToggleGroup>
@@ -541,7 +543,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder={i18n.t("editor:ui.filterNodesModels", { defaultValue: "Filter nodes, models…" })}
+              placeholder={t("editor:ui.filterNodesModels", { defaultValue: "Filter nodes, models…" })}
               fullWidth
             />
           </Box>
@@ -602,6 +604,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   onSelectAll,
   onClear
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -719,7 +722,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           ))}
           {options.length === 0 && (
             <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-              {i18n.t("editor:ui.noOptions", { defaultValue: "No options" })}
+              {t("editor:ui.noOptions", { defaultValue: "No options" })}
             </Text>
           )}
         </FlexColumn>

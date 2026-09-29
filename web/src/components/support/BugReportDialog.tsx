@@ -43,6 +43,7 @@ import {
   type BundleFile,
   type BundleSection
 } from "../../utils/bugReportBundle";
+import { useTranslation } from "react-i18next";
 
 const GITHUB_ISSUE_URL = "https://github.com/nodetool-ai/nodetool/issues/new";
 
@@ -61,6 +62,7 @@ interface BugReportDialogProps {
 }
 
 const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
+  const { t } = useTranslation();
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
   const [expected, setExpected] = useState("");
@@ -272,23 +274,23 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         className="bug-report-dialog"
         open
         onClose={onClose}
-        title={i18n.t("editor:ui.reportSaved", { defaultValue: "Report saved" })}
+        title={t("editor:ui.reportSaved", { defaultValue: "Report saved" })}
         maxWidth="sm"
         fullWidth
       >
         <FlexColumn gap={SPACING.lg} sx={{ pb: 2 }}>
           <AlertBanner severity="success">
-            {i18n.t("ui2:attrs.saved", { defaultValue: "Saved" })} <strong>{saved.zipName}</strong> {i18n.t("editor:ui.toYourDownloads", { defaultValue: "to your downloads." })}
+            {t("ui2:attrs.saved", { defaultValue: "Saved" })} <strong>{saved.zipName}</strong> {t("editor:ui.toYourDownloads", { defaultValue: "to your downloads." })}
           </AlertBanner>
           <Text>
-            {i18n.t("editor:ui.nowOpenTheGitHubIssue", { defaultValue: "Now open the GitHub issue. It is pre-filled with your description. Drag the saved zip into it before you submit." })}
+            {t("editor:ui.nowOpenTheGitHubIssue", { defaultValue: "Now open the GitHub issue. It is pre-filled with your description. Drag the saved zip into it before you submit." })}
           </Text>
           <FlexRow justify="flex-end" gap={SPACING.sm}>
             <EditorButton variant="outlined" onClick={onClose}>
-              {i18n.t("editor:ui.later")}
+              {t("editor:ui.later")}
             </EditorButton>
             <EditorButton variant="contained" onClick={handleOpenIssue}>
-              {i18n.t("editor:ui.openGitHubIssue")}
+              {t("editor:ui.openGitHubIssue")}
             </EditorButton>
           </FlexRow>
         </FlexColumn>
@@ -301,38 +303,38 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
       className="bug-report-dialog"
       open
       onClose={onClose}
-      title={i18n.t("editor:ui.reportABug", { defaultValue: "Report a Bug" })}
+      title={t("editor:ui.reportABug", { defaultValue: "Report a Bug" })}
       maxWidth="md"
       fullWidth
     >
       <FlexColumn gap={SPACING.lg} sx={{ pb: 2 }}>
         <AlertBanner severity="info">
-          {i18n.t("editor:ui.nothingIsUploaded", { defaultValue: "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below." })}
+          {t("editor:ui.nothingIsUploaded", { defaultValue: "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below." })}
         </AlertBanner>
 
-        <Caption>{i18n.t("editor:ui.reportedFrom", { defaultValue: "Reported from:" })} {sourceLabel(context.source)}</Caption>
+        <Caption>{t("editor:ui.reportedFrom", { defaultValue: "Reported from:" })} {sourceLabel(context.source)}</Caption>
 
         <TextField
-          label={i18n.t("editor:ui.whatWentWrong", { defaultValue: "What went wrong?" })}
+          label={t("editor:ui.whatWentWrong", { defaultValue: "What went wrong?" })}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           multiline
           minRows={3}
           fullWidth
           autoFocus
-          placeholder={i18n.t("editor:ui.describeTheProblemInASentenceOrTwo", { defaultValue: "Describe the problem in a sentence or two." })}
+          placeholder={t("editor:ui.describeTheProblemInASentenceOrTwo", { defaultValue: "Describe the problem in a sentence or two." })}
         />
         <TextField
-          label={i18n.t("editor:ui.stepsToReproduce", { defaultValue: "Steps to reproduce" })}
+          label={t("editor:ui.stepsToReproduce", { defaultValue: "Steps to reproduce" })}
           value={steps}
           onChange={(event) => setSteps(event.target.value)}
           multiline
           minRows={3}
           fullWidth
-          placeholder={i18n.t("editor:ui.stepsPlaceholder", { defaultValue: "1. Open …\n2. Add a … node\n3. Run the workflow" })}
+          placeholder={t("editor:ui.stepsPlaceholder", { defaultValue: "1. Open …\n2. Add a … node\n3. Run the workflow" })}
         />
         <TextField
-          label={i18n.t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
+          label={t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
           value={expected}
           onChange={(event) => setExpected(event.target.value)}
           multiline
@@ -341,13 +343,13 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         />
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>{i18n.t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}</Text>
+          <Text weight={600}>{t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}</Text>
           <Caption>
-            {i18n.t("editor:ui.apiKeysAndInlinedMediaAreRemoved", { defaultValue: "API keys and inlined media are removed before the file is written. Open any file to read it first." })}
+            {t("editor:ui.apiKeysAndInlinedMediaAreRemoved", { defaultValue: "API keys and inlined media are removed before the file is written. Open any file to read it first." })}
           </Caption>
 
           {sections.length === 0 ? (
-            <Caption>{i18n.t("editor:ui.nothingWasCapturedToAttachToThisReport", { defaultValue: "Nothing was captured to attach to this report." })}</Caption>
+            <Caption>{t("editor:ui.nothingWasCapturedToAttachToThisReport", { defaultValue: "Nothing was captured to attach to this report." })}</Caption>
           ) : (
             sections.map((section) => (
               <FlexColumn
@@ -376,7 +378,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                     <Caption>{formatBytes(section.content.length)}</Caption>
                     <EditorButton
                       variant="text"
-                      aria-label={`${revealed[section.id] ? i18n.t("ui2:attrs.hide", { defaultValue: "Hide" }) : i18n.t("timeline:shortcuts.view", { defaultValue: "View" })} ${section.label}`}
+                      aria-label={`${revealed[section.id] ? t("ui2:attrs.hide", { defaultValue: "Hide" }) : t("timeline:shortcuts.view", { defaultValue: "View" })} ${section.label}`}
                       onClick={() =>
                         setRevealed((prev) => ({
                           ...prev,
@@ -384,7 +386,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                         }))
                       }
                     >
-                      {revealed[section.id] ? i18n.t("editor:ui.hide2") : i18n.t("editor:ui.view2")}
+                      {revealed[section.id] ? t("editor:ui.hide2") : t("editor:ui.view2")}
                     </EditorButton>
                   </FlexRow>
                 </FlexRow>
@@ -413,9 +415,9 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         </FlexColumn>
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>{i18n.t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}</Text>
+          <Text weight={600}>{t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}</Text>
           <Caption>
-            {i18n.t("editor:ui.aScreenshotOfTheBrokenScreen", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
+            {t("editor:ui.aScreenshotOfTheBrokenScreen", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
           </Caption>
           <label>
             <input
@@ -423,7 +425,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
               multiple
               onChange={handleAttach}
               style={{ display: "block" }}
-              aria-label={i18n.t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
+              aria-label={t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
             />
           </label>
           {attachments.map((file) => (
@@ -435,7 +437,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                 variant="text"
                 onClick={() => removeAttachment(file.name)}
               >
-                {i18n.t("common:action.remove", { defaultValue: "Remove" })}
+                {t("common:action.remove", { defaultValue: "Remove" })}
               </EditorButton>
             </FlexRow>
           ))}
@@ -443,14 +445,14 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
 
         <FlexRow justify="flex-end" gap={SPACING.sm}>
           <EditorButton variant="outlined" onClick={onClose} disabled={busy}>
-            {i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             variant="contained"
             onClick={() => void handleSaveBundle()}
             disabled={busy || description.trim() === ""}
           >
-            {busy ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("editor:ui.saveReportBundle", { defaultValue: "Save report bundle" })}
+            {busy ? t("timeline:history.saving", { defaultValue: "Saving…" }) : t("editor:ui.saveReportBundle", { defaultValue: "Save report bundle" })}
           </EditorButton>
         </FlexRow>
       </FlexColumn>
