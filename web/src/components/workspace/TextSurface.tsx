@@ -7,7 +7,7 @@ import { useAssetById } from "../../serverState/useAssetById";
 import { FlexColumn, LoadingSpinner, Text } from "../ui_primitives";
 import TextDocumentEditor from "./TextDocumentEditor";
 import TextPreview from "./TextPreview";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TextSurfaceProps {
   refId: string;
@@ -25,6 +25,7 @@ interface TextSurfaceProps {
  *   asset update API.
  */
 const TextSurface = ({ refId, mode }: TextSurfaceProps) => {
+  const { t } = useTranslation();
   const { data: asset, isLoading, error } = useAssetById(refId);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
 
@@ -53,7 +54,7 @@ const TextSurface = ({ refId, mode }: TextSurfaceProps) => {
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
         <Text size="normal" weight={600}>
-          {i18n.t("editor:ui.failedToLoadTextAsset")}
+          {t("editor:ui.failedToLoadTextAsset")}
         </Text>
       </FlexColumn>
     );

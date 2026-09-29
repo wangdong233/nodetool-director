@@ -17,6 +17,7 @@ import { i18n } from "../../i18n";
 import CompositorEditor, {
   type CompositorEditorProps
 } from "./CompositorEditor";
+import { useTranslation } from "react-i18next";
 
 interface CompositorEditorModalProps extends CompositorEditorProps {
   open: boolean;
@@ -58,6 +59,7 @@ const CompositorEditorModalInner: React.FC<CompositorEditorModalProps> = ({
   onClose,
   ...editorProps
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   if (!open) return null;
@@ -66,7 +68,7 @@ const CompositorEditorModalInner: React.FC<CompositorEditorModalProps> = ({
     <div css={cssStyles} className="compositor-modal">
       <div className="compositor-modal-header">
         <Text sx={{ fontWeight: 500, mr: "auto" }}>{title}</Text>
-        <CloseButton onClick={onClose} tooltip={i18n.t("editor:ui.closeCompositorEditor", { defaultValue: "Close compositor editor" })} />
+        <CloseButton onClick={onClose} tooltip={t("editor:ui.closeCompositorEditor", { defaultValue: "Close compositor editor" })} />
       </div>
       <div className="compositor-modal-body">
         <CompositorEditor {...editorProps} />

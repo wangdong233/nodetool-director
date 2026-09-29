@@ -25,7 +25,7 @@ import {
   workspaceFileDownloadPath,
   workspaceFileName
 } from "./workspaceFileRef";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface WorkspaceFileSurfaceProps {
   /** `${workspaceId}::${path}` — see workspaceFileRef.ts. */
@@ -35,6 +35,7 @@ interface WorkspaceFileSurfaceProps {
 }
 
 const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
+  const { t } = useTranslation();
   const { handleDownload } = useAssetDownload({ url });
   return (
     <FlexColumn
@@ -47,7 +48,7 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
       <Text size="normal" weight={600}>
         {name}
       </Text>
-      <Caption>{i18n.t("editor:ui.noPreviewAvailableForThisFileType", { defaultValue: "No preview available for this file type." })}</Caption>
+      <Caption>{t("editor:ui.noPreviewAvailableForThisFileType", { defaultValue: "No preview available for this file type." })}</Caption>
       <Button variant="outlined" size="small" onClick={handleDownload}>
         Download
       </Button>
@@ -62,6 +63,7 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
  * written through the `workspace` tRPC router (see WorkspaceFileText).
  */
 const WorkspaceFileSurface = ({ refId, mode }: WorkspaceFileSurfaceProps) => {
+  const { t } = useTranslation();
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
   const parsed = useMemo(() => parseWorkspaceFileRef(refId), [refId]);
   const name = parsed ? workspaceFileName(parsed.path) : "";
@@ -76,7 +78,7 @@ const WorkspaceFileSurface = ({ refId, mode }: WorkspaceFileSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {i18n.t("editor:ui.invalidWorkspaceFileReference")}
+          {t("editor:ui.invalidWorkspaceFileReference")}
         </Text>
       </FlexColumn>
     );

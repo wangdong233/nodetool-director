@@ -24,7 +24,7 @@ import {
 } from "../../stores/jsScript/JsScriptStore";
 import JsScriptPortsEditor from "./JsScriptPortsEditor";
 import JsScriptSecretsEditor from "./JsScriptSecretsEditor";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** What a newly exposed script lands under until its owner names a category. */
 const DEFAULT_CATEGORY = "My Nodes";
@@ -38,6 +38,7 @@ const JsScriptSettingsPanel = ({
   scriptId,
   readOnly = false
 }: JsScriptSettingsPanelProps) => {
+  const { t } = useTranslation();
   const document = useJsScriptDocument(scriptId);
   const setDescription = useJsScriptStore((state) => state.setDescription);
   const setPorts = useJsScriptStore((state) => state.setPorts);
@@ -70,12 +71,12 @@ const JsScriptSettingsPanel = ({
       <FlexColumn gap={SPACING.lg} padding={2}>
         <FlexColumn gap={SPACING.xs}>
           <TextInput
-            label={i18n.t("editor:ui.description", { defaultValue: "Description" })}
+            label={t("editor:ui.description", { defaultValue: "Description" })}
             size="small"
             multiline
             minRows={2}
             value={document.description}
-            placeholder={i18n.t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
+            placeholder={t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
             disabled={readOnly}
             onChange={(event) =>
               setDescription(scriptId, event.target.value)
@@ -89,13 +90,13 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn data-focus-id="jsscript-ports" gap={SPACING.lg}>
           <JsScriptPortsEditor
-            label={i18n.t("editor:ui.inputs", { defaultValue: "Inputs" })}
+            label={t("editor:ui.inputs", { defaultValue: "Inputs" })}
             ports={document.inputs}
             readOnly={readOnly}
             onChange={handleInputs}
           />
           <JsScriptPortsEditor
-            label={i18n.t("editor:ui.outputs", { defaultValue: "Outputs" })}
+            label={t("editor:ui.outputs", { defaultValue: "Outputs" })}
             ports={document.outputs}
             readOnly={readOnly}
             onChange={handleOutputs}
@@ -112,16 +113,16 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn gap={SPACING.xs}>
           <LabeledSwitch
-            label={i18n.t("editor:ui.showInNodeMenu", { defaultValue: "Show in node menu" })}
+            label={t("editor:ui.showInNodeMenu", { defaultValue: "Show in node menu" })}
             size="small"
             checked={document.palette !== undefined}
             disabled={readOnly}
             onChange={handleShowInMenu}
-            description={i18n.t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode")}
+            description={t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode")}
           />
           {document.palette !== undefined ? (
             <TextInput
-              label={i18n.t("editor:ui.category", { defaultValue: "Category" })}
+              label={t("editor:ui.category", { defaultValue: "Category" })}
               size="small"
               value={document.palette.category}
               placeholder={DEFAULT_CATEGORY}

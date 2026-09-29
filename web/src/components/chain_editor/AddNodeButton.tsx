@@ -5,7 +5,7 @@ import { EditorButton } from "../editor_ui";
 import { ToolbarIconButton, Box, MOTION, BORDER_RADIUS } from "../ui_primitives";
 import AddIcon from "@mui/icons-material/Add";
 import { FlexColumn } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AddNodeButtonProps {
   onClick: () => void;
@@ -13,6 +13,7 @@ interface AddNodeButtonProps {
 }
 
 export const AddNodeButton: React.FC<AddNodeButtonProps> = ({ onClick, isHero = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   if (isHero) {
@@ -41,8 +42,8 @@ export const AddNodeButton: React.FC<AddNodeButtonProps> = ({ onClick, isHero = 
       <Box sx={{ width: 2, height: 14, backgroundColor: theme.vars.palette.divider }} />
       <ToolbarIconButton
         size="small"
-        ariaLabel={i18n.t("editor:ui.Add Node", { defaultValue: "Add node" })}
-        tooltip={i18n.t("editor:ui.Add Node", { defaultValue: "Add node" })}
+        ariaLabel={t("editor:ui.Add Node", { defaultValue: "Add node" })}
+        tooltip={t("editor:ui.Add Node", { defaultValue: "Add node" })}
         onClick={onClick}
         icon={<AddIcon sx={{ fontSize: 16, color: theme.vars.palette.primary.main }} />}
         sx={{

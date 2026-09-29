@@ -37,7 +37,7 @@ import {
   SPACING,
   Z_INDEX
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationSurfaceProps {
   refId: string;
@@ -86,6 +86,7 @@ const ApplicationSurface = ({
   refId,
   mode = "edit"
 }: ApplicationSurfaceProps) => {
+  const { t } = useTranslation();
   const { data: application, isLoading, isError, error } = useApplication(refId);
   const [view, setView] = useState<ApplicationView>(
     mode === "view" ? "run" : "design"
@@ -153,7 +154,7 @@ const ApplicationSurface = ({
     return (
       <EmptyState
         variant="error"
-        title={i18n.t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
+        title={t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
         description={error?.message ?? "The app may have been deleted."}
       />
     );
@@ -209,12 +210,12 @@ const ApplicationSurface = ({
                 exclusive
                 value={view}
                 onChange={handleViewChange}
-                aria-label={i18n.t("ui2:attrs.appView", { defaultValue: "App view" })}
+                aria-label={t("ui2:attrs.appView", { defaultValue: "App view" })}
               >
-                <ToggleOption value="design">{i18n.t("ui2:attrs.design", { defaultValue: "Design" })}</ToggleOption>
-                <ToggleOption value="run">{i18n.t("ui2:attrs.run", { defaultValue: "Run" })}</ToggleOption>
-                <ToggleOption value="preview">{i18n.t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
-                <ToggleOption value="settings">{i18n.t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
+                <ToggleOption value="design">{t("ui2:attrs.design", { defaultValue: "Design" })}</ToggleOption>
+                <ToggleOption value="run">{t("ui2:attrs.run", { defaultValue: "Run" })}</ToggleOption>
+                <ToggleOption value="preview">{t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
+                <ToggleOption value="settings">{t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
               </ToggleGroup>
             </FlexRow>
           </FlexRow>
@@ -264,7 +265,7 @@ const ApplicationSurface = ({
             <Box
               ref={narrowAgentPanelRef}
               role="dialog"
-              aria-label={i18n.t("ui2:attrs.appBuilderAssistant", { defaultValue: "App builder assistant" })}
+              aria-label={t("ui2:attrs.appBuilderAssistant", { defaultValue: "App builder assistant" })}
               tabIndex={-1}
               sx={{
                 ...overlayPanelSx,
@@ -280,7 +281,7 @@ const ApplicationSurface = ({
         <ResizableSideDock
           storageKey="app_builder"
           defaultWidth={420}
-          ariaLabel={i18n.t("ui2:attrs.resizeAppBuilderAssistant", { defaultValue: "Resize app builder assistant" })}
+          ariaLabel={t("ui2:attrs.resizeAppBuilderAssistant", { defaultValue: "Resize app builder assistant" })}
         >
           {assistant}
         </ResizableSideDock>
@@ -290,8 +291,8 @@ const ApplicationSurface = ({
           ref={narrowAgentButtonRef}
           icon={narrowAgentOpen ? <CloseIcon /> : <AutoAwesomeIcon />}
           onClick={toggleNarrowAgent}
-          ariaLabel={narrowAgentOpen ? i18n.t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : i18n.t("editor:ui.askAgent", { defaultValue: "Ask Agent" })}
-          tooltip={narrowAgentOpen ? i18n.t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : i18n.t("editor:ui.askAgent", { defaultValue: "Ask Agent" })}
+          ariaLabel={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })}
+          tooltip={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })}
           tooltipPlacement="top"
           size={48}
           position="absolute"

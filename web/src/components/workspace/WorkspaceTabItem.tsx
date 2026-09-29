@@ -20,7 +20,8 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { tabDisplayTitle } from "./tabTypeIdentity";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Tabs are scanned, not studied — the title has to land while the pointer is
 // still moving. Well under the 700ms chrome default, and the native `title`
@@ -65,6 +66,7 @@ const WorkspaceTabItem = ({
   onCommitRename,
   onCancelRename
 }: WorkspaceTabItemProps) => {
+  const { t } = useTranslation();
   useAppLanguage(); // re-render on language change: render-time tab titles (R5/R6-6)
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isWorkflowDirty = useWorkflowDirty(workflowId);
@@ -181,7 +183,7 @@ const WorkspaceTabItem = ({
         {isEditing ? (
           <InlineEditableText
             className="tab-input"
-            ariaLabel={i18n.t("nav:tabs.tabName")}
+            ariaLabel={t("nav:tabs.tabName")}
             value={tab.title}
             editing
             onEditingChange={handleEditingChange}
@@ -211,7 +213,7 @@ const WorkspaceTabItem = ({
               <span
                 className="dirty-dot"
                 role="img"
-                aria-label={i18n.t("nav:tabs.unsaved")}
+                aria-label={t("nav:tabs.unsaved")}
               />
             )}
           </>
@@ -219,7 +221,7 @@ const WorkspaceTabItem = ({
         <CloseButton
           className="tab-close close-icon"
           buttonSize="small"
-          tooltip={i18n.t("common:action.closeTab", { title: displayTitle })}
+          tooltip={t("common:action.closeTab", { title: displayTitle })}
           onClick={(event) => {
             event.stopPropagation();
             onClose(tab);
@@ -235,7 +237,7 @@ const WorkspaceTabItem = ({
       >
         {canRename && (
           <MenuItemPrimitive
-            label={i18n.t("common:action.rename")}
+            label={t("common:action.rename")}
             compact
             onClick={() => {
               closeContextMenu();
@@ -244,7 +246,7 @@ const WorkspaceTabItem = ({
           />
         )}
         <MenuItemPrimitive
-          label={i18n.t("nav:tabs.closeTab")}
+          label={t("nav:tabs.closeTab")}
           compact
           onClick={() => {
             closeContextMenu();
@@ -252,7 +254,7 @@ const WorkspaceTabItem = ({
           }}
         />
         <MenuItemPrimitive
-          label={i18n.t("nav:tabs.closeOthers")}
+          label={t("nav:tabs.closeOthers")}
           compact
           onClick={() => {
             closeContextMenu();
@@ -260,7 +262,7 @@ const WorkspaceTabItem = ({
           }}
         />
         <MenuItemPrimitive
-          label={i18n.t("nav:tabs.closeAll")}
+          label={t("nav:tabs.closeAll")}
           compact
           onClick={() => {
             closeContextMenu();

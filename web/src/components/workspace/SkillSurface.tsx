@@ -11,7 +11,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import MarkdownRenderer from "../../utils/MarkdownRenderer";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SkillSurfaceProps {
   refId: string;
@@ -20,6 +20,7 @@ interface SkillSurfaceProps {
 }
 
 const SkillSurface = ({ refId, mode }: SkillSurfaceProps) => {
+  const { t } = useTranslation();
   const { data: skill, isLoading, error } = useSkill(refId);
 
   if (isLoading) {
@@ -32,7 +33,7 @@ const SkillSurface = ({ refId, mode }: SkillSurfaceProps) => {
   if (error || !skill) {
     return (
       <FlexColumn fullWidth fullHeight sx={{ alignItems: "center", justifyContent: "center" }}>
-        <Caption sx={{ color: "error.main" }}>{i18n.t("ui2:attrs.failedToLoadSkill", { defaultValue: "Failed to load skill" })}</Caption>
+        <Caption sx={{ color: "error.main" }}>{t("ui2:attrs.failedToLoadSkill", { defaultValue: "Failed to load skill" })}</Caption>
         <ReportBugButton
           context={{
             source: "panel-crash",

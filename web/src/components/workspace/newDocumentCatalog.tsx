@@ -41,6 +41,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Render a blank white PNG to seed a "New sketch" canvas asset. */
 const createBlankImageFile = (): Promise<File> =>
@@ -180,6 +181,7 @@ export const useNewDocumentCatalog = (
   options: NewDocumentCatalogOptions = {},
   onCreated?: () => void
 ): NewDocumentCatalog => {
+  const { t } = useTranslation();
   const [creating, setCreating] = useState<string | null>(null);
 
   const addNotification = useNotificationStore(
@@ -493,7 +495,7 @@ export const useNewDocumentCatalog = (
     {
       key: "text",
       label: "Text", labelKey: "text",
-      menuLabel: i18n.t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
+      menuLabel: t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
@@ -525,7 +527,7 @@ export const useNewDocumentCatalog = (
     {
       key: "storyboard",
       label: "Storyboard", labelKey: "storyboard",
-      menuLabel: i18n.t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
+      menuLabel: t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"

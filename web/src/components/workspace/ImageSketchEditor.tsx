@@ -10,7 +10,7 @@ import {
 } from "../../hooks/sketch/ensureSketchDocumentForAsset";
 import { useSaveSketchToAsset } from "../../hooks/sketch/useSaveSketchToAsset";
 import type { Asset } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ImageSketchEditorProps {
   asset: Asset;
@@ -25,6 +25,7 @@ interface ImageSketchEditorProps {
  * autosaves independently.
  */
 const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
+  const { t } = useTranslation();
   const updateAsset = useAssetStore((state) => state.update);
   const [documentId, setDocumentId] = useState<string | null>(() =>
     readSketchDocumentId(asset)
@@ -81,7 +82,7 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title={i18n.t("ui2:attrs.couldNotOpenEditor", { defaultValue: "Could not open editor" })}
+          title={t("ui2:attrs.couldNotOpenEditor", { defaultValue: "Could not open editor" })}
           description={error}
         />
       </FlexColumn>

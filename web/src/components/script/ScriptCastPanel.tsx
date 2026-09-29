@@ -30,7 +30,7 @@ import {
 } from "../../stores/script/ScriptStore";
 import { useEntities } from "../../serverState/useEntities";
 import ImageRefPreview from "../node/ImageRefPreview";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ScriptCastPanelProps {
   scriptId: string;
@@ -67,6 +67,7 @@ const SpeakerRow = ({
   speaker: ScriptSpeaker;
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const updateSpeaker = useScriptStore((s) => s.updateSpeaker);
   const removeSpeaker = useScriptStore((s) => s.removeSpeaker);
@@ -94,7 +95,7 @@ const SpeakerRow = ({
   const isDangling =
     !!speaker.entityId && !!entities && !linkedEntity;
   const entityOptions = [
-    { value: "", label: i18n.t("editor:ui.noEntity", { defaultValue: "No entity" }) },
+    { value: "", label: t("editor:ui.noEntity", { defaultValue: "No entity" }) },
     ...(entities ?? []).map((e) => ({
       value: e.id,
       label: `${e.name} · ${e.kind}`
@@ -120,14 +121,14 @@ const SpeakerRow = ({
             updateSpeaker(scriptId, speaker.id, { name: e.target.value })
           }
           hideLabel
-          label={i18n.t("editor:ui.speakerName", { defaultValue: "Speaker name" })}
+          label={t("editor:ui.speakerName", { defaultValue: "Speaker name" })}
           compact
           fullWidth
           disabled={readOnly}
         />
         {!readOnly && (
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.removeSpeaker", { defaultValue: "Remove speaker" })}
+            tooltip={t("editor:ui.removeSpeaker", { defaultValue: "Remove speaker" })}
             onClick={() => removeSpeaker(scriptId, speaker.id)}
             icon={<DeleteOutlineIcon fontSize="small" />}
           />
@@ -147,7 +148,7 @@ const SpeakerRow = ({
       {!readOnly ? (
         <FlexColumn gap={SPACING.xs} fullWidth>
           <SelectField
-            label={i18n.t("editor:ui.linkedEntity", { defaultValue: "Linked entity" })}
+            label={t("editor:ui.linkedEntity", { defaultValue: "Linked entity" })}
             value={speaker.entityId ?? ""}
             onChange={onEntityChange}
             options={entityOptions}
@@ -204,7 +205,7 @@ const SpeakerRow = ({
           />
         </FlexRow>
       ) : speaker.entityId ? (
-        <Caption color="warning">{i18n.t("ui2:attrs.linkedEntityMissing", { defaultValue: "Linked entity missing" })}</Caption>
+        <Caption color="warning">{t("ui2:attrs.linkedEntityMissing", { defaultValue: "Linked entity missing" })}</Caption>
       ) : null}
     </FlexColumn>
   );
@@ -215,6 +216,7 @@ const ScriptCastPanel = ({
   cast,
   readOnly
 }: ScriptCastPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addSpeaker = useScriptStore((s) => s.addSpeaker);
   // Studio hands a new speaker a curated voice, so the beginner shell never
@@ -268,8 +270,8 @@ const ScriptCastPanel = ({
       <Divider />
       {cast.length === 0 ? (
         <EmptyState
-          title={i18n.t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
-          description={i18n.t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
+          title={t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
+          description={t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
           actionText={readOnly ? undefined : "Add speaker"}
           onAction={readOnly ? undefined : onAdd}
         />

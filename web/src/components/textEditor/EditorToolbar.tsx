@@ -10,6 +10,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import CodeIcon from "@mui/icons-material/Code";
 import { ToolbarIconButton, Box, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 interface EditorToolbarProps {
   onUndo?: () => void;
   onRedo?: () => void;
@@ -96,6 +97,7 @@ const EditorToolbar = ({
   isCodeBlock = false,
   readOnly = false
 }: EditorToolbarProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -104,7 +106,7 @@ const EditorToolbar = ({
         <div className="toolbar-group">
           <ToolbarIconButton
             icon={<UndoIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
+            tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
             className={`toolbar-button ${!canUndo ? "disabled" : ""}`}
             onClick={onUndo}
             disabled={!canUndo}
@@ -112,7 +114,7 @@ const EditorToolbar = ({
           />
           <ToolbarIconButton
             icon={<RedoIcon fontSize="small" />}
-            tooltip={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
+            tooltip={t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
             className={`toolbar-button ${!canRedo ? "disabled" : ""}`}
             onClick={onRedo}
             disabled={!canRedo}
@@ -124,7 +126,7 @@ const EditorToolbar = ({
       <div className="toolbar-group">
         <ToolbarIconButton
           icon={<SearchIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.findAndReplace", { defaultValue: "Find & Replace" })}
+          tooltip={t("editor:ui.findAndReplace", { defaultValue: "Find & Replace" })}
           className="toolbar-button"
           onClick={onToggleFind}
           size="small"
@@ -134,14 +136,14 @@ const EditorToolbar = ({
       <div className="toolbar-group">
         <ToolbarIconButton
           icon={<WrapTextIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.toggleWordWrap", { defaultValue: "Toggle Word Wrap" })}
+          tooltip={t("editor:ui.toggleWordWrap", { defaultValue: "Toggle Word Wrap" })}
           className={`toolbar-button ${wordWrapEnabled ? "active" : ""}`}
           onClick={onToggleWordWrap}
           size="small"
         />
         <ToolbarIconButton
           icon={<CodeIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.formatAsCodeBlock", { defaultValue: "Format as Code Block" })}
+          tooltip={t("editor:ui.formatAsCodeBlock", { defaultValue: "Format as Code Block" })}
           className={`toolbar-button ${isCodeBlock ? "active" : ""}`}
           onClick={onFormatCodeBlock}
           size="small"

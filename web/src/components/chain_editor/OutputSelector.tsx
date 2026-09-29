@@ -17,7 +17,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Text } from "../ui_primitives";
 import type { OutputSlot } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface OutputSelectorProps {
   outputs: OutputSlot[];
@@ -31,6 +31,7 @@ function formatType(type: { type: string; type_args: Array<{ type: string }> }):
 }
 
 export const OutputSelector: React.FC<OutputSelectorProps> = React.memo(function OutputSelector({ outputs, selectedOutput, onSelect }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const selected = outputs.find((o) => o.name === selectedOutput);
@@ -48,7 +49,7 @@ export const OutputSelector: React.FC<OutputSelectorProps> = React.memo(function
         tabIndex={0}
         aria-haspopup="menu"
         aria-expanded={Boolean(anchorEl)}
-        aria-label={i18n.t("editor:ui.selectOutput", { defaultValue: "Select output" })}
+        aria-label={t("editor:ui.selectOutput", { defaultValue: "Select output" })}
         sx={{
           display: "inline-flex",
           alignItems: "center",

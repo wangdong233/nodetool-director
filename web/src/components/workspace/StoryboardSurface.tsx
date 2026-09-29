@@ -35,7 +35,7 @@ import {
   useStoryboardSetupFlow,
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -69,6 +69,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  * board, chat, and scroll state survive switches.
  */
 const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobilePane, setMobilePane] = useState<MobilePane>("board");
@@ -181,7 +182,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
   // The store seeds an empty board on mount, so rendering before the server
   // copy lands looks like a board with no shots.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label={i18n.t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })} />;
+    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })} />;
   }
 
   if (setupStage !== "done") {
@@ -253,7 +254,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       {mode !== "view" && (
         <ResizableSideDock
           storageKey="storyboard_assistant"
-          ariaLabel={i18n.t("ui2:attrs.resizeStoryboardAssistant", { defaultValue: "Resize storyboard assistant" })}
+          ariaLabel={t("ui2:attrs.resizeStoryboardAssistant", { defaultValue: "Resize storyboard assistant" })}
         >
           <StoryboardAgentPanel boardId={refId} />
         </ResizableSideDock>

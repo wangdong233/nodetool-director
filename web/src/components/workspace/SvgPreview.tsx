@@ -6,7 +6,7 @@ import type { Theme } from "@mui/material/styles";
 
 import { Caption, FlexColumn, SPACING_PX } from "../ui_primitives";
 import { looksLikeSvg, sanitizeSvgMarkup } from "../../utils/sanitizeSvg";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SvgPreviewProps {
   /** SVG markup to paint. */
@@ -59,6 +59,7 @@ const styles = (theme: Theme) => {
  * the sandbox CSP the storage route sets does not apply.
  */
 const SvgPreview = ({ markup }: SvgPreviewProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const previewStyles = useMemo(() => styles(theme), [theme]);
   const html = useMemo(
@@ -69,7 +70,7 @@ const SvgPreview = ({ markup }: SvgPreviewProps) => {
   if (html === null) {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
-        <Caption>{i18n.t("editor:ui.noSvgElementToRender", { defaultValue: "No &lt;svg&gt; element to render" })}</Caption>
+        <Caption>{t("editor:ui.noSvgElementToRender", { defaultValue: "No &lt;svg&gt; element to render" })}</Caption>
       </FlexColumn>
     );
   }

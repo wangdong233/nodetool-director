@@ -20,7 +20,7 @@ import {
   ScrollArea,
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TextPreviewProps {
   asset: Asset;
@@ -67,6 +67,7 @@ const styles = (theme: Theme) =>
   });
 
 const CsvTableView = ({ text, name }: { text: string; name: string }) => {
+  const { t } = useTranslation();
   const { columns, rows, truncated } = useMemo(() => {
     const df = parseCsvToDataframe(text, csvDelimiterFor(name));
     const cols = (df.columns ?? []).map((c, i) => ({
@@ -91,7 +92,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>{i18n.t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
+        <Caption>{t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
       </FlexColumn>
     );
   }
@@ -115,6 +116,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
  * with TextDocumentEditor, so toggling view ↔ edit reuses the cached text.
  */
 const TextPreview = ({ asset }: TextPreviewProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const getUrl = asset.get_url ?? undefined;
   const language = useMemo(() => languageFromAsset(asset), [asset]);
@@ -144,7 +146,7 @@ const TextPreview = ({ asset }: TextPreviewProps) => {
       return (
         <FlexColumn className="status">
           <Text size="normal" weight={600} sx={{ color: "error.main" }}>
-            {i18n.t("editor:ui.failedToLoadTextContent")}
+            {t("editor:ui.failedToLoadTextContent")}
           </Text>
         </FlexColumn>
       );

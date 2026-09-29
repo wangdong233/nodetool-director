@@ -38,7 +38,7 @@ import JsScriptRunConsole from "../jsScript/JsScriptRunConsole";
 import type { JsScriptRunRequest } from "../jsScript/JsScriptRunDialog";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
 import DocumentLoadStatus from "./DocumentLoadStatus";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface JsScriptSurfaceProps {
   refId: string;
@@ -87,6 +87,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  * the console output, and the assistant thread survive a switch.
  */
 const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const ensureScript = useJsScriptStore((state) => state.ensureScript);
@@ -166,7 +167,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
   // The store seeds an empty script on mount, so rendering before the server
   // copy lands looks like a script with an empty body.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label={i18n.t("ui2:attrs.jsScript", { defaultValue: "JS script" })} />;
+    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.jsScript", { defaultValue: "JS script" })} />;
   }
 
   const editor = <JsScriptEditorPane scriptId={refId} readOnly={readOnly} />;
@@ -257,7 +258,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
       <ResizableSideDock
         storageKey="jsscript_assistant"
         defaultWidth={DOCK_WIDTH}
-        ariaLabel={i18n.t("ui2:attrs.resizeJSScriptAssistant", { defaultValue: "Resize JS script assistant" })}
+        ariaLabel={t("ui2:attrs.resizeJSScriptAssistant", { defaultValue: "Resize JS script assistant" })}
       >
         <TabGroup
           tabs={dockTabs}

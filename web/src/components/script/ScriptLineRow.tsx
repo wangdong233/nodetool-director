@@ -58,6 +58,7 @@ import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import ScriptShotChip from "./ScriptShotChip";
 import type { ScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * A keyboard intent bubbled up from a line's text field. The pane owns the
@@ -179,6 +180,7 @@ const SpeakerPicker = ({
   readOnly: boolean;
   mobile: boolean;
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const inStudio = useInStudio();
   const patchLine = useScriptStore((s) => s.patchLine);
@@ -234,7 +236,7 @@ const SpeakerPicker = ({
           readOnly
             ? label
             : cast.length
-              ? i18n.t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" })
+              ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" })
               : "Add a speaker"
         }
       >
@@ -303,7 +305,7 @@ const SpeakerPicker = ({
       >
         <MenuItemPrimitive
           compact
-          label={i18n.t("editor:ui.noSpeaker", { defaultValue: "No speaker" })}
+          label={t("editor:ui.noSpeaker", { defaultValue: "No speaker" })}
           selected={!speaker}
           onClick={() => assign(null)}
         />
@@ -321,7 +323,7 @@ const SpeakerPicker = ({
           <MenuItemPrimitive
             compact
             dividerBefore
-            label={i18n.t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })}
+            label={t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })}
             icon={<PersonAddIcon fontSize="small" />}
             onClick={addAndAssign}
           />
@@ -347,6 +349,7 @@ const ScriptLineRow = ({
   onDragOver,
   onDrop
 }: ScriptLineRowProps) => {
+  const { t } = useTranslation();
   const patchLine = useScriptStore((s) => s.patchLine);
   const removeLine = useScriptStore((s) => s.removeLine);
   const duplicateLine = useScriptStore((s) => s.duplicateLine);
@@ -493,9 +496,9 @@ const ScriptLineRow = ({
           <ScriptShotChip shot={shotLink.shot} onOpen={shotLink.open} />
         )}
         {orphaned && (
-          <Tooltip title={i18n.t("editor:ui.noStoryboardShotCoversThisLine", { defaultValue: "No storyboard shot covers this line" })}>
+          <Tooltip title={t("editor:ui.noStoryboardShotCoversThisLine", { defaultValue: "No storyboard shot covers this line" })}>
             <Text size="smaller" color="warning">
-              {i18n.t("editor:ui.noShot")}
+              {t("editor:ui.noShot")}
             </Text>
           </Tooltip>
         )}
@@ -521,10 +524,10 @@ const ScriptLineRow = ({
         value={line.text}
         onChange={onTextChange}
         onKeyDown={onTextKeyDown}
-        placeholder={i18n.t("editor:ui.writeALine", { defaultValue: "Write a line…" })}
+        placeholder={t("editor:ui.writeALine", { defaultValue: "Write a line…" })}
         multiline
         hideLabel
-        label={i18n.t("editor:ui.lineText", { defaultValue: "Line text" })}
+        label={t("editor:ui.lineText", { defaultValue: "Line text" })}
         compact
         fullWidth
         disabled={readOnly}
@@ -539,9 +542,9 @@ const ScriptLineRow = ({
           autoFocus={!hasDirection}
           value={line.direction ?? ""}
           onChange={onDirectionChange}
-          placeholder={i18n.t("editor:ui.directionEgWhisperingTired", { defaultValue: "Direction (e.g. whispering, tired)…" })}
+          placeholder={t("editor:ui.directionEgWhisperingTired", { defaultValue: "Direction (e.g. whispering, tired)…" })}
           hideLabel
-          label={i18n.t("editor:ui.direction", { defaultValue: "Direction" })}
+          label={t("editor:ui.direction", { defaultValue: "Direction" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -573,7 +576,7 @@ const ScriptLineRow = ({
         Stale
       </Text>
     ) : (
-      <Tooltip title={status === "voiced" ? i18n.t("storyboard:attrs.voiced", { defaultValue: "Voiced" }) : i18n.t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
+      <Tooltip title={status === "voiced" ? t("storyboard:attrs.voiced", { defaultValue: "Voiced" }) : t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
         <Box
           sx={{
             width: 6,
@@ -589,8 +592,8 @@ const ScriptLineRow = ({
   const moreMenu = !readOnly && (
     <>
       <ToolbarIconButton
-        tooltip={i18n.t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
-        ariaLabel={i18n.t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
+        tooltip={t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
+        ariaLabel={t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
         onClick={(e: MouseEvent<HTMLElement>) => setMoreAnchor(e.currentTarget)}
         icon={<MoreVertIcon fontSize="small" />}
       />
@@ -605,7 +608,7 @@ const ScriptLineRow = ({
           <MenuItemPrimitive
             key={option.ms}
             compact
-            label={i18n.t(option.labelKey, { defaultValue: option.label })}
+            label={t(option.labelKey, { defaultValue: option.label })}
             selected={pauseMs === option.ms}
             onClick={() => setPause(option.ms)}
           />
@@ -613,7 +616,7 @@ const ScriptLineRow = ({
         <MenuItemPrimitive
           compact
           dividerBefore
-          label={i18n.t("editor:ui.duplicateLine", { defaultValue: "Duplicate line" })}
+          label={t("editor:ui.duplicateLine", { defaultValue: "Duplicate line" })}
           icon={<ContentCopyIcon fontSize="small" />}
           onClick={() => {
             duplicateLine(scriptId, line.id);
@@ -623,7 +626,7 @@ const ScriptLineRow = ({
         <MenuItemPrimitive
           compact
           color="error"
-          label={i18n.t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
+          label={t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
           icon={<DeleteOutlineIcon fontSize="small" />}
           onClick={() => {
             removeLine(scriptId, line.id);
@@ -657,7 +660,7 @@ const ScriptLineRow = ({
           <span>
             <ToolbarIconButton
               tooltip=""
-              ariaLabel={i18n.t("editor:ui.voiceLine", { defaultValue: "Voice line" })}
+              ariaLabel={t("editor:ui.voiceLine", { defaultValue: "Voice line" })}
               disabled={readOnly || !voice}
               onClick={() => void onVoice()}
               icon={<GraphicEqIcon fontSize="small" />}
@@ -674,7 +677,7 @@ const ScriptLineRow = ({
         />
       )}
       <ToolbarIconButton
-        tooltip={i18n.t("editor:ui.playCurrentTake", { defaultValue: "Play current take" })}
+        tooltip={t("editor:ui.playCurrentTake", { defaultValue: "Play current take" })}
         disabled={!hasCurrentTake}
         onClick={() => void playCurrent()}
         icon={<PlayArrowIcon fontSize="small" />}
@@ -775,13 +778,13 @@ const ScriptLineRow = ({
       }}
     >
       {draggable ? (
-        <Tooltip title={i18n.t("editor:ui.dragToReorder", { defaultValue: "Drag to reorder" })}>
+        <Tooltip title={t("editor:ui.dragToReorder", { defaultValue: "Drag to reorder" })}>
           <Box
             className="script-line-drag"
             draggable
             onDragStart={handleDragStart}
             onDragEnd={onDragEnd}
-            aria-label={i18n.t("editor:ui.dragToReorderLine", { defaultValue: "Drag to reorder line" })}
+            aria-label={t("editor:ui.dragToReorderLine", { defaultValue: "Drag to reorder line" })}
             sx={{
               flexShrink: 0,
               width: DRAG_RAIL,

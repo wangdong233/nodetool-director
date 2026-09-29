@@ -13,7 +13,7 @@ import {
   BORDER_RADIUS, getSpacingPx, SPACING
 } from "../ui_primitives";
 import type { TemplateVariable, VariableSyntax } from "./templateVariables";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface EditorVariablesPanelProps {
   variables: TemplateVariable[];
@@ -181,6 +181,7 @@ const EditorVariablesPanel = ({
   addSignal,
   readOnly = false
 }: EditorVariablesPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const panelStyles = useMemo(() => styles(theme), [theme]);
   const [editingName, setEditingName] = useState<string | null>(null);
@@ -244,7 +245,7 @@ const EditorVariablesPanel = ({
       <div className="variables-head">
         <div className="variables-title">
           <DataObjectIcon />
-          <span>{i18n.t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>
+          <span>{t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>
           <span className="count">{variables.length}</span>
           {unboundCount > 0 && (
             <span className="unbound">{unboundCount} unbound</span>
@@ -279,7 +280,7 @@ const EditorVariablesPanel = ({
                   allowEmpty
                   unstyled
                   selectOnFocus={false}
-                  placeholder={i18n.t("editor:ui.valueLabel", { defaultValue: "value" })}
+                  placeholder={t("editor:ui.valueLabel", { defaultValue: "value" })}
                   ariaLabel={`Value for ${variable.name}`}
                   onEditingChange={stopEditing}
                   onCommit={(next) => onSetValue(variable.name, next)}
@@ -298,8 +299,8 @@ const EditorVariablesPanel = ({
                 value=""
                 editing
                 unstyled
-                placeholder={i18n.t("editor:ui.variableName", { defaultValue: "variable name" })}
-                ariaLabel={i18n.t("editor:ui.newVariableName", { defaultValue: "New variable name" })}
+                placeholder={t("editor:ui.variableName", { defaultValue: "variable name" })}
+                ariaLabel={t("editor:ui.newVariableName", { defaultValue: "New variable name" })}
                 sanitize={sanitizeVariableName}
                 onEditingChange={closeAdd}
                 onCommit={commitAdd}

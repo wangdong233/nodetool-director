@@ -32,7 +32,7 @@ import {
   type QuickActionDefinition,
 } from "../node_menu/QuickActionTiles.constants";
 import type { NodeMetadata } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NodePickerDialogProps {
   open: boolean;
@@ -86,6 +86,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
   onSelect,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -149,7 +150,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={i18n.t("editor:ui.addNode")}
+      title={t("editor:ui.addNode")}
       minWidth="min(520px, 100vw - 32px)"
     >
       <FlexColumn gap={2} sx={{ minHeight: 400, maxHeight: "70vh" }}>
@@ -158,7 +159,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
         <TextInput
           fullWidth
           size="small"
-          placeholder={i18n.t("editor:ui.searchNodes")}
+          placeholder={t("editor:ui.searchNodes")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus={autoFocusEnabled}
@@ -182,7 +183,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
           {!hasSearch ? (
             <FlexColumn gap={2}>
               <Text size="small" weight={600} color="secondary">
-                {i18n.t("editor:ui.quickActions")}
+                {t("editor:ui.quickActions")}
               </Text>
               <div css={tileStyles}>
                 {QUICK_ACTION_BUTTONS.map((action) => (

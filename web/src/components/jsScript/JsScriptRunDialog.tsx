@@ -30,7 +30,7 @@ import {
 } from "../appbuilder/inputProperty";
 import { workflowInputForScriptPort } from "../appbuilder/workflowIO";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** What the dialog hands back: buffered values, or items staged per handle. */
 export interface JsScriptRunRequest {
@@ -122,6 +122,7 @@ const JsScriptRunDialog = ({
   onClose,
   onRun
 }: JsScriptRunDialogProps) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
 
@@ -157,12 +158,12 @@ const JsScriptRunDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={i18n.t("editor:ui.runScript", { defaultValue: "Run script" })}
+      title={t("editor:ui.runScript", { defaultValue: "Run script" })}
       fullWidth
       maxWidth="sm"
       actions={
         <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>{i18n.t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
+          <EditorButton onClick={onClose}>{t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleRun}>
             Run
           </EditorButton>
@@ -176,14 +177,14 @@ const JsScriptRunDialog = ({
           <FlexColumn gap={SPACING.md} sx={{ minWidth: { xs: 0, sm: 380 } }}>
             {inputs.length === 0 ? (
               <Text size="small" color="secondary">
-                {i18n.t("editor:ui.thisScriptDeclaresNoInputsRunItAsItIs")}
+                {t("editor:ui.thisScriptDeclaresNoInputsRunItAsItIs")}
               </Text>
             ) : (
               <>
                 <Text size="small" color="secondary">
                   {streaming
-                    ? i18n.t("editor:ui.thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123", { defaultValue: "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]." })
-                    : i18n.t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
+                    ? t("editor:ui.thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123", { defaultValue: "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]." })
+                    : t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
                 </Text>
                 {inputs.map((port) =>
                   usesJsonField(port, streaming) ? (

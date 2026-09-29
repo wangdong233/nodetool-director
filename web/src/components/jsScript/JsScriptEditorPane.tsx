@@ -17,7 +17,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   useJsScriptCode,
   useJsScriptStore
@@ -34,6 +34,7 @@ const JsScriptEditorPane = ({
   readOnly = false,
   deterministicReadOnly = false
 }: JsScriptEditorPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const code = useJsScriptCode(scriptId);
@@ -103,7 +104,7 @@ const JsScriptEditorPane = ({
         ) : (
           <Box
             component="pre"
-            aria-label={i18n.t("editor:ui.scriptBody", { defaultValue: "Script body" })}
+            aria-label={t("editor:ui.scriptBody", { defaultValue: "Script body" })}
             sx={{
               ...TYPOGRAPHY.mono.code,
               margin: 0,

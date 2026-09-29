@@ -37,7 +37,7 @@ import { getComponentForProperty } from "../node/PropertyInput.resolver";
 import type { Property, TypeMetadata } from "../../stores/ApiTypes";
 import type { ChainNode, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible } from "./chainTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ChainNodePropertiesProps {
   nodeId: string;
@@ -127,6 +127,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
   onUpdate,
   onSetInputMapping,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const store = useMemo(() => getEmptyStore(), []);
   const cssStyles = useMemo(() => chainPropertyStyles(theme), [theme]);
@@ -189,7 +190,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
     return (
       <Box sx={{ py: 1.5, textAlign: "center" }}>
         <Text size="smaller" color="secondary" sx={{ fontStyle: "italic" }}>
-          {i18n.t("editor:ui.noConfigurableProperties")}
+          {t("editor:ui.noConfigurableProperties")}
         </Text>
       </Box>
     );
@@ -259,7 +260,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                       >
                         {sourceNode
                           ? `${sourceIndex + 1} · ${sourceNode.metadata.title}`
-                          : i18n.t("editor:ui.missingSource", { defaultValue: "Missing source" })}
+                          : t("editor:ui.missingSource", { defaultValue: "Missing source" })}
                         {mapping.sourceOutput &&
                         sourceNode &&
                         sourceNode.metadata.outputs.length > 1
@@ -281,7 +282,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Disconnect ${prop.title ?? prop.name}`}
-                      tooltip={i18n.t("editor:ui.disconnectEditTheValueInstead", { defaultValue: "Disconnect — edit the value instead" })}
+                      tooltip={t("editor:ui.disconnectEditTheValueInstead", { defaultValue: "Disconnect — edit the value instead" })}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSetInputMapping(prop.name, null);
@@ -313,7 +314,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Connect ${prop.title ?? prop.name} to a previous step`}
-                      tooltip={i18n.t("editor:ui.useOutputFromAPreviousStep", { defaultValue: "Use output from a previous step" })}
+                      tooltip={t("editor:ui.useOutputFromAPreviousStep", { defaultValue: "Use output from a previous step" })}
                       onClick={(e) => handleOpenPicker(prop.name, e.currentTarget)}
                       icon={
                         <AddLinkIcon sx={{ fontSize: 16, color: secondary }} />
@@ -367,14 +368,14 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <LinkOffIcon sx={{ fontSize: 18 }} />
               </ListItemIcon>
-              <ListItemText primary={i18n.t("editor:ui.disconnect", { defaultValue: "Disconnect" })} secondary="Edit the value manually" />
+              <ListItemText primary={t("editor:ui.disconnect", { defaultValue: "Disconnect" })} secondary="Edit the value manually" />
             </EditorMenuItem>
           )}
 
           {compatibleOptions.length === 0 && (
             <EditorMenuItem disabled>
               <ListItemText
-                primary={i18n.t("editor:ui.noCompatibleOutputsInPreviousSteps", { defaultValue: "No compatible outputs in previous steps" })}
+                primary={t("editor:ui.noCompatibleOutputsInPreviousSteps", { defaultValue: "No compatible outputs in previous steps" })}
                 secondary={
                   activeProp
                     ? `This field takes ${formatType(activeProp.type)}`

@@ -21,8 +21,10 @@ import {
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateScriptButton = memo(function CreateScriptButton() {
+  const { t } = useTranslation();
   const createScript = useCreateScript();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -52,9 +54,9 @@ export const CreateScriptButton = memo(function CreateScriptButton() {
   }, [createScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title={i18n.t("editor:ui.newScript", { defaultValue: "New script" })} placement="right-start">
+    <Tooltip title={t("editor:ui.newScript", { defaultValue: "New script" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("editor:ui.newScript", { defaultValue: "New script" })}
+        ariaLabel={t("editor:ui.newScript", { defaultValue: "New script" })}
         onClick={() => void handleCreate()}
         disabled={createScript.isPending}
         tabIndex={-1}

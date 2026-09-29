@@ -5,7 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { memo } from "react";
 import { Box, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import LockIcon from "@mui/icons-material/Lock";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface EditorStatusBarProps {
   text: string;
@@ -113,6 +113,7 @@ const EditorStatusBar = ({
   indentSize = 2,
   encoding = "UTF-8"
 }: EditorStatusBarProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const wordCount = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
@@ -123,12 +124,12 @@ const EditorStatusBar = ({
     <Box className="editor-status-bar" css={styles(theme)}>
       <div className="stats">
         <div className="stat-item">
-          <span className="label">{i18n.t("editor:ui.words", { defaultValue: "Words:" })}</span>
+          <span className="label">{t("editor:ui.words", { defaultValue: "Words:" })}</span>
           <span className="value">{wordCount.toLocaleString()}</span>
         </div>
         <span className="stat-dot" />
         <div className="stat-item">
-          <span className="label">{i18n.t("editor:ui.chars", { defaultValue: "Chars:" })}</span>
+          <span className="label">{t("editor:ui.chars", { defaultValue: "Chars:" })}</span>
           <span className="value">{charCount.toLocaleString()}</span>
         </div>
         <span className="stat-dot" />
@@ -140,7 +141,7 @@ const EditorStatusBar = ({
           <>
             <span className="stat-dot" />
             <div className="stat-item">
-              <span className="label">{i18n.t("editor:ui.vars", { defaultValue: "Vars:" })}</span>
+              <span className="label">{t("editor:ui.vars", { defaultValue: "Vars:" })}</span>
               <span className="value">{varCount.toLocaleString()}</span>
             </div>
           </>

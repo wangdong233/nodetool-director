@@ -7,7 +7,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ReplaceIcon from "@mui/icons-material/FindReplace";
 import { CloseButton, NodeTextField, ToolbarIconButton, Box, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const MAX_SEARCH_LENGTH = 1000;
 
@@ -128,6 +128,7 @@ const FindReplaceBar = ({
   totalMatches = 0,
   isVisible = true
 }: FindReplaceBarProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -200,7 +201,7 @@ const FindReplaceBar = ({
       <div className="search-group">
         <NodeTextField
           className="search-input"
-          placeholder={i18n.t("editor:ui.find", { defaultValue: "Find..." })}
+          placeholder={t("editor:ui.find", { defaultValue: "Find..." })}
           value={searchTerm}
           onChange={handleSearchChange}
           onKeyDown={handleKeyDown}
@@ -224,7 +225,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowUpIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.previous", { defaultValue: "Previous" })}
+          tooltip={t("editor:ui.previous", { defaultValue: "Previous" })}
           onClick={onPrevious}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -232,7 +233,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon fontSize="small" />}
-          tooltip={i18n.t("home:docs.next", { defaultValue: "Next" })}
+          tooltip={t("home:docs.next", { defaultValue: "Next" })}
           onClick={onNext}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -240,7 +241,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<ReplaceIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.toggleReplace", { defaultValue: "Toggle Replace" })}
+          tooltip={t("editor:ui.toggleReplace", { defaultValue: "Toggle Replace" })}
           onClick={handleToggleReplace}
           className="toolbar-button"
         />
@@ -250,7 +251,7 @@ const FindReplaceBar = ({
         <div className="search-group">
           <NodeTextField
             className="replace-input"
-            placeholder={i18n.t("editor:ui.replaceWith", { defaultValue: "Replace with..." })}
+            placeholder={t("editor:ui.replaceWith", { defaultValue: "Replace with..." })}
             value={replaceTerm}
             onChange={handleReplaceChange}
             onKeyDown={handleKeyDown}
@@ -264,8 +265,8 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{i18n.t("ui2:attrs.replace", { defaultValue: "Replace" })}</span>}
-              tooltip={i18n.t("editor:ui.replace", { defaultValue: "Replace" })}
+              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{t("ui2:attrs.replace", { defaultValue: "Replace" })}</span>}
+              tooltip={t("editor:ui.replace", { defaultValue: "Replace" })}
               onClick={handleReplace}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"
@@ -274,8 +275,8 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{i18n.t("common:sizeFilters.all", { defaultValue: "All" })}</span>}
-              tooltip={i18n.t("editor:ui.replaceAll", { defaultValue: "Replace All" })}
+              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{t("common:sizeFilters.all", { defaultValue: "All" })}</span>}
+              tooltip={t("editor:ui.replaceAll", { defaultValue: "Replace All" })}
               onClick={handleReplaceAll}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"
@@ -284,7 +285,7 @@ const FindReplaceBar = ({
         </div>
       )}
 
-      <CloseButton onClick={handleClose} buttonSize="small" tooltip={i18n.t("editor:ui.closeFindReplace", { defaultValue: "Close Find/Replace" })} className="toolbar-button" />
+      <CloseButton onClick={handleClose} buttonSize="small" tooltip={t("editor:ui.closeFindReplace", { defaultValue: "Close Find/Replace" })} className="toolbar-button" />
     </Box>
   );
 };

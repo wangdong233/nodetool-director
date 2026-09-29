@@ -22,12 +22,12 @@ import {
 import { syncLineClipToTimeline } from "../../stores/script/timelineSync";
 import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
-<<<<<<< HEAD
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import { takeWorkflowMedia } from "./scriptWorkflowMedia";
-=======
 import { i18n } from "../../i18n";
->>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
+=======
+import { useTranslation } from "react-i18next";
+>>>>>>> f530159887 (i18n-mig: B15 workspace/textEditor/jsScript/script/chain_editor/compositor (51 of 59 files) — G3: +i18n.t(=0  -i18n.t(=225  +useTranslation(=61  +bare-t(=225)
 
 interface ScriptTakeGalleryProps {
   scriptId: string;
@@ -52,6 +52,7 @@ const TakeRow = ({
   take: ScriptTake;
   isCurrent: boolean;
 }) => {
+  const { t } = useTranslation();
   const setCurrentTake = useScriptStore((s) => s.setCurrentTake);
   const toggleFavorite = useScriptStore((s) => s.toggleTakeFavorite);
   const removeTake = useScriptStore((s) => s.removeTake);
@@ -91,7 +92,7 @@ const TakeRow = ({
   return (
     <FlexRow align="center" gap={SPACING.sm} fullWidth>
       <ToolbarIconButton
-        tooltip={isCurrent ? i18n.t("editor:ui.currentTake", { defaultValue: "Current take" }) : i18n.t("editor:ui.useThisTake", { defaultValue: "Use this take" })}
+        tooltip={isCurrent ? t("editor:ui.currentTake", { defaultValue: "Current take" }) : t("editor:ui.useThisTake", { defaultValue: "Use this take" })}
         onClick={useTake}
         icon={
           <CheckCircleIcon
@@ -118,7 +119,7 @@ const TakeRow = ({
         </Text>
       </FlexColumn>
       <ToolbarIconButton
-        tooltip={i18n.t("editor:ui.playTake", { defaultValue: "Play take" })}
+        tooltip={t("editor:ui.playTake", { defaultValue: "Play take" })}
         onClick={() => void play()}
         icon={<PlayArrowIcon fontSize="small" />}
       />
@@ -138,7 +139,7 @@ const TakeRow = ({
         }
       />
       <ToolbarIconButton
-        tooltip={i18n.t("editor:ui.deleteTake", { defaultValue: "Delete take" })}
+        tooltip={t("editor:ui.deleteTake", { defaultValue: "Delete take" })}
         onClick={deleteTake}
         icon={<DeleteOutlineIcon fontSize="small" />}
       />
@@ -153,12 +154,13 @@ const ScriptTakeGallery = ({
   takes,
   currentTakeId
 }: ScriptTakeGalleryProps) => {
+  const { t } = useTranslation();
   if (takes.length === 0) {
     return (
       <Box sx={{ minWidth: 260, padding: SPACING.md }}>
         <EmptyState
-          title={i18n.t("editor:ui.noTakesYet", { defaultValue: "No takes yet" })}
-          description={i18n.t("editor:ui.voiceThisLineToCreateTheFirstTake")}
+          title={t("editor:ui.noTakesYet", { defaultValue: "No takes yet" })}
+          description={t("editor:ui.voiceThisLineToCreateTheFirstTake")}
         />
       </Box>
     );

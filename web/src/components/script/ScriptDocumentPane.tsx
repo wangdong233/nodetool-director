@@ -68,12 +68,12 @@ import { useScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
 import { useScriptLineFocus } from "../../hooks/script/useScriptLineFocus";
 import StoryboardLinkControl from "./StoryboardLinkControl";
 import ScriptSaveIndicator from "./ScriptSaveIndicator";
-<<<<<<< HEAD
 import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
-=======
 import { i18n } from "../../i18n";
->>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
+=======
+import { useTranslation } from "react-i18next";
+>>>>>>> f530159887 (i18n-mig: B15 workspace/textEditor/jsScript/script/chain_editor/compositor (51 of 59 files) — G3: +i18n.t(=0  -i18n.t(=225  +useTranslation(=61  +bare-t(=225)
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
@@ -113,7 +113,9 @@ const InsertLineGap = ({
   onDrop: (e: DragEvent<HTMLElement>) => void;
   active: boolean;
   inset: number;
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <Box
     onDragOver={onDragOver}
     onDrop={onDrop}
@@ -134,7 +136,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label={i18n.t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
+      aria-label={t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -159,7 +161,8 @@ const InsertLineGap = ({
       />
     </Box>
   </Box>
-);
+)
+  };
 
 /**
  * One line: the insert/drop gap above it plus the row itself. Owns the per-line
@@ -300,6 +303,7 @@ const SectionBlockInner = ({
   dnd: LineDnd;
   onKeyNav: (lineId: string, nav: LineKeyNav) => void;
 }) => {
+  const { t } = useTranslation();
   const cast = useScriptCast(scriptId);
   const setSectionTitle = useScriptStore((s) => s.setSectionTitle);
   const addLine = useScriptStore((s) => s.addLine);
@@ -367,9 +371,9 @@ const SectionBlockInner = ({
           onChange={(e) =>
             setSectionTitle(scriptId, section.id, e.target.value)
           }
-          placeholder={i18n.t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
+          placeholder={t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
           hideLabel
-          label={i18n.t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
+          label={t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -386,7 +390,7 @@ const SectionBlockInner = ({
         {!readOnly && (
           <Box className="section-remove">
             <ToolbarIconButton
-              tooltip={i18n.t("editor:ui.removeSection", { defaultValue: "Remove section" })}
+              tooltip={t("editor:ui.removeSection", { defaultValue: "Remove section" })}
               onClick={() => removeSection(scriptId, section.id)}
               icon={<CloseIcon fontSize="small" />}
             />
@@ -461,6 +465,7 @@ const VoiceAllButton = ({
   estimate: VoiceCostEstimate;
   onClick: () => void;
 }) => {
+  const { t } = useTranslation();
   const { lineCount, characters, cost, pricedLineCount, breakdowns, reasons, notes } =
     estimate;
   const priced = pricedLineCount > 0 && cost > 0;
@@ -473,7 +478,7 @@ const VoiceAllButton = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {lineCount === 0
-              ? i18n.t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
+              ? t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
               : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
                   priced ? ` · about ${formatUsd(cost)}` : ""
                 }${
@@ -513,7 +518,7 @@ const VoiceAllButton = ({
         startIcon={<GraphicEqIcon fontSize="small" />}
         onClick={onClick}
       >
-        {priced ? `Voice all · ~${formatUsd(cost)}` : i18n.t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
+        {priced ? `Voice all · ~${formatUsd(cost)}` : t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
       </EditorButton>
     </Tooltip>
   );
@@ -677,6 +682,7 @@ const ScriptDocumentPane = ({
   scriptId,
   readOnly
 }: ScriptDocumentPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inStudio = useInStudio();
@@ -907,7 +913,7 @@ const ScriptDocumentPane = ({
           (voicingAll ? (
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner size={18} />
-              <Text size="smaller">{i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" })}</Text>
+              <Text size="smaller">{t("editor:ui.voicing", { defaultValue: "Voicing…" })}</Text>
             </FlexRow>
           ) : (
             <VoiceAllButton
@@ -928,8 +934,8 @@ const ScriptDocumentPane = ({
           <Tooltip
             title={
               hasVoicedLine
-                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
-                : i18n.t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
+                ? t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
+                : t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
             }
           >
             <span>
@@ -940,7 +946,7 @@ const ScriptDocumentPane = ({
                 onClick={play}
                 disabled={!hasVoicedLine}
               >
-                {i18n.t("editor:ui.playThrough")}
+                {t("editor:ui.playThrough")}
               </EditorButton>
             </span>
           </Tooltip>
@@ -964,18 +970,18 @@ const ScriptDocumentPane = ({
             title={
               hasVoicedLine
                 ? storyboardId
-                  ? i18n.t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
+                  ? t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
                   : undefined
-                : i18n.t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
+                : t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
             }
           >
             {assembling
-              ? i18n.t("editor:ui.assembling")
+              ? t("editor:ui.assembling")
               : storyboardId
-                ? i18n.t("editor:ui.assembleVideo")
+                ? t("editor:ui.assembleVideo")
                 : timelineId
-                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
-                  : i18n.t("editor:ui.sendToTimeline")}
+                  ? t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
+                  : t("editor:ui.sendToTimeline")}
           </EditorButton>
         )}
         {hasVoicedLine && (
@@ -988,8 +994,8 @@ const ScriptDocumentPane = ({
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
-              ariaLabel={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              ariaLabel={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
             />
@@ -1001,12 +1007,12 @@ const ScriptDocumentPane = ({
               <MenuItemPrimitive
                 compact
                 icon={<SubtitlesIcon fontSize="small" />}
-                label={i18n.t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
+                label={t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
                     ? undefined
-                    : i18n.t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
+                    : t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
                 }
                 onClick={() => {
                   setMoreAnchor(null);
@@ -1040,8 +1046,8 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
-            description={i18n.t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
+            title={t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
+            description={t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
             actionText={readOnly ? undefined : "Add first line"}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />

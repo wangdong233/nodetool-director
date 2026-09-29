@@ -12,6 +12,7 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 interface QuickStart {
   icon: React.ReactNode;
   label: string;
@@ -140,6 +141,7 @@ const AssistantQuickStarts = ({
   propertyName,
   onQuickStart
 }: AssistantQuickStartsProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const quickStarts = buildQuickStarts(propertyName);
 
@@ -149,13 +151,13 @@ const AssistantQuickStarts = ({
         <div className="hero-badge">
           <AutoAwesomeIcon />
         </div>
-        <h3 className="hero-title">{i18n.t("ui2:attrs.writeThisPromptWithAI", { defaultValue: "Write this prompt with AI" })}</h3>
+        <h3 className="hero-title">{t("ui2:attrs.writeThisPromptWithAI", { defaultValue: "Write this prompt with AI" })}</h3>
         <p className="hero-text">
           Describe what you want, or start from one of these. Drafts drop
           straight into the editor.
         </p>
       </div>
-      <span className="quick-label">{i18n.t("ui2:attrs.quickStarts", { defaultValue: "Quick starts" })}</span>
+      <span className="quick-label">{t("ui2:attrs.quickStarts", { defaultValue: "Quick starts" })}</span>
       <div className="quick-list">
         {quickStarts.map((item) => (
           <button

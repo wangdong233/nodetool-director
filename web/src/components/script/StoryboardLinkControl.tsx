@@ -25,6 +25,7 @@ import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useDeriveStoryboard } from "../../hooks/script/useDeriveStoryboard";
 import { useBoardScriptLinkIssues } from "../../hooks/storyboard/useBoardScriptLinkIssues";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface StoryboardLinkControlProps {
   scriptId: string;
@@ -33,6 +34,7 @@ interface StoryboardLinkControlProps {
 const StoryboardLinkControlInner = ({
   scriptId
 }: StoryboardLinkControlProps) => {
+  const { t } = useTranslation();
   const storyboardId = useScriptStoryboardLink(scriptId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const { derive, deriving, error } = useDeriveStoryboard();
@@ -66,15 +68,15 @@ const StoryboardLinkControlInner = ({
         disabled={deriving}
         title={
           storyboardId
-            ? i18n.t("editor:ui.openTheStoryboardDerivedFromThisScript", { defaultValue: "Open the storyboard derived from this script" })
-            : i18n.t("editor:ui.deriveAStoryboardOneShotPerLineLinkedToIt", { defaultValue: "Derive a storyboard: one shot per line, linked to it" })
+            ? t("editor:ui.openTheStoryboardDerivedFromThisScript", { defaultValue: "Open the storyboard derived from this script" })
+            : t("editor:ui.deriveAStoryboardOneShotPerLineLinkedToIt", { defaultValue: "Derive a storyboard: one shot per line, linked to it" })
         }
       >
         {storyboardId
-          ? i18n.t("editor:ui.openStoryboard", { defaultValue: "Open storyboard" })
+          ? t("editor:ui.openStoryboard", { defaultValue: "Open storyboard" })
           : deriving
             ? "Creating…"
-            : i18n.t("editor:ui.createStoryboard", { defaultValue: "Create storyboard" })}
+            : t("editor:ui.createStoryboard", { defaultValue: "Create storyboard" })}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>
