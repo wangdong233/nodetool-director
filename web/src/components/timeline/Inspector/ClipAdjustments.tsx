@@ -54,7 +54,7 @@ import { parseSeconds } from "./InspectorPrimitives.helpers";
 import { ClipEffectsList } from "./ClipEffectsList";
 import { ClipMaskMatte } from "./ClipMaskMatte";
 import { ClipTransitionSection } from "./ClipTransitionSection";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // ── Effect IDs ─────────────────────────────────────────────────────────────
 
@@ -141,6 +141,7 @@ interface ClipAdjustmentsProps {
  */
 export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
   ({ clip }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const patchClip = useTimelineStore((s) => s.patchClip);
 
@@ -238,8 +239,8 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
       (raw: string) => {
         const n = Number(raw);
         if (!Number.isFinite(n)) return;
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, position: { ...t.position, x: n } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, position: { ...tf.position, x: n } });
       },
       [setTransform]
     );
@@ -247,8 +248,8 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
       (raw: string) => {
         const n = Number(raw);
         if (!Number.isFinite(n)) return;
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, position: { ...t.position, y: n } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, position: { ...tf.position, y: n } });
       },
       [setTransform]
     );
@@ -256,8 +257,8 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
       (raw: string) => {
         const n = Number(raw);
         if (!Number.isFinite(n)) return;
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, scale: { ...t.scale, x: n } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, scale: { ...tf.scale, x: n } });
       },
       [setTransform]
     );
@@ -265,8 +266,8 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
       (raw: string) => {
         const n = Number(raw);
         if (!Number.isFinite(n)) return;
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, scale: { ...t.scale, y: n } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, scale: { ...tf.scale, y: n } });
       },
       [setTransform]
     );
@@ -274,22 +275,22 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
       (raw: string) => {
         const n = Number(raw);
         if (!Number.isFinite(n)) return;
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, rotation: (n * Math.PI) / 180 });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, rotation: (n * Math.PI) / 180 });
       },
       [setTransform]
     );
     const handleAnchorXChange = useCallback(
       (value: number) => {
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, anchor: { ...t.anchor, x: value } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, anchor: { ...tf.anchor, x: value } });
       },
       [setTransform]
     );
     const handleAnchorYChange = useCallback(
       (value: number) => {
-        const t = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...t, anchor: { ...t.anchor, y: value } });
+        const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
+        setTransform({ ...tf, anchor: { ...tf.anchor, y: value } });
       },
       [setTransform]
     );
@@ -434,7 +435,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
           <FlexColumn css={sectionContentStyles(theme)}>
             {!isSounding && (
               <InspectorSliderRow
-                label={i18n.t("timeline:attrs.opacity", { defaultValue: "Opacity" })}
+                label={t("timeline:attrs.opacity", { defaultValue: "Opacity" })}
                 min={0}
                 max={1}
                 step={0.01}
@@ -444,9 +445,9 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
               />
             )}
             {isOverlay && !isSounding && (
-              <InspectorRow label={i18n.t("timeline:attrs.blend", { defaultValue: "Blend" })}>
+              <InspectorRow label={t("timeline:attrs.blend", { defaultValue: "Blend" })}>
                 <InspectorSelect
-                  label={i18n.t("timeline:attrs.blendMode", { defaultValue: "Blend mode" })}
+                  label={t("timeline:attrs.blendMode", { defaultValue: "Blend mode" })}
                   value={clip.blendMode ?? "normal"}
                   options={BLEND_MODES}
                   onChange={handleBlendModeChange}
@@ -457,13 +458,13 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
               <>
                 {isMidi && (
                   <InspectorToggleRow
-                    label={i18n.t("ui2:attrs.mute", { defaultValue: "Mute" })}
+                    label={t("ui2:attrs.mute", { defaultValue: "Mute" })}
                     checked={!!clip.muted}
                     onChange={handleMutedChange}
                   />
                 )}
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.volume", { defaultValue: "Volume" })}
+                  label={t("timeline:attrs.volume", { defaultValue: "Volume" })}
                   min={-60}
                   max={12}
                   step={0.5}
@@ -472,31 +473,31 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   display={`${(clip.volumeDb ?? 0).toFixed(1)} dB`}
                   onChange={handleVolumeChange}
                 />
-                <InspectorRow label={i18n.t("timeline:attrs.fadeIn", { defaultValue: "Fade in" })}>
+                <InspectorRow label={t("timeline:attrs.fadeIn", { defaultValue: "Fade in" })}>
                   <InspectorPillInput
                     value={((clip.fadeInMs ?? 0) / 1000).toFixed(2)}
                     unit="s"
                     scrub={SCRUB_SECONDS}
                     onCommit={handleFadeInCommit}
-                    ariaLabel={i18n.t("timeline:attrs.fadeIn(seconds)", { defaultValue: "Fade in (seconds)" })}
+                    ariaLabel={t("timeline:attrs.fadeIn(seconds)", { defaultValue: "Fade in (seconds)" })}
                   />
                   <InspectorSelect
-                    label={i18n.t("timeline:attrs.fadeinShape", { defaultValue: "Fade-in shape" })}
+                    label={t("timeline:attrs.fadeinShape", { defaultValue: "Fade-in shape" })}
                     value={parseClipFadeShape(clip.fadeInShape)}
                     options={CLIP_FADE_SHAPE_OPTIONS}
                     onChange={handleFadeInShapeChange}
                   />
                 </InspectorRow>
-                <InspectorRow label={i18n.t("timeline:attrs.fadeOut", { defaultValue: "Fade out" })}>
+                <InspectorRow label={t("timeline:attrs.fadeOut", { defaultValue: "Fade out" })}>
                   <InspectorPillInput
                     value={((clip.fadeOutMs ?? 0) / 1000).toFixed(2)}
                     unit="s"
                     scrub={SCRUB_SECONDS}
                     onCommit={handleFadeOutCommit}
-                    ariaLabel={i18n.t("timeline:attrs.fadeOut(seconds)", { defaultValue: "Fade out (seconds)" })}
+                    ariaLabel={t("timeline:attrs.fadeOut(seconds)", { defaultValue: "Fade out (seconds)" })}
                   />
                   <InspectorSelect
-                    label={i18n.t("timeline:attrs.fadeoutShape", { defaultValue: "Fade-out shape" })}
+                    label={t("timeline:attrs.fadeoutShape", { defaultValue: "Fade-out shape" })}
                     value={parseClipFadeShape(clip.fadeOutShape)}
                     options={CLIP_FADE_SHAPE_OPTIONS}
                     onChange={handleFadeOutShapeChange}
@@ -513,11 +514,11 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title={i18n.t("timeline:attrs.transform", { defaultValue: "Transform" })}
+                  title={t("timeline:attrs.transform", { defaultValue: "Transform" })}
                   icon={<OpenWithOutlinedIcon />}
                   action={{
                     icon: <RestartAltOutlinedIcon />,
-                    label: i18n.t("editor:ui.resetTransform", { defaultValue: "Reset transform" }),
+                    label: t("editor:ui.resetTransform", { defaultValue: "Reset transform" }),
                     onClick: handleResetTransform
                   }}
                 />
@@ -527,14 +528,14 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
               unmountOnExit
             >
               <FlexColumn css={sectionContentStyles(theme)}>
-                <InspectorRow label={i18n.t("timeline:attrs.position", { defaultValue: "Position" })}>
+                <InspectorRow label={t("timeline:attrs.position", { defaultValue: "Position" })}>
                   <InspectorPillInput
                     value={transform.position.x.toFixed(0)}
                     unit="px"
                     minWidth={64}
                     scrub={SCRUB_PIXELS}
                     onCommit={handlePositionXCommit}
-                    ariaLabel={i18n.t("timeline:attrs.positionX", { defaultValue: "Position X" })}
+                    ariaLabel={t("timeline:attrs.positionX", { defaultValue: "Position X" })}
                   />
                   <InspectorPillInput
                     value={transform.position.y.toFixed(0)}
@@ -542,17 +543,17 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_PIXELS}
                     onCommit={handlePositionYCommit}
-                    ariaLabel={i18n.t("timeline:attrs.positionY", { defaultValue: "Position Y" })}
+                    ariaLabel={t("timeline:attrs.positionY", { defaultValue: "Position Y" })}
                   />
                 </InspectorRow>
-                <InspectorRow label={i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}>
+                <InspectorRow label={t("timeline:attrs.scale", { defaultValue: "Scale" })}>
                   <InspectorPillInput
                     value={transform.scale.x.toFixed(2)}
                     unit="×"
                     minWidth={64}
                     scrub={SCRUB_SCALE}
                     onCommit={handleScaleXCommit}
-                    ariaLabel={i18n.t("timeline:attrs.scaleX", { defaultValue: "Scale X" })}
+                    ariaLabel={t("timeline:attrs.scaleX", { defaultValue: "Scale X" })}
                   />
                   <InspectorPillInput
                     value={transform.scale.y.toFixed(2)}
@@ -560,20 +561,20 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_SCALE}
                     onCommit={handleScaleYCommit}
-                    ariaLabel={i18n.t("timeline:attrs.scaleY", { defaultValue: "Scale Y" })}
+                    ariaLabel={t("timeline:attrs.scaleY", { defaultValue: "Scale Y" })}
                   />
                 </InspectorRow>
-                <InspectorRow label={i18n.t("timeline:attrs.rotation", { defaultValue: "Rotation" })}>
+                <InspectorRow label={t("timeline:attrs.rotation", { defaultValue: "Rotation" })}>
                   <InspectorPillInput
                     value={((transform.rotation * 180) / Math.PI).toFixed(1)}
                     unit="°"
                     scrub={SCRUB_DEGREES}
                     onCommit={handleRotationCommit}
-                    ariaLabel={i18n.t("timeline:attrs.rotationInDegrees", { defaultValue: "Rotation in degrees" })}
+                    ariaLabel={t("timeline:attrs.rotationInDegrees", { defaultValue: "Rotation in degrees" })}
                   />
                 </InspectorRow>
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.anchorX", { defaultValue: "Anchor X" })}
+                  label={t("timeline:attrs.anchorX", { defaultValue: "Anchor X" })}
                   min={0}
                   max={1}
                   step={0.01}
@@ -583,7 +584,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleAnchorXChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.anchorY", { defaultValue: "Anchor Y" })}
+                  label={t("timeline:attrs.anchorY", { defaultValue: "Anchor Y" })}
                   min={0}
                   max={1}
                   step={0.01}
@@ -593,7 +594,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleAnchorYChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.radius", { defaultValue: "Radius" })}
+                  label={t("timeline:attrs.radius", { defaultValue: "Radius" })}
                   min={0}
                   max={500}
                   step={1}
@@ -603,7 +604,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                 />
                 <InspectorDivider />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.cropL", { defaultValue: "Crop L" })}
+                  label={t("timeline:attrs.cropL", { defaultValue: "Crop L" })}
                   min={0}
                   max={cropMax(crop, "left")}
                   step={0.005}
@@ -612,7 +613,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleCropLeftChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.cropR", { defaultValue: "Crop R" })}
+                  label={t("timeline:attrs.cropR", { defaultValue: "Crop R" })}
                   min={0}
                   max={cropMax(crop, "right")}
                   step={0.005}
@@ -621,7 +622,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleCropRightChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.cropT", { defaultValue: "Crop T" })}
+                  label={t("timeline:attrs.cropT", { defaultValue: "Crop T" })}
                   min={0}
                   max={cropMax(crop, "top")}
                   step={0.005}
@@ -630,7 +631,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleCropTopChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.cropB", { defaultValue: "Crop B" })}
+                  label={t("timeline:attrs.cropB", { defaultValue: "Crop B" })}
                   min={0}
                   max={cropMax(crop, "bottom")}
                   step={0.005}
@@ -649,13 +650,13 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}
+                  title={t("timeline:attrs.color", { defaultValue: "Color" })}
                   icon={<WbSunnyOutlinedIcon />}
                   checked={colorEnabled}
                   onCheckedChange={handleColorEnabledChange}
                   action={{
                     icon: <RestartAltOutlinedIcon />,
-                    label: i18n.t("timeline:attrs.resetColor", { defaultValue: "Reset color" }),
+                    label: t("timeline:attrs.resetColor", { defaultValue: "Reset color" }),
                     onClick: handleClearColor,
                     disabled: !color
                   }}
@@ -667,7 +668,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
             >
               <FlexColumn css={sectionContentStyles(theme)}>
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.brightness", { defaultValue: "Brightness" })}
+                  label={t("timeline:attrs.brightness", { defaultValue: "Brightness" })}
                   min={-1}
                   max={1}
                   step={0.01}
@@ -678,7 +679,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleBrightnessChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.contrast", { defaultValue: "Contrast" })}
+                  label={t("timeline:attrs.contrast", { defaultValue: "Contrast" })}
                   min={0}
                   max={4}
                   step={0.01}
@@ -689,7 +690,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleContrastChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.saturation", { defaultValue: "Saturation" })}
+                  label={t("timeline:attrs.saturation", { defaultValue: "Saturation" })}
                   min={0}
                   max={4}
                   step={0.01}
@@ -700,7 +701,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleSaturationChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.hue", { defaultValue: "Hue" })}
+                  label={t("timeline:attrs.hue", { defaultValue: "Hue" })}
                   min={-180}
                   max={180}
                   step={1}
@@ -711,7 +712,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleHueChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.temperature", { defaultValue: "Temperature" })}
+                  label={t("timeline:attrs.temperature", { defaultValue: "Temperature" })}
                   min={-1}
                   max={1}
                   step={0.01}
@@ -722,7 +723,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleTemperatureChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("editor:ui.tint", { defaultValue: "Tint" })}
+                  label={t("editor:ui.tint", { defaultValue: "Tint" })}
                   min={-1}
                   max={1}
                   step={0.01}
@@ -733,7 +734,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleTintChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.shadows", { defaultValue: "Shadows" })}
+                  label={t("timeline:attrs.shadows", { defaultValue: "Shadows" })}
                   min={-1}
                   max={1}
                   step={0.01}
@@ -744,7 +745,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   onChange={handleShadowsChange}
                 />
                 <InspectorSliderRow
-                  label={i18n.t("timeline:attrs.highlights", { defaultValue: "Highlights" })}
+                  label={t("timeline:attrs.highlights", { defaultValue: "Highlights" })}
                   min={-1}
                   max={1}
                   step={0.01}
