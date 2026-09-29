@@ -2690,7 +2690,14 @@
     "nDocuments": "{{n}} 个文档",
     "oneDocument": "{{n}} 个文档",
     "partialSuffix": " · 不完整",
-    "nClips2": "{{n}} 个片段"
+    "nClips2": "{{n}} 个片段",
+    "nShotsStills": "{{a}} 个镜头 · 静帧 {{b}}/{{c}}",
+    "nLinesVoiced": "{{a}} 行台词 · {{b}} 条已配音",
+    "nClipsDuration": "{{a}} 个片段 · {{d}}",
+    "oneLine": "行",
+    "nLinesUnit": "行",
+    "oneClip": "个片段",
+    "renderClips": "渲染片段"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

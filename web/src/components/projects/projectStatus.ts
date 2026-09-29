@@ -116,15 +116,11 @@ export const documentStatusLine = (document: ProjectDocument): string => {
   if (!status) return "";
   switch (status.kind) {
     case "storyboard":
-      return `${status.shots} shots · stills ${status.stills}/${status.shots}`;
-    case "script": {
-      const lines = status.lines === 1 ? "line" : "lines";
-      return `${status.lines} ${lines} · ${status.voiced} voiced`;
-    }
-    case "timeline": {
-      const clips = status.clips === 1 ? "clip" : "clips";
-      return `${status.clips} ${clips} · ${formatDuration(status.durationMs)}`;
-    }
+      return i18n.t("editor:ui.nShotsStills", { a: status.shots, b: status.stills, c: status.shots });
+    case "script":
+      return i18n.t("editor:ui.nLinesVoiced", { a: status.lines, unit: i18n.t(status.lines === 1 ? "editor:ui.oneLine" : "editor:ui.nLinesUnit"), b: status.voiced });
+    case "timeline":
+      return i18n.t("editor:ui.nClipsDuration", { a: status.clips, unit: i18n.t(status.clips === 1 ? "editor:ui.oneClip" : "editor:ui.nClips2"), d: formatDuration(status.durationMs) });
     default: {
       const exhaustive: never = status;
       return exhaustive;
@@ -209,7 +205,7 @@ export const projectNextStep = (
       return { label: "Render stills", document: board };
     }
     if (boardStatus.clips < boardStatus.shots) {
-      return { label: "Render clips", document: board };
+      return { label: i18n.t("editor:ui.renderClips"), document: board };
     }
   }
 

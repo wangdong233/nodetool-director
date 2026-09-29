@@ -2690,7 +2690,14 @@
     "nDocuments": "{{n}} documents",
     "oneDocument": "{{n}} document",
     "partialSuffix": " · partial",
-    "nClips2": "{{n}} clips"
+    "nClips2": "{{n}} clips",
+    "nShotsStills": "{{a}} shots · stills {{b}}/{{c}}",
+    "nLinesVoiced": "{{a}} {{unit}} · {{b}} voiced",
+    "nClipsDuration": "{{a}} {{unit}} · {{d}}",
+    "oneLine": "line",
+    "nLinesUnit": "lines",
+    "oneClip": "clip",
+    "renderClips": "Render clips"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
