@@ -75,7 +75,7 @@ import {
 } from "../../../stores/timeline/TimelineInstance";
 import { MOTION, FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../../ui_primitives";
 import type { TimelineClip, TimelineMarker } from "@nodetool-ai/timeline";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type EditorMode = "script" | "write";
 
@@ -714,6 +714,7 @@ const EditorBody: React.FC<{
   mode: EditorMode;
   setMode: (mode: EditorMode) => void;
 }> = ({ mode, setMode }) => {
+  const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
   const writing = mode === "write";
 
@@ -838,11 +839,11 @@ const EditorBody: React.FC<{
       // sorted by time — instead of re-querying the word DOM.
       const starts = wordIndex.all.map((entry) => entry.startMs);
       if (starts.length === 0) return;
-      const t = playbackApi.getState().currentTimeMs;
+      const now = playbackApi.getState().currentTimeMs;
       const target =
         direction === "forward"
-          ? starts.find((s) => s > t + 1) ?? starts[starts.length - 1]
-          : [...starts].reverse().find((s) => s < t - 1) ?? starts[0];
+          ? starts.find((s) => s > now + 1) ?? starts[starts.length - 1]
+          : [...starts].reverse().find((s) => s < now - 1) ?? starts[0];
       playbackApi.getState().seek(target);
     },
     [playbackApi, wordIndex]
@@ -906,14 +907,14 @@ const EditorBody: React.FC<{
           contentEditable={
             <ContentEditable
               className="transcript-content"
-              aria-label={i18n.t("editor:ui.transcript", { defaultValue: "Transcript" })}
+              aria-label={t("editor:ui.transcript", { defaultValue: "Transcript" })}
               spellCheck={false}
               data-testid="transcript-editor"
             />
           }
           placeholder={
             <div className="transcript-placeholder">
-              {i18n.t("editor:ui.clickWriteToStartOrImportAudioToEditItAsText")}
+              {t("editor:ui.clickWriteToStartOrImportAudioToEditItAsText")}
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}
