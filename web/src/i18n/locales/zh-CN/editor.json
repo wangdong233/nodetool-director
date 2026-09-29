@@ -2691,6 +2691,7 @@
     "oneDocument": "{{n}} 个文档",
     "partialSuffix": " · 不完整",
     "nClips2": "{{n}} 个片段",
+    "clipsUnit": "个片段",
     "nShotsStills": "{{a}} 个镜头 · 静帧 {{b}}/{{c}}",
     "nLinesVoiced": "{{a}} 行台词 · {{b}} 条已配音",
     "nClipsDuration": "{{a}} 个片段 · {{d}}",
