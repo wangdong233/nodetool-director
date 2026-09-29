@@ -9,7 +9,6 @@ import React, { forwardRef } from "react";
 import { Box, BoxProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { isNumber, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 export interface StackProps extends Omit<BoxProps, 'display' | 'flexDirection'> {
   /** Spacing between children (theme spacing units) */

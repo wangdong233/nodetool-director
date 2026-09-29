@@ -9,7 +9,6 @@ import React from "react";
 import { Chip as MuiChip, ChipProps as MuiChipProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { CONTROL } from "./tokens";
-import { i18n } from "../../i18n";
 
 export interface ChipProps extends Omit<MuiChipProps, 'color'> {
   /** Semantic color variant */

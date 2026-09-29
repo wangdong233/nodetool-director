@@ -18,7 +18,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { SxProps, Theme } from "@mui/material";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 // --- ListGroup ---
 

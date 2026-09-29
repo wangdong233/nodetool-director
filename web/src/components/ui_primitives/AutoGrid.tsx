@@ -11,7 +11,6 @@ import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { SPACING, resolveSpacing, type SpacingValue } from "./spacing";
-import { i18n } from "../../i18n";
 
 export interface AutoGridProps {
   /** Minimum column width in px, default 200 */

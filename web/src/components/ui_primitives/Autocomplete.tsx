@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
-import { i18n } from "../../i18n";
 
 export interface AutocompleteOption {
   label: string;

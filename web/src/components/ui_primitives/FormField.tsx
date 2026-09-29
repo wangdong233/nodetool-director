@@ -11,7 +11,6 @@ import React, { useId, useMemo } from "react";
 import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
-import { i18n } from "../../i18n";
 import {
   FormFieldContext,
   type FormFieldContextValue

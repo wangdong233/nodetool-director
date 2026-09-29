@@ -44,7 +44,6 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 export interface StateIconButtonProps {
   /**

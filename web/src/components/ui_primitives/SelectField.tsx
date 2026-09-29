@@ -24,7 +24,6 @@ import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
 import { CONTROL, FONT_SIZE_SANS } from "./tokens";
 import { useFormFieldContext } from "./formFieldContext";
-import { i18n } from "../../i18n";
 
 /** Compact editor typography also reaches dropdown menus rendered in portals. */
 export const SelectFieldDensityContext = createContext<"normal" | "compact">(

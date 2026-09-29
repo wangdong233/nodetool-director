@@ -10,7 +10,6 @@ import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { snapSpacing } from "./spacing";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 export interface PanelProps extends BoxProps {
   /** Panel title */
