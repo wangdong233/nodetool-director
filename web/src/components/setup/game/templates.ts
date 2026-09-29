@@ -78,9 +78,8 @@ export const templateCards = (
     return {
       id: template.id,
       title: copy?.title ?? template.id,
-      ...(copy?.titleKey
-        ? { titleKey: copy.titleKey, descriptionKey: copy.descriptionKey }
-        : {}),
+      titleKey: copy?.titleKey,
+      descriptionKey: copy?.descriptionKey,
       description: copy?.description,
       meta: templateMeta(template),
       image: gameTemplateArt(template.id)

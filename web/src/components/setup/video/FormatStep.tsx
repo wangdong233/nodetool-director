@@ -28,9 +28,8 @@ const formatSpec = (durationMs: number, aspect: string, fps: number): string =>
 const OPTIONS: readonly OptionCardItem[] = VIDEO_FORMATS.map((format) => ({
   id: format.id,
   title: format.title,
-  ...(format.titleKey
-    ? { titleKey: format.titleKey, descriptionKey: format.descriptionKey }
-    : {}),
+  titleKey: format.titleKey,
+  descriptionKey: format.descriptionKey,
   description: format.description,
   meta: formatSpec(format.durationMs, format.aspectRatio, format.fps),
   image: setupStill(SETUP_STILL_GROUPS.videoFormats, format.id)

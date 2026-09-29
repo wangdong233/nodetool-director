@@ -131,7 +131,7 @@ export const useDocumentTreeData = (
     return GROUPS.map((group) => ({
       id: group.id,
       label: group.label,
-      ...(group.labelKey ? { labelKey: group.labelKey } : {}),
+      labelKey: group.labelKey,
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
   }, [indexQuery.data, projectId]);

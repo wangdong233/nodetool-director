@@ -138,7 +138,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     walkFiles(webSrc);
 
     const leafKeys: Array<[string, string]> = [];
-    const collect = (node: object, ns: string, prefix: string) => {
+    const collect = (node: Record<string, unknown>, ns: string, prefix: string) => {
       for (const [k, v] of Object.entries(node)) {
         const p = prefix ? `${prefix}.${k}` : k;
         if (v && typeof v === "object") collect(v as object, ns, p);
