@@ -66,7 +66,7 @@ import {
   type ToolCallRun
 } from "./groupToolCalls";
 import { toolCallPhrase, toolCallRunDisplay } from "./toolCallPhrase";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * PrettyJson - Memoized component for displaying formatted JSON.
@@ -219,6 +219,7 @@ const ToolCallRow: React.FC<{
   tight = false,
   threadId
 }) => {
+  const { t } = useTranslation();
   const isSubtask = SUB_AGENT_TOOL_NAMES.has(tc.name);
   const isCodeAction = tc.name === EXECUTE_CODE_TOOL_NAME;
   const isPlan = tc.name === CREATE_PLAN_TOOL_NAME;
@@ -406,7 +407,7 @@ const ToolCallRow: React.FC<{
           <FlexColumn className="tool-row-details" gap={SPACING.xs}>
             {isSubtask && subtaskInstructions && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">{i18n.t("ui2:attrs.objective", { defaultValue: "Objective" })}</Caption>
+                <Caption className="tool-section-title">{t("ui2:attrs.objective", { defaultValue: "Objective" })}</Caption>
                 <Text size="small" className="subtask-instructions">
                   {subtaskInstructions}
                 </Text>
@@ -417,7 +418,7 @@ const ToolCallRow: React.FC<{
             )}
             {formattedActionCode && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">{i18n.t("ui2:attrs.code", { defaultValue: "Code" })}</Caption>
+                <Caption className="tool-section-title">{t("ui2:attrs.code", { defaultValue: "Code" })}</Caption>
                 <CodeBlock inline={false} className="language-javascript">
                   {formattedActionCode}
                 </CodeBlock>
@@ -426,7 +427,7 @@ const ToolCallRow: React.FC<{
             {hasArgs && (
               <FlexColumn gap={SPACING.xs}>
                 <Caption className="tool-section-title">
-                  {isSubtask ? i18n.t("editor:ui.otherArguments", { defaultValue: "Other arguments" }) : i18n.t("editor:ui.arguments", { defaultValue: "Arguments" })}
+                  {isSubtask ? t("editor:ui.otherArguments", { defaultValue: "Other arguments" }) : t("editor:ui.arguments", { defaultValue: "Arguments" })}
                 </Caption>
                 <PrettyJson value={displayArgs} />
               </FlexColumn>
@@ -439,10 +440,10 @@ const ToolCallRow: React.FC<{
                   justify="space-between"
                   fullWidth
                 >
-                  <Caption className="tool-section-title">{i18n.t("editor:ui.result", { defaultValue: "Result" })}</Caption>
+                  <Caption className="tool-section-title">{t("editor:ui.result", { defaultValue: "Result" })}</Caption>
                   <CopyButton
                     value={resultContent}
-                    tooltip={i18n.t("editor:ui.copyResult", { defaultValue: "Copy result" })}
+                    tooltip={t("editor:ui.copyResult", { defaultValue: "Copy result" })}
                     buttonSize="small"
                   />
                 </FlexRow>
@@ -815,6 +816,7 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
     executionMessagesById,
     threadId
   }) => {
+    const { t } = useTranslation();
     const insertIntoEditor = useEditorInsertion();
     const currentThreadId = useGlobalChatStore((state) => state.currentThreadId);
 
@@ -1069,15 +1071,15 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               {canEditAndResend && (
                 <ToolbarIconButton
                   icon={<EditOutlinedIcon fontSize="small" />}
-                  tooltip={i18n.t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
-                  ariaLabel={i18n.t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
+                  tooltip={t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
+                  ariaLabel={t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
                   onClick={handleEditAndResend}
                 />
               )}
               <CopyButton
                 value={copyText}
                 buttonSize="small"
-                tooltip={i18n.t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+                tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
               />
             </div>
           )}
