@@ -6,7 +6,7 @@ import type { Theme } from "@mui/material/styles";
 import { Text, Box, BORDER_RADIUS, MOTION, reducedMotion, getSpacingPx, SPACING } from "../ui_primitives";
 import { TaskUpdate } from "../../stores/ApiTypes";
 import StepView from "./StepView";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -146,6 +146,7 @@ const getEventDisplayText = (event: string): string => {
 const TaskUpdateDisplay: React.FC<TaskUpdateDisplayProps> = ({
   taskUpdate
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const task = taskUpdate.task;
@@ -184,7 +185,7 @@ const TaskUpdateDisplay: React.FC<TaskUpdateDisplayProps> = ({
 
       {task?.steps && task.steps.length > 0 && (
         <Box className="steps-section">
-          <Text className="steps-header">{i18n.t("ui2:attrs.executionPlan", { defaultValue: "Execution Plan" })}</Text>
+          <Text className="steps-header">{t("ui2:attrs.executionPlan", { defaultValue: "Execution Plan" })}</Text>
           {task.steps.map((step, idx) => {
             const isCurrent =
               currentStep &&

@@ -11,13 +11,14 @@ import { ToolCallRenderer } from "./ToolCallRenderer";
 import { AgentStatusRenderer } from "./AgentStatusRenderer";
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   chunk: Chunk;
 };
 
 export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => outputStyles(theme), [theme]);
   const contentType = chunk.content_type;
@@ -28,7 +29,7 @@ export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
         srcDoc={(chunk.content as string) ?? ""}
         sandbox=""
         style={{ width: "100%", minHeight: 320, border: "none" }}
-        title={i18n.t("editor:ui.htmlChunkOutput", { defaultValue: "HTML chunk output" })}
+        title={t("editor:ui.htmlChunkOutput", { defaultValue: "HTML chunk output" })}
       />
     );
   }
@@ -67,7 +68,7 @@ export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
           // nodrag/nopan stop ReactFlow's drag from capturing the pointer so
           // the native controls (scrub, volume) get the mouse events.
           className="nodrag nopan"
-          aria-label={i18n.t("editor:ui.videoOutput", { defaultValue: "Video output" })}
+          aria-label={t("editor:ui.videoOutput", { defaultValue: "Video output" })}
           style={{ width: "100%" }}
         />
       );
@@ -75,7 +76,7 @@ export const ChunkRenderer: React.FC<Props> = memo(({ chunk }) => {
       return (
         <div className="output value" css={memoizedStyles}>
           <a href={chunk.content as string} target="_blank" rel="noreferrer">
-            {i18n.t("editor:ui.openDocument")}
+            {t("editor:ui.openDocument")}
           </a>
         </div>
       );

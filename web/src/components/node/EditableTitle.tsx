@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { useNodes } from "../../contexts/NodeContext";
 import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   MOTION,
   BORDER_RADIUS,
@@ -67,6 +67,7 @@ const EditableTitle = memo(function EditableTitle({
   nodeId,
   title
 }: EditableTitleProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const updateNodeData = useNodes((state) => state.updateNodeData);
   const theme = useTheme();
@@ -257,8 +258,8 @@ const EditableTitle = memo(function EditableTitle({
         <textarea
           defaultValue={title}
           autoFocus
-          aria-label={i18n.t("editor:ui.noteText", { defaultValue: "Note text" })}
-          placeholder={i18n.t("editor:ui.addYourNote", { defaultValue: "Add your note..." })}
+          aria-label={t("editor:ui.noteText", { defaultValue: "Note text" })}
+          placeholder={t("editor:ui.addYourNote", { defaultValue: "Add your note..." })}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onBlur={handleBlur}
@@ -271,8 +272,8 @@ const EditableTitle = memo(function EditableTitle({
             type="button"
             className="remove-title"
             onClick={handleRemoveTitle}
-            title={i18n.t("editor:ui.removeNote", { defaultValue: "Remove note" })}
-            aria-label={i18n.t("editor:ui.removeNote", { defaultValue: "Remove note" })}
+            title={t("editor:ui.removeNote", { defaultValue: "Remove note" })}
+            aria-label={t("editor:ui.removeNote", { defaultValue: "Remove note" })}
           >
             <CloseIcon className="icon" />
           </button>

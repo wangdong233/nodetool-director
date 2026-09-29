@@ -15,7 +15,7 @@ import { CopyAssetButton } from "../common/CopyAssetButton";
 import { Checkbox, Dialog, Tooltip, EditorButton, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type ImageSource = Uint8Array | string;
 
@@ -45,6 +45,7 @@ const ImageTile = memo<ImageTileProps>(({
   onOpenInViewer,
   onToggleSelect
 }) => {
+  const { t } = useTranslation();
   const handleDownloadClick = useCallback((e: React.MouseEvent) => onDownload(idx, e), [onDownload, idx]);
   const handleOpenClick = useCallback((e: React.MouseEvent) => onOpenInViewer(idx, e), [onOpenInViewer, idx]);
   const handleCheckboxClick = useCallback((e: React.MouseEvent) => onToggleSelect(idx, e), [onToggleSelect, idx]);
@@ -101,7 +102,7 @@ const ImageTile = memo<ImageTileProps>(({
             className="tile-action-btn"
           />
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.download", { defaultValue: "Download" })}
+            tooltip={t("editor:ui.download", { defaultValue: "Download" })}
             tooltipPlacement="top"
             icon={<DownloadIcon />}
             className="tile-action-btn"
@@ -110,7 +111,7 @@ const ImageTile = memo<ImageTileProps>(({
             ariaLabel={`Download image ${idx + 1}`}
           />
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
+            tooltip={t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
             tooltipPlacement="top"
             icon={<OpenInNewIcon />}
             className="tile-action-btn"
@@ -326,6 +327,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
   enableSelection = true,
   showActions = true
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -519,7 +521,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           onClick={toggleSelectionMode}
           startIcon={selectionMode ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
         >
-          {selectionMode ? i18n.t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : i18n.t("editor:ui.select", { defaultValue: "Select" })}
+          {selectionMode ? t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : t("editor:ui.select", { defaultValue: "Select" })}
         </EditorButton>
       )}
 
@@ -554,7 +556,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
       {/* Action bar when items are selected */}
       {selectionMode && selectedIndices.size > 0 && (
         <Box className="action-bar">
-          <Tooltip title={i18n.t("editor:ui.compareTheTwoSelectedImages", { defaultValue: "Compare the two selected images" })}>
+          <Tooltip title={t("editor:ui.compareTheTwoSelectedImages", { defaultValue: "Compare the two selected images" })}>
             <span>
               <EditorButton
                 className="action-button"
@@ -568,7 +570,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
             </span>
           </Tooltip>
           <ToolbarIconButton
-            title={i18n.t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
+            title={t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
             size="small"
             onClick={clearSelection}
             sx={{ color: theme.vars.palette.common.white }}
@@ -588,11 +590,11 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           open={compareDialogOpen}
           onClose={handleCloseCompare}
           maxWidth={false}
-          aria-label={i18n.t("editor:ui.compareOutputs", { defaultValue: "Compare outputs" })}
+          aria-label={t("editor:ui.compareOutputs", { defaultValue: "Compare outputs" })}
         >
           <Box sx={{ width: "90vw", height: "90vh", position: "relative" }}>
             <ToolbarIconButton
-              title={i18n.t("editor:ui.closeImageComparisonDialog", { defaultValue: "Close image comparison dialog" })}
+              title={t("editor:ui.closeImageComparisonDialog", { defaultValue: "Close image comparison dialog" })}
               onClick={handleCloseCompare}
               sx={{
                 position: "absolute",

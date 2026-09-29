@@ -48,7 +48,7 @@ import {
   kiePricingExternalUrl,
 } from "../../utils/formatKieUnitPricing";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Format a kie node's actual last-run charge. Since #3426, `provider_cost.amount`
@@ -95,6 +95,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
   variant = "nodeFooter",
   popoverResetDep,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const lastRunCost = useNodeProviderCost(workflowId ?? "", nodeId ?? "");
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -208,7 +209,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         {pricing?.source === "live" && (
           <span
             style={{ marginRight: 4, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label={i18n.t("editor:ui.livePrice", { defaultValue: "live price" })}
+            aria-label={t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>
@@ -237,7 +238,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                {i18n.t("editor:ui.kiePricing")}
+                {t("editor:ui.kiePricing")}
               </Caption>
               <Text
                 sx={{
@@ -311,7 +312,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                 mt: 0.5,
               }}
             >
-              {creditsData === "error" ? i18n.t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
+              {creditsData === "error" ? t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -323,7 +324,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   wordBreak: "break-word",
                 }}
               >
-                {creditsData.detail ?? i18n.t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
+                {creditsData.detail ?? t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {kieCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink
@@ -380,7 +381,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label={i18n.t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
+          label={t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {
@@ -394,7 +395,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         />
 
         <MenuItemPrimitive
-          label={i18n.t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
+          label={t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {

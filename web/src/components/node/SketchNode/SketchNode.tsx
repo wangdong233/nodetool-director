@@ -82,7 +82,7 @@ import {
   sketchNodeOutputImageTypeMetadata
 } from "./sketchNodeIO";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const SKETCH_IMAGE_OUTPUT = {
   name: "image",
@@ -459,6 +459,7 @@ interface SketchNodeProps extends NodeProps {
 }
 
 const SketchNode: React.FC<SketchNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasParent = props.parentId !== undefined;
   const isFocused = useNodeFocusStore(
@@ -1335,7 +1336,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
             <div
               className="sketch-preview-wrap"
               role="button"
-              aria-label={i18n.t("editor:ui.openSketchEditor", { defaultValue: "Open sketch editor" })}
+              aria-label={t("editor:ui.openSketchEditor", { defaultValue: "Open sketch editor" })}
               tabIndex={0}
               onClick={handleOpenEditor}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenEditor(); } }}
@@ -1346,7 +1347,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                     <img
                       className="preview-image"
                       src={displayPreviewUri}
-                      alt={i18n.t("editor:ui.imageEditorPreview")}
+                      alt={t("editor:ui.imageEditorPreview")}
                     />
                     <div className="edit-overlay">
                       <EditIcon
@@ -1355,12 +1356,12 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                           color: theme.vars.palette.common.white
                         }}
                       />
-                      <span className="edit-overlay-label">{i18n.t("ui2:attrs.editSketch", { defaultValue: "Edit Sketch" })}</span>
+                      <span className="edit-overlay-label">{t("ui2:attrs.editSketch", { defaultValue: "Edit Sketch" })}</span>
                     </div>
                   </>
                 ) : (
                   <Text className="hint">
-                    {i18n.t("editor:ui.clickToOpenSketchEditor")}
+                    {t("editor:ui.clickToOpenSketchEditor")}
                   </Text>
                 )}
               </div>
@@ -1425,7 +1426,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
       <SketchProvider active={isModalOpen}>
         <SketchModal
           open={isModalOpen}
-          title={i18n.t("editor:ui.sketch", { defaultValue: "Sketch" })}
+          title={t("editor:ui.sketch", { defaultValue: "Sketch" })}
           initialDocument={editorDocument || sketchDoc}
           onClose={handleCloseEditor}
           onDocumentChange={handleDocumentChange}

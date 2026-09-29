@@ -23,7 +23,7 @@ import { useSyncEdgeSelection } from "../../hooks/nodes/useSyncEdgeSelection";
 import { edgesTargeting } from "../../hooks/nodes/edgeIndex";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { hexToRgba } from "../../utils/ColorUtils";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const rerouteBackground = (theme: Theme, alpha: number): string =>
   theme.palette.mode === "dark"
@@ -91,6 +91,7 @@ interface RerouteNodeProps extends NodeProps {
 }
 
 const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { selected, id, data } = props;
@@ -228,7 +229,7 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
 
   return (
     <Tooltip
-      title={i18n.t("editor:ui.doubleclickToAddALabel", { defaultValue: "Double-click to add a label" })}
+      title={t("editor:ui.doubleclickToAddALabel", { defaultValue: "Double-click to add a label" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       placement="top"
     >
@@ -262,8 +263,8 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
                 ref={inputRef}
                 defaultValue={title}
                 autoFocus
-                aria-label={i18n.t("editor:ui.rerouteLabel", { defaultValue: "Reroute label" })}
-                placeholder={i18n.t("editor:ui.labelPlaceholder", { defaultValue: "label" })}
+                aria-label={t("editor:ui.rerouteLabel", { defaultValue: "Reroute label" })}
+                placeholder={t("editor:ui.labelPlaceholder", { defaultValue: "label" })}
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
               />

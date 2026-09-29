@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo } from "react";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 import { Text, EditorButton, FlexColumn, SPACING } from "../ui_primitives";
 import { openSettingsTab } from "../workspace/openPageTab";
 import { useRequiredSettings } from "../../hooks/useRequiredSettings";
+import { useTranslation } from "react-i18next";
 
 interface RequiredSettingsWarningProps {
   nodeType: string;
@@ -10,6 +11,7 @@ interface RequiredSettingsWarningProps {
 
 const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.memo(
   ({ nodeType }) => {
+    const { t } = useTranslation();
     const missingSettings = useRequiredSettings(nodeType);
 
     const handleOpenSettings = useCallback(() => {
@@ -25,8 +27,8 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
       const settingsList = missingSettings.join(", ");
       const message =
         missingSettings.length === 1
-          ? i18n.t("editor:nodeBody.requiredOne", { defaultValue: "Required setting {{names}} is not configured!", names: settingsList })
-          : i18n.t("editor:nodeBody.requiredMany", { defaultValue: "Required settings {{names}} are not configured!", names: settingsList });
+          ? t("editor:nodeBody.requiredOne", { defaultValue: "Required setting {{names}} is not configured!", names: settingsList })
+          : t("editor:nodeBody.requiredMany", { defaultValue: "Required settings {{names}} are not configured!", names: settingsList });
 
       return (
         <FlexColumn gap={SPACING.xs} sx={{ px: SPACING.md, py: SPACING.xs }}>
@@ -55,11 +57,11 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
               minHeight: 24
             }}
           >
-            {i18n.t("editor:nodeBody.configureInSettings", { defaultValue: "Configure in Settings" })}
+            {t("editor:nodeBody.configureInSettings", { defaultValue: "Configure in Settings" })}
           </EditorButton>
         </FlexColumn>
       );
-    }, [languageVersion, missingSettings, handleOpenSettings]);
+    }, [t, missingSettings, handleOpenSettings]);
 
     return content;
   }

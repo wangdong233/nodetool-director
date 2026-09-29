@@ -3,7 +3,7 @@ import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { MaybeMarkdown } from "./markdown";
 import { outputStyles } from "./styles";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type Email = {
   sender: string;
@@ -14,12 +14,13 @@ export type Email = {
 };
 
 export const EmailRenderer: React.FC<{ value: Email }> = ({ value }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <div css={outputStyles(theme)}>
       <div className="email-header">
         <p>
-          <strong>{i18n.t("editor:ui.from2", { defaultValue: "From:" })}</strong> {value.sender}
+          <strong>{t("editor:ui.from2", { defaultValue: "From:" })}</strong> {value.sender}
         </p>
         <p>
           <strong>To:</strong> {value.to}

@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from "react";
 import { Text, Tooltip, getSpacingPx, SPACING } from "../ui_primitives";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface InputNodeNameWarningProps {
   nodeType: string;
@@ -12,6 +12,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
   nodeType,
   name
 }) => {
+  const { t } = useTranslation();
   const shouldShowWarning = useMemo(() => {
     if (!nodeType.startsWith("nodetool.input.")) {
       return false;
@@ -25,7 +26,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
 
   return (
     <Tooltip
-      title={i18n.t("editor:ui.inputNodesRequireANameForTheWorkflowToRunPleaseSetAUniqueNameForThisInput")}
+      title={t("editor:ui.inputNodesRequireANameForTheWorkflowToRunPleaseSetAUniqueNameForThisInput")}
       placement="top"
     >
       <Text
@@ -47,7 +48,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
         }}
       >
         <WarningAmberOutlinedIcon sx={{ fontSize: "var(--fontSizeSmall)" }} />
-        {i18n.t("editor:ui.nameRequired")}
+        {t("editor:ui.nameRequired")}
       </Text>
     </Tooltip>
   );

@@ -9,6 +9,7 @@ import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export { DYNAMIC_KIE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -23,6 +24,7 @@ interface KieSchemaLoaderProps {
  */
 export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
   ({ nodeId, data }) => {
+    const { t } = useTranslation();
     const updateNodeData = useNodes((state) => state.updateNodeData);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -165,9 +167,9 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
 
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-        <Tooltip title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
-            title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
+            title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
             size="small"
             disabled={loading}
             onClick={() => void handleLoad(true)}

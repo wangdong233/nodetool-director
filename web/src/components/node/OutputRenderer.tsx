@@ -148,7 +148,7 @@ import { isAudioChunkLike, isTextLikeChunk } from "./outputChunkUtils";
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
 import { extractTextValue } from "../../utils/extractTextValue";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const LazyTimelineRenderer = React.lazy(() => import("../timeline/TimelineRenderer"));
 const LazyAudioPlayer = React.lazy(() => import("../audio/AudioPlayer"));
@@ -392,6 +392,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
   value,
   showTextActions = true
 }) => {
+  const { t } = useTranslation();
   const shouldRender = !(
     value === undefined ||
     value === null ||
@@ -607,7 +608,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
 
         return (
           <div className="audio" style={AUDIO_WRAPPER_STYLE}>
-            <React.Suspense fallback={<LoadingSpinner size="small" text={i18n.t("editor:ui.loadingAudioPlayer")} />}>
+            <React.Suspense fallback={<LoadingSpinner size="small" text={t("editor:ui.loadingAudioPlayer")} />}>
               <LazyAudioPlayer
                 source={audioSource}
                 mimeType={mimeType}
@@ -626,7 +627,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
               src={uri}
               sandbox=""
               style={IFRAME_STYLE}
-              title={i18n.t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
+              title={t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
             />
           );
         }
@@ -649,7 +650,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             srcDoc={html}
             sandbox=""
             style={IFRAME_STYLE}
-            title={i18n.t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
+            title={t("editor:ui.htmlOutput", { defaultValue: "HTML output" })}
           />
         );
       }
@@ -670,7 +671,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             <iframe
               src={uri}
               style={IFRAME_PDF_STYLE}
-              title={i18n.t("editor:ui.pdfOutput", { defaultValue: "PDF output" })}
+              title={t("editor:ui.pdfOutput", { defaultValue: "PDF output" })}
             />
           );
         }
@@ -679,7 +680,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <div className="output value" style={DOCUMENT_LINK_STYLE}>
               <a href={uri} target="_blank" rel="noreferrer">
-                {i18n.t("editor:ui.openDocument")}
+                {t("editor:ui.openDocument")}
               </a>
             </div>
           );
@@ -700,7 +701,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
             // nodrag/nopan stop ReactFlow's drag from capturing the pointer so
             // the native controls (scrub, volume) get the mouse events.
             className="nodrag nopan"
-            aria-label={i18n.t("editor:ui.videoOutput", { defaultValue: "Video output" })}
+            aria-label={t("editor:ui.videoOutput", { defaultValue: "Video output" })}
             style={FULL_SIZE_STYLE}
           />
         );
@@ -733,7 +734,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <SketchRenderer
               document={sketchDocument}
-              ariaLabel={i18n.t("editor:ui.sketchOutputPreview", { defaultValue: "Sketch output preview" })}
+              ariaLabel={t("editor:ui.sketchOutputPreview", { defaultValue: "Sketch output preview" })}
               showDimensions
             />
           );
@@ -745,25 +746,25 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <EmptyState
               variant="error"
-              title={i18n.t("editor:ui.couldNotLoadSketch", { defaultValue: "Could not load sketch" })}
+              title={t("editor:ui.couldNotLoadSketch", { defaultValue: "Could not load sketch" })}
               description={sketchQuery.error.message}
             />
           );
         }
         return (
           <EmptyState
-            title={i18n.t("editor:ui.noSketchSelected", { defaultValue: "No sketch selected" })}
-            description={i18n.t("editor:ui.chooseASketchDocumentToPreviewItHere")}
+            title={t("editor:ui.noSketchSelected", { defaultValue: "No sketch selected" })}
+            description={t("editor:ui.chooseASketchDocumentToPreviewItHere")}
           />
         );
       }
       case "timeline": {
         if (timelineSequence) {
           return (
-            <React.Suspense fallback={<LoadingSpinner size="small" text={i18n.t("editor:ui.loadingTimelinePreview")} />}>
+            <React.Suspense fallback={<LoadingSpinner size="small" text={t("editor:ui.loadingTimelinePreview")} />}>
               <LazyTimelineRenderer
                 sequence={timelineSequence}
-                ariaLabel={i18n.t("editor:ui.timelineOutputPreview", { defaultValue: "Timeline output preview" })}
+                ariaLabel={t("editor:ui.timelineOutputPreview", { defaultValue: "Timeline output preview" })}
                 showMetadata
               />
             </React.Suspense>
@@ -776,15 +777,15 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
           return (
             <EmptyState
               variant="error"
-              title={i18n.t("editor:ui.couldNotLoadTimeline", { defaultValue: "Could not load timeline" })}
+              title={t("editor:ui.couldNotLoadTimeline", { defaultValue: "Could not load timeline" })}
               description={timelineQuery.error.message}
             />
           );
         }
         return (
           <EmptyState
-            title={i18n.t("editor:ui.noTimelineSelected", { defaultValue: "No timeline selected" })}
-            description={i18n.t("editor:ui.chooseATimelineSequenceToPreviewItHere")}
+            title={t("editor:ui.noTimelineSelected", { defaultValue: "No timeline selected" })}
+            description={t("editor:ui.chooseATimelineSequenceToPreviewItHere")}
           />
         );
       }
@@ -1143,7 +1144,7 @@ const OutputRenderer: React.FC<OutputRendererProps> = ({
     shouldLoadTimeline,
     timelineQuery.error,
     timelineQuery.isError,
-    timelineQuery.isLoading
+    timelineQuery.isLoading, t
   ]);
 
   const handleCloseAsset = useCallback(() => {

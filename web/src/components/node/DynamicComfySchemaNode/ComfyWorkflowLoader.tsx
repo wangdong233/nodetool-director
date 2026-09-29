@@ -29,6 +29,7 @@ import {
 } from "../../../utils/comfyDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ComfyWorkflowLoaderProps {
   nodeId: string;
@@ -43,6 +44,7 @@ interface ComfyWorkflowLoaderProps {
  */
 export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
   ({ nodeId, data }) => {
+    const { t } = useTranslation();
     const updateNodeData = useNodes((state) => state.updateNodeData);
     const [open, setOpen] = useState(false);
     const [text, setText] = useState("");
@@ -153,9 +155,9 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
 
     return (
       <>
-        <Tooltip title={i18n.t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })} arrow delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })} arrow delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
-            title={i18n.t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })}
+            title={t("editor:ui.loadWorkflow", { defaultValue: "Load Workflow" })}
             size="small"
             onClick={() => setOpen(true)}
             sx={{
@@ -173,11 +175,11 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
         <Dialog
           open={open}
           onClose={() => setOpen(false)}
-          title={i18n.t("editor:ui.loadComfyUIWorkflow", { defaultValue: "Load ComfyUI Workflow" })}
+          title={t("editor:ui.loadComfyUIWorkflow", { defaultValue: "Load ComfyUI Workflow" })}
           maxWidth="sm"
           fullWidth
           showActions
-          confirmText={i18n.t("timeline:project.apply", { defaultValue: "Apply" })}
+          confirmText={t("timeline:project.apply", { defaultValue: "Apply" })}
           confirmDisabled={!schema}
           onConfirm={handleApply}
           onCancel={() => setOpen(false)}
@@ -198,7 +200,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
               }}
             >
               <TextInput
-                label={i18n.t("editor:ui.workflowJSON", { defaultValue: "Workflow JSON" })}
+                label={t("editor:ui.workflowJSON", { defaultValue: "Workflow JSON" })}
                 value={text}
                 onChange={(e) => parseText(e.target.value)}
                 multiline
@@ -208,7 +210,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
               />
               <FlexRow gap={1} align="center" sx={{ mt: 1 }}>
                 <ToolbarIconButton
-                  title={i18n.t("editor:ui.chooseFile", { defaultValue: "Choose file" })}
+                  title={t("editor:ui.chooseFile", { defaultValue: "Choose file" })}
                   size="small"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -240,7 +242,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 <Text size="small">{summary}</Text>
                 {schema.availableParams.length > 0 && (
                   <>
-                    <Caption>{i18n.t("editor:ui.exposeAdditionalParametersAsInputs", { defaultValue: "Expose additional parameters as inputs:" })}</Caption>
+                    <Caption>{t("editor:ui.exposeAdditionalParametersAsInputs", { defaultValue: "Expose additional parameters as inputs:" })}</Caption>
                     <ScrollArea style={{ maxHeight: 180 }}>
                       <FlexColumn gap={0}>
                         {schema.availableParams.map((param) => (

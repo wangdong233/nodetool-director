@@ -2,7 +2,7 @@
 import React, { useMemo, useRef, memo } from "react";
 import { ImageComparer } from "../../widgets";
 import { createImageUrl, ImageData } from "../../../utils/imageUtils";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ImageComparisonData {
   type: "image_comparison";
@@ -25,6 +25,7 @@ interface ImageComparisonRendererProps {
 export const ImageComparisonRenderer: React.FC<ImageComparisonRendererProps> = ({
   value
 }) => {
+  const { t } = useTranslation();
   const blobUrlARef = useRef<string | null>(null);
   const blobUrlBRef = useRef<string | null>(null);
 
@@ -39,7 +40,7 @@ export const ImageComparisonRenderer: React.FC<ImageComparisonRendererProps> = (
   }, [value.image_a, value.image_b]);
 
   if (!imageAUrl || !imageBUrl) {
-    return <div>{i18n.t("ui2:attrs.missingImageDataForComparison", { defaultValue: "Missing image data for comparison" })}</div>;
+    return <div>{t("ui2:attrs.missingImageDataForComparison", { defaultValue: "Missing image data for comparison" })}</div>;
   }
 
   return (

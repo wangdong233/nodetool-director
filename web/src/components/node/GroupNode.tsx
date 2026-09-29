@@ -46,7 +46,7 @@ import RunGroupButton from "./RunGroupButton";
 import BypassGroupButton from "./BypassGroupButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 200;
@@ -229,6 +229,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
   });
 
 const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme, MIN_WIDTH, MIN_HEIGHT), [theme]);
   const controlKeyPressed = useKeyPressed((state) =>
@@ -582,7 +583,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             Hold CTRL or ⌘ key + click <br />
             <br />
             <b>EDIT GROUP TITLE:</b> <br />
-            {i18n.t("editor:ui.doubleClickTheLabel")}
+            {t("editor:ui.doubleClickTheLabel")}
           </span>
         }
       >
@@ -596,10 +597,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             spellCheck={false}
             className="nodrag"
             type="text"
-            aria-label={i18n.t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
+            aria-label={t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
-            placeholder={i18n.t("timeline:attrs.group", { defaultValue: "Group" })}
+            placeholder={t("timeline:attrs.group", { defaultValue: "Group" })}
             style={inputStyle}
           />
           <span
@@ -616,7 +617,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         className="group-actions nodrag"
         style={actionsStyle}
       >
-        <Tooltip title={i18n.t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
             ref={menuButtonRef}
             title=""
@@ -645,7 +646,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           {hasChildren && (
             <div style={POPOVER_ROW_STYLE}>
               <span style={menuTextStyle}>
-                {someChildrenBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
+                {someChildrenBypassed ? t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
               </span>
               <BypassGroupButton
                 isBypassed={someChildrenBypassed}
@@ -674,8 +675,8 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           <b>REMOVE NODES FROM GROUP</b>
         </div>
         <ul>
-          <li>{i18n.t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>
-          <li>{i18n.t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
+          <li>{t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>
+          <li>{t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
         </ul>
       </div>
 

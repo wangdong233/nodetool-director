@@ -10,7 +10,7 @@ import isEqual from "../../utils/isEqual";
 import { BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
 import { formatToolName } from "../../utils/formatUtils";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -128,6 +128,7 @@ type ChatViewProps = {
 const ToolCallsView: React.FC<{ toolCalls?: ToolCall[] | null }> = memo(({
   toolCalls
 }) => {
+  const { t } = useTranslation();
   if (!toolCalls || toolCalls.length === 0) {return null;}
   return (
     <div className="tool-calls">
@@ -136,7 +137,7 @@ const ToolCallsView: React.FC<{ toolCalls?: ToolCall[] | null }> = memo(({
         return (
           <div key={stableKey} className="tool-call">
             <div className="tool-call__header">
-              <span className="tool-call__badge">{i18n.t("ui2:attrs.agentTask", { defaultValue: "Agent Task" })}</span>
+              <span className="tool-call__badge">{t("ui2:attrs.agentTask", { defaultValue: "Agent Task" })}</span>
               <span className="tool-call__name">
                 {tc.name ? formatToolName(tc.name) : "Agent Task"}
               </span>

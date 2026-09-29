@@ -19,7 +19,7 @@ import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NodePropertyFormProps {
   id: string;
@@ -38,6 +38,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
   onAddProperty,
   nodeType: _nodeType
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { handleAddOutput } = useDynamicOutput(id, dynamicOutputs);
   const inputDialogTitleId = useId();
@@ -148,12 +149,12 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
           }
         }}
       >
-        <DialogTitle id={inputDialogTitleId}>{i18n.t("ui2:attrs.addInput", { defaultValue: "Add Input" })}</DialogTitle>
+        <DialogTitle id={inputDialogTitleId}>{t("ui2:attrs.addInput", { defaultValue: "Add Input" })}</DialogTitle>
         <DialogContent>
           <FlexRow css={css({ gap: 8, marginTop: 8 })}>
             <TextField
               autoFocus
-              label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
+              label={t("editor:asset.info.name", { defaultValue: "Name" })}
               size="small"
               value={newInputName}
               onChange={(e) => {
@@ -179,7 +180,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
                 }
               }}
               error={!!inputNameError}
-              helperText={inputNameError || i18n.t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
+              helperText={inputNameError || t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
               sx={{ flex: 1 }}
             />
           </FlexRow>

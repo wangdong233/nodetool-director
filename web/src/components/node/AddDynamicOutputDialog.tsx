@@ -14,7 +14,7 @@ import {
 import { useCallback, useState, memo, useId } from "react";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AddDynamicOutputDialogProps {
   open: boolean;
@@ -34,6 +34,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
   onClose,
   onAdd
 }) => {
+  const { t } = useTranslation();
   const titleId = useId();
   const [name, setName] = useState("");
   const [type, setType] = useState("str");
@@ -70,12 +71,12 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       fullWidth
       aria-labelledby={titleId}
     >
-      <DialogTitle id={titleId}>{i18n.t("ui2:attrs.addOutput", { defaultValue: "Add Output" })}</DialogTitle>
+      <DialogTitle id={titleId}>{t("ui2:attrs.addOutput", { defaultValue: "Add Output" })}</DialogTitle>
       <DialogContent>
         <FlexRow css={css({ gap: 8, marginTop: 8 })}>
           <TextField
             autoFocus
-            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
+            label={t("editor:asset.info.name", { defaultValue: "Name" })}
             size="small"
             value={name}
             onChange={(e) => {
@@ -95,7 +96,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
           />
           <TextField
             select
-            label={i18n.t("editor:asset.info.type", { defaultValue: "Type" })}
+            label={t("editor:asset.info.type", { defaultValue: "Type" })}
             size="small"
             value={type}
             onChange={(e) => setType(e.target.value)}

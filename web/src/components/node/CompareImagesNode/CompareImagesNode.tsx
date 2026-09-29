@@ -19,7 +19,7 @@ import HandleTooltip from "../../HandleTooltip";
 import { Slugify } from "../../../utils/TypeHandler";
 import { createImageUrl, ImageData } from "../../../utils/imageUtils";
 import { isObjectLike } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -119,6 +119,7 @@ interface CompareImagesNodeProps extends NodeProps {
 }
 
 const CompareImagesNode: React.FC<CompareImagesNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const hasParent = props.parentId !== undefined;
@@ -253,7 +254,7 @@ const CompareImagesNode: React.FC<CompareImagesNodeProps> = (props) => {
             />
           ) : (
             <Text className="hint">
-              {i18n.t("editor:ui.connectTwoImagesAndRunWorkflowToCompare")}
+              {t("editor:ui.connectTwoImagesAndRunWorkflowToCompare")}
             </Text>
           )}
         </div>

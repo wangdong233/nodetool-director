@@ -3,7 +3,7 @@ import React, { Suspense, lazy, memo } from "react";
 import { LoadingSpinner, FlexRow, BORDER_RADIUS } from "../../ui_primitives";
 import type { PlotlyConfig } from "../../../stores/ApiTypes";
 import type { Data, Layout, Config, Frame } from "plotly.js";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PlotlyPlot = lazy(() => import("./PlotlyChart"));
 
@@ -14,8 +14,9 @@ interface PlotlyRendererProps {
 }
 
 const PlotlyRenderer: React.FC<PlotlyRendererProps> = ({ config }) => {
+  const { t } = useTranslation();
   if (!config.config) {
-    return <div>{i18n.t("ui2:attrs.invalidPlotlyConfig", { defaultValue: "Invalid Plotly config" })}</div>;
+    return <div>{t("ui2:attrs.invalidPlotlyConfig", { defaultValue: "Invalid Plotly config" })}</div>;
   }
   return (
     <div className="render-content" style={FULL_SIZE_STYLE}>

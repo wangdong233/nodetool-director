@@ -17,7 +17,8 @@ import TableActions from "./TableActions";
 import { tableStyles } from "../../../styles/TableStyles";
 import { useTheme } from "@mui/material/styles";
 import type { TableData } from "./TableActions";
-import { i18n, useAppLanguage } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type DictDataType = "int" | "string" | "datetime" | "float";
 
@@ -39,6 +40,7 @@ const DictTable: React.FC<DictTableProps> = ({
   editable,
   onDataChange
 }) => {
+  const { t } = useTranslation();
   const tableRef = useRef<HTMLDivElement>(null);
   const [tabulator, setTabulator] = useState<Tabulator>();
   const [showSelect, setShowSelect] = useState(false);
@@ -69,14 +71,14 @@ const DictTable: React.FC<DictTableProps> = ({
           ]
         : []),
       {
-        title: i18n.t("editor:ui.keyLabel", { defaultValue: "Key" }),
+        title: t("editor:ui.keyLabel", { defaultValue: "Key" }),
         field: "key",
         editable: true,
         headerHozAlign: "left" as ColumnDefinitionAlign,
         cssClass: "key"
       },
       {
-        title: i18n.t("appbuilder:attrs.value", { defaultValue: "Value" }),
+        title: t("appbuilder:attrs.value", { defaultValue: "Value" }),
         field: "value",
         editable: editable,
         frozen: !editable,
@@ -100,7 +102,7 @@ const DictTable: React.FC<DictTableProps> = ({
             : undefined
       }
     ],
-    [languageVersion, data_type, editable, showSelect]
+    [t, data_type, editable, showSelect]
   );
 
   const onCellEdited = useCallback(

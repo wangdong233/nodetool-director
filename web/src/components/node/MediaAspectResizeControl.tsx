@@ -17,7 +17,7 @@ import {
   type ResizeResult
 } from "./mediaAspectResize";
 import { measureNodeMedia } from "./measureNodeMedia";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type ResizeCorner =
   | "bottom-right"
@@ -152,6 +152,7 @@ const MediaAspectResizeControl = memo(function MediaAspectResizeControl({
   maxWidth,
   corner = "bottom-right"
 }: MediaAspectResizeControlProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme, corner), [theme, corner]);
   const reactFlow = useReactFlow();
@@ -305,7 +306,7 @@ const MediaAspectResizeControl = memo(function MediaAspectResizeControl({
       <button
         type="button"
         className="resize-grip nodrag nopan"
-        aria-label={i18n.t("editor:ui.resizeNodeKeepingImageAspectRatio", { defaultValue: "Resize node, keeping image aspect ratio" })}
+        aria-label={t("editor:ui.resizeNodeKeepingImageAspectRatio", { defaultValue: "Resize node, keeping image aspect ratio" })}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}

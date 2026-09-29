@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import React, { memo } from "react";
 import { Text, SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const statusCss = css({
   maxWidth: "250px",
@@ -15,6 +15,7 @@ interface NodeStatusProps {
 }
 
 const NodeStatus: React.FC<NodeStatusProps> = ({ status }) => {
+  const { t } = useTranslation();
   if (status !== "booting") {return null;}
 
   return (
@@ -24,7 +25,7 @@ const NodeStatus: React.FC<NodeStatusProps> = ({ status }) => {
       color="warning"
       css={statusCss}
     >
-      {i18n.t("editor:ui.modelIsBootingTakingMinutes")}
+      {t("editor:ui.modelIsBootingTakingMinutes")}
     </Text>
   );
 };

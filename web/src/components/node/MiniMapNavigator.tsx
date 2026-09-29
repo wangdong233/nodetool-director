@@ -28,7 +28,8 @@ import {
 import PaletteIcon from "@mui/icons-material/Palette";
 import LegendToggleIcon from "@mui/icons-material/LegendToggle";
 import CheckIcon from "@mui/icons-material/Check";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const minimapStyle = {
   position: "absolute" as const,
@@ -38,6 +39,7 @@ const minimapStyle = {
 };
 
 const MiniMapNavigator: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isDarkMode = useIsDarkMode();
   const visible = useMiniMapStore((state) => state.visible);
@@ -119,36 +121,36 @@ const MiniMapNavigator: React.FC = () => {
     () => [
       {
         category: NodeTypeCategory.Input,
-        label: i18n.t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" }),
+        label: t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Input, isDarkMode)
       },
       {
         category: NodeTypeCategory.Constant,
-        label: i18n.t("editor:ui.constantNodes", { defaultValue: "Constant Nodes" }),
+        label: t("editor:ui.constantNodes", { defaultValue: "Constant Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Constant, isDarkMode)
       },
       {
         category: NodeTypeCategory.Processing,
-        label: i18n.t("editor:ui.processingNodes", { defaultValue: "Processing Nodes" }),
+        label: t("editor:ui.processingNodes", { defaultValue: "Processing Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Processing, isDarkMode)
       },
       {
         category: NodeTypeCategory.Group,
-        label: i18n.t("editor:ui.groupNodes", { defaultValue: "Group Nodes" }),
+        label: t("editor:ui.groupNodes", { defaultValue: "Group Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Group, isDarkMode)
       },
       {
         category: NodeTypeCategory.Comment,
-        label: i18n.t("editor:ui.commentNodes", { defaultValue: "Comment Nodes" }),
+        label: t("editor:ui.commentNodes", { defaultValue: "Comment Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Comment, isDarkMode)
       },
       {
         category: NodeTypeCategory.Output,
-        label: i18n.t("editor:ui.outputNodes", { defaultValue: "Output Nodes" }),
+        label: t("editor:ui.outputNodes", { defaultValue: "Output Nodes" }),
         color: getNodeCategoryColor(NodeTypeCategory.Output, isDarkMode)
       }
     ],
-    [languageVersion, isDarkMode]
+    [t, isDarkMode]
   );
 
   if (!visible) {
@@ -191,7 +193,7 @@ const MiniMapNavigator: React.FC = () => {
           >
             {colorMode === "type" && showLegend && (
               <ToolbarIconButton
-                title={i18n.t("editor:ui.nodeTypeLegend", { defaultValue: "Node Type Legend" })}
+                title={t("editor:ui.nodeTypeLegend", { defaultValue: "Node Type Legend" })}
                 size="small"
                 onClick={handleOpenLegend}
                 sx={{
@@ -208,7 +210,7 @@ const MiniMapNavigator: React.FC = () => {
               </ToolbarIconButton>
             )}
             <ToolbarIconButton
-              title={i18n.t("editor:ui.colorModeSettings", { defaultValue: "Color Mode Settings" })}
+              title={t("editor:ui.colorModeSettings", { defaultValue: "Color Mode Settings" })}
               size="small"
               onClick={handleOpenSettings}
               sx={{
@@ -256,7 +258,7 @@ const MiniMapNavigator: React.FC = () => {
                 )}
               </ListItemIcon>
               <ListItemText
-                primary={i18n.t("editor:ui.defaultColors", { defaultValue: "Default Colors" })}
+                primary={t("editor:ui.defaultColors", { defaultValue: "Default Colors" })}
                 primaryTypographyProps={{
                   fontSize: "var(--fontSizeNormal)"
                 }}
@@ -281,7 +283,7 @@ const MiniMapNavigator: React.FC = () => {
                 )}
               </ListItemIcon>
               <ListItemText
-                primary={i18n.t("editor:ui.colorByType", { defaultValue: "Color by Type" })}
+                primary={t("editor:ui.colorByType", { defaultValue: "Color by Type" })}
                 primaryTypographyProps={{
                   fontSize: "var(--fontSizeNormal)"
                 }}
@@ -313,7 +315,7 @@ const MiniMapNavigator: React.FC = () => {
               px: 1
             }}
           >
-            {i18n.t("editor:ui.nodeTypes")}
+            {t("editor:ui.nodeTypes")}
           </Text>
           <List dense disablePadding>
             {legendItems.map((item) => (
