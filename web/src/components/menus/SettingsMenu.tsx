@@ -23,7 +23,7 @@ import {
   SPACING,
   DocsHelpLink, getSpacingPx
 } from "../ui_primitives";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -169,10 +169,6 @@ const SearchItem = React.memo(function SearchItem({
 
 function SettingsPage() {
   const { t } = useTranslation();
-  // Kept through the useTranslation migration: the hook above carries the
-  // language subscription (the switcher lives here and must flip live); the
-  // version counter retires in P2 (B-R4).
-  const { version: languageVersion } = useAppLanguage();
   const section = useSettingsPageStore((state) => state.section);
   const setSection = useSettingsPageStore((state) => state.setSection);
   const session = useAuth((state) => state.session);

@@ -49,7 +49,6 @@ import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** Textarea growth caps. The mobile one matches the composer stylesheet — on a
@@ -453,7 +452,6 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       textareaRef
     });
 
-  const { version: languageVersion } = useAppLanguage();
   const placeholder = useMemo(() => {
     if (placeholderOverride) {
       return placeholderOverride;

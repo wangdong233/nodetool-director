@@ -30,7 +30,6 @@ import {
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import PanelToolbar from "../panels/PanelToolbar";
-import { useAppLanguage } from "../../i18n";
 import {
   Caption,
   Chip,
@@ -251,7 +250,6 @@ export const TimelineVersionHistoryPanel: React.FC<
     [versions]
   );
 
-  const { version: languageVersion } = useAppLanguage();
   const toolbarActions = useMemo(
     () => (
       <EditorButton

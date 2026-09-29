@@ -37,7 +37,6 @@ import {
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
 import StudioShell from "./StudioShell";
-import { useAppLanguage } from "../i18n";
 import { useTranslation } from "react-i18next";
 
 type DockTab = "cast" | "assistant";
@@ -46,7 +45,6 @@ const StudioScriptPage = () => {
   const { t } = useTranslation();
   const { scriptId = "" } = useParams<{ scriptId: string }>();
   const theme = useTheme();
-  const { version: languageVersion } = useAppLanguage();
   const navigate = useNavigate();
   const ensureScript = useScriptStore((state) => state.ensureScript);
   const title = useScriptTitle(scriptId);

@@ -50,7 +50,6 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** Width of the category rail. */
@@ -424,7 +423,6 @@ const ModelListIndex: React.FC = () => {
     setSourceInitialized
   ]);
 
-  const { version: languageVersion } = useAppLanguage();
   const emptyState = useMemo(() => {
     if (modelSearchTerm) {
       return {

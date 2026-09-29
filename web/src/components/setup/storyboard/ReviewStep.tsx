@@ -52,7 +52,6 @@ import {
 } from "../video/productionAuthoring";
 import { productionRequirementsFrom } from "../../../hooks/storyboard/productionContext";
 import type { GenerationModel } from "../generationEstimate";
-import { useAppLanguage } from "../../../i18n";
 import {
   forgetPreviousScreenplay,
   usePreviousScreenplay
@@ -158,7 +157,6 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     return numbers;
   }, [shots]);
 
-  const { version: languageVersion } = useAppLanguage();
   const importNotice = useMemo(() => {
     if (!notice) {
       return null;

@@ -57,7 +57,6 @@ import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
 import { isElectron } from "../../utils/browser";
 import { copyAssetToClipboard, isClipboardSupported } from "../../utils/clipboardUtils";
-import { useAppLanguage } from "../../i18n";
 import {
   ToolbarIconButton,
   CloseButton,
@@ -651,7 +650,6 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
     handleChangeAsset(Math.min(assetsToUse.length - 1, currentIndex + 1));
   }, [currentIndex, assetsToUse.length, handleChangeAsset]);
 
-  const { version: languageVersion } = useAppLanguage();
   const navigation = useMemo(() => {
     if (currentIndex === null) {
       return null;

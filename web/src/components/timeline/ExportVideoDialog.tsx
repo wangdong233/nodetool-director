@@ -24,7 +24,6 @@ import {
   type SelectOption
 } from "../ui_primitives";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const FORMAT_OPTIONS: readonly SelectOption[] = [
@@ -108,7 +107,6 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
     onClose();
   }, [format, alpha, onExport, onClose]);
 
-  const { version: languageVersion } = useAppLanguage();
   const actions = useMemo(
     () => (
       <>

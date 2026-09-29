@@ -18,7 +18,6 @@ import type { NodeStoreState } from "../../stores/NodeStore";
 import { findBuiltinPackForNodeType } from "@nodetool-ai/protocol";
 import usePacksStore from "../../stores/PacksStore";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
-import { useAppLanguage } from "../../i18n";
 import {
   Box,
   EditorButton,
@@ -272,7 +271,6 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
     return humanizeType(lastSegment) || "Missing Node";
   }, [nodeType, nodeData]);
 
-  const { version: languageVersion } = useAppLanguage();
   const mockMetadata: NodeMetadata = useMemo(
     () => ({
       title: computedHeaderTitle || nodeTitle || "Missing Node",

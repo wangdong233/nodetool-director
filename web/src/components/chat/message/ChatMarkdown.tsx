@@ -23,7 +23,6 @@ import { remarkEntityMentions } from "./remarkEntityMentions";
 import { remarkResourceMentions } from "./remarkResourceMentions";
 import { isNumber, isString } from "../../../utils/typePredicates";
 import "../../../styles/markdown/github-markdown.css";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"];
@@ -357,7 +356,6 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
   onInsertCode
 }) => {
   const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const components = useMemo(
     () => ({
       code: (props: React.ComponentPropsWithoutRef<"code">) => <CodeBlock {...props} onInsert={onInsertCode} />,

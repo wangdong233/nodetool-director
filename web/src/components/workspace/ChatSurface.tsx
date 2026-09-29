@@ -19,7 +19,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import DocumentLoadStatus from "./DocumentLoadStatus";
 import { buildUiContext } from "../../lib/chat/uiContext";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const whenChatStoreHydrated = (): Promise<void> => {
@@ -225,7 +225,6 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
     [refId]
   );
 
-  const { version: languageVersion } = useAppLanguage();
   const noMessagesPlaceholder = useMemo(
     () =>
       loadingThread ? (
