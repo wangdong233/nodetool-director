@@ -8,8 +8,10 @@
 //               error COUNT happened to equal the baseline count.
 //  G2 TSC-SET — tsc errors must be the SAME SET as the recorded baseline,
 //               not merely the same count (counts can coincide).
-//  G3 CLAIM   — the diff's actual `+.*i18n.t(` wiring count, printed for the
-//               commit message. Born from 4 claim-inflation incidents.
+//  G3 CLAIM   — the diff's mechanical wiring tuple (+i18n.t / -i18n.t /
+//               +useTranslation / +bare-t), printed verbatim for the commit
+//               message. Born from 4 claim-inflation incidents; anchor widened
+//               for the useTranslation migration (B-R11).
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -69,10 +71,16 @@ if (!existsSync(baselineFile)) {
 }
 
 // ---- G3: mechanical wiring count for the commit message ----
-let claim = 0;
+// mig-P1 (B-R11): anchor widened — migration batches replace `i18n.t(` with
+// hook-captured `t(`, so the legacy counter alone reads 0 and the
+// anti-inflation gate idles. Print the full tuple.
+let legacyAdded = 0, hookAdded = 0, legacyRemoved = 0, bareTAdded = 0;
 try {
   const diff = execSync(`git diff ${BASE} -- "*.ts" "*.tsx"`, { cwd: webRoot, encoding: "utf8" });
-  claim = (diff.match(/^\+.*i18n\.t\(/gm) || []).length;
+  legacyAdded = (diff.match(/^\+.*i18n\.t\(/gm) || []).length;
+  legacyRemoved = (diff.match(/^-.*i18n\.t\(/gm) || []).length;
+  hookAdded = (diff.match(/^\+.*useTranslation\(/gm) || []).length;
+  bareTAdded = (diff.match(/^\+.*(?<![\w.$])t\(/gm) || []).length;
 } catch { /* empty diff */ }
 
 // ---- G4: dangling-ref check (src→dict direction) ----
@@ -116,7 +124,8 @@ try {
   }
 }
 
-console.log(`G3-CLAIM: ${claim} actual i18n.t additions in diff (${BASE}..HEAD) — paste this number, do not estimate`);
+console.log(`G3-CLAIM tuple (${BASE}..HEAD) — paste verbatim, do not estimate:`);
+console.log(`  +i18n.t(=${legacyAdded}  -i18n.t(=${legacyRemoved}  +useTranslation(=${hookAdded}  +bare-t(=${bareTAdded}`);
 if (findings.length) {
   console.error("COMMIT GATE FAILED:");
   for (const f of findings) console.error("  " + f);

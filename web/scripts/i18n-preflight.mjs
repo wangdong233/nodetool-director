@@ -123,13 +123,19 @@ function frozenUseMemoIssues(src, relPath) {
         const body = src.slice(i, bodyEnd);
         // A memo with NO dep array recomputes every render — the locale can
         // never freeze, so only memos that HAVE deps are in scope here.
-        if (depsText !== null && /i18n\.t\(/.test(body)) {
+        // mig-P1 (B-R3): dual-form anchor — post useTranslation migration the
+        // freeze class survives as a closure-captured fixed-t, so a bare `t(`
+        // with deps lacking `t` is the same defect. i18n.t form stays checked
+        // for the exempt (event-phase/global) surface.
+        const T_CALL = /(?<![\w.$])(?:i18n\.)?t\(/;
+        if (depsText !== null && T_CALL.test(body)) {
           const depsOk =
             /(^|[^\w$.])languageVersion($|[^\w$])/.test(depsText) ||
-            /(^|[^\w$.])version($|[^\w$])/.test(depsText);
+            /(^|[^\w$.])version($|[^\w$])/.test(depsText) ||
+            /(^|[^\w$.])t($|[^\w$])/.test(depsText);
           if (!depsOk) {
             const line = src.slice(0, i).split("\n").length;
-            issues.push(`${relPath}:${line} useMemo(i18n.t) deps lack languageVersion`);
+            issues.push(`${relPath}:${line} useMemo(t-call) deps lack t/languageVersion`);
           }
         }
       }
@@ -149,10 +155,13 @@ for (const root of ROOTS) {
     // r27 F5: half-wired ternary arms (F4 pattern, 4th recurrence class) —
     // one arm i18n.t, the sibling a bare string literal. Same-line form;
     // multi-line splits are audited manually until this proves stable.
+    // mig-P1 (B-R3): dual-form — `cond ? t(...) : "bare"` after migration.
+    const T_LINE = /(?<![\w.$])(?:i18n\.)?t\(/;
+    const T_TERN = /[?:]\s*(?:i18n\.)?t\([^)]*\)\s*:\s*"([^"\\]+)"|[?:]\s*"([^"\\]+)"\s*:\s*(?:i18n\.)?t\(/;
     for (let i = 0; i < src.split("\n").length; i++) {
       const ln = src.split("\n")[i];
-      if (!ln.includes("i18n.t(")) continue;
-      const m = ln.match(/[?:]\s*i18n\.t\([^)]*\)\s*:\s*"([^"\\]+)"|[?:]\s*"([^"\\]+)"\s*:\s*i18n\.t\(/);
+      if (!T_LINE.test(ln)) continue;
+      const m = ln.match(T_TERN);
       if (m) {
         const bare = m[1] ?? m[2];
         if (/[A-Za-z]{2}/.test(bare)) {

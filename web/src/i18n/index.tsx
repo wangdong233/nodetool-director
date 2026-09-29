@@ -92,9 +92,12 @@ export async function ensureLanguageLoaded(language: AppLanguage): Promise<void>
     instance.addResourceBundle("zh-CN", ns, mod.default, true, true);
     loadedZhNamespaces.add(ns);
   }
-  // addResourceBundle emits nothing — re-run changeLanguage against the same
-  // lng so components using raw i18n.t (the boot splash) re-render with the
-  // now-loaded zh bundles instead of flashing English (R6-7).
+  // addResourceBundle only emits a store 'added' event, and react-i18next's
+  // default bindI18nStore:'' does not subscribe to store events — so neither
+  // raw i18n.t consumers NOR useTranslation subscribers would re-render when a
+  // lazy namespace lands. Re-running changeLanguage against the same lng emits
+  // languageChanged unconditionally, which drives BOTH consumer forms. This
+  // re-fire is load-bearing for the boot race. Do not remove (B-R1/R15).
   if (instance.language === language) {
     await instance.changeLanguage(language);
   }
