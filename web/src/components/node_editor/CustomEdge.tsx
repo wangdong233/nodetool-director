@@ -10,7 +10,6 @@ import {
 } from "@xyflow/react";
 import { Tooltip, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { memo, useMemo } from "react";
-import { i18n } from "../../i18n";
 
 export function CustomEdge({
   id,

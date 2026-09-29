@@ -28,7 +28,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useShallow } from "zustand/react/shallow";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const treeStyles = (theme: Theme) =>
   css({
@@ -137,6 +137,7 @@ type NodeMenuProps = {
 };
 
 const NodeMenu = ({ focusSearchInput = false }: NodeMenuProps) => {
+  const { t } = useTranslation();
   const [bounds, setBounds] = useState({
     left: 0,
     right: 0,
@@ -345,7 +346,7 @@ const NodeMenu = ({ focusSearchInput = false }: NodeMenuProps) => {
               <SearchInput
                 focusSearchInput={focusSearchInput}
                 focusOnTyping={false}
-                placeholder={i18n.t("editor:ui.searchForNodes", { defaultValue: "Search for nodes..." })}
+                placeholder={t("editor:ui.searchForNodes", { defaultValue: "Search for nodes..." })}
                 debounceTime={80}
                 width={300}
                 maxWidth={"300px"}

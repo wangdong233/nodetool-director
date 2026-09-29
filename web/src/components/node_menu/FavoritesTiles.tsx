@@ -18,6 +18,7 @@ import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const tooltipHintStyle: CSSProperties = {
   fontSize: "var(--fontSizeSmaller)",
@@ -147,6 +148,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
   showEmpty = false,
   hideHeader = false
 }: FavoritesTilesProps = {}) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -294,8 +296,8 @@ const FavoritesTiles = memo(function FavoritesTiles({
         )}
         <EmptyState
           size="small"
-          title={i18n.t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
-          description={i18n.t("editor:ui.clickTheStarNextToAnyNodeToAddItHere")}
+          title={t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
+          description={t("editor:ui.clickTheStarNextToAnyNodeToAddItHere")}
         />
       </Box>
     );
@@ -310,12 +312,12 @@ const FavoritesTiles = memo(function FavoritesTiles({
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            tooltip={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
             tooltipPlacement="top"
             size="small"
             className="clear-button"
             onClick={() => setClearConfirmOpen(true)}
-            aria-label={i18n.t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            aria-label={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
           />
         </div>
       )}
@@ -331,7 +333,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
                 <div>
                   <div>{displayName}</div>
                   <div style={tooltipHintStyle}>
-                    {i18n.t("editor:ui.clickToPlaceDragToCanvas")}
+                    {t("editor:ui.clickToPlaceDragToCanvas")}
                   </div>
                 </div>
               }
@@ -378,10 +380,10 @@ const FavoritesTiles = memo(function FavoritesTiles({
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearFavorites}
-        title={i18n.t("editor:ui.clearAllFavorites")}
+        title={t("editor:ui.clearAllFavorites")}
         content={`This removes all ${favorites.length} favorite nodes. This cannot be undone.`}
-        confirmText={i18n.t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         notificationMessage="Favorites cleared"
         notificationType="success"
       />

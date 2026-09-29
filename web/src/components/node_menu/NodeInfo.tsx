@@ -25,7 +25,7 @@ import {
   isKieVagueBillingSummary,
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NodeInfoProps {
   nodeMetadata: NodeMetadata;
@@ -185,6 +185,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
   menuWidth = 300,
   showConnections = true
 }) => {
+  const { t } = useTranslation();
   const searchTerm = useNodeMenuStore((state) => state.searchTerm);
   const setSearchTerm = useNodeMenuStore((state) => state.setSearchTerm);
 
@@ -319,7 +320,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
       {showConnections && (
         <div className="inputs-outputs">
           <div className="inputs">
-            <Text size="big">{i18n.t("editor:ui.inputs", { defaultValue: "Inputs" })}</Text>
+            <Text size="big">{t("editor:ui.inputs", { defaultValue: "Inputs" })}</Text>
             {nodeMetadata.properties.map((property) => (
               <div key={property.name} className="item">
                 <Tooltip
@@ -353,7 +354,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
             ))}
           </div>
           <div className="outputs">
-            <Text size="big">{i18n.t("editor:ui.outputs", { defaultValue: "Outputs" })}</Text>
+            <Text size="big">{t("editor:ui.outputs", { defaultValue: "Outputs" })}</Text>
             {nodeMetadata.outputs.map((property) => (
               <div key={property.name} className="item">
                 <Text className="property">{property.name}</Text>

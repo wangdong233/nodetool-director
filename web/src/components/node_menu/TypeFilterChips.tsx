@@ -24,6 +24,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TypeFilterChipsProps {
   selectedInputType: string;
@@ -244,6 +245,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
     selectedOutputType,
     setSelectedOutputType
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const chipsStyles = useMemo(() => typeFilterChipsStyles(theme), [theme]);
     const { selectedProviderType, setSelectedProviderType } = useNodeMenuStore(
@@ -373,7 +375,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             <Chip
               className={`provider-quick-chip ${selectedProviderType === "local" ? "selected" : ""}`}
               size="small"
-              label={i18n.t("ui2:attrs.local", { defaultValue: "Local" })}
+              label={t("ui2:attrs.local", { defaultValue: "Local" })}
               onClick={handleLocalProviderClick}
             />
             <Chip
@@ -383,7 +385,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               onClick={handleApiProviderClick}
             />
           </Box>
-          <span className="quick-label">{i18n.t("editor:ui.output", { defaultValue: "Output:" })}</span>
+          <span className="quick-label">{t("editor:ui.output", { defaultValue: "Output:" })}</span>
           <Box className="type-chips filter-section">
             {TYPE_CATEGORIES.map((type) => (
               <Tooltip
@@ -421,7 +423,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             startIcon={<FilterListIcon fontSize="small" />}
             onClick={handleOpenMenu}
           >
-            {i18n.t("editor:ui.filters")}
+            {t("editor:ui.filters")}
           </EditorButton>
           <span className="node-count">
             {totalNodeCount} {totalNodeCount === 1 ? "node" : "nodes"}
@@ -456,7 +458,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   marginBottom: getSpacingPx(SPACING.xl)
                 }}
               >
-                {i18n.t("editor:ui.filterNodesByInputAndOutputDataTypes")}
+                {t("editor:ui.filterNodesByInputAndOutputDataTypes")}
               </Text>
             </Box>
 
@@ -465,7 +467,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              {i18n.t("editor:ui.inputType")}
+              {t("editor:ui.inputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -486,7 +488,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder={i18n.t("editor:ui.searchInputType", { defaultValue: "Search input type..." })}
+                  placeholder={t("editor:ui.searchInputType", { defaultValue: "Search input type..." })}
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search input type"
@@ -516,7 +518,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              {i18n.t("editor:ui.outputType")}
+              {t("editor:ui.outputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -537,7 +539,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder={i18n.t("editor:ui.searchOutputType", { defaultValue: "Search output type..." })}
+                  placeholder={t("editor:ui.searchOutputType", { defaultValue: "Search output type..." })}
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search output type"

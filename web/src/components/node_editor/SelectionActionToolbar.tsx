@@ -31,7 +31,7 @@ import { useSelectionActions } from "../../hooks/useSelectionActions";
 import { useRunSelectedNodes } from "../../hooks/nodes/useRunSelectedNodes";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SelectionActionToolbarProps {
   visible: boolean;
@@ -71,24 +71,28 @@ const ActionButton: React.FC<{
   button: ToolbarAction;
   active?: boolean;
   placement?: "top" | "bottom";
-}> = ({ button, active = false, placement = "top" }) => (
-  <ToolbarIconButton
-    icon={button.icon}
-    tooltip={tooltipFor(button.slug, button.label)}
-    ariaLabel={i18n.t(`editor:ui.${"labelKey" in button ? button.labelKey : ""}`, { defaultValue: button.label })}
-    onClick={button.action}
-    disabled={button.disabled}
-    variant={active ? "primary" : "default"}
-    active={active}
-    size="small"
-    nodrag
-    tooltipPlacement={placement}
-    sx={actionButtonSx}
-  />
-);
+}> = ({ button, active = false, placement = "top" }) => {
+  const { t } = useTranslation();
+  return (
+    <ToolbarIconButton
+      icon={button.icon}
+      tooltip={tooltipFor(button.slug, button.label)}
+      ariaLabel={t(`editor:ui.${"labelKey" in button ? button.labelKey : ""}`, { defaultValue: button.label })}
+      onClick={button.action}
+      disabled={button.disabled}
+      variant={active ? "primary" : "default"}
+      active={active}
+      size="small"
+      nodrag
+      tooltipPlacement={placement}
+      sx={actionButtonSx}
+    />
+  );
+};
 
 const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
   ({ visible, onClose }) => {
+    const { t } = useTranslation();
     // getSelectedNodeCount avoids re-renders on node move (getSelectedNodes
     // returns a fresh array each time a node is dragged).
     const selectedCount = useNodes((state) => state.getSelectedNodeCount());
@@ -130,73 +134,73 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       () => [
         {
           icon: <AlignHorizontalLeft fontSize="small" />,
-          label: i18n.t("editor:ui.alignLeft", { defaultValue: "Align Left" }), labelKey: "alignLeft",
+          label: t("editor:ui.alignLeft", { defaultValue: "Align Left" }), labelKey: "alignLeft",
           slug: "alignLeft",
           action: selectionActions.alignLeft
         },
         {
           icon: <AlignHorizontalCenter fontSize="small" />,
-          label: i18n.t("editor:ui.alignCenter", { defaultValue: "Align Center" }), labelKey: "alignCenter",
+          label: t("editor:ui.alignCenter", { defaultValue: "Align Center" }), labelKey: "alignCenter",
           slug: "alignCenter",
           action: selectionActions.alignCenter
         },
         {
           icon: <AlignHorizontalRight fontSize="small" />,
-          label: i18n.t("editor:ui.alignRight", { defaultValue: "Align Right" }), labelKey: "alignRight",
+          label: t("editor:ui.alignRight", { defaultValue: "Align Right" }), labelKey: "alignRight",
           slug: "alignRight",
           action: selectionActions.alignRight
         }
       ],
-      [selectionActions]
+      [selectionActions, t]
     );
 
     const verticalAlign = useMemo<ToolbarAction[]>(
       () => [
         {
           icon: <AlignVerticalTop fontSize="small" />,
-          label: i18n.t("editor:ui.alignTop", { defaultValue: "Align Top" }), labelKey: "alignTop",
+          label: t("editor:ui.alignTop", { defaultValue: "Align Top" }), labelKey: "alignTop",
           slug: "alignTop",
           action: selectionActions.alignTop
         },
         {
           icon: <AlignVerticalCenter fontSize="small" />,
-          label: i18n.t("editor:ui.alignMiddle", { defaultValue: "Align Middle" }), labelKey: "alignMiddle",
+          label: t("editor:ui.alignMiddle", { defaultValue: "Align Middle" }), labelKey: "alignMiddle",
           slug: "alignMiddle",
           action: selectionActions.alignMiddle
         },
         {
           icon: <AlignVerticalBottom fontSize="small" />,
-          label: i18n.t("editor:ui.alignBottom", { defaultValue: "Align Bottom" }), labelKey: "alignBottom",
+          label: t("editor:ui.alignBottom", { defaultValue: "Align Bottom" }), labelKey: "alignBottom",
           slug: "alignBottom",
           action: selectionActions.alignBottom
         }
       ],
-      [selectionActions]
+      [selectionActions, t]
     );
 
     const distributeActions = useMemo<ToolbarAction[]>(
       () => [
         {
           icon: <ViewColumn fontSize="small" />,
-          label: i18n.t("editor:ui.distributeHorizontally", { defaultValue: "Distribute Horizontally" }), labelKey: "distributeHorizontally",
+          label: t("editor:ui.distributeHorizontally", { defaultValue: "Distribute Horizontally" }), labelKey: "distributeHorizontally",
           slug: "distributeHorizontal",
           action: selectionActions.distributeHorizontal
         },
         {
           icon: <ViewStream fontSize="small" />,
-          label: i18n.t("editor:ui.distributeVertically", { defaultValue: "Distribute Vertically" }), labelKey: "distributeVertically",
+          label: t("editor:ui.distributeVertically", { defaultValue: "Distribute Vertically" }), labelKey: "distributeVertically",
           slug: "distributeVertical",
           action: selectionActions.distributeVertical
         }
       ],
-      [selectionActions]
+      [selectionActions, t]
     );
 
     const primaryActions = useMemo<ToolbarAction[]>(
       () => [
         {
           icon: <PlayArrow fontSize="small" />,
-          label: i18n.t("editor:selection.runSelected", { defaultValue: "Run Selected" }), labelKey: "runSelected",
+          label: t("editor:selection.runSelected", { defaultValue: "Run Selected" }), labelKey: "runSelected",
           slug: "runSelected",
           // onClick forwards a MouseEvent; runSelectedNodes treats its first arg
           // as a run count (Math.floor(event) -> NaN -> no-op), so call it bare.
@@ -207,20 +211,20 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
         },
         {
           icon: <ContentCopy fontSize="small" />,
-          label: i18n.t("editor:ui.duplicate", { defaultValue: "Duplicate" }), labelKey: "duplicate",
+          label: t("editor:ui.duplicate", { defaultValue: "Duplicate" }), labelKey: "duplicate",
           slug: "duplicate",
           action: selectionActions.duplicateSelected
         },
         {
           icon: <Layers fontSize="small" />,
-          label: i18n.t("timeline:attrs.group", { defaultValue: "Group" }),
+          label: t("timeline:attrs.group", { defaultValue: "Group" }),
           slug: "groupSelected",
           action: selectionActions.groupSelected,
           disabled: !canArrange
         },
         {
           icon: <PowerSettingsNew fontSize="small" />,
-          label: i18n.t("editor:ui.disable", { defaultValue: "Disable" }), labelKey: "disable",
+          label: t("editor:ui.disable", { defaultValue: "Disable" }), labelKey: "disable",
           slug: "bypassNode",
           action: selectionActions.bypassSelected
         }
@@ -231,18 +235,18 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
         isWorkflowRunning,
         runSelectedNodes,
         selectedCount,
-        selectionActions
+        selectionActions, t
       ]
     );
 
     const deleteAction = useMemo<ToolbarAction>(
       () => ({
         icon: <Delete fontSize="small" />,
-        label: i18n.t("common:action.delete", { defaultValue: "Delete" }),
+        label: t("common:action.delete", { defaultValue: "Delete" }),
         slug: "deleteSelected",
         action: selectionActions.deleteSelected
       }),
-      [selectionActions]
+      [selectionActions, t]
     );
 
     if (!visible) {
@@ -253,7 +257,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
       <FlexRow
         className="selection-action-toolbar"
         role="region"
-        aria-label={i18n.t("editor:ui.selectionActionToolbar", { defaultValue: "Selection Action Toolbar" })}
+        aria-label={t("editor:ui.selectionActionToolbar", { defaultValue: "Selection Action Toolbar" })}
         onKeyDown={handleKeyDown}
         gap={0.5}
         align="center"
@@ -277,8 +281,8 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
               <ArrowDropDown fontSize="small" />
             </>
           }
-          tooltip={i18n.t("editor:ui.arrangeAlignAndDistribute", { defaultValue: "Arrange — align & distribute" })}
-          ariaLabel={i18n.t("editor:ui.arrange", { defaultValue: "Arrange" })}
+          tooltip={t("editor:ui.arrangeAlignAndDistribute", { defaultValue: "Arrange — align & distribute" })}
+          ariaLabel={t("editor:ui.arrange", { defaultValue: "Arrange" })}
           onClick={openArrange}
           active={arrangeOpen}
           variant={arrangeOpen ? "primary" : "default"}
@@ -343,7 +347,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
               color="muted"
               sx={CAPTION_SX}
             >
-              {i18n.t("editor:ui.distribute")}
+              {t("editor:ui.distribute")}
             </Caption>
             <FlexRow gap={0.5} align="center">
               {distributeActions.map((button) => (

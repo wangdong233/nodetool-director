@@ -1,6 +1,5 @@
 import React, { memo, useMemo } from "react";
 import { DataType } from "../../config/data_types";
-import { i18n } from "../../i18n";
 
 interface EdgeGradientDefinitionsProps {
   dataTypes: DataType[];

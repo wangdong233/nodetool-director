@@ -18,7 +18,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NamespaceListProps {
   namespaceTree: NamespaceTree;
@@ -320,6 +320,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
   selectedPathString: string;
   minSearchTermLength: number;
 }) {
+  const { t } = useTranslation();
   const openPacksPanel = useOpenPackageManager();
 
   return (
@@ -329,7 +330,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <p>
             {selectedPathString ? (
               <>
-                {i18n.t("editor:ui.nothingFoundInThisNamespaceFor")}
+                {t("editor:ui.nothingFoundInThisNamespaceFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -337,7 +338,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
               </>
             ) : (
               <>
-                {i18n.t("editor:ui.nothingFoundFor")}
+                {t("editor:ui.nothingFoundFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -371,7 +372,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
             padding: getSpacingPx(SPACING.xl)
           }}
         >
-          {i18n.t("editor:ui.installAdditionalNodePacks")}
+          {t("editor:ui.installAdditionalNodePacks")}
         </EditorButton>
       </div>
     </div>

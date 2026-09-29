@@ -10,7 +10,7 @@ import { useShallow } from "zustand/react/shallow";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { HomeNamespaceIcon } from "./NamespaceIcon";
 import OptionalPacksSection from "./OptionalPacksSection";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NamespacePanelProps {
   namespaceTree: NamespaceTree;
@@ -177,6 +177,7 @@ const namespacePanelStyles = (theme: Theme) =>
   });
 
 const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const panelStyles = useMemo(() => namespacePanelStyles(theme), [theme]);
   const { searchTerm, selectedPath, setSelectedPath } = useNodeMenuStore(
@@ -262,23 +263,23 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
             tabIndex={0}
             title={
               searchTerm.length > minSearchTermLength
-                ? i18n.t("editor:ui.showAllResults", { defaultValue: "Show all results" })
-                : i18n.t("editor:ui.home", { defaultValue: "Home" })
+                ? t("editor:ui.showAllResults", { defaultValue: "Show all results" })
+                : t("editor:ui.home", { defaultValue: "Home" })
             }
           >
             <div className="namespace-item">
               <HomeNamespaceIcon />
               <span className="namespace-label">
                 {searchTerm.length > minSearchTermLength
-                  ? i18n.t("editor:ui.allResults", { defaultValue: "All results" })
-                  : i18n.t("editor:ui.home", { defaultValue: "Home" })}
+                  ? t("editor:ui.allResults", { defaultValue: "All results" })
+                  : t("editor:ui.home", { defaultValue: "Home" })}
               </span>
             </div>
           </div>
         </div>
         {Object.keys(localTree).length > 0 && (
           <>
-            <Text className="namespace-section-title">{i18n.t("ui2:attrs.local", { defaultValue: "Local" })}</Text>
+            <Text className="namespace-section-title">{t("ui2:attrs.local", { defaultValue: "Local" })}</Text>
             <div className="namespace-list-local">
               <RenderNamespaces tree={localTree} />
             </div>

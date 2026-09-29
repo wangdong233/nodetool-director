@@ -17,7 +17,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   QUICK_ACTION_BUTTONS,
   CONSTANT_NODES,
@@ -158,6 +158,7 @@ const tileStyles = (theme: Theme) =>
   });
 
 const QuickActionTiles = memo(function QuickActionTiles() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -301,7 +302,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             iconColor
           } = definition;
           const label = QUICK_ACTION_LABEL_KEYS[key]
-            ? i18n.t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            ? t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
             : definition.label;
           return (
             <Tooltip
@@ -310,7 +311,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label}</div>
                   <div style={tooltipSubtitleStyle}>
-                    {i18n.t("editor:ui.clickToPlaceShiftClickToAutoAdd")}
+                    {t("editor:ui.clickToPlaceShiftClickToAutoAdd")}
                   </div>
                 </div>
               }
@@ -357,7 +358,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
         })}
       </div>
       <div className="tiles-header" style={constantsHeaderStyle}>
-        <Text size="normal" weight={600}>{i18n.t("ui2:attrs.constants", { defaultValue: "Constants" })}</Text>
+        <Text size="normal" weight={600}>{t("ui2:attrs.constants", { defaultValue: "Constants" })}</Text>
       </div>
       <div className="constants-container">
         {CONSTANT_NODES.map((definition) => {
@@ -372,7 +373,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             iconColor
           } = definition;
           const label = QUICK_ACTION_LABEL_KEYS[key]
-            ? i18n.t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            ? t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
             : definition.label;
           return (
             <Tooltip
@@ -381,7 +382,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label} Constant</div>
                   <div style={tooltipSubtitleStyle}>
-                    {i18n.t("editor:ui.clickToPlace")}
+                    {t("editor:ui.clickToPlace")}
                   </div>
                 </div>
               }

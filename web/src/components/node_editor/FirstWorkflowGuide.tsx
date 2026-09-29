@@ -2,7 +2,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 import { EditorButton } from "../editor_ui";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   CloseButton,
@@ -56,13 +56,14 @@ const FirstWorkflowGuide = ({
   onChooseOwn,
   onClose
 }: FirstWorkflowGuideProps) => {
+  const { t } = useTranslation();
   if (hasSavedWorkflows !== false) {
     return null;
   }
 
   return (
     <Surface
-      aria-label={i18n.t("editor:ui.firstWorkflowGuide", { defaultValue: "First workflow guide" })}
+      aria-label={t("editor:ui.firstWorkflowGuide", { defaultValue: "First workflow guide" })}
       bordered
       elevation={3}
       padding={SPACING.xl}
@@ -77,33 +78,33 @@ const FirstWorkflowGuide = ({
       <FlexColumn gap={SPACING.lg}>
         <FlexRow align="flex-start" justify="space-between" gap={SPACING.lg}>
           <FlexColumn gap={SPACING.xs}>
-            <Text size="big">{i18n.t("ui2:attrs.buildYourFirstUsefulWorkflow", { defaultValue: "Build your first useful workflow" })}</Text>
+            <Text size="big">{t("ui2:attrs.buildYourFirstUsefulWorkflow", { defaultValue: "Build your first useful workflow" })}</Text>
             <Caption>
               Connect a text input to an output, run it, and see the result.
               This starter needs no model or provider setup.
             </Caption>
           </FlexColumn>
           {started ? (
-            <CloseButton onClick={onClose} tooltip={i18n.t("editor:ui.closeGuide", { defaultValue: "Close guide" })} />
+            <CloseButton onClick={onClose} tooltip={t("editor:ui.closeGuide", { defaultValue: "Close guide" })} />
           ) : null}
         </FlexRow>
 
         {started ? (
           <FlexColumn component="ol" gap={SPACING.sm} sx={{ m: 0, p: 0 }}>
             <ReadinessItem complete={readiness.input}>
-              {i18n.t("editor:ui.inputAdded")}
+              {t("editor:ui.inputAdded")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.output}>
-              {i18n.t("editor:ui.outputAdded")}
+              {t("editor:ui.outputAdded")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.connection}>
-              {i18n.t("editor:ui.inputConnectedToOutput")}
+              {t("editor:ui.inputConnectedToOutput")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.saved}>
-              {i18n.t("editor:ui.workflowSaved")}
+              {t("editor:ui.workflowSaved")}
             </ReadinessItem>
             <ReadinessItem complete={readiness.run}>
-              {i18n.t("editor:ui.workflowRunCompleted")}
+              {t("editor:ui.workflowRunCompleted")}
             </ReadinessItem>
           </FlexColumn>
         ) : (
@@ -112,7 +113,7 @@ const FirstWorkflowGuide = ({
               Add the two-node starter
             </EditorButton>
             <EditorButton variant="outlined" onClick={onChooseOwn}>
-              {i18n.t("editor:ui.chooseMyOwnNodes")}
+              {t("editor:ui.chooseMyOwnNodes")}
             </EditorButton>
           </FlexRow>
         )}

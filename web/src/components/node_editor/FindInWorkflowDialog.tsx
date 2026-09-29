@@ -23,7 +23,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ClearIcon from "@mui/icons-material/Clear";
 import { CloseButton, SHADOW } from "../ui_primitives";
 import { useFindInWorkflow } from "../../hooks/useFindInWorkflow";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -213,6 +213,7 @@ interface FindInWorkflowDialogProps {
 
 const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
   ({ workflowId: _workflowId }: FindInWorkflowDialogProps) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const cssStyles = useMemo(() => styles(theme), [theme]);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -335,10 +336,10 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
           <Box className="search-input-wrapper">
             <input
               ref={inputRef}
-              aria-label={i18n.t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
+              aria-label={t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
               className="search-input"
               type="text"
-              placeholder={i18n.t("editor:ui.findNodes")}
+              placeholder={t("editor:ui.findNodes")}
               value={searchTerm}
               onChange={handleInputChange}
             />
@@ -346,7 +347,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               <button
                 type="button"
                 className="clear-button"
-                aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
+                aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onClick={handleClear}
               >
                 <ClearIcon fontSize="small" />
@@ -359,8 +360,8 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               className="nav-button"
               onClick={navigatePrevious}
               disabled={results.length === 0}
-              title={i18n.t("editor:ui.previousShift+Enter", { defaultValue: "Previous (Shift+Enter)" })}
-              aria-label={i18n.t("editor:ui.previousMatch", { defaultValue: "Previous match" })}
+              title={t("editor:ui.previousShift+Enter", { defaultValue: "Previous (Shift+Enter)" })}
+              aria-label={t("editor:ui.previousMatch", { defaultValue: "Previous match" })}
             >
               <ArrowUpwardIcon fontSize="small" />
             </button>
@@ -369,15 +370,15 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               className="nav-button"
               onClick={navigateNext}
               disabled={results.length === 0}
-              title={i18n.t("editor:ui.nextEnter", { defaultValue: "Next (Enter)" })}
-              aria-label={i18n.t("editor:ui.nextMatch", { defaultValue: "Next match" })}
+              title={t("editor:ui.nextEnter", { defaultValue: "Next (Enter)" })}
+              aria-label={t("editor:ui.nextMatch", { defaultValue: "Next match" })}
             >
               <ArrowDownwardIcon fontSize="small" />
             </button>
           </Box>
           <CloseButton
             onClick={closeFind}
-            tooltip={i18n.t("editor:ui.closeEscape", { defaultValue: "Close (Escape)" })}
+            tooltip={t("editor:ui.closeEscape", { defaultValue: "Close (Escape)" })}
             buttonSize="small"
             nodrag={false}
             sx={{ marginLeft: getSpacingPx(SPACING.md) }}
@@ -391,9 +392,9 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               {results.length !== 1 ? "s" : ""} found
             </>
           ) : searchTerm ? (
-            <>{i18n.t("ui2:attrs.noNodesFound", { defaultValue: "No nodes found" })}</>
+            <>{t("ui2:attrs.noNodesFound", { defaultValue: "No nodes found" })}</>
           ) : (
-            <>{i18n.t("ui2:attrs.typeToSearchNodes", { defaultValue: "Type to search nodes" })}</>
+            <>{t("ui2:attrs.typeToSearchNodes", { defaultValue: "Type to search nodes" })}</>
           )}
         </Box>
 
@@ -434,7 +435,7 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
         ) : searchTerm ? (
           <Box className="empty-state">
             <SearchIcon className="empty-icon" />
-            <Text className="empty-text">{i18n.t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</Text>
+            <Text className="empty-text">{t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</Text>
           </Box>
         ) : null}
       </Box>

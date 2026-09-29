@@ -20,7 +20,7 @@ import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const QUICK_ACTION_NODE_TYPES = new Set(
   QUICK_ACTION_BUTTONS.map((action) => action.nodeType)
@@ -157,6 +157,7 @@ const tileStyles = (theme: Theme) =>
   });
 
 const RecentNodesTiles = memo(function RecentNodesTiles() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -309,15 +310,15 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>{i18n.t("ui2:attrs.recentNodes", { defaultValue: "Recent Nodes" })}</Text>
+        <Text size="normal" weight={600}>{t("ui2:attrs.recentNodes", { defaultValue: "Recent Nodes" })}</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
-          tooltip={i18n.t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
+          tooltip={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
           tooltipPlacement="top"
           size="small"
           className="clear-button"
           onClick={() => setClearConfirmOpen(true)}
-          aria-label={i18n.t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
+          aria-label={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
         />
       </div>
       <div className="tiles-container">
@@ -341,7 +342,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
                       marginTop: getSpacingPx(SPACING.xs)
                     }}
                   >
-                    {i18n.t("editor:ui.clickToPlaceDragToCanvas")}
+                    {t("editor:ui.clickToPlaceDragToCanvas")}
                   </div>
                 </div>
               }
@@ -379,10 +380,10 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearRecent}
-        title={i18n.t("editor:ui.clearRecentNodes")}
-        content={i18n.t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone")}
-        confirmText={i18n.t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={t("editor:ui.clearRecentNodes")}
+        content={t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone")}
+        confirmText={t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         notificationMessage="Recent nodes cleared"
         notificationType="success"
       />

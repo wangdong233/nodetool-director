@@ -11,7 +11,7 @@ import { colorForType } from "../../config/data_types";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { nodeTypeDisplayName } from "../../constants/nodeTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const rowStyles = (theme: Theme) =>
   css({
@@ -82,6 +82,7 @@ interface NodeLibraryRowProps {
  */
 const NodeLibraryRow = memo<NodeLibraryRowProps>(
   ({ node, onDragStart, onDragEnd, onClick, onHover }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const outputType =
       node.outputs.length > 0 ? node.outputs[0].type.type : "";
@@ -177,7 +178,7 @@ const NodeLibraryRow = memo<NodeLibraryRowProps>(
           {node.title}
           {node.deprecated && (
             <Caption component="span" sx={{ marginLeft: getSpacingPx(SPACING.sm), color: "warning.main" }}>
-              {i18n.t("editor:ui.deprecated")}
+              {t("editor:ui.deprecated")}
             </Caption>
           )}
         </Text>

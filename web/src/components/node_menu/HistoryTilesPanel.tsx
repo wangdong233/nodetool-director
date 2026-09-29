@@ -6,7 +6,7 @@ import { EmptyState, FlexColumn } from "../ui_primitives";
 import SearchResultsPanel from "./SearchResultsPanel";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useRecentNodesStore } from "../../stores/RecentNodesStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = () =>
   css({
@@ -31,6 +31,7 @@ const styles = () =>
  * resolved against MetadataStore. Same compact row style as Search.
  */
 const HistoryTilesPanel = memo(() => {
+  const { t } = useTranslation();
   const recent = useRecentNodesStore((s) => s.recentNodes);
   const metadataRecord = useMetadataStore((s) => s.metadata);
 
@@ -48,8 +49,8 @@ const HistoryTilesPanel = memo(() => {
         {nodes.length === 0 ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
-              title={i18n.t("editor:ui.noRecentNodesYet", { defaultValue: "No recent nodes yet" })}
-              description={i18n.t("editor:ui.nodesYouUseWillAppearHere")}
+              title={t("editor:ui.noRecentNodesYet", { defaultValue: "No recent nodes yet" })}
+              description={t("editor:ui.nodesYouUseWillAppearHere")}
             />
           </FlexColumn>
         ) : (

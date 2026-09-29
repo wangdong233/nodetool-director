@@ -4,7 +4,6 @@ import RenderNamespaces from "./RenderNamespaces";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import NamespaceIcon from "./NamespaceIcon";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
-import { i18n } from "../../i18n";
 
 interface NamespaceItemProps {
   namespace: string;

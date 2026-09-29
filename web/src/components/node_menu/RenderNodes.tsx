@@ -15,7 +15,7 @@ import ApiKeyValidation from "../node/ApiKeyValidation";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface RenderNodesProps {
   nodes: NodeMetadata[];
@@ -82,6 +82,7 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
   onToggleSelection,
   showFavoriteButton = true
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { setDragToCreate, groupedSearchResults, searchTerm } =
     useNodeMenuStore(
@@ -287,18 +288,18 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
               Browse Nodes
             </Text>
             <ul>
-              <li>{i18n.t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
+              <li>{t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
             </ul>
 
-            <Text size="normal" weight={600}>{i18n.t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
+            <Text size="normal" weight={600}>{t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
             <ul>
-              <li>{i18n.t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
+              <li>{t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
             </ul>
 
-            <Text size="normal" weight={600}>{i18n.t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>
+            <Text size="normal" weight={600}>{t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>
             <ul>
-              <li>{i18n.t("ui2:attrs.clickOnANode", { defaultValue: "Click on a node" })}</li>
-              <li>{i18n.t("ui2:attrs.dragANodeOntoTheCanvas", { defaultValue: "Drag a node onto the canvas" })}</li>
+              <li>{t("ui2:attrs.clickOnANode", { defaultValue: "Click on a node" })}</li>
+              <li>{t("ui2:attrs.dragANodeOntoTheCanvas", { defaultValue: "Drag a node onto the canvas" })}</li>
             </ul>
           </div>
         </div>

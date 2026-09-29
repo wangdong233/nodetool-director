@@ -35,7 +35,7 @@ import { useReactFlow } from "@xyflow/react";
 import isEqual from "../../utils/isEqual";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -146,6 +146,7 @@ const QuickAddNodeDialog: React.FC<QuickAddNodeDialogProps> = ({
   setOpen,
   reactFlowWrapper
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -257,23 +258,23 @@ const QuickAddNodeDialog: React.FC<QuickAddNodeDialogProps> = ({
       open={open}
       onClose={handleClose}
       className="quick-add-node-dialog"
-      aria-label={i18n.t("editor:ui.quickAddNode")}
+      aria-label={t("editor:ui.quickAddNode")}
     >
       <div css={cssStyles}>
-        <Command label={i18n.t("editor:ui.quickAddNode", { defaultValue: "Quick Add Node" })} className="command-menu" shouldFilter={false}>
+        <Command label={t("editor:ui.quickAddNode", { defaultValue: "Quick Add Node" })} className="command-menu" shouldFilter={false}>
           <div className="command-input">
             <CommandInput
               ref={inputRef}
               value={searchTerm}
               onValueChange={handleValueChange}
-              placeholder={i18n.t("editor:ui.searchNodesByNameTypeOrNamespace", { defaultValue: "Search nodes by name, type, or namespace..." })}
+              placeholder={t("editor:ui.searchNodesByNameTypeOrNamespace", { defaultValue: "Search nodes by name, type, or namespace..." })}
             />
           </div>
 
           <Command.List className="command-list">
             <Command.Empty className="empty-state">
               <Text size="small">
-                {searchTerm ? i18n.t("editor:ui.noMatchingNodesFound", { defaultValue: "No matching nodes found" }) : i18n.t("editor:ui.typeToSearchForNodes", { defaultValue: "Type to search for nodes..." })}
+                {searchTerm ? t("editor:ui.noMatchingNodesFound", { defaultValue: "No matching nodes found" }) : t("editor:ui.typeToSearchForNodes", { defaultValue: "Type to search for nodes..." })}
               </Text>
             </Command.Empty>
 

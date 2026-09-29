@@ -14,7 +14,8 @@ import {
 } from "../../config/quickAccessCategories";
 import type { LeftPanelTopLevelCategory } from "../../config/quickAccessCategories";
 import type { LeftPanelView } from "../../stores/PanelStore";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface QuickAccessSidebarProps {
   readonly activeCategory: LeftPanelView | "";
@@ -33,9 +34,10 @@ const QuickAccessButton = ({
   active,
   onCategoryClick
 }: QuickAccessButtonProps) => {
+  const { t } = useTranslation();
   // Subscribe so catalog reads re-render on language change.
   useAppLanguage();
-  const label = i18n.t(`nav:qa.${category.id}.label`, {
+  const label = t(`nav:qa.${category.id}.label`, {
     defaultValue: category.label
   });
   const handleClick = useCallback(

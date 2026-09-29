@@ -33,6 +33,7 @@ import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { createErrorMessage } from "../../utils/errorHandling";
 import type { MissingRuntime } from "../../hooks/useWorkflowRuntimeCheck";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type RuntimeStatus = "pending" | "installing" | "installed" | "failed";
 
@@ -105,6 +106,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
   open,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const openPackageManager = useOpenPackageManager();
   const [installing, setInstalling] = useState(false);
@@ -176,18 +178,18 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
       ? "Installing…"
       : failedCount > 0
         ? "Retry"
-        : i18n.t("editor:ui.installAll2", { defaultValue: "Install all" });
+        : t("editor:ui.installAll2", { defaultValue: "Install all" });
 
   return (
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      title={i18n.t("editor:ui.installRequiredRuntimes", { defaultValue: "Install required runtimes" })}
+      title={t("editor:ui.installRequiredRuntimes", { defaultValue: "Install required runtimes" })}
       minWidth="min(440px, 100vw - 32px)"
       onConfirm={allInstalled ? onClose : handleInstall}
       onCancel={onClose}
       confirmText={confirmText}
-      cancelText={i18n.t("editor:ui.later", { defaultValue: "Later" })}
+      cancelText={t("editor:ui.later", { defaultValue: "Later" })}
       isLoading={installing}
     >
       <FlexColumn gap={2}>
@@ -250,7 +252,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
               opacity: installing ? 0.5 : 1,
             }}
           >
-            {i18n.t("editor:ui.openPackageManagerInstead")}
+            {t("editor:ui.openPackageManagerInstead")}
           </Text>
         )}
       </FlexColumn>

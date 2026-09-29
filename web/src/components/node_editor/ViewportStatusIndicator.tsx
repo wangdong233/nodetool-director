@@ -25,7 +25,7 @@ import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -41,6 +41,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
   showPortLabels = false,
   onTogglePortLabels
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const zoom = useStore((s) => s.transform[2]);
   const { zoomTo, fitView, getNodes } = useReactFlow();
@@ -191,7 +192,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
             <Box>
               <Box>{getShortcutTooltip("resetZoom")}</Box>
               <Box sx={{ mt: 0.5, fontSize: "var(--fontSizeSmaller)", opacity: 0.8 }}>
-                {i18n.t("editor:ui.clickForZoomPresets")}
+                {t("editor:ui.clickForZoomPresets")}
               </Box>
             </Box>
           }
@@ -235,7 +236,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<FilterCenterFocusIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip={i18n.t("editor:ui.fitSelection", { defaultValue: "Fit selection" })}
+          tooltip={t("editor:ui.fitSelection", { defaultValue: "Fit selection" })}
           tooltipPlacement="top"
           onClick={handleFitSelection}
           size="small"
@@ -245,10 +246,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         {onTogglePortLabels ? (
           <ToolbarIconButton
             icon={<LabelOutlinedIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-            tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
+            tooltip={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
-            ariaLabel={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
+            ariaLabel={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             aria-pressed={showPortLabels}
             size="small"
             sx={zoomButtonSx}
