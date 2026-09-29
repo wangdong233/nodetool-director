@@ -1181,7 +1181,7 @@ function SettingsPage() {
                         id="browser-extension"
                         className="settings-heading"
                       >
-                        Browser Extension
+                        {i18n.t("editor:ui.browserExtension")}
                       </Text>
                       <BrowserExtensionSettingsMenu />
                     </>

@@ -2697,7 +2697,8 @@
     "oneLine": "line",
     "nLinesUnit": "lines",
     "oneClip": "clip",
-    "renderClips": "Render clips"
+    "renderClips": "Render clips",
+    "removeServerConfirmBody": "Remove {{name}}? Its tools leave the agent's toolbelt."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

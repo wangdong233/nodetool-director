@@ -273,7 +273,7 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleEdit}
         >
-          Edit
+          {i18n.t("editor:ui.edit")}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -283,7 +283,7 @@ const ServerRow = memo(function ServerRow({
           startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
           onClick={handleDelete}
         >
-          Remove
+          {i18n.t("editor:ui.remove")}
         </EditorButton>
       </FlexRow>
     </Card>
@@ -505,7 +505,7 @@ export const ExternalMcpServersSection = memo(
           onConfirm={handleSave}
           onCancel={handleClose}
           confirmText={editingId ? "Save" : "Add"}
-          cancelText="Cancel"
+          cancelText={i18n.t("editor:ui.cancel", { defaultValue: "Cancel" })}
           confirmDisabled={
             Boolean(draftIdError) || Boolean(transportError) || duplicateId
           }
@@ -648,9 +648,9 @@ export const ExternalMcpServersSection = memo(
         <ConfirmDialog
           open={Boolean(pendingDelete)}
           title={i18n.t("editor:ui.removeServer", { defaultValue: "Remove server" })}
-          content={`Remove ${pendingDelete?.name ?? ""}? Its tools leave the agent's toolbelt.`}
+          content={i18n.t("editor:ui.removeServerConfirmBody", { name: pendingDelete?.name ?? "" })}
           confirmText={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
-          cancelText="Cancel"
+          cancelText={i18n.t("editor:ui.cancel", { defaultValue: "Cancel" })}
           onConfirm={confirmDelete}
           onClose={handleCancelDelete}
         />

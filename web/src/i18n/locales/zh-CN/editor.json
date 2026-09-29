@@ -2697,7 +2697,8 @@
     "oneLine": "行",
     "nLinesUnit": "行",
     "oneClip": "个片段",
-    "renderClips": "渲染片段"
+    "renderClips": "渲染片段",
+    "removeServerConfirmBody": "移除 {{name}}?其工具将从智能体工具栏移除。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
