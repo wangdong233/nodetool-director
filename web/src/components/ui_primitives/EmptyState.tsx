@@ -9,7 +9,7 @@ import SearchOffIcon from "@mui/icons-material/SearchOff";
 import FolderOffIcon from "@mui/icons-material/FolderOff";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme, size: string) =>
   css({
@@ -117,6 +117,7 @@ export const EmptyState: React.FC<EmptyStateProps> = memo(({
   size = "medium",
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const defaults = defaultContent[variant];
 
@@ -124,12 +125,12 @@ export const EmptyState: React.FC<EmptyStateProps> = memo(({
   const displayTitle =
     title ||
     ("titleKey" in defaults && defaults.titleKey
-      ? i18n.t(defaults.titleKey, { defaultValue: defaults.title })
+      ? t(defaults.titleKey, { defaultValue: defaults.title })
       : defaults.title);
   const displayDescription =
     description ||
     ("descriptionKey" in defaults && defaults.descriptionKey
-      ? i18n.t(defaults.descriptionKey, {
+      ? t(defaults.descriptionKey, {
           defaultValue: defaults.description
         })
       : defaults.description);

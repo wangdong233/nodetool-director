@@ -26,6 +26,7 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { isString } from "../../utils/typePredicates";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -111,6 +112,11 @@ export const CopyButton = memo(
       },
       ref
     ) => {
+      // Param-default site above (tooltip default) intentionally stays on the
+      // global i18n instance: parameter defaults evaluate before the body runs,
+      // where the hook's `t` is not yet in scope (migration ruling R4-adjacent;
+      // re-evaluated on every render call, so it tracks language changes).
+      const { t } = useTranslation();
       const theme = useTheme();
       const { writeClipboard } = useClipboard();
       const [state, setState] = useState<"idle" | "copied" | "error">("idle");
@@ -162,7 +168,7 @@ export const CopyButton = memo(
       }, [value, disabled, writeClipboard, onCopySuccess, onCopyError]);
 
       const tooltipText =
-        state === "error" ? i18n.t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? "Copied!" : tooltip;
+        state === "error" ? t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? "Copied!" : tooltip;
 
       const iconSize =
         buttonSize === "small"

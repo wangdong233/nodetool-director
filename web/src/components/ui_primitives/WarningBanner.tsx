@@ -10,7 +10,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { BORDER_RADIUS, MOTION } from "./tokens";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type BannerVariant = "warning" | "error" | "info";
 
@@ -153,6 +153,7 @@ export const WarningBanner: React.FC<WarningBannerProps> = memo(({
   className,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   
   return (
@@ -181,18 +182,18 @@ export const WarningBanner: React.FC<WarningBannerProps> = memo(({
             onKeyDown={(e) => e.key === "Enter" && onAction()}
             role="button"
             tabIndex={0}
-            aria-label={i18n.t("ui:attrs.takeAction", { defaultValue: "Take action" })}
+            aria-label={t("ui:attrs.takeAction", { defaultValue: "Take action" })}
           >
             {action}
           </Box>
         )}
         {dismissible && onDismiss && (
-          <Tooltip title={i18n.t("ui:attrs.dismiss", { defaultValue: "Dismiss" })} enterDelay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title={t("ui:attrs.dismiss", { defaultValue: "Dismiss" })} enterDelay={TOOLTIP_ENTER_DELAY}>
             <IconButton
               className="dismiss-button"
               size="small"
               onClick={onDismiss}
-              aria-label={i18n.t("ui:attrs.dismiss", { defaultValue: "Dismiss" })}
+              aria-label={t("ui:attrs.dismiss", { defaultValue: "Dismiss" })}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
