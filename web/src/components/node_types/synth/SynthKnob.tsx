@@ -12,7 +12,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { BORDER_RADIUS, FONT_WEIGHT } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 import {
   clamp,
@@ -115,11 +115,13 @@ const SynthKnobInner: React.FC<SynthKnobProps> = ({
   onChange,
   onCommit
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const dragStart = useRef<{ y: number; t: number } | null>(null);
 
-  const t = knobNorm(spec, value);
-  const angle = START_DEG + t * SWEEP_DEG;
+  // `norm` (not `t`) — the hook's translation function owns that name here.
+  const norm = knobNorm(spec, value);
+  const angle = START_DEG + norm * SWEEP_DEG;
   // Bipolar knobs fill from their neutral point (where 0 sits); unipolar
   // knobs fill from the minimum.
   const neutralT = spec.bipolar ? knobNorm(spec, 0) : 0;
@@ -202,7 +204,7 @@ const SynthKnobInner: React.FC<SynthKnobProps> = ({
       tabIndex={0}
       aria-label={
         spec.labelKey
-          ? i18n.t(spec.labelKey, { defaultValue: spec.label })
+          ? t(spec.labelKey, { defaultValue: spec.label })
           : spec.label
       }
       aria-valuemin={spec.min}
@@ -253,7 +255,7 @@ const SynthKnobInner: React.FC<SynthKnobProps> = ({
       </div>
       <span className="knob-label">
         {spec.labelKey
-          ? i18n.t(spec.labelKey, { defaultValue: spec.label })
+          ? t(spec.labelKey, { defaultValue: spec.label })
           : spec.label}
       </span>
       <span className="knob-value">{formatKnobValue(spec, value)}</span>

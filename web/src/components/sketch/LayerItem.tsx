@@ -45,7 +45,7 @@ import {
 import type { LayerStatus } from "@nodetool-ai/image-editor";
 import { LAYER_STATUS_MAP } from "./Inspector/layerStatusMapping";
 import { isFunction } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Base left padding for the layer row (px). 0 so the thumbnail sits flush
  *  with the row's left edge — the row background should not stick out past it. */
@@ -155,6 +155,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
   onToggleGroupCollapsed,
   bindingStatus
 }) => {
+  const { t } = useTranslation();
   // The panel still owns the draft name, so mirror each keystroke up before
   // the commit reads it.
   const handleFinishRename = useCallback(() => {
@@ -223,8 +224,8 @@ const LayerItem: React.FC<LayerItemProps> = ({
           onContextMenu(e, layer.id);
         }}
         onDragStart={(e) => {
-          const t = e.target as HTMLElement;
-          if (t.closest("button")) {
+          const target = e.target as HTMLElement;
+          if (target.closest("button")) {
             e.preventDefault();
             return;
           }
@@ -244,7 +245,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
         {isGroup ? (
           <IconButton
             size="small"
-            aria-label={layer.collapsed ? i18n.t("sketch:attrs.expandGroup", { defaultValue: "Expand group" }) : i18n.t("sketch:attrs.collapseGroup", { defaultValue: "Collapse group" })}
+            aria-label={layer.collapsed ? t("sketch:attrs.expandGroup", { defaultValue: "Expand group" }) : t("sketch:attrs.collapseGroup", { defaultValue: "Collapse group" })}
             onClick={(e) => {
               e.stopPropagation();
               onToggleGroupCollapsed?.(layer.id);
@@ -316,14 +317,14 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
         {!isGroup && (
           <Tooltip
-            title={isIsolated ? i18n.t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : i18n.t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
+            title={isIsolated ? t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
             placement="top"
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
               size="small"
-              aria-label={isIsolated ? i18n.t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : i18n.t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
+              aria-label={isIsolated ? t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleIsolateLayer(layer.id);
@@ -346,7 +347,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
         {isEditing ? (
           <InlineEditableText
-            ariaLabel={i18n.t("sketch:attrs.layerName", { defaultValue: "Layer name" })}
+            ariaLabel={t("sketch:attrs.layerName", { defaultValue: "Layer name" })}
             value={layer.name}
             editing
             onDraftChange={onEditNameChange}
@@ -383,7 +384,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               ) : null}
               {layer.alphaLock ? (
                 <Tooltip
-                  title={i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })}
+                  title={t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })}
                   placement="top"
                   enterDelay={SKETCH_TOOLTIP_DELAY_MS}
                   enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -447,7 +448,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
             }}
           >
             <Tooltip
-              title={layer.exposedAsInput === false ? i18n.t("sketch:attrs.inputHidden", { defaultValue: "Input hidden" }) : ""}
+              title={layer.exposedAsInput === false ? t("sketch:attrs.inputHidden", { defaultValue: "Input hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsInput !== false}
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -467,7 +468,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               />
             </Tooltip>
             <Tooltip
-              title={layer.exposedAsOutput === false ? i18n.t("sketch:attrs.outputHidden", { defaultValue: "Output hidden" }) : ""}
+              title={layer.exposedAsOutput === false ? t("sketch:attrs.outputHidden", { defaultValue: "Output hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsOutput !== false}
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}

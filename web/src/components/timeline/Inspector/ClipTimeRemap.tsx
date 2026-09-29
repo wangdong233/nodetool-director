@@ -35,7 +35,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { keyframeRowKeys } from "./InspectorPrimitives.helpers";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   EASING_HINT,
   UNPARSEABLE_EASING_HINT
@@ -63,6 +63,7 @@ interface ClipTimeRemapProps {
 
 export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
   ({ clip }) => {
+    const { t } = useTranslation();
     const [open, setOpen] = usePersistedFold("timeRemap");
     const patchClip = useTimelineStore((s) => s.patchClip);
     const [duplicate, setDuplicate] = useState(false);
@@ -124,11 +125,11 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
       const taken = new Set(current.map((frame) => frame.t));
       const candidate = Math.min(1, (last?.t ?? 0) + 0.1);
       const previous = current[current.length - 2]?.t ?? 0;
-      const t = taken.has(candidate)
+      const nextT = taken.has(candidate)
         ? (previous + (last?.t ?? 1)) / 2
         : candidate;
-      if (taken.has(t)) return;
-      setKeyframes([...current, { t, sourceMs: last?.sourceMs ?? 0 }]);
+      if (taken.has(nextT)) return;
+      setKeyframes([...current, { t: nextT, sourceMs: last?.sourceMs ?? 0 }]);
     }, [setKeyframes]);
 
     const removeKeyframe = useCallback(
@@ -149,7 +150,7 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={i18n.t("timeline:attrs.timeRemap", { defaultValue: "Time remap" })}
+              title={t("timeline:attrs.timeRemap", { defaultValue: "Time remap" })}
               icon={<SpeedOutlinedIcon />}
               checked={keyframes !== undefined}
               onCheckedChange={handleEnabled}
@@ -182,10 +183,10 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                           minWidth={52}
                           scrub={SCRUB_T}
                           onCommit={(raw) => {
-                            const t = Number(raw);
-                            if (!Number.isFinite(t)) return;
+                            const parsed = Number(raw);
+                            if (!Number.isFinite(parsed)) return;
                             patchKeyframe(index, {
-                              t: Math.min(1, Math.max(0, t))
+                              t: Math.min(1, Math.max(0, parsed))
                             });
                           }}
                           ariaLabel={`${name} time`}
@@ -251,8 +252,8 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                     variant="outlined"
                     startIcon={<AddOutlinedIcon />}
                     onClick={addKeyframe}
-                  >{i18n.t("timeline:attrs.addKeyframe", { defaultValue: "Add keyframe" })}</Button>
-                  <Button size="small" variant="text" onClick={handleClear}>{i18n.t("timeline:attrs.clear", { defaultValue: "Clear" })}</Button>
+                  >{t("timeline:attrs.addKeyframe", { defaultValue: "Add keyframe" })}</Button>
+                  <Button size="small" variant="text" onClick={handleClear}>{t("timeline:attrs.clear", { defaultValue: "Clear" })}</Button>
                 </FlexRow>
               </>
             )}
@@ -277,11 +278,12 @@ interface ClipCompositionProps {
  */
 export const ClipCompositionInfo: React.FC<ClipCompositionProps> = memo(
   ({ clip }) => {
+    const { t } = useTranslation();
     const params = Object.entries(clip.compositionParams ?? {});
     if (clip.compositionId === undefined) return null;
     return (
       <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-        <InspectorRow label={i18n.t("timeline:attrs.composition", { defaultValue: "Composition" })}>
+        <InspectorRow label={t("timeline:attrs.composition", { defaultValue: "Composition" })}>
           <Caption color="muted">{clip.compositionId}</Caption>
         </InspectorRow>
         {params.map(([name, value]) => (
