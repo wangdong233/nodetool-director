@@ -20,7 +20,7 @@ import { Caption } from "./Caption";
 import { EditorButton } from "../editor_ui/EditorButton";
 import { SPACING } from "./spacing";
 import { BORDER_RADIUS, TYPOGRAPHY } from "./tokens";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ConflictBannerConflict {
   /** Stable id of the merge unit, used as the React key and in callbacks. */
@@ -65,16 +65,17 @@ function ConflictRow({
   onAccept: (unitId: string) => void;
   onDiscard: (unitId: string) => void;
 }): ReactElement {
+  const { t } = useTranslation();
   const [showDetail, setShowDetail] = useState(false);
   const hasDraft = conflict.draftDetail != null;
   const hasDetail = conflict.detail != null;
   const toggleLabel = hasDraft
     ? showDetail
-      ? i18n.t("editor:ui.hideDiff", { defaultValue: "Hide diff" })
-      : i18n.t("editor:ui.viewDiff", { defaultValue: "View diff" })
+      ? t("editor:ui.hideDiff", { defaultValue: "Hide diff" })
+      : t("editor:ui.viewDiff", { defaultValue: "View diff" })
     : showDetail
-      ? i18n.t("editor:ui.hideExternalValue", { defaultValue: "Hide external value" })
-      : i18n.t("editor:ui.viewExternalValue", { defaultValue: "View external value" });
+      ? t("editor:ui.hideExternalValue", { defaultValue: "Hide external value" })
+      : t("editor:ui.viewExternalValue", { defaultValue: "View external value" });
   return (
     <FlexColumn gap={0.25}>
       <FlexRow align="center" justify="space-between">
@@ -100,14 +101,14 @@ function ConflictRow({
         <FlexRow gap={SPACING.md} align="stretch">
           {hasDraft && (
             <FlexColumn gap={0.25} sx={{ flex: 1, minWidth: 0 }}>
-              <Caption>{i18n.t("editor:ui.yourEdit", { defaultValue: "Your edit" })}</Caption>
+              <Caption>{t("editor:ui.yourEdit", { defaultValue: "Your edit" })}</Caption>
               <Box component="pre" sx={valuePaneSx}>
                 {conflict.draftDetail}
               </Box>
             </FlexColumn>
           )}
           <FlexColumn gap={0.25} sx={{ flex: hasDraft ? 1 : undefined, minWidth: 0 }}>
-            {hasDraft && <Caption>{i18n.t("editor:ui.external", { defaultValue: "External" })}</Caption>}
+            {hasDraft && <Caption>{t("editor:ui.external", { defaultValue: "External" })}</Caption>}
             <Box component="pre" sx={valuePaneSx}>
               {conflict.detail}
             </Box>

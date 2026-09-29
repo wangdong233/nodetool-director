@@ -34,6 +34,7 @@ import {
 } from "../../hooks/useResolvedMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface FullscreenVideoElement extends HTMLVideoElement {
   webkitEnterFullscreen?: () => void;
@@ -202,6 +203,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
   prominentPlay = false,
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const videoRef = useRef<FullscreenVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -354,7 +356,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
       />
       {prominentPlay && !isPlaying && (
         <IconButton
-          aria-label={i18n.t("ui:attrs.playClip", { defaultValue: "Play clip" })}
+          aria-label={t("ui:attrs.playClip", { defaultValue: "Play clip" })}
           onClick={handleTogglePlay}
           sx={{
             position: "absolute",
@@ -388,7 +390,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
           step={0.05}
           value={currentTime}
           onChange={handleSeek}
-          aria-label={i18n.t("ui:attrs.seek", { defaultValue: "Seek" })}
+          aria-label={t("ui:attrs.seek", { defaultValue: "Seek" })}
         />
         <span className="timestamp">
           {formatTime(currentTime)} / {formatTime(duration)}
@@ -397,7 +399,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
           className="speed-select"
           value={speed}
           onChange={handleSpeedChange}
-          aria-label={i18n.t("ui:attrs.playbackSpeed", { defaultValue: "Playback speed" })}
+          aria-label={t("ui:attrs.playbackSpeed", { defaultValue: "Playback speed" })}
         >
           {SPEED_OPTIONS.map((s) => (
             <option key={s} value={s}>
@@ -410,7 +412,7 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
             className="fullscreen-button"
             size="small"
             onClick={handleToggleFullscreen}
-            aria-label={isFullscreen ? i18n.t("editor:ui.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("editor:ui.enterFullscreen", { defaultValue: "Enter fullscreen" })}
+            aria-label={isFullscreen ? t("editor:ui.exitFullscreen", { defaultValue: "Exit fullscreen" }) : t("editor:ui.enterFullscreen", { defaultValue: "Enter fullscreen" })}
           >
             {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
           </IconButton>

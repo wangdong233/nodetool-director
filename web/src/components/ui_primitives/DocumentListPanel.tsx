@@ -15,7 +15,7 @@ import { FlexColumn } from "./FlexColumn";
 import { listPanelStyles } from "./listPanelStyles";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Text } from "./Text";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface DocumentListPanelDocument {
   id: string;
@@ -57,6 +57,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
   onConfirmDelete,
   renderItem
 }: DocumentListPanelProps<T>) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -102,8 +103,8 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         onConfirm={onConfirmDelete}
         title={`Delete ${singular}`}
         content={`Delete "${deleteTarget?.name ?? ""}"? This cannot be undone.`}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
       <div className="list-panel-search">
         <CategorySearchBar

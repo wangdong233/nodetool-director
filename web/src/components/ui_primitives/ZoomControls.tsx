@@ -9,7 +9,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { CONTROL, MOTION } from "./tokens";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -76,6 +76,7 @@ export const ZoomControls: React.FC<ZoomControlsProps> = memo(({
   tooltipPlacement = "top",
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleZoomIn = useCallback(() => {
@@ -94,15 +95,15 @@ export const ZoomControls: React.FC<ZoomControlsProps> = memo(({
   const containerClassName = `nodrag zoom-controls${className ? ` ${className}` : ""}`;
 
   return (
-    <Box css={styles(theme)} className={containerClassName} role="group" aria-label={i18n.t("ui:attrs.zoomControls", { defaultValue: "Zoom controls" })}>
-      <Tooltip title={i18n.t("ui:attrs.zoomOut", { defaultValue: "Zoom out" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
+    <Box css={styles(theme)} className={containerClassName} role="group" aria-label={t("ui:attrs.zoomControls", { defaultValue: "Zoom controls" })}>
+      <Tooltip title={t("ui:attrs.zoomOut", { defaultValue: "Zoom out" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
         <span>
           <IconButton
             className="zoom-button"
             onClick={handleZoomOut}
             disabled={zoom <= minZoom}
             size={buttonSize}
-            aria-label={i18n.t("ui:attrs.zoomOut", { defaultValue: "Zoom out" })}
+            aria-label={t("ui:attrs.zoomOut", { defaultValue: "Zoom out" })}
           >
             <ZoomOutIcon fontSize={buttonSize} />
           </IconButton>
@@ -115,14 +116,14 @@ export const ZoomControls: React.FC<ZoomControlsProps> = memo(({
         </Typography>
       )}
 
-      <Tooltip title={i18n.t("ui:attrs.zoomIn", { defaultValue: "Zoom in" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={t("ui:attrs.zoomIn", { defaultValue: "Zoom in" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
         <span>
           <IconButton
             className="zoom-button"
             onClick={handleZoomIn}
             disabled={zoom >= maxZoom}
             size={buttonSize}
-            aria-label={i18n.t("ui:attrs.zoomIn", { defaultValue: "Zoom in" })}
+            aria-label={t("ui:attrs.zoomIn", { defaultValue: "Zoom in" })}
           >
             <ZoomInIcon fontSize={buttonSize} />
           </IconButton>
@@ -130,12 +131,12 @@ export const ZoomControls: React.FC<ZoomControlsProps> = memo(({
       </Tooltip>
 
       {showReset && (
-        <Tooltip title={i18n.t("ui:attrs.resetZoom", { defaultValue: "Reset zoom" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("ui:attrs.resetZoom", { defaultValue: "Reset zoom" })} placement={tooltipPlacement} enterDelay={TOOLTIP_ENTER_DELAY}>
           <IconButton
             className="zoom-button"
             onClick={handleReset}
             size={buttonSize}
-            aria-label={i18n.t("ui:attrs.resetZoom", { defaultValue: "Reset zoom" })}
+            aria-label={t("ui:attrs.resetZoom", { defaultValue: "Reset zoom" })}
           >
             <RestartAltIcon fontSize={buttonSize} />
           </IconButton>
