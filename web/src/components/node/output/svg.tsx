@@ -2,7 +2,6 @@ import React, { createElement } from "react";
 import DOMPurify from "dompurify";
 import { SVGElement } from "../../../stores/ApiTypes";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
 
 const sanitizeSvgContent = (html: string): string => {
   return DOMPurify.sanitize(html, {

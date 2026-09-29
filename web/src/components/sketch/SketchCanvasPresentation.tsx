@@ -28,7 +28,6 @@ import { TransformGizmo } from "./transform/gizmo/TransformGizmo";
 import { SelectionActionBar } from "./SelectionActionBar";
 import type { TransformTool } from "./tools/TransformTool";
 import { canvasTransformStyle } from "./sketchCanvasPresentation.helpers";
-import { i18n } from "../../i18n";
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 

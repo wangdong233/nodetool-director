@@ -56,7 +56,6 @@ import type { PropertyProps } from "./PropertyInput.types";
 import useMetadataStore from "../../stores/MetadataStore";
 import { hasCodeProperty } from "./codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 export function getComponentForProperty(
   property: Property,

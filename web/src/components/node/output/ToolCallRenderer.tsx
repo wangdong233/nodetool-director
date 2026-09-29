@@ -9,7 +9,6 @@ import DOMPurify from "dompurify";
 import type { Chunk } from "../../../stores/ApiTypes";
 import { MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../../ui_primitives";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
 
 type Props = {
   chunk: Chunk;

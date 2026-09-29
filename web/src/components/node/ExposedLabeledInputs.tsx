@@ -12,7 +12,6 @@ import NodeInputs from "./NodeInputs";
 import { Property, NodeMetadata } from "../../stores/ApiTypes";
 import { NodeData } from "../../stores/NodeData";
 import { resolveExposedInputLabeledNames } from "../../utils/exposedInputs";
-import { i18n } from "../../i18n";
 
 interface ExposedLabeledInputsProps {
   id: string;

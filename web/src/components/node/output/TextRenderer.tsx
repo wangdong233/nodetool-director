@@ -11,7 +11,6 @@ import {
   Collapse, getSpacingPx, SPACING
 } from "../../ui_primitives";
 import { ReasoningToggle } from "../../common/ReasoningToggle";
-import { i18n } from "../../../i18n";
 
 type Props = {
   text: string;

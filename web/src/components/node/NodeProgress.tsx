@@ -3,7 +3,6 @@ import { memo, useCallback, useRef } from "react";
 import isEqual from "../../utils/isEqual";
 import { useNodeProgress } from "../../hooks/nodes/useNodeExecState";
 import { ProgressBar, getSpacingPx, SPACING } from "../ui_primitives";
-import { i18n } from "../../i18n";
 const PROGRESS_STYLE: React.CSSProperties = { margin: `${getSpacingPx(SPACING.lg)} 0 ${getSpacingPx(SPACING.md)} 0` };
 
 const NodeProgress = ({

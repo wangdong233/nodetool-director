@@ -46,7 +46,6 @@ import {
   BOUNDING_BOX_DASH_OFF
 } from "../../tools/gizmo/gizmoConstants";
 import { SKETCH_Z_INDEX } from "../../sketchStyles";
-import { i18n } from "../../../../i18n";
 
 interface TransformGizmoProps {
   /** Sketch canvas container. Used for `ResizeObserver` and CSS size. */

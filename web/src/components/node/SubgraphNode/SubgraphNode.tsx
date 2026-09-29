@@ -14,7 +14,6 @@ import { useNodeStatus } from "../../../hooks/nodes/useNodeExecState";
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { SubgraphNodeContent } from "./SubgraphNodeContent";
 import { SUBGRAPH_ACCENT_COLOR } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
 
 /**
  * Dedicated React Flow node for SubgraphNode (inline sub-graph execution).

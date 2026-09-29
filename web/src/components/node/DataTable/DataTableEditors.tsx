@@ -9,7 +9,6 @@ import {
 import { createRoot } from "react-dom/client";
 import CustomDatePicker from "../../inputs/DatePicker";
 import { isValid, parseISO } from "../../../utils/dateFormat";
-import { i18n } from "../../../i18n";
 
 export const integerEditor: Editor = (
   cell: CellComponent,

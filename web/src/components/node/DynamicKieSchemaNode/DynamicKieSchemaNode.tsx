@@ -14,7 +14,6 @@ import { useNodeStatus, useNodeResultValue } from "../../../hooks/nodes/useNodeE
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicKieSchemaContent } from "./DynamicKieSchemaContent";
 import { KieSchemaLoader } from "./KieSchemaLoader";
-import { i18n } from "../../../i18n";
 
 const KIE_HEADER_COLOR = "#E55C20";
 

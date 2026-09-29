@@ -10,7 +10,6 @@ import {
 } from "lexical";
 
 import { HorizontalRuleComponent } from "./HorizontalRuleComponent";
-import { i18n } from "../../i18n";
 
 export type SerializedHorizontalRuleNode = Spread<
   {

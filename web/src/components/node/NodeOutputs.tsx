@@ -13,7 +13,6 @@ import { Z_INDEX } from "../ui_primitives";
 import { inferredCodeOutputNames } from "../../utils/codeNodeHandles";
 import { ANY_TYPE } from "../../utils/dynamicSlots";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 const HANDLE_ROW_HEIGHT = 18;
 

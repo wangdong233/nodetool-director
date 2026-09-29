@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { i18n } from "../../i18n";
 import {
   $createAutoLinkNode,
   $isAutoLinkNode,

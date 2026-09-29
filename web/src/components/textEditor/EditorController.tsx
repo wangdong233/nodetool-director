@@ -21,7 +21,6 @@ import { $setBlocksType } from "@lexical/selection";
 import { sanitizeText } from "../../utils/sanitize";
 import { SearchParam } from "../../types/text_editor";
 import { isFunction, isObjectLike, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 // CSS Custom Highlight API (experimental)
 /** One entry of the CSS Custom Highlight API registry: a live set of Ranges. */

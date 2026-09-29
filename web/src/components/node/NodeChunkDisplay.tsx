@@ -3,7 +3,6 @@ import useResultsStore from "../../stores/ResultsStore";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { nodeKey } from "../../stores/nodeKey";
 import ChunkDisplay from "./ChunkDisplay";
-import { i18n } from "../../i18n";
 
 /**
  * Leaf subscriber for a node's streaming text chunk. Keeps per-token

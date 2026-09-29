@@ -5,7 +5,6 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Box, MOTION } from "../ui_primitives";
 import { memo, useMemo } from "react";
-import { i18n } from "../../i18n";
 
 interface NodeResizerProps {
   minWidth: number;

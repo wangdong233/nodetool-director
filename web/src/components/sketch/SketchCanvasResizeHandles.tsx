@@ -13,7 +13,6 @@ import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { MOTION, BORDER_RADIUS } from "../ui_primitives";
 import { isFunction } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 type ResizeEdge =
   | "n"

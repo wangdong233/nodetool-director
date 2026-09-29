@@ -16,7 +16,6 @@ import { HorizontalRulePlugin } from "./HorizontalRulePlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
-import { i18n } from "../../i18n";
 const styles = (theme: Theme) =>
   css({
     "::highlight(findMatches)": {

@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import { MOTION } from "../ui_primitives";
-import { i18n } from "../../i18n";
 
 const hrStyles = css`
   border: none;

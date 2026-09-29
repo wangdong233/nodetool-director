@@ -14,7 +14,6 @@ import { useNodeStatus, useNodeResultValue } from "../../../hooks/nodes/useNodeE
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicReplicateContent } from "./DynamicReplicateContent";
 import { ReplicateSchemaLoader } from "./ReplicateSchemaLoader";
-import { i18n } from "../../../i18n";
 
 const REPLICATE_HEADER_COLOR = "#3D6CEB";
 

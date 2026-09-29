@@ -6,7 +6,6 @@ import { rawRgbaToPngDataUrl } from "../../lib/workflow/materializeBrowserOutput
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
 import { isString } from "../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
-import { i18n } from "../../i18n";
 
 interface ImageRefPreviewProps {
   /** A node output/input value in any of the shapes `asImageRef` understands. */

@@ -23,7 +23,6 @@ import {
 } from "../../ui_primitives";
 import { SKETCH_SIZE } from "../sketchStyles";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
 
 const TEXT_OPTION_SX: SxProps<Theme> = {
   ...TYPOGRAPHY.sans.label,

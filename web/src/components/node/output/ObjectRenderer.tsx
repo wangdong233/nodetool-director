@@ -5,7 +5,6 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Text, Box, BORDER_RADIUS, getSpacingPx, SPACING } from "../../ui_primitives";
 import isEqual from "../../../utils/isEqual";
-import { i18n } from "../../../i18n";
 
 const objectStyles = (theme: Theme) =>
   css({

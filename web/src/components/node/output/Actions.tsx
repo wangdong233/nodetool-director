@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { CopyButton, Box } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
 
 type ActionsProps = {
   copyValue?: unknown;

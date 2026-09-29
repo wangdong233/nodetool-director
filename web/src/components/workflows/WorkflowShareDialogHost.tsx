@@ -5,7 +5,6 @@
 import { memo } from "react";
 import ShareWorkflowDialog from "./ShareWorkflowDialog";
 import { useWorkflowShareDialogStore } from "../../stores/WorkflowShareDialogStore";
-import { i18n } from "../../i18n";
 
 const WorkflowShareDialogHost = () => {
   const target = useWorkflowShareDialogStore((state) => state.target);

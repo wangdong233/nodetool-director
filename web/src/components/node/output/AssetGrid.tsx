@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { AssetRef } from "../../../stores/ApiTypes";
 import PreviewImageGrid, { ImageSource } from "../PreviewImageGrid";
 import { trpc } from "../../../trpc/client";
-import { i18n } from "../../../i18n";
 
 type Props = {
   values: AssetRef[];

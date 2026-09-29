@@ -8,7 +8,6 @@ import {
 import { $createHorizontalRuleNode } from "./HorizontalRuleNode";
 import { $insertNodeToNearestRoot } from "@lexical/utils";
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "./horizontalRuleCommand";
-import { i18n } from "../../i18n";
 
 export function HorizontalRulePlugin(): null {
   const [editor] = useLexicalComposerContext();

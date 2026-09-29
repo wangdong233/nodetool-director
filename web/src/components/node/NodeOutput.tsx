@@ -11,7 +11,6 @@ import HandleTooltip from "../HandleTooltip";
 import { useNodes } from "../../contexts/NodeContext";
 import useMetadataStore from "../../stores/MetadataStore";
 import { findInputHandle } from "../../utils/handleUtils";
-import { i18n } from "../../i18n";
 
 export type NodeOutputProps = {
   id: string;

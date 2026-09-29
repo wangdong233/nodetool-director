@@ -2,7 +2,6 @@
 import { css } from "@emotion/react";
 import { Box, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { memo } from "react";
-import { i18n } from "../../i18n";
 
 interface ImageDimensionsProps {
   width: number;

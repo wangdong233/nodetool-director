@@ -18,7 +18,6 @@ import React, {
   useState
 } from "react";
 import { FlexColumn, FlexRow, Box, SPACING, getSpacingPx } from "../ui_primitives";
-import { i18n } from "../../i18n";
 import {
   parseColorToRgba,
   rgbToHsv,

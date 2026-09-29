@@ -4,7 +4,6 @@ import NodeToolButtons from "./NodeToolButtons";
 import { useNodes } from "../../contexts/NodeContext";
 import useSelect from "../../hooks/nodes/useSelect";
 import { useDelayedVisibility } from "../../hooks/useDelayedVisibility";
-import { i18n } from "../../i18n";
 
 const TOOLBAR_SHOW_DELAY = 200;
 

@@ -12,7 +12,6 @@ import { findOutputHandle } from "../../utils/handleUtils";
 import { normalizeDynamicSlot } from "../../utils/dynamicSlots";
 import { inferredCodeInputNamesFromData } from "../../utils/codeNodeHandles";
 import { isFieldRelevantDataEqual } from "./propertyFieldEquality";
-import { i18n } from "../../i18n";
 import {
   isPropertyConditionSatisfied,
   shouldRenderProperty

@@ -22,7 +22,6 @@ import {
 } from "./NodeContent.helpers";
 import { useNodes } from "../../contexts/NodeContext";
 import { useConnectedEdgesSelector } from "../../hooks/nodes/useConnectedEdges";
-import { i18n } from "../../i18n";
 
 const FLEX_COLUMN_SX = {
   position: "relative" as const,

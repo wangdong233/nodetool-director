@@ -17,7 +17,6 @@ import {
 } from "../../contexts/InspectorPropertyHeaderContext";
 import { FlexRow } from "../ui_primitives";
 import { PropertyHandleTooltipContext } from "../../contexts/PropertyHandleTooltipContext";
-import { i18n } from "../../i18n";
 
 interface PropertyLabelProps {
   id: string;

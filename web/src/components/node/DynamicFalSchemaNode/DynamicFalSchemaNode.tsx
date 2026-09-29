@@ -14,7 +14,6 @@ import { useNodeStatus, useNodeResultValue } from "../../../hooks/nodes/useNodeE
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicFalSchemaContent } from "./DynamicFalSchemaContent";
 import { FalSchemaLoader } from "./FalSchemaLoader";
-import { i18n } from "../../../i18n";
 
 /** FAL node accent (distinct from input/output/generic) */
 const FAL_HEADER_COLOR = "#8B5CF6";

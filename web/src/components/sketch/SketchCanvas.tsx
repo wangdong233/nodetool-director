@@ -43,7 +43,6 @@ import SketchCanvasPresentation from "./SketchCanvasPresentation";
 import GeneratingLayerOverlay from "./GeneratingLayerOverlay";
 import { getToolHandler } from "./tools";
 import { TransformTool } from "./tools/TransformTool";
-import { i18n } from "../../i18n";
 
 // ─── Canvas Ref Interface ────────────────────────────────────────────────────
 

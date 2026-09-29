@@ -17,7 +17,6 @@ import {
 } from "../hooks";
 import { useTransformAdapter } from "../hooks/useTransformAdapter";
 import type { useSegmentation } from "../hooks/useSegmentation";
-import { i18n } from "../../../i18n";
 
 export interface ConnectedToolTopBarProps {
   compactLayout?: boolean;

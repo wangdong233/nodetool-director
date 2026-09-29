@@ -30,7 +30,6 @@ import { tableStyles } from "../../../styles/TableStyles";
 import { useTheme } from "@mui/material/styles";
 import isEqual from "../../../utils/isEqual";
 import { isNumber, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
 
 /**
  * Union type for all possible cell values in a DataFrame column

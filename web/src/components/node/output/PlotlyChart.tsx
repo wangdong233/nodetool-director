@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import * as Plotly from "plotly.js";
 import type { Data, Layout, Config, Frame } from "plotly.js";
-import { i18n } from "../../../i18n";
 
 interface PlotlyChartProps {
   data: Data[];

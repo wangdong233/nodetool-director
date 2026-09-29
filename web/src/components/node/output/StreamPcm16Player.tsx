@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { playPcm16Base64, type PcmEncoding } from "./audio";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
 
 const StreamPcm16Player: React.FC<{
   base64: string;
