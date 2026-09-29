@@ -13,7 +13,7 @@ import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useInspectedNodeStore } from "../../stores/InspectedNodeStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PrettyNamespace = memo<{ namespace: string }>(({ namespace }) => {
   const parts = namespace.split(".");
@@ -207,6 +207,7 @@ const styles = (theme: Theme) =>
  */
 const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
   ({ inspectedNodeId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { getNode, setCenter, flowToScreenPosition } = useReactFlow();
   const { x: viewportX, y: viewportY, zoom } = useViewport();
@@ -375,7 +376,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
                 {nodeInfo.namespace}
               </Text>
               <Text component="span" sx={{ display: "block" }}>
-                {i18n.t("editor:ui.clickToShowInNodeMenu")}
+                {t("editor:ui.clickToShowInNodeMenu")}
               </Text>
             </span>
           }
@@ -423,7 +424,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
             )}
             {parsedDescription.useCases.raw && (
               <div className="node-use-cases">
-                <h5>{i18n.t("ui2:attrs.useCases", { defaultValue: "Use cases" })}</h5>
+                <h5>{t("ui2:attrs.useCases", { defaultValue: "Use cases" })}</h5>
                 <ul>
                   {parsedDescription.useCases.raw.split("\n").map((useCase) => (
                     <li key={useCase}>{useCase}</li>
@@ -446,7 +447,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
           startIcon={<OpenInNewIcon fontSize="small" />}
           onClick={handleFocusClick}
         >
-          {i18n.t("editor:ui.focus")}
+          {t("editor:ui.focus")}
         </EditorButton>
       </Box>
     </Box >
