@@ -2,7 +2,7 @@
 import React, { useMemo } from "react";
 import type { CustomField } from "@puckeditor/core";
 import { useGetPuck } from "@puckeditor/core";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 import {
   SelectField,
