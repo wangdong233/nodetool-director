@@ -325,7 +325,7 @@ describe("catalog key parity (CI completeness guard)", () => {
           } else {
             const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
             const literal = new RegExp(`["'\`]${esc}["'\`]`);
-            const objectKey = new RegExp(`[{,]\s*["'\`]?${esc}["'\`]?\s*[:=]`);
+            const objectKey = new RegExp(`[{,][ \t]*["'\`]?${esc}["'\`]?[ \t]*[:=]`);
             if (literal.test(allSource) || objectKey.test(allSource)) {
               dynamicallyUsed = true;
             }
