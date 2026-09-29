@@ -46,7 +46,7 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import AssetGridSplit from "./AssetGridSplit";
 import PanelErrorBoundary from "../common/PanelErrorBoundary";
 import { formatFileSize } from "../../utils/formatUtils";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = assetGridStyles;
 const FOLDERS_PANEL_HEIGHT = 200;
@@ -58,6 +58,7 @@ const SelectedItemsInfo: React.FC<{
   assets: Asset[];
   onClear: () => void;
 }> = memo(({ selectedAssetIds, assets, onClear }) => {
+  const { t } = useTranslation();
   const totalSize = useMemo(() => {
     if (selectedAssetIds.length === 0) return 0;
     const selectedSet = new Set(selectedAssetIds);
@@ -78,13 +79,8 @@ const SelectedItemsInfo: React.FC<{
           {selectedAssetIds.length}{" "}
           {selectedAssetIds.length === 1 ? "item" : "items"} selected
           {totalSize > 0 && (
-<<<<<<< HEAD
-            <Tooltip title="Total size of selected items" disableInteractive>
+            <Tooltip title={t("editor:ui.totalSizeOfSelectedItems", { defaultValue: "Total size of selected items" })} disableInteractive>
               <span style={{ marginLeft: getSpacingPx(SPACING.md), opacity: 0.7 }}>
-=======
-            <Tooltip title={i18n.t("editor:ui.totalSizeOfSelectedItems", { defaultValue: "Total size of selected items" })} disableInteractive>
-              <span style={{ marginLeft: "0.5em", opacity: 0.7 }}>
->>>>>>> b56cc62cc7 (i18n: remaining domains — 323 wirings (298-entry editor.ui additions))
                 ({formatFileSize(totalSize)})
               </span>
             </Tooltip>
@@ -93,7 +89,7 @@ const SelectedItemsInfo: React.FC<{
         <ToolbarIconButton
           className="clear-selection"
           icon={<CloseIcon />}
-          tooltip={i18n.t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
+          tooltip={t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
           shortcut={["Esc"]}
           tooltipPlacement="top"
           onClick={onClear}
@@ -132,6 +128,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({
   isMobile = false,
   forceGlobalAssets = false
 }) => {
+  const { t } = useTranslation();
   const {
     error,
     folderFilesFiltered,
@@ -314,7 +311,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({
           className="asset-grid-fetch-error"
           severity="error"
           compact
-          title={i18n.t("editor:ui.couldNotRefreshAssets", { defaultValue: "Could not refresh assets" })}
+          title={t("editor:ui.couldNotRefreshAssets", { defaultValue: "Could not refresh assets" })}
           sx={{
             flexShrink: 0,
             mb: getSpacingPx(SPACING.sm),

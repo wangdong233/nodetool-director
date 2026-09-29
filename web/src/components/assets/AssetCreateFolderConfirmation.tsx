@@ -15,7 +15,7 @@ import useAssets from "../../serverState/useAssets";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const VIEWPORT_MARGIN = 16;
 
@@ -25,6 +25,7 @@ const clampToViewport = (desired: number, size: number, viewport: number) => {
 };
 
 const AssetCreateFolderConfirmation: React.FC = () => {
+  const { t } = useTranslation();
   const setDialogOpen = useAssetGridStore(
     (state) => state.setCreateFolderDialogOpen
   );
@@ -342,7 +343,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
                 {selectedAssets.length} assets selected:
               </span>{" "}
               <br />
-              {i18n.t("editor:ui.theyWillBeMovedToTheNewFolder")}
+              {t("editor:ui.theyWillBeMovedToTheNewFolder")}
             </Text>
           </div>
         )}

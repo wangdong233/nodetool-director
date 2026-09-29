@@ -57,13 +57,14 @@ import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
 import { isElectron } from "../../utils/browser";
 import { copyAssetToClipboard, isClipboardSupported } from "../../utils/clipboardUtils";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 import {
   ToolbarIconButton,
   CloseButton,
   DownloadButton,
   FlexRow
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = css({
   width: "100%",
@@ -332,6 +333,7 @@ type AssetViewerProps = {
 };
 
 const AssetViewer: React.FC<AssetViewerProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     asset,
@@ -682,7 +684,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           <>
             <ToolbarIconButton
               icon={<KeyboardArrowLeftIcon />}
-              tooltip={i18n.t("editor:ui.previousAsset", { defaultValue: "Previous asset" })}
+              tooltip={t("editor:ui.previousAsset", { defaultValue: "Previous asset" })}
               onClick={handlePrevAsset}
               disabled={prevAssets?.length === 0}
               className="prev-next-button left"
@@ -690,7 +692,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
             />
             <ToolbarIconButton
               icon={<KeyboardArrowRightIcon />}
-              tooltip={i18n.t("editor:ui.nextAsset", { defaultValue: "Next asset" })}
+              tooltip={t("editor:ui.nextAsset", { defaultValue: "Next asset" })}
               onClick={handleNextAsset}
               disabled={nextAssets?.length === 0}
               className="prev-next-button right"
@@ -776,7 +778,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
       </>
     );
   }, [
-    languageVersion,
+    t,
     currentIndex,
     assetsToUse,
     currentAsset,
@@ -800,7 +802,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
         fullWidth
         open={open}
         onClose={handleClose}
-        aria-label={i18n.t("editor:ui.assetViewer", { defaultValue: "Asset viewer" })}
+        aria-label={t("editor:ui.assetViewer", { defaultValue: "Asset viewer" })}
         slotProps={{
           // Override the primitive's default glass/rounded/bordered paper so the
           // viewer is a true edge-to-edge fullscreen surface with no top gap.
@@ -894,7 +896,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isImage && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip={isSvg ? i18n.t("editor:ui.editSvg", { defaultValue: "Edit SVG" }) : i18n.t("editor:ui.editImage", { defaultValue: "Edit Image" })}
+              tooltip={isSvg ? t("editor:ui.editSvg", { defaultValue: "Edit SVG" }) : t("editor:ui.editImage", { defaultValue: "Edit Image" })}
               onClick={handleOpenImageEditor}
               className="button edit"
               nodrag={false}
@@ -904,7 +906,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isModel3D && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip={i18n.t("editor:ui.editIn3DEditor", { defaultValue: "Edit in 3D Editor" })}
+              tooltip={t("editor:ui.editIn3DEditor", { defaultValue: "Edit in 3D Editor" })}
               onClick={handleOpenModel3DEditor}
               className="button edit"
               nodrag={false}
@@ -914,7 +916,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {isAudio && !compareMode && (
             <ToolbarIconButton
               icon={<EditIcon />}
-              tooltip={i18n.t("editor:ui.editAudio", { defaultValue: "Edit Audio" })}
+              tooltip={t("editor:ui.editAudio", { defaultValue: "Edit Audio" })}
               onClick={handleOpenAudioEditor}
               className="button edit"
               nodrag={false}
@@ -958,7 +960,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {canCompare && !compareMode && !compareAssetB && (
             <ToolbarIconButton
               icon={<CompareIcon />}
-              tooltip={i18n.t("editor:ui.compareWithAnotherImage", { defaultValue: "Compare with another image" })}
+              tooltip={t("editor:ui.compareWithAnotherImage", { defaultValue: "Compare with another image" })}
               onClick={startCompareMode}
               className="button compare"
               nodrag={false}
@@ -968,7 +970,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset && !compareMode && (
             <ToolbarIconButton
               icon={<InfoOutlinedIcon />}
-              tooltip={showInfo ? i18n.t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : i18n.t("editor:ui.showInfo", { defaultValue: "Show info" })}
+              tooltip={showInfo ? t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : t("editor:ui.showInfo", { defaultValue: "Show info" })}
               onClick={toggleInfo}
               className="button info"
               nodrag={false}
@@ -977,7 +979,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           )}
           <CloseButton
             onClick={compareAssetB ? exitCompareView : handleClose}
-            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
+            tooltip={t("sketch:attrs.close", { defaultValue: "Close" })}
             className="button close"
             nodrag={false}
             sx={viewerActionButtonSx}

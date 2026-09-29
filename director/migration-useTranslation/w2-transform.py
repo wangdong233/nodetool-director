@@ -85,6 +85,12 @@ def mask(src):
     state = {"prev_sig": "", "prev_word": ""}
 
     def note(ch):
+        # w2 fix #8: whitespace is TRANSPARENT to the regex-position state.
+        # B0-style tracking clobbered prev_sig with ' ' on ` = /re/`, the
+        # regex was rejected, and the `/*` INSIDE its char class then opened
+        # a phantom block comment that swallowed whole lines of code.
+        if ch in " \t\n\r":
+            return
         if ch.isalnum() or ch in "_$":
             state["prev_word"] += ch
         else:
@@ -545,6 +551,26 @@ def find_imports(m):
     return out
 
 
+def paren_body_insert(src, m, comp):
+    """w2 fix #9: expression-arrow component (`const X = () => (<JSX/>)`)
+    cannot host a hook statement — convert to a block body in place:
+      `=> (\n<ws>EXPR\n<wsC>)` becomes
+      `=> {\n<ws>const { t } = useTranslation();\n<ws>return (\n<ws>EXPR\n<wsC>);\n<D>}`
+    EXPR bytes are untouched; only wrapper text is inserted."""
+    p, e = comp["start"], comp["end"]
+    k = p + 1
+    while k < len(src) and src[k] in " \t\n\r":
+        k += 1
+    line_start = src.rfind("\n", 0, k) + 1
+    I = src[line_start:k] if line_start < k else "  "
+    anchor = comp["arrow_at"] if comp.get("arrow_at") is not None else p
+    decl_line = src.rfind("\n", 0, anchor) + 1
+    D = re.match(r"[ \t]*", src[decl_line:]).group(0)
+    before = "{\n" + I + HOOK + "\n" + I + "return "
+    after = ";\n" + D + "}"
+    return (p, before), (e + 1, after)
+
+
 def transform(path, dry=False):
     src = open(path).read()
     base = os.path.basename(path)
@@ -599,8 +625,16 @@ def transform(path, dry=False):
         if "useTranslation" in body_src:
             report_lines.append("  hook already present, skipped insertion")
             continue
-        ipos, itext = first_statement_insert(src, comp["start"])
-        edits.append((ipos, 0, itext))
+        if comp["block"]:
+            ipos, itext = first_statement_insert(src, comp["start"])
+            edits.append((ipos, 0, itext))
+        else:
+            # w2 fix #9: expression-arrow body -> convert to block form
+            (p1, t1), (p2, t2) = paren_body_insert(src, m, comp)
+            edits.append((p1, 0, t1))
+            edits.append((p2, 0, t2))
+            report_lines.append(
+                f"  expr-arrow -> block body @{src[:comp['start']].count(chr(10))+1}")
         hooks += 1
 
     # useMemo deps fixes (R3)

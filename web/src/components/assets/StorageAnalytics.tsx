@@ -7,7 +7,7 @@ import { Box } from "../ui_primitives";
 import { useLocation } from "react-router-dom";
 import { Asset } from "../../stores/ApiTypes";
 import { formatFileSize } from "../../utils/formatUtils";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface StorageAnalyticsProps {
   assets: Asset[];
@@ -50,6 +50,7 @@ const styles = (theme: Theme) =>
   });
 
 const StorageAnalytics: React.FC<StorageAnalyticsProps> = ({ assets }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const theme = useTheme();
   const analyticsStyles = useMemo(() => styles(theme), [theme]);
@@ -82,19 +83,19 @@ const StorageAnalytics: React.FC<StorageAnalyticsProps> = ({ assets }) => {
     <Box css={analyticsStyles} className="storage-analytics">
       <div className="storage-stats">
         <div className="stat-item">
-          <span className="stat-label">{i18n.t("ui2:attrs.totalSize", { defaultValue: "Total Size" })}</span>
+          <span className="stat-label">{t("ui2:attrs.totalSize", { defaultValue: "Total Size" })}</span>
           <span className="stat-value">{formatFileSize(totalSize)}</span>
         </div>
 
         {folderCount > 0 && (
           <div className="stat-item">
-            <span className="stat-label">{i18n.t("ui2:attrs.folders", { defaultValue: "Folders" })}</span>
+            <span className="stat-label">{t("ui2:attrs.folders", { defaultValue: "Folders" })}</span>
             <span className="stat-value">{folderCount}</span>
           </div>
         )}
 
         <div className="stat-item">
-          <span className="stat-label">{i18n.t("ui2:attrs.files", { defaultValue: "Files" })}</span>
+          <span className="stat-label">{t("ui2:attrs.files", { defaultValue: "Files" })}</span>
           <span className="stat-value">{fileCount}</span>
         </div>
       </div>

@@ -21,9 +21,10 @@ import {
   BORDER_RADIUS
 } from "../ui_primitives";
 import { CollectionResponse } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const CollectionList = () => {
+  const { t } = useTranslation();
   const {
     collections,
     isLoading,
@@ -129,24 +130,24 @@ const CollectionList = () => {
             </Text>
             <CreateFab
               onClick={handleShowForm}
-              label={i18n.t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
+              label={t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
               icon={<AddIcon />}
-              aria-label={i18n.t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
+              aria-label={t("editor:ui.createCollection", { defaultValue: "Create Collection" })}
             />
           </FlexRow>
 
           {collections?.collections.length ? <CollectionHeader /> : null}
           {isLoading ? (
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4 }}>
-              <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingCollections", { defaultValue: "Loading collections" })} />
+              <LoadingSpinner size="large" text={t("editor:ui.loadingCollections", { defaultValue: "Loading collections" })} />
             </FlexColumn>
           ) : error ? (
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4, px: 2 }}>
               <EmptyState
                 variant="error"
-                title={i18n.t("editor:ui.couldnTLoadCollections", { defaultValue: "Couldn't load collections" })}
-                description={i18n.t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
-                actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
+                title={t("editor:ui.couldnTLoadCollections", { defaultValue: "Couldn't load collections" })}
+                description={t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+                actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
                 onAction={() => fetchCollections()}
               />
             </FlexColumn>
@@ -187,10 +188,10 @@ const CollectionList = () => {
       <Dialog
         open={Boolean(deleteTarget)}
         onClose={cancelDelete}
-        title={i18n.t("editor:ui.Delete this collection", { defaultValue: "Delete this collection?" })}
+        title={t("editor:ui.Delete this collection", { defaultValue: "Delete this collection?" })}
         onConfirm={confirmDelete}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
       >
         This will permanently delete the collection &quot;{deleteTarget}
@@ -198,10 +199,10 @@ const CollectionList = () => {
       </Dialog>
 
       {indexErrors.length > 0 && (
-        <Dialog open={true} onClose={handleClearIndexErrors} title={i18n.t("editor:ui.indexingReport", { defaultValue: "Indexing report" })}>
+        <Dialog open={true} onClose={handleClearIndexErrors} title={t("editor:ui.indexingReport", { defaultValue: "Indexing report" })}>
           <FlexColumn gap={2}>
             <Text>
-              {i18n.t("editor:ui.theFollowingFilesEncounteredErrorsDuringIndexing")}
+              {t("editor:ui.theFollowingFilesEncounteredErrorsDuringIndexing")}
             </Text>
             <ListGroup compact flush sx={{ pl: 2 }}>
               {indexErrors.map((error) => (

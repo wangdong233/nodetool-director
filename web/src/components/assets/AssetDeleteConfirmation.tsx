@@ -20,7 +20,7 @@ import {
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
 import { isObjectLike } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = css({
   ".asset-delete-confirmation-content": {
@@ -38,6 +38,7 @@ interface AssetDeleteConfirmationProps {
 const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
   assets
 }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
   const [folderCount, setFolderCount] = useState(0);
@@ -192,7 +193,7 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
           color="secondary"
           style={{ marginBottom: getSpacingPx(SPACING.xl) }}
         >
-          {i18n.t("editor:ui.youCanRightClickSelectedAssetsAndDownloadThemBeforeDeleting")}
+          {t("editor:ui.youCanRightClickSelectedAssetsAndDownloadThemBeforeDeleting")}
         </Text>
         {isPreparingDelete ? (
           <LoadingSpinner size="small" />
@@ -228,8 +229,8 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       <DialogActionButtons
         onConfirm={executeDeletion}
         onCancel={handleClose}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         isLoading={isLoading}
         confirmDisabled={isAssetTreeLoading || showRootFolderWarning}
         destructive={true}

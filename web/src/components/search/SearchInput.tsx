@@ -15,6 +15,7 @@ import { isMac } from "../../utils/platform";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -148,6 +149,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   searchTerm: externalSearchTerm = "",
   width = 150
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const searchStyles = useMemo(() => styles(theme), [theme]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -343,7 +345,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           className={`clear-search-btn ${localSearchTerm.trim() === "" ? "disabled" : ""
             }`}
           tabIndex={-1}
-          aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
+          aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
           onClick={clearSearch}
           data-testid="search-clear-btn"
         >

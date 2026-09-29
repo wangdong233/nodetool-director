@@ -7,7 +7,7 @@ import WorkflowSelect from "./WorkflowSelect";
 import { useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface CollectionItemProps {
   collection: CollectionResponse;
@@ -83,6 +83,7 @@ const CollectionItem = ({
   onDragLeave,
   deletingCollection
 }: CollectionItemProps) => {
+  const { t } = useTranslation();
   const isDeleting = deletingCollection !== null;
   const addNotification = useNotificationStore((state) => state.addNotification);
   const queryClient = useQueryClient();
@@ -99,7 +100,7 @@ const CollectionItem = ({
       addNotification({
         alert: true,
         type: "success",
-        content: i18n.t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
+        content: t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
       });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },
@@ -178,7 +179,7 @@ const CollectionItem = ({
         ) : (
           <DeleteButton
             onClick={handleDeleteClick}
-            tooltip={i18n.t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection" })}
+            tooltip={t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection" })}
             disabled={isDeleting}
             sx={{ mt: -10 }}
             nodrag={false}
@@ -236,7 +237,7 @@ const CollectionItem = ({
       </FlexRow>
 
       <FlexRow align="center" gap={SPACING.lg} fullWidth>
-        <Tooltip title={i18n.t("editor:ui.numberOfDocumentsInThisCollection", { defaultValue: "Number of documents in this collection" })}>
+        <Tooltip title={t("editor:ui.numberOfDocumentsInThisCollection", { defaultValue: "Number of documents in this collection" })}>
           <Text
             size="small"
             color="secondary"
@@ -248,7 +249,7 @@ const CollectionItem = ({
             {collection.count} item{collection.count === 1 ? "" : "s"}
           </Text>
         </Tooltip>
-        <Tooltip title={i18n.t("editor:ui.modelUsedForEmbeddingDocuments", { defaultValue: "Model used for embedding documents" })}>
+        <Tooltip title={t("editor:ui.modelUsedForEmbeddingDocuments", { defaultValue: "Model used for embedding documents" })}>
           <Caption
             sx={{
               fontSize: "0.8em",
@@ -265,7 +266,7 @@ const CollectionItem = ({
         {isEditingWorkflow ? (
           <WorkflowSelect
             onChange={onWorkflowChange}
-            label={i18n.t("settings:general.catWorkflow", { defaultValue: "Workflow" })}
+            label={t("settings:general.catWorkflow", { defaultValue: "Workflow" })}
             value={
               collection.metadata?.workflow
                 ? { id: collection.metadata.workflow as string }
@@ -280,7 +281,7 @@ const CollectionItem = ({
             }}
           />
         ) : (
-          <Tooltip title={i18n.t("editor:ui.clickToChangeTheIngestionWorkflowForThisCollection", { defaultValue: "Click to change the ingestion workflow for this collection" })}>
+          <Tooltip title={t("editor:ui.clickToChangeTheIngestionWorkflowForThisCollection", { defaultValue: "Click to change the ingestion workflow for this collection" })}>
             <EditorButton
               variant="text"
               sx={{

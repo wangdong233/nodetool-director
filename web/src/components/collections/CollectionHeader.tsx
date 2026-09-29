@@ -11,9 +11,10 @@ import {
   getSpacingPx,
   activateOnKey
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const CollectionHeader = () => {
+  const { t } = useTranslation();
   const [formatInfoAnchor, setFormatInfoAnchor] = useState<HTMLElement | null>(
     null
   );
@@ -38,7 +39,7 @@ const CollectionHeader = () => {
       >
         <InfoIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
         <Text size="small" weight={600}>
-          {i18n.t("editor:ui.whatAreCollections")}
+          {t("editor:ui.whatAreCollections")}
         </Text>
       </FlexRow>
       <Popover
@@ -60,8 +61,8 @@ const CollectionHeader = () => {
             }}
           >
             <li>PDFs, PowerPoint, Word, Excel</li>
-            <li>{i18n.t("ui2:attrs.textFilesMarkdownHTML", { defaultValue: "Text files, Markdown, HTML" })}</li>
-            <li>{i18n.t("ui2:attrs.imagesTextExtractionWithOCR", { defaultValue: "Images (text extraction with OCR)" })}</li>
+            <li>{t("ui2:attrs.textFilesMarkdownHTML", { defaultValue: "Text files, Markdown, HTML" })}</li>
+            <li>{t("ui2:attrs.imagesTextExtractionWithOCR", { defaultValue: "Images (text extraction with OCR)" })}</li>
           </ul>
         </FlexColumn>
       </Popover>

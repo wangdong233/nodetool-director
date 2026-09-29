@@ -38,7 +38,7 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useModelManagerStore } from "../../stores/ModelManagerStore";
 import { useSystemStatsStore } from "../../stores/systemStatsHandler";
 import { useProviderOnboardingStore } from "../../stores/ProviderOnboardingStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const CostsDashboard = React.lazy(() => import("../costs/CostsDashboard"));
 const ModelListIndex = React.lazy(
@@ -449,21 +449,24 @@ const PreviewAssets: React.FC = () => (
   </FullscreenBox>
 );
 
-const PreviewConfirmDialog: React.FC = () => (
+const PreviewConfirmDialog: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <Box data-preview="confirm-dialog" sx={{ width: "100%", height: "100vh" }}>
     <Suspense fallback={null}>
       <ConfirmDialog
         open
         onClose={() => undefined}
         onConfirm={() => undefined}
-        title={i18n.t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
-        content={i18n.t("timeline:attrs.previewDeleteWorkflowWarning", { defaultValue: "This action cannot be undone. The workflow and its run history will be removed from the workspace." })}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
+        content={t("timeline:attrs.previewDeleteWorkflowWarning", { defaultValue: "This action cannot be undone. The workflow and its run history will be removed from the workspace." })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </Suspense>
   </Box>
 );
+};
 
 const PreviewColorPicker: React.FC = () => (
   <Box data-preview="color-picker" sx={{ width: "100%", height: "100vh" }}>
@@ -526,6 +529,7 @@ const PreviewImageCompare: React.FC = () => (
 );
 
 const PreviewRecommendedModels: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Box
@@ -541,7 +545,7 @@ const PreviewRecommendedModels: React.FC = () => {
         Recommended Models
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 3, display: "block" }}>
-        {i18n.t("editor:ui.theseModelsAreRecommendedForTheSelectedNode")}
+        {t("editor:ui.theseModelsAreRecommendedForTheSelectedNode")}
       </Text>
       <Suspense fallback={<LoadingSpinner />}>
         <RecommendedModels
@@ -669,21 +673,23 @@ const FORM_CONTROL_OPTIONS = [
 // The CONTROL height contract, side by side: a TextInput and a SelectField at
 // each size (and each Select variant) must render at exactly the same height.
 // The visual suite measures what jsdom cannot.
-const PreviewFormControls: React.FC = () => (
+const PreviewFormControls: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <Box data-preview="form-controls" sx={{ width: 560, p: 4 }}>
     <Panel padding="normal">
       <FlexColumn gap={3}>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label={i18n.t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
+          <TextInput label={t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
           <SelectField
-            label={i18n.t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
+            label={t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
             variant="outlined"
             value="widescreen"
             onChange={() => undefined}
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label={i18n.t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
+            label={t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
             variant="standard"
             value="widescreen"
             onChange={() => undefined}
@@ -691,9 +697,9 @@ const PreviewFormControls: React.FC = () => (
           />
         </FlexRow>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label={i18n.t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
+          <TextInput label={t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
           <SelectField
-            label={i18n.t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
+            label={t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
             variant="outlined"
             size="small"
             value="square"
@@ -701,7 +707,7 @@ const PreviewFormControls: React.FC = () => (
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label={i18n.t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
+            label={t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
             variant="standard"
             size="small"
             value="square"
@@ -713,10 +719,12 @@ const PreviewFormControls: React.FC = () => (
     </Panel>
   </Box>
 );
+};
 
 // ─── Preview index page ────────────────────────────────────────────────────────
 
 const PreviewIndex: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Box
@@ -727,7 +735,7 @@ const PreviewIndex: React.FC = () => {
       }}
     >
       <Text size="big" weight={600} sx={{ mb: 1, display: "block" }}>
-        {i18n.t("editor:ui.componentPreviews")}
+        {t("editor:ui.componentPreviews")}
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 4, display: "block" }}>
         Isolated component views for documentation screenshots. Navigate to{" "}
@@ -760,10 +768,10 @@ const PreviewIndex: React.FC = () => {
               }}
             >
               <Text size="normal" weight={600} sx={{ mb: 0.5, display: "block" }}>
-                {p.labelKey ? i18n.t(p.labelKey, { defaultValue: p.label }) : p.label}
+                {p.labelKey ? t(p.labelKey, { defaultValue: p.label }) : p.label}
               </Text>
               <Text size="small" color="secondary" sx={{ mb: 1, display: "block" }}>
-                {p.descriptionKey ? i18n.t(p.descriptionKey, { defaultValue: p.description }) : p.description}
+                {p.descriptionKey ? t(p.descriptionKey, { defaultValue: p.description }) : p.description}
               </Text>
               {p.viewport && (
                 <Caption sx={{ color: "text.disabled" }}>

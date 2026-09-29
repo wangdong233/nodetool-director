@@ -21,7 +21,7 @@ import {
 import { useFolderTree } from "../../serverState/useFolderTree";
 import { useAssetStore, type AssetTreeNode } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface SaveToFolderMenuProps {
   anchorEl: HTMLElement | null;
@@ -88,6 +88,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
   onClose,
   onSelectFolder
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { data: folderTree = {} } = useFolderTree("name");
@@ -225,7 +226,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 fullWidth
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder={i18n.t("editor:ui.folderName")}
+                placeholder={t("editor:ui.folderName")}
                 disabled={busy}
                 inputProps={{ "aria-label": "New folder name" }}
                 onKeyDown={(e) => {
@@ -258,7 +259,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 <CreateNewFolderOutlinedIcon fontSize="small" />
               </span>
               <Text size="normal" weight={500} sx={{ color: "inherit" }}>
-                {i18n.t("editor:ui.newFolder")}
+                {t("editor:ui.newFolder")}
               </Text>
             </div>
           )}

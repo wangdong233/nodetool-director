@@ -61,6 +61,7 @@ interface DropzoneProps {
 }
 
 const Dropzone: React.FC<DropzoneProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [isExternalDrag, setIsExternalDrag] = useState(false);
   const leaveTimeoutId = useRef<NodeJS.Timeout | null>(null);
@@ -124,7 +125,7 @@ const Dropzone: React.FC<DropzoneProps> = (props) => {
     >
       {isExternalDrag && (
         <div className="dragging-overlay">
-          <span className="dragging-overlay-text">{i18n.t("ui2:attrs.dropFilesToUpload", { defaultValue: "Drop files to upload" })}</span>
+          <span className="dragging-overlay-text">{t("ui2:attrs.dropFilesToUpload", { defaultValue: "Drop files to upload" })}</span>
         </div>
       )}
       {/* Upload button moved into the toolbar; keep drag-and-drop active here */}

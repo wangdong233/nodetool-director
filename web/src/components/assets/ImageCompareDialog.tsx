@@ -8,7 +8,7 @@ import type { Theme } from "@mui/material/styles";
 import { ImageComparer } from "../widgets";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useCombo } from "../../stores/KeyPressedStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -63,6 +63,7 @@ const styles = (theme: Theme) =>
   });
 
 const ImageCompareDialog: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const compareAssets = useAssetGridStore((state) => state.compareAssets);
   const closeCompareView = useAssetGridStore((state) => state.closeCompareView);
@@ -96,14 +97,14 @@ const ImageCompareDialog: React.FC = () => {
       fullWidth
       open={compareAssets !== null}
       onClose={closeCompareView}
-      aria-label={i18n.t("editor:ui.compareImages", { defaultValue: "Compare images" })}
+      aria-label={t("editor:ui.compareImages", { defaultValue: "Compare images" })}
     >
       <div className="compare-container">
         <div className="actions">
           <CloseButton
             className="button close"
             onClick={closeCompareView}
-            tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })}
+            tooltip={t("sketch:attrs.close", { defaultValue: "Close" })}
             nodrag={false}
           />
         </div>

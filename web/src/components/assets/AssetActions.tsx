@@ -27,7 +27,7 @@ import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Tooltip, LoadingSpinner, Box } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AssetActionsProps {
   setSelectedAssetIds: (assetIds: string[]) => void;
@@ -222,6 +222,7 @@ const AssetActions = ({
   handleDeselectAssets,
   maxItemSize = 10
 }: AssetActionsProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Subscribe so localized filter labels re-render on language change.
   useAppLanguage();
@@ -286,7 +287,7 @@ const AssetActions = ({
       <ButtonGroup className="asset-button-group" size="small" tabIndex={-1}>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title={i18n.t("editor:ui.selectAll", { defaultValue: "Select all" })}
+          title={t("editor:ui.selectAll", { defaultValue: "Select all" })}
           disableInteractive
         >
           <EditorButton onClick={handleSelectAllAssets} tabIndex={-1}>
@@ -295,7 +296,7 @@ const AssetActions = ({
         </Tooltip>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title={i18n.t("editor:ui.deselect", { defaultValue: "Deselect" })}
+          title={t("editor:ui.deselect", { defaultValue: "Deselect" })}
           disableInteractive
         >
           <EditorButton onClick={handleDeselectAssets} tabIndex={-1}>
@@ -324,7 +325,7 @@ const AssetActions = ({
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title={i18n.t("editor:ui.sortAssets", { defaultValue: "Sort assets" })}
+        title={t("editor:ui.sortAssets", { defaultValue: "Sort assets" })}
         placement="bottom"
         disableInteractive
       >
@@ -337,15 +338,15 @@ const AssetActions = ({
           inputProps={{ "aria-label": "Sort assets" }}
           tabIndex={-1}
         >
-          <MenuItem value="name">{i18n.t("editor:asset.info.name", { defaultValue: "Name" })}</MenuItem>
-          <MenuItem value="date">{i18n.t("ui2:attrs.date", { defaultValue: "Date" })}</MenuItem>
-          <MenuItem value="size">{i18n.t("editor:asset.info.size", { defaultValue: "Size" })}</MenuItem>
+          <MenuItem value="name">{t("editor:asset.info.name", { defaultValue: "Name" })}</MenuItem>
+          <MenuItem value="date">{t("ui2:attrs.date", { defaultValue: "Date" })}</MenuItem>
+          <MenuItem value="size">{t("editor:asset.info.size", { defaultValue: "Size" })}</MenuItem>
         </Select>
       </Tooltip>
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title={i18n.t("editor:ui.filterByFileSize", { defaultValue: "Filter by file size" })}
+        title={t("editor:ui.filterByFileSize", { defaultValue: "Filter by file size" })}
         placement="bottom"
         disableInteractive
       >
@@ -360,7 +361,7 @@ const AssetActions = ({
           }}
           onChange={handleSizeFilter}
           displayEmpty
-          inputProps={{ "aria-label": i18n.t("editor:ui.filterBySize", { defaultValue: "Filter by size" }) }}
+          inputProps={{ "aria-label": t("editor:ui.filterBySize", { defaultValue: "Filter by size" }) }}
           tabIndex={-1}
         >
           {SIZE_FILTERS.map((filter) => (
@@ -376,7 +377,7 @@ const AssetActions = ({
           <SliderBasic
             size="small"
             defaultValue={settings.assetItemSize}
-            aria-label={i18n.t("editor:ui.small", { defaultValue: "Small" })}
+            aria-label={t("editor:ui.small", { defaultValue: "Small" })}
             tooltipText="Item Size"
             tooltipPlacement="bottom"
             valueLabelDisplay="auto"

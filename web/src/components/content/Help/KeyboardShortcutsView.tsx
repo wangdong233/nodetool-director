@@ -19,7 +19,7 @@ import "../../../styles/keyboard.css";
 import { keyboardLayouts } from "./keyboard_layouts";
 import { useKeyPressedStore } from "../../../stores/KeyPressedStore";
 import { physicalKeyToLayoutButtonId } from "./physicalKeyboardLayoutKey";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface KeyboardShortcutsViewProps {
   shortcuts?: Shortcut[];
@@ -51,6 +51,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
   listenToPhysicalKeyboard = true,
   imageEditorShortcuts = false
 }) => {
+  const { t } = useTranslation();
   const [os, setOs] = useState<"mac" | "win">(isMac() ? "mac" : "win");
   const [layoutName, setLayoutName] = useState<"english" | "german">(() => {
     if (typeof navigator !== "undefined") {
@@ -360,7 +361,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
         sx={{ mb: 2 }}
       >
         <ToggleOption value="mac">macOS</ToggleOption>
-        <ToggleOption value="win">{i18n.t("editor:ui.windowsLinux", { defaultValue: "Windows/Linux" })}</ToggleOption>
+        <ToggleOption value="win">{t("editor:ui.windowsLinux", { defaultValue: "Windows/Linux" })}</ToggleOption>
       </ToggleGroup>
 
       <ToggleGroup
@@ -382,13 +383,13 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
         sx={{ mb: 2, ml: imageEditorShortcuts ? 2 : 8 }}
       >
         {imageEditorShortcuts ? (
-          <ToggleOption value="image-editor">{i18n.t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" })}</ToggleOption>
+          <ToggleOption value="image-editor">{t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" })}</ToggleOption>
         ) : (
           <>
-            <ToggleOption value="editor">{i18n.t("ui2:attrs.editor", { defaultValue: "Editor" })}</ToggleOption>
-            <ToggleOption value="workflow">{i18n.t("home:entry.workflow.title", { defaultValue: "Workflow" })}</ToggleOption>
-            <ToggleOption value="panel">{i18n.t("ui2:attrs.panels", { defaultValue: "Panels" })}</ToggleOption>
-            <ToggleOption value="assets">{i18n.t("nav:rail.assets", { defaultValue: "Assets" })}</ToggleOption>
+            <ToggleOption value="editor">{t("ui2:attrs.editor", { defaultValue: "Editor" })}</ToggleOption>
+            <ToggleOption value="workflow">{t("home:entry.workflow.title", { defaultValue: "Workflow" })}</ToggleOption>
+            <ToggleOption value="panel">{t("ui2:attrs.panels", { defaultValue: "Panels" })}</ToggleOption>
+            <ToggleOption value="assets">{t("nav:rail.assets", { defaultValue: "Assets" })}</ToggleOption>
           </>
         )}
       </ToggleGroup>
@@ -428,7 +429,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
                 <React.Fragment key={idx}>
                   {slug === "switchToTabGroup" ? (
                     <div className="tooltip-span">
-                      <div className="tooltip-title">{i18n.t("ui2:attrs.switchToTab", { defaultValue: "Switch to Tab" })}</div>
+                      <div className="tooltip-title">{t("ui2:attrs.switchToTab", { defaultValue: "Switch to Tab" })}</div>
                       <div className="tooltip-key">
                         <kbd>{os === "mac" ? "⌘" : "CTRL"}</kbd>+<kbd>1-9</kbd>
                       </div>

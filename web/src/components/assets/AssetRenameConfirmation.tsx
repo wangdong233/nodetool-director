@@ -8,7 +8,7 @@ import dialogStyles from "../../styles/DialogStyles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
 import useAssets from "../../serverState/useAssets";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AssetRenameConfirmationProps {
   assets: string[];
@@ -17,6 +17,7 @@ interface AssetRenameConfirmationProps {
 const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
   props
 ) => {
+  const { t } = useTranslation();
   const { assets } = props;
   const setDialogOpen = useAssetGridStore((state) => state.setRenameDialogOpen);
   const dialogOpen = useAssetGridStore((state) => state.renameDialogOpen);
@@ -202,7 +203,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
                   <FlexColumn className="asset-rename-notice-container" gap={SPACING.none}>
                     <Text className="asset-rename-notice notice" size="small">
                       <span>Multiple assets selected:</span> <br />
-                      {i18n.t("editor:ui.namesWillBeAppendedWithANumber")}
+                      {t("editor:ui.namesWillBeAppendedWithANumber")}
                     </Text>
                   </FlexColumn>
                 )}

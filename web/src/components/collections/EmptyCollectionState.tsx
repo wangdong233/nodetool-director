@@ -6,9 +6,10 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const EmptyCollectionState = () => {
+  const { t } = useTranslation();
   return (
     <Box sx={{ marginTop: 2, maxWidth: 600 }}>
       <Text size="big" sx={{ margin: `${getSpacingPx(SPACING.xl)} 0 ${getSpacingPx(SPACING.md)} 0` }}>
@@ -28,10 +29,10 @@ const EmptyCollectionState = () => {
 
       <FlexColumn gap={2}>
         <Text size="big">
-          {i18n.t("editor:ui.noCollectionsFoundCreateOneToGetStarted")}
+          {t("editor:ui.noCollectionsFoundCreateOneToGetStarted")}
         </Text>
 
-        <Text>{i18n.t("editor:ui.withACollectionYouCan", { defaultValue: "With a collection, you can:" })}</Text>
+        <Text>{t("editor:ui.withACollectionYouCan", { defaultValue: "With a collection, you can:" })}</Text>
         <ul
           style={{
             paddingLeft: getSpacingPx(SPACING.xl),
@@ -39,16 +40,16 @@ const EmptyCollectionState = () => {
             listStyle: "disc"
           }}
         >
-          <li>{i18n.t("editor:ui.indexTextAndImagesAsVectorEmbeddings", { defaultValue: "Index text and images as vector embeddings" })}</li>
-          <li>{i18n.t("ui2:attrs.performSemanticSimilaritySearches", { defaultValue: "Perform semantic similarity searches" })}</li>
-          <li>{i18n.t("ui2:attrs.filterSearchResultsUsingMetadata", { defaultValue: "Filter search results using metadata" })}</li>
-          <li>{i18n.t("ui2:attrs.batchProcessLargeSetsOfDocuments", { defaultValue: "Batch process large sets of documents" })}</li>
+          <li>{t("editor:ui.indexTextAndImagesAsVectorEmbeddings", { defaultValue: "Index text and images as vector embeddings" })}</li>
+          <li>{t("ui2:attrs.performSemanticSimilaritySearches", { defaultValue: "Perform semantic similarity searches" })}</li>
+          <li>{t("ui2:attrs.filterSearchResultsUsingMetadata", { defaultValue: "Filter search results using metadata" })}</li>
+          <li>{t("ui2:attrs.batchProcessLargeSetsOfDocuments", { defaultValue: "Batch process large sets of documents" })}</li>
         </ul>
         <Text>
-          Key nodes include <strong>{i18n.t("ui2:attrs.indexImage", { defaultValue: "Index Image" })}</strong> and{" "}
-          <strong>{i18n.t("ui2:attrs.indexTextChunk", { defaultValue: "Index Text Chunk" })}</strong> for populating data, and{" "}
-          <strong>{i18n.t("ui2:attrs.queryImage", { defaultValue: "Query Image" })}</strong>, <strong>{i18n.t("ui2:attrs.queryText", { defaultValue: "Query Text" })}</strong>, or{" "}
-          <strong>{i18n.t("ui2:attrs.hybridSearch", { defaultValue: "Hybrid Search" })}</strong> for retrieval.
+          Key nodes include <strong>{t("ui2:attrs.indexImage", { defaultValue: "Index Image" })}</strong> and{" "}
+          <strong>{t("ui2:attrs.indexTextChunk", { defaultValue: "Index Text Chunk" })}</strong> for populating data, and{" "}
+          <strong>{t("ui2:attrs.queryImage", { defaultValue: "Query Image" })}</strong>, <strong>{t("ui2:attrs.queryText", { defaultValue: "Query Text" })}</strong>, or{" "}
+          <strong>{t("ui2:attrs.hybridSearch", { defaultValue: "Hybrid Search" })}</strong> for retrieval.
         </Text>
       </FlexColumn>
     </Box>

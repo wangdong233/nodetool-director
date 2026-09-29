@@ -6,7 +6,7 @@ import {
   SHORTCUT_CATEGORIES,
   type Shortcut
 } from "../../../config/shortcuts";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const categories = Object.keys(SHORTCUT_CATEGORIES) as Array<
   keyof typeof SHORTCUT_CATEGORIES
@@ -34,6 +34,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
   scrollSx,
   searchPlaceholder = "Search shortcuts"
 }) => {
+  const { t } = useTranslation();
   const catalog = tooltipCatalog ?? shortcuts;
   const [search, setSearch] = useState("");
 
@@ -104,7 +105,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
                   align="center"
                 >
                   <Text sx={{ minWidth: 200 }}>
-                    {i18n.t(`catalog:shortcuts.${s.titleKey ?? ""}`, {
+                    {t(`catalog:shortcuts.${s.titleKey ?? ""}`, {
                       defaultValue: s.title
                     })}
                   </Text>
@@ -119,7 +120,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
                         fontWeight: 400
                       }}
                     >
-                      {i18n.t(`catalog:shortcuts.${s.descriptionKey ?? ""}`, {
+                      {t(`catalog:shortcuts.${s.descriptionKey ?? ""}`, {
                         defaultValue: s.description
                       })}
                     </Text>

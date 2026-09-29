@@ -13,7 +13,7 @@ import {
 } from "../../ui_primitives";
 import { DataType } from "../../../config/data_types";
 import { IconForType } from "../../../config/IconForType";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface DataTypesListProps {
   title: string;
@@ -28,6 +28,7 @@ const DataTypesList = ({
   expanded,
   onChange
 }: DataTypesListProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const cssStyles = useMemo(() => css({
@@ -118,7 +119,7 @@ const DataTypesList = ({
                   flex: 1
                 }}
               >
-                {i18n.t(`catalog:dataTypes.${type.descriptionKey ?? ""}`, {
+                {t(`catalog:dataTypes.${type.descriptionKey ?? ""}`, {
                   defaultValue: type.description
                 })}
               </Text>
