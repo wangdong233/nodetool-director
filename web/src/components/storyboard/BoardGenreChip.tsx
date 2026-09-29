@@ -19,7 +19,7 @@ import {
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { OptionCardGrid, type OptionCardItem } from "../setup/OptionCardGrid";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   STORYBOARD_GENRES,
   genreByLabel,
@@ -47,6 +47,7 @@ const BoardGenreChipInner: React.FC<BoardGenreChipProps> = ({
   genre,
   readOnly
 }) => {
+  const { t } = useTranslation();
   const setSetup = useStoryboardStore((state) => state.setSetup);
   // The anchor is state, not a ref: the popover needs the element on the
   // render that opens it, and a ref read during render is not that.
@@ -95,9 +96,9 @@ const BoardGenreChipInner: React.FC<BoardGenreChipProps> = ({
         maxHeight="70vh"
       >
         <FlexColumn gap={SPACING.md} sx={{ p: SPACING.xl }}>
-          <Text size="small" component="h3">{i18n.t("storyboard:attrs.genre", { defaultValue: "Genre" })}</Text>
+          <Text size="small" component="h3">{t("storyboard:attrs.genre", { defaultValue: "Genre" })}</Text>
           <OptionCardGrid
-            label={i18n.t("storyboard:attrs.genre", { defaultValue: "Genre" })}
+            label={t("storyboard:attrs.genre", { defaultValue: "Genre" })}
             options={options}
             selectedId={selectedId}
             onSelect={handleSelect}

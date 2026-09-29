@@ -14,7 +14,6 @@ import React from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { Chip, Text, BORDER_RADIUS, SPACING } from "../ui_primitives";
-import { i18n } from "../../i18n";
 
 /** A run of the action line: plain prose, or one entity's name. */
 export interface ActionSegment {

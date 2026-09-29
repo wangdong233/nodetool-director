@@ -23,7 +23,6 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ShotCostEstimate } from "../../hooks/storyboard/useShotCostEstimate";
-import { i18n } from "../../i18n";
 
 interface ShotCostLineProps {
   estimate: ShotCostEstimate;

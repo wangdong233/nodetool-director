@@ -20,7 +20,7 @@ import {
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { buildPreviewSequence, previewSignature } from "./previewSequence";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PREVIEW_HEIGHT = 400;
 
@@ -63,6 +63,7 @@ interface StoryboardPreviewProps {
 const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
   boardId
 }) => {
+  const { t } = useTranslation();
   // Subscribe to a signature string, not the board: a board object is replaced
   // on every edit (typing in the brief, changing selection), and a fresh
   // `sequence` prop resets playback in TimelineRenderer.
@@ -79,7 +80,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
     return (
       <Box sx={emptySx} className="storyboard-preview storyboard-preview--empty">
         <Caption color="secondary">
-          {i18n.t("editor:ui.nothingToPreviewYetGenerateStillsOrClipsFirst")}
+          {t("editor:ui.nothingToPreviewYetGenerateStillsOrClipsFirst")}
         </Caption>
       </Box>
     );
@@ -91,7 +92,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
         <TimelineRenderer
           sequence={preview.sequence}
           showMetadata={false}
-          ariaLabel={i18n.t("storyboard:attrs.storyboardPreview", { defaultValue: "Storyboard preview" })}
+          ariaLabel={t("storyboard:attrs.storyboardPreview", { defaultValue: "Storyboard preview" })}
         />
       </Box>
       <FlexRow gap={SPACING.sm} align="center">

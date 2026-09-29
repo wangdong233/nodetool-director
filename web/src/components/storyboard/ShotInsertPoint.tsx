@@ -16,7 +16,6 @@ import React, { memo, useCallback } from "react";
 import AddIcon from "@mui/icons-material/Add";
 
 import { Box, MOTION, SPACING_PX, ToolbarIconButton } from "../ui_primitives";
-import { i18n } from "../../i18n";
 
 export interface ShotInsertPointProps {
   /** The new shot lands directly after this one. */

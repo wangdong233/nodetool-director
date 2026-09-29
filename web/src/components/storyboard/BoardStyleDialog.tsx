@@ -26,7 +26,7 @@ import {
   useStylePresets
 } from "../../serverState/useStylePresets";
 import { PresetTileGrid, type PresetTile } from "../setup/PresetTileGrid";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface BoardStyleDialogProps {
   boardId: string;
@@ -44,6 +44,7 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
   open,
   onClose
 }) => {
+  const { t } = useTranslation();
   const setStylePreset = useStoryboardStore((state) => state.setStylePreset);
   const entityIds = useStoryboardStore(
     useCallback(
@@ -86,14 +87,14 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
   );
 
   return (
-    <Dialog open={open} onClose={onClose} title={i18n.t("editor:ui.changeStyle", { defaultValue: "Change style" })} maxWidth="md">
+    <Dialog open={open} onClose={onClose} title={t("editor:ui.changeStyle", { defaultValue: "Change style" })} maxWidth="md">
       <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.md }}>
         <Caption color="secondary">
           The new style applies to every shot. Stills and clips already
           rendered are marked stale — nothing re-renders until you ask for it.
         </Caption>
         <PresetTileGrid
-          label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
+          label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
           presets={tiles}
           selectedId={selectedId}
           onSelect={handleSelect}

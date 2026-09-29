@@ -30,7 +30,7 @@ import {
   getEntityKindChipSx
 } from "../entities/entityKind";
 import { useResolvedThumbnailUri } from "../../hooks/useResolvedMediaUri";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface StoryboardEntitiesFieldProps {
   boardId: string;
@@ -76,6 +76,7 @@ const StoryboardEntitiesFieldInner: React.FC<StoryboardEntitiesFieldProps> = ({
   boardId,
   entityIds
 }) => {
+  const { t } = useTranslation();
   const { data: allEntities } = useEntities();
   const setEntityIds = useStoryboardStore((state) => state.setEntityIds);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -129,7 +130,7 @@ const StoryboardEntitiesFieldInner: React.FC<StoryboardEntitiesFieldProps> = ({
         startIcon={<AddIcon />}
         onClick={() => setPickerOpen(true)}
       >
-        {selected.length === 0 ? i18n.t("storyboard:attrs.addEntities", { defaultValue: "Add entities" }) : i18n.t("ui2:attrs.add", { defaultValue: "Add" })}
+        {selected.length === 0 ? t("storyboard:attrs.addEntities", { defaultValue: "Add entities" }) : t("ui2:attrs.add", { defaultValue: "Add" })}
       </EditorButton>
 
       <Popover
@@ -144,7 +145,7 @@ const StoryboardEntitiesFieldInner: React.FC<StoryboardEntitiesFieldProps> = ({
           <FlexColumn gap={1} sx={{ p: 2, maxWidth: 280 }}>
             <Text size="small">
               {(allEntities ?? []).length === 0
-                ? i18n.t("storyboard:attrs.noEntitiesYet2", { defaultValue: "No entities yet." })
+                ? t("storyboard:attrs.noEntitiesYet2", { defaultValue: "No entities yet." })
                 : "All entities are already on this board."}
             </Text>
             {(allEntities ?? []).length === 0 && (

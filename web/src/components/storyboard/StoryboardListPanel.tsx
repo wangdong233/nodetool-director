@@ -24,8 +24,10 @@ import {
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
+  const { t } = useTranslation();
   const createStoryboard = useCreateStoryboard();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -55,9 +57,9 @@ export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
   }, [createStoryboard, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title={i18n.t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })} placement="right-start">
+    <Tooltip title={t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })}
+        ariaLabel={t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })}
         onClick={() => void handleCreate()}
         disabled={createStoryboard.isPending}
         tabIndex={-1}
@@ -72,6 +74,7 @@ interface StoryboardListPanelProps {
 }
 
 const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useStoryboards(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -193,7 +196,7 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
         <ListPanelItem
           id={board.id}
           name={board.name}
-          fallbackName={i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })}
+          fallbackName={t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })}
           renameLabel="Storyboard name"
           icon={DashboardOutlinedIcon}
           active={board.id === activeStoryboardId}

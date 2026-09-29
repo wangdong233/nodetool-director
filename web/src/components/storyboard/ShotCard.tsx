@@ -64,7 +64,7 @@ import {
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ShotCardProps {
   boardId: string;
@@ -158,6 +158,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   onDrop,
   onEdit
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const shotRenderContext =
     typeof renderContext === "function" ? renderContext(shot) : renderContext;
@@ -459,7 +460,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering ? i18n.t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : i18n.t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
+            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -489,7 +490,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip ? i18n.t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : i18n.t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
+            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -557,7 +558,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             data-testid="shot-render-error"
             sx={{ color: "error.main", minWidth: 0 }}
           >
-            {renderError ?? i18n.t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
+            {renderError ?? t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
           </Caption>
           {!readOnly && (
             <EditorButton
@@ -565,7 +566,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               variant="outlined"
               onClick={handleRetry}
               sx={{ flexShrink: 0 }}
-            >{i18n.t("storyboard:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
+            >{t("storyboard:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
           )}
         </FlexRow>
       )}
@@ -588,7 +589,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           }}
         >
           {onEdit && (
-            <EditorButton size="small" onClick={handleEdit} sx={footerButtonSx}>{i18n.t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
+            <EditorButton size="small" onClick={handleEdit} sx={footerButtonSx}>{t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
           )}
           <EditorButton
             size="small"
@@ -597,20 +598,20 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             sx={footerButtonSx}
             title={
               shot.clip
-                ? i18n.t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
-                : i18n.t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
+                ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
+                : t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
             }
-          >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
+          >{t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
           <ToolbarIconButton
             icon={<AutorenewIcon sx={{ fontSize: "1em" }} />}
-            tooltip={i18n.t("storyboard:attrs.renderANewStillFromThisShotFields", { defaultValue: "Render a new still from this shot's fields" })}
-            ariaLabel={i18n.t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
+            tooltip={t("storyboard:attrs.renderANewStillFromThisShotFields", { defaultValue: "Render a new still from this shot's fields" })}
+            ariaLabel={t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
             onClick={handleRegenerate}
             disabled={isGenerating}
           />
           <UploadButton
             onFileSelect={handleUpload}
-            tooltip={i18n.t("storyboard:attrs.uploadYourOwnStill", { defaultValue: "Upload your own still" })}
+            tooltip={t("storyboard:attrs.uploadYourOwnStill", { defaultValue: "Upload your own still" })}
             accept="image/*"
             multiple={false}
           />
@@ -629,9 +630,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         <Dialog
           open={iterateOpen}
           onClose={handleCloseIterate}
-          title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
+          title={t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
           onConfirm={handleIterateConfirm}
-          confirmText={i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
+          confirmText={t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
           confirmDisabled={iterateText.trim().length === 0}
         >
           <FlexColumn gap={SPACING.xs}>
@@ -641,7 +642,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             </Caption>
             <TextInput
               value={iterateText}
-              placeholder={i18n.t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
+              placeholder={t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
               onChange={(event) => setIterateText(event.target.value)}
               multiline
               rows={3}
@@ -663,9 +664,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         <Dialog
           open={confirmDelete}
           onClose={handleCloseDeleteConfirm}
-          title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
+          title={t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
           onConfirm={handleDeleteConfirmed}
-          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+          confirmText={t("common:action.delete", { defaultValue: "Delete" })}
           destructive
         >
           <Text>

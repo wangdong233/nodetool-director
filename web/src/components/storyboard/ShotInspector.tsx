@@ -45,7 +45,7 @@ import {
 } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
 import { hexToRgba } from "../../utils/ColorUtils";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ShotInspectorProps {
   boardId: string;
@@ -94,6 +94,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
   onClose,
   onEdit
 }) => {
+  const { t } = useTranslation();
   const removeShot = useStoryboardStore((state) => state.removeShot);
   const boardEntityIds = useStoryboardStore(
     (state) => state.boards[boardId]?.entityIds ?? NO_ENTITY_IDS
@@ -199,7 +200,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           <ShotActionText action={shot.action} entities={shotEntities} />
         </Box>
         <Divider orientation="vertical" flexItem />
-        <Caption color="secondary">{i18n.t("storyboard:attrs.appearsIn", { defaultValue: "Appears in" })}</Caption>
+        <Caption color="secondary">{t("storyboard:attrs.appearsIn", { defaultValue: "Appears in" })}</Caption>
         {timelineLink && (
           <Chip
             compact
@@ -207,7 +208,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
             label={timelineLink.label}
             sx={timelineChipSx}
             onClick={timelineLink.open}
-            title={i18n.t("storyboard:attrs.openTheCutWithThisShotClipSelected", { defaultValue: "Open the cut with this shot's clip selected" })}
+            title={t("storyboard:attrs.openTheCutWithThisShotClipSelected", { defaultValue: "Open the cut with this shot's clip selected" })}
           />
         )}
         {scriptLink && (
@@ -217,7 +218,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
             label={scriptLink.label}
             sx={scriptChipSx}
             onClick={handleOpenScript}
-            title={i18n.t("storyboard:attrs.openTheScriptThisShotLinesComeFrom", { defaultValue: "Open the script this shot's lines come from" })}
+            title={t("storyboard:attrs.openTheScriptThisShotLinesComeFrom", { defaultValue: "Open the script this shot's lines come from" })}
           />
         )}
         {!timelineLink && !scriptLink && (
@@ -230,8 +231,8 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
                 variant="contained"
                 color="primary"
                 onClick={() => onEdit(shot.id)}
-                title={i18n.t("storyboard:attrs.openThisShotFieldsTakesAndScriptLinesUnderItsCard", { defaultValue: "Open this shot's fields, takes and script lines under its card" })}
-              >{i18n.t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
+                title={t("storyboard:attrs.openThisShotFieldsTakesAndScriptLinesUnderItsCard", { defaultValue: "Open this shot's fields, takes and script lines under its card" })}
+              >{t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
             )}
             <EditorButton
               onClick={() => setIterateOpen(true)}
@@ -239,35 +240,35 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               sx={quietActionSx}
               title={
                 shot.clip
-                  ? i18n.t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
-                  : i18n.t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
+                  ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
+                  : t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
               }
-            >{i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
+            >{t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
             <EditorButton
               onClick={handleRegenerate}
               disabled={isGenerating}
               sx={quietActionSx}
-              title={i18n.t("storyboard:attrs.renderANewStillFromThisShotSavedFields", { defaultValue: "Render a new still from this shot's saved fields" })}
-            >{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+              title={t("storyboard:attrs.renderANewStillFromThisShotSavedFields", { defaultValue: "Render a new still from this shot's saved fields" })}
+            >{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
             <EditorButton
               onClick={() => setConfirmDelete(true)}
               disabled={isGenerating}
               sx={quietActionSx}
-              title={i18n.t("storyboard:attrs.removeThisShotFromTheBoard", { defaultValue: "Remove this shot from the board" })}
-            >{i18n.t("storyboard:attrs.delete", { defaultValue: "Delete" })}</EditorButton>
+              title={t("storyboard:attrs.removeThisShotFromTheBoard", { defaultValue: "Remove this shot from the board" })}
+            >{t("storyboard:attrs.delete", { defaultValue: "Delete" })}</EditorButton>
           </>
         )}
         {onClose && (
-          <CloseButton onClick={onClose} tooltip={i18n.t("storyboard:attrs.clearShotSelection", { defaultValue: "Clear shot selection" })} />
+          <CloseButton onClick={onClose} tooltip={t("storyboard:attrs.clearShotSelection", { defaultValue: "Clear shot selection" })} />
         )}
       </FlexRow>
 
       <Dialog
         open={iterateOpen}
         onClose={() => setIterateOpen(false)}
-        title={i18n.t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
+        title={t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
         onConfirm={handleIterateConfirm}
-        confirmText={i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
+        confirmText={t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
         confirmDisabled={iterateText.trim().length === 0}
       >
         <FlexColumn gap={SPACING.xs}>
@@ -277,7 +278,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           </Caption>
           <TextInput
             value={iterateText}
-            placeholder={i18n.t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
+            placeholder={t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
             onChange={(e) => setIterateText(e.target.value)}
             multiline
             rows={3}
@@ -289,9 +290,9 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
       <Dialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title={i18n.t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
+        title={t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
         onConfirm={handleDelete}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
         destructive
       >
         <Text>

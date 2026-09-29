@@ -13,7 +13,6 @@
 
 import { Caption } from "../ui_primitives";
 import { useImageModelsByProvider } from "../../hooks/useModelsByProvider";
-import { i18n } from "../../i18n";
 
 interface EntityStillModelWarningProps {
   /** The board's selected still model, if one is chosen. */

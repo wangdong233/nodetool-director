@@ -20,6 +20,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useTranslation } from "react-i18next"; (i18n-mig: B12 storyboard (StoryboardBoard excluded = danger-10 manual) — G3: +i18n.t(=0  -i18n.t(=177  +useTranslation(=20  +bare-t(=177)
 
 import { useInStudio } from "../../studio/StudioContext";
 import { SendToWorkflowMenu } from "../workflows/SendToWorkflowMenu";
@@ -117,6 +118,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
   const hasMenu = Boolean(
     hasRender || onDownload || sendItems || onDuplicate || onDelete
   );
+  const { t } = useTranslation();
   // A row with nothing in it would still catch the eye as a scrim on hover.
   if (!showDragHandle && !onFullscreen && !hasMenu) {
     return null;
@@ -146,7 +148,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
       {onFullscreen && (
         <ToolbarIconButton
           icon={<FullscreenIcon sx={iconSx} />}
-          tooltip="View fullscreen (double-click)"
+          tooltip={t("storyboard:attrs.viewFullscreenDoubleclick", { defaultValue: "View fullscreen (double-click)" })}
           ariaLabel={fullscreenLabel}
           onClick={onFullscreen}
         />
@@ -162,77 +164,20 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
           onClick={openMenu}
         />
       )}
-      <EditorMenu
-        anchorEl={moreButton}
-        open={menuOpen}
-        onClose={closeMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ list: { "aria-label": "Shot actions" } }}
-      >
-        {onRenderStill && (
-          <MenuItemPrimitive
-            compact
-            label="Render still…"
-            icon={<ImageOutlinedIcon fontSize="small" />}
-            disabled={renderDisabled}
-            onClick={runAndClose(onRenderStill)}
-          />
-        )}
-        {onRenderClip && (
-          <MenuItemPrimitive
-            compact
-            label="Render clip…"
-            icon={<MovieOutlinedIcon fontSize="small" />}
-            disabled={renderDisabled}
-            onClick={runAndClose(onRenderClip)}
-          />
-        )}
-        {onDownload && (
-          <MenuItemPrimitive
-            compact
-            dividerBefore={hasRender}
-            label={`Download ${what}`}
-            icon={<DownloadIcon fontSize="small" />}
-            onClick={runAndClose(onDownload)}
-          />
-        )}
-        {sendItems && (
-          <MenuItemPrimitive
-            compact
-            dividerBefore={hasRender && !onDownload}
-            label="Send to workflow…"
-            icon={<AccountTreeOutlinedIcon fontSize="small" />}
-            onClick={openSend}
-          />
-        )}
-        {onDuplicate && (
-          <MenuItemPrimitive
-            compact
-            dividerBefore={hasRender && !onDownload && !sendItems}
-            label="Duplicate shot"
-            icon={<ContentCopyIcon fontSize="small" />}
-            onClick={runAndClose(onDuplicate)}
-          />
-        )}
-        {onDelete && (
-          <MenuItemPrimitive
-            compact
-            color="error"
-            dividerBefore={Boolean(
-              hasRender || onDownload || sendItems || onDuplicate
-            )}
-            label="Delete shot"
-            icon={<DeleteOutlineIcon fontSize="small" />}
-            onClick={runAndClose(onDelete)}
-          />
-        )}
-      </EditorMenu>
-      {sendOpen && sendItems && (
-        <SendToWorkflowMenu
-          items={sendItems}
-          anchorEl={moreButton}
-          onClose={closeSend}
+      {onDuplicate && (
+        <ToolbarIconButton
+          icon={<ContentCopyIcon sx={iconSx} />}
+          tooltip={t("storyboard:attrs.duplicateThisShot", { defaultValue: "Duplicate this shot" })}
+          ariaLabel={t("storyboard:attrs.duplicateShot", { defaultValue: "Duplicate shot" })}
+          onClick={onDuplicate}
+        />
+      )}
+      {onDelete && (
+        <ToolbarIconButton
+          icon={<DeleteOutlineIcon sx={iconSx} />}
+          tooltip={t("storyboard:attrs.deleteThisShot", { defaultValue: "Delete this shot" })}
+          ariaLabel={t("storyboard:attrs.deleteShot", { defaultValue: "Delete shot" })}
+          onClick={onDelete}
         />
       )}
     </FlexRow>

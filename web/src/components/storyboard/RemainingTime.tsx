@@ -19,7 +19,6 @@ import {
   useStoryboardGenerationStore
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { Caption } from "../ui_primitives";
-import { i18n } from "../../i18n";
 
 /**
  * Seconds as `~M:SS`. Minutes are not padded and are not capped at 60, so a

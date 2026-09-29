@@ -3,7 +3,6 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
-import { i18n } from "../../i18n";
 
 interface StoryboardAgentPanelProps {
   boardId: string;

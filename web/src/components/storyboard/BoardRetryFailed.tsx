@@ -16,7 +16,6 @@ import { useShallow } from "zustand/react/shallow";
 import { useStoryboardGenerationStore } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { EditorButton } from "../ui_primitives";
-import { i18n } from "../../i18n";
 
 export interface BoardRetryFailedProps {
   /** The open board. Only its own failed shots are counted and retried. */

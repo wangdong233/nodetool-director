@@ -21,7 +21,7 @@ import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useExtractScriptFromBoard } from "../../hooks/storyboard/useExtractScriptFromBoard";
 import { useBoardScriptLinkIssues } from "../../hooks/storyboard/useBoardScriptLinkIssues";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ScriptLinkControlProps {
   boardId: string;
@@ -33,6 +33,7 @@ const ScriptLinkControlInner = ({
   boardId,
   disabled
 }: ScriptLinkControlProps) => {
+  const { t } = useTranslation();
   const scriptId = useStoryboardStore(
     (state) => state.boards[boardId]?.screenplay?.script_id ?? null
   );
@@ -65,11 +66,11 @@ const ScriptLinkControlInner = ({
         disabled={disabled || extracting || (!scriptId && !hasShots)}
         title={
           scriptId
-            ? i18n.t("storyboard:attrs.openTheScriptThisBoardsWordsComeFrom", { defaultValue: "Open the script this board's words come from" })
-            : i18n.t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })
+            ? t("storyboard:attrs.openTheScriptThisBoardsWordsComeFrom", { defaultValue: "Open the script this board's words come from" })
+            : t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })
         }
       >
-        {scriptId ? i18n.t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? i18n.t("storyboard:attrs.extracting", { defaultValue: "Extracting…" }) : i18n.t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
+        {scriptId ? t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? t("storyboard:attrs.extracting", { defaultValue: "Extracting…" }) : t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>

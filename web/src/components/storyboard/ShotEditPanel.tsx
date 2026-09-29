@@ -92,6 +92,7 @@ import { getEntityChipSx, getEntityKindDotSx } from "../entities/entityKind";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { requestDocumentFocus } from "../../stores/DocumentFocusStore";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ShotEditPanelProps {
   boardId: string;
@@ -194,6 +195,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   leaveRequest,
   onLeaveRequestComplete
 }) => {
+  const { t } = useTranslation();
   // What the panel is waiting on an answer for: a close, or a step to another
   // shot. Null while there is nothing pending.
   const [pending, setPending] = useState<{
@@ -587,7 +589,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     >
       <FlexColumn gap={SPACING.xl} sx={{ minWidth: 0 }}>
         <FlexRow align="center" gap={SPACING.md} wrap>
-          <Text size="big">{i18n.t("storyboard:attrs.editYourShot", { defaultValue: "Edit your shot" })}</Text>
+          <Text size="big">{t("storyboard:attrs.editYourShot", { defaultValue: "Edit your shot" })}</Text>
           <Box sx={shotNumberSx}>
             {`SH ${String(shot.index + 1).padStart(2, "0")}`}
           </Box>
@@ -596,13 +598,13 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               <EditorButton
                 onClick={() => stepShot(-1)}
                 disabled={!canStepBack}
-                title={i18n.t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
-              >{i18n.t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}</EditorButton>
+                title={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
+              >{t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}</EditorButton>
               <EditorButton
                 onClick={() => stepShot(1)}
                 disabled={!canStepForward}
-                title={i18n.t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
-              >{i18n.t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}</EditorButton>
+                title={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
+              >{t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}</EditorButton>
             </>
           )}
           <Box sx={{ flex: 1 }} />
@@ -633,10 +635,10 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         <FlexRow align="flex-end" gap={SPACING.lg} wrap>
           <Box sx={{ flex: "1 1 16rem", minWidth: 0 }}>
             <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}</Label>
+              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}</Label>
               <SelectField
                 size="small"
-                label={i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}
+                label={t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}
                 hideLabel
                 disabled={readOnly || sceneOptions.length === 0}
                 value={draft.sceneId ?? ""}
@@ -647,10 +649,10 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           </Box>
           <Box sx={{ flex: "1 1 12rem", minWidth: 0 }}>
             <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{i18n.t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}</Label>
+              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}</Label>
               <SelectField
                 size="small"
-                label={i18n.t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
+                label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
                 hideLabel
                 disabled={readOnly}
                 value={draft.renderMode}
@@ -667,13 +669,13 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           </Box>
           <Box sx={{ flex: "1 1 16rem", minWidth: 0 }}>
             <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{i18n.t("storyboard:attrs.lighting", { defaultValue: "Lighting" })}</Label>
+              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.lighting", { defaultValue: "Lighting" })}</Label>
               <TextInput
                 compact
                 size="small"
-                label={i18n.t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" })}
+                label={t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" })}
                 hideLabel
-                placeholder={i18n.t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" })}
+                placeholder={t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" })}
                 disabled={readOnly || !draft.sceneId}
                 value={draft.lighting}
                 onChange={(event) =>
@@ -684,13 +686,13 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           </Box>
           <Box sx={{ flex: "1 1 12rem", minWidth: 0 }}>
             <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{i18n.t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}</Label>
+              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}</Label>
               <TextInput
                 compact
                 size="small"
-                label={i18n.t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
+                label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
                 hideLabel
-                placeholder={i18n.t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
+                placeholder={t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
                 disabled={readOnly}
                 value={draft.slug}
                 onChange={(event) =>
@@ -759,17 +761,17 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
             <>
               <ToolbarIconButton
                 icon={<MoreHorizIcon sx={{ fontSize: "1em" }} />}
-                tooltip={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
-                ariaLabel={i18n.t("storyboard:attrs.moreShotActions", { defaultValue: "More shot actions" })}
+                tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+                ariaLabel={t("storyboard:attrs.moreShotActions", { defaultValue: "More shot actions" })}
                 onClick={(event) => setMenuAnchor(event.currentTarget)}
               />
-              <EditorButton onClick={handleRegenerate}>{i18n.t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+              <EditorButton onClick={handleRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
               <EditorButton
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
                 disabled={!dirty}
-              >{i18n.t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
+              >{t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
             </>
           )}
         </FlexRow>
@@ -781,50 +783,50 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         onClose={() => setMenuAnchor(null)}
       >
         <EditorMenuItem onClick={handleRenderClip}>
-          {shot.clip ? i18n.t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : i18n.t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}
+          {shot.clip ? t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}
         </EditorMenuItem>
         <EditorMenuItem
           onClick={() => handleNudge("up")}
           disabled={numbering.shot <= 1}
-        >{i18n.t("storyboard:attrs.moveEarlierInScene", { defaultValue: "Move earlier in scene" })}</EditorMenuItem>
-        <EditorMenuItem onClick={() => handleNudge("down")}>{i18n.t("storyboard:attrs.moveLaterInScene", { defaultValue: "Move later in scene" })}</EditorMenuItem>
+        >{t("storyboard:attrs.moveEarlierInScene", { defaultValue: "Move earlier in scene" })}</EditorMenuItem>
+        <EditorMenuItem onClick={() => handleNudge("down")}>{t("storyboard:attrs.moveLaterInScene", { defaultValue: "Move later in scene" })}</EditorMenuItem>
       </EditorMenu>
 
       <Dialog
         open={pending !== null}
         onClose={keepEditing}
-        title={i18n.t("storyboard:attrs.discardChanges", { defaultValue: "Discard changes?" })}
+        title={t("storyboard:attrs.discardChanges", { defaultValue: "Discard changes?" })}
         actions={
           <FlexRow align="center" gap={SPACING.sm}>
-            <EditorButton onClick={keepEditing}>{i18n.t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
-            <EditorButton onClick={() => runPending(false)}>{i18n.t("storyboard:attrs.discard", { defaultValue: "Discard" })}</EditorButton>
+            <EditorButton onClick={keepEditing}>{t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
+            <EditorButton onClick={() => runPending(false)}>{t("storyboard:attrs.discard", { defaultValue: "Discard" })}</EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => runPending(true)}
-            >{i18n.t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
+            >{t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
           </FlexRow>
         }
       >
-        <Text>{i18n.t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
+        <Text>{t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
         <Caption color="secondary">
-          {i18n.t("editor:ui.versionChoicesDeletionsFlipsAndUploadsAreAlreadySaved")}
+          {t("editor:ui.versionChoicesDeletionsFlipsAndUploadsAreAlreadySaved")}
         </Caption>
       </Dialog>
 
       <Dialog
         open={saveConflicts.length > 0}
         onClose={() => setSaveConflicts([])}
-        title={i18n.t("storyboard:attrs.thisShotChangedElsewhere", { defaultValue: "This shot changed elsewhere" })}
+        title={t("storyboard:attrs.thisShotChangedElsewhere", { defaultValue: "This shot changed elsewhere" })}
         actions={
           <FlexRow align="center" gap={SPACING.sm} wrap>
-            <EditorButton onClick={() => setSaveConflicts([])}>{i18n.t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
-            <EditorButton onClick={() => resolveSaveConflicts("current")}>{i18n.t("storyboard:attrs.useCurrentValues", { defaultValue: "Use current values" })}</EditorButton>
+            <EditorButton onClick={() => setSaveConflicts([])}>{t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
+            <EditorButton onClick={() => resolveSaveConflicts("current")}>{t("storyboard:attrs.useCurrentValues", { defaultValue: "Use current values" })}</EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => resolveSaveConflicts("mine")}
-            >{i18n.t("storyboard:attrs.keepMyChanges", { defaultValue: "Keep my changes" })}</EditorButton>
+            >{t("storyboard:attrs.keepMyChanges", { defaultValue: "Keep my changes" })}</EditorButton>
           </FlexRow>
         }
       >
@@ -838,9 +840,9 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               const current = draftFromShot(shot, scene);
               return (
                 <FlexColumn key={key} gap={SPACING.xs}>
-                  <Label>{i18n.t(DRAFT_LABEL_KEYS[key], { defaultValue: DRAFT_LABELS[key] })}</Label>
-                  <Caption color="secondary">{`Your edit: ${String(draft[key] ?? i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
-                  <Caption color="secondary">{`Current: ${String(current[key] ?? i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
+                  <Label>{t(DRAFT_LABEL_KEYS[key], { defaultValue: DRAFT_LABELS[key] })}</Label>
+                  <Caption color="secondary">{`Your edit: ${String(draft[key] ?? t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
+                  <Caption color="secondary">{`Current: ${String(current[key] ?? t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
                 </FlexColumn>
               );
             })}
