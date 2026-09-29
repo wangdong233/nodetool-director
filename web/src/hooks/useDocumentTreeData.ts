@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -108,6 +108,7 @@ const GROUPS: readonly {
 export const useDocumentTreeData = (
   projectId: string
 ): UseDocumentTreeDataResult => {
+  const { t } = useTranslation();
   const indexQuery = trpc.documents.index.useQuery(
     { projectId },
     { staleTime: INDEX_STALE_TIME, retry: false }
@@ -120,7 +121,7 @@ export const useDocumentTreeData = (
       const leaves = byType.get(type) ?? [];
       leaves.push({
         id: document.id,
-        name: document.name || i18n.t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
+        name: document.name || t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
         type,
         typeLabel: TYPE_LABELS[type],
         projectId,
@@ -134,7 +135,7 @@ export const useDocumentTreeData = (
       labelKey: group.labelKey,
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
-  }, [indexQuery.data, projectId]);
+  }, [indexQuery.data, projectId, t]);
 
   const error = indexQuery.error instanceof Error ? indexQuery.error : null;
 

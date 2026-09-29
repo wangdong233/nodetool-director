@@ -36,7 +36,7 @@ import {
 import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
 import { useGameSetupWriter } from "./useGameSetup";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** How much the designer is allowed to answer with. */
 const DESIGN_MAX_OUTPUT_TOKENS = 4096;
@@ -96,6 +96,7 @@ export const hasPinnedDesign = (
 ): boolean => pinnedChipDesign(brief, template) !== null;
 
 export const useDesignGame = (workflowId: string): UseDesignGameResult => {
+  const { t } = useTranslation();
   const [designing, setDesigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filled, setFilled] = useState<string[]>([]);
@@ -179,8 +180,8 @@ export const useDesignGame = (workflowId: string): UseDesignGameResult => {
         }
         if (!resolved) {
           const reason = input.model?.id
-            ? i18n.t("storyboard:attrs.theDesignerDidNotReturnADesignTryAgainOrWriteTheSectionsByHand", { defaultValue: "The designer did not return a design. Try again, or write the sections by hand." })
-            : i18n.t("storyboard:attrs.connectAProviderToDesignThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to design this, or start from one of the examples." });
+            ? t("storyboard:attrs.theDesignerDidNotReturnADesignTryAgainOrWriteTheSectionsByHand", { defaultValue: "The designer did not return a design. Try again, or write the sections by hand." })
+            : t("storyboard:attrs.connectAProviderToDesignThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to design this, or start from one of the examples." });
           setError(reason);
           return reason;
         }

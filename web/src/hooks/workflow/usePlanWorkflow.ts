@@ -44,7 +44,7 @@ import type { NodeMetadata } from "../../stores/ApiTypes";
 import { computeSearchResults } from "../../utils/nodeSearch";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
 import { workflowCategory } from "../../components/setup/workflow/categories";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** How many candidate node types the planner prompt carries. */
 const CANDIDATE_LIMIT = 48;
@@ -228,6 +228,7 @@ export const pinnedChipPlan = (brief: string): WorkflowSetupPlan | null =>
   )?.plan ?? null;
 
 export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
+  const { t } = useTranslation();
   const [planning, setPlanning] = useState(false);
   const [planningStatus, setPlanningStatus] = useState<
     "idle" | "pending" | "canceled" | "error"
@@ -334,8 +335,8 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         }
         if (!resolved) {
           const reason = input.model?.id
-            ? i18n.t("editor:ui.thePlannerDidNotReturnAPlanTryAgainOrEditTheStepsByHand", { defaultValue: "The planner did not return a plan. Try again, or edit the steps by hand." })
-            : i18n.t("editor:ui.connectAProviderToPlanThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to plan this, or start from one of the examples." });
+            ? t("editor:ui.thePlannerDidNotReturnAPlanTryAgainOrEditTheStepsByHand", { defaultValue: "The planner did not return a plan. Try again, or edit the steps by hand." })
+            : t("editor:ui.connectAProviderToPlanThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to plan this, or start from one of the examples." });
           setError(reason);
           setPlanningStatus("error");
           return reason;

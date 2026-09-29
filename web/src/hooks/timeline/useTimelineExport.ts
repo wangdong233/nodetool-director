@@ -19,7 +19,7 @@ import {
   type BrowserExportFormat,
   type RenderProgress
 } from "../../components/timeline/render/TimelineRenderer";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** The render choices the export dialog collects. */
 export interface TimelineExportOptions {
@@ -98,6 +98,7 @@ function clipEndMs(clip: { startMs: number; durationMs: number }): number {
 const PROGRESS_UPDATE_INTERVAL_MS = 250;
 
 export function useTimelineExport(): UseTimelineExportResult {
+  const { t } = useTranslation();
   // `tracks`/`clips`/etc. are only read once, at click time, inside
   // `exportVideo` — reading them via the store api (instead of a reactive
   // selector) means drag/trim/slider ticks that replace `clips` no longer
@@ -268,7 +269,7 @@ export function useTimelineExport(): UseTimelineExportResult {
           }
           useNotificationStore.getState().addNotification({
             type: "success",
-            content: i18n.t("timeline:attrs.savedTimelineToAssets", { defaultValue: "Saved timeline to assets." })
+            content: t("timeline:attrs.savedTimelineToAssets", { defaultValue: "Saved timeline to assets." })
           });
         },
         filename,

@@ -68,7 +68,7 @@ import { fetchShotDurationSeconds } from "./useShotDuration";
 import { CLIP_RESOLUTION, STILL_RESOLUTION } from "./renderSpec";
 import { getErrorMessage } from "../../utils/errorHandling";
 import { useLastModelStore } from "../../stores/lastModelStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Shots with a start in flight, before `registerJob` marks them active in the
@@ -136,6 +136,7 @@ interface UseGenerateShotResult {
 }
 
 export const useGenerateShot = (): UseGenerateShotResult => {
+  const { t } = useTranslation();
   const registerJob = useStoryboardGenerationStore(
     (state) => state.registerJob
   );
@@ -255,8 +256,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
               errorMessage: getErrorMessage(
                 error,
                 production
-                  ? i18n.t("storyboard:attrs.couldNotSubmitTheProductionCandidate", { defaultValue: "Could not submit the production candidate." })
-                  : i18n.t("storyboard:attrs.couldNotSubmitTheRender", { defaultValue: "Could not submit the render." })
+                  ? t("storyboard:attrs.couldNotSubmitTheProductionCandidate", { defaultValue: "Could not submit the production candidate." })
+                  : t("storyboard:attrs.couldNotSubmitTheRender", { defaultValue: "Could not submit the render." })
               )
             });
           unsubscribeShotJob(requestId);
@@ -271,7 +272,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
             shot.id,
             boardId,
             kind,
-            getErrorMessage(error, i18n.t("storyboard:attrs.couldNotStartTheRender", { defaultValue: "Could not start the render." })),
+            getErrorMessage(error, t("storyboard:attrs.couldNotStartTheRender", { defaultValue: "Could not start the render." })),
             mediaEdit,
             acceptedShotStatus
           );
@@ -613,7 +614,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
         );
       }
       if (!model) {
-        return failPreflight(i18n.t("storyboard:attrs.chooseAVideoModelBeforeRevisingThisShot", { defaultValue: "Choose a video model before revising this shot." }));
+        return failPreflight(t("storyboard:attrs.chooseAVideoModelBeforeRevisingThisShot", { defaultValue: "Choose a video model before revising this shot." }));
       }
       const selectedModel = videoModels.find(
         (candidate) =>

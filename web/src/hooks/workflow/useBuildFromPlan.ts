@@ -34,6 +34,7 @@ import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export const workflowBuildStatuses = [
   "built",
@@ -324,6 +325,7 @@ const resultWith = (
 export const useBuildFromPlan = (
   workflowId: string
 ): UseBuildFromPlanResult => {
+  const { t } = useTranslation();
   const [building, setBuilding] = useState(false);
   const [result, setResult] = useState<BuildFromPlanResult | null>(null);
   const activeJobIdRef = useRef<string | null>(null);
@@ -486,7 +488,7 @@ export const useBuildFromPlan = (
               ? `The graph failed validation with ${validationErrors.length} error${
                   validationErrors.length === 1 ? "" : "s"
                 }.`
-              : i18n.t("editor:ui.theGraphValidatesButPartOfThePlanIsUnwired", { defaultValue: "The graph validates, but part of the plan is unwired." })
+              : t("editor:ui.theGraphValidatesButPartOfThePlanIsUnwired", { defaultValue: "The graph validates, but part of the plan is unwired." })
           );
           await setSetup({ [WORKFLOW_BUILD_KEY]: workflowBuildRecord(failed) });
           setResult(failed);
@@ -583,7 +585,7 @@ export const useBuildFromPlan = (
               placement.nodes.length,
               placement.issues,
               validationErrors,
-              { started: true, error: i18n.t("editor:ui.theTestRunDidNotReturnAJobId", { defaultValue: "The test run did not return a job id." }) },
+              { started: true, error: t("editor:ui.theTestRunDidNotReturnAJobId", { defaultValue: "The test run did not return a job id." }) },
               "The sample run could not be tracked because it did not return a job id."
             );
           }

@@ -27,7 +27,7 @@ import {
   rebaseTimelineSnapshots,
   timelineTypedDocumentOf
 } from "./timelineExternalMerge";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface DocumentSnapshot {
   sequenceId: string | null;
@@ -105,6 +105,7 @@ export function isTimelineDocumentDirty(sequenceId: string): boolean {
 export function useTimelineAutosave(
   options: { debounceMs?: number } = {}
 ): UseTimelineAutosaveResult {
+  const { t } = useTranslation();
   const store = useTimelineStoreApi();
   const debounceMs = options.debounceMs ?? 750;
   const controllerRef = useRef<DocumentSyncController | null>(null);
@@ -112,7 +113,7 @@ export function useTimelineAutosave(
   const flush = useCallback(async (): Promise<TimelineAutosaveFlushResult> => {
     const controller = controllerRef.current;
     if (!controller) {
-      return { ok: false, error: i18n.t("timeline:attrs.timelineAutosaveIsNotReady", { defaultValue: "Timeline autosave is not ready." }) };
+      return { ok: false, error: t("timeline:attrs.timelineAutosaveIsNotReady", { defaultValue: "Timeline autosave is not ready." }) };
     }
     return controller.flush();
   }, []);

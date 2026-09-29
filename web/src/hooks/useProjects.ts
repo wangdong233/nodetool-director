@@ -14,7 +14,7 @@ import {
   type WorkspaceTabType
 } from "../stores/WorkspaceTabsStore";
 import { useNotificationStore } from "../stores/NotificationStore";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Open the surface a project is started from. One tab, so every entry point —
@@ -22,6 +22,7 @@ import { i18n } from "../i18n";
  * the same one rather than stacking copies.
  */
 export const useOpenNewProjectTab = () => {
+  const { t } = useTranslation();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   return useCallback(
     () =>
@@ -29,7 +30,7 @@ export const useOpenNewProjectTab = () => {
         type: "project-new",
         ref: PROJECT_NEW_REF,
         mode: "view",
-        title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
+        title: t("nav:tabs.home", { defaultValue: "Home" })
       }),
     [openTab]
   );

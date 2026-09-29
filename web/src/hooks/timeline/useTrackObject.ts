@@ -16,6 +16,7 @@ import {
 import { buildTimelineDocumentPayload } from "./timelineDocumentPayload";
 import { restFetch } from "../../lib/rest-fetch";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface TrackObjectSelection {
   readonly clipId: string;
@@ -176,6 +177,7 @@ export function useTrackObject(
   clip: TimelineClip,
   selection: TrackObjectSelection | null
 ): UseTrackObjectResult {
+  const { t } = useTranslation();
   const timeline = useTimelineStoreApi();
   const sequenceId = timeline.getState().sequenceId;
   const { providers, isLoading: providersLoading, error: providersError } =
@@ -273,7 +275,7 @@ export function useTrackObject(
       timeline.getState().setBaseUpdatedAt(sequence.updatedAt, synced);
       if (result.status === "failed") {
         setStatus("failed");
-        setError(result.error ?? i18n.t("editor:ui.subjectTrackingFailed", { defaultValue: "Subject tracking failed." }));
+        setError(result.error ?? t("editor:ui.subjectTrackingFailed", { defaultValue: "Subject tracking failed." }));
       } else {
         setStatus("ready");
       }

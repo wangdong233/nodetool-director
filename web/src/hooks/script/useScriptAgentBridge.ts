@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useMemo, useRef } from "react";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import type { ScriptSetup } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import {
@@ -60,6 +60,7 @@ const toSpeakerNode = (speaker: ScriptSpeaker): ScriptSpeakerNode => ({
 });
 
 export const useScriptAgentBridge = (scriptId: string): void => {
+  const { t } = useTranslation();
   const { assemble } = useAssembleScriptTimeline();
   const { derive } = useDeriveStoryboard();
   const { write, error: writeError } = useWriteScript();
@@ -173,7 +174,7 @@ export const useScriptAgentBridge = (scriptId: string): void => {
         });
         if (!written) {
           throw new Error(
-            writeErrorRef.current ?? i18n.t("editor:ui.theWriterDidNotReturnAScript")
+            writeErrorRef.current ?? t("editor:ui.theWriterDidNotReturnAScript")
           );
         }
         const snapshot = getSnapshot();
@@ -292,7 +293,7 @@ export const useScriptAgentBridge = (scriptId: string): void => {
         };
       }
     };
-  }, [scriptId, assemble, derive, write]);
+  }, [scriptId, assemble, derive, write, t]);
 
   useEffect(() => {
     if (!scriptId) return;

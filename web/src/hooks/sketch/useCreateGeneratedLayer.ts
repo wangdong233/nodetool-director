@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useSketchStore } from "../../components/sketch/state/useSketchStore";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface CreateGeneratedLayerOptions {
   workflowId: string;
@@ -27,6 +27,7 @@ interface UseCreateGeneratedLayerResult {
 }
 
 export function useCreateGeneratedLayer(): UseCreateGeneratedLayerResult {
+  const { t } = useTranslation();
   const [isBusy, setIsBusy] = useState(false);
   const busyRef = useRef(false);
 
@@ -44,7 +45,7 @@ export function useCreateGeneratedLayer(): UseCreateGeneratedLayerResult {
 
       busyRef.current = true;
       setIsBusy(true);
-      const layerName = options.layerName ?? i18n.t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" });
+      const layerName = options.layerName ?? t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" });
       const newLayerId = useSketchStore
         .getState()
         .addLayer(layerName, "raster");
@@ -65,7 +66,7 @@ export function useCreateGeneratedLayer(): UseCreateGeneratedLayerResult {
           ok: false,
           reason: "error",
           message:
-            err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToCreateLayer2", { defaultValue: "Failed to create layer" })
+            err instanceof Error ? err.message : t("sketch:attrs.failedToCreateLayer2", { defaultValue: "Failed to create layer" })
         };
       } finally {
         busyRef.current = false;
