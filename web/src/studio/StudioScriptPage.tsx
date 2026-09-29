@@ -37,11 +37,13 @@ import {
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
 import StudioShell from "./StudioShell";
-import { i18n, useAppLanguage } from "../i18n";
+import { useAppLanguage } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 type DockTab = "cast" | "assistant";
 
 const StudioScriptPage = () => {
+  const { t } = useTranslation();
   const { scriptId = "" } = useParams<{ scriptId: string }>();
   const theme = useTheme();
   const { version: languageVersion } = useAppLanguage();
@@ -78,19 +80,19 @@ const StudioScriptPage = () => {
 
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: i18n.t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
-      { value: "assistant", label: i18n.t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
+      { value: "cast", label: t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
+      { value: "assistant", label: t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
     ],
     // Re-resolve when the language changes (including the async zh bundle
     // landing at boot) — an empty dep array freezes English for the session.
-    [languageVersion]
+    [t]
   );
 
   const createVideo = (
     <Tooltip
       title={
         assembleError ??
-        i18n.t("editor:studio.layVoicedLines", { defaultValue: "Lay the voiced lines onto a timeline and open the video editor." })
+        t("editor:studio.layVoicedLines", { defaultValue: "Lay the voiced lines onto a timeline and open the video editor." })
       }
     >
       <span>
@@ -109,7 +111,7 @@ const StudioScriptPage = () => {
               });
           }}
         >
-          {assembling ? i18n.t("editor:ui.assembling") : i18n.t("editor:ui.createVideo", { defaultValue: "Create video" })}
+          {assembling ? t("editor:ui.assembling") : t("editor:ui.createVideo", { defaultValue: "Create video" })}
         </EditorButton>
       </span>
     </Tooltip>
