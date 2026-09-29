@@ -298,7 +298,11 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
           {role.unavailableSelection ? (
             <AlertBanner severity="warning">
               <Caption component="span">
-                {`"${role.unavailableSelection}" is not offered any more. Pick another ${role.role} model.`}
+                {t("storyboard:attrs.selectionIsNotOfferedAnyMorePickAnotherRoleModel", {
+                  defaultValue: '"{{selection}}" is not offered any more. Pick another {{role}} model.',
+                  selection: role.unavailableSelection,
+                  role: role.role
+                })}
               </Caption>
             </AlertBanner>
           ) : null}
@@ -306,7 +310,10 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
             <LanguageModelSelect
               value={selectedModel}
               provider={selectedProvider}
-              placeholder={`Select ${label.toLowerCase()}`}
+              placeholder={t("storyboard:attrs.selectModelForRole", {
+                defaultValue: "Select {{label}}",
+                label: label.toLowerCase()
+              })}
               onChange={handleLanguageChange}
             />
           ) : role.role === "image" ? (

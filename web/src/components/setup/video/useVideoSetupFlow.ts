@@ -350,10 +350,13 @@ export const useVideoSetupFlow = ({
         generation: planIsCurrent
           ? undefined
           : {
-              result: `Draft ${videoFormatById(formatId)?.beatCount ?? "the"} beats`,
+              result: t("storyboard:attrs.draftCountBeats", {
+                defaultValue: "Draft {{count}} beats",
+                count: videoFormatById(formatId)?.beatCount ?? "the"
+              }),
               next: hasPlan
                 ? t("storyboard:attrs.theBriefOrTemplateChangedYourEditedPlanWillGuideTheNewBeats", { defaultValue: "The brief or template changed. Your edited plan will guide the new beats." })
-                : "Review the beats and timing. Media comes later in Look.",
+                : t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
               model: director.model
                 ? toLanguageModelValue(director.model)
                 : null,
@@ -385,7 +388,11 @@ export const useVideoSetupFlow = ({
           reviewError ??
           productionAuthoringBlocker(beats ?? []) ??
           (hasPlan
-            ? `Fill in ${emptyBeats} beat${emptyBeats === 1 ? "" : "s"}: every beat needs a description and a length`
+            ? t("storyboard:attrs.fillInTheBeatsEveryBeatNeedsADescriptionAndALength", {
+                defaultValue: "Fill in {{count}} beat{{plural}}: every beat needs a description and a length",
+                count: emptyBeats,
+                plural: emptyBeats === 1 ? "" : "s"
+              })
             : t("storyboard:attrs.planTheBeatsFirstThereIsNothingToReviewYet", { defaultValue: "Plan the beats first — there is nothing to review yet" })),
         // `Re-plan` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot leave the plan while the plan
