@@ -15,7 +15,7 @@ import {
 import { colorPickerColors } from "../../constants/colors";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import ColorPickerModal from "../color_picker/ColorPickerModal";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const PALETTE_BUTTON_SIZE = 28;
 
@@ -84,6 +84,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   showCustom = false,
   buttonSize = 20
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const cssColorMatrix = useMemo(() => colorMatrixStyle(theme), [theme]);
@@ -149,13 +150,13 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <div className="color-picker" css={cssStyles}>
       <Tooltip
-        title={i18n.t("editor:ui.setColor", { defaultValue: "Set color" })}
+        title={t("editor:ui.setColor", { defaultValue: "Set color" })}
         placement="bottom"
         delay={TOOLTIP_ENTER_DELAY}
       >
         <Button
           className="open-colors-button"
-          aria-label={i18n.t("editor:ui.chooseColor", { defaultValue: "Choose color" })}
+          aria-label={t("editor:ui.chooseColor", { defaultValue: "Choose color" })}
           aria-haspopup="dialog"
           onClick={handleClick}
           style={{
@@ -202,7 +203,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
                 backgroundColor: cellColor || "transparent"
               }}
               aria-label={
-                cellColor === null ? i18n.t("editor:ui.noColor", { defaultValue: "No color" }) : `Color ${cellColor}`
+                cellColor === null ? t("editor:ui.noColor", { defaultValue: "No color" }) : `Color ${cellColor}`
               }
               onClick={handleColorCellButtonClick}
             />
@@ -214,7 +215,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
               size="small"
               onClick={handleOpenModal}
             >
-              {i18n.t("editor:ui.customColor")}
+              {t("editor:ui.customColor")}
             </Button>
           )}
         </div>

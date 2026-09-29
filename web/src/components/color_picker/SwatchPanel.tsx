@@ -26,7 +26,7 @@ import {
   PRESET_PALETTES,
   ColorPalette
 } from "../../stores/ColorPickerStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -93,6 +93,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
   currentColor,
   onColorSelect
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const swatchStyles = useMemo(() => styles(theme), [theme]);
   const [presetsMenuAnchor, setPresetsMenuAnchor] = useState<HTMLElement | null>(null);
@@ -204,11 +205,11 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
     <FlexColumn css={swatchStyles} gap={2}>
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">{i18n.t("editor:ui.recent", { defaultValue: "Recent" })}</Text>
+          <Text className="section-title">{t("editor:ui.recent", { defaultValue: "Recent" })}</Text>
           {recentColors.length > 0 && (
             <DeleteButton
               onClick={clearRecentColors}
-              tooltip={i18n.t("editor:ui.clearRecentColors", { defaultValue: "Clear recent colors" })}
+              tooltip={t("editor:ui.clearRecentColors", { defaultValue: "Clear recent colors" })}
               iconVariant="clear"
               nodrag={false}
             />
@@ -226,14 +227,14 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               />
             ))
           ) : (
-            <Text className="empty-message">{i18n.t("ui2:attrs.noRecentColors", { defaultValue: "No recent colors" })}</Text>
+            <Text className="empty-message">{t("ui2:attrs.noRecentColors", { defaultValue: "No recent colors" })}</Text>
           )}
         </FlexRow>
       </FlexColumn>
 
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">{i18n.t("ui2:attrs.saved", { defaultValue: "Saved" })}</Text>
+          <Text className="section-title">{t("ui2:attrs.saved", { defaultValue: "Saved" })}</Text>
         </FlexRow>
         <FlexRow className="color-grid" gap={0.5} wrap fullWidth>
           {swatches.map((swatch) => (
@@ -246,7 +247,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => handleSwatchContextMenu(e, swatch.id)}
             />
           ))}
-          <Tooltip title={i18n.t("editor:ui.saveCurrentColor", { defaultValue: "Save current color" })}>
+          <Tooltip title={t("editor:ui.saveCurrentColor", { defaultValue: "Save current color" })}>
             <FlexRow
               className="add-swatch-button"
               align="center"
@@ -255,7 +256,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               onKeyDown={handleAddSwatchKeyDown}
               role="button"
               tabIndex={0}
-              aria-label={i18n.t("editor:ui.saveCurrentColorAsSwatch", { defaultValue: "Save current color as swatch" })}
+              aria-label={t("editor:ui.saveCurrentColorAsSwatch", { defaultValue: "Save current color as swatch" })}
             >
               <AddIcon sx={{ fontSize: 16 }} />
             </FlexRow>
@@ -266,7 +267,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
       {palettes.length > 0 && (
         <FlexColumn className="section" gap={1} fullWidth>
           <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-            <Text className="section-title">{i18n.t("ui2:attrs.palettes", { defaultValue: "Palettes" })}</Text>
+            <Text className="section-title">{t("ui2:attrs.palettes", { defaultValue: "Palettes" })}</Text>
           </FlexRow>
           {palettes.map((palette) => (
             <FlexColumn key={palette.id} className="palette-section" gap={1} fullWidth>
@@ -297,7 +298,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
 
       <FlexColumn className="section" gap={1} fullWidth>
         <FlexRow className="section-header" align="center" justify="space-between" fullWidth>
-          <Text className="section-title">{i18n.t("editor:ui.presets", { defaultValue: "Presets" })}</Text>
+          <Text className="section-title">{t("editor:ui.presets", { defaultValue: "Presets" })}</Text>
           <EditorButton
             size="small"
             startIcon={<FolderOpenIcon />}

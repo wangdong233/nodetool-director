@@ -17,7 +17,7 @@ import { useInStudio } from "../../studio/StudioContext";
 import { STUDIO_VOICES } from "../../studio/curatedModels";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TTSModelSelectProps {
   onChange: (value: TTSModelValue) => void;
@@ -32,6 +32,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -175,7 +176,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_speech"
-        label={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+        label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
         options={STUDIO_VOICES}
         value={selectedVoice}
         onChange={onChange}
@@ -189,9 +190,9 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
         ref={buttonRef}
         active={!!modelId}
         label={
-          currentSelectedModelDetails?.name || modelId || i18n.t("editor:ui.selectTTSModel")
+          currentSelectedModelDetails?.name || modelId || t("editor:ui.selectTTSModel")
         }
-        subLabel={i18n.t("editor:ui.selectTextToSpeechModel")}
+        subLabel={t("editor:ui.selectTextToSpeechModel")}
         onClick={handleClick}
       />
 
@@ -200,8 +201,8 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
           options={voiceOptions}
           value={selectedVoice || availableVoices[0] || ""}
           onChange={handleVoiceChange}
-          placeholder={i18n.t("editor:ui.selectVoice", { defaultValue: "Select voice" })}
-          label={i18n.t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+          placeholder={t("editor:ui.selectVoice", { defaultValue: "Select voice" })}
+          label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
         />
       )}
 

@@ -6,7 +6,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { isNumber, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const detectTypeFromList = (list: unknown[]) => {
   if (list.length === 0) {
@@ -27,6 +27,7 @@ const detectTypeFromList = (list: unknown[]) => {
 };
 
 const ListProperty = (props: PropertyProps) => {
+  const { t } = useTranslation();
   const id = `list-${props.property.name}-${props.propertyIndex}`;
   const dataTypes = useMemo(() => ["int", "string", "datetime", "float"], []);
 
@@ -57,13 +58,13 @@ const ListProperty = (props: PropertyProps) => {
     return (
       <>
         <div style={containerStyle}>
-          <PropertyLabel name={i18n.t("editor:ui.dataType", { defaultValue: "Data Type" })} id={id} />
+          <PropertyLabel name={t("editor:ui.dataType", { defaultValue: "Data Type" })} id={id} />
           <Select
             value={dataType}
             onChange={handleDataTypeChange}
             options={options}
-            label={i18n.t("editor:ui.dataType", { defaultValue: "Data Type" })}
-            placeholder={i18n.t("editor:ui.selectType", { defaultValue: "Select type..." })}
+            label={t("editor:ui.dataType", { defaultValue: "Data Type" })}
+            placeholder={t("editor:ui.selectType", { defaultValue: "Select type..." })}
           />
         </div>
         <ListTable

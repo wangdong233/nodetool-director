@@ -19,6 +19,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TextItem {
   uri: string;
@@ -175,6 +176,7 @@ const flattenTextItems = (items: unknown): TextItem[] => {
 };
 
 const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `text-list-${props.property.name}-${props.propertyIndex}`;
   const { uploadAsset } = useAssetUpload();
@@ -447,14 +449,14 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
                 className="remove-button"
                 onClick={removeButtonClickHandlers[index]}
                 buttonSize="small"
-                tooltip={i18n.t("editor:ui.removeTextFile", { defaultValue: "Remove text file" })}
+                tooltip={t("editor:ui.removeTextFile", { defaultValue: "Remove text file" })}
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title={i18n.t("editor:ui.clickToSelectTextFilesOrDragAndDrop", { defaultValue: "Click to select text files or drag and drop" })}>
+      <Tooltip title={t("editor:ui.clickToSelectTextFilesOrDragAndDrop", { defaultValue: "Click to select text files or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}
@@ -465,7 +467,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>{i18n.t("ui2:attrs.clickOrDropTextFilesHere", { defaultValue: "Click or drop text files here" })}</p>
+          <p>{t("ui2:attrs.clickOrDropTextFilesHere", { defaultValue: "Click or drop text files here" })}</p>
         </div>
       </Tooltip>
     </div>

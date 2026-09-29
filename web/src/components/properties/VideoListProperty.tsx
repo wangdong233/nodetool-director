@@ -19,6 +19,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListVideoThumb } from "./PropertyListThumb";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface VideoItem {
   uri: string;
@@ -155,6 +156,7 @@ const flattenVideoItems = (items: unknown): VideoItem[] => {
 };
 
 const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `video-list-${props.property.name}-${props.propertyIndex}`;
   const { uploadAsset } = useAssetUpload();
@@ -419,14 +421,14 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
                 className="remove-button"
                 onClick={removeHandlers[index]}
                 buttonSize="small"
-                tooltip={i18n.t("editor:ui.removeVideo", { defaultValue: "Remove video" })}
+                tooltip={t("editor:ui.removeVideo", { defaultValue: "Remove video" })}
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title={i18n.t("editor:ui.clickToSelectVideosOrDragAndDrop", { defaultValue: "Click to select videos or drag and drop" })}>
+      <Tooltip title={t("editor:ui.clickToSelectVideosOrDragAndDrop", { defaultValue: "Click to select videos or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}
@@ -437,7 +439,7 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>{i18n.t("ui2:attrs.clickOrDropVideosHere", { defaultValue: "Click or drop videos here" })}</p>
+          <p>{t("ui2:attrs.clickOrDropVideosHere", { defaultValue: "Click or drop videos here" })}</p>
         </div>
       </Tooltip>
     </div>

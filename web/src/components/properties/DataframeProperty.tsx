@@ -19,6 +19,7 @@ import {
 } from "../../utils/dataframeParsers";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -137,6 +138,7 @@ const DataframeProperty = ({
   nodeType: _nodeType,
   property
 }: PropertyProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -260,7 +262,7 @@ const DataframeProperty = ({
         </ButtonGroup>
         {isHovered && (
           <div className="dataframe-action-buttons">
-            <ToolbarIconButton tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })} icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
+            <ToolbarIconButton tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })} icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
           </div>
         )}
       </div>
@@ -274,7 +276,7 @@ const DataframeProperty = ({
         <div className="dropzone-content">
           <UploadFileIcon />
           <span className="dropzone-text">
-            {isLoading ? i18n.t("editor:ui.loading2", { defaultValue: "Loading..." }) : i18n.t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
+            {isLoading ? t("editor:ui.loading2", { defaultValue: "Loading..." }) : t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
           </span>
           <span className="dropzone-subtext">Supported: CSV, XLSX, XLS</span>
         </div>

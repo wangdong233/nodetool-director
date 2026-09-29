@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import type { PropertyProps } from "../node/PropertyInput";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface HuggingFaceModel {
   id: string;
@@ -57,6 +57,7 @@ const InferenceProviderModelSelect = ({
   onChange,
   value: rawValue
 }: PropertyProps) => {
+    const { t } = useTranslation();
     const [providerOpen, setProviderOpen] = useState(false);
     const [modelOpen, setModelOpen] = useState(false);
     const closeSelect = useSelect((s) => s.close);
@@ -147,7 +148,7 @@ const InferenceProviderModelSelect = ({
                     options={providerOptions}
                     value={value.provider}
                     onChange={handleChangeProvider}
-                    placeholder={i18n.t("editor:ui.selectAnInferenceProvider", { defaultValue: "Select an inference provider" })}
+                    placeholder={t("editor:ui.selectAnInferenceProvider", { defaultValue: "Select an inference provider" })}
                 />
             </div>
 
@@ -158,15 +159,15 @@ const InferenceProviderModelSelect = ({
                     </Text>
                     <Select
                         onOpenChange={setModelOpen}
-                        options={[...modelOptions, { value: "__add_providers", label: i18n.t("editor:ui.addProviders", { defaultValue: "Add providers…" }) }]}
+                        options={[...modelOptions, { value: "__add_providers", label: t("editor:ui.addProviders", { defaultValue: "Add providers…" }) }]}
                         value={value.model_id}
                         onChange={handleChangeModel}
                         placeholder={
                             isLoadingModels
                                 ? "Loading models..."
                                 : modelsError
-                                    ? i18n.t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" })
-                                    : i18n.t("editor:ui.selectAModel", { defaultValue: "Select a model" })}
+                                    ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" })
+                                    : t("editor:ui.selectAModel", { defaultValue: "Select a model" })}
                     />
                 </div>
             )}

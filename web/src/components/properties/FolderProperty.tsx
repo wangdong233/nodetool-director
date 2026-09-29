@@ -20,7 +20,7 @@ import dialogStyles from "../../styles/DialogStyles";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import { FlexRow, DialogActionButtons } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -32,6 +32,7 @@ interface FolderValue {
 }
 
 const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
+  const { t } = useTranslation();
   const id = `folder-${props.property.name}-${props.propertyIndex}`;
   const load = useAssetStore((state) => state.load);
   const createFolder = useAssetStore((state) => state.createFolder);
@@ -146,7 +147,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
           options={folderOptions}
           value={selectValue}
           onChange={handleFolderSelect}
-          placeholder={i18n.t("editor:ui.selectAFolder", { defaultValue: "Select a folder" })}
+          placeholder={t("editor:ui.selectAFolder", { defaultValue: "Select a folder" })}
         />
         <EditorButton
           onClick={handleOpenMenu}
@@ -175,7 +176,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
           <TextInput
             className="input-field"
             inputRef={inputRef}
-            placeholder={i18n.t("editor:ui.folderName", { defaultValue: "Folder Name" })}
+            placeholder={t("editor:ui.folderName", { defaultValue: "Folder Name" })}
             autoFocus
             spellCheck={false}
             autoComplete="off"
@@ -186,7 +187,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
         <DialogActionButtons
           onCancel={handleCloseMenu}
           onConfirm={handleCreateFolder}
-          confirmText={i18n.t("editor:ui.createFolder", { defaultValue: "Create Folder" })}
+          confirmText={t("editor:ui.createFolder", { defaultValue: "Create Folder" })}
         />
       </Popover>
     </>

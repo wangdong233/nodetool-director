@@ -7,7 +7,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { useEntities } from "../../serverState/useEntities";
 import EntityAssetPickerDialog from "../entities/EntityAssetPickerDialog";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   getEntityChipSx,
   getEntityKindDotSx
@@ -31,6 +31,7 @@ const EMPTY_DESCRIPTION =
  * the rest of the object is a cache the runtime refreshes from the library.
  */
 const EntityProperty = (props: PropertyProps<Entity | Entity[] | null>) => {
+  const { t } = useTranslation();
   const { property, value, onChange, propertyIndex } = props;
   const multiple = property.type?.type === "list";
   const id = `entity-${property.name}-${propertyIndex}`;
@@ -79,7 +80,7 @@ const EntityProperty = (props: PropertyProps<Entity | Entity[] | null>) => {
     [multiple, onChange, selected]
   );
 
-  const addLabel = multiple ? i18n.t("editor:ui.addEntity", { defaultValue: "Add entity" }) : i18n.t("editor:ui.pickEntity", { defaultValue: "Pick entity" });
+  const addLabel = multiple ? t("editor:ui.addEntity", { defaultValue: "Add entity" }) : t("editor:ui.pickEntity", { defaultValue: "Pick entity" });
 
   return (
     <>

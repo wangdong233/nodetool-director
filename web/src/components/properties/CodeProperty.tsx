@@ -36,7 +36,8 @@ import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -69,6 +70,7 @@ const CodeProperty = ({
   isInspector,
   onPropertyContextMenu
 }: PropertyProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `code-${property.name}-${propertyIndex}`;
   const storeValue = isString(value) ? value : "";
@@ -169,7 +171,7 @@ const CodeProperty = ({
         {showExpandEditor && (
           <ToolbarIconButton
             className="inspector-supplemental-action"
-            tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+            tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
             icon={<OpenInFullIcon />}
             onClick={toggleExpand}
             size="small"
@@ -184,7 +186,7 @@ const CodeProperty = ({
         />
       </>
     ),
-    [languageVersion, code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
+    [t, code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -276,7 +278,7 @@ const CodeProperty = ({
           <div className="code-action-buttons">
             {showExpandEditor && (
               <ToolbarIconButton
-                tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+                tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
                 icon={<OpenInFullIcon />}
                 onClick={toggleExpand}
                 size="small"

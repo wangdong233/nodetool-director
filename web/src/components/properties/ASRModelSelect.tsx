@@ -6,7 +6,7 @@ import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 interface ASRModelSelection {
   type: "asr_model";
   id: string;
@@ -27,6 +27,7 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("asr_model", onChange);
   const { data: models } = useQuery({
@@ -46,8 +47,8 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel")}
-        subLabel={i18n.t("editor:ui.selectASRModel2")}
+        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel")}
+        subLabel={t("editor:ui.selectASRModel2")}
         onClick={handleClick}
       />
       <ASRModelMenuDialog

@@ -14,7 +14,7 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   forAllTasks,
   forTasks,
@@ -36,6 +36,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("video_model", onChange);
   const inStudio = useInStudio();
@@ -56,7 +57,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_video"
-        label={i18n.t("editor:ui.videoModel", { defaultValue: "Video model" })}
+        label={t("editor:ui.videoModel", { defaultValue: "Video model" })}
         options={
           Array.isArray(task)
             ? forAllTasks(STUDIO_CLIP_MODELS, task)
@@ -73,8 +74,8 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel")}
-        subLabel={i18n.t("editor:ui.selectVideoModel")}
+        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel")}
+        subLabel={t("editor:ui.selectVideoModel")}
         onClick={handleClick}
       />
       <VideoModelMenuDialog

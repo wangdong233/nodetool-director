@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo, useCallback } from "react";
 import useAuth from "../../stores/useAuth";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (_theme: Theme) => ({
   svg: {
@@ -13,6 +13,7 @@ const styles = (_theme: Theme) => ({
 });
 
 const GoogleAuthButton = memo(function GoogleAuthButton() {
+  const { t } = useTranslation();
   const signInWithProvider = useAuth((state) => state.signInWithProvider);
   const state = useAuth((state) => state.state);
   const handleClick = useCallback(async () => {
@@ -52,7 +53,7 @@ const GoogleAuthButton = memo(function GoogleAuthButton() {
             </svg>
           </div>
           <span className="gsi-material-button-contents">
-            {i18n.t("editor:ui.signInWithGoogle2")}
+            {t("editor:ui.signInWithGoogle2")}
           </span>
         </div>
       </button>

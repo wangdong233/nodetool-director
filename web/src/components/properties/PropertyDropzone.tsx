@@ -19,7 +19,8 @@ import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface PropertyDropzoneProps {
   asset: Asset | undefined;
@@ -38,6 +39,7 @@ const PropertyDropzone = ({
   contentType,
   showRecorder = true
 }: PropertyDropzoneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const emitRef = useCallback(
     (next: Asset) => onChange(mediaRefFromAsset(next, contentType)),
@@ -383,7 +385,7 @@ const PropertyDropzone = ({
                 style={imageError ? { display: "none" } : undefined}
               />
               {imageError && (
-                <p className="centered uppercase">{i18n.t("ui2:attrs.imageCouldNotBeLoaded", { defaultValue: "Image could not be loaded" })}</p>
+                <p className="centered uppercase">{t("ui2:attrs.imageCouldNotBeLoaded", { defaultValue: "Image could not be loaded" })}</p>
               )}
               {imageDimensions && (
                 <ImageDimensions
@@ -413,13 +415,13 @@ const PropertyDropzone = ({
                   src={uri as string}
                   aria-label={filename || "Audio"}
                 >
-                  {i18n.t("editor:ui.yourBrowserDoesNotSupportTheAudioElement")}
+                  {t("editor:ui.yourBrowserDoesNotSupportTheAudioElement")}
                 </audio>
                 <p className="centered uppercase">{filename}</p>
                 <AudioPlayer filename={filename} source={uri as string} />
               </div>
             ) : (
-              <p className="centered uppercase">{i18n.t("ui2:attrs.dropAudio", { defaultValue: "Drop audio" })}</p>
+              <p className="centered uppercase">{t("ui2:attrs.dropAudio", { defaultValue: "Drop audio" })}</p>
             )}
           </>
         );
@@ -443,12 +445,12 @@ const PropertyDropzone = ({
                   src={uri}
                   aria-label={filename || "Video"}
                 >
-                  {i18n.t("editor:ui.yourBrowserDoesNotSupportTheVideoElement")}
+                  {t("editor:ui.yourBrowserDoesNotSupportTheVideoElement")}
                 </video>
                 <p className="centered uppercase">{filename}</p>
               </>
             ) : (
-              <p className="centered uppercase">{i18n.t("ui2:attrs.dropVideo", { defaultValue: "Drop video" })}</p>
+              <p className="centered uppercase">{t("ui2:attrs.dropVideo", { defaultValue: "Drop video" })}</p>
             )}
           </>
         );
@@ -461,7 +463,7 @@ const PropertyDropzone = ({
               src={uri}
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen; clipboard-write"
-              title={i18n.t("editor:ui.pdfViewer", { defaultValue: "PDF viewer" })}
+              title={t("editor:ui.pdfViewer", { defaultValue: "PDF viewer" })}
             />
           );
         }
@@ -478,7 +480,7 @@ const PropertyDropzone = ({
               sandbox=""
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen"
-              title={i18n.t("editor:ui.textViewer", { defaultValue: "Text viewer" })}
+              title={t("editor:ui.textViewer", { defaultValue: "Text viewer" })}
             />
           );
         }
@@ -488,7 +490,7 @@ const PropertyDropzone = ({
       default:
         return null;
     }
-  }, [languageVersion, contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
+  }, [t, contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
 
   return (
     <div css={styles(theme)}>
@@ -535,7 +537,7 @@ const PropertyDropzone = ({
                     }}
                   />
                   <ToolbarIconButton
-                    tooltip={i18n.t("editor:ui.replaceFile", { defaultValue: "Replace file" })}
+                    tooltip={t("editor:ui.replaceFile", { defaultValue: "Replace file" })}
                     icon={<FolderOpenIcon fontSize="small" />}
                     className="asset-action-button"
                     onClick={handleReplaceClick}
@@ -545,7 +547,7 @@ const PropertyDropzone = ({
               )}
             </>
           ) : (
-            <Tooltip title={i18n.t("editor:ui.clickToSelectAFileOrDragAndDrop", { defaultValue: "Click to select a file or drag and drop" })}>
+            <Tooltip title={t("editor:ui.clickToSelectAFileOrDragAndDrop", { defaultValue: "Click to select a file or drag and drop" })}>
               <p className="prop-drop centered uppercase">Click or drop {contentType}</p>
             </Tooltip>
           )}

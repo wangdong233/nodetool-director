@@ -11,7 +11,7 @@ import {
   getHarmonyInfo
 } from "../../utils/colorHarmonies";
 import { getContrastingTextColor, hexToRgb, rgbToHex } from "../../utils/colorConversion";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -85,6 +85,7 @@ const HarmonyPicker: React.FC<HarmonyPickerProps> = ({
   selectedHarmony,
   onHarmonyChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const harmonyInfo = useMemo(() => getHarmonyInfo(), []);
 
@@ -125,16 +126,16 @@ const HarmonyPicker: React.FC<HarmonyPickerProps> = ({
           <div className="harmony-header">
             <div>
               <Text className="harmony-title">
-                {i18n.t(harmony.nameKey, { defaultValue: harmony.name })}
+                {t(harmony.nameKey, { defaultValue: harmony.name })}
               </Text>
               <Text className="harmony-description">
-                {i18n.t(harmony.descriptionKey, {
+                {t(harmony.descriptionKey, {
                   defaultValue: harmony.description
                 })}
               </Text>
             </div>
             <CopyButton
-              tooltip={i18n.t("editor:ui.copyAllColors", { defaultValue: "Copy all colors" })}
+              tooltip={t("editor:ui.copyAllColors", { defaultValue: "Copy all colors" })}
               value={harmony.colors.join(", ")}
               buttonSize="small"
             />

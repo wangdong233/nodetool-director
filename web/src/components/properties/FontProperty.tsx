@@ -7,7 +7,8 @@ import Select from "../inputs/Select";
 import { trpcClient } from "../../trpc/client";
 import type { FontEntry } from "@nodetool-ai/protocol/api-schemas/fonts.js";
 import { isObjectLike } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * The fonts endpoint returns the bundled families first, then the system ones
@@ -31,6 +32,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
   onChange,
   tabIndex
 }) => {
+  const { t } = useTranslation();
   const id = `font-${property.name}-${propertyIndex}`;
 
   const {
@@ -57,16 +59,16 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
   const { version: languageVersion } = useAppLanguage();
   const options = useMemo(() => {
     if (!fonts || isLoading || isError)
-      {return [{ value: "", label: i18n.t("editor:ui.selectAFont") }];}
+      {return [{ value: "", label: t("editor:ui.selectAFont") }];}
 
     return [
-      { value: "", label: i18n.t("editor:ui.selectAFont") },
+      { value: "", label: t("editor:ui.selectAFont") },
       ...fonts.map((font) => ({
         value: font.name,
         label: font.portable ? `${font.name} · portable` : font.name
       }))
     ];
-  }, [languageVersion, fonts, isLoading, isError]);
+  }, [t, fonts, isLoading, isError]);
 
   return (
     <div className="font-property">
@@ -79,14 +81,14 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
         {isLoading ? (
           <div className="loading-state">Loading fonts…</div>
         ) : isError ? (
-          <div className="error-state">{i18n.t("ui2:attrs.errorLoadingFonts", { defaultValue: "Error loading fonts" })}</div>
+          <div className="error-state">{t("ui2:attrs.errorLoadingFonts", { defaultValue: "Error loading fonts" })}</div>
         ) : (
           <Select
             value={currentValue}
             onChange={handleChange}
             options={options}
             tabIndex={tabIndex}
-            placeholder={i18n.t("editor:ui.selectAFont", { defaultValue: "Select a font" })}
+            placeholder={t("editor:ui.selectAFont", { defaultValue: "Select a font" })}
           />
         )}
       </div>

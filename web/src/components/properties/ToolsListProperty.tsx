@@ -28,6 +28,7 @@ import EditNote from "@mui/icons-material/EditNote";
 import Folder from "@mui/icons-material/Folder";
 import Lock from "@mui/icons-material/Lock";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const BROWSER_TOOL_IDS = [
   "browser_view",
@@ -133,6 +134,7 @@ const AVAILABLE_TOOLS: ToolEntry[] = [
 ];
 
 const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
+  const { t } = useTranslation();
   const id = `tools-list-${props.property.name}-${props.propertyIndex}`;
   const toolNames: string[] = useMemo(
     () => props.value?.map((tool) => tool.name) || [],
@@ -216,7 +218,7 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
         ))}
 
         <ToolbarIconButton
-          tooltip={i18n.t("editor:ui.addRemoveTools", { defaultValue: "Add / Remove Tools" })}
+          tooltip={t("editor:ui.addRemoveTools", { defaultValue: "Add / Remove Tools" })}
           tooltipPlacement="top"
           icon={<Add fontSize="small" />}
           size="small"

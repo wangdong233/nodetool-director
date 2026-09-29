@@ -17,7 +17,8 @@ import { Tooltip, ToolbarIconButton, MOTION } from "../ui_primitives";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 import type { ExposedInputPlacement } from "../../utils/exposedInputs";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 
 
@@ -105,6 +106,7 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
   ({ placement, connected = false, onToggle }) => {
 
+    const { t } = useTranslation();
     const theme = useTheme();
 
     const handleClick = useCallback(() => onToggle(), [onToggle]);
@@ -118,9 +120,9 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
         return connected
 
-          ? i18n.t("editor:ui.inputOnTopClickForBottomEdgeStaysConnected", { defaultValue: "Input on top (click for bottom; edge stays connected)" })
+          ? t("editor:ui.inputOnTopClickForBottomEdgeStaysConnected", { defaultValue: "Input on top (click for bottom; edge stays connected)" })
 
-          : i18n.t("editor:ui.inputOnTopClickForBottomLabeledRow", { defaultValue: "Input on top — click for bottom labeled row" });
+          : t("editor:ui.inputOnTopClickForBottomLabeledRow", { defaultValue: "Input on top — click for bottom labeled row" });
 
       }
 
@@ -128,15 +130,15 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
         return connected
 
-          ? i18n.t("editor:ui.inputOnBottomClickToHideDisconnectsEdge", { defaultValue: "Input on bottom (click to hide; disconnects edge)" })
+          ? t("editor:ui.inputOnBottomClickToHideDisconnectsEdge", { defaultValue: "Input on bottom (click to hide; disconnects edge)" })
 
-          : i18n.t("editor:ui.inputOnBottomClickToHide", { defaultValue: "Input on bottom — click to hide" });
+          : t("editor:ui.inputOnBottomClickToHide", { defaultValue: "Input on bottom — click to hide" });
 
       }
 
       return "Show as input on top";
 
-    }, [languageVersion, connected, placement]);
+    }, [t, connected, placement]);
 
 
 

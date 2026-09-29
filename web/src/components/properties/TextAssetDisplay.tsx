@@ -5,7 +5,7 @@ import TextEditorModal from "./TextEditorModal";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { Tooltip, Text, getSpacingPx, SPACING } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const MAX_TEXT_LENGTH = 1000;
 const MAX_TEXT_HEIGHT = 50;
@@ -15,6 +15,7 @@ interface TextAssetDisplayProps {
 }
 
 const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
+  const { t } = useTranslation();
   const getAsset = useAssetStore((state) => state.get);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -50,7 +51,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         overflow: "auto"
       }}
     >
-      <Tooltip title={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })} delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={t("editor:ui.openEditor", { defaultValue: "Open Editor" })} delay={TOOLTIP_ENTER_DELAY}>
         <button type="button" className="button-expand" onClick={toggleExpand}>
           {isExpanded ? "↙" : "↗"}
         </button>
@@ -60,9 +61,9 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         sx={{ whiteSpace: "pre-wrap" }}
       >
         {error
-          ? i18n.t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." })
+          ? t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." })
           : isLoading
-          ? i18n.t("editor:ui.loadingPreview", { defaultValue: "Loading preview..." })
+          ? t("editor:ui.loadingPreview", { defaultValue: "Loading preview..." })
           : memoizedPreviewText}
       </Text>
 

@@ -19,7 +19,7 @@ import {
 } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AudioEditorToolbarProps {
   isPlaying: boolean;
@@ -131,6 +131,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
   onSave,
   onDone
 }: AudioEditorToolbarProps) {
+  const { t } = useTranslation();
   const zoomSliderValue = zoomToSliderValue(zoom, minZoom, maxZoom);
   const handleZoomSliderChange = useCallback(
     (_event: Event, value: number | number[]) => {
@@ -158,10 +159,10 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         tooltip={isPlaying ? "Pause" : "Play"}
         onClick={onTogglePlay}
       />
-      <ToolbarIconButton icon={<StopIcon />} tooltip={i18n.t("ui2:attrs.stop", { defaultValue: "Stop" })} onClick={onStop} />
+      <ToolbarIconButton icon={<StopIcon />} tooltip={t("ui2:attrs.stop", { defaultValue: "Stop" })} onClick={onStop} />
       <ToolbarIconButton
         icon={<RepeatIcon />}
-        tooltip={i18n.t("ui2:attrs.loop", { defaultValue: "Loop" })}
+        tooltip={t("ui2:attrs.loop", { defaultValue: "Loop" })}
         active={loop}
         onClick={onToggleLoop}
       />
@@ -170,24 +171,24 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarIconButton
         icon={<ZoomOutIcon />}
-        tooltip={i18n.t("timeline:shortcuts.zoomOut", { defaultValue: "Zoom out" })}
+        tooltip={t("timeline:shortcuts.zoomOut", { defaultValue: "Zoom out" })}
         onClick={onZoomOut}
         disabled={!canZoomOut}
       />
       <ToolbarIconButton
         icon={<ZoomInIcon />}
-        tooltip={i18n.t("timeline:shortcuts.zoomIn", { defaultValue: "Zoom in" })}
+        tooltip={t("timeline:shortcuts.zoomIn", { defaultValue: "Zoom in" })}
         onClick={onZoomIn}
         disabled={!canZoomIn}
       />
       <ToolbarIconButton
         icon={<FitScreenIcon />}
-        tooltip={i18n.t("editor:ui.fitToWindow", { defaultValue: "Fit to window" })}
+        tooltip={t("editor:ui.fitToWindow", { defaultValue: "Fit to window" })}
         onClick={onZoomFit}
       />
       <FlexRow align="center" gap={1} sx={{ width: 160, mx: 0.5 }}>
         <NodeSlider
-          aria-label={i18n.t("editor:ui.waveformZoom", { defaultValue: "Waveform zoom" })}
+          aria-label={t("editor:ui.waveformZoom", { defaultValue: "Waveform zoom" })}
           value={zoomSliderValue}
           min={ZOOM_SLIDER_MIN}
           max={ZOOM_SLIDER_MAX}
@@ -218,13 +219,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         Fade out
       </EditorButton>
       <EditorButton size="small" onClick={onNormalize}>
-        {i18n.t("editor:ui.normalize")}
+        {t("editor:ui.normalize")}
       </EditorButton>
       <EditorButton size="small" onClick={onAmplify}>
         Amplify
       </EditorButton>
       <EditorButton size="small" onClick={onQuieten}>
-        {i18n.t("editor:ui.quieten")}
+        {t("editor:ui.quieten")}
       </EditorButton>
       <EditorButton size="small" onClick={onReverse}>
         Reverse
@@ -234,13 +235,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarIconButton
         icon={<UndoIcon />}
-        tooltip={i18n.t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
+        tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
         onClick={onUndo}
         disabled={!canUndo}
       />
       <ToolbarIconButton
         icon={<RedoIcon />}
-        tooltip={i18n.t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
+        tooltip={t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
         onClick={onRedo}
         disabled={!canRedo}
       />

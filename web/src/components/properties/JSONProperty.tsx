@@ -12,7 +12,8 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import TextEditorModal from "./TextEditorModal";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface JSONValue {
   type: "json";
@@ -78,6 +79,7 @@ const rootStyles = (theme: Theme) =>
   });
 
 const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `json-${props.property.name}-${props.propertyIndex}`;
   const rootCss = useMemo(() => rootStyles(theme), [theme]);
@@ -185,7 +187,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+          tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -199,7 +201,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         />
       </>
     ),
-    [languageVersion, inspectorToolbarActionSx, toggleExpand, value]
+    [t, inspectorToolbarActionSx, toggleExpand, value]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -226,7 +228,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         {!props.isInspector && isHovered ? (
           <div className="json-action-buttons">
             <ToolbarIconButton
-              tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+              tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"

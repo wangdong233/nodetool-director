@@ -5,9 +5,10 @@ import PropertyLabel from "../node/PropertyLabel";
 import { PropertyProps } from "../node/PropertyInput";
 import isEqual from "../../utils/isEqual";
 import { NodeTextField } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const StringListProperty = (props: PropertyProps<string[]>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `string-list-${props.property.name}-${props.propertyIndex}`;
   const strings = props.value || [];
@@ -113,7 +114,7 @@ const StringListProperty = (props: PropertyProps<string[]>) => {
           <NodeTextField
             {...params}
             fullWidth
-            placeholder={strings.length === 0 ? i18n.t("editor:ui.enterValues", { defaultValue: "Enter values..." }) : ""}
+            placeholder={strings.length === 0 ? t("editor:ui.enterValues", { defaultValue: "Enter values..." }) : ""}
             sx={textFieldSx}
           />
         )}

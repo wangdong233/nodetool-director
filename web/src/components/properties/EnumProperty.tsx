@@ -4,7 +4,7 @@ import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import PropertyLabel from "../node/PropertyLabel";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const formatEnumLabel = (value: string | number): string => {
   if (!isString(value)) {
@@ -34,6 +34,7 @@ const EnumProperty: React.FC<PropertyProps<string>> = ({
   tabIndex,
   changed
 }) => {
+  const { t } = useTranslation();
   const id = useMemo(
     () => `enum-${property.name}-${propertyIndex}`,
     [property.name, propertyIndex]
@@ -68,7 +69,7 @@ const EnumProperty: React.FC<PropertyProps<string>> = ({
         onChange={onChange}
         options={options}
         label={property.name}
-        placeholder={i18n.t("editor:ui.select", { defaultValue: "Select…" })}
+        placeholder={t("editor:ui.select", { defaultValue: "Select…" })}
         tabIndex={tabIndex}
         changed={changed}
       />

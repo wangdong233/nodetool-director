@@ -36,6 +36,7 @@ import {
   silenceRange,
   type AudioSample
 } from "./audioSample";
+import { useTranslation } from "react-i18next";
 
 interface AudioSampleEditorProps {
   asset: Asset;
@@ -103,6 +104,7 @@ const PlaybackClock = memo(function PlaybackClock({
  * per frame.
  */
 const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
+  const { t } = useTranslation();
   const history = useEditHistory<AudioSample>();
   const sample = history.present;
   const sampleRef = useRef<AudioSample | null>(null);
@@ -413,9 +415,9 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title={i18n.t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
-          description={error ?? i18n.t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
-          actionText={i18n.t("ui2:attrs.done", { defaultValue: "Done" })}
+          title={t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
+          description={error ?? t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
+          actionText={t("ui2:attrs.done", { defaultValue: "Done" })}
           onAction={onClose}
         />
       </FlexColumn>
@@ -485,7 +487,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
             ? `Selection ${formatTime(selection.start)} – ${formatTime(
                 selection.end
               )} (${formatTime(selection.end - selection.start)})`
-            : i18n.t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
+            : t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
         </Caption>
         <PlaybackClock playhead={playhead} duration={duration} />
       </FlexRow>

@@ -22,7 +22,7 @@ import {
   GradientStop,
   gradientToCss
 } from "../../stores/ColorPickerStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -91,6 +91,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
   onChange,
   currentColor
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const builderStyles = useMemo(() => styles(theme), [theme]);
   const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(0);
@@ -302,8 +303,8 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           }
         }}
       >
-        <ToggleOption value="linear">{i18n.t("ui2:attrs.linear", { defaultValue: "Linear" })}</ToggleOption>
-        <ToggleOption value="radial">{i18n.t("ui2:attrs.radial", { defaultValue: "Radial" })}</ToggleOption>
+        <ToggleOption value="linear">{t("ui2:attrs.linear", { defaultValue: "Linear" })}</ToggleOption>
+        <ToggleOption value="radial">{t("ui2:attrs.radial", { defaultValue: "Radial" })}</ToggleOption>
       </ToggleGroup>
 
       {gradient.type === "linear" && (
@@ -324,7 +325,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
 
       <div>
         <Caption color="secondary">
-          {i18n.t("editor:ui.colorStops")}
+          {t("editor:ui.colorStops")}
         </Caption>
         <div className="stops-container" style={{ background: cssOutput }}>
           {gradient.stops.map((stop, index) => (
@@ -350,14 +351,14 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
         <FlexRow align="center" gap={1} wrap>
           <TextInput
             size="small"
-            label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}
+            label={t("timeline:attrs.color", { defaultValue: "Color" })}
             value={selectedStop.color}
             onChange={handleStopColorInputChange}
             sx={{ width: "100px" }}
           />
           <TextInput
             size="small"
-            label={i18n.t("editor:ui.position", { defaultValue: "Position" })}
+            label={t("editor:ui.position", { defaultValue: "Position" })}
             type="number"
             value={selectedStop.position}
             onChange={handleStopPositionInputChange}
@@ -366,7 +367,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
             }}
             sx={{ width: "80px" }}
           />
-          <Tooltip title={i18n.t("editor:ui.useCurrentColor", { defaultValue: "Use current color" })}>
+          <Tooltip title={t("editor:ui.useCurrentColor", { defaultValue: "Use current color" })}>
             <EditorButton
               variant="outlined"
               data-stop-index={selectedStopIndex}
@@ -378,7 +379,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           </Tooltip>
           <DeleteButton
             onClick={handleRemoveStopButtonClick}
-            tooltip={i18n.t("editor:ui.removeStop", { defaultValue: "Remove stop" })}
+            tooltip={t("editor:ui.removeStop", { defaultValue: "Remove stop" })}
             disabled={gradient.stops.length <= 2}
             nodrag={false}
           />

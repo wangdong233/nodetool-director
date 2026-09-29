@@ -13,7 +13,7 @@ import { useNodes } from "../../contexts/NodeContext";
 import { ImageSizePresetsMenu } from "./ImageSizePresetsMenu";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type ImageSizeValue = {
   width: number;
@@ -22,6 +22,7 @@ type ImageSizeValue = {
 };
 
 const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
+  const { t } = useTranslation();
   const { property, nodeId, value, onChange, tabIndex } = props;
 
   const isConnectedSelector = useIsConnectedSelector(nodeId, property.name);
@@ -165,7 +166,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
         <Box className="spacer" sx={{ flex: 1 }} />
         <FlexRow className="icon-container" align="center" gap={0} sx={{ mt: -2 }}>
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.swapWidthAndHeight", { defaultValue: "Swap Width and Height" })}
+            tooltip={t("editor:ui.swapWidthAndHeight", { defaultValue: "Swap Width and Height" })}
             icon={<SwapHoriz sx={{ fontSize: "var(--fontSizeBig)" }} />}
             className="aspect-swap-button"
             onClick={handleSwap}
@@ -178,7 +179,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip={locked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio", { defaultValue: "Lock Aspect Ratio" })}
+            tooltip={locked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : t("editor:ui.lockAspectRatio", { defaultValue: "Lock Aspect Ratio" })}
             icon={locked ? <Lock sx={{ fontSize: "var(--fontSizeNormal)" }} /> : <LockOpen sx={{ fontSize: "var(--fontSizeNormal)" }} />}
             className="aspect-lock-button"
             onClick={toggleLock}
@@ -191,7 +192,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip={i18n.t("editor:ui.presets", { defaultValue: "Presets" })}
+            tooltip={t("editor:ui.presets", { defaultValue: "Presets" })}
             icon={<MoreVert sx={{ fontSize: "var(--fontSizeBig)" }} />}
             className="presets-menu-button"
             onClick={handlePresetClick}

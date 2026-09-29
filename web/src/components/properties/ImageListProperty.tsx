@@ -21,6 +21,7 @@ import { useUpstreamValue } from "../../hooks/nodes/useNodeIO";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListImageThumb } from "./PropertyListThumb";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ImageItem {
   uri: string;
@@ -165,6 +166,7 @@ const flattenImageItems = (items: unknown): ImageItem[] => {
 };
 
 const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const id = `image-list-${props.property.name}-${props.propertyIndex}`;
@@ -538,7 +540,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
                 className="remove-button"
                 onClick={removeHandlers[index]}
                 buttonSize="small"
-                tooltip={i18n.t("editor:ui.removeImage", { defaultValue: "Remove image" })}
+                tooltip={t("editor:ui.removeImage", { defaultValue: "Remove image" })}
               />
             </div>
           ))}
@@ -546,7 +548,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
       )}
 
       {/* Dropzone */}
-      <Tooltip title={i18n.t("editor:ui.clickToSelectImagesOrDragAndDrop", { defaultValue: "Click to select images or drag and drop" })}>
+      <Tooltip title={t("editor:ui.clickToSelectImagesOrDragAndDrop", { defaultValue: "Click to select images or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}
@@ -557,7 +559,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>{i18n.t("ui2:attrs.clickOrDropImagesHere", { defaultValue: "Click or drop images here" })}</p>
+          <p>{t("ui2:attrs.clickOrDropImagesHere", { defaultValue: "Click or drop images here" })}</p>
         </div>
       </Tooltip>
     </div>

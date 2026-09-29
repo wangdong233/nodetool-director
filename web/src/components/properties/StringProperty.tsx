@@ -16,7 +16,8 @@ import ConnectedBadge from "./ConnectedBadge";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const propertyStyles = (theme: Theme) =>
   css({
@@ -63,6 +64,7 @@ const StringProperty = ({
   isInspector,
   onPropertyContextMenu
 }: PropertyProps<string>) => {
+  const { t } = useTranslation();
   const id = `textfield-${property.name}-${propertyIndex}`;
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -97,7 +99,7 @@ const StringProperty = ({
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+          tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -111,7 +113,7 @@ const StringProperty = ({
         />
       </>
     ),
-    [languageVersion, inspectorToolbarActionSx, toggleExpand, value]
+    [t, inspectorToolbarActionSx, toggleExpand, value]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -144,7 +146,7 @@ const StringProperty = ({
         {!isInspector ? (
           <div className="string-action-buttons">
             <ToolbarIconButton
-              tooltip={i18n.t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+              tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"
