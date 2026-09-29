@@ -706,6 +706,8 @@
     "sceneLabel": "场景 {{n}}",
     "afterCaption": "{{caption}} 之后",
     "setAClipTakeAsCurrentToCreateATimeline": "请将某个片段条目设为当前,以创建时间线。",
-    "renderAClipToCreateATimeline": "请渲染一个片段以创建时间线。"
+    "renderAClipToCreateATimeline": "请渲染一个片段以创建时间线。",
+    "noImageProviderIsConnectedAddOneInSettingsThenTryAgain": "未连接任何图像渠道。请先在设置中添加一个,再重试——你的简介与画面已随文档保存。",
+    "noneOfTheConnectedProvidersOffersAModelThatRendersAPictureFromText": "已连接的渠道都无法从文字生成画面。"
   }
 }

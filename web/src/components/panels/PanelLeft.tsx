@@ -96,7 +96,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CodeIcon from "@mui/icons-material/Code";
 
 import Fullscreen from "@mui/icons-material/Fullscreen";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const HEADER_HEIGHT = 77;
@@ -892,6 +891,7 @@ const MobilePanelLeft: React.FC<{
   hideLauncher = false,
   showProjects = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleSheetViewChange = useCallback(
@@ -912,7 +912,7 @@ const MobilePanelLeft: React.FC<{
             className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
             css={mobileLauncherStyles(theme)}
             onClick={isVisible ? onClose : onOpen}
-            ariaLabel={isVisible ? i18n.t("editor:ui.closePanel", { defaultValue: "Close panel" }) : i18n.t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
+            ariaLabel={isVisible ? t("editor:ui.closePanel", { defaultValue: "Close panel" }) : t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
             aria-expanded={isVisible}
             tabIndex={-1}
             icon={<MenuIcon />}
@@ -924,7 +924,7 @@ const MobilePanelLeft: React.FC<{
         open={isVisible}
         onClose={onClose}
         title={launcherTitle}
-        ariaLabel={i18n.t("editor:ui.projectNavigationPanel", { defaultValue: "Project navigation panel" })}
+        ariaLabel={t("editor:ui.projectNavigationPanel", { defaultValue: "Project navigation panel" })}
         headerExtras={
           <div css={mobileHeaderExtrasStyles(theme)}>
             <FlexRow className="mobile-tab-group" gap={SPACING.xs}>

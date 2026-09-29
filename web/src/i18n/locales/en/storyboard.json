@@ -706,6 +706,8 @@
     "sceneLabel": "Scene {{n}}",
     "afterCaption": "after {{caption}}",
     "setAClipTakeAsCurrentToCreateATimeline": "Set a clip take as current to create a timeline.",
-    "renderAClipToCreateATimeline": "Render a clip to create a timeline."
+    "renderAClipToCreateATimeline": "Render a clip to create a timeline.",
+    "noImageProviderIsConnectedAddOneInSettingsThenTryAgain": "No image provider is connected. Add one in Settings, then try again — your brief and look are saved with the document.",
+    "noneOfTheConnectedProvidersOffersAModelThatRendersAPictureFromText": "None of the connected providers offers a model that renders a picture from text."
   }
 }
