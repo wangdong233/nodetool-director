@@ -28,7 +28,6 @@ import {
 import PaletteIcon from "@mui/icons-material/Palette";
 import LegendToggleIcon from "@mui/icons-material/LegendToggle";
 import CheckIcon from "@mui/icons-material/Check";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const minimapStyle = {
@@ -116,7 +115,6 @@ const MiniMapNavigator: React.FC = () => {
     [theme.vars.palette.primary.main, theme.vars.palette.grey, isDarkMode]
   );
 
-  const { version: languageVersion } = useAppLanguage();
   const legendItems = useMemo(
     () => [
       {

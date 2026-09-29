@@ -16,7 +16,6 @@ import ConnectedBadge from "./ConnectedBadge";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const propertyStyles = (theme: Theme) =>
@@ -93,7 +92,6 @@ const StringProperty = ({
     });
   }, []);
 
-  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>

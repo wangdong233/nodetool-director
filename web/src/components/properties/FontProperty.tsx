@@ -7,7 +7,6 @@ import Select from "../inputs/Select";
 import { trpcClient } from "../../trpc/client";
 import type { FontEntry } from "@nodetool-ai/protocol/api-schemas/fonts.js";
 import { isObjectLike } from "../../utils/typePredicates";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -56,7 +55,6 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
       ? value.name
       : "";
 
-  const { version: languageVersion } = useAppLanguage();
   const options = useMemo(() => {
     if (!fonts || isLoading || isError)
       {return [{ value: "", label: t("editor:ui.selectAFont") }];}

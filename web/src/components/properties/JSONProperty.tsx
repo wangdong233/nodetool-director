@@ -12,7 +12,6 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import TextEditorModal from "./TextEditorModal";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface JSONValue {
@@ -181,7 +180,6 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
     void loadMonacoIfNeeded();
   }, [loadMonacoIfNeeded]);
 
-  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>

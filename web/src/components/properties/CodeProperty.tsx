@@ -36,7 +36,6 @@ import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const EDITOR_OPTIONS = {
@@ -164,7 +163,6 @@ const CodeProperty = ({
     [theme]
   );
 
-  const { version: languageVersion } = useAppLanguage();
   const editorActions = useMemo(
     () => (
       <>

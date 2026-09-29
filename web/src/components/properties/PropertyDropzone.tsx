@@ -19,7 +19,6 @@ import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface PropertyDropzoneProps {
@@ -358,7 +357,6 @@ const PropertyDropzone = ({
     handleDropzoneClick();
   }, [handleDropzoneClick]);
 
-  const { version: languageVersion } = useAppLanguage();
   const renderViewer = useMemo(() => {
     switch (contentType.split("/")[0]) {
       case "image": {

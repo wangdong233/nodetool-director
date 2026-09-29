@@ -4,7 +4,7 @@ import { useApiKeyValidation } from "../../hooks/useApiKeyValidation";
 import { getRequiredSecretKeyForNamespace } from "../../utils/nodeProvider";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { isString } from "../../utils/typePredicates";
-import { i18n, useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ApiKeyValidationProps {
@@ -24,7 +24,6 @@ const ApiKeyValidation: React.FC<ApiKeyValidationProps> = React.memo(
       });
     }, [nodeNamespace]);
 
-    const { version: languageVersion } = useAppLanguage();
     const content = useMemo(() => {
       if (!missingAPIKey || !isString(missingAPIKey)) {return null;}
 

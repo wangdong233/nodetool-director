@@ -17,7 +17,6 @@ import { Tooltip, ToolbarIconButton, MOTION } from "../ui_primitives";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 import type { ExposedInputPlacement } from "../../utils/exposedInputs";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 
@@ -113,7 +112,6 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
 
 
-    const { version: languageVersion } = useAppLanguage();
     const title = useMemo(() => {
 
       if (placement === "handle") {

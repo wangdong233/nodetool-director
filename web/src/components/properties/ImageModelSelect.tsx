@@ -16,7 +16,6 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ImageModelSelectProps {
@@ -51,7 +50,6 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     return fetchedModels.find((m) => m.id === value);
   }, [fetchedModels, value]);
 
-  const { version: languageVersion } = useAppLanguage();
   const displayInfo = useMemo(() => {
     if (currentSelectedModelDetails) {
       // Try to split by colon first (HF style)

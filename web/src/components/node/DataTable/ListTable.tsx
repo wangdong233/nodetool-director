@@ -17,7 +17,6 @@ import TableActions from "./TableActions";
 import { useTheme } from "@mui/material/styles";
 import isEqual from "../../../utils/isEqual";
 import type { TableData } from "./TableActions";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export type ListDataType = "int" | "string" | "datetime" | "float";
@@ -76,7 +75,6 @@ const ListTable: React.FC<ListTableProps> = ({
   const [selectedRows, setSelectedRows] = useState<RowComponent[]>([]);
   const [showSelect, setShowSelect] = useState(true);
 
-  const { version: languageVersion } = useAppLanguage();
   const columns = useMemo(
     () => [
       ...(showSelect
