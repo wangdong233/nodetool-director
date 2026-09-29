@@ -2681,7 +2681,16 @@
     "nSec": "{{n}} Sec",
     "cloud2": "Cloud",
     "describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit": "Describe your idea. The agent writes the script, boards every scene, generates the footage, and cuts a multi-track timeline you can still edit.",
-    "signInWithGoogle2": "Sign in with Google"
+    "signInWithGoogle2": "Sign in with Google",
+    "nShots": "{{n}} shots",
+    "stillsOfShots": "stills {{a}}/{{b}}",
+    "voicedOfLines": "voiced {{a}}/{{b}}",
+    "nStale": "{{n}} stale",
+    "cutNClips": "cut {{n}} clips · {{d}}",
+    "nDocuments": "{{n}} documents",
+    "oneDocument": "{{n}} document",
+    "partialSuffix": " · partial",
+    "nClips2": "{{n}} clips"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

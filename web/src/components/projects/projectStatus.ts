@@ -45,36 +45,35 @@ export const projectStatusLine = (
   documents: readonly ProjectDocument[],
   options?: { documentsPartial?: boolean }
 ): string => {
-  const partialSuffix = options?.documentsPartial ? " · partial" : "";
+  const partialSuffix = options?.documentsPartial ? i18n.t("editor:ui.partialSuffix") : "";
   if (documents.length === 0) {
-    return `No documents yet${partialSuffix}`;
+    return i18n.t("editor:ui.noDocumentsYet") + partialSuffix;
   }
   const parts: string[] = [];
 
   const board = statusOfKind(documents, "storyboard");
   if (board) {
-    parts.push(`${board.shots} shots`);
+    parts.push(i18n.t("editor:ui.nShots", { n: board.shots }));
     if (board.shots > 0) {
-      parts.push(`stills ${board.stills}/${board.shots}`);
+      parts.push(i18n.t("editor:ui.stillsOfShots", { a: board.stills, b: board.shots }));
     }
   }
 
   const script = statusOfKind(documents, "script");
   if (script) {
-    parts.push(`voiced ${script.voiced}/${script.lines}`);
+    parts.push(i18n.t("editor:ui.voicedOfLines", { a: script.voiced, b: script.lines }));
     if (script.stale > 0) {
-      parts.push(`${script.stale} stale`);
+      parts.push(i18n.t("editor:ui.nStale", { n: script.stale }));
     }
   }
 
   const cut = statusOfKind(documents, "timeline");
   if (cut) {
-    parts.push(`cut ${cut.clips} clips · ${formatDuration(cut.durationMs)}`);
+    parts.push(i18n.t("editor:ui.cutNClips", { n: cut.clips, d: formatDuration(cut.durationMs) }));
   }
 
   if (parts.length === 0) {
-    const label = documents.length === 1 ? "document" : "documents";
-    return `${documents.length} ${label}${partialSuffix}`;
+    return i18n.t(documents.length === 1 ? "editor:ui.oneDocument" : "editor:ui.nDocuments", { n: documents.length }) + partialSuffix;
   }
   return parts.join(" · ") + partialSuffix;
 };

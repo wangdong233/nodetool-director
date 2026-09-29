@@ -90,7 +90,7 @@ const TimelineRendererContent: React.FC<TimelineRendererProps> = ({
       {showMetadata && (
         <FlexColumn className="timeline-renderer__meta" padding={PADDING.micro}>
           <Caption>
-            {sequence.width} × {sequence.height} · {sequence.clips.length} clips
+            {sequence.width} × {sequence.height} · {i18n.t("editor:ui.nClips2", { n: sequence.clips.length })}
           </Caption>
         </FlexColumn>
       )}
