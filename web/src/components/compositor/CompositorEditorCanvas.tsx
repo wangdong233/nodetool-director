@@ -230,7 +230,7 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
       b: midpoint(br, bl),
       l: midpoint(bl, tl)
     };
-    const center = { x: t.x, y: t.y };
+    const center = { x: tf.x, y: tf.y };
     const topMid = edges.t;
     const dx = topMid.x - center.x;
     const dy = topMid.y - center.y;

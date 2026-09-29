@@ -663,7 +663,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
       // pointerdown would also fire `toggleLayerInSelection`, mutating
       // selectedLayerIds and causing a re-render that swallowed the
       // thumbnail click before the selection mask could be loaded.
-      if (t.closest(".layer-thumbnail")) {
+      if (target.closest(".layer-thumbnail")) {
         return;
       }
       e.preventDefault();
