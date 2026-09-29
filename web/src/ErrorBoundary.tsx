@@ -7,7 +7,7 @@ import { CopyButton, Text, EditorButton, Box, MOTION, BORDER_RADIUS, Z_INDEX, ge
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
-import { i18n } from "./i18n";
+import { useTranslation } from "react-i18next";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -173,6 +173,7 @@ const errorBoundaryStyles = (theme: Theme) =>
   });
 
 const ErrorBoundary: React.FC = () => {
+  const { t } = useTranslation();
   const error = useRouteError();
   const theme = useTheme();
   const [showDetails, setShowDetails] = useState(false);
@@ -183,7 +184,7 @@ const ErrorBoundary: React.FC = () => {
       ? error.message
       : "An unknown error occurred" + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : i18n.t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
+    error instanceof Error ? error.stack : t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
 
@@ -238,7 +239,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? i18n.t("editor:ui.copied2") : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
+            {copied ? t("editor:ui.copied2") : t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -248,10 +249,10 @@ const ErrorBoundary: React.FC = () => {
             target="_blank"
             rel="noreferrer"
           >
-            {i18n.t("editor:ui.joinOurDiscord")}
+            {t("editor:ui.joinOurDiscord")}
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            {i18n.t("editor:ui.emailHello@nodetoolAi")}
+            {t("editor:ui.emailHello@nodetoolAi")}
           </a>
         </Box>
       </Box>
