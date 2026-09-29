@@ -2698,7 +2698,16 @@
     "nLinesUnit": "lines",
     "oneClip": "clip",
     "renderClips": "Render clips",
-    "removeServerConfirmBody": "Remove {{name}}? Its tools leave the agent's toolbelt."
+    "removeServerConfirmBody": "Remove {{name}}? Its tools leave the agent's toolbelt.",
+    "pickWhereToStartEachOneTakesASentence": "Pick where to start. Each one takes a sentence and returns a document you can keep editing.",
+    "localModelsTitle": "Local Models",
+    "runModelsLocallyForPrivacySpeedAndOfflineAccess": "Run models locally for privacy, speed, and offline access.",
+    "iWantTo": "I want to",
+    "detectedFromYourGpu": "Detected from your GPU.",
+    "estimatedFromSystemMemory": "Estimated from system memory — set your GPU's VRAM for a sharper match.",
+    "usingTheValueYouSet": "Using the value you set.",
+    "weCouldNotDetectYourHardwarePickYourGpuMemory": "We couldn't detect your hardware. Pick your GPU memory to get recommendations.",
+    "setGpuMemory": "Set GPU memory"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

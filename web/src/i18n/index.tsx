@@ -120,6 +120,19 @@ if (typeof document !== "undefined") {
 }
 void ensureLanguageLoaded(instance.language as AppLanguage);
 
+// Dev-only E2E hook: browser verification scripts flip the language through
+// the app's own switch pipeline (lazy catalog load + changeLanguage +
+// same-language refire → useTranslation re-render) without driving the
+// settings menu by mouse. Same code path the LanguageSetting control runs.
+if (
+  process.env.NODE_ENV === "development" &&
+  typeof window !== "undefined"
+) {
+  (window as { __nodetoolI18n?: unknown }).__nodetoolI18n = {
+    change: (language: string) => changeAppLanguage(language as AppLanguage)
+  };
+}
+
 export const i18n = instance;
 
 /**

@@ -16,6 +16,7 @@ import {
   SPACING
 } from "../../ui_primitives";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
+import { i18n } from "../../../i18n";
 import { ModelStat } from "../ModelStat";
 import { TIER_LABELS, type HardwareProfile, TIER_LABEL_KEYS } from "./useHardwareProfile";
 import { useTranslation } from "react-i18next";
@@ -43,15 +44,17 @@ const OVERRIDE_OPTIONS = [
 ];
 
 const budgetNote = (profile: HardwareProfile): string => {
+  // Module helper called during render — global i18n.t reads the live
+  // language at each call (same convention as the D-registry module helpers).
   switch (profile.budgetSource) {
     case "gpu":
-      return "Detected from your GPU.";
+      return i18n.t("editor:ui.detectedFromYourGpu", { defaultValue: "Detected from your GPU." });
     case "unified-memory":
-      return "Estimated from system memory — set your GPU's VRAM for a sharper match.";
+      return i18n.t("editor:ui.estimatedFromSystemMemory", { defaultValue: "Estimated from system memory — set your GPU's VRAM for a sharper match." });
     case "manual":
-      return "Using the value you set.";
+      return i18n.t("editor:ui.usingTheValueYouSet", { defaultValue: "Using the value you set." });
     default:
-      return "We couldn't detect your hardware. Pick your GPU memory to get recommendations.";
+      return i18n.t("editor:ui.weCouldNotDetectYourHardwarePickYourGpuMemory", { defaultValue: "We couldn't detect your hardware. Pick your GPU memory to get recommendations." });
   }
 };
 
@@ -148,7 +151,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
   const budgetSelect = (
     <FlexColumn gap={SPACING.micro} sx={{ minWidth: 128 }}>
       <Caption sx={{ opacity: 0.6, whiteSpace: "nowrap" }}>
-        Set GPU memory
+        {t("editor:ui.setGpuMemory", { defaultValue: "Set GPU memory" })}
       </Caption>
       <SelectField
         label={t("editor:ui.gpuMemoryBudget", { defaultValue: "GPU memory budget" })}

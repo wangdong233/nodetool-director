@@ -2698,7 +2698,16 @@
     "nLinesUnit": "行",
     "oneClip": "个片段",
     "renderClips": "渲染片段",
-    "removeServerConfirmBody": "移除 {{name}}?其工具将从智能体工具栏移除。"
+    "removeServerConfirmBody": "移除 {{name}}?其工具将从智能体工具栏移除。",
+    "pickWhereToStartEachOneTakesASentence": "从这里开始。每项只需一句话，即可生成一份可继续编辑的文档。",
+    "localModelsTitle": "本地模型",
+    "runModelsLocallyForPrivacySpeedAndOfflineAccess": "在本地运行模型，保护隐私、提速并支持离线使用。",
+    "iWantTo": "我想要",
+    "detectedFromYourGpu": "从你的 GPU 检测。",
+    "estimatedFromSystemMemory": "依据系统内存估算——设置 GPU 显存可获得更精准的匹配。",
+    "usingTheValueYouSet": "使用你设置的值。",
+    "weCouldNotDetectYourHardwarePickYourGpuMemory": "未能检测到你的硬件。请选择 GPU 显存以获取推荐。",
+    "setGpuMemory": "设置 GPU 显存"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

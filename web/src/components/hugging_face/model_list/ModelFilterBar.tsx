@@ -127,7 +127,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         borderBottom: `1px solid ${theme.vars.palette.divider}`
       }}
     >
-      <FilterRow label="I want to">
+      <FilterRow label={t("editor:ui.iWantTo", { defaultValue: "I want to" })}>
         {MODEL_GOALS.map((goal) => (
           <Tooltip key={goal.id} title={t(GOAL_DESCRIPTION_KEYS[goal.id] ?? "", { defaultValue: goal.description })} delay={400}>
             <Chip

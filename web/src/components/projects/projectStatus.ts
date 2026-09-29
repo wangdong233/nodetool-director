@@ -120,7 +120,7 @@ export const documentStatusLine = (document: ProjectDocument): string => {
     case "script":
       return i18n.t("editor:ui.nLinesVoiced", { a: status.lines, unit: i18n.t(status.lines === 1 ? "editor:ui.oneLine" : "editor:ui.nLinesUnit"), b: status.voiced });
     case "timeline":
-      return i18n.t("editor:ui.nClipsDuration", { a: status.clips, unit: i18n.t(status.clips === 1 ? "editor:ui.oneClip" : "editor:ui.nClips2"), d: formatDuration(status.durationMs) });
+      return i18n.t("editor:ui.nClipsDuration", { a: status.clips, unit: i18n.t(status.clips === 1 ? "editor:ui.oneClip" : "editor:ui.clipsUnit"), d: formatDuration(status.durationMs) });
     default: {
       const exhaustive: never = status;
       return exhaustive;

@@ -67,12 +67,12 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
             <ComputerIcon sx={{ fontSize: 20 }} />
           </FlexRow>
           <Text size="normal" weight={600}>
-            Local Models
+            {t("editor:ui.localModelsTitle", { defaultValue: "Local Models" })}
           </Text>
         </FlexRow>
 
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5 }}>
-          Run models locally for privacy, speed, and offline access.
+          {t("editor:ui.runModelsLocallyForPrivacySpeedAndOfflineAccess", { defaultValue: "Run models locally for privacy, speed, and offline access." })}
         </Caption>
 
         <FlexRow gap={SPACING.xl} align="flex-start">

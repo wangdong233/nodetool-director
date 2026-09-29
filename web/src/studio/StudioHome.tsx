@@ -279,8 +279,7 @@ const StudioHome = () => {
             {t("editor:ui.makeAVideo")}
           </Text>
           <Text size="normal" color="secondary">
-            Pick where to start. Each one takes a sentence and returns a
-            document you can keep editing.
+            {t("editor:ui.pickWhereToStartEachOneTakesASentence", { defaultValue: "Pick where to start. Each one takes a sentence and returns a document you can keep editing." })}
           </Text>
         </FlexColumn>
 
