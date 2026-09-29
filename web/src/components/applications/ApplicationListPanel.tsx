@@ -40,6 +40,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const pickerStyles = () =>
   css({
@@ -63,6 +64,7 @@ const pickerStyles = () =>
   });
 
 export const CreateApplicationButton = memo(function CreateApplicationButton() {
+  const { t } = useTranslation();
   const createApplication = useCreateApplication();
   const openApplication = useOpenApplication();
 
@@ -80,9 +82,9 @@ export const CreateApplicationButton = memo(function CreateApplicationButton() {
   }, [createApplication, openApplication]);
 
   return (
-    <Tooltip title={i18n.t("editor:ui.newApp", { defaultValue: "New app" })} placement="right-start">
+    <Tooltip title={t("editor:ui.newApp", { defaultValue: "New app" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={i18n.t("editor:ui.newApp", { defaultValue: "New app" })}
+        ariaLabel={t("editor:ui.newApp", { defaultValue: "New app" })}
         onClick={() => void handleCreate()}
         disabled={createApplication.isPending}
         tabIndex={-1}
@@ -105,6 +107,7 @@ export const CreateApplicationFromWorkflowButton = memo(
   function CreateApplicationFromWorkflowButton({
     projectId
   }: CreateApplicationFromWorkflowButtonProps) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
     const createApplication = useCreateApplication();
@@ -142,9 +145,9 @@ export const CreateApplicationFromWorkflowButton = memo(
 
     return (
       <>
-        <Tooltip title={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })} placement="right-start">
+        <Tooltip title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })} placement="right-start">
           <ToolbarIconButton
-            ariaLabel={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
+            ariaLabel={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
             onClick={() => setOpen(true)}
             tabIndex={-1}
             icon={<AccountTreeOutlinedIcon />}
@@ -156,20 +159,20 @@ export const CreateApplicationFromWorkflowButton = memo(
             setOpen(false);
             setCreateError(null);
           }}
-          title={i18n.t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
+          title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
         >
           <div css={pickerStyles()}>
             {createError ? (
-              <AlertBanner severity="error" title={i18n.t("editor:ui.couldNotCreateApp", { defaultValue: "Could not create app" })}>
+              <AlertBanner severity="error" title={t("editor:ui.couldNotCreateApp", { defaultValue: "Could not create app" })}>
                 {createError} Select the workflow again to retry.
               </AlertBanner>
             ) : null}
             {isLoading ? (
-              <LoadingSpinner text={i18n.t("editor:ui.loadingWorkflows")} />
+              <LoadingSpinner text={t("editor:ui.loadingWorkflows")} />
             ) : workflows.length === 0 ? (
               <EmptyState
-                title={i18n.t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
-                description={i18n.t("editor:ui.createAWorkflowFirstThenBuildAnAppOnTopOfIt")}
+                title={t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
+                description={t("editor:ui.createAWorkflowFirstThenBuildAnAppOnTopOfIt")}
               />
             ) : (
               <FlexColumn className="workflow-options" gap={0.5}>
@@ -202,6 +205,7 @@ interface ApplicationListPanelProps {
 }
 
 const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useApplications(projectId);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
   const openApplication = useOpenApplication();
@@ -328,8 +332,8 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
           icon={DashboardCustomizeOutlinedIcon}
           secondary={
             app.operationCount === 1
-              ? i18n.t("editor:ui.oneOperation", { defaultValue: "1 operation" })
-              : i18n.t("editor:ui.nOperations", { defaultValue: "{{n}} operations", n: app.operationCount })
+              ? t("editor:ui.oneOperation", { defaultValue: "1 operation" })
+              : t("editor:ui.nOperations", { defaultValue: "{{n}} operations", n: app.operationCount })
           }
           active={app.id === activeApplicationId}
           editing={app.id === editingId}

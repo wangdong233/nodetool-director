@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { trpcClient } from "../../trpc/client";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   EmptyState,
   FlexColumn,
@@ -37,6 +37,7 @@ const findApplicationForWorkflow = async (
  * workflow we open that app's workspace tab, otherwise the link is dead.
  */
 const LegacyAppRedirect = () => {
+  const { t } = useTranslation();
   const { workflowId } = useParams<{ workflowId?: string }>();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
 
@@ -64,7 +65,7 @@ const LegacyAppRedirect = () => {
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" sx={{ height: "100vh" }}>
-        <LoadingSpinner size="large" text={i18n.t("editor:ui.lookingForThisApp")} />
+        <LoadingSpinner size="large" text={t("editor:ui.lookingForThisApp")} />
       </FlexColumn>
     );
   }
@@ -79,8 +80,8 @@ const LegacyAppRedirect = () => {
       >
         <EmptyState
           variant="error"
-          title={i18n.t("editor:ui.appNotFound", { defaultValue: "App not found" })}
-          description={i18n.t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne")}
+          title={t("editor:ui.appNotFound", { defaultValue: "App not found" })}
+          description={t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne")}
         />
       </FlexColumn>
     );

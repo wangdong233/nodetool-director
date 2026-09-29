@@ -42,7 +42,7 @@ import CustomEdge from "../node_editor/CustomEdge";
 import ControlEdge from "../node_editor/ControlEdge";
 import { GROUP_NODE_TYPE, COMMENT_NODE_TYPE } from "../../constants/nodeTypes";
 import { usePlaceholderNodeTypes } from "../node_types/usePlaceholderNodeTypes";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface WorkflowGraphPreviewProps {
   graph: Graph | null | undefined;
@@ -123,6 +123,7 @@ export const WorkflowGraphPreview: React.FC<WorkflowGraphPreviewProps> = ({
   width = "100%",
   height = 320
 }) => {
+  const { t } = useTranslation();
   const data = useMemo(() => {
     const graphNodes = graph?.nodes || [];
     const graphEdges = graph?.edges || [];
@@ -150,7 +151,7 @@ export const WorkflowGraphPreview: React.FC<WorkflowGraphPreviewProps> = ({
           fontSize: "var(--fontSizeSmaller)"
         }}
       >
-        {i18n.t("editor:ui.emptyWorkflow")}
+        {t("editor:ui.emptyWorkflow")}
       </FlexRow>
     );
   }

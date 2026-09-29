@@ -4,6 +4,7 @@ import type { NodeMetadata } from "../../stores/ApiTypes";
 import { formatGenericProviderName, isLocalProvider } from "../../utils/providerDisplay";
 import { isRecord, isString } from "../../utils/typePredicates";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface EntryWorkflowLike {
   input_schema?: unknown;
@@ -293,6 +294,10 @@ interface CompatibilityDetailsProps {
 export const CompatibilityDetails = ({
   compatibility
 }: CompatibilityDetailsProps): ReactNode => {
+  const { t } = useTranslation();
+  const inputRequirementsUnknown = compatibility.unknowns.some((unknown) =>
+    unknown.startsWith("Input requirements are unknown")
+  );
   const inputLabel = compatibility.inputs.length
     ? compatibility.inputs
         .map((input) =>
@@ -305,34 +310,34 @@ export const CompatibilityDetails = ({
         .join(", ")
     : inputRequirementsUnknown
       ? "Unknown"
-      : i18n.t("editor:ui.noneDeclared", { defaultValue: "None declared" });
+      : t("editor:ui.noneDeclared", { defaultValue: "None declared" });
   const modelLabel = compatibility.selectedModels.length
     ? compatibility.selectedModels.map(formatRequiredModel).join(", ")
     : compatibility.compatibleModels.length
-      ? i18n.t("editor:ui.notSelectedSuffix", { v: compatibility.compatibleModels.map(formatRequiredModel).join(", ") })
+      ? t("editor:ui.notSelectedSuffix", { v: compatibility.compatibleModels.map(formatRequiredModel).join(", ") })
       : "Unknown";
   const providerLabel = compatibility.providers.length
     ? compatibility.providers.map(formatGenericProviderName).join(", ")
-    : i18n.t("editor:ui.unknownProvider", { defaultValue: "Unknown provider" });
+    : t("editor:ui.unknownProvider", { defaultValue: "Unknown provider" });
   const providerModelLabel = compatibility.selectedModels.length
     ? compatibility.selectedModels.map(formatRequiredModel).join(", ")
     : compatibility.compatibleModels.length
-      ? i18n.t("editor:ui.notSelectedSuffix", { v: compatibility.compatibleModels.map(formatRequiredModel).join(", ") })
+      ? t("editor:ui.notSelectedSuffix", { v: compatibility.compatibleModels.map(formatRequiredModel).join(", ") })
       : `${providerLabel} / ${modelLabel}`;
 
   return (
-    <span className="entry-compat" aria-label={i18n.t("editor:ui.compatibilityDetails", { defaultValue: "Compatibility details" })}>
-      <span>{i18n.t("editor:ui.compatInputs", { v: inputLabel })}</span>
-      <span>{i18n.t("editor:ui.compatProviderModel", { v: providerModelLabel })}</span>
-      <span>{i18n.t("editor:ui.compatExecution", { v: compatibility.executionLocation })}</span>
+    <span className="entry-compat" aria-label={t("editor:ui.compatibilityDetails", { defaultValue: "Compatibility details" })}>
+      <span>{t("editor:ui.compatInputs", { v: inputLabel })}</span>
+      <span>{t("editor:ui.compatProviderModel", { v: providerModelLabel })}</span>
+      <span>{t("editor:ui.compatExecution", { v: compatibility.executionLocation })}</span>
       {compatibility.requiredSettings.length > 0 && (
-        <span>{i18n.t("editor:ui.compatRequiredSetup", { v: compatibility.requiredSettings.join(", ") })}</span>
+        <span>{t("editor:ui.compatRequiredSetup", { v: compatibility.requiredSettings.join(", ") })}</span>
       )}
       {compatibility.requiredRuntimes.length > 0 && (
-        <span>{i18n.t("editor:ui.compatRuntime", { v: compatibility.requiredRuntimes.join(", ") })}</span>
+        <span>{t("editor:ui.compatRuntime", { v: compatibility.requiredRuntimes.join(", ") })}</span>
       )}
       {compatibility.unknowns.map((unknown) => (
-        <span key={unknown}>{i18n.t("editor:ui.compatUnknown", { v: unknown })}</span>
+        <span key={unknown}>{t("editor:ui.compatUnknown", { v: unknown })}</span>
       ))}
     </span>
   );

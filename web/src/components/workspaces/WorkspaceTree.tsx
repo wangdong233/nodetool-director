@@ -20,6 +20,7 @@ import { useWorkspaceExplorer } from "../../hooks/useWorkspaceExplorer";
 import WorkspaceSelect from "./WorkspaceSelect";
 import PanelHeadline from "../ui/PanelHeadline";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Props forwarded onto a rendered tree row. */
 interface TreeViewItemSlotProps {
@@ -292,6 +293,7 @@ interface WorkspaceTreeProps {
 }
 
 const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [files, setFiles] = useState<TreeViewItem[]>([]);
   const filesRef = useRef<TreeViewItem[]>([]);
@@ -471,12 +473,12 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
   return (
     <Box css={workspaceTreeStyles(theme)}>
       <PanelHeadline
-        title={i18n.t("editor:ui.workspaceExplorer", { defaultValue: "Workspace Explorer" })}
+        title={t("editor:ui.workspaceExplorer", { defaultValue: "Workspace Explorer" })}
         docsTopic="workspaces"
         actions={
           <RefreshButton
             onClick={handleRefresh}
-            tooltip={i18n.t("ui:attrs.refresh", { defaultValue: "Refresh" })}
+            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
             tooltipPlacement="bottom"
           />
         }
@@ -491,7 +493,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
         <SettingsButton
           className="settings-button"
           onClick={handleManageWorkspace}
-          tooltip={i18n.t("editor:ui.manageWorkspaces", { defaultValue: "Manage Workspaces" })}
+          tooltip={t("editor:ui.manageWorkspaces", { defaultValue: "Manage Workspaces" })}
         />
       </div>
 
@@ -500,7 +502,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <span
             className="breadcrumb-segment"
             role="button"
-            aria-label={i18n.t("editor:ui.goToWorkspaceRoot", { defaultValue: "Go to workspace root" })}
+            aria-label={t("editor:ui.goToWorkspaceRoot", { defaultValue: "Go to workspace root" })}
             tabIndex={0}
             onClick={() => setSelectedFilePath("")}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedFilePath(""); } }}
@@ -524,7 +526,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             startIcon={<FolderOpenIcon />}
             onClick={handleOpenInFolder}
           >
-            {i18n.t("editor:ui.openInFolder")}
+            {t("editor:ui.openInFolder")}
           </EditorButton>
           {Boolean(window.api?.shell?.openPath) && (
             <EditorButton
@@ -533,7 +535,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               startIcon={<OpenInNewIcon />}
               onClick={handleOpenExternally}
             >
-              {i18n.t("editor:ui.openExternally")}
+              {t("editor:ui.openExternally")}
             </EditorButton>
           )}
         </div>
@@ -555,7 +557,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               sx={{ fontSize: 40, opacity: 0.3, color: "text.secondary" }}
             />
             <Text size="small" color="secondary">
-              {i18n.t("editor:ui.noWorkspaceSelected")}
+              {t("editor:ui.noWorkspaceSelected")}
             </Text>
             <Caption color="secondary">
               Select a workspace above or create one
@@ -565,7 +567,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               onClick={handleManageWorkspace}
               sx={{ mt: 1 }}
             >
-              {i18n.t("editor:ui.createWorkspace")}
+              {t("editor:ui.createWorkspace")}
             </EditorButton>
           </div>
         ) : files.length > 0 ? (
@@ -580,7 +582,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
                 }
               }}
               items={files}
-              aria-label={i18n.t("editor:ui.workspaceFileBrowser", { defaultValue: "workspace file browser" })}
+              aria-label={t("editor:ui.workspaceFileBrowser", { defaultValue: "workspace file browser" })}
               selectedItems={selectedFilePath}
               sx={treeViewStyles(theme)}
               slotProps={{
@@ -598,7 +600,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               sx={{ fontSize: 36, opacity: 0.3, color: "text.secondary" }}
             />
             <Text size="small" color="secondary">
-              {i18n.t("editor:ui.workspaceIsEmpty")}
+              {t("editor:ui.workspaceIsEmpty")}
             </Text>
             <Caption color="secondary">
               Add files to your workspace folder to see them here

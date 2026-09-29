@@ -38,6 +38,7 @@ import {
   CompatibilityDetails,
   getWorkflowCompatibility
 } from "./entryCompatibility";
+import { useTranslation } from "react-i18next";
 
 /** Rows shown on the dashboard before the user searches or opens /examples. */
 const MAX_VISIBLE = 18;
@@ -231,6 +232,7 @@ const TemplateRow = memo(function TemplateRow({
   isLoading,
   onClick
 }: TemplateRowProps) {
+  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const category = getCategoryForWorkflow(workflow);
 
@@ -289,13 +291,10 @@ const TemplateRow = memo(function TemplateRow({
         <span className="tpl-desc">{workflow.description}</span>
         <span className="tpl-compat">
           <CompatibilityDetails compatibility={compatibility} />
-<<<<<<< HEAD
           {workflow.graph.nodes.length > 0 && (
+<span>{t("editor:ui.durationUnknownExecutionTimeIsNotDeclared", { defaultValue: "Duration: unknown — execution time is not declared" })}</span>
             <span>{formatTemplateCost(costEstimate)}</span>
-          )}
-=======
-          <span>{i18n.t("editor:ui.durationUnknownExecutionTimeIsNotDeclared", { defaultValue: "Duration: unknown — execution time is not declared" })}</span>
-          <span>{formatTemplateCost(costEstimate)}</span>
+          )}          <span>{formatTemplateCost(costEstimate)}</span>
 >>>>>>> 4c4afdc4f1 (i18n(d4): timeline/editor expression wiring + frozen-table consumers (checkpoint 2/3))
         </span>
         {category && (
@@ -309,7 +308,7 @@ const TemplateRow = memo(function TemplateRow({
         <span className="tpl-cat">
           <span className="cat-dot" style={{ background: category.color }} />
           {category.labelKey
-            ? i18n.t(category.labelKey, { defaultValue: category.label })
+            ? t(category.labelKey, { defaultValue: category.label })
             : category.label}
         </span>
       )}
@@ -328,6 +327,7 @@ interface DashboardTemplatesProps {
 const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
   fullPage = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const metadata = useMetadataStore((state) => state.metadata);
@@ -382,10 +382,10 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
 
   const visible = fullPage ? filtered : filtered.slice(0, MAX_VISIBLE);
   const countLabel = fullPage
-    ? i18n.t("editor:ui.nExamples", { n: filtered.length })
+    ? t("editor:ui.nExamples", { n: filtered.length })
     : visible.length === filtered.length
       ? `${filtered.length}`
-      : i18n.t("editor:ui.nOfMExamples", { shown: visible.length, total: filtered.length });
+      : t("editor:ui.nOfMExamples", { shown: visible.length, total: filtered.length });
 
   return (
     <section
@@ -393,14 +393,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
       css={fullPage ? [styles(theme), fullPageStyles] : styles(theme)}
     >
       <div css={sectionWrap}>
-        <SectionHeader title={i18n.t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
+        <SectionHeader title={t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
           <DashboardSearchBox
             ref={searchRef}
             value={query}
             onChange={setQuery}
-            placeholder={i18n.t("editor:ui.searchTemplatesByNameTag", { defaultValue: "Search templates by name, tag…" })}
+            placeholder={t("editor:ui.searchTemplatesByNameTag", { defaultValue: "Search templates by name, tag…" })}
             kbd="/"
-            aria-label={i18n.t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
+            aria-label={t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
           />
           {!fullPage && (
             <SectionLink onClick={handleViewAllTemplates}>
@@ -409,14 +409,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           )}
         </SectionHeader>
 
-        <div className="cats" role="group" aria-label={i18n.t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
+        <div className="cats" role="group" aria-label={t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
           <button
             type="button"
             className={`cat${category === "all" ? " on" : ""}`}
             aria-pressed={category === "all"}
             onClick={() => setCategory("all")}
           >
-            {i18n.t("editor:ui.catAll")}
+            {t("editor:ui.catAll")}
           </button>
           {TOP_CATEGORIES.map((cat) => {
             const active = category === cat.id;
@@ -439,7 +439,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               >
                 <span className="cat-dot" style={{ background: cat.color }} />
                 {cat.labelKey
-                  ? i18n.t(cat.labelKey, { defaultValue: cat.label })
+                  ? t(cat.labelKey, { defaultValue: cat.label })
                   : cat.label}
               </button>
             );
@@ -448,14 +448,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
 
         {isLoading ? (
           <div className="tpl-loading">
-            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTemplates")} />
+            <LoadingSpinner size="medium" text={t("editor:ui.loadingTemplates")} />
           </div>
         ) : isError ? (
           <div className="tpl-empty">
             <EmptyState
               variant="error"
-              title={i18n.t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
-              description={i18n.t("editor:ui.tryAgainInAMoment")}
+              title={t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
+              description={t("editor:ui.tryAgainInAMoment")}
               actionText="Retry"
               onAction={() => refetch()}
             />
@@ -465,23 +465,23 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
             {query.trim() ? (
               <EmptyState
                 variant="no-results"
-                title={i18n.t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
-                description={i18n.t("editor:ui.tryADifferentSearchTerm")}
-                actionText={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
+                title={t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
+                description={t("editor:ui.tryADifferentSearchTerm")}
+                actionText={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onAction={() => setQuery("")}
               />
             ) : category !== "all" ? (
               <EmptyState
                 variant="no-results"
-                title={i18n.t("editor:ui.noTemplatesInThisCategory", { defaultValue: "No templates in this category" })}
-                actionText={i18n.t("editor:ui.showAllTemplates", { defaultValue: "Show all templates" })}
+                title={t("editor:ui.noTemplatesInThisCategory", { defaultValue: "No templates in this category" })}
+                actionText={t("editor:ui.showAllTemplates", { defaultValue: "Show all templates" })}
                 onAction={() => setCategory("all")}
               />
             ) : (
               <EmptyState
                 variant="no-data"
-                title={i18n.t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
-                description={i18n.t("editor:ui.templatesWillAppearHereWhenAvailable")}
+                title={t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
+                description={t("editor:ui.templatesWillAppearHereWhenAvailable")}
               />
             )}
           </div>

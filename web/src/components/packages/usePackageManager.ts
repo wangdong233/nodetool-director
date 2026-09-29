@@ -18,7 +18,7 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export type PMTab = "software" | "packs";
 
@@ -160,6 +160,7 @@ export function usePackageManager(params: {
   q: string;
   filter: string;
 }): PackageManagerModel {
+  const { t } = useTranslation();
   const { tab, cat, q, filter } = params;
 
   const {
@@ -334,18 +335,18 @@ export function usePackageManager(params: {
           { id: "all", label: "All runtimes", count: statuses.length },
           {
             id: "language",
-            label: i18n.t("editor:ui.languages", { defaultValue: "Languages" }),
+            label: t("editor:ui.languages", { defaultValue: "Languages" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "language")
               .length
           },
           {
             id: "media",
-            label: i18n.t("editor:ui.mediaDocs", { defaultValue: "Media & docs" }),
+            label: t("editor:ui.mediaDocs", { defaultValue: "Media & docs" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "media").length
           },
           {
             id: "ai",
-            label: i18n.t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" }),
+            label: t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "ai").length
           }
         ]
@@ -354,7 +355,7 @@ export function usePackageManager(params: {
           { id: "python", label: "Registry", count: pythonPacks.length },
           {
             id: "thirdparty",
-            label: i18n.t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
+            label: t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
             count: thirdPartyPacks.length
           }
         ];
@@ -410,7 +411,7 @@ export function usePackageManager(params: {
         : inCat;
       const filtered = applyChips(searched, [
         { id: "all", label: "All", pred: () => true },
-        { id: "installed", label: i18n.t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
+        { id: "installed", label: t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
         { id: "available", label: "Not installed", pred: (p) => !p.installed }
       ]);
       rows = filtered.map((rt) => {
@@ -471,12 +472,12 @@ export function usePackageManager(params: {
         { id: "all", label: "All", pred: () => true },
         {
           id: "installed",
-          label: i18n.t("editor:ui.installed", { defaultValue: "Installed" }),
+          label: t("editor:ui.installed", { defaultValue: "Installed" }),
           pred: (p) => !!p.installed && !p.installed.hasUpdate
         },
         {
           id: "updates",
-          label: i18n.t("settings:general.secUpdates", { defaultValue: "Updates" }),
+          label: t("settings:general.secUpdates", { defaultValue: "Updates" }),
           pred: (p) => !!p.installed?.hasUpdate
         },
         { id: "available", label: "Available", pred: (p) => !p.installed }
@@ -513,9 +514,9 @@ export function usePackageManager(params: {
 
     const notice =
       isSoftware && !rtAvailable
-        ? i18n.t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
+        ? t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
         : cat === "python" && !pyAvailable
-          ? i18n.t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
+          ? t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
           : null;
 
     const consoleModel = isSoftware
@@ -550,7 +551,7 @@ export function usePackageManager(params: {
       isThirdParty,
       categories,
       title: TITLE_KEYS[cat]
-        ? i18n.t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
+        ? t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
         : (TITLES[cat] ?? "Packages"),
       subtitle: isSoftware ? SUBTITLES.software : (SUBTITLES[cat] ?? ""),
       count: baseCount,
@@ -594,6 +595,6 @@ export function usePackageManager(params: {
     pyUninstall,
     selectInstallLocation,
     rtClear,
-    pyClear
+    pyClear, t
   ]);
 }

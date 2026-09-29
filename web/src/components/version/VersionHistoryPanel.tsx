@@ -31,7 +31,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface VersionHistoryPanelProps {
   workflowId: string;
@@ -86,6 +86,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   onRestore,
   onClose
 }) => {
+  const { t } = useTranslation();
   const selectedVersionId = useVersionHistoryStore((state) => state.selectedVersionId);
   const compareVersionId = useVersionHistoryStore((state) => state.compareVersionId);
   const isCompareMode = useVersionHistoryStore((state) => state.isCompareMode);
@@ -249,7 +250,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}
       >
         <FlexColumn align="center" justify="center" fullHeight>
-          <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingVersions", { defaultValue: "Loading versions" })} />
+          <LoadingSpinner size="medium" text={t("editor:ui.loadingVersions", { defaultValue: "Loading versions" })} />
         </FlexColumn>
       </div>
     );
@@ -265,13 +266,13 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}
       >
         <PanelToolbar
-          title={i18n.t("editor:ui.versionHistory", { defaultValue: "Version History" })}
+          title={t("editor:ui.versionHistory", { defaultValue: "Version History" })}
           actions={
-            <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
+            <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
           }
         />
         <FlexColumn padding={3} gap={0.5}>
-          <Text color="error">{i18n.t("ui2:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}</Text>
+          <Text color="error">{t("ui2:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}</Text>
           <Text size="smaller" color="secondary">{String(error)}</Text>
         </FlexColumn>
       </FlexColumn>
@@ -290,7 +291,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
       }}
     >
       <PanelToolbar
-        title={i18n.t("editor:bottom.versions", { defaultValue: "Versions" })}
+        title={t("editor:bottom.versions", { defaultValue: "Versions" })}
         count={versions.length}
         actions={
           <>
@@ -304,7 +305,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 Clear
               </EditorButton>
             )}
-            <Tooltip title={i18n.t("editor:ui.compareTwoVersionsSideBySide", { defaultValue: "Compare two versions side by side" })}>
+            <Tooltip title={t("editor:ui.compareTwoVersionsSideBySide", { defaultValue: "Compare two versions side by side" })}>
               <EditorButton
                 density="compact"
                 variant={isCompareMode ? "contained" : "text"}
@@ -321,7 +322,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 Compare
               </EditorButton>
             </Tooltip>
-            <CloseButton onClick={onClose} buttonSize="small" tooltip={i18n.t("sketch:attrs.close", { defaultValue: "Close" })} />
+            <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
           </>
         }
       >
@@ -330,11 +331,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
           exclusive
           onChange={handleFilterChange}
           compact
-          aria-label={i18n.t("editor:ui.versionFilter", { defaultValue: "version filter" })}
+          aria-label={t("editor:ui.versionFilter", { defaultValue: "version filter" })}
         >
-          <ToggleOption value="all" aria-label="all">{i18n.t("common:sizeFilters.all", { defaultValue: "All" })}</ToggleOption>
-          <ToggleOption value="manual" aria-label="manual">{i18n.t("timeline:history.manual", { defaultValue: "Manual" })}</ToggleOption>
-          <ToggleOption value="autosave" aria-label="autosave">{i18n.t("timeline:history.auto", { defaultValue: "Auto" })}</ToggleOption>
+          <ToggleOption value="all" aria-label="all">{t("common:sizeFilters.all", { defaultValue: "All" })}</ToggleOption>
+          <ToggleOption value="manual" aria-label="manual">{t("timeline:history.manual", { defaultValue: "Manual" })}</ToggleOption>
+          <ToggleOption value="autosave" aria-label="autosave">{t("timeline:history.auto", { defaultValue: "Auto" })}</ToggleOption>
         </ToggleGroup>
       </PanelToolbar>
 
@@ -345,8 +346,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}>
           <Caption size="smaller" color="primary">
             {!selectedVersionId
-              ? i18n.t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" })
-              : i18n.t("editor:ui.selectTheSecondVersionToCompare", { defaultValue: "Select the second version to compare" })}
+              ? t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" })
+              : t("editor:ui.selectTheSecondVersionToCompare", { defaultValue: "Select the second version to compare" })}
           </Caption>
         </div>
       )}
@@ -371,7 +372,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         >
           {versions.length === 0 ? (
             <div style={{ padding: getSpacingPx(SPACING.xl), textAlign: "center" }}>
-              <Text color="secondary">{i18n.t("ui2:attrs.noVersionsSavedYet", { defaultValue: "No versions saved yet" })}</Text>
+              <Text color="secondary">{t("ui2:attrs.noVersionsSavedYet", { defaultValue: "No versions saved yet" })}</Text>
               <Caption size="smaller" color="muted">
                 Save your workflow to create a version
               </Caption>
@@ -521,8 +522,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               </Text>
               <Caption size="smaller" color="muted">
                 {isCompareMode
-                  ? i18n.t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." })
-                  : i18n.t("editor:ui.clickAnyEntryToSeeItsGraphAndMetadataHere", { defaultValue: "Click any entry to see its graph and metadata here." })}
+                  ? t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." })
+                  : t("editor:ui.clickAnyEntryToSeeItsGraphAndMetadataHere", { defaultValue: "Click any entry to see its graph and metadata here." })}
               </Caption>
             </FlexColumn>
           )}
@@ -532,13 +533,13 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
-        title={i18n.t("editor:ui.deleteThisVersion", { defaultValue: "Delete this version?" })}
+        title={t("editor:ui.deleteThisVersion", { defaultValue: "Delete this version?" })}
         onConfirm={handleConfirmDelete}
         onCancel={handleCloseDeleteDialog}
-        confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
         destructive
       >
-        <Text color="secondary">{i18n.t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
+        <Text color="secondary">{t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
       </Dialog>
     </div>
   );

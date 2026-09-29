@@ -24,7 +24,7 @@ import {
 } from "./projectStatus";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const MEDIA_HEIGHT = 176;
 
@@ -40,6 +40,7 @@ interface ProjectCardProps {
  * board that has stills — what it looks like.
  */
 const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
+  const { t } = useTranslation();
   const [dropActive, setDropActive] = useState(false);
   const { project, documents, spend } = detail;
   const stills = documents.flatMap((doc) => doc.thumbnails).slice(0, 3);
@@ -101,7 +102,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
         ))}
         {stills.length === 0 && (
           <FlexRow align="center" justify="center" fullHeight>
-            <Caption color="muted">{i18n.t("ui2:attrs.noStillsYet", { defaultValue: "No stills yet" })}</Caption>
+            <Caption color="muted">{t("ui2:attrs.noStillsYet", { defaultValue: "No stills yet" })}</Caption>
           </FlexRow>
         )}
         {progress && (

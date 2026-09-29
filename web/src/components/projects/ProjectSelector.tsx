@@ -28,7 +28,7 @@ import {
 } from "../../hooks/useProjects";
 import { useAuth } from "../../stores/useAuth";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const selectorStyles = (theme: Theme, inline: boolean) =>
   css({
@@ -93,6 +93,7 @@ interface ProjectSelectorProps {
 }
 
 const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
+  const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -227,7 +228,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
       >
         {!inline && (
           <MenuItemPrimitive
-            label={i18n.t("editor:ui.newProject", { defaultValue: "New project" })}
+            label={t("editor:ui.newProject", { defaultValue: "New project" })}
             icon={<AddRoundedIcon />}
             onClick={openNewProject}
             color="primary"
@@ -238,13 +239,13 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
-          ariaLabel={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          ariaLabel={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
           fullWidth
           sx={{ my: SPACING.xs }}
         />
         <MenuItemPrimitive
-          label={i18n.t("editor:ui.personal", { defaultValue: "Personal" })}
+          label={t("editor:ui.personal", { defaultValue: "Personal" })}
           className="project-menu-item"
           dense
           selected={
@@ -276,7 +277,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
           <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>
-            {needle ? i18n.t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : i18n.t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
+            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
           </Caption>
         )}
       </ContextMenu>

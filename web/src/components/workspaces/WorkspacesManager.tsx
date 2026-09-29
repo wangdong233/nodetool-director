@@ -33,7 +33,7 @@ import {
   ListItem,
   ListItemSecondaryAction
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -103,6 +103,7 @@ function nameFromPath(path: string): string {
 }
 
 const WorkspacesManager: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -135,7 +136,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: i18n.t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
+        content: t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
         dismissable: true
       });
     },
@@ -175,7 +176,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: i18n.t("editor:studio.workspaceRemoved", { defaultValue: "Workspace removed" }),
+        content: t("editor:studio.workspaceRemoved", { defaultValue: "Workspace removed" }),
         dismissable: true
       });
     },
@@ -232,10 +233,10 @@ const WorkspacesManager: React.FC = () => {
           ) : error ? (
             <Box className="empty-state">
               <Text color="error" sx={{ mb: 1 }}>
-                {i18n.t("editor:ui.unableToLoadWorkspaces")}
+                {t("editor:ui.unableToLoadWorkspaces")}
               </Text>
               <Text size="small" color="secondary" sx={{ mb: 2 }}>
-                {i18n.t("editor:ui.checkYourConnectionAndTryAgain")}
+                {t("editor:ui.checkYourConnectionAndTryAgain")}
               </Text>
               <EditorButton variant="outlined" onClick={handleRetry}>
                 Retry
@@ -254,7 +255,7 @@ const WorkspacesManager: React.FC = () => {
                       {!workspace.is_accessible && (
                         <Chip
                           size="small"
-                          label={i18n.t("editor:ui.inaccessible", { defaultValue: "Inaccessible" })}
+                          label={t("editor:ui.inaccessible", { defaultValue: "Inaccessible" })}
                           color="error"
                           variant="outlined"
                         />
@@ -272,8 +273,8 @@ const WorkspacesManager: React.FC = () => {
                       }
                       tooltip={
                         workspace.is_default
-                          ? i18n.t("editor:ui.defaultWorkspace2")
-                          : i18n.t("editor:ui.setAsDefault2")
+                          ? t("editor:ui.defaultWorkspace2")
+                          : t("editor:ui.setAsDefault2")
                       }
                       onClick={() => handleToggleDefault(workspace)}
                       sx={{
@@ -288,7 +289,7 @@ const WorkspacesManager: React.FC = () => {
                     {!workspace.is_default && (
                       <ToolbarIconButton
                         icon={<DeleteIcon fontSize="small" />}
-                        tooltip={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
+                        tooltip={t("editor:ui.remove", { defaultValue: "Remove" })}
                         onClick={() => handleDeleteWorkspace(workspace.id)}
                       />
                     )}
@@ -299,11 +300,11 @@ const WorkspacesManager: React.FC = () => {
           ) : (
             <Box className="empty-state">
               <FolderIcon sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} />
-              <Text>{i18n.t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}</Text>
+              <Text>{t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}</Text>
               <Text size="small">
                 {canManage
-                  ? i18n.t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders")
-                  : i18n.t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })}
+                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders")
+                  : t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })}
               </Text>
             </Box>
           )}
@@ -316,7 +317,7 @@ const WorkspacesManager: React.FC = () => {
                 fullWidth
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? i18n.t("editor:ui.adding") : i18n.t("editor:ui.addWorkspace2")}
+                {createMutation.isPending ? t("editor:ui.adding") : t("editor:ui.addWorkspace2")}
               </EditorButton>
             </div>
           )}
@@ -329,15 +330,15 @@ const WorkspacesManager: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title={i18n.t("editor:ui.removeThisWorkspace", { defaultValue: "Remove this workspace?" })}
+        title={t("editor:ui.removeThisWorkspace", { defaultValue: "Remove this workspace?" })}
         content={
           <Text>
             The workspace will be removed from NodeTool. The folder itself will
             not be deleted.
           </Text>
         }
-        confirmText={i18n.t("common:action.remove", { defaultValue: "Remove" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.remove", { defaultValue: "Remove" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </>
   );

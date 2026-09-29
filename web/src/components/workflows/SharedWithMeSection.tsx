@@ -18,11 +18,12 @@ import {
 } from "../ui_primitives";
 import { useSharedWithMe } from "../../serverState/useWorkflowSharing";
 import { usePanelStore } from "../../stores/PanelStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ROLE_LABELS = { viewer: "view", editor: "edit" } as const;
 
 const SharedWithMeSection = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data } = useSharedWithMe();
   const onOpen = useCallback(
@@ -38,7 +39,7 @@ const SharedWithMeSection = () => {
 
   return (
     <FlexColumn gap={SPACING.xs} sx={{ px: 2, pb: 2 }}>
-      <SectionHeader title={i18n.t("editor:ui.sharedWithMe", { defaultValue: "Shared with me" })} />
+      <SectionHeader title={t("editor:ui.sharedWithMe", { defaultValue: "Shared with me" })} />
       {workflows.map((workflow) => (
         <FlexRow
           key={workflow.id}

@@ -31,7 +31,7 @@ import { useFolderPicker } from "./useFolderPicker";
 import FolderIcon from "@mui/icons-material/Folder";
 import AddIcon from "@mui/icons-material/Add";
 import StarIcon from "@mui/icons-material/Star";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -143,6 +143,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
     disabled = false,
     compact = false
   }) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const cssStyles = useMemo(() => styles(theme), [theme]);
     const writeWorkspaceToCache = useWorkspaceCacheWriter(projectId);
@@ -171,7 +172,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
         addNotification({
           type: "success",
           alert: true,
-          content: i18n.t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
+          content: t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
           dismissable: true
         });
       },
@@ -217,10 +218,10 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
       return (
         <Box css={cssStyles}>
           <Text size="small" color="error" sx={{ mb: 1 }}>
-            {i18n.t("editor:ui.unableToLoadWorkspaces")}
+            {t("editor:ui.unableToLoadWorkspaces")}
           </Text>
           <Caption color="secondary">
-            {i18n.t("editor:ui.checkYourConnectionOrTryAgainLater")}
+            {t("editor:ui.checkYourConnectionOrTryAgainLater")}
           </Caption>
         </Box>
       );
@@ -258,7 +259,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
         <FormControl fullWidth={fullWidth} css={cssStyles}>
           <Select
             className={`workspace-select${compact ? " compact" : ""}`}
-            aria-label={i18n.t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}
+            aria-label={t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}
             value={value || ""}
             onChange={handleChange}
             disabled={disabled || createMutation.isPending}
@@ -360,7 +361,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
             </Box>
             <Divider sx={{ mb: 0.5 }} />
             <MenuItem value="">
-              <span className="none-option">{i18n.t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" })}</span>
+              <span className="none-option">{t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" })}</span>
             </MenuItem>
             {workspaces.map((workspace) => (
               <MenuItem key={workspace.id} value={workspace.id}>
@@ -380,7 +381,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
               <MenuItem value={CREATE_NEW_VALUE}>
                 <span className="create-option">
                   <AddIcon fontSize="small" />
-                  {i18n.t("editor:ui.createNewWorkspace")}
+                  {t("editor:ui.createNewWorkspace")}
                 </span>
               </MenuItem>
             )}

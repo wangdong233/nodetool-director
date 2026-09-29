@@ -12,7 +12,7 @@ import StarIcon from "@mui/icons-material/Star";
 import { TOOLTIP_ENTER_DELAY, TOOLTIP_ENTER_NEXT_DELAY } from "../../config/constants";
 import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, BORDER_RADIUS, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx } from "../ui_primitives";
 import { WorkflowTriggerIndicator } from "./WorkflowTriggerIndicator";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Single-click on the row opens the workflow. Double-clicking the name renames
 // it inline instead, so the open is deferred briefly to let a following
@@ -48,6 +48,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
   onRename,
   onOpenAsApp
 }: WorkflowListItemProps) => {
+  const { t } = useTranslation();
   const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
   const setActions = useWorkflowActionsStore((state) => state.setActions);
   const clearActions = useWorkflowActionsStore((state) => state.clearActions);
@@ -260,7 +261,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
           editing={isEditing}
           onEditingChange={setIsEditing}
           onCommit={handleRename}
-          ariaLabel={i18n.t("editor:ui.workflowName", { defaultValue: "Workflow name" })}
+          ariaLabel={t("editor:ui.workflowName", { defaultValue: "Workflow name" })}
           sx={inputSx}
         >
           <Text
@@ -269,7 +270,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
             weight={600}
             sx={{ lineHeight: 1.35 }}
             onDoubleClick={handleNameDoubleClick}
-            title={i18n.t("editor:ui.doubleclickToRename", { defaultValue: "Double-click to rename" })}
+            title={t("editor:ui.doubleclickToRename", { defaultValue: "Double-click to rename" })}
           >
             {workflow.name}
           </Text>

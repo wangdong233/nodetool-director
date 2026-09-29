@@ -29,6 +29,7 @@ import {
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
   viewer: "Can view",
@@ -53,6 +54,7 @@ const ShareWorkflowDialog = ({
   workflowId,
   workflowName
 }: ShareWorkflowDialogProps) => {
+  const { t } = useTranslation();
   const { query, createLink, revokeLink, setRole, removeCollaborator } =
     useWorkflowSharing(open ? workflowId : null);
   const addNotification = useNotificationStore(
@@ -120,14 +122,14 @@ const ShareWorkflowDialog = ({
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("viewer")}
           >
-            {i18n.t("editor:ui.copyViewLink")}
+            {t("editor:ui.copyViewLink")}
           </EditorButton>
           <EditorButton
             variant="outlined"
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("editor")}
           >
-            {i18n.t("editor:ui.copyEditLink")}
+            {t("editor:ui.copyEditLink")}
           </EditorButton>
         </FlexRow>
 
@@ -135,7 +137,7 @@ const ShareWorkflowDialog = ({
 
         {activeShares.length > 0 && (
           <FlexColumn gap={SPACING.xs}>
-            <Text size="small">{i18n.t("ui2:attrs.activeLinks", { defaultValue: "Active links" })}</Text>
+            <Text size="small">{t("ui2:attrs.activeLinks", { defaultValue: "Active links" })}</Text>
             {activeShares.map((share) => (
               <FlexRow
                 key={share.id}
@@ -147,7 +149,7 @@ const ShareWorkflowDialog = ({
                   <Chip label={ROLE_LABELS[share.role]} size="small" />
                   <CopyButton
                     value={shareUrlForToken(share.token)}
-                    tooltip={i18n.t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
+                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
                   />
                 </FlexRow>
                 <EditorButton
@@ -164,12 +166,12 @@ const ShareWorkflowDialog = ({
 
         <Divider />
 
-        <Text size="small">{i18n.t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })}</Text>
+        <Text size="small">{t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })}</Text>
         {collaborators.length === 0 && !query.isLoading && (
           <EmptyState
             variant="empty"
-            title={i18n.t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
-            description={i18n.t("editor:ui.copyALinkAboveAndSendItToSomeone")}
+            title={t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
+            description={t("editor:ui.copyALinkAboveAndSendItToSomeone")}
           />
         )}
         {collaborators.map((collaborator) => (
@@ -190,7 +192,7 @@ const ShareWorkflowDialog = ({
                 label=""
                 size="small"
                 value={collaborator.role}
-                options={ROLE_OPTIONS.map((o) => ({ ...o, label: i18n.t(o.labelKey, { defaultValue: o.label }) }))}
+                options={ROLE_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
                 disabled={setRole.isPending}
                 onChange={(value) =>
                   setRole.mutate({
@@ -200,7 +202,7 @@ const ShareWorkflowDialog = ({
                 }
               />
               <DeleteButton
-                tooltip={i18n.t("editor:ui.removeAccess", { defaultValue: "Remove access" })}
+                tooltip={t("editor:ui.removeAccess", { defaultValue: "Remove access" })}
                 disabled={removeCollaborator.isPending}
                 onClick={() => removeCollaborator.mutate(collaborator.user_id)}
               />

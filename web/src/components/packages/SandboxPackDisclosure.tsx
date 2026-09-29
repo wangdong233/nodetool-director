@@ -20,7 +20,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { trpc } from "../../lib/trpc";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** What installing and importing a sandbox pack means, in the design's words. */
 export const SANDBOX_PACK_CONSENT_TEXT =
@@ -34,6 +34,7 @@ interface SandboxModuleEntry {
 }
 
 const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
+  const { t } = useTranslation();
   const [showDocs, setShowDocs] = useState(false);
 
   const modulesQuery = useQuery({
@@ -84,12 +85,12 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
           density="compact"
           onClick={() => setShowDocs((current) => !current)}
         >
-          {showDocs ? i18n.t("editor:ui.hideDocumentation", { defaultValue: "Hide documentation" }) : i18n.t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
+          {showDocs ? t("editor:ui.hideDocumentation", { defaultValue: "Hide documentation" }) : t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
         </EditorButton>
       </FlexRow>
       {showDocs && docsQuery.data === null && (
         <Text size="small" color="secondary">
-          {i18n.t("editor:ui.thisPackagePublishesNoDocumentation")}
+          {t("editor:ui.thisPackagePublishesNoDocumentation")}
         </Text>
       )}
       {showDocs && docsQuery.data && (

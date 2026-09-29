@@ -9,7 +9,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import WorkspaceSelect from "../workspaces/WorkspaceSelect";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const RUN_MODE_OPTIONS = [
   { value: "workflow", label: "Workflow" },
@@ -110,6 +110,7 @@ interface WorkflowFormProps {
 }
 
 const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormProps) => {
+  const { t } = useTranslation();
   const [localWorkflow, setLocalWorkflow] = useState<Workflow>(workflow);
   const saveWorkflow = useWorkflowManager((state) => state.saveWorkflow);
   const getNodeStore = useWorkflowManager((state) => state.getNodeStore);
@@ -233,7 +234,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
   return (
     <div css={styles(theme)} className="workflow-form">
       <FormSection className="settings-section">
-        <FormField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}>
+        <FormField label={t("editor:asset.info.name", { defaultValue: "Name" })}>
           <TextInput
             name="name"
             spellCheck={false}
@@ -244,7 +245,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
           />
         </FormField>
 
-        <FormField label={i18n.t("editor:ui.description", { defaultValue: "Description" })}>
+        <FormField label={t("editor:ui.description", { defaultValue: "Description" })}>
           <TextInput
             name="description"
             value={localWorkflow.description}
@@ -258,26 +259,26 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         </FormField>
 
         <AutocompleteTagInput
-          label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
+          label={t("editor:ui.tags", { defaultValue: "Tags" })}
           value={localWorkflow.tags || []}
           onChange={(tags) => {
             const uniqueTags = Array.from(new Set(tags.map(t => t.trim().toLowerCase()).filter(t => t.length > 0)));
             applyChange({ tags: uniqueTags }, true);
           }}
           suggestions={tagOptions}
-          placeholder={i18n.t("editor:ui.typeOrSelectTags", { defaultValue: "Type or select tags..." })}
-          description={i18n.t("editor:ui.selectFromSuggestionsOrTypeCustomTagsPressEnterToAdd")}
+          placeholder={t("editor:ui.typeOrSelectTags", { defaultValue: "Type or select tags..." })}
+          description={t("editor:ui.selectFromSuggestionsOrTypeCustomTagsPressEnterToAdd")}
         />
       </FormSection>
 
-      <FormSection label={i18n.t("editor:ui.execution", { defaultValue: "Execution" })} className="settings-section">
+      <FormSection label={t("editor:ui.execution", { defaultValue: "Execution" })} className="settings-section">
         <Caption sx={{ display: "block" }}>
-          {i18n.t("editor:ui.configureHowThisWorkflowRunsAndCanBeTriggered")}
+          {t("editor:ui.configureHowThisWorkflowRunsAndCanBeTriggered")}
         </Caption>
 
-        <FormField label={i18n.t("editor:ui.runMode", { defaultValue: "Run Mode" })}>
+        <FormField label={t("editor:ui.runMode", { defaultValue: "Run Mode" })}>
           <SelectField
-            label={i18n.t("editor:ui.runMode", { defaultValue: "Run Mode" })}
+            label={t("editor:ui.runMode", { defaultValue: "Run Mode" })}
             value={localWorkflow.run_mode || "workflow"}
             onChange={(value) => applyChange({ run_mode: value }, true)}
             options={RUN_MODE_OPTIONS}
@@ -285,7 +286,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         </FormField>
       </FormSection>
 
-      <FormSection label={i18n.t("editor:ui.advanced", { defaultValue: "Advanced" })} className="settings-section">
+      <FormSection label={t("editor:ui.advanced", { defaultValue: "Advanced" })} className="settings-section">
         <Caption sx={{ display: "block" }}>
           Advanced configuration for workspaces and API/tool usage
         </Caption>
@@ -293,12 +294,12 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         <WorkspaceSelect
           value={localWorkflow.workspace_id ?? undefined}
           onChange={handleWorkspaceChange}
-          helperText={i18n.t("editor:ui.associateWorkspaceFolder", { defaultValue: "Associate a workspace folder with this workflow for agent access" })}
+          helperText={t("editor:ui.associateWorkspaceFolder", { defaultValue: "Associate a workspace folder with this workflow for agent access" })}
         />
 
         <FormField
-          label={i18n.t("editor:ui.toolName", { defaultValue: "Tool Name" })}
-          helperText={i18n.t("editor:ui.identifierForApiToolUsage", { defaultValue: "Identifier for API/tool usage. Letters, numbers, underscores only." })}
+          label={t("editor:ui.toolName", { defaultValue: "Tool Name" })}
+          helperText={t("editor:ui.identifierForApiToolUsage", { defaultValue: "Identifier for API/tool usage. Letters, numbers, underscores only." })}
         >
           <TextInput
             name="tool_name"

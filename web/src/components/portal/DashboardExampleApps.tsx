@@ -27,6 +27,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSectionWrap, SectionHeader } from "./dashboardChrome";
+import { useTranslation } from "react-i18next";
 
 /** Query key for the shipped example apps, shared with any invalidation. */
 export const EXAMPLE_APPS_QUERY_KEY = ["applications", "examples"] as const;
@@ -159,6 +160,7 @@ const ExampleAppCard = memo(function ExampleAppCard({
   installing,
   onInstall
 }: ExampleAppCardProps) {
+  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const src = thumbSrc(app.thumbnailUrl);
   const workflows = app.workflows.length;
@@ -166,7 +168,7 @@ const ExampleAppCard = memo(function ExampleAppCard({
     <button
       type="button"
       className={installing ? "app-card installing" : "app-card"}
-      title={i18n.t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: app.name })}
+      title={t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: app.name })}
       aria-busy={installing}
       onClick={() => onInstall(app)}
     >
@@ -209,6 +211,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   compact = false,
   onBrowseAll
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const queryClient = useQueryClient();
@@ -243,14 +246,14 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       addNotification({
         type: "success",
         alert: true,
-        content: i18n.t("home:apps.added", { defaultValue: "Added \"{{name}}\" to your apps", name: created.name })
+        content: t("home:apps.added", { defaultValue: "Added \"{{name}}\" to your apps", name: created.name })
       });
     },
     onError: (error: unknown, app) => {
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
+        content: t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
       });
     }
   });
@@ -265,7 +268,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
 
   const apps = data ?? [];
   const installingSlug = install.isPending ? install.variables?.slug : null;
-  const countLabel = i18n.t(
+  const countLabel = t(
     apps.length === 1 ? "home:apps.countOne" : "home:apps.countMany",
     { defaultValue: `${apps.length} app${apps.length === 1 ? "" : "s"}`, count: String(apps.length) }
   );
@@ -274,27 +277,27 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   return (
     <section css={styles(theme, compact)} aria-labelledby="dashboard-example-apps-title">
       <div css={compact ? css({ maxWidth: "none", padding: 0 }) : sectionWrap}>
-        <SectionHeader title={i18n.t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
+        <SectionHeader title={t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
           {compact && onBrowseAll && apps.length > visibleApps.length && (
             <EditorButton variant="text" density="compact" onClick={onBrowseAll}>
-              {i18n.t("home:apps.seeAll", { defaultValue: "See all apps" })}
+              {t("home:apps.seeAll", { defaultValue: "See all apps" })}
             </EditorButton>
           )}
         </SectionHeader>
         <p className="apps-lede">
-          {i18n.t("home:apps.lede", { defaultValue: "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them." })}
+          {t("home:apps.lede", { defaultValue: "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them." })}
         </p>
         {isLoading ? (
           <div className="apps-loading">
-            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingApps")} />
+            <LoadingSpinner size="medium" text={t("editor:ui.loadingApps")} />
           </div>
         ) : isError ? (
           <div className="apps-empty">
             <EmptyState
               variant="error"
-              title={i18n.t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
-              description={i18n.t("editor:ui.tryAgainInAMoment")}
-              actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
+              title={t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
+              description={t("editor:ui.tryAgainInAMoment")}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>
@@ -302,8 +305,8 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="no-data"
-              title={i18n.t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
-              description={i18n.t("editor:ui.exampleAppsWillAppearHereWhenTheServerShipsThem")}
+              title={t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
+              description={t("editor:ui.exampleAppsWillAppearHereWhenTheServerShipsThem")}
             />
           </div>
         ) : (

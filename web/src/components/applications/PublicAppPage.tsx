@@ -31,7 +31,7 @@ import {
 } from "../ui_primitives";
 import { parseApplicationDocument, type AppDocument } from "../appbuilder/appData";
 import AppRuntimeView from "../appbuilder/AppRuntimeView";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   createPublicAppSession,
   fetchPublicApplication
@@ -71,7 +71,9 @@ const pinnedWorkflow = (
   updated_at: ""
 });
 
-const Unavailable: React.FC = () => (
+const Unavailable: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn
     align="center"
     justify="center"
@@ -80,14 +82,17 @@ const Unavailable: React.FC = () => (
   >
     <EmptyState
       variant="error"
-      title={i18n.t("editor:ui.thisAppIsNotAvailable", { defaultValue: "This app is not available" })}
-      description={i18n.t("editor:ui.theLinkMayHaveBeenWithdrawnOrTheAppMayNotBePublished")}
+      title={t("editor:ui.thisAppIsNotAvailable", { defaultValue: "This app is not available" })}
+      description={t("editor:ui.theLinkMayHaveBeenWithdrawnOrTheAppMayNotBePublished")}
     />
   </FlexColumn>
-);
+)
+  };
 
 /** The owner published while this page was open; a reload picks it up. */
-const Updated: React.FC = () => (
+const Updated: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn
     align="center"
     justify="center"
@@ -96,13 +101,15 @@ const Updated: React.FC = () => (
   >
     <EmptyState
       variant="empty"
-      title={i18n.t("editor:ui.thisAppHasBeenUpdated", { defaultValue: "This app has been updated" })}
-      description={i18n.t("editor:ui.reloadThePageToRunTheVersionTheOwnerJustPublished")}
+      title={t("editor:ui.thisAppHasBeenUpdated", { defaultValue: "This app has been updated" })}
+      description={t("editor:ui.reloadThePageToRunTheVersionTheOwnerJustPublished")}
     />
   </FlexColumn>
-);
+)
+  };
 
 const PublicAppPage: React.FC = () => {
+  const { t } = useTranslation();
   const { token = "" } = useParams<{ token?: string }>();
   const [sessionReady, setSessionReady] = useState(false);
 
@@ -201,7 +208,7 @@ const PublicAppPage: React.FC = () => {
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" sx={{ height: "100vh" }}>
-        <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />
+        <LoadingSpinner size="large" text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />
       </FlexColumn>
     );
   }
@@ -222,8 +229,8 @@ const PublicAppPage: React.FC = () => {
       >
         <EmptyState
           variant="empty"
-          title={i18n.t("editor:ui.nothingToShow", { defaultValue: "Nothing to show" })}
-          description={i18n.t("editor:ui.thisAppWasPublishedWithoutAnyWidgets")}
+          title={t("editor:ui.nothingToShow", { defaultValue: "Nothing to show" })}
+          description={t("editor:ui.thisAppWasPublishedWithoutAnyWidgets")}
         />
       </FlexColumn>
     );

@@ -28,7 +28,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import { GraphDiff, NodeChange, PropertyChange } from "../../utils/graphDiff";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface VersionDiffProps {
   diff: GraphDiff;
@@ -198,10 +198,11 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
   oldVersionNumber,
   newVersionNumber
 }) => {
+  const { t } = useTranslation();
   if (!diff.hasChanges) {
     return (
       <Surface sx={{ p: 2, textAlign: "center" }}>
-        <Text color="secondary">{i18n.t("ui2:attrs.noChangesDetected", { defaultValue: "No changes detected" })}</Text>
+        <Text color="secondary">{t("ui2:attrs.noChangesDetected", { defaultValue: "No changes detected" })}</Text>
       </Surface>
     );
   }
@@ -264,7 +265,7 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
           <Caption
             sx={{ display: "block", mb: 1, fontWeight: 500 }}
           >
-            {i18n.t("editor:ui.connectionChanges")}
+            {t("editor:ui.connectionChanges")}
           </Caption>
           <List dense disablePadding>
             {diff.addedEdges.map((edge) => (

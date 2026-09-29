@@ -11,7 +11,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ProjectDocument } from "./projectStatus";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface CopyProjectDocumentActionProps {
   readonly document: ProjectDocument;
@@ -22,6 +22,7 @@ const CopyProjectDocumentAction = ({
   document,
   sourceProjectId
 }: CopyProjectDocumentActionProps) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [destinationProjectId, setDestinationProjectId] = useState("");
   const { data: projects = [] } = trpc.projects.list.useQuery(
@@ -76,8 +77,8 @@ const CopyProjectDocumentAction = ({
         onClose={closeDialog}
         title={`Copy ${document.name}`}
         onConfirm={confirmCopy}
-        confirmText={i18n.t("common:action.copy", { defaultValue: "Copy" })}
-        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={t("common:action.copy", { defaultValue: "Copy" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         confirmDisabled={!destinationProjectId}
         isLoading={copy.isPending}
       >
@@ -87,7 +88,7 @@ const CopyProjectDocumentAction = ({
             the destination. The source remains unchanged.
           </Caption>
           <SelectField
-            label={i18n.t("editor:ui.destinationProject", { defaultValue: "Destination project" })}
+            label={t("editor:ui.destinationProject", { defaultValue: "Destination project" })}
             value={destinationProjectId}
             onChange={setDestinationProjectId}
             options={destinations.map((project) => ({

@@ -8,7 +8,8 @@ import {
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import { PROJECT_COLOR } from "./projectIdentity";
-import { i18n, useAppLanguage } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ProjectsIcon = ({ active }: { active: boolean }) => (
   <Box
@@ -43,9 +44,10 @@ const ProjectsRailButton = ({
   onSelect?: () => void;
   tooltipPlacement?: TooltipProps["placement"];
 }) => {
+  const { t } = useTranslation();
   // Subscribe so catalog reads re-render on language change.
   useAppLanguage();
-  const label = i18n.t("nav:tabs.projects", { defaultValue: "Projects" });
+  const label = t("nav:tabs.projects", { defaultValue: "Projects" });
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const onProjectSurface = useWorkspaceTabsStore((state) => {
     const active = state.tabs.find((tab) => tab.id === state.activeTabId);

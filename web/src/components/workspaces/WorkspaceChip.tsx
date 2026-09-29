@@ -29,7 +29,7 @@ import {
   useWorkspaceCacheWriter
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Derive a workspace name from an absolute folder path. */
 function nameFromPath(path: string): string {
@@ -96,6 +96,7 @@ interface WorkspaceChipProps {
 }
 
 const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const anchorRef = useRef<HTMLButtonElement>(null);
@@ -144,9 +145,9 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         ref={anchorRef}
         icon={<FolderIcon fontSize="small" />}
         label={
-          isMobile || compact ? undefined : selected?.name || i18n.t("editor:ui.workspace", { defaultValue: "Workspace" })
+          isMobile || compact ? undefined : selected?.name || t("editor:ui.workspace", { defaultValue: "Workspace" })
         }
-        title={selected?.path ?? i18n.t("editor:ui.selectAWorkspaceFolder", { defaultValue: "Select a workspace folder" })}
+        title={selected?.path ?? t("editor:ui.selectAWorkspaceFolder", { defaultValue: "Select a workspace folder" })}
         active={open}
         showChevron={false}
         truncate
@@ -165,7 +166,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
           boxShadow: `0 12px 40px ${theme.vars.palette.c_scrim}`
         }}
       >
-        <div css={cssStyles} role="menu" aria-label={i18n.t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}>
+        <div css={cssStyles} role="menu" aria-label={t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}>
           <Caption className="workspace-menu-header" size="small">
             Workspace
           </Caption>

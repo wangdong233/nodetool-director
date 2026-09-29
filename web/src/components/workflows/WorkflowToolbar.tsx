@@ -14,7 +14,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useShowGraphPreview, useWorkflowListViewStore, useSortBy, useSelectedTags, SortBy } from "../../stores/WorkflowListViewStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface WorkflowToolbarProps {
   showCheckboxes: boolean;
@@ -165,6 +165,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
   onToggleFavorites,
   availableTags = []
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const showGraphPreview = useShowGraphPreview();
   const setShowGraphPreview = useWorkflowListViewStore((state) => state.actions.setShowGraphPreview);
@@ -230,7 +231,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
             <>
               <ToolbarIconButton
                 icon={<LocalOfferIcon />}
-                tooltip={i18n.t("editor:ui.filterByTags", { defaultValue: "Filter by tags" })}
+                tooltip={t("editor:ui.filterByTags", { defaultValue: "Filter by tags" })}
                 onClick={handleTagsMenuOpen}
                 active={selectedTags.length > 0}
                 className={`tool-button ${selectedTags.length > 0 ? "active" : ""}`}
@@ -287,7 +288,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
           {onToggleFavorites && (
             <ToolbarIconButton
               icon={showFavoritesOnly ? <StarIcon /> : <StarBorderIcon />}
-              tooltip={showFavoritesOnly ? i18n.t("editor:ui.showAllWorkflows", { defaultValue: "Show all workflows" }) : i18n.t("editor:ui.showFavoritesOnly", { defaultValue: "Show favorites only" })}
+              tooltip={showFavoritesOnly ? t("editor:ui.showAllWorkflows", { defaultValue: "Show all workflows" }) : t("editor:ui.showFavoritesOnly", { defaultValue: "Show favorites only" })}
               onClick={onToggleFavorites}
               tooltipPlacement="top"
               active={showFavoritesOnly}
@@ -357,7 +358,7 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
             {selectedTags.length > 1 && (
               <ToolbarIconButton
                 icon={<ClearIcon fontSize="small" />}
-                tooltip={i18n.t("editor:ui.clearAllTagFilters", { defaultValue: "Clear all tag filters" })}
+                tooltip={t("editor:ui.clearAllTagFilters", { defaultValue: "Clear all tag filters" })}
                 onClick={clearSelectedTags}
                 size="small"
                 className="clear-tags-button"

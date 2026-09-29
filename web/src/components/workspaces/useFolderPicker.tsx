@@ -2,6 +2,7 @@
 import { useCallback, useState } from "react";
 import FileBrowserDialog from "../dialogs/FileBrowserDialog";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const hasNativeDialog = (): boolean => {
   return typeof window !== "undefined" && window.api?.dialog !== undefined;
@@ -12,6 +13,7 @@ const hasNativeDialog = (): boolean => {
  * and resolves with the selected absolute path or `null` when cancelled.
  */
 export function useFolderPicker() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [resolver, setResolver] = useState<
     ((path: string | null) => void) | null
@@ -57,7 +59,7 @@ export function useFolderPicker() {
       open={isOpen}
       onClose={handleCancel}
       onConfirm={handleConfirm}
-      title={i18n.t("editor:ui.selectWorkspaceFolder", { defaultValue: "Select Workspace Folder" })}
+      title={t("editor:ui.selectWorkspaceFolder", { defaultValue: "Select Workspace Folder" })}
       initialPath="~"
       selectionMode="directory"
     />

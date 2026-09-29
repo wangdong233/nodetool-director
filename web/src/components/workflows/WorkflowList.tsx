@@ -27,7 +27,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { EmptyState, FlexColumn, FlexRow, LoadingSpinner } from "../ui_primitives";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -64,6 +64,7 @@ interface WorkflowListProps {
 }
 
 const WorkflowList = ({ projectId }: WorkflowListProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -359,7 +360,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder={i18n.t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
+          placeholder={t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
         />
         <FlexRow
           className="toolbar-header"
@@ -379,15 +380,15 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
         </FlexRow>
         {isLoading ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-            <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingWorkflows")} />
+            <LoadingSpinner size="large" text={t("editor:ui.loadingWorkflows")} />
           </FlexColumn>
         ) : isError ? (
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
               variant="error"
-              title={i18n.t("editor:ui.couldntLoadWorkflows", { defaultValue: "Couldn't load workflows" })}
-              description={i18n.t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
-              actionText={i18n.t("editor:explorer.retry", { defaultValue: "Retry" })}
+              title={t("editor:ui.couldntLoadWorkflows", { defaultValue: "Couldn't load workflows" })}
+              description={t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </FlexColumn>
@@ -395,26 +396,26 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             {showFavoritesOnly ? (
               <EmptyState
-                title={i18n.t("editor:ui.noFavoriteWorkflows", { defaultValue: "No favorite workflows" })}
-                description={i18n.t("editor:ui.clickTheStarIconOnAWorkflowToAddItToYourFavorites")}
+                title={t("editor:ui.noFavoriteWorkflows", { defaultValue: "No favorite workflows" })}
+                description={t("editor:ui.clickTheStarIconOnAWorkflowToAddItToYourFavorites")}
               />
             ) : data?.workflows && data.workflows.length > 0 ? (
               <EmptyState
-                title={i18n.t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
+                title={t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
                 description={
                   filterValue && selectedTags.length > 0
-                    ? i18n.t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." })
+                    ? t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." })
                     : filterValue
                       ? "Try a different search term."
                       : selectedTags.length > 0
-                        ? i18n.t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." })
-                        : i18n.t("editor:ui.noWorkflowsMatchTheCurrentFilters", { defaultValue: "No workflows match the current filters." })
+                        ? t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." })
+                        : t("editor:ui.noWorkflowsMatchTheCurrentFilters", { defaultValue: "No workflows match the current filters." })
                 }
               />
             ) : (
               <EmptyState
-                title={i18n.t("editor:ui.noWorkflowsYet", { defaultValue: "No workflows yet" })}
-                description={i18n.t("editor:ui.createYourFirstWorkflowWithThe+ButtonAbove")}
+                title={t("editor:ui.noWorkflowsYet", { defaultValue: "No workflows yet" })}
+                description={t("editor:ui.createYourFirstWorkflowWithThe+ButtonAbove")}
               />
             )}
           </FlexColumn>

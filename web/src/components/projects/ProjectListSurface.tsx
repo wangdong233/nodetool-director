@@ -36,7 +36,7 @@ import ProjectCard from "./ProjectCard";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
 import { PROJECT_COLOR } from "./projectIdentity";
 import type { ProjectDetail } from "./projectStatus";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -85,6 +85,7 @@ const parseDragPayload = (payload: string): LooseDocument | null => {
  * that belong to none. Dragging one of those onto a card moves it in.
  */
 const ProjectListSurface = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const summaries = useProjectSummaries();
@@ -157,7 +158,7 @@ const ProjectListSurface = () => {
         gap={SPACING.xl}
         sx={{ px: SPACING.xxl, pt: SPACING.xxl, pb: SPACING.md }}
       >
-        <Text size="big">{i18n.t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
+        <Text size="big">{t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
         <Caption color="secondary">
           One piece of work — the documents an agent built for it, what it
           cost, where it stands.
@@ -166,7 +167,7 @@ const ProjectListSurface = () => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder={i18n.t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
         />
         <EditorButton
           variant="contained"
@@ -181,7 +182,7 @@ const ProjectListSurface = () => {
         {summaries.isPending ? (
           <LoadingSpinner />
         ) : summaries.error ? (
-          <Caption color="error">{i18n.t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}</Caption>
+          <Caption color="error">{t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}</Caption>
         ) : (
           <Box
             sx={{
@@ -223,7 +224,7 @@ const ProjectListSurface = () => {
               <Box sx={{ color: PROJECT_COLOR, fontSize: "var(--fontSizeBig)" }}>
                 +
               </Box>
-              <Label>{i18n.t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
+              <Label>{t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
               <Caption color="muted">
                 Say what you want made, and an agent builds its documents
               </Caption>
@@ -244,7 +245,7 @@ const ProjectListSurface = () => {
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              {i18n.t("editor:ui.notInAProject")}
+              {t("editor:ui.notInAProject")}
             </Caption>
             {looseTotal > loose.length && (
               <Caption color="muted">
@@ -252,7 +253,7 @@ const ProjectListSurface = () => {
               </Caption>
             )}
             <Box sx={{ flex: 1 }} />
-            <Caption color="muted">{i18n.t("editor:ui.dragOntoAProjectCardToMoveItIn", { defaultValue: "Drag onto a project card to move it in" })}</Caption>
+            <Caption color="muted">{t("editor:ui.dragOntoAProjectCardToMoveItIn", { defaultValue: "Drag onto a project card to move it in" })}</Caption>
           </FlexRow>
           <FlexRow gap={SPACING.lg} wrap>
             {loose.map((document) => (
