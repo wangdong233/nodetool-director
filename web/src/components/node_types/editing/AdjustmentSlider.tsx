@@ -19,7 +19,7 @@ import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 
 import { NodeSlider, BORDER_RADIUS, FONT_WEIGHT, SPACING, Z_INDEX } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TRACK_HEIGHT = 4;
 const THUMB_SIZE = 12;
@@ -153,6 +153,7 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
   onCommit,
   labelClassName
 }) => {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (_: Event, v: number | number[]) => {
       const next = Array.isArray(v) ? v[0] : v;
@@ -167,7 +168,7 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
   // percentages line up with the thumb.
   // Module-scope tables stay English; resolve the label here at render.
   const label = spec.labelKey
-    ? i18n.t(spec.labelKey, { defaultValue: spec.label })
+    ? t(spec.labelKey, { defaultValue: spec.label })
     : spec.label;
 
   const centreFrac = clamp(fraction(spec, 0), 0, 1);

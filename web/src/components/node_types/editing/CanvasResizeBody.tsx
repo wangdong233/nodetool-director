@@ -31,7 +31,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput, useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { CANVAS_RESIZE_NODE_TYPE } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type CanvasMode = "fixed" | "scale" | "padding";
 type PaddingUnit = "px" | "percent";
@@ -182,6 +182,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const properties = nodeMetadata.properties ?? [];
@@ -288,9 +289,9 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
           compact
           size="small"
         >
-          <ToggleOption value="fixed">{i18n.t("ui2:attrs.fixed", { defaultValue: "Fixed" })}</ToggleOption>
-          <ToggleOption value="scale">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
-          <ToggleOption value="padding">{i18n.t("ui2:attrs.padding", { defaultValue: "Padding" })}</ToggleOption>
+          <ToggleOption value="fixed">{t("ui2:attrs.fixed", { defaultValue: "Fixed" })}</ToggleOption>
+          <ToggleOption value="scale">{t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
+          <ToggleOption value="padding">{t("ui2:attrs.padding", { defaultValue: "Padding" })}</ToggleOption>
         </ToggleGroup>
 
         {mode === "fixed" && (
@@ -300,7 +301,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 id={`canvas-width-${id}`}
                 nodeId={id}
                 name="width"
-                description={i18n.t("editor:ui.targetCanvasWidth")}
+                description={t("editor:ui.targetCanvasWidth")}
                 value={Number(props.width ?? 512)}
                 onChange={(_, v) => setNumberProp("width", Math.max(1, Math.round(v)))}
                 onChangeComplete={() => setPropertyComplete()}
@@ -315,7 +316,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 id={`canvas-height-${id}`}
                 nodeId={id}
                 name="height"
-                description={i18n.t("editor:ui.targetCanvasHeight")}
+                description={t("editor:ui.targetCanvasHeight")}
                 value={Number(props.height ?? 512)}
                 onChange={(_, v) => setNumberProp("height", Math.max(1, Math.round(v)))}
                 onChangeComplete={() => setPropertyComplete()}
@@ -340,7 +341,7 @@ const CanvasResizeBodyInner: React.FC<CanvasResizeBodyProps> = ({
                 setNumberProp("scale", Math.round(next * 100) / 100);
               }}
               onChangeCommitted={() => setPropertyComplete()}
-              aria-label={i18n.t("editor:ui.canvasScaleFactor", { defaultValue: "Canvas scale factor" })}
+              aria-label={t("editor:ui.canvasScaleFactor", { defaultValue: "Canvas scale factor" })}
             />
           </div>
         )}

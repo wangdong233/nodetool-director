@@ -31,7 +31,7 @@ import {
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { MASK_NODE_TYPE } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type MaskTab = "image1" | "image2" | "mask" | "result";
 
@@ -131,6 +131,7 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -183,7 +184,7 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
     <div css={cssStyles} className="mask-body" data-bespoke-body="Mask">
       <HandleColumn id={id} properties={imageHandles} />
       <div className="preview-area">
-        <ImagePreview value={tabValue} placeholder={i18n.t(TAB_PLACEHOLDER_KEYS[tab], { defaultValue: TAB_PLACEHOLDERS[tab] })} />
+        <ImagePreview value={tabValue} placeholder={t(TAB_PLACEHOLDER_KEYS[tab], { defaultValue: TAB_PLACEHOLDERS[tab] })} />
       </div>
 
       <FlexColumn className="controls" gap={0.5}>
@@ -195,18 +196,18 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label={i18n.t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
+            aria-label={t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
-            <ToggleOption value="image1" aria-label={i18n.t("editor:ui.image1", { defaultValue: "Image 1" })}>
-              {i18n.t("editor:ui.img1")}
+            <ToggleOption value="image1" aria-label={t("editor:ui.image1", { defaultValue: "Image 1" })}>
+              {t("editor:ui.img1")}
             </ToggleOption>
-            <ToggleOption value="image2" aria-label={i18n.t("editor:ui.image2", { defaultValue: "Image 2" })}>
-              {i18n.t("editor:ui.img2")}
+            <ToggleOption value="image2" aria-label={t("editor:ui.image2", { defaultValue: "Image 2" })}>
+              {t("editor:ui.img2")}
             </ToggleOption>
-            <ToggleOption value="mask" aria-label={i18n.t("editor:ui.mask", { defaultValue: "Mask" })}>
+            <ToggleOption value="mask" aria-label={t("editor:ui.mask", { defaultValue: "Mask" })}>
               Mask
             </ToggleOption>
-            <ToggleOption value="result" aria-label={i18n.t("editor:ui.result", { defaultValue: "Result" })}>
+            <ToggleOption value="result" aria-label={t("editor:ui.result", { defaultValue: "Result" })}>
               Result
             </ToggleOption>
           </ToggleGroup>

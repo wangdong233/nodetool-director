@@ -29,7 +29,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { CURVES_NODE_TYPE } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -158,6 +158,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -201,12 +202,12 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
 
       <div className="section">
         <FlexRow className="section-header" align="center" justify="space-between">
-          <span className="section-title">{i18n.t("ui2:attrs.tonal", { defaultValue: "Tonal" })}</span>
+          <span className="section-title">{t("ui2:attrs.tonal", { defaultValue: "Tonal" })}</span>
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip={i18n.t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
-            ariaLabel={i18n.t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
+            tooltip={t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
+            ariaLabel={t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
             onClick={handleReset}
           />
         </FlexRow>

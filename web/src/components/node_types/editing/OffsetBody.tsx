@@ -29,7 +29,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -144,6 +144,7 @@ const OffsetBodyInner: React.FC<OffsetBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -208,14 +209,14 @@ const OffsetBodyInner: React.FC<OffsetBodyProps> = ({
         })}
 
         <div className="wrap-row">
-          <span className="wrap-label">{i18n.t("ui2:attrs.wrap", { defaultValue: "Wrap" })}</span>
+          <span className="wrap-label">{t("ui2:attrs.wrap", { defaultValue: "Wrap" })}</span>
           <ToggleGroup
             quiet
             value={String(Math.round(wrapValue))}
             exclusive
             onChange={handleWrapChange}
             size="small"
-            aria-label={i18n.t("editor:ui.wrapMode", { defaultValue: "Wrap mode" })}
+            aria-label={t("editor:ui.wrapMode", { defaultValue: "Wrap mode" })}
           >
             {WRAP_LABELS.map((label, i) => (
               <ToggleOption key={i} value={String(i)} aria-label={label}>

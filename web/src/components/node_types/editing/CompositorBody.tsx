@@ -61,7 +61,7 @@ import { useNodeOutput, useUpstreamValues } from "../../../hooks/nodes/useNodeIO
 import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { COMPOSITOR_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isNumber, isObjectLike } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Canonical blend modes are owned by `@nodetool-ai/gpu`. */
 export type CompositorBlendMode = BlendMode;
@@ -173,6 +173,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const nodeStoreRef = useNodeStoreRef();
@@ -400,7 +401,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
       <HandleColumn id={id} properties={handleProperties} />
       <div className="preview-area">
         {previewSrc ? (
-          <img src={previewSrc} alt={i18n.t("editor:ui.compositedOutput")} />
+          <img src={previewSrc} alt={t("editor:ui.compositedOutput")} />
         ) : (
           <CheckerDropzone
             message="Add layers, then run"
@@ -411,7 +412,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
 
       <FlexColumn className="layers" gap={0.5}>
         {imageKeys.length === 0 ? (
-          <div className="empty-state">{i18n.t("editor:ui.noLayersYetAddOneBelow", { defaultValue: "No layers yet - add one below." })}</div>
+          <div className="empty-state">{t("editor:ui.noLayersYetAddOneBelow", { defaultValue: "No layers yet - add one below." })}</div>
         ) : (
           imageKeys.map((key, idx) => (
             <LayerRow
@@ -437,7 +438,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
         />
         <EditButton
           onClick={() => setEditorOpen(true)}
-          tooltip={i18n.t("editor:ui.openLayoutEditor", { defaultValue: "Open layout editor" })}
+          tooltip={t("editor:ui.openLayoutEditor", { defaultValue: "Open layout editor" })}
         />
       </FlexRow>
 

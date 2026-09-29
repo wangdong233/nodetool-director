@@ -22,7 +22,7 @@ import ImageIcon from "@mui/icons-material/Image";
 
 import { SelectField, StateIconButton, MOTION, reducedMotion, BORDER_RADIUS } from "../../ui_primitives";
 import NumberInput from "../../inputs/NumberInput";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 import {
   BLEND_MODES,
@@ -130,6 +130,7 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
   onToggleVisible,
   onDelete
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const thumbnail = useImageUrl(image);
@@ -171,7 +172,7 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
           id={`layer-opacity-${propertyKey}`}
           nodeId=""
           name="opacity"
-          description={i18n.t("editor:ui.layerOpacity01")}
+          description={t("editor:ui.layerOpacity01")}
           value={state.opacity}
           min={0}
           max={1}
@@ -202,16 +203,16 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
         className="vis-btn"
         icon={state.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
         onClick={handleToggleVisible}
-        ariaLabel={state.visible ? i18n.t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : i18n.t("editor:ui.showLayer", { defaultValue: "Show layer" })}
-        tooltip={state.visible ? i18n.t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : i18n.t("editor:ui.showLayer", { defaultValue: "Show layer" })}
+        ariaLabel={state.visible ? t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : t("editor:ui.showLayer", { defaultValue: "Show layer" })}
+        tooltip={state.visible ? t("editor:ui.hideLayer", { defaultValue: "Hide layer" }) : t("editor:ui.showLayer", { defaultValue: "Show layer" })}
       />
 
       <StateIconButton
         className="del-btn"
         icon={<DeleteOutlineIcon fontSize="small" />}
         onClick={handleDelete}
-        ariaLabel={i18n.t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
-        tooltip={i18n.t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
+        ariaLabel={t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
+        tooltip={t("editor:ui.deleteLayer", { defaultValue: "Delete layer" })}
       />
     </div>
   );

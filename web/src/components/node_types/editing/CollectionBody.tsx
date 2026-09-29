@@ -50,7 +50,7 @@ import {
 } from "../../../utils/collectionItems";
 import { COLLECTION_NODE_TYPE } from "../../../constants/nodeTypes";
 import type { BespokeBodyProps } from "./bespokeRegistry";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export { COLLECTION_NODE_TYPE };
 
@@ -199,6 +199,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const bodyStyles = useMemo(() => styles(theme), [theme]);
   const isRunning = status === "running";
@@ -324,8 +325,8 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
         <span className="spacer" />
         {items.length > 0 ? (
           <ToolbarIconButton
-            ariaLabel={i18n.t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
-            tooltip={i18n.t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
+            ariaLabel={t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
+            tooltip={t("editor:ui.clearCollection", { defaultValue: "Clear collection" })}
             onClick={clear}
           >
             <ClearAllRoundedIcon fontSize="inherit" />
@@ -343,7 +344,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
       >
         {items.length === 0 ? (
           <div className="col-empty">
-            <span>{i18n.t("ui2:attrs.dropAssetsHere", { defaultValue: "Drop assets here" })}</span>
+            <span>{t("ui2:attrs.dropAssetsHere", { defaultValue: "Drop assets here" })}</span>
             <span>from the asset panel, files, or generation history</span>
           </div>
         ) : (
@@ -357,7 +358,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
               <span className="col-remove">
                 <ToolbarIconButton
                   ariaLabel={`Remove item ${i + 1}`}
-                  tooltip={i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
+                  tooltip={t("editor:ui.remove", { defaultValue: "Remove" })}
                   onClick={() => removeAt(i)}
                 >
                   <CloseRoundedIcon fontSize="inherit" />

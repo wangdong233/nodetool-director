@@ -24,7 +24,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -128,6 +128,7 @@ const OutlineBodyInner: React.FC<OutlineBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -174,7 +175,7 @@ const OutlineBodyInner: React.FC<OutlineBodyProps> = ({
       </div>
 
       <div className="color-row">
-        <span className="color-row-label">{i18n.t("timeline:attrs.color", { defaultValue: "Color" })}</span>
+        <span className="color-row-label">{t("timeline:attrs.color", { defaultValue: "Color" })}</span>
         <ColorPicker
           color={colorHex}
           onColorChange={handleColorChange}

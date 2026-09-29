@@ -26,7 +26,7 @@ import React, {
   useRef,
   useState
 } from "react";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -222,6 +222,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const bodyStyles = useMemo(() => styles(theme), [theme]);
   const isRunning = status === "running";
@@ -285,7 +286,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
 
       {items.length === 0 ? (
         <div className="list-empty">
-          {isRunning ? i18n.t("editor:nodeBody.generatingItems", { defaultValue: "Generating items…" }) : i18n.t("editor:nodeBody.runList", { defaultValue: "Run to generate a list" })}
+          {isRunning ? t("editor:nodeBody.generatingItems", { defaultValue: "Generating items…" }) : t("editor:nodeBody.runList", { defaultValue: "Run to generate a list" })}
         </div>
       ) : (
         <div ref={scrollRef} className="list-scroll nowheel">
@@ -316,7 +317,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
                   >
                     <CopyButton
                       value={item}
-                      tooltip={i18n.t("editor:ui.copyItem", { defaultValue: "Copy item" })}
+                      tooltip={t("editor:ui.copyItem", { defaultValue: "Copy item" })}
                       buttonSize="small"
                     />
                   </span>

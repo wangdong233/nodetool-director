@@ -10,7 +10,7 @@ import type { Entity } from "@nodetool-ai/protocol";
 import { MentionAssetTile } from "./MentionAssetTile";
 import { MentionEntityTile } from "./MentionEntityTile";
 import type { MentionTab } from "./useAssetMentionSearch";
-import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const assetMentionMenuStyles = (theme: Theme) =>
   css({
@@ -195,17 +195,18 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
   onLoadMore,
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const menuStyles = useMemo(() => assetMentionMenuStyles(theme), [theme]);
   const entityCount = entities.length;
   const emptyMessage =
     activeTab === "recent"
       ? queryString
-        ? i18n.t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." })
-        : i18n.t("editor:ui.noAssetsUsedYetGenerateOrDragOneIn", { defaultValue: "No assets used yet. Generate or drag one in." })
+        ? t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." })
+        : t("editor:ui.noAssetsUsedYetGenerateOrDragOneIn", { defaultValue: "No assets used yet. Generate or drag one in." })
       : queryString
-        ? i18n.t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." })
-        : i18n.t("editor:ui.noSavedAssetsYet", { defaultValue: "No saved assets yet." });
+        ? t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." })
+        : t("editor:ui.noSavedAssetsYet", { defaultValue: "No saved assets yet." });
 
   const handleGridScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!hasMore || !onLoadMore) {
@@ -223,8 +224,8 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
       className={`asset-mention-menu nowheel${className ? ` ${className}` : ""}`}
     >
       {entityCount > 0 && (
-        <div className="mention-entities" role="listbox" aria-label={i18n.t("editor:ui.entities", { defaultValue: "Entities" })}>
-          <span className="mention-entities-label">{i18n.t("nav:rail.entities", { defaultValue: "Entities" })}</span>
+        <div className="mention-entities" role="listbox" aria-label={t("editor:ui.entities", { defaultValue: "Entities" })}>
+          <span className="mention-entities-label">{t("nav:rail.entities", { defaultValue: "Entities" })}</span>
           {entities.map((entity, index) => (
             <EntityRow
               key={entity.id}

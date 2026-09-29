@@ -30,7 +30,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 import { BORDER_RADIUS, MOTION, reducedMotion, SPACING, getSpacingPx } from "../../../ui_primitives";
 import type { Asset } from "../../../../stores/ApiTypes";
-import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const TILE_WIDTH = 112;
 const THUMB_HEIGHT = 96;
@@ -232,6 +232,7 @@ export const MentionAssetTile: React.FC<MentionAssetTileProps> = React.memo(({
   onMouseEnter,
   onRename
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const tileStyles = useMemo(() => styles(theme), [theme]);
   const kind = mediaKindOf(asset);
@@ -324,7 +325,7 @@ export const MentionAssetTile: React.FC<MentionAssetTileProps> = React.memo(({
             ref={inputRef}
             className={`name-input${error ? " error" : ""}`}
             value={draft}
-            aria-label={i18n.t("editor:ui.assetName", { defaultValue: "Asset name" })}
+            aria-label={t("editor:ui.assetName", { defaultValue: "Asset name" })}
             aria-invalid={error}
             onChange={(e) => {
               setDraft(e.target.value);

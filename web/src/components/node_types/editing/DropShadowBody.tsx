@@ -25,7 +25,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -131,6 +131,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -178,7 +179,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
       </div>
 
       <FlexRow className="color-row" align="center" justify="space-between">
-        <span className="color-label">{i18n.t("ui2:attrs.shadowColor", { defaultValue: "Shadow Color" })}</span>
+        <span className="color-label">{t("ui2:attrs.shadowColor", { defaultValue: "Shadow Color" })}</span>
         <ColorPicker
           color={shadowColor}
           onColorChange={handleColorChange}

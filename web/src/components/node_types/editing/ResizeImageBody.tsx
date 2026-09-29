@@ -32,7 +32,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { RESIZE_IMAGE_NODE_TYPE } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type ResizeImageMode = "scale" | "dimensions" | "fit";
 
@@ -188,6 +188,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -306,17 +307,17 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
           value={mode}
           exclusive
           onChange={handleModeChange}
-          aria-label={i18n.t("editor:ui.resizeMode", { defaultValue: "Resize mode" })}
+          aria-label={t("editor:ui.resizeMode", { defaultValue: "Resize mode" })}
         >
-          <ToggleOption value="scale">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
-          <ToggleOption value="dimensions">{i18n.t("ui2:attrs.dimensions", { defaultValue: "Dimensions" })}</ToggleOption>
-          <ToggleOption value="fit">{i18n.t("ui2:attrs.fit", { defaultValue: "Fit" })}</ToggleOption>
+          <ToggleOption value="scale">{t("timeline:attrs.scale", { defaultValue: "Scale" })}</ToggleOption>
+          <ToggleOption value="dimensions">{t("ui2:attrs.dimensions", { defaultValue: "Dimensions" })}</ToggleOption>
+          <ToggleOption value="fit">{t("ui2:attrs.fit", { defaultValue: "Fit" })}</ToggleOption>
         </ToggleGroup>
       </div>
 
       {mode === "scale" ? (
         <div className="scale-controls">
-          <span className="ctrl-label">{i18n.t("timeline:attrs.scale", { defaultValue: "Scale" })}</span>
+          <span className="ctrl-label">{t("timeline:attrs.scale", { defaultValue: "Scale" })}</span>
           <NodeSlider
             min={SCALE_MIN}
             max={SCALE_MAX}
@@ -324,7 +325,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
             value={scale}
             onChange={handleScaleChange}
             onChangeCommitted={setPropertyComplete}
-            aria-label={i18n.t("editor:ui.scaleFactor", { defaultValue: "Scale factor" })}
+            aria-label={t("editor:ui.scaleFactor", { defaultValue: "Scale factor" })}
           />
           <span className="ctrl-value">{scale.toFixed(2)}×</span>
         </div>
@@ -337,7 +338,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                   id={`resize-image-width-${id}`}
                   nodeId={id}
                   name="width"
-                  description={widthProperty.description ?? i18n.t("editor:ui.targetWidth", { defaultValue: "Target width" })}
+                  description={widthProperty.description ?? t("editor:ui.targetWidth", { defaultValue: "Target width" })}
                   value={widthValue}
                   min={mode === "dimensions" ? 0 : (widthProperty.min ?? 1)}
                   max={widthProperty.max ?? 8192}
@@ -356,8 +357,8 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                 isActive={chainLocked}
                 icon={<LinkOffIcon fontSize="small" />}
                 activeIcon={<LinkIcon fontSize="small" />}
-                tooltip={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
-                ariaLabel={chainLocked ? i18n.t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
+                tooltip={chainLocked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
+                ariaLabel={chainLocked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
                 onClick={() => setChainLocked((v) => !v)}
               />
             )}
@@ -367,7 +368,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
                   id={`resize-image-height-${id}`}
                   nodeId={id}
                   name="height"
-                  description={heightProperty.description ?? i18n.t("editor:ui.targetHeight", { defaultValue: "Target height" })}
+                  description={heightProperty.description ?? t("editor:ui.targetHeight", { defaultValue: "Target height" })}
                   value={heightValue}
                   min={mode === "dimensions" ? 0 : (heightProperty.min ?? 1)}
                   max={heightProperty.max ?? 8192}
@@ -384,7 +385,7 @@ const ResizeImageBodyInner: React.FC<ResizeImageBodyProps> = ({
 
           {mode === "fit" && (
             <div className="presets-row">
-              <span className="presets-label">{i18n.t("editor:ui.presets", { defaultValue: "Presets" })}</span>
+              <span className="presets-label">{t("editor:ui.presets", { defaultValue: "Presets" })}</span>
               {PRESETS.map((size) => {
                 const active = widthValue === size && heightValue === size;
                 return (

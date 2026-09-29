@@ -93,6 +93,7 @@ import {
 } from "../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -472,6 +473,7 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
   value,
   nodeId
 }) => {
+  const { t } = useTranslation();
   const src = useMediaSrc(value, "video");
   // Inside NodeHistoryViewer the unified overlay already owns download — only
   // add our actions on the direct (non-gallery) path, where the video isn't
@@ -525,18 +527,18 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
       {!suppressed && (
         <div className="video-preview-actions">
           <ToolbarIconButton
-            title={i18n.t("editor:ui.download", { defaultValue: "Download" })}
+            title={t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
-            aria-label={i18n.t("editor:ui.downloadVideo", { defaultValue: "Download video" })}
+            aria-label={t("editor:ui.downloadVideo", { defaultValue: "Download video" })}
           >
             <DownloadIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title={i18n.t("editor:ui.saveToAssets", { defaultValue: "Save to Assets" })}
+            title={t("editor:ui.saveToAssets", { defaultValue: "Save to Assets" })}
             size="small"
             onClick={handleAddToAssets}
-            aria-label={i18n.t("editor:ui.saveVideoToAssets", { defaultValue: "Save video to assets" })}
+            aria-label={t("editor:ui.saveVideoToAssets", { defaultValue: "Save video to assets" })}
           >
             <AddIcon />
           </ToolbarIconButton>
@@ -575,13 +577,14 @@ const AudioPreview: React.FC<{ value: unknown }> = ({ value }) => {
 };
 
 const TextPreview: React.FC<{ value: unknown }> = ({ value }) => {
+  const { t } = useTranslation();
   // Same TextRenderer PreviewNode uses. `.text-preview` CSS pins
   // fontSizeSmaller so the card matches the output node preview.
   const text = extractTextValue(value);
   return (
     <div
       className="text-preview nodrag nopan nowheel"
-      aria-label={i18n.t("editor:ui.generatedText", { defaultValue: "Generated text" })}
+      aria-label={t("editor:ui.generatedText", { defaultValue: "Generated text" })}
     >
       <TextRenderer text={text} showActions={false} />
     </div>
@@ -613,23 +616,24 @@ const PreviewArea: React.FC<{
   value: unknown;
   nodeId: string;
 }> = ({ variant, value, nodeId }) => {
+  const { t } = useTranslation();
   // Empty state — variant-specific empty surface.
   if (value === undefined || value === null) {
     if (variant === "image_mask") {
       return (
         <div className="mask-empty">
           <LayersIcon className="mask-icon" />
-          <span>{i18n.t("editor:nodeBody.noMask", { defaultValue: "No mask yet" })}</span>
+          <span>{t("editor:nodeBody.noMask", { defaultValue: "No mask yet" })}</span>
         </div>
       );
     }
     const empty = {
-      image: { message: i18n.t("editor:nodeBody.runImage", { defaultValue: "Run to generate" }), icon: <ImageIcon /> },
-      video: { message: i18n.t("editor:nodeBody.runVideo", { defaultValue: "Run to generate video" }), icon: <MovieIcon /> },
-      text: { message: i18n.t("editor:nodeBody.runText", { defaultValue: "Run to generate text" }), icon: <TextFieldsIcon /> },
-      audio: { message: i18n.t("editor:nodeBody.runAudio", { defaultValue: "Run to generate audio" }), icon: <AudiotrackIcon /> },
-      model_3d: { message: i18n.t("editor:nodeBody.run3d", { defaultValue: "Run to generate 3D" }), icon: <ViewInArIcon /> },
-      generic: { message: i18n.t("editor:nodeBody.runModel", { defaultValue: "Run Model" }), icon: undefined }
+      image: { message: t("editor:nodeBody.runImage", { defaultValue: "Run to generate" }), icon: <ImageIcon /> },
+      video: { message: t("editor:nodeBody.runVideo", { defaultValue: "Run to generate video" }), icon: <MovieIcon /> },
+      text: { message: t("editor:nodeBody.runText", { defaultValue: "Run to generate text" }), icon: <TextFieldsIcon /> },
+      audio: { message: t("editor:nodeBody.runAudio", { defaultValue: "Run to generate audio" }), icon: <AudiotrackIcon /> },
+      model_3d: { message: t("editor:nodeBody.run3d", { defaultValue: "Run to generate 3D" }), icon: <ViewInArIcon /> },
+      generic: { message: t("editor:nodeBody.runModel", { defaultValue: "Run Model" }), icon: undefined }
     } satisfies Record<
       Exclude<ContentCardVariant, "image_mask">,
       { message: string; icon: React.ReactNode }

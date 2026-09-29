@@ -66,7 +66,7 @@ import { useVariablePassthroughOutputs } from "./promptComposer/useVariablePasst
 import { useGraphVariableNames } from "./useGraphVariables";
 import { PROMPT_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -178,6 +178,7 @@ const VariableInsertBar: React.FC<{
   showLabel: boolean;
   onAdd: () => void;
 }> = ({ variables, showLabel, onAdd }) => {
+  const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
   const insertVariable = useCallback(
     (name: string) => {
@@ -189,7 +190,7 @@ const VariableInsertBar: React.FC<{
   );
   return (
     <div className="variable-bar">
-      {showLabel && <span className="variable-bar-label">{i18n.t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>}
+      {showLabel && <span className="variable-bar-label">{t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>}
       {variables.map(({ name, source }) => (
         <button
           key={name}
@@ -236,6 +237,7 @@ const PromptComposerBodyInner: React.FC<PromptComposerBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -381,14 +383,14 @@ const PromptComposerBodyInner: React.FC<PromptComposerBodyProps> = ({
               contentEditable={
                 <ContentEditable
                   className="composer-input"
-                  aria-label={i18n.t("editor:ui.prompt", { defaultValue: "Prompt" })}
+                  aria-label={t("editor:ui.prompt", { defaultValue: "Prompt" })}
                   spellCheck={false}
                   onClick={(e) => e.stopPropagation()}
                 />
               }
               placeholder={
                 <div className="composer-placeholder">
-                  {i18n.t("editor:ui.writeAPrompt@ToMentionAnAsset")}
+                  {t("editor:ui.writeAPrompt@ToMentionAnAsset")}
                 </div>
               }
               ErrorBoundary={LexicalErrorBoundary}

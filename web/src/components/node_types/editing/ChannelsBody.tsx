@@ -29,7 +29,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { CHANNELS_NODE_TYPE } from "../../../constants/nodeTypes";
-import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 type Channel = "red" | "green" | "blue" | "alpha" | "luminance";
 
@@ -117,6 +117,7 @@ const ChannelsBodyInner: React.FC<ChannelsBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -169,7 +170,7 @@ const ChannelsBodyInner: React.FC<ChannelsBodyProps> = ({
             value={channel}
             exclusive
             onChange={handleChannelChange}
-            aria-label={i18n.t("editor:ui.channel", { defaultValue: "Channel" })}
+            aria-label={t("editor:ui.channel", { defaultValue: "Channel" })}
             fullWidth
             compact
           >
