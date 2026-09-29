@@ -23,7 +23,6 @@ import { compileRenderBatchRequestPlan } from "./renderBatchRequestPlan";
 import { priceRenderStep } from "./shotCostPricing";
 import { useBoardScriptLines } from "./useShotDuration";
 import { useBoardImageModel, useBoardVideoModel } from "./useShotCostEstimate";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** Which of the two render passes a batch is. */
@@ -63,7 +62,6 @@ export function useRenderBatchCostEstimate(
   modelForShot?: (shot: Shot) => ShotModelRef | null
 ): RenderBatchCostEstimate {
   const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const imageModel = useBoardImageModel(boardId);
   const videoModel = useBoardVideoModel(boardId);
   // Clip lengths come from the linked script's takes when there is one; the

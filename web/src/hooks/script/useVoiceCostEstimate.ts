@@ -23,7 +23,6 @@ import { useMemo } from "react";
 import { getModelUnitPrice } from "../../utils/modelUnitPricing";
 import { useScriptStore } from "../../stores/script/ScriptStore";
 import { voiceTargets } from "../../stores/script/scriptVoicing";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface VoiceCostEstimate {
@@ -64,7 +63,6 @@ interface VoiceGroup {
 export function useVoiceCostEstimate(scriptId: string): VoiceCostEstimate {
   const { t } = useTranslation();
   const script = useScriptStore((state) => state.scripts[scriptId]);
-  const { version: languageVersion } = useAppLanguage();
 
   return useMemo(() => {
     if (!script) {

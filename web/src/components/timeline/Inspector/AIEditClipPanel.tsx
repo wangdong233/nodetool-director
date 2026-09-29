@@ -35,7 +35,6 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { InspectorSectionTitle, InspectorSliderRow } from "./InspectorPrimitives";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface AIEditClipPanelProps {
@@ -223,7 +222,6 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     }
   }, [catalogModel, clip, eligibility.ok, instruction, selectedModel, startEdit]);
 
-  const { version: languageVersion } = useAppLanguage();
   const newTakeEligibility = useMemo(() => {
     if (!clip || clip.mediaType !== "video") {
       return { ok: false as const, reason: t("timeline:attrs.newTakeRequiresAVideoClip", { defaultValue: "New take requires a video clip." }) };
