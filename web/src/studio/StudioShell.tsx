@@ -23,21 +23,22 @@ import {
 import { useStudioCredits } from "./useStudioCredits";
 import { useStudioAssistantModel } from "./useStudioAssistantModel";
 import { StudioProvider } from "./StudioContext";
-import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 const CreditsChip = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { status, remaining, loading, unavailable } = useStudioCredits();
   const title = unavailable
-    ? i18n.t("editor:studio.creditLoadFailed", { defaultValue: "Couldn't load the credit balance. Click to retry from the account page." })
+    ? t("editor:studio.creditLoadFailed", { defaultValue: "Couldn't load the credit balance. Click to retry from the account page." })
     : status
-      ? i18n.t("editor:studio.creditTooltip", { defaultValue: "{{plan}} plan — {{spent}} of {{granted}} credits used. 1 credit = 1¢ of generation. Click to manage.", plan: status.plan.name, spent: String(status.spentCredits), granted: String(status.grantedCredits) })
-      : i18n.t("editor:studio.planCredits", { defaultValue: "Plan & credits" })
+      ? t("editor:studio.creditTooltip", { defaultValue: "{{plan}} plan — {{spent}} of {{granted}} credits used. 1 credit = 1¢ of generation. Click to manage.", plan: status.plan.name, spent: String(status.spentCredits), granted: String(status.grantedCredits) })
+      : t("editor:studio.planCredits", { defaultValue: "Plan & credits" })
   const label = loading
-    ? i18n.t("editor:studio.creditsLoading", { defaultValue: "credits…" })
+    ? t("editor:studio.creditsLoading", { defaultValue: "credits…" })
     : unavailable
-      ? i18n.t("editor:studio.creditsUnavailable", { defaultValue: "credits unavailable" })
-      : i18n.t("editor:studio.creditsRemaining", { defaultValue: "{{n}} credits", n: String(remaining) })
+      ? t("editor:studio.creditsUnavailable", { defaultValue: "credits unavailable" })
+      : t("editor:studio.creditsRemaining", { defaultValue: "{{n}} credits", n: String(remaining) })
   return (
     <Tooltip title={title}>
       <span>
@@ -72,6 +73,7 @@ const StudioShell = ({
   actions,
   children
 }: StudioShellProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   useStudioAssistantModel();
@@ -94,7 +96,7 @@ const StudioShell = ({
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => navigate("/studio")}
             >
-              {i18n.t("editor:studio.studioBack", { defaultValue: "Studio" })}
+              {t("editor:studio.studioBack", { defaultValue: "Studio" })}
             </EditorButton>
           )}
           {!showBack && (

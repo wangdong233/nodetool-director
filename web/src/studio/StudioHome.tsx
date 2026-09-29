@@ -48,6 +48,7 @@ import type {
 } from "./groupLinkedProjects";
 import { creationProjectId } from "../stores/WorkspaceTabsStore";
 import { i18n } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 const KIND_LABEL = {
   storyboard: "Storyboard",
@@ -141,6 +142,7 @@ const BlankStart = ({
 );
 
 const StudioHome = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const createStoryboard = useCreateStoryboard();
   const createScript = useCreateScript();
@@ -274,7 +276,7 @@ const StudioHome = () => {
       >
         <FlexColumn align="center" gap={SPACING.sm} sx={{ pt: SPACING.xl }}>
           <Text size="giant" weight={600}>
-            {i18n.t("editor:ui.makeAVideo")}
+            {t("editor:ui.makeAVideo")}
           </Text>
           <Text size="normal" color="secondary">
             Pick where to start. Each one takes a sentence and returns a
@@ -284,25 +286,25 @@ const StudioHome = () => {
 
         <FlexColumn gap={SPACING.md} sx={{ width: "100%", maxWidth: 720 }}>
           <OptionCardGrid
-            label={i18n.t("editor:ui.whatAreYouMaking", { defaultValue: "What are you making?" })}
+            label={t("editor:ui.whatAreYouMaking", { defaultValue: "What are you making?" })}
             options={STUDIO_ENTRY_CARDS}
             onSelect={handleEntryCard}
             minColumnWidth={200}
           />
           <FlexRow align="center" gap={SPACING.sm} wrap>
             <Text size="smaller" color="secondary" sx={{ flex: 1 }}>
-              {i18n.t("editor:studio.orStartBlank", { defaultValue: "or start blank:" })}
+              {t("editor:studio.orStartBlank", { defaultValue: "or start blank:" })}
             </Text>
             <BlankStart
               icon={<TheatersRoundedIcon />}
-              label={i18n.t("editor:ui.newStoryboard", { defaultValue: "New storyboard" })}
+              label={t("editor:ui.newStoryboard", { defaultValue: "New storyboard" })}
               busy={creating === "storyboard"}
               disabled={creating !== null}
               onStart={startStoryboard}
             />
             <BlankStart
               icon={<RecordVoiceOverRoundedIcon />}
-              label={i18n.t("editor:ui.newScript", { defaultValue: "New script" })}
+              label={t("editor:ui.newScript", { defaultValue: "New script" })}
               busy={creating === "script"}
               disabled={creating !== null}
               onStart={startScript}
