@@ -135,10 +135,14 @@ export const TYPE_COLOR = {
  * the user's data and renders verbatim. Standard terms (SVG) have no entry
  * and pass through untouched.
  */
+// `type` is deliberately `string`: callers pass narrower unions (tree leaves
+// carry DocumentTreeLeafType with 'entity', which WorkspaceTabType lacks) —
+// unknown keys simply miss the map and render verbatim.
 export const seededDocDisplayName = (
-  type: WorkspaceTabType,
+  type: string,
   name: string
 ): string => {
-  const seededDefault = DOC_TAB_DEFAULTS[type]?.[name];
+  const byType = DOC_TAB_DEFAULTS as Record<string, Record<string, string> | undefined>;
+  const seededDefault = byType[type]?.[name];
   return seededDefault ? i18n.t(seededDefault, { defaultValue: name }) : name;
 };
