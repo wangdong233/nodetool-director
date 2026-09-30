@@ -38,7 +38,8 @@ import {
   productionAuthoringBlocker,
   productionGenerationBlocker,
   productionReviewFingerprint,
-  REVIEW_REQUIRED
+  REVIEW_REQUIRED,
+  REVIEW_REQUIRED_KEY
 } from "./productionAuthoring";
 import { assetIdFromLocator } from "../../../utils/mediaRef";
 import { useTranslation } from "react-i18next";
@@ -225,7 +226,7 @@ export const useVideoSetupFlow = ({
     (beats ?? []).some((beat) => beat.production !== undefined);
   const productionBlocker =
     hasProductionContext && reviewedProduction !== reviewKey
-      ? REVIEW_REQUIRED
+      ? t(REVIEW_REQUIRED_KEY, { defaultValue: REVIEW_REQUIRED })
       : productionGenerationBlocker(
           beats ?? [],
           (creativeContext?.reference_bindings?.length ?? 0) > 0

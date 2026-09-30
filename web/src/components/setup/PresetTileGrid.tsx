@@ -344,7 +344,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
   selectedId,
   onSelect,
   onAddOwn,
-  addOwnLabel = "Add your own",
+  addOwnLabel,
   addOwnDisabled,
   addOwnDisabledReason,
   addOwnOptionId,
@@ -355,6 +355,8 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
 }) => {
   // The stills whose art did not load. They hold no picture, so they must not
   // keep the grid in picture shape on their own.
+  const { t } = useTranslation();
+  const resolvedAddOwnLabel = addOwnLabel ?? t("storyboard:attrs.addYourOwn", { defaultValue: "Add your own" });
   const [brokenIds, setBrokenIds] = useState<ReadonlySet<string>>(new Set());
   const handleSampleFailed = useCallback(
     (id: string) =>
@@ -388,7 +390,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
   if (addOwnOptionId !== undefined) {
     // Each field stays absent rather than present-and-undefined: `preset.audio
     // !== undefined` and its siblings decide what the tile draws.
-    addOption = { id: addOwnOptionId, title: addOwnLabel };
+    addOption = { id: addOwnOptionId, title: resolvedAddOwnLabel };
     if (addOwnDescription !== undefined) {
       addOption.description = addOwnDescription;
     }
@@ -487,7 +489,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
                 <AddIcon aria-hidden />
               </Box>
               <Text size="small" component="span">
-                {addOwnLabel}
+                {resolvedAddOwnLabel}
               </Text>
             </FlexColumn>
           ) : (
@@ -496,7 +498,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
             <FlexRow gap={GAP.tight} align="center">
               <AddIcon aria-hidden fontSize="small" />
               <Text size="small" component="span">
-                {addOwnLabel}
+                {resolvedAddOwnLabel}
               </Text>
             </FlexRow>
           )}

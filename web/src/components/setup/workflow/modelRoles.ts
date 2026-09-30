@@ -32,3 +32,11 @@ export const MODEL_ROLE_LABEL_KEYS: Readonly<Record<string, string>> = {
   video: "storyboard:attrs.videoModel",
   audio: "storyboard:attrs.voiceModel"
 };
+
+/** The bare role word as it reads inside a sentence, e.g. "No language provider". */
+export const MODEL_ROLE_WORD_KEYS: Readonly<Record<string, string>> = {
+  language: "storyboard:attrs.roleLanguage",
+  image: "storyboard:attrs.roleImage",
+  video: "storyboard:attrs.roleVideo",
+  audio: "storyboard:attrs.roleAudio"
+};

@@ -38,12 +38,12 @@ const COUNT_CARD_WIDTH = SPACING_PX.xxxl * 2;
 /** The counts as the radio group reads them: an id per option. */
 const COUNT_OPTIONS = VARIATION_COUNTS.map((count) => ({ id: String(count) }));
 
-const FIELD_LABELS: ReadonlyArray<[keyof SketchRefinedBrief, string]> = [
-  ["subject", "Subject"],
-  ["composition", "Composition"],
-  ["lighting", "Lighting"],
-  ["style_words", "Style words"],
-  ["negative", "Leave out"]
+const FIELD_LABELS: ReadonlyArray<[keyof SketchRefinedBrief, string, string]> = [
+  ["subject", "Subject", "storyboard:attrs.subject"],
+  ["composition", "Composition", "storyboard:attrs.composition"],
+  ["lighting", "Lighting", "storyboard:attrs.lighting"],
+  ["style_words", "Style words", "storyboard:attrs.styleWords"],
+  ["negative", "Leave out", "storyboard:attrs.leaveOut"]
 ];
 
 const EMPTY: SketchRefinedBrief = {
@@ -102,16 +102,16 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         id: "brief",
         header: t("editor:ui.yourBrief", { defaultValue: "Your brief" }),
         subheader: t("storyboard:attrs.editAnythingHereBeforeItIsRendered", { defaultValue: "Edit anything here before it is rendered." }),
-        rows: FIELD_LABELS.map(([field, label]) => ({
+        rows: FIELD_LABELS.map(([field, label, labelKey]) => ({
           id: field,
-          label,
+          label: t(labelKey, { defaultValue: label }),
           value: refined[field],
           multiline: true,
           onChange: (value: string) => setField(field, value)
         }))
       }
     ],
-    [refined, setField]
+    [refined, setField, t]
   );
 
   return (
@@ -119,7 +119,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <BriefModelSelect />
       <PlanReview
         sections={sections}
-        replanLabel="Re-refine"
+        replanLabel={t("storyboard:attrs.reRefine", { defaultValue: "Re-refine" })}
         onReplan={onReRefine}
         replanPending={refining}
       />

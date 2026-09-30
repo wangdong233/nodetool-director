@@ -80,7 +80,7 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
         setMakeMoreError(
           cause instanceof Error
             ? cause.message
-            : "Another batch could not be started."
+            : i18n.t("storyboard:attrs.anotherBatchCouldNotBeStarted", { defaultValue: "Another batch could not be started." })
         );
       })
       .finally(() => setMakingMore(false));
@@ -99,10 +99,10 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
       const assetId =
         useSketchSessionStore.getState().bindings[layerId]?.currentAssetId;
       if (!assetId) {
-        throw new Error("That variation has not rendered yet.");
+        throw new Error(i18n.t("storyboard:attrs.thatVariationHasNotRenderedYet", { defaultValue: "That variation has not rendered yet." }));
       }
       const setup = useSketchStore.getState().document.setup;
-      const name = (setup?.refined?.subject || setup?.brief || "Image").slice(
+      const name = (setup?.refined?.subject || setup?.brief || i18n.t("home:entry.image.title", { defaultValue: "Image" })).slice(
         0,
         60
       );
@@ -122,7 +122,7 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
     async (layerId: string, animate: boolean) => {
       const assetId =
         useSketchSessionStore.getState().bindings[layerId]?.currentAssetId;
-      if (!assetId) throw new Error("That variation has not rendered yet.");
+      if (!assetId) throw new Error(i18n.t("storyboard:attrs.thatVariationHasNotRenderedYet", { defaultValue: "That variation has not rendered yet." }));
       const projectId = creationProjectId();
       const image = {
         type: "image",

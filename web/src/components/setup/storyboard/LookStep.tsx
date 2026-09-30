@@ -51,7 +51,7 @@ import {
 } from "../../../serverState/useStylePresets";
 import { useGenerateShot } from "../../../hooks/storyboard/useGenerateShot";
 import { useRenderBatchCostEstimate } from "../../../hooks/storyboard/useRenderBatchCostEstimate";
-import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
+import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions";
 import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
@@ -253,11 +253,13 @@ export const LookStep: React.FC<LookStepProps> = ({
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
         title: preset.name,
-        description:
-          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
+        description: t(
+          STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "",
+          { defaultValue: STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim() }
+        ),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   const selectedId = useMemo(() => {

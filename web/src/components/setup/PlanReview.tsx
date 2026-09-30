@@ -30,6 +30,13 @@ import {
 } from "../ui_primitives";
 import type { SelectOption } from "../ui_primitives";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
+
+/** Section nouns a plan review names in its last-row tooltip, localized. */
+const NOUN_KEYS: Readonly<Record<string, string>> = {
+  item: "storyboard:attrs.item",
+  beat: "timeline:attrs.beat"
+};
 import {
   EDITABLE_FIELD,
   REVIEW_BLOCK,
@@ -377,7 +384,13 @@ const RemoveSectionControl: React.FC<{
   onRemove: (id: string) => void;
   register: (id: string) => (node: HTMLButtonElement | null) => void;
 }> = ({ section, last, noun, onRemove, register }) => {
-  const name = section.removeLabel ?? `Remove ${section.header}`;
+  const { t } = useTranslation();
+  const localizedNoun = NOUN_KEYS[noun]
+    ? t(NOUN_KEYS[noun], { defaultValue: noun }).toLowerCase()
+    : noun;
+  const name =
+    section.removeLabel ??
+    t("storyboard:attrs.removeHeader", { defaultValue: "Remove {{header}}", header: section.header });
   return (
     <ToolbarIconButton
       ref={register(section.id)}
@@ -385,7 +398,7 @@ const RemoveSectionControl: React.FC<{
       variant="error"
       aria-disabled={last || undefined}
       ariaLabel={name}
-      tooltip={last ? `A plan keeps at least one ${noun}.` : name}
+      tooltip={last ? t("storyboard:attrs.aPlanKeepsAtLeastOneNoun", { defaultValue: "A plan keeps at least one {{noun}}.", noun: localizedNoun }) : name}
       onClick={() => {
         if (!last) {
           onRemove(section.id);

@@ -11,6 +11,8 @@ import { i18n } from "../../../i18n";
 
 export const REVIEW_REQUIRED =
   "Production context changed. Return to the plan, review it, and continue to Look.";
+export const REVIEW_REQUIRED_KEY =
+  "storyboard:attrs.productionContextChangedReturnToThePlan";
 
 export function productionReviewFingerprint(context: unknown): string {
   return deterministicFingerprint(context);
@@ -175,8 +177,8 @@ export function productionFields({
       readOnly: !canBind,
       hint: speechHint,
       options: [
-        { value: "none", label: "None" },
-        { value: "off_camera", label: "Off-camera" },
+        { value: "none", label: i18n.t("storyboard:attrs.none", { defaultValue: "None" }) },
+        { value: "off_camera", label: i18n.t("storyboard:attrs.offCamera", { defaultValue: "Off-camera" }) },
         {
           value: "on_camera",
           label: i18n.t("timeline:attrs.onCameraUnavailableInGuidedFlow", { defaultValue: "On-camera (unavailable in guided flow)" }),
@@ -243,7 +245,7 @@ export function productionAuthoringBlocker(
     // Validate canonical data before a tolerant reader can normalize invalid counts.
     const parsed = productionRequirement.safeParse(item.production);
     if (!parsed.success) {
-      return "Complete production requirements: speech needs a binding and takes must be 1–3.";
+      return i18n.t("storyboard:attrs.completeProductionRequirementsSpeechNeedsABindingAndTakesMustBe13", { defaultValue: "Complete production requirements: speech needs a binding and takes must be 1–3." });
     }
     if (
       parsed.data.speech_binding?.text &&
@@ -256,7 +258,7 @@ export function productionAuthoringBlocker(
             ? item.dialogue
             : undefined;
       if (typeof text === "string" && !text.trim()) {
-        return "Add the local speech line, or choose Speech mode None. The last saved binding is retained.";
+        return i18n.t("storyboard:attrs.addTheLocalSpeechLineOrChooseSpeechModeNone", { defaultValue: "Add the local speech line, or choose Speech mode None. The last saved binding is retained." });
       }
     }
   }
@@ -286,10 +288,10 @@ export function productionGenerationBlocker(
     }
     const parsed = productionRequirement.safeParse(production);
     if (!parsed.success) {
-      return "Complete the production requirements: speech needs a line or audio binding, and takes must be 1–3.";
+      return i18n.t("storyboard:attrs.completeTheProductionRequirementsSpeechNeedsALineOrAudioBinding", { defaultValue: "Complete the production requirements: speech needs a line or audio binding, and takes must be 1–3." });
     }
     if (production.speech_mode === "on_camera") {
-      return "On-camera speech is unavailable in this guided flow. Choose Off-camera or None.";
+      return i18n.t("storyboard:attrs.onCameraSpeechIsUnavailableInThisGuidedFlow", { defaultValue: "On-camera speech is unavailable in this guided flow. Choose Off-camera or None." });
     }
   }
   return undefined;

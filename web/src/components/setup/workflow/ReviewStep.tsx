@@ -42,6 +42,7 @@ import type { AutocompleteOption } from "../../ui_primitives";
 import useMetadataStore from "../../../stores/MetadataStore";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import { PlanReview } from "../PlanReview";
+import { MODEL_ROLE_WORD_KEYS } from "./modelRoles";
 import {
   EDITABLE_FIELD,
   REVIEW_BLOCK,
@@ -215,7 +216,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.yourPlan", { defaultValue: "Your plan" })}</Text>
         <Text size="normal" color="secondary">
-          Review this plan, then choose models before building.
+          {t("storyboard:attrs.reviewThisPlanThenChooseModelsBeforeBuilding", { defaultValue: "Review this plan, then choose models before building." })}
         </Text>
       </FlexColumn>
 
@@ -235,7 +236,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
 
       {blocked.missingProviders.length > 0 ? (
         <Caption color="secondary" component="p">
-          {`No connected provider offers a ${blocked.missingProviders.join(" or a ")} model. Connect one below to continue.`}
+          {t("storyboard:attrs.noConnectedProviderOffersAModel", { defaultValue: "No connected provider offers a {{roles}} model. Connect one below to continue.", roles: blocked.missingProviders.map((role) => t(MODEL_ROLE_WORD_KEYS[role] ?? "", { defaultValue: role })).join(t("storyboard:attrs.orA", { defaultValue: " or a " })) })}
         </Caption>
       ) : null}
 
@@ -265,7 +266,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
 
       <FlexRow gap={GAP.normal}>
         <EditorButton variant="outlined" onClick={addStep}>
-          Add a step
+          {t("storyboard:attrs.addAStep", { defaultValue: "Add a step" })}
         </EditorButton>
       </FlexRow>
 
@@ -316,7 +317,7 @@ const StepRow: React.FC<StepRowProps> = ({
         </Text>
         <Box sx={{ ...EDITABLE_FIELD, flex: 1, minWidth: 0 }}>
           <TextInput
-            label={`Step ${index + 1} title`}
+            label={t("storyboard:attrs.stepCountTitle", { defaultValue: "Step {{count}} title", count: index + 1 })}
             hideLabel
             value={step.title}
             onChange={(event) =>
@@ -328,18 +329,18 @@ const StepRow: React.FC<StepRowProps> = ({
           <ToolbarIconButton
             size="small"
             icon={<ArrowUpwardIcon fontSize="inherit" />}
-            tooltip={index === 0 ? "" : "Move up"}
+            tooltip={index === 0 ? "" : t("storyboard:attrs.moveUp", { defaultValue: "Move up" })}
             onClick={() => onMove(index, -1)}
             disabled={index === 0}
-            aria-label={`Move step ${index + 1} up`}
+            aria-label={t("storyboard:attrs.moveStepCountUp", { defaultValue: "Move step {{count}} up", count: index + 1 })}
           />
           <ToolbarIconButton
             size="small"
             icon={<ArrowDownwardIcon fontSize="inherit" />}
-            tooltip={index === stepCount - 1 ? "" : "Move down"}
+            tooltip={index === stepCount - 1 ? "" : t("storyboard:attrs.moveDown", { defaultValue: "Move down" })}
             onClick={() => onMove(index, 1)}
             disabled={index === stepCount - 1}
-            aria-label={`Move step ${index + 1} down`}
+            aria-label={t("storyboard:attrs.moveStepCountDown", { defaultValue: "Move step {{count}} down", count: index + 1 })}
           />
           <ToolbarIconButton
             size="small"
@@ -347,14 +348,14 @@ const StepRow: React.FC<StepRowProps> = ({
             icon={<DeleteOutlineIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.removeStep", { defaultValue: "Remove step" })}
             onClick={() => onRemove(step.id)}
-            aria-label={`Remove step ${index + 1}`}
+            aria-label={t("storyboard:attrs.removeStepCount", { defaultValue: "Remove step {{count}}", count: index + 1 })}
           />
         </FlexRow>
       </FlexRow>
 
       <Box sx={EDITABLE_FIELD}>
         <TextInput
-          label={`Step ${index + 1} description`}
+          label={t("storyboard:attrs.stepCountDescription", { defaultValue: "Step {{count}} description", count: index + 1 })}
           hideLabel
           placeholder={t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
           value={step.summary}
@@ -371,11 +372,11 @@ const StepRow: React.FC<StepRowProps> = ({
             <Caption component="span">
               {step.node_type === null
                 ? t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." })
-                : `"${step.node_type}" is not a node type this install has. Pick one.`}
+                : t("storyboard:attrs.nodeTypeIsNotANodeTypeThisInstallHas", { defaultValue: "\"{{nodeType}}\" is not a node type this install has. Pick one.", nodeType: step.node_type })}
             </Caption>
             <Autocomplete
               options={nodeTypeOptions}
-              label={`Node type for step ${index + 1}`}
+              label={t("storyboard:attrs.nodeTypeForStepCount", { defaultValue: "Node type for step {{count}}", count: index + 1 })}
               placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
@@ -392,7 +393,7 @@ const StepRow: React.FC<StepRowProps> = ({
         <FlexColumn gap={GAP.tight}>
           <FlexRow gap={GAP.tight} align="center">
             <Caption color="secondary" component="span">
-              Builds
+              {t("storyboard:attrs.builds", { defaultValue: "Builds" })}
             </Caption>
             <Chip compact color="success" label={step.node_type ?? ""} />
             <EditorButton variant="text" onClick={() => setPicking(!picking)}>
@@ -411,7 +412,7 @@ const StepRow: React.FC<StepRowProps> = ({
                   (option) => option.value === step.node_type
                 ) ?? null
               }
-              label={`Node type for step ${index + 1}`}
+              label={t("storyboard:attrs.nodeTypeForStepCount", { defaultValue: "Node type for step {{count}}", count: index + 1 })}
               placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
               onChange={(_event, value) =>
                 onChange(step.id, {
@@ -427,7 +428,7 @@ const StepRow: React.FC<StepRowProps> = ({
       {missingRole !== null ? (
         <AlertBanner
           severity="warning"
-          title={`No ${missingRole} provider connected`}
+          title={t("storyboard:attrs.noRoleProviderConnected", { defaultValue: "No {{role}} provider connected", role: t(MODEL_ROLE_WORD_KEYS[missingRole] ?? "", { defaultValue: missingRole }) })}
           action={
             <EditorButton
               variant="text"
@@ -441,7 +442,7 @@ const StepRow: React.FC<StepRowProps> = ({
           }
         >
           <Caption component="span">
-            {`This step runs on a ${missingRole} model. Connect a provider that offers one.`}
+            {t("storyboard:attrs.thisStepRunsOnAModel", { defaultValue: "This step runs on a {{role}} model. Connect a provider that offers one.", role: t(MODEL_ROLE_WORD_KEYS[missingRole] ?? "", { defaultValue: missingRole }) })}
           </Caption>
         </AlertBanner>
       ) : null}

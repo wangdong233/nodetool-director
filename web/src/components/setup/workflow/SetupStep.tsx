@@ -44,7 +44,12 @@ import {
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
-import { MODEL_ROLE_LABEL, MODEL_ROLE_LABEL_KEYS, MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import {
+  MODEL_ROLE_LABEL,
+  MODEL_ROLE_LABEL_KEYS,
+  MODEL_ROLE_ONBOARDING,
+  MODEL_ROLE_WORD_KEYS
+} from "./modelRoles";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -147,8 +152,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       <FlexColumn gap={GAP.normal}>
         <Text size="normal" component="h3">{t("storyboard:attrs.howItRuns", { defaultValue: "How it runs" })}</Text>
         <Caption color="secondary" component="p">
-          Building runs it once with the sample inputs. This is how you start it
-          after that.
+          {t("storyboard:attrs.buildingRunsItOnceWithTheSampleInputs", { defaultValue: "Building runs it once with the sample inputs. This is how you start it after that." })}
         </Caption>
         <OptionCardGrid
           label={t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
@@ -222,12 +226,11 @@ const BuildDisclosure: React.FC<{
       </Text>
       <Text size="small">
         {chosen.length > 0
-          ? `Runs on ${chosen.join(" · ")}`
+          ? t("storyboard:attrs.runsOnModels", { defaultValue: "Runs on {{models}}", models: chosen.join(" · ") })
           : t("storyboard:attrs.thisPlanNeedsNoModelOfItsOwn", { defaultValue: "This plan needs no model of its own." })}
       </Text>
       <Caption color="secondary">
-        Cost is unknown until the run returns — it depends on what each step
-        sends. Nothing runs a second time on its own.
+        {t("storyboard:attrs.costIsUnknownUntilTheRunReturns", { defaultValue: "Cost is unknown until the run returns — it depends on what each step sends. Nothing runs a second time on its own." })}
       </Caption>
     </FlexColumn>
   );
@@ -258,7 +261,7 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
           <Caption color="secondary" component="span">
-            {`Reading the ${role.role} models your providers offer…`}
+            {t("storyboard:attrs.readingTheRoleModelsYourProvidersOffer", { defaultValue: "Reading the {{role}} models your providers offer…", role: t(MODEL_ROLE_WORD_KEYS[role.role] ?? "", { defaultValue: role.role }) })}
           </Caption>
         </FlexRow>
       ) : role.status === "error" ? (
@@ -270,8 +273,8 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
         >
           <Caption component="span">
             {role.errorMessage
-              ? `Could not read the ${role.role} models: ${role.errorMessage}`
-              : `Could not read the ${role.role} models.`}
+              ? t("storyboard:attrs.couldNotReadTheRoleModels", { defaultValue: "Could not read the {{role}} models: {{error}}", role: t(MODEL_ROLE_WORD_KEYS[role.role] ?? "", { defaultValue: role.role }), error: role.errorMessage ?? "" })
+              : t("storyboard:attrs.couldNotReadTheRoleModelsPlain", { defaultValue: "Could not read the {{role}} models.", role: t(MODEL_ROLE_WORD_KEYS[role.role] ?? "", { defaultValue: role.role }) })}
           </Caption>
         </AlertBanner>
       ) : role.status === "empty" ? (
@@ -283,14 +286,14 @@ const ModelRoleRow: React.FC<{ role: ModelRoleChoices }> = ({ role }) => {
               onClick={() =>
                 openProviderOnboarding({
                   capability: MODEL_ROLE_ONBOARDING[role.role],
-                  reason: `This workflow needs a ${role.role} model.`
+                  reason: t("storyboard:attrs.thisWorkflowNeedsAModel", { defaultValue: "This workflow needs a {{role}} model.", role: t(MODEL_ROLE_WORD_KEYS[role.role] ?? "", { defaultValue: role.role }) })
                 })
               }
             >{t("storyboard:attrs.connect", { defaultValue: "Connect" })}</EditorButton>
           }
         >
           <Caption component="span">
-            {`No connected provider offers a ${role.role} model.`}
+            {t("storyboard:attrs.noConnectedProviderOffersARoleModel", { defaultValue: "No connected provider offers a {{role}} model.", role: t(MODEL_ROLE_WORD_KEYS[role.role] ?? "", { defaultValue: role.role }) })}
           </Caption>
         </AlertBanner>
       ) : (

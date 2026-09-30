@@ -115,8 +115,8 @@ export default function CreativeContextFields({
             multiline
             label={
               key === "approved_claims"
-                ? "Approved claims"
-                : "Prohibited claims"
+                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" })
+                : t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })
             }
             value={value?.[key]?.join("\n") ?? ""}
             onCommit={(text) =>

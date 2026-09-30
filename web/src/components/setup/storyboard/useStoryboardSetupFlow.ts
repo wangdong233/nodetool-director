@@ -47,7 +47,8 @@ import {
   productionGenerationBlocker,
   productionReviewFingerprint,
   reviewFingerprintOf,
-  REVIEW_REQUIRED
+  REVIEW_REQUIRED,
+  REVIEW_REQUIRED_KEY
 } from "../video/productionAuthoring";
 import { useTranslation } from "react-i18next";
 
@@ -229,7 +230,7 @@ export const useStoryboardSetupFlow = ({
     storyboardProductionOf(shots ?? []).length > 0;
   const productionBlocker =
     hasProductionContext && reviewFingerprintOf(screenplay) !== reviewKey
-      ? REVIEW_REQUIRED
+      ? t(REVIEW_REQUIRED_KEY, { defaultValue: REVIEW_REQUIRED })
       : productionGenerationBlocker(
           shots ?? [],
           (creativeContext?.reference_bindings?.length ?? 0) > 0,

@@ -77,7 +77,7 @@ export interface ReviewStepProps {
  */
 const PLAIN_CUT = "cut";
 const TRANSITION_OPTIONS = [
-  { value: PLAIN_CUT, label: "Cut" },
+  { value: PLAIN_CUT, label: "Cut", labelKey: "storyboard:attrs.cut" },
   ...KNOWN_TRANSITION_TYPE_LIST.map((type) => ({ value: type, label: type }))
 ] as const;
 
@@ -135,7 +135,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   }).length;
   const validationReason =
     unusable > 0
-      ? `Correct the length outside ${rangeText}.`
+      ? t("storyboard:attrs.correctTheLengthOutsideRange", { defaultValue: "Correct the length outside {{range}}.", range: rangeText })
       : productionAuthoringBlocker(beats ?? []);
   useEffect(() => {
     onValidationChange?.(validationReason);
@@ -148,7 +148,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     header: `${index + 1}. ${formatSeconds(beat.duration_ms)}`,
     // The header is a number and a length, so the remove control names
     // what it drops rather than reading "Remove 1. 3s".
-    removeLabel: `Remove beat ${index + 1}`,
+    removeLabel: t("storyboard:attrs.removeBeatCount", { defaultValue: "Remove beat {{count}}", count: index + 1 }),
     rows: [
       {
         id: `${beat.id}-prompt`,
@@ -174,7 +174,12 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         // typed free text left the row holding a word the cut has no
         // meaning for, and the list of legal words in a placeholder read
         // as data rather than as help.
-        options: TRANSITION_OPTIONS,
+        options: TRANSITION_OPTIONS.map(({ value, label, ...rest }) => ({
+          value,
+          label: "labelKey" in rest
+            ? t((rest as { labelKey: string }).labelKey, { defaultValue: label })
+            : label
+        })),
         compact: true,
         onChange: (value: string) =>
           updateBeat(beat.id, {
@@ -231,12 +236,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           </Text>
           {over ? (
             <Text size="small" color="warning" role="status">
-              Longer than the format. Shorten a beat or drop one.
+              {t("storyboard:attrs.longerThanTheFormatShortenABeatOrDropOne", { defaultValue: "Longer than the format. Shorten a beat or drop one." })}
             </Text>
           ) : null}
           {unusable > 0 ? (
             <Text size="small" color="warning" role="status">
-              {`${unusable} length${unusable === 1 ? " is" : "s are"} outside ${rangeText}. The plan keeps the last usable one.`}
+              {unusable === 1
+                ? t("storyboard:attrs.countLengthIsOutsideRange", { defaultValue: "{{count}} length is outside {{range}}. The plan keeps the last usable one.", count: unusable, range: rangeText })
+                : t("storyboard:attrs.countLengthsAreOutsideRange", { defaultValue: "{{count}} lengths are outside {{range}}. The plan keeps the last usable one.", count: unusable, range: rangeText })}
             </Text>
           ) : null}
         </FlexRow>
@@ -248,7 +255,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       ) : null}
       <PlanReview
         sections={sections}
-        replanLabel="Re-plan"
+        replanLabel={t("storyboard:attrs.rePlan", { defaultValue: "Re-plan" })}
         onReplan={handleReplan}
         replanPending={replanPending}
         onRemoveSection={removeBeat}

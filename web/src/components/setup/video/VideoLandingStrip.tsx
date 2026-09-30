@@ -108,10 +108,16 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
     >
       {rendering.length > 0 ? (
         <Text size="small" color="secondary" role="status">
-          {`Rendering ${rendering.length} clip${rendering.length === 1 ? "" : "s"}`}
-          {remaining === null
-            ? ""
-            : ` · typical duration ${formatSeconds(remaining)}`}
+          {[
+            rendering.length === 1
+              ? t("storyboard:attrs.renderingCountClip", { defaultValue: "Rendering {{count}} clip", count: rendering.length })
+              : t("storyboard:attrs.renderingCountClips", { defaultValue: "Rendering {{count}} clips", count: rendering.length }),
+            remaining === null
+              ? null
+              : t("storyboard:attrs.typicalDurationLength", { defaultValue: "typical duration {{length}}", length: formatSeconds(remaining) })
+          ]
+            .filter((part) => part !== null)
+            .join(" · ")}
         </Text>
       ) : null}
       {failedClipIds.length > 0 ? (

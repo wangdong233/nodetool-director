@@ -59,45 +59,63 @@ import { useTranslation } from "react-i18next";
 
 /** What the button says when no catalog figure covers the plan (PRD § 8.3). */
 export const COST_UNKNOWN_TEXT = "cost unknown until the first clip returns";
+export const COST_UNKNOWN_TEXT_KEY = "storyboard:attrs.costUnknownUntilTheFirstClipReturns";
+export const costUnknownText = (): string =>
+  i18n.t(COST_UNKNOWN_TEXT_KEY, { defaultValue: COST_UNKNOWN_TEXT });
 
-const countLabel = (count: number, singular: string, plural: string): string =>
-  `${count} ${count === 1 ? singular : plural}`;
+const countLabel = (
+  count: number,
+  singularKey: string,
+  singular: string,
+  pluralKey: string,
+  plural: string
+): string =>
+  count === 1
+    ? i18n.t(singularKey, { defaultValue: singular, count })
+    : i18n.t(pluralKey, { defaultValue: plural, count });
 
 /** The exact request manifest and its priced portion, beside the paid action. */
 export const videoCommitmentDetail = (
   estimate: NonNullable<ReturnType<typeof useBeatPlanCostEstimate>>
 ): string => {
   const parts = [
-    countLabel(estimate.destinationCount, "destination", "destinations"),
-    countLabel(estimate.videoRequestCount, "video take", "video takes")
+    countLabel(estimate.destinationCount, "storyboard:attrs.countDestination", "destination", "storyboard:attrs.countDestinations", "destinations"),
+    countLabel(estimate.videoRequestCount, "storyboard:attrs.countVideoTake", "video take", "storyboard:attrs.countVideoTakes", "video takes")
   ];
   if (estimate.voiceRequestCount > 0) {
     parts.push(
-      countLabel(estimate.voiceRequestCount, "voice request", "voice requests")
+      countLabel(estimate.voiceRequestCount, "storyboard:attrs.countVoiceRequest", "voice request", "storyboard:attrs.countVoiceRequests", "voice requests")
     );
   }
   if (estimate.videoRequestCount + estimate.voiceRequestCount === 0) {
-    parts.push("no generation requests", "no generation cost");
+    parts.push(
+      i18n.t("storyboard:attrs.noGenerationRequests", { defaultValue: "no generation requests" }),
+      i18n.t("storyboard:attrs.noGenerationCost", { defaultValue: "no generation cost" })
+    );
   } else if (estimate.pricedCount === 0) {
     parts.push(
-      "cost unknown",
+      i18n.t("storyboard:attrs.costUnknown", { defaultValue: "cost unknown" }),
       countLabel(
         estimate.unpricedCount,
+        "storyboard:attrs.countUnpricedRequest",
         "unpriced request",
+        "storyboard:attrs.countUnpricedRequests",
         "unpriced requests"
       )
     );
   } else if (estimate.unpricedCount > 0) {
     parts.push(
-      `known subtotal ${estimate.label}`,
+      i18n.t("storyboard:attrs.knownSubtotalLabel", { defaultValue: "known subtotal {{label}}", label: estimate.label }),
       countLabel(
         estimate.unpricedCount,
+        "storyboard:attrs.countUnpricedRequest",
         "unpriced request",
+        "storyboard:attrs.countUnpricedRequests",
         "unpriced requests"
       )
     );
   } else {
-    parts.push(`about ${estimate.label}`);
+    parts.push(i18n.t("storyboard:attrs.aboutLabel", { defaultValue: "about {{label}}", label: estimate.label }));
   }
   return parts.join(" · ");
 };
@@ -326,30 +344,30 @@ export function useLookStep({
   const clipCount = beats?.length ?? 0;
   const primaryDetail = estimate
     ? videoCommitmentDetail(estimate)
-    : COST_UNKNOWN_TEXT;
+    : costUnknownText();
 
   const blockedReason = firstBlocker([
     [clipCount === 0, t("storyboard:attrs.planTheBeatsFirstThereIsNothingToRenderYet", { defaultValue: "Plan the beats first — there is nothing to render yet" })],
     [
       needsVideoGeneration && clipModels.noProvider,
-      "No provider is set up to render video. Connect one above."
+      t("storyboard:attrs.noProviderIsSetUpToRenderVideoConnectOneAbove", { defaultValue: "No provider is set up to render video. Connect one above." })
     ],
     [needsVideoGeneration && !video?.model, t("storyboard:attrs.pickAVideoModel", { defaultValue: "Pick a video model" })],
     [
       needsVideoGeneration &&
         !!video?.model &&
         !isAvailable(clipModels, video.model),
-      "Your providers do not offer that video model. Pick another."
+      t("storyboard:attrs.yourProvidersDoNotOfferThatVideoModelPickAnother", { defaultValue: "Your providers do not offer that video model. Pick another." })
     ],
     [
       needsVoiceGeneration && !audio?.voice,
-      "Pick a voice, or switch Voiceover off"
+      t("storyboard:attrs.pickAVoiceOrSwitchVoiceoverOff", { defaultValue: "Pick a voice, or switch Voiceover off" })
     ],
     [
       needsVoiceGeneration &&
         !!audio?.voice &&
         !isAvailable(voices, audio.voice),
-      "Your providers do not offer that voice. Pick another, or switch Voiceover off."
+      t("storyboard:attrs.yourProvidersDoNotOfferThatVoicePickAnotherOrSwitchVoiceoverOff", { defaultValue: "Your providers do not offer that voice. Pick another, or switch Voiceover off." })
     ]
   ]);
 
@@ -646,8 +664,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.chooseYourLook", { defaultValue: "Choose your look" })}</Text>
         <Text size="normal" color="secondary">
-          The frame, the model that renders every beat, and whether the cut is
-          spoken over. You can change all of it in the editor.
+          {t("storyboard:attrs.theFrameTheModelThatRendersEveryBeat", { defaultValue: "The frame, the model that renders every beat, and whether the cut is spoken over. You can change all of it in the editor." })}
         </Text>
       </FlexColumn>
 
@@ -676,9 +693,9 @@ const LookStepInternal: React.FC<LookStepProps> = ({
             selectedId={settings.video?.model ?? null}
             onSelect={handleModel}
             onAddOwn={() => undefined}
-            addOwnLabel="More models in the editor"
+            addOwnLabel={t("storyboard:attrs.moreModelsInTheEditor", { defaultValue: "More models in the editor" })}
             addOwnDisabled
-            addOwnDisabledReason="The timeline's inspector offers every configured provider."
+            addOwnDisabledReason={t("storyboard:attrs.theTimelinesInspectorOffersEveryConfiguredProvider", { defaultValue: "The timeline's inspector offers every configured provider." })}
             reservePreview
           />
         ) : reportedModelOptions.length > 0 ? (
@@ -724,9 +741,9 @@ const LookStepInternal: React.FC<LookStepProps> = ({
               selectedId={settings.voice?.voice ?? null}
               onSelect={handleVoice}
               onAddOwn={() => undefined}
-              addOwnLabel="More voices in the editor"
+              addOwnLabel={t("storyboard:attrs.moreVoicesInTheEditor", { defaultValue: "More voices in the editor" })}
               addOwnDisabled
-              addOwnDisabledReason="The timeline's inspector offers every configured voice."
+              addOwnDisabledReason={t("storyboard:attrs.theTimelinesInspectorOffersEveryConfiguredVoice", { defaultValue: "The timeline's inspector offers every configured voice." })}
               aspectRatio="1/1"
             />
           ) : null}

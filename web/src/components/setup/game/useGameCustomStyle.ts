@@ -36,7 +36,15 @@ const STYLE_MAX_OUTPUT_TOKENS = 1024;
 const readDataUri = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error(`${file.name} could not be read.`));
+    reader.onerror = () =>
+      reject(
+        new Error(
+          i18n.t("storyboard:attrs.fileNameCouldNotBeRead", {
+            defaultValue: "{{name}} could not be read.",
+            name: file.name
+          })
+        )
+      );
     reader.onload = () => resolve(String(reader.result));
     reader.readAsDataURL(file);
   });

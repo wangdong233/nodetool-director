@@ -206,8 +206,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       {
         id: "cast",
         header: t("editor:ui.cast", { defaultValue: "Cast" }),
-        subheader:
-          "Silhouette, colours and proportions — no pose. Every frame of this character's sheet carries it.",
+        subheader: t("storyboard:attrs.silhouetteColoursAndProportionsNoPose", { defaultValue: "Silhouette, colours and proportions — no pose. Every frame of this character's sheet carries it." }),
         rows: [],
         groups: design.cast.map((member) => ({
           id: `cast-${member.slot_id}`,
@@ -235,8 +234,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       {
         id: "slots",
         header: t("editor:ui.assetPrompts", { defaultValue: "Asset prompts" }),
-        subheader:
-          "The subject of each asset. The style, the pixel size and the sheet layout are added when it is generated.",
+        subheader: t("storyboard:attrs.theSubjectOfEachAsset", { defaultValue: "The subject of each asset. The style, the pixel size and the sheet layout are added when it is generated." }),
         rows: [],
         groups: slots.map((slot) => ({
           id: `slot-${slot.id}`,
@@ -245,7 +243,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           rows: [
             {
               id: `slot-${slot.id}-prompt`,
-              label: `${slot.id} prompt`,
+              label: t("storyboard:attrs.slotIdPrompt", { defaultValue: "{{id}} prompt", id: slot.id }),
               hideLabel: true,
               value: promptOf(slot.id),
               multiline: true,
@@ -256,7 +254,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         }))
       }
     ];
-  }, [design, patch, patchCast, patchEnemy, patchPrompt, slots]);
+  }, [design, patch, patchCast, patchEnemy, patchPrompt, slots, t]);
 
   return (
     <FlexColumn
@@ -266,8 +264,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.yourDesign", { defaultValue: "Your design" })}</Text>
         <Text size="normal" color="secondary">
-          Read it, change anything, then choose the look. Nothing is generated
-          yet.
+          {t("storyboard:attrs.readItChangeAnythingThenChooseTheLook", { defaultValue: "Read it, change anything, then choose the look. Nothing is generated yet." })}
         </Text>
       </FlexColumn>
 
@@ -279,15 +276,15 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
 
       {filled.length > 0 ? (
         <Caption color="secondary" component="p">
-          {`The designer skipped ${filled.length} field${
-            filled.length === 1 ? "" : "s"
-          }, filled from the template: ${filled.join(", ")}. Rewrite them in your own words.`}
+          {filled.length === 1
+            ? t("storyboard:attrs.theDesignerSkippedCountField", { defaultValue: "The designer skipped {{count}} field, filled from the template: {{fields}}. Rewrite them in your own words.", count: filled.length, fields: filled.join(", ") })
+            : t("storyboard:attrs.theDesignerSkippedCountFields", { defaultValue: "The designer skipped {{count}} fields, filled from the template: {{fields}}. Rewrite them in your own words.", count: filled.length, fields: filled.join(", ") })}
         </Caption>
       ) : null}
 
       <PlanReview
         sections={sections}
-        replanLabel="Re-design"
+        replanLabel={t("storyboard:attrs.reDesign", { defaultValue: "Re-design" })}
         onReplan={onRedesign}
         replanPending={redesignPending}
       />

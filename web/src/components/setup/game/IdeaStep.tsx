@@ -83,7 +83,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         onSelect: () => setPicker("template"),
         disabled: templates.length === 0,
         disabledReason:
-          templates.length === 0 ? "Reading the shipped templates…" : undefined
+          templates.length === 0 ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" }) : undefined
       },
       {
         id: "blank",
@@ -94,7 +94,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         disabledReason: exportingBlank
           ? t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
           : templates.length === 0
-            ? "Reading the shipped templates…"
+            ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" })
             : undefined
       },
       {

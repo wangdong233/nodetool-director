@@ -31,6 +31,15 @@ export const SIZE_PRESETS: readonly SizePreset[] = [
   at1K("banner", "Banner", "21:9")
 ];
 
+/** zh display labels; the stored id and aspect stay locale-independent. */
+export const SIZE_PRESET_LABEL_KEYS: Readonly<Record<string, string>> = {
+  square: "storyboard:attrs.sizeSquare",
+  portrait: "storyboard:attrs.sizePortrait",
+  landscape: "storyboard:attrs.sizeLandscape",
+  story: "storyboard:attrs.sizeStory",
+  banner: "storyboard:attrs.sizeBanner"
+};
+
 /** Guided sizes accepted by a model, or every preset when it states no limit. */
 export const sizePresetsForAspectRatios = (
   aspectRatios: readonly string[] | null | undefined

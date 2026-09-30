@@ -68,6 +68,8 @@ export type GameRowStatus = "loading" | "error" | "empty" | "ready";
 
 /** One row of tiles: what is on offer, and what the workflow remembers. */
 export interface GameModelRow {
+  /** Stable row id, e.g. "image" / "music" — never localized. */
+  id?: string;
   /** Heading above the row, e.g. "Image model". */
   label: string;
   tiles: readonly OptionCardItem[];
@@ -238,7 +240,7 @@ const ImageModelStatus: React.FC<{ row: GameModelRow }> = ({ row }) => {
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
           <Caption color="secondary" component="span">
-            {`Reading what your providers offer for ${row.label.toLowerCase()}…`}
+            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
           </Caption>
         </FlexRow>
       </FlexColumn>
@@ -355,7 +357,7 @@ const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
           <Caption color="secondary" component="span">
-            {`Reading what your providers offer for ${row.label.toLowerCase()}…`}
+            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
           </Caption>
         </FlexRow>
       ) : row.status === "error" ? (
@@ -393,7 +395,7 @@ const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
           <Caption component="span">{row.emptyMessage}</Caption>
         </AlertBanner>
       ) : (
-        row.label === "Music model" ? (
+        row.id === "music" ? (
           <FlexRow gap={GAP.normal} align="center">
             {canOfferPlaceholder ? (
               <EditorButton
@@ -525,8 +527,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           Choose the look and the models
         </Text>
         <Text size="normal" color="secondary">
-          One style and one image model for every sprite, tile and background,
-          so the game reads as one game.
+          {t("storyboard:attrs.oneStyleAndOneImageModelForEveryAsset", { defaultValue: "One style and one image model for every sprite, tile and background, so the game reads as one game." })}
         </Text>
       </FlexColumn>
 
@@ -535,13 +536,25 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           Style
         </Text>
         <Caption color="secondary" component="p">
-          {`Every prompt carries it: ${slotCounts.spritesheets} sprite sheet${
-            slotCounts.spritesheets === 1 ? "" : "s"
-          }, ${slotCounts.tilesets} tile sheet${
-            slotCounts.tilesets === 1 ? "" : "s"
-          } and ${slotCounts.images} background${
-            slotCounts.images === 1 ? "" : "s"
-          }.`}
+          {t("storyboard:attrs.everyPromptCarriesIt", {
+            defaultValue:
+              "Every prompt carries it: {{sprites}}, {{tiles}} and {{images}}.",
+            sprites: `${slotCounts.spritesheets} ${
+              slotCounts.spritesheets === 1
+                ? t("storyboard:attrs.spriteSheet", { defaultValue: "sprite sheet" })
+                : t("storyboard:attrs.spriteSheets", { defaultValue: "sprite sheets" })
+            }`,
+            tiles: `${slotCounts.tilesets} ${
+              slotCounts.tilesets === 1
+                ? t("storyboard:attrs.tileSheet", { defaultValue: "tile sheet" })
+                : t("storyboard:attrs.tileSheets", { defaultValue: "tile sheets" })
+            }`,
+            images: `${slotCounts.images} ${
+              slotCounts.images === 1
+                ? t("storyboard:attrs.background", { defaultValue: "background" })
+                : t("storyboard:attrs.backgrounds", { defaultValue: "backgrounds" })
+            }`
+          })}
         </Caption>
         <PresetTileGrid
           label="Style"
@@ -549,7 +562,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           selectedId={styleEntityId}
           onSelect={onStyleChange}
           onAddOwn={openAddStyle}
-          addOwnLabel="Add your own style"
+          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
           addOwnDisabled={customStyleState.saving}
         />
       </FlexColumn>

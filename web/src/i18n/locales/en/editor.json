@@ -2723,7 +2723,11 @@
     "entity": "Entity",
     "jsScriptTypeLabel": "JS script",
     "flowSetupFailedAtStep": "{{title}} setup failed at {{step}}",
-    "whatYouTypedComesWithYouThisFlowDraftIsDiscarded": "What you have typed comes with you to the flow you pick next. This {{title}} draft is discarded — nothing has been generated for it yet."
+    "whatYouTypedComesWithYouThisFlowDraftIsDiscarded": "What you have typed comes with you to the flow you pick next. This {{title}} draft is discarded — nothing has been generated for it yet.",
+    "runModeByHand": "by hand",
+    "runModeAsAnAppWithAForm": "as an app with a form",
+    "runModeOnATrigger": "on a trigger",
+    "workflowIdIsNotOpen": "Workflow {{id}} is not open."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

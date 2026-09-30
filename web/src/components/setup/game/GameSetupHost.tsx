@@ -142,10 +142,9 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
         void image.refetch();
       },
       capability: "text_to_image",
-      emptyMessage:
-        "No connected provider offers a text-to-image model, and every sprite, tile and background needs one."
+      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersATextToImageModel", { defaultValue: "No connected provider offers a text-to-image model, and every sprite, tile and background needs one." })
     }),
-    [image, imageModels]
+    [image, imageModels, t]
   );
 
   /**
@@ -180,16 +179,16 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
       status: sfxNodeTypes.length > 0 ? "ready" : providersLoading ? "loading" : "empty",
       onRetry: () => undefined,
       capability: "text_to_speech",
-      emptyMessage:
-        "No connected provider offers a sound-effect node. The template's own sounds are kept.",
+      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersASoundEffectNode", { defaultValue: "No connected provider offers a sound-effect node. The template's own sounds are kept." }),
       placeholderLabel: t("storyboard:attrs.keepThePlaceholderSounds", { defaultValue: "Keep the placeholder sounds" }),
       placeholderDescription: t("storyboard:attrs.theTemplatesOwnSoundFilesNoGeneration", { defaultValue: "The template's own sound files, no generation" })
     }),
-    [providersLoading, sfxNodeTypes]
+    [providersLoading, sfxNodeTypes, t]
   );
 
   const musicRow = useMemo<GameRowAvailability>(
     () => ({
+      id: "music",
       label: t("storyboard:attrs.music", { defaultValue: "Music" }),
       tiles: musicModels.map(
         (model): OptionCardItem => ({
@@ -204,12 +203,11 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
         void music.refetch();
       },
       capability: "text_to_music",
-      emptyMessage:
-        "No connected provider offers a music model. The template's own loop is kept.",
+      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersAMusicModel", { defaultValue: "No connected provider offers a music model. The template's own loop is kept." }),
       placeholderLabel: t("storyboard:attrs.keepThePlaceholderMusic", { defaultValue: "Keep the placeholder music" }),
       placeholderDescription: t("storyboard:attrs.theTemplatesOwnMusicLoopNoGeneration", { defaultValue: "The template's own music loop, no generation" })
     }),
-    [music, musicModels]
+    [music, musicModels, t]
   );
 
   // The tile id the flow read off the workflow, resolved against what is on
