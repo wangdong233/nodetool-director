@@ -28,6 +28,7 @@ import {
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NodeItemProps {
   node: NodeMetadata;
@@ -57,6 +58,7 @@ const NodeItem = memo(function NodeItem({
   showDescriptionTooltip = false,
   ref
 }: NodeItemProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Rows re-render on every keystroke in the node search; a fresh slotProps
   // object per row would defeat the memo on Tooltip and re-serialize its sx.
@@ -428,15 +430,15 @@ const NodeItem = memo(function NodeItem({
                 <StarBorderIcon fontSize="small" />
               )
             }
-            tooltip={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            tooltip={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
             tooltipPlacement="top"
             size="small"
             onClick={handleFavoriteClick}
             sx={favoriteButtonSx}
             aria-label={
               isFavorite
-                ? `Remove ${node.title} from favorites`
-                : `Add ${node.title} to favorites`
+                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: node.title })
+                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: node.title })
             }
           />
         )}

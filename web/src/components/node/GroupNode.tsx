@@ -579,10 +579,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         nextDelay={TOOLTIP_ENTER_DELAY * 5}
         title={
           <span>
-            <b>SELECT GROUP NODE:</b> <br />
-            Hold CTRL or ⌘ key + click <br />
+            <b>{t("editor:ui.selectGroupNode", { defaultValue: "SELECT GROUP NODE:" })}</b> <br />
+            {t("editor:ui.holdCtrlOrCmdKeyClick", { defaultValue: "Hold CTRL or ⌘ key + click" })} <br />
             <br />
-            <b>EDIT GROUP TITLE:</b> <br />
+            <b>{t("editor:ui.editGroupTitleLabel", { defaultValue: "EDIT GROUP TITLE:" })}</b> <br />
             {t("editor:ui.doubleClickTheLabel")}
           </span>
         }
@@ -672,7 +672,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           nodes hovering over it, not every group on the canvas. */}
       <div className={`help-text ${nodeHovered ? "visible" : "none"}`}>
         <div>
-          <b>REMOVE NODES FROM GROUP</b>
+          <b>{t("editor:ui.removeNodesFromGroup", { defaultValue: "REMOVE NODES FROM GROUP" })}</b>
         </div>
         <ul>
           <li>{t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>

@@ -926,8 +926,8 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               icon={<EditIcon />}
               tooltip={
                 currentAsset?.timeline_id
-                  ? "Edit Timeline"
-                  : "Create Timeline from Video"
+                  ? t("editor:asset.editTimeline", { defaultValue: "Edit Timeline" })
+                  : t("editor:asset.createTimelineFromVideo", { defaultValue: "Create Timeline from Video" })
               }
               onClick={handleOpenVideoEditor}
               className="button edit"
@@ -940,14 +940,14 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               icon={copied ? <CheckIcon /> : <ContentCopyIcon />}
               tooltip={
                 copied
-                  ? "Copied!"
+                  ? t("editor:ui.copied2", { defaultValue: "Copied!" })
                   : currentAsset.content_type.startsWith("image/")
-                    ? "Copy Image"
+                    ? t("editor:asset.copyImage", { defaultValue: "Copy Image" })
                     : currentAsset.content_type.startsWith("video/")
-                      ? "Copy Video Info"
+                      ? t("editor:asset.copyVideoInfo", { defaultValue: "Copy Video Info" })
                       : currentAsset.content_type.startsWith("audio/")
-                        ? "Copy Audio Info"
-                        : "Copy Content"
+                        ? t("editor:asset.copyAudioInfo", { defaultValue: "Copy Audio Info" })
+                        : t("editor:asset.copyContent", { defaultValue: "Copy Content" })
               }
               onClick={handleCopyToClipboard}
               className="button copy"

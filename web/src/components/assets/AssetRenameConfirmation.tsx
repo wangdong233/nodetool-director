@@ -70,7 +70,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
       baseNewName.startsWith(" ") ||
       baseNewName.match(/^[-#*&]/)
     ) {
-      setShowAlert("Name cannot start with a special character.");
+      setShowAlert(t("editor:asset.nameCannotStartWithASpecialCharacter", { defaultValue: "Name cannot start with a special character." }));
       return;
     }
 
@@ -79,10 +79,10 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
 
     // Check for empty or overly long names
     if (!baseNewName) {
-      setShowAlert("Name cannot be empty.");
+      setShowAlert(t("editor:asset.nameCannotBeEmpty", { defaultValue: "Name cannot be empty." }));
       return;
     } else if (baseNewName.length > 100) {
-      setShowAlert("Max file name length is 100 characters.");
+      setShowAlert(t("editor:asset.maxFileNameLengthIs100Characters", { defaultValue: "Max file name length is 100 characters." }));
       return;
     }
 
@@ -91,7 +91,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
       const uniqueInvalidChars = invalidCharsFound.filter(
         (char, index, array) => array.indexOf(char) === index
       );
-      setShowAlert(`Invalid characters: ${uniqueInvalidChars.join(", ")}`);
+      setShowAlert(t("editor:asset.invalidCharacters", { defaultValue: "Invalid characters: {{chars}}", chars: uniqueInvalidChars.join(", ") }));
       return;
     }
 
@@ -110,7 +110,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
     await mutation.mutateAsync(updatedAssetsToRename);
     setDialogOpen(false);
     refetchAssetsAndFolders();
-  }, [baseNewName, assets, mutation, setDialogOpen, refetchAssetsAndFolders]);
+  }, [baseNewName, assets, mutation, setDialogOpen, refetchAssetsAndFolders, t]);
 
   const screenWidth = window.innerWidth;
   const objectWidth = 600;
@@ -154,10 +154,10 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
             onClose={handleClose}
             title={
               <span>
-                {`${assets?.length} ${
-                  assets?.length === 1 ? "asset" : "assets"
-                }`}
-                {" will be renamed to:"}
+                {t("editor:asset.assetsWillBeRenamedTo", {
+                  defaultValue: "{{count}} assets will be renamed to:",
+                  count: assets?.length ?? 0
+                })}
               </span>
             }
             content={
@@ -190,19 +190,19 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
                     className="asset-rename-cancel-button button-cancel"
                     onClick={handleClose}
                   >
-                    Cancel
+                    {t("common:action.cancel", { defaultValue: "Cancel" })}
                   </EditorButton>
                   <EditorButton
                     className="asset-rename-confirm-button button-confirm"
                     onClick={handleRename}
                   >
-                    Rename
+                    {t("common:action.rename", { defaultValue: "Rename" })}
                   </EditorButton>
                 </FlexRow>
                 {assets && assets.length > 1 && (
                   <FlexColumn className="asset-rename-notice-container" gap={SPACING.none}>
                     <Text className="asset-rename-notice notice" size="small">
-                      <span>Multiple assets selected:</span> <br />
+                      <span>{t("editor:asset.multipleAssetsSelected", { defaultValue: "Multiple assets selected:" })}</span> <br />
                       {t("editor:ui.namesWillBeAppendedWithANumber")}
                     </Text>
                   </FlexColumn>
