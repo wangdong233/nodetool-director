@@ -16,10 +16,7 @@
  */
 
 import { createElement, useCallback, useMemo, useState } from "react";
-import {
-  resolveWorkflowPlan,
-  WORKFLOW_INSPIRATION_CHIPS
-} from "@nodetool-ai/protocol";
+import { resolveWorkflowPlan } from "@nodetool-ai/protocol";
 import type {
   WorkflowSetupPlan,
   WorkflowSetupRunMode,
@@ -33,7 +30,7 @@ import {
   useWorkflowSetupStage,
   useWorkflowSetupWriter
 } from "../../../hooks/workflow/useWorkflowSetup";
-import { usePlanWorkflow } from "../../../hooks/workflow/usePlanWorkflow";
+import { usePlanWorkflow, pinnedChipPlan } from "../../../hooks/workflow/usePlanWorkflow";
 import {
   useBuildFromPlan,
   type BuildFromPlanResult
@@ -132,9 +129,9 @@ export const useWorkflowSetupFlow = ({
 
   const brief = setup?.brief ?? "";
   const category = setup?.category;
-  const hasPinnedPlan = WORKFLOW_INSPIRATION_CHIPS.some(
-    (chip) => chip.brief.toLowerCase() === brief.trim().toLowerCase()
-  );
+  // One matcher for both sites: a chip writes its localized brief
+  // (显示即所发), so the pinned-plan match accepts either form.
+  const hasPinnedPlan = pinnedChipPlan(brief) !== null;
   const plan = setup?.plan ?? EMPTY_PLAN;
   const runMode: WorkflowSetupRunMode =
     setup?.run_mode ?? defaultRunModeFor(category);

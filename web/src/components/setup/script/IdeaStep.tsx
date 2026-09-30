@@ -54,11 +54,25 @@ import {
 } from "./useScriptFileImport";
 import { useTranslation } from "react-i18next";
 
-/** The § 9.1 inspiration chips. */
-const INSPIRATIONS = [
-  "A 60-second explainer about how tide clocks work",
-  "A podcast intro for a show about failed products",
-  "An ad read for a coffee subscription"
+/**
+ * The § 9.1 inspiration chips. Each carries a stable slug so the zh-only
+ * catalog overlay (`catalog:scriptInspirations.<slug>`) can localize the chip
+ * without reordering risk; the English brief is the defaultValue, so display
+ * and insertion are one string in every locale (显示即所发).
+ */
+const INSPIRATIONS: readonly { id: string; brief: string }[] = [
+  {
+    id: "tide-clock-explainer",
+    brief: "A 60-second explainer about how tide clocks work"
+  },
+  {
+    id: "failed-products-podcast",
+    brief: "A podcast intro for a show about failed products"
+  },
+  {
+    id: "coffee-subscription-ad",
+    brief: "An ad read for a coffee subscription"
+  }
 ];
 
 export interface IdeaStepProps {
@@ -358,7 +372,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={INSPIRATIONS}
+          examples={INSPIRATIONS.map((chip) =>
+            t(`catalog:scriptInspirations.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           briefRef={briefField}
           onSelect={(value) => setSetup(scriptId, { brief: value })}

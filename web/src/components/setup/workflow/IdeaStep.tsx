@@ -173,7 +173,11 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) => chip.brief)}
+          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) =>
+            t(`catalog:workflowInspiration.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={onBriefChange}
         />

@@ -38,12 +38,24 @@ import { readEntityIds, readReferences } from "./setupContext";
  * Three briefs that read like something a person would type. The storyboard
  * flow pulls its chips off the shipped example boards; there is no shipped
  * example-image library to read, so these are written here rather than faked
- * from one.
+ * from one. Each carries a stable slug so the zh-only catalog overlay
+ * (`catalog:imageInspirations.<slug>`) can localize the chip without
+ * reordering risk; the English brief is the defaultValue, so display and
+ * insertion are one string in every locale (显示即所发).
  */
-const INSPIRATIONS: readonly string[] = [
-  "A ceramic pour-over coffee dripper on a sunlit kitchen counter",
-  "A portrait of a violinist backstage, one bare bulb overhead",
-  "Poster art for a documentary about deep-sea cables"
+const INSPIRATIONS: readonly { id: string; brief: string }[] = [
+  {
+    id: "pour-over-dripper",
+    brief: "A ceramic pour-over coffee dripper on a sunlit kitchen counter"
+  },
+  {
+    id: "backstage-violinist",
+    brief: "A portrait of a violinist backstage, one bare bulb overhead"
+  },
+  {
+    id: "deep-sea-cables-poster",
+    brief: "Poster art for a documentary about deep-sea cables"
+  }
 ];
 
 export const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
@@ -205,7 +217,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={INSPIRATIONS}
+          examples={INSPIRATIONS.map((chip) =>
+            t(`catalog:imageInspirations.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={(value) => setSetup({ brief: value })}
         />

@@ -121,14 +121,22 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   );
 
   // The shipped boards' own briefs: what someone typed to get a board that
-  // exists, which is a better start than an invented example.
+  // exists, which is a better start than an invented example. Each logline is
+  // looked up in the zh-only catalog overlay by its stable board slug
+  // (显示即所发: the localized chip text is the brief it inserts, one string
+  // for both), so the filter that drops the current brief compares the same
+  // string the creator sees.
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) => example.logline.trim())
+        .map((example) =>
+          t(`catalog:storyboardExamples.${example.slug}.logline`, {
+            defaultValue: example.logline.trim()
+          })
+        )
         .filter((logline) => logline.length > 0 && logline !== brief.trim())
         .slice(0, INSPIRATION_COUNT),
-    [brief, examples]
+    [brief, examples, t]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(

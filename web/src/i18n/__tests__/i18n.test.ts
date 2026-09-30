@@ -104,6 +104,10 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.apps;
     delete copy.styles;
     delete copy.gameInspiration;
+    delete copy.storyboardExamples;
+    delete copy.scriptInspirations;
+    delete copy.imageInspirations;
+    delete copy.workflowInspiration;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -432,6 +436,42 @@ describe("catalog key parity (CI completeness guard)", () => {
         expect((entry[field] as string).length).toBeGreaterThan(0);
       }
       expect(name).toMatch(/^[A-Za-z0-9][A-Za-z0-9 ./-]*$/);
+    }
+  });
+
+  it("creation-flow example overlays are zh-only with non-empty chip text per slug", () => {
+    // 显示即所发 overlays (r10): every creation flow's example chips render
+    // through a catalog lookup keyed by a stable slug — the shipped storyboard
+    // boards' file slugs, the script/image chips' content-derived slugs, and
+    // the protocol workflow chips' ids. en must NOT carry them (defaultValue
+    // is the English source); every zh entry must be a non-empty string so a
+    // chip never renders a bare slug. gameInspiration (r9) is the same shape
+    // and joins the loop.
+    for (const block of [
+      "gameInspiration",
+      "scriptInspirations",
+      "imageInspirations",
+      "workflowInspiration"
+    ] as const) {
+      expect(catalogEn).not.toHaveProperty(block);
+      const entries = catalogZh[block] as Record<string, string>;
+      expect(Object.keys(entries).length).toBeGreaterThan(0);
+      for (const [slug, text] of Object.entries(entries)) {
+        expect(typeof text).toBe("string");
+        expect(text.length).toBeGreaterThan(0);
+        expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
+      }
+    }
+    expect(catalogEn).not.toHaveProperty("storyboardExamples");
+    const boardEntries = catalogZh["storyboardExamples"] as Record<
+      string,
+      { logline: string }
+    >;
+    expect(Object.keys(boardEntries).length).toBeGreaterThan(0);
+    for (const [slug, entry] of Object.entries(boardEntries)) {
+      expect(typeof entry.logline).toBe("string");
+      expect(entry.logline.length).toBeGreaterThan(0);
+      expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
     }
   });
 

@@ -94,6 +94,7 @@ const routeAnswer = (status: number, body: unknown): Response =>
 import mockTheme from "../../../../__mocks__/themeMock";
 import { IdeaStep } from "../IdeaStep";
 import { useStoryboardStore } from "../../../../stores/storyboard/StoryboardStore";
+import { changeAppLanguage } from "../../../../i18n";
 import {
   clearImport,
   getImportSource
@@ -453,5 +454,37 @@ describe("IdeaStep — import your shotlist", () => {
     expect(await screen.findByText(/description/)).toBeInTheDocument();
     expect(board()?.shots).toEqual([]);
     expect(board()?.setupStage).toBe("done");
+  });
+});
+
+describe("IdeaStep examples (zh)", () => {
+  // 显示即所发: the chip's display text IS the brief it writes, so the
+  // localized label and the inserted text cannot diverge. The lookup is keyed
+  // by the board's stable slug, so the zh label comes from the catalog overlay
+  // even though the mocked query returns English loglines.
+  afterEach(async () => {
+    await changeAppLanguage("en");
+  });
+
+  it("inserts the same localized text a chip shows", async () => {
+    await changeAppLanguage("zh-CN");
+    const user = userEvent.setup();
+    renderStep();
+
+    const zh = "十五秒跑鞋发布：影棚揭晓、一个材质特写，最后走到天刚亮的街头。";
+    const chip = await screen.findByText(zh);
+    await user.click(chip);
+
+    expect(board()?.brief).toBe(zh);
+  });
+
+  it("drops the localized example that is already the brief", async () => {
+    await changeAppLanguage("zh-CN");
+    const zh = "十秒沙漠旅行预告：日出前的沙丘、峡谷里的盘山弯道，还有星空下的营地。";
+    useStoryboardStore.getState().setBrief(BOARD, zh);
+    renderStep();
+
+    const inspiration = screen.getByRole("group", { name: "灵感" });
+    expect(within(inspiration).queryByText(zh)).not.toBeInTheDocument();
   });
 });
