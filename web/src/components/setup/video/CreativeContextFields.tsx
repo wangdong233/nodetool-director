@@ -184,7 +184,7 @@ export default function CreativeContextFields({
           </FlexColumn>
         ))}
         <Caption>
-          Reference assets are included in reviewed production requests.
+          {t("editor:ui.referenceAssetsAreIncludedInReviewedProductionRequests", { defaultValue: "Reference assets are included in reviewed production requests." })}
         </Caption>
         {error ? (
           <Caption role="alert" color="error">

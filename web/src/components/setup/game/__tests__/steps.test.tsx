@@ -14,6 +14,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import type { GameDesign } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
 import mockTheme from "../../../../__mocks__/themeMock";
+import { changeAppLanguage } from "../../../../i18n";
 
 // Card art and style tiles are stored locators; the real resolver needs a
 // QueryClient this suite has no use for.
@@ -425,5 +426,37 @@ describe("GameLookStep", () => {
     const { onProjectNameChange } = renderStep();
     await user.type(screen.getByLabelText("Project name"), "!");
     expect(onProjectNameChange).toHaveBeenCalledWith("Ember Run!");
+  });
+});
+
+describe("GameIdeaStep examples (zh)", () => {
+  // The chip's display text IS the brief it writes (显示即所发), so the
+  // localized label and the inserted text cannot diverge.
+  afterEach(async () => {
+    await changeAppLanguage("en");
+  });
+
+  it("inserts the same localized text a chip shows", async () => {
+    await changeAppLanguage("zh-CN");
+    const user = userEvent.setup();
+    const onBriefChange = jest.fn();
+    wrap(
+      <GameIdeaStep
+        brief=""
+        onBriefChange={onBriefChange}
+        templates={[PLATFORMER]}
+        onStartFromTemplate={jest.fn()}
+        onExportBlank={jest.fn()}
+        onStartBlank={jest.fn()}
+        onOpenTutorial={jest.fn()}
+      />
+    );
+    const chip = await screen.findByText(
+      "一只小狐狸穿越秋日森林的平台跳跃游戏"
+    );
+    await user.click(chip);
+    expect(onBriefChange).toHaveBeenCalledWith(
+      "一只小狐狸穿越秋日森林的平台跳跃游戏"
+    );
   });
 });

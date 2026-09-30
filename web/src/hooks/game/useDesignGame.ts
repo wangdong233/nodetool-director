@@ -37,6 +37,7 @@ import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
 import { useGameSetupWriter } from "./useGameSetup";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** How much the designer is allowed to answer with. */
 const DESIGN_MAX_OUTPUT_TOKENS = 4096;
@@ -78,8 +79,17 @@ export const pinnedChipDesign = (
   brief: string,
   template: string | undefined
 ): GameDesign | null => {
+  const normalized = brief.trim().toLowerCase();
+  // The chip the creator pressed may have written its localized brief
+  // (显示即所发: the example's display text is the brief it inserts), so a
+  // chip matches on either its shipped English brief or its catalog label.
   const chip = GAME_INSPIRATION_CHIPS.find(
-    (entry) => entry.brief.toLowerCase() === brief.trim().toLowerCase()
+    (entry) =>
+      entry.brief.toLowerCase() === normalized ||
+      i18n
+        .t(`catalog:gameInspiration.${entry.id}`, { defaultValue: entry.brief })
+        .trim()
+        .toLowerCase() === normalized
   );
   if (!chip) {
     return null;

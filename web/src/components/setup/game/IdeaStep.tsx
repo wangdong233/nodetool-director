@@ -29,6 +29,7 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
+import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface GameIdeaStepProps {
@@ -63,6 +64,9 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
   onOpenTutorial
 }) => {
   const { t } = useTranslation();
+  // The template cards' meta line is translated inside the memo, so its work
+  // must redo when the language flips (the frozen-i18n.t rule).
+  const { version: languageVersion } = useAppLanguage();
   const [picker, setPicker] = useState<Picker>(null);
 
   const handleChange = useCallback(
@@ -72,7 +76,10 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
     [onBriefChange]
   );
 
-  const cards = useMemo(() => templateCards(templates), [templates]);
+  const cards = useMemo(
+    () => templateCards(templates, t),
+    [templates, t, languageVersion]
+  );
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
@@ -183,7 +190,11 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
         />
 
         <ExampleBriefs
-          examples={GAME_INSPIRATION_CHIPS.map((chip) => chip.brief)}
+          examples={GAME_INSPIRATION_CHIPS.map((chip) =>
+            t(`catalog:gameInspiration.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={onBriefChange}
         />

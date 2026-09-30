@@ -265,7 +265,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           nothing on the screen that could (F20). */}
       <FlexRow gap={GAP.normal} align="center" wrap>
         <EditorButton variant="outlined" size="small" onClick={addLine}>
-          Add a line
+          {t("editor:ui.addALine", { defaultValue: "Add a line" })}
         </EditorButton>
         {emptyLineIds.length > 0 ? (
           <EditorButton

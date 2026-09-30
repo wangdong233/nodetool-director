@@ -389,7 +389,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           {makeMorePending ? t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
         <EditorButton variant="text" onClick={onBackToSettings}>
-          Back to generation settings
+          {t("editor:ui.backToGenerationSettings", { defaultValue: "Back to generation settings" })}
         </EditorButton>
         <EditorButton variant="text" onClick={onOpenEditor}>{t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
       </FlexRow>

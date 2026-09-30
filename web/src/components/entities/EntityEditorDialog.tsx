@@ -131,10 +131,18 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={entity ? "Edit entity" : "New entity"}
+      title={
+        entity
+          ? t("editor:ui.editEntity", { defaultValue: "Edit entity" })
+          : t("editor:ui.newEntity", { defaultValue: "New entity" })
+      }
       showActions
       onConfirm={handleConfirm}
-      confirmText={entity ? "Save" : "Create"}
+      confirmText={
+        entity
+          ? t("storyboard:attrs.save", { defaultValue: "Save" })
+          : t("common:action.create", { defaultValue: "Create" })
+      }
       confirmDisabled={!canSave}
       isLoading={saveEntity.isPending}
     >
@@ -173,7 +181,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
           >
             {KINDS.map((k) => (
               <ToggleOption key={k} value={k}>
-                {k}
+                {t(`storyboard:attrs.${k}`, { defaultValue: k })}
               </ToggleOption>
             ))}
           </ToggleGroup>

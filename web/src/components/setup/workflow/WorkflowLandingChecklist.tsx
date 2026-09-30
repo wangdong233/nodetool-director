@@ -214,7 +214,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
           title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
-              Ask the agent
+              {t("editor:ui.askTheAgent", { defaultValue: "Ask the agent" })}
             </EditorButton>
           }
         >

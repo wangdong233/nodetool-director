@@ -395,7 +395,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.chooseTheVoices", { defaultValue: "Choose the voices" })}</Text>
         <Text size="normal" color="secondary">
-          Hear each one read your own words before you pick it.
+          {t("editor:ui.hearEachOneReadYourOwnWordsBeforeYouPickIt", { defaultValue: "Hear each one read your own words before you pick it." })}
         </Text>
       </FlexColumn>
 

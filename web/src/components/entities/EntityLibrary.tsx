@@ -103,7 +103,7 @@ const EntityLibraryInternal: React.FC = () => {
           onClick={() => setCreating(false)}
           sx={{ alignSelf: "flex-start", ml: SPACING.xl, mt: SPACING.md }}
         >
-          Back to entities
+          {t("editor:ui.backToEntities", { defaultValue: "Back to entities" })}
         </EditorButton>
         <EntitySetupHost onFinish={() => setCreating(false)} />
       </FlexColumn>

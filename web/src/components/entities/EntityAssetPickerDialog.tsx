@@ -55,8 +55,10 @@ const EntityAssetPickerDialogInternal: React.FC<
   }),
   assetIds,
   excludedAssetIds,
-  emptyTitle = "No images",
-  emptyDescription = "Generate or upload an image first."
+  emptyTitle = i18n.t("editor:ui.noImages", { defaultValue: "No images" }),
+  emptyDescription = i18n.t("editor:ui.generateOrUploadAnImageFirst", {
+    defaultValue: "Generate or upload an image first."
+  })
 }) => {
   const theme = useTheme();
   const activeProjectId =

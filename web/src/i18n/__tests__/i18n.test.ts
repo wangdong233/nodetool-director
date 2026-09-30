@@ -103,6 +103,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.skills;
     delete copy.apps;
     delete copy.styles;
+    delete copy.gameInspiration;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -276,6 +277,18 @@ describe("catalog key parity (CI completeness guard)", () => {
       // (r16-R1), and it also short-circuits before the boundary test can
       // run. The prefix-free sibling reference grants nothing to other keys.
       if (fullLiteralRefs.has(`${ns}:${key}`)) continue;
+      // Plural-category leaves OUTSIDE the dynamic subtrees: i18next resolves
+      // `_one`/`_other` from a call that names only the BASE, so a full
+      // literal of the base path corroborates the suffixed leaves the same
+      // way the dynamic-subtree branch below does (r9: nodesPlaced under
+      // storyboard:attrs).
+      const pluralKeyBase = key.replace(/_(one|other|few|many|zero|two)$/, "");
+      if (
+        pluralKeyBase !== key &&
+        fullLiteralRefs.has(`${ns}:${pluralKeyBase}`)
+      ) {
+        continue;
+      }
       // Keys with chars outside the extraction class (apostrophes etc.) can't
       // land in fullLiteralRefs — fall back to the original anchored regex.
       if (!/^[A-Za-z0-9_.+-]+$/.test(key)) {

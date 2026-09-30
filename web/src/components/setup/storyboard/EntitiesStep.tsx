@@ -666,10 +666,10 @@ export const EntitiesStep = ({
         <FlexColumn gap={SPACING.xl}>
           <FlexColumn gap={SPACING.xs}>
             <Text size="big" component="h2">
-              Assign each shot
+              {t("storyboard:attrs.assignEachShot", { defaultValue: "Assign each shot" })}
             </Text>
             <Text color="secondary">
-              Remove an entity from shots where it should not appear.
+              {t("storyboard:attrs.removeAnEntityFromShotsWhereItShouldNotAppear", { defaultValue: "Remove an entity from shots where it should not appear." })}
             </Text>
           </FlexColumn>
           <FlexColumn

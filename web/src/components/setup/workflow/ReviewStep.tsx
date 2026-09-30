@@ -272,7 +272,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
 
       <PlanReview
         sections={outputSections}
-        replanLabel="Re-plan"
+        replanLabel={t("storyboard:attrs.replan", { defaultValue: "Re-plan" })}
         onReplan={onReplan}
         replanPending={replanPending}
       />

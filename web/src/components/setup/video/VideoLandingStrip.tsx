@@ -130,7 +130,7 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
           <Caption color="secondary">{t("storyboard:attrs.next", { defaultValue: "Next:" })}</Caption>
           <EditorButton variant="text" onClick={onExport} disabled={!onExport}>{t("storyboard:attrs.export", { defaultValue: "Export" })}</EditorButton>
           <EditorButton variant="text" onClick={handleCaptions}>
-            Add captions
+            {t("storyboard:attrs.addCaptions", { defaultValue: "Add captions" })}
           </EditorButton>
         </>
       ) : null}

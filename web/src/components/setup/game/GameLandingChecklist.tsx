@@ -30,9 +30,23 @@ import {
   Text
 } from "../../ui_primitives";
 import type { BuildGameResult } from "../../../hooks/game/useBuildGame";
-import type { GameRunSummary, GameVerificationState } from "./gameRunSummary";
+import type {
+  GameRunSummary,
+  GameVerificationState,
+  GameVerificationStatus
+} from "./gameRunSummary";
 import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
+
+/** One i18n key per verification status, so the pill reads in the UI language. */
+const VERIFICATION_STATE_KEYS: Record<GameVerificationStatus, string> = {
+  queued: "storyboard:attrs.verificationState.queued",
+  running: "storyboard:attrs.verificationState.running",
+  passed: "storyboard:attrs.verificationState.passed",
+  failed: "storyboard:attrs.verificationState.failed",
+  unavailable: "storyboard:attrs.verificationState.unavailable",
+  interrupted: "storyboard:attrs.verificationState.interrupted"
+};
 
 export interface GameLandingChecklistProps {
   result: BuildGameResult;
@@ -108,9 +122,10 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
       <Line
         done
         label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
-        detail={`${result.nodeCount} node${
-          result.nodeCount === 1 ? "" : "s"
-        } placed`}
+        detail={t("storyboard:attrs.nodesPlaced", {
+          count: result.nodeCount,
+          defaultValue: "{{count}} nodes placed"
+        })}
       />
       <Line
         done={run.total > 0 && run.checked === run.total}
@@ -118,7 +133,11 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
         detail={
           run.total === 0
             ? t("storyboard:attrs.thisProjectKeepsTheTemplatesOwnArt", { defaultValue: "This project keeps the template's own art" })
-            : `${run.checked} of ${run.total}`
+            : t("storyboard:attrs.checkedOfTotal", {
+                checked: run.checked,
+                total: run.total,
+                defaultValue: "{{checked}} of {{total}}"
+              })
         }
       />
       <Line
@@ -183,17 +202,22 @@ interface LineProps {
   detail: string;
 }
 
-const Line: React.FC<LineProps> = ({ done, label, detail }) => (
-  <FlexRow gap={GAP.normal} align="center">
-    <StatusPill tone={done ? "done" : "failed"}>
-      {done ? "done" : "todo"}
-    </StatusPill>
-    <Text size="small" component="span">
-      {label}
-    </Text>
-    <Caption color="secondary">{detail}</Caption>
-  </FlexRow>
-);
+const Line: React.FC<LineProps> = ({ done, label, detail }) => {
+  const { t } = useTranslation();
+  return (
+    <FlexRow gap={GAP.normal} align="center">
+      <StatusPill tone={done ? "done" : "failed"}>
+        {done
+          ? t("storyboard:attrs.statusDone", { defaultValue: "done" })
+          : t("storyboard:attrs.statusTodo", { defaultValue: "todo" })}
+      </StatusPill>
+      <Text size="small" component="span">
+        {label}
+      </Text>
+      <Caption color="secondary">{detail}</Caption>
+    </FlexRow>
+  );
+};
 
 const missingGodot = (reason: string | undefined): boolean => {
   const normalized = reason?.toLowerCase() ?? "";
@@ -212,13 +236,13 @@ const verificationLine = (
   switch (verification.status) {
     case "passed":
       return {
-        label: `Verified with Godot ${godot}`,
+        label: i18n.t("storyboard:attrs.verifiedWithGodot", { defaultValue: "Verified with Godot {{version}}", version: godot }),
         detail: i18n.t("storyboard:attrs.theProjectOpenedAndRanHeadlessly", { defaultValue: "The project opened and ran headlessly" })
       };
     case "running":
       return {
         label: i18n.t("editor:ui.verificationRunning", { defaultValue: "Verification running" }),
-        detail: "Godot checks are in progress"
+        detail: i18n.t("storyboard:attrs.godotChecksAreInProgress", { defaultValue: "Godot checks are in progress" })
       };
     case "failed":
       return {
@@ -259,6 +283,7 @@ const VerificationLine: React.FC<VerificationLineProps> = ({
   label,
   detail
 }) => {
+  const { t } = useTranslation();
   const tone =
     state === "passed"
       ? "done"
@@ -271,7 +296,9 @@ const VerificationLine: React.FC<VerificationLineProps> = ({
             : "warning";
   return (
     <FlexRow gap={GAP.normal} align="center">
-      <StatusPill tone={tone}>{state}</StatusPill>
+      <StatusPill tone={tone}>
+        {t(VERIFICATION_STATE_KEYS[state], { defaultValue: state })}
+      </StatusPill>
       <Text size="small" component="span">
         {label}
       </Text>

@@ -108,7 +108,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
           showClear
         />
         <EditorButton variant="text" onClick={onCancel}>
-          Back to your idea
+          {t("editor:ui.backToYourIdea", { defaultValue: "Back to your idea" })}
         </EditorButton>
       </FlexRow>
 
