@@ -18,7 +18,7 @@ import {
   StatusPill,
   TYPOGRAPHY
 } from "../ui_primitives";
-import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
+import { TYPE_COLOR, TYPE_GLYPH, seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import ProjectDocumentPreview from "./ProjectDocumentPreview";
 import CopyProjectDocumentAction from "./CopyProjectDocumentAction";
 import {
@@ -80,7 +80,7 @@ const ProjectDocumentCard = ({
             {TYPE_GLYPH[document.type]}
           </Box>
           <Label
-            title={document.name}
+            title={seededDocDisplayName(document.type, document.name)}
             sx={{
               flex: 1,
               minWidth: 0,
@@ -90,7 +90,7 @@ const ProjectDocumentCard = ({
               whiteSpace: "nowrap"
             }}
           >
-            {document.name}
+            {seededDocDisplayName(document.type, document.name)}
           </Label>
           {progress && !compact && (
             <StatusPill

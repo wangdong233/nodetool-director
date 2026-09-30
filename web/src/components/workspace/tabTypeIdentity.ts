@@ -17,6 +17,35 @@ import { i18n } from "../../i18n";
 export const PROJECT_HOME_TAB_TITLE = "Home";
 export const PROJECT_HOME_GLYPH = "⌂";
 
+/**
+ * Seeded-default document titles — English snapshots the creation call sites
+ * store on the tab — resolved to catalog keys at RENDER time, so a language
+ * switch re-renders them in the new language (same treatment the page tabs
+ * above already get). The guarded-default discipline from the Personal
+ * project applies: a stored title equals the known default exactly, or it is
+ * the user's data and renders verbatim.
+ *
+ * SVG is a standard term and stays SVG in every locale (editor:ui.svg
+ * carries "SVG" on both sides by upstream's own choice) — it needs no entry.
+ */
+const DOC_TAB_DEFAULTS: Partial<
+  Record<WorkspaceTabType, Record<string, string>>
+> = {
+  workflow: {
+    Workflow: "nav:qa.workflows.label",
+    "New workflow": "nav:qa.workflows.label"
+  },
+  chat: { "New chat": "nav:qa.chats.label" },
+  image: { Image: "editor:ui.image" },
+  text: { Text: "editor:ui.text" },
+  timeline: { Timeline: "nav:qa.timelines.label" },
+  script: { Script: "nav:qa.scripts.label" },
+  jsscript: { "JS Script": "nav:qa.jsscripts.label" },
+  skill: { Skill: "nav:qa.skills.label" },
+  model3d: { "3D Model": "editor:ui.threeDModel" },
+  application: { Application: "nav:qa.apps.label" }
+};
+
 export const tabDisplayTitle = (tab: {
   type: WorkspaceTabType;
   title: string;
@@ -35,6 +64,10 @@ export const tabDisplayTitle = (tab: {
   // director/93 copy-polish R4 finding 3).
   if (tab.type === "page" && tab.ref && isPageTabKey(tab.ref)) {
     return pageTitle(tab.ref);
+  }
+  const seededDefault = DOC_TAB_DEFAULTS[tab.type]?.[tab.title];
+  if (seededDefault) {
+    return i18n.t(seededDefault, { defaultValue: tab.title });
   }
   return tab.title;
 };
@@ -93,3 +126,19 @@ export const TYPE_COLOR = {
   "guided-flow": PROJECT_COLOR,
   "project-new": PROJECT_COLOR
 } satisfies Record<WorkspaceTabType, string>;
+
+/**
+ * A document's display name wherever lists and cards show it (tree rows,
+ * project doc cards, workflow list). Same guarded-default discipline: a
+ * stored name equal to a creation-time seeded default resolves through the
+ * catalog at render time; anything else — including every user rename — is
+ * the user's data and renders verbatim. Standard terms (SVG) have no entry
+ * and pass through untouched.
+ */
+export const seededDocDisplayName = (
+  type: WorkspaceTabType,
+  name: string
+): string => {
+  const seededDefault = DOC_TAB_DEFAULTS[type]?.[name];
+  return seededDefault ? i18n.t(seededDefault, { defaultValue: name }) : name;
+};

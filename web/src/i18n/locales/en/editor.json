@@ -2718,7 +2718,10 @@
     "clipsOfShots": "clips {{clips}}/{{shots}}",
     "cutWithDuration": "cut · {{d}}",
     "mostRecentOf": "{{shown}} most recent of {{total}}",
-    "archivedProjects": "Archived projects"
+    "archivedProjects": "Archived projects",
+    "threeDModel": "3D Model",
+    "entity": "Entity",
+    "jsScriptTypeLabel": "JS script"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

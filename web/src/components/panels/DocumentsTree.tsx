@@ -32,6 +32,7 @@ import ReportBugButton from "../support/ReportBugButton";
 import PanelHeadline from "../ui/PanelHeadline";
 import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
 import { useTranslation } from "react-i18next";
+import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import {
   BORDER_RADIUS,
   Box,
@@ -155,7 +156,7 @@ const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
           })}
         />
         <TruncatedText component="span" showTooltip sx={{ minWidth: 0, flex: 1 }}>
-          {leaf.name}
+          {seededDocDisplayName(leaf.type, leaf.name)}
         </TruncatedText>
         <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
           {leaf.typeLabel}

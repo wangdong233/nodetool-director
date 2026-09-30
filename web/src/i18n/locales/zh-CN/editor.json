@@ -1707,7 +1707,7 @@
     "couldNotConnect": "无法连接。",
     "connectedTheServerOffersNoTools": "已连接。服务器未提供工具。",
     "connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar": "连接后，智能体与节点即可访问 Drive、Gmail、Docs、Sheets 和 Calendar。",
-    "modelContextProtocol": "模型上下文协议",
+    "modelContextProtocol": "MCP",
     "couldNotFindTheNodeToolExtensionBundle": "找不到 NodeTool 扩展包。",
     "noValidNodesInClipboard": "剪贴板中没有有效节点",
     "pasteCopiedNodes": "粘贴已复制的节点",
@@ -2718,7 +2718,10 @@
     "clipsOfShots": "片段 {{clips}}/{{shots}}",
     "cutWithDuration": "剪辑 · {{d}}",
     "mostRecentOf": "最近 {{shown}} 条 / 共 {{total}} 条",
-    "archivedProjects": "已归档项目"
+    "archivedProjects": "已归档项目",
+    "threeDModel": "3D 模型",
+    "entity": "实体",
+    "jsScriptTypeLabel": "JS 脚本"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -62,15 +62,15 @@ const UNTITLED_KEYS: Record<DocumentTreeLeafType, string> = {
   jsscript: "editor:ui.untitledJsScript"
 };
 
-const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
-  workflow: "Workflow",
-  application: "App",
-  sketch: "Sketch",
-  script: "Script",
-  storyboard: "Storyboard",
-  timeline: "Timeline",
-  entity: "Entity",
-  jsscript: "JS script"
+const TYPE_LABEL_KEYS: Record<DocumentTreeLeafType, string> = {
+  workflow: "editor:ui.workflow",
+  application: "editor:ui.app",
+  sketch: "editor:ui.sketch",
+  script: "editor:ui.script",
+  storyboard: "editor:ui.storyboard",
+  timeline: "editor:ui.timeline",
+  entity: "editor:ui.entity",
+  jsscript: "editor:ui.jsScriptTypeLabel"
 };
 
 /**
@@ -123,7 +123,7 @@ export const useDocumentTreeData = (
         id: document.id,
         name: document.name || t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
         type,
-        typeLabel: TYPE_LABELS[type],
+        typeLabel: t(TYPE_LABEL_KEYS[type]),
         projectId,
         entity: document.entity
       });

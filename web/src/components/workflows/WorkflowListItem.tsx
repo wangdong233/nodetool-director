@@ -13,6 +13,7 @@ import { TOOLTIP_ENTER_DELAY, TOOLTIP_ENTER_NEXT_DELAY } from "../../config/cons
 import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, BORDER_RADIUS, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx } from "../ui_primitives";
 import { WorkflowTriggerIndicator } from "./WorkflowTriggerIndicator";
 import { useTranslation } from "react-i18next";
+import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
 
 // Single-click on the row opens the workflow. Double-clicking the name renames
 // it inline instead, so the open is deferred briefly to let a following
@@ -174,7 +175,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
     return (
       <FlexColumn gap={1} sx={{ width: hasGraph ? 320 : "auto", maxWidth: 320, padding: getSpacingPx(SPACING.xl) }}>
         <Text size="normal" weight={500}>
-          {workflow.name}
+          {seededDocDisplayName("workflow", workflow.name)}
         </Text>
         {hasDescription && (
           <Text size="small" color="secondary" sx={{ mt: 1 }}>
