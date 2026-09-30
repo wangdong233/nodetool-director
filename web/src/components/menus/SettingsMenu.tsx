@@ -687,7 +687,16 @@ function SettingsPage() {
                 <TabPanel section="general" current={section}>
                   <div className="general-settings">
                     <div className="settings-section">
-                      <LanguageSetting />
+                      {/* SearchItem is load-bearing visibility: the section
+                          collapse rule hides any .settings-section without a
+                          .settings-item descendant — without this wrapper the
+                          language picker renders display:none. */}
+                      <SearchItem
+                        search={search}
+                        keywords="language english chinese locale interface 简体中文"
+                      >
+                        <LanguageSetting />
+                      </SearchItem>
                     </div>
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
