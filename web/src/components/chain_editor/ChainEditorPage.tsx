@@ -12,8 +12,10 @@ import { useChainEditorStore } from "./useChainEditorStore";
 import { trpcClient } from "../../trpc/client";
 import type { Workflow } from "../../stores/ApiTypes";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ChainEditorPage: React.FC = () => {
+  const { t } = useTranslation();
   const { workflowId } = useParams<{ workflowId?: string }>();
   const [loading, setLoading] = useState(!!workflowId);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ const ChainEditorPage: React.FC = () => {
     return (
       <FlexColumn align="center" justify="center" fullHeight fullWidth gap={2}>
         <LoadingSpinner size="large" />
-        <Text color="secondary">Loading workflow…</Text>
+        <Text color="secondary">{t("editor:ui.loadingWorkflow", { defaultValue: "Loading workflow…" })}</Text>
       </FlexColumn>
     );
   }

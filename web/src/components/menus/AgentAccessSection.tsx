@@ -280,7 +280,7 @@ const AgentAccessSection = () => {
         </FlexColumn>
       )}
 
-      {tokensLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading tokens…</Text>}
+      {tokensLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("editor:ui.loadingTokens", { defaultValue: "Loading tokens…" })}</Text>}
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>

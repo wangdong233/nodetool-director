@@ -222,7 +222,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
             role="status"
             aria-live="polite"
           >
-            <ShimmerText>Loading conversations…</ShimmerText>
+            <ShimmerText>{t("editor:ui.loadingConversations", { defaultValue: "Loading conversations…" })}</ShimmerText>
           </Text>
         </FlexColumn>
       ) : threadsError ? (

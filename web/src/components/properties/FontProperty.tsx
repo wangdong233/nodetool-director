@@ -77,7 +77,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
       />
       <div className="select-wrapper">
         {isLoading ? (
-          <div className="loading-state">Loading fonts…</div>
+          <div className="loading-state">{t("editor:ui.loadingFonts", { defaultValue: "Loading fonts…" })}</div>
         ) : isError ? (
           <div className="error-state">{t("ui2:attrs.errorLoadingFonts", { defaultValue: "Error loading fonts" })}</div>
         ) : (

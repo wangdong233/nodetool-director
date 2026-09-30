@@ -117,7 +117,7 @@ const ConnectedAccountsSettings = () => {
         {isLoading && (
           <FlexRow align="center" gap={SPACING.md}>
             <LoadingSpinner />
-            <Caption>Loading connected accounts…</Caption>
+            <Caption>{t("editor:ui.loadingConnectedAccounts", { defaultValue: "Loading connected accounts…" })}</Caption>
           </FlexRow>
         )}
 
