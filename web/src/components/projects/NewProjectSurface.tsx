@@ -1796,7 +1796,7 @@ const NewProjectSurface = ({
                       <Chip
                         clickable
                         variant="outlined"
-                        label={starterLabel(entry.name)}
+                        label={t(`catalog:skills.${entry.name}.name`, { defaultValue: starterLabel(entry.name) })}
                         aria-pressed={active}
                         onClick={() => handleToggleStarter(entry.name)}
                         sx={{

@@ -92,6 +92,18 @@ describe("app i18n", () => {
 });
 
 describe("catalog key parity (CI completeness guard)", () => {
+  // Display-layer data catalog (director/98 方案A): the skills/apps blocks are
+  // a zh-only OVERLAY — English renders the runtime data value through
+  // defaultValue (t(`catalog:skills.${slug}.name`, { defaultValue: … })), so
+  // the en file carries no copy that could drift or shadow live data. Parity
+  // therefore compares the static blocks only; the overlay itself is checked
+  // by the dedicated test below.
+  const staticBlocks = (obj: Record<string, unknown>) => {
+    const copy = { ...obj };
+    delete copy.skills;
+    delete copy.apps;
+    return copy;
+  };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
     ["common", commonEn, commonZh],
     ["nav", navEn, navZh],
@@ -104,7 +116,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     ["ui", uiEn, uiZh],
     ["ui2", ui2En, ui2Zh],
     ["appbuilder", appbuilderEn, appbuilderZh],
-    ["catalog", catalogEn, catalogZh],
+    ["catalog", staticBlocks(catalogEn), staticBlocks(catalogZh)],
     ["tools", toolsEn, toolsZh],
   ];
 
@@ -342,6 +354,31 @@ describe("catalog key parity (CI completeness guard)", () => {
       for (const value of Object.values(flattenDeep(zh))) {
         expect(typeof value).toBe("string");
         expect((value as string).length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("catalog skills/apps overlay is zh-only with non-empty name+description per slug", () => {
+    // en must NOT carry the overlay (defaultValue is the English source), and
+    // every zh entry needs both fields so a chip/tile never renders a bare
+    // slug or an empty description.
+    expect(catalogEn).not.toHaveProperty("skills");
+    expect(catalogEn).not.toHaveProperty("apps");
+    // The JSON module's inferred literal type cannot directly overlap a nested
+    // record index, hence the double assertion.
+    const zhOverlay = catalogZh as unknown as Record<
+      string,
+      Record<string, Record<string, unknown>>
+    >;
+    for (const block of ["skills", "apps"] as const) {
+      const entries = zhOverlay[block];
+      expect(Object.keys(entries).length).toBeGreaterThan(0);
+      for (const [slug, entry] of Object.entries(entries)) {
+        for (const field of ["name", "description"]) {
+          expect(typeof entry[field]).toBe("string");
+          expect((entry[field] as string).length).toBeGreaterThan(0);
+        }
+        expect(slug).toMatch(/^[a-z0-9][a-z0-9.-]*$/);
       }
     }
   });

@@ -187,8 +187,12 @@ const ExampleAppCard = memo(function ExampleAppCard({
         )}
       </span>
       <span className="app-body">
-        <span className="app-name">{app.name}</span>
-        <span className="app-desc">{app.description}</span>
+        <span className="app-name">
+          {t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name })}
+        </span>
+        <span className="app-desc">
+          {t(`catalog:apps.${app.slug}.description`, { defaultValue: app.description })}
+        </span>
         <span className="app-meta">
           {workflows} workflow{workflows === 1 ? "" : "s"}
         </span>

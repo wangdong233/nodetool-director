@@ -490,5 +490,317 @@
     "mistralModel": "Mistral 模型",
     "transformersjsModelTjs": "Transformers.js 模型（tjs.*）",
     "file": "文件"
+  },
+  "skills": {
+    "beat-sync-editing": {
+      "name": "节奏卡点剪辑",
+      "description": "按音乐剪辑时间线并打磨节奏：检测节拍网格、按乐句落剪点、选择剪切方式、用时间重映射做变速推进，并让整片有起有伏。适合画面要对上音乐、节奏拖沓或零碎、重音需要冲击力、转场显得随意的场景；不负责镜头内容本身。"
+    },
+    "caption-titles": {
+      "name": "字幕标题条",
+      "description": "在画面已定剪的时间线上加一层统一、卡好时的文字：片头标题、人名条、字幕、标注和片尾卡。不用于搭建工作流或渲染视频。"
+    },
+    "color-motion": {
+      "name": "色彩动效",
+      "description": "在时间线上选色并让色彩动起来：克制的配色、图形与文字的渐变填充、片段效果链的调色顺序，以及哪些颜色通道真正可动。适合定调画面风格、把多个镜头调到能剪在一起、做颜色渐变动效，或修复发灰、泛白、有色带的画面；不负责文案与剪辑点。"
+    },
+    "commercial-beat-sheet": {
+      "name": "广告节拍表",
+      "description": "写一份可拍摄、卡准时间的广告节拍表并存成分镜，每个镜头背后都有统一的实体名单。适合需要广告结构（钩子、节拍、时间码、配音）而非成片渲染的场景。"
+    },
+    "elevenlabs-audio-prompting": {
+      "name": "ElevenLabs 音频提示词",
+      "description": "指挥 ElevenLabs 的语音、对白、音效与音乐生成：v3 会响应的方括号音频标签、为什么由声音决定标签是否生效、稳定性参数如何当语气旋钮用、用标点而非 SSML 控节奏、多说话人的逐行对白格式、带 prompt_influence 与循环的音效简报，以及锁定歌曲段落的谱曲方案。凡模型 ID 指向 ElevenLabs 的语音、对白、音效、音乐生成端点即适用；转写、配音替换、隔离等不吃提示词的端点不在此列。"
+    },
+    "explainer-storyboard": {
+      "name": "解说视频分镜",
+      "description": "把已确认的产品或功能简介变成 30–120 秒、可拍摄的解说视频分镜，实体名单全程统一。用于产品解说类视频，不用于工作流、管线或成片渲染。"
+    },
+    "flux-2-klein-prompting": {
+      "name": "FLUX.2 Klein 提示词",
+      "description": "编写 Black Forest Labs FLUX.2 [klein] 的提示词：它按顺序处理的主体／环境／风格／技术层级、guidance 与步数取舍、针对真实失败模式的反向提示词，以及亚秒级延迟让「锁种子、每次只动一个变量」的迭代循环真正可行。凡模型 ID 含 flux-2/klein（含 base、edit、lora、realtime 变体）即适用；FLUX.2 pro、flex、max、dev 不在此列。"
+    },
+    "frame-composition": {
+      "name": "画面构图",
+      "description": "在时间线上经营画面：网格、焦点摆位、各画幅的安全区、纵深层次与视差、镜头运动，以及元素的入场与离场。适合摆标题、人名条、图形或叠加层，布局要同时扛住 16:9 与 9:16，要加推近或视差运镜，或画面显得平、挤的场合；不负责片段说什么、何时剪切。"
+    },
+    "godot-game": {
+      "name": "Godot 游戏开发",
+      "description": "用模板、校验过的素材、导出与验证流程，在 NodeTool 里搭出可玩的 Godot 游戏或完整的游戏素材包。"
+    },
+    "gpt-image-2-prompting": {
+      "name": "GPT Image 2 提示词",
+      "description": "编写 OpenAI GPT Image 2 的提示词：它认的「场景／主体／细节／用途／约束」五段模板、编辑时「改什么—保什么」的结构、多图合成的标注法，以及让图中文字逐字渲染的写法。凡模型 ID 含 gpt-image-2 即适用；GPT Image 1、1-mini、1.5 不在此列。"
+    },
+    "hailuo-prompting": {
+      "name": "海螺视频提示词",
+      "description": "编写 MiniMax 海螺视频系列的提示词：它按时间顺序动画化的节拍写法、导演端点接受的十五个方括号镜头命令与「每括号三条」规则、何时关掉 prompt_optimizer、为什么没有反向提示词可退，以及图生视频只写增量。凡模型 ID 为 Hailuo 或 MiniMax video-01 系即适用；MiniMax H3 另有专册。"
+    },
+    "kling-video-prompting": {
+      "name": "可灵视频提示词",
+      "description": "编写快手可灵 2.5-turbo 及之后版本的提示词：哪个版本才有镜头清单、元素标记、原生音频与 CFG 旋钮，multi_prompt 里一条一段而非一整段散文，角色标 @Element1/@Element2 让脸在剪切后保得住，原生音频对口型的标注对白格式，针对可灵真实瑕疵的反向提示词，以及运镜控制真正要的不是提示词。凡模型 ID 为 Kling 2.5-turbo、2.6、v3、O1、O3 即适用；Kling 1.x、2.0、2.1 与可灵图像不在此列。"
+    },
+    "launch-commercial": {
+      "name": "发布广告片",
+      "description": "从一个产品页网址直达成品发布广告：调研、分镜、渲染图与镜头、配音、音乐、装配好的时间线，以可编辑的 NodeTool 项目交付并附真实成本。适合「照这个产品页／官网给我出条广告、发布短片、宣传片」的需求。"
+    },
+    "launch-kit": {
+      "name": "发布物料包",
+      "description": "产出一套 NodeTool 宣传战役：共享的产品与角色实体、多张图稿和多版视频剪辑。适合需要成套协同物料的场合。"
+    },
+    "logo-reveal": {
+      "name": "Logo 演绎动画",
+      "description": "在时间线上让品牌标识动起来：描边勾画、遮罩擦除、错峰拼合、字标排版、待机循环，并把定格落在声音标识上。适合片头标、收尾标、片尾卡、启动画面或加载循环；不负责设计标识本身。"
+    },
+    "minimax-h3-prompting": {
+      "name": "MiniMax H3 提示词",
+      "description": "编写 MiniMax H3 的提示词：在文生视频、首末帧、参考图三类端点间做选择，给每张参考图、每段素材、每条音频指派明确职责，在提示词里写带时间码的镜头清单，艺术指导原生立体声，以及改片段时把「改动＋约束」一起说。凡模型 ID 以 minimax/h3 开头（含 max、turbo、lora 变体）即适用；海螺系列另有专册。"
+    },
+    "motion-background": {
+      "name": "动态背景",
+      "description": "在时间线上搭一块会动却不抢戏的氛围循环底：图形片段做的渐变底、缓慢的循环动画、分层漂移，以及生成的视频底。适合标题卡背景、文字后面的主视觉底、片尾卡、人名条底板，或出镜讲解后面的循环底；不负责前面的内容。"
+    },
+    "motion-curves": {
+      "name": "运动曲线",
+      "description": "手写时间线动画的关键帧曲线，或在沙箱里用一段 JavaScript 一次性烘焙成曲线，做出预设覆盖不到的运动：过冲、衰减弹跳、预备动作、抖动、惯性、弧线、路径描画，以及一切「预设＋缓动」表达不出的轨迹。涵盖代码契约、可动画通道与多曲线的组合方式。"
+    },
+    "motion-direction": {
+      "name": "动效语言设定",
+      "description": "在任何东西动起来之前先定全片的动效语言——一套缓动、一个计时单位、一族转场、一种错峰节奏——再拿它审计整条时间线。适合开始做标题层或整片剪辑时、动画显得闹、廉价或镜头间不一致时，或把品牌与简报翻译成智能体能执行的动效规则时；单个片段的机械细节归 MG 动效管。"
+    },
+    "motion-graphics": {
+      "name": "MG 动效制作",
+      "description": "在时间线上给文字、片段与转场做动效，并逐帧看渲染结果自查。适合标题卡、动态文字、人名条动效、片段出入场、镜头间转场与轨道分层；不负责写文案、剪画面或渲染成片。"
+    },
+    "motion-principles": {
+      "name": "动效原则",
+      "description": "动手之前先决定它该怎么动：时长、缓动曲线、错峰偏移、重量感、预备与跟随，全部给成能直接贴进时间线动画的数字。适合动作发僵、发飘、机械或廉价时，为出入场与转场挑时长或缓动时，或审查一段剪切的动效读不读得懂时；工具契约归 MG 动效管。"
+    },
+    "music-video-treatment": {
+      "name": "音乐视频创意方案",
+      "description": "把已确认的曲目信息变成可拍摄、卡节拍的音乐视频创意方案与 NodeTool 分镜。用于 MV 与音乐宣传片，不用于工作流、管线或成片渲染。"
+    },
+    "nano-banana-pro-prompting": {
+      "name": "Nano Banana Pro 提示词",
+      "description": "编写 Google Nano Banana Pro 图像模型的提示词：它先按美术指导简报做规划，每次编辑都需要的「锁定／改动／幅度／约束」结构，以及排版、示意图、产品样机与分镜的专用写法。凡模型 ID 含 nano-banana-pro 即适用；Nano Banana 2 与初代 Nano Banana 不在此列。"
+    },
+    "nodetool-3d-scene": {
+      "name": "3D 场景构建",
+      "description": "构建、编辑、校验或渲染 NodeTool 3D 模型：glTF 对象、变换、灯光、材质，以及 Blender 无头渲染。"
+    },
+    "nodetool-api-reference": {
+      "name": "API 接入参考",
+      "description": "通过 REST、tRPC、MsgPack WebSocket、MCP 或 OpenAI 兼容的 Chat API 与 NodeTool 集成，覆盖文档面与工作流执行。"
+    },
+    "nodetool-app-builder": {
+      "name": "小程序搭建",
+      "description": "搭建或修理 NodeTool 小程序：操作、微件、绑定、变量、资源。交付物是给人运行的界面而非节点图时用它。"
+    },
+    "nodetool-browser-agent": {
+      "name": "浏览器自动化智能体",
+      "description": "构建 NodeTool 浏览器自动化智能体，处理导航、数据抽取、表单或多步网页任务。"
+    },
+    "nodetool-chat-cli": {
+      "name": "命令行对话",
+      "description": "使用 NodeTool 命令行对话会话：模型服务商选择、工作区工具与全局对话功能。"
+    },
+    "nodetool-custom-node-developer": {
+      "name": "自定义节点开发",
+      "description": "创建或更新 TypeScript 的 NodeTool 节点：装饰器属性、process 方法与节点包。"
+    },
+    "nodetool-deployment": {
+      "name": "部署运维",
+      "description": "用 Docker、SSH、Runpod 或云端部署配置，部署与运维 NodeTool 服务器和工作进程。"
+    },
+    "nodetool-js-scripting": {
+      "name": "JS 脚本编写",
+      "description": "编写运行在 NodeTool QuickJS 沙箱里的 JavaScript：Code 节点代码体、保存的 JS 脚本文档、沙箱包导入，以及在代码里调用节点。"
+    },
+    "nodetool-model-provider-config": {
+      "name": "模型服务商配置",
+      "description": "配置 NodeTool 的模型服务商、凭据与模型选择，包括本地 Ollama 与 Hugging Face 模型。"
+    },
+    "nodetool-rag-indexing": {
+      "name": "RAG 索引构建",
+      "description": "搭建 NodeTool 的文档摄取、向量索引、检索与 RAG 管线。"
+    },
+    "nodetool-sketch": {
+      "name": "图稿编辑",
+      "description": "搭建或编辑 NodeTool 图稿（图像文档）：图层、混合模式、置入图片、生成简报、版本历史。"
+    },
+    "nodetool-skill-author": {
+      "name": "技能编写",
+      "description": "编写或修订 NodeTool 技能：经 create_skill 建的用户技能，或 packages/system-skills 下随产品发布的系统技能。需要指令跨会话留存时用它。"
+    },
+    "nodetool-troubleshooter": {
+      "name": "故障排查",
+      "description": "诊断任何表面上的 NodeTool 运行故障：工作流、小程序、时间线、图稿、脚本、分镜，以及卡住的媒体生成。仓库代码缺陷请用 diagnosing-bugs。"
+    },
+    "nodetool-video-post": {
+      "name": "视频后期修复",
+      "description": "修复或重新生成时间线上已有的画面：抠图、跟踪、外绘补全、放大、生成音效、换声、对口型。含这些操作返回结果的候选复核流程。"
+    },
+    "nodetool-workflow-builder": {
+      "name": "工作流搭建",
+      "description": "通过界面、无头工具或指定的 workflow 文件，创建或编辑 NodeTool 工作流的节点图、连线与属性。"
+    },
+    "product-commercial": {
+      "name": "产品广告片",
+      "description": "在 NodeTool 里执导精制的产品片或品牌广告。手机实拍的创作者广告请用 UGC 视频创作。"
+    },
+    "qwen-image-prompting": {
+      "name": "Qwen 图像提示词",
+      "description": "编写阿里 Qwen-Image 系列的提示词，发挥它专长的排版工作：逐字引用画面文字让模型不再自己编、先关掉提示词扩写免得字符串被改写、用相对位置与轻重描述版式而非字号、非拉丁文字按字符书写、编辑时按「图 1／图 2／图 3」称呼参考图。凡模型 ID 为 Qwen-Image 系列（文生图与编辑各端点）即适用。"
+    },
+    "script-video": {
+      "name": "文稿配音视频",
+      "description": "执导节奏跟着旁白文稿走的 NodeTool 视频，比如解说片或配音空镜。出镜创作者内容请用 UGC 视频创作。"
+    },
+    "seedance-2-prompting": {
+      "name": "Seedance 2 提示词",
+      "description": "编写字节 Seedance 2 视频系列的提示词：主体／运动／环境／画风／镜头／声音公式，双引号对白如何被配声并对口型，写死声音混合而非留空，一次生成里切镜头，撑起整片起伏的 JSON 节拍简报，以及给物理一个要追的后果。凡模型 ID 含 seedance-2（含 fast、mini 变体与文生视频／图生视频／参考图各类形式）即适用；Seedance 1.x 不在此列。"
+    },
+    "seedream-prompting": {
+      "name": "Seedream 提示词",
+      "description": "编写字节 Seedream 4／5 图像系列的提示词：它按顺序读的六层简报、超过字数预算就开始丢句的阈值，画面文字要引用并安排位置、编辑前先钉住不许动的东西、最多十张参考图按内容而非序号称呼，以及迭代尺寸与交付尺寸的取舍。凡模型 ID 为 Seedream 4 或 5 即适用；Seedream 3 不在此列。"
+    },
+    "short-film": {
+      "name": "短片创作",
+      "description": "在 NodeTool 里执导叙事场景、短片或预告片，带角色、对白与配乐。"
+    },
+    "stable-audio-prompting": {
+      "name": "Stable Audio 提示词",
+      "description": "编写 Stability Stable Audio 系列的提示词：训练元数据认的「曲风／乐器／情绪／BPM」顺序，Stable Audio 3 上区分音乐、分轨与音效的 TrackType、VocalType 标签，时长要写到位，guidance_scale 与步数各影响哪些检查点，以及内绘、外绘、音频转音频变体里周边音频比提示词更说了算的写法。凡模型 ID 为 Stable Audio 系列（generate_music 或音频生成节点）即适用。"
+    },
+    "storyboard-core": {
+      "name": "分镜制作核心",
+      "description": "使用 NodeTool 的分镜、实体选角、渲染与时间线装配工具做视频生产，或调试这些工具的契约。"
+    },
+    "trailer-template": {
+      "name": "预告片模板",
+      "description": "按「声音先行」的八拍结构搭预告片或预热片——钩子、铺垫、触发事件、加码、骤降、高潮、片名、收束——配按片长缩放的时间码网格、事件／反应镜头对、埋了又收的母题，和一条不断的音乐底，最后存成 NodeTool 分镜，每个反复出镜的脸背后都有角色实体。有人要预告片结构、说剪辑没主线没递进、或想知道爆点和片名卡放哪时用它；广告归广告节拍表，音乐视频归音乐视频创意方案。"
+    },
+    "ugc-video": {
+      "name": "UGC 视频创作",
+      "description": "执导手机实拍的创作者视频、UGC 广告、用户证言或 Vlog。精制产品片请用产品广告片。"
+    },
+    "veo-3-prompting": {
+      "name": "Veo 3 提示词",
+      "description": "编写 Google Veo 3 视频系列的提示词：镜头／场景／主体／动作／对白五要素结构、它直接读得懂的摄影词汇、时长与画幅的取舍、enhance-prompt 与 auto-fix 预处理器，以及视觉漂移、时间不一致与音画不匹配的修法。凡模型 ID 含 veo3 或 veo-3（含 fast、lite、图生视频、首末帧、参考图各路线）即适用。"
+    },
+    "video-audio-continuity": {
+      "name": "视频声音连贯",
+      "description": "让生成视频剪出的多场景作品声音不断线：为什么一场景一片会在每个切点硬断音频、什么时候该把所有场景写进一次生成、能过服务商版权过滤器的声音设计词汇，以及怎么核返回物的时长、画幅与混音。作品多于一场景且视频模型自带音频（Seedance 2、Veo 3、MiniMax H3、可灵 2.6 及以后），或切点处声音掉线时用它。"
+    },
+    "video-clone": {
+      "name": "视频复刻",
+      "description": "分析一条参考视频，在 NodeTool 里用新产品或新阵容复刻它的镜头结构。"
+    },
+    "video-workflow": {
+      "name": "视频工作流",
+      "description": "搭一条可复用的 NodeTool 视频工作流，应对批量或重复输入。单片成品请用分镜类技能。"
+    },
+    "wan-2-6-prompting": {
+      "name": "Wan 2.6 提示词",
+      "description": "编写阿里 Wan 2.6 三种模式的提示词：文生视频用一句全局风格线加带时间括号的镜头，图生视频只描述随时间变化的部分，参考生视频把主体标成 @Video1/@Video2/@Video3。涵盖 multi_shots 格式、800 字符提示词预算、反向提示词、运动强度措辞、音频输入规则与提示词扩写。凡模型 ID 含 wan-2.6 或 wan2.6 即适用；Wan 2.5、2.7 不在此列。"
+    }
+  },
+  "apps": {
+    "ad-maker": {
+      "name": "广告创作台",
+      "description": "从一个卖点出发，对比多路文案与标题角度，再用已过审的文案配上视觉简报，执导一支战役主片。"
+    },
+    "ai-spokesperson": {
+      "name": "AI 发言人",
+      "description": "文字转语音先给脚本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
+    },
+    "brand-and-social": {
+      "name": "品牌与社媒",
+      "description": "品牌信息填一次——素材套件与缩略图工厂读的都是同一份值。"
+    },
+    "concept-studio": {
+      "name": "概念工作室",
+      "description": "创意迭代循环：把简报扇形展开成概念图，把动物混成新生物，再把选中的图送进免密钥的滤镜链。"
+    },
+    "directed-campaign-kit": {
+      "name": "战役执导套件",
+      "description": "上传一张产品图。多模态语言模型补全简报并提出三个方向，你批准一支主片、搭两种规格、再执导一轮修改。"
+    },
+    "dubbing-desk": {
+      "name": "配音台",
+      "description": "「多语言视频配音」链路收进一个界面。转写把文稿写进变量，换声与回译两步读的都是它，所以配上去的词就是你看得见的词。"
+    },
+    "film-studio": {
+      "name": "影片工作室",
+      "description": "一份简报驱动三样东西：一部有执导感的短片、一条可编辑的粗剪，和一张卖它的海报。"
+    },
+    "model-arena": {
+      "name": "模型竞技场",
+      "description": "三栏三个回答，各自独立流式输出。缺一个服务商密钥只挂一栏，不挂整场。"
+    },
+    "multi-shot-video": {
+      "name": "多镜头视频",
+      "description": "导演模型写出镜头清单与风格圣经，每个镜头先渲染成关键帧再动画化，最后剪成一条视频。"
+    },
+    "photo-studio": {
+      "name": "照片工作室",
+      "description": "一个界面后面是实时照片编辑器与批量修图。单张调色是纯 GPU 滤镜，完全不需要 API 密钥。"
+    },
+    "podcast-production-desk": {
+      "name": "播客生产台",
+      "description": "播客工作区：清洗或母带处理一段录音，再从同一素材做出节目笔记、通讯、社媒帖子和金句卡。"
+    },
+    "product-launch-kit": {
+      "name": "产品发布套件",
+      "description": "先把产品图置入生活方式样机，再——想清楚才动手，因为这一步花真钱——把同一张图变成发布视频。"
+    },
+    "product-reshoot": {
+      "name": "产品重拍",
+      "description": "从一张产品图做出三版可直接投产的画面：换一套场景、按季节重新打光，或抠出干净图供合成。"
+    },
+    "product-shot-video": {
+      "name": "产品展示视频",
+      "description": "锁定产品参考图，选一个运镜，出一条循环广告或产品页的转台展示片段。"
+    },
+    "scene-builder": {
+      "name": "场景构建",
+      "description": "描述一个场景，审看定稿静帧，再让这一帧动起来，主体、构图与颜色原样带入运动镜头。"
+    },
+    "sku-factory": {
+      "name": "SKU 工厂",
+      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品图丢一次，抠图、棚拍场景、季节重光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
+    },
+    "trailer-room": {
+      "name": "预告片室",
+      "description": "「分镜到预告片」链路收进一个界面。节拍表和镜头清单还在文本调用价位时反复改，最后为素材花一次钱，再给剪好的片子铺上配乐。"
+    },
+    "ugc-product-video": {
+      "name": "UGC 产品视频",
+      "description": "选定卖点承诺，生成一条原生配音的证言，再把说出的话变成可审看的字幕、克制的动效和带品牌的收尾。"
+    },
+    "upscale-image": {
+      "name": "图像放大",
+      "description": "一个拖放区后面是两个放大器。ESRGAN 重建画面里本就有的细节，照片选它；Clarity 补出可信的细节，源图太小选它。"
+    },
+    "vary-image": {
+      "name": "图像变体",
+      "description": "指定要变的部分：光、背景、姿势、色调、机位。编辑模型只改这一处，构图与主体原样保留——因为它在原地编辑而不是重新生成。"
+    },
+    "vertical-cut": {
+      "name": "竖版剪辑",
+      "description": "把 16:9 片段转成竖版画幅，并在你选的时间点抽一帧当封面。两步都经 ffmpeg 本地运行。"
+    },
+    "video-post-house": {
+      "name": "AI 视频后期工作室",
+      "description": "素材传一次：AI 改写画面风格、给源片调色、剪一条预告、抽一帧封面。片段里有出镜主讲的话，还能配新稿并对口型。"
+    },
+    "video-restyle": {
+      "name": "视频风格化",
+      "description": "上传素材，说清要的风格和必须保住的东西，视频转视频模型上风格，运动不动。"
+    },
+    "viral-ad-engine": {
+      "name": "爆款广告引擎",
+      "description": "「爆款视频广告引擎」链路收进一个界面。卖点同时驱动文案语域与钩子缩略图组，你选的那句文案和你测的那些封面出自同一份简报。"
+    }
   }
 }

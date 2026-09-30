@@ -125,7 +125,12 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
               component="div"
               sx={{ mt: 0.5 }}
             >
-              {skill.description}
+              {/* Display-layer localization: the /slug above stays English
+                  (it is the invocation identifier); only this prose
+                  translates, falling back to the skill's own description. */}
+              {t(`catalog:skills.${skill.name}.description`, {
+                defaultValue: skill.description
+              })}
             </Text>
           )}
         </SelectableListItem>
