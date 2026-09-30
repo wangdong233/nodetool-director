@@ -29,6 +29,7 @@ import {
 import { useAuth } from "../../stores/useAuth";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
 import { useTranslation } from "react-i18next";
+import { PERSONAL_PROJECT_NAME } from "@nodetool-ai/protocol/api-schemas/projects.js";
 
 const selectorStyles = (theme: Theme, inline: boolean) =>
   css({
@@ -122,11 +123,17 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     const tab = state.tabs.find((entry) => entry.id === state.activeTabId);
     return tab?.projectId === activeProjectId ? tab.title : undefined;
   });
-  // The personal project's stored name is the backend constant "Personal"
-  // (PERSONAL_PROJECT_NAME) — a data value. Map it to the catalog at the
-  // display layer; user-named projects keep their own names verbatim.
+  // The personal project's seeded name is the backend constant (exposed as
+  // PERSONAL_PROJECT_NAME in the schema contract) — a data value. Swap it for
+  // the catalog at the display layer ONLY while it is still the untouched
+  // system default: a renamed personal project is the user's data and renders
+  // verbatim. (Unconditional isPersonal mapping would swallow renames — the
+  // tab bar's rename goes through projects.update with no guard.)
+  const personalDefault =
+    activeProject?.isPersonal &&
+    activeProject.name === PERSONAL_PROJECT_NAME;
   const name =
-    activeProject?.isPersonal
+    personalDefault
       ? t("editor:ui.personal", { defaultValue: "Personal" })
       : (activeProject?.name ??
         (activeProjectId === personalProjectId

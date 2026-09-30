@@ -26,7 +26,10 @@ import { Thread } from "./thread.js";
 export const LOOSE_PROJECT_ID = "default";
 
 export const PERSONAL_PROJECT_KIND = "personal";
-export const PERSONAL_PROJECT_NAME = "Personal";
+// Single source: the schema contract (api-schemas/projects.ts). Imported for
+// the seeding call below, re-exported for the existing backend importers.
+import { PERSONAL_PROJECT_NAME } from "@nodetool-ai/protocol/api-schemas/projects.js";
+export { PERSONAL_PROJECT_NAME };
 
 /**
  * The rows the Personal migration may claim: never assigned, or assigned to the
