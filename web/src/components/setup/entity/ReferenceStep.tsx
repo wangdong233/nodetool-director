@@ -101,7 +101,7 @@ const GenerateReferenceDialog = ({
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error("The image model returned no reference image.");
+        throw new Error(t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
       }
       useLastModelStore.getState().remember("image", { provider, model });
       onPick(assetId);
@@ -115,7 +115,7 @@ const GenerateReferenceDialog = ({
     } finally {
       setGenerating(false);
     }
-  }, [model, onClose, onPick, prompt, provider]);
+  }, [model, onClose, onPick, prompt, provider, t]);
 
   return (
     <Dialog
@@ -124,15 +124,14 @@ const GenerateReferenceDialog = ({
       title={t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
       showActions
       onConfirm={() => void handleGenerate()}
-      confirmText={generating ? "Generating" : "Generate reference"}
+      confirmText={generating ? t("storyboard:attrs.generating", { defaultValue: "Generating" }) : t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
       confirmDisabled={generating || !prompt.trim() || !model || !provider}
       cancelDisabled={generating}
       isLoading={generating}
     >
       <FlexColumn gap={GAP.comfortable} sx={{ minWidth: 360 }}>
         <Caption color="secondary">
-          Start with the entity description, then adjust the prompt if you
-          want a different visual interpretation.
+          {t("storyboard:attrs.startWithTheEntityDescriptionThenAdjustThePrompt", { defaultValue: "Start with the entity description, then adjust the prompt if you want a different visual interpretation." })}
         </Caption>
         <TextInput
           label={t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
@@ -185,8 +184,7 @@ export const ReferenceStep = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h1">{t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}</Text>
         <Text color="secondary">
-          Pick the clearest image of the traits you want future generations to
-          preserve, or create one with AI.
+          {t("storyboard:attrs.pickTheClearestImageOfTheTraitsYouWantFutureGenerationsToPreserve", { defaultValue: "Pick the clearest image of the traits you want future generations to preserve, or create one with AI." })}
         </Text>
       </FlexColumn>
 

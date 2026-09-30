@@ -325,7 +325,7 @@ export const LookStep: React.FC<LookStepProps> = ({
             : ""
         }`
       : style.trim().length > 0
-        ? `Your Director wrote the look: ${style.trim()}`
+        ? t("storyboard:attrs.yourDirectorWroteTheLook", { defaultValue: "Your Director wrote the look: {{style}}", style: style.trim() })
         : null;
 
   const shotlistImport = useShotlistImportSummary(boardId);
@@ -371,16 +371,16 @@ export const LookStep: React.FC<LookStepProps> = ({
         <AlertBanner severity="info" title="Shotlist imported">
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
-              {`${shotlistImport.shotCount} shot${
-                shotlistImport.shotCount === 1 ? "" : "s"
-              } are on your board.`}
+              {shotlistImport.shotCount === 1
+                ? t("storyboard:attrs.countShotIsOnYourBoard", { defaultValue: "{{count}} shot is on your board.", count: shotlistImport.shotCount })
+                : t("storyboard:attrs.countShotsAreOnYourBoard", { defaultValue: "{{count}} shots are on your board.", count: shotlistImport.shotCount })}
             </Caption>
             {shotlistImport.entries.length > 0 ? (
               <Box component="details">
                 <Caption component="summary">
-                  {`${shotlistImport.entries.length} value${
-                    shotlistImport.entries.length === 1 ? "" : "s"
-                  } did not come with them`}
+                  {shotlistImport.entries.length === 1
+                    ? t("storyboard:attrs.countValueDidNotComeWithThem", { defaultValue: "{{count}} value did not come with them", count: shotlistImport.entries.length })
+                    : t("storyboard:attrs.countValuesDidNotComeWithThem", { defaultValue: "{{count}} values did not come with them", count: shotlistImport.entries.length })}
                 </Caption>
                 <FlexColumn
                   gap={GAP.tight}
@@ -449,7 +449,7 @@ export const LookStep: React.FC<LookStepProps> = ({
           selectedId={selectedId}
           onSelect={handleSelect}
           onAddOwn={openAddStyle}
-          addOwnLabel="Add your own style"
+          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
           addOwnDisabled={readOnly || customStyle.saving}
         />
       </FlexColumn>

@@ -35,14 +35,13 @@ export const ReviewStep = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h1">{t("storyboard:attrs.reviewYourEntity", { defaultValue: "Review your entity" })}</Text>
         <Text color="secondary">
-          This reference and descriptor will be available anywhere entities can
-          be added.
+          {t("storyboard:attrs.thisReferenceAndDescriptorWillBeAvailableAnywhereEntitiesCanBeAdded", { defaultValue: "This reference and descriptor will be available anywhere entities can be added." })}
         </Text>
       </FlexColumn>
 
       <ResponsiveImage
         locator={`asset://${assetId}`}
-        alt={`${name} reference`}
+        alt={t("storyboard:attrs.nameReference", { defaultValue: "{{name}} reference", name })}
         aspectRatio="1/1"
         fit="contain"
         borderRadius={BORDER_RADIUS.md}
@@ -60,7 +59,7 @@ export const ReviewStep = ({
       </FlexRow>
       <Text>{descriptor}</Text>
       {tags.length > 0 ? (
-        <Caption color="secondary">Tags: {tags.join(", ")}</Caption>
+        <Caption color="secondary">{t("storyboard:attrs.tagsColonTags", { defaultValue: "Tags: {{tags}}", tags: tags.join(", ") })}</Caption>
       ) : null}
     </FlexColumn>
   );

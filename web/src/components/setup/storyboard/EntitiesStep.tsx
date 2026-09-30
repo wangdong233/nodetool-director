@@ -61,10 +61,10 @@ interface EntitiesStepProps {
 const EMPTY_ENTITY_IDS: string[] = [];
 const ENTITY_PREVIEW_SIZE = SPACING_PX.xxxl * 4;
 const ENTITY_GROUPS = [
-  { kind: "character", label: "Characters" },
-  { kind: "location", label: "Locations" },
-  { kind: "prop", label: "Props" },
-  { kind: "style", label: "Styles" }
+  { kind: "character", label: "Characters", labelKey: "storyboard:attrs.characters" },
+  { kind: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },
+  { kind: "prop", label: "Props", labelKey: "storyboard:attrs.props" },
+  { kind: "style", label: "Styles", labelKey: "storyboard:attrs.styles" }
 ] as const;
 
 const setIdSelected = (
@@ -151,7 +151,7 @@ export const EntitiesStep = ({
     const model = current?.directorModel;
     if (!screenplay || !model?.id) {
       setAssistError(
-        "The storyboard needs a screenplay and Director model first."
+        t("storyboard:attrs.theStoryboardNeedsAScreenplayAndDirectorModelFirst", { defaultValue: "The storyboard needs a screenplay and Director model first." })
       );
       return;
     }
@@ -228,7 +228,7 @@ export const EntitiesStep = ({
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error("The image model returned no reference image.");
+        throw new Error(t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
       }
       const entity = await saveEntity.mutateAsync({
         assetId,
@@ -239,7 +239,7 @@ export const EntitiesStep = ({
         reference_asset_id: assetId
       });
       if (!entity) {
-        throw new Error("The entity could not be saved.");
+        throw new Error(t("storyboard:attrs.theEntityCouldNotBeSaved", { defaultValue: "The entity could not be saved." }));
       }
       if (!mountedRef.current) return;
       setCreatedEntities((current) => [...current, entity]);
@@ -508,20 +508,21 @@ export const EntitiesStep = ({
                   size="small"
                 />
               ) : (
-                ENTITY_GROUPS.map(({ kind, label }) => {
+                ENTITY_GROUPS.map(({ kind, label, labelKey }) => {
                   const group = visibleEntities.filter(
                     (entity) => entity.kind === kind
                   );
                   if (group.length === 0) return null;
+                  const heading = t(labelKey, { defaultValue: label });
                   return (
                     <FlexColumn
                       key={kind}
                       gap={SPACING.md}
                       component="section"
-                      aria-label={label}
+                      aria-label={heading}
                     >
                       <FlexRow gap={SPACING.md} align="baseline">
-                        <Label component="h3">{label}</Label>
+                        <Label component="h3">{heading}</Label>
                         <Caption>{group.length}</Caption>
                       </FlexRow>
                       <FlexColumn
@@ -560,7 +561,7 @@ export const EntitiesStep = ({
                             {entity.reference_images?.[0] ? (
                               <EditorButton
                                 variant="text"
-                                aria-label={`View ${entity.name} reference image`}
+                                aria-label={t("storyboard:attrs.viewNameReferenceImage", { defaultValue: "View {{name}} reference image", name: entity.name })}
                                 onClick={() => setPreviewEntity(entity)}
                                 sx={{
                                   p: SPACING.none,
@@ -642,7 +643,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {entity.descriptor || "No description"}
+                                    {entity.descriptor || t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
                                   </Caption>
                                 </FlexColumn>
                               }
@@ -765,7 +766,7 @@ export const EntitiesStep = ({
           <FlexColumn gap={SPACING.lg}>
             <ResponsiveImage
               locator={previewEntity.reference_images[0]}
-              alt={`${previewEntity.name} reference image`}
+              alt={t("storyboard:attrs.nameReferenceImage", { defaultValue: "{{name}} reference image", name: previewEntity.name })}
               fit="contain"
               sx={{ height: "70vh", bgcolor: "background.default" }}
             />

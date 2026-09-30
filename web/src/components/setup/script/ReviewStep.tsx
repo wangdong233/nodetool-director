@@ -141,7 +141,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () =>
       (script?.sections ?? []).map((section) => ({
         id: section.id,
-        header: section.title ?? "Script",
+        header: section.title ?? t("storyboard:attrs.script", { defaultValue: "Script" }),
         rows: section.lines.flatMap((line) => [
           {
             id: `${line.id}-speaker`,
@@ -188,7 +188,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               ])
         ])
       })),
-    [script?.sections, setLineSpeaker, setLineText, speakerOptions]
+    [script?.sections, setLineSpeaker, setLineText, speakerOptions, t]
   );
 
   const emptyLineIds = useMemo(
@@ -220,7 +220,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.readItThrough", { defaultValue: "Read it through" })}</Text>
         <Caption color="secondary" component="p">
-          {`${words} words · about ${spokenLength(estimateSpokenSeconds(words, pace))} spoken at a ${pace} read`}
+          {t("storyboard:attrs.countWordsAboutLengthSpokenAtAPaceRead", { defaultValue: "{{count}} words · about {{length}} spoken at a {{pace}} read", count: words, length: spokenLength(estimateSpokenSeconds(words, pace)), pace })}
         </Caption>
       </FlexColumn>
 
@@ -242,7 +242,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           disabled={rewriting}
           onClick={onRewrite}
         >
-          {rewriting ? "Rewriting…" : "Rewrite"}
+          {rewriting ? t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
         </EditorButton>
       </FlexRow>
 

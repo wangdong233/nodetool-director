@@ -162,16 +162,20 @@ const CarriedContext: React.FC<{
       <Label>{t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}</Label>
       <Caption color="secondary" component="p">
         {[
-          attachments.length > 0
-            ? `${attachments.length} ${attachments.length === 1 ? "reference" : "references"}`
-            : null,
-          entityCount > 0
-            ? `${entityCount} ${entityCount === 1 ? "entity" : "entities"}`
-            : null
+          attachments.length === 1
+            ? t("storyboard:attrs.countReference", { defaultValue: "{{count}} reference", count: attachments.length })
+            : attachments.length > 1
+              ? t("storyboard:attrs.countReferences", { defaultValue: "{{count}} references", count: attachments.length })
+              : null,
+          entityCount === 1
+            ? t("storyboard:attrs.countEntity", { defaultValue: "{{count}} entity", count: entityCount })
+            : entityCount > 1
+              ? t("storyboard:attrs.countEntities", { defaultValue: "{{count}} entities", count: entityCount })
+              : null
         ]
           .filter((part) => part !== null)
           .join(" · ")}
-        {" — kept on the script for the editor and the agent."}
+        {t("storyboard:attrs.keptOnTheScriptForTheEditorAndTheAgent", { defaultValue: " — kept on the script for the editor and the agent." })}
       </Caption>
       {attachments.length > 0 ? (
         <FlexColumn
@@ -337,7 +341,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           helperText={
             source
               ? t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." })
-              : "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words."
+              : t("storyboard:attrs.textEnteredHereIsAWritingBriefAndMayBeRewritten", { defaultValue: "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words." })
           }
           onChange={handleChange}
         />

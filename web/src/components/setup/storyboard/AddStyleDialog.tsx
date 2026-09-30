@@ -173,7 +173,7 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
                     variant="text"
                     size="small"
                     disabled={saving}
-                    aria-label={`Remove ${file.name}`}
+                    aria-label={t("storyboard:attrs.removeName", { defaultValue: "Remove {{name}}", name: file.name })}
                     onClick={() => handleRemove(index)}
                   >{t("storyboard:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
@@ -185,8 +185,8 @@ export const AddStyleDialog: React.FC<AddStyleDialogProps> = ({
           fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
-            result="Describe your references as a style you can reuse"
-            next="Saves the style and applies it to this board. No stills are rendered here."
+            result={t("storyboard:attrs.describeYourReferencesAsAStyleYouCanReuse", { defaultValue: "Describe your references as a style you can reuse" })}
+            next={t("storyboard:attrs.savesTheStyleAndAppliesItToThisBoardNoStillsAreRenderedHere", { defaultValue: "Saves the style and applies it to this board. No stills are rendered here." })}
             model={model}
             brief=""
             maxOutputTokens={STYLE_MAX_OUTPUT_TOKENS}

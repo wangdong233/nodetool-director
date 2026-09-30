@@ -196,7 +196,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {source ? (
           <AlertBanner
             severity="info"
-            title={`Imported from ${source.fileName}`}
+            title={t("storyboard:attrs.importedFromName", { defaultValue: "Imported from {{name}}", name: source.fileName })}
           >
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">

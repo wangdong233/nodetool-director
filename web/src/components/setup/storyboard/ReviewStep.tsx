@@ -312,7 +312,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                   "",
                 multiline: true,
                 placeholder: t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
-                addLabel: "Add dialogue",
+                addLabel: t("storyboard:attrs.addDialogue", { defaultValue: "Add dialogue" }),
                 onChange: (value: string) => {
                   const current = productionRequirementsFrom(shot);
                   const production =
@@ -504,8 +504,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
-            result="Rewrite the screenplay from your brief"
-            next="Retained shots keep their stills. No images are generated."
+            result={t("storyboard:attrs.rewriteTheScreenplayFromYourBrief", { defaultValue: "Rewrite the screenplay from your brief" })}
+            next={t("storyboard:attrs.retainedShotsKeepTheirStillsNoImagesAreGenerated", { defaultValue: "Retained shots keep their stills. No images are generated." })}
             model={model}
             brief={brief}
             maxOutputTokens={maxOutputTokens}

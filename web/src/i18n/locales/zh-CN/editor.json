@@ -2721,7 +2721,9 @@
     "archivedProjects": "已归档项目",
     "threeDModel": "3D 模型",
     "entity": "实体",
-    "jsScriptTypeLabel": "JS 脚本"
+    "jsScriptTypeLabel": "JS 脚本",
+    "flowSetupFailedAtStep": "“{{title}}”创建流程在“{{step}}”步骤失败",
+    "whatYouTypedComesWithYouThisFlowDraftIsDiscarded": "你已输入的内容会随你带到下一个所选流程。此“{{title}}”草稿将被丢弃——尚未为其生成任何内容。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

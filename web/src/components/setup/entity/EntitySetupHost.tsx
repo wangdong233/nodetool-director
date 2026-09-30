@@ -53,14 +53,14 @@ const createBlankReferenceFile = (): Promise<File> =>
     canvas.height = 1024;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      reject(new Error("Canvas 2D context unavailable"));
+      reject(new Error(i18n.t("storyboard:attrs.canvas2DContextUnavailable", { defaultValue: "Canvas 2D context unavailable" })));
       return;
     }
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (!blob) {
-        reject(new Error("Failed to render blank image"));
+        reject(new Error(i18n.t("storyboard:attrs.failedToRenderBlankImage", { defaultValue: "Failed to render blank image" })));
         return;
       }
       resolve(new File([blob], "Untitled.png", { type: "image/png" }));
@@ -146,7 +146,7 @@ const EntitySetupHost = ({
         descriptor:
           current.descriptor.trim().length > 0
             ? current.descriptor
-            : "A reusable visual entity."
+            : i18n.t("storyboard:attrs.aReusableVisualEntity", { defaultValue: "A reusable visual entity." })
       }));
       setAssetId(asset.id);
       setStage("review");
@@ -154,9 +154,10 @@ const EntitySetupHost = ({
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not start a blank entity: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: i18n.t("storyboard:attrs.couldNotStartABlankEntity", {
+          defaultValue: "Could not start a blank entity: {{message}}",
+          message: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setStartingBlank(false);
@@ -165,7 +166,7 @@ const EntitySetupHost = ({
 
   const save = useCallback(async () => {
     if (!referenceAssetId || entitiesLoading || entitiesError) {
-      throw new Error("Choose a reference image before creating the entity.");
+      throw new Error(t("storyboard:attrs.chooseAReferenceImageBeforeCreatingTheEntity", { defaultValue: "Choose a reference image before creating the entity." }));
     }
     const input: Parameters<typeof saveEntity.mutateAsync>[0] = {
       assetId: referenceAssetId,
@@ -181,7 +182,7 @@ const EntitySetupHost = ({
     }
     const entity = await saveEntity.mutateAsync(input);
     if (!entity) {
-      throw new Error("The entity could not be read after it was created.");
+      throw new Error(t("storyboard:attrs.theEntityCouldNotBeReadAfterItWasCreated", { defaultValue: "The entity could not be read after it was created." }));
     }
     clearEntitySetupDraft(draftKey ?? projectId);
     onFinish(entity);
@@ -193,7 +194,8 @@ const EntitySetupHost = ({
     onFinish,
     projectId,
     referenceAssetId,
-    saveEntity
+    saveEntity,
+    t
   ]);
 
   const steps = useMemo<SetupStep<EntitySetupStage>[]>(
@@ -220,7 +222,7 @@ const EntitySetupHost = ({
       {
         stage: "reference",
         label: t("storyboard:attrs.reference", { defaultValue: "Reference" }),
-        primaryLabel: "Review entity",
+        primaryLabel: t("storyboard:attrs.reviewEntity", { defaultValue: "Review entity" }),
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
@@ -278,7 +280,7 @@ const EntitySetupHost = ({
   );
 
   const config: SetupFlowConfig<EntitySetupStage> = {
-    labels: { title: "Entity" },
+    labels: { title: "Entity", titleKey: "home:entry.entity.title" },
     steps,
     stage,
     onStageChange: setStage

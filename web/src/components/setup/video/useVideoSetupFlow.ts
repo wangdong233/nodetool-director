@@ -132,7 +132,7 @@ export const newVideoSetupDocument = (
 };
 
 /** The flow's name, above the stepper. Each step body carries its own heading. */
-const FLOW_LABELS = { title: "Video" } as const;
+const FLOW_LABELS = { title: "Video", titleKey: "home:entry.video.title" } as const;
 
 /**
  * What a plan was drafted from. Two runs of the Director over the same brief
@@ -315,7 +315,7 @@ export const useVideoSetupFlow = ({
       {
         stage: "idea",
         label: t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: "Continue",
+        primaryLabel: t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         canAdvance: brief.trim().length > 0 && !contextError,
         blockedReason:
           contextError ?? t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }),
@@ -398,7 +398,7 @@ export const useVideoSetupFlow = ({
         // to read its wait: the creator cannot leave the plan while the plan
         // is being rewritten under them (F2).
         pending: planning,
-        pendingLabel: "Re-planning the beats",
+        pendingLabel: t("storyboard:attrs.rePlanningTheBeats", { defaultValue: "Re-planning the beats" }),
         onCancel: cancelPlan,
         render: () =>
           createElement(ReviewStep, {
@@ -413,7 +413,7 @@ export const useVideoSetupFlow = ({
       {
         stage: "look",
         label: t("editor:ui.look", { defaultValue: "Look" }),
-        primaryLabel: "Generate your video",
+        primaryLabel: t("storyboard:attrs.generateYourVideo", { defaultValue: "Generate your video" }),
         canAdvance: !productionBlocker && look.canAdvance,
         blockedReason: productionBlocker ?? look.blockedReason,
         primaryDetail: look.primaryDetail,

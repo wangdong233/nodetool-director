@@ -100,8 +100,7 @@ export const DetailsStep = ({
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h1">{t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}</Text>
           <Text color="secondary">
-            Give the entity a stable name and the description generation prompts
-            should reuse.
+            {t("storyboard:attrs.giveTheEntityAStableNameAndTheDescriptionGenerationPromptsShouldReuse", { defaultValue: "Give the entity a stable name and the description generation prompts should reuse." })}
           </Text>
         </FlexColumn>
 
@@ -150,8 +149,7 @@ export const DetailsStep = ({
             {
               id: "blank",
               title: t("storyboard:attrs.startWithBlankReference", { defaultValue: "Start with a blank reference" }),
-              description:
-                "A plain canvas as the reference image — fill the details yourself",
+              description: t("storyboard:attrs.aPlainCanvasAsTheReferenceImage", { defaultValue: "A plain canvas as the reference image — fill the details yourself" }),
               onSelect: onStartBlank,
               disabled: startingBlank,
               disabledReason: startingBlank
