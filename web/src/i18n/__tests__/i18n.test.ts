@@ -341,10 +341,18 @@ describe("catalog key parity (CI completeness guard)", () => {
               /_(one|other|few|many|zero|two)$/,
               ""
             );
+            // Indexed leaves (learn_0, learn_1, …): a wiring template like
+            // `tools:tutorials.${id}.learn_${i}` contributes its last static
+            // chunk (`learn_`) to templateLeafRefs — accept that stem for
+            // stem+digits leaves. Per-index keys are the returnObjects-free
+            // layout the tutorials learn bullets use.
+            const indexedStem = leaf.match(/^(.+?)(\d+)$/);
             if (
               quotedLiterals.has(leaf) ||
               objectKeys.has(leaf) ||
               templateLeafRefs.has(leaf) ||
+              (indexedStem !== null &&
+                templateLeafRefs.has(indexedStem[1])) ||
               (pluralBase !== leaf &&
                 (quotedLiterals.has(pluralBase) ||
                   objectKeys.has(pluralBase) ||

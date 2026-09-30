@@ -291,6 +291,11 @@ const TutorialsPage: React.FC = () => {
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
 
   const active = getTutorial(params.get("id"));
+  // Localized once: the play-button aria-label and the h2 must agree, and a
+  // single lookup keeps both in lockstep with the sidebar card's title key.
+  const activeTitle = t(`tools:tutorials.${active.id}.title`, {
+    defaultValue: active.title
+  });
 
   // The videos stream from the docs site, so none is requested until someone
   // asks for one — the poster ships with the app and carries the stage. Keyed
@@ -360,18 +365,23 @@ const TutorialsPage: React.FC = () => {
         <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
         <div className="titles">
           <h1>{t("nav:rail.tutorials", { defaultValue: "Tutorials" })}</h1>
-          <span className="sub">Short, beginner-friendly walkthroughs of NodeTool</span>
+          <span className="sub">{t("tools:tutorials.subtitle", { defaultValue: "Short, beginner-friendly walkthroughs of NodeTool" })}</span>
         </div>
         <span className="spacer" />
         <button type="button" className="back" onClick={() => navigate("/workspace")}>
           <ArrowBackRoundedIcon />
-          Workspace
+          {t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}
         </button>
       </header>
 
       <div className="tut-body" ref={bodyRef}>
         <aside className="tut-sidebar">
-          <span className="sidebar-label">{TUTORIALS.length} tutorials</span>
+          <span className="sidebar-label">
+            {t(TUTORIALS.length === 1 ? "tools:tutorials.countOne" : "tools:tutorials.countMany", {
+              defaultValue: `${TUTORIALS.length} tutorial${TUTORIALS.length === 1 ? "" : "s"}`,
+              count: TUTORIALS.length
+            })}
+          </span>
           {TUTORIALS.map((tutorial) => (
             <TutorialCard
               key={tutorial.id}
@@ -402,7 +412,10 @@ const TutorialsPage: React.FC = () => {
                   type="button"
                   className="tut-play"
                   onClick={start}
-                  aria-label={`Play video: ${active.title}`}
+                  aria-label={t("tools:tutorials.playVideoAria", {
+                    defaultValue: "Play video: {{title}}",
+                    title: activeTitle
+                  })}
                 >
                   <PlayArrowRoundedIcon />
                 </button>
@@ -411,21 +424,21 @@ const TutorialsPage: React.FC = () => {
 
             <div className="tut-meta">
               <span className="pill" style={{ background: active.accent }}>
-                {active.level}
+                {t(`tools:tutorials.level.${active.level}`, { defaultValue: active.level })}
               </span>
               <span className="dur">{active.durationLabel}</span>
             </div>
 
-            <h2 className="tut-title">{t(`tools:tutorials.${active.id}.title`, { defaultValue: active.title })}</h2>
-            <p className="tut-desc">{active.description}</p>
+            <h2 className="tut-title">{activeTitle}</h2>
+            <p className="tut-desc">{t(`tools:tutorials.${active.id}.description`, { defaultValue: active.description })}</p>
 
             <section className="tut-learn">
               <h2>{t("ui2:attrs.whatYouLlLearn", { defaultValue: "What you'll learn" })}</h2>
               <ul>
-                {active.learn.map((point) => (
+                {active.learn.map((point, i) => (
                   <li key={point}>
                     <CheckRoundedIcon />
-                    {point}
+                    {t(`tools:tutorials.${active.id}.learn_${i}`, { defaultValue: point })}
                   </li>
                 ))}
               </ul>
@@ -463,11 +476,11 @@ const TutorialsPage: React.FC = () => {
                 </EditorButton>
               ) : (
                 <EditorButton variant="contained" onClick={() => navigate("/workspace")}>
-                  Start building
+                  {t("tools:tutorials.startBuilding", { defaultValue: "Start building" })}
                 </EditorButton>
               )}
               <EditorButton variant="outlined" onClick={() => navigate("/examples")}>
-                Browse examples
+                {t("tools:tutorials.browseExamples", { defaultValue: "Browse examples" })}
               </EditorButton>
             </div>
           </div>
