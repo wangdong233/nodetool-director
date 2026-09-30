@@ -115,11 +115,11 @@ const styles = (theme: Theme) =>
 // per job the studio is built for: a product spot, a creator-style cut, a
 // narrated explainer, a whole campaign, and the pipeline that repeats it.
 const SUGGESTIONS = [
-  "Storyboard a 30-second ad for …",
-  "Direct a UGC-style testimonial for …",
-  "Narrate a 60-second explainer about …",
-  "Turn this brief into a launch campaign: …",
-  "Build a workflow that renders an ad for every …"
+  { key: "suggestionStoryboardAd", text: "Storyboard a 30-second ad for …" },
+  { key: "suggestionUgcTestimonial", text: "Direct a UGC-style testimonial for …" },
+  { key: "suggestionExplainer", text: "Narrate a 60-second explainer about …" },
+  { key: "suggestionLaunchCampaign", text: "Turn this brief into a launch campaign: …" },
+  { key: "suggestionWorkflowAd", text: "Build a workflow that renders an ad for every …" }
 ];
 
 // Cloud LLM providers we point first-time users at. Each maps to an API key
@@ -135,10 +135,6 @@ const SETUP_PROVIDERS = [
  * gets offered the sign-in first. A hosted deployment cannot, and is pointed
  * at an API key instead.
  */
-const SETUP_SUBTITLE =
-  isElectron || isLocalhost
-    ? "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely."
-    : "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely.";
 
 interface WelcomePlaceholderProps {
   onSuggestionClick?: (suggestion: string) => void;
@@ -190,7 +186,9 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
               {t("editor:ui.connectAnAIProviderToGetStarted")}
             </Text>
             <Text className="welcome-subtitle" sx={{ maxWidth: 520 }}>
-              {SETUP_SUBTITLE}
+              {isElectron || isLocalhost
+                ? t("editor:chat.setupSubtitleDesktop", { defaultValue: "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely." })
+                : t("editor:chat.setupSubtitleWeb", { defaultValue: "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely." })}
             </Text>
             <FlexRow gap={SPACING.xs} justify="center" wrap sx={{ mt: SPACING.micro }}>
               {SETUP_PROVIDERS.map((provider) => (
@@ -233,23 +231,23 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
               onClick={handleConnectProvider}
               sx={{ mt: SPACING.xs }}
             >
-              Connect a provider
+              {t("editor:ui.connectAProvider", { defaultValue: "Connect a provider" })}
             </EditorButton>
           </FlexColumn>
         ) : (
           <div className="chat-suggestions-block">
             <AutoAwesomeIcon className="welcome-icon" />
-            <Text className="welcome-title">How can I help you today?</Text>
+            <Text className="welcome-title">{t("editor:ui.howCanIHelpYouToday", { defaultValue: "How can I help you today?" })}</Text>
             <Text className="welcome-subtitle">
-              Ask anything, drop in files, or start with one of these:
+              {t("editor:chat.askAnythingDropInFilesOrStartWithOneOfThese", { defaultValue: "Ask anything, drop in files, or start with one of these:" })}
             </Text>
             <div className="suggestions">
               {SUGGESTIONS.map((suggestion) => (
                 <Chip
-                  key={suggestion}
-                  label={suggestion}
+                  key={suggestion.key}
+                  label={t(`editor:ui.${suggestion.key}`, { defaultValue: suggestion.text })}
                   variant="outlined"
-                  onClick={() => handleClick(suggestion)}
+                  onClick={() => handleClick(t(`editor:ui.${suggestion.key}`, { defaultValue: suggestion.text }))}
                   sx={{
                     borderColor: theme.vars.palette.divider,
                     color: theme.vars.palette.text.secondary,

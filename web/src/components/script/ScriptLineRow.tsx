@@ -652,9 +652,9 @@ const ScriptLineRow = ({
           title={
             voice
               ? status === "stale"
-                ? "Re-voice line"
-                : "Voice line"
-              : "Assign a voice to this speaker first"
+                ? t("editor:ui.reVoiceLine", { defaultValue: "Re-voice line" })
+                : t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+              : t("editor:ui.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
           }
         >
           <span>

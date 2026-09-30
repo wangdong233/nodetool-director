@@ -368,7 +368,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <LinkOffIcon sx={{ fontSize: 18 }} />
               </ListItemIcon>
-              <ListItemText primary={t("editor:ui.disconnect", { defaultValue: "Disconnect" })} secondary="Edit the value manually" />
+              <ListItemText primary={t("editor:ui.disconnect", { defaultValue: "Disconnect" })} secondary={t("editor:ui.editTheValueManually", { defaultValue: "Edit the value manually" })} />
             </EditorMenuItem>
           )}
 

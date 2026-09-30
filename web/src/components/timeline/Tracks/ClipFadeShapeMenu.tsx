@@ -37,7 +37,7 @@ export function ClipFadeShapeMenu({
       onClose={onClose}
       compact
       MenuListProps={{
-        "aria-label": edge === "in" ? "Fade-in shape" : "Fade-out shape"
+        "aria-label": edge === "in" ? t("timeline:attrs.fadeInShape", { defaultValue: "Fade-in shape" }) : t("timeline:attrs.fadeOutShape", { defaultValue: "Fade-out shape" })
       }}
     >
       {CLIP_FADE_SHAPES.map((shape) => (

@@ -98,7 +98,7 @@ const LinkedWorkflowsMenu = ({
               <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
                 <FlexRow align="center" gap={SPACING.xs}>
                   <Text size="small" truncate>
-                    {broken ? "Workflow unavailable" : link.name}
+                    {broken ? t("editor:ui.workflowUnavailable", { defaultValue: "Workflow unavailable" }) : link.name}
                   </Text>
                   {link.isPinned && (
                     <Chip
@@ -106,8 +106,8 @@ const LinkedWorkflowsMenu = ({
                       color="info"
                       label={
                         link.pinnedVersion === null
-                          ? "Pinned"
-                          : `Pinned v${link.pinnedVersion}`
+                          ? t("editor:ui.pinned", { defaultValue: "Pinned" })
+                          : t("editor:ui.pinnedVersion", { defaultValue: "Pinned v{{version}}", version: link.pinnedVersion })
                       }
                     />
                   )}

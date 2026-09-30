@@ -278,7 +278,7 @@ const DataframeProperty = ({
           <span className="dropzone-text">
             {isLoading ? t("editor:ui.loading2", { defaultValue: "Loading..." }) : t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
           </span>
-          <span className="dropzone-subtext">Supported: CSV, XLSX, XLS</span>
+          <span className="dropzone-subtext">{t("editor:ui.supportedCsvXlsxXls", { defaultValue: "Supported: CSV, XLSX, XLS" })}</span>
         </div>
       </div>
 

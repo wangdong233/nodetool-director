@@ -235,6 +235,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
   copyingStep,
   onOpen
 }: RecipeStepRowProps) {
+  const { t } = useTranslation();
   const loading = copyingStep === `${slug}:${step.example}`;
   return (
     <button
@@ -266,7 +267,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
               </span>
             ))
           ) : (
-            <span className="rcp-model">Runs locally — no key needed</span>
+            <span className="rcp-model">{t("editor:ui.runsLocallyNoKeyNeeded", { defaultValue: "Runs locally — no key needed" })}</span>
           )}
         </span>
       </span>

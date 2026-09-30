@@ -78,11 +78,11 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       confirmText={t("common:action.delete", { defaultValue: "Delete" })}
       cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       title={t("editor:ui.deleteWorkflows", { defaultValue: "Delete Workflows" })}
-      notificationMessage="Workflows deleted"
+      notificationMessage={t("editor:ui.workflowsDeleted", { defaultValue: "Workflows deleted" })}
       notificationType="success"
       content={
         <>
-          <p>Are you sure you want to delete the following workflows?</p>
+          <p>{t("editor:ui.areYouSureYouWantToDeleteTheFollowingWorkflows", { defaultValue: "Are you sure you want to delete the following workflows?" })}</p>
           <ul className="asset-names">
             {workflowsToDelete.map((workflow) => (
               <li key={workflow.id}>{workflow.name}</li>

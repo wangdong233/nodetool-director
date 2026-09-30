@@ -94,7 +94,7 @@ const ProviderOnboardingDialog: React.FC = () => {
         )}
         <FlexRow gap={SPACING.md} align="center">
           <LockOutlinedIcon sx={{ fontSize: "1.2em", color: theme.vars.palette.text.secondary }} />
-          <Caption>API keys are encrypted. You can manage or remove them in Settings.</Caption>
+          <Caption>{t("editor:ui.apiKeysAreEncrypted", { defaultValue: "API keys are encrypted. You can manage or remove them in Settings." })}</Caption>
         </FlexRow>
       </FlexColumn>
     </Dialog>

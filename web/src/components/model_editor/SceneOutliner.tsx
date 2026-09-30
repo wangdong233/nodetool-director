@@ -11,6 +11,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { FlexColumn, Text, ScrollArea, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import type { SceneTreeNode } from "./sceneTree";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -84,6 +85,7 @@ const OutlinerRow = memo(({
   onSelect,
   onToggleVisible
 }: OutlinerRowProps) => {
+  const { t } = useTranslation();
   const handleSelect = useCallback(() => onSelect(node.uuid), [node.uuid, onSelect]);
   const handleToggle = useCallback(
     (e: React.MouseEvent) => {
@@ -111,7 +113,7 @@ const OutlinerRow = memo(({
           className="visibility-toggle"
           role="button"
           tabIndex={0}
-          aria-label={node.visible ? "Hide object" : "Show object"}
+          aria-label={node.visible ? t("editor:ui.hideObject", { defaultValue: "Hide object" }) : t("editor:ui.showObject", { defaultValue: "Show object" })}
           onClick={handleToggle}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onToggleVisible(node.uuid); } }}
         >

@@ -230,7 +230,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
 
       <div className="section">
         <FlexRow className="section-header" align="center" justify="space-between">
-          <span className="section-title">RGB Midtones</span>
+          <span className="section-title">{t("ui2:attrs.rgbMidtones", { defaultValue: "RGB Midtones" })}</span>
         </FlexRow>
         <div className="controls">
           {RGB_SLIDERS.map((spec) => {

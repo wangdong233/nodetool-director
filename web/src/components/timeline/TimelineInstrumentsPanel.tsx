@@ -16,7 +16,7 @@ export function TimelineInstrumentsPanel() {
   const selectedTrack = clips.find(clip => selected.has(clip.id))?.trackId;
   const track = midiTracks.find(track => track.id === instrumentTrackId)
     ?? midiTracks.find(track => track.id === selectedTrack) ?? midiTracks[0];
-  if (!track) return <Caption sx={{ p: SPACING.md }}>Add a MIDI track to choose an instrument.</Caption>;
+  if (!track) return <Caption sx={{ p: SPACING.md }}>{t("timeline:attrs.addAMIDITrackToChooseAnInstrument", { defaultValue: "Add a MIDI track to choose an instrument." })}</Caption>;
   return <FlexColumn fullHeight sx={{ minHeight: 0 }} data-testid="timeline-instruments-panel">
     <FlexColumn sx={{ p: SPACING.sm }}>
       <SelectField label={t("timeline:status.instrumentTrack", { defaultValue: "Instrument track" })} hideLabel size="small" value={track.id}

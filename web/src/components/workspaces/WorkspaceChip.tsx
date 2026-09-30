@@ -224,7 +224,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
               <span className="workspace-menu-icon">
                 <AddIcon fontSize="small" />
               </span>
-              <Text size="small">Add workspace…</Text>
+              <Text size="small">{t("editor:ui.addWorkspaceEllipsis", { defaultValue: "Add workspace…" })}</Text>
             </div>
           )}
         </div>

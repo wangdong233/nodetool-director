@@ -1714,7 +1714,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
     const availableTypes = isVideo
       ? VIDEO_EFFECT_TYPES
       : AUDIO_EFFECT_TYPES;
-    const chainLabel = isVideo ? "FX Chain" : "DSP Chain";
+    const chainLabel = isVideo ? t("timeline:attrs.fxChain", { defaultValue: "FX Chain" }) : t("timeline:attrs.dspChain", { defaultValue: "DSP Chain" });
 
     return (
       <div css={containerStyles(theme)} data-testid="track-effects-panel">
@@ -1727,7 +1727,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
           </Text>
           <button type="button" css={addButtonStyles(theme)} onClick={handleOpenAdd}>
             <AddIcon />
-            Add
+            {t("ui2:attrs.add", { defaultValue: "Add" })}
           </button>
           <EditorMenu
             anchorEl={addAnchor}

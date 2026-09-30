@@ -191,13 +191,13 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
               <VisibilityIcon fontSize="small" />
             )
           }
-          tooltip={revealed ? "Hide secret" : "Show secret"}
-          ariaLabel={revealed ? "Hide webhook secret" : "Show webhook secret"}
+          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : t("editor:ui.showSecret", { defaultValue: "Show secret" })}
+          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : t("editor:ui.showWebhookSecret", { defaultValue: "Show webhook secret" })}
           onClick={() => setRevealed((r) => !r)}
         />
         <CopyButton value={webhookSecret} tooltip={t("editor:ui.copyWebhookSecret", { defaultValue: "Copy webhook secret" })} />
       </FlexRow>
-      <Caption>Send this value as the x-webhook-secret header.</Caption>
+      <Caption>{t("editor:ui.sendThisValueAsTheXWebhookSecretHeader", { defaultValue: "Send this value as the x-webhook-secret header." })}</Caption>
     </FlexColumn>
   );
 };

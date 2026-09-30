@@ -969,7 +969,7 @@ const FableSynthInstrumentEditor = ({
         <Label>{model}</Label>
         <Caption className="fs-description">
           {instrument.type === "bass"
-            ? "Bass synthesizer"
+            ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" })
             : instrument.type === "wavetable"
               ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" })
               : t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}

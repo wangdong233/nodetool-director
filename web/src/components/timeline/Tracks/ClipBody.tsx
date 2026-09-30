@@ -954,7 +954,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
               style={{ left: handleLeftPx }}
               data-clip-fade-handle
               data-testid={`clip-fade-handle-${edge}-${clipId}`}
-              aria-label={`${edge === "in" ? "Fade in" : "Fade out"} ${(
+              aria-label={`${edge === "in" ? t("timeline:attrs.fadeIn", { defaultValue: "Fade in" }) : t("timeline:attrs.fadeOut", { defaultValue: "Fade out" })} ${(
                 lengthMs / 1000
               ).toFixed(2)} seconds`}
               onPointerDown={(e) => fade?.onFadePointerDown(edge, e)}
