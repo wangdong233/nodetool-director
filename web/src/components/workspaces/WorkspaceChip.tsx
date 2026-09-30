@@ -168,7 +168,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
       >
         <div css={cssStyles} role="menu" aria-label={t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}>
           <Caption className="workspace-menu-header" size="small">
-            Workspace
+            {t("editor:ui.workspace", { defaultValue: "Workspace" })}
           </Caption>
           {workspaces.map((workspace) => {
             const isSelected = workspace.id === workspaceId;
