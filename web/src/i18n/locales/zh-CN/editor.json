@@ -2712,7 +2712,13 @@
     "buildPlacesTheNodesAndThenRunsItOnce": "构建会放置节点并运行一次",
     "project": "项目",
     "selectedProjectAria": "已选项目:{{name}}",
-    "providerRates": "按渠道费率"
+    "providerRates": "按渠道费率",
+    "onePieceOfWorkTheDocumentsAnAgentBuiltForIt": "一项完整的工作——智能体为它生成的文档、花费的成本与当前进展。",
+    "sayWhatYouWantMadeAndAnAgentBuildsItsDocuments": "说出你想要什么，智能体会为你生成整套文档",
+    "clipsOfShots": "片段 {{clips}}/{{shots}}",
+    "cutWithDuration": "剪辑 · {{d}}",
+    "mostRecentOf": "最近 {{shown}} 条 / 共 {{total}} 条",
+    "archivedProjects": "已归档项目"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

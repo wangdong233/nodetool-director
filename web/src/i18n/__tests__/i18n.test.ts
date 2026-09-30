@@ -121,8 +121,14 @@ describe("catalog key parity (CI completeness guard)", () => {
   ];
 
   it.each(suites)("%s: en and zh-CN carry exactly the same key set", (_ns, en, zh) => {
-    expect(new Set(flatten(zh as Record<string, unknown>))).toEqual(
-      new Set(flatten(en as Record<string, unknown>))
+    // i18next count-plurals: each locale carries only the CLDR plural
+    // categories it needs (en: _one/_other; zh: _other alone). Compare the
+    // BASE key set — suffixes stripped — so a legitimate plural asymmetry
+    // passes while a missing/extra phrase still fails.
+    const base = (keys: string[]) =>
+      new Set(keys.map((k) => k.replace(/_(one|other|few|many|zero|two)$/, "")));
+    expect(base(flatten(zh as Record<string, unknown>))).toEqual(
+      base(flatten(en as Record<string, unknown>))
     );
   });
 
@@ -309,6 +315,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "tools:menus.",
         "tools:tutorials.",
         "tools:misc.",
+        "common:relTime.",
         "catalog:snippets.",
         "catalog:shortcuts.",
         "catalog:dataTypes."
@@ -327,10 +334,21 @@ describe("catalog key parity (CI completeness guard)", () => {
           // Non-identifier leaves (regex-shaped) fall back to the original
           // scan; identifier-shaped leaves — every real key — hit the Sets.
           if (/^[A-Za-z0-9_-]+$/.test(leaf)) {
+            // Plural-category leaves (i18next _one/_other/…) are built by
+            // i18next itself from a template that names only the BASE —
+            // corroboration accepts the suffix-stripped name.
+            const pluralBase = leaf.replace(
+              /_(one|other|few|many|zero|two)$/,
+              ""
+            );
             if (
               quotedLiterals.has(leaf) ||
               objectKeys.has(leaf) ||
-              templateLeafRefs.has(leaf)
+              templateLeafRefs.has(leaf) ||
+              (pluralBase !== leaf &&
+                (quotedLiterals.has(pluralBase) ||
+                  objectKeys.has(pluralBase) ||
+                  templateLeafRefs.has(pluralBase)))
             ) {
               dynamicallyUsed = true;
             }

@@ -15,7 +15,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { relativeTime } from "../../utils/formatDateAndTime";
-import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { PROJECT_COLOR, PROJECT_GLYPH, personalDisplayName } from "./projectIdentity";
 import {
   formatSpend,
   projectProgress,
@@ -61,7 +61,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
       padding="none"
       clickable
       onClick={() => onOpen(project)}
-      aria-label={project.name}
+      aria-label={personalDisplayName(project, t)}
       onDragOver={(event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setDropActive(true);
@@ -124,7 +124,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
           <Box component="span" aria-hidden sx={{ color: PROJECT_COLOR }}>
             {PROJECT_GLYPH}
           </Box>
-          <Text sx={{ flex: 1, ...TYPOGRAPHY.sans.label }}>{project.name}</Text>
+          <Text sx={{ flex: 1, ...TYPOGRAPHY.sans.label }}>{personalDisplayName(project, t)}</Text>
           <Caption color="secondary">
             {relativeTime(project.updatedAt)}
           </Caption>

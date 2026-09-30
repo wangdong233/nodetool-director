@@ -67,5 +67,22 @@
     "text": "Text",
     "application": "Documents",
     "other": "Other"
+  },
+  "relTime": {
+    "justNow": "just now",
+    "yearAgo_one": "1 year ago",
+    "yearAgo_other": "{{count}} years ago",
+    "monthAgo_one": "1 month ago",
+    "monthAgo_other": "{{count}} months ago",
+    "weekAgo_one": "1 week ago",
+    "weekAgo_other": "{{count}} weeks ago",
+    "dayAgo_one": "1 day ago",
+    "dayAgo_other": "{{count}} days ago",
+    "hourAgo_one": "1 hour ago",
+    "hourAgo_other": "{{count}} hours ago",
+    "minuteAgo_one": "1 min ago",
+    "minuteAgo_other": "{{count}} min ago",
+    "secondAgo_one": "1 sec ago",
+    "secondAgo_other": "{{count}} sec ago"
   }
 }

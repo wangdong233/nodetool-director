@@ -27,9 +27,8 @@ import {
   useProjects
 } from "../../hooks/useProjects";
 import { useAuth } from "../../stores/useAuth";
-import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { PROJECT_COLOR, PROJECT_GLYPH, personalDisplayName } from "./projectIdentity";
 import { useTranslation } from "react-i18next";
-import { PERSONAL_PROJECT_NAME } from "@nodetool-ai/protocol/api-schemas/projects.js";
 
 const selectorStyles = (theme: Theme, inline: boolean) =>
   css({
@@ -123,24 +122,17 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     const tab = state.tabs.find((entry) => entry.id === state.activeTabId);
     return tab?.projectId === activeProjectId ? tab.title : undefined;
   });
-  // The personal project's seeded name is the backend constant (exposed as
-  // PERSONAL_PROJECT_NAME in the schema contract) — a data value. Swap it for
-  // the catalog at the display layer ONLY while it is still the untouched
-  // system default: a renamed personal project is the user's data and renders
-  // verbatim. (Unconditional isPersonal mapping would swallow renames — the
-  // tab bar's rename goes through projects.update with no guard.)
-  const personalDefault =
-    activeProject?.isPersonal &&
-    activeProject.name === PERSONAL_PROJECT_NAME;
+  // Personal default swap lives in projectIdentity.personalDisplayName —
+  // the shared guarded mapping (system default → localized label; a renamed
+  // personal project is the user's data and renders verbatim).
   const name =
-    personalDefault
-      ? t("editor:ui.personal", { defaultValue: "Personal" })
-      : (activeProject?.name ??
-        (activeProjectId === personalProjectId
-          ? t("editor:ui.personal", { defaultValue: "Personal" })
-          : activeProjectId
-            ? (activeTabTitle ?? t("editor:ui.project", { defaultValue: "Project" }))
-            : t("editor:ui.personal", { defaultValue: "Personal" })));
+    activeProject
+      ? personalDisplayName(activeProject, t)
+      : activeProjectId === personalProjectId
+        ? t("editor:ui.personal", { defaultValue: "Personal" })
+        : activeProjectId
+          ? (activeTabTitle ?? t("editor:ui.project", { defaultValue: "Project" }))
+          : t("editor:ui.personal", { defaultValue: "Personal" });
   const personalProject = projects?.find((project) => project.isPersonal);
   const resolvedPersonalId =
     personalProject?.id ??

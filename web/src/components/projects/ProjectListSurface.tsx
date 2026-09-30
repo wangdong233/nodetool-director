@@ -34,7 +34,7 @@ import {
 } from "../../hooks/useProjects";
 import ProjectCard from "./ProjectCard";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
-import { PROJECT_COLOR } from "./projectIdentity";
+import { PROJECT_COLOR, personalDisplayName } from "./projectIdentity";
 import type { ProjectDetail } from "./projectStatus";
 import { useTranslation } from "react-i18next";
 
@@ -160,8 +160,7 @@ const ProjectListSurface = () => {
       >
         <Text size="big">{t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
         <Caption color="secondary">
-          One piece of work — the documents an agent built for it, what it
-          cost, where it stands.
+          {t("editor:ui.onePieceOfWorkTheDocumentsAnAgentBuiltForIt", { defaultValue: "One piece of work — the documents an agent built for it, what it cost, where it stands." })}
         </Caption>
         <Box sx={{ flex: 1 }} />
         <SearchInput
@@ -174,7 +173,8 @@ const ProjectListSurface = () => {
           color="primary"
           onClick={openNewProject}
         >
-          + New project
+          {"+ "}
+          {t("editor:ui.newProject", { defaultValue: "New project" })}
         </EditorButton>
       </FlexRow>
 
@@ -226,7 +226,7 @@ const ProjectListSurface = () => {
               </Box>
               <Label>{t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
               <Caption color="muted">
-                Say what you want made, and an agent builds its documents
+                {t("editor:ui.sayWhatYouWantMadeAndAnAgentBuildsItsDocuments", { defaultValue: "Say what you want made, and an agent builds its documents" })}
               </Caption>
             </Box>
           </Box>
@@ -249,7 +249,7 @@ const ProjectListSurface = () => {
             </Caption>
             {looseTotal > loose.length && (
               <Caption color="muted">
-                {`${loose.length} most recent of ${looseTotal}`}
+                {t("editor:ui.mostRecentOf", { shown: String(loose.length), total: String(looseTotal) })}
               </Caption>
             )}
             <Box sx={{ flex: 1 }} />
@@ -302,11 +302,11 @@ const ProjectListSurface = () => {
         <FlexColumn gap={SPACING.md} sx={{ px: SPACING.xxl, pb: SPACING.xl }}>
           <Divider />
           <Caption color="muted" sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Archived projects
+            {t("editor:ui.archivedProjects")}
           </Caption>
           {archived.data?.map((project) => (
             <FlexRow key={project.id} align="center" gap={SPACING.md}>
-              <Label sx={{ flex: 1 }}>{project.name}</Label>
+              <Label sx={{ flex: 1 }}>{personalDisplayName(project, t)}</Label>
               <ProjectLifecycleActions project={project} />
             </FlexRow>
           ))}

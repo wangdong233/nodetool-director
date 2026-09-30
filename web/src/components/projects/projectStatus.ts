@@ -94,13 +94,13 @@ export const projectProgress = (
   const board = statusOfKind(documents, "storyboard");
   if (board && board.shots > 0) {
     return {
-      label: `clips ${board.clips}/${board.shots}`,
+      label: i18n.t("editor:ui.clipsOfShots", { clips: board.clips, shots: board.shots }),
       done: board.clips === board.shots
     };
   }
   const cut = statusOfKind(documents, "timeline");
   if (cut) {
-    return { label: `cut · ${formatDuration(cut.durationMs)}`, done: false };
+    return { label: i18n.t("editor:ui.cutWithDuration", { d: formatDuration(cut.durationMs) }), done: false };
   }
   return null;
 };

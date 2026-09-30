@@ -2712,7 +2712,13 @@
     "buildPlacesTheNodesAndThenRunsItOnce": "Build places the nodes and then runs it once",
     "project": "Project",
     "selectedProjectAria": "Selected project: {{name}}",
-    "providerRates": "provider rates"
+    "providerRates": "provider rates",
+    "onePieceOfWorkTheDocumentsAnAgentBuiltForIt": "One piece of work — the documents an agent built for it, what it cost, where it stands.",
+    "sayWhatYouWantMadeAndAnAgentBuildsItsDocuments": "Say what you want made, and an agent builds its documents",
+    "clipsOfShots": "clips {{clips}}/{{shots}}",
+    "cutWithDuration": "cut · {{d}}",
+    "mostRecentOf": "{{shown}} most recent of {{total}}",
+    "archivedProjects": "Archived projects"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

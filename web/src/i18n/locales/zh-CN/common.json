@@ -67,5 +67,15 @@
     "text": "文本",
     "application": "文档",
     "other": "其他"
+  },
+  "relTime": {
+    "justNow": "刚刚",
+    "yearAgo_other": "{{count}} 年前",
+    "monthAgo_other": "{{count}} 月前",
+    "weekAgo_other": "{{count}} 周前",
+    "dayAgo_other": "{{count}} 天前",
+    "hourAgo_other": "{{count}} 小前",
+    "minuteAgo_other": "{{count}} 时前",
+    "secondAgo_other": "{{count}} 分前"
   }
 }
