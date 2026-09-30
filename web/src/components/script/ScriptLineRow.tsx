@@ -670,7 +670,7 @@ const ScriptLineRow = ({
       )}
       {!readOnly && (
         <ToolbarIconButton
-          tooltip={showDirection ? "Remove direction" : "Add direction"}
+          tooltip={showDirection ? t("editor:ui.removeDirection", { defaultValue: "Remove direction" }) : t("editor:ui.addDirection", { defaultValue: "Add direction" })}
           onClick={toggleDirection}
           icon={<TheaterComedyIcon fontSize="small" />}
           sx={showDirection ? { color: "primary.main" } : undefined}

@@ -345,7 +345,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
         {items.length === 0 ? (
           <div className="col-empty">
             <span>{t("ui2:attrs.dropAssetsHere", { defaultValue: "Drop assets here" })}</span>
-            <span>from the asset panel, files, or generation history</span>
+            <span>{t("ui2:attrs.fromTheAssetPanelFilesOrGenerationHistory", { defaultValue: "from the asset panel, files, or generation history" })}</span>
           </div>
         ) : (
           items.map((item, i) => (

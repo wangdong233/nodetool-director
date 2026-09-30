@@ -853,7 +853,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
               changeRelativeVelocity(baseline, selectedIdsRef.current, (value as number) - Math.round(mean));
             }}
             onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
-          <Caption color="muted">⌘C/V copy/paste · ⌘R repeat · Q quantize</Caption>
+          <Caption color="muted">{t("timeline:attrs.pianoRollShortcutHint", { defaultValue: "⌘C/V copy/paste · ⌘R repeat · Q quantize" })}</Caption>
           <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label={t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>{t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })}</Button>
         </FlexRow>
         <NoteSelectionInspector notes={notes} selectedIds={selectedIds}

@@ -342,6 +342,7 @@
     "overwrite": "Overwrite",
     "parent": "Parent",
     "parentGroup": "Parent group",
+    "pianoRollShortcutHint": "⌘C/V copy/paste · ⌘R repeat · Q quantize",
     "pickA3DModel": "Pick a 3D model",
     "placeAGlTFAssetOnThisTrack": "Place a glTF asset on this track",
     "playbackSpeed": "Playback speed",

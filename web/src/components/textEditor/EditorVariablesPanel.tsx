@@ -248,10 +248,10 @@ const EditorVariablesPanel = ({
           <span>{t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>
           <span className="count">{variables.length}</span>
           {unboundCount > 0 && (
-            <span className="unbound">{unboundCount} unbound</span>
+            <span className="unbound">{t("ui2:attrs.countUnbound", { defaultValue: "{{count}} unbound", count: unboundCount })}</span>
           )}
         </div>
-        <span className="variables-hint">⌘ + click to insert</span>
+        <span className="variables-hint">{t("ui2:attrs.cmdClickToInsert", { defaultValue: "⌘ + click to insert" })}</span>
       </div>
       <div className="variables-chips">
         {variables.map((variable) => {

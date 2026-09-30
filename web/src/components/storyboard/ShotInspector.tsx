@@ -222,7 +222,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           />
         )}
         {!timelineLink && !scriptLink && (
-          <Caption color="muted">nothing yet</Caption>
+          <Caption color="muted">{t("storyboard:attrs.nothingYet", { defaultValue: "nothing yet" })}</Caption>
         )}
         {!readOnly && (
           <>

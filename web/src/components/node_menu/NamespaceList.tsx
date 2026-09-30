@@ -349,12 +349,13 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <ul className="no-results">
             {selectedPathString && (
               <li>
-                click on <span className="highlighted">highlighted </span>
-                namespaces to find results.
+                {t("editor:ui.clickOn", { defaultValue: "click on " })}
+                <span className="highlighted">{t("editor:ui.highlightedWord", { defaultValue: "highlighted " })}</span>
+                {t("editor:ui.namespacesToFindResults", { defaultValue: "namespaces to find results." })}
               </li>
             )}
-            <li>just start typing to enter a new search term</li>
-            <li>clear search by clicking the clear button</li>
+            <li>{t("editor:ui.justStartTypingToEnterANewSearchTerm", { defaultValue: "just start typing to enter a new search term" })}</li>
+            <li>{t("editor:ui.clearSearchByClickingTheClearButton", { defaultValue: "clear search by clicking the clear button" })}</li>
           </ul>
         </>
       ) : null}

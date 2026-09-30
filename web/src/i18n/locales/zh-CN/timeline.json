@@ -342,6 +342,7 @@
     "overwrite": "覆盖",
     "parent": "父级",
     "parentGroup": "父编组",
+    "pianoRollShortcutHint": "⌘C/V 复制/粘贴 · ⌘R 重复 · Q 量化",
     "pickA3DModel": "选择 3D 模型",
     "placeAGlTFAssetOnThisTrack": "在此轨道放置 glTF 素材",
     "playbackSpeed": "播放速度",

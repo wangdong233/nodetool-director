@@ -51,19 +51,16 @@ const RunWarningDialog: React.FC = () => {
         <FlexColumn gap={1.5}>
           {isConcurrent ? (
             <Text>
-              This workflow is <strong>already running</strong>. Starting
-              another run will execute both at the same time — for realtime
-              audio patches that means overlapping sound. Stop the current run
-              first if you meant to restart it.
+              {t("editor:ui.thisWorkflowIs", { defaultValue: "This workflow is " })}
+              <strong>{t("editor:ui.alreadyRunning", { defaultValue: "already running" })}</strong>
+              {t("editor:ui.concurrentRunTail", { defaultValue: ". Starting another run will execute both at the same time — for realtime audio patches that means overlapping sound. Stop the current run first if you meant to restart it." })}
             </Text>
           ) : (
             <>
               <Text>
-                This run will execute{" "}
-                <strong>{heavyCount} model/provider nodes</strong> — above the
-                warning threshold of {threshold}. Each may call an external API
-                or run a model, so running them all at once can be slow or hit
-                provider rate limits.
+                {t("editor:ui.thisRunWillExecute", { defaultValue: "This run will execute " })}
+                <strong>{t("editor:ui.modelProviderNodes", { defaultValue: "{{count}} model/provider nodes", count: heavyCount })}</strong>
+                {t("editor:ui.heavyRunTail", { defaultValue: " — above the warning threshold of {{threshold}}. Each may call an external API or run a model, so running them all at once can be slow or hit provider rate limits.", threshold })}
               </Text>
               <Checkbox
                 label={t("editor:ui.donTAskAgainForThisSession", { defaultValue: "Don't ask again for this session" })}

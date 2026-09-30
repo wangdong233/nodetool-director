@@ -521,7 +521,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <ToolbarIconButton
-                      aria-label="clear search"
+                      aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
                       icon={<ClearIcon sx={{ fontSize: 16 }} />}

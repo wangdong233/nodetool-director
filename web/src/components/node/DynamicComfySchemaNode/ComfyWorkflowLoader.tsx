@@ -186,8 +186,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
         >
           <FlexColumn gap={1.5} sx={{ minWidth: 0 }}>
             <Caption>
-              Paste a workflow in API (prompt) format — use “Save (API Format)”
-              in ComfyUI — or drop a .json/.png file exported by ComfyUI.
+              {t("editor:ui.pasteAWorkflowInAPIPromptFormat", { defaultValue: "Paste a workflow in API (prompt) format — use “Save (API Format)” in ComfyUI — or drop a .json/.png file exported by ComfyUI." })}
             </Caption>
             <Box
               onDrop={onDrop}
@@ -216,7 +215,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 >
                   <UploadFileIcon sx={{ fontSize: 18 }} />
                 </ToolbarIconButton>
-                <Caption>or drop a .json / .png here</Caption>
+                <Caption>{t("editor:ui.orDropAJsonPngHere", { defaultValue: "or drop a .json / .png here" })}</Caption>
                 <input
                   ref={fileInputRef}
                   type="file"
