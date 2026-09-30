@@ -1787,7 +1787,7 @@ const NewProjectSurface = ({
                   return (
                     <Tooltip
                       key={entry.name}
-                      title={entry.description}
+                      title={t(`catalog:skills.${entry.name}.description`, { defaultValue: entry.description })}
                       placement="bottom"
                       // Described by, not named by: the pill's name stays the
                       // skill's label.
@@ -1827,7 +1827,7 @@ const NewProjectSurface = ({
                   color="secondary"
                   sx={{ maxWidth: "620px", textAlign: "center" }}
                 >
-                  {starter.description}
+                  {t(`catalog:skills.${starter.name}.description`, { defaultValue: starter.description })}
                 </Caption>
               ) : (
                 <Caption color="muted">

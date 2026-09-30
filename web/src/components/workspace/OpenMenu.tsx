@@ -91,7 +91,14 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
                 key={starter.id}
                 label={t(`editor:ui.menuFlowTitle.${starter.id}`, { defaultValue: starter.title })}
                 icon={starter.icon}
-                secondary={t(`editor:ui.${starter.descriptionKey ?? ""}`, { defaultValue: starter.description })}
+                secondary={
+                  // descriptionKey is already fully qualified
+                  // ("editor:ui.…") — prefixing it again misses the key and
+                  // silently falls back to the raw English description.
+                  starter.descriptionKey
+                    ? t(starter.descriptionKey, { defaultValue: starter.description })
+                    : starter.description
+                }
                 onClick={() => void starter.start()}
                 disabled={busy}
               />
