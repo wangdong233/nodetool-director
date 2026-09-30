@@ -17,8 +17,8 @@ export const EmptyThreadList: React.FC<{ isFiltered?: boolean }> = ({
         title={isFiltered ? t("editor:ui.noMatchingConversations", { defaultValue: "No matching conversations" }) : t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
         description={
           isFiltered
-            ? "Try a different search term."
-            : "Start a conversation to explore AI workflows with natural language."
+            ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
+            : t("editor:chat.startAConversationToExploreAIWorkflowsWithNaturalLanguage", { defaultValue: "Start a conversation to explore AI workflows with natural language." })
         }
         size="small"
       />

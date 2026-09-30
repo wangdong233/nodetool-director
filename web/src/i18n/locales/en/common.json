@@ -12,7 +12,9 @@
     "duplicate": "Duplicate",
     "copy": "Copy",
     "cut": "Cut",
-    "remove": "Remove"
+    "remove": "Remove",
+    "exitFullscreen": "Exit Fullscreen",
+    "fullscreen": "Fullscreen"
   },
   "status": {
     "loading": "Loading…"
@@ -84,5 +86,15 @@
     "minuteAgo_other": "{{count}} min ago",
     "secondAgo_one": "1 sec ago",
     "secondAgo_other": "{{count}} sec ago"
+  },
+  "list": {
+    "searchPlaceholder": "Search {{plural}}...",
+    "loadingPlural": "Loading {{plural}}",
+    "couldNotLoad": "Could not load {{plural}}",
+    "tryAgainLater": "Try again later.",
+    "noMatching": "No matching {{plural}}",
+    "noneYet": "No {{plural}} yet",
+    "deleteTitle": "Delete {{singular}}",
+    "deleteContent": "Delete \"{{name}}\"? This cannot be undone."
   }
 }

@@ -101,8 +101,8 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         open={deleteTarget !== null}
         onClose={onCancelDelete}
         onConfirm={onConfirmDelete}
-        title={`Delete ${singular}`}
-        content={`Delete "${deleteTarget?.name ?? ""}"? This cannot be undone.`}
+        title={t("common:list.deleteTitle", { defaultValue: "Delete {{singular}}", singular })}
+        content={t("common:list.deleteContent", { defaultValue: 'Delete "{{name}}"? This cannot be undone.', name: deleteTarget?.name ?? "" })}
         confirmText={t("common:action.delete", { defaultValue: "Delete" })}
         cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
@@ -111,13 +111,13 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder={`Search ${plural}...`}
+          placeholder={t("common:list.searchPlaceholder", { defaultValue: "Search {{plural}}...", plural })}
         />
       </div>
 
       {isLoading ? (
         <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-          <LoadingSpinner size="large" text={`Loading ${plural}`} />
+          <LoadingSpinner size="large" text={t("common:list.loadingPlural", { defaultValue: "Loading {{plural}}", plural })} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -128,8 +128,8 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         >
           <EmptyState
             variant="error"
-            title={`Could not load ${plural}`}
-            description={errorMessage ?? "Try again later."}
+            title={t("common:list.couldNotLoad", { defaultValue: "Could not load {{plural}}", plural })}
+            description={errorMessage ?? t("common:list.tryAgainLater", { defaultValue: "Try again later." })}
           />
           {errorAction}
         </FlexColumn>
@@ -141,9 +141,9 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title={filterValue ? `No matching ${plural}` : `No ${plural} yet`}
+            title={filterValue ? t("common:list.noMatching", { defaultValue: "No matching {{plural}}", plural }) : t("common:list.noneYet", { defaultValue: "No {{plural}} yet", plural })}
             description={
-              filterValue ? "Try a different search term." : emptyDescription
+              filterValue ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." }) : emptyDescription
             }
           />
         </FlexColumn>

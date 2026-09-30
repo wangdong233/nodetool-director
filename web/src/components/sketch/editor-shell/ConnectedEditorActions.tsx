@@ -158,11 +158,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </>
       )}
 
-      <Tooltip title={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}>
+      <Tooltip title={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}>
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}
+          aria-label={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >

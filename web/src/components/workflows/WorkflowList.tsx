@@ -406,7 +406,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
                   filterValue && selectedTags.length > 0
                     ? t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." })
                     : filterValue
-                      ? "Try a different search term."
+                      ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
                       : selectedTags.length > 0
                         ? t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." })
                         : t("editor:ui.noWorkflowsMatchTheCurrentFilters", { defaultValue: "No workflows match the current filters." })

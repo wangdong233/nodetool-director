@@ -1259,14 +1259,14 @@ const TextEditorModal = ({
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={assistantVisible ? "Hide Assistant" : "Show Assistant"}
+                title={assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
               >
                 <button
                   type="button"
                   className={`button ${assistantVisible ? "active" : ""}`}
                   onClick={toggleAssistantVisible}
                   aria-label={
-                    assistantVisible ? "Hide Assistant" : "Show Assistant"
+                    assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })
                   }
                 >
                   {assistantVisible ? (
@@ -1291,13 +1291,13 @@ const TextEditorModal = ({
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                title={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               >
                 <button
                   type="button"
                   className="button"
                   onClick={toggleFullscreen}
-                  aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  aria-label={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>

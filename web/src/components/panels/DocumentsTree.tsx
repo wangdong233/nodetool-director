@@ -422,7 +422,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
             title={query.trim() ? t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
             description={
               query.trim()
-                ? "Try a different search term."
+                ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
                 : t("editor:ui.documentsCreatedInThisProjectWillAppearHere", { defaultValue: "Documents created in this project will appear here." })
             }
           />

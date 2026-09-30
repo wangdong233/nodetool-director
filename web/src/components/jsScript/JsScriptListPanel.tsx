@@ -166,7 +166,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
             title={filterValue ? t("editor:ui.noMatchingJSScripts", { defaultValue: "No matching JS scripts" }) : t("editor:ui.noJSScriptsYet", { defaultValue: "No JS scripts yet" })}
             description={
               filterValue
-                ? "Try a different search term."
+                ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
                 : t("editor:ui.createANewJSScriptWithThe+ButtonAbove", { defaultValue: "Create a new JS script with the + button above." })
             }
           />

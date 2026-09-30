@@ -552,13 +552,13 @@ const DataframeEditorModal = ({
               <div className="toolbar-group">
                 <Tooltip
                   delay={TOOLTIP_ENTER_DELAY}
-                  title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  title={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   <button
                     type="button"
                     className="button"
                     onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    aria-label={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                   >
                     {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                   </button>

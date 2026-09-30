@@ -809,7 +809,7 @@ const Model3DEditor = ({
         <FlexRow style={{ marginLeft: "auto" }} gap={1} align="center">
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? "Hide assistant" : "Show assistant"}
+            tooltip={showAssistant ? t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" }) : t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"

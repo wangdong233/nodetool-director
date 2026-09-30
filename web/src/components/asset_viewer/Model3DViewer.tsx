@@ -859,7 +859,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                   <FullscreenIcon fontSize="small" />
                 )
               }
-              tooltip={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               onClick={toggleFullscreen}
               size="small"
             />

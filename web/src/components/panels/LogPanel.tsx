@@ -207,7 +207,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
                 <FullscreenIcon fontSize="small" />
               )
             }
-            tooltip={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreenToggle}
             ariaLabel={t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
           />

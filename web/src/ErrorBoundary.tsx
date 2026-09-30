@@ -182,7 +182,7 @@ const ErrorBoundary: React.FC = () => {
   const errorMessage =
     error instanceof Error
       ? error.message
-      : "An unknown error occurred" + JSON.stringify(error);
+      : t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
   const stackTrace =
     error instanceof Error ? error.stack : t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
@@ -207,11 +207,10 @@ const ErrorBoundary: React.FC = () => {
   return (
     <Box css={errorBoundaryStyles(theme)}>
       <Box className="hero">
-        <img src="/logo192.png" alt="NodeTool Logo" className="logo" />
-        <Text className="heading">Something went wrong</Text>
+        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool Logo" })} className="logo" />
+        <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
-          An unexpected error occurred. You can try reloading the page. If
-          this keeps happening, please reach out so we can fix it.
+          {t("editor:ui.unexpectedErrorSubtext", { defaultValue: "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it." })}
         </Text>
       </Box>
 
@@ -223,7 +222,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={() => window.location.reload()}
             className="reload-button"
           >
-            Reload page
+            {t("editor:ui.reloadPage", { defaultValue: "Reload page" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -231,7 +230,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleReport}
             className="copy-error-button"
           >
-            Report a bug
+            {t("common:action.reportBug", { defaultValue: "Report a bug" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -263,7 +262,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? "Hide details ▲" : "Show details ▼"}
+          {showDetails ? t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
         </EditorButton>
 
         {showDetails && (
