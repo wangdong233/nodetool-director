@@ -129,7 +129,8 @@ if (
   typeof window !== "undefined"
 ) {
   (window as { __nodetoolI18n?: unknown }).__nodetoolI18n = {
-    change: (language: string) => changeAppLanguage(language as AppLanguage)
+    change: (language: string) => changeAppLanguage(language as AppLanguage),
+    probe: (key: string) => instance.t(key)
   };
 }
 

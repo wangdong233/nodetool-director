@@ -85,10 +85,10 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
               whiteSpace: "nowrap"
             }}
           >
-            {entity.name || "Untitled"}
+            {t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name || "Untitled" })}
           </Text>
           <Chip
-            label={entity.kind}
+            label={t(`storyboard:attrs.${entity.kind}`, { defaultValue: entity.kind })}
             compact
             variant="outlined"
             sx={{ ...getEntityKindChipSx(entity.kind), flexShrink: 0 }}
@@ -104,7 +104,9 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
             overflow: "hidden"
           }}
         >
-          {entity.descriptor}
+          {entity.descriptor
+            ? t(`catalog:styles.${entity.name}.description`, { defaultValue: entity.descriptor })
+            : null}
         </Caption>
 
         <FlexRow gap={0.5} justify="flex-end">

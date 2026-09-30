@@ -102,6 +102,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     const copy = { ...obj };
     delete copy.skills;
     delete copy.apps;
+    delete copy.styles;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -390,12 +391,15 @@ describe("catalog key parity (CI completeness guard)", () => {
     // slug or an empty description.
     expect(catalogEn).not.toHaveProperty("skills");
     expect(catalogEn).not.toHaveProperty("apps");
+    expect(catalogEn).not.toHaveProperty("styles");
     // The JSON module's inferred literal type cannot directly overlap a nested
     // record index, hence the double assertion.
     const zhOverlay = catalogZh as unknown as Record<
       string,
       Record<string, Record<string, unknown>>
     >;
+    // styles keys are preset NAMES (spaces/capitals allowed: "Painted 2D"),
+    // so the slug regex applies to skills/apps only.
     for (const block of ["skills", "apps"] as const) {
       const entries = zhOverlay[block];
       expect(Object.keys(entries).length).toBeGreaterThan(0);
@@ -406,6 +410,15 @@ describe("catalog key parity (CI completeness guard)", () => {
         }
         expect(slug).toMatch(/^[a-z0-9][a-z0-9.-]*$/);
       }
+    }
+    const styleEntries = zhOverlay["styles"];
+    expect(Object.keys(styleEntries).length).toBeGreaterThan(0);
+    for (const [name, entry] of Object.entries(styleEntries)) {
+      for (const field of ["name", "description"]) {
+        expect(typeof entry[field]).toBe("string");
+        expect((entry[field] as string).length).toBeGreaterThan(0);
+      }
+      expect(name).toMatch(/^[A-Za-z0-9][A-Za-z0-9 ./-]*$/);
     }
   });
 

@@ -605,7 +605,7 @@ export const EntitiesStep = ({
                               }
                               slotProps={{
                                 input: {
-                                  "aria-label": `${entity.name} · ${entity.kind}`
+                                  "aria-label": `${t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })} · ${t(`storyboard:attrs.${entity.kind}`, { defaultValue: entity.kind })}`
                                 }
                               }}
                               labelProps={{
@@ -632,7 +632,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {entity.name}
+                                    {t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })}
                                   </Label>
                                   <Caption
                                     sx={{
@@ -643,7 +643,9 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {entity.descriptor || t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
+                                    {entity.descriptor
+                                      ? t(`catalog:styles.${entity.name}.description`, { defaultValue: entity.descriptor })
+                                      : t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
                                   </Caption>
                                 </FlexColumn>
                               }

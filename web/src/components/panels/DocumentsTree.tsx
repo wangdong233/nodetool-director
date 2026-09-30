@@ -99,6 +99,10 @@ interface DocumentTreeRowProps {
 }
 
 const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
+  // Own subscription: this memo'd row must re-render on language change for
+  // the entity-overlay name lookup below (a parent-only hook would leave
+  // stale-language rows whenever the leaf props stay referentially equal).
+  const { t } = useTranslation();
   const Icon = LEAF_ICONS[leaf.type];
   const handleClick = useCallback(() => onOpen(leaf), [leaf, onOpen]);
 
@@ -156,7 +160,11 @@ const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
           })}
         />
         <TruncatedText component="span" showTooltip sx={{ minWidth: 0, flex: 1 }}>
-          {seededDocDisplayName(leaf.type, leaf.name)}
+          {/* Entity leaves carry seeded style-preset names — resolve through
+              the catalog overlay (unknown names fall back verbatim). */}
+          {leaf.type === "entity"
+            ? t(`catalog:styles.${leaf.name}.name`, { defaultValue: seededDocDisplayName(leaf.type, leaf.name) })
+            : seededDocDisplayName(leaf.type, leaf.name)}
         </TruncatedText>
         <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
           {leaf.typeLabel}

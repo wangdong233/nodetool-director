@@ -230,7 +230,7 @@
   "bottom": {
     "logs": "日志",
     "queue": "队列",
-    "workers": "工作进程",
+    "workers": "工作节点",
     "versions": "版本",
     "trace": "追踪",
     "resizeAria": "调整面板大小",

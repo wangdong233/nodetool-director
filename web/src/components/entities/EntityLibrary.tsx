@@ -115,14 +115,14 @@ const EntityLibraryInternal: React.FC = () => {
       <FlexRow align="center" justify="space-between">
         <FlexColumn gap={0}>
           <Text size="big">{t("nav:rail.entities", { defaultValue: "Entities" })}</Text>
-          <Caption>Reusable characters, locations, styles, and props</Caption>
+          <Caption>{t("nav:qa.entities.description", { defaultValue: "Reusable characters, locations, styles, and props" })}</Caption>
         </FlexColumn>
         <EditorButton
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAdd}
         >
-          Add entity
+          {t("editor:ui.addEntity", { defaultValue: "Add entity" })}
         </EditorButton>
       </FlexRow>
 
