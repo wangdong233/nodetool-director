@@ -958,6 +958,9 @@
     "roleLanguage": "language",
     "roleImage": "image",
     "roleVideo": "video",
-    "roleAudio": "audio"
+    "roleAudio": "audio",
+    "describeItOnceWellRefineTheBrief": "Describe it once. We'll refine the brief and render variations to pick from.",
+    "describeTheTaskWellPlanTheSteps": "Describe the task. We'll plan the steps and check what it needs before building.",
+    "tellUsThePremiseWellPickATemplate": "Tell us the premise. We'll pick a template, write the design, and fill every asset slot."
   }
 }

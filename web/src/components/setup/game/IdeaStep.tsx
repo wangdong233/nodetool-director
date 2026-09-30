@@ -167,8 +167,7 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
             {t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
-            Tell us the premise. We&apos;ll pick a template, write the design,
-            and fill every asset slot.
+            {t("storyboard:attrs.tellUsThePremiseWellPickATemplate", { defaultValue: "Tell us the premise. We'll pick a template, write the design, and fill every asset slot." })}
           </Text>
         </FlexColumn>
 

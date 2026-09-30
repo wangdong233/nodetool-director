@@ -137,8 +137,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             What image do you want?
           </Text>
           <Text size="normal" color="secondary">
-            Describe it once. We&apos;ll refine the brief and render variations
-            to pick from.
+            {t("storyboard:attrs.describeItOnceWellRefineTheBrief", { defaultValue: "Describe it once. We'll refine the brief and render variations to pick from." })}
           </Text>
         </FlexColumn>
 

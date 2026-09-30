@@ -958,6 +958,9 @@
     "roleLanguage": "语言",
     "roleImage": "图像",
     "roleVideo": "视频",
-    "roleAudio": "音频"
+    "roleAudio": "音频",
+    "describeItOnceWellRefineTheBrief": "描述一次即可。我们会提炼创意简报并渲染出多个变体供你挑选。",
+    "describeTheTaskWellPlanTheSteps": "描述这个任务。我们会规划步骤、核对所需内容，再进行构建。",
+    "tellUsThePremiseWellPickATemplate": "告诉我们创意前提。我们会选择模板、撰写设计并填满每个资产槽位。"
   }
 }

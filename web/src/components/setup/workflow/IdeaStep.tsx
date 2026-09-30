@@ -150,8 +150,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">{t("storyboard:attrs.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}</Text>
           <Text size="normal" color="secondary">
-            Describe the task. We&apos;ll plan the steps and check what it needs
-            before building.
+            {t("storyboard:attrs.describeTheTaskWellPlanTheSteps", { defaultValue: "Describe the task. We'll plan the steps and check what it needs before building." })}
           </Text>
         </FlexColumn>
 
