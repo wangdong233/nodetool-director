@@ -230,7 +230,7 @@
   "bottom": {
     "logs": "日志",
     "queue": "队列",
-    "workers": "Worker",
+    "workers": "工作进程",
     "versions": "版本",
     "trace": "追踪",
     "resizeAria": "调整面板大小",
@@ -2709,7 +2709,10 @@
     "usingTheValueYouSet": "使用你设置的值。",
     "weCouldNotDetectYourHardwarePickYourGpuMemory": "未能检测到你的硬件。请选择 GPU 显存以获取推荐。",
     "setGpuMemory": "设置 GPU 显存",
-    "buildPlacesTheNodesAndThenRunsItOnce": "构建会放置节点并运行一次"
+    "buildPlacesTheNodesAndThenRunsItOnce": "构建会放置节点并运行一次",
+    "project": "项目",
+    "selectedProjectAria": "已选项目:{{name}}",
+    "providerRates": "按渠道费率"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

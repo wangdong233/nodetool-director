@@ -2709,7 +2709,10 @@
     "usingTheValueYouSet": "Using the value you set.",
     "weCouldNotDetectYourHardwarePickYourGpuMemory": "We couldn't detect your hardware. Pick your GPU memory to get recommendations.",
     "setGpuMemory": "Set GPU memory",
-    "buildPlacesTheNodesAndThenRunsItOnce": "Build places the nodes and then runs it once"
+    "buildPlacesTheNodesAndThenRunsItOnce": "Build places the nodes and then runs it once",
+    "project": "Project",
+    "selectedProjectAria": "Selected project: {{name}}",
+    "providerRates": "provider rates"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

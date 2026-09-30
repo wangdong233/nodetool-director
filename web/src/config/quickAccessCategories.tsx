@@ -264,6 +264,7 @@ export const LEFT_PANEL_MORE_GROUPS: readonly LeftPanelSection[] = [
   {
     id: "workspace",
     label: "Workspace",
+    labelKey: "editor:ui.workspace",
     categories: [LEFT_PANEL_CATEGORY_BY_ID["workspace-files"]]
   }
 ];

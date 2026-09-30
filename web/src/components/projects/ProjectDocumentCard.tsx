@@ -27,6 +27,7 @@ import {
   formatDocumentSpend,
   type ProjectDocument
 } from "./projectStatus";
+import { useTranslation } from "react-i18next";
 
 interface ProjectDocumentCardProps {
   document: ProjectDocument;
@@ -41,6 +42,11 @@ const ProjectDocumentCard = ({
   onOpen,
   compact = false
 }: ProjectDocumentCardProps) => {
+  // Subscription anchor: the status line comes from module-phase i18n.t
+  // (documentStatusLine), which reads the live language at call time — but
+  // without a subscriber in this component an in-session language switch
+  // never re-renders the card and the caption freezes in the old language.
+  useTranslation();
   const handleOpen = useCallback(() => onOpen(document), [onOpen, document]);
   const progress = documentProgress(document);
 

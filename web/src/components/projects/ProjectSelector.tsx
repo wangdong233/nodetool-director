@@ -122,13 +122,18 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     const tab = state.tabs.find((entry) => entry.id === state.activeTabId);
     return tab?.projectId === activeProjectId ? tab.title : undefined;
   });
+  // The personal project's stored name is the backend constant "Personal"
+  // (PERSONAL_PROJECT_NAME) — a data value. Map it to the catalog at the
+  // display layer; user-named projects keep their own names verbatim.
   const name =
-    activeProject?.name ??
-    (activeProjectId === personalProjectId
-      ? "Personal"
-      : activeProjectId
-        ? (activeTabTitle ?? "Project")
-        : "Personal");
+    activeProject?.isPersonal
+      ? t("editor:ui.personal", { defaultValue: "Personal" })
+      : (activeProject?.name ??
+        (activeProjectId === personalProjectId
+          ? t("editor:ui.personal", { defaultValue: "Personal" })
+          : activeProjectId
+            ? (activeTabTitle ?? t("editor:ui.project", { defaultValue: "Project" }))
+            : t("editor:ui.personal", { defaultValue: "Personal" })));
   const personalProject = projects?.find((project) => project.isPersonal);
   const resolvedPersonalId =
     personalProject?.id ??
@@ -192,7 +197,9 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         className="selector-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={inline ? `Selected project: ${name}` : "Select project"}
+        aria-label={inline
+          ? t("editor:ui.selectedProjectAria", { defaultValue: "Selected project: {{name}}", name })
+          : t("editor:ui.selectProject", { defaultValue: "Select project" })}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="selector-glyph" aria-hidden>

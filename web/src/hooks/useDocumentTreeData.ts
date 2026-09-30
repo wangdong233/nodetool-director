@@ -84,8 +84,8 @@ const GROUPS: readonly {
   readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
-  { id: "workflows", label: "Workflows", types: ["workflow"] },
-  { id: "apps", label: "Apps", types: ["application"] },
+  { id: "workflows", label: "Workflows", labelKey: "nav:qa.workflows.label", types: ["workflow"] },
+  { id: "apps", label: "Apps", labelKey: "nav:qa.apps.label", types: ["application"] },
   {
     id: "creative",
     label: "Creative documents",

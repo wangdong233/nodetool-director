@@ -150,7 +150,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
           <Box component="span" sx={{ ...TYPOGRAPHY.mono.caption }}>
             {formatSpend(spend)}
           </Box>
-          <Caption color="muted">provider rates</Caption>
+          <Caption color="muted">{t("editor:ui.providerRates", { defaultValue: "provider rates" })}</Caption>
         </FlexRow>
       </FlexColumn>
     </Card>
