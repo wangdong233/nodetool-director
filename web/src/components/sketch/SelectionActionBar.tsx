@@ -237,7 +237,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             setError(i18n.t("sketch:attrs.canvasIsNotReadyYet", { defaultValue: "Canvas is not ready yet." }));
             break;
           case "error":
-            setError(result.message ?? "Generation failed.");
+            setError(
+              result.message ??
+              i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
+            );
             break;
         }
         return;
@@ -246,7 +249,11 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
       await start(result.layerId);
       setPrompt("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Generation failed.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
+      );
     } finally {
       setGenerating(false);
     }
@@ -505,7 +512,9 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               }
               data-testid="sketch-selection-generate"
             >
-              {mode === "inpaint" ? "Inpaint" : "Edit"}
+              {mode === "inpaint"
+                ? t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })
+                : t("sketch:attrs.edit", { defaultValue: "Edit" })}
             </EditorButton>
           </span>
         </Tooltip>

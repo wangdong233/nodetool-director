@@ -177,14 +177,20 @@ const SketchModal: React.FC<SketchModalProps> = ({
   const headerPenPressureOn = penPressure.pressureSensitivity !== false;
 
   const symmetryLabels = {
-    off: "Off",
-    horizontal: "Horizontal",
-    vertical: "Vertical",
-    dual: "Dual Axis",
-    radial: `Radial (${symmetryRays})`,
-    mandala: `Mandala (${symmetryRays})`
+    off: t("sketch:attrs.symmetryOff", { defaultValue: "Off" }),
+    horizontal: t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
+    vertical: t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
+    dual: t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
+    radial: t("sketch:attrs.symmetryRadial", {
+      defaultValue: "Radial ({{rays}})",
+      rays: symmetryRays
+    }),
+    mandala: t("sketch:attrs.symmetryMandala", {
+      defaultValue: "Mandala ({{rays}})",
+      rays: symmetryRays
+    })
   } satisfies Record<SymmetryMode, string>;
-  const symmetryLabel = symmetryLabels[symmetryMode] || "Off";
+  const symmetryLabel = symmetryLabels[symmetryMode] || symmetryLabels.off;
   const symmetryActive = symmetryMode !== "off";
 
   useEffect(() => {
@@ -507,8 +513,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 <TabGroup
                   aria-label={t("sketch:attrs.imageEditorShortcuts", { defaultValue: "Image editor shortcuts" })}
                   tabs={[
-                    { value: "shortcuts", label: "Shortcuts" },
-                    { value: "keyboard", label: "Keyboard" }
+                    {
+                      value: "shortcuts",
+                      label: t("sketch:attrs.shortcuts", { defaultValue: "Shortcuts" })
+                    },
+                    {
+                      value: "keyboard",
+                      label: t("sketch:attrs.keyboard", { defaultValue: "Keyboard" })
+                    }
                   ]}
                   value={shortcutsSubTab}
                   onChange={(v) =>

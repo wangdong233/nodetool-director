@@ -228,7 +228,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
             disabled={!isDirty || isSaving}
             onClick={handleSave}
           >
-            {isSaving ? "Saving…" : "Save"}
+            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>

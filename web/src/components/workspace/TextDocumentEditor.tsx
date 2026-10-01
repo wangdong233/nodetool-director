@@ -290,7 +290,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? "Saving…" : "Save"}
+                  {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
                 </EditorButton>
               </>
             }
@@ -339,7 +339,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? "Saving…" : "Save"}
+              {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
         </FlexRow>

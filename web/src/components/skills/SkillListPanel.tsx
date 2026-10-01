@@ -86,6 +86,8 @@ const isSystemSkill = (id: string): boolean =>
   id.startsWith(SYSTEM_SKILL_ID_PREFIX);
 
 const SkillListPanel = () => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   // Shipped skills are listed beside the user's own. They read the same in the
   // agent's catalog, so hiding them here made the panel disagree with what the
   // agent could actually load.
@@ -204,7 +206,7 @@ const SkillListPanel = () => {
       <ListPanelItem
         id={skill.id}
         name={skill.name}
-        fallbackName="Untitled skill"
+        fallbackName={i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })}
         renameLabel={i18n.t("editor:ui.skillName", { defaultValue: "Skill name" })}
         // A lock, and "Built in" under the name: enough to tell the two apart
         // at a glance without a second list or a heading.
@@ -230,8 +232,8 @@ const SkillListPanel = () => {
 
   return (
     <DocumentListPanel
-      singular="skill"
-      plural="skills"
+      singular={t("editor:ui.skillNoun", { defaultValue: "skill" })}
+      plural={t("editor:ui.skillsNoun", { defaultValue: "skills" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
@@ -246,7 +248,7 @@ const SkillListPanel = () => {
           }}
         />
       }
-      emptyDescription="Create a skill from the workspace New menu."
+      emptyDescription={t("editor:ui.createASkillFromTheWorkspaceNewMenu", { defaultValue: "Create a skill from the workspace New menu." })}
       deleteTarget={itemToDelete}
       onCancelDelete={handleCancelDelete}
       onConfirmDelete={handleConfirmDelete}

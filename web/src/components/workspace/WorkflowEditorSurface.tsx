@@ -57,6 +57,7 @@ import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import WorkflowGraphPreview from "../version/WorkflowGraphPreview";
 import { WorkflowLandingChecklist } from "../setup/workflow/WorkflowLandingChecklist";
 import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Floating editor status message: sits above the canvas and node overlays but
 // below the node-info panel (15000) and find dialog (20000). Beyond the shared
@@ -90,6 +91,8 @@ const WorkflowEditorSurface = ({
   mode = "edit",
   active
 }: WorkflowEditorSurfaceProps) => {
+  // Language anchor: the subgraph host label renders through `t` (r12).
+  const { t } = useTranslation();
   const nodeStore = useWorkflowManager((state) =>
     state.getNodeStore(workflowId)
   );
@@ -219,7 +222,7 @@ const WorkflowEditorSurface = ({
     if (landingRunMode === "app") {
       try {
         const created = await createApplication.mutateAsync({
-          name: workflow?.name || "Untitled app",
+          name: workflow?.name || i18n.t("editor:ui.untitledApp", { defaultValue: "Untitled app" }),
           description: workflow?.description ?? "",
           projectId: workflowProjectId ?? creationProjectId(),
           fromWorkflowId: workflowId
@@ -230,9 +233,10 @@ const WorkflowEditorSurface = ({
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not create the Mini App: ${
-            cause instanceof Error ? cause.message : String(cause)
-          }`
+          content: i18n.t("editor:ui.couldNotCreateTheMiniApp", {
+            defaultValue: "Could not create the Mini App: {{message}}",
+            message: cause instanceof Error ? cause.message : String(cause)
+          })
         });
       }
       return;
@@ -250,8 +254,10 @@ const WorkflowEditorSurface = ({
     addNotification({
       type: "info",
       alert: true,
-      content:
-        "The canvas is ready. Change its inputs and run it again when you are ready."
+      content: i18n.t("editor:ui.canvasReadyRunAgainWhenReady", {
+        defaultValue:
+          "The canvas is ready. Change its inputs and run it again when you are ready."
+      })
     });
   }, [
     addNotification,
@@ -417,7 +423,7 @@ const WorkflowEditorSurface = ({
               <SubgraphTabStrip
                 hostId={workflowId}
                 hostActiveKey={null}
-                hostLabel="Workflow"
+                hostLabel={t("editor:ui.workflow", { defaultValue: "Workflow" })}
               />
               <div
                 style={{

@@ -147,7 +147,12 @@ const ApplicationSurface = ({
   }, [application, refId, setTabTitle]);
 
   if (isLoading) {
-    return <LoadingSpinner size="large" text="Loading app" />;
+    return (
+      <LoadingSpinner
+        size="large"
+        text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })}
+      />
+    );
   }
 
   if (isError || !application) {
@@ -155,7 +160,12 @@ const ApplicationSurface = ({
       <EmptyState
         variant="error"
         title={t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
-        description={error?.message ?? "The app may have been deleted."}
+        description={
+          error?.message ??
+          t("editor:ui.theAppMayHaveBeenDeleted", {
+            defaultValue: "The app may have been deleted."
+          })
+        }
       />
     );
   }
@@ -192,7 +202,8 @@ const ApplicationSurface = ({
           >
             <Box sx={{ minWidth: 0 }}>
               <Text size="small" weight={600} truncate>
-                {application.name || "Untitled app"}
+                {application.name ||
+                  t("editor:ui.untitledApp", { defaultValue: "Untitled app" })}
               </Text>
               {application.description && (
                 <Caption color="secondary" sx={{ display: "block" }}>

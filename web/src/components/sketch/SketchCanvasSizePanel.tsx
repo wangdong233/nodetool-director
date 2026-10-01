@@ -260,7 +260,9 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
                 color: match ? "grey.200" : SKETCH_COLORS.textFaint
               }}
             >
-              {match ? match.label : "Presets…"}
+              {match
+                ? match.label
+                : t("sketch:attrs.presets", { defaultValue: "Presets…" })}
             </Text>
           );
         }}

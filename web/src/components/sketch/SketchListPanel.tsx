@@ -112,6 +112,8 @@ const SketchListItem = memo(function SketchListItem({
   onCommitRename,
   onCancelRename
 }: SketchListItemProps) {
+  // Language anchor for the memo'd row (F-26).
+  const { t } = useTranslation();
   const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
   const clearDrag = useDragDropStore((state) => state.clearDrag);
   const handleDragStart = useCallback(
@@ -146,8 +148,8 @@ const SketchListItem = memo(function SketchListItem({
     <ListPanelItem
       id={id}
       name={name}
-      fallbackName="Untitled sketch"
-      renameLabel="Sketch name"
+      fallbackName={t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" })}
+      renameLabel={t("editor:ui.sketchName", { defaultValue: "Sketch name" })}
       icon={BrushOutlinedIcon}
       active={active}
       editing={editing}
@@ -217,6 +219,8 @@ interface SketchListPanelProps {
 }
 
 const SketchListPanel = ({ projectId }: SketchListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = trpc.sketch.list.useQuery(
     { projectId },
     { staleTime: 30_000, retry: false }
@@ -329,13 +333,13 @@ const SketchListPanel = ({ projectId }: SketchListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="sketch"
-      plural="sketches"
+      singular={t("editor:ui.sketchNoun", { defaultValue: "sketch" })}
+      plural={t("editor:ui.sketchesNoun", { defaultValue: "sketches" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new sketch with the + button above."
+      emptyDescription={t("editor:ui.createANewSketchWithThe+ButtonAbove", { defaultValue: "Create a new sketch with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}

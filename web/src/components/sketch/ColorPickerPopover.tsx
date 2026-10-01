@@ -45,11 +45,23 @@ import { useTranslation } from "react-i18next";
 const SV_SIZE = 160;
 const HUE_HEIGHT = 12;
 
+// English fallbacks for the channel a11y labels; resolved through the keys at
+// render time so they follow the language switcher (r12).
 const RGB_LABELS = { r: "Red", g: "Green", b: "Blue" } as const;
+const RGB_LABEL_KEYS = {
+  r: "sketch:attrs.redChannel",
+  g: "sketch:attrs.greenChannel",
+  b: "sketch:attrs.blueChannel"
+} as const;
 const HSL_LABELS = {
   h: "Hue (degrees)",
   s: "Saturation (percent)",
   l: "Lightness (percent)"
+} as const;
+const HSL_LABEL_KEYS = {
+  h: "sketch:attrs.hueDegrees",
+  s: "sketch:attrs.saturationPercent",
+  l: "sketch:attrs.lightnessPercent"
 } as const;
 
 interface ColorPickerPopoverProps {
@@ -348,7 +360,10 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           size="small"
           value={fgHex6}
           onChange={(e) => handleHex(e.target.value)}
-          inputProps={{ maxLength: 7, "aria-label": "Hex color" }}
+          inputProps={{
+            maxLength: 7,
+            "aria-label": t("sketch:attrs.hexColor", { defaultValue: "Hex color" })
+          }}
           sx={{
             "& .MuiInputBase-root": { fontSize: SKETCH_FONT.sm, height: "22px" },
             "& .MuiInputBase-input": { padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.xs)}`, textAlign: "center" }
@@ -369,7 +384,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                 inputProps={{
                   min: 0,
                   max: 255,
-                  "aria-label": RGB_LABELS[ch]
+                  "aria-label": t(RGB_LABEL_KEYS[ch], { defaultValue: RGB_LABELS[ch] })
                 }}
                 sx={numSx}
               />
@@ -393,7 +408,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                 inputProps={{
                   min: 0,
                   max: ch === "h" ? 360 : 100,
-                  "aria-label": HSL_LABELS[ch]
+                  "aria-label": t(HSL_LABEL_KEYS[ch], { defaultValue: HSL_LABELS[ch] })
                 }}
                 sx={numSx}
               />

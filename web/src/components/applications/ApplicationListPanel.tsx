@@ -313,13 +313,13 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="app"
-      plural="apps"
+      singular={t("editor:ui.appNoun", { defaultValue: "app" })}
+      plural={t("editor:ui.appsNoun", { defaultValue: "apps" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create an app with the + button above, or scaffold one from a workflow."
+      emptyDescription={t("editor:ui.createAnAppWithThe+ButtonAboveOrScaffoldOneFromAWorkflow", { defaultValue: "Create an app with the + button above, or scaffold one from a workflow." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -327,8 +327,8 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
         <ListPanelItem
           id={app.id}
           name={app.name}
-          fallbackName={UNTITLED}
-          renameLabel="App name"
+          fallbackName={t("editor:ui.untitledApp", { defaultValue: "Untitled app" })}
+          renameLabel={t("editor:ui.appName", { defaultValue: "App name" })}
           icon={DashboardCustomizeOutlinedIcon}
           secondary={
             app.operationCount === 1

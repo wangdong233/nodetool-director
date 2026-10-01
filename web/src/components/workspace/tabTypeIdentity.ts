@@ -52,12 +52,26 @@ const DOC_TAB_DEFAULTS: Partial<
     "New video": "nav:qa.timelines.label",
     "Untitled timeline": "timeline:attrs.untitledTimeline"
   },
-  storyboard: { Storyboard: "nav:qa.storyboards.label", "New storyboard": "nav:qa.storyboards.label" },
-  script: { Script: "nav:qa.scripts.label", "New script": "nav:qa.scripts.label" },
-  jsscript: { "JS Script": "nav:qa.jsscripts.label" },
+  storyboard: {
+    Storyboard: "nav:qa.storyboards.label",
+    "New storyboard": "nav:qa.storyboards.label",
+    "Untitled storyboard": "storyboard:attrs.untitledStoryboard"
+  },
+  script: {
+    Script: "nav:qa.scripts.label",
+    "New script": "nav:qa.scripts.label",
+    "Untitled script": "editor:ui.untitledScript"
+  },
+  jsscript: {
+    "JS Script": "nav:qa.jsscripts.label",
+    "Untitled JS script": "editor:ui.untitledJsScript"
+  },
   skill: { Skill: "nav:qa.skills.label" },
   model3d: { "3D Model": "editor:ui.threeDModel" },
-  application: { Application: "nav:qa.apps.label" }
+  application: {
+    Application: "nav:qa.apps.label",
+    "Untitled app": "editor:ui.untitledApp"
+  }
 };
 
 export const tabDisplayTitle = (tab: {

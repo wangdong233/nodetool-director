@@ -221,7 +221,11 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
       await start(layerId);
       setPrompt("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Generation failed.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
+      );
     } finally {
       setGenerating(false);
     }
@@ -296,7 +300,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
             <MediaControlChip
               ref={imageModelAnchorRef}
               icon={<ImageIcon fontSize="small" />}
-              label={modelName || "Select Model"}
+              label={modelName || t("editor:ui.selectModel", { defaultValue: "Select Model" })}
               active={imageModelOpen}
               onClick={() => setImageModelOpen(true)}
               truncate
