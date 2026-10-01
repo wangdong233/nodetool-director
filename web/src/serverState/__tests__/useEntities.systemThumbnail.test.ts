@@ -3,7 +3,7 @@
  * rows with no stored bytes, so the synthesized `asset://` ref points at a
  * `get_url` that 404s; the marker's `package://` thumbnail is the tile art.
  */
-import { assetToEntity } from "../useEntities";
+import { assetToEntity, systemPresetAssetInfo } from "../useEntities";
 import type { Asset } from "../../stores/ApiTypes";
 
 const baseAsset = {
@@ -78,5 +78,46 @@ describe("assetToEntity system-entity thumbnail", () => {
     expect(entity?.reference_images?.[0]?.asset_id).toBe(
       "a8472a47faa84c989e45089b5789d9df"
     );
+  });
+});
+
+describe("systemPresetAssetInfo (raw asset-row surfaces)", () => {
+  it("exposes the seeded name and package thumbnail for a system row", () => {
+    const info = systemPresetAssetInfo(make({ nodetool_entity: systemMarker }));
+    expect(info).toEqual({
+      name: "Painted 2D",
+      thumbnail: "package://nodetool-base/styles/game-painted-2d.png"
+    });
+  });
+
+  it("returns null for an ordinary (non-system) entity row", () => {
+    expect(
+      systemPresetAssetInfo(
+        make({
+          nodetool_entity: {
+            kind: "style",
+            name: "Mara",
+            descriptor: "A tall woman with red hair."
+          }
+        })
+      )
+    ).toBeNull();
+  });
+
+  it("returns null for an unmarked asset", () => {
+    expect(systemPresetAssetInfo(make(undefined))).toBeNull();
+  });
+
+  it("drops the thumbnail once the picture is swapped, keeps the name", () => {
+    const info = systemPresetAssetInfo(
+      make({
+        nodetool_entity: {
+          ...systemMarker,
+          reference_asset_id: "a8472a47faa84c989e45089b5789d9df"
+        }
+      })
+    );
+    expect(info?.name).toBe("Painted 2D");
+    expect(info?.thumbnail).toBeUndefined();
   });
 });

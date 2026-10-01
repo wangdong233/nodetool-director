@@ -14,13 +14,15 @@ import { DeleteButton, Text, MOTION, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpa
 import { secondsToHMS } from "../../utils/formatDateAndTime";
 import { formatFileSize } from "../../utils/formatUtils";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { systemPresetAssetInfo } from "../../serverState/useEntities";
+import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { useAssetActions } from "./useAssetActions";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 
 const styles = (theme: Theme) =>
@@ -350,6 +352,10 @@ const deleteButtonOverlayStyle = css({
 const AssetItem: React.FC<AssetItemProps> = (props) => {
   const theme = useTheme();
   const assetStyles = useMemo(() => styles(theme), [theme]);
+  // Own subscription anchor: the tile name renders language-dependent
+  // content (catalog:styles overlay for seeded presets), and memo only
+  // blocks parent-driven re-renders, not this hook's own signal.
+  const { t } = useTranslation();
   const {
     asset,
     draggable = true,
@@ -430,6 +436,19 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
     isVideo ? asset?.get_url : null
   );
 
+  // Seeded style presets are marker rows with no stored bytes: `get_url` 404s,
+  // so the tile paints black. Their shipped `package://` tile art resolves
+  // statically (same ref shape the entity library renders), and their names
+  // read through the catalog:styles overlay (EntityCard F-26 pattern).
+  const preset = useMemo(() => systemPresetAssetInfo(asset), [asset]);
+  const presetThumbUrl = preset?.thumbnail
+    ? resolveStaticMediaUri(preset.thumbnail)
+    : null;
+  const presetImageUrl = presetThumbUrl || null;
+  const displayName = preset
+    ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
+    : asset.name;
+
   const handleAudioClick = useCallback(() => {
     onSetCurrentAudioAsset?.(asset);
   }, [asset, onSetCurrentAudioAsset]);
@@ -468,7 +487,7 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
       onClick={handleItemClick}
       role="button"
       tabIndex={0}
-      aria-label={asset.name}
+      aria-label={displayName}
       onKeyDown={handleItemKeyDown}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -483,23 +502,23 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
         </div>
       )}
       <div className={`asset ${isImage ? "alpha-surface" : ""}`}>
-        {!asset.get_url && <div className="asset-missing" />}
+        {!asset.get_url && !presetImageUrl && <div className="asset-missing" />}
         {isImage && (
           <>
-            {!asset.get_url && <ImageIcon className="placeholder" />}
-            {asset.get_url && (
+            {!asset.get_url && !presetImageUrl && <ImageIcon className="placeholder" />}
+            {(asset.get_url || presetImageUrl) && (
               <>
                 <div
                   className="image"
                   style={{
-                    backgroundImage: `url(${isSvg ? asset.get_url : asset.thumb_url || asset.get_url})`
+                    backgroundImage: `url(${presetImageUrl ?? (isSvg ? asset.get_url : asset.thumb_url || asset.get_url)})`
                   }}
                   aria-label={asset.id}
                 />
                 <div
                   className="image-aspect-ratio"
                   style={{
-                    backgroundImage: `url(${isSvg ? asset.get_url : asset.thumb_url || asset.get_url})`
+                    backgroundImage: `url(${presetImageUrl ?? (isSvg ? asset.get_url : asset.thumb_url || asset.get_url)})`
                   }}
                   aria-label={asset.id}
                 />
@@ -633,12 +652,12 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
             )}
           {showName && assetItemSize > 1 && (
             <Text
-              aria-label={asset.name}
+              aria-label={displayName}
               data-microtip-position="bottom"
               role="tooltip"
               className={`name info ${assetItemSize > 4 ? "large" : ""}`}
             >
-              {asset.name}
+              {displayName}
             </Text>
           )}
           {assetsOrder === "date" && asset.created_at && assetItemSize > 2 && (

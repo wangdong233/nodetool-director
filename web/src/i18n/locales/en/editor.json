@@ -2817,7 +2817,17 @@
     "runModeByHand": "by hand",
     "runModeAsAnAppWithAForm": "as an app with a form",
     "runModeOnATrigger": "on a trigger",
-    "workflowIdIsNotOpen": "Workflow {{id}} is not open."
+    "workflowIdIsNotOpen": "Workflow {{id}} is not open.",
+    "searchResults": "Search Results",
+    "searchingFor": "Searching for \"{{query}}\"…",
+    "noResultsFor": "No results for \"{{query}}\"",
+    "searching2": "Searching…",
+    "resultCountFor": "{{count}} result for \"{{query}}\"",
+    "resultsCountFor": "{{count}} results for \"{{query}}\"",
+    "collapseType": "Collapse {{type}}",
+    "expandType": "Expand {{type}}",
+    "folder": "Folder",
+    "unknown": "Unknown"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

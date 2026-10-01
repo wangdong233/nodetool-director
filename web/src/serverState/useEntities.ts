@@ -127,6 +127,33 @@ function systemEntityThumbnail(
 }
 
 /**
+ * The shipped preset identity of a raw asset row, for surfaces that render
+ * assets directly (the library grid, the list view, search results) instead
+ * of through {@link useEntities}. Null for every ordinary asset. `name` is
+ * the seeded marker name (resolve it through the `catalog:styles` overlay);
+ * `thumbnail` is the `package://` tile art, undefined once the user swaps the
+ * picture to a real asset — same condition `assetToEntity` applies.
+ */
+export interface SystemPresetAssetInfo {
+  name: string;
+  thumbnail: string | undefined;
+}
+
+/** Read {@link SystemPresetAssetInfo} off an asset row, or null. */
+export function systemPresetAssetInfo(asset: {
+  metadata?: Record<string, unknown> | null;
+}): SystemPresetAssetInfo | null {
+  const marker = readEntityMarker(asset.metadata);
+  if (!marker || !isSystemEntityMetadata(asset.metadata)) {
+    return null;
+  }
+  return {
+    name: marker.name,
+    thumbnail: systemEntityThumbnail(asset.metadata, marker)
+  };
+}
+
+/**
  * Map a marked asset to an {@link Entity}, using the marker's swapped reference
  * image when it names one and the asset's own bytes otherwise.
  */

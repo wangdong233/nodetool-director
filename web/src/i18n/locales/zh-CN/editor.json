@@ -2815,7 +2815,17 @@
     "runModeByHand": "手动",
     "runModeAsAnAppWithAForm": "以带表单的小程序形式",
     "runModeOnATrigger": "按触发器",
-    "workflowIdIsNotOpen": "工作流 {{id}} 未打开。"
+    "workflowIdIsNotOpen": "工作流 {{id}} 未打开。",
+    "searchResults": "搜索结果",
+    "searchingFor": "正在搜索“{{query}}”…",
+    "noResultsFor": "没有与“{{query}}”相关的结果",
+    "searching2": "正在搜索…",
+    "resultCountFor": "{{count}} 条“{{query}}”的结果",
+    "resultsCountFor": "{{count}} 条“{{query}}”的结果",
+    "collapseType": "收起{{type}}",
+    "expandType": "展开{{type}}",
+    "folder": "文件夹",
+    "unknown": "未知"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

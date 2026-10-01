@@ -13,6 +13,8 @@ import { IconForType } from "../../config/IconForType";
 import { getAssetCategory } from "./assetGridUtils";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetSearch } from "../../serverState/useAssetSearch";
+import { systemPresetAssetInfo } from "../../serverState/useEntities";
+import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import {
@@ -386,12 +388,12 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
         <div className="global-search-results-container search-results-container">
           <div className="global-search-results-header search-results-header">
             <Text className="global-search-results-title search-results-title">
-              Search Results
+              {t("editor:ui.searchResults", { defaultValue: "Search Results" })}
             </Text>
             <Text className="global-search-results-count search-results-count">
               {isSearching
-                ? `Searching for "${globalSearchQuery}"…`
-                : `No results for "${globalSearchQuery}"`}
+                ? t("editor:ui.searchingFor", { defaultValue: "Searching for \"{{query}}\"…", query: globalSearchQuery })
+                : t("editor:ui.noResultsFor", { defaultValue: "No results for \"{{query}}\"", query: globalSearchQuery })}
             </Text>
           </div>
           <div
@@ -406,7 +408,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                   className="search-spinner"
                   style={spinnerStyle}
                 ></div>
-                <Text>Searching…</Text>
+                <Text>{t("editor:ui.searching2", { defaultValue: "Searching…" })}</Text>
               </div>
             ) : (
               <Text>{t("ui2:attrs.noAssetsFoundMatchingYourSearch", { defaultValue: "No assets found matching your search." })}</Text>
@@ -426,11 +428,13 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
       <div className="global-search-results-container search-results-container">
         <div className="global-search-results-header search-results-header">
           <Text className="global-search-results-title search-results-title">
-            Search Results
+            {t("editor:ui.searchResults", { defaultValue: "Search Results" })}
           </Text>
           <Text className="global-search-results-count search-results-count">
-            {results.length} result{results.length !== 1 ? "s" : ""} for &quot;
-            {globalSearchQuery}&quot;
+            {t(results.length === 1 ? "editor:ui.resultCountFor" : "editor:ui.resultsCountFor", {
+              count: String(results.length),
+              query: globalSearchQuery
+            })}
           </Text>
         </div>
 
@@ -442,10 +446,19 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
             const isSelected = selectedAssetIdSet.has(asset.id);
             const assetType = getAssetType(asset.content_type);
             const assetSize = asset.size;
+            // Seeded style presets carry no bytes (get_url 404s); render their
+            // package:// tile art and resolve names through catalog:styles.
+            const preset = systemPresetAssetInfo(asset);
+            const presetImageUrl = preset?.thumbnail
+              ? resolveStaticMediaUri(preset.thumbnail)
+              : null;
+            const displayName = preset
+              ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
+              : asset.name;
             const hasVisualContent =
               (assetType === "image" || assetType === "video") &&
-              asset.get_url &&
-              asset.get_url !== "/images/placeholder.png";
+              (presetImageUrl !== null ||
+                (asset.get_url && asset.get_url !== "/images/placeholder.png"));
 
             const assetHandlers = createAssetHandlers(asset);
 
@@ -456,7 +469,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                   }`}
                 role="button"
                 tabIndex={0}
-                aria-label={asset.name}
+                aria-label={displayName}
                 draggable={true}
                 onDragStart={assetHandlers.onDragStart}
                 onDragEnd={handleDragEnd}
@@ -472,8 +485,8 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                   <div
                     className="global-search-result-thumbnail result-item-thumbnail"
                     style={{
-                      backgroundImage: `url(${asset.thumb_url || asset.get_url
-                        })`
+                      backgroundImage: `url(${presetImageUrl ?? (asset.thumb_url || asset.get_url
+                        )})`
                     }}
                     title={`${asset.content_type} thumbnail`}
                     data-testid="global-search-result-thumbnail"
@@ -497,7 +510,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                     className="global-search-result-name result-item-name"
                     data-testid="global-search-result-name"
                   >
-                    {asset.name}
+                    {displayName}
                     {asset.duration && (
                       <span className="global-search-result-duration result-duration">
                         {" "}
