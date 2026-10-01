@@ -12,11 +12,12 @@ import { useTranslation } from "react-i18next";
 
 export type MobileRail = "chat" | "documents" | "todos" | "task";
 
-const RAIL_LABELS: Record<MobileRail, string> = {
-  chat: "Chat",
-  documents: "Documents",
-  todos: "Tasks",
-  task: "Task"
+/** Catalog key per rail (editor:ui.<key>); rendered at render time. */
+const RAIL_LABEL_KEYS: Record<MobileRail, string> = {
+  chat: "chat",
+  documents: "documents",
+  todos: "tasks",
+  task: "task"
 };
 
 interface MobileRailTabsProps {
@@ -44,7 +45,9 @@ const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => 
     >
       {available.map((rail) => (
         <ToggleOption key={rail} value={rail}>
-          {RAIL_LABELS[rail]}
+          {t(`editor:ui.${RAIL_LABEL_KEYS[rail]}`, {
+            defaultValue: rail === "todos" ? "Tasks" : rail.charAt(0).toUpperCase() + rail.slice(1)
+          })}
         </ToggleOption>
       ))}
     </ToggleGroup>

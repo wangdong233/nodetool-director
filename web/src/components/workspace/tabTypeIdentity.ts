@@ -35,10 +35,23 @@ const DOC_TAB_DEFAULTS: Partial<
     Workflow: "nav:qa.workflows.label",
     "New workflow": "nav:qa.workflows.label"
   },
-  chat: { "New chat": "nav:qa.chats.label" },
+  // Both chat seeds occur in the tree: "New chat" is the blank-document
+  // catalog's stored title, while the runtime thread title constants (Global
+  // ChatStore, chatProtocol, threadUtils) default to "New conversation".
+  chat: {
+    "New chat": "nav:qa.chats.label",
+    "New conversation": "editor:ui.newConversation"
+  },
   image: { Image: "editor:ui.image", "New image": "editor:ui.image" },
+  // The 图稿 card opens a sketch-type tab whose stored title is the image
+  // flow's name seed ("New image").
+  sketch: { "New image": "editor:ui.newImage" },
   text: { Text: "editor:ui.text" },
-  timeline: { Timeline: "nav:qa.timelines.label", "New video": "nav:qa.timelines.label" },
+  timeline: {
+    Timeline: "nav:qa.timelines.label",
+    "New video": "nav:qa.timelines.label",
+    "Untitled timeline": "timeline:attrs.untitledTimeline"
+  },
   storyboard: { Storyboard: "nav:qa.storyboards.label", "New storyboard": "nav:qa.storyboards.label" },
   script: { Script: "nav:qa.scripts.label", "New script": "nav:qa.scripts.label" },
   jsscript: { "JS Script": "nav:qa.jsscripts.label" },

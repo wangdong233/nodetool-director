@@ -13,7 +13,7 @@ export const threadPreview = (
   }
   const firstUserMessage = messages?.find((msg) => msg.role === "user");
   if (!firstUserMessage) {
-    return "New conversation";
+    return i18n.t("editor:ui.newConversation", { defaultValue: "New conversation" });
   }
   const { content } = firstUserMessage;
   let text: string;
@@ -26,7 +26,7 @@ export const threadPreview = (
     text = i18n.t("editor:ui.mediaMessage", { defaultValue: "[Media message]" });
   }
   if (!text) {
-    return "New conversation";
+    return i18n.t("editor:ui.newConversation", { defaultValue: "New conversation" });
   }
   return text.length > 50 ? `${text.substring(0, 50)}...` : text;
 };

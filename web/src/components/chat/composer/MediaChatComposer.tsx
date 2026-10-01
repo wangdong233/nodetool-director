@@ -523,19 +523,34 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     label: string;
   } | null => {
     if (mode === "chat") {
-      return { model: chatModel, label: "language" };
+      return {
+        model: chatModel,
+        label: t("editor:ui.languageModelKind", { defaultValue: "language" })
+      };
     }
     if (mode === "image") {
-      return { model: imageParams.model, label: "image" };
+      return {
+        model: imageParams.model,
+        label: t("editor:ui.imageModelKind", { defaultValue: "image" })
+      };
     }
     if (mode === "image_edit") {
-      return { model: imageEditParams.model, label: "image edit" };
+      return {
+        model: imageEditParams.model,
+        label: t("editor:ui.imageEditModelKind", { defaultValue: "image edit" })
+      };
     }
     if (mode === "video") {
-      return { model: videoParams.model, label: "video" };
+      return {
+        model: videoParams.model,
+        label: t("editor:ui.videoModelKind", { defaultValue: "video" })
+      };
     }
     if (mode === "image_to_video") {
-      return { model: imageToVideoParams.model, label: "image to video" };
+      return {
+        model: imageToVideoParams.model,
+        label: t("editor:ui.imageToVideoModelKind", { defaultValue: "image to video" })
+      };
     }
     if (mode === "reference_to_video") {
       return {
@@ -544,9 +559,17 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       };
     }
     if (mode === "audio") {
-      return { model: audioParams.model, label: "speech" };
+      return {
+        model: audioParams.model,
+        label: t("editor:ui.speechModelKind", { defaultValue: "speech" })
+      };
     }
-    if (mode === "music") return { model: musicParams.model, label: "music" };
+    if (mode === "music") {
+      return {
+        model: musicParams.model,
+        label: t("editor:ui.musicModelKind", { defaultValue: "music" })
+      };
+    }
     return null;
   }, [
     t,
@@ -768,9 +791,17 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
 
         {!providerSetup.needsSetup && needsModel && modelGate && (
           <SelectModelBanner
-            reason={`Pick a ${modelGate.label} model to ${
-              isMediaMode ? "generate" : "send"
-            }.`}
+            reason={
+              isMediaMode
+                ? t("editor:ui.pickModelToGenerate", {
+                    defaultValue: "Pick a {{kind}} model to generate.",
+                    kind: modelGate.label
+                  })
+                : t("editor:ui.pickModelToSend", {
+                    defaultValue: "Pick a {{kind}} model to send.",
+                    kind: modelGate.label
+                  })
+            }
             onSelect={openModelPicker}
           />
         )}
@@ -782,7 +813,10 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
             sx={{ px: 1, color: "text.secondary" }}
           >
             <Text size="small" color="secondary">
-              Message queued - {queuedMessage.prompt.slice(0, 60)}
+              {t("editor:ui.messageQueued", {
+                defaultValue: "Message queued - {{prompt}}",
+                prompt: queuedMessage.prompt.slice(0, 60)
+              })}
             </Text>
             {onStop && (
               <Text
