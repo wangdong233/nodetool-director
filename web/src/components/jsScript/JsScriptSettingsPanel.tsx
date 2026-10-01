@@ -125,7 +125,7 @@ const JsScriptSettingsPanel = ({
               label={t("editor:ui.category", { defaultValue: "Category" })}
               size="small"
               value={document.palette.category}
-              placeholder={DEFAULT_CATEGORY}
+              placeholder={t("editor:ui.myNodes", { defaultValue: DEFAULT_CATEGORY })}
               disabled={readOnly}
               onChange={(event) =>
                 setPalette(scriptId, { category: event.target.value })

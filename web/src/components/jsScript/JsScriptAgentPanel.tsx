@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import type { UiDocumentRef } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { jsScriptSystemPrompt } from "./jsScriptBodyContract";
@@ -10,6 +11,8 @@ interface JsScriptAgentPanelProps {
 }
 
 const JsScriptAgentPanel = ({ scriptId }: JsScriptAgentPanelProps) => {
+  // Language anchor for a memo'd panel (F-26).
+  const { t } = useTranslation();
   const name = useJsScriptName(scriptId);
 
   const focused = useMemo<UiDocumentRef>(
@@ -28,8 +31,8 @@ const JsScriptAgentPanel = ({ scriptId }: JsScriptAgentPanelProps) => {
       focused={focused}
       workflowId={scriptId}
       systemPrompt={systemPrompt}
-      welcomeTitle="JS Script Assistant"
-      welcomeBody='Ask me to write or change this script — e.g. "parse the CSV and emit one row per line", "add an error output", or "write a test for the empty case".'
+      welcomeTitle={t("editor:ui.jsScriptAssistant", { defaultValue: "JS Script Assistant" })}
+      welcomeBody={t("editor:ui.jsScriptAssistantWelcome", { defaultValue: 'Ask me to write or change this script — e.g. "parse the CSV and emit one row per line", "add an error output", or "write a test for the empty case".' })}
     />
   );
 };

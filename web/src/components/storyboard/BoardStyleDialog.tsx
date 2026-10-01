@@ -90,8 +90,7 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
     <Dialog open={open} onClose={onClose} title={t("editor:ui.changeStyle", { defaultValue: "Change style" })} maxWidth="md">
       <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.md }}>
         <Caption color="secondary">
-          The new style applies to every shot. Stills and clips already
-          rendered are marked stale — nothing re-renders until you ask for it.
+          {t("storyboard:attrs.newStyleAppliesToEveryShot", { defaultValue: "The new style applies to every shot. Stills and clips already rendered are marked stale — nothing re-renders until you ask for it." })}
         </Caption>
         <PresetTileGrid
           label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
@@ -99,9 +98,9 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
           selectedId={selectedId}
           onSelect={handleSelect}
           onAddOwn={noop}
-          addOwnLabel="Add your own style"
+          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
           addOwnDisabled
-          addOwnDisabledReason="Custom styles are added while setting up a board."
+          addOwnDisabledReason={t("storyboard:attrs.customStylesAreAddedWhileSettingUpABoard", { defaultValue: "Custom styles are added while setting up a board." })}
         />
       </FlexColumn>
     </Dialog>

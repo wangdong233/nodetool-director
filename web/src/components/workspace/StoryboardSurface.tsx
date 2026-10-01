@@ -48,8 +48,10 @@ interface StoryboardSurfaceProps {
 type MobilePane = "board" | "assistant";
 
 const MOBILE_TABS = [
-  { value: "board", label: "Board", icon: <TheatersIcon /> },
-  { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+  // `labelKey`/`label` resolve per render in the component (see mobileTabs) —
+  // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
+  { value: "board", labelKey: "storyboard:attrs.board", label: "Board", icon: <TheatersIcon /> },
+  { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
 const MOBILE_PANES: readonly MobilePane[] = ["board", "assistant"];
@@ -179,6 +181,17 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     ]
   );
 
+  // Labels resolve per render so a language switch re-renders the switcher
+  // immediately (F-26 discipline for module-level label arrays).
+  const mobileTabs = useMemo(
+    () =>
+      MOBILE_TABS.map(({ labelKey, label, ...rest }) => ({
+        ...rest,
+        label: t(labelKey, { defaultValue: label })
+      })),
+    [t]
+  );
+
   // The store seeds an empty board on mount, so rendering before the server
   // copy lands looks like a board with no shots.
   if (loadState !== "ready") {
@@ -199,7 +212,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       <FlexColumn fullHeight sx={{ minHeight: 0, position: "relative" }}>
         {conflictBanner}
         <TabGroup
-          tabs={MOBILE_TABS}
+          tabs={mobileTabs}
           value={mobilePane}
           onChange={(value) => {
             if (isMobilePane(value)) {

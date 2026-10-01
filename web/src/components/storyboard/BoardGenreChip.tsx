@@ -82,7 +82,7 @@ const BoardGenreChipInner: React.FC<BoardGenreChipProps> = ({
       <Chip
         compact
         active={!!genre}
-        label={genre || "Set genre"}
+        label={genre || t("storyboard:attrs.setGenre", { defaultValue: "Set genre" })}
         onClick={openGrid}
         aria-haspopup="dialog"
         aria-expanded={anchorEl !== null}

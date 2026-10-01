@@ -14,6 +14,7 @@ import {
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import CategorySearchBar from "../node_menu/CategorySearchBar";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 import {
   EmptyState,
   FlexColumn,
@@ -40,7 +41,7 @@ export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createJsScript.mutateAsync({
-        name: DEFAULT_NAME,
+        name: i18n.t("editor:ui.untitledJsScript", { defaultValue: DEFAULT_NAME }),
         projectId: creationProjectId()
       });
       openTab({
@@ -152,7 +153,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
           <EmptyState
             variant="error"
             title={t("editor:ui.couldNotLoadJSScripts", { defaultValue: "Could not load JS scripts" })}
-            description={error?.message ?? "Try again later."}
+            description={error?.message ?? t("common:list.tryAgainLater", { defaultValue: "Try again later." })}
           />
         </FlexColumn>
       ) : scripts.length === 0 ? (
@@ -190,7 +191,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
                     component="span"
                     sx={{ fontSize: "var(--fontSizeSmall)", fontWeight: 600 }}
                   >
-                    {script.name || DEFAULT_NAME}
+                    {script.name || t("editor:ui.untitledJsScript", { defaultValue: DEFAULT_NAME })}
                   </TruncatedText>
                   {script.description && (
                     <Text size="small" color="secondary" truncate>

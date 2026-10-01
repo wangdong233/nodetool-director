@@ -57,10 +57,12 @@ const CONSOLE_HEIGHT = 220;
 const DEFAULT_NAME = "Untitled JS script";
 
 const MOBILE_TABS = [
-  { value: "code", label: "Code", icon: <CodeIcon /> },
-  { value: "console", label: "Run", icon: <TerminalIcon /> },
-  { value: "settings", label: "Script", icon: <TuneIcon /> },
-  { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+  // `labelKey`/`label` resolve per render in the component (see mobileTabs) —
+  // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
+  { value: "code", labelKey: "editor:ui.code", label: "Code", icon: <CodeIcon /> },
+  { value: "console", labelKey: "ui2:attrs.run", label: "Run", icon: <TerminalIcon /> },
+  { value: "settings", labelKey: "editor:ui.script", label: "Script", icon: <TuneIcon /> },
+  { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
 const MOBILE_PANES: readonly MobilePane[] = [
@@ -156,12 +158,31 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
       });
   }, [refId]);
 
+  // Labels resolve per render (dep `t`) so a language switch re-renders the
+  // dock tabs immediately (F-26 discipline for label arrays).
   const dockTabs = useMemo(
     () => [
-      { value: "settings", label: "Script", icon: <TuneIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      {
+        value: "settings",
+        label: t("editor:ui.script", { defaultValue: "Script" }),
+        icon: <TuneIcon />
+      },
+      {
+        value: "assistant",
+        label: t("editor:ui.assistant", { defaultValue: "Assistant" }),
+        icon: <AutoAwesomeIcon />
+      }
     ],
-    []
+    [t]
+  );
+
+  const mobileTabs = useMemo(
+    () =>
+      MOBILE_TABS.map(({ labelKey, label, ...rest }) => ({
+        ...rest,
+        label: t(labelKey, { defaultValue: label })
+      })),
+    [t]
   );
 
   // The store seeds an empty script on mount, so rendering before the server
@@ -188,7 +209,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
     return (
       <FlexColumn fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
-          tabs={MOBILE_TABS}
+          tabs={mobileTabs}
           value={mobilePane}
           onChange={(value) => {
             if (isMobilePane(value)) {

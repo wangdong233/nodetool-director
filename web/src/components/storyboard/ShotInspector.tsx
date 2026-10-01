@@ -111,7 +111,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isGenerating = isShotGenerating(shot);
-  const shotName = `${shot.index + 1}. ${shot.slug ?? "Untitled shot"}`;
+  const shotName = `${shot.index + 1}. ${shot.slug ?? t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}`;
   const shotNumber = `SH ${String(shot.index + 1).padStart(2, "0")}`;
   const onBoard = new Set(boardEntityIds);
   const shotEntities = allEntities
@@ -136,9 +136,14 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
       .sort((a, b) => a.position - b.position)[0];
     return {
       lineId: first?.id ?? null,
-      label: first ? `Script · line ${first.position + 1}` : "Script"
+      label: first
+        ? t("editor:ui.scriptAtLine", {
+            defaultValue: "Script · line {{position}}",
+            position: first.position + 1
+          })
+        : t("editor:ui.script", { defaultValue: "Script" })
     };
-  }, [scriptId, scriptLines, shot.script_line_ids]);
+  }, [t, scriptId, scriptLines, shot.script_line_ids]);
   const timelineLink = useShotTimelineLink(boardId, shot.id);
 
   const handleOpenScript = useCallback(() => {

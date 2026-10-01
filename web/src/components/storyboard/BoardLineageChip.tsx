@@ -51,7 +51,10 @@ const BoardLineageChipInner: React.FC<BoardLineageChipProps> = ({ boardId }) => 
     <Tooltip title={t("storyboard:attrs.openTheBoardThisOneWasRecastFrom", { defaultValue: "Open the board this one was recast from" })}>
       <Chip
         compact
-        label={`Recast from ${templateName ?? "template"}`}
+        label={t("storyboard:attrs.recastFrom", {
+          defaultValue: "Recast from {{name}}",
+          name: templateName ?? t("storyboard:attrs.templateLower", { defaultValue: "template" })
+        })}
         onClick={open}
       />
     </Tooltip>

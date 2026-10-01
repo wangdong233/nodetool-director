@@ -213,7 +213,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   // A ref with neither a locator nor an asset behind it has nothing to show:
   // the card says so rather than waiting on a resolution that never lands.
   const hasKeyframe = Boolean(shot.keyframe?.uri || shot.keyframe?.asset_id);
-  const shotName = `${shot.index + 1}. ${shot.slug ?? "Untitled shot"}`;
+  const shotName = `${shot.index + 1}. ${shot.slug ?? t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}`;
   // What the preview shows is what fullscreen opens: the clip once there is
   // one, the selected still before that.
   const previewMedia: ImageRef | VideoRef | null =

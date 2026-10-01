@@ -117,6 +117,9 @@ const TimelineListItem = memo(function TimelineListItem({
   onCommitRename,
   onCancelRename
 }: TimelineListItemProps) {
+  // Language anchor for the memo'd row (F-26): the fallback name and the
+  // rename field label render through `t`.
+  const { t } = useTranslation();
   const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
   const clearDrag = useDragDropStore((state) => state.clearDrag);
   const handleDragStart = useCallback(
@@ -151,8 +154,8 @@ const TimelineListItem = memo(function TimelineListItem({
     <ListPanelItem
       id={id}
       name={name}
-      fallbackName="Untitled video"
-      renameLabel="Timeline name"
+      fallbackName={t("timeline:list.untitled", { defaultValue: "Untitled video" })}
+      renameLabel={t("editor:ui.timelineName", { defaultValue: "Timeline name" })}
       icon={MovieOutlinedIcon}
       active={active}
       editing={editing}
@@ -292,6 +295,8 @@ interface TimelineListPanelProps {
 }
 
 const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useTimelines(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -405,13 +410,13 @@ const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="timeline"
-      plural="timelines"
+      singular={t("editor:ui.timelineNoun", { defaultValue: "timeline" })}
+      plural={t("editor:ui.timelinesNoun", { defaultValue: "timelines" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new video timeline with the + button above."
+      emptyDescription={t("editor:ui.createANewVideoTimelineWithThe+ButtonAbove", { defaultValue: "Create a new video timeline with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}

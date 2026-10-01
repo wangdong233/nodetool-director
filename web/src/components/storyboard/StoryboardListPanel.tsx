@@ -182,13 +182,13 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="storyboard"
-      plural="storyboards"
+      singular={t("editor:ui.storyboardNoun", { defaultValue: "storyboard" })}
+      plural={t("editor:ui.storyboardsNoun", { defaultValue: "storyboards" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new storyboard with the + button above."
+      emptyDescription={t("editor:ui.createANewStoryboardWithThe+ButtonAbove", { defaultValue: "Create a new storyboard with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -197,7 +197,7 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
           id={board.id}
           name={board.name}
           fallbackName={t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })}
-          renameLabel="Storyboard name"
+          renameLabel={t("editor:ui.storyboardName", { defaultValue: "Storyboard name" })}
           icon={DashboardOutlinedIcon}
           active={board.id === activeStoryboardId}
           editing={board.id === editingId}
