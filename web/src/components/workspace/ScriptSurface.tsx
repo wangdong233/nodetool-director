@@ -124,12 +124,23 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
     />
   );
 
+  // Labels resolve per render (dep `t`) so a language switch re-renders the
+  // dock tabs immediately — module-level label arrays freeze before the lazy
+  // zh bundle lands (r12, same class as tabTypeIdentity's render-time titles).
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: "Cast", icon: <GroupsIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      {
+        value: "cast",
+        label: t("editor:ui.cast", { defaultValue: "Cast" }),
+        icon: <GroupsIcon />
+      },
+      {
+        value: "assistant",
+        label: t("editor:ui.assistant", { defaultValue: "Assistant" }),
+        icon: <AutoAwesomeIcon />
+      }
     ],
-    []
+    [t]
   );
 
   const dockTabGroup = (
@@ -188,7 +199,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
                 startIcon={<GroupsIcon fontSize="small" />}
                 onClick={() => openSheet("cast")}
               >
-                Cast
+                {t("editor:ui.cast", { defaultValue: "Cast" })}
               </EditorButton>
               <EditorButton
                 size="small"
@@ -196,14 +207,18 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
                 startIcon={<AutoAwesomeIcon fontSize="small" />}
                 onClick={() => openSheet("assistant")}
               >
-                Assistant
+                {t("editor:ui.assistant", { defaultValue: "Assistant" })}
               </EditorButton>
             </FlexRow>
             <MobileBottomSheet
               open={sheetOpen}
               onClose={() => setSheetOpen(false)}
               maxHeight="85dvh"
-              title={dockTab === "cast" ? "Cast" : "Assistant"}
+              title={
+                dockTab === "cast"
+                  ? t("editor:ui.cast", { defaultValue: "Cast" })
+                  : t("editor:ui.assistant", { defaultValue: "Assistant" })
+              }
               headerExtras={dockTabGroup}
               ariaLabel={t("ui2:attrs.scriptCastAndAssistant", { defaultValue: "Script cast and assistant" })}
             >

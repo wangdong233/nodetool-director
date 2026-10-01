@@ -75,7 +75,7 @@ const StoryboardLinkControlInner = ({
         {storyboardId
           ? t("editor:ui.openStoryboard", { defaultValue: "Open storyboard" })
           : deriving
-            ? "Creating…"
+            ? t("editor:ui.creating", { defaultValue: "Creating…" })
             : t("editor:ui.createStoryboard", { defaultValue: "Create storyboard" })}
       </EditorButton>
       {error && (

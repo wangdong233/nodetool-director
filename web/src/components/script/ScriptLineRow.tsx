@@ -226,7 +226,9 @@ const SpeakerPicker = ({
     close
   ]);
 
-  const label = speaker?.name ?? "no speaker";
+  // The gutter fallback reuses the picker's "No speaker" entry — the gutter
+  // CSS uppercases the label either way.
+  const label = speaker?.name ?? t("editor:ui.noSpeaker", { defaultValue: "No speaker" });
   const canOpen = !readOnly;
 
   return (
@@ -237,7 +239,7 @@ const SpeakerPicker = ({
             ? label
             : cast.length
               ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" })
-              : "Add a speaker"
+              : t("editor:ui.addASpeaker", { defaultValue: "Add a speaker" })
         }
       >
         <Box
@@ -256,7 +258,12 @@ const SpeakerPicker = ({
             aria-haspopup="menu"
             aria-expanded={!!anchor}
             aria-label={
-              speaker ? `${speaker.name}, change speaker` : "Assign speaker"
+              speaker
+                ? t("ui2:attrs.speakerChangeSpeaker", {
+                    defaultValue: "{{name}}, change speaker",
+                    name: speaker.name
+                  })
+                : t("ui2:attrs.assignSpeaker", { defaultValue: "Assign speaker" })
             }
             onClick={
               canOpen

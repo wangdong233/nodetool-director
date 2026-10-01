@@ -89,7 +89,10 @@
     "instruments": "Instruments",
     "source": "Source",
     "assistant": "Assistant",
-    "history": "History"
+    "history": "History",
+    "videoEditor": "Video editor",
+    "editorAssistant": "Editor Assistant",
+    "editorAssistantWelcome": "Ask me to edit the timeline — e.g. \"generate a 5-second clip of a city at night\", \"split the selected clip at the playhead\", or \"fade out the last clip\"."
   },
   "tools": {
     "select": "Select",

@@ -986,6 +986,16 @@
     "roleAudio": "audio",
     "describeItOnceWellRefineTheBrief": "Describe it once. We'll refine the brief and render variations to pick from.",
     "describeTheTaskWellPlanTheSteps": "Describe the task. We'll plan the steps and check what it needs before building.",
-    "tellUsThePremiseWellPickATemplate": "Tell us the premise. We'll pick a template, write the design, and fill every asset slot."
+    "tellUsThePremiseWellPickATemplate": "Tell us the premise. We'll pick a template, write the design, and fill every asset slot.",
+    "board": "Board",
+    "setGenre": "Set genre",
+    "recastFrom": "Recast from {{name}}",
+    "storyboardAssistant": "Storyboard Assistant",
+    "storyboardAssistantWelcome": "Ask me to direct the board — e.g. \"break this brief into six shots\", \"add a close-up after shot 3\", \"generate keyframes for every planned shot\", or \"assemble the shots into a timeline\".",
+    "newStyleAppliesToEveryShot": "The new style applies to every shot. Stills and clips already rendered are marked stale — nothing re-renders until you ask for it.",
+    "customStylesAreAddedWhileSettingUpABoard": "Custom styles are added while setting up a board.",
+    "downloadThis": "Download this {{kind}}",
+    "downloadKind": "Download {{kind}}",
+    "templateLower": "template"
   }
 }

@@ -355,6 +355,8 @@
     "thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient": "This authorization request is no longer valid. Restart the connection from your MCP client.",
     "wantsToConnectToYourNodeToolAccount": "wants to connect to your NodeTool account.",
     "thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself": "This client only redirects to localhost. Make sure you started this connection yourself.",
-    "jsScript": "JS script"
+    "jsScript": "JS script",
+    "assignSpeaker": "Assign speaker",
+    "speakerChangeSpeaker": "{{name}}, change speaker"
   }
 }

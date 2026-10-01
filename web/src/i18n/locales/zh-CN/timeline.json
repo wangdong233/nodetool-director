@@ -89,7 +89,10 @@
     "instruments": "乐器",
     "source": "源素材",
     "assistant": "助手",
-    "history": "历史"
+    "history": "历史",
+    "videoEditor": "视频编辑器",
+    "editorAssistant": "编辑助手",
+    "editorAssistantWelcome": "让我来编辑时间线——例如“生成一段 5 秒的夜景城市画面”“在播放头处拆分选中片段”，或“给最后一个片段加淡出”。"
   },
   "tools": {
     "select": "选择",

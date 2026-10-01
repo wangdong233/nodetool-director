@@ -214,6 +214,25 @@
     "lockLayer": "锁定图层",
     "backgroundColor": "背景色",
     "foregroundColor": "前景色",
-    "saveAndClose": "保存并关闭"
+    "saveAndClose": "保存并关闭",
+    "docsLabel": "图稿编辑器",
+    "editorAssistant": "编辑助手",
+    "editorAssistantWelcome": "描述想生成的图像，或要求编辑你的图层。",
+    "presets": "预设…",
+    "symmetryOff": "关闭",
+    "symmetryHorizontal": "水平",
+    "symmetryVertical": "垂直",
+    "symmetryDualAxis": "双轴",
+    "symmetryRadial": "径向（{{rays}}）",
+    "symmetryMandala": "曼陀罗（{{rays}}）",
+    "shortcuts": "快捷操作",
+    "keyboard": "键盘",
+    "hexColor": "十六进制颜色",
+    "redChannel": "红色",
+    "greenChannel": "绿色",
+    "blueChannel": "蓝色",
+    "hueDegrees": "色相（度）",
+    "saturationPercent": "饱和度（百分比）",
+    "lightnessPercent": "亮度（百分比）"
   }
 }

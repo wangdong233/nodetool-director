@@ -108,7 +108,7 @@ const TakeRow = ({
           title={take.textSnapshot}
           sx={{ fontStyle: "italic" }}
         >
-          {take.textSnapshot || "(empty)"}
+          {take.textSnapshot || t("editor:ui.emptySnapshot", { defaultValue: "(empty)" })}
         </Text>
         <Text size="smaller" color="secondary">
           {formatDuration(take.durationMs)}
@@ -128,7 +128,11 @@ const TakeRow = ({
         tooltip="Send take to a workflow"
       />
       <ToolbarIconButton
-        tooltip={take.favorite ? "Unfavorite" : "Favorite"}
+        tooltip={
+          take.favorite
+            ? t("editor:ui.unfavorite", { defaultValue: "Unfavorite" })
+            : t("editor:ui.favorite", { defaultValue: "Favorite" })
+        }
         onClick={() => toggleFavorite(scriptId, lineId, take.id)}
         icon={
           take.favorite ? (

@@ -71,6 +71,8 @@ interface ScriptListPanelProps {
 }
 
 const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useScripts(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -178,13 +180,13 @@ const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="script"
-      plural="scripts"
+      singular={t("editor:ui.scriptNoun", { defaultValue: "script" })}
+      plural={t("editor:ui.scriptsNoun", { defaultValue: "scripts" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new script with the + button above."
+      emptyDescription={t("editor:ui.createANewScriptWithThe+ButtonAbove", { defaultValue: "Create a new script with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -192,8 +194,8 @@ const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
         <ListPanelItem
           id={script.id}
           name={script.name}
-          fallbackName="Untitled script"
-          renameLabel="Script name"
+          fallbackName={t("editor:ui.untitledScript", { defaultValue: "Untitled script" })}
+          renameLabel={t("editor:ui.scriptName", { defaultValue: "Script name" })}
           icon={RecordVoiceOverOutlinedIcon}
           active={script.id === activeScriptId}
           editing={script.id === editingId}

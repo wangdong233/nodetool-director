@@ -180,7 +180,7 @@ const SpeakerRow = ({
           )}
           {isDangling && (
             <Caption color="warning">
-              Linked entity not found — it was removed. Pick another or clear it.
+              {t("editor:ui.linkedEntityNotFoundItWasRemovedPickAnotherOrClearIt", { defaultValue: "Linked entity not found — it was removed. Pick another or clear it." })}
             </Caption>
           )}
         </FlexColumn>
@@ -254,7 +254,7 @@ const ScriptCastPanel = ({
     >
       <FlexRow align="center" justify="space-between" fullWidth>
         <Text size="normal" weight={600}>
-          Cast
+          {t("editor:ui.cast", { defaultValue: "Cast" })}
         </Text>
         {!readOnly && (
           <EditorButton
@@ -263,7 +263,7 @@ const ScriptCastPanel = ({
             startIcon={<PersonAddIcon fontSize="small" />}
             onClick={onAdd}
           >
-            Add
+            {t("ui2:attrs.add", { defaultValue: "Add" })}
           </EditorButton>
         )}
       </FlexRow>
@@ -272,7 +272,11 @@ const ScriptCastPanel = ({
         <EmptyState
           title={t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
           description={t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
-          actionText={readOnly ? undefined : "Add speaker"}
+          actionText={
+            readOnly
+              ? undefined
+              : t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })
+          }
           onAction={readOnly ? undefined : onAdd}
         />
       ) : (
