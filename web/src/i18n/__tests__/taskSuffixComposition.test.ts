@@ -9,7 +9,13 @@
  * shape: em-dash delimited (atlascloud/together/higgsfield), hyphen
  * delimited (kie), space-collapsed (fal/replicate, "20Image" capitals split)
  * and the deliberate English fallbacks (pure model names, unknown suffixes,
- * whole-title tasks, dangling connectors).
+ * technique proper nouns, tier tails, dangling connectors, generic-word
+ * model parts).
+ *
+ * r15: whole-title task phrases now localize ("Image Upscaler" → "图像超分")
+ * while the model+suffix guards stay; the 3D pipeline, remix/effects/style
+ * and upscaler vocabularies joined the table; Redux/Instruct are pinned as
+ * technique proper nouns that never enter it.
  */
 import { changeAppLanguage, resetI18nForTest } from "../index";
 import { nodeDisplayName, nodeSearchAlias } from "../nodeDisplayName";
@@ -83,25 +89,159 @@ describe("task-suffix composition (r14)", () => {
     );
   });
 
-  it("never composes a whole-title task or a dangling connector split", async () => {
+  it("localizes a whole-title task phrase (r15: no model part, no brand to protect)", async () => {
     await changeAppLanguage("zh-CN");
-    // The entire title is the task — no model part, so it stays English
-    // (these are generic tool nodes, not provider model entries).
+    // The entire title is the task — r14 kept these English, r15 adjudicated
+    // that a descriptive task name with no model segment has no brand to
+    // protect, so the phrase table owns the whole title.
     expect(nodeDisplayName("replicate.image.RmBg", "Remove Background")).toBe(
-      "Remove Background"
+      "去背景"
     );
+    expect(
+      nodeDisplayName("replicate.audio.Asr", "Audio Super Resolution")
+    ).toBe("音频超分");
+    expect(
+      nodeDisplayName("replicate.video.enhance.Vrb", "Video Remove Background")
+    ).toBe("视频去背景");
+    expect(nodeDisplayName("atlascloud.image.Upscaler", "Image Upscaler")).toBe(
+      "图像超分"
+    );
+    expect(nodeDisplayName("atlascloud.video.Upscaler", "Video Upscaler")).toBe(
+      "视频超分"
+    );
+    expect(
+      nodeDisplayName("fal.video_to_video.Bgr", "Video Background Removal")
+    ).toBe("视频去背景");
+  });
+
+  it("keeps the mis-split guards for the model+suffix shape (r15 counter-direction)", async () => {
+    await changeAppLanguage("zh-CN");
     // A model part left ending on "To" would read "…To 超分" — rejected.
     expect(nodeDisplayName("fal.video.Weird", "Acme Motion To Upscale")).toBe(
       "Acme Motion To Upscale"
     );
-    // A bare media word is a category, not a model name — the whole generic
-    // tool title stays English ("Audio 超分辨率" would fabricate a model).
+    // A bare media word is still a category, not a model name: the
+    // model+suffix shape must not fabricate a model out of "Music"/"Photo".
+    expect(nodeDisplayName("fal.audio.X", "Music Upscale")).toBe(
+      "Music Upscale"
+    );
+    expect(nodeDisplayName("fal.image.X", "Photo Super Resolution")).toBe(
+      "Photo Super Resolution"
+    );
+    // Lowercase mid-word runs never split: "Omnipart" is a model name, not
+    // "Omni" + "Part".
+    expect(nodeDisplayName("fal.image_to_3d.Omnipart", "Omnipart")).toBe(
+      "Omnipart"
+    );
+  });
+
+  it("keeps technique proper nouns and tier/version tails English (r15 rule 1)", async () => {
+    await changeAppLanguage("zh-CN");
+    // Redux is the official FLUX Redux technique family name; Instruct is
+    // the InstructPix2Pix-style instruction-editing technique name (and the
+    // instruction-tuned LLM variant tail) — proper nouns, never in the table.
+    expect(nodeDisplayName("fal.image.Redux", "Flux 1Dev Redux")).toBe(
+      "Flux 1Dev Redux"
+    );
     expect(
-      nodeDisplayName("replicate.audio.Asr", "Audio Super Resolution")
-    ).toBe("Audio Super Resolution");
+      nodeDisplayName("replicate.image.enhance.InstructIR", "Instruct IR")
+    ).toBe("Instruct IR");
     expect(
-      nodeDisplayName("replicate.image.Vrb", "Video Remove Background")
-    ).toBe("Video Remove Background");
+      nodeDisplayName("replicate.text.Llama", "Llama 3 8B Instruct")
+    ).toBe("Llama 3 8B Instruct");
+  });
+
+  it("composes the r15 vocabulary: remix, effects, style, upscaler families", async () => {
+    await changeAppLanguage("zh-CN");
+    expect(nodeDisplayName("atlascloud.image.Reve", "Reve 2.1 — Remix")).toBe(
+      "Reve 2.1 — 重混"
+    );
+    // Longest phrase absorbs the leading task segment (no dangling "To");
+    // collapsed form welds onto the version digits without a space.
+    expect(
+      nodeDisplayName("fal.video.SoraRemix", "Sora 2Video To Video Remix")
+    ).toBe("Sora 2视频生视频重混");
+    expect(
+      nodeDisplayName("fal.image.IdeoRemix", "Ideogram Character Remix")
+    ).toBe("Ideogram 角色重混");
+    expect(
+      nodeDisplayName("fal.image.Apps", "Image Apps V2Photography Effects")
+    ).toBe("Image Apps V2摄影特效");
+    expect(
+      nodeDisplayName("fal.text_to_audio.Cass", "Cassetteai Video Sound Effects Generator")
+    ).toBe("Cassetteai 视频音效生成器");
+    expect(
+      nodeDisplayName("fal.image.Plushie", "Image Editing Plushie Style")
+    ).toBe("Image Editing 毛绒风格");
+    expect(
+      nodeDisplayName("fal.training.Recraft", "Recraft V4 Pro Create Style")
+    ).toBe("Recraft V4 Pro 创建风格");
+    // Collapsed "V3Create Style" splits at the capital C.
+    expect(
+      nodeDisplayName("fal.training.Recraft3", "Recraft V3Create Style")
+    ).toBe("Recraft V3创建风格");
+    expect(
+      nodeDisplayName("fal.image_to_image.Bria", "Bria Fibo Edit Restyle")
+    ).toBe("Bria Fibo Edit 风格重塑");
+    expect(
+      nodeDisplayName("fal.video.Stylize", "Byte Dance Video Stylize")
+    ).toBe("Byte Dance Video 风格化");
+    expect(
+      nodeDisplayName("fal.image.LumaReframe", "Luma Photon Reframe")
+    ).toBe("Luma Photon 重新取景");
+    // Model+suffix shape for the upscaler family (longest first).
+    expect(
+      nodeDisplayName("atlascloud.image.Tencent", "Tencent Image Upscaler")
+    ).toBe("Tencent 图像超分");
+    expect(
+      nodeDisplayName("replicate.image.Clarity", "Clarity Pro Upscaler")
+    ).toBe("Clarity Pro 超分");
+    expect(
+      nodeDisplayName("fal.image.Diff", "Flux General Differential Diffusion")
+    ).toBe("Flux General 差分扩散");
+  });
+
+  it("composes the r15 3D pipeline vocabulary (绑骨/重拓扑/重贴图/多色…)", async () => {
+    await changeAppLanguage("zh-CN");
+    expect(nodeDisplayName("fal.3d.Meshy", "Meshy Rigging")).toBe(
+      "Meshy 绑骨"
+    );
+    expect(nodeDisplayName("fal.3d.Tripo", "Tripo 3d Remesh")).toBe(
+      "Tripo 3d 重拓扑"
+    );
+    // Collapsed version+task forms weld with no invented space.
+    expect(nodeDisplayName("fal.3d.Meshy5", "Meshy V5Retexture")).toBe(
+      "Meshy V5重贴图"
+    );
+    expect(nodeDisplayName("fal.3d.MeshyV5", "Meshy V5Remesh")).toBe(
+      "Meshy V5重拓扑"
+    );
+    expect(nodeDisplayName("fal.3d.Hunyuan", "Hunyuan Part")).toBe(
+      "Hunyuan 部件"
+    );
+    expect(nodeDisplayName("fal.3d.HunyuanV31", "Hunyuan 3d V31Part")).toBe(
+      "Hunyuan 3d V31部件"
+    );
+    expect(nodeDisplayName("fal.3d.Hi", "Hi 3d Multicolor")).toBe(
+      "Hi 3d 多色"
+    );
+    expect(nodeDisplayName("fal.3d.HiSplit", "Hi 3d Split")).toBe(
+      "Hi 3d 分割"
+    );
+    expect(nodeDisplayName("fal.3d.HiTex", "Hi 3d Texture")).toBe(
+      "Hi 3d 纹理"
+    );
+    // Longest first: "Smart Topology" outranks bare "Topology".
+    expect(
+      nodeDisplayName("fal.3d.HunyuanTopo", "Hunyuan 3d V31Smart Topology")
+    ).toBe("Hunyuan 3d V31智能拓扑");
+    expect(nodeDisplayName("fal.3d.Sam", "Sam 33D Align")).toBe(
+      "Sam 33D 对齐"
+    );
+    // Image-domain segmentation shares the term.
+    expect(nodeDisplayName("fal.image.Sam2", "Sam 2Auto Segment")).toBe(
+      "Sam 2Auto 分割"
+    );
   });
 
   it("composes a leading task phrase so no mid-title connector dangles", async () => {

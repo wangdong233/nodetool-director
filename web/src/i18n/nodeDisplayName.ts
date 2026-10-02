@@ -27,10 +27,12 @@ import { findSnippetByNodeType } from "../config/snippetMetadata";
 // unmaintainable, so the zh catalog ships `nodes.__taskSuffixes` — a phrase
 // table of task suffixes reusing the r13 generation vocabulary (文生图/图生图/
 // 文生视频/图生视频/TTS 语音合成/…) — and this layer composes "Model — 文生图"
-// whenever the title ENDS with a known task phrase. Everything else — pure
-// model names, LoRA trainers, tier tails (Pro/Turbo/Lite), unknown suffixes —
-// stays English by design: the mechanism is additive and an unvisited table
-// is the identity, so English rendering never drifts.
+// whenever the title ENDS with a known task phrase. A title that IS the task
+// phrase ("Image Upscaler") localizes whole (r15 — no model part, no brand to
+// protect). Everything else — pure model names, LoRA trainers, tier tails
+// (Pro/Turbo/Lite), technique proper nouns (FLUX Redux, Instruct), unknown
+// suffixes — stays English by design: the mechanism is additive and an
+// unvisited table is the identity, so English rendering never drifts.
 // ---------------------------------------------------------------------------
 
 /** Catalog path of the suffix phrase table (real nesting inside `nodes`). */
@@ -43,10 +45,11 @@ const TASK_SUFFIX_BLOCK = "nodes.__taskSuffixes";
 const DANGLING_CONNECTOR = /(?:^|\s)(?:to|and|from|with)$/i;
 
 /**
- * A bare media word is a category, not a model name: "Audio Super
- * Resolution" and "Video Remove Background" are whole generic tool titles,
- * so splitting them ("Audio 超分辨率") fabricates a model part. Reject and
- * keep the full English title.
+ * A bare media word is a category, not a model name: in the model+suffix
+ * shape, "Music Upscale" or "Photo Super Resolution" would fabricate a model
+ * part out of a category word, so those splits are rejected and the title
+ * stays English. Whole-task titles ("Video Remove Background") escape this
+ * guard through their own longer phrase entries, not by relaxing it.
  */
 const GENERIC_SINGLE_WORD = /^(?:audio|video|image|text|photo|music)$/i;
 
@@ -93,12 +96,14 @@ function taskSuffixPhrases(): CompiledSuffix[] {
 /**
  * Compose the localized title for a provider-catalog entry: keep the model
  * part (brand names stay Latin — the established MiniMax 式 half-translation)
- * and swap a trailing task phrase for its zh term. Matching is
- * case-insensitive ("Text to speech" and "Text To Image" are one entry) and
- * boundary-safe: the phrase must start at a word boundary — after a space,
- * or tight against an alphanumeric run only when the phrase is capitalized
- * there ("Seedance 20Image To Video" splits at the capital I, mid-word
- * lowercase runs never split). Returns the title unchanged on any miss.
+ * and swap a trailing task phrase for its zh term; a title consisting solely
+ * of the task phrase localizes whole (r15). Matching is case-insensitive
+ * ("Text to speech" and "Text To Image" are one entry) and boundary-safe: the
+ * phrase must start at a word boundary — after a space, or tight against an
+ * alphanumeric run only when the phrase is capitalized there ("Seedance
+ * 20Image To Video" splits at the capital I, mid-word lowercase runs never
+ * split, so "Omnipart" never splits on "Part"). Returns the title unchanged
+ * on any miss.
  */
 function composeTaskSuffixTitle(title: string): string {
   const phrases = taskSuffixPhrases();
@@ -118,7 +123,12 @@ function composeTaskSuffixTitle(title: string): string {
     }
     const splitAt = title.length - suffix.width;
     if (splitAt === 0) {
-      continue; // the whole title IS the task — no model part, keep English
+      // r15: a title that IS the task phrase has no model part — and no brand
+      // to protect — so the whole title localizes ("Image Upscaler" →
+      // "图像超分"). Only the model+suffix shape below runs the mis-split
+      // guards.
+      result = suffix.zh;
+      break;
     }
     const before = title[splitAt - 1];
     let joiner: string;

@@ -507,7 +507,10 @@ describe("catalog key parity (CI completeness guard)", () => {
       __taskSuffixes as Record<string, unknown>
     );
     expect(suffixEntries.length).toBeGreaterThanOrEqual(20);
-    expect(suffixEntries.length).toBeLessThanOrEqual(80);
+    // r15 raised the r14 sanity cap (80) after the 3D-pipeline/remix/effects/
+    // upscaler batches landed (90 entries). The band is a plausibility guard
+    // against accidental bulk dumps, not a system limit — move it deliberately.
+    expect(suffixEntries.length).toBeLessThanOrEqual(120);
     for (const [phrase, zh] of suffixEntries) {
       expect(typeof zh).toBe("string");
       expect((zh as string).length).toBeGreaterThan(0);
