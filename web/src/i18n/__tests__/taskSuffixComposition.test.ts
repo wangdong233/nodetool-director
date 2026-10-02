@@ -244,6 +244,164 @@ describe("task-suffix composition (r14)", () => {
     );
   });
 
+  it("composes the r16 closing vocabulary: the quantified task-word families", async () => {
+    await changeAppLanguage("zh-CN");
+    // relight/transfer/extend — sampled senses: relight=重打光, pose/motion
+    // transfer=姿态/动作迁移 (NOT 风格迁移, which stays "Style Transfer"),
+    // extend on these catalogs is video-duration extension=视频延长.
+    expect(nodeDisplayName("fal.image.Bria", "Bria Fibo Edit Relight")).toBe(
+      "Bria Fibo Edit 重打光"
+    );
+    expect(nodeDisplayName("fal.image.Leffa", "Leffa Pose Transfer")).toBe(
+      "Leffa 姿态迁移"
+    );
+    expect(
+      nodeDisplayName("fal.video.Moonvalley", "Moonvalley Marey Motion Transfer")
+    ).toBe("Moonvalley Marey 动作迁移");
+    expect(nodeDisplayName("fal.video.Ltx", "Ltx Video 13b Dev Extend")).toBe(
+      "Ltx Video 13b Dev 视频延长"
+    );
+    // Detection/depth/caption/OCR — r13 vocabulary reused where it exists.
+    expect(
+      nodeDisplayName("fal.vision.Moondream", "Moondream 2Object Detection")
+    ).toBe("Moondream 2目标检测");
+    expect(nodeDisplayName("fal.image.FluxPro", "Flux Pro Depth")).toBe(
+      "Flux Pro 深度估计"
+    );
+    expect(
+      nodeDisplayName("fal.vision.Florence", "Florence 2Detailed Caption")
+    ).toBe("Florence 2Detailed 图像描述");
+    expect(nodeDisplayName("fal.video.Auto", "Auto Caption")).toBe("自动字幕");
+    expect(nodeDisplayName("replicate.image.ocr.Datalab", "Datalab OCR")).toBe(
+      "Datalab OCR 文字识别"
+    );
+    expect(nodeDisplayName("mistral.vision.OCR", "OCR")).toBe("OCR 文字识别");
+    // Avatar/portrait/character — talking-avatar products are 数字人, the
+    // MultiTalk multi-speaker variant gets its own longer entry.
+    expect(nodeDisplayName("fal.image_to_video.Hunyuan", "Hunyuan Avatar")).toBe(
+      "Hunyuan 数字人"
+    );
+    expect(
+      nodeDisplayName("fal.image_to_video.AIMulti", "AI Avatar Multi")
+    ).toBe("AI 多人");
+    expect(nodeDisplayName("fal.image_to_video.Live", "Live Portrait")).toBe(
+      "Live 人像"
+    );
+    expect(nodeDisplayName("fal.image.Ideogram", "Ideogram Character")).toBe(
+      "Ideogram 角色"
+    );
+    // Restoration/photo compounds — longest phrase wins over bare 修复.
+    expect(
+      nodeDisplayName("fal.image.ImageApps", "Image Apps V2Photo Restoration")
+    ).toBe("Image Apps V2照片修复");
+    expect(
+      nodeDisplayName("replicate.image.enhance.Old", "Old Photos Restoration")
+    ).toBe("Old Photos 修复");
+    expect(
+      nodeDisplayName("fal.image.Pixelcut", "Pixelcut Product Photo")
+    ).toBe("Pixelcut 产品图");
+    // Mask/modify/resolution/prompt/reference families.
+    expect(
+      nodeDisplayName("fal.image.Finegrain", "Finegrain Eraser Mask")
+    ).toBe("Finegrain 擦除遮罩");
+    expect(nodeDisplayName("fal.image.Luma", "Luma Photon Modify")).toBe(
+      "Luma Photon 修改"
+    );
+    expect(
+      nodeDisplayName("fal.image.ImageAppsAge", "Image Apps V2Age Modify")
+    ).toBe("Image Apps V2年龄修改");
+    expect(
+      nodeDisplayName("fal.image_to_video.Minimax", "Minimax Video 01Subject Reference")
+    ).toBe("Minimax Video 01主体参考");
+    // Frame family: extraction is 抽帧 (NOT 插帧 — that is interpolation).
+    expect(
+      nodeDisplayName("fal.image.Ffmpeg", "Ffmpeg Api Extract Frame")
+    ).toBe("Ffmpeg Api 抽帧");
+    expect(nodeDisplayName("fal.video.AMT", "AMT Frame Interpolation")).toBe(
+      "AMT 插帧"
+    );
+    expect(
+      nodeDisplayName("higgsfield.video.Kling", "Kling O3 First/Last Frame")
+    ).toBe("Kling O3 首尾帧");
+  });
+
+  it("composes the r16 scattered long tail: media conversion, audio, product, hyphenated slugs", async () => {
+    await changeAppLanguage("zh-CN");
+    // Media-word finals the r14 table missed.
+    expect(
+      nodeDisplayName("fal.image.Ffmpeg", "Ffmpeg Api Images To Video")
+    ).toBe("Ffmpeg Api 多图生视频");
+    expect(nodeDisplayName("fal.audio.Ace", "ACE Step Prompt To Audio")).toBe(
+      "ACE Step 提示词生音频"
+    );
+    expect(
+      nodeDisplayName("fal.text_to_speech.Sonilo", "Sonilo V11Text To Music")
+    ).toBe("Sonilo V11文生音乐");
+    expect(
+      nodeDisplayName("fal.audio_to_audio.Sfx", "Sfx 16Inpaint Audio")
+    ).toBe("Sfx 16音频补全");
+    // Voice/speech family.
+    expect(
+      nodeDisplayName("fal.audio_to_audio.Dia", "Dia Tts Voice Clone")
+    ).toBe("Dia Tts 语音克隆");
+    expect(nodeDisplayName("fal.text_to_speech.Gemini", "Gemini Tts")).toBe(
+      "Gemini TTS 语音合成"
+    );
+    expect(
+      nodeDisplayName("replicate.audio.transcribe.WhisperD", "Whisper Diarization")
+    ).toBe("Whisper 说话人分离");
+    // Product/e-commerce family.
+    expect(nodeDisplayName("fal.image.Embed", "Embed Product")).toBe("产品植入");
+    expect(
+      nodeDisplayName("fal.image.QwenGallery", "Qwen Image Edit 2509Lora Gallery Group Photo")
+    ).toBe("Qwen Image Edit 2509Lora Gallery 合照");
+    // Hyphenated provider slugs resolve through their own table entries
+    // (space-phrases cannot match "Image-to-Video"); the split needs a word
+    // boundary before the phrase, so a fully-hyphenated slug keeps English.
+    expect(
+      nodeDisplayName("kie.video.MiniMax", "MiniMax H3 Image-to-Video")
+    ).toBe("MiniMax H3 图生视频");
+    expect(
+      nodeDisplayName("fal.video.HappyHorse", "HappyHorse-1-1 image-to-video")
+    ).toBe("HappyHorse-1-1 图生视频");
+    // Post-processing filters.
+    expect(
+      nodeDisplayName("fal.image.Post", "Post Processing Chromatic Aberration")
+    ).toBe("Post Processing 色差");
+    expect(
+      nodeDisplayName("fal.image.Nafnet", "Nafnet Denoise")
+    ).toBe("Nafnet 降噪");
+  });
+
+  it("keeps the r16 guard decisions English (generic-word model parts, collapsed lowercase)", async () => {
+    await changeAppLanguage("zh-CN");
+    // "Video" is a bare media word, not a model name: the model+suffix shape
+    // refuses to fabricate one, so the title stays English by design.
+    expect(
+      nodeDisplayName("replicate.video.enhance.VIR", "Video Increase Resolution")
+    ).toBe("Video Increase Resolution");
+    expect(
+      nodeDisplayName("replicate.video.SpeechStream", "Speech To Text Stream")
+    ).toBe("Speech To Text Stream");
+    // Lowercase collapsed tail ("Image 2svg") never splits — the capital
+    // boundary guard rejects it. Same for fully-hyphenated slugs whose joiner
+    // character is "-", and for lowercase glued forms ("flash-image-to-video").
+    expect(nodeDisplayName("fal.image.Image2Svg", "Image 2svg")).toBe(
+      "Image 2svg"
+    );
+    expect(
+      nodeDisplayName("kie.audio.Slug", "elevenlabs/audio-isolation")
+    ).toBe("elevenlabs/audio-isolation");
+    expect(
+      nodeDisplayName("kie.video.HorseSlug", "happyhorse-image-to-video")
+    ).toBe("happyhorse-image-to-video");
+    // SR-baked model names (AnimeSR/InvSR/AuraSR) are proper nouns — pulling
+    // "SR" into the table would mangle the model identity.
+    expect(nodeDisplayName("replicate.image.upscale.AnimeSR", "Anime SR")).toBe(
+      "Anime SR"
+    );
+  });
+
   it("composes a leading task phrase so no mid-title connector dangles", async () => {
     await changeAppLanguage("zh-CN");
     // Trailing "Lip Sync" alone would strand "video to video" mid-title;

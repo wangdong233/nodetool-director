@@ -508,9 +508,14 @@ describe("catalog key parity (CI completeness guard)", () => {
     );
     expect(suffixEntries.length).toBeGreaterThanOrEqual(20);
     // r15 raised the r14 sanity cap (80) after the 3D-pipeline/remix/effects/
-    // upscaler batches landed (90 entries). The band is a plausibility guard
-    // against accidental bulk dumps, not a system limit — move it deliberately.
-    expect(suffixEntries.length).toBeLessThanOrEqual(120);
+    // upscaler batches landed (90 entries). r16 then closed the remaining
+    // task-word long tail in one pass (closure-round rule: quantify → translate
+    // the same round, no "later rounds" tail) — the closing sweep sampled every
+    // still-English residual and added every phrase that is a real task word
+    // (relight/插帧/扩图/产品图/diarization/i2v-t2v/hyphenated media slugs…),
+    // taking the table 90 → 400. The band is a plausibility guard against
+    // accidental bulk dumps, not a system limit — move it deliberately.
+    expect(suffixEntries.length).toBeLessThanOrEqual(420);
     for (const [phrase, zh] of suffixEntries) {
       expect(typeof zh).toBe("string");
       expect((zh as string).length).toBeGreaterThan(0);
