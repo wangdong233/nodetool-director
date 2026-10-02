@@ -94,6 +94,23 @@ describe("task-suffix composition (r14)", () => {
     expect(nodeDisplayName("fal.video.Weird", "Acme Motion To Upscale")).toBe(
       "Acme Motion To Upscale"
     );
+    // A bare media word is a category, not a model name — the whole generic
+    // tool title stays English ("Audio 超分辨率" would fabricate a model).
+    expect(
+      nodeDisplayName("replicate.audio.Asr", "Audio Super Resolution")
+    ).toBe("Audio Super Resolution");
+    expect(
+      nodeDisplayName("replicate.image.Vrb", "Video Remove Background")
+    ).toBe("Video Remove Background");
+  });
+
+  it("composes a leading task phrase so no mid-title connector dangles", async () => {
+    await changeAppLanguage("zh-CN");
+    // Trailing "Lip Sync" alone would strand "video to video" mid-title;
+    // the longer phrase table entry absorbs it.
+    expect(
+      nodeDisplayName("kie.video.Volc", "Volcengine video to video lip sync")
+    ).toBe("Volcengine 视频生视频对口型");
   });
 
   it("an explicit overlay key always wins over composition", async () => {

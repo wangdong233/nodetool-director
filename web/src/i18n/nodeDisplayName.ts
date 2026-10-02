@@ -42,6 +42,14 @@ const TASK_SUFFIX_BLOCK = "nodes.__taskSuffixes";
  */
 const DANGLING_CONNECTOR = /(?:^|\s)(?:to|and|from|with)$/i;
 
+/**
+ * A bare media word is a category, not a model name: "Audio Super
+ * Resolution" and "Video Remove Background" are whole generic tool titles,
+ * so splitting them ("Audio 超分辨率") fabricates a model part. Reject and
+ * keep the full English title.
+ */
+const GENERIC_SINGLE_WORD = /^(?:audio|video|image|text|photo|music)$/i;
+
 interface CompiledSuffix {
   lower: string;
   width: number;
@@ -125,7 +133,7 @@ function composeTaskSuffixTitle(title: string): string {
     if (model.length === 0 || /^[—\-\s]+$/.test(model)) {
       continue;
     }
-    if (DANGLING_CONNECTOR.test(model)) {
+    if (DANGLING_CONNECTOR.test(model) || GENERIC_SINGLE_WORD.test(model)) {
       continue;
     }
     result = model + joiner + suffix.zh;
