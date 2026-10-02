@@ -94,3 +94,83 @@ describe("node search bilingual hits (r13)", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// r14: provider-catalog long tail composes at render time ("FLUX.2 Flex —
+// 文生图") through the nodes.__taskSuffixes phrase table. Search must follow
+// the composed form: a zh query hits provider entries, the English title
+// field keeps English queries working, and pure model names render English.
+// ---------------------------------------------------------------------------
+const PROVIDER_CATALOG: NodeMetadata[] = [
+  makeNode({
+    title: "FLUX.2 Flex — Text to Image",
+    node_type: "together.image.Flux2FlexTextToImage",
+    namespace: "together.image",
+    description: "FLUX.2 Flex text to image."
+  }),
+  makeNode({
+    title: "Bytedance Seedance 20Image To Video",
+    node_type: "fal.video.SeedanceImageToVideo",
+    namespace: "fal.video",
+    description: "Seedance image to video."
+  }),
+  makeNode({
+    title: "Lyria 3 Pro",
+    node_type: "replicate.music.Lyria3Pro",
+    namespace: "replicate.music",
+    description: "Music generation model."
+  })
+];
+
+describe("provider task-suffix composition joins search (r14)", () => {
+  afterEach(async () => {
+    await resetI18nForTest();
+  });
+
+  it("zh queries hit composed provider titles", async () => {
+    await changeAppLanguage("zh-CN");
+    const byZh = rankSearchNodes(PROVIDER_CATALOG, "文生图");
+    expect(byZh.map((n) => n.node_type)).toContain(
+      "together.image.Flux2FlexTextToImage"
+    );
+    const byZhVideo = rankSearchNodes(PROVIDER_CATALOG, "图生视频");
+    expect(byZhVideo.map((n) => n.node_type)).toContain(
+      "fal.video.SeedanceImageToVideo"
+    );
+    // The composed alias is what matched; the metadata title itself is
+    // untouched (data-layer English stays intact for indexing).
+    expect(
+      PROVIDER_CATALOG.find(
+        (n) => n.node_type === "together.image.Flux2FlexTextToImage"
+      )?.title
+    ).toBe("FLUX.2 Flex — Text to Image");
+  });
+
+  it("English task queries still hit the original title field", async () => {
+    await changeAppLanguage("zh-CN");
+    const byEn = rankSearchNodes(PROVIDER_CATALOG, "Text to Image");
+    expect(byEn.map((n) => n.node_type)).toContain(
+      "together.image.Flux2FlexTextToImage"
+    );
+  });
+
+  it("composed display names surface pure-English model parts", async () => {
+    await changeAppLanguage("zh-CN");
+    expect(
+      nodeDisplayName(
+        "together.image.Flux2FlexTextToImage",
+        "FLUX.2 Flex — Text to Image"
+      )
+    ).toBe("FLUX.2 Flex — 文生图");
+    expect(
+      nodeDisplayName(
+        "fal.video.SeedanceImageToVideo",
+        "Bytedance Seedance 20Image To Video"
+      )
+    ).toBe("Bytedance Seedance 20图生视频");
+    // Pure model name: no suffix, English by design.
+    expect(nodeDisplayName("replicate.music.Lyria3Pro", "Lyria 3 Pro")).toBe(
+      "Lyria 3 Pro"
+    );
+  });
+});

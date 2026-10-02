@@ -483,14 +483,36 @@ describe("catalog key parity (CI completeness guard)", () => {
     // NOT carry the block (defaultValue is the backend English title), so a
     // missing or renamed type simply falls back with zero drift.
     expect(catalogEn).not.toHaveProperty("nodes");
-    const nodeEntries = catalogZh["nodes"] as Record<string, string>;
+    const nodesBlock = catalogZh["nodes"] as Record<string, unknown>;
+    // r14: `__taskSuffixes` is the only non-string member — the provider
+    // long-tail phrase table consumed by nodeDisplayName's composition pass.
+    const { __taskSuffixes, ...nodeEntries } = nodesBlock;
     expect(Object.keys(nodeEntries).length).toBeGreaterThan(0);
     for (const [nodeType, name] of Object.entries(nodeEntries)) {
       expect(typeof name).toBe("string");
-      expect(name.length).toBeGreaterThan(0);
+      expect((name as string).length).toBeGreaterThan(0);
       // Namespace-path shape: at least "ns.Node", segments are identifier-ish
       // (letters/digits/underscore; capitals allowed — backend class names).
       expect(nodeType).toMatch(/^[A-Za-z0-9_]+\.[A-Za-z0-9_.]+$/);
+    }
+    // r14 contract: the task-suffix table is a non-empty flat object of
+    // phrase → zh term. Phrases are matched case-insensitively as i18n keys,
+    // so a "." inside one would nest under i18next's keySeparator and break
+    // resolution — forbid it here rather than debugging it at render time.
+    // Registry node types never start with "__", so the block cannot collide
+    // with a real type key either.
+    expect(__taskSuffixes).toBeTruthy();
+    expect(typeof __taskSuffixes).toBe("object");
+    const suffixEntries = Object.entries(
+      __taskSuffixes as Record<string, unknown>
+    );
+    expect(suffixEntries.length).toBeGreaterThanOrEqual(20);
+    expect(suffixEntries.length).toBeLessThanOrEqual(80);
+    for (const [phrase, zh] of suffixEntries) {
+      expect(typeof zh).toBe("string");
+      expect((zh as string).length).toBeGreaterThan(0);
+      expect(phrase).not.toMatch(/\./);
+      expect(phrase).toMatch(/[A-Za-z]/);
     }
   });
 
