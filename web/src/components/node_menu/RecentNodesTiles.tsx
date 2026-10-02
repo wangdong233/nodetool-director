@@ -21,7 +21,7 @@ import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
 import { useAppLanguage } from "../../i18n";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 const QUICK_ACTION_NODE_TYPES = new Set(
@@ -292,7 +292,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         if (metadata) {
           names.set(
             nodeType,
-            nodeDisplayName(
+            nodeMenuTitle(
               nodeType,
               metadata.title || metadata.node_type.split(".").pop() || nodeType
             )

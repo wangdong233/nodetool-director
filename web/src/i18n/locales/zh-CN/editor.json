@@ -1220,6 +1220,7 @@
     "searchInCurrentFolder": "在当前文件夹中搜索…",
     "searchOptions": "搜索选项",
     "searchProvider": "搜索服务商",
+    "nodeProviders": "模型服务商",
     "searchPress": "搜索…（按 /)",
     "selectWorkspaceFolder": "选择工作区文件夹",
     "selectForComparison": "选择以对比",

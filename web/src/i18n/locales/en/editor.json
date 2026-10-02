@@ -1222,6 +1222,7 @@
     "searchInCurrentFolder": "Search in current folder...",
     "searchOptions": "Search options",
     "searchProvider": "Search provider",
+    "nodeProviders": "Providers",
     "searchPress": "Search…  (press /)",
     "selectWorkspaceFolder": "Select Workspace Folder",
     "selectForComparison": "Select for comparison",

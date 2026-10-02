@@ -24,7 +24,7 @@ import {
   isKieVagueBillingSummary,
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 interface NodeInfoProps {
@@ -235,7 +235,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
     <div css={nodeInfoStyles(theme)} style={{ width: menuWidth }}>
       <div className="title-container">
         <Text className="node-title">
-          {nodeDisplayName(nodeMetadata.node_type, nodeMetadata.title)}
+          {nodeMenuTitle(nodeMetadata.node_type, nodeMetadata.title)}
         </Text>
       </div>
       <div className="node-description">

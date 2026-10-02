@@ -288,7 +288,7 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
         {Object.keys(providerTree).length > 0 && (
           <>
             <Text className="namespace-section-title providers">
-              Providers
+              {t("editor:ui.nodeProviders", { defaultValue: "Providers" })}
             </Text>
             <div className="namespace-list-providers">
               <RenderNamespaces tree={providerTree} />

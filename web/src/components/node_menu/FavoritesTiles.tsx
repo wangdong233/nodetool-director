@@ -19,7 +19,7 @@ import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { i18n } from "../../i18n";
 import { useAppLanguage } from "../../i18n";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 const tooltipHintStyle: CSSProperties = {
@@ -275,7 +275,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
     (nodeType: string) => {
       const metadata = getMetadata(nodeType);
       if (metadata) {
-        return nodeDisplayName(
+        return nodeMenuTitle(
           nodeType,
           metadata.title || metadata.node_type.split(".").pop() || nodeType
         );

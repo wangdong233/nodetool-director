@@ -29,7 +29,7 @@ import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
 import { i18n } from "../../i18n";
 import { useAppLanguage } from "../../i18n";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 interface NodeItemProps {
@@ -121,7 +121,7 @@ const NodeItem = memo(function NodeItem({
 
   const tooltipContent = useMemo(() => {
     if (!parsedDescription) {
-      return nodeDisplayName(node.node_type, node.title);
+      return nodeMenuTitle(node.node_type, node.title);
     }
     return (
       <Box sx={{ maxWidth: 300 }}>
@@ -317,7 +317,7 @@ const NodeItem = memo(function NodeItem({
         }}
       >
         <HighlightText
-          text={nodeDisplayName(node.node_type, node.title)}
+          text={nodeMenuTitle(node.node_type, node.title)}
           query={searchTerm}
           matchStyle="primary"
         />
@@ -440,8 +440,8 @@ const NodeItem = memo(function NodeItem({
             sx={favoriteButtonSx}
             aria-label={
               isFavorite
-                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: nodeDisplayName(node.node_type, node.title) })
-                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: nodeDisplayName(node.node_type, node.title) })
+                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: nodeMenuTitle(node.node_type, node.title) })
+                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: nodeMenuTitle(node.node_type, node.title) })
             }
           />
         )}

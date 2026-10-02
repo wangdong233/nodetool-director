@@ -14,9 +14,27 @@
  * they fold the name inside a useMemo.
  */
 import { i18n } from "./index";
+import { findSnippetByNodeType } from "../config/snippetMetadata";
 
 export function nodeDisplayName(type: string, title: string): string {
   return i18n.t(`catalog:nodes.${type}`, { defaultValue: title });
+}
+
+/**
+ * Display name for a node-menu entry, where the entry may be a CODE SNIPPET
+ * rather than a registry node: snippet metadata titles are resolved once at
+ * module load (English snapshot), so the menu row re-resolves them at render
+ * time through the snippet's own catalog:snippets key. Falls through to the
+ * node overlay for real registry types.
+ */
+export function nodeMenuTitle(nodeType: string, fallbackTitle: string): string {
+  const snippet = findSnippetByNodeType(nodeType);
+  if (snippet?.titleKey) {
+    return i18n.t(`catalog:snippets.${snippet.titleKey}`, {
+      defaultValue: fallbackTitle
+    });
+  }
+  return nodeDisplayName(nodeType, fallbackTitle);
 }
 
 /**

@@ -68,7 +68,7 @@ import {
 import useConnectionStore from "../../stores/ConnectionStore";
 import type { NodeStoreState } from "../../stores/NodeStore";
 import { useAppLanguage } from "../../i18n";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import {
   CODE_NODE_TYPE,
   isCodeNode,
@@ -486,7 +486,7 @@ const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     return resolveNodeHeaderTitle(
       type,
       data.title,
-      nodeDisplayName(type, metadata.title),
+      nodeMenuTitle(type, metadata.title),
       propertyName
     );
   }, [data.properties?.name, data.title, metadata.title, type, languageVersion]);
@@ -776,7 +776,7 @@ const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         data={data}
         backgroundColor={headerColor}
         title={displayTitle}
-        metadataTitle={nodeDisplayName(type, metadata.title)}
+        metadataTitle={nodeMenuTitle(type, metadata.title)}
         hasParent={hasParent}
         iconType={
           metadata?.outputs?.[0]?.type?.type ??

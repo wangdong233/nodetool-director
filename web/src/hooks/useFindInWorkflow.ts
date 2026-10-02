@@ -6,7 +6,7 @@ import useMetadataStore from "../stores/MetadataStore";
 import { Node } from "@xyflow/react";
 import { NodeData } from "../stores/NodeData";
 import { resolveNodeHeaderTitle } from "../components/node/codeNodeUi";
-import { nodeDisplayName } from "../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../i18n/nodeDisplayName";
 import usePropertyHighlightStore from "../stores/PropertyHighlightStore";
 
 // Stable empty array so the `useNodes` selector below returns the same
@@ -65,7 +65,7 @@ export const useFindInWorkflow = (): UseFindInWorkflowResult => {
       return resolveNodeHeaderTitle(
         nodeType,
         node.data?.title,
-        nodeDisplayName(nodeType, fallbackTitle),
+        nodeMenuTitle(nodeType, fallbackTitle),
         typeof propertyName === "string" ? propertyName : undefined
       );
     },

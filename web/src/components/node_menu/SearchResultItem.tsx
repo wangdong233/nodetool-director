@@ -27,7 +27,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { FavoriteButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
 import { i18n } from "../../i18n";
-import { nodeDisplayName } from "../../i18n/nodeDisplayName";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 const COMPACT_SVG_PROPS = { width: "14px", height: "14px" } as const;
@@ -387,7 +387,7 @@ const SearchResultItem = memo(function SearchResultItem({
         />
         <Text className="result-title" component="div" sx={COMPACT_TITLE_SX}>
           <HighlightText
-            text={nodeDisplayName(node.node_type, node.title)}
+            text={nodeMenuTitle(node.node_type, node.title)}
             query={searchTerm}
             matchStyle="primary"
           />
@@ -428,7 +428,7 @@ const SearchResultItem = memo(function SearchResultItem({
             />
             <Text className="result-title" component="div">
               <HighlightText
-                text={nodeDisplayName(node.node_type, node.title)}
+                text={nodeMenuTitle(node.node_type, node.title)}
                 query={searchTerm}
                 matchStyle="primary"
               />
