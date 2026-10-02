@@ -18,6 +18,8 @@ import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { nodeDisplayName } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 const tooltipHintStyle: CSSProperties = {
@@ -149,6 +151,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
   hideHeader = false
 }: FavoritesTilesProps = {}) {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -272,13 +275,14 @@ const FavoritesTiles = memo(function FavoritesTiles({
     (nodeType: string) => {
       const metadata = getMetadata(nodeType);
       if (metadata) {
-        return (
+        return nodeDisplayName(
+          nodeType,
           metadata.title || metadata.node_type.split(".").pop() || nodeType
         );
       }
       return nodeType.split(".").pop() || nodeType;
     },
-    [getMetadata]
+    [getMetadata, languageVersion]
   );
 
   if (favorites.length === 0) {
@@ -290,7 +294,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
         {!hideHeader && (
           <div className="tiles-header">
             <Text size="normal" weight={600}>
-              Favorites
+              {t("editor:ui.favorites", { defaultValue: "Favorites" })}
             </Text>
           </div>
         )}
@@ -308,7 +312,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
       {!hideHeader && (
         <div className="tiles-header">
           <Text size="normal" weight={600}>
-            Favorites
+            {t("editor:ui.favorites", { defaultValue: "Favorites" })}
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}

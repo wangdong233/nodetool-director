@@ -28,6 +28,8 @@ import {
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
 import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { nodeDisplayName } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 interface NodeItemProps {
@@ -59,6 +61,7 @@ const NodeItem = memo(function NodeItem({
   ref
 }: NodeItemProps) {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   // Rows re-render on every keystroke in the node search; a fresh slotProps
   // object per row would defeat the memo on Tooltip and re-serialize its sx.
@@ -118,7 +121,7 @@ const NodeItem = memo(function NodeItem({
 
   const tooltipContent = useMemo(() => {
     if (!parsedDescription) {
-      return node.title;
+      return nodeDisplayName(node.node_type, node.title);
     }
     return (
       <Box sx={{ maxWidth: 300 }}>
@@ -175,7 +178,7 @@ const NodeItem = memo(function NodeItem({
         )}
       </Box>
     );
-  }, [parsedDescription, node.title]);
+  }, [parsedDescription, node.title, node.node_type, languageVersion]);
 
   const onMouseEnter = useCallback(() => {
     setHoveredNode(node);
@@ -314,7 +317,7 @@ const NodeItem = memo(function NodeItem({
         }}
       >
         <HighlightText
-          text={node.title}
+          text={nodeDisplayName(node.node_type, node.title)}
           query={searchTerm}
           matchStyle="primary"
         />
@@ -437,8 +440,8 @@ const NodeItem = memo(function NodeItem({
             sx={favoriteButtonSx}
             aria-label={
               isFavorite
-                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: node.title })
-                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: node.title })
+                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: nodeDisplayName(node.node_type, node.title) })
+                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: nodeDisplayName(node.node_type, node.title) })
             }
           />
         )}

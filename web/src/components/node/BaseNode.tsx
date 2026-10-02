@@ -67,6 +67,8 @@ import {
 } from "../../stores/graphEdgeToReactFlowEdge";
 import useConnectionStore from "../../stores/ConnectionStore";
 import type { NodeStoreState } from "../../stores/NodeStore";
+import { useAppLanguage } from "../../i18n";
+import { nodeDisplayName } from "../../i18n/nodeDisplayName";
 import {
   CODE_NODE_TYPE,
   isCodeNode,
@@ -370,6 +372,9 @@ const getHeaderColors = (
 const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   const theme = useTheme();
   const isDarkMode = useIsDarkMode();
+  // Re-render anchor for render-time localized node names (F-26): without it
+  // a memoized canvas node keeps its pre-switch language in the header.
+  const { version: languageVersion } = useAppLanguage();
   const { id, type, data, selected, parentId, dragging, height: nodeHeight } = props;
   const { workflow_id, title } = data;
   // Subscribe directly to focusedNodeId with equality check to avoid re-renders
@@ -481,10 +486,10 @@ const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     return resolveNodeHeaderTitle(
       type,
       data.title,
-      metadata.title,
+      nodeDisplayName(type, metadata.title),
       propertyName
     );
-  }, [data.properties?.name, data.title, metadata.title, type]);
+  }, [data.properties?.name, data.title, metadata.title, type, languageVersion]);
   const showCodeBadge = isCodeNode(type);
   const isCodeTitleEditable = isCodeNodeTitleEditable(type, data);
 
@@ -771,7 +776,7 @@ const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         data={data}
         backgroundColor={headerColor}
         title={displayTitle}
-        metadataTitle={metadata.title}
+        metadataTitle={nodeDisplayName(type, metadata.title)}
         hasParent={hasParent}
         iconType={
           metadata?.outputs?.[0]?.type?.type ??

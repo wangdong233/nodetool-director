@@ -75,7 +75,14 @@
     "removeFav": "Remove from favorites",
     "addFav": "Add to favorites",
     "openAsApp": "Open as App",
-    "edit": "Edit"
+    "edit": "Edit",
+    "runStopping": "Stopping",
+    "runQueuedAt": "Queued #{{position}}",
+    "runStarting": "Starting",
+    "runRunningQueued": "Running · {{count}} queued",
+    "runRunning": "Running",
+    "runErrorRetry": "Error · Retry",
+    "runEntireWorkflow": "Run entire workflow"
   },
   "asset": {
     "assetsSelectedCount": "{{count}} assets selected:",
@@ -260,7 +267,9 @@
     "workerConnected": "Worker {{state}}",
     "stateConnected": "connected",
     "stateDisconnected": "disconnected",
-    "stateOffline": "offline"
+    "stateOffline": "offline",
+    "nodesLabel": "nodes",
+    "edgesLabel": "edges"
   },
   "ui": {
     "addDirection": "Add direction",

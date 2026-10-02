@@ -21,6 +21,8 @@ import { usePanelStore } from "../stores/PanelStore";
 import { useMiniMapStore } from "../stores/MiniMapStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { i18n } from "../i18n";
+import { useAppLanguage } from "../i18n";
+import { useTranslation } from "react-i18next";
 
 interface FloatingToolbarActions {
   handleRun: () => Promise<void>;
@@ -47,6 +49,8 @@ interface FloatingToolbarActions {
 }
 
 export const useFloatingToolbarActions = (): FloatingToolbarActions => {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const nodeStore = useNodeStoreRef();
   const workflow = useNodes((state) => state.workflow);
   const autoLayout = useNodes((state) => state.autoLayout);
@@ -76,24 +80,24 @@ export const useFloatingToolbarActions = (): FloatingToolbarActions => {
   const isWorkflowActive = isWorkflowBusy || isStopping;
   const runControlLabel = useMemo(() => {
     if (isStopping) {
-      return "Stopping";
+      return t("editor:workflow.runStopping", { defaultValue: "Stopping" });
     }
     if (queuePosition != null) {
-      return `Queued #${queuePosition}`;
+      return t("editor:workflow.runQueuedAt", { defaultValue: "Queued #{{position}}", position: queuePosition });
     }
     if (state === "connecting" || state === "connected") {
-      return "Starting";
+      return t("editor:workflow.runStarting", { defaultValue: "Starting" });
     }
     if (state === "running") {
       return pendingRunCount > 0
-        ? `Running · ${pendingRunCount} queued`
-        : "Running";
+        ? t("editor:workflow.runRunningQueued", { defaultValue: "Running · {{count}} queued", count: pendingRunCount })
+        : t("editor:workflow.runRunning", { defaultValue: "Running" });
     }
     if (state === "error") {
-      return "Error · Retry";
+      return t("editor:workflow.runErrorRetry", { defaultValue: "Error · Retry" });
     }
-    return "Run entire workflow";
-  }, [isStopping, pendingRunCount, queuePosition, state]);
+    return t("editor:workflow.runEntireWorkflow", { defaultValue: "Run entire workflow" });
+  }, [isStopping, pendingRunCount, queuePosition, state, t, languageVersion]);
 
   const getWorkflowById = useWorkflowManager((state) => state.getWorkflow);
   const saveWorkflow = useWorkflowManager((state) => state.saveWorkflow);

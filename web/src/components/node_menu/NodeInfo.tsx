@@ -9,7 +9,6 @@ import { colorForType, descriptionForType } from "../../config/data_types";
 import { hexToRgba } from "../../utils/ColorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
-import { titleizeString } from "../../utils/titleizeString";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { HighlightText } from "../ui_primitives";
 import {
@@ -25,6 +24,7 @@ import {
   isKieVagueBillingSummary,
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
+import { nodeDisplayName } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
 
 interface NodeInfoProps {
@@ -235,7 +235,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
     <div css={nodeInfoStyles(theme)} style={{ width: menuWidth }}>
       <div className="title-container">
         <Text className="node-title">
-          {titleizeString(nodeMetadata.title)}
+          {nodeDisplayName(nodeMetadata.node_type, nodeMetadata.title)}
         </Text>
       </div>
       <div className="node-description">

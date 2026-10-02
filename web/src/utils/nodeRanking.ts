@@ -5,6 +5,7 @@ import {
   type RankConfig,
   type RankField
 } from "./ranking";
+import { nodeSearchAlias } from "../i18n/nodeDisplayName";
 
 const PROVIDER_NAMESPACES = new Set([
   "openai",
@@ -41,6 +42,10 @@ interface ScoredNode<T extends NodeMetadata = NodeMetadata> {
 
 const FIELD_WEIGHTS = {
   title: 6,
+  // zh display-name alias (r13): substring-ranked like `title` but one notch
+  // below it, so a Chinese query (“滤波”) hits the localized name while every
+  // English field weight — and therefore English ranking — stays unchanged.
+  titleAlias: 5,
   nodeType: 4,
   namespace: 2,
   description: 1
@@ -50,6 +55,10 @@ const CORE_MULTIPLIER = 1.5;
 
 const NODE_FIELDS: ReadonlyArray<RankField<NodeMetadata>> = [
   { get: (meta) => meta.title, weight: FIELD_WEIGHTS.title },
+  {
+    get: (meta) => nodeSearchAlias(meta.node_type, meta.title ?? ""),
+    weight: FIELD_WEIGHTS.titleAlias
+  },
   { get: (meta) => meta.node_type, weight: FIELD_WEIGHTS.nodeType },
   { get: (meta) => meta.namespace, weight: FIELD_WEIGHTS.namespace },
   { get: (meta) => meta.description, weight: FIELD_WEIGHTS.description }

@@ -75,7 +75,14 @@
     "removeFav": "取消收藏",
     "addFav": "添加收藏",
     "openAsApp": "作为小程序打开",
-    "edit": "编辑"
+    "edit": "编辑",
+    "runStopping": "停止中",
+    "runQueuedAt": "排队中 #{{position}}",
+    "runStarting": "启动中",
+    "runRunningQueued": "运行中 · {{count}} 个排队",
+    "runRunning": "运行中",
+    "runErrorRetry": "错误 · 重试",
+    "runEntireWorkflow": "运行整个工作流"
   },
   "asset": {
     "assetsSelectedCount": "已选择 {{count}} 个素材：",
@@ -258,7 +265,9 @@
     "workerConnected": "Worker {{state}}",
     "stateConnected": "已连接",
     "stateDisconnected": "已断开",
-    "stateOffline": "已离线"
+    "stateOffline": "已离线",
+    "nodesLabel": "节点",
+    "edgesLabel": "连线"
   },
   "ui": {
     "addDirection": "添加指示",

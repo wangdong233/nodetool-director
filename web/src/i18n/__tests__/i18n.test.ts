@@ -108,6 +108,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.scriptInspirations;
     delete copy.imageInspirations;
     delete copy.workflowInspiration;
+    delete copy.nodes;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -472,6 +473,24 @@ describe("catalog key parity (CI completeness guard)", () => {
       expect(typeof entry.logline).toBe("string");
       expect(entry.logline.length).toBeGreaterThan(0);
       expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
+    }
+  });
+
+  it("catalog nodes overlay is zh-only, keyed by node type, with non-empty display names", () => {
+    // r13 节点显示名: the overlay keys are node TYPES (stable registry
+    // identity — namespace-shaped paths like "nodetool.audio.Bitcrush"),
+    // never titles, and each value is the localized display name. en must
+    // NOT carry the block (defaultValue is the backend English title), so a
+    // missing or renamed type simply falls back with zero drift.
+    expect(catalogEn).not.toHaveProperty("nodes");
+    const nodeEntries = catalogZh["nodes"] as Record<string, string>;
+    expect(Object.keys(nodeEntries).length).toBeGreaterThan(0);
+    for (const [nodeType, name] of Object.entries(nodeEntries)) {
+      expect(typeof name).toBe("string");
+      expect(name.length).toBeGreaterThan(0);
+      // Namespace-path shape: at least "ns.Node", segments are identifier-ish
+      // (letters/digits/underscore; capitals allowed — backend class names).
+      expect(nodeType).toMatch(/^[A-Za-z0-9_]+\.[A-Za-z0-9_.]+$/);
     }
   });
 

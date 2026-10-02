@@ -587,10 +587,10 @@ const PanelBottom: React.FC = () => {
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>
-                  <span className="meta-key">nodes</span>
+                  <span className="meta-key">{t("editor:bottom.nodesLabel", { defaultValue: "nodes" })}</span>
                   <span className="sep" aria-hidden>·</span>
                   <span className="meta-value">{edgeCount}</span>
-                  <span className="meta-key">edges</span>
+                  <span className="meta-key">{t("editor:bottom.edgesLabel", { defaultValue: "edges" })}</span>
                 </span>
               )}
               {systemStats && (
