@@ -109,6 +109,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.imageInspirations;
     delete copy.workflowInspiration;
     delete copy.nodes;
+    delete copy.nodeDocs;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -521,6 +522,50 @@ describe("catalog key parity (CI completeness guard)", () => {
       expect((zh as string).length).toBeGreaterThan(0);
       expect(phrase).not.toMatch(/\./);
       expect(phrase).toMatch(/[A-Za-z]/);
+    }
+  });
+
+  it("catalog nodeDocs overlay is zh-only, keyed by node type, parser-shaped, with a tags line per entry (r17)", () => {
+    // r17 描述面: the overlay keys are node TYPES (same identity contract as
+    // the r13 nodes block) and each value is a FULL documentation string in
+    // the exact shape formatNodeDocumentation parses — line 1 the localized
+    // description, line 2 the verbatim English tag list, then an optional
+    // literal "Use cases:" marker with localized bullets. en must NOT carry
+    // the block (the raw backend description is the English source), and the
+    // tags line stays English by decision (758-entry vocabulary > the ≤150
+    // display-coverage threshold, reported r17).
+    expect(catalogEn).not.toHaveProperty("nodeDocs");
+    const docsBlock = catalogZh["nodeDocs"] as Record<string, unknown>;
+    const entries = Object.entries(docsBlock);
+    // r17 shipped the 392 core nodes (nodetool.*/lib.* with substantive
+    // descriptions). The band guards against accidental bulk dumps and
+    // silent shrinkage — move it deliberately with the batch that changes it.
+    expect(entries.length).toBeGreaterThanOrEqual(392);
+    expect(entries.length).toBeLessThanOrEqual(420);
+    for (const [nodeType, doc] of entries) {
+      expect(typeof doc).toBe("string");
+      const text = doc as string;
+      expect(text.length).toBeGreaterThan(0);
+      // Namespace-path shape, same regex family as the r13 nodes contract.
+      expect(nodeType).toMatch(/^[A-Za-z0-9_]+\.[A-Za-z0-9_.]+$/);
+      // Parser shape: line 1 = description (non-empty, not the marker), and
+      // every "Use cases:" section head sits alone on its line so the
+      // startsWith scan in formatNodeDocumentation finds it.
+      const lines = text.split("\n").map((line) => line.trim());
+      expect(lines[0].length).toBeGreaterThan(0);
+      expect(lines[0].startsWith("Use cases")).toBe(false);
+      for (const line of lines) {
+        if (line.includes("Use cases:")) {
+          expect(line).toBe("Use cases:");
+        }
+      }
+      // A value carrying a Use-cases section must still have a real line 2
+      // for the parser's tags field — a marker sitting at lines[1] would
+      // surface "Use cases:" itself as a tag chip.
+      if (text.includes("Use cases:")) {
+        expect(lines[1]).toBeTruthy();
+        expect(lines[1]).not.toBe("Use cases:");
+      }
     }
   });
 
