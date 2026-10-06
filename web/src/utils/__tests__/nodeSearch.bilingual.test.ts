@@ -10,6 +10,7 @@
 import { changeAppLanguage, resetI18nForTest } from "../../i18n";
 import { rankSearchNodes } from "../nodeSearch";
 import { nodeDisplayName, nodeSearchAlias } from "../../i18n/nodeDisplayName";
+import { nodeDocSearchAlias } from "../../i18n/nodeDocs";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 
 function makeNode(overrides: Partial<NodeMetadata> = {}): NodeMetadata {
@@ -172,5 +173,66 @@ describe("provider task-suffix composition joins search (r14)", () => {
     expect(nodeDisplayName("replicate.music.Lyria3Pro", "Lyria 3 Pro")).toBe(
       "Lyria 3 Pro"
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// r17: description-corpus alias. The zh nodeDocs overlay joins the searchable
+// fields at the same weight as the raw description, so a Chinese query that
+// only exists in a node's DESCRIPTION ("回声" in Delay's use cases) finds the
+// node, while the English description field keeps English description-word
+// queries ("echo") working in both languages — and the alias contributes
+// nothing in English (zero English ranking drift).
+// ---------------------------------------------------------------------------
+const DOCS_CATALOG: NodeMetadata[] = [
+  makeNode({
+    title: "Delay",
+    node_type: "lib.audio.Delay",
+    namespace: "lib.audio",
+    description:
+      "Applies a delay effect to an audio file.\naudio, effect, time-based\n\nUse cases:\n- Create echo effects\n- Add spaciousness to sounds"
+  }),
+  makeNode({
+    title: "Reverb",
+    node_type: "lib.audio.Reverb",
+    namespace: "lib.audio",
+    description:
+      "Applies a reverb effect to an audio file.\naudio, effect, reverb\n\nUse cases:\n- Add spatial depth to dry recordings"
+  })
+];
+
+describe("description-corpus bilingual hits (r17)", () => {
+  afterEach(async () => {
+    await resetI18nForTest();
+  });
+
+  it("a zh word unique to a description hits its node (not its title)", async () => {
+    // "回声" appears only in the zh description/use-cases of Delay — no node
+    // title carries it — so this can only hit through the descriptionAlias.
+    await changeAppLanguage("zh-CN");
+    const byZh = rankSearchNodes(DOCS_CATALOG, "回声");
+    expect(byZh.map((n) => n.node_type)).toContain("lib.audio.Delay");
+    expect(byZh.map((n) => n.node_type)).not.toContain("lib.audio.Reverb");
+  });
+
+  it("the English description word still hits in both languages", async () => {
+    // English field intact under zh (zero drift)…
+    await changeAppLanguage("zh-CN");
+    const byEnZh = rankSearchNodes(DOCS_CATALOG, "echo");
+    expect(byEnZh.map((n) => n.node_type)).toContain("lib.audio.Delay");
+    expect(byEnZh.map((n) => n.node_type)).not.toContain("lib.audio.Reverb");
+    // …and identically in English, where the alias is empty.
+    await resetI18nForTest();
+    const byEn = rankSearchNodes(DOCS_CATALOG, "echo");
+    expect(byEn.map((n) => n.node_type)).toContain("lib.audio.Delay");
+  });
+
+  it("description alias contributes nothing in English", () => {
+    expect(
+      nodeDocSearchAlias(
+        "lib.audio.Delay",
+        "Applies a delay effect to an audio file."
+      )
+    ).toBe("");
   });
 });

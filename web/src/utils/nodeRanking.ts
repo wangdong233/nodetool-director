@@ -6,6 +6,7 @@ import {
   type RankField
 } from "./ranking";
 import { nodeSearchAlias } from "../i18n/nodeDisplayName";
+import { nodeDocSearchAlias } from "../i18n/nodeDocs";
 
 const PROVIDER_NAMESPACES = new Set([
   "openai",
@@ -48,7 +49,12 @@ const FIELD_WEIGHTS = {
   titleAlias: 5,
   nodeType: 4,
   namespace: 2,
-  description: 1
+  description: 1,
+  // zh documentation corpus alias (r17): same weight as `description` so a
+  // Chinese query (“回声”) hits localized description content while every
+  // English field weight — and therefore English ranking — stays unchanged
+  // (empty alias in English contributes no score).
+  descriptionAlias: 1
 } as const;
 
 const CORE_MULTIPLIER = 1.5;
@@ -61,7 +67,11 @@ const NODE_FIELDS: ReadonlyArray<RankField<NodeMetadata>> = [
   },
   { get: (meta) => meta.node_type, weight: FIELD_WEIGHTS.nodeType },
   { get: (meta) => meta.namespace, weight: FIELD_WEIGHTS.namespace },
-  { get: (meta) => meta.description, weight: FIELD_WEIGHTS.description }
+  { get: (meta) => meta.description, weight: FIELD_WEIGHTS.description },
+  {
+    get: (meta) => nodeDocSearchAlias(meta.node_type, meta.description ?? ""),
+    weight: FIELD_WEIGHTS.descriptionAlias
+  }
 ];
 
 export const searchTermsFromQuery = genericSearchTermsFromQuery;
