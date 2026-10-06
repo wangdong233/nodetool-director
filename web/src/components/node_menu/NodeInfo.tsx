@@ -25,6 +25,8 @@ import {
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
 import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface NodeInfoProps {
@@ -186,17 +188,23 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
   showConnections = true
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const searchTerm = useNodeMenuStore((state) => state.searchTerm);
   const setSearchTerm = useNodeMenuStore((state) => state.setSearchTerm);
 
   const description = useMemo(
     () =>
       formatNodeDocumentation(
-        nodeMetadata?.description || "",
+        // nodeDocumentation overlays the zh doc (parser-shaped, r17) at
+        // render time; languageVersion re-resolves on a language switch.
+        nodeDocumentation(
+          nodeMetadata?.node_type ?? "",
+          nodeMetadata?.description || ""
+        ),
         searchTerm,
         nodeMetadata.searchInfo
       ),
-    [nodeMetadata, searchTerm]
+    [nodeMetadata, searchTerm, languageVersion]
   );
 
   const handleTagClick = useCallback(

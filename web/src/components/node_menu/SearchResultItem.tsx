@@ -28,6 +28,8 @@ import { FavoriteButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
 import { i18n } from "../../i18n";
 import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const COMPACT_SVG_PROPS = { width: "14px", height: "14px" } as const;
@@ -238,6 +240,7 @@ const SearchResultItem = memo(function SearchResultItem({
   ref
 }: SearchResultItemProps) {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const outputType = node.outputs.length > 0 ? node.outputs[0].type.type : "";
   const providerKind = getProviderKindForNamespace(node.namespace);
@@ -266,8 +269,16 @@ const SearchResultItem = memo(function SearchResultItem({
 
   const { description, tags } = useMemo(
     () =>
-      formatNodeDocumentation(node.description, searchTerm, node.searchInfo),
-    [node.description, searchTerm, node.searchInfo]
+      // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
+      // time; languageVersion re-resolves on a language switch. Tags stay
+      // English (758-entry vocabulary, reported r17) so tag↔searchTerm
+      // matching against the English index keeps working.
+      formatNodeDocumentation(
+        nodeDocumentation(node.node_type, node.description),
+        searchTerm,
+        node.searchInfo
+      ),
+    [node.description, node.node_type, searchTerm, node.searchInfo, languageVersion]
   );
 
   const matchingTags = useMemo(() => {

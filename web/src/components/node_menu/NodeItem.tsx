@@ -30,6 +30,7 @@ import { findSnippetByNodeType } from "../../config/snippetMetadata";
 import { i18n } from "../../i18n";
 import { useAppLanguage } from "../../i18n";
 import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
 import { useTranslation } from "react-i18next";
 
 interface NodeItemProps {
@@ -116,8 +117,12 @@ const NodeItem = memo(function NodeItem({
     if (!node.description) {
       return null;
     }
-    return formatNodeDocumentation(node.description);
-  }, [node.description]);
+    // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
+    // time; languageVersion re-resolves it when the language switches.
+    return formatNodeDocumentation(
+      nodeDocumentation(node.node_type, node.description)
+    );
+  }, [node.description, node.node_type, languageVersion]);
 
   const tooltipContent = useMemo(() => {
     if (!parsedDescription) {
@@ -157,7 +162,7 @@ const NodeItem = memo(function NodeItem({
               weight={FONT_WEIGHT.semibold}
               sx={{ color: "grey.400", textTransform: "uppercase", mb: 0.5 }}
             >
-              Use cases
+              {t("ui2:attrs.useCases", { defaultValue: "Use cases" })}
             </Text>
             <Box
               component="ul"

@@ -14,6 +14,8 @@ import { useInspectedNodeStore } from "../../stores/InspectedNodeStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { useTranslation } from "react-i18next";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useAppLanguage } from "../../i18n";
 
 const PrettyNamespace = memo<{ namespace: string }>(({ namespace }) => {
   const parts = namespace.split(".");
@@ -208,6 +210,7 @@ const styles = (theme: Theme) =>
 const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
   ({ inspectedNodeId }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const { getNode, setCenter, flowToScreenPosition } = useReactFlow();
   const { x: viewportX, y: viewportY, zoom } = useViewport();
@@ -312,8 +315,12 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
     if (!nodeInfo?.description) {
       return null;
     }
-    return formatNodeDocumentation(nodeInfo.description);
-  }, [nodeInfo?.description]);
+    // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
+    // time; languageVersion re-resolves on a language switch.
+    return formatNodeDocumentation(
+      nodeDocumentation(nodeInfo.type, nodeInfo.description)
+    );
+  }, [nodeInfo?.description, nodeInfo?.type, languageVersion]);
 
   const handleClose = useCallback(() => {
     setInspectedNodeId(null);
