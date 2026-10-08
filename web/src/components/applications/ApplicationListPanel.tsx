@@ -245,15 +245,23 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
               type: "error",
               alert: true,
               content: isConcurrencyConflict(error)
-                ? `"${current.name}" changed elsewhere — the rename to "${trimmed}" was not saved.`
-                : `Could not rename "${current.name}": ${error.message}`
+                ? t("editor:ui.renamedElsewhereNotSaved", {
+                    defaultValue: "\"{{name}}\" changed elsewhere — the rename to \"{{newName}}\" was not saved.",
+                    name: current.name,
+                    newName: trimmed
+                  })
+                : t("editor:ui.couldNotRenameError", {
+                    defaultValue: "Could not rename \"{{name}}\": {{error}}",
+                    name: current.name,
+                    error: error.message
+                  })
             });
             void utils.applications.list.invalidate();
           }
         }
       );
     },
-    [addNotification, data, updateApplication, utils]
+    [addNotification, data, updateApplication, utils, t]
   );
 
   const handleDuplicate = useCallback(
@@ -270,13 +278,15 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not duplicate "${item.name}": ${
-            error instanceof Error ? error.message : "unknown error"
-          }`
+          content: t("editor:ui.couldNotDuplicateError", {
+            defaultValue: "Could not duplicate \"{{name}}\": {{error}}",
+            name: item.name,
+            error: error instanceof Error ? error.message : "unknown error"
+          })
         });
       }
     },
-    [addNotification, createApplication, utils]
+    [addNotification, createApplication, utils, t]
   );
 
   const handleRequestRename = useCallback((item: SidebarDocumentItem) => {
@@ -303,13 +313,17 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
           addNotification({
             type: "error",
             alert: true,
-            content: `Could not delete "${name}": ${error.message}`
+            content: t("editor:ui.couldNotDeleteNameError", {
+              defaultValue: "Could not delete \"{{name}}\": {{error}}",
+              name,
+              error: error.message
+            })
           });
           void utils.applications.list.invalidate();
         }
       }
     );
-  }, [addNotification, itemToDelete, deleteApplication, utils]);
+  }, [addNotification, itemToDelete, deleteApplication, utils, t]);
 
   return (
     <DocumentListPanel

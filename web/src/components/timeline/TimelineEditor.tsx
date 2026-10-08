@@ -678,7 +678,10 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       const saveResult = await flushAutosave();
       if (!saveResult.ok) {
         throw new Error(
-          `Could not save the current timeline. ${saveResult.error}`
+          t("timeline:attrs.couldNotSaveTheCurrentTimeline", {
+            defaultValue: "Could not save the current timeline. {{error}}",
+            error: saveResult.error
+          })
         );
       }
       await exportTimelineZip(sequenceId, sequence?.name || "timeline");
@@ -687,14 +690,15 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
         type: "error",
         alert: true,
         dismissable: true,
-        content: `Project download failed. ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: t("timeline:attrs.projectDownloadFailed", {
+          defaultValue: "Project download failed. {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setIsExportingBundle(false);
     }
-  }, [flushAutosave, sequenceId, sequence?.name]);
+  }, [flushAutosave, sequenceId, sequence?.name, t]);
 
   // "Save as Asset" — anchor the folder chooser to the TopBar button, then
   // render the timeline into a new asset in the chosen folder.

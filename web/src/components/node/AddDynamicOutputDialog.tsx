@@ -112,10 +112,10 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <EditorButton onClick={handleClose} variant="text" size="small">
-          Cancel
+          {t("common:action.cancel", { defaultValue: "Cancel" })}
         </EditorButton>
         <EditorButton onClick={handleSubmit} variant="contained" size="small">
-          Add
+          {t("common:action.add", { defaultValue: "Add" })}
         </EditorButton>
       </DialogActions>
     </Dialog>

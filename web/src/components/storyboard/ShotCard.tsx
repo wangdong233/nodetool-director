@@ -328,11 +328,14 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             type: "error",
             alert: true,
             dismissable: true,
-            content: `The still could not be uploaded. ${error}`
+            content: t("storyboard:attrs.theStillCouldNotBeUploaded", {
+              defaultValue: "The still could not be uploaded. {{error}}",
+              error: String(error)
+            })
           })
       });
     },
-    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id]
+    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id, t]
   );
 
   const handleDragStart = useCallback(
@@ -530,7 +533,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
 
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, minWidth: 0 }}>
         <Caption color="secondary">
-          {caption ?? `Shot ${shot.index + 1}`}
+          {caption ?? t("storyboard:attrs.shotNumber", { defaultValue: "Shot {{count}}", count: shot.index + 1 })}
         </Caption>
         <Text
           size="small"

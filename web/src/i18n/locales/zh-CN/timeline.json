@@ -128,6 +128,13 @@
     "instrumentTrack": "乐器轨道"
   },
   "attrs": {
+    "addA3dClipFromName": "从“{{name}}”添加三维片段",
+    "addClipFromName": "从“{{name}}”添加片段",
+    "couldNotSaveTheCurrentTimeline": "无法保存当前时间线。{{error}}",
+    "gradeOrBlurEveryLayerBeneathIt": "为其下所有图层调色或模糊",
+    "noteEditorForName": "音符编辑器：{{name}}",
+    "projectDownloadFailed": "项目下载失败。{{error}}",
+    "snapshotsTheSequenceAsItIsRightNow": "为序列当前的状态创建快照。",
     "addAMIDITrackToChooseAnInstrument": "添加一条 MIDI 轨道来选择乐器。",
     "addGeneratedClip": "添加生成剪辑",
     "addMIDIClip": "添加 MIDI 剪辑",

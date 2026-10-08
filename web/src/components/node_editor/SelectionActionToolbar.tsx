@@ -318,7 +318,7 @@ const SelectionActionToolbar: React.FC<SelectionActionToolbarProps> = memo(
               color="muted"
               sx={CAPTION_SX}
             >
-              Align
+              {t("editor:ui.align", { defaultValue: "Align" })}
             </Caption>
             <FlexRow gap={0.5} align="center">
               {horizontalAlign.map((button) => (

@@ -290,7 +290,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
       actions={
         <FlexRow gap={2}>
           <EditorButton variant="text" onClick={onClose}>
-            Close
+            {t("common:action.close", { defaultValue: "Close" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -339,10 +339,10 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                     density="compact"
                     variant="text"
                     disabled={busy}
-                    aria-label={`Delete profile ${profile.name}`}
+                    aria-label={t("editor:ui.deleteProfile", { defaultValue: "Delete profile {{name}}", name: profile.name })}
                     onClick={() => handleDelete(profile.name)}
                   >
-                    Delete
+                    {t("common:action.delete", { defaultValue: "Delete" })}
                   </EditorButton>
                 </FlexRow>
               </Card>
@@ -456,7 +456,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           <CollapsibleSection
             title={
               <Text size="small" weight={600}>
-                Advanced
+                {t("editor:ui.advanced", { defaultValue: "Advanced" })}
               </Text>
             }
             defaultOpen={false}

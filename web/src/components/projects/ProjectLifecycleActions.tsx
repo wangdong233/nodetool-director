@@ -86,15 +86,15 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
       <FlexRow gap={SPACING.sm}>
         {project.archivedAt ? (
           <EditorButton density="compact" variant="text" onClick={handleRestore}>
-            Restore
+            {t("timeline:attrs.restore", { defaultValue: "Restore" })}
           </EditorButton>
         ) : (
           <EditorButton density="compact" variant="text" onClick={handleArchive}>
-            Archive
+            {t("editor:ui.archive", { defaultValue: "Archive" })}
           </EditorButton>
         )}
         <EditorButton density="compact" color="error" variant="text" onClick={requestDelete}>
-          Delete
+          {t("common:action.delete", { defaultValue: "Delete" })}
         </EditorButton>
       </FlexRow>
       <Dialog

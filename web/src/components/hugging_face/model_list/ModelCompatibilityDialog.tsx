@@ -277,7 +277,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
               <FlexRow gap={1} align="center">
                 <VerifiedRoundedIcon sx={{ color: "primary.main", fontSize: 18 }} />
                 <Text size="small" weight={600} sx={{ color: "primary.main" }}>
-                  Recommended Nodes
+                  {t("editor:ui.recommendedNodes", { defaultValue: "Recommended Nodes" })}
                 </Text>
               </FlexRow>
               <Caption sx={{ color: "text.disabled", fontWeight: 500 }}>
@@ -304,7 +304,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
 
           <FlexRow justify="flex-end" sx={{ pt: 1.5, borderTop: `1px solid ${theme.vars.palette.grey[900]}` }}>
             <EditorButton onClick={onClose} variant="contained" density="compact" sx={{ borderRadius: BORDER_RADIUS.sm, fontWeight: 600, px: 3 }}>
-              Got it
+              {t("editor:ui.gotIt", { defaultValue: "Got it" })}
             </EditorButton>
           </FlexRow>
         </FlexColumn>

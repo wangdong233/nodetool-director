@@ -14,7 +14,13 @@
     "cut": "Cut",
     "remove": "Remove",
     "exitFullscreen": "Exit Fullscreen",
-    "fullscreen": "Fullscreen"
+    "fullscreen": "Fullscreen",
+    "select": "Select",
+    "add": "Add",
+    "close": "Close",
+    "apply": "Apply",
+    "and": " and ",
+    "save": "Save"
   },
   "status": {
     "loading": "Loading…"

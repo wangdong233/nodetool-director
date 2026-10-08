@@ -827,7 +827,10 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
         data-testid="piano-roll"
         tabIndex={0}
         role="application"
-        aria-label={`Note editor for ${clip.name || "midi clip"}`}
+        aria-label={t("timeline:attrs.noteEditorForName", {
+          defaultValue: "Note editor for {{name}}",
+          name: clip.name || "midi clip"
+        })}
         onKeyDown={handleKeyDown}
         onCopy={event => copySelection(event, false)}
         onCut={event => copySelection(event, true)}

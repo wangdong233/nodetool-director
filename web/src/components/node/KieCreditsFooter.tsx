@@ -290,7 +290,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
               letterSpacing: "0.05em",
             }}
           >
-            Account credits
+            {t("editor:ui.accountCredits", { defaultValue: "Account credits" })}
           </Caption>
           {creditsLoading ? (
             <FlexRow gap={1} align="center" sx={{ mt: 0.5 }}>
@@ -332,7 +332,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   iconVariant="launch"
                   size="small"
                 >
-                  kie.ai API keys
+                  {t("editor:ui.kieAiApiKeys", { defaultValue: "kie.ai API keys" })}
                 </ExternalLink>
               )}
             </FlexColumn>
@@ -362,7 +362,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                Last run
+                {t("editor:ui.lastRun", { defaultValue: "Last run" })}
               </Caption>
               <Text
                 sx={{

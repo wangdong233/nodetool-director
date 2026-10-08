@@ -730,8 +730,14 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                   sx={getEntityChipSx(applied)}
                   title={
                     applied
-                      ? `${entity.descriptor || entity.name}: click to exclude from this shot`
-                      : `Click to include ${entity.name} in this shot`
+                      ? t("storyboard:attrs.nameClickToExcludeFromThisShot", {
+                          defaultValue: "{{name}}: click to exclude from this shot",
+                          name: entity.descriptor || entity.name
+                        })
+                      : t("storyboard:attrs.clickToIncludeNameInThisShot", {
+                          defaultValue: "Click to include {{name}} in this shot",
+                          name: entity.name
+                        })
                   }
                   onClick={
                     readOnly

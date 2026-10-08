@@ -14,6 +14,7 @@ import {
 import type { NodeMetadata, TypeMetadata } from "../../stores/ApiTypes";
 import { colorForType } from "../../config/data_types";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
+import { useTranslation } from "react-i18next";
 import {
   allowedSlotTypes,
   slotTypeKey,
@@ -40,6 +41,7 @@ const DynamicSlotTypePickerImpl: React.FC<DynamicSlotTypePickerProps> = ({
   nodeMetadata,
   onChange
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const options = useMemo(
     () => allowedSlotTypes(nodeMetadata),
@@ -72,7 +74,7 @@ const DynamicSlotTypePickerImpl: React.FC<DynamicSlotTypePickerProps> = ({
   return (
     <>
       <Tooltip
-        title={`Slot type for "${propertyName}"`}
+        title={t("editor:ui.slotTypeForName", { defaultValue: "Slot type for \"{{name}}\"", name: propertyName })}
         delay={TOOLTIP_ENTER_DELAY}
       >
         <Chip
@@ -80,7 +82,7 @@ const DynamicSlotTypePickerImpl: React.FC<DynamicSlotTypePickerProps> = ({
           compact
           clickable
           label={slotTypeLabel(value)}
-          aria-label={`Slot type for ${propertyName}`}
+          aria-label={t("editor:ui.slotTypeForAria", { defaultValue: "Slot type for {{name}}", name: propertyName })}
           aria-haspopup="listbox"
           onClick={handleOpen}
           sx={{
@@ -99,7 +101,7 @@ const DynamicSlotTypePickerImpl: React.FC<DynamicSlotTypePickerProps> = ({
         maxHeight={320}
         paperSx={{ padding: getSpacingPx(SPACING.xs) }}
       >
-        <div role="listbox" aria-label={`Slot type options for ${propertyName}`}>
+        <div role="listbox" aria-label={t("editor:ui.slotTypeOptionsForName", { defaultValue: "Slot type options for {{name}}", name: propertyName })}>
           {options.map((option) => (
             <MenuItemPrimitive
               key={slotTypeKey(option)}

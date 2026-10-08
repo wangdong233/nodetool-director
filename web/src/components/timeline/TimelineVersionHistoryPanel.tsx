@@ -321,7 +321,7 @@ export const TimelineVersionHistoryPanel: React.FC<
             autoFocus
           />
           <Caption size="smaller" color="secondary">
-            Snapshots the sequence as it is right now.
+            {t("timeline:attrs.snapshotsTheSequenceAsItIsRightNow", { defaultValue: "Snapshots the sequence as it is right now." })}
           </Caption>
         </FlexColumn>
       </Dialog>

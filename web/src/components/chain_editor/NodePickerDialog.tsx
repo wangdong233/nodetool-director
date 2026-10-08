@@ -209,7 +209,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
           ) : searchResults.length === 0 ? (
             <FlexColumn align="center" justify="center" sx={{ py: 6 }}>
               <Text size="small" color="secondary">
-                No nodes found
+                {t("editor:ui.noNodesFound", { defaultValue: "No nodes found" })}
               </Text>
             </FlexColumn>
           ) : (

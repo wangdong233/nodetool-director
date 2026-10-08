@@ -957,9 +957,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           type: "error",
           alert: true,
           dismissable: true,
-          content: `Storyboard download failed. ${
-            error instanceof Error ? error.message : String(error)
-          }`
+          content: i18n.t("storyboard:attrs.storyboardDownloadFailed", {
+            defaultValue: "Storyboard download failed. {{error}}",
+            error: error instanceof Error ? error.message : String(error)
+          })
         });
       } finally {
         setDownloading(false);

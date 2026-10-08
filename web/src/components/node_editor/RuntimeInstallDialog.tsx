@@ -231,7 +231,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
               }}
             />
             <Text size="smaller" color="success">
-              All runtimes installed. You can run this workflow now.
+              {t("editor:ui.allRuntimesInstalledYouCanRunThisWorkflowNow", { defaultValue: "All runtimes installed. You can run this workflow now." })}
             </Text>
           </FlexRow>
         )}

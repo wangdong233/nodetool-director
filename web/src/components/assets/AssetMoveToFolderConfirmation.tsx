@@ -9,7 +9,7 @@ import FolderTree from "./FolderTree";
 import { Asset } from "../../stores/ApiTypes";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface AssetMoveToFolderConfirmationProps {
   assets: string[];
@@ -59,6 +59,7 @@ const AssetMoveToFolderConfirmation: React.FC<
     screenWidth - objectWidth - 50
   );
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <Dialog
       css={dialogStyles(theme)}
@@ -66,15 +67,10 @@ const AssetMoveToFolderConfirmation: React.FC<
       onClose={handleClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
-      title={
-        <>
-          Select new folder for &nbsp;
-          <span>
-            {`${assets?.length} ${assets?.length === 1 ? "asset" : "assets"}`}
-          </span>
-          :
-        </>
-      }
+      title={t("editor:ui.selectNewFolderForAssets", {
+        defaultValue: "Select new folder for {{count}} assets:",
+        count: assets?.length ?? 0
+      })}
       content={
         <FlexColumn gap={SPACING.md}>
           {showAlert && (
@@ -85,7 +81,7 @@ const AssetMoveToFolderConfirmation: React.FC<
           <FolderTree onSelect={handleSelectFolder} />
           <FlexRow justify="flex-end">
             <EditorButton className="button-cancel" onClick={handleClose}>
-              Cancel
+              {t("common:action.cancel", { defaultValue: "Cancel" })}
             </EditorButton>
           </FlexRow>
         </FlexColumn>

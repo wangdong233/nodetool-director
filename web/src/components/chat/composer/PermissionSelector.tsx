@@ -161,7 +161,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
           aria-label={t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
         >
           <Caption className="permission-menu-header" size="small">
-            Permission mode
+            {t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
           </Caption>
           {modes().map((m) => {
             const selected = m.id === mode;

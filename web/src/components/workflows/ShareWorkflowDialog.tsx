@@ -157,7 +157,7 @@ const ShareWorkflowDialog = ({
                   disabled={revokeLink.isPending}
                   onClick={() => revokeLink.mutate(share.id)}
                 >
-                  Revoke
+                  {t("editor:ui.revoke", { defaultValue: "Revoke" })}
                 </EditorButton>
               </FlexRow>
             ))}

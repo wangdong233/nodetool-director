@@ -155,7 +155,7 @@ const MediaAspectRatioMenu: React.FC<MediaAspectRatioMenuProps> = ({
     >
       <div css={cssStyles} role="dialog" aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}>
         <Caption className="aspect-header" size="small">
-          Aspect Ratio
+          {t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
         </Caption>
         <div className="aspect-grid">
           {options.map((opt) => {

@@ -830,10 +830,10 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
         {compareMode && !compareAssetB && (
           <FlexRow className="compare-mode-bar" gap={SPACING.xs} align="center">
             <Text size="small">
-              Select another image from the thumbnails below to compare
+              {t("editor:ui.selectAnotherImageFromTheThumbnailsBelowToCompare", { defaultValue: "Select another image from the thumbnails below to compare" })}
             </Text>
             <EditorButton density="compact" onClick={cancelCompareMode}>
-              Cancel
+              {t("common:action.cancel", { defaultValue: "Cancel" })}
             </EditorButton>
           </FlexRow>
         )}

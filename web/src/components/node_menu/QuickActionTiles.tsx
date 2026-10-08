@@ -287,7 +287,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>AI Nodes</Text>
+        <Text size="normal" weight={600}>{t("editor:ui.aiNodes", { defaultValue: "AI Nodes" })}</Text>
       </div>
       <div className="tiles-container">
         {QUICK_ACTION_BUTTONS.map((definition) => {

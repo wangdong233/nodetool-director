@@ -684,7 +684,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               onClick={onSelectAll}
               sx={linkButtonSx(theme)}
             >
-              Select all
+              {t("editor:ui.selectAll", { defaultValue: "Select all" })}
             </Box>
             <Box
               component="button"
@@ -692,7 +692,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               onClick={onClear}
               sx={linkButtonSx(theme)}
             >
-              Clear
+              {t("common:action.clear", { defaultValue: "Clear" })}
             </Box>
           </FlexRow>
           {options.map((o) => (

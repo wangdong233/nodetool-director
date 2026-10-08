@@ -580,7 +580,7 @@ const ScriptLineRow = ({
   const statusIndicator =
     status === "stale" ? (
       <Text size="smaller" color="warning">
-        Stale
+        {t("storyboard:attrs.stale", { defaultValue: "Stale" })}
       </Text>
     ) : (
       <Tooltip title={status === "voiced" ? t("storyboard:attrs.voiced", { defaultValue: "Voiced" }) : t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>

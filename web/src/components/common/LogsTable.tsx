@@ -394,7 +394,7 @@ const RowItem = memo(({
                       }}
                       onClick={handleClose}
                     >
-                      Close
+                      {t("common:action.close", { defaultValue: "Close" })}
                     </Text>
                   </FlexRow>
                 </FlexColumn>

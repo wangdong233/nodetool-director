@@ -798,18 +798,18 @@ function FileBrowserDialog({
                 density="compact"
                 disabled={!newFolderName.trim()}
               >
-                Create
+                {t("common:action.create", { defaultValue: "Create" })}
               </EditorButton>
               <EditorButton
                 onClick={handleCancelNewFolder}
                 variant="text"
                 density="compact"
               >
-                Cancel
+                {t("common:action.cancel", { defaultValue: "Cancel" })}
               </EditorButton>
             </FlexRow>
             <Caption color={newFolderError ? "error" : "secondary"}>
-              {newFolderError || `Creates a folder in ${currentPath}`}
+              {newFolderError || t("editor:ui.createsAFolderIn", { defaultValue: "Creates a folder in {{path}}", path: currentPath })}
             </Caption>
           </FlexColumn>
         )}
@@ -944,7 +944,7 @@ function FileBrowserDialog({
             />
           )}
           <EditorButton onClick={onClose} variant="text" density="compact">
-            Cancel
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             onClick={handleConfirmClick}
@@ -952,7 +952,7 @@ function FileBrowserDialog({
             density="compact"
             disabled={!selectedPath}
           >
-            Select
+            {t("common:action.select", { defaultValue: "Select" })}
           </EditorButton>
         </FlexRow>
       </FlexColumn>

@@ -128,6 +128,13 @@
     "instrumentTrack": "Instrument track"
   },
   "attrs": {
+    "addA3dClipFromName": "Add a 3D clip from \"{{name}}\"",
+    "addClipFromName": "Add clip from \"{{name}}\"",
+    "couldNotSaveTheCurrentTimeline": "Could not save the current timeline. {{error}}",
+    "gradeOrBlurEveryLayerBeneathIt": "Grade or blur every layer beneath it",
+    "noteEditorForName": "Note editor for {{name}}",
+    "projectDownloadFailed": "Project download failed. {{error}}",
+    "snapshotsTheSequenceAsItIsRightNow": "Snapshots the sequence as it is right now.",
     "addAMIDITrackToChooseAnInstrument": "Add a MIDI track to choose an instrument.",
     "addGeneratedClip": "Add Generated Clip",
     "addMIDIClip": "Add MIDI clip",

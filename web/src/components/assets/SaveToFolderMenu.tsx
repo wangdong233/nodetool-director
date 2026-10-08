@@ -124,13 +124,14 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
       useNotificationStore.getState().addNotification({
         type: "error",
         alert: true,
-        content: `Could not create folder: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: t("editor:ui.couldNotCreateFolderError", {
+          defaultValue: "Could not create folder: {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
       setBusy(false);
     }
-  }, [newName, busy, createFolder, resetCreate, select]);
+  }, [newName, busy, createFolder, resetCreate, select, t]);
 
   const roots = useMemo(
     () => Object.values(folderTree).filter((node) => node?.id),
@@ -202,7 +203,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
     >
       <div css={cssStyles} role="menu">
         <Caption className="folder-menu-header" size="small">
-          Save to folder
+          {t("editor:ui.saveToFolder", { defaultValue: "Save to folder" })}
         </Caption>
         <div className="folder-menu-scroll">
           {renderRow(

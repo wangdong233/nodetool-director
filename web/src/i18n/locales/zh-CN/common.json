@@ -14,7 +14,13 @@
     "cut": "剪切",
     "remove": "移除",
     "exitFullscreen": "退出全屏",
-    "fullscreen": "全屏"
+    "fullscreen": "全屏",
+    "select": "选择",
+    "add": "添加",
+    "close": "关闭",
+    "apply": "应用",
+    "and": " 和 ",
+    "save": "保存"
   },
   "status": {
     "loading": "加载中…"

@@ -238,7 +238,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
                   markDirty();
                 }}
               >
-                Grow
+                {t("editor:ui.grow", { defaultValue: "Grow" })}
               </ApplyButton>
               <ApplyButton
                 onClick={() => {
@@ -246,7 +246,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
                   markDirty();
                 }}
               >
-                Shrink
+                {t("editor:ui.shrink", { defaultValue: "Shrink" })}
               </ApplyButton>
             </FlexRow>
           }
@@ -265,7 +265,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
                 markDirty();
               }}
             >
-              Apply
+              {t("common:action.apply", { defaultValue: "Apply" })}
             </ApplyButton>
           }
         />
@@ -280,7 +280,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
                 markDirty();
               }}
             >
-              Apply
+              {t("common:action.apply", { defaultValue: "Apply" })}
             </ApplyButton>
           }
         />
@@ -298,7 +298,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
                 markDirty();
               }}
             >
-              Apply
+              {t("common:action.apply", { defaultValue: "Apply" })}
             </ApplyButton>
           }
         />
@@ -306,7 +306,7 @@ export const RefineSelectionPopover = memo(function RefineSelectionPopover({
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
           <EditorButton variant="outlined" onClick={handleCancel}>{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
-            Apply
+            {t("common:action.apply", { defaultValue: "Apply" })}
           </EditorButton>
         </FlexRow>
       </FlexColumn>

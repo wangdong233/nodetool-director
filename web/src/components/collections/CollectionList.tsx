@@ -216,7 +216,7 @@ const CollectionList = () => {
             </ListGroup>
             <FlexRow justify="flex-end">
               <EditorButton onClick={handleClearIndexErrors}>
-                Close
+                {t("common:action.close", { defaultValue: "Close" })}
               </EditorButton>
             </FlexRow>
           </FlexColumn>

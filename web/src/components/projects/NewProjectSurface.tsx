@@ -355,19 +355,28 @@ const buildFailures = (
   const lines: string[] = [];
   if (result.issues.length > 0) {
     lines.push(
-      `${result.issues.length} connection${
-        result.issues.length === 1 ? "" : "s"
-      } could not be wired.`
+      i18n.t("editor:ui.connectionsCouldNotBeWired", {
+        defaultValue: "{{count}} connections could not be wired.",
+        count: result.issues.length
+      })
     );
   }
   if (result.validationErrors.length > 0) {
     lines.push(
-      `The graph did not validate: ${result.validationErrors.join("; ")}`
+      i18n.t("editor:ui.theGraphDidNotValidate", {
+        defaultValue: "The graph did not validate: {{errors}}",
+        errors: result.validationErrors.join("; ")
+      })
     );
   }
   const run = "testRun" in result ? result.testRun : result.run;
   if (run.error) {
-    lines.push(`The run was refused: ${run.error}`);
+    lines.push(
+      i18n.t("editor:ui.theRunWasRefused", {
+        defaultValue: "The run was refused: {{error}}",
+        error: run.error
+      })
+    );
   }
   return lines;
 };
@@ -693,9 +702,10 @@ const NewProjectSurface = ({
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not open chat: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: i18n.t("editor:ui.couldNotOpenChatError", {
+          defaultValue: "Could not open chat: {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setStarting(false);
@@ -763,9 +773,11 @@ const NewProjectSurface = ({
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not start the ${flow}: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: i18n.t("editor:ui.couldNotStartTheFlowError", {
+          defaultValue: "Could not start the {{flow}}: {{error}}",
+          flow,
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     },
     [addNotification]
@@ -1297,7 +1309,10 @@ const NewProjectSurface = ({
         addNotification({
           type: "warning",
           alert: true,
-          content: `Opened your workflow, but ${failures.join(" ")}`
+          content: i18n.t("editor:ui.openedYourWorkflowBut", {
+            defaultValue: "Opened your workflow, but {{failures}}",
+            failures: failures.join(" ")
+          })
         });
       }
       openTab({

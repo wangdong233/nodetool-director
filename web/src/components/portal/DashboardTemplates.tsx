@@ -404,7 +404,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           />
           {!fullPage && (
             <SectionLink onClick={handleViewAllTemplates}>
-              Browse all
+              {t("editor:ui.browseAll", { defaultValue: "Browse all" })}
             </SectionLink>
           )}
         </SectionHeader>

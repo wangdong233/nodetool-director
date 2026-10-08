@@ -656,7 +656,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           )}
           <div style={POPOVER_ROW_STYLE}>
             <span style={menuTextStyle}>
-              Group color
+              {t("editor:ui.groupColor", { defaultValue: "Group color" })}
             </span>
             <ColorPicker
               buttonSize={24}

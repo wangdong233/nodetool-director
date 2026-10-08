@@ -249,7 +249,7 @@ const CodeAssistantDialogInner = ({
         <FlexRow gap={SPACING.md}>
           <EditorButton onClick={onClose}>{t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
-            Apply
+            {t("common:action.apply", { defaultValue: "Apply" })}
           </EditorButton>
         </FlexRow>
       }

@@ -802,7 +802,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       <FlexRow justify="space-between" align="center" sx={{ px: SPACING.lg, py: SPACING.md, flexShrink: 0, borderTop: `1px solid ${theme.vars.palette.divider}` }}>
         <Caption>{t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
         <EditorButton variant="text" size="small" startIcon={<AddIcon />} onClick={openSetup}>
-          Add providers
+          {t("editor:ui.addProviders", { defaultValue: "Add providers" })}
         </EditorButton>
       </FlexRow>
     </Popover>

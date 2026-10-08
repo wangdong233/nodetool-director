@@ -101,7 +101,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
             startIcon={<Add fontSize="small" />}
             onClick={handleShowInputDialog}
           >
-            Add input
+            {t("editor:ui.addInput", { defaultValue: "Add input" })}
           </EditorButton>
         </FlexRow>
       )}
@@ -124,7 +124,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
               startIcon={<Add fontSize="small" />}
               onClick={handleShowOutputDialog}
             >
-              Add output
+              {t("editor:ui.addOutput", { defaultValue: "Add output" })}
             </EditorButton>
           </FlexRow>
 
@@ -191,14 +191,14 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
             variant="text"
             size="small"
           >
-            Cancel
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             onClick={handleAddInputProperty}
             variant="contained"
             size="small"
           >
-            Add
+            {t("common:action.add", { defaultValue: "Add" })}
           </EditorButton>
         </DialogActions>
       </Dialog>

@@ -283,7 +283,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
               letterSpacing: "0.05em"
             }}
           >
-            Account credits
+            {t("editor:ui.accountCredits", { defaultValue: "Account credits" })}
           </Caption>
           {creditsLoading ? (
             <FlexRow gap={1} align="center" sx={{ mt: 0.5 }}>
@@ -325,7 +325,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                   iconVariant="launch"
                   size="small"
                 >
-                  fal.ai API keys
+                  {t("editor:ui.falAiApiKeys", { defaultValue: "fal.ai API keys" })}
                 </ExternalLink>
               )}
             </FlexColumn>

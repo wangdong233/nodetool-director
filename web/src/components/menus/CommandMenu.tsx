@@ -252,7 +252,10 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         });
       } catch (error) {
         addNotification({
-          content: `Failed to save workflow: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`,
+          content: i18n.t("editor:ui.failedToSaveWorkflowError", {
+            defaultValue: "Failed to save workflow: {{error}}",
+            error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })
+          }),
           type: "error",
           alert: true
         });
@@ -299,7 +302,10 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "success",
           alert: true,
-          content: `Imported workflow "${imported.name}"`
+          content: i18n.t("editor:ui.importedWorkflowName", {
+            defaultValue: "Imported workflow \"{{name}}\"",
+            name: imported.name
+          })
         });
       } catch {
         addNotification({
@@ -323,7 +329,10 @@ const WorkflowCommands = memo(function WorkflowCommands() {
       addNotification({
         type: "error",
         alert: true,
-        content: `Failed to export bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
+        content: i18n.t("editor:ui.failedToExportBundleError", {
+          defaultValue: "Failed to export bundle: {{error}}",
+          error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })
+        })
       });
     }
   }, [currentWorkflow, addNotification]);
@@ -361,7 +370,10 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "error",
           alert: true,
-          content: `Failed to import bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
+          content: i18n.t("editor:ui.failedToImportBundleError", {
+            defaultValue: "Failed to import bundle: {{error}}",
+            error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })
+          })
         });
       }
       if (bundleInputRef.current) bundleInputRef.current.value = "";
@@ -710,7 +722,10 @@ const AppCommands = memo(function AppCommands() {
       addNotification({
         type: "error",
         alert: true,
-        content: `Failed to export app bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
+        content: i18n.t("editor:ui.failedToExportAppBundleError", {
+          defaultValue: "Failed to export app bundle: {{error}}",
+          error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })
+        })
       });
     }
   }, [applicationId, applicationName, addNotification]);
@@ -732,13 +747,19 @@ const AppCommands = memo(function AppCommands() {
         addNotification({
           type: "success",
           alert: true,
-          content: `Imported app "${app.name}"`
+          content: i18n.t("editor:ui.importedAppName", {
+            defaultValue: "Imported app \"{{name}}\"",
+            name: app.name
+          })
         });
       } catch (error) {
         addNotification({
           type: "error",
           alert: true,
-          content: `Failed to import app bundle: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
+          content: i18n.t("editor:ui.failedToImportAppBundleError", {
+            defaultValue: "Failed to import app bundle: {{error}}",
+            error: error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })
+          })
         });
       }
       if (appBundleInputRef.current) appBundleInputRef.current.value = "";

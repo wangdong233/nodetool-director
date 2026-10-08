@@ -122,7 +122,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       actions={
         <FlexRow gap={2}>
           <EditorButton variant="text" onClick={onClose}>
-            Cancel
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -137,8 +137,9 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       <FlexColumn gap={2} sx={{ pt: 1 }}>
         {profileNames.length === 0 ? (
           <Caption size="small">
-            No worker profiles yet. Open <strong>{t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}</strong> to
-            create one.
+            {t("editor:ui.noWorkerProfilesYetOpen", { defaultValue: "No worker profiles yet. Open " })}
+            <strong>{t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}</strong>
+            {t("editor:ui.toCreateOne", { defaultValue: " to create one." })}
           </Caption>
         ) : (
           <SelectField
@@ -256,7 +257,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={stopping}
               onClick={() => onResume(instance.id)}
             >
-              Resume
+              {t("editor:ui.resume", { defaultValue: "Resume" })}
             </EditorButton>
           ) : (
             <EditorButton
@@ -482,7 +483,7 @@ const WorkersPanel: React.FC = () => {
       >
         <FlexRow gap={2} align="baseline">
           <Text size="big" weight={600}>
-            Workers
+            {t("editor:bottom.workers", { defaultValue: "Workers" })}
           </Text>
           {shownInstances.length > 0 && (
             <Caption size="small">{formatRate(totalCost)}</Caption>
@@ -495,7 +496,7 @@ const WorkersPanel: React.FC = () => {
             onClick={() => setProfilesOpen(true)}
             aria-label={t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
           >
-            Manage Profiles
+            {t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}
           </EditorButton>
           <EditorButton
             density="compact"
@@ -503,7 +504,7 @@ const WorkersPanel: React.FC = () => {
             onClick={() => setDialogOpen(true)}
             aria-label={t("editor:ui.startWorker", { defaultValue: "Start worker" })}
           >
-            Start Worker
+            {t("editor:ui.startWorker", { defaultValue: "Start worker" })}
           </EditorButton>
           <EditorButton
             density="compact"
@@ -512,7 +513,7 @@ const WorkersPanel: React.FC = () => {
             disabled={busy}
             aria-label={t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
           >
-            Reconcile
+            {t("editor:ui.reconcile", { defaultValue: "Reconcile" })}
           </EditorButton>
           <EditorButton
             density="compact"

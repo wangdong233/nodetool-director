@@ -178,7 +178,7 @@ const DownloadManagerDialog: React.FC = () => {
           {infoMessage}
         </Text>
         <EditorButton onClick={closeDialog} variant="contained">
-          Close
+          {t("common:action.close", { defaultValue: "Close" })}
         </EditorButton>
       </DialogActions>
     </Dialog>

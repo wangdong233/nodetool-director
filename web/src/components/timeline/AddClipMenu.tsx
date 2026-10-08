@@ -180,7 +180,7 @@ const WorkflowList: React.FC<WorkflowListProps> = memo(
             css={workflowItemStyles(theme)}
             role="button"
             tabIndex={0}
-            aria-label={`Add clip from "${wf.name}"`}
+            aria-label={t("timeline:attrs.addClipFromName", { defaultValue: "Add clip from \"{{name}}\"", name: wf.name })}
             onClick={() => onSelect(wf.id)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -336,7 +336,7 @@ const Model3DPickerPanel: React.FC<Model3DPickerPanelProps> = memo(
                 css={workflowItemStyles(theme)}
                 role="button"
                 tabIndex={0}
-                aria-label={`Add a 3D clip from "${asset.name}"`}
+                aria-label={t("timeline:attrs.addA3dClipFromName", { defaultValue: "Add a 3D clip from \"{{name}}\"", name: asset.name })}
                 onClick={() => onSelect(asset)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -818,7 +818,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
                       <FlexColumn gap={0}>
                         <Text size="small" weight={500}>{t("timeline:attrs.adjustmentLayer", { defaultValue: "Adjustment layer" })}</Text>
                         <Caption sx={{ color: "text.secondary" }}>
-                          Grade or blur every layer beneath it
+                          {t("timeline:attrs.gradeOrBlurEveryLayerBeneathIt", { defaultValue: "Grade or blur every layer beneath it" })}
                         </Caption>
                       </FlexColumn>
                     </FlexRow>

@@ -58,7 +58,10 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     const deleted = await trpc.models.ollamaDelete.mutate({ model: modelName });
     if (!deleted) {
       throw new Error(
-        `Ollama did not delete ${modelName} — the server may be unreachable or the model already gone.`
+        t("editor:ui.ollamaDidNotDelete", {
+          defaultValue: "Ollama did not delete {{name}} — the server may be unreachable or the model already gone.",
+          name: modelName
+        })
       );
     }
     return modelName;
@@ -73,7 +76,10 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     onSuccess: (modelName) => {
       addNotification({
         type: "success",
-        content: `Deleted Ollama model ${modelName}`,
+        content: t("editor:ui.deletedOllamaModel", {
+          defaultValue: "Deleted Ollama model {{name}}",
+          name: modelName
+        }),
         dismissable: true
       });
       queryClient.invalidateQueries({ queryKey: ["ollamaModels"] });
@@ -96,11 +102,14 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     } else {
       addNotification({
         type: "warning",
-        content: `Could not determine path for model ${modelId}`,
+        content: t("editor:ui.couldNotDeterminePathForModel", {
+          defaultValue: "Could not determine path for model {{id}}",
+          id: modelId
+        }),
         dismissable: true
       });
     }
-  }, [allModels, addNotification]);
+  }, [allModels, addNotification, t]);
 
   const modelForExplorer = modelId
     ? allModels?.find((m) => m.id === modelId)
@@ -184,10 +193,10 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
         }
       }}
     >
-      <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{t("editor:ui.confirmDeletion", { defaultValue: "Confirm Deletion" })}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Delete {modelId}?
+          {t("editor:ui.deleteModelId", { defaultValue: "Delete {{id}}?", id: modelId ?? "" })}
         </DialogContentText>
         {isDeleting && (
           <FlexRow justify="center" sx={{ mt: 2 }}>
@@ -202,13 +211,13 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
           onClick={handleShowInExplorerClick}
           disabled={isExplorerDisabled || isDeleting}
         >
-          Show in Explorer
+          {t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" })}
         </EditorButton>
         <EditorButton density="compact" variant="text" onClick={onClose} disabled={isDeleting}>
-          Cancel
+          {t("common:action.cancel", { defaultValue: "Cancel" })}
         </EditorButton>
         <EditorButton density="compact" variant="text" onClick={handleConfirmDelete} disabled={isDeleting}>
-          Delete
+          {t("common:action.delete", { defaultValue: "Delete" })}
         </EditorButton>
       </DialogActions>
     </Dialog>

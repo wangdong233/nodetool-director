@@ -216,7 +216,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">AI Nodes</div>
+          <div className="menu-section-title">{t("editor:ui.aiNodes", { defaultValue: "AI Nodes" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addAgentNode}>
               <ListItemIcon className="menu-item-icon">

@@ -62,7 +62,15 @@ const ProviderOnboardingDialog: React.FC = () => {
         <FlexColumn gap={SPACING.md}>
           <Text sx={{ maxWidth: "60ch" }}>
             {reason ?? (capability
-              ? `Connect a provider for ${CAPABILITY_LABELS[capability]} to continue.`
+              ? t("editor:ui.connectAProviderForToContinue", {
+                  defaultValue: "Connect a provider for {{capability}} to continue.",
+                  // F-39: the capability label is localized through its own
+                  // overlay key — interpolating the raw English enum label
+                  // would build a mixed sentence in zh.
+                  capability: t(`editor:ui.capabilityLabel.${capability}`, {
+                    defaultValue: CAPABILITY_LABELS[capability]
+                  })
+                })
               : t("editor:ui.chooseAnAccountOrAPIKeyToUseModelsInYourWorkflows", { defaultValue: "Choose an account or API key to use models in your workflows." }))}
           </Text>
           <Caption size="small">{t("editor:ui.yourAPIUsageIsBilledDirectlyToYourProviderAccount", { defaultValue: "Your API usage is billed directly to your provider account." })}</Caption>

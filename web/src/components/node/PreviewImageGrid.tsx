@@ -565,7 +565,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
                 onClick={handleCompare}
                 disabled={selectedIndices.size !== 2}
               >
-                Compare
+                {t("editor:ui.compare", { defaultValue: "Compare" })}
               </EditorButton>
             </span>
           </Tooltip>

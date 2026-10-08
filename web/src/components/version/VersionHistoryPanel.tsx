@@ -302,7 +302,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 onClick={handleClearComparison}
                 sx={{ fontSize: "var(--fontSizeSmaller)", py: 0.5, px: 0.5, minWidth: 0 }}
               >
-                Clear
+                {t("common:action.clear", { defaultValue: "Clear" })}
               </EditorButton>
             )}
             <Tooltip title={t("editor:ui.compareTwoVersionsSideBySide", { defaultValue: "Compare two versions side by side" })}>
@@ -319,7 +319,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                 }}
               >
                 <CompareIcon sx={{ fontSize: "14px !important", mr: 0.5 }} />
-                Compare
+                {t("editor:ui.compare", { defaultValue: "Compare" })}
               </EditorButton>
             </Tooltip>
             <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
@@ -374,7 +374,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
             <div style={{ padding: getSpacingPx(SPACING.xl), textAlign: "center" }}>
               <Text color="secondary">{t("ui2:attrs.noVersionsSavedYet", { defaultValue: "No versions saved yet" })}</Text>
               <Caption size="smaller" color="muted">
-                Save your workflow to create a version
+                {t("editor:ui.saveYourWorkflowToCreateAVersion", { defaultValue: "Save your workflow to create a version" })}
               </Caption>
             </div>
           ) : (
@@ -505,7 +505,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                   onClick={() => handleDelete(selectedVersion.id)}
                   sx={{ color: "text.secondary" }}
                 >
-                  Delete
+                  {t("common:action.delete", { defaultValue: "Delete" })}
                 </EditorButton>
               </div>
             </FlexColumn>
@@ -518,7 +518,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               sx={{ color: "text.secondary", textAlign: "center" }}
             >
               <Text color="secondary">
-                Select a version to preview
+                {t("editor:ui.selectAVersionToPreview", { defaultValue: "Select a version to preview" })}
               </Text>
               <Caption size="smaller" color="muted">
                 {isCompareMode
