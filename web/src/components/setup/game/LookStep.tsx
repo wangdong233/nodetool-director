@@ -460,11 +460,11 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
     () =>
       presets.map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
-        description: preset.descriptor.trim(),
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
+        description: t(`catalog:styles.${preset.name}.description`, { defaultValue: preset.descriptor.trim() }),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   // A style the creator just made is a style entity like any other, but it is

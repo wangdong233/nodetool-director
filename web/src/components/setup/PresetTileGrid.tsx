@@ -189,7 +189,7 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
       <Box ref={holder} sx={{ width: "100%", padding: PADDING.compact }}>
         <AudioPlayback
           locator={preset.audio}
-          label={`${preset.title} sample`}
+          label={t("storyboard:attrs.nameSample", { defaultValue: "{{name}} sample", name: preset.title })}
           autoPlay={autoPlay}
         />
       </Box>
@@ -295,6 +295,7 @@ const FramedTile: React.FC<{
   auditioning
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <FlexColumn
       gap={GAP.none}
@@ -319,7 +320,7 @@ const FramedTile: React.FC<{
         {kind === "clip" && preset.video !== undefined ? (
           <VideoPlayer
             locator={preset.video}
-            label={`${preset.title} sample`}
+            label={t("storyboard:attrs.nameSample", { defaultValue: "{{name}} sample", name: preset.title })}
           />
         ) : null}
         {kind === "audition" ? (

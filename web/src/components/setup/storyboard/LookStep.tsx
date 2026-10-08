@@ -252,7 +252,7 @@ export const LookStep: React.FC<LookStepProps> = ({
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
         description: t(
           STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "",
           { defaultValue: STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim() }

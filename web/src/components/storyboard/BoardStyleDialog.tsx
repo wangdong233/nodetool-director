@@ -63,10 +63,10 @@ const BoardStyleDialogInner: React.FC<BoardStyleDialogProps> = ({
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   // The board's style is whichever style entity it carries; the last one wins,

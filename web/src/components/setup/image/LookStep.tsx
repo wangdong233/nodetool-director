@@ -21,7 +21,7 @@
  */
 
 import React, { useCallback, useMemo } from "react";
-import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
+import { STYLE_DESCRIPTION_KEYS, STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import { composeImagePrompt } from "@nodetool-ai/protocol/api-schemas/sketch.js";
 
@@ -48,6 +48,7 @@ import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import { SetupFooterField } from "../SetupFooterField";
 import {
+  SIZE_PRESET_LABEL_KEYS,
   sizePresetFor,
   sizePresetsForAspectRatios,
   type SizePreset
@@ -379,10 +380,10 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
     () =>
       look.sizePresets.map((preset) => ({
         id: preset.id,
-        title: preset.label,
+        title: t(SIZE_PRESET_LABEL_KEYS[preset.id] ?? "", { defaultValue: preset.label }),
         description: `${preset.width} × ${preset.height}`
       })),
-    [look.sizePresets]
+    [look.sizePresets, t]
   );
 
   const selectedSizeId = sizePresetFor(canvas.width, canvas.height)?.id ?? null;
@@ -401,12 +402,14 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
-        description:
-          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
+        description: t(
+          STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "",
+          { defaultValue: STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim() }
+        ),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   const handleStyle = useCallback(
