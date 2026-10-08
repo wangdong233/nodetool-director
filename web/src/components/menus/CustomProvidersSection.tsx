@@ -136,7 +136,8 @@ const ProviderRow = memo(function ProviderRow({
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
-            {provider.base_url || "No endpoint set"}
+            {provider.base_url ||
+              t("editor:ui.noEndpointSet", { defaultValue: "No endpoint set" })}
           </Caption>
           {handListed > 0 && (
             <Caption size="smaller" sx={{ opacity: 0.45 }}>
@@ -146,17 +147,26 @@ const ProviderRow = memo(function ProviderRow({
           {testResult?.counts && testResult.ok && (
             <FlexRow align="center" gap={0.5} sx={{ flexWrap: "wrap" }}>
               <Chip
-                label={`Chat ${testResult.counts.language}`}
+                label={t("editor:ui.chatModelsCount", {
+                  defaultValue: "Chat {{n}}",
+                  n: testResult.counts.language
+                })}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={`Image ${testResult.counts.image}`}
+                label={t("editor:ui.imageModelsCount", {
+                  defaultValue: "Image {{n}}",
+                  n: testResult.counts.image
+                })}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={`Video ${testResult.counts.video}`}
+                label={t("editor:ui.videoModelsCount", {
+                  defaultValue: "Video {{n}}",
+                  n: testResult.counts.video
+                })}
                 compact
                 variant="outlined"
               />
@@ -200,7 +210,7 @@ const ProviderRow = memo(function ProviderRow({
           startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
           onClick={handleDelete}
         >
-          Remove
+          {t("editor:ui.remove", { defaultValue: "Remove" })}
         </EditorButton>
       </FlexRow>
     </Card>
@@ -261,7 +271,11 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: `${saved.name} saved as ${saved.provider_id}`
+        content: t("tools:menus.providerSavedAs", {
+          defaultValue: "{{name}} saved as {{id}}",
+          name: saved.name,
+          id: saved.provider_id
+        })
       });
       // Show right away which chat, image and video models the endpoint
       // serves, so a missed image or video model is visible before the user
@@ -466,8 +480,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         }
         onConfirm={handleSave}
         onCancel={handleClose}
-        confirmText={editingSlug ? "Save" : "Add"}
-        cancelText="Cancel"
+        confirmText={
+          editingSlug
+            ? t("editor:ui.save", { defaultValue: "Save" })
+            : t("ui2:attrs.add", { defaultValue: "Add" })
+        }
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         confirmDisabled={
           Boolean(slugError) || Boolean(urlError) || duplicateSlug
         }
@@ -499,7 +517,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
                 ? t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." })
                 : (slugError ?? undefined)
             }
-            helperText={`Provider id: custom_${draft.slug || "…"}`}
+            helperText={t("editor:ui.providerIdHelper", {
+              defaultValue: "Provider id: custom_{{slug}}",
+              slug: draft.slug || "…"
+            })}
           />
           <TextInput
             label={t("editor:ui.baseURL", { defaultValue: "Base URL" })}
@@ -566,10 +587,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             })}
           />
           <Caption sx={{ opacity: 0.6 }}>
-            The URL and key are encrypted and stored per account. The same
-            values can come from the environment instead, as CUSTOM_
-            {(draft.slug || "SLUG").toUpperCase()}_BASE_URL and CUSTOM_
-            {(draft.slug || "SLUG").toUpperCase()}_API_KEY.
+            {t("tools:menus.customProviderEncryptionNote", {
+              defaultValue:
+                "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
+              baseUrlEnv: `CUSTOM_${(draft.slug || "SLUG").toUpperCase()}_BASE_URL`,
+              apiKeyEnv: `CUSTOM_${(draft.slug || "SLUG").toUpperCase()}_API_KEY`
+            })}
           </Caption>
         </FlexColumn>
       </Dialog>
@@ -577,9 +600,16 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title={t("editor:ui.removeEndpoint", { defaultValue: "Remove endpoint" })}
-        content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
+        content={t(
+          "editor:ui.removeNameWorkflowsThatReferenceItsModelsStopResolving",
+          {
+            defaultValue:
+              "Remove {{name}}? Workflows that reference its models stop resolving.",
+            name: pendingDelete?.name ?? ""
+          }
+        )}
         confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
-        cancelText="Cancel"
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         onConfirm={confirmDelete}
         onClose={handleCancelDelete}
       />

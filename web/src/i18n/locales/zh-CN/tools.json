@@ -43,6 +43,9 @@
     "providerGuidesLinks": "提供商指南与链接",
     "providerOptions": "提供商选项",
     "providerRemoved": "已移除提供商",
+    "providerSavedAs": "{{name}} 已保存为 {{id}}",
+    "disconnectedGoogleWorkspace": "已断开 Google Workspace。重新连接即可恢复访问。",
+    "customProviderEncryptionNote": "URL 和密钥会按账户加密存储。这些值也可以改由环境变量提供，即 {{baseUrlEnv}} 和 {{apiKeyEnv}}。",
     "providers": {
       "AKI_API_KEY": {
         "description": "AKI.IO AI 模型中心。"

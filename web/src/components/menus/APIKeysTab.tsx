@@ -299,7 +299,10 @@ export const ProviderCard = memo(function ProviderCard({
             </Caption>
             {hasKey && !isUnavailable && secret.updated_at && (
               <Caption size="smaller" sx={{ whiteSpace: "nowrap" }}>
-                Updated {new Date(secret.updated_at).toLocaleDateString()}
+                {t("editor:ui.updatedOn", {
+                  defaultValue: "Updated {{date}}",
+                  date: new Date(secret.updated_at).toLocaleDateString()
+                })}
               </Caption>
             )}
           </FlexRow>
@@ -391,7 +394,7 @@ export const ProviderCard = memo(function ProviderCard({
                   startIcon={<LinkOffIcon sx={{ fontSize: "1.2em" }} />}
                   onClick={oauth.disconnect}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
               )
             ) : (
@@ -998,7 +1001,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               onConfirm={handleSave}
               onCancel={handleCloseDialog}
               confirmText={editingSecret?.is_configured ? t("editor:ui.update2") : t("editor:ui.connect2")}
-              cancelText="Cancel"
+              cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
               confirmDisabled={!allFieldsFilled}
             >
               <FlexColumn

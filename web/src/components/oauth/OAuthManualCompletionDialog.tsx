@@ -64,11 +64,18 @@ export const OAuthManualCompletionDialog = ({
     <Dialog
       open
       onClose={handleCancel}
-      title={`Finish signing in with ${label}`}
+      title={t("editor:ui.finishSigningInWith", {
+        defaultValue: "Finish signing in with {{name}}",
+        name: label
+      })}
       showActions
       onConfirm={handleConfirm}
       onCancel={handleCancel}
-      confirmText={isSubmitting ? "Connecting…" : "Connect"}
+      confirmText={
+        isSubmitting
+          ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
+          : t("editor:ui.connect2", { defaultValue: "Connect" })
+      }
       confirmDisabled={value.trim().length === 0 || isSubmitting}
       isLoading={isSubmitting}
       minWidth="520px"
@@ -76,9 +83,11 @@ export const OAuthManualCompletionDialog = ({
       <FlexColumn gap={2}>
         {prompt.input === "code" ? (
           <Text size="small">
-            This server cannot receive the sign-in callback, so {label} shows
-            you a code instead. Approve the sign-in, then copy the code the page
-            displays and paste it below.
+            {t("editor:ui.oauthCodeExplainer", {
+              defaultValue:
+                "This server cannot receive the sign-in callback, so {{name}} shows you a code instead. Approve the sign-in, then copy the code the page displays and paste it below.",
+              name: label
+            })}
           </Text>
         ) : (
           <Text size="small">
@@ -102,11 +111,15 @@ export const OAuthManualCompletionDialog = ({
           autoFocus
         />
         <Caption sx={{ opacity: 0.6 }}>
-          Sign-in window closed?{" "}
+          {t("editor:ui.signInWindowClosed", {
+            defaultValue: "Sign-in window closed?"
+          })}{" "}
           <TextLink href={prompt.authUrl} external>
             {t("editor:ui.openItAgain")}
           </TextLink>
-          . The link expires after 10 minutes.
+          {t("editor:ui.linkExpiresAfter10Minutes", {
+            defaultValue: ". The link expires after 10 minutes."
+          })}
         </Caption>
       </FlexColumn>
     </Dialog>

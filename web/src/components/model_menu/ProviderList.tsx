@@ -982,7 +982,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                             }}
                             onClick={() => handleAddKey(env)}
                           >
-                            Add key
+                            {t("editor:ui.addKey", { defaultValue: "Add key" })}
                           </EditorButton>
                         </Tooltip>
                       </FlexRow>

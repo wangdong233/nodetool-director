@@ -43,6 +43,9 @@
     "providerGuidesLinks": "Provider guides & links",
     "providerOptions": "Provider Options",
     "providerRemoved": "Provider removed",
+    "providerSavedAs": "{{name}} saved as {{id}}",
+    "disconnectedGoogleWorkspace": "Disconnected Google Workspace. Use Connect to restore access.",
+    "customProviderEncryptionNote": "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
     "providers": {
       "AKI_API_KEY": {
         "description": "AKI.IO AI Model Hub."

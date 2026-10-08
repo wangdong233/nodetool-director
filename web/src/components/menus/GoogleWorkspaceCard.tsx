@@ -77,8 +77,10 @@ const GoogleWorkspaceCard = () => {
       }
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       addNotification({
-        content:
-          "Disconnected Google Workspace. Use Connect to restore access.",
+        content: i18n.t("tools:menus.disconnectedGoogleWorkspace", {
+          defaultValue:
+            "Disconnected Google Workspace. Use Connect to restore access."
+        }),
         type: "success",
         alert: true
       });
@@ -118,9 +120,16 @@ const GoogleWorkspaceCard = () => {
             </FlexRow>
             <Caption>
               {isConnected
-                ? `Drive, Gmail, Docs, Sheets and Calendar${
-                    account ? ` as ${account}` : ""
-                  }`
+                ? account
+                  ? t("editor:ui.driveGmailDocsSheetsAndCalendarAs", {
+                      defaultValue:
+                        "Drive, Gmail, Docs, Sheets and Calendar as {{account}}",
+                      account
+                    })
+                  : t("editor:ui.driveGmailDocsSheetsAndCalendar", {
+                      defaultValue:
+                        "Drive, Gmail, Docs, Sheets and Calendar"
+                    })
                 : t("editor:ui.connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar", { defaultValue: "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar." })}
             </Caption>
           </FlexColumn>
@@ -134,7 +143,7 @@ const GoogleWorkspaceCard = () => {
             startIcon={<LinkOffIcon sx={{ fontSize: 14 }} />}
             onClick={disconnect}
           >
-            Disconnect
+            {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
           </EditorButton>
         ) : (
           <EditorButton
@@ -143,7 +152,7 @@ const GoogleWorkspaceCard = () => {
             size="small"
             onClick={connect}
           >
-            Connect
+            {t("editor:ui.connect2", { defaultValue: "Connect" })}
           </EditorButton>
         )}
       </FlexRow>
