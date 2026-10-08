@@ -135,6 +135,48 @@ const PreviewWidthToggle: React.FC<{
 );
 
 /**
+ * Retitles the component-drawer categories when the language changes.
+ * Category titles were frozen into the store's ui state at mount (puck
+ * seeds `componentList` from config.categories once), so a config swap
+ * alone does not retitle them. Rewrites them from the localized config —
+ * deriving from the config (not the current ui titles) keeps the effect
+ * idempotent and reversible when the language switches back to English.
+ *
+ * Must render INSIDE Puck (useGetPuck needs Puck's context), so it rides
+ * the headerActions override like PuckAgentBinder and renders nothing.
+ */
+const DrawerTitleSync: React.FC<{
+  config: ReturnType<typeof localizeAppConfig>;
+  revision: number;
+}> = ({ config, revision }) => {
+  const getPuck = useGetPuck();
+  useEffect(() => {
+    const { appState, dispatch } = getPuck();
+    const list = appState.ui.componentList;
+    const categories = config.categories;
+    if (!list || !categories || Object.keys(list).length === 0) return;
+    const next: typeof list = {};
+    let changed = false;
+    for (const [id, category] of Object.entries(list)) {
+      // Puck's synthetic "other" bucket has no config source; leave it be.
+      const title = categories[id]?.title;
+      if (!category || title === undefined) {
+        next[id] = category;
+        continue;
+      }
+      changed = changed || title !== category.title;
+      next[id] = { ...category, title };
+    }
+    if (changed) {
+      dispatch({ type: "setUi", ui: { componentList: next } });
+    }
+    // Runs on the same revision tick the localized config is pushed on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revision]);
+  return null;
+};
+
+/**
  * The WYSIWYG editor: Puck draws the editing chrome (component drawer, canvas,
  * field inspector) while our contexts supply the bindable workflow surface and
  * an inert design-mode runtime so widget previews render without running.
@@ -223,36 +265,9 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
     [languageRevision]
   );
 
-  // Category titles were frozen into the store's ui state at mount (puck
-  // seeds `componentList` from config.categories once), so a config swap
-  // alone does not retitle them. Rewrite them from the localized config —
-  // deriving from the config (not the current ui titles) keeps the effect
-  // idempotent and reversible when the language switches back to English.
-  const getPuck = useGetPuck();
-  useEffect(() => {
-    const { appState, dispatch } = getPuck();
-    const list = appState.ui.componentList;
-    const categories = localizedConfig.categories;
-    if (!list || !categories || Object.keys(list).length === 0) return;
-    const next: typeof list = {};
-    let changed = false;
-    for (const [id, category] of Object.entries(list)) {
-      // Puck's synthetic "other" bucket has no config source; leave it be.
-      const title = categories[id]?.title;
-      if (!category || title === undefined) {
-        next[id] = category;
-        continue;
-      }
-      changed = changed || title !== category.title;
-      next[id] = { ...category, title };
-    }
-    if (changed) {
-      dispatch({ type: "setUi", ui: { componentList: next } });
-    }
-    // Runs on the same revision tick the localized config is pushed on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [languageRevision]);
-
+  // localizedConfig is handed to <Puck> below; DrawerTitleSync (rendered in
+  // the headerActions override, inside Puck) consumes it there — useGetPuck
+  // cannot run at this component's top level.
   const overrides = useMemo<Partial<Overrides>>(
     () => ({
       headerActions: () => (
@@ -267,6 +282,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
             workflowState={workflowState}
             workflowStates={workflowStates}
           />
+          <DrawerTitleSync config={localizedConfig} revision={languageRevision} />
           <PreviewWidthToggle value={previewWidth} onChange={setPreviewWidth} />
           {onToggleData && (
             <EditorButton
@@ -304,7 +320,12 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
       workflowState,
       workflowStates,
       dataOpen,
-      onToggleData
+      onToggleData,
+      // DrawerTitleSync (in headerActions) takes these as props; the memo
+      // must rebuild so the closure sees a new config/revision on language
+      // switches.
+      localizedConfig,
+      languageRevision
     ]
   );
 
