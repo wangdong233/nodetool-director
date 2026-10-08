@@ -467,10 +467,14 @@ describe("catalog key parity (CI completeness guard)", () => {
     expect(catalogEn).not.toHaveProperty("storyboardExamples");
     const boardEntries = catalogZh["storyboardExamples"] as Record<
       string,
-      { logline: string }
+      { name: string; logline: string }
     >;
     expect(Object.keys(boardEntries).length).toBeGreaterThan(0);
     for (const [slug, entry] of Object.entries(boardEntries)) {
+      // r23 (F-29 修订): the picker cards render the localized NAME alongside
+      // the r10 logline, so every shipped slug needs both fields non-empty.
+      expect(typeof entry.name).toBe("string");
+      expect(entry.name.length).toBeGreaterThan(0);
       expect(typeof entry.logline).toBe("string");
       expect(entry.logline.length).toBeGreaterThan(0);
       expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);

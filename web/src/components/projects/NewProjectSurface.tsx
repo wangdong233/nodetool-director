@@ -2016,10 +2016,8 @@ const NewProjectSurface = ({
                 (exampleData ?? []).map((example) => (
                   <MenuItemPrimitive
                     key={example.slug}
-                    label={example.name}
-                    secondary={`${example.shotCount} shot${
-                      example.shotCount === 1 ? "" : "s"
-                    }, already rendered`}
+                    label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
+                    secondary={t("storyboard:attrs.shotsAlreadyRendered", { defaultValue: "{{count}} shots, already rendered", count: example.shotCount })}
                     compact
                     disabled={creating !== null}
                     onClick={() => {

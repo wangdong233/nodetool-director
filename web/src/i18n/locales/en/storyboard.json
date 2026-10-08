@@ -245,6 +245,8 @@
     "shotTitle": "Shot title",
     "shotlistImported": "Shotlist imported",
     "shots": "Shots",
+    "shotsAlreadyRendered_one": "{{count}} shot, already rendered",
+    "shotsAlreadyRendered_other": "{{count}} shots, already rendered",
     "showTheStillOrTheClip": "Show the still or the clip",
     "size": "Size",
     "sketchEditor": "Sketch editor",

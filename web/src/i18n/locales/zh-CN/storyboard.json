@@ -244,6 +244,7 @@
     "shotTitle": "镜头标题",
     "shotlistImported": "镜头清单已导入",
     "shots": "镜头",
+    "shotsAlreadyRendered_other": "{{count}} 个镜头，已渲染",
     "showTheStillOrTheClip": "显示静帧或片段",
     "size": "尺寸",
     "sketchEditor": "图稿编辑器",

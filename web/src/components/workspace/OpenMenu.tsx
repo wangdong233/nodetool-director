@@ -170,10 +170,8 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             {exampleStoryboards.map((example) => (
               <MenuItemPrimitive
                 key={example.slug}
-                label={example.name}
-                secondary={`${example.shotCount} shot${
-                  example.shotCount === 1 ? "" : "s"
-                }, stills included`}
+                label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
+                secondary={t("storyboard:attrs.shotsAlreadyRendered", { defaultValue: "{{count}} shots, already rendered", count: example.shotCount })}
                 onClick={() =>
                   void installStoryboardExample(example.slug, example.name)
                 }

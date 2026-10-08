@@ -884,12 +884,15 @@
   },
   "storyboardExamples": {
     "first-light": {
+      "name": "First Light — 旅行先导片",
       "logline": "十秒沙漠旅行预告：日出前的沙丘、峡谷里的盘山弯道，还有星空下的营地。"
     },
     "lighthouse-keeper": {
+      "name": "Lighthouse Keeper — 开场",
       "logline": "一部短片的开场：关于海岸灯塔的最后一任守塔人。二十秒，没有对白，让海来说话。"
     },
     "sneaker-drop": {
+      "name": "Sneaker Drop — 15 秒广告",
       "logline": "十五秒跑鞋发布：影棚揭晓、一个材质特写，最后走到天刚亮的街头。"
     }
   },
