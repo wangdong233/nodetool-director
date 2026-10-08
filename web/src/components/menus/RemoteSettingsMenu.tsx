@@ -475,7 +475,10 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: `Could not save settings: ${error.message}`,
+        content: i18n.t("tools:menus.couldNotSaveSettings", {
+          defaultValue: "Could not save settings: {{message}}",
+          message: error.message
+        }),
         type: "error",
         alert: true
       });
@@ -525,7 +528,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     <>
       {isLoading && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          Loading settings…
+          {t("editor:ui.loadingSettings", { defaultValue: "Loading settings…" })}
         </Text>
       )}
       {isSuccess && hasVisibleSettings && (
@@ -596,7 +599,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  SAVE SETTINGS
+                  {t("editor:ui.saveSettings", { defaultValue: "SAVE SETTINGS" })}
                 </EditorButton>
               </div>
             )}

@@ -78,7 +78,10 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content: `MCP installed for ${ok.map((r) => r.label).join(", ")}`
+          content: t("editor:notify.mcpInstalledFor", {
+            defaultValue: "MCP installed for {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          })
         });
       }
     },
@@ -86,7 +89,10 @@ const MCPSettingsMenu = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `MCP install failed: ${err}`
+        content: t("editor:notify.mcpInstallFailed", {
+          defaultValue: "MCP install failed: {{error}}",
+          error: String(err)
+        })
       });
     }
   });
@@ -100,7 +106,10 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "info",
           alert: true,
-          content: `MCP removed from ${ok.map((r) => r.label).join(", ")}`
+          content: t("editor:notify.mcpRemovedFrom", {
+            defaultValue: "MCP removed from {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          })
         });
       }
     }
@@ -152,27 +161,34 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content:
-            "Opening the NodeTool extension in Claude Desktop — confirm the install there."
+          content: t("editor:notify.openingExtensionInClaudeDesktop", {
+            defaultValue:
+              "Opening the NodeTool extension in Claude Desktop — confirm the install there."
+          })
         });
       } else {
         addNotification({
           type: "info",
           alert: true,
-          content:
-            "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions."
+          content: t("editor:notify.revealedMcpb", {
+            defaultValue:
+              "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions."
+          })
         });
       }
     } catch (err) {
       addNotification({
         type: "error",
         alert: true,
-        content: `Extension install failed: ${err}`
+        content: t("editor:notify.extensionInstallFailed", {
+          defaultValue: "Extension install failed: {{error}}",
+          error: String(err)
+        })
       });
     } finally {
       setBundleBusy(false);
     }
-  }, [installBundle, addNotification]);
+  }, [installBundle, addNotification, t]);
 
   return (
     <div
@@ -181,13 +197,12 @@ const MCPSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          Connect AI coding assistants to NodeTool via the{" "}
-          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>. When installed, Claude Code,
-          Codex, and OpenCode can use NodeTool workflows, assets, nodes, and
-          collections as tools.
+          {t("editor:ui.mcpIntroLead", { defaultValue: "Connect AI coding assistants to NodeTool via the " })}
+          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>
+          {t("editor:ui.mcpIntroTail", { defaultValue: ". When installed, Claude Code, Codex, and OpenCode can use NodeTool workflows, assets, nodes, and collections as tools." })}
         </Text>
 
-        {isLoading && <Text sx={{ padding: getSpacingPx(SPACING.xl) }}>Loading…</Text>}
+        {isLoading && <Text sx={{ padding: getSpacingPx(SPACING.xl) }}>{t("common:status.loading", { defaultValue: "Loading…" })}</Text>}
 
         {data && (
           <>
@@ -288,8 +303,10 @@ const MCPSettingsMenu = () => {
           <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
             <Text sx={{ fontWeight: 500, mb: 0.5 }}>Claude Desktop</Text>
             <Text className="description" sx={{ mb: 1 }}>
-              Install the NodeTool extension bundled with this app. Claude
-              Desktop opens its install dialog; confirm it there.
+              {t("editor:ui.claudeDesktopBundleDesc", {
+                defaultValue:
+                  "Install the NodeTool extension bundled with this app. Claude Desktop opens its install dialog; confirm it there."
+              })}
             </Text>
             <FlexRow justify="flex-start">
               <NavButton

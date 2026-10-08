@@ -137,7 +137,10 @@ const FoldersSettings = () => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: `Could not save folder settings: ${error.message}`,
+        content: i18n.t("tools:menus.couldNotSaveFolderSettings", {
+          defaultValue: "Could not save folder settings: {{message}}",
+          message: error.message
+        }),
         type: "error",
         alert: true
       });
@@ -192,7 +195,7 @@ const FoldersSettings = () => {
     <>
       {isLoading && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          Loading folder settings…
+          {t("editor:ui.loadingFolderSettings", { defaultValue: "Loading folder settings…" })}
         </Text>
       )}
       <div
@@ -205,7 +208,7 @@ const FoldersSettings = () => {
           {canOpenSystemFolders && (
             <div className="settings-section">
               <Text size="big" id="system-folders">
-                System Folders
+                {t("editor:ui.systemFolders", { defaultValue: "System Folders" })}
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
                 {t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
@@ -254,7 +257,10 @@ const FoldersSettings = () => {
                 ([groupName, groupSettings]) => {
                   // "Custom" prefix disambiguates from the system/model folder sections above.
                   const showCustomPrefix = canOpenFolders || canOpenSystemFolders;
-                  const sectionTitle = showCustomPrefix ? `Custom ${groupName}` : groupName;
+                  const localizedGroupName = t("editor:ui.foldersSectionTitle", { defaultValue: groupName });
+                  const sectionTitle = showCustomPrefix
+                    ? t("editor:ui.customFoldersSection", { defaultValue: "Custom {{group}}", group: localizedGroupName })
+                    : localizedGroupName;
                   
                   return (
                     <div key={groupName} className="settings-section">
@@ -308,8 +314,10 @@ const FoldersSettings = () => {
             
             return showNoSettingsMessage ? (
               <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-                No folder settings available or defined in the &apos;Folders&apos;
-                group.
+                {t("editor:ui.noFolderSettingsAvailable", {
+                  defaultValue:
+                    "No folder settings available or defined in the 'Folders' group."
+                })}
               </Text>
             ) : null;
           })()}

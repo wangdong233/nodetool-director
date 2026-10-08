@@ -29,6 +29,9 @@
     "failedToCopySystemInformationToClipboard": "Failed to copy system information to clipboard",
     "failedToDisconnectGoogleWorkspace": "Failed to disconnect Google Workspace",
     "failedToImportWorkflowInvalidJsonFile": "Failed to import workflow — invalid JSON file",
+    "couldNotSaveSettings": "Could not save settings: {{message}}",
+    "couldNotSaveFolderSettings": "Could not save folder settings: {{message}}",
+    "visitProviderForCredentials": "Visit {{label}} to get your credentials",
     "folderSettingsHaveBeenSavedSuccessfully": "Folder settings have been saved successfully",
     "groupContainerForNodes": "Group container for nodes",
     "imageFileInput": "Image file input",
@@ -198,16 +201,28 @@
     },
     "searchProviders": {
       "apify": {
-        "description": "Reliable Google search scraping via Apify actors."
+        "description": "Reliable Google search scraping via Apify actors.",
+        "get": "Get Apify API Token"
       },
       "brave": {
-        "description": "Privacy-focused search with a free tier — a good default."
+        "description": "Privacy-focused search with a free tier — a good default.",
+        "get": "Get a free Brave API key"
       },
       "dataforseo": {
-        "description": "Professional SEO and search intelligence platform."
+        "description": "Professional SEO and search intelligence platform.",
+        "get": "Get DataForSEO Credentials"
+      },
+      "openai": {
+        "description": "Reuses your OpenAI key. Answers in prose and cites the pages it read.",
+        "get": "Get OpenAI API Key"
+      },
+      "gemini": {
+        "description": "Reuses your Gemini key. Answers in prose and cites the pages it read.",
+        "get": "Get Gemini API Key"
       },
       "serpapi": {
-        "description": "Fast and reliable search API with Google, Bing, and other engines."
+        "description": "Fast and reliable search API with Google, Bing, and other engines.",
+        "get": "Get SerpAPI Key"
       }
     },
     "secretValueIsRequired": "Secret value is required",

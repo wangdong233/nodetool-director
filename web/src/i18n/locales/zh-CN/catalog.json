@@ -642,7 +642,7 @@
     },
     "nodetool-workflow-builder": {
       "name": "工作流搭建",
-      "description": "通过界面、无头工具或指定的 workflow 文件，创建或编辑 NodeTool 工作流的节点图、连线与属性。"
+      "description": "通过界面、无头工具或指定的工作流文件，创建或编辑 NodeTool 工作流的节点图、连线与属性。"
     },
     "product-commercial": {
       "name": "产品广告片",

@@ -63,8 +63,8 @@ const EMPTY_DRAFT: DraftState = {
 };
 
 const TRANSPORT_OPTIONS = [
-  { value: "stdio", label: "Command (stdio)" },
-  { value: "http", label: "HTTP URL" }
+  { value: "stdio", label: "Command (stdio)", labelKey: "editor:ui.transportCommandStdio" },
+  { value: "http", label: "HTTP URL", labelKey: "editor:ui.transportHttpUrl" }
 ] as const;
 
 /** `KEY=value` lines → record. Blank lines and lines without `=` are skipped. */
@@ -138,24 +138,28 @@ function configFrom(draft: DraftState): McpServerConfig {
   return { ...base, transport };
 }
 
-function idError(id: string): string | null {
-  if (!id) return "Enter an id.";
+type Translate = (key: string, opts?: Record<string, unknown>) => string;
+
+function idError(id: string, t: Translate): string | null {
+  if (!id) return t("editor:ui.enterAnId", { defaultValue: "Enter an id." });
   if (!MCP_SERVER_ID_PATTERN.test(id)) {
-    return "Lowercase letters, digits and _ only, up to 32 characters.";
+    return t("editor:ui.idCharsetRule", {
+      defaultValue: "Lowercase letters, digits and _ only, up to 32 characters."
+    });
   }
   return null;
 }
 
-function urlError(url: string): string | null {
-  if (!url.trim()) return "Enter a URL.";
+function urlError(url: string, t: Translate): string | null {
+  if (!url.trim()) return t("editor:ui.enterAUrl", { defaultValue: "Enter a URL." });
   try {
     const parsed = new URL(url.trim());
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return "Use an http or https URL.";
+      return t("editor:ui.useHttpHttpsUrl", { defaultValue: "Use an http or https URL." });
     }
     return null;
   } catch {
-    return "That is not a valid URL.";
+    return t("editor:ui.notAValidUrl", { defaultValue: "That is not a valid URL." });
   }
 }
 
@@ -245,9 +249,11 @@ const ServerRow = memo(function ServerRow({
               {probe.ok
                 ? probe.tools.length === 0
                   ? t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." })
-                  : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
-                      .map((tool) => tool.name)
-                      .join(", ")}`
+                  : t("editor:ui.probeToolSummary", {
+                      defaultValue: "{{count}} tools: {{names}}",
+                      count: probe.tools.length,
+                      names: probe.tools.map((tool) => tool.name).join(", ")
+                    })
                 : (probe.error ?? t("editor:ui.couldNotConnect", { defaultValue: "Could not connect." }))}
             </Caption>
           )}
@@ -335,7 +341,10 @@ export const ExternalMcpServersSection = memo(
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not save the server: ${err instanceof Error ? err.message : String(err)}`
+          content: t("editor:notify.couldNotSaveServer", {
+            defaultValue: "Could not save the server: {{error}}",
+            error: err instanceof Error ? err.message : String(err)
+          })
         });
       }
     });
@@ -427,12 +436,12 @@ export const ExternalMcpServersSection = memo(
 
     const servers = data?.servers ?? [];
     const stdioEnabled = data?.stdio_enabled ?? true;
-    const draftIdError = idError(draft.id);
+    const draftIdError = idError(draft.id, t);
     const duplicateId =
       !editingId && servers.some((s) => s.id === draft.id);
     const transportError =
       draft.type === "http"
-        ? urlError(draft.url)
+        ? urlError(draft.url, t)
         : !stdioEnabled
           ? t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." })
           : draft.command.trim()
@@ -510,8 +519,8 @@ export const ExternalMcpServersSection = memo(
           }
           onConfirm={handleSave}
           onCancel={handleClose}
-          confirmText={editingId ? "Save" : "Add"}
-          cancelText={t("editor:ui.cancel", { defaultValue: "Cancel" })}
+          confirmText={editingId ? t("editor:ui.save", { defaultValue: "Save" }) : t("editor:ui.add", { defaultValue: "Add" })}
+          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
           confirmDisabled={
             Boolean(draftIdError) || Boolean(transportError) || duplicateId
           }
@@ -530,7 +539,7 @@ export const ExternalMcpServersSection = memo(
               size="small"
             />
             <TextInput
-              label="Id"
+              label={t("editor:ui.serverIdLabel", { defaultValue: "Id" })}
               value={draft.id}
               onChange={field("id")}
               fullWidth
@@ -543,13 +552,19 @@ export const ExternalMcpServersSection = memo(
                   ? t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." })
                   : (draftIdError ?? undefined)
               }
-              helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
+              helperText={t("editor:ui.toolsNamedHelper", {
+                defaultValue: "Tools are named {{prefix}}<tool>",
+                prefix: `${MCP_TOOL_PREFIX}${draft.id || "id"}_`
+              })}
             />
             <SelectField
               label={t("editor:ui.connection", { defaultValue: "Connection" })}
               value={draft.type}
               onChange={handleTypeChange}
-              options={TRANSPORT_OPTIONS}
+              options={TRANSPORT_OPTIONS.map((o) => ({
+                value: o.value,
+                label: t(o.labelKey, { defaultValue: o.label })
+              }))}
               size="small"
               variant="outlined"
               description={
@@ -656,7 +671,7 @@ export const ExternalMcpServersSection = memo(
           title={t("editor:ui.removeServer", { defaultValue: "Remove server" })}
           content={t("editor:ui.removeServerConfirmBody", { name: pendingDelete?.name ?? "" })}
           confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
-          cancelText={t("editor:ui.cancel", { defaultValue: "Cancel" })}
+          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
           onConfirm={confirmDelete}
           onClose={handleCancelDelete}
         />

@@ -195,9 +195,14 @@ const SearchProviderSection = memo(function SearchProviderSection({
             <Box sx={{ marginTop: getSpacingPx(SPACING.xl) }}>
               <ExternalLink
                 href={config.getApiKeyUrl}
-                tooltipText={`Visit ${config.label} to get your credentials`}
+                tooltipText={t("tools:menus.visitProviderForCredentials", {
+                  defaultValue: "Visit {{label}} to get your credentials",
+                  label: config.label
+                })}
               >
-                {config.getApiKeyLabel}
+                {t(`tools:menus.searchProviders.${config.id}.get`, {
+                  defaultValue: config.getApiKeyLabel
+                })}
               </ExternalLink>
             </Box>
           </Stack>

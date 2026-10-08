@@ -349,7 +349,7 @@
       "get": "获取 OpenRouter API 密钥"
     },
     "HF_TOKEN": {
-      "get": "Go to Hugging Face tokens page"
+      "get": "获取 Hugging Face 令牌"
     },
     "REPLICATE_API_TOKEN": {
       "get": "获取 Replicate 令牌"
@@ -364,7 +364,7 @@
       "get": "获取 FAL 密钥"
     },
     "SERPAPI_API_KEY": {
-      "get": "Go to SerpAPI key management page"
+      "get": "获取 SerpAPI 密钥"
     },
     "DATA_FOR_SEO_LOGIN": {
       "get": "获取 DataForSEO 登录"
@@ -376,7 +376,7 @@
       "get": "获取 Apify 令牌"
     },
     "KIMI_API_KEY": {
-      "get": "Go to Moonshot (Kimi) platform API keys page"
+      "get": "获取 Moonshot（Kimi）密钥"
     },
     "DASHSCOPE_API_KEY": {
       "get": "获取 DashScope 密钥"

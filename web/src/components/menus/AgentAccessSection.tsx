@@ -72,8 +72,8 @@ function configSnippets(url: string, token: string | null) {
   return { cli, json };
 }
 
-function formatStamp(value: string | null): string {
-  if (!value) return "never";
+function formatStamp(value: string | null, neverLabel = "never"): string {
+  if (!value) return neverLabel;
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return value;
   return new Date(parsed).toLocaleDateString();
@@ -119,7 +119,10 @@ const AgentAccessSection = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not create the token: ${err}`
+        content: t("editor:notify.couldNotCreateToken", {
+          defaultValue: "Could not create the token: {{error}}",
+          error: String(err)
+        })
       });
     }
   });
@@ -156,7 +159,10 @@ const AgentAccessSection = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not disconnect the client: ${err}`
+        content: t("editor:notify.couldNotDisconnectClient", {
+          defaultValue: "Could not disconnect the client: {{error}}",
+          error: String(err)
+        })
       });
     },
     onSettled: () => setGrantToRevoke(null)
@@ -200,9 +206,11 @@ const AgentAccessSection = () => {
 
       {connection && !connection.enabled && (
         <AlertBanner severity="warning" sx={{ mb: 1 }}>
-          This server does not serve <code>/mcp</code>. Set{" "}
-          <code>{connection.enable_flag}=1</code> in its environment and restart
-          it.
+          {t("editor:ui.mcpNotServedA", { defaultValue: "This server does not serve" })}{" "}
+          <code>/mcp</code>
+          {t("editor:ui.mcpNotServedB", { defaultValue: ". Set" })}{" "}
+          <code>{connection.enable_flag}=1</code>
+          {t("editor:ui.mcpNotServedC", { defaultValue: " in its environment and restart it." })}
         </AlertBanner>
       )}
 
@@ -294,10 +302,13 @@ const AgentAccessSection = () => {
                     className="description"
                     sx={{ fontSize: "var(--fontSizeSmall) !important" }}
                   >
-                    Created {formatStamp(token.created_at)} · Last used{" "}
-                    {formatStamp(token.last_used_at)} ·{" "}
+                    {t("editor:ui.tokenMetaCreated", { defaultValue: "Created {{date}}", date: formatStamp(token.created_at) })} ·{" "}
+                    {t("editor:ui.tokenMetaLastUsed", {
+                      defaultValue: "Last used {{date}}",
+                      date: formatStamp(token.last_used_at, t("editor:ui.never", { defaultValue: "never" }))
+                    })} ·{" "}
                     {token.expires_at
-                      ? `Expires ${formatStamp(token.expires_at)}`
+                      ? t("editor:ui.tokenMetaExpires", { defaultValue: "Expires {{date}}", date: formatStamp(token.expires_at) })
                       : t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
                   </Text>
                 </FlexColumn>
@@ -321,7 +332,7 @@ const AgentAccessSection = () => {
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
         <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
-        {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading…</Text>}
+        {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("common:status.loading", { defaultValue: "Loading…" })}</Text>}
         {!grantsLoading && grants.length === 0 && (
           <Text className="description">{t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
         )}
@@ -334,7 +345,7 @@ const AgentAccessSection = () => {
                   className="description"
                   sx={{ fontSize: "var(--fontSizeSmall) !important" }}
                 >
-                  Connected {formatStamp(grant.created_at)} · {grant.client_id}
+                  {t("editor:ui.connectedOn", { defaultValue: "Connected {{date}}", date: formatStamp(grant.created_at) })} · {grant.client_id}
                 </Text>
               </FlexColumn>
               <NavButton
@@ -360,7 +371,7 @@ const AgentAccessSection = () => {
         title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         showActions
         confirmText={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
-        cancelText="Cancel"
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         isLoading={revokeGrant.isPending}
         onCancel={() => setGrantToRevoke(null)}
         onConfirm={() => {
@@ -368,8 +379,11 @@ const AgentAccessSection = () => {
         }}
       >
         <Text>
-          {grantToRevoke?.client_name} will no longer be able to reach this
-          server. It will need to reconnect and be approved again.
+          {t("editor:ui.disconnectClientBody", {
+            defaultValue:
+              "{{name}} will no longer be able to reach this server. It will need to reconnect and be approved again.",
+            name: grantToRevoke?.client_name ?? ""
+          })}
         </Text>
       </Dialog>
     </div>

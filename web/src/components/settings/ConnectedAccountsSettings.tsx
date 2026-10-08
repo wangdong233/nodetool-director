@@ -124,9 +124,17 @@ const ConnectedAccountsSettings = () => {
         {!isLoading && linked && (
           <FlexColumn gap={SPACING.md}>
             <Text size="small">
-              Connected as Telegram account {linked.external_id}
+              {t("editor:ui.connectedAsTelegram", {
+                defaultValue: "Connected as Telegram account {{id}}",
+                id: linked.external_id
+              })}
             </Text>
-            <Caption>Linked {formatLinkedAt(linked.linked_at)}</Caption>
+            <Caption>
+              {t("editor:ui.linkedOn", {
+                defaultValue: "Linked {{date}}",
+                date: formatLinkedAt(linked.linked_at)
+              })}
+            </Caption>
             {confirmingDisconnect ? (
               <FlexRow align="center" gap={SPACING.md}>
                 <Caption>
@@ -138,13 +146,13 @@ const ConnectedAccountsSettings = () => {
                   disabled={unlink.isPending}
                   onClick={handleDisconnect}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
                 <EditorButton
                   variant="text"
                   onClick={() => setConfirmingDisconnect(false)}
                 >
-                  Keep
+                  {t("editor:ui.keep", { defaultValue: "Keep" })}
                 </EditorButton>
               </FlexRow>
             ) : (
@@ -154,7 +162,7 @@ const ConnectedAccountsSettings = () => {
                   startIcon={<LinkOffIcon />}
                   onClick={() => setConfirmingDisconnect(true)}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
               </FlexRow>
             )}
@@ -197,9 +205,12 @@ const ConnectedAccountsSettings = () => {
               </ExternalLink>
             ) : (
               <Caption>
-                This server does not know its bot&apos;s username, so there is
-                no link to open. Send the bot <code>/start {showPending.code}</code>{" "}
-                yourself.
+                {t("editor:ui.noBotUsernameA", {
+                  defaultValue:
+                    "This server does not know its bot's username, so there is no link to open. Send the bot"
+                })}{" "}
+                <code>/start {showPending.code}</code>{" "}
+                {t("editor:ui.noBotUsernameB", { defaultValue: "yourself." })}
               </Caption>
             )}
             <FlexRow align="center" gap={SPACING.md}>
@@ -214,7 +225,7 @@ const ConnectedAccountsSettings = () => {
             </FlexRow>
             <FlexRow>
               <EditorButton variant="text" onClick={handleCancel}>
-                Cancel
+                {t("common:action.cancel", { defaultValue: "Cancel" })}
               </EditorButton>
             </FlexRow>
           </FlexColumn>

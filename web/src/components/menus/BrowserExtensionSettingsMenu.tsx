@@ -77,17 +77,23 @@ const BrowserExtensionSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content: `Copied ${what}`
+          content: t("editor:ui.copiedNotification", {
+            defaultValue: "Copied {{what}}",
+            what
+          })
         });
       } catch {
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not copy ${what}`
+          content: t("editor:ui.couldNotCopyNotification", {
+            defaultValue: "Could not copy {{what}}",
+            what
+          })
         });
       }
     },
-    [addNotification]
+    [addNotification, t]
   );
 
   return (
@@ -97,11 +103,11 @@ const BrowserExtensionSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          The <strong>{t("ui2:attrs.nodetoolBrowserExtension", { defaultValue: "Nodetool browser extension" })}</strong> lets the{" "}
-          <strong>{t("ui2:attrs.liveBrowserAgent", { defaultValue: "Live Browser Agent" })}</strong> drive your own logged-in Chrome —
-          automating media-generation sites, saving results as assets, and
-          uploading assets into pages. Chrome can’t install it for you, so load
-          it unpacked once with the steps below.
+          {t("editor:ui.browserExtensionIntroLead", { defaultValue: "The " })}
+          <strong>{t("ui2:attrs.nodetoolBrowserExtension", { defaultValue: "Nodetool browser extension" })}</strong>
+          {t("editor:ui.browserExtensionIntroMid", { defaultValue: " lets the " })}
+          <strong>{t("ui2:attrs.liveBrowserAgent", { defaultValue: "Live Browser Agent" })}</strong>
+          {t("editor:ui.browserExtensionIntroTail", { defaultValue: " drive your own logged-in Chrome — automating media-generation sites, saving results as assets, and uploading assets into pages. Chrome can’t install it for you, so load it unpacked once with the steps below." })}
         </Text>
 
         <FlexRow gap={1} sx={{ alignItems: "center", mb: 1 }}>
@@ -115,7 +121,7 @@ const BrowserExtensionSettingsMenu = () => {
             }
             label={
               isLoading
-                ? "Checking…"
+                ? t("editor:ui.checking", { defaultValue: "Checking…" })
                 : connected
                   ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" })
                   : t("editor:ui.notConnected", { defaultValue: "Not connected" })
@@ -159,7 +165,7 @@ const BrowserExtensionSettingsMenu = () => {
               <NavButton
                 icon={<ContentCopyIcon />}
                 label={t("editor:ui.copyBuildPath", { defaultValue: "Copy build path" })}
-                onClick={() => handleCopy(distPath, "build path")}
+                onClick={() => handleCopy(distPath, t("editor:ui.buildPathWhat", { defaultValue: "build path" }))}
                 navSize="small"
                 sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}
               />

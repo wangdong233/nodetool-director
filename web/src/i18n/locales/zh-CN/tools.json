@@ -29,6 +29,9 @@
     "failedToCopySystemInformationToClipboard": "复制系统信息到剪贴板失败",
     "failedToDisconnectGoogleWorkspace": "断开 Google Workspace 失败",
     "failedToImportWorkflowInvalidJsonFile": "导入工作流失败 — 无效的 JSON 文件",
+    "couldNotSaveSettings": "无法保存设置：{{message}}",
+    "couldNotSaveFolderSettings": "无法保存文件夹设置：{{message}}",
+    "visitProviderForCredentials": "访问 {{label}} 获取你的凭据",
     "folderSettingsHaveBeenSavedSuccessfully": "文件夹设置已成功保存",
     "groupContainerForNodes": "节点分组容器",
     "imageFileInput": "图像文件输入",
@@ -198,16 +201,28 @@
     },
     "searchProviders": {
       "apify": {
-        "description": "通过 Apify Actor 实现可靠的 Google 搜索抓取。"
+        "description": "通过 Apify Actor 实现可靠的 Google 搜索抓取。",
+        "get": "获取 Apify API 令牌"
       },
       "brave": {
-        "description": "注重隐私的搜索，带免费额度——是不错的默认选择。"
+        "description": "注重隐私的搜索，带免费额度——是不错的默认选择。",
+        "get": "获取免费 Brave API 密钥"
       },
       "dataforseo": {
-        "description": "专业的 SEO 与搜索情报平台。"
+        "description": "专业的 SEO 与搜索情报平台。",
+        "get": "获取 DataForSEO 凭据"
+      },
+      "openai": {
+        "description": "复用你的 OpenAI 密钥。以行文作答，并引用所读页面。",
+        "get": "获取 OpenAI API 密钥"
+      },
+      "gemini": {
+        "description": "复用你的 Gemini 密钥。以行文作答，并引用所读页面。",
+        "get": "获取 Gemini API 密钥"
       },
       "serpapi": {
-        "description": "快速可靠的网页搜索 API，覆盖 Google、Bing 等引擎。"
+        "description": "快速可靠的网页搜索 API，覆盖 Google、Bing 等引擎。",
+        "get": "获取 SerpAPI 密钥"
       }
     },
     "secretValueIsRequired": "密钥值不能为空",
@@ -300,7 +315,7 @@
       "startingState": "一块新的工作流画布，两个文本输入待连接。",
       "tagline": "用模板合并多个值",
       "task": "把名称与主题输入接到模板提示词，填入两个值并运行。",
-      "description": "第一张带分支的图：两个文本输入流入同一个 Prompt 节点填充模板，由可复用的部件组合出单一结果。",
+      "description": "第一张带分支的图：两个文本输入流入同一个提示词节点填充模板，由可复用的部件组合出单一结果。",
       "learn_0": "把多个输入接进同一个节点",
       "learn_1": "用 {{ placeholders }} 占位符组合文本",
       "learn_2": "用可复用的部件搭建提示词"
