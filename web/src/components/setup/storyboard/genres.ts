@@ -41,8 +41,10 @@ export const GENRE_TITLE_KEYS: Record<string, string> = {
   "educational": "storyboard:attrs.genreEducational",
   "fantasy": "storyboard:attrs.genreFantasy",
   "horror": "storyboard:attrs.genreHorror",
+  "music-video": "storyboard:attrs.genreMusicVideo",
   "mystery": "storyboard:attrs.genreMystery",
   "romance": "storyboard:attrs.genreRomance",
+  "science-fiction": "storyboard:attrs.genreScienceFiction",
   "thriller": "storyboard:attrs.genreThriller"
 };
 
@@ -56,8 +58,10 @@ export const GENRE_DESCRIPTION_KEYS: Record<string, string> = {
   "educational": "storyboard:attrs.oneIdeaPerShotAndPlainFramingWithRoomForAVoiceOverIt",
   "fantasy": "storyboard:attrs.builtWorldsAndWideVistasLightDoingWhatTheSunCannot",
   "horror": "storyboard:attrs.darkFramesWithheldRevealsACameraSlowerThanYouWantIt",
+  "music-video": "storyboard:attrs.cutsOnTheBeatSaturatedColourPerformanceOverPlot",
   "mystery": "storyboard:attrs.partialViewsAndShadowInformationHeldBackAShotLonger",
   "romance": "storyboard:attrs.warmLightAndTwoshotsClosenessMeasuredInLensLength",
+  "science-fiction": "storyboard:attrs.hardSurfacesAndColdLightScaleReadAgainstAHuman",
   "thriller": "storyboard:attrs.tightFramingAndARestlessCameraTensionBuiltBetweenCuts"
 };
 

@@ -906,6 +906,36 @@
     "backstage-violinist": "小提琴手的后台肖像，头顶一盏裸露的灯泡",
     "deep-sea-cables-poster": "一部深海光缆纪录片的海报设计"
   },
+  "imageUseCases": {
+    "product": {
+      "title": "产品图",
+      "description": "单一物体，干净背景，可直接投放"
+    },
+    "portrait": {
+      "title": "人像",
+      "description": "人物头像与半身构图"
+    },
+    "key-art": {
+      "title": "主视觉",
+      "description": "留出标题空间的海报画面"
+    },
+    "social": {
+      "title": "社媒帖",
+      "description": "在信息流里立得住的方图"
+    },
+    "logo": {
+      "title": "标志",
+      "description": "纯色底上的扁平标志"
+    },
+    "concept": {
+      "title": "概念设计",
+      "description": "横向铺开的世界观画面"
+    },
+    "texture": {
+      "title": "纹理",
+      "description": "可平铺的材质表面"
+    }
+  },
   "workflowInspiration": {
     "summarize-pdf": "总结 PDF 并发邮件",
     "product-shots": "从 CSV 批量生成产品图",

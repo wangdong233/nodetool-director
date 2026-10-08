@@ -107,6 +107,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.storyboardExamples;
     delete copy.scriptInspirations;
     delete copy.imageInspirations;
+    delete copy.imageUseCases;
     delete copy.workflowInspiration;
     delete copy.nodes;
     delete copy.nodeDocs;
@@ -477,6 +478,22 @@ describe("catalog key parity (CI completeness guard)", () => {
       expect(entry.name.length).toBeGreaterThan(0);
       expect(typeof entry.logline).toBe("string");
       expect(entry.logline.length).toBeGreaterThan(0);
+      expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
+    }
+    // r23 (F-29 修订 B): the image flow's use-case cards render through a
+    // zh-only overlay keyed by the protocol table's stable ids, resolved at
+    // render time in UseCaseStep (never the frozen module constant).
+    expect(catalogEn).not.toHaveProperty("imageUseCases");
+    const useCaseEntries = catalogZh["imageUseCases"] as Record<
+      string,
+      { title: string; description: string }
+    >;
+    expect(Object.keys(useCaseEntries).length).toBeGreaterThanOrEqual(7);
+    for (const [slug, entry] of Object.entries(useCaseEntries)) {
+      expect(typeof entry.title).toBe("string");
+      expect(entry.title.length).toBeGreaterThan(0);
+      expect(typeof entry.description).toBe("string");
+      expect(entry.description.length).toBeGreaterThan(0);
       expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
     }
   });
