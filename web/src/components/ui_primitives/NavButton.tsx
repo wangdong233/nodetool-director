@@ -21,7 +21,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { MOTION } from "./tokens";
+import { MOTION, TYPOGRAPHY } from "./tokens";
 
 // Common props shared between Button and IconButton
 type CommonButtonProps = Pick<ButtonProps, "onClick" | "disabled" | "color">;
@@ -111,24 +111,31 @@ export const NavButton = memo(
       const theme = useTheme();
 
       const getSizeStyles = () => {
+        // F-38 (r20): a labeled nav button is a single-line text control —
+        // its grid size is a minHeight floor plus a token-tier line height,
+        // never a fixed box (a fixed height with MUI's 1.75 line box spills
+        // CJK/minimum-font labels). Icon-only keeps a fixed square.
         switch (navSize) {
           case "small":
             return {
               minWidth: label ? 80 : 32,
-              height: 32,
-              fontSize: theme.fontSizeSmaller
+              ...(label ? { minHeight: 32 } : { height: 32 }),
+              fontSize: theme.fontSizeSmaller,
+              lineHeight: TYPOGRAPHY.sans.caption.lineHeight
             };
           case "large":
             return {
               minWidth: label ? 120 : 48,
-              height: 48,
-              fontSize: theme.fontSizeSmall
+              ...(label ? { minHeight: 48 } : { height: 48 }),
+              fontSize: theme.fontSizeSmall,
+              lineHeight: TYPOGRAPHY.sans.label.lineHeight
             };
           default:
             return {
               minWidth: label ? 100 : 40,
-              height: 40,
-              fontSize: theme.fontSizeSmall
+              ...(label ? { minHeight: 40 } : { height: 40 }),
+              fontSize: theme.fontSizeSmall,
+              lineHeight: TYPOGRAPHY.sans.label.lineHeight
             };
         }
       };
@@ -198,6 +205,11 @@ export const NavButton = memo(
             ...baseStyles,
             textTransform: "none",
             justifyContent: "flex-start",
+            // F-38 (r20): keep the single-line label at its natural width —
+            // a flex parent squeezing this button below content width just
+            // moves the overflow into a clipped label.
+            whiteSpace: "nowrap",
+            flexShrink: 0,
             padding: theme.spacing(1.5, 3)
           }}
           {...props}

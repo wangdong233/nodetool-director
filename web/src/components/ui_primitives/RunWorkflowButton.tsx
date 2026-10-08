@@ -24,7 +24,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { MOTION } from "./tokens";
+import { MOTION, TYPOGRAPHY } from "./tokens";
 
 export interface RunWorkflowButtonProps {
   /**
@@ -144,19 +144,23 @@ export const RunWorkflowButton = memo(
       const icon = isRunning ? <StopIcon /> : <PlayArrowIcon />;
 
       const getSizeStyles = useMemo(() => {
+        // F-38 (r20): the labeled button sizes are minHeight floors, not fixed
+        // boxes — the label's line box must be able to grow the control under
+        // font inflation (browser minimum font size, surface font blankets)
+        // instead of spilling out of it. FABs stay fixed squares (icon-only).
         switch (size) {
           case "small":
             return variant === "fab"
               ? { width: 36, height: 36 }
-              : { height: 28, minWidth: showLabel ? 80 : 28 };
+              : { minHeight: 28, minWidth: showLabel ? 80 : 28 };
           case "large":
             return variant === "fab"
               ? { width: 56, height: 56 }
-              : { height: 44, minWidth: showLabel ? 120 : 44 };
+              : { minHeight: 44, minWidth: showLabel ? 120 : 44 };
           default:
             return variant === "fab"
               ? { width: 48, height: 48 }
-              : { height: 36, minWidth: showLabel ? 100 : 36 };
+              : { minHeight: 36, minWidth: showLabel ? 100 : 36 };
         }
       }, [size, variant, showLabel]);
 
@@ -243,6 +247,11 @@ export const RunWorkflowButton = memo(
             variant="contained"
             sx={{
               ...sharedSx,
+              // F-38 (r20): single-line token lineHeight pairs with the
+              // minHeight floor above — without it MUI's 1.75 line box makes
+              // every labeled instance taller than its grid floor.
+              lineHeight: TYPOGRAPHY.sans.label.lineHeight,
+              whiteSpace: "nowrap",
               textTransform: "none"
             }}
           >
