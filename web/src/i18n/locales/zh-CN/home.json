@@ -6,11 +6,11 @@
     "startGuidedFlow": "开始一个引导流程",
     "describeIdea": "描述你想做什么",
     "openExamples": "打开示例或空白文档",
-    "dismissAria": "关闭快速上手清单"
+    "dismissAria": "忽略快速上手清单"
   },
   "surface": {
     "title": "你想做什么？",
-    "subtitle": "智能体会规划文档，并在你注视下逐步搭建。所有产物保持可编辑。",
+    "subtitle": "智能体会规划文档，并在你眼前逐步搭建。所有产物保持可编辑。",
     "startGuided": "从引导流程开始",
     "orDescribe": "或直接描述你想做什么",
     "guidedFlowsLabel": "引导创作流程",
@@ -50,7 +50,7 @@
   },
   "composer": {
     "promptLabel": "对话提示词",
-    "placeholder": "输入想法，例如：为台灯做一支 30 秒上市短片——温暖、极简、夜晚氛围。/ 选技能，@ 选素材或实体，Ctrl+Enter 发送。",
+    "placeholder": "输入想法，例如：为台灯做一支 30 秒上市广告片——温暖、极简、夜晚氛围。/ 选技能，@ 选素材或实体，Ctrl+Enter 发送。",
     "refImages": "参考图 ·{{count}}",
     "refImagesAria": "参考图",
     "entitiesNone": "实体 · 未选",

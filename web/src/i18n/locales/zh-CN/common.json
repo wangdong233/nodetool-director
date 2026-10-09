@@ -8,7 +8,7 @@
     "closeTab": "关闭{{title}}",
     "clear": "清除",
     "switch": "切换",
-    "dismiss": "关闭",
+    "dismiss": "忽略",
     "duplicate": "创建副本",
     "copy": "复制",
     "cut": "剪切",
@@ -27,7 +27,7 @@
   },
   "boot": {
     "loading": "正在加载 NodeTool…",
-    "errorDetail": "加载应用数据出错。",
+    "errorDetail": "加载应用元数据出错。",
     "refresh": "刷新页面",
     "preparing": "正在准备工作区…"
   },
@@ -83,9 +83,9 @@
     "monthAgo_other": "{{count}} 月前",
     "weekAgo_other": "{{count}} 周前",
     "dayAgo_other": "{{count}} 天前",
-    "hourAgo_other": "{{count}} 小前",
-    "minuteAgo_other": "{{count}} 时前",
-    "secondAgo_other": "{{count}} 分前"
+    "hourAgo_other": "{{count}} 小时前",
+    "minuteAgo_other": "{{count}} 分钟前",
+    "secondAgo_other": "{{count}} 秒前"
   },
   "list": {
     "searchPlaceholder": "搜索{{plural}}…",

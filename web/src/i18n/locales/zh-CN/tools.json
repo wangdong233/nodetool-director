@@ -8,7 +8,7 @@
     "videoList": "视频列表"
   },
   "menus": {
-    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加基础 URL 和 API 密钥，即可使用任何 OpenAI 兼容的提供商。",
+    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加 Base URL 和 API 密钥，即可使用任何 OpenAI 兼容的服务商。",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "添加一条命令或一个 URL。其工具会在下一条消息加入智能体的工具箱。",
     "aiAgentForProcessing": "用于处理的 AI 智能体",
     "allFieldsAreRequired": "所有字段均为必填",
@@ -28,7 +28,7 @@
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /videos。",
     "failedToCopySystemInformationToClipboard": "复制系统信息到剪贴板失败",
     "failedToDisconnectGoogleWorkspace": "断开 Google Workspace 失败",
-    "failedToImportWorkflowInvalidJsonFile": "导入工作流失败 — 无效的 JSON 文件",
+    "failedToImportWorkflowInvalidJsonFile": "导入工作流失败——无效的 JSON 文件",
     "couldNotSaveSettings": "无法保存设置：{{message}}",
     "couldNotSaveFolderSettings": "无法保存文件夹设置：{{message}}",
     "visitProviderForCredentials": "访问 {{label}} 获取你的凭据",
@@ -36,16 +36,16 @@
     "groupContainerForNodes": "节点分组容器",
     "imageFileInput": "图像文件输入",
     "includeTheVersionPathTheEndpointServesUsuallyV1": "填入端点所提供的版本路径，通常是 /v1。",
-    "localModelServers": "本地模型服务",
+    "localModelServers": "本地模型服务器",
     "npmPackages": "NPM 包",
     "observability": "可观测性",
     "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "每行一个参数，这样含空格的路径仍会被视为一个参数。",
-    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 Header=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥读取名为 NAME 的密钥。",
-    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 KEY=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥读取名为 NAME 的密钥。",
+    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 Header=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥库读取名为 NAME 的密钥。",
+    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 KEY=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥库读取名为 NAME 的密钥。",
     "packageSpecPlaceholder": "@scope/package 或 package@version",
-    "providerGuidesLinks": "提供商指南与链接",
-    "providerOptions": "提供商选项",
-    "providerRemoved": "已移除提供商",
+    "providerGuidesLinks": "服务商指南与链接",
+    "providerOptions": "服务商选项",
+    "providerRemoved": "已移除服务商",
     "providerSavedAs": "{{name}} 已保存为 {{id}}",
     "disconnectedGoogleWorkspace": "已断开 Google Workspace。重新连接即可恢复访问。",
     "customProviderEncryptionNote": "URL 和密钥会按账户加密存储。这些值也可以改由环境变量提供，即 {{baseUrlEnv}} 和 {{apiKeyEnv}}。",
@@ -89,14 +89,14 @@
         "description": "最先进的开放模型。"
       },
       "ELEVENLABS_API_KEY": {
-        "description": "高质量文本转语音服务。"
+        "description": "高质量 TTS 语音合成服务。"
       },
       "EVOLINK_API_KEY": {
         "description": "通过一个网关使用 GPT、Claude、Gemini、DeepSeek 等。"
       },
       "FAL_API_KEY": {
         "description": "无服务器 AI 图像与视频生成。",
-        "note": "精确计费用管理员密钥(fal.ai 控制台 → Keys → 权限选 \"Admin\")。NodeTool 读取 FAL 每次请求的实际账单;普通密钥只能得到估算值。"
+        "note": "精确计费需使用管理员密钥（fal.ai 控制台 → Keys → 权限选 \"Admin\"）。NodeTool 读取 FAL 每次请求的实际账单；普通密钥只能得到估算值。"
       },
       "GEMINI_API_KEY": {
         "description": "Google Gemini AI 模型与服务。"
@@ -114,7 +114,7 @@
         "description": "LPU 硬件上的超快 LLM 推理。"
       },
       "HF_TOKEN": {
-        "description": "推理提供商与模型中心访问。"
+        "description": "推理服务商与模型中心访问。"
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API 密钥",
@@ -158,13 +158,13 @@
         "description": "在 Replicate 的云基础设施上运行模型。"
       },
       "REVE_API_KEY": {
-        "description": "图像创作、编辑与再混合，提示词贴合度高。"
+        "description": "图像创作、编辑与重混，提示词贴合度高。"
       },
       "RODIN_API_KEY": {
         "description": "Rodin AI 3D 模型生成。"
       },
       "RUNPOD_API_KEY": {
-        "description": "租用 GPU pod 来运行 NodeTool worker。"
+        "description": "租用 GPU pod 运行 NodeTool 工作节点。"
       },
       "SERPAPI_API_KEY": {
         "description": "通过 SerpAPI 进行网络搜索。"
@@ -183,7 +183,7 @@
         "description": "将 OpenLLMetry 链路追踪导出到 Traceloop。"
       },
       "VAST_API_KEY": {
-        "description": "租用市场 GPU 来运行 NodeTool worker。"
+        "description": "租用市场 GPU 运行 NodeTool 工作节点。"
       },
       "VOYAGE_API_KEY": {
         "description": "高质量文本与多模态嵌入。"
@@ -226,8 +226,8 @@
       }
     },
     "secretValueIsRequired": "密钥值不能为空",
-    "seeModelsByProvider": "按提供商查看模型",
-    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, 以 SSE 作为回退。",
+    "seeModelsByProvider": "按服务商查看模型",
+    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP，以 SSE 作为回退。",
     "supportedModels": "支持的模型",
     "systemInformationCopiedToClipboard": "系统信息已复制到剪贴板！",
     "textCommentNote": "文本注释便签",
@@ -250,9 +250,9 @@
     "computeAndLocal": "算力与本地",
     "servicesAndAdvanced": "服务与高级",
     "nameApiKeyUpdated": "已更新 {{name}} API 密钥",
-    "failedToUpdateSecret": "更新密钥失败:{{error}}",
+    "failedToUpdateSecret": "更新密钥失败：{{error}}",
     "nameApiKeyDeleted": "已删除 {{name}} API 密钥",
-    "failedToDeleteSecret": "删除密钥失败:{{error}}",
+    "failedToDeleteSecret": "删除密钥失败：{{error}}",
     "tags": {
       "Popular": "热门"
     },
@@ -278,11 +278,11 @@
     },
     "app-assistant": {
       "title": "搭建一个小程序",
-      "result": "应用显示完整回答，输入/输出控件保持绑定。",
+      "result": "小程序显示完整回答，输入/输出控件保持绑定。",
       "startingState": "示例页，小程序画廊可随时浏览。",
-      "tagline": "应用搭建 · 操作、设置、控件",
-      "task": "打开一个小程序，填好输入，在应用界面上运行一次。",
-      "description": "一句话描述一个应用——一个输入、一个按钮、一个回答——助手就把工作流绑定为操作，把控件逐个挂到应用声明的目标上。",
+      "tagline": "小程序构建器 · 操作、设置、控件",
+      "task": "打开一个小程序，填好输入，在小程序界面上运行一次。",
+      "description": "一句话描述一个小程序——一个输入、一个按钮、一个回答——助手就把工作流绑定为操作，把控件逐个挂到应用声明的目标上。",
       "learn_0": "把工作流变成人人都能运行的小程序",
       "learn_1": "把值存成设置，跨会话保留",
       "learn_2": "把控件绑定到输入、输出和变量"
@@ -292,7 +292,7 @@
       "result": "回答流入输出，后续节点仍可使用。",
       "startingState": "一块新的工作流画布，输入输出通路为空。",
       "tagline": "问题进，流式回答出",
-      "task": "把问题输入接到 LLM 节点，让它解释一段 API，然后运行。",
+      "task": "把问题输入接到 LLM 节点，让它简要解释一个 API，然后运行。",
       "description": "最简单的对话式图：输入一个问题，发给 LLM 节点，看着回答一段一段流式生成，最后落进 Preview。",
       "learn_0": "把问题喂给 LLM 节点",
       "learn_1": "看着回答边生成边流出",
@@ -336,8 +336,8 @@
       "result": "视觉模型回答了对图像的描述，可在下游输出中使用。",
       "startingState": "一块新的工作流画布，图像输入待填。",
       "tagline": "给 AI 看图，换回文字",
-      "task": "添加一张图片，连到 Agent 节点，运行图来描述画面内容。",
-      "description": "第一张多模态图：把图片放进图像输入，连到一个 Agent 节点，看模型看着图像、用文字把它描述出来。",
+      "task": "添加一张图片，连到 Agent 节点，运行整张图来描述画面内容。",
+      "description": "第一张多模态图：把图片放进图像输入，连到一个 Agent 节点，看模型查看图像并用文字描述出来。",
       "learn_0": "把一张图片带进图里",
       "learn_1": "把图片发给视觉模型",
       "learn_2": "在下游复用流式生成的描述"
@@ -415,7 +415,7 @@
     },
     "storyboard-ask": {
       "title": "生成消耗前先询问",
-      "result": "助手先等待再花费，得到你的回答后生成明确的镜头清单。",
+      "result": "助手先等待再花费，得到你的回答后生成明确的分镜表。",
       "startingState": "一个新分镜，没有镜头，也未开始渲染。",
       "tagline": "分镜 · 先问清，不瞎猜",
       "task": "给助手一份不完整的简报，回答它的追问，然后批准分镜板。",
@@ -426,12 +426,12 @@
     },
     "storyboard-assistant": {
       "title": "编排分镜表",
-      "result": "分镜板包含已批准的镜头清单，每镜都有渲染好的静帧。",
-      "startingState": "一个新分镜，镜头清单为空。",
+      "result": "分镜板包含已批准的分镜表，每镜都有渲染好的静帧。",
+      "startingState": "一个新分镜，分镜表为空。",
       "tagline": "分镜 · 先导演，后静帧",
-      "task": "描述一个短片，检查生成的镜头清单，批准后开始渲染。",
+      "task": "描述一个短片，检查生成的分镜表，批准后开始渲染。",
       "description": "描述这个作品，助手先写出镜头——运镜也一并定好——再渲染任何一帧。批准分镜板后，静帧逐镜渲染出来。",
-      "learn_0": "先拿到镜头清单，再生成任何图像",
+      "learn_0": "先拿到分镜表，再生成任何图像",
       "learn_1": "趁还没产生渲染消耗，先把镜头改好",
       "learn_2": "一次调用渲染整块分镜板的静帧"
     },
@@ -451,8 +451,8 @@
       "result": "时间线播放排好的剪辑，字幕与对白对齐。",
       "startingState": "一条新时间线，轨道为空，没有片段。",
       "tagline": "时间线编辑器 · 修剪、编排、字幕",
-      "task": "放两个片段，修剪剪切点，加字幕，预览成品序列。",
-      "description": "看开场片段变短、下一镜贴上剪切点、字幕落到自己的轨道上，然后预览剪好的成片。",
+      "task": "放两个片段，修剪剪辑点，加字幕，预览成品序列。",
+      "description": "看开场片段变短、下一镜贴上剪辑点、字幕落到自己的轨道上，然后预览剪好的成片。",
       "learn_0": "在轨道上修剪和编排片段",
       "learn_1": "添加逐字对齐的字幕",
       "learn_2": "拖动播放头，实时预览剪辑"
