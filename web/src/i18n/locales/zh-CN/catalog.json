@@ -514,7 +514,7 @@
     },
     "explainer-storyboard": {
       "name": "解说视频分镜",
-      "description": "把已确认的产品或功能简介变成 30–120 秒、可拍摄的解说视频分镜，实体名单全程统一。用于产品解说类视频，不用于工作流、管线或成片渲染。"
+      "description": "把已确认的产品或功能简报变成 30–120 秒、可拍摄的解说视频分镜，实体名单全程统一。用于产品解说类视频，不用于工作流、管线或成片渲染。"
     },
     "flux-2-klein-prompting": {
       "name": "FLUX.2 Klein 提示词",
@@ -538,7 +538,7 @@
     },
     "kling-video-prompting": {
       "name": "可灵视频提示词",
-      "description": "编写快手可灵 2.5-turbo 及之后版本的提示词：哪个版本才有镜头清单、元素标记、原生音频与 CFG 旋钮，multi_prompt 里一条一段而非一整段散文，角色标 @Element1/@Element2 让脸在剪切后保得住，原生音频对口型的标注对白格式，针对可灵真实瑕疵的反向提示词，以及运镜控制真正要的不是提示词。凡模型 ID 为 Kling 2.5-turbo、2.6、v3、O1、O3 即适用；Kling 1.x、2.0、2.1 与可灵图像不在此列。"
+      "description": "编写快手可灵 2.5-turbo 及之后版本的提示词：哪个版本才有分镜表、元素标记、原生音频与 CFG 旋钮，multi_prompt 里一条一段而非一整段散文，角色标 @Element1/@Element2 让脸在剪切后保得住，原生音频对口型的标注对白格式，针对可灵真实瑕疵的反向提示词，以及运镜控制真正要的不是提示词。凡模型 ID 为 Kling 2.5-turbo、2.6、v3、O1、O3 即适用；Kling 1.x、2.0、2.1 与可灵图像不在此列。"
     },
     "launch-commercial": {
       "name": "发布广告片",
@@ -546,7 +546,7 @@
     },
     "launch-kit": {
       "name": "发布物料包",
-      "description": "产出一套 NodeTool 定向广告宣传：共享的产品与角色实体、多张图稿和多版视频剪辑。适合需要成套协同物料的场合。"
+      "description": "产出一场 NodeTool 定向广告：共享的产品与角色实体、多张静图与多版视频剪辑。适合需要成套协同物料的场合。"
     },
     "logo-reveal": {
       "name": "Logo 演绎动画",
@@ -554,7 +554,7 @@
     },
     "minimax-h3-prompting": {
       "name": "MiniMax H3 提示词",
-      "description": "编写 MiniMax H3 的提示词：在文生视频、首末帧、参考图三类端点间做选择，给每张参考图、每段素材、每条音频指派明确职责，在提示词里写带时间码的镜头清单，艺术指导原生立体声，以及改片段时把「改动＋约束」一起说。凡模型 ID 以 minimax/h3 开头（含 max、turbo、lora 变体）即适用；海螺系列另有专册。"
+      "description": "编写 MiniMax H3 的提示词：在文生视频、首末帧、参考图三类端点间做选择，给每张参考图、每段素材、每条音频指派明确职责，在提示词里写带时间码的分镜表，艺术指导原生立体声，以及改片段时把「改动＋约束」一起说。凡模型 ID 以 minimax/h3 开头（含 max、turbo、lora 变体）即适用；海螺系列另有专册。"
     },
     "motion-background": {
       "name": "动态背景",
@@ -590,7 +590,7 @@
     },
     "nodetool-api-reference": {
       "name": "API 接入参考",
-      "description": "通过 REST、tRPC、MsgPack WebSocket、MCP 或 OpenAI 兼容的 Chat API 与 NodeTool 集成，覆盖文档面与工作流执行。"
+      "description": "通过 REST、tRPC、MsgPack WebSocket、MCP 或 OpenAI 兼容的 Chat API 与 NodeTool 集成，覆盖文档面与工作流运行。"
     },
     "nodetool-app-builder": {
       "name": "小程序搭建",
@@ -610,7 +610,7 @@
     },
     "nodetool-deployment": {
       "name": "部署运维",
-      "description": "用 Docker、SSH、Runpod 或云端部署配置，部署与运维 NodeTool 服务器和工作进程。"
+      "description": "用 Docker、SSH、Runpod 或云端部署配置，部署与运维 NodeTool 服务器和工作节点。"
     },
     "nodetool-js-scripting": {
       "name": "JS 脚本编写",
@@ -638,7 +638,7 @@
     },
     "nodetool-video-post": {
       "name": "视频后期修复",
-      "description": "修复或重新生成时间线上已有的画面：抠图、跟踪、外绘补全、放大、生成音效、换声、对口型。含这些操作返回结果的候选复核流程。"
+      "description": "修复或重新生成时间线上已有的画面：抠图、跟踪、扩图、超分、生成音效、重配音、对口型。含这些操作返回结果的候选复核流程。"
     },
     "nodetool-workflow-builder": {
       "name": "工作流搭建",
@@ -646,7 +646,7 @@
     },
     "product-commercial": {
       "name": "产品广告片",
-      "description": "在 NodeTool 里执导精制的产品片或品牌广告。手机实拍的创作者广告请用 UGC 视频创作。"
+      "description": "在 NodeTool 里执导精制的产品片或品牌广告片。手机实拍的创作者广告请用 UGC 视频创作。"
     },
     "qwen-image-prompting": {
       "name": "Qwen 图像提示词",
@@ -654,7 +654,7 @@
     },
     "script-video": {
       "name": "文稿配音视频",
-      "description": "执导节奏跟着旁白文稿走的 NodeTool 视频，比如解说片或配音空镜。出镜创作者内容请用 UGC 视频创作。"
+      "description": "执导节奏跟着旁白文稿走的 NodeTool 视频，比如解说片或配音 B-roll。出镜创作者内容请用 UGC 视频创作。"
     },
     "seedance-2-prompting": {
       "name": "Seedance 2 提示词",
@@ -690,7 +690,7 @@
     },
     "video-audio-continuity": {
       "name": "视频声音连贯",
-      "description": "让生成视频剪出的多场景作品声音不断线：为什么一场景一片会在每个切点硬断音频、什么时候该把所有场景写进一次生成、能过服务商版权过滤器的声音设计词汇，以及怎么核返回物的时长、画幅与混音。作品多于一场景且视频模型自带音频（Seedance 2、Veo 3、MiniMax H3、可灵 2.6 及以后），或切点处声音掉线时用它。"
+      "description": "让生成视频剪出的多场景作品声音不断线：为什么一场景一条片段会在每个切点硬断音频、什么时候该把所有场景写进一次生成、能过服务商版权过滤器的声音设计词汇，以及怎么核返回物的时长、画幅与混音。作品多于一场景且视频模型自带音频（Seedance 2、Veo 3、MiniMax H3、可灵 2.6 及以后），或切点处声音掉线时用它。"
     },
     "video-clone": {
       "name": "视频复刻",
@@ -712,7 +712,7 @@
     },
     "ai-spokesperson": {
       "name": "AI 发言人",
-      "description": "文字转语音先给剧本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
+      "description": "TTS 语音合成先给剧本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
     },
     "brand-and-social": {
       "name": "品牌与社媒",
@@ -728,7 +728,7 @@
     },
     "dubbing-desk": {
       "name": "配音台",
-      "description": "「多语言视频配音」链路收进一个界面。转写把文稿写进变量，换声与回译两步读的都是它，所以配上去的词就是你看得见的词。"
+      "description": "「多语言视频配音」链路收进一个界面。转写把文稿写进变量，重配音与回译两步读的都是它，所以配上去的词就是你看得见的词。"
     },
     "film-studio": {
       "name": "影片工作室",
@@ -740,7 +740,7 @@
     },
     "multi-shot-video": {
       "name": "多镜头视频",
-      "description": "导演模型写出镜头清单与风格圣经，每个镜头先渲染成关键帧再动画化，最后剪成一条视频。"
+      "description": "导演模型写出分镜表与风格圣经，每个镜头先渲染成关键帧再动画化，最后剪成一条视频。"
     },
     "photo-studio": {
       "name": "照片工作室",
@@ -756,7 +756,7 @@
     },
     "product-reshoot": {
       "name": "产品重拍",
-      "description": "从一张产品图做出三版可直接投产的画面：换一套场景、按季节重新打光，或抠出干净图供合成。"
+      "description": "从一张产品图做出三版可直接投产的画面：换一套场景、按季节重打光，或抠出干净图供合成。"
     },
     "product-shot-video": {
       "name": "产品展示视频",
@@ -768,19 +768,19 @@
     },
     "sku-factory": {
       "name": "SKU 工厂",
-      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品图丢一次，抠图、棚拍场景、季节重光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
+      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品图丢一次，抠图、棚拍场景、季节重打光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
     },
     "trailer-room": {
       "name": "预告片室",
-      "description": "「分镜到预告片」链路收进一个界面。节拍表和镜头清单还在文本调用价位时反复改，最后为素材花一次钱，再给剪好的片子铺上配乐。"
+      "description": "「分镜到预告片」链路收进一个界面。节拍表和分镜表还在文本调用价位时反复改，最后为素材花一次钱，再给剪好的片子铺上配乐。"
     },
     "ugc-product-video": {
       "name": "UGC 产品视频",
       "description": "选定卖点承诺，生成一条原生配音的证言，再把说出的话变成可审看的字幕、克制的动效和带品牌的收尾。"
     },
     "upscale-image": {
-      "name": "图像放大",
-      "description": "一个拖放区后面是两个放大器。ESRGAN 重建画面里本就有的细节，照片选它；Clarity 补出可信的细节，源图太小选它。"
+      "name": "图像超分",
+      "description": "一个拖放区后面是两个超分引擎。ESRGAN 重建画面里本就有的细节，照片选它；Clarity 补出可信的细节，源图太小选它。"
     },
     "vary-image": {
       "name": "图像变体",
@@ -796,7 +796,7 @@
     },
     "video-restyle": {
       "name": "视频风格化",
-      "description": "上传素材，说清要的风格和必须保住的东西，视频转视频模型上风格，运动不动。"
+      "description": "上传素材，说清要的风格和必须保住的东西，视频生视频模型上风格，运动不动。"
     },
     "viral-ad-engine": {
       "name": "爆款广告引擎",
@@ -806,75 +806,75 @@
   "styles": {
     "Comic": {
       "name": "漫画",
-      "description": "粗黑墨线勾边平涂赛璐璐上色,中间调本戴圆点网纹,新闻纸奶油底上的品红与青,硬边投影,无渐变。"
+      "description": "粗黑墨线勾边平涂赛璐璐上色，中间调本戴圆点网纹，新闻纸奶油底上的品红与青，硬边投影，无渐变。"
     },
     "Cinematic": {
       "name": "电影感",
-      "description": "变形镜头 40mm T2,琥珀主光对青蓝阴影,浅景深椭圆焦外加横向蓝眩光,细腻 35mm 颗粒,黑位略抬。"
+      "description": "变形镜头 40mm T2，琥珀主光对青蓝阴影，浅景深椭圆焦外加横向蓝眩光，细腻 35mm 颗粒，黑位略抬。"
     },
     "Soft Pencil": {
       "name": "软铅笔",
-      "description": "粗糙纸面上的 2B 石墨,柔和方向性排线晕进中间调,可塑橡皮提亮,一层淡水彩,边缘留白未完成。"
+      "description": "粗糙纸面上的 2B 石墨，柔和方向性排线晕进中间调，可塑橡皮提亮，一层淡水彩，边缘留白未完成。"
     },
     "Animation 3D": {
       "name": "三维动画",
-      "description": "风格化三维渲染,圆润微夸张的形体,黏土质感哑光材质,柔和全局光照加皮肤次表面散射,浅环境光遮蔽,饱和的日光色板。"
+      "description": "风格化三维渲染，圆润微夸张的形体，黏土质感哑光材质，柔和全局光照加皮肤次表面散射，浅环境光遮蔽，饱和的日光色板。"
     },
     "Watercolor Paint": {
       "name": "水彩",
-      "description": "湿画法水彩在冷压纸纹理上晕开,群青与熟赭的透明叠色带颜料沉淀,留白即高光。"
+      "description": "湿画法水彩在冷压纸纹理上晕开，群青与熟赭的透明叠色带颜料沉淀，留白即高光，颜料溢出画线边缘。"
     },
     "Photo / Commercial": {
       "name": "商业摄影",
-      "description": "85mm f/8 影棚布光,大柔光箱主光加白反光板补光,无缝背景纸,干净的高光,商业级锐度。"
+      "description": "85mm f/8 影棚摄影，大柔光箱主光加白色反光板补光，无缝背景纸，锐利镜面高光，中性色彩平衡，无颗粒。"
     },
     "Charcoal Sketch": {
       "name": "炭笔速写",
-      "description": "灰色直纹纸上的压缩炭条,大面积抹擦出的色块,丝绒般的深黑衬粉笔白高光,快速写意笔触。"
+      "description": "灰色直纹纸上的压缩炭条，大面积抹擦出的色块，丝绒般的深黑衬粉笔白高光，快速写意的轮廓线，可见灰尘与指印。"
     },
     "Dark Anime": {
       "name": "暗黑动漫",
-      "description": "动漫赛璐璐硬双调阴影,低饱和靛蓝配铁锈色调,夜景主光加强边缘光,密集交叉排线。"
+      "description": "动漫赛璐璐硬双调阴影，低饱和靛蓝配铁锈色调，夜景主光加强边缘光，密集交叉排线，手绘背景板。"
     },
     "Flat / Vector": {
       "name": "扁平矢量",
-      "description": "无描边纯扁平矢量,五色配色板,几何剪影,每个形体一块偏移平影,大量留白。"
+      "description": "无描边纯扁平矢量，五色配色板，几何剪影，每个形体一块偏移平影，大量留白，任意缩放下边缘依然锐利。"
     },
     "Noir": {
       "name": "黑色电影",
-      "description": "高对比黑白,单侧硬光把百叶窗条影投满画面,暗部压死,湿漉漉的路面反光。"
+      "description": "高对比黑白，单侧硬光把百叶窗条影投满画面，暗部压死，湿漉漉的路面反光，低机位，重卤化银颗粒。"
     },
     "Stick Figure": {
       "name": "火柴人",
-      "description": "单粗黑马克笔白底,火柴人身体圆头,简单地面线,一切用最少线条表达。"
+      "description": "白纸上的等粗黑马克笔，圆头火柴人身体，道具三四笔带过，手写字样，无阴影无透视。"
     },
     "Graphic Novel": {
       "name": "图像小说",
-      "description": "多变粗细的墨线,重斑点黑,网点纸质感,交叉排线阴影,有限色彩仅用于强调。"
+      "description": "笔刷墨线粗细多变，重斑点黑，中间调网点纸质感，灰蓝与赭石的低饱和双色调罩染，低调戏剧化的分格打光。"
     },
     "16-bit console": {
       "name": "16 位主机",
-      "description": "32px 网格 16 位主机像素画,每材质四阶色阶,实色轮廓,有限调色板,主机制式抖动。"
+      "description": "32px 32px 网格的 16 位主机像素画，每材质四阶色阶，纯黑实色轮廓，锈橙、苔绿与灰蓝的暖色板，无抗锯齿，无抖动。"
     },
     "8-bit": {
       "name": "8 位",
-      "description": "16px 网格 8 位像素画,每精灵三色,硬黑轮廓,硬边无抗锯齿,主色+暗部两阶。"
+      "description": "1616px 网格的 8 位像素画，每精灵三色，硬黑轮廓，黑底上的红、蓝与奶油主色，粗犷的单像素细节，无抖动，无抗锯齿。"
     },
     "Handheld pastel": {
       "name": "掌机粉彩",
-      "description": "32px 网格掌机像素画,淡绿奶白等四阶粉彩色阶,柔和轮廓,低对比。"
+      "description": "32px 网格的掌机像素画，淡绿、奶白、鼠尾草绿与深橄榄四阶粉彩色阶，柔和的灰绿轮廓而非黑色，无抗锯齿。"
     },
     "1-bit": {
       "name": "1 位",
-      "description": "双色 1 位像素画,近黑底上米白,明暗全靠有序抖动图案,单色粗轮廓,无中间调。"
+      "description": "双色 1 位像素画，近黑底上米白，明暗全靠有序抖动图案，单色粗轮廓，无中间调。"
     },
     "Chunky modern pixel": {
       "name": "现代厚像素",
-      "description": "32px 网格现代像素画,宽饱和色域,轮廓取材质色而非纯黑,顶部冷色边缘光,阴影区少量抖动。"
+      "description": "32px 网格现代像素画，宽饱和色域，轮廓取材质色而非纯黑，顶部冷色边缘光，阴影区少量抖动。"
     },
     "Painted 2D": {
       "name": "手绘二维",
-      "description": "水粉手绘二维游戏美术,可见笔触,软边缘,饱和中间调配柔和阴影,无像素网格无轮廓。"
+      "description": "水粉手绘二维游戏美术，可见笔触，软边缘，饱和中间调配柔和阴影，无像素网格无轮廓。"
     }
   },
   "gameInspiration": {
@@ -937,7 +937,7 @@
     }
   },
   "workflowInspiration": {
-    "summarize-pdf": "总结 PDF 并发邮件",
+    "summarize-pdf": "总结 PDF 并发送邮件",
     "product-shots": "从 CSV 批量生成产品图",
     "url-to-post": "把 YouTube 链接转成一篇博客文章"
   },
@@ -1526,7 +1526,7 @@
     "nodetool.video.TextToVideo": "文生视频",
     "nodetool.video.Transition": "转场",
     "nodetool.video.Trim": "修剪",
-    "nodetool.video.VideoToVideo": "视频转视频",
+    "nodetool.video.VideoToVideo": "视频生视频",
     "nodetool.timeline.AddClips": "添加片段到时间线",
     "nodetool.timeline.RenderTimeline": "渲染时间线",
     "nodetool.timeline.Transcript": "时间线转写稿",
@@ -1979,7 +1979,7 @@
     "nodetool.image.LoadImageFolder": "从文件夹加载全部图像，可选包含子文件夹。\nimage, load, folder, files",
     "nodetool.image.Painter": "在图像上绘制 alpha 蒙版并输出该蒙版。\nimage, painter, mask, brush, paint",
     "nodetool.image.Paste": "将一张图像按指定坐标粘贴到另一张上。\npaste, composite, positioning, overlay",
-    "nodetool.image.Relight": "用任一支持的图像编辑模型按文本提示词为被摄主体重新打光。\nimage, relight, lighting, AI, image-to-image",
+    "nodetool.image.Relight": "用任一支持的图像编辑模型按文本提示词为被摄主体重打光。\nimage, relight, lighting, AI, image-to-image",
     "nodetool.image.RemoveBackground": "移除图像背景，返回带透明度的抠像结果。\nimage, background, remove, matte, cutout, AI",
     "nodetool.image.Resize": "已弃用——请改用「调整图像尺寸」（nodetool.image.ResizeImage）。将图像尺寸改为指定的宽度与高度。\nimage, resize",
     "nodetool.image.ResizeImage": "缩放、设定精确尺寸或适配进目标框。尺寸模式下将宽或高设为 0 可保持该轴比例。\nimage, resize, scale, fit, dimensions",
@@ -2037,10 +2037,10 @@
     "nodetool.agents.Extractor": "用 LLM 服务商从文本内容中提取结构化数据。\ndata-extraction, structured-data, nlp, parsing\n\n专用于提取结构化信息：\n- 把非结构化文本转为结构化数据\n- 识别并提取文档中的特定字段\n- 按预定义 schema 解析文本\n- 从自然语言内容创建结构化记录",
     "nodetool.agents.Summarizer": "用 LLM 服务商生成文本内容的简洁摘要，输出为流式。\ntext, summarization, nlp, content, streaming\n\n专用于创作带实时流式输出高质量摘要：\n- 把长文档浓缩为要点\n- 边输出边生成执行摘要\n- 在生成的同时提取文本主旨\n- 在压缩篇幅的同时保持事实准确",
     "nodetool.creative.ApplyEntities": "将可复用的实体描述注入提示词，实现跨镜头一致性。\ncreative, entities, consistency, prompt, references\n\nUse cases:\n- 让角色或风格在多个镜头间保持一致\n- 为镜头提示词追加权威描述词\n- 为一次生成调用收集参考图",
-    "nodetool.creative.Director": "用 LLM 把创意简报转成结构化的镜头剧本。\ncreative, director, screenplay, shots, storyboard\n\nUse cases:\n- 从一句话简报规划短片或广告\n- 产出带镜头调度与统一风格的镜头清单\n- 用带类型的剧本为分镜/时间线管线播种",
+    "nodetool.creative.Director": "用 LLM 把创意简报转成结构化的镜头剧本。\ncreative, director, screenplay, shots, storyboard\n\nUse cases:\n- 从一句话简报规划短片或广告\n- 产出带镜头调度与统一风格的分镜表\n- 用带类型的剧本为分镜/时间线管线播种",
     "nodetool.creative.ScreenplayShots": "把剧本按镜头展开，每个镜头一条图像生成提示词。\ncreative, screenplay, shots, prompts, storyboard\n\nUse cases:\n- 把导演节点的剧本转成逐镜头提示词\n- 每个镜头驱动一次关键帧生成\n- 在分镜管线中逐镜头迭代",
     "nodetool.creative.ShotBatch": "把剧本展平为可直接生成的镜头规格（提示词、时长、关键帧）。\ncreative, shots, batch, screenplay, prompts\n\nUse cases:\n- 为批量关键帧/片段生成准备剧本的镜头\n- 以单个列表产出每个镜头的提示词与时长\n- 给镜头链节点喂一份随时可渲染的规格列表",
-    "nodetool.creative.ShotChain": "按顺序把一组镜头规格动画化为片段，并用上一片段的末帧为下一镜头播种首帧，保证连贯。\ncreative, shots, video, continuity, chain\n\nUse cases:\n- 把分镜的镜头串成连贯的动画序列\n- 让运动与构图在生成的片段之间保持一致\n- 把导演出的镜头清单渲染成可直接剪辑的一组视频",
+    "nodetool.creative.ShotChain": "按顺序把一组镜头规格动画化为片段，并用上一片段的末帧为下一镜头播种首帧，保证连贯。\ncreative, shots, video, continuity, chain\n\nUse cases:\n- 把分镜的镜头串成连贯的动画序列\n- 让运动与构图在生成的片段之间保持一致\n- 把导演出的分镜表渲染成可直接剪辑的一组视频",
     "nodetool.document.ListDocuments": "列出目录中的文档。\nfiles, list, directory",
     "nodetool.document.LoadDocumentFile": "从磁盘读取文档。\nfiles, document, read, input, load, file",
     "nodetool.document.SaveDocumentFile": "将文档写入磁盘。\nfiles, document, write, output, save, file\n\n文件名可包含时间与日期变量：\n%Y - 年，%m - 月，%d - 日\n%H - 时，%M - 分，%S - 秒",
@@ -2054,7 +2054,7 @@
     "nodetool.generators.SVGGenerator": "根据用户提示词创建 SVG 元素的 LLM 智能体。\nsvg, generator, vector, graphics\n\nUse cases:\n- 从文本描述创建矢量图形\n- 生成可缩放的插画\n- 创建自定义图标与示意图",
     "nodetool.script.FillScript": "从值包填充模板剧本的 {{key}} 占位符，并将结果另存为新剧本。模板本身不会被改写。没有对应值的键会留在文本中并被报告，且每条录音都会保留，因此之后的剧本配音只需为文字变动的行付费。\nscript, template, fill, placeholder, batch\n\nUse cases:\n- 按产品数据源的每一行产出一个剧本\n- 通过替换值完成模板本地化\n- 重跑批量后只给变化的部分重新配音",
     "nodetool.script.LoadScript": "读取已保存剧本的文本与元数据。\nscript, text, voiceover, narration, load\n\nUse cases:\n- 把剧本文本喂给 LLM 或文本节点\n- 配音前查看行数与角色阵容\n- 依据剧本内容为工作流分支",
-    "nodetool.script.ScriptToSubtitles": "直接用每行当前录音的字级时间轴，把已配音的剧本导出为 SRT 或 WebVTT 字幕——每行一条（或逐字一条），按创作的停顿首尾相接排布。请先为剧本配音；未配音的行会被跳过。\nscript, subtitles, srt, vtt, captions, export\n\nUse cases:\n- 为配好音的解说词生成字幕外挂\n- 从录音时间轴生成逐字定时的字幕\n- 把字幕送入烧录或上传步骤",
+    "nodetool.script.ScriptToSubtitles": "直接用每行当前录音的字级时间戳，把已配音的剧本导出为 SRT 或 WebVTT 字幕——每行一条（或逐字一条），按创作的停顿首尾相接排布。请先为剧本配音；未配音的行会被跳过。\nscript, subtitles, srt, vtt, captions, export\n\nUse cases:\n- 为配好音的解说词生成字幕外挂\n- 从各条录音的时间戳生成逐字定时的字幕\n- 把字幕送入烧录或上传步骤",
     "nodetool.script.ScriptToTimeline": "把剧本的当前录音组装成配音时间线——每行已配音的台词一个音频片段，按创作的停顿首尾相接，并各自回链到剧本行。剧本已有时间线时会原地更新它。请先为剧本配音。\nscript, timeline, voiceover, assemble, sequence\n\nUse cases:\n- 把配音后的剧本变成可编辑的序列\n- 为视频剪辑搭建解说轨\n- 把重新配音的行回写进既有时间线",
     "nodetool.script.VoiceScript": "按每行配置的角色音色，为剧本中所有草稿或过期的行合成语音，并把录音存回剧本。已是最新、无文字或无音色的行会被跳过。\nscript, voiceover, tts, narration, batch\n\nUse cases:\n- 一步为 LLM 写好的剧本配音\n- 只为文字或音色变了的行重新配音\n- 为时间线组装产出解说素材",
     "nodetool.script.WriteScript": "依据创意简报撰写新剧本，采用与剧本编辑器和智能体相同的写作规则，并保存为新剧本。角色实体成为说话人，各自带实体链接与音色。\nscript, write, brief, narration, cast\n\nUse cases:\n- 在批量流程中把逐行简报变成剧本\n- 从同一份简报按语言各写一个剧本\n- 不打开编辑器就为分镜撰写解说词",
@@ -2124,7 +2124,7 @@
     "nodetool.input.StringInput": "接收字符串值作为工作流参数。\ninput, parameter, string, text, label, name, value\n\nUse cases:\n- 为实体或流程定义名称。\n- 为组件或输出指定标签。\n- 输入简短的关键词或搜索词。\n- 提供简单的配置值（如 API 密钥、模型名）。\n- 需要输入多行文本或文件内容时，请使用 'DocumentFileInput'。",
     "nodetool.input.StringListInput": "接收字符串列表作为工作流参数。\ninput, parameter, string, text, label, name, value",
     "nodetool.input.TextListInput": "接收文本字符串列表作为工作流参数。\ninput, parameter, text, string, list",
-    "nodetool.input.TTSModelInput": "接收文本转语音模型作为工作流参数。\ninput, parameter, model, tts, speech, voice",
+    "nodetool.input.TTSModelInput": "接收 TTS 语音合成模型作为工作流参数。\ninput, parameter, model, tts, speech, voice",
     "nodetool.input.VideoInput": "接收视频素材的引用作为工作流参数，以 'VideoRef' 指定。'VideoRef' 指向视频数据，可供播放、分析、抽帧或供视频模型处理。\ninput, parameter, video, movie, clip, visual, asset",
     "nodetool.input.VideoListInput": "接收视频引用列表作为工作流参数。\ninput, parameter, video, movie, clip, visual, asset, list",
     "nodetool.input.VideoModelInput": "接收视频生成模型作为工作流参数。\ninput, parameter, model, video, generation",
@@ -2171,7 +2171,7 @@
     "nodetool.constant.String": "表示工作流中的字符串常量。\ntext, string, characters\n\nUse cases:\n- 为处理提供固定文本输入\n- 定义标签、标识符或名称\n- 为配置设定默认文本值",
     "nodetool.constant.TextList": "表示工作流中的文本字符串常量列表。\ntexts, strings, text collection\n\nUse cases:\n- 为批量处理提供固定的文本列表\n- 在工作流中引用多个文本值\n- 为测试或演示设定默认文本列表",
     "nodetool.constant.Timeline": "在工作流中引用时间线序列。\ntimeline, video editor, sequence, clips, tracks\n\nUse cases:\n- 在节点之间传递时间线以便渲染或剪辑视频\n- 打开并编辑所引用的时间线（在时间线编辑器中）\n- 为下游节点提供固定时间线输入",
-    "nodetool.constant.TTSModelConstant": "表示工作流中的文本转语音模型常量。\ntts, speech, voice, model, audio\n\nUse cases:\n- 为语音合成提供固定的 TTS 模型\n- 为工作流设定默认 TTS 模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.TTSModelConstant": "表示工作流中的 TTS 语音合成模型常量。\ntts, speech, voice, model, audio\n\nUse cases:\n- 为语音合成提供固定的 TTS 模型\n- 为工作流设定默认 TTS 模型\n- 无需用户输入即可配置模型选择",
     "nodetool.constant.Video": "表示工作流中的视频文件常量。\nvideo, movie, mp4, file\n\nUse cases:\n- 为视频处理节点提供固定视频输入\n- 在工作流中引用指定视频文件\n- 为测试或演示设定默认视频",
     "nodetool.constant.VideoList": "表示工作流中的视频文件常量列表。\nvideos, movies, clips, collection\n\nUse cases:\n- 为批量处理提供固定的视频列表\n- 在工作流中引用多个视频文件\n- 为测试或演示设定默认视频列表",
     "nodetool.constant.VideoModelConstant": "表示工作流中的视频生成模型常量。\nvideo, model, ai, generation\n\nUse cases:\n- 为生成提供固定的视频模型\n- 为工作流设定默认视频模型\n- 无需用户输入即可配置模型选择",
@@ -2295,8 +2295,8 @@
       "description": "一行导演意图变成两镜头的 B-roll 片段。提示词节点把简报扩成一个全景定场镜头加一个呼应的细节镜头，文生视频分别渲染，交叉淡化接在一起。每次运行含两次付费视频生成。"
     },
     "Batch a List.json": {
-      "name": "列表分批",
-      "description": "把一条流按固定大小分组。任何限流或按次计费场景的标准形态：分批、发送、再来，而不是逐条请求。"
+      "name": "批量处理列表",
+      "description": "把一条流按固定大小分组。任何限流或按次计费场景的标准形态：批量、发送、再来，而不是逐条请求。"
     },
     "Black and White, Hard.json": {
       "name": "硬边黑白",
@@ -2404,7 +2404,7 @@
     },
     "Cut a Product Out of Its Background.json": {
       "name": "产品抠图",
-      "description": "去掉背景并调整边缘柔度，同时不把产品糊掉。边缘柔度设为 0 可保留原始抠像。"
+      "description": "去掉背景并调整边缘柔度，同时不把产品糊掉。边缘柔度设为 0 可保留原始抠图。"
     },
     "Cut Out the Subject.json": {
       "name": "抠出主体",
@@ -2420,10 +2420,10 @@
     },
     "Direct a Short Film.json": {
       "name": "执导一部短片",
-      "description": "打一句简报，拿到一部剪好的片。语言模型当导演——写剧本、分镜表和旁白——然后逐镜头拍摄，片段汇成时间线并渲染。用了两个视频模型而不是一个，这是刻意的：镜头 1 无从种起，走文生视频；之后每个镜头都以前一镜头的末帧做种子保证连贯，走图生视频。Kie 把这两种发布成不同模型 ID，所以 Continuation Model 承载第二个；在单 ID 兼做两种的提供商（Gemini/Veo）上可以留空。成本随镜头数增长——三个镜头在 Kling 2.6 上大约一美元视频费加几分钱文字费。"
+      "description": "打一句简报，拿到一部剪好的片。语言模型当导演——写剧本、分镜表和旁白——然后逐镜头拍摄，片段汇成时间线并渲染。用了两个视频模型而不是一个，这是刻意的：镜头 1 无从种起，走文生视频；之后每个镜头都以前一镜头的末帧做种子保证连贯，走图生视频。Kie 把这两种发布成不同模型 ID，所以 Continuation Model 承载第二个；在单 ID 兼做两种的服务商（Gemini/Veo）上可以留空。成本随镜头数增长——三个镜头在 Kling 2.6 上大约一美元视频费加几分钱文字费。"
     },
     "Directed Film to Timeline.json": {
-      "name": "定向影片进时间线",
+      "name": "执导影片进时间线",
       "description": "把一行简报变成可编辑的粗剪。Director agent 写出镜头化剧本，每个镜头扇出成关键帧提示词、渲染成静图、再动画成片段，最后全部片段收集、追加进时间线序列并渲染成一条可以继续编辑的视频。"
     },
     "Does This Text Mention the Deadline.json": {
@@ -2468,7 +2468,7 @@
     },
     "Executive Summary of a Long Document.json": {
       "name": "长文档的高管摘要",
-      "description": "给不会读十二页的人的一页纸。把「需要什么决策」放在最前面，它才是一份简报而不是一份缩写。"
+      "description": "给不会读十二页的人的一页纸。把「需要什么决策」放在最前面，它才是一份简报而不是一份摘要。"
     },
     "Explainer Clip from a Paragraph.json": {
       "name": "一段话到讲解短片",
@@ -2480,11 +2480,11 @@
     },
     "Fade Audio In and Out.json": {
       "name": "音频淡入淡出",
-      "description": "让音轨从无声中缓入，开头不再是一记硬切。会先从视频里抽音轨，所以裸音轨和素材片都适用。本地 ffmpeg——无 API 成本。"
+      "description": "让音轨从无声中缓入，开头不再是一记硬切。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
     },
     "Fade Audio Out.json": {
       "name": "音频淡出",
-      "description": "让音轨在最后几秒衰减到无声，结尾不再戛然而止。时长设得比直觉更长——读起来「故意的」淡出，通常比剪辑时感觉的更慢。"
+      "description": "让音轨在最后几秒衰减到无声，结尾不再戛然而止。时长设得比直觉更长——听起来是刻意安排的淡出，通常比剪辑时感觉的更慢。"
     },
     "Fill a Template.json": {
       "name": "填充模板",
@@ -2524,11 +2524,11 @@
     },
     "Generate a Silent Bed.json": {
       "name": "生成无声垫底",
-      "description": "生成固定时长的静音音轨。用作拼接镜头之间的间隔，或真配音还没写好时的占位。"
+      "description": "生成固定时长的静音音轨。用作拼接各条之间的间隔，或真配音还没写好时的占位。"
     },
     "Generate then Upscale a Poster.json": {
-      "name": "先生成海报再放大",
-      "description": "先小尺寸便宜地生成，只为最终留下的那张付分辨率的价钱。在 1K 上反复迭代、最后一次放大，成本只有每稿都全尺寸生成的一小部分。"
+      "name": "先生成海报再超分",
+      "description": "先小尺寸便宜地生成，只为最终留下的那张付分辨率的价钱。在 1K 上反复迭代、最后一次超分，成本只有每稿都全尺寸生成的一小部分。"
     },
     "Hacker News Agent.json": {
       "name": "Hacker News 代理",
@@ -2588,7 +2588,7 @@
     },
     "Localise a Script and Revoice It.json": {
       "name": "剧本本地化并重配音",
-      "description": "把剧本译成西班牙语，生成语音，再拉平音量。首尾短淡入淡出柔化处理，不动时间轴。"
+      "description": "把剧本译成西班牙语，生成语音，再拉平音量。首尾短淡入淡出柔化处理，时长保持不变。"
     },
     "Localized Explainer.json": {
       "name": "多语言讲解片",
@@ -2596,7 +2596,7 @@
     },
     "Master a Voice Track.json": {
       "name": "母带处理人声",
-      "description": "一条人声出货前的三段链：压缩拉平峰值、抬升电平、再限幅防削波。顺序有讲究——先限幅的话，压缩器就没得可压了。"
+      "description": "一条人声交付前的三段链：压缩拉平峰值、抬升电平、再限幅防削波。顺序有讲究——先限幅的话，压缩器就没得可压了。"
     },
     "Meeting Transcript Summarizer.json": {
       "name": "会议转写摘要",
@@ -2636,7 +2636,7 @@
     },
     "Normalize a Clip's Audio.json": {
       "name": "素材音频归一化",
-      "description": "为录得太轻或太猛的音轨拉平响度。会先从视频里抽音轨，所以裸音轨和素材片都适用。本地 ffmpeg——无 API 成本。"
+      "description": "为录得太轻或太猛的音轨拉平响度。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
     },
     "One Tagline, Six Markets.json": {
       "name": "一句标语，六个市场",
@@ -2680,11 +2680,11 @@
     },
     "Pokemon Maker.json": {
       "name": "宝可梦生成器",
-      "description": "把任意真实动物组合变成一廊原创收藏系生物。风格下拉整批换皮，一次运行产出四款风格统一的变体设计，而不是一张图。"
+      "description": "把任意真实动物组合变成一组原创收藏系生物。风格下拉整批换皮，一次运行产出四款风格统一的变体设计，而不是一张图。"
     },
     "Poster on Kie.json": {
       "name": "Kie 生成海报",
-      "description": "通过 Kie 的 Seedream 4.5 生成海报风格图像。Kie 用一把钥匙前接多个模型家族，所以这是验证 Kie 凭据是否真能用的最短路径。"
+      "description": "通过 Kie 的 Seedream 4.5 生成海报风格图像。Kie 把多个模型家族收在一个密钥后面，所以这是验证 Kie 凭据是否真能用的最短路径。"
     },
     "Posterize to Four Bits.json": {
       "name": "色调分离到 4 比特",
@@ -2776,7 +2776,7 @@
     },
     "Reverse Audio.json": {
       "name": "倒放音频",
-      "description": "倒着播放一条音轨——reverse 镲片上扬与预回声效果的基础。会先从视频里抽音轨，所以裸音轨和素材片都适用。本地 ffmpeg——无 API 成本。"
+      "description": "倒着播放一条音轨——reverse 镲片上扬与预回声效果的基础。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
     },
     "Revise an Accepted Campaign Hero.json": {
       "name": "修订已采纳的广告主视觉",
@@ -2820,7 +2820,7 @@
     },
     "Shot List from a Synopsis.json": {
       "name": "从梗概到分镜表",
-      "description": "一份梗概变成带景别与时长、编号的镜头列表——生成管线可以逐条迭代的那份文档，散文不行。"
+      "description": "一份梗概变成带景别与时长、逐条编号的镜头——生成管线可以逐条迭代的那份文档，散文不行。"
     },
     "Single Shot from a Line.json": {
       "name": "一句话单镜头",
@@ -2847,7 +2847,7 @@
       "description": "合成语音并剥掉两端的死空气。TTS 常留 padding；RemoveSilence 给你能直接落进时间线的紧实片段。"
     },
     "Spin a Packshot into a Turntable Clip.json": {
-      "name": "定妆照变转台视频",
+      "name": "产品照变转台视频",
       "description": "静图变成产品页的运动画面。图生视频让产品分毫不变、只加运镜——文生视频模型做不到这一点。"
     },
     "Split a Channel.json": {
@@ -2883,8 +2883,8 @@
       "description": "镶边扫频垫在反馈延迟下面。两者都是混合式效果，干信号在底下活着，而不是被替换掉。"
     },
     "Take a Product Shot to Print Resolution.json": {
-      "name": "产品图放大到印刷分辨率",
-      "description": "放大已过审的产品照，再用一道可调的轻收尾锐化细节。锐度设 0 即关闭。"
+      "name": "产品图超分到印刷分辨率",
+      "description": "把已过审的产品照超分，再用一道可调的轻收尾锐化细节。锐度设 0 即关闭。"
     },
     "Take the First Few Seconds of a Bed.json": {
       "name": "取垫底的前几秒",
@@ -2939,8 +2939,8 @@
       "description": "按入点出点裁短素材。`accurate` 会重编码，让剪切落在精确帧上而不是最近的关键帧。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
     },
     "Trim Audio to a Range.json": {
-      "name": "音频裁区间",
-      "description": "把音轨裁到起止点。需要先知道时长再决定剪哪里时，配「检视素材的音频」使用。"
+      "name": "修剪音频区间",
+      "description": "把音轨修剪到起止点。需要先知道时长再决定剪哪里时，配「检视素材的音频」使用。"
     },
     "Turn a Changelog into Release Notes.json": {
       "name": "更新日志变发布说明",
@@ -2967,8 +2967,8 @@
       "description": "贴一份规格表，拿回文案。系统提示词禁止编造输入里没有的东西——这正是可用的产品文案与法律风险之间的差别。"
     },
     "Upscale a Still.json": {
-      "name": "放大静图",
-      "description": "放大图像而不带普通缩放的糊感。fal 上的 ESRGAN 是重建细节而不是插值，4 倍放大才经得起印刷。按图计费。"
+      "name": "静图超分",
+      "description": "超分图像而不带普通缩放的糊感。fal 上的 ESRGAN 是重建细节而不是插值，4 倍超分才经得起印刷。按图计费。"
     },
     "Vectorize a Generated Logo.json": {
       "name": "生成 Logo 矢量化",
@@ -3004,7 +3004,7 @@
     },
     "Write a Listing from the Product Photo.json": {
       "name": "照着产品照写 Listing",
-      "description": "把照片直接交给模型，而不是它的描述。从真实图片写出的跨境电商文案能抓住规格表漏掉的细节——做工、比例、它旁边摆着什么。"
+      "description": "把照片直接交给模型，而不是它的描述。从真实图片写出的电商文案能抓住规格表漏掉的细节——做工、比例、它旁边摆着什么。"
     },
     "Write the Prompt, Then Make the Image.json": {
       "name": "先写提示词，再生成图像",
