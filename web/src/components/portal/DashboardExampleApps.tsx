@@ -164,11 +164,14 @@ const ExampleAppCard = memo(function ExampleAppCard({
   const [thumbFailed, setThumbFailed] = useState(false);
   const src = thumbSrc(app.thumbnailUrl);
   const workflows = app.workflows.length;
+  // The card body shows the localized name; the title must interpolate the
+  // same localized name, or zh tooltips read as mixed sentences (F-39).
+  const localName = t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name });
   return (
     <button
       type="button"
       className={installing ? "app-card installing" : "app-card"}
-      title={t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: app.name })}
+      title={t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: localName })}
       aria-busy={installing}
       onClick={() => onInstall(app)}
     >
@@ -265,7 +268,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       addNotification({
         type: "error",
         alert: true,
-        content: t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: app.name, error: error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
+        content: t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name }), error: error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
       });
     }
   });
