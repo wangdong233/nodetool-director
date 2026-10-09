@@ -436,7 +436,9 @@ const InstallPanel = memo(function InstallPanel({
           onClick={handleInstall}
           disabled={!spec.trim() || status.kind === "installing"}
         >
-          {status.kind === "installing" ? "Installing…" : "Install"}
+          {status.kind === "installing"
+            ? t("editor:ui.installing", { defaultValue: "Installing…" })
+            : t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       </FlexRow>
       {status.kind === "ok" && (

@@ -115,6 +115,7 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
+  const { t } = useTranslation();
   if (row.toggle) {
     return (
       <LabeledSwitch
@@ -137,7 +138,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy ? "Working…" : "Update"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.update", { defaultValue: "Update" })}
         </EditorButton>
       )}
       {install && (
@@ -147,7 +150,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy ? "Installing…" : "Install"}
+          {busy
+            ? t("editor:ui.installing", { defaultValue: "Installing…" })
+            : t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       )}
       {uninstall && (
@@ -157,7 +162,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy ? "Working…" : "Uninstall"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
         </EditorButton>
       )}
     </>

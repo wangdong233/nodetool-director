@@ -410,9 +410,9 @@ export function usePackageManager(params: {
           )
         : inCat;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
         { id: "installed", label: t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
-        { id: "available", label: "Not installed", pred: (p) => !p.installed }
+        { id: "available", label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }), pred: (p) => !p.installed }
       ]);
       rows = filtered.map((rt) => {
         const busy = rtBusy.includes(rt.id) || rt.installing;
@@ -445,9 +445,9 @@ export function usePackageManager(params: {
           )
         : includedItems;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
-        { id: "enabled", label: "Enabled", pred: (p) => p.enabled },
-        { id: "disabled", label: "Disabled", pred: (p) => !p.enabled }
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
+        { id: "enabled", label: t("editor:ui.enabled", { defaultValue: "Enabled" }), pred: (p) => p.enabled },
+        { id: "disabled", label: t("editor:ui.disabled", { defaultValue: "Disabled" }), pred: (p) => !p.enabled }
       ]);
       rows = filtered.map((item) => ({
         key: item.id,
@@ -456,7 +456,9 @@ export function usePackageManager(params: {
         badge: item.required ? "alwaysOn" : null,
         toggle: {
           enabled: item.enabled,
-          label: item.enabled ? "Enabled" : "Disabled",
+          label: item.enabled
+            ? t("editor:ui.enabled", { defaultValue: "Enabled" })
+            : t("editor:ui.disabled", { defaultValue: "Disabled" }),
           disabled: item.required,
           onChange: item.onToggle
         }
@@ -469,7 +471,7 @@ export function usePackageManager(params: {
           )
         : pythonPacks;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
         {
           id: "installed",
           label: t("editor:ui.installed", { defaultValue: "Installed" }),

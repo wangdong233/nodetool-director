@@ -76,6 +76,8 @@
     "title": "从小程序开始",
     "countOne": "{{count}}个小程序",
     "countMany": "{{count}}个小程序",
+    "workflowCountOne": "{{count}}个工作流",
+    "workflowCountMany": "{{count}}个工作流",
     "seeAll": "查看全部",
     "lede": "一次上传，几个选项，一个结果。添加小程序也会一并添加它运行的工作流，随时可打开其背后的图谱。",
     "addTitle": "将{{name}}添加到小程序",

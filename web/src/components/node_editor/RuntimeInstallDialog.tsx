@@ -84,12 +84,20 @@ async function installAll(
   return allInstalled;
 }
 
-const STATUS_LABEL = {
-  pending: "Required",
-  installing: "Installing…",
-  installed: "Installed",
-  failed: "Failed",
-} satisfies Record<RuntimeStatus, string>;
+// Resolved per-render so the labels follow the active language (the plain
+// map captured English at module load).
+const statusLabel = (t: ReturnType<typeof useTranslation>["t"], status: RuntimeStatus): string => {
+  switch (status) {
+    case "pending":
+      return t("editor:ui.requiredLabel", { defaultValue: "Required" });
+    case "installing":
+      return t("editor:ui.installing", { defaultValue: "Installing…" });
+    case "installed":
+      return t("editor:ui.installed", { defaultValue: "Installed" });
+    case "failed":
+      return t("editor:ui.failed", { defaultValue: "Failed" });
+  }
+};
 
 const STATUS_COLOR: Record<
   RuntimeStatus,
@@ -173,11 +181,11 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
     .join(", ");
 
   const confirmText = allInstalled
-    ? "Done"
+    ? t("editor:ui.done", { defaultValue: "Done" })
     : installing
-      ? "Installing…"
+      ? t("editor:ui.installing", { defaultValue: "Installing…" })
       : failedCount > 0
-        ? "Retry"
+        ? t("editor:explorer.retry", { defaultValue: "Retry" })
         : t("editor:ui.installAll2", { defaultValue: "Install all" });
 
   return (
@@ -267,6 +275,7 @@ interface RuntimeRowProps {
 }
 
 const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
+  const { t } = useTranslation();
   return (
     <FlexRow
       gap={1}
@@ -307,7 +316,11 @@ const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
         compact
         color={STATUS_COLOR[status]}
         active={status !== "pending"}
-        label={error ? "Failed" : STATUS_LABEL[status]}
+        label={
+          error
+            ? t("editor:ui.failed", { defaultValue: "Failed" })
+            : statusLabel(t, status)
+        }
       />
     </FlexRow>
   );

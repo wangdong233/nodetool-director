@@ -194,7 +194,15 @@ const ExampleAppCard = memo(function ExampleAppCard({
           {t(`catalog:apps.${app.slug}.description`, { defaultValue: app.description })}
         </span>
         <span className="app-meta">
-          {workflows} workflow{workflows === 1 ? "" : "s"}
+          {t(
+            workflows === 1
+              ? "home:apps.workflowCountOne"
+              : "home:apps.workflowCountMany",
+            {
+              defaultValue: `${workflows} workflow${workflows === 1 ? "" : "s"}`,
+              count: String(workflows)
+            }
+          )}
         </span>
       </span>
     </button>

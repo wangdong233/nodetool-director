@@ -24,6 +24,7 @@ import { useGuidedFlowStarters } from "../workspace/useGuidedFlowStarters";
 import { TutorialCard } from "./TutorialCard";
 import { TUTORIALS, getTutorial } from "./tutorialsData";
 import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
@@ -330,7 +331,10 @@ const TutorialsPage: React.FC = () => {
           type: "chat",
           ref: threadId,
           mode: "view",
-          title: "New chat",
+          // Same discipline as NewProjectSurface's chat seed: the tab title
+          // is a one-time snapshot, so it resolves through the i18n
+          // singleton (the tab does not re-render on language switch).
+          title: i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
           projectId
         });
         navigate("/workspace");

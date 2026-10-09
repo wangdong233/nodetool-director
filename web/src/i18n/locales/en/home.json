@@ -76,6 +76,8 @@
     "title": "Start from an app",
     "countOne": "{{count}} app",
     "countMany": "{{count}} apps",
+    "workflowCountOne": "{{count}} workflow",
+    "workflowCountMany": "{{count}} workflows",
     "seeAll": "See all apps",
     "lede": "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them.",
     "addTitle": "Add {{name}} to your apps",
