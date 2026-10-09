@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正;30b-4 已回写节点目录域批修正(裁决执行 trim/solarize/restyle/director + mask/cutout/packshot/reference 族归一 + 新锚 restyle/narration/text to music/video stabilization/thread)。",
+    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正;30b-4 已回写节点目录域批修正;30b-5 已回写设置与系统域批修正(settings/nav/common/home/tools:provider 7 处清零+worker 2+TTS 2+remix 1+shot list 5+edit point 2+costs 2+app 4+dismiss 收齐+relTime 错位 3+unpriced 歧义+desc 截断补全 9;新锚 grounded search;provider/worker/dismiss/timeline/tts/shot list/relTime 族升 clean)。",
     "标准从:后轮裁定优先于早轮 (r13-r28 分域审校词汇为准绳),先查 glossary.md 既有裁定。",
     "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
@@ -42,8 +42,8 @@
       "zh": "素材",
       "domain": "app-core",
       "grade": "B",
-      "note": "glossary 弃用 资产。30b 已修 editor:ui.selectNewFolderForAssets_other→素材(storyboard 3 处待后续批)。",
-      "variants_seen": ["素材", "资产(30b已修:editor域)"]
+      "note": "glossary 弃用 资产。30b 已修 editor 域;30b-5 复扫设置与系统域(settings/nav/common/home/tools)零残留,并补 settings:vaults.desc 知识库→RAG 知识库(忠实 en=RAG collections)。剩余 storyboard 域 3 处资产槽位 族待后续批。",
+      "variants_seen": ["素材", "资产(30b已修:editor域;storyboard 3 处待)"]
     },
     "job": {
       "zh": "任务",
@@ -55,8 +55,8 @@
     "provider": {
       "zh": "模型服务商",
       "domain": "app-core",
-      "grade": "A",
-      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b/30b-2 已修 editor/ui2/ui/storyboard/timeline 域;30b-3 已修 catalog 最后 1 处(Direct a Short Film 提供商→服务商)。Turn a Logo 的 供应商 为 en=supplier 的忠实译(印厂/绣厂义),非 provider 概念,判定保留。语料归一完成。",
+      "grade": "clean",
+      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b/30b-2 已修 editor/ui2/ui/storyboard/timeline 域;30b-3 已修 catalog 最后 1 处;30b-5 已修设置与系统域最后 7 处(settings:sidebar.providerOptions+OLLAMA_CONTEXT_LENGTH desc;tools:menus addABaseURL/providerGuidesLinks/providerOptions/providerRemoved/seeModelsByProvider+HF_TOKEN desc)。Turn a Logo 的 供应商 为 en=supplier 的忠实译(印厂/绣厂义),非 provider 概念,判定保留。语料归一完成。",
       "variants_seen": ["服务商", "模型服务商", "提供商(已清)", "供应商(保留:en=supplier 义)"]
     },
     "api key": {
@@ -100,9 +100,9 @@
     "timeline": {
       "zh": "时间线",
       "domain": "app-core",
-      "grade": "B",
-      "note": "glossary 弃用 时间轴。30b 已修 editor:ui.subtitlesWithCueTimings→提示时间点;30b-2 已修 storyboard;30b-3 已修 catalog 模板描述 1 处(Localise a Script:不动时间轴→时长保持不变)与 nodeDocs.script.ScriptToSubtitles 字级时间轴→字级时间戳。语料归一完成。",
-      "variants_seen": ["时间线", "时间轴(30b/30b-2/30b-3已修)", "时间戳(字级 timings 语境)"]
+      "grade": "clean",
+      "note": "glossary 弃用 时间轴。30b/30b-2/30b-3 分域修毕;30b-5 全语料复扫 时间轴 零命中(任务快照的×2 已在前批清零),归一维持。",
+      "variants_seen": ["时间线", "时间轴(30b/30b-2/30b-3已修;30b-5复扫零残留)"]
     },
     "storyboard": {
       "zh": "分镜",
@@ -122,8 +122,8 @@
       "zh": "分镜表",
       "domain": "film",
       "grade": "clean",
-      "note": "影视行话。30b-2 已修 storyboard 镜头清单×2;30b-3 已修 catalog 6 处:skills.kling/minimax-h3+apps.multi-shot-video/trailer-room+nodeDocs.Director/ShotChain 镜头清单→分镜表。Shot List from a Synopsis desc 编号的镜头列表→逐条编号的镜头。语料归一完成。",
-      "variants_seen": ["分镜表", "镜头清单(30b-2/30b-3已修)", "镜头列表(30b-3已修)"]
+      "note": "影视行话。30b-2 已修 storyboard 镜头清单×2;30b-3 已修 catalog 6 处;30b-5 已修 tools:tutorials 最后 5 处(storyboard-ask.result+storyboard-assistant result/startingState/task/learn_0 镜头清单→分镜表)。Shot List from a Synopsis desc 编号的镜头列表→逐条编号的镜头。语料归一完成。",
+      "variants_seen": ["分镜表", "镜头清单(30b-2/30b-3/30b-5已修)", "镜头列表(30b-3已修)"]
     },
     "sketch": {
       "zh": "图稿",
@@ -167,7 +167,7 @@
       "zh": "知识库",
       "domain": "rag",
       "grade": "A",
-      "note": "glossary/R1 定 知识库,弃用 收藏集/合集。30b 已修 editor 域全部 15 处;30b-4 复核 control 节点 Collection=素材集合:判定保留(nodeDocs 证实=单一类型素材的精选集合,资产域语义,与 RAG 知识库 分立成立);dataTypes.collection=知识库(nodeDocs 证实=RAG 检索语境,正确)。",
+      "note": "glossary/R1 定 知识库,弃用 收藏集/合集。30b 已修 editor 域全部 15 处;30b-4 复核 control 节点 Collection=素材集合:判定保留(nodeDocs 证实=单一类型素材的精选集合,资产域语义,与 RAG 知识库 分立成立);dataTypes.collection=知识库(nodeDocs 证实=RAG 检索语境,正确);30b-5 复扫设置与系统域(A7)零残留:nav.rail.collections=知识库、settings.vaults.desc=RAG 知识库、home/com/tools 零出现。",
       "variants_seen": ["知识库", "收藏集(30b已修)", "素材集合(control 节点名,30b-4 复核保留)", "合集(30b已修)", "集合(30b已修)"]
     },
     "entities": {
@@ -215,8 +215,8 @@
       },
       "domain": "app-core",
       "grade": "B",
-      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。30b 已判定:editor:ui.menuLabel.app/ui.newApp 的创建入口 type=application(工作流小程序),editor 域 app 族 26 键已改 小程序;bugSource.app-crash 等泛指应用语境保留 应用。",
-      "variants_seen": ["小程序", "应用(30b分域:mini-app 语境已修,泛指保留)"]
+      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。30b 已判定 editor 域 app 族 26 键=小程序;30b-5 已修 tools:tutorials.app-assistant 段内泛 应用×4→小程序(result 应用显示→小程序显示/tagline 应用搭建→小程序构建器(对齐 docsTopics.appBuilder)/task 应用界面→小程序界面/description 描述一个应用→一个小程序);bugSource.app-crash 等泛指应用语境保留 应用。",
+      "variants_seen": ["小程序", "应用(30b分域:mini-app 语境已修含 tools tutorials,泛指保留)"]
     },
     "image": {
       "zh_by_domain": {
@@ -235,7 +235,7 @@
       },
       "domain": "app-core",
       "grade": "C",
-      "note": "r13-G2 两语境分立非双译。",
+      "note": "r13-G2 两语境分立非双译。30b-5 设置与系统域复扫零违例:settings:general.descApiToken 验证你的账户(鉴权)✓、tools CODEX note ChatGPT 账号登录(登录)✓、customProviderEncryptionNote 按账户加密(账户体系)✓。",
       "variants_seen": ["账号", "账户"]
     },
     "campaign": {
@@ -270,8 +270,8 @@
       "zh": "重混",
       "domain": "media-task",
       "grade": "clean",
-      "note": "r28 族词;视频生视频重混/角色重混 组合一致。",
-      "variants_seen": ["重混"]
+      "note": "r28 族词;视频生视频重混/角色重混 组合一致。30b-5 已修 tools REVE desc 再混合→重混(最后 1 处)。",
+      "variants_seen": ["重混", "再混合(30b-5已修:tools)"]
     },
     "relight": {
       "zh": "重打光",
@@ -359,9 +359,9 @@
     "text to speech": {
       "zh": "TTS 语音合成",
       "domain": "media-task",
-      "grade": "B",
-      "note": "suffix 词表=TTS 语音合成;30b 已修 editor 域;30b-3 已修 catalog 3 处:apps.ai-spokesperson(文字转语音→TTS 语音合成)+nodeDocs.TTSModelInput/TTSModelConstant(文本转语音模型→TTS 语音合成模型,与节点名 TTS 模型输入/常量 一致)。语料归一完成。",
-      "variants_seen": ["TTS 语音合成", "文生语音(30b已修)", "文本转语音(30b/30b-3已修)", "文字转语音(30b-3已修)"]
+      "grade": "clean",
+      "note": "suffix 词表=TTS 语音合成;30b 已修 editor 域;30b-3 已修 catalog 3 处;30b-5 已修设置与系统域最后 2 处:settings:defModels.mTts(语音合成模型→TTS 语音合成模型,与 nodeDocs TTSModelInput 族一致)+tools ELEVENLABS desc(文本转语音→TTS 语音合成)。语料归一完成。",
+      "variants_seen": ["TTS 语音合成", "文生语音(30b已修)", "文本转语音(30b/30b-3/30b-5已修)", "文字转语音(30b-3已修)", "语音合成(30b-5已修:补 TTS 前缀)"]
     },
     "transcribe": {
       "zh": "语音转文字",
@@ -422,8 +422,8 @@
       "zh": "剪辑点",
       "domain": "editing",
       "grade": "clean",
-      "note": "影视行话,全一致。",
-      "variants_seen": ["剪辑点"]
+      "note": "影视行话,全一致。30b-5 已修 tools:tutorials.timeline-trim-arrange 剪切点×2→剪辑点(task/desc,与 timeline:shortcuts 族对齐)。",
+      "variants_seen": ["剪辑点", "剪切点(30b-5已修:tools)"]
     },
     "keyframe": {
       "zh": "关键帧",
@@ -674,9 +674,9 @@
     "dismiss": {
       "zh": "忽略",
       "domain": "ui",
-      "grade": "B",
-      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立)。30b 已修 editor:ui.dismiss(ModelSetupCallout 通知角标)→忽略;30b-2 已修 storyboard:attrs.dismiss/dismissReceipt→忽略;common 域待后续批。",
-      "variants_seen": ["关闭(30b已修:editor/storyboard域)", "忽略"]
+      "grade": "clean",
+      "note": "通知类=忽略(与 关闭=close 分立)。30b 已修 editor:ui.dismiss;30b-2 已修 storyboard:attrs.dismiss/dismissReceipt;30b-5 已修 common:action.dismiss(关闭→忽略,消费面=GettingStartedChecklist 入门角标按钮,与 action.close=关闭 撞译消除)并同步 home:checklist.dismissAria。全语料归一完成。",
+      "variants_seen": ["忽略", "关闭(30b/30b-2/30b-5已修)"]
     },
     "duplicate": {
       "zh": "创建副本",
@@ -695,9 +695,9 @@
     "worker": {
       "zh": "工作节点",
       "domain": "app-core",
-      "grade": "B",
-      "note": "r28 族词;30b 已修 editor 域;30b-3 已修 catalog:skills.nodetool-deployment 工作进程→工作节点。30b-4 已修 catalog:lib.comfy.RunWorkflowOnWorker 节点 (Worker)→(工作节点)+nodeDocs 混排 worker 桥接→工作节点桥接。语料归一完成。",
-      "variants_seen": ["工作节点", "工作器(30b已修)", "工作进程(30b-3已修)", "worker(30b/30b-4已修:混排)"]
+      "grade": "clean",
+      "note": "r28 族词;30b 已修 editor 域;30b-3 已修 catalog:skills.nodetool-deployment 工作进程→工作节点;30b-4 已修 catalog:RunWorkflowOnWorker+nodeDocs 混排;30b-5 已修 tools:menus.providers RUNPOD/VAST desc 混排 NodeTool worker→NodeTool 工作节点(最后 2 处)。语料归一完成。",
+      "variants_seen": ["工作节点", "工作器(30b已修)", "工作进程(30b-3已修)", "worker(30b/30b-4/30b-5已修:混排)"]
     },
     "batch": {
       "zh": "批量",
@@ -854,8 +854,8 @@
       "zh": "成本",
       "domain": "app-core",
       "grade": "B",
-      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修:costsTitle/estimatedCost 族/topCostDriver/couldntLoadCostData 等;spend=花费 为另一 en 词,保留)。30b-2 已修 storyboard/timeline 域 费用→成本 15 键(roughCost/estimatedCostAbout/costEstimateUnavailable/costTip/costPrefix/estimatedCostOf 三键 等);appbuilder previewCostsDashboard=费用面板 待后续批。",
-      "variants_seen": ["成本", "费用(30b/30b-2已修:editor/storyboard/timeline域)"]
+      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修);30b-2 已修 storyboard/timeline 域 费用→成本 15 键;30b-5 已修 settings:storage.descKeepGen 计费字段列举 费用→成本 + remote.NODETOOL_AGENT_TURN_COST_CAP_USD label 费用上限→成本上限(desc 内 provider spend 译 服务商花费 保留,spend 为另一 en 词)。appbuilder previewCostsDashboard=费用面板 待后续批。",
+      "variants_seen": ["成本", "费用(30b/30b-2/30b-5已修:editor/storyboard/timeline/settings域)", "花费(spend 义保留)"]
     },
     "compare": {
       "zh": "对比",
@@ -1023,9 +1023,16 @@
     "thread": {
       "zh": "会话线程",
       "domain": "app-core",
-      "grade": "B",
-      "note": "30b-4 新锚:chat thread=会话线程(与 创建会话 节点[nodetool.agents.CreateThread]+其 doc 会话线程 一致);已修 dataTypes.thread 对话线程→会话线程。聊天域 UI 用 对话(newChat=新建对话)指会话本身,线程词保留 会话线程 形态。",
-      "variants_seen": ["会话线程", "对话线程(30b-4已修)"]
+      "grade": "clean",
+      "note": "chat thread=会话线程(与 创建会话 节点[nodetool.agents.CreateThread]+其 doc 会话线程 一致);30b-4 已修 dataTypes.thread;30b-5 已修 settings:remote NODETOOL_CHAT_COMPACTION_TOKENS desc 裸 线程→会话线程(并补全截断的 4 句 desc)。聊天域 UI 用 对话(newChat=新建对话)指会话本身,线程词保留 会话线程 形态。",
+      "variants_seen": ["会话线程", "对话线程(30b-4已修)", "线程(30b-5已修:settings 补全称)"]
+    },
+    "grounded search": {
+      "zh": "接地搜索",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "30b-5 裁定(上批待裁项):GroundedSearch=接地搜索,Google 官方中文文档用语(Gemini grounding with search),维持。词典位 catalog:gemini.text.GroundedSearch(节点显示名),设置与系统域零出现。",
+      "variants_seen": ["接地搜索"]
     }
   }
 }
