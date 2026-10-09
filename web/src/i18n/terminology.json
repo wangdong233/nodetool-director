@@ -42,8 +42,8 @@
       "zh": "素材",
       "domain": "app-core",
       "grade": "B",
-      "note": "glossary 弃用 资产,但语料残留 4 处(editor:ui.selectNewFolderForAssets_other、storyboard:attrs.writeTheDesignPremiseLoopCastAndOnePromptPerAsset / theSubjectOfEachAsset / tellUsThePremiseWellPickATemplate)。30b 修正为 素材(资产槽位→素材槽位)。",
-      "variants_seen": ["素材", "资产"]
+      "note": "glossary 弃用 资产。30b 已修 editor:ui.selectNewFolderForAssets_other→素材(storyboard 3 处待后续批)。",
+      "variants_seen": ["素材", "资产(30b已修:editor域)"]
     },
     "job": {
       "zh": "任务",
@@ -56,8 +56,8 @@
       "zh": "模型服务商",
       "domain": "app-core",
       "grade": "A",
-      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例,语料残留约 21 处(settings:sidebar.providerOptions、settings:remote.OLLAMA_CONTEXT_LENGTH.description、editor:ui.noProvidersMatch / providerNodesAppearOnceYouAddTheirAPIKey / providerIdHelper / getFreeCreditsAndOffersFromOurPartnerProviders / setupReasonChat / setupReasonImage 等)。30b 全量 提供商→服务商。",
-      "variants_seen": ["服务商", "模型服务商", "提供商"]
+      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b 已修 editor/ui2/ui 域全部:提供商 15 处+第三变体 供应商 1 处(theProvider)+渠道费率 1 处,均改 服务商;settings 域残留由后续批处理。",
+      "variants_seen": ["服务商", "模型服务商", "提供商(30b已修)", "供应商(30b已修)"]
     },
     "api key": {
       "zh": "API 密钥",
@@ -101,8 +101,8 @@
       "zh": "时间线",
       "domain": "app-core",
       "grade": "B",
-      "note": "glossary 弃用 时间轴,残留 2 处(editor:ui.subtitlesWithCueTimings、catalog:workflowTemplates.Localise a Script and Revoice It.json.description)。cue timings 语境 30b 可改 提示时间点。",
-      "variants_seen": ["时间线", "时间轴"]
+      "note": "glossary 弃用 时间轴。30b 已修 editor:ui.subtitlesWithCueTimings→提示时间点(cue timings 语境);catalog 模板描述 1 处待后续批。",
+      "variants_seen": ["时间线", "时间轴(30b已修:editor域)"]
     },
     "storyboard": {
       "zh": "分镜",
@@ -167,8 +167,8 @@
       "zh": "知识库",
       "domain": "rag",
       "grade": "A",
-      "note": "glossary/R1 定 知识库,弃用 收藏集/合集;残留 editor:ui.failedToCreateCollection / withACollectionYouCan / errorLoadingCollections 3 处收藏集。control 节点 Collection=素材集合 为节点显示名,分立可留(30b 复核)。",
-      "variants_seen": ["知识库", "收藏集", "素材集合", "合集"]
+      "note": "glossary/R1 定 知识库,弃用 收藏集/合集。30b 已修 editor 域全部 15 处(收藏集 3+合集 5+集合 7→知识库);control 节点 Collection=素材集合 为节点显示名,分立可留(后续批复核)。",
+      "variants_seen": ["知识库", "收藏集(30b已修)", "素材集合", "合集(30b已修)", "集合(30b已修)"]
     },
     "entities": {
       "zh_by_domain": {
@@ -215,8 +215,8 @@
       },
       "domain": "app-core",
       "grade": "B",
-      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。editor:ui.app(New app→新建应用)与 menuLabel.app 30b 判定所指面:若为小程序创建入口应改 小程序。",
-      "variants_seen": ["小程序", "应用"]
+      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。30b 已判定:editor:ui.menuLabel.app/ui.newApp 的创建入口 type=application(工作流小程序),editor 域 app 族 26 键已改 小程序;bugSource.app-crash 等泛指应用语境保留 应用。",
+      "variants_seen": ["小程序", "应用(30b分域:mini-app 语境已修,泛指保留)"]
     },
     "image": {
       "zh_by_domain": {
@@ -225,7 +225,7 @@
       },
       "domain": "media",
       "grade": "C",
-      "note": "r15-Y2 双译分立;残留交叉:appbuilder:attrs.imageInput=图片输入(应为 图像输入,节点 IO 面)。",
+      "note": "r15-Y2 双译分立;残留交叉:appbuilder:attrs.imageInput=图片输入(应为 图像输入,节点 IO 面)——appbuilder 域待后续批;30b 已核 editor:explorer.subtitle 属素材语境(图像→图片已修)。",
       "variants_seen": ["图像", "图片"]
     },
     "account": {
@@ -277,8 +277,8 @@
       "zh": "重打光",
       "domain": "media-task",
       "grade": "B",
-      "note": "r28 族词=重打光;残留 editor:ui.relight=重新打光、nodeDocs/apps 各 1 处,30b 统一 重打光。",
-      "variants_seen": ["重打光", "重新打光"]
+      "note": "r28 族词=重打光;30b 已修 editor:ui.relight(重新打光→重打光);nodeDocs/apps 各 1 处待后续批。",
+      "variants_seen": ["重打光", "重新打光(30b已修:editor域)"]
     },
     "lip sync": {
       "zh": "对口型",
@@ -291,8 +291,8 @@
       "zh": "超分",
       "domain": "media-task",
       "grade": "B",
-      "note": "任务域=超分(r14 词表);editor:ui.upscale=放大 与 2 处模板描述用 放大,30b 改 超分;放大 保留给 缩放/放大镜 UI 动作。",
-      "variants_seen": ["超分", "放大"]
+      "note": "任务域=超分(r14 词表);30b 已修 editor:ui.upscale(放大→超分);2 处模板描述待后续批;放大 保留给 缩放/放大镜 UI 动作(zoom in/out 不受影响)。",
+      "variants_seen": ["超分", "放大(30b已修:任务词)"]
     },
     "outpaint": {
       "zh_by_domain": {
@@ -346,8 +346,8 @@
       "zh": "音频生视频",
       "domain": "media-task",
       "grade": "B",
-      "note": "suffix=音频生视频;editor:ui.audioToVideo=音频转视频,30b 统一 音频生视频(与图生视频/文生视频族形一致)。",
-      "variants_seen": ["音频生视频", "音频转视频"]
+      "note": "suffix=音频生视频;30b 已修 editor:ui.audioToVideo/audioToVideoShort(音频转视频→音频生视频,与图生视频/文生视频族形一致)。",
+      "variants_seen": ["音频生视频", "音频转视频(30b已修)"]
     },
     "reference to video": {
       "zh": "参考图生视频",
@@ -360,8 +360,8 @@
       "zh": "TTS 语音合成",
       "domain": "media-task",
       "grade": "B",
-      "note": "suffix 词表=TTS 语音合成;editor:ui.textToSpeech=文生语音,30b 统一 TTS 语音合成。",
-      "variants_seen": ["TTS 语音合成", "文生语音"]
+      "note": "suffix 词表=TTS 语音合成;30b 已修 editor:ui.textToSpeech(文生语音→TTS 语音合成)+capabilityLabel.text_to_speech(文本转语音)+TTS 音色描述 1 处(→语音合成音色)。",
+      "variants_seen": ["TTS 语音合成", "文生语音(30b已修)", "文本转语音(30b已修)"]
     },
     "transcribe": {
       "zh": "语音转文字",
@@ -374,8 +374,8 @@
       "zh": "去背景",
       "domain": "media-task",
       "grade": "B",
-      "note": "suffix=去背景;editor:ui.removeBackground=移除背景,30b 统一 去背景(抠图行话)。",
-      "variants_seen": ["去背景", "移除背景"]
+      "note": "suffix=去背景;30b 已修 editor:ui.removeBackground(移除背景→去背景,抠图行话)。",
+      "variants_seen": ["去背景", "移除背景(30b已修)"]
     },
     "inpaint": {
       "zh": "局部重绘",
@@ -620,8 +620,8 @@
       "zh": "条",
       "domain": "film",
       "grade": "clean",
-      "note": "行话(再来一条/一条 23 处)。",
-      "variants_seen": ["条"]
+      "note": "行话(再来一条/一条 23 处)。30b 复核:editor 脚本配音面(ScriptTakeGallery/ScriptLineRow)与 timeline 域现状均用名词形 条目(删除条目/新条目/条目标签),跨 namespace 现状一致;若裁定改 纯 条 需 editor+timeline 两批联动,已列 30b 待裁清单。",
+      "variants_seen": ["条", "条目(30b待裁:名词形现状)"]
     },
     "render": {
       "zh_by_domain": {
@@ -660,15 +660,15 @@
       },
       "domain": "ui",
       "grade": "A",
-      "note": "editor:ui.back=背面 为误译(AddClipMenu 返回按钮 tooltip,旁邻 aria 已用 返回剪辑来源),30b 改 返回;wizard 上一步 分立正确。",
-      "variants_seen": ["返回", "背面", "上一步"]
+      "note": "editor:ui.back=背面 为误译(AddClipMenu 返回按钮 tooltip,旁邻 aria 已用 返回剪辑来源),30b 已改 返回;wizard 上一步 分立正确。",
+      "variants_seen": ["返回", "背面(30b已修)", "上一步"]
     },
     "dismiss": {
       "zh": "忽略",
       "domain": "ui",
       "grade": "B",
-      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立),30b 统一。",
-      "variants_seen": ["关闭", "忽略"]
+      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立)。30b 已修 editor:ui.dismiss(ModelSetupCallout 通知角标)→忽略;common 域待后续批。",
+      "variants_seen": ["关闭(30b已修:editor域)", "忽略"]
     },
     "duplicate": {
       "zh": "创建副本",
@@ -688,8 +688,8 @@
       "zh": "工作节点",
       "domain": "app-core",
       "grade": "B",
-      "note": "2026-09-30 行话令;残留 editor:ui.gpuUpWorkerStillLoading=工作器 1 处,30b 改 工作节点。",
-      "variants_seen": ["工作节点", "工作器"]
+      "note": "2026-09-30 行话令;30b 已修 editor 域全部:工作器 1 处(gpuUpWorkerStillLoading)+句中小写 worker 拉丁残留 19 处(中英混排禁断词)→工作节点;NodeTool Worker/ComfyUI(Worker) 节点名等品牌形态保留。",
+      "variants_seen": ["工作节点", "工作器(30b已修)", "worker(30b已修:混排)"]
     },
     "batch": {
       "zh": "批量",
@@ -811,8 +811,8 @@
       "zh": "运行时",
       "domain": "app-core",
       "grade": "B",
-      "note": "ui2:attrs.runtime=运行时长(若为时长统计语境则正确),30b 查消费面;运行环境义=运行时。",
-      "variants_seen": ["运行时", "运行时长"]
+      "note": "ui2:attrs.runtime=运行时长,30b 已查消费面=CostsTable 运行时长列(duration 统计),判定正确不改;运行环境义=运行时(editor 域 9 键均已核一致)。",
+      "variants_seen": ["运行时", "运行时长(30b已核:时长语境正确)"]
     },
     "language": {
       "zh": "语言",
@@ -825,43 +825,43 @@
       "zh": "方向",
       "domain": "ui",
       "grade": "B",
-      "note": "timeline:attrs.direction=方向 正确;editor:ui.direction=指示 用于台词行 line.direction(舞台指示/导演指示),30b 裁定:建议 场景指示 或 导演指示,孤词 指示 过泛。",
-      "variants_seen": ["方向", "指示"]
+      "note": "timeline:attrs.direction=方向 正确;editor:ui.direction 用于台词行 line.direction(舞台指示/导演指示),30b 已裁定并统一为 导演指示(direction/addDirection/removeDirection/directionEgWhisperingTired 4 键);timeline 域 新条目指示/新条目指令 待 timeline 批对齐。",
+      "variants_seen": ["方向", "指示(30b已修→导演指示)"]
     },
     "studio": {
       "zh": "Studio",
       "domain": "brand",
       "grade": "B",
-      "note": "NodeTool Studio 品牌保留拉丁;editor:ui.studio=影棚 为误译,30b 改 Studio(与 studioBack=Studio 一致)。",
-      "variants_seen": ["Studio", "影棚"]
+      "note": "NodeTool Studio 品牌保留拉丁;editor:ui.studio=影棚 为误译,30b 已改 Studio(与 studioBack=Studio 一致;该键暂未 grep 到消费面,疑似死键,待接线核)。",
+      "variants_seen": ["Studio", "影棚(30b已修)"]
     },
     "graph view": {
       "zh": "图视图",
       "domain": "ui",
       "grade": "B",
-      "note": "nav=图视图、editor=图形视图,30b 统一 图视图。",
-      "variants_seen": ["图视图", "图形视图"]
+      "note": "nav=图视图、editor=图形视图,30b 已统一 图视图(editor:ui.graphView 已修)。",
+      "variants_seen": ["图视图", "图形视图(30b已修)"]
     },
     "costs": {
       "zh": "成本",
       "domain": "app-core",
       "grade": "B",
-      "note": "rail=成本、editor=费用,30b 统一 成本。",
-      "variants_seen": ["成本", "费用"]
+      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修:costsTitle/estimatedCost 族/topCostDriver/couldntLoadCostData 等;spend=花费 为另一 en 词,保留)。",
+      "variants_seen": ["成本", "费用(30b已修:editor域)"]
     },
     "compare": {
       "zh": "对比",
       "domain": "ui",
       "grade": "B",
-      "note": "对比 图片/图像 双差异(compareImages 两键不一致),30b 统一 对比+图像。",
-      "variants_seen": ["对比", "比较"]
+      "note": "对比 图片/图像 双差异(compareImages 两键不一致),30b 已统一 对比+图像(asset.compareImages/compareTip 与 ui2:missingImageDataForComparison 已修)。",
+      "variants_seen": ["对比", "比较", "图片(30b已修:compare 族)"]
     },
     "loading": {
       "zh": "加载中…",
       "domain": "ui",
       "grade": "B",
-      "note": "微件规范:全角省略号;残留半角 editor:ui.loading2(加载中...)、editor:ui.searchDots(搜索...),30b 改全角。aria 无省略号为刻意 a11y 约定不算冲突。",
-      "variants_seen": ["加载中…", "加载中..."]
+      "note": "微件规范:全角省略号;30b 已修 editor 域 11 处半角...(点名 loading2/searchDots+机械新捕 loadingPreview/pickingColor/pendingDownload/typeToSearchForNodes/enterValues/workflowStarting/searchAllAssets/searchCurrentFolder/startingDownload);aria 无省略号为刻意 a11y 约定不算冲突。",
+      "variants_seen": ["加载中…", "加载中...(30b已修×11)"]
     },
     "reference": {
       "zh_by_domain": {
@@ -877,29 +877,29 @@
       "zh": "可用宣传点",
       "domain": "marketing",
       "grade": "B",
-      "note": "storyboard=可用宣传点、ui2=已认可的设定,同 en 双译,30b 统一 可用宣传点。",
-      "variants_seen": ["可用宣传点", "已认可的设定"]
+      "note": "storyboard=可用宣传点、ui2=已认可的设定,同 en 双译,30b 已统一 可用宣传点(ui2 已修)。",
+      "variants_seen": ["可用宣传点", "已认可的设定(30b已修)"]
     },
     "planned": {
       "zh": "已规划",
       "domain": "film",
       "grade": "B",
-      "note": "storyboard=已规划、ui2=已计划,30b 统一 已规划。",
-      "variants_seen": ["已规划", "已计划"]
+      "note": "storyboard=已规划、ui2=已计划,30b 已统一 已规划(ui2 已修)。",
+      "variants_seen": ["已规划", "已计划(30b已修)"]
     },
     "disabled": {
       "zh": "已停用",
       "domain": "ui",
       "grade": "B",
-      "note": "editor=已停用、ui2=已禁用,30b 统一 已停用。",
-      "variants_seen": ["已停用", "已禁用"]
+      "note": "editor=已停用、ui2=已禁用,30b 已统一 已停用(ui2 已修)。",
+      "variants_seen": ["已停用", "已禁用(30b已修)"]
     },
     "gamma": {
       "zh": "伽马",
       "domain": "media",
       "grade": "B",
-      "note": "timeline=伽马、ui2=Gamma;裁定:伽马(约定俗成中文),Gamma 保留给参数名形态,30b 复核。",
-      "variants_seen": ["伽马", "Gamma"]
+      "note": "timeline=伽马、ui2=Gamma;裁定:伽马(约定俗成中文),Gamma 保留给参数名形态。30b 已核:ui2:attrs.gamma 为 LevelsBody 色阶滑杆标签(与 timeline ClipEffectsList 同族),已修为 伽马;editor:ui.liftGammaGain=提升/伽马/增益 本就一致。",
+      "variants_seen": ["伽马", "Gamma(30b已修:滑杆标签)"]
     },
     "invert": {
       "zh_by_domain": {
@@ -940,22 +940,22 @@
       "zh": "新对话",
       "domain": "ui",
       "grade": "B",
-      "note": "editor=新建对话、ui2=新对话,30b 统一 新建对话(动作)。",
-      "variants_seen": ["新对话", "新建对话"]
+      "note": "editor=新建对话、ui2=新对话,30b 已统一 新建对话(动作)(ui2:attrs.newChat 与 editor:ui.newConversation 均已修)。",
+      "variants_seen": ["新对话(30b已修)", "新建对话"]
     },
     "create folder": {
       "zh": "新建文件夹",
       "domain": "ui",
       "grade": "B",
-      "note": "创建文件夹/新建文件夹 并存,统一 新建文件夹(与 新建工作流/新建分镜 动词族一致)。",
-      "variants_seen": ["创建文件夹", "新建文件夹"]
+      "note": "创建文件夹/新建文件夹 并存,30b 已统一 新建文件夹(editor 域 6 键已修,含按钮与错误文案,与 新建工作流/新建分镜 动词族一致)。",
+      "variants_seen": ["创建文件夹(30b已修)", "新建文件夹"]
     },
     "recent nodes": {
       "zh": "最近使用",
       "domain": "ui",
       "grade": "B",
-      "note": "nav=最近使用、ui2=最近使用的节点,30b 统一 最近使用。",
-      "variants_seen": ["最近使用", "最近使用的节点"]
+      "note": "nav=最近使用、ui2=最近使用的节点,30b 已统一 最近使用(ui2:attrs.recentNodes 已修)。",
+      "variants_seen": ["最近使用", "最近使用的节点(30b已修)"]
     }
   }
 }
