@@ -69,3 +69,18 @@
 3. **专门说法用专门说法**:有约定俗成中文的行业词汇必须用约定俗成版(渲染/美术域:冷压纸/湿画法/赛璐璐/次表面散射/焦外/色阶;影视域:黑位/边缘光/分镜/场记)。
 4. **技术参数原样**:mm/px/f 值/T 值/位深等拍摄与显示参数保留原文数字形态。
 5. **中英混排禁断词**:一句译文内禁留未处理的英文单词(技术参数除外)——出现即机翻痕迹,退回重写。
+
+## r30a 术语总表与一致性矩阵(2026-10-10,机械层)
+
+全量 (en→zh) 术语矩阵与标准译名总表已固化为机器可读产物 [terminology.json](terminology.json)(121 词条,含 variants_seen/分级/分域裁定;30b 起 LQA 修正以它为准绳)。冲突时后轮裁定赢。新锚要点(一词一行,详见总表条目):
+
+- campaign=定向广告(marketing;弃 战役——残留 4 处待 30b;launch campaign 泛营销义=发布活动待裁)
+- campaign hero=主视觉;brief=简报;commercial=广告片;approved claims=可用宣传点
+- remix=重混;relight=重打光(弃 重新打光);lip sync=对口型;upscale=超分(放大 留给缩放动作)
+- outpaint=扩图(音频域=音频外扩);inpaint=局部重绘;remove background=去背景
+- transcribe=语音转文字(任务)/转写(动词);transcript=转写(弃 转录);caption 按域=字幕/说明/图像描述
+- shot=镜头、storyboard=分镜(板)、shot list=分镜表、take=条、speaker=说话人、edit point=剪辑点
+- matte=遮罩(时间线)、mask=蒙版(图像域)、clip=片段、trim=修剪(媒体)/裁剪(图像)/截断(文本)
+- director(noun)=Director 保留/direct(verb)=执导;b-roll=B-roll 保留;worker=工作节点
+- extend=延长(时间线)/扩展(选区);render=渲染(时间线/3D)/生成(生成义);dialogue 按域=对话/对白/台词
+- provider 违例 提供商(约 21 处)、collections 违例 收藏集(3 处)、asset 违例 资产(4 处)——30b 修正清单见总表 note 字段

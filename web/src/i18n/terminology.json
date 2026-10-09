@@ -1,0 +1,961 @@
+{
+  "$comment": [
+    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚。",
+    "标准从:后轮裁定优先于早轮 (r13-r28 分域审校词汇为准绳),先查 glossary.md 既有裁定。",
+    "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
+    "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
+    "单串改词流程: 先查 glossary.md → 再查本表; 修正执行以本表为准绳 (30b)。",
+    "微件规范 (动词不加请/全角标点/加载中…) 与 F-23 拉丁保留清单的 SSOT 仍是 glossary.md; 本表 keep_latin 为其快照片段。"
+  ],
+  "keep_latin": [
+    "JSON", "CSV", "SVG", "PNG", "WebP", "GIF", "TIFF", "WebM", "MP4", "PDF",
+    "URL", "API", "LLM", "GPU", "TTS", "STT", "RAG", "MCP", "LoRA", "CLI",
+    "Webhook", "Nightly", "Token", "B-roll", "Director", "Studio",
+    "Mini App", "NodeTool Studio", "Ember", "Preview", "Agent",
+    "FLUX", "Kling", "Veo", "Seedance", "MiniMax", "fal", "Replicate",
+    "OpenAI", "Anthropic", "Google", "Higgsfield", "Together", "Kie",
+    "GLB", "GLTF", "UUID", "IPv4", "IPv6", "Ctrl", "Cmd", "Esc", "Enter"
+  ],
+  "terms": {
+    "workflow": {
+      "zh": "工作流",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚;子工作流=Workflow 节点显示名(组合词,不冲突)。",
+      "variants_seen": ["工作流", "子工作流"]
+    },
+    "node": {
+      "zh": "节点",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "全语料 100% 一致。",
+      "variants_seen": ["节点"]
+    },
+    "canvas": {
+      "zh": "画布",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚。",
+      "variants_seen": ["画布"]
+    },
+    "asset": {
+      "zh": "素材",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "glossary 弃用 资产,但语料残留 4 处(editor:ui.selectNewFolderForAssets_other、storyboard:attrs.writeTheDesignPremiseLoopCastAndOnePromptPerAsset / theSubjectOfEachAsset / tellUsThePremiseWellPickATemplate)。30b 修正为 素材(资产槽位→素材槽位)。",
+      "variants_seen": ["素材", "资产"]
+    },
+    "job": {
+      "zh": "任务",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚;agent Task=计划任务 分立。",
+      "variants_seen": ["任务"]
+    },
+    "provider": {
+      "zh": "模型服务商",
+      "domain": "app-core",
+      "grade": "A",
+      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例,语料残留约 21 处(settings:sidebar.providerOptions、settings:remote.OLLAMA_CONTEXT_LENGTH.description、editor:ui.noProvidersMatch / providerNodesAppearOnceYouAddTheirAPIKey / providerIdHelper / getFreeCreditsAndOffersFromOurPartnerProviders / setupReasonChat / setupReasonImage 等)。30b 全量 提供商→服务商。",
+      "variants_seen": ["服务商", "模型服务商", "提供商"]
+    },
+    "api key": {
+      "zh": "API 密钥",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚;与 Secret=密钥、Token=令牌 三分立。",
+      "variants_seen": ["API 密钥"]
+    },
+    "secret": {
+      "zh": "密钥",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚。",
+      "variants_seen": ["密钥"]
+    },
+    "token": {
+      "zh": "令牌",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "r12 锚;Token 分类(TokenClassification)等专名保留拉丁。",
+      "variants_seen": ["令牌", "Token"]
+    },
+    "generation": {
+      "zh_by_domain": {
+        "action": "生成",
+        "record": "生成记录"
+      },
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 双锚:动词=生成,列表名词=生成记录。",
+      "variants_seen": ["生成", "生成记录"]
+    },
+    "credits": {
+      "zh": "额度",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "Studio 侧=额度;提供商侧随官方(可灵=积分)。",
+      "variants_seen": ["额度"]
+    },
+    "timeline": {
+      "zh": "时间线",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "glossary 弃用 时间轴,残留 2 处(editor:ui.subtitlesWithCueTimings、catalog:workflowTemplates.Localise a Script and Revoice It.json.description)。cue timings 语境 30b 可改 提示时间点。",
+      "variants_seen": ["时间线", "时间轴"]
+    },
+    "storyboard": {
+      "zh": "分镜",
+      "domain": "film",
+      "grade": "clean",
+      "note": "glossary 首锚;board=分镜板、storyboard shot=分镜镜头 为组合词。",
+      "variants_seen": ["分镜", "分镜板"]
+    },
+    "shot": {
+      "zh": "镜头",
+      "domain": "film",
+      "grade": "C",
+      "note": "合理分域:shot=镜头,storyboard/board=分镜(板);分镜镜头/分镜表 为复合名词,非双译。",
+      "variants_seen": ["镜头", "分镜镜头", "分镜表"]
+    },
+    "shot list": {
+      "zh": "分镜表",
+      "domain": "film",
+      "grade": "clean",
+      "note": "影视行话。",
+      "variants_seen": ["分镜表"]
+    },
+    "sketch": {
+      "zh": "图稿",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 弃用 草图/画板;Eraser 任务词 擦除 ≠ 草图(不同概念)。",
+      "variants_seen": ["图稿"]
+    },
+    "prompt": {
+      "zh": "提示词",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚。",
+      "variants_seen": ["提示词"]
+    },
+    "run": {
+      "zh_by_domain": {
+        "workflow": "运行",
+        "node-execute": "执行"
+      },
+      "domain": "app-core",
+      "grade": "C",
+      "note": "r13 重申:工作流级 execute/run=运行;节点级 execute(一次执行全部节点)=执行;运行历史=运行记录。",
+      "variants_seen": ["运行", "执行", "运行记录"]
+    },
+    "inspector": {
+      "zh": "属性面板",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚。",
+      "variants_seen": ["属性面板"]
+    },
+    "environment variable": {
+      "zh": "环境变量",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚;单指 surroundings 时可作 环境。",
+      "variants_seen": ["环境变量", "环境"]
+    },
+    "collections": {
+      "zh": "知识库",
+      "domain": "rag",
+      "grade": "A",
+      "note": "glossary/R1 定 知识库,弃用 收藏集/合集;残留 editor:ui.failedToCreateCollection / withACollectionYouCan / errorLoadingCollections 3 处收藏集。control 节点 Collection=素材集合 为节点显示名,分立可留(30b 复核)。",
+      "variants_seen": ["知识库", "收藏集", "素材集合", "合集"]
+    },
+    "entities": {
+      "zh_by_domain": {
+        "rail": "实体库",
+        "generic": "实体"
+      },
+      "domain": "app-core",
+      "grade": "C",
+      "note": "rail 三库节奏(素材库/知识库/实体库)带库字;泛指单实体不带。R7 裁定。",
+      "variants_seen": ["实体库", "实体"]
+    },
+    "packages": {
+      "zh": "包管理器",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 定;计数/单件可简 包;扩展/插件 弃用(残留 扩展 串属 en 扩展义或 Expand 误配,30b 逐条核)。",
+      "variants_seen": ["包管理器", "包"]
+    },
+    "version": {
+      "zh": "版本",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "glossary 首锚;版本历史/恢复默认 组合。",
+      "variants_seen": ["版本"]
+    },
+    "agent task": {
+      "zh": "计划任务",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "与 Job=任务 分立。",
+      "variants_seen": ["计划任务"]
+    },
+    "vault": {
+      "zh": "保险库",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "r15 锚。",
+      "variants_seen": ["保险库"]
+    },
+    "app": {
+      "zh_by_domain": {
+        "mini-app": "小程序",
+        "desktop/general-application": "应用"
+      },
+      "domain": "app-core",
+      "grade": "B",
+      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。editor:ui.app(New app→新建应用)与 menuLabel.app 30b 判定所指面:若为小程序创建入口应改 小程序。",
+      "variants_seen": ["小程序", "应用"]
+    },
+    "image": {
+      "zh_by_domain": {
+        "type-document": "图像",
+        "asset-file": "图片"
+      },
+      "domain": "media",
+      "grade": "C",
+      "note": "r15-Y2 双译分立;残留交叉:appbuilder:attrs.imageInput=图片输入(应为 图像输入,节点 IO 面)。",
+      "variants_seen": ["图像", "图片"]
+    },
+    "account": {
+      "zh_by_domain": {
+        "connected-login": "账号",
+        "auth-billing": "账户"
+      },
+      "domain": "app-core",
+      "grade": "C",
+      "note": "r13-G2 两语境分立非双译。",
+      "variants_seen": ["账号", "账户"]
+    },
+    "campaign": {
+      "zh": "定向广告",
+      "domain": "marketing",
+      "grade": "A",
+      "note": "r28 战役族行话。残留早轮译名 战役 4 处:catalog skills.launch-kit.description(宣传战役)、apps.ad-maker.description(战役主片)、workflowTemplates.Compose Directed Campaign Formats.json.description(版本化战役记录)、Reopen a Directed Campaign.json.description(战役记录×2);另有 ui.suggestionLaunchCampaign 的 launch campaign=发布活动(泛营销义,30b 裁定:可保留发布活动或统一族名)。30b 将 战役→定向广告(战役主片→定向广告主片、战役记录→定向广告记录)。",
+      "variants_seen": ["定向广告", "战役", "发布活动", "营销"]
+    },
+    "campaign hero": {
+      "zh": "主视觉",
+      "domain": "marketing",
+      "grade": "clean",
+      "note": "r28 族词;hero 作 主角/主体 解(storyboard attrs)是另一概念,不算变体。",
+      "variants_seen": ["主视觉"]
+    },
+    "brief": {
+      "zh": "简报",
+      "domain": "marketing",
+      "grade": "B",
+      "note": "族内主译 简报(45处);残留 storyboard:attrs.storyboardAssistantWelcome(把这份简介拆成…)等 简介 2 处、脚本 2 处,30b 统一 简报。",
+      "variants_seen": ["简报", "简介", "脚本"]
+    },
+    "commercial": {
+      "zh": "广告片",
+      "domain": "marketing",
+      "grade": "clean",
+      "note": "2026-09-30 行话令。",
+      "variants_seen": ["广告片"]
+    },
+    "remix": {
+      "zh": "重混",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "r28 族词;视频生视频重混/角色重混 组合一致。",
+      "variants_seen": ["重混"]
+    },
+    "relight": {
+      "zh": "重打光",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "r28 族词=重打光;残留 editor:ui.relight=重新打光、nodeDocs/apps 各 1 处,30b 统一 重打光。",
+      "variants_seen": ["重打光", "重新打光"]
+    },
+    "lip sync": {
+      "zh": "对口型",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "全语料 14 处一致。",
+      "variants_seen": ["对口型"]
+    },
+    "upscale": {
+      "zh": "超分",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "任务域=超分(r14 词表);editor:ui.upscale=放大 与 2 处模板描述用 放大,30b 改 超分;放大 保留给 缩放/放大镜 UI 动作。",
+      "variants_seen": ["超分", "放大"]
+    },
+    "outpaint": {
+      "zh_by_domain": {
+        "image": "扩图",
+        "audio": "音频外扩"
+      },
+      "domain": "media-task",
+      "grade": "C",
+      "note": "图像域=扩图(suffix Expand/Expand Image/Outpaint);音频域造词 音频外扩 与 扩图 呼应,分域成立。",
+      "variants_seen": ["扩图", "音频外扩"]
+    },
+    "extend": {
+      "zh_by_domain": {
+        "timeline-clip": "延长",
+        "selection-edge": "扩展"
+      },
+      "domain": "editing",
+      "grade": "A",
+      "note": "≥3 译法:延长(clip)、扩展(sketch 选区/边框)、视频延长(suffix 任务词)、延伸(timeline:shortcuts.extendTheEditPointToThePlayhead=剪辑点延伸)。裁定:时间线剪辑点延伸→延长 对齐;sketch 选区 扩展 保留;suffix 视频延长 保留(任务词)。",
+      "variants_seen": ["延长", "扩展", "视频延长", "延伸"]
+    },
+    "expand": {
+      "zh": "扩展",
+      "domain": "editing",
+      "grade": "C",
+      "note": "expand 边框/选区=扩展;图像外扩任务=outpaint 条目(扩图);lib.image.filter.Expand=扩展边框 正确。",
+      "variants_seen": ["扩展", "扩图", "音频外扩"]
+    },
+    "text to image": {
+      "zh": "文生图",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "r14 词表。",
+      "variants_seen": ["文生图"]
+    },
+    "image to video": {
+      "zh": "图生视频",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "r14 词表;MiniMax 图生视频 品牌前缀组合一致。",
+      "variants_seen": ["图生视频"]
+    },
+    "text to video": {
+      "zh": "文生视频",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "r14 词表。",
+      "variants_seen": ["文生视频"]
+    },
+    "audio to video": {
+      "zh": "音频生视频",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "suffix=音频生视频;editor:ui.audioToVideo=音频转视频,30b 统一 音频生视频(与图生视频/文生视频族形一致)。",
+      "variants_seen": ["音频生视频", "音频转视频"]
+    },
+    "reference to video": {
+      "zh": "参考图生视频",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "editor:ui.referenceToVideo=参考图生视频;suffix=参考生视频,30b 统一 参考图生视频。",
+      "variants_seen": ["参考图生视频", "参考生视频"]
+    },
+    "text to speech": {
+      "zh": "TTS 语音合成",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "suffix 词表=TTS 语音合成;editor:ui.textToSpeech=文生语音,30b 统一 TTS 语音合成。",
+      "variants_seen": ["TTS 语音合成", "文生语音"]
+    },
+    "transcribe": {
+      "zh": "语音转文字",
+      "domain": "media-task",
+      "grade": "C",
+      "note": "任务名=语音转文字;动词=转写(见 transcript 条)。",
+      "variants_seen": ["语音转文字", "转写"]
+    },
+    "remove background": {
+      "zh": "去背景",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "suffix=去背景;editor:ui.removeBackground=移除背景,30b 统一 去背景(抠图行话)。",
+      "variants_seen": ["去背景", "移除背景"]
+    },
+    "inpaint": {
+      "zh": "局部重绘",
+      "domain": "media-task",
+      "grade": "C",
+      "note": "suffix Fill=局部重绘(图像任务);表单 填充=fill 另一概念。",
+      "variants_seen": ["局部重绘", "填充"]
+    },
+    "restore": {
+      "zh_by_domain": {
+        "photo-task": "修复",
+        "version-state": "恢复"
+      },
+      "domain": "media-task",
+      "grade": "C",
+      "note": "照片修复任务=修复(suffix Restore/Restore Image);版本/状态恢复=恢复。分域正确。",
+      "variants_seen": ["修复", "恢复"]
+    },
+    "matte": {
+      "zh": "遮罩",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "时间线 matte 族(subject matte/matte mode)全部 遮罩,影视行话(轨道遮罩)。",
+      "variants_seen": ["遮罩"]
+    },
+    "mask": {
+      "zh_by_domain": {
+        "image-editing": "蒙版",
+        "timeline-cut": "遮罩"
+      },
+      "domain": "editing",
+      "grade": "B",
+      "note": "图像编辑域=蒙版(PS 行话,25 处);时间线裁切域跟随 matte=遮罩(3 处,分域成立)。违例:suffix Erase Mask/Eraser Mask/Object Removal Mask=擦除遮罩/物体移除遮罩 属图像任务域,应为 蒙版,30b 修正。",
+      "variants_seen": ["蒙版", "遮罩"]
+    },
+    "clip": {
+      "zh": "片段",
+      "domain": "editing",
+      "grade": "B",
+      "note": "时间线 clip=片段 主译;剪辑 保留给 剪辑点(edit point)/剪辑动作/剪辑师 行话;残留 替换剪辑(replaceClip)等散点 30b 逐条判定(片段 vs 动作义)。",
+      "variants_seen": ["片段", "剪辑"]
+    },
+    "edit point": {
+      "zh": "剪辑点",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "影视行话,全一致。",
+      "variants_seen": ["剪辑点"]
+    },
+    "keyframe": {
+      "zh": "关键帧",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "全语料一致。",
+      "variants_seen": ["关键帧"]
+    },
+    "frame": {
+      "zh": "帧",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "逐帧/前进一帧/静帧 一致;分镜 attrs 帧 计数一致。",
+      "variants_seen": ["帧"]
+    },
+    "trim": {
+      "zh_by_domain": {
+        "media": "修剪",
+        "image-crop": "裁剪",
+        "text-truncate": "截到/截断"
+      },
+      "domain": "editing",
+      "grade": "A",
+      "note": "≥3 译法:修剪(音视频主译 9 处)、裁剪(图像/裁切 3 处)、截到限长(Trim a Blurb=文本截断)、裁区间(Trim Audio to a Range)、剪掉静音(口语化)。裁定:音视频=修剪、图像=裁剪、文本=截断;模板创意短语 30b 逐条归位。",
+      "variants_seen": ["修剪", "裁剪", "截到限长", "裁区间"]
+    },
+    "crop": {
+      "zh": "裁剪",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "图像域行话。",
+      "variants_seen": ["裁剪"]
+    },
+    "speed": {
+      "zh": "速度",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "播放倍速语境可用 倍速,属组合。",
+      "variants_seen": ["速度"]
+    },
+    "duration": {
+      "zh": "时长",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "全语料一致。",
+      "variants_seen": ["时长"]
+    },
+    "aspect ratio": {
+      "zh": "宽高比",
+      "domain": "editing",
+      "grade": "B",
+      "note": "主译 宽高比;残留 画面比例 4 处、泛 比例,30b 统一 宽高比(泛比例语境除外)。",
+      "variants_seen": ["宽高比", "画面比例", "比例"]
+    },
+    "seed": {
+      "zh": "种子",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "随机种子 组合。",
+      "variants_seen": ["种子"]
+    },
+    "loop": {
+      "zh": "循环",
+      "domain": "editing",
+      "grade": "C",
+      "note": "播放开关语境 循环播放、控制节点 循环,组合非双译。",
+      "variants_seen": ["循环", "循环播放"]
+    },
+    "composition": {
+      "zh_by_domain": {
+        "timeline-composite": "合成",
+        "framing": "构图"
+      },
+      "domain": "editing",
+      "grade": "C",
+      "note": "时间线合成=合成;画面构图=构图。分域正确。",
+      "variants_seen": ["合成", "构图"]
+    },
+    "effects": {
+      "zh": "效果",
+      "domain": "editing",
+      "grade": "B",
+      "note": "timeline:attrs.effects=效果;suffix Effects=特效。裁定:属性面板=效果;视频特效任务词可留 特效,30b 复核边界。",
+      "variants_seen": ["效果", "特效"]
+    },
+    "caption": {
+      "zh_by_domain": {
+        "timeline-subtitle": "字幕",
+        "form-note": "说明",
+        "image-captioning": "图像描述"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "三域同形异义:时间线字幕/表单说明/图像理解描述,均约定俗成,分域正确(矩阵降 C)。Caption To Phrase Grounding=描述转短语定位 已按第三域。",
+      "variants_seen": ["字幕", "说明", "图像描述"]
+    },
+    "subtitle": {
+      "zh": "字幕",
+      "domain": "film",
+      "grade": "clean",
+      "note": "与 caption(时间线)=字幕 一致。",
+      "variants_seen": ["字幕"]
+    },
+    "dialogue": {
+      "zh_by_domain": {
+        "chat": "对话",
+        "film": "对白",
+        "script-line": "台词"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "聊天=对话(95)、影棚对白=对白(6)、剧本行=台词(66),三域分立正确。",
+      "variants_seen": ["对话", "对白", "台词"]
+    },
+    "voice": {
+      "zh_by_domain": {
+        "casting-per-line": "配音",
+        "speech-tech": "语音",
+        "sound": "声音"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "逐行指派=配音、语音技术=语音(TTS/语音合成)、声响=声音;嗓音 1 处(minimax Voice 节点)30b 复核。",
+      "variants_seen": ["配音", "语音", "声音", "嗓音"]
+    },
+    "speaker": {
+      "zh": "说话人",
+      "domain": "film",
+      "grade": "clean",
+      "note": "全语料一致(说话人分离=diarization 同族)。",
+      "variants_seen": ["说话人"]
+    },
+    "narration": {
+      "zh": "旁白",
+      "domain": "film",
+      "grade": "C",
+      "note": "narration=旁白;explainer=解说(Explainer Clip),不同词,分立正确。",
+      "variants_seen": ["旁白", "解说"]
+    },
+    "transcript": {
+      "zh": "转写",
+      "domain": "film",
+      "grade": "A",
+      "note": "≥3 译法:转写(主译 10 处)、转录(nodeDocs 5 处)、转录稿(nodetool.timeline.Transcript=时间线转录稿、时间线转录稿 节点显示名)。裁定:任务/文本=转写(文稿),30b 将 nodeDocs 转录→转写;节点显示名 时间线转录稿 是否保留 30b 裁。",
+      "variants_seen": ["转写", "转录", "转录稿"]
+    },
+    "script": {
+      "zh_by_domain": {
+        "code": "脚本",
+        "screenplay": "剧本",
+        "speech": "讲稿"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "代码=脚本(104)、影剧=剧本(8)、演讲=讲稿(AI Spokesperson),三域分立正确;台词 属 script line。",
+      "variants_seen": ["脚本", "剧本", "讲稿", "台词"]
+    },
+    "character": {
+      "zh_by_domain": {
+        "story": "角色",
+        "text": "字符",
+        "person": "人物"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "叙事=角色、文本=字符(74)、人物=人物设定语境,分域正确。",
+      "variants_seen": ["角色", "字符", "人物"]
+    },
+    "scene": {
+      "zh": "场景",
+      "domain": "film",
+      "grade": "clean",
+      "note": "3D/影视/游戏场景一致。",
+      "variants_seen": ["场景"]
+    },
+    "director": {
+      "zh_by_domain": {
+        "persona-noun": "Director",
+        "verb-direct": "执导"
+      },
+      "domain": "film",
+      "grade": "B",
+      "note": "产品概念 the Director 保留拉丁(Your Director…);动词 direct=执导(执导套件/我来执导);导演 7 处(en director 指 human director 语境可留),30b 逐条判定:指 AI 执导者→Director、指动作→执导、指人类职业→导演。",
+      "variants_seen": ["Director", "执导", "导演"]
+    },
+    "b-roll": {
+      "zh": "B-roll",
+      "domain": "film",
+      "grade": "B",
+      "note": "F-23 保留拉丁 3 处;空镜 1 处(en 侧可能即 b-roll),30b 统一 B-roll(业界混用,保拉丁优先)。",
+      "variants_seen": ["B-roll", "空镜"]
+    },
+    "take": {
+      "zh": "条",
+      "domain": "film",
+      "grade": "clean",
+      "note": "行话(再来一条/一条 23 处)。",
+      "variants_seen": ["条"]
+    },
+    "render": {
+      "zh_by_domain": {
+        "timeline-3d-still": "渲染",
+        "generate-sense": "生成/出图"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "渲染 143 处(时间线/3D/静帧)为标准;en render 表 出一张图 的口语义(noImageModelCanRenderAPictureYet=出图)与生成记录语境可译 生成,分域正确。",
+      "variants_seen": ["渲染", "生成", "出图"]
+    },
+    "select": {
+      "zh_by_domain": {
+        "action": "选择",
+        "form-control": "下拉选择"
+      },
+      "domain": "ui",
+      "grade": "C",
+      "note": "动作=选择;appbuilder 表单控件类型标签=下拉选择(r15 属性面板微约定,与 开关/滑块 同节奏),分域成立。",
+      "variants_seen": ["选择", "下拉选择"]
+    },
+    "switch": {
+      "zh_by_domain": {
+        "action": "切换",
+        "control": "开关"
+      },
+      "domain": "ui",
+      "grade": "C",
+      "note": "动作=切换、控件=开关、Switch 控制节点=多路分支(技术义,正确),分域成立。",
+      "variants_seen": ["切换", "开关", "多路分支"]
+    },
+    "back": {
+      "zh_by_domain": {
+        "navigation": "返回",
+        "wizard-step": "上一步"
+      },
+      "domain": "ui",
+      "grade": "A",
+      "note": "editor:ui.back=背面 为误译(AddClipMenu 返回按钮 tooltip,旁邻 aria 已用 返回剪辑来源),30b 改 返回;wizard 上一步 分立正确。",
+      "variants_seen": ["返回", "背面", "上一步"]
+    },
+    "dismiss": {
+      "zh": "忽略",
+      "domain": "ui",
+      "grade": "B",
+      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立),30b 统一。",
+      "variants_seen": ["关闭", "忽略"]
+    },
+    "duplicate": {
+      "zh": "创建副本",
+      "domain": "ui",
+      "grade": "B",
+      "note": "glossary:保 复制 给 Copy;残留 couldNotDuplicateError / duplicateCopiesOverrides / duplicateLayers 等 复制 4 处,30b 判定(动词短语语境可留 复制副本/复制,纯按钮=创建副本)。",
+      "variants_seen": ["创建副本", "复制"]
+    },
+    "drag": {
+      "zh": "拖动",
+      "domain": "ui",
+      "grade": "clean",
+      "note": "r12/r13 定,已全量统一。",
+      "variants_seen": ["拖动"]
+    },
+    "worker": {
+      "zh": "工作节点",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "2026-09-30 行话令;残留 editor:ui.gpuUpWorkerStillLoading=工作器 1 处,30b 改 工作节点。",
+      "variants_seen": ["工作节点", "工作器"]
+    },
+    "batch": {
+      "zh": "批量",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "动作=批量、名词一批=批次(collectNItemsThenEmitAsABatch)、模板 Batch a List=分批;30b 统一 动作批量/名词批次,模板短语裁 分批→批量处理。",
+      "variants_seen": ["批量", "批次", "分批"]
+    },
+    "queue": {
+      "zh_by_domain": {
+        "noun": "队列",
+        "verb": "排队"
+      },
+      "domain": "app-core",
+      "grade": "C",
+      "note": "渲染队列/任务队列=队列;动词排队进队=排队。",
+      "variants_seen": ["队列", "排队"]
+    },
+    "checkpoint": {
+      "zh": "检查点",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "一致。",
+      "variants_seen": ["检查点"]
+    },
+    "endpoint": {
+      "zh": "端点",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "一致(Base URL 语境保留 Base URL)。",
+      "variants_seen": ["端点"]
+    },
+    "style": {
+      "zh_by_domain": {
+        "visual": "风格",
+        "css-widget": "样式"
+      },
+      "domain": "ui",
+      "grade": "C",
+      "note": "视觉风格=风格(83)、CSS/控件样式=样式(appbuilder attrs),分域正确;文本字型=font style 另形。",
+      "variants_seen": ["风格", "样式"]
+    },
+    "filter": {
+      "zh_by_domain": {
+        "search": "筛选",
+        "data": "过滤",
+        "image-fx": "滤镜",
+        "audio-dsp": "滤波器"
+      },
+      "domain": "polysemy",
+      "grade": "C",
+      "note": "四域同形异义,均约定俗成(音频滤波器/图像滤镜 行话),分域正确。",
+      "variants_seen": ["筛选", "过滤", "滤镜", "滤波器"]
+    },
+    "layer": {
+      "zh": "图层",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "图层 117 处;层级(level)/底衬 内嵌 层 字非独立词条。",
+      "variants_seen": ["图层"]
+    },
+    "blend": {
+      "zh": "混合",
+      "domain": "editing",
+      "grade": "clean",
+      "note": "相加混合(Add)等混合模式族一致。",
+      "variants_seen": ["混合"]
+    },
+    "preset": {
+      "zh": "预设",
+      "domain": "ui",
+      "grade": "clean",
+      "note": "一致(省略号差异归微件规范)。",
+      "variants_seen": ["预设"]
+    },
+    "template": {
+      "zh": "模板",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "工作流模板一致。",
+      "variants_seen": ["模板"]
+    },
+    "example": {
+      "zh": "示例",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "一致(该示例/示例 复合差异归 30b 微件批)。",
+      "variants_seen": ["示例"]
+    },
+    "tutorial": {
+      "zh": "教程",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "指南 3 处(docsTopics 类目语境可留),30b 复核统一 教程。",
+      "variants_seen": ["教程", "指南"]
+    },
+    "library": {
+      "zh": "库",
+      "domain": "app-core",
+      "grade": "clean",
+      "note": "素材库/知识库/实体库 组合。",
+      "variants_seen": ["库"]
+    },
+    "workspace": {
+      "zh": "工作区",
+      "domain": "app-core",
+      "grade": "C",
+      "note": "工作区文件=workspace files 复合(QA 标签),非双译。",
+      "variants_seen": ["工作区", "工作区文件"]
+    },
+    "history": {
+      "zh": "历史",
+      "domain": "app-core",
+      "grade": "C",
+      "note": "版本历史=历史;运行历史=运行记录(run 条目)。",
+      "variants_seen": ["历史", "记录"]
+    },
+    "runtime": {
+      "zh": "运行时",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "ui2:attrs.runtime=运行时长(若为时长统计语境则正确),30b 查消费面;运行环境义=运行时。",
+      "variants_seen": ["运行时", "运行时长"]
+    },
+    "language": {
+      "zh": "语言",
+      "domain": "ui",
+      "grade": "B",
+      "note": "appbuilder:attrs.language=对话 疑似误译(表单控件类型标签应为 语言),30b 查 appbuilder schema 消费面后修正。",
+      "variants_seen": ["语言", "对话"]
+    },
+    "direction": {
+      "zh": "方向",
+      "domain": "ui",
+      "grade": "B",
+      "note": "timeline:attrs.direction=方向 正确;editor:ui.direction=指示 用于台词行 line.direction(舞台指示/导演指示),30b 裁定:建议 场景指示 或 导演指示,孤词 指示 过泛。",
+      "variants_seen": ["方向", "指示"]
+    },
+    "studio": {
+      "zh": "Studio",
+      "domain": "brand",
+      "grade": "B",
+      "note": "NodeTool Studio 品牌保留拉丁;editor:ui.studio=影棚 为误译,30b 改 Studio(与 studioBack=Studio 一致)。",
+      "variants_seen": ["Studio", "影棚"]
+    },
+    "graph view": {
+      "zh": "图视图",
+      "domain": "ui",
+      "grade": "B",
+      "note": "nav=图视图、editor=图形视图,30b 统一 图视图。",
+      "variants_seen": ["图视图", "图形视图"]
+    },
+    "costs": {
+      "zh": "成本",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "rail=成本、editor=费用,30b 统一 成本。",
+      "variants_seen": ["成本", "费用"]
+    },
+    "compare": {
+      "zh": "对比",
+      "domain": "ui",
+      "grade": "B",
+      "note": "对比 图片/图像 双差异(compareImages 两键不一致),30b 统一 对比+图像。",
+      "variants_seen": ["对比", "比较"]
+    },
+    "loading": {
+      "zh": "加载中…",
+      "domain": "ui",
+      "grade": "B",
+      "note": "微件规范:全角省略号;残留半角 editor:ui.loading2(加载中...)、editor:ui.searchDots(搜索...),30b 改全角。aria 无省略号为刻意 a11y 约定不算冲突。",
+      "variants_seen": ["加载中…", "加载中..."]
+    },
+    "reference": {
+      "zh_by_domain": {
+        "image": "参考图",
+        "generic": "参考"
+      },
+      "domain": "media",
+      "grade": "B",
+      "note": "图像参考=参考图 行话;参照 1 处(suffix Reference),30b 统一 参考。",
+      "variants_seen": ["参考图", "参考", "参照"]
+    },
+    "approved claims": {
+      "zh": "可用宣传点",
+      "domain": "marketing",
+      "grade": "B",
+      "note": "storyboard=可用宣传点、ui2=已认可的设定,同 en 双译,30b 统一 可用宣传点。",
+      "variants_seen": ["可用宣传点", "已认可的设定"]
+    },
+    "planned": {
+      "zh": "已规划",
+      "domain": "film",
+      "grade": "B",
+      "note": "storyboard=已规划、ui2=已计划,30b 统一 已规划。",
+      "variants_seen": ["已规划", "已计划"]
+    },
+    "disabled": {
+      "zh": "已停用",
+      "domain": "ui",
+      "grade": "B",
+      "note": "editor=已停用、ui2=已禁用,30b 统一 已停用。",
+      "variants_seen": ["已停用", "已禁用"]
+    },
+    "gamma": {
+      "zh": "伽马",
+      "domain": "media",
+      "grade": "B",
+      "note": "timeline=伽马、ui2=Gamma;裁定:伽马(约定俗成中文),Gamma 保留给参数名形态,30b 复核。",
+      "variants_seen": ["伽马", "Gamma"]
+    },
+    "invert": {
+      "zh_by_domain": {
+        "general": "反转",
+        "color": "反相",
+        "mask": "反转蒙版"
+      },
+      "domain": "editing",
+      "grade": "C",
+      "note": "通用=反转、颜色=反相(调色行话)、蒙版反转=反转蒙版,分域正确。",
+      "variants_seen": ["反转", "反相", "反转蒙版"]
+    },
+    "concat": {
+      "zh": "拼接",
+      "domain": "media-task",
+      "grade": "C",
+      "note": "拼接音频/拼接视频/拼接文本 为媒体前缀组合(节点显示名),非双译。",
+      "variants_seen": ["拼接音频", "拼接视频", "拼接文本"]
+    },
+    "portrait": {
+      "zh_by_domain": {
+        "orientation": "竖版",
+        "subject": "人像"
+      },
+      "domain": "media",
+      "grade": "C",
+      "note": "画幅方向=竖版/横版;人物主体=人像(suffix Portrait),同形异义分域正确。",
+      "variants_seen": ["竖版", "人像"]
+    },
+    "solarize": {
+      "zh": "部分色调反转",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "lib 节点=部分色调反转(准确)、suffix Solarize=负片(误借),30b 统一 部分色调反转 或 日照化 行话复核。",
+      "variants_seen": ["部分色调反转", "负片"]
+    },
+    "new chat": {
+      "zh": "新对话",
+      "domain": "ui",
+      "grade": "B",
+      "note": "editor=新建对话、ui2=新对话,30b 统一 新建对话(动作)。",
+      "variants_seen": ["新对话", "新建对话"]
+    },
+    "create folder": {
+      "zh": "新建文件夹",
+      "domain": "ui",
+      "grade": "B",
+      "note": "创建文件夹/新建文件夹 并存,统一 新建文件夹(与 新建工作流/新建分镜 动词族一致)。",
+      "variants_seen": ["创建文件夹", "新建文件夹"]
+    },
+    "recent nodes": {
+      "zh": "最近使用",
+      "domain": "ui",
+      "grade": "B",
+      "note": "nav=最近使用、ui2=最近使用的节点,30b 统一 最近使用。",
+      "variants_seen": ["最近使用", "最近使用的节点"]
+    }
+  }
+}
