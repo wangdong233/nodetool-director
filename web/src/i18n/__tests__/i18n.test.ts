@@ -109,6 +109,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.imageInspirations;
     delete copy.imageUseCases;
     delete copy.workflowInspiration;
+    delete copy.workflowTemplates;
     delete copy.nodes;
     delete copy.nodeDocs;
     return copy;
@@ -495,6 +496,54 @@ describe("catalog key parity (CI completeness guard)", () => {
       expect(typeof entry.description).toBe("string");
       expect(entry.description.length).toBeGreaterThan(0);
       expect(slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
+    }
+  });
+
+  it("catalog workflowTemplates overlay is zh-only, keyed by shipped file id, name+description complete (r28)", () => {
+    // r28 方案-C-推翻裁决 (2026-10-09): the 194 shipped template workflows'
+    // names and descriptions render through a zh-only overlay keyed by the
+    // template FILE id (the backend's stable listing identity, e.g.
+    // "A Gradient Card as PNG.json") — never the display name. en must NOT
+    // carry the block (the backend values are the English source); every zh
+    // entry needs both fields so a row never renders a bare id. The
+    // workflowTemplateCopy resolver reads the block by direct Map lookup, so
+    // ids with dots/spaces are addressable.
+    expect(catalogEn).not.toHaveProperty("workflowTemplates");
+    const entries = catalogZh["workflowTemplates"] as Record<
+      string,
+      { name: string; description: string }
+    >;
+    expect(Object.keys(entries).length).toBeGreaterThanOrEqual(190);
+    for (const [id, entry] of Object.entries(entries)) {
+      expect(typeof entry.name).toBe("string");
+      expect(entry.name.length).toBeGreaterThan(0);
+      expect(typeof entry.description).toBe("string");
+      expect(entry.description.length).toBeGreaterThan(0);
+      // Shipped example file names: capitals, spaces, commas, ampersands and
+      // apostrophes occur; the shape contract is "identifier-ish stem +
+      // .json".
+      expect(id).toMatch(/^[A-Za-z0-9][A-Za-z0-9 ,&'.\-]*\.json$/);
+    }
+
+    // Drift guard: every key must name a file the install actually ships,
+    // and every shipped file must carry a translation — a renamed or added
+    // example fails here rather than rendering a stale/English row. Skipped
+    // only when the repo checkout lacks the examples tree.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- repo-tree cross-check
+    const fs = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- repo-tree cross-check
+    const path = require("path");
+    const examplesDir = path.resolve(
+      __dirname,
+      "../../../../packages/base-nodes/nodetool/examples/nodetool-base"
+    );
+    if (fs.existsSync(examplesDir)) {
+      const shipped = new Set(
+        fs
+          .readdirSync(examplesDir)
+          .filter((f: string) => f.toLowerCase().endsWith(".json"))
+      );
+      expect([...shipped].sort()).toEqual(Object.keys(entries).sort());
     }
   });
 

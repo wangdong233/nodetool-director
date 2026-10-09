@@ -13,7 +13,11 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useWorkflowActions } from "../../hooks/useWorkflowActions";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { estimateGraphCost } from "../../hooks/useGraphCostEstimate";
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
+import {
+  workflowTemplateCopy,
+  workflowTemplateSearchAlias
+} from "../../i18n/workflowTemplateCopy";
 import {
   TOP_CATEGORIES,
   workflowsForCategory,
@@ -265,6 +269,10 @@ const TemplateRow = memo(function TemplateRow({
   const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const category = getCategoryForWorkflow(workflow);
+  // Render-time zh overlay resolution (r28): English and zh-missing ids fall
+  // back to the backend values; the useTranslation subscription above is the
+  // re-render anchor that re-reads this on a language switch (F-26).
+  const copy = workflowTemplateCopy(workflow);
 
   // The server sets thumbnail_url only when the image exists (with an
   // md5-based ?v=<hash> cache buster), so a missing one means there is
@@ -290,7 +298,7 @@ const TemplateRow = memo(function TemplateRow({
     <button
       type="button"
       className={isLoading ? "tpl-row loading" : "tpl-row"}
-      title={workflow.description || workflow.name}
+      title={copy.description || copy.name}
       onClick={() => onClick(workflow)}
     >
       <span
@@ -317,8 +325,8 @@ const TemplateRow = memo(function TemplateRow({
         )}
       </span>
       <span className="tpl-copy">
-        <span className="tpl-title">{workflow.name}</span>
-        <span className="tpl-desc">{workflow.description}</span>
+        <span className="tpl-title">{copy.name}</span>
+        <span className="tpl-desc">{copy.description}</span>
         <span className="tpl-compat">
           <CompatibilityDetails compatibility={compatibility} />
           {workflow.graph.nodes.length > 0 && (
@@ -360,6 +368,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
+  const { version: languageVersion } = useAppLanguage();
   const metadata = useMetadataStore((state) => state.metadata);
   const loadTemplates = useWorkflowManager((state) => state.loadTemplates);
   const { handleExampleClick, handleViewAllTemplates, loadingExampleId } =
@@ -391,11 +400,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
     const q = query.trim().toLowerCase();
     const searched = q
       ? base.filter((w) => {
+          // Bilingual search: the English fields keep their original weights,
+          // and the zh overlay copy joins as an alias field (F-32 rule ③).
           const haystack = [w.name, w.description, ...(w.tags ?? [])]
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
-          return haystack.includes(q);
+          const alias = workflowTemplateSearchAlias(w.id).toLowerCase();
+          return `${haystack} ${alias}`.includes(q);
         })
       : base;
 
@@ -408,7 +420,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
       }
       return a.name.localeCompare(b.name);
     });
-  }, [allTemplates, category, query]);
+  }, [allTemplates, category, query, languageVersion]);
 
   const visible = fullPage ? filtered : filtered.slice(0, MAX_VISIBLE);
   const countLabel = fullPage
@@ -490,7 +502,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               variant="error"
               title={t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
               description={t("editor:ui.tryAgainInAMoment")}
-              actionText="Retry"
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>

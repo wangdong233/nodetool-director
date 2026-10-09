@@ -58,10 +58,12 @@ stay Latin, whole-sentence rewrites only (never word-swapped hybrids).
   of truth; every `t()` call carries `defaultValue: "<English>"` so English
   renders even without a dictionary. `catalog.json` additionally holds
   zh-only data overlays (node titles, node docs, task-suffix vocabulary,
-  seeded examples) keyed by stable identifiers — English never carries these
-  blocks and the contract tests in `i18n/__tests__/` enforce that.
+  seeded examples, workflow-template copy) keyed by stable identifiers —
+  English never carries these blocks and the contract tests in
+  `i18n/__tests__/` enforce that.
 - **Render-time resolution**: backend-provided names (node titles, seeded
-  document names) localize through `nodeDisplayName`/`nodeDocs`/
+  document names, shipped template names/descriptions) localize through
+  `nodeDisplayName`/`nodeDocs`/`workflowTemplateCopy`/
   `seededDocDisplayName` at render time — stored data is never rewritten, and
   a language switch re-renders immediately.
 - **Search stays bilingual**: localized titles/descriptions enter the search

@@ -29,6 +29,11 @@ import {
 } from "../../ui_primitives";
 import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import type { Workflow, WorkflowList } from "../../../stores/ApiTypes";
+import { useAppLanguage } from "../../../i18n";
+import {
+  workflowTemplateCopy,
+  workflowTemplateSearchAlias
+} from "../../../i18n/workflowTemplateCopy";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useTranslation } from "react-i18next";
@@ -51,6 +56,8 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
   onCancel
 }) => {
   const { t } = useTranslation();
+  // Re-render anchor + memo dep for the zh overlay below (F-26).
+  const { version: languageVersion } = useAppLanguage();
   const loadTemplates = useWorkflowManager((state) => state.loadTemplates);
   const [query, setQuery] = useState("");
   const { data, isLoading, isError, refetch } = useQuery<WorkflowList>({
@@ -65,28 +72,40 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
     if (needle === "") {
       return examples;
     }
-    return examples.filter((example) =>
-      [example.name, example.description, ...(example.tags ?? [])]
+    return examples.filter((example) => {
+      // Bilingual search: English fields stay intact, zh copy joins as an
+      // alias field (F-32 rule ③).
+      const haystack = [
+        example.name,
+        example.description,
+        ...(example.tags ?? [])
+      ]
         .filter((part): part is string => typeof part === "string")
         .join(" ")
-        .toLowerCase()
-        .includes(needle)
-    );
-  }, [examples, query]);
+        .toLowerCase();
+      const alias = workflowTemplateSearchAlias(example.id).toLowerCase();
+      return `${haystack} ${alias}`.includes(needle);
+    });
+  }, [examples, query, languageVersion]);
 
   const options = useMemo<OptionCardItem[]>(
     () =>
-      matches.map((example) => ({
-        id: example.id,
-        title: example.name,
-        description: example.description ?? undefined,
-        // One copy at a time: a second press while the first is in flight
-        // makes a second workflow nobody asked for.
-        disabled: pickingId !== null,
-        disabledReason:
-          pickingId === example.id ? t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
-      })),
-    [matches, pickingId]
+      matches.map((example) => {
+        // Render-time zh overlay (r28): English and zh-missing ids render the
+        // backend values unchanged.
+        const copy = workflowTemplateCopy(example);
+        return {
+          id: example.id,
+          title: copy.name,
+          description: copy.description || undefined,
+          // One copy at a time: a second press while the first is in flight
+          // makes a second workflow nobody asked for.
+          disabled: pickingId !== null,
+          disabledReason:
+            pickingId === example.id ? t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
+        };
+      }),
+    [matches, pickingId, languageVersion, t]
   );
 
   return (
