@@ -220,7 +220,7 @@
     "setupSubtitleDesktop": "登录 Claude 或 OpenAI 复用你已有的订阅，或添加一个 API 密钥。你的凭据会加密安全存储。",
     "setupSubtitleWeb": "添加 OpenAI、Anthropic 或 Gemini 的 API 密钥即可开始对话。你的密钥会加密安全存储。",
     "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "开启一段对话，用自然语言探索 AI 工作流。",
-    "startFailed": "无法开始新对话，请重试。",
+    "startFailed": "无法新建对话，请重试。",
     "searchConversations": "搜索对话…",
     "loadFailed": "无法加载对话",
     "noneYet": "还没有对话",

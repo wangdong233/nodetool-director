@@ -439,7 +439,7 @@
     "toggleAssetsPanelLeftSidebar": "切换素材面板（左侧栏）",
     "goBackToPreviouslyFocusedNode": "返回之前聚焦的节点",
     "resetZoomTo50": "将缩放重置为 50%",
-    "newChat": "新对话",
+    "newChat": "新建对话",
     "navigateFocusToPreviousNodeInTheCanvas": "在画布中将焦点移到上一个节点",
     "openNodeMenuAlsoDoubleclickCanvas": "打开节点菜单——也可双击画布",
     "selectFocusedNode": "选中聚焦节点",
@@ -702,7 +702,7 @@
     },
     "wan-2-6-prompting": {
       "name": "Wan 2.6 提示词",
-      "description": "编写阿里 Wan 2.6 三种模式的提示词：文生视频用一句全局风格线加带时间括号的镜头，图生视频只描述随时间变化的部分，参考生视频把主体标成 @Video1/@Video2/@Video3。涵盖 multi_shots 格式、800 字符提示词预算、反向提示词、运动强度措辞、音频输入规则与提示词扩写。凡模型 ID 含 wan-2.6 或 wan2.6 即适用；Wan 2.5、2.7 不在此列。"
+      "description": "编写阿里 Wan 2.6 三种模式的提示词：文生视频用一句全局风格线加带时间括号的镜头，图生视频只描述随时间变化的部分，参考图生视频把主体标成 @Video1/@Video2/@Video3。涵盖 multi_shots 格式、800 字符提示词预算、反向提示词、运动强度措辞、音频输入规则与提示词扩写。凡模型 ID 含 wan-2.6 或 wan2.6 即适用；Wan 2.5、2.7 不在此列。"
     }
   },
   "apps": {
@@ -724,7 +724,7 @@
     },
     "directed-campaign-kit": {
       "name": "定向广告执导套件",
-      "description": "上传一张产品图。多模态语言模型补全简报并提出三个方向，你批准一支主片、搭两种规格、再执导一轮修改。"
+      "description": "上传一张产品照。多模态语言模型补全简报并提出三个方向，你批准一支主片、搭两种规格、再执导一轮修改。"
     },
     "dubbing-desk": {
       "name": "配音台",
@@ -752,11 +752,11 @@
     },
     "product-launch-kit": {
       "name": "产品发布套件",
-      "description": "先把产品图置入生活方式样机，再——想清楚才动手，因为这一步花真钱——把同一张图变成发布视频。"
+      "description": "先把产品照置入生活方式样机，再——想清楚才动手，因为这一步花真钱——把同一张图变成发布视频。"
     },
     "product-reshoot": {
       "name": "产品重拍",
-      "description": "从一张产品图做出三版可直接投产的画面：换一套场景、按季节重打光，或抠出干净图供合成。"
+      "description": "从一张产品照做出三版可直接投产的画面：换一套场景、按季节重打光，或抠出干净图供合成。"
     },
     "product-shot-video": {
       "name": "产品展示视频",
@@ -768,7 +768,7 @@
     },
     "sku-factory": {
       "name": "SKU 工厂",
-      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品图丢一次，抠图、棚拍场景、季节重打光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
+      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品照丢一次，抠图、棚拍场景、季节重打光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
     },
     "trailer-room": {
       "name": "预告片室",
@@ -908,7 +908,7 @@
   },
   "imageUseCases": {
     "product": {
-      "title": "产品图",
+      "title": "产品照",
       "description": "单一物体，干净背景，可直接投放"
     },
     "portrait": {
@@ -938,7 +938,7 @@
   },
   "workflowInspiration": {
     "summarize-pdf": "总结 PDF 并发送邮件",
-    "product-shots": "从 CSV 批量生成产品图",
+    "product-shots": "从 CSV 批量生成产品照",
     "url-to-post": "把 YouTube 链接转成一篇博客文章"
   },
   "nodes": {
@@ -972,7 +972,7 @@
       "Remove Background": "去背景",
       "Text to 3D": "文生 3D",
       "Image to 3D": "图生 3D",
-      "Sketch to 3D": "草图生 3D",
+      "Sketch to 3D": "图稿生 3D",
       "Multiview to 3D": "多视角生 3D",
       "Multi View to 3D": "多视角生 3D",
       "Text to Vector": "文生矢量",
@@ -2044,7 +2044,7 @@
     "nodetool.document.ListDocuments": "列出目录中的文档。\nfiles, list, directory",
     "nodetool.document.LoadDocumentFile": "从磁盘读取文档。\nfiles, document, read, input, load, file",
     "nodetool.document.SaveDocumentFile": "将文档写入磁盘。\nfiles, document, write, output, save, file\n\n文件名可包含时间与日期变量：\n%Y - 年，%m - 月，%d - 日\n%H - 时，%M - 分，%S - 秒",
-    "nodetool.entity.CreateEntity": "向实体库添加实体，或更新本图上次创建的那一个。\nentity, library, create, upsert, batch\n\nUse cases:\n- 把产品图变成每个 SKU 可复用的实体\n- 登记生成的角色，让后续镜头保持一致\n- 重跑目录导入而不在库中产生重复",
+    "nodetool.entity.CreateEntity": "向实体库添加实体，或更新本图上次创建的那一个。\nentity, library, create, upsert, batch\n\nUse cases:\n- 把产品照变成每个 SKU 可复用的实体\n- 登记生成的角色，让后续镜头保持一致\n- 重跑目录导入而不在库中产生重复",
     "nodetool.entity.ListEntities": "按类型、标签、名称或项目筛选，列出实体库中的实体。\nentity, library, list, cast, batch\n\nUse cases:\n- 让一张图在一个项目的全部产品上展开\n- 收集一组角色（cast）传给生成器\n- 找出携带某个标签的实体",
     "nodetool.entity.LoadEntity": "通过选择器或名称从实体库读取一个实体。\nentity, character, location, style, prop, library, load\n\nUse cases:\n- 把角色的描述词喂进提示词\n- 把实体的参考图拉进生成器\n- 在批量流程中按名称查找实体",
     "nodetool.generators.ChartGenerator": "根据自然语言描述创建 Plotly Express 图表的 LLM 智能体。\nllm, data visualization, charts\n\nUse cases:\n- 从自然语言描述生成交互式图表\n- 以极简配置创建数据可视化\n- 把数据分析需求转换为可视化表达",
@@ -2728,7 +2728,7 @@
     },
     "Put a Product on a Studio Backdrop.json": {
       "name": "把产品放进影棚背景",
-      "description": "去背景、柔化抠像边缘，再把产品放进全新的影棚场景。"
+      "description": "去背景、柔化抠图边缘，再把产品放进全新的影棚场景。"
     },
     "Put a Voice Over a Music Bed.json": {
       "name": "人声压上音乐垫底",
@@ -2883,7 +2883,7 @@
       "description": "镶边扫频垫在反馈延迟下面。两者都是混合式效果，干信号在底下活着，而不是被替换掉。"
     },
     "Take a Product Shot to Print Resolution.json": {
-      "name": "产品图超分到印刷分辨率",
+      "name": "产品照超分到印刷分辨率",
       "description": "把已过审的产品照超分，再用一道可调的轻收尾锐化细节。锐度设 0 即关闭。"
     },
     "Take the First Few Seconds of a Bed.json": {
