@@ -181,8 +181,10 @@ const styles = (theme: Theme) =>
     }
   });
 
-// In full-page (/examples) mode this section gets extra breathing room below
-// the example apps. The manager content owns scrolling for the full page.
+// In full-page (/examples) mode the section flows inline in the padded
+// manager layout, which owns the scroll. The viewport-owning variant
+// (flex:1 + minHeight:0 + inner overflow) collapses to a sliver when a
+// sibling section sits above it inside the scrolling content area.
 const fullPageStyles = css({
   paddingTop: getSpacingPx(SPACING.xxl),
   paddingBottom: getSpacingPx(SPACING.xxxl)
