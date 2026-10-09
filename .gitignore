@@ -124,3 +124,4 @@ nodetool-debug/
 
 # Dev-server / build logs
 *.log
+.devteam/

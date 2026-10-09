@@ -36,6 +36,7 @@ web/src/
 ├── components/    # React UI components (PascalCase .tsx files)
 │   └── support/   # Bug-report dialog — every error surface links to it
 ├── e2e_runner/    # In-browser graph harness — runs workflows vs. real backend (see README.md)
+├── i18n/          # Localization: catalogs (en + zh-CN), helpers, glossary, contract tests
 ├── stores/        # Zustand state stores (single-domain each)
 ├── hooks/         # Custom React hooks (useX naming)
 ├── contexts/      # React contexts wrapping Zustand stores
@@ -45,6 +46,34 @@ web/src/
 ├── utils/         # Pure utility functions
 └── trpc/          # tRPC client and provider for the backend router
 ```
+
+## Localization (i18n)
+
+All user-visible strings resolve through `react-i18next` — never hardcode display
+text. Read [i18n/glossary.md](i18n/glossary.md) before writing translations:
+business jargon over literal rendering, standard terms (SVG/JSON/brand names)
+stay Latin, whole-sentence rewrites only (never word-swapped hybrids).
+
+- **Catalogs**: `i18n/locales/<lang>/<namespace>.json`. English is the source
+  of truth; every `t()` call carries `defaultValue: "<English>"` so English
+  renders even without a dictionary. `catalog.json` additionally holds
+  zh-only data overlays (node titles, node docs, task-suffix vocabulary,
+  seeded examples) keyed by stable identifiers — English never carries these
+  blocks and the contract tests in `i18n/__tests__/` enforce that.
+- **Render-time resolution**: backend-provided names (node titles, seeded
+  document names) localize through `nodeDisplayName`/`nodeDocs`/
+  `seededDocDisplayName` at render time — stored data is never rewritten, and
+  a language switch re-renders immediately.
+- **Search stays bilingual**: localized titles/descriptions enter the search
+  index as alias fields; English matching keeps its original weights.
+- **Gates** (run from `web/`): `npm run i18n:gate` before committing i18n
+  changes (syntax, tsc baseline, wiring tuples, dangling keys),
+  `npm run i18n:preflight` for frozen-pattern checks, `npm run i18n:audit`
+  for a report of remaining bare strings.
+- **Behavior preservation**: i18n wiring must not change functionality.
+  Context-bound hooks (Puck, ReactFlow) only work inside their host trees,
+  and modules importing `i18n/` must never enter web-worker module graphs —
+  verify surfaces by exercising their primary action with pageerror listening.
 
 ## Specialized Guides
 

@@ -125,7 +125,10 @@
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build",
     "timeline-fonts": "node scripts/generate-timeline-fonts-css.mjs",
-    "timeline-fonts:check": "node scripts/generate-timeline-fonts-css.mjs --check"
+    "timeline-fonts:check": "node scripts/generate-timeline-fonts-css.mjs --check",
+    "i18n:gate": "node scripts/i18n-commit-gate.mjs",
+    "i18n:preflight": "node scripts/i18n-preflight.mjs",
+    "i18n:audit": "node scripts/i18n-bare-audit.mjs"
   },
   "browserslist": {
     "production": [
