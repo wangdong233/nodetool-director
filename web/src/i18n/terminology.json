@@ -398,8 +398,8 @@
       "zh": "遮罩",
       "domain": "editing",
       "grade": "clean",
-      "note": "时间线 matte 族(subject matte/matte mode)全部 遮罩,影视行话(轨道遮罩)。",
-      "variants_seen": ["遮罩"]
+      "note": "时间线 matte 族(subject matte/matte mode)全部 遮罩,影视行话(轨道遮罩)。30b 补修 ui2 播放器两键(显示抠像→显示遮罩、抠像主体→主体遮罩),与 timeline 域 8 键遮罩族对齐。",
+      "variants_seen": ["遮罩", "抠像(30b已修:ui2 播放器)"]
     },
     "mask": {
       "zh_by_domain": {
