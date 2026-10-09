@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正。",
+    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正;30b-4 已回写节点目录域批修正(裁决执行 trim/solarize/restyle/director + mask/cutout/packshot/reference 族归一 + 新锚 restyle/narration/text to music/video stabilization/thread)。",
     "标准从:后轮裁定优先于早轮 (r13-r28 分域审校词汇为准绳),先查 glossary.md 既有裁定。",
     "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
@@ -167,8 +167,8 @@
       "zh": "知识库",
       "domain": "rag",
       "grade": "A",
-      "note": "glossary/R1 定 知识库,弃用 收藏集/合集。30b 已修 editor 域全部 15 处(收藏集 3+合集 5+集合 7→知识库);control 节点 Collection=素材集合 为节点显示名,分立可留(后续批复核)。",
-      "variants_seen": ["知识库", "收藏集(30b已修)", "素材集合", "合集(30b已修)", "集合(30b已修)"]
+      "note": "glossary/R1 定 知识库,弃用 收藏集/合集。30b 已修 editor 域全部 15 处;30b-4 复核 control 节点 Collection=素材集合:判定保留(nodeDocs 证实=单一类型素材的精选集合,资产域语义,与 RAG 知识库 分立成立);dataTypes.collection=知识库(nodeDocs 证实=RAG 检索语境,正确)。",
+      "variants_seen": ["知识库", "收藏集(30b已修)", "素材集合(control 节点名,30b-4 复核保留)", "合集(30b已修)", "集合(30b已修)"]
     },
     "entities": {
       "zh_by_domain": {
@@ -291,8 +291,8 @@
       "zh": "超分",
       "domain": "media-task",
       "grade": "B",
-      "note": "任务域=超分(r14 词表);30b 已修 editor:ui.upscale;30b-3 已清模板/应用/技能残留:Upscale a Still(放大静图→静图超分)/Take a Product Shot to Print Resolution/Generate then Upscale a Poster 三模板+skills.nodetool-video-post(放大→超分)+apps.upscale-image(图像放大→图像超分,两个放大器→两个超分引擎)。放大 保留给 缩放/放大镜 UI 动作(zoom in/out 不受影响)。",
-      "variants_seen": ["超分", "放大(30b/30b-3已修:任务词)"]
+      "note": "任务域=超分(r14 词表);30b 已修 editor:ui.upscale;30b-3 已清模板/应用/技能残留(Upscale a Still/Take a Product Shot to Print Resolution/Generate then Upscale a Poster+skills.nodetool-video-post+apps.upscale-image);30b-4 已修 suffix Super Resolution 超分辨率→超分(词表族归一,Audio Super Resolution=音频超分 本就一致)。放大 保留给 缩放/放大镜 UI 动作(zoom in/out 不受影响)。语料归一完成。",
+      "variants_seen": ["超分", "放大(30b/30b-3已修:任务词)", "超分辨率(30b-4已修)"]
     },
     "outpaint": {
       "zh_by_domain": {
@@ -352,9 +352,9 @@
     "reference to video": {
       "zh": "参考图生视频",
       "domain": "media-task",
-      "grade": "B",
-      "note": "editor:ui.referenceToVideo=参考图生视频;suffix=参考生视频,30b 统一 参考图生视频。",
-      "variants_seen": ["参考图生视频", "参考生视频"]
+      "grade": "clean",
+      "note": "editor:ui.referenceToVideo=参考图生视频;30b-4 已修 suffix 双条 Reference to Video/reference-to-video 参考生视频→参考图生视频+节点 nodetool.video.ReferenceToVideo 参考生成视频→参考图生视频(三面归一);族形 Reference To Image=参考图生图(30b-4 新定,与 文生图/图生图 族形一致)。",
+      "variants_seen": ["参考图生视频", "参考生视频(30b-4已修)", "参考生成视频(30b-4已修:节点)"]
     },
     "text to speech": {
       "zh": "TTS 语音合成",
@@ -373,9 +373,9 @@
     "remove background": {
       "zh": "去背景",
       "domain": "media-task",
-      "grade": "B",
-      "note": "suffix=去背景;30b 已修 editor:ui.removeBackground(移除背景→去背景,抠图行话)。",
-      "variants_seen": ["去背景", "移除背景(30b已修)"]
+      "grade": "clean",
+      "note": "suffix=去背景;30b 已修 editor:ui.removeBackground(移除背景→去背景,抠图行话);30b-4 已修 catalog nodes.nodetool.image.RemoveBackground 移除背景→去背景+nodeDocs(去除图像背景)。语料归一完成。",
+      "variants_seen": ["去背景", "移除背景(30b/30b-4已修)"]
     },
     "inpaint": {
       "zh": "局部重绘",
@@ -407,8 +407,8 @@
         "timeline-cut": "遮罩"
       },
       "domain": "editing",
-      "grade": "B",
-      "note": "图像编辑域=蒙版(PS 行话,25 处);时间线裁切域跟随 matte=遮罩。违例:suffix Erase Mask/Eraser Mask/Object Removal Mask=擦除遮罩/物体移除遮罩 属图像任务域,应为 蒙版,30b 修正。30b-2 已修:timeline maskX 族 7 键(蒙版 X/Y/羽化/高度/宽度/形状/路径数据→遮罩,ClipMaskMatte 裁切面与 matte 族对齐);图像域蒙版不变。",
+      "grade": "C",
+      "note": "图像编辑域=蒙版(PS 行话);时间线裁切域跟随 matte=遮罩。30b 修 editor 域;30b-2 修 timeline maskX 族 7 键(与 matte 族对齐);30b-4 已修 suffix 三条 Erase Mask/Eraser Mask/Object Removal Mask 擦除遮罩/物体移除遮罩→擦除蒙版/物体移除蒙版(图像任务域)。分域归一完成。",
       "variants_seen": ["蒙版", "遮罩"]
     },
     "clip": {
@@ -448,14 +448,15 @@
     },
     "trim": {
       "zh_by_domain": {
-        "media": "修剪",
+        "audio": "修剪",
+        "video": "裁剪",
         "image-crop": "裁剪",
         "text-truncate": "截到/截断"
       },
       "domain": "editing",
-      "grade": "A",
-      "note": "30b-3 分域裁定(模板/媒体任务面):视频=裁剪(与词表 Trim Video=视频裁剪、模板 Trim a Clip=裁剪素材 一致)、音频=修剪(Trim Audio to a Range 音频裁区间→修剪音频区间)、文本=截断/截到限长。编辑面(timeline trimClip*/storyboard/tools)维持 修剪 不动。遗留待裁:nodes.nodetool.video.Trim 显示名与 nodeDocs video.Trim 仍为 修剪,与词表 视频裁剪 不同面并存,待统一裁决。剪掉静音(Speak a Line)为口语化模板名保留。",
-      "variants_seen": ["修剪", "裁剪(视频/图像域)", "截到限长", "裁区间(30b-3已修)", "剪掉静音(口语化保留)"]
+      "grade": "C",
+      "note": "30b-3 分域裁定(模板/媒体任务面)+30b-4 裁决执行(节点面):视频域=裁剪(与词表 Trim Video=视频裁剪、模板 Trim a Clip=裁剪素材 一致;30b-4 已修 nodes.nodetool.video.Trim 修剪→裁剪+nodeDocs 同步)、音频域=修剪(nodetool.audio.Trim+Trim Audio 模板不动)、文本=截断/截到限长。编辑面(timeline trimClip*/storyboard/tools)维持 修剪 不动(RetargetTimeline doc keeping every trim=timeline 域已核)。剪掉静音(Speak a Line)为口语化模板名保留。",
+      "variants_seen": ["修剪(音频/编辑面)", "裁剪(视频/图像域)", "截到限长", "剪掉静音(口语化保留)"]
     },
     "crop": {
       "zh": "裁剪",
@@ -482,8 +483,8 @@
       "zh": "宽高比",
       "domain": "editing",
       "grade": "B",
-      "note": "主译 宽高比;残留 画面比例 4 处、泛 比例,30b 统一 宽高比(泛比例语境除外)。30b-2 已修:storyboard 画面比例×3(aspectRatio/aspectRatioIsSetOnce/chooseYourAspectRatioAndArtStyle);比例枚举值(16:9—宽银幕 等)非术语不动。",
-      "variants_seen": ["宽高比", "画面比例(30b-2已修)", "比例"]
+      "note": "主译 宽高比;30b-2 已修 storyboard 画面比例×3;30b-4 已修 catalog 画幅比×2(nodeDocs RetargetTimeline+模板 desc)与 摆位比例→宽高比变体。比例枚举值(16:9—宽银幕 等)非术语不动。语料归一完成。",
+      "variants_seen": ["宽高比", "画面比例(30b-2已修)", "画幅比(30b-4已修)", "比例"]
     },
     "seed": {
       "zh": "种子",
@@ -613,8 +614,8 @@
       },
       "domain": "film",
       "grade": "B",
-      "note": "产品概念 the Director 保留拉丁(Your Director…);动词 direct=执导(执导套件/我来执导)。30b-2 storyboard 逐条判定完成:AI 人格语境 导演→Director ×6(runTheDirectorAgain/theDirectorIsWriting/theDirectorStructures/howManyShotsDirectorWrites 等);动作→执导 ×4(reDirectYourScreenplay/reDirectingRewrites/pickAModelBeforeDirecting/writeABriefBeforeDirecting)+attrs.direction 设置节 指示→执导(节内为剧本模型/宽高比/镜头数);人类职业语境零出现。",
-      "variants_seen": ["Director", "执导", "导演(30b-2已修:AI 人格语境)"]
+      "note": "产品概念 the Director 保留拉丁(Your Director…);动词 direct=执导(执导套件/我来执导)。30b-2 storyboard 逐条判定完成:AI 人格语境 导演→Director ×6(runTheDirectorAgain/theDirectorIsWriting/theDirectorStructures/howManyShotsDirectorWrites 等);动作→执导 ×4(reDirectYourScreenplay/reDirectingRewrites/pickAModelBeforeDirecting/writeABriefBeforeDirecting)+attrs.direction 设置节 指示→执导(节内为剧本模型/宽高比/镜头数);人类职业语境零出现。30b-4 裁决:nodes.nodetool.creative.Director 显示名=导演 维持中文(keep_latin 的 Director 指 AI 人格语境,节点显示名不属;保中文搜索别名;nodeDocs/ScreenplayShots bullet 导演节点 一致)。",
+      "variants_seen": ["Director", "执导", "导演(30b-2已修:AI 人格语境)", "导演(节点显示名,30b-4 裁定保留)"]
     },
     "b-roll": {
       "zh": "B-roll",
@@ -695,15 +696,15 @@
       "zh": "工作节点",
       "domain": "app-core",
       "grade": "B",
-      "note": "2026-09-30 行话令;30b 已修 editor 域;30b-3 已修 catalog:skills.nodetool-deployment 工作进程→工作节点。语料归一完成。",
-      "variants_seen": ["工作节点", "工作器(30b已修)", "工作进程(30b-3已修)", "worker(30b已修:混排)"]
+      "note": "r28 族词;30b 已修 editor 域;30b-3 已修 catalog:skills.nodetool-deployment 工作进程→工作节点。30b-4 已修 catalog:lib.comfy.RunWorkflowOnWorker 节点 (Worker)→(工作节点)+nodeDocs 混排 worker 桥接→工作节点桥接。语料归一完成。",
+      "variants_seen": ["工作节点", "工作器(30b已修)", "工作进程(30b-3已修)", "worker(30b/30b-4已修:混排)"]
     },
     "batch": {
       "zh": "批量",
       "domain": "app-core",
       "grade": "B",
-      "note": "动作=批量、名词一批=批次(collectNItemsThenEmitAsABatch);30b-3 已执行模板裁定:Batch a List 名称 列表分批→批量处理列表、desc 分批→批量。语料归一完成。",
-      "variants_seen": ["批量", "批次", "分批(30b-3已修)"]
+      "note": "动作=批量、名词一批=批次(collectNItemsThenEmitAsABatch);30b-3 已执行模板裁定(Batch a List 名称 列表分批→批量处理列表、desc 分批→批量);30b-4 已修 nodes.nodetool.control.Chunk 分批→批量(节点显示名,doc 以批量发出 本就一致);snippets collectNItemsThenEmitAsABatch=作为一个批次发出(名词=批次 正确)。语料归一完成。",
+      "variants_seen": ["批量", "批次", "分批(30b-3/30b-4已修)"]
     },
     "queue": {
       "zh_by_domain": {
@@ -937,11 +938,11 @@
       "variants_seen": ["竖版", "人像"]
     },
     "solarize": {
-      "zh": "部分色调反转",
+      "zh": "负感化",
       "domain": "media-task",
-      "grade": "B",
-      "note": "lib 节点=部分色调反转(准确)、suffix Solarize=负片(误借),30b 统一 部分色调反转 或 日照化 行话复核。",
-      "variants_seen": ["部分色调反转", "负片"]
+      "grade": "clean",
+      "note": "30b-4 裁决=负感化(摄影行话,Sabattier 效应)。已修:suffix Solarize 负片误借→负感化、lib 节点 部分色调反转→负感化;lib nodeDocs 保留 中途曝光 释义(同义词互证)。负片 保留给 Invert 的负像结果(lib.image.filter.Invert bullet 制作图像的负片 为正确用法)。",
+      "variants_seen": ["负感化", "负片(30b-4已修:suffix 误借)", "部分色调反转(30b-4已修:lib 节点)"]
     },
     "new chat": {
       "zh": "新对话",
@@ -968,8 +969,8 @@
       "zh": "产品照",
       "domain": "marketing",
       "grade": "B",
-      "note": "30b-3 新锚:packshot/product shot=产品照(对齐词表 Product Shot=产品照);弃 定妆照(AIGC 域已用作锚点图/定妆概念,冲突)与 产品白底图泛称。Spin a Packshot 已修 定妆照→产品照。",
-      "variants_seen": ["产品照", "定妆照(30b-3已修)", "产品图(词表 Product Packshot 现状,待统一)"]
+      "note": "30b-3 新锚:packshot/product shot=产品照(对齐词表 Product Shot=产品照);弃 定妆照(AIGC 域已用作锚点图/定妆概念,冲突)与 产品白底图泛称。30b-4 已修词表双条 Product Photo/Product Packshot 产品图→产品照(族内归一);Product Photography=产品摄影(技艺义)分立。",
+      "variants_seen": ["产品照", "定妆照(30b-3已修)", "产品图(30b-4已修)"]
     },
     "cutout": {
       "zh_by_domain": {
@@ -978,7 +979,7 @@
       },
       "domain": "media-task",
       "grade": "C",
-      "note": "30b-3 新锚:图像域 cutout/cut-out=抠图(词表 Product Cutout=产品抠图;Cut a Product Out of Its Background 已修 原始抠像→原始抠图);视频 matte 域=抠像(词表 Video Matting=视频抠像)。分域成立。",
+      "note": "30b-3 新锚:图像域 cutout/cut-out=抠图(词表 Product Cutout=产品抠图;Cut a Product Out of Its Background 已修 原始抠像→原始抠图);视频 matte 域=抠像(词表 Video Matting=视频抠像)。30b-4 已修 suffix Matte Image 图像抠像→图像抠图(图像任务域)+nodeDocs image.RemoveBackground 抠像结果→抠图结果。分域归一完成。",
       "variants_seen": ["抠图", "抠像"]
     },
     "revoice": {
@@ -987,6 +988,44 @@
       "grade": "B",
       "note": "30b-3 新锚:revoice/voice replacement=重配音(对齐模板 剧本本地化并重配音);apps.dubbing-desk 换声、skills.nodetool-video-post 换声 已修。变声 留给 voice changer(音色变换义)。",
       "variants_seen": ["重配音", "换声(30b-3已修)"]
+    },
+    "restyle": {
+      "zh_by_domain": {
+        "node-suffix": "风格重绘",
+        "app-product-name": "视频风格化"
+      },
+      "domain": "media-task",
+      "grade": "C",
+      "note": "30b-4 裁决:节点/后缀语境=风格重绘(创作动作名;suffix Restyle 风格重塑已修;模板 Video Restyle Studio=视频风格重绘工作室 已先对齐;nodeDocs VideoToVideo 做重绘或编辑 一致);应用名 视频风格化=产品名级保留(apps.video-restyle)。Stylize=风格化 为另一 en 词,分立。",
+      "variants_seen": ["风格重绘", "风格重塑(30b-4已修)", "视频风格化(应用名保留)"]
+    },
+    "narration": {
+      "zh": "旁白",
+      "domain": "film",
+      "grade": "B",
+      "note": "30b-4 新锚:narration/voiceover=旁白。已修 catalog script 族 5 处 解说词/解说轨/解说素材→旁白(nodeDocs Transcript/ScriptToSubtitles/ScriptToTimeline/VoiceScript/WriteScript);解说 保留给 explainer 语境(Explainer Clip/解说视频分镜模板/解说片,storyboard+timeline 语料 旁白 9 处零 解说词 一致)。",
+      "variants_seen": ["旁白", "解说(explainer 域保留)", "解说词(30b-4已修)"]
+    },
+    "text to music": {
+      "zh": "文生音乐",
+      "domain": "media-task",
+      "grade": "clean",
+      "note": "30b-4 新锚:nodes.nodetool.audio.TextToMusic 文本生成音乐→文生音乐(与 文生图/文生视频/文生音频/图生视频 族形一致);suffix Text To Music=文生音乐 本就一致。",
+      "variants_seen": ["文生音乐", "文本生成音乐(30b-4已修)"]
+    },
+    "video stabilization": {
+      "zh": "防抖",
+      "domain": "editing",
+      "grade": "B",
+      "note": "30b-4 新锚:video stabilization=防抖(视频编辑行话,剪映/PR 中文惯例)。已修 nodes.nodetool.video.Stabilize 稳定→防抖+nodeDocs 应用视频稳定→应用视频防抖。",
+      "variants_seen": ["防抖", "稳定(30b-4已修)"]
+    },
+    "thread": {
+      "zh": "会话线程",
+      "domain": "app-core",
+      "grade": "B",
+      "note": "30b-4 新锚:chat thread=会话线程(与 创建会话 节点[nodetool.agents.CreateThread]+其 doc 会话线程 一致);已修 dataTypes.thread 对话线程→会话线程。聊天域 UI 用 对话(newChat=新建对话)指会话本身,线程词保留 会话线程 形态。",
+      "variants_seen": ["会话线程", "对话线程(30b-4已修)"]
     }
   }
 }
