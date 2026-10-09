@@ -61,7 +61,7 @@ const MOBILE_TABS = [
   // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
   { value: "code", labelKey: "editor:ui.code", label: "Code", icon: <CodeIcon /> },
   { value: "console", labelKey: "ui2:attrs.run", label: "Run", icon: <TerminalIcon /> },
-  { value: "settings", labelKey: "editor:ui.script", label: "Script", icon: <TuneIcon /> },
+  { value: "settings", labelKey: "editor:ui.jsScript", label: "JS script", icon: <TuneIcon /> },
   { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
@@ -164,7 +164,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
     () => [
       {
         value: "settings",
-        label: t("editor:ui.script", { defaultValue: "Script" }),
+        label: t("editor:ui.jsScript", { defaultValue: "JS script" }),
         icon: <TuneIcon />
       },
       {

@@ -42,7 +42,7 @@
       "sketches": "图稿",
       "timelines": "时间线",
       "storyboards": "分镜",
-      "scripts": "脚本",
+      "scripts": "剧本",
       "apps": "小程序",
       "appBuilder": "小程序构建器",
       "assets": "素材",
@@ -76,7 +76,7 @@
       "sketch": "图稿",
       "timeline": "时间线",
       "storyboard": "分镜",
-      "script": "脚本",
+      "script": "剧本",
       "jsscript": "JS 脚本",
       "skill": "技能",
       "model3d": "3D 模型",
@@ -137,8 +137,8 @@
       "description": "创建和编辑图像。"
     },
     "scripts": {
-      "label": "脚本",
-      "description": "创建和管理叙事或制片脚本。"
+      "label": "剧本",
+      "description": "创建和管理叙事或制片剧本。"
     },
     "storyboards": {
       "label": "分镜",
