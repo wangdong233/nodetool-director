@@ -525,7 +525,7 @@ export const PencilSettingsPanel = memo(function PencilSettingsPanel({
             value="soft"
             title={t("editor:ui.softModeAntialiasedCircularDabsFeelsLikeASmallBrush")}
           >
-            Soft
+            {t("ui2:attrs.soft", { defaultValue: "Soft" })}
           </SketchModeOption>
         </SketchModeToggle>
         {!omitPaintSliders && (
