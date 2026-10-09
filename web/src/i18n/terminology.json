@@ -56,8 +56,8 @@
       "zh": "模型服务商",
       "domain": "app-core",
       "grade": "A",
-      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b 已修 editor/ui2/ui 域全部:提供商 15 处+第三变体 供应商 1 处(theProvider)+渠道费率 1 处,均改 服务商;settings 域残留由后续批处理。",
-      "variants_seen": ["服务商", "模型服务商", "提供商(30b已修)", "供应商(30b已修)"]
+      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b 已修 editor/ui2/ui 域全部:提供商 15 处+第三变体 供应商 1 处(theProvider)+渠道费率 1 处,均改 服务商。30b-2 已修 storyboard/timeline 残留 10 处(提供商×2/供应商×4/图像渠道×2/模型供应商 等→服务商);settings 域残留由后续批处理。",
+      "variants_seen": ["服务商", "模型服务商", "提供商(30b已修)", "供应商(30b/30b-2已修)", "渠道(30b-2已修:storyboard域)"]
     },
     "api key": {
       "zh": "API 密钥",
@@ -122,8 +122,8 @@
       "zh": "分镜表",
       "domain": "film",
       "grade": "clean",
-      "note": "影视行话。",
-      "variants_seen": ["分镜表"]
+      "note": "影视行话。30b-2 已修:storyboard importYourShotlist/shotlistImported 镜头清单→分镜表 ×2。",
+      "variants_seen": ["分镜表", "镜头清单(30b-2已修)"]
     },
     "sketch": {
       "zh": "图稿",
@@ -242,7 +242,7 @@
       "zh": "定向广告",
       "domain": "marketing",
       "grade": "A",
-      "note": "r28 战役族行话。残留早轮译名 战役 4 处:catalog skills.launch-kit.description(宣传战役)、apps.ad-maker.description(战役主片)、workflowTemplates.Compose Directed Campaign Formats.json.description(版本化战役记录)、Reopen a Directed Campaign.json.description(战役记录×2);另有 ui.suggestionLaunchCampaign 的 launch campaign=发布活动(泛营销义,30b 裁定:可保留发布活动或统一族名)。30b 将 战役→定向广告(战役主片→定向广告主片、战役记录→定向广告记录)。",
+      "note": "r28 战役族行话。30b-2 已修 catalog 残留 4 处(宣传战役→定向广告宣传/战役主片→定向广告主片/战役记录×2→定向广告记录);launch campaign=发布活动(ui.suggestionLaunchCampaign 泛营销义)仍待裁。",
       "variants_seen": ["定向广告", "战役", "发布活动", "营销"]
     },
     "campaign hero": {
@@ -256,15 +256,15 @@
       "zh": "简报",
       "domain": "marketing",
       "grade": "B",
-      "note": "族内主译 简报(45处);残留 storyboard:attrs.storyboardAssistantWelcome(把这份简介拆成…)等 简介 2 处、脚本 2 处,30b 统一 简报。",
-      "variants_seen": ["简报", "简介", "脚本"]
+      "note": "族内主译 简报(45处)。30b-2 已修 storyboard 简介×2(storyboardAssistantWelcome/noImageProviderIsConnected)与 脚本 2 处(归并入 script 键修正)。",
+      "variants_seen": ["简报", "简介(30b-2已修)", "脚本(30b-2已修)"]
     },
     "commercial": {
       "zh": "广告片",
       "domain": "marketing",
       "grade": "clean",
-      "note": "2026-09-30 行话令。",
-      "variants_seen": ["广告片"]
+      "note": "2026-09-30 行话令。30b-2 已修:storyboard genreCommercial 广告→广告片。",
+      "variants_seen": ["广告片", "广告(30b-2已修:genreCommercial)"]
     },
     "remix": {
       "zh": "重混",
@@ -311,8 +311,8 @@
       },
       "domain": "editing",
       "grade": "A",
-      "note": "≥3 译法:延长(clip)、扩展(sketch 选区/边框)、视频延长(suffix 任务词)、延伸(timeline:shortcuts.extendTheEditPointToThePlayhead=剪辑点延伸)。裁定:时间线剪辑点延伸→延长 对齐;sketch 选区 扩展 保留;suffix 视频延长 保留(任务词)。",
-      "variants_seen": ["延长", "扩展", "视频延长", "延伸"]
+      "note": "≥3 译法:延长(clip)、扩展(sketch 选区/边框)、视频延长(suffix 任务词)、延伸(timeline:shortcuts.extendTheEditPointToThePlayhead=剪辑点延伸)。裁定:时间线剪辑点延伸→延长 对齐;sketch 选区 扩展 保留;suffix 视频延长 保留(任务词)。30b-2 已修:timeline extension 族 8 键 扩展→延长(extend/extendFrom=延长方向/extensionCandidate/extensionIntent/extensionModel/noExtensionModelAvailable/extensionGenerationIsRunning/extensionSeconds)+shortcuts 剪辑点延伸→延长。",
+      "variants_seen": ["延长", "扩展", "视频延长", "延伸(30b-2已修:剪辑点)"]
     },
     "expand": {
       "zh": "扩展",
@@ -408,15 +408,15 @@
       },
       "domain": "editing",
       "grade": "B",
-      "note": "图像编辑域=蒙版(PS 行话,25 处);时间线裁切域跟随 matte=遮罩(3 处,分域成立)。违例:suffix Erase Mask/Eraser Mask/Object Removal Mask=擦除遮罩/物体移除遮罩 属图像任务域,应为 蒙版,30b 修正。",
+      "note": "图像编辑域=蒙版(PS 行话,25 处);时间线裁切域跟随 matte=遮罩。违例:suffix Erase Mask/Eraser Mask/Object Removal Mask=擦除遮罩/物体移除遮罩 属图像任务域,应为 蒙版,30b 修正。30b-2 已修:timeline maskX 族 7 键(蒙版 X/Y/羽化/高度/宽度/形状/路径数据→遮罩,ClipMaskMatte 裁切面与 matte 族对齐);图像域蒙版不变。",
       "variants_seen": ["蒙版", "遮罩"]
     },
     "clip": {
       "zh": "片段",
       "domain": "editing",
       "grade": "B",
-      "note": "时间线 clip=片段 主译;剪辑 保留给 剪辑点(edit point)/剪辑动作/剪辑师 行话;残留 替换剪辑(replaceClip)等散点 30b 逐条判定(片段 vs 动作义)。",
-      "variants_seen": ["片段", "剪辑"]
+      "note": "时间线 clip=片段 主译;剪辑 保留给 剪辑点(edit point)/剪辑动作(the cut)/剪辑师 行话。30b-2 已清名词残留:timeline 26 键(addFailed/addMIDIClip/duplicateClip/replaceClip/shortcuts 所选剪辑族等)+storyboard 渲染段 6 键(reRenderClip/renderClip/renderingClip/stillClipQueued 等);整段剪辑(oneBedUnderTheWholeCut=the cut)/打开剪辑(openTheCut)/卡在节拍上的剪辑 为剪辑动作义保留。",
+      "variants_seen": ["片段", "剪辑(动作/剪辑点义保留)"]
     },
     "edit point": {
       "zh": "剪辑点",
@@ -439,6 +439,13 @@
       "note": "逐帧/前进一帧/静帧 一致;分镜 attrs 帧 计数一致。",
       "variants_seen": ["帧"]
     },
+    "fade shape": {
+      "zh": "淡入曲线/淡出曲线",
+      "domain": "editing",
+      "grade": "B",
+      "note": "timeline 双键 fadeInShape/fadeOutShape(大写 N)与 fadeinShape/fadeoutShape(小写 i)同 en 异译(形状 vs 曲线);消费面=ClipAdjustments 用小写键(曲线)。30b-2 统一=曲线(linear/eased 族本质是曲线形态);大写键为数据字段名 fadeInShape 的镜像键,值已对齐。",
+      "variants_seen": ["淡入曲线", "淡出曲线", "淡入形状(30b-2已修)", "淡出形状(30b-2已修)"]
+    },
     "trim": {
       "zh_by_domain": {
         "media": "修剪",
@@ -447,8 +454,8 @@
       },
       "domain": "editing",
       "grade": "A",
-      "note": "≥3 译法:修剪(音视频主译 9 处)、裁剪(图像/裁切 3 处)、截到限长(Trim a Blurb=文本截断)、裁区间(Trim Audio to a Range)、剪掉静音(口语化)。裁定:音视频=修剪、图像=裁剪、文本=截断;模板创意短语 30b 逐条归位。",
-      "variants_seen": ["修剪", "裁剪", "截到限长", "裁区间"]
+      "note": "≥3 译法:修剪(音视频主译 9 处)、裁剪(图像/裁切 3 处)、截到限长(Trim a Blurb=文本截断)、裁区间(Trim Audio to a Range)、剪掉静音(口语化)。裁定:音视频=修剪、图像=裁剪、文本=截断。30b-2 已修:storyboard trims and edits 裁剪→修剪 ×3(thisReplacesEveryClip 族)。",
+      "variants_seen": ["修剪", "裁剪(图像域)", "截到限长", "裁区间"]
     },
     "crop": {
       "zh": "裁剪",
@@ -475,8 +482,8 @@
       "zh": "宽高比",
       "domain": "editing",
       "grade": "B",
-      "note": "主译 宽高比;残留 画面比例 4 处、泛 比例,30b 统一 宽高比(泛比例语境除外)。",
-      "variants_seen": ["宽高比", "画面比例", "比例"]
+      "note": "主译 宽高比;残留 画面比例 4 处、泛 比例,30b 统一 宽高比(泛比例语境除外)。30b-2 已修:storyboard 画面比例×3(aspectRatio/aspectRatioIsSetOnce/chooseYourAspectRatioAndArtStyle);比例枚举值(16:9—宽银幕 等)非术语不动。",
+      "variants_seen": ["宽高比", "画面比例(30b-2已修)", "比例"]
     },
     "seed": {
       "zh": "种子",
@@ -567,8 +574,8 @@
       "zh": "转写",
       "domain": "film",
       "grade": "A",
-      "note": "≥3 译法:转写(主译 10 处)、转录(nodeDocs 5 处)、转录稿(nodetool.timeline.Transcript=时间线转录稿、时间线转录稿 节点显示名)。裁定:任务/文本=转写(文稿),30b 将 nodeDocs 转录→转写;节点显示名 时间线转录稿 是否保留 30b 裁。",
-      "variants_seen": ["转写", "转录", "转录稿"]
+      "note": "≥3 译法:转写(主译 10 处)、转录(nodeDocs 5 处)、转录稿(nodetool.timeline.Transcript=时间线转录稿、时间线转录稿 节点显示名)。裁定:任务/文本=转写(文稿)。30b-2 已修:catalog nodeDocs 转录→转写 5 处+模板描述 2 处+节点显示名 时间线转录稿→时间线转写稿;timeline transcript 段(导入以转写/将此转写提取为可编辑剧本)本就一致。",
+      "variants_seen": ["转写", "转录(30b-2已修)", "转录稿(30b-2已修)"]
     },
     "script": {
       "zh_by_domain": {
@@ -578,7 +585,7 @@
       },
       "domain": "polysemy",
       "grade": "C",
-      "note": "代码=脚本(104)、影剧=剧本(8)、演讲=讲稿(AI Spokesperson),三域分立正确;台词 属 script line。",
+      "note": "代码=脚本(104)、影剧=剧本(8)、演讲=讲稿(AI Spokesperson),三域分立正确;台词 属 script line。30b-2 跨文件统一 Script 文档族=剧本:storyboard 38+timeline 8+editor 24+nav 4+ui2 3+home 1+tools 6+catalog 30 键(含 nodetool.script.* 节点显示名 加载剧本/剧本转字幕/剧本转时间线/剧本配音/填充剧本/撰写剧本+constant.Script+nodeDocs 长文);jsscript 族(JS 脚本)/CodeNodeScriptLink 3 键/templateHookScriptCount(Godot 代码钩)/appbuilder(小程序跑 JS 脚本)/手动触发器描述(从脚本触发=JS 脚本)零动;JsScriptSurface 设置页签误复用 ui.script 已改接 ui.jsScript。",
       "variants_seen": ["脚本", "剧本", "讲稿", "台词"]
     },
     "character": {
@@ -606,22 +613,22 @@
       },
       "domain": "film",
       "grade": "B",
-      "note": "产品概念 the Director 保留拉丁(Your Director…);动词 direct=执导(执导套件/我来执导);导演 7 处(en director 指 human director 语境可留),30b 逐条判定:指 AI 执导者→Director、指动作→执导、指人类职业→导演。",
-      "variants_seen": ["Director", "执导", "导演"]
+      "note": "产品概念 the Director 保留拉丁(Your Director…);动词 direct=执导(执导套件/我来执导)。30b-2 storyboard 逐条判定完成:AI 人格语境 导演→Director ×6(runTheDirectorAgain/theDirectorIsWriting/theDirectorStructures/howManyShotsDirectorWrites 等);动作→执导 ×4(reDirectYourScreenplay/reDirectingRewrites/pickAModelBeforeDirecting/writeABriefBeforeDirecting)+attrs.direction 设置节 指示→执导(节内为剧本模型/宽高比/镜头数);人类职业语境零出现。",
+      "variants_seen": ["Director", "执导", "导演(30b-2已修:AI 人格语境)"]
     },
     "b-roll": {
       "zh": "B-roll",
       "domain": "film",
       "grade": "B",
-      "note": "F-23 保留拉丁 3 处;空镜 1 处(en 侧可能即 b-roll),30b 统一 B-roll(业界混用,保拉丁优先)。",
-      "variants_seen": ["B-roll", "空镜"]
+      "note": "F-23 保留拉丁;30b-2 已修 timeline:lifestyleBRoll 空镜→B-roll,语料归一。",
+      "variants_seen": ["B-roll", "空镜(30b-2已修)"]
     },
     "take": {
       "zh": "条",
       "domain": "film",
       "grade": "clean",
-      "note": "行话(再来一条/一条 23 处)。30b 复核:editor 脚本配音面(ScriptTakeGallery/ScriptLineRow)与 timeline 域现状均用名词形 条目(删除条目/新条目/条目标签),跨 namespace 现状一致;若裁定改 纯 条 需 editor+timeline 两批联动,已列 30b 待裁清单。",
-      "variants_seen": ["条", "条目(30b待裁:名词形现状)"]
+      "note": "行话(再来一条/一条 23 处)。30b-2 已裁并联动完成:媒体 take 名词形统一=条(storyboard 7+timeline 11+editor 9+tools 2 键,含 删除条/当前条/再来一条/条标签/新一条导演指示);条目 保留给 list entry 语境(copyItem/generatingItems/totalSizeOfSelectedItems 等零动)。",
+      "variants_seen": ["条", "条目(30b-2已修:媒体 take 语境)"]
     },
     "render": {
       "zh_by_domain": {
@@ -667,8 +674,8 @@
       "zh": "忽略",
       "domain": "ui",
       "grade": "B",
-      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立)。30b 已修 editor:ui.dismiss(ModelSetupCallout 通知角标)→忽略;common 域待后续批。",
-      "variants_seen": ["关闭(30b已修:editor域)", "忽略"]
+      "note": "common:action.dismiss=关闭、ui:attrs.dismiss=忽略。裁定:通知类=忽略(与 关闭=close 分立)。30b 已修 editor:ui.dismiss(ModelSetupCallout 通知角标)→忽略;30b-2 已修 storyboard:attrs.dismiss/dismissReceipt→忽略;common 域待后续批。",
+      "variants_seen": ["关闭(30b已修:editor/storyboard域)", "忽略"]
     },
     "duplicate": {
       "zh": "创建副本",
@@ -825,8 +832,8 @@
       "zh": "方向",
       "domain": "ui",
       "grade": "B",
-      "note": "timeline:attrs.direction=方向 正确;editor:ui.direction 用于台词行 line.direction(舞台指示/导演指示),30b 已裁定并统一为 导演指示(direction/addDirection/removeDirection/directionEgWhisperingTired 4 键);timeline 域 新条目指示/新条目指令 待 timeline 批对齐。",
-      "variants_seen": ["方向", "指示(30b已修→导演指示)"]
+      "note": "timeline:attrs.direction=方向 正确;editor:ui.direction 用于台词行 line.direction(舞台指示/导演指示),30b 已裁定并统一为 导演指示(direction/addDirection/removeDirection/directionEgWhisperingTired 4 键)。30b-2 timeline 域已对齐:optionalDeliveryDirection/newTakeDirection/optionalNewtakeDirection 3 键→导演指示(可选的导演指示…/新一条导演指示);storyboard attrs.direction=执导(分镜板设置节,内容为剧本模型/宽高比/镜头数,非台词指示)。",
+      "variants_seen": ["方向", "导演指示", "执导(30b-2:storyboard 设置节)"]
     },
     "studio": {
       "zh": "Studio",
@@ -846,8 +853,8 @@
       "zh": "成本",
       "domain": "app-core",
       "grade": "B",
-      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修:costsTitle/estimatedCost 族/topCostDriver/couldntLoadCostData 等;spend=花费 为另一 en 词,保留)。",
-      "variants_seen": ["成本", "费用(30b已修:editor域)"]
+      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修:costsTitle/estimatedCost 族/topCostDriver/couldntLoadCostData 等;spend=花费 为另一 en 词,保留)。30b-2 已修 storyboard/timeline 域 费用→成本 15 键(roughCost/estimatedCostAbout/costEstimateUnavailable/costTip/costPrefix/estimatedCostOf 三键 等);appbuilder previewCostsDashboard=费用面板 待后续批。",
+      "variants_seen": ["成本", "费用(30b/30b-2已修:editor/storyboard/timeline域)"]
     },
     "compare": {
       "zh": "对比",
@@ -877,8 +884,8 @@
       "zh": "可用宣传点",
       "domain": "marketing",
       "grade": "B",
-      "note": "storyboard=可用宣传点、ui2=已认可的设定,同 en 双译,30b 已统一 可用宣传点(ui2 已修)。",
-      "variants_seen": ["可用宣传点", "已认可的设定(30b已修)"]
+      "note": "storyboard=可用宣传点、ui2=已认可的设定,同 en 双译,30b 已统一 可用宣传点(ui2 已修)。30b-2 已修 storyboard:prohibitedClaims 禁用表述→禁用宣传点(与可用宣传点成对);oneClaimPerShot 一镜一个卖点 为自然改写保留。",
+      "variants_seen": ["可用宣传点", "已认可的设定(30b已修)", "禁用表述(30b-2已修)", "卖点(自然改写保留)"]
     },
     "planned": {
       "zh": "已规划",

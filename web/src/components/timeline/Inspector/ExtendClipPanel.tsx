@@ -77,10 +77,10 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   const directionOptions = [
     ...(!hasDirectionTasks ||
     model?.supported_tasks?.includes("extend_video_start")
-      ? [{ value: "start" as const, label: "Start" }]
+      ? [{ value: "start" as const, label: t("timeline:attrs.start", { defaultValue: "Start" }) }]
       : []),
     ...(!hasDirectionTasks || model?.supported_tasks?.includes("extend_video_end")
-      ? [{ value: "end" as const, label: "End" }]
+      ? [{ value: "end" as const, label: t("timeline:attrs.end", { defaultValue: "End" }) }]
       : [])
   ];
   const selectedDirection = directionOptions.some(

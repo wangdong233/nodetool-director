@@ -160,7 +160,7 @@ describe("TopBarPrompt", () => {
         "Warm ambient piano"
       );
       expect(
-        screen.getByRole("button", { name: "Generate music" })
+        screen.getByRole("button", { name: "Generate Music" })
       ).toBeDisabled();
       await userEvent.click(
         screen.getByRole("button", { name: "Select Music Model" })
@@ -173,7 +173,7 @@ describe("TopBarPrompt", () => {
       );
       await userEvent.click(screen.getByText("60 Sec"));
       await userEvent.click(
-        screen.getByRole("button", { name: "Generate music" })
+        screen.getByRole("button", { name: "Generate Music" })
       );
       const clip = instance.doc.getState().clips[0];
       expect(clip).toMatchObject({
@@ -237,13 +237,13 @@ describe("TopBarPrompt", () => {
       });
       await userEvent.type(prompt, "Read the whole sentence aloud.");
       expect(
-        screen.getByRole("button", { name: "Generate audio" })
+        screen.getByRole("button", { name: "Generate Speech" })
       ).toBeDisabled();
       await pickSpeechModel();
       await userEvent.click(screen.getByRole("button", { name: "nova" }));
       await userEvent.click(screen.getByText("alloy"));
       await userEvent.click(
-        screen.getByRole("button", { name: "Generate audio" })
+        screen.getByRole("button", { name: "Generate Speech" })
       );
 
       const clip = instance.doc.getState().clips[0];
@@ -396,7 +396,7 @@ describe("TopBarPrompt", () => {
     await pickSpeechModel();
     await userEvent.type(screen.getByRole("textbox"), "Hello");
     await userEvent.click(
-      screen.getByRole("button", { name: "Generate audio" })
+      screen.getByRole("button", { name: "Generate Speech" })
     );
     expect(mockSend).not.toHaveBeenCalled();
     expect(
@@ -404,7 +404,7 @@ describe("TopBarPrompt", () => {
     ).toBeInTheDocument();
     act(() => instance.doc.getState().addTrack("audio", "Unlocked"));
     await userEvent.click(
-      screen.getByRole("button", { name: "Generate audio" })
+      screen.getByRole("button", { name: "Generate Speech" })
     );
     const clip = instance.doc.getState().clips[0];
     expect(clip.trackId).not.toBe(locked.id);

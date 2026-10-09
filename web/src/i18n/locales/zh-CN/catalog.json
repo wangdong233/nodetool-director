@@ -546,7 +546,7 @@
     },
     "launch-kit": {
       "name": "发布物料包",
-      "description": "产出一套 NodeTool 宣传战役：共享的产品与角色实体、多张图稿和多版视频剪辑。适合需要成套协同物料的场合。"
+      "description": "产出一套 NodeTool 定向广告宣传：共享的产品与角色实体、多张图稿和多版视频剪辑。适合需要成套协同物料的场合。"
     },
     "logo-reveal": {
       "name": "Logo 演绎动画",
@@ -634,7 +634,7 @@
     },
     "nodetool-troubleshooter": {
       "name": "故障排查",
-      "description": "诊断任何表面上的 NodeTool 运行故障：工作流、小程序、时间线、图稿、脚本、分镜，以及卡住的媒体生成。仓库代码缺陷请用 diagnosing-bugs。"
+      "description": "诊断任何表面上的 NodeTool 运行故障：工作流、小程序、时间线、图稿、剧本、分镜，以及卡住的媒体生成。仓库代码缺陷请用 diagnosing-bugs。"
     },
     "nodetool-video-post": {
       "name": "视频后期修复",
@@ -708,11 +708,11 @@
   "apps": {
     "ad-maker": {
       "name": "广告创作台",
-      "description": "从一个卖点出发，对比多路文案与标题角度，再用已过审的文案配上视觉简报，执导一支战役主片。"
+      "description": "从一个卖点出发，对比多路文案与标题角度，再用已过审的文案配上视觉简报，执导一支定向广告主片。"
     },
     "ai-spokesperson": {
       "name": "AI 发言人",
-      "description": "文字转语音先给脚本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
+      "description": "文字转语音先给剧本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
     },
     "brand-and-social": {
       "name": "品牌与社媒",
@@ -1529,11 +1529,11 @@
     "nodetool.video.VideoToVideo": "视频转视频",
     "nodetool.timeline.AddClips": "添加片段到时间线",
     "nodetool.timeline.RenderTimeline": "渲染时间线",
-    "nodetool.timeline.Transcript": "时间线转录稿",
-    "nodetool.script.LoadScript": "加载脚本",
-    "nodetool.script.ScriptToSubtitles": "脚本转字幕",
-    "nodetool.script.ScriptToTimeline": "脚本转时间线",
-    "nodetool.script.VoiceScript": "脚本配音",
+    "nodetool.timeline.Transcript": "时间线转写稿",
+    "nodetool.script.LoadScript": "加载剧本",
+    "nodetool.script.ScriptToSubtitles": "剧本转字幕",
+    "nodetool.script.ScriptToTimeline": "剧本转时间线",
+    "nodetool.script.VoiceScript": "剧本配音",
     "nodetool.document.ListDocuments": "列出文档",
     "nodetool.document.LoadDocumentFile": "加载文档文件",
     "nodetool.document.SaveDocumentFile": "保存文档文件",
@@ -1599,7 +1599,7 @@
     "nodetool.constant.LanguageModelConstant": "语言模型常量",
     "nodetool.constant.List": "列表",
     "nodetool.constant.Model3D": "3D 模型",
-    "nodetool.constant.Script": "脚本",
+    "nodetool.constant.Script": "剧本",
     "nodetool.constant.Select": "下拉选择",
     "nodetool.constant.Sketch": "图稿",
     "nodetool.constant.String": "字符串",
@@ -1827,8 +1827,8 @@
     "nodetool.game.Tileset": "瓦片集",
     "nodetool.image.Segment": "分割图像",
     "nodetool.image.ResizeImage": "调整图像尺寸",
-    "nodetool.script.FillScript": "填充脚本",
-    "nodetool.script.WriteScript": "撰写脚本",
+    "nodetool.script.FillScript": "填充剧本",
+    "nodetool.script.WriteScript": "撰写剧本",
     "nodetool.storyboard.AssembleTimeline": "组装时间线",
     "nodetool.storyboard.LoadStoryboard": "加载分镜",
     "nodetool.storyboard.RecastStoryboard": "分镜换角",
@@ -1882,7 +1882,7 @@
     "nodetool.audio.TextToSpeech": "用任一支持的 TTS 服务商从文本生成语音。自动路由到合适的后端（OpenAI、HuggingFace、MLX）。\naudio, generation, AI, text-to-speech, tts, voice",
     "nodetool.audio.Trim": "将音频文件修剪到指定时长。\naudio, trim, cut",
     "nodetool.audio.realtime.AudioOutput": "播放实时音频分块流——整个 patch 的扬声器。\naudio, stream, chunk, realtime, output, speaker, monitor\n\n每个分块原样直通；编辑器从直播流中取出分块并随到随播。任何合成器 patch 或流式效果链都在此收尾即可听到声音。\n\nUse cases:\n- 监听实时模块合成器 patch\n- 边渲染边听流式 TTS 或效果的输出\n- 在用分块转音频节点录制之前先试听整条链",
-    "nodetool.audio.realtime.AudioToChunks": "将音频文件切分为固定时长的 PCM16 分块流。\naudio, stream, chunk, realtime\n\nUse cases:\n- 把批量音频喂给实时/流式节点\n- 用一段录音模拟实时音频源\n- 驱动流式效果与转录节点",
+    "nodetool.audio.realtime.AudioToChunks": "将音频文件切分为固定时长的 PCM16 分块流。\naudio, stream, chunk, realtime\n\nUse cases:\n- 把批量音频喂给实时/流式节点\n- 用一段录音模拟实时音频源\n- 驱动流式效果与转写节点",
     "nodetool.audio.realtime.ChunksToAudio": "将 PCM16 音频分块流累积为单个音频文件。\naudio, stream, chunk, realtime, accumulate\n\nUse cases:\n- 把流式 TTS 或效果的输出留存为文件\n- 用可播放的结果收尾实时音频链\n- 录制处理过的实时信号",
     "nodetool.audio.realtime.StreamingGain": "对实时音频流的每个分块应用增益（音量调整）。\naudio, stream, chunk, realtime, effect, volume\n\nUse cases:\n- 调整实时音频源的电平\n- 混音前平衡各路流式信号\n- 衰减或提升流式 TTS 输出",
     "nodetool.audio.realtime.StreamingHighPass": "对实时音频流应用高通滤波器，滤波状态跨分块保持。\naudio, stream, chunk, realtime, effect, equalizer\n\nUse cases:\n- 去除实时麦克风信号中的隆隆声\n- 清理流式音频的低频\n- 混音前让流式信号变薄",
@@ -1996,7 +1996,7 @@
     "nodetool.timeline.FillTimelineText": "从值包填充模板剪辑中的 {{key}} 占位符——包括文字片段与字幕——并将结果另存为新时间线。模板本身不会被改写。没有对应值的键会留在画面中并被报告。\ntimeline, template, text, fill, batch\n\nUse cases:\n- 把每个 SKU 的名称与价格压印到已审定的剪辑上\n- 不重新剪辑时间线即可完成叠加层本地化\n- 按数据源的每一行产出一个变体",
     "nodetool.timeline.RenderTimeline": "把时间线序列渲染为视频，合成效果与时间线编辑器的预览完全一致（轨道、变换、转场、效果、字幕与文字），并按各片段的偏移混入音频。可写出 MP4、WebM、MOV 或打包的 PNG 序列，可选透明背景。\ntimeline, render, video, export, cut, alpha\n\nUse cases:\n- 把在时间线编辑器里完成的剪辑导出为可分享的视频\n- 导出带透明度的标题或字幕条，供别处合成\n- 把粗剪送入字幕、审阅或上传节点\n- 自动导出由其他工作流节点搭建的时间线",
     "nodetool.timeline.RetargetTimeline": "从已审定的剪辑派生另一画幅比的新时间线，保留每一次修剪、摆位与剪辑点。Cover 将每个镜头缩放填满新画框并报告被裁切的片段；Contain 则改加黑边。文字字号跟随短边。源剪辑本身不会被改写。\ntimeline, aspect ratio, resize, reframe, variant\n\nUse cases:\n- 把 16:9 的影片转成 9:16 与 1:1 版本\n- 从一份审定剪辑产出所有摆位比例\n- 渲染前先看清哪些镜头会失去两侧画面",
-    "nodetool.timeline.Transcript": "将时间线序列的转录稿提取为文本。\ntimeline, transcript, text, script, voiceover\n\nUse cases:\n- 用 LLM 总结或改写剪辑的解说词\n- 从口播稿生成标题、简介或章节\n- 重新录制 TTS 前先翻译配音稿",
+    "nodetool.timeline.Transcript": "将时间线序列的转写稿提取为文本。\ntimeline, transcript, text, script, voiceover\n\nUse cases:\n- 用 LLM 总结或改写剪辑的解说词\n- 从口播稿生成标题、简介或章节\n- 重新录制 TTS 前先翻译配音稿",
     "nodetool.video.AddAudio": "为视频添加音频轨道，可替换或混入既有音频。\nvideo, audio, soundtrack, merge",
     "nodetool.video.AddSubtitles": "为视频添加字幕。\nvideo, subtitles, text, caption",
     "nodetool.video.Blur": "为视频应用模糊效果。\nvideo, blur, smooth, soften",
@@ -2052,13 +2052,13 @@
     "nodetool.generators.ListGenerator": "根据用户提示词创建字符串流的 LLM 智能体。\nllm, text streaming\n\nUse cases:\n- 从自然语言描述生成文本\n- 流式接收 LLM 的响应",
     "nodetool.generators.StructuredOutputGenerator": "用 LLM 服务商根据指令生成结构化 JSON 对象。\ndata-generation, structured-data, json, synthesis\n\n专用于创建结构化信息：\n- 生成遵循动态 schema 的 JSON\n- 依据需求与指引捏造记录\n- 为下游工作流模拟样本数据\n- 为测试产出一致的结构化输出",
     "nodetool.generators.SVGGenerator": "根据用户提示词创建 SVG 元素的 LLM 智能体。\nsvg, generator, vector, graphics\n\nUse cases:\n- 从文本描述创建矢量图形\n- 生成可缩放的插画\n- 创建自定义图标与示意图",
-    "nodetool.script.FillScript": "从值包填充模板脚本的 {{key}} 占位符，并将结果另存为新脚本。模板本身不会被改写。没有对应值的键会留在文本中并被报告，且每条录音都会保留，因此之后的脚本配音只需为文字变动的行付费。\nscript, template, fill, placeholder, batch\n\nUse cases:\n- 按产品数据源的每一行产出一个脚本\n- 通过替换值完成模板本地化\n- 重跑批量后只给变化的部分重新配音",
-    "nodetool.script.LoadScript": "读取已保存脚本的文本与元数据。\nscript, text, voiceover, narration, load\n\nUse cases:\n- 把脚本文本喂给 LLM 或文本节点\n- 配音前查看行数与角色阵容\n- 依据脚本内容为工作流分支",
-    "nodetool.script.ScriptToSubtitles": "直接用每行当前录音的字级时间轴，把已配音的脚本导出为 SRT 或 WebVTT 字幕——每行一条（或逐字一条），按创作的停顿首尾相接排布。请先为脚本配音；未配音的行会被跳过。\nscript, subtitles, srt, vtt, captions, export\n\nUse cases:\n- 为配好音的解说词生成字幕外挂\n- 从录音时间轴生成逐字定时的字幕\n- 把字幕送入烧录或上传步骤",
-    "nodetool.script.ScriptToTimeline": "把脚本的当前录音组装成配音时间线——每行已配音的台词一个音频片段，按创作的停顿首尾相接，并各自回链到脚本行。脚本已有时间线时会原地更新它。请先为脚本配音。\nscript, timeline, voiceover, assemble, sequence\n\nUse cases:\n- 把配音后的脚本变成可编辑的序列\n- 为视频剪辑搭建解说轨\n- 把重新配音的行回写进既有时间线",
-    "nodetool.script.VoiceScript": "按每行配置的角色音色，为脚本中所有草稿或过期的行合成语音，并把录音存回脚本。已是最新、无文字或无音色的行会被跳过。\nscript, voiceover, tts, narration, batch\n\nUse cases:\n- 一步为 LLM 写好的脚本配音\n- 只为文字或音色变了的行重新配音\n- 为时间线组装产出解说素材",
-    "nodetool.script.WriteScript": "依据创意简报撰写新脚本，采用与脚本编辑器和智能体相同的写作规则，并保存为新脚本。角色实体成为说话人，各自带实体链接与音色。\nscript, write, brief, narration, cast\n\nUse cases:\n- 在批量流程中把逐行简报变成脚本\n- 从同一份简报按语言各写一个脚本\n- 不打开编辑器就为分镜撰写解说词",
-    "nodetool.text.AutomaticSpeechRecognition": "使用自动语音识别模型把音频转录为文本。\naudio, speech, recognition, transcription, ASR, whisper",
+    "nodetool.script.FillScript": "从值包填充模板剧本的 {{key}} 占位符，并将结果另存为新剧本。模板本身不会被改写。没有对应值的键会留在文本中并被报告，且每条录音都会保留，因此之后的剧本配音只需为文字变动的行付费。\nscript, template, fill, placeholder, batch\n\nUse cases:\n- 按产品数据源的每一行产出一个剧本\n- 通过替换值完成模板本地化\n- 重跑批量后只给变化的部分重新配音",
+    "nodetool.script.LoadScript": "读取已保存剧本的文本与元数据。\nscript, text, voiceover, narration, load\n\nUse cases:\n- 把剧本文本喂给 LLM 或文本节点\n- 配音前查看行数与角色阵容\n- 依据剧本内容为工作流分支",
+    "nodetool.script.ScriptToSubtitles": "直接用每行当前录音的字级时间轴，把已配音的剧本导出为 SRT 或 WebVTT 字幕——每行一条（或逐字一条），按创作的停顿首尾相接排布。请先为剧本配音；未配音的行会被跳过。\nscript, subtitles, srt, vtt, captions, export\n\nUse cases:\n- 为配好音的解说词生成字幕外挂\n- 从录音时间轴生成逐字定时的字幕\n- 把字幕送入烧录或上传步骤",
+    "nodetool.script.ScriptToTimeline": "把剧本的当前录音组装成配音时间线——每行已配音的台词一个音频片段，按创作的停顿首尾相接，并各自回链到剧本行。剧本已有时间线时会原地更新它。请先为剧本配音。\nscript, timeline, voiceover, assemble, sequence\n\nUse cases:\n- 把配音后的剧本变成可编辑的序列\n- 为视频剪辑搭建解说轨\n- 把重新配音的行回写进既有时间线",
+    "nodetool.script.VoiceScript": "按每行配置的角色音色，为剧本中所有草稿或过期的行合成语音，并把录音存回剧本。已是最新、无文字或无音色的行会被跳过。\nscript, voiceover, tts, narration, batch\n\nUse cases:\n- 一步为 LLM 写好的剧本配音\n- 只为文字或音色变了的行重新配音\n- 为时间线组装产出解说素材",
+    "nodetool.script.WriteScript": "依据创意简报撰写新剧本，采用与剧本编辑器和智能体相同的写作规则，并保存为新剧本。角色实体成为说话人，各自带实体链接与音色。\nscript, write, brief, narration, cast\n\nUse cases:\n- 在批量流程中把逐行简报变成剧本\n- 从同一份简报按语言各写一个剧本\n- 不打开编辑器就为分镜撰写解说词",
+    "nodetool.text.AutomaticSpeechRecognition": "使用自动语音识别模型把音频转写为文本。\naudio, speech, recognition, transcription, ASR, whisper",
     "nodetool.text.Collect": "把流式文本输入收集为单个拼接字符串。\ntext, collect, stream, aggregate",
     "nodetool.text.Concat": "把多个文本输入拼接为单个输出。通过“添加文本输入”按钮动态添加输入，或将一组字符串接入单个输入。\n+, text, combine, add, concatenate, merge, join, append",
     "nodetool.text.Embedding": "用任一支持的嵌入服务商（OpenAI、Gemini、Mistral）生成文本的向量表示。\nembeddings, similarity, search, clustering, classification, vectors, semantic\n\nUse cases:\n- 语义搜索与推荐\n- 文本聚类与分类\n- 异常检测\n- 度量文本相似度与多样性",
@@ -2097,7 +2097,7 @@
     "nodetool.control.Zip": "在共同父级内按匹配的下标配对来自两个独立迭代源的条目。\nzip, pair, combine, merge, join, index, stream, iterate\n\nUse cases:\n- 合并两条并行流中相互对应的条目\n- 按位置配对输入与输出\n- 把两个迭代源合并为元组",
     "nodetool.input.ASRModelInput": "接收自动语音识别模型作为工作流参数。\ninput, parameter, model, asr, transcription, speech",
     "nodetool.input.AssetFolderInput": "接收素材文件夹作为工作流参数。\ninput, parameter, folder, path, folderpath, local_folder, filesystem",
-    "nodetool.input.AudioInput": "接收音频素材的引用作为工作流参数，以 'AudioRef' 指定。'AudioRef' 指向音频数据，可供播放、转录、分析或供音频模型处理。\ninput, parameter, audio, sound, voice, speech, asset",
+    "nodetool.input.AudioInput": "接收音频素材的引用作为工作流参数，以 'AudioRef' 指定。'AudioRef' 指向音频数据，可供播放、转写、分析或供音频模型处理。\ninput, parameter, audio, sound, voice, speech, asset",
     "nodetool.input.AudioListInput": "接收音频引用列表作为工作流参数。\ninput, parameter, audio, sound, voice, speech, asset, list",
     "nodetool.input.BooleanInput": "接收布尔值（true/false）作为工作流参数。用于二元选择、启用或禁用功能，或控制条件逻辑路径。\ninput, parameter, boolean, bool, toggle, switch, flag",
     "nodetool.input.ColorInput": "接收颜色值作为工作流参数。\ninput, parameter, color, color_picker, color_input",
@@ -2143,7 +2143,7 @@
     "nodetool.workflows.base_node.Preview": "在工作流图中预览值",
     "nodetool.workflows.subgraph.Subgraph": "把内联子图作为隔离的工作流执行。输入/输出由内部的输入/输出节点推导。",
     "nodetool.workflows.workflow_node.Workflow": "执行子工作流。选择一个工作流即可动态填充其输入与输出。",
-    "nodetool.constant.ASRModelConstant": "表示工作流中的自动语音识别模型常量。\nasr, speech, recognition, transcription, model\n\nUse cases:\n- 为转录提供固定的 ASR 模型\n- 为工作流设定默认 ASR 模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.ASRModelConstant": "表示工作流中的自动语音识别模型常量。\nasr, speech, recognition, transcription, model\n\nUse cases:\n- 为转写提供固定的 ASR 模型\n- 为工作流设定默认 ASR 模型\n- 无需用户输入即可配置模型选择",
     "nodetool.constant.Audio": "表示工作流中的音频文件常量。\naudio, file, mp3, wav\n\nUse cases:\n- 为音频处理节点提供固定音频输入\n- 在工作流中引用指定音频文件\n- 为测试或演示设定默认音频",
     "nodetool.constant.AudioList": "表示工作流中的音频文件常量列表。\naudios, sounds, audio files, collection\n\nUse cases:\n- 为批量处理提供固定的音频文件列表\n- 在工作流中引用多个音频文件\n- 为测试或演示设定默认音频列表",
     "nodetool.constant.Bool": "表示工作流中的布尔常量。\nboolean, logic, flag\n\nUse cases:\n- 为条件节点提供流程控制决策\n- 切换工作流中的功能或行为\n- 为配置设定默认布尔值",
@@ -2164,7 +2164,7 @@
     "nodetool.constant.LanguageModelConstant": "表示工作流中的语言模型常量。\nllm, language, model, ai, chat, gpt\n\nUse cases:\n- 为对话或文本生成提供固定的语言模型\n- 为工作流设定默认语言模型\n- 无需用户输入即可配置模型选择",
     "nodetool.constant.List": "表示工作流中的列表常量。\narray, sequence, collection\n\nUse cases:\n- 存储同类型的多个值\n- 提供有序数据输入\n- 为其他节点的迭代定义序列",
     "nodetool.constant.Model3D": "表示工作流中的 3D 模型常量。\n3d, model, mesh, glb, obj, stl\n\nUse cases:\n- 为处理节点提供固定的 3D 模型输入\n- 在工作流中引用指定 3D 模型文件\n- 为测试或演示设定默认 3D 模型",
-    "nodetool.constant.Script": "在工作流中引用脚本。\nscript, voiceover, narration, cast, tts\n\nUse cases:\n- 在节点之间传递脚本以便配音或组装时间线\n- 打开并编辑所引用的脚本（在脚本编辑器中）\n- 为下游节点提供固定脚本输入",
+    "nodetool.constant.Script": "在工作流中引用剧本。\nscript, voiceover, narration, cast, tts\n\nUse cases:\n- 在节点之间传递剧本以便配音或组装时间线\n- 打开并编辑所引用的剧本（在剧本编辑器中）\n- 为下游节点提供固定剧本输入",
     "nodetool.constant.Select": "表示工作流中从预定义选项集做出的选择。\nselect, enum, dropdown, choice, options\n\nUse cases:\n- 从固定值集中选择\n- 为下游节点配置选项\n- 为需要特定取值的节点提供枚举兼容输入\n\n输出是一个字符串，可连接到枚举类型的输入。",
     "nodetool.constant.Sketch": "用于绘制、蒙版与图像合成的分层图稿文档。\nsketch, drawing, canvas, paint, image editor\n\nUse cases:\n- 在节点之间传递图稿文档\n- 直接从工作流画布编辑该图稿\n- 为下游节点公开拍平的图像、蒙版与图层输出",
     "nodetool.constant.Storyboard": "在工作流中引用分镜。\nstoryboard, shots, screenplay, board, director\n\nUse cases:\n- 在节点之间传递分镜以便换角或渲染\n- 打开并编辑所引用的分镜（在分镜编辑器中）\n- 为下游节点提供固定分镜输入",
@@ -2288,7 +2288,7 @@
     },
     "Audio To Image.json": {
       "name": "语音生成图像",
-      "description": "动动嘴就能出图，无需键盘。Whisper 转录你的语音，FLUX 按描述渲染成图——整条管线由一条语音备忘录驱动。"
+      "description": "动动嘴就能出图，无需键盘。Whisper 转写你的语音，FLUX 按描述渲染成图——整条管线由一条语音备忘录驱动。"
     },
     "B-Roll Reel from a Brief.json": {
       "name": "从简报到 B-roll 合集",
@@ -2368,7 +2368,7 @@
     },
     "Compose Directed Campaign Formats.json": {
       "name": "组合定向广告的多规格产物",
-      "description": "把一张已采纳的主视觉确定性地组合成 1080×1350 与 1080×1920 的 PNG 和自包含 SVG 规格，再导出一份可携带的版本化战役记录。"
+      "description": "把一张已采纳的主视觉确定性地组合成 1080×1350 与 1080×1920 的 PNG 和自包含 SVG 规格，再导出一份可携带的版本化定向广告记录。"
     },
     "Concept Art Iteration Board.json": {
       "name": "概念设计迭代板",
@@ -2520,7 +2520,7 @@
     },
     "Generate a Native-Audio UGC Testimonial.json": {
       "name": "生成原生语音 UGC 口播",
-      "description": "用创作者与产品参考图加一小段脚本，生成连续 15 秒、带原生人声与口型的 Seedance 2.5 口播视频。"
+      "description": "用创作者与产品参考图加一小段剧本，生成连续 15 秒、带原生人声与口型的 Seedance 2.5 口播视频。"
     },
     "Generate a Silent Bed.json": {
       "name": "生成无声垫底",
@@ -2760,7 +2760,7 @@
     },
     "Reopen a Directed Campaign.json": {
       "name": "重开一场定向广告",
-      "description": "校验一份可携带的 schema 版本 1 战役记录，不经任何模型调用即恢复其已采纳原图与可选修订版。"
+      "description": "校验一份可携带的 schema 版本 1 定向广告记录，不经任何模型调用即恢复其已采纳原图与可选修订版。"
     },
     "Research Agent.json": {
       "name": "调研代理",

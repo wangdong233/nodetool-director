@@ -40,7 +40,7 @@ import {
   Toast,
   SPACING
 } from "../ui_primitives";
-import ModeSelectChip from "../chat/composer/ModeSelectChip";
+import ModeSelectChip, { modeLabelFor } from "../chat/composer/ModeSelectChip";
 import OptionChip from "../chat/composer/OptionChip";
 import { audioModelPatch } from "../chat/composer/modelSelection";
 import TTSModelMenuDialog from "../model_menu/TTSModelMenuDialog";
@@ -390,7 +390,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       data-testid="topbar-generate"
       // Icon-only on phones: the label costs ~70px the prompt needs, and the
       // sparkle plus the field's placeholder already say what it does.
-      aria-label={`Generate ${mode}`}
+      aria-label={t("timeline:attrs.generateModeAria", { mode: modeLabelFor(mode), defaultValue: "Generate {{mode}}" })}
       // Native tooltip still fires on a disabled button: say why it is off.
       title={
         canSubmit ? undefined : t("timeline:attrs.typeAPromptAndPickAModelToGenerate", { defaultValue: "Type a prompt and pick a model to generate" })
@@ -416,7 +416,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       <MediaControlChip
         ref={videoModelAnchorRef}
         icon={<MovieIcon fontSize="small" />}
-        label={selectedModel?.name || "Select Model"}
+        label={selectedModel?.name || t("timeline:attrs.selectModel", { defaultValue: "Select Model" })}
         active={videoModelOpen}
         onClick={() => setVideoModelOpen(true)}
         truncate
@@ -515,7 +515,8 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
           inStudio
             ? (STUDIO_VOICES.find((option) => option.id === audio?.voice)
                 ?.label ?? t("storyboard:attrs.voice", { defaultValue: "Voice" }))
-            : audio?.model.name || "Select TTS Model"
+            : audio?.model.name ||
+              t("timeline:attrs.selectTTSModel", { defaultValue: "Select TTS Model" })
         }
         active={audioModelOpen}
         onClick={openAudioModel}
@@ -566,7 +567,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
     <>
       <ModelChip
         icon={<AudiotrackIcon fontSize="small" />}
-        label={musicModel?.name || "Select Music Model"}
+        label={musicModel?.name || t("timeline:attrs.selectMusicModel", { defaultValue: "Select Music Model" })}
         picker={{ kind: "music", onPick: setMusicSelection }}
       />
       <OptionChip
@@ -574,7 +575,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         icon={<AccessTimeIcon fontSize="small" />}
         label={t("editor:ui.nSec", { n: musicDuration })}
         header={t("editor:ui.targetDuration", { defaultValue: "Target Duration" })}
-        title={`Target duration: ${musicDuration} seconds. The model may adjust or ignore this.`}
+        title={t("timeline:attrs.musicTargetDurationNote", { n: musicDuration, defaultValue: "Target duration: {{n}} seconds. The model may adjust or ignore this." })}
         value={musicDuration}
         options={MUSIC_DURATIONS.map((id) => ({ id, label: t("editor:ui.nSec", { n: id }) }))}
         onChange={setMusicDuration}
