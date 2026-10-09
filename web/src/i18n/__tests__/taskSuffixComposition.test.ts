@@ -69,7 +69,7 @@ describe("task-suffix composition (r14)", () => {
     await changeAppLanguage("zh-CN");
     expect(
       nodeDisplayName("fal.video.KlingRef", "Kling O1 Video To Video Reference")
-    ).toBe("Kling O1 视频生视频(参考)");
+    ).toBe("Kling O1 视频生视频（参考）");
     expect(
       nodeDisplayName("fal.video.KlingEdit", "Kling Video O1Standard Video To Video Edit")
     ).toBe("Kling Video O1Standard 视频生视频编辑");
@@ -182,7 +182,7 @@ describe("task-suffix composition (r14)", () => {
     ).toBe("Recraft V3创建风格");
     expect(
       nodeDisplayName("fal.image_to_image.Bria", "Bria Fibo Edit Restyle")
-    ).toBe("Bria Fibo Edit 风格重塑");
+    ).toBe("Bria Fibo Edit 风格重绘");
     expect(
       nodeDisplayName("fal.video.Stylize", "Byte Dance Video Stylize")
     ).toBe("Byte Dance Video 风格化");
@@ -299,11 +299,11 @@ describe("task-suffix composition (r14)", () => {
     ).toBe("Old Photos 修复");
     expect(
       nodeDisplayName("fal.image.Pixelcut", "Pixelcut Product Photo")
-    ).toBe("Pixelcut 产品图");
+    ).toBe("Pixelcut 产品照");
     // Mask/modify/resolution/prompt/reference families.
     expect(
       nodeDisplayName("fal.image.Finegrain", "Finegrain Eraser Mask")
-    ).toBe("Finegrain 擦除遮罩");
+    ).toBe("Finegrain 擦除蒙版");
     expect(nodeDisplayName("fal.image.Luma", "Luma Photon Modify")).toBe(
       "Luma Photon 修改"
     );

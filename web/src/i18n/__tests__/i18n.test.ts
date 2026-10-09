@@ -583,7 +583,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     // task-word long tail in one pass (closure-round rule: quantify → translate
     // the same round, no "later rounds" tail) — the closing sweep sampled every
     // still-English residual and added every phrase that is a real task word
-    // (relight/插帧/扩图/产品图/diarization/i2v-t2v/hyphenated media slugs…),
+    // (relight/插帧/扩图/产品照/diarization/i2v-t2v/hyphenated media slugs…),
     // taking the table 90 → 400. The band is a plausibility guard against
     // accidental bulk dumps, not a system limit — move it deliberately.
     expect(suffixEntries.length).toBeLessThanOrEqual(420);
