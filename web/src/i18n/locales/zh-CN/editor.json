@@ -2695,8 +2695,6 @@
     "theSampleRunFailed": "示例运行失败。",
     "agentsAndCode": "智能体与代码",
     "extensionGenerationFailed": "扩展生成失败。",
-    "sandboxModuleVersionMismatch": "沙箱模块 {{specifier}} 保存时的包版本为 {{saved}},而当前安装的是 {{installed}}。",
-    "anUnversionedPack": "未标版本的包",
     "seeDetails": "(查看详情)",
     "variesByResolutionAndQuality": "因分辨率和质量而异。\n在 fal.ai 查看详细定价。",
     "nOutputsXBreakdown": "{{n}} 个输出 × {{breakdown}}",

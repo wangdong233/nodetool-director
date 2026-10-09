@@ -2704,8 +2704,6 @@
     "theSampleRunFailed": "The sample run failed.",
     "agentsAndCode": "Agents & code",
     "extensionGenerationFailed": "Extension generation failed.",
-    "sandboxModuleVersionMismatch": "Sandbox module {{specifier}} was saved with pack version {{saved}}, but {{installed}} is installed.",
-    "anUnversionedPack": "an unversioned pack",
     "seeDetails": "(SEE DETAILS)",
     "variesByResolutionAndQuality": "Varies by resolution and quality.\nView on fal.ai to see detailed pricing.",
     "nOutputsXBreakdown": "{{n}} outputs × {{breakdown}}",

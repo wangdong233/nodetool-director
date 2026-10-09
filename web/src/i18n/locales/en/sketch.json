@@ -152,7 +152,6 @@
     "turnOffPenPressure": "Turn off pen pressure",
     "inferenceFailed": "Inference failed",
     "couldNotCheckTheModel": "Could not check the model",
-    "magicWandWorkerFailed": "Magic wand worker failed",
     "conceptPrompt": "Concept prompt",
     "cutoutLayers": "Cutout layers",
     "maskLayers": "Mask layers",

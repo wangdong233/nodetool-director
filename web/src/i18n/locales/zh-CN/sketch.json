@@ -152,7 +152,6 @@
     "turnOffPenPressure": "关闭压感",
     "inferenceFailed": "推理失败",
     "couldNotCheckTheModel": "无法检查模型",
-    "magicWandWorkerFailed": "魔棒后台任务失败",
     "conceptPrompt": "概念提示词",
     "cutoutLayers": "抠像图层",
     "maskLayers": "蒙版图层",
