@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚。",
+    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正。",
     "标准从:后轮裁定优先于早轮 (r13-r28 分域审校词汇为准绳),先查 glossary.md 既有裁定。",
     "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
@@ -56,8 +56,8 @@
       "zh": "模型服务商",
       "domain": "app-core",
       "grade": "A",
-      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b 已修 editor/ui2/ui 域全部:提供商 15 处+第三变体 供应商 1 处(theProvider)+渠道费率 1 处,均改 服务商。30b-2 已修 storyboard/timeline 残留 10 处(提供商×2/供应商×4/图像渠道×2/模型供应商 等→服务商);settings 域残留由后续批处理。",
-      "variants_seen": ["服务商", "模型服务商", "提供商(30b已修)", "供应商(30b/30b-2已修)", "渠道(30b-2已修:storyboard域)"]
+      "note": "glossary:首现全称 模型服务商,下拉/复现可简写 服务商;提供商 为违例。30b/30b-2 已修 editor/ui2/ui/storyboard/timeline 域;30b-3 已修 catalog 最后 1 处(Direct a Short Film 提供商→服务商)。Turn a Logo 的 供应商 为 en=supplier 的忠实译(印厂/绣厂义),非 provider 概念,判定保留。语料归一完成。",
+      "variants_seen": ["服务商", "模型服务商", "提供商(已清)", "供应商(保留:en=supplier 义)"]
     },
     "api key": {
       "zh": "API 密钥",
@@ -101,8 +101,8 @@
       "zh": "时间线",
       "domain": "app-core",
       "grade": "B",
-      "note": "glossary 弃用 时间轴。30b 已修 editor:ui.subtitlesWithCueTimings→提示时间点(cue timings 语境);catalog 模板描述 1 处待后续批。",
-      "variants_seen": ["时间线", "时间轴(30b已修:editor域)"]
+      "note": "glossary 弃用 时间轴。30b 已修 editor:ui.subtitlesWithCueTimings→提示时间点;30b-2 已修 storyboard;30b-3 已修 catalog 模板描述 1 处(Localise a Script:不动时间轴→时长保持不变)与 nodeDocs.script.ScriptToSubtitles 字级时间轴→字级时间戳。语料归一完成。",
+      "variants_seen": ["时间线", "时间轴(30b/30b-2/30b-3已修)", "时间戳(字级 timings 语境)"]
     },
     "storyboard": {
       "zh": "分镜",
@@ -122,8 +122,8 @@
       "zh": "分镜表",
       "domain": "film",
       "grade": "clean",
-      "note": "影视行话。30b-2 已修:storyboard importYourShotlist/shotlistImported 镜头清单→分镜表 ×2。",
-      "variants_seen": ["分镜表", "镜头清单(30b-2已修)"]
+      "note": "影视行话。30b-2 已修 storyboard 镜头清单×2;30b-3 已修 catalog 6 处:skills.kling/minimax-h3+apps.multi-shot-video/trailer-room+nodeDocs.Director/ShotChain 镜头清单→分镜表。Shot List from a Synopsis desc 编号的镜头列表→逐条编号的镜头。语料归一完成。",
+      "variants_seen": ["分镜表", "镜头清单(30b-2/30b-3已修)", "镜头列表(30b-3已修)"]
     },
     "sketch": {
       "zh": "图稿",
@@ -242,8 +242,8 @@
       "zh": "定向广告",
       "domain": "marketing",
       "grade": "A",
-      "note": "r28 战役族行话。30b-2 已修 catalog 残留 4 处(宣传战役→定向广告宣传/战役主片→定向广告主片/战役记录×2→定向广告记录);launch campaign=发布活动(ui.suggestionLaunchCampaign 泛营销义)仍待裁。",
-      "variants_seen": ["定向广告", "战役", "发布活动", "营销"]
+      "note": "r28 战役族行话。30b-2 已修 catalog 残留 4 处;30b-3 全块复扫确认零残留(模板/技能/应用;营销文案=marketing copy 泛义保留)。launch campaign=发布活动已裁(泛营销义,ui.suggestionLaunchCampaign 维持)。",
+      "variants_seen": ["定向广告", "发布活动(已裁:泛营销义)", "营销(泛义保留)"]
     },
     "campaign hero": {
       "zh": "主视觉",
@@ -256,15 +256,15 @@
       "zh": "简报",
       "domain": "marketing",
       "grade": "B",
-      "note": "族内主译 简报(45处)。30b-2 已修 storyboard 简介×2(storyboardAssistantWelcome/noImageProviderIsConnected)与 脚本 2 处(归并入 script 键修正)。",
-      "variants_seen": ["简报", "简介(30b-2已修)", "脚本(30b-2已修)"]
+      "note": "族内主译 简报;创意语境 creative brief=创意简报(nodeDocs 已用)。30b-3 已修 catalog 侧最后 1 处(skills.explainer-storyboard 产品或功能简介→简报);剩余 简介×2 判定为非漂移:Trim a Blurb(en=blurb)与 timeline.Transcript(en=descriptions)。",
+      "variants_seen": ["简报", "创意简报", "简介(30b-3已清:brief 语境)"]
     },
     "commercial": {
       "zh": "广告片",
       "domain": "marketing",
       "grade": "clean",
-      "note": "2026-09-30 行话令。30b-2 已修:storyboard genreCommercial 广告→广告片。",
-      "variants_seen": ["广告片", "广告(30b-2已修:genreCommercial)"]
+      "note": "2026-09-30 行话令。30b-2 已修 storyboard:genreCommercial;30b-3 已修 skills.product-commercial(品牌广告→品牌广告片)。广告节拍表(commercial beat sheet)等复合词中 广告 单用可留。",
+      "variants_seen": ["广告片", "广告(30b-2/30b-3已修;复合词可留)"]
     },
     "remix": {
       "zh": "重混",
@@ -277,8 +277,8 @@
       "zh": "重打光",
       "domain": "media-task",
       "grade": "B",
-      "note": "r28 族词=重打光;30b 已修 editor:ui.relight(重新打光→重打光);nodeDocs/apps 各 1 处待后续批。",
-      "variants_seen": ["重打光", "重新打光(30b已修:editor域)"]
+      "note": "r28 族词=重打光;30b 已修 editor:ui.relight;30b-3 已清全部待批残留:nodeDocs.image.Relight+apps.product-reshoot(重新打光→重打光)+apps.sku-factory(季节重光→季节重打光)。语料归一完成。",
+      "variants_seen": ["重打光", "重新打光(30b/30b-3已修)", "重光(30b-3已修:sku-factory)"]
     },
     "lip sync": {
       "zh": "对口型",
@@ -291,8 +291,8 @@
       "zh": "超分",
       "domain": "media-task",
       "grade": "B",
-      "note": "任务域=超分(r14 词表);30b 已修 editor:ui.upscale(放大→超分);2 处模板描述待后续批;放大 保留给 缩放/放大镜 UI 动作(zoom in/out 不受影响)。",
-      "variants_seen": ["超分", "放大(30b已修:任务词)"]
+      "note": "任务域=超分(r14 词表);30b 已修 editor:ui.upscale;30b-3 已清模板/应用/技能残留:Upscale a Still(放大静图→静图超分)/Take a Product Shot to Print Resolution/Generate then Upscale a Poster 三模板+skills.nodetool-video-post(放大→超分)+apps.upscale-image(图像放大→图像超分,两个放大器→两个超分引擎)。放大 保留给 缩放/放大镜 UI 动作(zoom in/out 不受影响)。",
+      "variants_seen": ["超分", "放大(30b/30b-3已修:任务词)"]
     },
     "outpaint": {
       "zh_by_domain": {
@@ -332,8 +332,8 @@
       "zh": "图生视频",
       "domain": "media-task",
       "grade": "clean",
-      "note": "r14 词表;MiniMax 图生视频 品牌前缀组合一致。",
-      "variants_seen": ["图生视频"]
+      "note": "r14 词表;MiniMax 图生视频 品牌前缀组合一致。video-to-video 同族:30b-3 已修 apps.video-restyle 与 nodes.nodetool.video.VideoToVideo 视频转视频→视频生视频。语料归一完成。",
+      "variants_seen": ["图生视频", "视频生视频"]
     },
     "text to video": {
       "zh": "文生视频",
@@ -360,8 +360,8 @@
       "zh": "TTS 语音合成",
       "domain": "media-task",
       "grade": "B",
-      "note": "suffix 词表=TTS 语音合成;30b 已修 editor:ui.textToSpeech(文生语音→TTS 语音合成)+capabilityLabel.text_to_speech(文本转语音)+TTS 音色描述 1 处(→语音合成音色)。",
-      "variants_seen": ["TTS 语音合成", "文生语音(30b已修)", "文本转语音(30b已修)"]
+      "note": "suffix 词表=TTS 语音合成;30b 已修 editor 域;30b-3 已修 catalog 3 处:apps.ai-spokesperson(文字转语音→TTS 语音合成)+nodeDocs.TTSModelInput/TTSModelConstant(文本转语音模型→TTS 语音合成模型,与节点名 TTS 模型输入/常量 一致)。语料归一完成。",
+      "variants_seen": ["TTS 语音合成", "文生语音(30b已修)", "文本转语音(30b/30b-3已修)", "文字转语音(30b-3已修)"]
     },
     "transcribe": {
       "zh": "语音转文字",
@@ -454,8 +454,8 @@
       },
       "domain": "editing",
       "grade": "A",
-      "note": "≥3 译法:修剪(音视频主译 9 处)、裁剪(图像/裁切 3 处)、截到限长(Trim a Blurb=文本截断)、裁区间(Trim Audio to a Range)、剪掉静音(口语化)。裁定:音视频=修剪、图像=裁剪、文本=截断。30b-2 已修:storyboard trims and edits 裁剪→修剪 ×3(thisReplacesEveryClip 族)。",
-      "variants_seen": ["修剪", "裁剪(图像域)", "截到限长", "裁区间"]
+      "note": "30b-3 分域裁定(模板/媒体任务面):视频=裁剪(与词表 Trim Video=视频裁剪、模板 Trim a Clip=裁剪素材 一致)、音频=修剪(Trim Audio to a Range 音频裁区间→修剪音频区间)、文本=截断/截到限长。编辑面(timeline trimClip*/storyboard/tools)维持 修剪 不动。遗留待裁:nodes.nodetool.video.Trim 显示名与 nodeDocs video.Trim 仍为 修剪,与词表 视频裁剪 不同面并存,待统一裁决。剪掉静音(Speak a Line)为口语化模板名保留。",
+      "variants_seen": ["修剪", "裁剪(视频/图像域)", "截到限长", "裁区间(30b-3已修)", "剪掉静音(口语化保留)"]
     },
     "crop": {
       "zh": "裁剪",
@@ -620,15 +620,15 @@
       "zh": "B-roll",
       "domain": "film",
       "grade": "B",
-      "note": "F-23 保留拉丁;30b-2 已修 timeline:lifestyleBRoll 空镜→B-roll,语料归一。",
-      "variants_seen": ["B-roll", "空镜(30b-2已修)"]
+      "note": "F-23 保留拉丁;30b-2 已修 timeline:lifestyleBRoll;30b-3 已修 skills.script-video 配音空镜→配音 B-roll,语料归一完成。",
+      "variants_seen": ["B-roll", "空镜(30b-2/30b-3已修)"]
     },
     "take": {
       "zh": "条",
       "domain": "film",
       "grade": "clean",
-      "note": "行话(再来一条/一条 23 处)。30b-2 已裁并联动完成:媒体 take 名词形统一=条(storyboard 7+timeline 11+editor 9+tools 2 键,含 删除条/当前条/再来一条/条标签/新一条导演指示);条目 保留给 list entry 语境(copyItem/generatingItems/totalSizeOfSelectedItems 等零动)。",
-      "variants_seen": ["条", "条目(30b-2已修:媒体 take 语境)"]
+      "note": "行话(再来一条/一条 23 处)。30b-2 已裁并联动完成:媒体 take 名词形统一=条;条目 保留给 list entry 语境。30b-3 已修 catalog:Generate a Silent Bed 拼接镜头→拼接各条(concatenated takes)。file 级 clip 语境(Inspect a Clip/Trim a Clip/转写一段素材)判定 素材 保留(文件/资产域,与 r15 image 双译同理),时间线/编辑域 clip=片段 不变。",
+      "variants_seen": ["条", "条目(30b-2已修)", "素材(file 级 clip 分域保留)"]
     },
     "render": {
       "zh_by_domain": {
@@ -695,15 +695,15 @@
       "zh": "工作节点",
       "domain": "app-core",
       "grade": "B",
-      "note": "2026-09-30 行话令;30b 已修 editor 域全部:工作器 1 处(gpuUpWorkerStillLoading)+句中小写 worker 拉丁残留 19 处(中英混排禁断词)→工作节点;NodeTool Worker/ComfyUI(Worker) 节点名等品牌形态保留。",
-      "variants_seen": ["工作节点", "工作器(30b已修)", "worker(30b已修:混排)"]
+      "note": "2026-09-30 行话令;30b 已修 editor 域;30b-3 已修 catalog:skills.nodetool-deployment 工作进程→工作节点。语料归一完成。",
+      "variants_seen": ["工作节点", "工作器(30b已修)", "工作进程(30b-3已修)", "worker(30b已修:混排)"]
     },
     "batch": {
       "zh": "批量",
       "domain": "app-core",
       "grade": "B",
-      "note": "动作=批量、名词一批=批次(collectNItemsThenEmitAsABatch)、模板 Batch a List=分批;30b 统一 动作批量/名词批次,模板短语裁 分批→批量处理。",
-      "variants_seen": ["批量", "批次", "分批"]
+      "note": "动作=批量、名词一批=批次(collectNItemsThenEmitAsABatch);30b-3 已执行模板裁定:Batch a List 名称 列表分批→批量处理列表、desc 分批→批量。语料归一完成。",
+      "variants_seen": ["批量", "批次", "分批(30b-3已修)"]
     },
     "queue": {
       "zh_by_domain": {
@@ -963,6 +963,30 @@
       "grade": "B",
       "note": "nav=最近使用、ui2=最近使用的节点,30b 已统一 最近使用(ui2:attrs.recentNodes 已修)。",
       "variants_seen": ["最近使用", "最近使用的节点(30b已修)"]
+    },
+    "packshot": {
+      "zh": "产品照",
+      "domain": "marketing",
+      "grade": "B",
+      "note": "30b-3 新锚:packshot/product shot=产品照(对齐词表 Product Shot=产品照);弃 定妆照(AIGC 域已用作锚点图/定妆概念,冲突)与 产品白底图泛称。Spin a Packshot 已修 定妆照→产品照。",
+      "variants_seen": ["产品照", "定妆照(30b-3已修)", "产品图(词表 Product Packshot 现状,待统一)"]
+    },
+    "cutout": {
+      "zh_by_domain": {
+        "image": "抠图",
+        "video-matte": "抠像"
+      },
+      "domain": "media-task",
+      "grade": "C",
+      "note": "30b-3 新锚:图像域 cutout/cut-out=抠图(词表 Product Cutout=产品抠图;Cut a Product Out of Its Background 已修 原始抠像→原始抠图);视频 matte 域=抠像(词表 Video Matting=视频抠像)。分域成立。",
+      "variants_seen": ["抠图", "抠像"]
+    },
+    "revoice": {
+      "zh": "重配音",
+      "domain": "media-task",
+      "grade": "B",
+      "note": "30b-3 新锚:revoice/voice replacement=重配音(对齐模板 剧本本地化并重配音);apps.dubbing-desk 换声、skills.nodetool-video-post 换声 已修。变声 留给 voice changer(音色变换义)。",
+      "variants_seen": ["重配音", "换声(30b-3已修)"]
     }
   }
 }
