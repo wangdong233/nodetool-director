@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正;30b-4 已回写节点目录域批修正;30b-5 已回写设置与系统域批修正(settings/nav/common/home/tools:provider 7 处清零+worker 2+TTS 2+remix 1+shot list 5+edit point 2+costs 2+app 4+dismiss 收齐+relTime 错位 3+unpriced 歧义+desc 截断补全 9;新锚 grounded search;provider/worker/dismiss/timeline/tts/shot list/relTime 族升 clean)。",
+    "r30a 术语总表 — 全量 zh 词典 (en→zh) 一致性矩阵的机器可读锚;30b-3 已回写模板/示例族批修正;30b-4 已回写节点目录域批修正;30b-5 已回写设置与系统域批修正(settings/nav/common/home/tools:provider 7 处清零+worker 2+TTS 2+remix 1+shot list 5+edit point 2+costs 2+app 4+dismiss 收齐+relTime 错位 3+unpriced 歧义+desc 截断补全 9;新锚 grounded search;provider/worker/dismiss/timeline/tts/shot list/relTime 族升 clean);30b-6 最终批(应用构建与草图域:appbuilder 15 修+sketch 7 修+域外尾巴 storyboard 资产槽位×3/剪切点×1+timeline costs 1+editor newChat 1+catalog 12(Sketch to 3D/产品照×8/wan 参考图生视频/Studio Backdrop 抠图边缘/shortcuts.newChat);全语料 A/B 机械复扫归零,余 6 组 C 级判定保留:B-roll 合集/影棚摄影×5/explainer 解说词/Invert 负片×2/子任务待办/已创建文件夹完成toast)。",
     "标准从:后轮裁定优先于早轮 (r13-r28 分域审校词汇为准绳),先查 glossary.md 既有裁定。",
     "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
@@ -41,9 +41,9 @@
     "asset": {
       "zh": "素材",
       "domain": "app-core",
-      "grade": "B",
-      "note": "glossary 弃用 资产。30b 已修 editor 域;30b-5 复扫设置与系统域(settings/nav/common/home/tools)零残留,并补 settings:vaults.desc 知识库→RAG 知识库(忠实 en=RAG collections)。剩余 storyboard 域 3 处资产槽位 族待后续批。",
-      "variants_seen": ["素材", "资产(30b已修:editor域;storyboard 3 处待)"]
+      "grade": "clean",
+      "note": "glossary 弃用 资产。30b 已修 editor 域;30b-5 复扫设置与系统域零残留;30b-6 已修 storyboard 最后 3 处资产槽位族(sprite-sheet 设计器:槽位×2+主体×1)。全语料 资产 归零,归一完成。",
+      "variants_seen": ["素材", "资产(已清零:editor/30b+storyboard/30b-6)"]
     },
     "job": {
       "zh": "任务",
@@ -129,8 +129,8 @@
       "zh": "图稿",
       "domain": "app-core",
       "grade": "clean",
-      "note": "glossary 弃用 草图/画板;Eraser 任务词 擦除 ≠ 草图(不同概念)。",
-      "variants_seen": ["图稿"]
+      "note": "glossary 弃用 草图/画板;Eraser 任务词 擦除 ≠ 草图(不同概念)。30b-6 已修 catalog taskSuffixes 'Sketch to 3D' 草图生 3D→图稿生 3D(族形对齐 文生图/图生视频)。appbuilder:attrs.sketchPad=绘图板(小程序内交互画板控件,与 图稿 文档分立,判定保留);loadingPad 同步 正在加载绘图板。语料归一完成。",
+      "variants_seen": ["图稿", "草图(30b-6已修:taskSuffix)"]
     },
     "prompt": {
       "zh": "提示词",
@@ -146,8 +146,8 @@
       },
       "domain": "app-core",
       "grade": "C",
-      "note": "r13 重申:工作流级 execute/run=运行;节点级 execute(一次执行全部节点)=执行;运行历史=运行记录。",
-      "variants_seen": ["运行", "执行", "运行记录"]
+      "note": "r13 重申:工作流级 execute/run=运行;节点级 execute(一次执行全部节点)=执行;运行历史=运行记录。30b-6 已核实 appbuilder:attrs.runs=运行目标(消费面=AppDataPanel 操作卡片的目标选择下拉,选项 工作流/JS 脚本),判定维持。",
+      "variants_seen": ["运行", "执行", "运行记录", "运行目标(appbuilder 操作目标下拉,30b-6 核实维持)"]
     },
     "inspector": {
       "zh": "属性面板",
@@ -214,9 +214,9 @@
         "desktop/general-application": "应用"
       },
       "domain": "app-core",
-      "grade": "B",
-      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。30b 已判定 editor 域 app 族 26 键=小程序;30b-5 已修 tools:tutorials.app-assistant 段内泛 应用×4→小程序(result 应用显示→小程序显示/tagline 应用搭建→小程序构建器(对齐 docsTopics.appBuilder)/task 应用界面→小程序界面/description 描述一个应用→一个小程序);bugSource.app-crash 等泛指应用语境保留 应用。",
-      "variants_seen": ["小程序", "应用(30b分域:mini-app 语境已修含 tools tutorials,泛指保留)"]
+      "grade": "clean",
+      "note": "r15 定 App/mini app=小程序(docsTopics.apps/appBuilder/typeNames.application 三处一致);泛指应用程序=应用。30b-5 已修 tools 泛应用×4;30b-6 已对齐 appbuilder:attrs.appBuilder 小程序搭建→小程序构建器(消费面=AppBuilderAgentPanel docsLabel,对接 nav docsTopics.appBuilder)+appBuilderAgent→小程序构建助手(动词语境 搭建 保留:搭建小程序布局/让助手搭建你的小程序)。分域归一完成。",
+      "variants_seen": ["小程序", "应用(泛指保留)", "小程序构建器(surface 名,30b-6 对齐)"]
     },
     "image": {
       "zh_by_domain": {
@@ -225,7 +225,7 @@
       },
       "domain": "media",
       "grade": "C",
-      "note": "r15-Y2 双译分立;残留交叉:appbuilder:attrs.imageInput=图片输入(应为 图像输入,节点 IO 面)——appbuilder 域待后续批;30b 已核 editor:explorer.subtitle 属素材语境(图像→图片已修)。",
+      "note": "r15-Y2 双译分立;30b-6 已修 appbuilder 域残留:imageInput/imageSizeInput→图像输入/图像尺寸输入(类型化输入控件族),imageCompare/bindTwoImageOutputsToCompareThem→图像(对齐 compare 族);图片 保留给文件/素材语境(image 组件/noImage/imageAttachments/attachImage)。分域归一完成。",
       "variants_seen": ["图像", "图片"]
     },
     "account": {
@@ -353,8 +353,8 @@
       "zh": "参考图生视频",
       "domain": "media-task",
       "grade": "clean",
-      "note": "editor:ui.referenceToVideo=参考图生视频;30b-4 已修 suffix 双条 Reference to Video/reference-to-video 参考生视频→参考图生视频+节点 nodetool.video.ReferenceToVideo 参考生成视频→参考图生视频(三面归一);族形 Reference To Image=参考图生图(30b-4 新定,与 文生图/图生图 族形一致)。",
-      "variants_seen": ["参考图生视频", "参考生视频(30b-4已修)", "参考生成视频(30b-4已修:节点)"]
+      "note": "editor:ui.referenceToVideo=参考图生视频;30b-4 已修 suffix 双条+节点显示名(三面归一);30b-6 已修 skills.wan-2-6-prompting desc 尾处 参考生视频→参考图生视频(最后 1 处)。族形 Reference To Image=参考图生图。语料归一完成。",
+      "variants_seen": ["参考图生视频", "参考生视频(已清零)", "参考生成视频(已清零;catalog:2018 为 参考+生成视频 跨子串误报,非违例)"]
     },
     "text to speech": {
       "zh": "TTS 语音合成",
@@ -422,8 +422,8 @@
       "zh": "剪辑点",
       "domain": "editing",
       "grade": "clean",
-      "note": "影视行话,全一致。30b-5 已修 tools:tutorials.timeline-trim-arrange 剪切点×2→剪辑点(task/desc,与 timeline:shortcuts 族对齐)。",
-      "variants_seen": ["剪辑点", "剪切点(30b-5已修:tools)"]
+      "note": "影视行话,全一致。30b-5 已修 tools 两处;30b-6 已修 storyboard:tightFramingAndARestlessCameraTensionBuiltBetweenCuts 剪切点→剪辑点(张力在剪辑点之间累积,最后 1 处)。语料归一完成。",
+      "variants_seen": ["剪辑点", "剪切点(已清零)"]
     },
     "keyframe": {
       "zh": "关键帧",
@@ -648,7 +648,7 @@
       },
       "domain": "ui",
       "grade": "C",
-      "note": "动作=选择;appbuilder 表单控件类型标签=下拉选择(r15 属性面板微约定,与 开关/滑块 同节奏),分域成立。",
+      "note": "动作=选择;appbuilder 表单控件类型标签=下拉选择(r15 属性面板微约定,与 开关/滑块 同节奏),分域成立。30b-6 对 appbuilder attrs.* 350 键逐键核过控件语义微约定:select=下拉选择维持,Switch 默认标签 toggle→开关,图表类型枚举归一 柱状图/折线图/散点图/饼图,模型类别选项 Language=语言/Speech(TTS)=语音合成(TTS)/Transcription(ASR)=语音识别(ASR)(与 settings 模型槽标签族一致)。",
       "variants_seen": ["选择", "下拉选择"]
     },
     "switch": {
@@ -658,7 +658,7 @@
       },
       "domain": "ui",
       "grade": "C",
-      "note": "动作=切换、控件=开关、Switch 控制节点=多路分支(技术义,正确),分域成立。",
+      "note": "动作=切换、控件=开关、Switch 控制节点=多路分支(技术义,正确),分域成立。30b-6 已修 appbuilder:attrs.toggle(Switch 组件默认标签,消费面=config.tsx defaultProps)切换→开关,控件族归一完成。",
       "variants_seen": ["切换", "开关", "多路分支"]
     },
     "back": {
@@ -825,9 +825,9 @@
     "language": {
       "zh": "语言",
       "domain": "ui",
-      "grade": "B",
-      "note": "appbuilder:attrs.language=对话 疑似误译(表单控件类型标签应为 语言),30b 查 appbuilder schema 消费面后修正。",
-      "variants_seen": ["语言", "对话"]
+      "grade": "clean",
+      "note": "30b-6 已核实消费面并修正:appbuilder:attrs.language 实为 puck config Model kind 下拉选项(value=language_model,puck/config.tsx:1107),旧译 对话 为误译,已改 语言。与 storyboard:attrs.language(VoicesStep 语言)一致。",
+      "variants_seen": ["语言", "对话(30b-6已修:modelKind 选项误译)"]
     },
     "direction": {
       "zh": "方向",
@@ -853,9 +853,9 @@
     "costs": {
       "zh": "成本",
       "domain": "app-core",
-      "grade": "B",
-      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修);30b-2 已修 storyboard/timeline 域 费用→成本 15 键;30b-5 已修 settings:storage.descKeepGen 计费字段列举 费用→成本 + remote.NODETOOL_AGENT_TURN_COST_CAP_USD label 费用上限→成本上限(desc 内 provider spend 译 服务商花费 保留,spend 为另一 en 词)。appbuilder previewCostsDashboard=费用面板 待后续批。",
-      "variants_seen": ["成本", "费用(30b/30b-2/30b-5已修:editor/storyboard/timeline/settings域)", "花费(spend 义保留)"]
+      "grade": "clean",
+      "note": "rail=成本、editor=费用,30b 已统一 成本(editor 域 8 键已修);30b-2 已修 storyboard/timeline 域 费用→成本 15 键;30b-5 已修 settings 两处;30b-6 已修 timeline:previewCostsDashboard 费用面板→成本面板(30b-5 曾误记为 appbuilder 键,实居 timeline)。语料归一完成;服务商费用(en=cost 动词义)与 服务商花费(spend 义)为判定保留。",
+      "variants_seen": ["成本", "费用(已清零:costs 名词语境)", "花费(spend 义保留)"]
     },
     "compare": {
       "zh": "对比",
@@ -945,11 +945,11 @@
       "variants_seen": ["负感化", "负片(30b-4已修:suffix 误借)", "部分色调反转(30b-4已修:lib 节点)"]
     },
     "new chat": {
-      "zh": "新对话",
+      "zh": "新建对话",
       "domain": "ui",
-      "grade": "B",
-      "note": "editor=新建对话、ui2=新对话,30b 已统一 新建对话(动作)(ui2:attrs.newChat 与 editor:ui.newConversation 均已修)。",
-      "variants_seen": ["新对话(30b已修)", "新建对话"]
+      "grade": "clean",
+      "note": "30b 已统一 新建对话(动作)(ui2:attrs.newChat 与 editor:ui.newConversation 均已修)。30b-6 已清尾:catalog:shortcuts.newChat 新对话→新建对话+editor:ui.startFailed 无法开始新对话→无法新建对话。对话 保留给会话本体(还没有对话/搜索对话 等)。语料归一完成。",
+      "variants_seen": ["新建对话", "新对话(已清零)"]
     },
     "create folder": {
       "zh": "新建文件夹",
@@ -968,9 +968,9 @@
     "packshot": {
       "zh": "产品照",
       "domain": "marketing",
-      "grade": "B",
-      "note": "30b-3 新锚:packshot/product shot=产品照(对齐词表 Product Shot=产品照);弃 定妆照(AIGC 域已用作锚点图/定妆概念,冲突)与 产品白底图泛称。30b-4 已修词表双条 Product Photo/Product Packshot 产品图→产品照(族内归一);Product Photography=产品摄影(技艺义)分立。",
-      "variants_seen": ["产品照", "定妆照(30b-3已修)", "产品图(30b-4已修)"]
+      "grade": "clean",
+      "note": "30b-3 新锚:packshot/product shot=产品照(对齐词表 Product Shot=产品照);弃 定妆照(AIGC 域已用作锚点图/定妆概念,冲突)与 产品白底图泛称。30b-4 已修词表双条;30b-6 已清 catalog 剩余 8 处 产品图→产品照(en 源逐一核验:apps directed-campaign-kit/product-launch-kit/product-reshoot/sku-factory desc+nodeDocs CreateEntity+imageUseCases.product.title(Product shot)+workflowInspiration.product-shots(product shots)+模板名 Take a Product Shot to Print Resolution)。Product Photography=产品摄影(技艺义)分立。语料归一完成。",
+      "variants_seen": ["产品照", "定妆照(30b-3已修)", "产品图(30b-6已清零)"]
     },
     "cutout": {
       "zh_by_domain": {
@@ -979,8 +979,8 @@
       },
       "domain": "media-task",
       "grade": "C",
-      "note": "30b-3 新锚:图像域 cutout/cut-out=抠图(词表 Product Cutout=产品抠图;Cut a Product Out of Its Background 已修 原始抠像→原始抠图);视频 matte 域=抠像(词表 Video Matting=视频抠像)。30b-4 已修 suffix Matte Image 图像抠像→图像抠图(图像任务域)+nodeDocs image.RemoveBackground 抠像结果→抠图结果。分域归一完成。",
-      "variants_seen": ["抠图", "抠像"]
+      "note": "30b-3 新锚:图像域 cutout/cut-out=抠图;视频 matte 域=抠像(词表 Video Matting=视频抠像)。30b-4 已修 suffix+nodeDocs;30b-6 已修 sketch:cutoutLayers 抠像图层→抠图图层+catalog Studio Backdrop 模板 desc 柔化抠像边缘→柔化抠图边缘。绿幕抠像/色度抠像(chroma key 视频域)为行话保留。分域归一完成。",
+      "variants_seen": ["抠图", "抠像(视频域保留)"]
     },
     "revoice": {
       "zh": "重配音",
@@ -1033,6 +1033,13 @@
       "grade": "clean",
       "note": "30b-5 裁定(上批待裁项):GroundedSearch=接地搜索,Google 官方中文文档用语(Gemini grounding with search),维持。词典位 catalog:gemini.text.GroundedSearch(节点显示名),设置与系统域零出现。",
       "variants_seen": ["接地搜索"]
+    },
+    "brush presets": {
+      "zh": "笔刷类型族",
+      "domain": "sketch",
+      "grade": "clean",
+      "note": "30b-6 新锚(ui2 b3 笔刷族固化):Round/Soft/Air/Spray=圆形/软边/喷枪/喷涂(ui2:attrs,消费面=paintToolPanels 画笔类型 SketchModeToggle);硬度=Hard=硬;铅笔工具 Pixel/Soft 切换=像素/软边(editor:ui.pixel+sketch:attrs.eraseWithCrispPencilDabs 30b-6 已对齐 柔边→软边)。已知裸串:paintToolPanels.tsx 铅笔 Soft 选项为未接线英文(非词典问题,报 i18n:audit)。语料归一完成。",
+      "variants_seen": ["圆形", "软边", "喷枪", "喷涂", "柔边(30b-6已修:sketch 铅笔切换描述)"]
     }
   }
 }
