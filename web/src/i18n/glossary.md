@@ -84,3 +84,21 @@
 - director(noun)=Director 保留/direct(verb)=执导;b-roll=B-roll 保留;worker=工作节点
 - extend=延长(时间线)/扩展(选区);render=渲染(时间线/3D)/生成(生成义);dialogue 按域=对话/对白/台词
 - provider 违例 提供商(约 21 处)、collections 违例 收藏集(3 处)、asset 违例 资产(4 处)——30b 修正清单见总表 note 字段
+
+## r32 增量锚(2026-10-11,英文动作按钮清查轮)
+
+12 条新锚已录入 [terminology.json](terminology.json)(分域 note 标边界):
+
+| 英文 | 中文 | 边界 |
+|---|---|---|
+| Bar / Beat(音乐) | 小节 / 拍 | 拍号网格选项与读数;与 editor:ui.bars 同锚 |
+| registry(包管理) | 注册表 | npm 式惯例 |
+| included(包管理) | 内置 | 与技能列表 内置(Built in)同词 |
+| Documentation(页头链接) | 文档 | 管理器页头外部文档按钮 |
+| Browse(包管理) | 浏览 | 侧栏分组标题 |
+| expand/collapse(展开收起) | 展开 / 折叠 | disclosure 域;与 editing 域 expand=扩展(选区/边框)分立,禁互串 |
+| Custom(预设尾项) | 自定义 | 轨道乐器预设下拉 |
+| favorite / unfavorite | 收藏 / 取消收藏 | 添加收藏=Add to favorites |
+| Attach files | 附加文件 | 与 bug 报告附加文件一致 |
+| Play / Pause(媒体) | 播放 / 暂停 | TC(时间码)保留拉丁 |
+| Today / Yesterday(分组) | 今天 / 昨天 | N 天前走 relTime.dayAgo 复数系 |

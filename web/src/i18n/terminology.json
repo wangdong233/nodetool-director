@@ -5,6 +5,7 @@
     "grade 语义: A=同概念≥3种译法或跨namespace冲突且在用户高频面(30b必审); B=2种译法或glossary违例(30b修正); C=合理分域(判定理由见note,不算冲突); clean=语料内无冲突。",
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
     "单串改词流程: 先查 glossary.md → 再查本表; 修正执行以本表为准绳 (30b)。",
+    "r32 增量: 英文动作按钮清查轮新增 12 锚(小节/拍/注册表/内置/文档/浏览/展开折叠/自定义/收藏/附加文件/播放暂停/今天昨天),分域 note 已标边界。",
     "微件规范 (动词不加请/全角标点/加载中…) 与 F-23 拉丁保留清单的 SSOT 仍是 glossary.md; 本表 keep_latin 为其快照片段。"
   ],
   "keep_latin": [
@@ -1040,6 +1041,18 @@
       "grade": "clean",
       "note": "30b-6 新锚(ui2 b3 笔刷族固化):Round/Soft/Air/Spray=圆形/软边/喷枪/喷涂(ui2:attrs,消费面=paintToolPanels 画笔类型 SketchModeToggle);硬度=Hard=硬;铅笔工具 Pixel/Soft 切换=像素/软边(editor:ui.pixel+sketch:attrs.eraseWithCrispPencilDabs 30b-6 已对齐 柔边→软边)。已知裸串:paintToolPanels.tsx 铅笔 Soft 选项为未接线英文(非词典问题,报 i18n:audit)。语料归一完成。",
       "variants_seen": ["圆形", "软边", "喷枪", "喷涂", "柔边(30b-6已修:sketch 铅笔切换描述)"]
-    }
+    },
+    "bar (music)": { "zh": "小节", "domain": "timeline-grid", "grade": "clean", "note": "r32;拍号网格选项/读数。与 editor:ui.bars=小节 同锚。", "variants_seen": ["小节"] },
+    "beat (music)": { "zh": "拍", "domain": "timeline-grid", "grade": "clean", "note": "r32;网格划分选项。", "variants_seen": ["拍"] },
+    "registry (packages)": { "zh": "注册表", "domain": "packages", "grade": "clean", "note": "r32;npm 式注册表惯例;包管理器侧栏。", "variants_seen": ["注册表"] },
+    "included (packages)": { "zh": "内置", "domain": "packages", "grade": "clean", "note": "r32;与技术列表 内置(Built in)同词。", "variants_seen": ["内置"] },
+    "documentation (docs link)": { "zh": "文档", "domain": "manager-chrome", "grade": "clean", "note": "r32;管理器页头外部文档按钮。与 nav 文档(docsTopics)同词。", "variants_seen": ["文档"] },
+    "browse": { "zh": "浏览", "domain": "manager-chrome", "grade": "clean", "note": "r32;包管理器侧栏分组标题。", "variants_seen": ["浏览"] },
+    "expand/collapse (disclosure)": { "zh": "展开/折叠", "domain": "disclosure", "grade": "clean", "note": "r32;树/分组展开收起。与 editing 域 expand=扩展(选区/边框)分立,禁互串。", "variants_seen": ["展开", "折叠"] },
+    "custom (preset)": { "zh": "自定义", "domain": "timeline-instrument", "grade": "clean", "note": "r32;轨道乐器预设下拉的 Custom 尾项。", "variants_seen": ["自定义"] },
+    "favorite / unfavorite": { "zh": "收藏 / 取消收藏", "domain": "app-core", "grade": "clean", "note": "r32;FavoriteButton 原语与模型收藏星;添加收藏=Add to favorites。", "variants_seen": ["收藏", "取消收藏", "添加收藏"] },
+    "attach files": { "zh": "附加文件", "domain": "chat-composer", "grade": "clean", "note": "r32;与 editor:ui.attachFilesToTheBugReport=附加文件 一致。", "variants_seen": ["附加文件"] },
+    "play / pause (media)": { "zh": "播放 / 暂停", "domain": "media-controls", "grade": "clean", "note": "r32;VideoPlayer 原语 aria;TC(时间码)保留拉丁。", "variants_seen": ["播放", "暂停"] },
+    "today / yesterday (grouping)": { "zh": "今天 / 昨天", "domain": "list-grouping", "grade": "clean", "note": "r32;列表日期分组(groupByDate);N 天前走 relTime.dayAgo 复数系。", "variants_seen": ["今天", "昨天"] }
   }
 }
