@@ -93,6 +93,16 @@ export const tabDisplayTitle = (tab: {
   if (tab.type === "page" && tab.ref && isPageTabKey(tab.ref)) {
     return pageTitle(tab.ref);
   }
+  // A shipped skill's stored title is a raw-slug snapshot — resolve the zh
+  // overlay at render time from the stable `system:<name>` ref (r31a), the
+  // same guarded-default discipline as below: a tab still carrying its slug
+  // localizes, a user rename is the user's data and renders verbatim.
+  if (tab.type === "skill" && tab.ref?.startsWith("system:")) {
+    const slug = tab.ref.slice("system:".length);
+    if (tab.title === slug) {
+      return i18n.t(`catalog:skills.${slug}.name`, { defaultValue: tab.title });
+    }
+  }
   const seededDefault = DOC_TAB_DEFAULTS[tab.type]?.[tab.title];
   if (seededDefault) {
     return i18n.t(seededDefault, { defaultValue: tab.title });

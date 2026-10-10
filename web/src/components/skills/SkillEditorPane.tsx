@@ -79,6 +79,11 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
   const theme = useTheme();
   const editorStyles = styles(theme);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
+  // A shipped skill reaches this pane read-only (the tab bar can flip any tab
+  // to Edit); its header fields then mirror the viewer's zh overlay while the
+  // name state — the thing saves and dirty-checks compare — stays the raw
+  // slug. User skills render and edit their stored values verbatim.
+  const isSystemSkill = skillId.startsWith("system:");
 
   const { data: skill, isLoading, error } = useSkill(skillId);
   const utils = trpc.useUtils();
@@ -474,7 +479,11 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
       <FlexColumn className="meta-row">
         <FormField label={t("editor:asset.info.name", { defaultValue: "Name" })} required>
           <TextInput
-            value={name}
+            value={
+              isSystemSkill
+                ? t(`catalog:skills.${name}.name`, { defaultValue: name })
+                : name
+            }
             onChange={handleNameChange}
             placeholder="my-skill"
             disabled={readOnly}
@@ -486,7 +495,13 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           helperText={t("editor:ui.matchedAgainstAgentObjective", { defaultValue: "Matched against the agent objective (words >=4 chars)" })}
         >
           <TextInput
-            value={description}
+            value={
+              isSystemSkill
+                ? t(`catalog:skills.${name}.description`, {
+                    defaultValue: description
+                  })
+                : description
+            }
             onChange={handleDescriptionChange}
             placeholder={t("editor:ui.whenToUseThisSkill", { defaultValue: "When to use this skill" })}
             disabled={readOnly}

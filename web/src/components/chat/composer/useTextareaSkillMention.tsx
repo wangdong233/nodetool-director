@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 
 import type { RouterOutputs } from "../../../trpc/client";
 import { useSkills } from "../../../hooks/skills/useSkills";
+import { i18n, useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 import {
   BORDER_RADIUS,
@@ -166,6 +167,9 @@ export const useTextareaSkillMention = ({
   // The shipped skills answer to `/name` in a turn exactly as a user's own row
   // does, so the menu that completes that name offers both.
   const { data: skills = [] } = useSkills({ includeSystem: true });
+  // Re-runs the filter below on a language switch (F-26): the zh alias corpus
+  // must follow the localized descriptions the menu renders.
+  const { version: languageVersion } = useAppLanguage();
   const [trigger, setTrigger] = useState<SkillTrigger | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -178,10 +182,22 @@ export const useTextareaSkillMention = ({
     if (!trigger) {
       return [];
     }
-    return skills.filter((skill) =>
-      `${skill.name} ${skill.description}`.toLocaleLowerCase().includes(query)
-    );
-  }, [skills, trigger]);
+    return skills.filter((skill) => {
+      // The English slug+description keep their index weight; a shipped
+      // skill's zh overlay name+description join as an alias (nodeSearchAlias
+      // precedent) so 节奏 finds beat-sync-editing while "beat" still does.
+      const haystack = `${skill.name} ${skill.description}`;
+      if (!skill.system || !i18n.language.startsWith("zh")) {
+        return haystack.toLocaleLowerCase().includes(query);
+      }
+      const alias = `${i18n.t(`catalog:skills.${skill.name}.name`, {
+        defaultValue: ""
+      })} ${i18n.t(`catalog:skills.${skill.name}.description`, {
+        defaultValue: ""
+      })}`;
+      return `${haystack} ${alias}`.toLocaleLowerCase().includes(query);
+    });
+  }, [skills, trigger, languageVersion]);
 
   const measure = useCallback(() => {
     const element = textareaRef.current;

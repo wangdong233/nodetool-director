@@ -22,6 +22,7 @@ interface SkillSurfaceProps {
 const SkillSurface = ({ refId, mode }: SkillSurfaceProps) => {
   const { t } = useTranslation();
   const { data: skill, isLoading, error } = useSkill(refId);
+  const isSystemSkill = refId.startsWith("system:");
 
   if (isLoading) {
     return (
@@ -47,12 +48,24 @@ const SkillSurface = ({ refId, mode }: SkillSurfaceProps) => {
   }
 
   if (mode === "view") {
+    // Display-layer localization (r31a): a shipped skill's header resolves
+    // through the zh catalog overlay at render time — stored data is never
+    // rewritten and a language switch re-renders immediately. The markdown
+    // body below keeps its original language this round (body translation is
+    // a later batch). A user skill renders its stored values verbatim.
+    const displayName = isSystemSkill
+      ? t(`catalog:skills.${skill.name}.name`, { defaultValue: skill.name })
+      : skill.name;
     return (
       <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, p: SPACING.md }}>
-        <Label>{skill.name}</Label>
+        <Label>{displayName}</Label>
         {skill.description && (
           <Caption sx={{ color: "text.secondary", mb: SPACING.xs }}>
-            {skill.description}
+            {isSystemSkill
+              ? t(`catalog:skills.${skill.name}.description`, {
+                  defaultValue: skill.description
+                })
+              : skill.description}
           </Caption>
         )}
         <ScrollArea fullHeight>
@@ -65,9 +78,7 @@ const SkillSurface = ({ refId, mode }: SkillSurfaceProps) => {
   // A shipped skill has no row to write back to, and the tab bar lets anyone
   // flip a tab to Edit — so the pane is opened read-only rather than left to
   // fail its first autosave against the server's refusal.
-  return (
-    <SkillEditorPane skillId={refId} readOnly={refId.startsWith("system:")} />
-  );
+  return <SkillEditorPane skillId={refId} readOnly={isSystemSkill} />;
 };
 
 export default SkillSurface;

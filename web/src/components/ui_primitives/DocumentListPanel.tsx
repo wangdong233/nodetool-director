@@ -7,6 +7,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
+import { useAppLanguage } from "../../i18n";
 import { groupByDate } from "../../utils/groupByDate";
 import CategorySearchBar from "../node_menu/CategorySearchBar";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -36,6 +37,13 @@ export interface DocumentListPanelProps<T extends DocumentListPanelDocument> {
   errorAction?: ReactNode;
   /** Shown under "No <plural> yet" when the user has not created any. */
   emptyDescription: string;
+  /**
+   * Extra searchable text per document, appended to the name in the filter
+   * (bilingual search): the localized display name of a shipped document
+   * joins as an alias while the stored English name keeps its index weight
+   * (nodeSearchAlias precedent). Return "" when there is no alias.
+   */
+  getSearchAlias?: (document: T) => string;
   /** The document awaiting delete confirmation; `null` keeps the dialog closed. */
   deleteTarget: { name: string } | null;
   onCancelDelete: () => void;
@@ -52,12 +60,16 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
   errorMessage,
   errorAction,
   emptyDescription,
+  getSearchAlias,
   deleteTarget,
   onCancelDelete,
   onConfirmDelete,
   renderItem
 }: DocumentListPanelProps<T>) {
   const { t } = useTranslation();
+  // Re-runs the filter below when the language changes so a zh alias stays
+  // in step with the localized rows it mirrors (F-26 discipline).
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -75,7 +87,11 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
     const all = documents ?? [];
     const needle = filterValue.trim().toLowerCase();
     const filtered = needle
-      ? all.filter((item) => item.name.toLowerCase().includes(needle))
+      ? all.filter((item) =>
+          `${item.name} ${getSearchAlias ? getSearchAlias(item) : ""}`
+            .toLowerCase()
+            .includes(needle)
+        )
       : all;
     // Parsed once per row instead of twice per comparison — this whole pass
     // re-runs on every keystroke in the filter box.
@@ -93,7 +109,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
       currentGroup = group;
       return { item, group, showHeader };
     });
-  }, [documents, filterValue]);
+  }, [documents, filterValue, getSearchAlias, languageVersion]);
 
   return (
     <FlexColumn fullHeight fullWidth gap={0} css={listPanelStyles(theme)}>

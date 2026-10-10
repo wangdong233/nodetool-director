@@ -112,7 +112,12 @@ const SkillListPanel = () => {
         // A shipped skill opens as a read: the editor's save and autosave would
         // fail against a document with no row behind it.
         mode: isSystemSkill(id) ? "view" : "edit",
-        title: name || "Untitled skill"
+        // The stored title keeps the raw slug for shipped skills: the tab bar
+        // resolves the zh overlay from the `system:<name>` ref at render time
+        // (tabDisplayTitle), so the stored snapshot stays language-neutral.
+        title: isSystemSkill(id)
+          ? id.slice(SYSTEM_SKILL_ID_PREFIX.length)
+          : name || "Untitled skill"
       });
       if (!location.pathname.startsWith("/workspace")) {
         navigate("/workspace");
@@ -201,11 +206,38 @@ const SkillListPanel = () => {
   }, [itemToDelete, deleteSkill]);
   const handleCancelDelete = useCallback(() => setItemToDelete(null), []);
   const handleCancelRename = useCallback(() => setEditingId(null), []);
+
+  // Bilingual sidebar search (nodeSearchAlias precedent): the English slug
+  // keeps its original index weight, and the zh display name joins as an
+  // alias so 节奏 finds beat-sync-editing while "beat" still does. Only
+  // shipped skills own an overlay entry; a user skill that happens to share
+  // a slug is the user's data and searches on its own name only. Resolved at
+  // call time — DocumentListPanel re-runs the filter on languageVersion.
+  const getSkillSearchAlias = useCallback((skill: SkillListItem): string => {
+    if (!skill.system) {
+      return "";
+    }
+    const localized = i18n.t(`catalog:skills.${skill.name}.name`, {
+      defaultValue: ""
+    });
+    return localized && localized !== skill.name ? localized : "";
+  }, []);
+
   const renderSkill = useCallback(
     (skill: SkillListItem) => (
       <ListPanelItem
         id={skill.id}
-        name={skill.name}
+        // Display-layer localization (r31a): a shipped skill's name resolves
+        // through the zh catalog overlay; the row still opens and renames by
+        // the raw slug underneath. A user skill that happens to share a slug
+        // is the user's data and renders verbatim.
+        name={
+          skill.system
+            ? i18n.t(`catalog:skills.${skill.name}.name`, {
+                defaultValue: skill.name
+              })
+            : skill.name
+        }
         fallbackName={i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })}
         renameLabel={i18n.t("editor:ui.skillName", { defaultValue: "Skill name" })}
         // A lock, and "Built in" under the name: enough to tell the two apart
@@ -249,6 +281,7 @@ const SkillListPanel = () => {
         />
       }
       emptyDescription={t("editor:ui.createASkillFromTheWorkspaceNewMenu", { defaultValue: "Create a skill from the workspace New menu." })}
+      getSearchAlias={getSkillSearchAlias}
       deleteTarget={itemToDelete}
       onCancelDelete={handleCancelDelete}
       onConfirmDelete={handleConfirmDelete}
