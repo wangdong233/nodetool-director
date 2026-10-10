@@ -471,7 +471,9 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
             disabled={!isDirty || updateMutation.isPending || readOnly}
             onClick={handleManualSave}
           >
-            {updateMutation.isPending ? "Saving…" : "Save"}
+            {updateMutation.isPending
+              ? t("editor:ui.saving", { defaultValue: "Saving…" })
+              : t("editor:ui.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>

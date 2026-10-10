@@ -285,7 +285,7 @@
     "aiNodes": "AI Nodes",
     "browseAll": "Browse all",
     "addInput": "Add input",
-    "addProviders": "Add providers",
+    "addProviders": "Add providers…",
     "align": "Align",
     "allRuntimesInstalledYouCanRunThisWorkflowNow": "All runtimes installed. You can run this workflow now.",
     "archive": "Archive",
@@ -1064,7 +1064,6 @@
     "a100SXM480GB": "A100 SXM4 · 80 GB",
     "a10080GB": "A100 · 80 GB",
     "a4048GB": "A40 · 48 GB",
-    "addProviders": "Add providers…",
     "alignBottom": "Align Bottom",
     "alignCenter": "Align Center",
     "alignLeft": "Align Left",
@@ -2587,7 +2586,6 @@
     "hideLabeledInputAtBottom": "Hide labeled input at bottom",
     "showInputAtBottomWithParameterTitleAndEditor": "Show input at bottom with parameter title and editor",
     "thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123": "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3].",
-    "showInExplorer": "Show in Explorer",
     "hideMiniMap": "Hide Mini Map",
     "showMiniMap": "Show Mini Map",
     "leaveBlankToKeepTheStoredKey": "Leave blank to keep the stored key",
@@ -3090,7 +3088,8 @@
     "couldNotBeVoiced_other": "{{count}} lines could not be voiced.",
     "retryAll_one": "Retry all {{count}}",
     "retryAll_other": "Retry all {{count}}",
-    "scriptAtLine": "Script · line {{position}}"
+    "scriptAtLine": "Script · line {{position}}",
+    "view": "View"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

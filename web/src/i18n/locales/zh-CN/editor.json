@@ -283,7 +283,7 @@
     "aiNodes": "AI 节点",
     "browseAll": "浏览全部",
     "addInput": "添加输入",
-    "addProviders": "添加服务商",
+    "addProviders": "添加服务商…",
     "align": "对齐",
     "allRuntimesInstalledYouCanRunThisWorkflowNow": "所有运行时已安装。现在就可以运行这个工作流。",
     "archive": "归档",
@@ -349,7 +349,7 @@
     "selectAVersionToPreview": "选择一个版本进行预览",
     "saveToFolder": "保存到文件夹",
     "selectNewFolderForAssets_other": "为 {{count}} 个素材选择新文件夹：",
-    "showInExplorer": "显示所在文件夹",
+    "showInExplorer": "在文件管理器中显示",
     "shrink": "收缩",
     "slotTypeForName": "“{{name}}”的插槽类型",
     "slotTypeForAria": "{{name}} 的插槽类型",
@@ -1055,7 +1055,6 @@
     "a100SXM480GB": "A100 SXM4 · 80 GB",
     "a10080GB": "A100 · 80 GB",
     "a4048GB": "A40 · 48 GB",
-    "addProviders": "添加服务商…",
     "alignBottom": "底对齐",
     "alignCenter": "水平居中",
     "alignLeft": "左对齐",
@@ -2578,7 +2577,6 @@
     "hideLabeledInputAtBottom": "隐藏底部带标签输入",
     "showInputAtBottomWithParameterTitleAndEditor": "在底部显示输入，带参数标题和编辑器",
     "thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123": "此脚本使用 stream() 读取输入。请为每个锚点提供待暂存项的 JSON 数组，例如 [1, 2, 3]。",
-    "showInExplorer": "在文件管理器中显示",
     "hideMiniMap": "隐藏小地图",
     "showMiniMap": "显示小地图",
     "leaveBlankToKeepTheStoredKey": "留空以保留已存储的密钥",
@@ -3070,7 +3068,8 @@
     "voicedOfTotal_other": "已配音 {{voiced}}/{{total}} 行。",
     "couldNotBeVoiced_other": "{{count}} 行无法配音。",
     "retryAll_other": "全部重试 {{count}}",
-    "scriptAtLine": "剧本 · 第 {{position}} 行"
+    "scriptAtLine": "剧本 · 第 {{position}} 行",
+    "view": "查看"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

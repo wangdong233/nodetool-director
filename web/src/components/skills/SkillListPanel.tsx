@@ -122,9 +122,11 @@ const SkillListPanel = () => {
       if (!location.pathname.startsWith("/workspace")) {
         navigate("/workspace");
       }
-      setVisibility(false);
+      // The list stays open on open (user ruling 2026-10-11): browsing
+      // several skills in a row needs the list visible; the active row
+      // highlights via activeSkillId. Only Create collapses the panel.
     },
-    [location.pathname, navigate, openTab, setVisibility]
+    [location.pathname, navigate, openTab]
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
