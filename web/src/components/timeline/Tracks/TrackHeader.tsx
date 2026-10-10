@@ -68,7 +68,7 @@ import type { SelectOption } from "../../ui_primitives";
 import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { DEFAULT_TRACK_HEIGHT_PX as SHARED_DEFAULT_TRACK_HEIGHT_PX } from "./trackHeight";
-import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
+import { trackTypeMeta, trackTypeAccent, trackTypeLabel } from "./trackVisuals";
 import ConfirmDialog from "../../dialogs/ConfirmDialog";
 import { useTranslation } from "react-i18next";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
@@ -308,12 +308,16 @@ const presetSelectStyles = css({
 /** Shown when the track's voice matches no shipped preset. */
 const CUSTOM_PRESET = "custom";
 
-const PRESET_OPTIONS: readonly SelectOption[] = [
+/** Preset options with a localized "Custom" tail; instrument preset names
+ * are shipped synth-preset proper nouns and render verbatim. */
+const presetOptions = (
+  t: (key: string, opts?: Record<string, unknown>) => string
+): SelectOption[] => [
   ...TIMELINE_INSTRUMENT_PRESETS.map((preset) => ({
     value: preset.id,
     label: preset.name
   })),
-  { value: CUSTOM_PRESET, label: "Custom" }
+  { value: CUSTOM_PRESET, label: t("editor:ui.customPreset", { defaultValue: "Custom" }) }
 ];
 
 interface TrackHeaderProps {
@@ -685,7 +689,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   onDragEnd={handleDragEnd}
                   onPointerDown={stopPointerPropagation}
                   onContextMenu={stopPointerPropagation}
-                  aria-label={`Reorder ${track.name}`}
+                  aria-label={t("timeline:attrs.reorderTrackName", { defaultValue: "Reorder {{name}}", name: track.name })}
                   role="button"
                   tabIndex={-1}
                   title={t("timeline:attrs.dragToReorderTrack", { defaultValue: "Drag to reorder track" })}
@@ -693,7 +697,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 >
                   <DragIndicatorIcon />
                 </div>
-                <div css={typeGlyphCss} aria-hidden title={meta.label}>
+                <div css={typeGlyphCss} aria-hidden title={trackTypeLabel(track.type)}>
                   <TypeIcon />
                 </div>
               </>
@@ -707,13 +711,13 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 editing={editingName}
                 onEditingChange={setEditingName}
                 onCommit={commitName}
-                ariaLabel={`Track name: ${track.name}`}
+                ariaLabel={t("timeline:attrs.trackNameAria", { defaultValue: "Track name: {{name}}", name: track.name })}
                 title={t("timeline:attrs.doubleclickToRename", { defaultValue: "Double-click to rename" })}
               />
               <span
                 css={indexChipCss}
-                aria-label={`${meta.label} track ${typedIndex}`}
-                title={`${meta.label} ${typedIndex}`}
+                aria-label={t("timeline:attrs.trackIndexAria", { defaultValue: "{{label}} track {{index}}", label: trackTypeLabel(track.type), index: typedIndex })}
+                title={`${trackTypeLabel(track.type)} ${typedIndex}`}
               >
                 {meta.prefix}
                 {typedIndex}
@@ -799,12 +803,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             {isMidi && (
               <>
                 <SelectField
-                  label={`Instrument for ${track.name}`}
+                  label={t("timeline:attrs.instrumentForName", { defaultValue: "Instrument for {{name}}", name: track.name })}
                   hideLabel
                   size="small"
                   variant="outlined"
                   value={presetId}
-                  options={PRESET_OPTIONS}
+                  options={presetOptions(t)}
                   onChange={handlePresetChange}
                   css={presetSelectStyles}
                 />
@@ -831,7 +835,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 title={
                   effectsCount === 0
                     ? t("timeline:attrs.effectsChainEmpty", { defaultValue: "Effects chain (empty)" })
-                    : `Effects chain (${effectsCount})`
+                    : t("timeline:attrs.effectsChainCount", { defaultValue: "Effects chain ({{count}})", count: effectsCount })
                 }
               >
                 <button
@@ -899,13 +903,13 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             compact
           />
           <MenuItemPrimitive
-            label={`Insert ${meta.label} track above`}
+            label={t("timeline:attrs.insertTrackAbove", { defaultValue: "Insert {{label}} track above", label: trackTypeLabel(track.type) })}
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={handleMenuInsertAbove}
             compact
           />
           <MenuItemPrimitive
-            label={`Insert ${meta.label} track below`}
+            label={t("timeline:attrs.insertTrackBelow", { defaultValue: "Insert {{label}} track below", label: trackTypeLabel(track.type) })}
             icon={<VerticalAlignBottomIcon fontSize="small" />}
             onClick={handleMenuInsertBelow}
             compact
@@ -924,7 +928,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           onClose={() => setConfirmRemoveOpen(false)}
           onConfirm={() => removeTrack(track.id)}
           title={t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
-          content={`Remove track "${track.name}" and all its clips?`}
+          content={t("timeline:attrs.removeTrackConfirm", { defaultValue: 'Remove track "{{name}}" and all its clips?', name: track.name })}
           confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
           cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         />

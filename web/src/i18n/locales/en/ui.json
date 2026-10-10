@@ -30,6 +30,10 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "breadcrumb": "breadcrumb",
-    "skipToMainContent": "Skip to main content"
+    "skipToMainContent": "Skip to main content",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "play": "Play",
+    "pause": "Pause"
   }
 }

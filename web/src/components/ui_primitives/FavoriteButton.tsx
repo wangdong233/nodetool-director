@@ -12,6 +12,7 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, isFavorite: boolean, variant: string) =>
   css({
@@ -61,8 +62,8 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   onToggle,
   variant = "star",
   buttonSize = "small",
-  addTooltip = "Add to favorites",
-  removeTooltip = "Remove from favorites",
+  addTooltip = i18n.t("ui:attrs.addFavorite", { defaultValue: "Add to favorites" }),
+  removeTooltip = i18n.t("ui:attrs.removeFavorite", { defaultValue: "Remove from favorites" }),
   stopPropagation = true,
   disabled = false,
   className

@@ -65,7 +65,11 @@ export const PlayheadReadout: React.FC = memo(() => {
 
   return (
     <FlexRow gap={0.5} align="center" data-testid="timeline-playhead-readout">
-      <Caption sx={readoutSx}>{rulerMode === "bars" ? "Bar" : "TC"}</Caption>
+      <Caption sx={readoutSx}>
+        {rulerMode === "bars"
+          ? t("timeline:tools.gridBar", { defaultValue: "Bar" })
+          : "TC"}
+      </Caption>
       <Caption
         component="span"
         ref={valueRef}

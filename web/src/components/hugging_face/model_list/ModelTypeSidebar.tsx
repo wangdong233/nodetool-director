@@ -21,6 +21,8 @@ import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
+import { humanizeModelType } from "../../../utils/modelFormatting";
 
 const ModelTypeSidebar: React.FC = () => {
   const { t } = useTranslation();
@@ -36,17 +38,23 @@ const ModelTypeSidebar: React.FC = () => {
   }, [setSelectedModelType]);
 
   // Plain-text label for the hover title (prettifyModelType returns JSX with a
-  // leading icon, which can't be used as a title attribute).
-  const plainLabel = useCallback((type: string) => {
-    if (type === "All") {
-      return "All";
-    }
-    return type
-      .replace(/^(hf|tjs)\./, "")
-      .split(/[._]/)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  }, []);
+  // leading icon, which can't be used as a title attribute). Resolves through
+  // the catalog so it follows the language switcher; an untranslated type
+  // falls back to its humanized slug.
+  const plainLabel = useCallback(
+    (type: string) => {
+      if (type.startsWith("hf.")) {
+        return i18n.t(`catalog:hfTask.${type.slice(3).replace(/_/g, "-")}`, {
+          defaultValue: humanizeModelType(type)
+        });
+      }
+      if (type === "All") {
+        return i18n.t("editor:ui.catAll", { defaultValue: "All" });
+      }
+      return humanizeModelType(type);
+    },
+    []
+  );
 
   const getHuggingFaceLink = useCallback((type: string) => {
     if (!type.startsWith("hf.")) {
@@ -105,7 +113,7 @@ const ModelTypeSidebar: React.FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={handleLinkClick}
-                    ariaLabel={`View ${prettifyModelType(type)} models on Hugging Face`}
+                    ariaLabel={t("editor:ui.viewTypeModelsOnHuggingFace", { defaultValue: "View {{type}} models on Hugging Face", type: plainLabel(type) })}
                     sx={{
                       color: isSelected ? theme.vars.palette.text.primary : "inherit",
                       opacity: 0.7,

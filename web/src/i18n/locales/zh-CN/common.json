@@ -85,7 +85,9 @@
     "dayAgo_other": "{{count}} 天前",
     "hourAgo_other": "{{count}} 小时前",
     "minuteAgo_other": "{{count}} 分钟前",
-    "secondAgo_other": "{{count}} 秒前"
+    "secondAgo_other": "{{count}} 秒前",
+    "today": "今天",
+    "yesterday": "昨天"
   },
   "list": {
     "searchPlaceholder": "搜索{{plural}}…",

@@ -315,22 +315,24 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
 
     const getDefaultTooltip = () => {
       if (isImageType(contentType)) {
-        return "Copy image (paste into any image editor)";
+        return t("editor:ui.copyImage", {
+          defaultValue: "Copy image (paste into any image editor)"
+        });
       }
       if (isVideoType(contentType)) {
-        return "Copy video info";
+        return t("editor:ui.copyVideoInfo", { defaultValue: "Copy video info" });
       }
       if (isAudioType(contentType)) {
-        return "Copy audio info";
+        return t("editor:ui.copyAudioInfo", { defaultValue: "Copy audio info" });
       }
-      return "Copy to clipboard";
+      return t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" });
     };
 
     const tooltipText =
       state === "error"
         ? t("editor:ui.failedToCopy", { defaultValue: "Failed to copy" })
         : state === "copied"
-          ? "Copied!"
+          ? t("editor:ui.copied", { defaultValue: "Copied!" })
           : tooltip || getDefaultTooltip();
 
     const fullTooltip = showCompatibilityInfo && state === "idle" 

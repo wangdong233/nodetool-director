@@ -609,15 +609,15 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
           )}
           <ToolbarIconButton
             className="action-icon"
-            tooltip={`Rename ${property.name}`}
-            ariaLabel={`Rename ${property.name}`}
+            tooltip={t("editor:ui.renameProperty", { defaultValue: "Rename {{name}}", name: property.name })}
+            ariaLabel={t("editor:ui.renameProperty", { defaultValue: "Rename {{name}}", name: property.name })}
             onClick={handleEditNameClick}
             icon={<Edit />}
           />
           <ToolbarIconButton
             className="action-icon close"
-            tooltip={`Delete ${property.name}`}
-            ariaLabel={`Delete ${property.name}`}
+            tooltip={t("editor:ui.deleteProperty", { defaultValue: "Delete {{name}}", name: property.name })}
+            ariaLabel={t("editor:ui.deleteProperty", { defaultValue: "Delete {{name}}", name: property.name })}
             onClick={handleDeleteClick}
             icon={<Close />}
           />

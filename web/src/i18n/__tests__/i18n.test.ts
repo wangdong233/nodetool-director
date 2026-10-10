@@ -340,7 +340,10 @@ describe("catalog key parity (CI completeness guard)", () => {
         "common:relTime.",
         "catalog:snippets.",
         "catalog:shortcuts.",
-        "catalog:dataTypes."
+        "catalog:dataTypes.",
+        "catalog:hfTask.",
+        "timeline:keyframeChannels.",
+        "timeline:trackTypes."
       ];
       let dynamicallyUsed = false;
       const parts = key.split(".");

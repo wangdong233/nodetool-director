@@ -280,8 +280,6 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
           <FavoriteButton
             isFavorite={isFavorite}
             onToggle={handleToggleFavorite}
-            addTooltip="Add to favorites"
-            removeTooltip="Remove from favorites"
             buttonSize="small"
             className="favorite-button"
             stopPropagation

@@ -12,6 +12,8 @@ import { sortThreadsByDate } from "../utils/threadUtils";
 import { groupByDate } from "../../../utils/groupByDate";
 import { formatDayMonth } from "../../../utils/formatUtils";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
+import { resolveSeededChatTitle } from "../utils/threadUtils";
 
 export type { ThreadInfo } from "../types/thread.types";
 
@@ -31,6 +33,9 @@ const ThreadList: React.FC<ThreadListProps> = ({
   isFiltered = false
 }) => {
   const { t } = useTranslation();
+  // Language anchor: rows and group headers resolve through the catalog at
+  // render time, so the memoized list re-runs when the language changes.
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme<Theme>();
   const componentStyles = useMemo(() => createStyles(theme), [theme]);
   // The row whose deletion is awaiting confirmation, and the row currently
@@ -70,7 +75,8 @@ const ThreadList: React.FC<ThreadListProps> = ({
   }, [pendingDeleteId, onDeleteThread]);
 
   const pendingLabel = pendingDeleteId
-    ? threads?.[pendingDeleteId]?.title || getThreadPreview(pendingDeleteId)
+    ? resolveSeededChatTitle(threads?.[pendingDeleteId]?.title ?? "") ||
+      getThreadPreview(pendingDeleteId)
     : "";
 
   const listElements = useMemo(() => {
@@ -92,6 +98,7 @@ const ThreadList: React.FC<ThreadListProps> = ({
             onSelect={onSelectThread}
             onRequestDelete={handleRequestDelete}
             previewText={getThreadPreview(singleId)}
+            languageVersion={languageVersion}
           />
         );
       } else {
@@ -126,6 +133,7 @@ const ThreadList: React.FC<ThreadListProps> = ({
               onSelect={onSelectThread}
               onRequestDelete={handleRequestDelete}
               previewText={getThreadPreview(threadId)}
+              languageVersion={languageVersion}
             />
           );
         });
@@ -139,7 +147,9 @@ const ThreadList: React.FC<ThreadListProps> = ({
     deletingId,
     onSelectThread,
     handleRequestDelete,
-    getThreadPreview
+    getThreadPreview,
+    // Rows and group headers localize at render time.
+    languageVersion
   ]);
 
   return (

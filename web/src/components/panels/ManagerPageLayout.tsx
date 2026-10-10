@@ -115,7 +115,7 @@ const ManagerPageLayout: React.FC<ManagerPageLayoutProps> = ({
   subtitle,
   docsTopic,
   docsUrl,
-  docsLabel = "Documentation",
+  docsLabel = i18n.t("editor:ui.documentation", { defaultValue: "Documentation" }),
   actions,
   padded = true,
   scrollable = false,

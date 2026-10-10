@@ -104,7 +104,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
           onClick={() => window.open(DOCS_URL, "_blank", "noopener,noreferrer")}
         >
-          Learn more
+          {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
         </EditorButton>
       </FlexColumn>
     </Card>

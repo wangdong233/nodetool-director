@@ -30,6 +30,10 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "breadcrumb": "面包屑导航",
-    "skipToMainContent": "跳到主内容"
+    "skipToMainContent": "跳到主内容",
+    "addFavorite": "添加收藏",
+    "removeFavorite": "取消收藏",
+    "play": "播放",
+    "pause": "暂停"
   }
 }

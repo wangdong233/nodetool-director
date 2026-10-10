@@ -53,8 +53,8 @@ const FavoriteStar: React.FC<FavoriteStarProps> = memo(function FavoriteStar({
         onToggle={handleToggle}
         variant="star"
         buttonSize={size}
-        addTooltip="Favorite"
-        removeTooltip="Unfavorite"
+        addTooltip={i18n.t("editor:ui.favorite", { defaultValue: "Favorite" })}
+        removeTooltip={i18n.t("editor:ui.unfavorite", { defaultValue: "Unfavorite" })}
         stopPropagation={stopPropagation}
       />
     </span>

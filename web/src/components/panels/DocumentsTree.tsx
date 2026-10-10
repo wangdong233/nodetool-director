@@ -248,7 +248,11 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? "Collapse" : "Expand"} ${
+          aria-label={`${
+            expanded
+              ? t("editor:ui.collapse", { defaultValue: "Collapse" })
+              : t("editor:ui.expand", { defaultValue: "Expand" })
+          } ${
         group.labelKey
           ? t(group.labelKey, { defaultValue: group.label })
           : group.label

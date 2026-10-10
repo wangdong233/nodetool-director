@@ -17,12 +17,10 @@ import { IconButton, IconButtonProps, Tooltip } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useTheme } from "@mui/material/styles";
-import {
-  TOOLTIP_ENTER_DELAY,
-  TOOLTIP_ENTER_NEXT_DELAY
-} from "../../config/constants";
+import { TOOLTIP_ENTER_DELAY, TOOLTIP_ENTER_NEXT_DELAY } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface ExpandCollapseButtonProps
   extends Omit<IconButtonProps, "children"> {
@@ -90,8 +88,8 @@ export const ExpandCollapseButton = memo(
       {
         expanded,
         iconVariant = "rotate",
-        expandTooltip = "Expand",
-        collapseTooltip = "Collapse",
+        expandTooltip = i18n.t("editor:ui.expand", { defaultValue: "Expand" }),
+        collapseTooltip = i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }),
         tooltipPlacement = "top",
         nodrag = true,
         buttonSize = "small",

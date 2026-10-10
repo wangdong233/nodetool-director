@@ -10,6 +10,7 @@ import { CopyButton, Text, Caption, NotificationBadge, ToolbarIconButton, Box, M
 import { useShallow } from "zustand/react/shallow";
 import ReportBugButton from "../support/ReportBugButton";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 const popoverStyles = css({
   paddingRight: "4em",
@@ -25,15 +26,23 @@ const popoverStyles = css({
 /**
  * Generate an accessible ARIA label for the notification button.
  * Describes the number of unread notifications to screen readers.
+ * Render-phase helper: reads the live language through the caller's `t`.
  */
-const getNotificationButtonLabel = (unreadCount: number): string => {
+const getNotificationButtonLabel = (t: TFunction, unreadCount: number): string => {
   if (unreadCount === 0) {
-    return "Notifications, no unread notifications";
+    return t("editor:ui.notificationsNoUnread", {
+      defaultValue: "Notifications, no unread notifications"
+    });
   }
   if (unreadCount === 1) {
-    return "Notifications, 1 unread notification";
+    return t("editor:ui.notificationsOneUnread", {
+      defaultValue: "Notifications, 1 unread notification"
+    });
   }
-  return `Notifications, ${unreadCount} unread notifications`;
+  return t("editor:ui.notificationsUnreadCount", {
+    defaultValue: "Notifications, {{count}} unread notifications",
+    count: unreadCount
+  });
 };
 
 const NotificationButton: React.FC = React.memo(() => {
@@ -74,14 +83,14 @@ const NotificationButton: React.FC = React.memo(() => {
         color="secondary"
         dot
         tooltip={t("editor:ui.notifications", { defaultValue: "Notifications" })}
-        ariaLabel={getNotificationButtonLabel(unreadCount)}
+        ariaLabel={getNotificationButtonLabel(t, unreadCount)}
       >
         <ToolbarIconButton
           className="notification-button command-button command-icon"
           icon={<NotificationsIcon className="notification-icon" />}
           tooltip=""
           onClick={handleNotificationClick}
-          ariaLabel={getNotificationButtonLabel(unreadCount)}
+          ariaLabel={getNotificationButtonLabel(t, unreadCount)}
         />
       </NotificationBadge>
       <Popover

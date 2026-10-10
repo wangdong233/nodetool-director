@@ -378,7 +378,11 @@ const ResolvedVideoPlayer: React.FC<Omit<VideoPlayerProps, "locator">> = ({
           className="play-button"
           size="small"
           onClick={handleTogglePlay}
-          aria-label={isPlaying ? "Pause" : "Play"}
+          aria-label={
+            isPlaying
+              ? t("ui:attrs.pause", { defaultValue: "Pause" })
+              : t("ui:attrs.play", { defaultValue: "Play" })
+          }
         >
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
         </IconButton>

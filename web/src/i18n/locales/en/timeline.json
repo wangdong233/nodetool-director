@@ -101,7 +101,9 @@
     "insert": "Insert",
     "overlap": "Overlap",
     "gridDivision": "Grid division",
-    "linked": "Linked"
+    "linked": "Linked",
+    "gridBar": "Bar",
+    "gridBeat": "Beat"
   },
   "topbar": {
     "saving": "Saving…",
@@ -782,7 +784,18 @@
     "aFeatheredEdgeRevealsThisClipOverTheOutgoingOne": "A feathered edge reveals this clip over the outgoing one.",
     "thisClipPushesTheOutgoingOneOffTheFrame": "This clip pushes the outgoing one off the frame.",
     "thisClipSlidesInOverAStationaryOutgoingOne": "This clip slides in over a stationary outgoing one.",
-    "theOutgoingClipScalesUpWhileThisOneScalesIn": "The outgoing clip scales up while this one scales in."
+    "theOutgoingClipScalesUpWhileThisOneScalesIn": "The outgoing clip scales up while this one scales in.",
+    "reorderTrackName": "Reorder {{name}}",
+    "trackNameAria": "Track name: {{name}}",
+    "trackIndexAria": "{{label}} track {{index}}",
+    "instrumentForName": "Instrument for {{name}}",
+    "effectsChainCount": "Effects chain ({{count}})",
+    "insertTrackAbove": "Insert {{label}} track above",
+    "insertTrackBelow": "Insert {{label}} track below",
+    "removeTrackConfirm": "Remove track \"{{name}}\" and all its clips?",
+    "removeKeyframeForChannel": "Remove {{channel}} keyframe",
+    "addKeyframeForChannel": "Add {{channel}} keyframe",
+    "channelAtPlayhead": "{{channel}} at playhead"
   },
   "shortcuts": {
     "tools": "Tools",
@@ -852,5 +865,23 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "zoomToFitContent": "Zoom to fit content"
+  },
+  "keyframeChannels": {
+    "opacity": "Opacity",
+    "scale": "Scale",
+    "positionX": "Position X",
+    "positionY": "Position Y",
+    "rotation": "Rotation",
+    "cameraAzimuth": "Camera Azimuth",
+    "cameraElevation": "Camera Elevation",
+    "cameraZoom": "Camera Zoom",
+    "cameraFov": "Camera FOV"
+  },
+  "trackTypes": {
+    "video": "Video",
+    "audio": "Audio",
+    "overlay": "Overlay",
+    "subtitle": "Text",
+    "midi": "MIDI"
   }
 }

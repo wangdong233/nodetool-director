@@ -83,7 +83,7 @@ const PackageRail = ({
         pb: 0.5
       }}
     >
-      Browse
+      {t("editor:ui.browse", { defaultValue: "Browse" })}
     </Text>
 
     {/* Column of categories on desktop, one scrollable row on a phone. */}

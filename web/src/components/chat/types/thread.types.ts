@@ -28,4 +28,7 @@ export interface ThreadItemProps {
   /** Asks the list for confirmation; the list owns the single dialog. */
   onRequestDelete: (id: string) => void;
   previewText: string;
+  /** Memo buster: titles localize at render time, so a language switch must
+   * re-render rows whose thread props are otherwise identical. */
+  languageVersion: number;
 }

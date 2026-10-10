@@ -39,7 +39,7 @@ export const HuggingFaceLink: React.FC<{
   const { t } = useTranslation();
   return !modelId.endsWith("safetensors") && (
     <Tooltip
-      title={t("editor:ui.View on Hugging Face", { defaultValue: "View on HuggingFace" })}
+      title={t("editor:ui.viewOnHuggingFace", { defaultValue: "View on Hugging Face" })}
       delay={TOOLTIP_ENTER_DELAY * 2}
       nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
     >

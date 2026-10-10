@@ -38,7 +38,7 @@ import {
   TruncatedText
 } from "../../ui_primitives";
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
-import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
+import { localizedGridDivisionOptions } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
 import { useTranslation } from "react-i18next";
 
@@ -212,7 +212,7 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
               {clip.notes?.length ?? 0} {(clip.notes?.length ?? 0) === 1 ? "note" : "notes"}
             </Caption>
             <SelectField label={t("editor:ui.noteGrid", { defaultValue: "Note grid" })} hideLabel size="small" value={gridDivision}
-              options={GRID_DIVISION_OPTIONS} css={css({ width: 96 })}
+              options={localizedGridDivisionOptions(t)} css={css({ width: 96 })}
               onChange={(value) => setGridDivision(value as TempoGridDivision)} />
             <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label={t("editor:ui.snapNotes", { defaultValue: "Snap notes" })} aria-pressed={snapEnabled}>{t("ui2:attrs.snap", { defaultValue: "Snap" })}</EditorButton>
             <FlexRow sx={{ flex: 1 }} />

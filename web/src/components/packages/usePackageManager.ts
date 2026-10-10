@@ -60,6 +60,14 @@ const TITLES: Record<string, string> = {
   thirdparty: "Third-party packs"
 };
 
+/** Catalog keys for the pane subtitles (render-time resolution). */
+const SUBTITLE_KEYS: Record<string, string> = {
+  software: "editor:ui.pmSubtitleSoftware",
+  included: "editor:ui.pmSubtitleIncluded",
+  python: "editor:ui.pmSubtitleRegistry",
+  thirdparty: "editor:ui.pmSubtitleThirdParty"
+};
+
 const SUBTITLES: Record<string, string> = {
   software:
     "Interpreters and tools NodeTool installs into your environment. Each runtime powers its own node types.",
@@ -332,7 +340,7 @@ export function usePackageManager(params: {
 
     const categories: PMCount[] = isSoftware
       ? [
-          { id: "all", label: "All runtimes", count: statuses.length },
+          { id: "all", label: t("editor:ui.allRuntimes", { defaultValue: "All runtimes" }), count: statuses.length },
           {
             id: "language",
             label: t("editor:ui.languages", { defaultValue: "Languages" }),
@@ -351,8 +359,8 @@ export function usePackageManager(params: {
           }
         ]
       : [
-          { id: "included", label: "Included", count: includedItems.length },
-          { id: "python", label: "Registry", count: pythonPacks.length },
+          { id: "included", label: t("editor:ui.included", { defaultValue: "Included" }), count: includedItems.length },
+          { id: "python", label: t("editor:ui.registry", { defaultValue: "Registry" }), count: pythonPacks.length },
           {
             id: "thirdparty",
             label: t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
@@ -555,7 +563,13 @@ export function usePackageManager(params: {
       title: TITLE_KEYS[cat]
         ? t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
         : (TITLES[cat] ?? "Packages"),
-      subtitle: isSoftware ? SUBTITLES.software : (SUBTITLES[cat] ?? ""),
+      subtitle: (() => {
+        const key = SUBTITLE_KEYS[isSoftware ? "software" : cat];
+        const fallback = isSoftware
+          ? SUBTITLES.software
+          : (SUBTITLES[cat] ?? "");
+        return key ? t(key, { defaultValue: fallback }) : fallback;
+      })(),
       count: baseCount,
       chips: notice ? [] : chips,
       rows,

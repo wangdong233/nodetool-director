@@ -880,7 +880,11 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                   <AddIcon fontSize="small" />
                 )
               }
-              title={isUploading ? "Uploading…" : "Attach files"}
+              title={
+                isUploading
+                  ? t("editor:chat.uploadingFiles", { defaultValue: "Uploading…" })
+                  : t("editor:chat.attachFiles", { defaultValue: "Attach files" })
+              }
               onClick={openAttachPicker}
               disabled={disabled}
               showChevron={false}

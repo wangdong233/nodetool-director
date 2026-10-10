@@ -79,7 +79,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
           external
           sx={{ mt: SPACING.micro, fontSize: "var(--fontSizeSmall)" }}
         >
-          Learn more <OpenInNewIcon sx={{ fontSize: 12, ml: SPACING.micro }} />
+          {t("editor:ui.learnMore", { defaultValue: "Learn more" })} <OpenInNewIcon sx={{ fontSize: 12, ml: SPACING.micro }} />
         </TextLink>
       </FlexColumn>
     </Card>

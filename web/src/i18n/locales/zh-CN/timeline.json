@@ -101,7 +101,9 @@
     "insert": "插入",
     "overlap": "交叠",
     "gridDivision": "网格划分",
-    "linked": "联动"
+    "linked": "联动",
+    "gridBar": "小节",
+    "gridBeat": "拍"
   },
   "topbar": {
     "saving": "保存中…",
@@ -782,7 +784,18 @@
     "aFeatheredEdgeRevealsThisClipOverTheOutgoingOne": "羽化边缘将本片段渐显于出片段之上。",
     "thisClipPushesTheOutgoingOneOffTheFrame": "本片段将出片段推出画面。",
     "thisClipSlidesInOverAStationaryOutgoingOne": "本片段滑入，压过静止的出片段。",
-    "theOutgoingClipScalesUpWhileThisOneScalesIn": "出片段放大，本片段缩入。"
+    "theOutgoingClipScalesUpWhileThisOneScalesIn": "出片段放大，本片段缩入。",
+    "reorderTrackName": "重排 {{name}}",
+    "trackNameAria": "轨道名称：{{name}}",
+    "trackIndexAria": "{{label}}轨道 {{index}}",
+    "instrumentForName": "{{name}} 的乐器",
+    "effectsChainCount": "效果链（{{count}}）",
+    "insertTrackAbove": "在上方插入{{label}}轨道",
+    "insertTrackBelow": "在下方插入{{label}}轨道",
+    "removeTrackConfirm": "移除轨道“{{name}}”及其所有片段？",
+    "removeKeyframeForChannel": "移除 {{channel}} 关键帧",
+    "addKeyframeForChannel": "添加 {{channel}} 关键帧",
+    "channelAtPlayhead": "播放头处的 {{channel}}"
   },
   "shortcuts": {
     "tools": "工具",
@@ -852,5 +865,23 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "zoomToFitContent": "缩放以适配内容"
+  },
+  "keyframeChannels": {
+    "opacity": "不透明度",
+    "scale": "缩放",
+    "positionX": "位置 X",
+    "positionY": "位置 Y",
+    "rotation": "旋转",
+    "cameraAzimuth": "相机方位角",
+    "cameraElevation": "相机仰角",
+    "cameraZoom": "相机变焦",
+    "cameraFov": "相机视场角"
+  },
+  "trackTypes": {
+    "video": "视频",
+    "audio": "音频",
+    "overlay": "叠加",
+    "subtitle": "文本",
+    "midi": "MIDI"
   }
 }

@@ -40,17 +40,32 @@ import {
 import { usePersistedFold } from "./usePersistedFold";
 import { useTranslation } from "react-i18next";
 
-const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number }> = {
-  opacity: { label: "Opacity", step: 0.05 },
-  scale: { label: "Scale", unit: "×", step: 0.05 },
-  offsetX: { label: "Position X", unit: "px", step: 1 },
-  offsetY: { label: "Position Y", unit: "px", step: 1 },
-  rotation: { label: "Rotation", unit: "°", step: 1 },
-  cameraAzimuth: { label: "Camera Azimuth", unit: "°", step: 1 },
-  cameraElevation: { label: "Camera Elevation", unit: "°", step: 1 },
-  cameraZoom: { label: "Camera Zoom", unit: "×", step: 0.05 },
-  cameraFov: { label: "Camera FOV", unit: "°", step: 1 }
+/**
+ * Keyframe channel labels, resolved through the catalog at render time. The
+ * unit/step metadata is unit-system data and stays literal.
+ */
+const PROPERTY_LABELS: Record<
+  KeyframeProperty,
+  { labelKey: string; label: string; unit?: string; step: number }
+> = {
+  opacity: { labelKey: "opacity", label: "Opacity", step: 0.05 },
+  scale: { labelKey: "scale", label: "Scale", unit: "×", step: 0.05 },
+  offsetX: { labelKey: "positionX", label: "Position X", unit: "px", step: 1 },
+  offsetY: { labelKey: "positionY", label: "Position Y", unit: "px", step: 1 },
+  rotation: { labelKey: "rotation", label: "Rotation", unit: "°", step: 1 },
+  cameraAzimuth: { labelKey: "cameraAzimuth", label: "Camera Azimuth", unit: "°", step: 1 },
+  cameraElevation: { labelKey: "cameraElevation", label: "Camera Elevation", unit: "°", step: 1 },
+  cameraZoom: { labelKey: "cameraZoom", label: "Camera Zoom", unit: "×", step: 0.05 },
+  cameraFov: { labelKey: "cameraFov", label: "Camera FOV", unit: "°", step: 1 }
 };
+
+const channelLabel = (
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  property: KeyframeProperty
+): string =>
+  t(`timeline:keyframeChannels.${PROPERTY_LABELS[property].labelKey}`, {
+    defaultValue: PROPERTY_LABELS[property].label
+  });
 
 interface ClipKeyframesProps {
   clip: TimelineClip;
@@ -102,9 +117,13 @@ const KeyframeRow: React.FC<{
                 ? t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
                 : `${t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${armed ? t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
             }
-            aria-label={`${keyed ? "Remove" : "Add"} ${meta.label} keyframe`}
+            aria-label={
+                keyed
+                  ? t("timeline:attrs.removeKeyframeForChannel", { defaultValue: "Remove {{channel}} keyframe", channel: channelLabel(t, property) })
+                  : t("timeline:attrs.addKeyframeForChannel", { defaultValue: "Add {{channel}} keyframe", channel: channelLabel(t, property) })
+              }
           />
-          <span>{meta.label}</span>
+          <span>{channelLabel(t, property)}</span>
         </FlexRow>
       }
     >
@@ -112,7 +131,7 @@ const KeyframeRow: React.FC<{
         value={String(Math.round(value * 100) / 100)}
         onCommit={commit}
         unit={meta.unit}
-        ariaLabel={`${meta.label} at playhead`}
+        ariaLabel={t("timeline:attrs.channelAtPlayhead", { defaultValue: "{{channel}} at playhead", channel: channelLabel(t, property) })}
         scrub={{ step: meta.step }}
       />
     </InspectorRow>

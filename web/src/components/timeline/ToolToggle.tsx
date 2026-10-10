@@ -33,7 +33,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
-import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
+import { localizedGridDivisionOptions } from "./Tracks/tempoGrid";
 import { useTranslation } from "react-i18next";
 
 /** Custom pointer cursor — monoline, 1.6px stroke. */
@@ -265,7 +265,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         hideLabel
         size="small"
         value={gridDivision}
-        options={GRID_DIVISION_OPTIONS}
+        options={localizedGridDivisionOptions(t)}
         onChange={handleGridChange}
         css={gridSelectStyles}
       />

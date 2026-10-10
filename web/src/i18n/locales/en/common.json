@@ -92,7 +92,9 @@
     "minuteAgo_one": "1 min ago",
     "minuteAgo_other": "{{count}} min ago",
     "secondAgo_one": "1 sec ago",
-    "secondAgo_other": "{{count}} sec ago"
+    "secondAgo_other": "{{count}} sec ago",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "list": {
     "searchPlaceholder": "Search {{plural}}...",
