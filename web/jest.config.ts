@@ -135,6 +135,11 @@ export default {
       "<rootDir>/src/__mocks__/midiRenderWorkerClient.ts",
     "^\\.\\./midiRenderWorkerClient$":
       "<rootDir>/src/__mocks__/midiRenderWorkerClient.ts",
+    // Builds its loader map from `import.meta.glob`, which the CommonJS
+    // transform cannot parse; the twin reads the same .md files through fs
+    // and the same core, so tests see real translations (r31b).
+    "^.*/i18n/skillDocs$": "<rootDir>/src/__mocks__/skillDocs.ts",
+    "^.*/i18n/skillDocs\\.js$": "<rootDir>/src/__mocks__/skillDocs.ts",
     "^@google/model-viewer$": "<rootDir>/src/__mocks__/modelViewerMock.ts",
     "^react-markdown$": "<rootDir>/src/__mocks__/reactMarkdownMock.tsx",
     "^remark-gfm$": "<rootDir>/src/__mocks__/emptyModule.ts",

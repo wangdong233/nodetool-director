@@ -522,7 +522,7 @@ describe("catalog key parity (CI completeness guard)", () => {
       // Shipped example file names: capitals, spaces, commas, ampersands and
       // apostrophes occur; the shape contract is "identifier-ish stem +
       // .json".
-      expect(id).toMatch(/^[A-Za-z0-9][A-Za-z0-9 ,&'.\-]*\.json$/);
+      expect(id).toMatch(/^[A-Za-z0-9][A-Za-z0-9 ,&'.-]*\.json$/);
     }
 
     // Drift guard: every key must name a file the install actually ships,
