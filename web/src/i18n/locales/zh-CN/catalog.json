@@ -670,7 +670,7 @@
     },
     "stable-audio-prompting": {
       "name": "Stable Audio 提示词",
-      "description": "编写 Stability Stable Audio 系列的提示词：训练元数据认的「曲风／乐器／情绪／BPM」顺序，Stable Audio 3 上区分音乐、分轨与音效的 TrackType、VocalType 标签，时长要写到位，guidance_scale 与步数各影响哪些检查点，以及内绘、外绘、音频转音频变体里周边音频比提示词更说了算的写法。凡模型 ID 为 Stable Audio 系列（generate_music 或音频生成节点）即适用。"
+      "description": "编写 Stability Stable Audio 系列的提示词：训练元数据认的「曲风／乐器／情绪／BPM」顺序，Stable Audio 3 上区分音乐、分轨与音效的 TrackType、VocalType 标签，时长要写到位，guidance_scale 与步数各影响哪些检查点，以及局部重绘、音频外扩、音频转音频变体里周边音频比提示词更说了算的写法。凡模型 ID 为 Stable Audio 系列（generate_music 或音频生成节点）即适用。"
     },
     "storyboard-core": {
       "name": "分镜制作核心",
