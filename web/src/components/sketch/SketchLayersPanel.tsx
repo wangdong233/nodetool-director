@@ -1624,7 +1624,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               onClick={handleCtxRotate180}
               disabled={ctxPixelActionsDisabled || isMulti}
             >
-              Rotate 180°
+              {t("sketch:attrs.rotate180", { defaultValue: "Rotate 180°" })}
             </MenuItem>
             {!isMulti && (
               <MenuItem

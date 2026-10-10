@@ -87,7 +87,11 @@ const SketchAIToolbarInner: React.FC = () => {
           title={
             staleCount === 0
               ? t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." })
-              : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
+              : t("sketch:attrs.regenStaleOrder", {
+                  defaultValue:
+                    "Re-generate {{count}} stale layer in dependency order.",
+                  count: staleCount
+                })
           }
           delay={TOOLTIP_ENTER_DELAY}
           placement="bottom"
@@ -100,7 +104,10 @@ const SketchAIToolbarInner: React.FC = () => {
               startIcon={<RefreshIcon fontSize="small" />}
               data-testid="sketch-action-regenerate-stale"
             >
-              Re-generate Stale ({staleCount})
+              {t("sketch:attrs.regenStaleLabel", {
+                defaultValue: "Re-generate Stale ({{count}})",
+                count: staleCount
+              })}
             </EditorButton>
           </span>
         </Tooltip>

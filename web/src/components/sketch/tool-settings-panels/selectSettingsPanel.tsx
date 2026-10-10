@@ -177,7 +177,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
               lineHeight: 1
             }}
           >
-            Invert
+            {t("sketch:attrs.invertSelection", { defaultValue: "Invert" })}
           </EditorButton>
           <Tooltip title={t("editor:ui.refineSelectionGrowShrinkFeatherSmoothBorder", { defaultValue: "Refine selection (grow, shrink, feather, smooth, border)" })}>
             <span>

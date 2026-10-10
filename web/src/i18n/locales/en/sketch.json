@@ -232,6 +232,11 @@
     "blueChannel": "Blue",
     "hueDegrees": "Hue (degrees)",
     "saturationPercent": "Saturation (percent)",
-    "lightnessPercent": "Lightness (percent)"
+    "lightnessPercent": "Lightness (percent)",
+    "regenStaleOrder_one": "Re-generate {{count}} stale layer in dependency order.",
+    "regenStaleOrder_other": "Re-generate {{count}} stale layers in dependency order.",
+    "regenStaleLabel": "Re-generate Stale ({{count}})",
+    "rotate180": "Rotate 180°",
+    "invertSelection": "Invert"
   }
 }

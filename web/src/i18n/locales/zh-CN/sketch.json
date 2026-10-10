@@ -232,6 +232,10 @@
     "blueChannel": "蓝色",
     "hueDegrees": "色相（度）",
     "saturationPercent": "饱和度（百分比）",
-    "lightnessPercent": "亮度（百分比）"
+    "lightnessPercent": "亮度（百分比）",
+    "regenStaleOrder_other": "按依赖顺序重新生成 {{count}} 个过期图层。",
+    "regenStaleLabel": "重新生成过期图层（{{count}}）",
+    "rotate180": "旋转 180°",
+    "invertSelection": "反选"
   }
 }
