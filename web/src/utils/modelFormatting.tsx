@@ -6,8 +6,18 @@ import PetsIcon from "@mui/icons-material/Pets";
 import { SPACING, getSpacingPx } from "../components/ui_primitives";
 import { i18n } from "../i18n";
 
+/** Humanized plain-text form of a model-type slug (no icon, no markup). */
+export const humanizeModelType = (type: string): string =>
+  type
+    .replace(/^(hf|tjs)\./, "")
+    .split(/[._]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
 export const prettifyModelType = (type: string): JSX.Element | string => {
-  if (type === "All") {return type;}
+  if (type === "All") {
+    return i18n.t("editor:ui.catAll", { defaultValue: "All" });
+  }
 
   if (type === "llama_model") {
     return (
@@ -38,6 +48,20 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
   const parts = type.split(".");
   if (parts[0] === "hf") {
     parts.shift();
+    // Task category names resolve through the catalog (zh carries the
+    // standard ML terms); an untranslated task falls back to its humanized
+    // slug, so the label degrades to today's English rather than breaking.
+    const taskSlug = parts.join("_").replace(/_/g, "-");
+    const label = i18n.t(`catalog:hfTask.${taskSlug}`, {
+      defaultValue: parts
+        .map((part) =>
+          part
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+        )
+        .join(" ")
+    });
     return (
       <>
         <img
@@ -45,14 +69,7 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
           alt="Hugging Face"
           style={{ width: "20px", marginRight: getSpacingPx(SPACING.md) }}
         />
-        {parts
-          .map((part) =>
-            part
-              .split("_")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")
-          )
-          .join(" ")}
+        {label}
       </>
     );
   }

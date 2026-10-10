@@ -5,6 +5,7 @@
  */
 
 import type {} from "../window.d";
+import { i18n } from "../i18n";
 
 /**
  * Make a URL absolute if it's relative.
@@ -215,20 +216,33 @@ export function getClipboardSupportMessage(contentType: string): string {
 
   switch (type) {
     case "image":
-      return "Image can be pasted into any image editor";
+      return i18n.t("editor:ui.imageCanBePastedIntoAnyImageEditor", {
+        defaultValue: "Image can be pasted into any image editor"
+      });
     case "html":
-      return "HTML content can be pasted into editors and browsers";
+      return i18n.t("editor:ui.htmlContentCanBePastedIntoEditorsAndBrowsers", {
+        defaultValue: "HTML content can be pasted into editors and browsers"
+      });
     case "text":
       if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/")
       ) {
-        return "Media URL and metadata will be copied as text";
+        return i18n.t("editor:ui.mediaUrlAndMetadataWillBeCopiedAsText", {
+          defaultValue: "Media URL and metadata will be copied as text"
+        });
       }
-      return "Text content can be pasted anywhere";
+      return i18n.t("editor:ui.textContentCanBePastedAnywhere", {
+        defaultValue: "Text content can be pasted anywhere"
+      });
     case "unsupported":
-      return "This content type cannot be copied to clipboard";
+      return i18n.t("editor:ui.thisContentTypeCannotBeCopiedToClipboard", {
+        defaultValue: "This content type cannot be copied to clipboard"
+      });
     default:
-      return "Unknown clipboard support";
+      // Defensive: getClipboardType's union covers every case above.
+      return i18n.t("editor:ui.thisContentTypeCannotBeCopiedToClipboard", {
+        defaultValue: "This content type cannot be copied to clipboard"
+      });
   }
 }

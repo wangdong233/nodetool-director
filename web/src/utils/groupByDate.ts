@@ -1,5 +1,6 @@
 import { relativeTime } from "./formatDateAndTime";
 import { isString } from "./typePredicates";
+import { i18n } from "../i18n";
 
 export function groupByDate(
   date: Date | string,
@@ -21,13 +22,13 @@ export function groupByDate(
   );
 
   if (diffDays === 0) {
-    return "Today";
+    return i18n.t("common:relTime.today", { defaultValue: "Today" });
   }
   if (diffDays === 1) {
-    return "Yesterday";
+    return i18n.t("common:relTime.yesterday", { defaultValue: "Yesterday" });
   }
   if (diffDays < 7) {
-    return `${diffDays} days ago`;
+    return i18n.t("common:relTime.dayAgo", { count: diffDays });
   }
   // For 7+ days, use more general relative labels (weeks, months, years)
   return relativeTime(dateObj);
