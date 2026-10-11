@@ -1947,8 +1947,12 @@ const NewProjectSurface = ({
                 >
                   {TYPE_GLYPH[entry.type]}
                 </Box>
+                {/* The strip's buttons are create actions, so their names —
+                  what a11y reads and what distinguishes them from the same
+                  noun elsewhere in the app — carry the "New" verb, same as
+                  the + menu (editor:ui.menuLabel.*). */}
                 <Label>
-                  {entry.submenu ? `${t(`editor:ui.${"labelKey" in entry ? entry.labelKey : ""}`, { defaultValue: entry.label })} ▸` : t(`editor:ui.${"labelKey" in entry ? entry.labelKey : ""}`, { defaultValue: entry.label })}
+                  {`${t(`editor:ui.menuLabel.${entry.key}`, { defaultValue: entry.menuLabel })}${entry.submenu ? " ▸" : ""}`}
                 </Label>
               </Box>
             ))}
