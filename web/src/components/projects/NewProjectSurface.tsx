@@ -987,7 +987,6 @@ const NewProjectSurface = ({
   // as one PATCH straight after — the flow reads it off the loaded sequence.
   const startVideoFlow = useCallback(
     async (projectId: string) => {
-  const { t } = useTranslation();
       if (starting) {
         return;
       }

@@ -113,11 +113,12 @@ function settingLabel(key: string) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-  const { t } = useTranslation();
 const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
   asset,
   onOpenWorkflow
-}) => {  const theme = useTheme();
+}) => {
+  const { t } = useTranslation();
+  const theme = useTheme();
   // Subscribe so formatContentType/date reads re-render on language change.
   useAppLanguage();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);

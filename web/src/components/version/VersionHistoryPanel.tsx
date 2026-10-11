@@ -211,7 +211,6 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
 
   const handleRestore = useCallback(
     async (version: WorkflowVersion) => {
-  const { t } = useTranslation();
       try {
         // The restore rewrites the workflow row, so it waits for any save in
         // flight and holds external-change notices until the editor adopts

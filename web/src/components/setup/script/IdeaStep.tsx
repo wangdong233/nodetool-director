@@ -63,10 +63,19 @@ import {
 } from "./useScriptFileImport";
 
 /** The § 9.1 inspiration chips. */
-const INSPIRATIONS = [
-  "A 60-second explainer about how tide clocks work",
-  "A podcast intro for a show about failed products",
-  "An ad read for a coffee subscription"
+const INSPIRATIONS: readonly { id: string; brief: string }[] = [
+  {
+    id: "tide-clock-explainer",
+    brief: "A 60-second explainer about how tide clocks work"
+  },
+  {
+    id: "failed-products-podcast",
+    brief: "A podcast intro for a show about failed products"
+  },
+  {
+    id: "coffee-subscription-ad",
+    brief: "An ad read for a coffee subscription"
+  }
 ];
 
 export interface IdeaStepProps {
@@ -431,7 +440,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
 
         {readOnly ? null : (
           <ExampleBriefs
-            examples={INSPIRATIONS}
+            examples={INSPIRATIONS.map((chip) =>
+            t(`catalog:scriptInspirations.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
             brief={brief}
             briefRef={briefField}
             onSelect={(value) => setSetup(scriptId, { brief: value })}

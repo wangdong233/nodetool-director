@@ -187,7 +187,6 @@ const WorkflowCommands = memo(function WorkflowCommands() {
   const bundleInputRef = useRef<HTMLInputElement>(null);
 
   const downloadWorkflow = useCallback(() => {
-  const { t } = useTranslation();
     const blob = new Blob([workflowJSON()], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
