@@ -103,6 +103,7 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | Topaz result downloads | `packages/topaz-nodes/src/topaz-base.ts` | provider response |
 | MiniMax audio / file downloads | `packages/minimax-nodes/src/minimax-base.ts` | provider response |
 | MiniMax image download | `packages/minimax-nodes/src/nodes/text-to-image.ts` | provider response |
+| MediaGen channel result downloads | `packages/mediagen-nodes/src/mediagen-base.ts` | provider response |
 | Gemini node video download | `packages/llm-nodes/src/nodes/gemini.ts` | provider response |
 | provider result downloads | `packages/runtime/src/providers/{fal,replicate,kie,topaz,meshy,rodin,minimax,evolink,gemini,anthropic}-provider.ts` | provider response |
 | durable FAL output recovery | `packages/websocket/src/generation-recovery.ts` | provider response |
@@ -133,6 +134,11 @@ The guest bridge is `packages/agents/src/js-sandbox.ts`.
 
 ## Exemptions
 
+A template-literal fetch whose scheme is **not** https is not a constant
+by construction (the host and port are interpolated) — the audit classifies
+those like a plain fetch; the sanctioned example is the gemini channel's
+loopback CDP discovery.
+
 **Fixed provider hosts.** The URL is a constant in this repo, at most
 with a path or query interpolated — `api.elevenlabs.io`, `fal.run`,
 `generativelanguage.googleapis.com`, the OAuth token endpoints, the codegen
@@ -149,6 +155,14 @@ at 24 hours.
 
 **Deliberately private hosts.** Reaching an internal address is the feature:
 
+- `packages/mediagen-nodes/src/channels/gemini/transport.ts` — the Gemini web
+  channel's CDP transport. Its in-process fetches are DevTools discovery
+  (`/json/list`, `/json/new`) against the literal loopback host `127.0.0.1` on
+  the operator-set `GEMINI_CDP_PORT`: driving the operator's own channel Chrome
+  is the feature. No credential rides the wire — the Google session lives in
+  that Chrome's profile. The media fetch the audit scan also finds there is
+  source text of a page-side expression that runs inside that Chrome, not in
+  the server process.
 - `packages/runtime/src/comfy-executor.ts` — a ComfyUI server, normally
   localhost or the LAN, so screening private addresses would refuse the ordinary
   case. The address is the node's `endpoint` property, so the graph author picks

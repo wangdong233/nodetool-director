@@ -25,13 +25,13 @@
 //      nothing but `SKILL.md` — the loader silently drops both mistakes, so the
 //      skill would simply be absent from the catalog with no error anywhere.
 //
-// Codex reads the same skills through `.agents/skills`, which is why `.agents`
-// is a symlink to `.claude`. It requires `name` and `description` frontmatter,
+// Codex reads the same skills through `.agents/skills` — the tracked
+// directory; `.claude` is a symlink to it (layout flipped in 2c7028443). It requires `name` and `description` frontmatter,
 // and it does not read Claude Code's `disable-model-invocation`, so a skill
 // that must be typed rather than reached for carries Codex's own form of that
 // rule beside it:
 //
-//   8. `.agents` resolves to `.claude`, and every skill is readable through it.
+//   8. `.claude` resolves to `.agents` (the tracked tree), and every skill is readable through it.
 //   9. `disable-model-invocation: true` and `agents/openai.yaml` with
 //      `policy.allow_implicit_invocation: false` are present together or not at
 //      all — otherwise one agent reaches for a skill the other never would.
@@ -115,6 +115,15 @@ async function main() {
   const skills = await checkSkills(failures);
   const codexSkills = await checkCodexSkills(failures);
 
+  // A broken link layer collapses these counts to 0 while the string checks
+  // still pass — a green exit with zero linked/readable skills is vacuous.
+  if (skills.shipped > 0 && (skills.linked === 0 || codexSkills === 0)) {
+    failures.push(
+      `count collapse: ${skills.shipped} skills shipped but only ` +
+        `${skills.linked} linked / ${codexSkills} readable — the link layer is broken`
+    );
+  }
+
   if (failures.length > 0) {
     console.error("Agent-doc check failed:\n");
     for (const failure of failures) {
@@ -136,21 +145,24 @@ async function main() {
  * holds and the two invocation rules agree.
  */
 async function checkCodexSkills(failures) {
+  // Since 2c7028443 the tracked tree is `.agents` and `.claude` is the
+  // symlink (→ .agents). Codex scans `.agents/skills` directly; every other
+  // consumer reaches the same files through the `.claude` link.
   let target;
   try {
     target = relative(
       repoRoot,
-      resolve(repoRoot, await readlink(join(repoRoot, CODEX_DIR)))
+      resolve(repoRoot, await readlink(join(repoRoot, ".claude")))
     );
   } catch {
     failures.push(
-      `${CODEX_DIR} is missing or not a symlink — it is the only path Codex ` +
-        `scans for this repository's skills, and it points at .claude`
+      `.claude is missing or not a symlink — the skills tree lives in ` +
+        `${CODEX_DIR} and every other consumer reaches it through this link`
     );
     return 0;
   }
-  if (target !== ".claude") {
-    failures.push(`${CODEX_DIR} points at ${target}, not .claude`);
+  if (target !== CODEX_DIR) {
+    failures.push(`.claude points at ${target}, not ${CODEX_DIR}`);
     return 0;
   }
 
