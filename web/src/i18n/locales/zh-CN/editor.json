@@ -143,7 +143,16 @@
     "downloadStarted": "下载已开始，可能需要一些时间。",
     "downloadDone": "下载完成。",
     "downloadFailed": "下载失败。详情请查看控制台。",
-    "assetsWillBeRenamedTo": "这些资产将重命名为 {{name}}"
+    "assetsWillBeRenamedTo": "这些资产将重命名为 {{name}}",
+    "assetsSelectedCount": "已选择 {{count}} 个素材：",
+    "createFolderButton": "新建文件夹",
+    "createdFolder": "已创建文件夹“{{name}}”",
+    "createdFolderAndMoved_other": "已创建文件夹“{{name}}”并移动 {{count}} 项",
+    "failedToCreateFolderPleaseTryAgain": "新建文件夹失败，请重试。",
+    "maxFolderNameLengthIs100Characters": "文件夹名称最多 100 个字符。",
+    "moveSelectedToNewFolder": "将所选移动到新文件夹",
+    "moveToNewFolder": "移动到新文件夹",
+    "newFolderDefaultName": "新建文件夹"
   },
   "property": {
     "removeDynamic": "移除动态属性",
@@ -218,7 +227,8 @@
     "noneYetDesc": "从工作区的新建菜单开始一段对话。",
     "docsLabel": "对话与智能体",
     "uploadingFiles": "上传中…",
-    "addToMessage": "添加到消息"
+    "addToMessage": "添加到消息",
+    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "开启一段对话，用自然语言探索 AI 工作流。"
   },
   "notify": {
     "saveUpdatePrefFailed": "无法保存自动更新偏好。",
@@ -889,9 +899,7 @@
     "moveDown": "下移",
     "moveNodeDown": "节点下移",
     "moveNodeUp": "节点上移",
-    "moveSelectedToNewFolder": "将所选移入新文件夹",
     "moveSelection": "移动所选",
-    "moveToNewFolder": "移入新文件夹",
     "moveUp": "上移",
     "newApp": "新建小程序",
     "newEntity": "新建实体",
@@ -1864,8 +1872,6 @@
     "couldNotSaveTheKey": "密钥保存失败。",
     "currentProject": "当前项目",
     "noMatchingConversations": "没有匹配的对话",
-    "noConversationsYet": "还没有会话",
-    "startAConversationToExploreAiWorkflowsWithNaturalLanguage": "用自然语言开启一段对话，探索 AI 工作流。",
     "failedToCreateCollection": "创建知识库失败",
     "indexTextAndImagesAsVectorEmbeddings": "把文本与图片索引为向量嵌入",
     "withACollectionYouCan": "有了知识库，你可以：",
@@ -3102,7 +3108,11 @@
     "itemCount": "{{count}} 项",
     "probeToolSummary": "探测工具契约",
     "selectNewFolderForAssets": "为这些资产选择一个新文件夹",
-    "writing": "写入中…"
+    "writing": "写入中…",
+    "linkExpiresAfter10Minutes": "。链接 10 分钟后失效。",
+    "finishSigningInWith": "完成 {{name}} 登录",
+    "oauthCodeExplainer": "此服务器无法接收登录回调，{{name}} 会改为显示一个代码。请批准登录，然后复制页面显示的代码并粘贴到下方。",
+    "signInWindowClosed": "登录窗口已关闭？"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

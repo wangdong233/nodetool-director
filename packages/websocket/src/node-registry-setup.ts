@@ -31,6 +31,7 @@ import {
   applyBuiltinNodePolicy,
   builtinPackUnavailableReason
 } from "@nodetool-ai/base-nodes/builtin-packs";
+import { registerMediagenNodes } from "@nodetool-ai/mediagen-nodes";
 
 interface BootstrapLogger {
   info: (msg: string) => void;
@@ -167,6 +168,7 @@ export function registerBuiltInNodes(
       }
     }
   );
+  registerMediagenNodes(registry);
 }
 
 /**

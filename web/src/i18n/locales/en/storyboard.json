@@ -105,7 +105,6 @@
     "removeAnEntityFromShotsWhereItShouldNotAppear": "Remove an entity from shots where it should not appear.",
     "viewNameReferenceImage": "View {{name}} reference image",
     "noDescription": "No description",
-    "nameReferenceImage": "{{name}} reference image",
     "equipment": "Equipment",
     "estimatedRunningTimeInSeconds": "Estimated running time in seconds",
     "exampleWorkflows": "Example workflows",
@@ -893,6 +892,7 @@
     "tryReadingTheModelsAgainAbove": "Try reading the models again above",
     "whatIsHeard": "What is heard",
     "whatMovesAndHowTheCameraMovesOverTheClip": "What moves, and how the camera moves, over the clip",
-    "whatTheScriptIsAbout": "What the script is about"
+    "whatTheScriptIsAbout": "What the script is about",
+    "setGenre": "Set genre"
   }
 }

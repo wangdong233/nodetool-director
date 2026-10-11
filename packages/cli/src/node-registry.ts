@@ -15,6 +15,7 @@ import {
 } from "@nodetool-ai/base-nodes/builtin-packs";
 import { BUILTIN_NODE_PACKS } from "@nodetool-ai/protocol";
 import { installSandboxCatalog } from "./sandbox-catalog.js";
+import { registerMediagenNodes } from "@nodetool-ai/mediagen-nodes";
 
 /** Workflow JSON runs and local MCP historically omit AtlasCloud too. */
 export const CLI_LOCAL_BUILTIN_PACK_POLICY = {
@@ -36,5 +37,6 @@ export function buildFullRegistry(): NodeRegistry {
   installSandboxCatalog();
   const registry = new NodeRegistry();
   registerBuiltinPacks(registry, CLI_BUILTIN_PACK_POLICY);
+  registerMediagenNodes(registry);
   return registry;
 }

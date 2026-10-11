@@ -144,7 +144,17 @@
     "downloadStarted": "Download started. This may take a while.",
     "downloadDone": "Download finished successfully.",
     "downloadFailed": "Download failed. Please check the console for more details.",
-    "assetsWillBeRenamedTo": "Assets will be renamed to {{name}}"
+    "assetsWillBeRenamedTo": "Assets will be renamed to {{name}}",
+    "assetsSelectedCount": "{{count}} assets selected:",
+    "createFolderButton": "Create Folder",
+    "createdFolder": "Created folder \"{{name}}\"",
+    "createdFolderAndMoved_one": "Created folder \"{{name}}\" and moved {{count}} item",
+    "createdFolderAndMoved_other": "Created folder \"{{name}}\" and moved {{count}} items",
+    "failedToCreateFolderPleaseTryAgain": "Failed to create folder. Please try again.",
+    "maxFolderNameLengthIs100Characters": "Max folder name length is 100 characters.",
+    "moveSelectedToNewFolder": "Move selected to new folder",
+    "moveToNewFolder": "Move to New Folder",
+    "newFolderDefaultName": "New Folder"
   },
   "property": {
     "removeDynamic": "Remove Dynamic Property",
@@ -219,7 +229,8 @@
     "noneYetDesc": "Start a chat from the workspace New menu.",
     "docsLabel": "Chat & agents",
     "uploadingFiles": "Uploading…",
-    "addToMessage": "Add to message"
+    "addToMessage": "Add to message",
+    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "Start a conversation to explore AI workflows with natural language."
   },
   "notify": {
     "saveUpdatePrefFailed": "Failed to save automatic update preference.",
@@ -896,9 +907,7 @@
     "moveDown": "Move down",
     "moveNodeDown": "Move node down",
     "moveNodeUp": "Move node up",
-    "moveSelectedToNewFolder": "Move selected to new folder",
     "moveSelection": "Move Selection",
-    "moveToNewFolder": "Move to New Folder",
     "moveUp": "Move up",
     "newApp": "New app",
     "newEntity": "New entity",
@@ -1871,8 +1880,6 @@
     "couldNotSaveTheKey": "Could not save the key.",
     "currentProject": "Current project",
     "noMatchingConversations": "No matching conversations",
-    "noConversationsYet": "No conversations yet",
-    "startAConversationToExploreAiWorkflowsWithNaturalLanguage": "Start a conversation to explore AI workflows with natural language.",
     "failedToCreateCollection": "Failed to create collection",
     "indexTextAndImagesAsVectorEmbeddings": "Index text and images as vector embeddings",
     "withACollectionYouCan": "With a collection, you can:",
@@ -3113,7 +3120,11 @@
     "itemCount": "{{count}} items",
     "probeToolSummary": "Probe a tool contract",
     "selectNewFolderForAssets": "Select a new folder for the assets",
-    "writing": "Writing…"
+    "writing": "Writing…",
+    "linkExpiresAfter10Minutes": ". The link expires after 10 minutes.",
+    "finishSigningInWith": "Finish signing in with {{name}}",
+    "oauthCodeExplainer": "This server cannot receive the sign-in callback, so {{name}} shows you a code instead. Approve the sign-in, then copy the code the page displays and paste it below.",
+    "signInWindowClosed": "Sign-in window closed?"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

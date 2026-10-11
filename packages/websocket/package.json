@@ -49,6 +49,7 @@
     "@nodetool-ai/huggingface": "*",
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/higgsfield-nodes": "*",
+    "@nodetool-ai/mediagen-nodes": "*",
     "@nodetool-ai/image-editor": "*",
     "@nodetool-ai/kernel": "*",
     "@nodetool-ai/kie-nodes": "*",

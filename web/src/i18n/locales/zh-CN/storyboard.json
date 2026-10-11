@@ -105,7 +105,6 @@
     "removeAnEntityFromShotsWhereItShouldNotAppear": "把实体从不应出现的镜头中移除。",
     "viewNameReferenceImage": "查看{{name}}的参考图",
     "noDescription": "暂无描述",
-    "nameReferenceImage": "{{name}}的参考图",
     "equipment": "器材",
     "estimatedRunningTimeInSeconds": "预估片长（秒）",
     "exampleWorkflows": "示例工作流",
@@ -891,6 +890,7 @@
     "tryReadingTheModelsAgainAbove": "在上方重试读取模型列表",
     "whatIsHeard": "画面中听到的内容",
     "whatMovesAndHowTheCameraMovesOverTheClip": "片段中什么在动，镜头如何运动",
-    "whatTheScriptIsAbout": "剧本的主题"
+    "whatTheScriptIsAbout": "剧本的主题",
+    "setGenre": "设置类型"
   }
 }
