@@ -270,7 +270,6 @@
     "startBuilding": "Start building",
     "browseExamples": "Browse examples",
     "backToWorkspace": "Workspace",
-    "playVideoAria": "Play video: {{title}}",
     "playTutorialAria": "Play tutorial: {{title}}",
     "level": {
       "Beginner": "Beginner",
@@ -282,10 +281,7 @@
       "startingState": "The Examples page with the mini-app gallery ready to browse.",
       "tagline": "App builder · operation, setting, widgets",
       "task": "Open a mini app, provide its input, and run it once from the app surface.",
-      "description": "Describe an app in a sentence — an input, a button, an answer — and the assistant binds the workflow as an operation and places each widget against something the app declares.",
-      "learn_0": "Turning a workflow into an app anyone can run",
-      "learn_1": "Saving a value as a setting that persists between sessions",
-      "learn_2": "Binding widgets to inputs, outputs, and variables"
+      "description": "Describe an app in a sentence — an input, a button, an answer — and the assistant binds the workflow as an operation and places each widget against something the app declares."
     },
     "ask-ai": {
       "title": "Ask the AI",
@@ -293,10 +289,7 @@
       "startingState": "A new workflow canvas with an empty input and output path.",
       "tagline": "A question in, a streamed answer out",
       "task": "Connect a question input to an LLM node, ask for a short API explanation, and run it.",
-      "description": "The simplest chat-style graph: type a question, send it to an LLM node, and watch the answer stream in phrase by phrase before it lands in a Preview.",
-      "learn_0": "Feeding a question into an LLM node",
-      "learn_1": "Watching an answer stream as it generates",
-      "learn_2": "Reusing the answer downstream"
+      "description": "The simplest chat-style graph: type a question, send it to an LLM node, and watch the answer stream in phrase by phrase before it lands in a Preview."
     },
     "chat-agent-qa": {
       "title": "Ask the chat agent",
@@ -304,10 +297,7 @@
       "startingState": "A new Global Chat conversation with an empty composer.",
       "tagline": "Global Chat · tool calls, streamed live",
       "task": "Ask a current-facts question that requires a web search.",
-      "description": "A question goes straight to Global Chat: the agent calls a web-search tool in the open, then streams its answer back token by token.",
-      "learn_0": "Sending a message from Global Chat",
-      "learn_1": "Watching a tool call run in the open",
-      "learn_2": "Reading a streamed answer as it arrives"
+      "description": "A question goes straight to Global Chat: the agent calls a web-search tool in the open, then streams its answer back token by token."
     },
     "combine-inputs": {
       "title": "Combine two inputs",
@@ -315,10 +305,7 @@
       "startingState": "A new workflow canvas with two text inputs ready to connect.",
       "tagline": "Merge values with a template",
       "task": "Connect name and topic inputs to a template prompt, fill both values, and run it.",
-      "description": "The first graph that branches in: two text inputs flow into one Prompt node that fills a template, composing a single result from reusable parts.",
-      "learn_0": "Wiring several inputs into one node",
-      "learn_1": "Composing text with {{ placeholders }}",
-      "learn_2": "Building prompts from reusable parts"
+      "description": "The first graph that branches in: two text inputs flow into one Prompt node that fills a template, composing a single result from reusable parts."
     },
     "connect-run": {
       "title": "Connect & run",
@@ -326,10 +313,7 @@
       "startingState": "A new workflow canvas ready for a small connected graph.",
       "tagline": "Follow a connected graph from input to output",
       "task": "Connect a text input to Uppercase and then to Preview, run it with hello nodetool, and inspect the output.",
-      "description": "Trace the existing connections from a text input through Uppercase, watch the nodes execute, and read HELLO NODETOOL in Preview.",
-      "learn_0": "Inputs, outputs, and how handles connect",
-      "learn_1": "Running a graph and watching nodes complete",
-      "learn_2": "Finding a node's result in a Preview"
+      "description": "Trace the existing connections from a text input through Uppercase, watch the nodes execute, and read HELLO NODETOOL in Preview."
     },
     "describe-image": {
       "title": "Describe an image",
@@ -337,10 +321,7 @@
       "startingState": "A new workflow canvas with an image input ready to fill.",
       "tagline": "Show the AI a picture, get words back",
       "task": "Add an image, connect it to an Agent, and run the graph to describe what is visible.",
-      "description": "The first multimodal graph: drop a picture into an Image Input, wire it into an Agent, and watch the model look at the image and describe it in words.",
-      "learn_0": "Bringing an image into a graph",
-      "learn_1": "Sending a picture to a vision model",
-      "learn_2": "Reusing the streamed description downstream"
+      "description": "The first multimodal graph: drop a picture into an Image Input, wire it into an Agent, and watch the model look at the image and describe it in words."
     },
     "first-workflow": {
       "title": "Build your first workflow",
@@ -348,26 +329,17 @@
       "startingState": "A new workflow in the guided workflow setup.",
       "tagline": "Text → enhance → image, end to end",
       "task": "Build a text-to-image graph with a text input, an enhancement step, and an image generator, then run it.",
-      "description": "Watch a complete AI pipeline run on the canvas: a prompt is enhanced by an LLM, then turned into an image — all from connected nodes, no code.",
-      "learn_0": "How nodes pass data through their handles",
-      "learn_1": "Reading live status: running rings, streaming text, progress",
-      "learn_2": "Where generated outputs appear on the canvas"
+      "description": "Watch a complete AI pipeline run on the canvas: a prompt is enhanced by an LLM, then turned into an image — all from connected nodes, no code."
     },
     "jsscript-assistant": {
       "title": "Write a JS script",
       "tagline": "JS scripts · ports, body, saved test",
-      "description": "Say what goes in and what should come out. The assistant declares the ports first, writes the body, and saves a test case that grades it in the sandbox.",
-      "learn_0": "Declaring ports as the script's contract",
-      "learn_1": "Reading a body that runs sandboxed — no filesystem access",
-      "learn_2": "Keeping a saved case that catches the next breaking edit"
+      "description": "Say what goes in and what should come out. The assistant declares the ports first, writes the body, and saves a test case that grades it in the sandbox."
     },
     "jsscript-repair": {
       "title": "A test catches it",
       "tagline": "JS scripts · red, then the repair, then green",
-      "description": "Name the edge case you do not trust. The assistant saves it as a test, runs it red with the reason in the open, repairs the body, and runs the same cases green.",
-      "learn_0": "Asking for the check before asking for the fix",
-      "learn_1": "Reading a failing run instead of a summary of one",
-      "learn_2": "Keeping the case saved so the next edit fails here first"
+      "description": "Name the edge case you do not trust. The assistant saves it as a test, runs it red with the reason in the open, repairs the body, and runs the same cases green."
     },
     "list-generator": {
       "title": "Generate a list",
@@ -375,10 +347,7 @@
       "startingState": "A new workflow canvas with no nodes connected.",
       "tagline": "One prompt, many results",
       "task": "Connect a topic input to a list-generating LLM node and run it for weekend trip ideas.",
-      "description": "Turn a single topic into a structured list with one LLM node, then feed it downstream. The pattern behind batching, looping, and bulk generation.",
-      "learn_0": "Driving an LLM node from an input",
-      "learn_1": "Streaming multi-item output as it arrives",
-      "learn_2": "Passing a list into the rest of a workflow"
+      "description": "Turn a single topic into a structured list with one LLM node, then feed it downstream. The pattern behind batching, looping, and bulk generation."
     },
     "script-assistant": {
       "title": "Write and voice a script",
@@ -386,10 +355,7 @@
       "startingState": "A new script with no cast or dialogue.",
       "tagline": "Script editor · cast, lines, takes",
       "task": "Ask the assistant for a short two-speaker script, then have it voice the lines.",
-      "description": "From a blank page to voiced audio in one ask: the assistant casts the speakers, writes their lines, then synthesizes a take for each one.",
-      "learn_0": "Describing a script by length, voices, and tone",
-      "learn_1": "How speakers are cast before any line is written",
-      "learn_2": "Voicing lines into takes you can swap or re-record"
+      "description": "From a blank page to voiced audio in one ask: the assistant casts the speakers, writes their lines, then synthesizes a take for each one."
     },
     "sketch-assistant": {
       "title": "Edit a sketch by asking",
@@ -397,10 +363,7 @@
       "startingState": "A new sketch with a blank layer stack.",
       "tagline": "Sketch editor · the assistant paints the layer",
       "task": "Ask the assistant to add a soft wash layer and set its blend mode and opacity.",
-      "description": "Say what you want changed and the assistant works the real layer tools: it adds the layer, sets the blend mode, and dials in opacity while you watch the panel update.",
-      "learn_0": "Asking for an edit against the layer stack you already have",
-      "learn_1": "Watching layers appear in the panel as the assistant works",
-      "learn_2": "Taking over by hand — every edit stays yours to change"
+      "description": "Say what you want changed and the assistant works the real layer tools: it adds the layer, sets the blend mode, and dials in opacity while you watch the panel update."
     },
     "sketch-correction": {
       "title": "Correct it without starting over",
@@ -408,10 +371,7 @@
       "startingState": "A new sketch ready for an assistant-led edit.",
       "tagline": "Sketch editor · the second ask amends the first",
       "task": "Make one assistant edit, then ask it to reduce the effect without creating another layer.",
-      "description": "The wash comes back too strong. Saying so in the next message edits the layer that is already there — the stack stays the same size and nothing is regenerated.",
-      "learn_0": "Correcting a result instead of starting the ask again",
-      "learn_1": "Reading which tool call the correction actually ran",
-      "learn_2": "Taking the last step yourself with the panel controls"
+      "description": "The wash comes back too strong. Saying so in the next message edits the layer that is already there — the stack stays the same size and nothing is regenerated."
     },
     "storyboard-ask": {
       "title": "It asks before it spends",
@@ -419,10 +379,7 @@
       "startingState": "A new storyboard with no shots and no render started.",
       "tagline": "Storyboard · a question, not a guess",
       "task": "Give the assistant an incomplete brief, answer its follow-up question, and approve the board.",
-      "description": "An under-specified brief gets a question back. The board stays empty and nothing renders while you decide, then your answer picks the format and the shot count.",
-      "learn_0": "Why an ambiguous brief comes back as a question",
-      "learn_1": "What the assistant does while it waits on you: nothing",
-      "learn_2": "Approving the spend once the shots read right"
+      "description": "An under-specified brief gets a question back. The board stays empty and nothing renders while you decide, then your answer picks the format and the shot count."
     },
     "storyboard-assistant": {
       "title": "Board a shot list",
@@ -430,10 +387,7 @@
       "startingState": "A new storyboard with an empty shot list.",
       "tagline": "Storyboard · direction, then stills",
       "task": "Describe a short piece, review the generated shot list, and approve it for rendering.",
-      "description": "Describe the piece and the assistant writes the shots — camera and all — before spending a frame. Approve the board, then the stills render shot by shot.",
-      "learn_0": "Getting a shot list before any image is generated",
-      "learn_1": "Revising a shot while it is still free to change",
-      "learn_2": "Rendering stills across the board in one call"
+      "description": "Describe the piece and the assistant writes the shots — camera and all — before spending a frame. Approve the board, then the stills render shot by shot."
     },
     "summarize-text": {
       "title": "Summarize a document",
@@ -441,10 +395,7 @@
       "startingState": "A new workflow canvas with an empty text path.",
       "tagline": "Long text in, key points out",
       "task": "Feed a long passage into a Summarizer node, run it, and send the summary to Preview.",
-      "description": "Condense an article, transcript, or any block of text into a short summary with a single Summarizer node, streaming it as it writes.",
-      "learn_0": "Feeding a long passage into a Summarizer node",
-      "learn_1": "Watching the summary stream as it generates",
-      "learn_2": "Passing the result into the rest of a workflow"
+      "description": "Condense an article, transcript, or any block of text into a short summary with a single Summarizer node, streaming it as it writes."
     },
     "timeline-trim-arrange": {
       "title": "Cut a scene together",
@@ -452,10 +403,7 @@
       "startingState": "A new timeline with empty tracks and no clips.",
       "tagline": "Timeline editor · trim, arrange, caption",
       "task": "Place two clips, trim their cut, add a caption, and preview the finished sequence.",
-      "description": "Watch the opening clip shorten, the next shot meet its edge, and a caption appear on its track. Then preview the finished cut.",
-      "learn_0": "Trimming and arranging clips on tracks",
-      "learn_1": "Adding a caption synced word-by-word",
-      "learn_2": "Scrubbing and previewing the cut live"
+      "description": "Watch the opening clip shorten, the next shot meet its edge, and a caption appear on its track. Then preview the finished cut."
     }
   }
 }

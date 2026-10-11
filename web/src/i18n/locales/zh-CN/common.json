@@ -20,7 +20,8 @@
     "close": "关闭",
     "apply": "应用",
     "and": " 和 ",
-    "save": "保存"
+    "save": "保存",
+    "retry": "重试"
   },
   "status": {
     "loading": "加载中…"
@@ -88,7 +89,8 @@
     "secondAgo_other": "{{count}} 秒前",
     "today": "今天",
     "yesterday": "昨天",
-    "builtIn": "内置"
+    "builtIn": "内置",
+    "dayAgo": "{{count}} 天前"
   },
   "list": {
     "searchPlaceholder": "搜索{{plural}}…",

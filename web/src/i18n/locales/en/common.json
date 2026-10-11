@@ -20,7 +20,8 @@
     "close": "Close",
     "apply": "Apply",
     "and": " and ",
-    "save": "Save"
+    "save": "Save",
+    "retry": "Retry"
   },
   "status": {
     "loading": "Loading…"
@@ -95,7 +96,8 @@
     "secondAgo_other": "{{count}} sec ago",
     "today": "Today",
     "yesterday": "Yesterday",
-    "builtIn": "Built in"
+    "builtIn": "Built in",
+    "dayAgo": "{{count}} day ago"
   },
   "list": {
     "searchPlaceholder": "Search {{plural}}...",

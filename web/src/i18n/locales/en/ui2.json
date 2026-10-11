@@ -43,7 +43,6 @@
     "closeEditor": "Close editor",
     "cmdClickToInsert": "⌘ + click to insert",
     "code": "Code",
-    "collectionsAreUsedToStoreAndSearchDocuments": "Collections are used to store and search documents. Following file formats are supported:",
     "colorPicker": "Color Picker",
     "concept": "Concept",
     "confidence": "Confidence",
@@ -215,7 +214,6 @@
     "pageNavigationSlider": "Page navigation slider",
     "palettes": "Palettes",
     "panels": "Panels",
-    "pdfsPowerPointWordExcel": "PDFs, PowerPoint, Word, Excel",
     "peopleWithAccess": "People with access",
     "performSemanticSimilaritySearches": "Perform semantic similarity searches",
     "planned": "Planned",
@@ -357,6 +355,7 @@
     "thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself": "This client only redirects to localhost. Make sure you started this connection yourself.",
     "jsScript": "JS script",
     "assignSpeaker": "Assign speaker",
-    "speakerChangeSpeaker": "{{name}}, change speaker"
+    "speakerChangeSpeaker": "{{name}}, change speaker",
+    "loadFailedUnavailable": "The document could not be loaded. It may be unavailable or you may need to reconnect."
   }
 }

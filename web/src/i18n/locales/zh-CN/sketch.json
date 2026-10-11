@@ -218,12 +218,9 @@
     "editorAssistant": "编辑助手",
     "editorAssistantWelcome": "描述想生成的图像，或要求编辑你的图层。",
     "presets": "预设…",
-    "symmetryOff": "关闭",
     "symmetryHorizontal": "水平",
     "symmetryVertical": "垂直",
     "symmetryDualAxis": "双轴",
-    "symmetryRadial": "径向（{{rays}}）",
-    "symmetryMandala": "曼陀罗（{{rays}}）",
     "shortcuts": "快捷操作",
     "keyboard": "键盘",
     "hexColor": "十六进制颜色",
@@ -235,7 +232,7 @@
     "lightnessPercent": "亮度（百分比）",
     "regenStaleOrder_other": "按依赖顺序重新生成 {{count}} 个过期图层。",
     "regenStaleLabel": "重新生成过期图层（{{count}}）",
-    "rotate180": "旋转 180°",
-    "invertSelection": "反选"
+    "invertSelection": "反选",
+    "regenStaleOrder": "按依赖顺序重新生成 {{count}} 个过期图层。"
   }
 }

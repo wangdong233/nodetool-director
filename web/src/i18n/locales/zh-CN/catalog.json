@@ -524,10 +524,6 @@
       "name": "画面构图",
       "description": "在时间线上经营画面：网格、焦点摆位、各画幅的安全区、纵深层次与视差、镜头运动，以及元素的入场与离场。适合摆标题、人名条、图形或叠加层，布局要同时扛住 16:9 与 9:16，要加推近或视差运镜，或画面显得平、挤的场合；不负责片段说什么、何时剪切。"
     },
-    "godot-game": {
-      "name": "Godot 游戏开发",
-      "description": "用模板、校验过的素材、导出与验证流程，在 NodeTool 里搭出可玩的 Godot 游戏或完整的游戏素材包。"
-    },
     "gpt-image-2-prompting": {
       "name": "GPT Image 2 提示词",
       "description": "编写 OpenAI GPT Image 2 的提示词：它认的「场景／主体／细节／用途／约束」五段模板、编辑时「改什么—保什么」的结构、多图合成的标注法，以及让图中文字逐字渲染的写法。凡模型 ID 含 gpt-image-2 即适用；GPT Image 1、1-mini、1.5 不在此列。"
@@ -702,7 +698,83 @@
     },
     "wan-2-6-prompting": {
       "name": "Wan 2.6 提示词",
-      "description": "编写阿里 Wan 2.6 三种模式的提示词：文生视频用一句全局风格线加带时间括号的镜头，图生视频只描述随时间变化的部分，参考图生视频把主体标成 @Video1/@Video2/@Video3。涵盖 multi_shots 格式、800 字符提示词预算、反向提示词、运动强度措辞、音频输入规则与提示词扩写。凡模型 ID 含 wan-2.6 或 wan2.6 即适用；Wan 2.5、2.7 不在此列。"
+      "description": "面向阿里 Wan 2.6 三种模式的提示词指南——文生视频、图生视频与参考生成。"
+    },
+    "api-agents": {
+      "name": "api-agents（智能体）",
+      "description": "在代码动作里调用 nodetool.agents：把一个自包含的任务交给规划智能体并取回结果。"
+    },
+    "api-apps": {
+      "name": "api-apps（应用）",
+      "description": "在代码动作里调用 nodetool.apps：列出、读取、创建和更新迷你应用。"
+    },
+    "api-assets": {
+      "name": "api-assets（资产）",
+      "description": "在代码动作里调用 nodetool.assets 或 nodetool.documents：列出、上传和整理资产。"
+    },
+    "api-collections": {
+      "name": "api-collections（合集）",
+      "description": "在代码动作里调用 nodetool.collections：为文本建立向量索引并进行检索。"
+    },
+    "api-games": {
+      "name": "api-games（游戏）",
+      "description": "在代码动作里调用 nodetool.games：创建或安装一个原生游戏修订。"
+    },
+    "api-media": {
+      "name": "api-media（媒体）",
+      "description": "在代码动作里调用 nodetool.media 或 nodetool.generations：探测与转码媒体、跟踪生成任务。"
+    },
+    "api-memory": {
+      "name": "api-memory（记忆）",
+      "description": "在代码动作里调用 nodetool.memory、nodetool.shared 或 nodetool.threads：跨运行保存结构化状态。"
+    },
+    "api-models": {
+      "name": "api-models（模型）",
+      "description": "在代码动作里调用 nodetool.models：为任务挑选最合适的已配置模型。"
+    },
+    "api-scripts": {
+      "name": "api-scripts（剧本）",
+      "description": "在代码动作里调用 nodetool.scripts：创建配音剧本并管理台词。"
+    },
+    "api-settings": {
+      "name": "api-settings（设置）",
+      "description": "在代码动作里调用 nodetool.settings 或 nodetool.secrets：读取偏好并安全取用密钥。"
+    },
+    "api-sketches": {
+      "name": "api-sketches（草图）",
+      "description": "在代码动作里调用 nodetool.sketches：创建草图并编辑图层。"
+    },
+    "api-storyboards": {
+      "name": "api-storyboards（分镜）",
+      "description": "在代码动作里调用 nodetool.storyboards：创建分镜板并渲染静帧与片段。"
+    },
+    "api-timelines": {
+      "name": "api-timelines（时间线）",
+      "description": "在代码动作里调用 nodetool.timelines：创建、读取、编辑时间线并导出成片。"
+    },
+    "api-web": {
+      "name": "api-web（网络）",
+      "description": "在代码动作里调用 nodetool.web 或 nodetool.email：搜索、抓取页面、收发邮件。"
+    },
+    "api-workflows": {
+      "name": "api-workflows（工作流）",
+      "description": "在代码动作里调用 nodetool.workflows、nodetool.jobs 或 nodetool.nodes：保存图并排队运行。"
+    },
+    "game-direction": {
+      "name": "游戏方向",
+      "description": "在动手构建之前定下游戏的体感、关卡节奏与美术方向。"
+    },
+    "motion-ad": {
+      "name": "动效广告",
+      "description": "制作一支无声动效广告（15 秒 Facebook/Instagram 信息流或 6 秒前置贴片）。"
+    },
+    "native-game": {
+      "name": "原生游戏",
+      "description": "在 NodeTool 内置的原生游戏管线里构建或修改可玩的 2D/3D 游戏。"
+    },
+    "timeline-edit-ops": {
+      "name": "时间线编辑操作",
+      "description": "编辑一条已存在的 NodeTool 时间线的参考：分割、修剪、移动与替换。"
     }
   },
   "apps": {
@@ -2670,10 +2742,6 @@
       "name": "静图马赛克",
       "description": "格子大小是唯一的控制量。适合打码，也是唯一「数字越大越保护隐私」而不是「效果越强」的滤镜。"
     },
-    "Platformer Asset Pack.json": {
-      "name": "平台跳跃游戏素材包",
-      "description": "一次运行填满并检验 Godot 模板的全部素材槽位。LoadGameTemplate 流式给出平台跳跃所需的每个槽位；SlotPrompt 把每个槽位变成提示词、画布与检验器要的道具包，统一撒上一层风格实体——换掉那个实体，整包换皮。每个生成素材都先过 nodetool.game 对应种类的检验器，最后 ExportGodotProject 铺出一个可直接打开的工程。"
-    },
     "Podcast Episode to Show Notes.json": {
       "name": "播客单集转节目笔记",
       "description": "每个播客都要做、没人爱做的活。先转写再写笔记——摘要、带大致时间点的话题、以及提到过的链接。"
@@ -3013,6 +3081,50 @@
     "Write the Prompt, Then Make the Image.json": {
       "name": "先写提示词，再生成图像",
       "description": "模型从一段平实描述自己写图像提示词。适合有想法的人不想学提示词工程——中间产物提示词保持可见，可以被纠正而不是靠猜。"
+    },
+    "Dungeon and Ruins Starter Pack.json": {
+      "name": "地牢与废墟 Starter Pack",
+      "description": "低多边形地牢模型，适合冒险游戏：模块化石室、门、闸门、陷阱、火把、墓穴与宝藏，含七段动画。运行后每个 GLB 以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Lip-sync a Clip to a Voice Track.json": {
+      "name": "把片段对口型到现成音轨",
+      "description": "把演讲者片段与你已有的音轨对齐。音频先做响度归一并软化首尾。对口型按画面秒数计费。"
+    },
+    "Low-poly Adventure Starter Pack.json": {
+      "name": "低多边形冒险 Starter Pack",
+      "description": "低多边形林地模型，适合冒险游戏：游侠、会动的史莱姆、树木、营地道具、宝藏与模块化布景。运行后每个 GLB 以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Low-poly Seaside Starter Pack.json": {
+      "name": "低多边形海滨 Starter Pack",
+      "description": "低多边形海岸模型，适合游戏：小船、码头组件、灯塔、海滩小屋、渔具与岸边收集物。运行后每个 GLB 以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Platformer Playground Starter Pack.json": {
+      "name": "平台跳跃游乐场 Starter Pack",
+      "description": "低多边形游乐场模型，适合平台游戏：浮空岛、平台、弹跳垫、存档点、开关、危险物与收集品，含九段动画。运行后每个 GLB 以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Research a Brand from Its Website.json": {
+      "name": "从网站调研一个品牌",
+      "description": "粘贴一个网址，智能体就会调研背后的品牌：用浏览器打开网站，用网络搜索补齐网站没说的部分，并写出带引用的笔记。抽取器再把笔记变成品牌名、受众、语气、简介与标语，供品牌套件使用。调研员使用浏览器与网络搜索工具。为调研员和抽取器各选一个语言模型。"
+    },
+    "Sci-fi Game Model Starter Pack.json": {
+      "name": "科幻游戏模型 Starter Pack",
+      "description": "可复用的科幻 GLB 模型：带待机动画的侦察机器人、无人机、货箱、晶体与模块化空间站组件。运行后每个模型以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Sci-fi Outpost Expansion.json": {
+      "name": "科幻前哨扩展包",
+      "description": "配套的科幻模型包：火星车、哨戒炮塔、反应堆、卫星天线、气闸与空间站道具。运行后每个 GLB 以命名输出暴露。无需服务商或 API 密钥。"
+    },
+    "Subtitle Lines from a Script.json": {
+      "name": "从剧本生成字幕行",
+      "description": "把一份完成的剧本拆成带编号的字幕条，每条最多两行短句，在自然语气边界处断行。"
+    },
+    "Top-down Native Asset Pack.json": {
+      "name": "俯视角原生资产包",
+      "description": "原生俯视角游戏资产包。LoadGameTemplate 流式加载资产槽；SlotPrompt 为每次资产请求定尺寸；每个结果先校验，再由 StageGameAssets 写入内容寻址的候选。把选中的绑定装进游戏版本即可游玩。"
+    },
+    "Translate a Script for Dubbing.json": {
+      "name": "为配音翻译剧本",
+      "description": "把口播剧本翻译成你指定的语言，并贴近原文长度，让新音轨仍适配同一批画面。"
     }
   },
   "hfTask": {

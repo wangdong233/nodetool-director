@@ -14,11 +14,14 @@ Need GPU? ──yes──→ Own hardware? ──yes──→ Self-Hosted (Docke
 
 # 部署模式
 
-| 模式 | 鉴权 | 用例 |
+| 模式 | 触发条件 | 行为 |
 |------|------|----------|
-| `desktop` | `local` | 本地开发、Electron 应用 |
-| `private` | `static` | 团队/个人服务器,单一令牌 |
-| `public` | `supabase` | 多用户,完整鉴权与存储 |
+| Local | 默认 | 回环以用户 `"1"` 运行,无需令牌。未列入 `NODETOOL_TRUST_LOCAL_NETWORKS` 的其他来源得到 `401`。 |
+| Supabase | `SUPABASE_URL` 与 `SUPABASE_KEY` 同时设置 | 除公开端点外的每个请求都需要 `Authorization: Bearer <supabase_jwt>`。 |
+
+别人通过网络访问的服务器需要 Supabase 模式。Local 模式下,Docker 发布端口的
+来源是网桥网关而非回环,API 调用会返回 `401`,直到 `NODETOOL_TRUST_LOCAL_NETWORKS`
+列入该网段。每个被列入的来源都被当作用户 `"1"` 无密码信任,所以只列你控制的网络。
 
 # 快速开始
 
@@ -213,7 +216,7 @@ nodetool deploy workflows run <deployment> <workflow-id>
 - [ ] 设强随机 `SECRETS_MASTER_KEY`
 - [ ] 设 `ADMIN_TOKEN`
 - [ ] 配好 `AUTH_PROVIDER`(生产绝不用 `none`)
-- [ ] 用静态鉴权时设好 `SERVER_AUTH_TOKEN`
+- [ ] 绝不在可达的公网端口上设置 `NODETOOL_TRUST_LOCAL_NETWORKS`
 - [ ] 为需要的服务商配好 API 密钥
 - [ ] 设资源限制(内存、CPU、GPU)
 - [ ] 为工作区与模型缓存挂持久卷
