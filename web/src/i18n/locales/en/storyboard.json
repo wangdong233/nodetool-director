@@ -1008,8 +1008,7 @@
     "storyboardAssistantWelcome": "Ask me to direct the board — e.g. \"break this brief into six shots\", \"add a close-up after shot 3\", \"generate keyframes for every planned shot\", or \"assemble the shots into a timeline\".",
     "newStyleAppliesToEveryShot": "The new style applies to every shot. Stills and clips already rendered are marked stale — nothing re-renders until you ask for it.",
     "customStylesAreAddedWhileSettingUpABoard": "Custom styles are added while setting up a board.",
-    "downloadThis": "Download this {{kind}}",
-    "downloadKind": "Download {{kind}}",
+    "downloadThis": "Download {{kind}}",
     "templateLower": "template"
   }
 }

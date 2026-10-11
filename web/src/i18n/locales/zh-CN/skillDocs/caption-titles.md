@@ -68,6 +68,39 @@ T1 标题/片尾卡,T2 下三分之一字幕条,T3 字幕,T4 标注,T5 CTA。
 字幕条在人出现约 500ms 后进场,停留 2500–4000ms。一帧一个文字点子。
 未知事实写 `[INPUT NEEDED: …]`。
 
+## 让字母和它们的内容动起来
+
+文字片段里会变的数字,在动画上存 `textAnimator`,配 `kind: "ticker"`、
+`from` 和 `to`。它还收 `decimals`、`padTo`、`prefix` 和 `suffix`。
+`groupSeparator` 设为 `","` 就把千位显示成 `2,847`;省略它则已有的
+计数器保持不分组。要确定性解码到片段写好的文字,用
+`kind: "scramble"` 配固定的 `seed` 和可选的 `charset`。它们都在动画
+时窗上运作,所以定格的尾帧显示的是完成的值。
+
+```json
+{"id": "count-in", "role": "in", "preset": "fade", "durationMs": 900,
+ "textAnimator": {"kind": "ticker", "from": 1, "to": 7,
+  "padTo": 2, "suffix": " / 07"}}
+```
+
+要逐单元的运动,把 `stagger.unit` 设为 `character`、`word` 或 `line`,
+并给它 `offsetMs`。带文字错峰时,`styleTracks` 可以指向 `glyph.color`、
+`glyph.blurPx` 或 `glyph.trackingPx`。颜色用 CSS 颜色值;模糊与字距用
+序列像素。整行用 `text.color` 或 `text.fill.stops.0.color`。文字渐变
+填充还暴露 `text.fill.angle` 和渐变档位。目标必须指向已存在的样式
+字段;设了渐变填充时 `text.color` 被隐藏。
+
+要让标题沿曲线排布,把 `textStyle.path` 设为归一化画布坐标下的 SVG
+路径。它把基线放到路径上,不会让每个字符沿路径行进。形状与遮罩路径
+可以在 `shape.d` 与 `mask.d` 样式轨之间变形,前提是两条路径的命令与
+点数一致。整条片段要沿路径移动时用 `followPath`。
+
+`edit_timeline` 的 `animate_clip` 输入收预设和自定义数值曲线,但不收
+`textAnimator` 或 `styleTracks`;这两个字段会从该调用中丢弃。要写它们,
+读当前文档,把动画字段放进片段后用 `set_timeline_document` 写回。该
+调用校验完整文档并快照前一状态。文档里其余的轨道与片段都要保留。
+完整的工具契约归 `motion-graphics` 管。
+
 ## 构建与验证
 
 加独立的叠加轨与字幕轨。映射表逐项:先铺压暗层再上文字,套用锁定的

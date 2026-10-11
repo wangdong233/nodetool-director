@@ -1,11 +1,19 @@
 # 运动曲线 → 没有现成预设的动画
 
-`{"preset": "custom"}` 恰好携带 `curves`(你手写的关键帧)或 `code`
-(一段 JS 代码体,宿主侧一次性烘焙成曲线)之一。曲线驱动
-`wipeProgress` 时加 `mask`。
+一个带 `{"preset":"custom"}` 的 `animate_clip` 输入,恰好携带 `curves`
+(你手写的关键帧)或 `code`(一段 JS 代码体,宿主侧一次性烘焙成曲线)
+之一。曲线驱动 `wipeProgress` 时加 `mask`。存进文档的动画则可以不带
+数值自定义曲线,改带 `styleTracks` 或 `textAnimator`。
 
 `motion-graphics` 承载操作契约和预设目录——本篇就是从那里出来的逃生
 口。`motion-principles` 给出一条曲线在写关键帧之前该命中的时长与形状。
+
+数值自定义曲线,用带 `animate_clip` 操作的 `edit_timeline` 调用,或产品
+内的 `ui_timeline_animate_clip` 工具。两者都收下文展示的扁平 `curves`
+或 `code` 输入。要写存储态的 `styleTracks`、`textAnimator` 或 `beat`,
+先读 `get_timeline`,在文档里编辑片段的完整动画,再带上文档既有的
+每个字段调用 `set_timeline_document`。`animate_clip` 输入不写这些
+存储字段。
 
 ## 什么时候写一条
 
@@ -67,6 +75,28 @@
 `list_animation_presets` 从引擎报告这张表。某条通道的取值范围要紧时,
 到那里读,别凭记忆。
 
+## 文档里的样式曲线
+
+目标不是数值运动通道、而是视觉属性时,在存储的动画上用 `styleTracks`。
+目标指向片段样式,如 `text.color`、`shape.cornerRadius`、
+`mask.featherPx` 或 `clip.borderRadius`;效果目标是
+`effect.<effect-id>.<numeric-field>` 或受支持的效果颜色,如
+`effect.bg-field.colorB`。目标要求片段上存在对应的样式、遮罩或效果。
+颜色值经受支持的 CSS 颜色解析器插值。`shape.d` 与 `mask.d` 路径要求
+命令与点数一致。字形目标要求文字错峰。`validate_timeline` 会报出无效
+目标、不兼容路径或不受支持的颜色。
+
+下面是一个完整的存储动画对象,在写完整文档之前并进既有片段的
+`animations` 数组:
+
+```json
+{"id":"round-in","role":"in","preset":"fade","durationMs":600,"styleTracks":[{"target":"clip.borderRadius","keyframes":[{"t":0,"value":0},{"t":1,"value":30,"easing":"easeOutExpo"}]}]}
+```
+
+`styleTracks` 可以与预设并存,于是标题可以一边淡入一边变色。存储文档
+里 `id` 是必填的;`animate_clip` 会为自己的输入生成一个。链接、文字
+动画器、拍点绑定和文档写入边界,见 `motion-graphics`。
+
 ## 代码体
 
 一段 JavaScript 代码体,编写时在 QuickJS 沙箱里运行**一次**。它返回
@@ -95,7 +125,7 @@ const n = inputs.sampleCount;
 const samples = [];
 for (let i = 0; i < n; i++) {
   const t = i / (n - 1);
-  samples.push({ t, offsetY: ..., opacity: ... });
+  samples.push({ t, offsetY: 80 * (1 - t), opacity: t });
 }
 return { samples };
 ```
@@ -140,8 +170,9 @@ return { curves: [{ property: "offsetY", keyframes: [
   { t: 0.8, value: -4, easing: "easeOut" }, { t: 1, value: 0 }] }] };
 ```
 
-**抖动。**确定性噪声,沙箱对 wiggle 表达式的回答。一个带种子的生成器,
-重新烘焙也复现。
+**成形抖动。**要平稳的带种子抖动,用存储的 `animationLinks` 条目配
+`kind: "wiggle"`,按 `motion-graphics` 里说的做。振幅必须淡入淡出时才
+烘焙曲线。这个带种子的生成器在重新烘焙时复现同一形状。
 
 ```js
 const n = inputs.sampleCount;

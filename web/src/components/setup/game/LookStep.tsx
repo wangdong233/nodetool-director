@@ -53,6 +53,8 @@ import { SetupFooterField } from "../SetupFooterField";
 import { AddStyleDialog } from "../storyboard/AddStyleDialog";
 import { useGameCustomStyle } from "./useGameCustomStyle";
 import type { StylePresetEntity } from "../../../serverState/useStylePresets";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * The tile that keeps a template's shipped audio. It is a real choice, not an
@@ -231,6 +233,7 @@ const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
  * `${provider}:${id}`, so the stored answer and the build are unchanged.
  */
 const ImageModelStatus: React.FC<{ row: GameModelRow }> = ({ row }) => {
+  const { t } = useTranslation();
   if (row.status === "loading") {
     return (
       <FlexColumn gap={GAP.normal}>
@@ -333,6 +336,7 @@ export const GameImageModelFooterField: React.FC<{
 
 /** One row of tiles, with the four states its source can be in. */
 const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
+  const { t } = useTranslation();
   const tiles = useMemo<OptionCardItem[]>(
     () =>
       row.placeholderLabel === undefined
@@ -445,6 +449,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
   projectName,
   onProjectNameChange
 }) => {
+  const { t } = useTranslation();
   const [addingStyle, setAddingStyle] = useState(false);
 
   const applyCustomStyle = useCallback(

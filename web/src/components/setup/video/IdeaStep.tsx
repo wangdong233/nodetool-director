@@ -162,14 +162,21 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   );
 
   // The shipped boards carry briefs that work as video setup prompts. Timeline
-  // examples are finished edits and do not carry those source prompts.
+  // examples are finished edits and do not carry those source prompts. Each
+  // logline is looked up in the zh-only catalog overlay by its stable board
+  // slug (显示即所发: the localized chip text is the brief it inserts, one
+  // string for both).
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) => example.logline.trim())
+        .map((example) =>
+          t(`catalog:storyboardExamples.${example.slug}.logline`, {
+            defaultValue: example.logline.trim()
+          })
+        )
         .filter((logline) => logline.length > 0)
         .slice(0, INSPIRATION_COUNT),
-    [examples]
+    [examples, t]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(

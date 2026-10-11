@@ -42,6 +42,32 @@
 第一次编辑前先用 `create_timeline_version` 拍快照。动效活是迭代的,
 一个错误的 `mode: "replace"` 会抹掉别人写好的动画。
 
+## 选对编写面
+
+`edit_timeline` 收一个时间线 ID 和一个 `ops` 数组。操作按顺序执行,
+每次调用至多 60 个。做有依赖的编辑之前,先看每个操作的 `ok` 和整批的
+`failed` 结果。产品内的 agent,对单个操作用对应的 `ui_timeline_*`
+工具。下面是一次合法的无头调用:
+
+```json
+{"timeline_id":"<id>","ops":[{"op":"animate_clip","target":"Title","animations":[{"role":"in","preset":"fade","durationMs":400}]}]}
+```
+
+`animate_clip` 输入收目录预设或 `custom` 曲线与代码,外加 `stagger` 和
+打字机的 `caret`。它**不**写 `styleTracks`、`textAnimator` 或 `beat`。
+`set_clip_params` **不**写 `layout`、`repeater`、`motionBlur`、
+`steppedTime`、`temporalEcho`、`animationLinks` 或 `transform.depthPx`。
+往操作里塞这些键不会写进这些功能。
+
+要写这些字段,读 `get_timeline` 的 `timeline` 对象,改需要的片段或
+序列字段,再用从它装配出的完整文档调 `set_timeline_document`。存在时
+保留 tracks、clips、markers、tempo、setup、templateId、mediaTracks、
+transcript、scriptEnabled 与 camera2d。带上 `timeline.updatedAt` 作为
+`expected_updated_at`,让并发编辑被拒。整文档写入先校验结果、再快照
+前一版。省略的文档字段会被删掉,所以绝不要只发改动的那条片段。下文
+各节的 JSON 对象是要并进完整文档的字段,不是 `edit_timeline` 操作。
+编辑器可能没有它们的控件,但它们照样渲染、并在保存后还在。
+
 ## 轨道分层
 
 **`index` 最低的画在最上层。** 轨 0 盖住轨 1,轨 1 盖住轨 2——Premiere、
@@ -77,11 +103,10 @@ Resolve、FCP 的顺序,与绘画软件的图层堆相反。合成器把索引�
 你要做动画的片段,用同一份 `edit_timeline` 操作清单搭出来。
 
 ```json
-{"op": "add_text_clip", "text": "Maya Chen", "trackId": "<overlay>",
- "startMs": 4000, "durationMs": 3000, "fontSizePx": 64}
-{"op": "add_shape_clip", "shape": {"kind": "rect", "x": 0, "y": 0.72,
- "width": 1, "height": 0.18, "fill": "#000000"}, "startMs": 4000,
- "durationMs": 3000, "opacity": 0.55}
+[
+  {"op":"add_text_clip","text":"Maya Chen","trackId":"<overlay>","startMs":4000,"durationMs":3000,"fontSizePx":64},
+  {"op":"add_shape_clip","shape":{"kind":"rect","x":0,"y":0.72,"width":1,"height":0.18,"fill":"#000000"},"startMs":4000,"durationMs":3000,"opacity":0.55}
+]
 ```
 
 `add_text_clip` 只必须要 `text`;样式字段(`fontSizePx`、`color`、
@@ -93,8 +118,10 @@ Resolve、FCP 的顺序,与绘画软件的图层堆相反。合成器把索引�
 轨道就是 Z 轴顺序,所以它们怎么建很重要:
 
 ```json
-{"op": "add_track", "type": "overlay", "name": "Titles"}
-{"op": "move_track", "target": "Picture", "toIndex": 2}
+[
+  {"op":"add_track","type":"overlay","name":"Titles"},
+  {"op":"move_track","target":"Picture","toIndex":2}
+]
 ```
 
 `add_track` 收 `type`(`video`、`audio`、`overlay`、`subtitle`)和可选
@@ -124,6 +151,10 @@ easing?, params?}`。`mode` 是 `"replace"`(默认)或 `"add"`。
 (500ms;`direction`,`softness` 0–0.5,默认 0.05)、`blur`(500ms;
 `amount` 0–40,默认 12)、`colorFade`(600ms,灰度晕开成彩色)。
 
+仅文字的 `in`——`typewriter` 按阅读顺序逐字揭示。把 `durationMs` 设为
+整个文字出现完的时间。不给它,字符每 65ms 出一个、在片段内出完。要
+定速,用 `durationMs: 1` 配 `stagger: {unit: "character", offsetMs: 40}`。
+
 `emphasis`——`pulse`(600ms;`intensity` 0–0.5,默认 0.06)、`flash`
 (400ms;`intensity` 0–1,默认 0.6)、`shake`(600ms;双轴种子噪声:
 `intensity` 0–0.2 默认 0.02,`frequency` 单位 Hz 默认 8,`seed` 默认 1,
@@ -142,9 +173,11 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 `degrees` 默认 360,`direction` cw/ccw)——它扫的是 3D 片段的摄影机,
 对其他任何片段无效。
 
-缓动:`linear`、`easeIn`、`easeOut`、`easeInOut`、`easeOutBack`、
-`easeOutElastic`、`easeOutBounce`。不设表示预设自己的默认,再没有就用
-角色的——`in` 用 `easeOut`,`out` 用 `easeIn`。这个默认几乎总是对的:
+命名缓动含 `linear`、`easeIn`、`easeOut`、`easeInOut`、`easeOutBack`、
+`easeOutElastic`、`easeOutBounce`,指数、五次与圆形变体
+(`easeOutExpo`、`easeInOutQuint`、`easeOutCirc`),以及让一段保持其
+前一关键帧值直到该段结束的 `hold`。不设表示预设自己的默认,再没有就
+用角色的——`in` 用 `easeOut`,`out` 用 `easeIn`。这个默认几乎总是对的:
 入场减速到位,出场加速离开。只有片子俏皮时才伸手拿 `easeOutBack` 或
 `easeOutElastic`;在商务的东西上它们读起来廉价。
 
@@ -254,14 +287,23 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 **装不进片段的跨度被静默压缩,不是被剪掉。** 引擎收窄的是逐单元偏移
 ——绝不是每词时长——所以最后一个词仍在片段内完成。在只装得下 60ms
 的片段上要 200ms 的偏移,你得到的就是 60ms:每个词照样动画,运动只是
-比你写的更紧、更同时,而什么都不报告。这是错峰字"看起来没有错峰感"
-最常见的原因。算出跨度,拿它对比 `durationMs` 减去一切 `delayMs`,
+比你写的更紧、更同时,`validate_timeline` 会以 `stagger_compressed`
+报出来。这是错峰字"看起来没有错峰感"最常见的原因。算出跨度,拿它对比 `durationMs` 减去一切 `delayMs`,
 装不下就自己加长片段或调低偏移,别让钳制替你选。
 
 `loop` 的错峰是例外:偏移是相位差,所以既不被拉伸也不被钳制。
 
 哪种偏移读起来是质感、哪种读起来是一个词一个词,在 `motion-principles`
 里,连同配着它的行长上限。
+
+几条各自独立的片段,`stagger_animations` 按 `clip_ids` 的顺序平移既有
+动画的延迟,而不挪片段本身。给至少两个不同的片段 ID,每条都已有
+动画,加一个非负的 `offset_ms`。产品内工具是
+`ui_timeline_stagger_animations`,字段相同。
+
+```json
+{"op":"stagger_animations","clip_ids":["logo-id","title-id","tagline-id"],"offset_ms":80}
+```
 
 错峰只作用于文字片段,且只作用于变换与透明度运动。`wipe`、`blur` 和
 `colorFade` 即使设了错峰也保持整块生效——遮罩与效果曲线是逐层的,
@@ -271,11 +313,84 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 字号按序列分辨率编写:1920×1080 序列上的 `fontSizePx`,在任何预览宽度
 下都是同一个意思。
 
+## 文档运动字段
+
+下面的字段属于完整时间线文档里的片段。把它们并进 `get_timeline` 读到
+的片段,保留其余字段与动画,再用 `set_timeline_document` 写完整文档。
+`edit_timeline` 和 `ui_timeline_animate_clip` 不把它们当动画输入收。
+
+`styleTracks` 在与预设相同的动画时窗里动视觉属性。每条存储动画需要
+`id`、`role`、`preset` 和 `durationMs`。目标包括 `text.color`、
+`shape.fill`、`shape.cornerRadius`、`clip.borderRadius`、
+`mask.featherPx`、`effect.<effect-id>.<numeric-field>`、受支持的效果
+颜色(如 `effect.bg-field.colorB`)、渐变档位,以及可变形的 `shape.d`
+或 `mask.d` 路径。片段必须已带目标指向的样式、遮罩或效果。
+`glyph.color` 这类逐字形目标还需要文字 `stagger`。
+
+```json
+{"animations":[{"id":"title-color","role":"in","preset":"fade","durationMs":600,"styleTracks":[{"target":"text.color","keyframes":[{"t":0,"value":"#8bd5ff"},{"t":1,"value":"#ffffff","easing":"easeOutExpo"}]}]}]}
+```
+
+`textAnimator` 在其动画时窗里改文字内容。`ticker` 收 `from`、`to`、
+`decimals`、`padTo`、`prefix` 和 `suffix`。要 `2,847` 这样的分组千位,
+设 `groupSeparator` 为 `","`;不设就保持不分组。`scramble` 收
+`charset` 与确定性的 `seed`。它需要一条文字片段。动画的 `beat` 把它的
+起点绑到活序列速度上从一开始计的拍序号;`scope` 是 `clip` 或
+`sequence`,`offsetMs` 在那个拍附近挪动它。`delayMs` 仍在其上叠加。
+
+```json
+{"id":"count-up","role":"emphasis","preset":"custom","durationMs":900,"beat":{"index":3,"scope":"sequence","offsetMs":-20},"textAnimator":{"kind":"ticker","from":1,"to":7,"padTo":2}}
+```
+
+`animationLinks` 复制一条源片段写好的 `positionX`、`positionY`、
+`scale`、`rotation` 或 `opacity` 通道,可带时间偏移、循环、缩放与
+偏移。`wiggle` 链接不带渲染时脚本也能供出带种子的运动。链接不跟随
+源自己的链接。写入前把每个 `sourceClipId` 对到文档的片段 ID。透明度
+链接替换目标片段自己的透明度,而它的编组与转场覆盖仍会乘进结果。
+
+```json
+{"animationLinks":[{"target":"positionX","sourceClipId":"leader-id","source":"positionX","scale":0.35},{"target":"rotation","kind":"wiggle","amplitude":0.025,"frequencyHz":1.4,"seed":8}]}
+```
+
+`layout` 把片段摆成 `row`、`stack` 或 `relative` 关系。row 或 stack 列
+出子片段 ID;relative 片段用 `targetClipId`、`side` 和可选的 `fitText`
+内边距。`repeater.count` 含原片段本身,封顶 128。`timeStepMs` 让每个
+副本在时间上错开。这些是片段上的字段,不是要手工新增的片段记录。
+
+```json
+{"layout":{"kind":"row","children":["logo-id","wordmark-id"],"gapPx":24},"repeater":{"count":3,"positionStep":{"x":180,"y":0},"timeStepMs":67}}
+```
+
+`camera2d` 是序列文档字段。它需要 `position`、`depthPx` 和正的
+`focalLengthPx`。关键帧用绝对 `timeMs`,含位置与深度。给片段既有的
+`transform` 加 `depthPx` 得到透视;`focusDepthPx` 与 `aperturePx` 加
+景深模糊。`camera2d: null` 清掉摄影机。
+
+倾斜的卡片墙:共享倾角用父编组的 `rotation`、`rotationX` 和
+`perspective`,分离平面用每张卡的 `depthPx` 与滚动动画,推进与景深
+模糊用 `camera2d`。形状的归一化几何保持在画面大小的源栅格之内。用
+`transform.position` 或自定义 `offsetX`/`offsetY` 曲线移动片段或编组
+来滚动或飞越画面;栅格之外的几何在变换摆放它之前就被裁掉。
+
+```json
+{"camera2d":{"position":{"x":0,"y":0},"depthPx":0,"focalLengthPx":1400,"keyframes":[{"timeMs":0,"position":{"x":0,"y":0},"depthPx":0},{"timeMs":1200,"position":{"x":90,"y":-20},"depthPx":120}]}}
+```
+
+`motionBlur` 逐片段:`samplesPerFrame` 1–32,`shutterAngle` 0–360 度。
+一个采样就对该片段禁用模糊。更高的数是下限;场景按请求中的最高数
+渲染,采样在每层自己的快门窗内均匀加权。`steppedTime.fps` 量化片段的
+源与动画时钟。`temporalEcho` 通过 `copies`、`intervalMs` 和
+`opacityDecay` 加延迟副本。
+
+```json
+{"motionBlur":{"samplesPerFrame":8,"shutterAngle":180},"steppedTime":{"fps":12},"temporalEcho":{"copies":3,"intervalMs":80,"opacityDecay":0.5}}
+```
+
 ## 编组
 
-`{"op": "add_group", "name": "Lower third", "startMs": 4000, "durationMs":
-4000, "children": [...]}` 造出一条没有媒体的片段,凡点名它的片段都
-继承它的变换、不透明度与时窗。`{"op": "set_parent", "target":
+`{"op":"add_group","name":"Lower third","startMs":4000,"durationMs":4000,"children":["name-id","role-id"]}`
+造出一条没有媒体的片段,凡点名它的片段都继承它的变换、不透明度与
+时窗。`{"op": "set_parent", "target":
 "Name plate", "parentId": "<group id>"}` 收养一条已存在的片段;
 `"parentId": null` 解除它,成环会被拒。
 
@@ -284,11 +399,10 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 加一次 `fade` 出,整套一起动、部件彼此锁死;分开做动画则是三次各自
 漂移的机会。
 
-子元素保留自己的轨道,所以编组不改变谁盖住谁。编组的不透明度乘进
-每个子元素,一个普通编组做的也就这么多——但带着效果或 `normal` 以外
-混合模式的编组,会先把子元素合成成一个画面,效果跑在装配好的整体
-上,而不是每个子元素各跑一次。`glow` 放编组上是整体观感,放子元素上
-只属于那个子元素。
+子元素保留自己的轨道,所以编组不改变谁盖住谁。普通编组的不透明度
+乘进每个子元素。带效果、非 `normal` 混合模式或转场的编组,会先把
+子元素预合成到一个画面上,效果或转场随后在装配好的整体上跑一次。
+`glow` 放编组上是整体观感,放子元素上只属于那个子元素。
 
 `parent_missing`、`parent_not_group` 和 `parent_cycle` 都意味着子元素按
 无父级渲染,丢掉编组的变换、不透明度与时窗。
@@ -296,7 +410,10 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 ## 转场
 
 转场在两条片段之间,不在一条片段上。它写在**进场**片段上,为双方
-解析:合成器找到它同轨下方的那条片段,把剪切的另一半交给它。
+解析:合成器找到它同轨下方的那条片段,把剪切的另一半交给它。进场
+片段可以是编组:编组上的 `set_transition` 让整个预合成装配过场,子
+元素仍挂在各自的轨道上。它的出场搭档是同一父级下、编组轨道上前一
+条重叠的兄弟。
 
 同轨两条片段时间重叠,重叠段自动叠化,完全不需要工具调用。推论:
 **意外重叠就是意外叠化。**想要硬切却看着发软时,先查 `startMs` 和
@@ -316,9 +433,15 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 | `push` | 两条片段一起走一个画面宽 | 横向能量;两条读起来是一张移动的画面 |
 | `slide` | 只有进场那条在走 | 新镜头压在一条保持不动的镜头上到来 |
 | `zoom` | 出场的放大,进场的从 0.8 进来 | 朝下一拍的推进 |
+| `whip`、`zoomBlur` | 横向甩切或缩放切上的运动模糊 | 快速镜头能量 |
+| `glitch` | 位移的数字剪切 | 刻意的电子断裂感 |
+| `gradientWipe`、`iris` | 空间阈值或光圈揭示 | 设计感的图形转场 |
+| `lightLeak` | 跨剪切铺开的局部色场 | 漏光般的桥接 |
 
-`wipe`、`push` 和 `slide` 的 `direction` 点名**进场片段从哪条边来**,
-与 `wipe` 动画用的是同一套词汇。`easing` 收完整语法——命名 id、
+`wipe`、`push`、`slide`、`whip` 和 `gradientWipe` 的 `direction` 点名
+进场的那条边。`gradientWipe` 另收 `map: "linear" | "radial" |
+"noise"`、`scale`、`seed` 和 `softness`;`iris` 收 `softness`;
+`lightLeak` 收 `color`、`scale` 和 `seed`。`easing` 收命名 id、
 `cubic-bezier(...)` 或 `spring(...)`。
 
 `set_clip_params` 上的 `fadeInMs` 与 `fadeOutMs` 是音频淡入淡出。合成器
@@ -351,17 +474,20 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 
 ## 片段效果
 
-`{"op": "set_effects", "target": "Shot 2", "effects": [{"type": "glow",
-...}, {"type": "vignette", ...}]}` 替换整条效果链并按给定顺序生效;
-空列表清空。类型有 `color`、`blur`、`glow`、`dropShadow`、`vignette`、
-`sharpen`、`chromaKey`、`curves`、`levels` 和 `liftGammaGain`。本构建
-应用不了的一种报 `unknown_effect`,图层按未调色绘制。
+`set_effects` 替换整条效果链并按给定顺序生效;空列表清空。工具在
+`color`、`blur`、`glow`、`dropShadow`、`vignette`、`sharpen`、
+`chromaKey`、`curves`、`levels`、`liftGammaGain` 之外,还收
+`pixelate`、`posterize`、`directionalBlur`、`lensDistortion`、
+`stylize`、`generator`、`lut` 和 `grain`。它的扁平输入用
+`{type, ...typeFields}`。它自己分配效果 id 并启用每个效果;不收存储态
+的 `id` 或 `enabled` 字段。认不出的类型,`validate_timeline` 报
+`unknown_effect`。宿主供出离屏面时,Canvas 2D 预览经 CPU 遍应用全部
+已知效果。`preview_timeline_frame.effects_not_applied` 列出未知类型;
+`degraded` 报缺失的离屏面与其他绘制限制。
 
-帧预览是 2D 合成器,不是 GPU 那个。它把 `color` 与 `blur` 映射到画布
-滤镜,而对 `chromaKey`、`vignette`、`sharpen`,以及 `color` 效果的
-`temperature` 与 `tint` 字段没有等价物,所以它把这些列进
-`effects_not_applied`,而不是悄悄丢弃。运动不受影响。那些观感用渲染
-判断,不用预览的帧。
+```json
+{"op":"set_effects","target":"Shot 2","effects":[{"type":"grain","amount":0.12,"size":1.1},{"type":"stylize","mode":"dither","amount":1,"seed":4}]}
+```
 
 ## 时间重映射
 
@@ -380,19 +506,24 @@ cw/ccw)、`hueShift`(3000ms;`direction` 正向/反向)、`orbit`(3000ms;
 ## 构图
 
 构图是存成可复用架子、带命名参数的一个编组。`list_compositions` 报告
-有哪些,`get_composition` 显示一套架子的参数与默认值,而 `{"op":
-"insert_composition", "composition_id": "lower-third", "startMs": 4000,
-"trackId": "<id>", "params": {...}}` 把它以全新的片段 id 实例化进文档。
+有哪些,`get_composition` 显示一套架子的参数与默认值,而
+`{"op":"insert_composition","composition_id":"lower-third","startMs":4000,"params":{"name":"Ada"}}`
+把它以全新的片段 id 实例化进文档。参数名用 `get_composition` 返回的;
+这里的 `name` 只是示例。
 
-出厂六套:`title-card`、`lower-third`、`caption-bar`、`callout`、
-`cta-end-card`、`logo-sting`。
+随包示例包括 `title-card`、`lower-third`、`caption-bar`、`callout`、
+`cta-end-card`、`logo-sting`、`title-slam`、`word-cards`、
+`window-frame` 和 `number-ticker`。当前工作区有哪些模板,用
+`list_compositions` 查。
 
 先插入,再覆写 `params`。架子的时序与动效已经互相调平,从裸片段重建
 就是把它扔掉。只在简报真的不同的地方,编辑实例化出来的片段。
 
-你手工搭的观感一旦被用户认可,`save_composition {timeline_id,
-group_target, name, params}` 就把那个编组提取成可再次插入的构图。认可
-时提取,不是第一版就提取。
+一个编组要被复用时,`save_composition
+{timeline_id, group_target, name, params}` 把它提取成构图。`params`
+把名字映射到带类型的默认值和指向子字段的 JSON 指针。
+`insert_composition` 重映射编组与子片段 ID——包括内部的 layout 与
+animation link——同时保留对构图之外片段的引用。
 
 ## 卡点剪切
 
@@ -401,7 +532,7 @@ group_target, name, params}` 就把那个编组提取成可再次插入的构图
 之前先读曲速的 `reliable` 标志:语音和房间底噪会凭空算出一个一脸可信
 的数字。
 
-`{"op": "set_markers_from_beats", "onsets_ms": [...], "count": 32}` 把
+`{"op":"set_markers_from_beats","onsets_ms":[0,500,1000],"count":3}` 把
 网格铺下来让你看得见。`{"op": "snap_to_beats", "targets": "all",
 "tolerance_ms": 60, "mode": "start", "action": "move"}` 把片段边缘拉上
 去。两者要么收 `onsets_ms`,要么收带 `offset_ms` 的 `bpm`。
@@ -431,7 +562,8 @@ group_target, name, params}` 就把那个编组提取成可再次插入的构图
 | `parent_cycle` | 错误 | `parentId` 链成环,编组完全解析不出来。断开环 |
 | `matte_source_missing` | 错误 | 遮罩点名的片段文档里没有,或点名了它自己。图层按无遮罩绘制,把遮罩本来要藏的一切亮出来 |
 | `time_remap_not_monotonic` | 错误 | `t` 重复或倒退。`sourceMs` 可以递减——那是倒放——但 `t` 不行 |
-| `custom_animation_invalid` | 错误 | `preset: "custom"` 的动画既没带 `curves` 也没带 `code`,或两个都带,或带了一条编译器读不了的曲线。该动画一无所跑。恰好发一个,`t` 从 0 升到 1 |
+| `custom_animation_invalid` | 错误 | 存储的 `preset: "custom"` 动画的数值烘焙曲线不可用,且没有可渲染的样式轨或文字动画器。重烘焙曲线,或补一条有效的类型化轨 |
+| `animation_style_invalid` | 错误 | 样式目标没有匹配的片段样式、路径不能变形、颜色解析不了,或字形轨缺文字错峰。修目标或修片段样式 |
 | `animation_exceeds_clip` | 警告 | 时窗在延迟之后装不进片段,运动被钳制或干脆不跑。缩短 `durationMs`、砍延迟,或加长片段 |
 | `stagger_compressed` | 警告 | 单元装不下,逐单元偏移被收窄。这一行落得比你写的更快更平。缩短逐单元 `durationMs` 或给片段更多时间 |
 | `replace_curves_overlap` | 警告 | 两条动画同时驱动一条绝对通道(`positionX/Y`、`anchorX/Y`、`trimStart/End`)。文档顺序里最后那条赢,其余被丢弃。在时间上分开,或折成一条曲线 |
@@ -487,18 +619,17 @@ group_target, name, params}` 就把那个编组提取成可再次插入的构图
 结束时仍在收尾的错峰、盖住了本该挨着它的脸的压暗层、因为片段挂在
 音频轨上而永远不出现的元素。
 
-每帧还带一份 `degraded` 清单:2D 合成器与 GPU 画得不一样的地方。因为
-羽化不了而画成硬边的遮罩边缘、被跳过的轨道遮罩、编组丢掉的混合
-模式、没有软边的擦除、超出它能叠放的那一个之外的投影——每一条都在
-那里点名,而不是悄悄丢弃。Canvas 2D 对不上 GPU 的加法调色时,它会
-报告自己实际画出的亮度。运动与布局不受影响;那些观感用渲染判断。
+每帧带 `degraded` 条目:Canvas 2D 宿主画不出来的差异,比如缺失的
+离屏面、硬边的遮罩,或不支持的透视变换。先读实际条目,再决定画面
+哪一部分需要 GPU 渲染。已知片段效果都有 CPU 遍。
 
 哪一层什么都没画时,读它的 `skipped` 字段——它说片段还是 `draft`、
 素材读不出,还是素材在那个时刻没有帧。缺画面通常是一条没渲染的
 片段,不是运动 bug。
 
-`effects_not_applied` 点名帧预览画不出的效果类型——色度键、暗角、
-锐化。运动不受影响;别用预览的帧判断那些观感。
+`effects_not_applied` 点名 Canvas 2D 合成器不认识的已启用效果类型。
+色度键、暗角、锐化、LUT 这类已知效果应该在帧预览里渲染;缺的是
+离屏面时,出现在 `degraded` 里。
 
 ## 迭代与渲染
 

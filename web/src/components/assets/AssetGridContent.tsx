@@ -28,6 +28,7 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
+import { useTranslation } from "react-i18next";
 import AssetListView from "./AssetListView";
 import { EmptyState, LoadingSpinner, getSpacingPx, SPACING } from "../ui_primitives";
 import { i18n } from "../../i18n";

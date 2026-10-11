@@ -52,6 +52,7 @@ import { WorkflowReviewStep } from "./ReviewStep";
 import { WorkflowSetupStep } from "./SetupStep";
 import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const FLOW_LABELS = { title: "Workflow" } as const;
 
@@ -102,6 +103,7 @@ export const useWorkflowSetupFlow = ({
   onImport,
   onFinish
 }: WorkflowSetupFlowOptions): WorkflowSetupFlowResult => {
+  const { t } = useTranslation();
   const stage = useWorkflowSetupStage(workflowId);
   const setup = useWorkflowSetupDocument(workflowId);
   const { setSetup } = useWorkflowSetupWriter(workflowId);
@@ -318,7 +320,7 @@ export const useWorkflowSetupFlow = ({
           ? undefined
           : {
               result: "Draft a plan of inputs, processing steps and outputs",
-              next: "Review the proposed nodes and required models next. Build places the nodes later; this click does not run the workflow.",
+              next: t("storyboard:attrs.reviewTheProposedNodesAndRequiredModelsNextBuildPlacesTheNodesLaterThisClickDoesNotRunTheWorkflow", { defaultValue: "Review the proposed nodes and required models next. Build places the nodes later; this click does not run the workflow." }),
               model: plannerModel,
               brief,
               maxOutputTokens: 4096,
@@ -391,7 +393,7 @@ export const useWorkflowSetupFlow = ({
         // to read its wait: the creator cannot continue to setup while the
         // plan they are reading is being replaced (F2).
         pending: planning,
-        pendingLabel: "Re-planning the steps",
+        pendingLabel: t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" }),
         render: () =>
           createElement(WorkflowReviewStep, {
             plan,
@@ -427,14 +429,14 @@ export const useWorkflowSetupFlow = ({
       {
         stage: "setup",
         label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
-        primaryLabel: "Build your workflow",
+        primaryLabel: t("storyboard:attrs.buildYourWorkflow", { defaultValue: "Build your workflow" }),
         // The label the PRD fixes (Appendix A) names the build, and § 11.3
         // makes the run part of it. The line beside the button says so before
         // the click; the step's own "Before you build" block carries the
         // models and the sample inputs that run will use (F1).
-        primaryDetail: "Builds, checks, then runs it once",
+        primaryDetail: t("storyboard:attrs.buildsChecksThenRunsItOnce", { defaultValue: "Builds, checks, then runs it once" }),
         pending: building,
-        pendingLabel: "Building the graph, then running it once",
+        pendingLabel: t("storyboard:attrs.buildingTheGraphThenRunningItOnce", { defaultValue: "Building the graph, then running it once" }),
         render: () =>
           createElement(WorkflowSetupStep, {
             plan,
@@ -485,6 +487,7 @@ export const useWorkflowSetupFlow = ({
       exampleError,
       handlePickExample,
       hasPinnedPlan,
+      t,
       pickingExampleId,
       buildFromPlan,
       cancelBuild,

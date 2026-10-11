@@ -50,6 +50,15 @@ frames_per_beat = (60 / bpm) × fps          # fps comes from get_timeline
 `action: "trim"` 改变长度、不动邻居。标题必须落在某个冲击点上就用 move;
 画面片段的出点必须接住下一镜就用 trim。
 
+对于应该跟随速度变化的动画,在动画上存一个 `beat` 锚点:
+`{index: 3, scope: "clip", offsetMs: -20}` 从片段开头数起;
+`scope: "sequence"` 从文档速度的 `offsetMs` 数起。`index` 从一开始计,
+`delayMs` 再叠加一个偏移。这不同于吸附片段边缘,也不同于烘焙实测音频曲线。
+`animate_clip` 的工具输入不接受 `beat`;要写入动画的 `beat`,用
+`set_timeline_document` 写整份文档。已存的动画需要 `id`、`role`、`preset`
+和 `durationMs`;加 `beat` 时这些字段和动画的其余部分都要保留。写入时把
+文档的速度、设置、媒体轨、模板标识、片段、轨道和标记一并带上。
+
 ## 按乐句剪,不按单拍剪
 
 每一拍都剪一刀让人喘不过气,观众到第八拍就疲了。按 2、4 或 8 拍剪,第八
@@ -129,6 +138,19 @@ J 切和 L 切靠把画面和声音拆到不同片段来搭,不靠转场:装配�
 
 `set_clip_params` 的 `speedMultiplier` 是扁平替代:整条片段一个速率,
 没有曲线。不需要起伏时用它。
+
+要做节奏质感,`steppedTime: {fps}` 把单条片段的采样时钟量化;
+`temporalEcho: {copies, intervalMs, opacityDecay}` 画出延迟的副本,
+不用手工复制片段就能让尾迹拖过一个冲击点。片段的 `motionBlur` 为自己
+的快门窗口设定 `samplesPerFrame` 和 `shutterAngle`。高于 1 的值是场景
+采样数的下限请求;场景取所有请求中的最大值,封顶 32,并在各自的快门内
+对每层均匀采样。这些字段要设在完整的时间线文档里;`set_clip_params`
+会拒绝它们。
+
+如果运动必须跟随真实音频包络或检测出的起振,用 `bake_audio_animation`。
+它通过 `set_baked_animation` 写入一条带 `bakedFrom` 出处的、锚定源素材
+的曲线;重新烘焙会替换那条实测曲线。拍点锚点则从文档速度重新计算时间,
+而标记和 `snap_to_beats` 移动的是编辑点。
 
 ## 动手前先写计划
 

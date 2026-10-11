@@ -27,6 +27,7 @@ import {
 } from "../../../stores/script/ScriptStore";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
+import { i18n } from "../../../i18n";
 import {
   DEFAULT_LENGTH_SECONDS,
   FORMAT_CARDS,
@@ -50,10 +51,10 @@ const LENGTH_CARD_WIDTH = 96;
 const customSecondsError = (draft: string): string | null => {
   const value = Number(draft.trim());
   if (draft.trim() === "" || !Number.isFinite(value)) {
-    return `Enter a whole number of seconds, ${MIN_CUSTOM_SECONDS}–${MAX_CUSTOM_SECONDS}.`;
+    return i18n.t("storyboard:attrs.enterAWholeNumberOfSecondsMinMax", { defaultValue: "Enter a whole number of seconds, {{min}}–{{max}}.", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS });
   }
   if (value < MIN_CUSTOM_SECONDS || value > MAX_CUSTOM_SECONDS) {
-    return `Scripts run between ${MIN_CUSTOM_SECONDS} seconds and ${MAX_CUSTOM_SECONDS / 60} minutes.`;
+    return i18n.t("storyboard:attrs.scriptsRunBetweenMinSecondsAndMaxMinutes", { defaultValue: "Scripts run between {{min}} seconds and {{max}} minutes.", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS / 60 });
   }
   return null;
 };
@@ -225,7 +226,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
                 error={customError !== null}
                 helperText={
                   customError ??
-                  `${MIN_CUSTOM_SECONDS}–${MAX_CUSTOM_SECONDS} seconds`
+                  i18n.t("storyboard:attrs.minMaxSeconds", { defaultValue: "{{min}}–{{max}} seconds", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS })
                 }
                 onChange={handleCustom}
                 onBlur={commitCustom}

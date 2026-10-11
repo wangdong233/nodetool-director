@@ -4,7 +4,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { MOTION, BORDER_RADIUS, FONT_WEIGHT, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 const styles = (theme: Theme) =>
   css({
     "&": {

@@ -330,10 +330,11 @@ const TemplateRow = memo(function TemplateRow({
         <span className="tpl-compat">
           <CompatibilityDetails compatibility={compatibility} />
           {workflow.graph.nodes.length > 0 && (
-<span>{t("editor:ui.durationUnknownExecutionTimeIsNotDeclared", { defaultValue: "Duration: unknown — execution time is not declared" })}</span>
-            <span>{formatTemplateCost(costEstimate)}</span>
-          )}          <span>{formatTemplateCost(costEstimate)}</span>
->>>>>>> 4c4afdc4f1 (i18n(d4): timeline/editor expression wiring + frozen-table consumers (checkpoint 2/3))
+            <>
+              <span>{t("editor:ui.durationUnknownExecutionTimeIsNotDeclared", { defaultValue: "Duration: unknown — execution time is not declared" })}</span>
+              <span>{formatTemplateCost(costEstimate)}</span>
+            </>
+          )}
         </span>
         {category && (
           <span className="tpl-cat">

@@ -1002,8 +1002,7 @@
     "storyboardAssistantWelcome": "让我来执导这块分镜板——例如“把这份简报拆成六个镜头”“在镜头 3 后加一个特写”“为每个计划镜头生成关键帧”，或“把这些镜头装配成时间线”。",
     "newStyleAppliesToEveryShot": "新风格会应用到每个镜头。已渲染的静帧和片段会标记为过期——在你主动要求前不会重新渲染。",
     "customStylesAreAddedWhileSettingUpABoard": "自定义风格在分镜创建流程中添加。",
-    "downloadThis": "下载此{{kind}}",
-    "downloadKind": "下载{{kind}}",
+    "downloadThis": "下载{{kind}}",
     "templateLower": "模板"
   }
 }

@@ -33,6 +33,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import type { UploadFirstLayerResult } from "../../../hooks/sketch/useUploadFirstLayer";
 import { readEntityIds, readReferences } from "./setupContext";
+import { useTranslation } from "react-i18next";
 
 /**
  * Three briefs that read like something a person would type. The storyboard
@@ -73,6 +74,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartBlank,
   upload
 }) => {
+  const { t } = useTranslation();
   const brief = useSketchStore((state) => state.document.setup?.brief ?? "");
   const setup = useSketchStore((state) => state.document.setup);
   const setSetup = useSketchStore((state) => state.setSetup);
@@ -114,21 +116,21 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: i18n.t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" }),
+        title: t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" }),
         description:
-          i18n.t("storyboard:attrs.opensTheEditorImmediatelyWithYourImageAsTheFirstLayerSkipsTheGuidedBriefPngJpegWebpOrGif", { defaultValue: "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF." }),
+          t("storyboard:attrs.opensTheEditorImmediatelyWithYourImageAsTheFirstLayerSkipsTheGuidedBriefPngJpegWebpOrGif", { defaultValue: "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF." }),
         onSelect: () => fileInput.current?.click(),
         disabled: upload.uploading,
-        disabledReason: upload.uploading ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
+        disabledReason: upload.uploading ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
-        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: i18n.t("editor:ui.skipBriefPaintItYourself", { defaultValue: "Skip the brief and paint it yourself" }),
+        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: t("editor:ui.skipBriefPaintItYourself", { defaultValue: "Skip the brief and paint it yourself" }),
         onSelect: onStartBlank
       }
     ],
-    [onStartBlank, upload.uploading]
+    [onStartBlank, t, upload.uploading]
   );
 
   return (
@@ -173,7 +175,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {references.length > 0 || entityNames.length > 0 ? (
           <FlexColumn gap={GAP.normal}>
             <Text size="small" component="h3">
-              {i18n.t("editor:ui.cameWithYourPrompt")}
+              {t("editor:ui.cameWithYourPrompt")}
             </Text>
             {references.length > 0 ? (
               <FlexRow
@@ -210,8 +212,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             ) : null}
             <Caption color="secondary">
               {references.length > 0
-                ? i18n.t("storyboard:attrs.theRefinementReadsTheseWhenItWritesYourBrief", { defaultValue: "The refinement reads these when it writes your brief." })
-                : i18n.t("storyboard:attrs.theseStayWithTheDocumentAsYouSetItUp", { defaultValue: "These stay with the document as you set it up." })}
+                ? t("storyboard:attrs.theRefinementReadsTheseWhenItWritesYourBrief", { defaultValue: "The refinement reads these when it writes your brief." })
+                : t("storyboard:attrs.theseStayWithTheDocumentAsYouSetItUp", { defaultValue: "These stay with the document as you set it up." })}
             </Caption>
           </FlexColumn>
         ) : null}

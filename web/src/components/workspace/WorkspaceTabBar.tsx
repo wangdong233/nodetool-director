@@ -860,7 +860,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "view"}
               onClick={() => setMode(activeTab.id, "view")}
             >
-              {t("editor:ui.view", { defaultValue: "View" })}
+              {i18n.t("editor:ui.view", { defaultValue: "View" })}
             </button>
             <button
               type="button"
@@ -868,7 +868,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "edit"}
               onClick={() => setMode(activeTab.id, "edit")}
             >
-              {t("editor:ui.edit", { defaultValue: "Edit" })}
+              {i18n.t("editor:ui.edit", { defaultValue: "Edit" })}
             </button>
           </div>
         )}

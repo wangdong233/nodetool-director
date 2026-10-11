@@ -31,6 +31,8 @@ import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupFooterField } from "../SetupFooterField";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameTemplateStepProps {
   templates: readonly GameTemplate[];
@@ -70,7 +72,12 @@ const TemplateStepInternal: React.FC<GameTemplateStepProps> = ({
   selectedId,
   onSelect
 }) => {
-  const cards = useMemo(() => templateCards(templates), [templates]);
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
+  const cards = useMemo(
+    () => templateCards(templates, t),
+    [templates, t, languageVersion]
+  );
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
@@ -78,8 +85,7 @@ const TemplateStepInternal: React.FC<GameTemplateStepProps> = ({
           Choose your game&apos;s loop
         </Text>
         <Text size="normal" color="secondary">
-          The template decides the asset slots your game needs and the code it
-          ships with. You can change it before the design is written.
+          {t("storyboard:attrs.theTemplateDecidesTheAssetSlotsYourGameNeedsAndTheCodeItShipsWith", { defaultValue: "The template decides the asset slots your game needs and the code it ships with. You can change it before the design is written." })}
         </Text>
       </FlexColumn>
       {loading && cards.length === 0 ? (

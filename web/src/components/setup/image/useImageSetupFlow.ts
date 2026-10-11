@@ -34,6 +34,7 @@ import { BriefModelFooterField } from "./BriefModelSelect";
 import { ReviewStep } from "./ReviewStep";
 import { UseCaseStep } from "./UseCaseStep";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** A document's stage, with the field's absence read as `done` (PRD § 6.4). */
 export const useImageSetupStage = (): SketchSetupStage =>
@@ -62,6 +63,7 @@ export const useImageSetupFlow = ({
   onGenerated,
   onFinish
 }: ImageSetupFlowOptions): ImageSetupFlow => {
+  const { t } = useTranslation();
   const stage = useImageSetupStage();
   const setSetup = useSketchStore((state) => state.setSetup);
   const brief = useSketchStore((state) => state.document.setup?.brief ?? "");
@@ -160,7 +162,7 @@ export const useImageSetupFlow = ({
         label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: briefIsCurrent
           ? "Continue to the brief"
-          : "Refine the brief",
+          : t("storyboard:attrs.refineTheBrief", { defaultValue: "Refine the brief" }),
         canAdvance: (useCase ?? "").length > 0,
         blockedReason: "Pick an image use case",
         pending: refining,
@@ -220,6 +222,7 @@ export const useImageSetupFlow = ({
       look,
       onGenerated,
       promptIsWritable,
+      t,
       reRefine,
       refine,
       refineError,

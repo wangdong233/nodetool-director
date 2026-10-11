@@ -55,6 +55,7 @@ import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions
 import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
+import { useTranslation } from "react-i18next";
 
 export interface LookStepProps {
   boardId: string;
@@ -210,6 +211,7 @@ export const LookStep: React.FC<LookStepProps> = ({
   readOnly = false,
   blockedReason
 }) => {
+  const { t } = useTranslation();
   const [addingStyle, setAddingStyle] = useState(false);
   const customStyle = useCustomStyle(boardId);
   const style = useStoryboardStore(
@@ -363,7 +365,7 @@ export const LookStep: React.FC<LookStepProps> = ({
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title={i18n.t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
+        <AlertBanner severity="info" title={t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}

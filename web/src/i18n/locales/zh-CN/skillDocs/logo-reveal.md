@@ -73,6 +73,21 @@
 一次 `fade` 出,好过给各部件三次各自漂散的机会。编组的不透明度会乘进
 每个子元素。
 
+部件已有动画时,`{"op": "stagger_animations",
+"clip_ids": ["mark-id", "wordmark-id", "tagline-id"], "offset_ms": 100}`
+按这个顺序补延迟,而不动它们的媒体。要用片段 ID,至少两条,并且先给
+每条选中的片段配好动画。第一条保持自己的延迟不变。一片重复的同款
+标识,用文档的 `repeater` 在一条片段上设副本数、位置步长与时间步长。
+图样用 repeater,需要独立画面的部件用各自的片段。
+
+跟随者要与标识对齐,就在它的片段上存 `animationLinks`,让它读标识的
+位置、缩放、旋转或透明度。链接跟随源写好的动画,且不会再链向其他
+链接。字标的位置要跟着标识变化的盒子走,用
+`layout: {kind: "relative", targetClipId: "<mark-id>", side: "right"}`;
+`fitText` 可以按字标给背板定尺寸。这些都是文档字段,先用
+`get_timeline` 读、再用 `set_timeline_document` 写完整文档。
+`set_clip_params` 拒绝 `repeater`、`animationLinks` 和 `layout`。
+
 ## 字标排版
 
 一个带错峰的文字片段。短标识按字符;带标语的标准字组合按词:
@@ -113,6 +128,13 @@ startMs>, "params": {"intensity": 0.04}}`。
 定格若脱离声音悬空,即便两者都好,观感也廉价。整张结尾卡都要落在网格
 上时,`snap_to_beats` 是粗钝但管用的版本。
 
+标识要在序列速度变化后仍卡在拍上,就在完整文档里给它的动画放一个
+`beat: {index, scope: "sequence", offsetMs?}` 锚点。index 从一开始计,
+`delayMs` 在其上再叠加。`animate_clip` 工具输入不收 `beat`。加它的时候
+保留已存动画的 `id`、`role`、`preset` 和 `durationMs`。若真源是声音
+标识实测的起振,就保留绝对延迟,或改用 `bake_audio_animation` 做
+音频驱动的运动。
+
 ## 待机循环
 
 给会等待的加载动画或闪屏一个低幅 `loop`:`breathe`,`intensity`
@@ -126,6 +148,13 @@ startMs>, "params": {"intensity": 0.04}}`。
 屏幕上最后的东西是静止的标识。演绎完成后再留至少 800ms 什么都不动——
 刚落定就切的结尾卡,观感像失误。2500ms 的片段配 1100ms 勾画加 220ms
 强调刚好满足;要核对,不要想当然。
+
+## 合适时从骨架起步
+
+`list_compositions` 和 `get_composition` 展示随产品发布的 `logo-sting`
+骨架及其参数。`insert_composition` 把它作为编组放入,片段 ID 全新。
+改它的时序或错峰它的部件之前,先查看这些 ID。排印式演绎用
+`title-slam` 或 `word-cards` 示例;它们是起步文档,不是工具预设。
 
 ## 检查
 

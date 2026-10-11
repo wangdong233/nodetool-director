@@ -59,6 +59,7 @@ import {
   readLookSelection,
   styleChoicePatch
 } from "./lookSelection";
+import { useTranslation } from "react-i18next";
 
 /** Which of the model list's answers the step got (F14). */
 export type ModelAvailability =
@@ -103,6 +104,7 @@ export interface LookStepControls {
  * path to fill it in.
  */
 export function useLookStep(): LookStepControls {
+  const { t } = useTranslation();
   const setup = useSketchStore((state) => state.document.setup);
   const setSetup = useSketchStore((state) => state.setSetup);
   const remembered = useLastModelStore((state) => state.byKind.image);
@@ -229,20 +231,20 @@ export function useLookStep(): LookStepControls {
 
   const blockedReason =
     availability === "loading"
-      ? i18n.t("storyboard:attrs.loadingTheImageModels", { defaultValue: "Loading the image models…" })
+      ? t("storyboard:attrs.loadingTheImageModels", { defaultValue: "Loading the image models…" })
       : availability === "error"
-        ? i18n.t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" })
+        ? t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" })
         : availability === "no-provider"
-          ? i18n.t("storyboard:attrs.connectAnImageProviderFirst", { defaultValue: "Connect an image provider first" })
+          ? t("storyboard:attrs.connectAnImageProviderFirst", { defaultValue: "Connect an image provider first" })
           : availability === "no-model"
-            ? i18n.t("storyboard:attrs.noImageModelCanRenderAPictureYet", { defaultValue: "No image model can render a picture yet" })
+            ? t("storyboard:attrs.noImageModelCanRenderAPictureYet", { defaultValue: "No image model can render a picture yet" })
             : modelMissing
-              ? i18n.t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" })
+              ? t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" })
               : sizePresets.length === 0
-                ? i18n.t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" })
+                ? t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" })
                 : sizeUnsupported
-                  ? i18n.t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" })
-                  : i18n.t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" });
+                  ? t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" })
+                  : t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" });
 
   return {
     styleChoice: persisted.styleChoice,
@@ -272,6 +274,7 @@ const ModelListState: React.FC<{
   availability: ModelAvailability;
   onRetry: () => void;
 }> = ({ availability, onRetry }) => {
+  const { t } = useTranslation();
   if (availability === "loading") {
     return (
       <FlexRow gap={GAP.normal} align="center">
@@ -299,8 +302,7 @@ const ModelListState: React.FC<{
   if (availability === "no-provider") {
     return (
       <AlertBanner severity="warning">
-        No image provider is connected. Add one in Settings, then try again —
-        your brief and look are saved with the document.
+        {t("storyboard:attrs.noImageProviderIsConnectedAddOneInSettingsThenTryAgain", { defaultValue: "No image provider is connected. Add one in Settings, then try again — your brief and look are saved with the document." })}
       </AlertBanner>
     );
   }
@@ -313,8 +315,7 @@ const ModelListState: React.FC<{
         </EditorButton>
       }
     >
-      None of the connected providers offers a model that renders a picture
-      from text.
+      {t("storyboard:attrs.noneOfTheConnectedProvidersOffersAModelThatRendersAPictureFromText", { defaultValue: "None of the connected providers offers a model that renders a picture from text." })}
     </AlertBanner>
   );
 };
@@ -371,6 +372,7 @@ export const ImageModelFooterField: React.FC<{
 };
 
 export const LookStep: React.FC<LookStepProps> = ({ look }) => {
+  const { t } = useTranslation();
   const canvas = useSketchStore((state) => state.document.canvas);
   const resizeCanvas = useSketchStore((state) => state.resizeCanvas);
   const { data: presets } = useStylePresets();
@@ -430,7 +432,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
           Size
         </Text>
         <OptionCardGrid
-          label={i18n.t("ui2:attrs.size", { defaultValue: "Size" })}
+          label={t("ui2:attrs.size", { defaultValue: "Size" })}
           options={sizeOptions}
           selectedId={selectedSizeId}
           onSelect={handleSize}
@@ -449,8 +451,8 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
           onSelect={handleStyle}
           onAddOwn={noop}
           addOwnOptionId={NO_STYLE_ID}
-          addOwnLabel="No style"
-          addOwnDescription="Render exactly what the brief says"
+          addOwnLabel={t("storyboard:attrs.noStyle", { defaultValue: "No style" })}
+          addOwnDescription={t("storyboard:attrs.renderExactlyWhatTheBriefSays", { defaultValue: "Render exactly what the brief says" })}
         />
       </FlexColumn>
 
@@ -459,7 +461,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
       {availability === "ready" ? (
         modelMissing ? (
           <AlertBanner severity="warning">
-            {`${look.model} is not offered by any connected provider. Pick another model.`}
+            {t("storyboard:attrs.modelIsNotOfferedByAnyConnectedProvider", { defaultValue: "{{model}} is not offered by any connected provider. Pick another model.", model: look.model })}
           </AlertBanner>
         ) : null
       ) : (

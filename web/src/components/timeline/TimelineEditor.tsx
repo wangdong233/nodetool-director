@@ -329,11 +329,11 @@ type InspectorTabDef = {
 };
 
 const INSPECTOR_TABS: InspectorTabDef[] = [
-  { value: "inspector", labelKey: "timeline:editor.inspector", labelDefault: "Inspector", icon: <TuneOutlinedIcon /> },
-  { value: "instrument", labelKey: "timeline:editor.instruments", labelDefault: "Instruments", icon: <TuneOutlinedIcon /> },
-  { value: "source", labelKey: "timeline:editor.source", labelDefault: "Source", icon: <MovieFilterOutlinedIcon /> },
-  { value: "agent", labelKey: "timeline:editor.assistant", labelDefault: "Assistant", icon: <AutoAwesomeIcon /> },
-  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon /> }
+  { value: "inspector", labelKey: "timeline:editor.inspector", labelDefault: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "instrument", labelKey: "timeline:editor.instruments", labelDefault: "Instruments", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "source", labelKey: "timeline:editor.source", labelDefault: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
+  { value: "agent", labelKey: "timeline:editor.assistant", labelDefault: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
+  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
 const SCRIPT_TAB: InspectorTabDef = {
@@ -347,7 +347,7 @@ const SCRIPT_TAB: InspectorTabDef = {
 const useAvailableInspectorTabs = (
   tab: InspectorTab,
   hasScript = false
-): { tabs: TabItem[]; activeTab: InspectorTab } => {
+): { tabs: InspectorTabDef[]; activeTab: InspectorTab } => {
   const hasMidiTrack = useTimelineStore((s) => s.tracks.some((track) => track.type === "midi"));
   const activeExplorer = usePanelStore((s) => s.panel.activeView);
   const assetsAsset = useAssetsSelectedAsset();
@@ -379,10 +379,9 @@ const InspectorRegion: React.FC<{ sequenceId: string | undefined }> = memo(
   // async zh bundle lands (r21 F-1).
   const tabs: TabItem[] = availableTabs.map((t) => ({
     value: t.value,
-    label:
-      "labelKey" in t
-        ? i18n.t(t.labelKey, { defaultValue: t.labelDefault })
-        : t.label,
+    label: t.labelKey
+      ? i18n.t(t.labelKey, { defaultValue: t.labelDefault ?? t.label })
+      : (t.label ?? ""),
     icon: t.icon
   }));
 

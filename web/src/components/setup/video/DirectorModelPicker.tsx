@@ -13,10 +13,12 @@ import { Caption } from "../../ui_primitives";
 import LanguageModelSelect from "../../properties/LanguageModelSelect";
 import { SetupFooterField } from "../SetupFooterField";
 import { directorModelKey, useDirectorModel } from "./directorModel";
+import { useTranslation } from "react-i18next";
 
 const DirectorModelPickerInternal: React.FC<{ readOnly?: boolean }> = ({
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const { model, options, select, loading, error, noProvider } =
     useDirectorModel();
 
@@ -25,7 +27,7 @@ const DirectorModelPickerInternal: React.FC<{ readOnly?: boolean }> = ({
   if (error) {
     return (
       <Caption color="error" role="alert">
-        {`The model list could not be read: ${error}`}
+        {t("storyboard:attrs.theModelListCouldNotBeRead", { defaultValue: "The model list could not be read: {{error}}", error })}
       </Caption>
     );
   }

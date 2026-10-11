@@ -1,7 +1,7 @@
 # 运动中的色彩 → 色板、调色与什么能动
 
-两件不同的活:你写进形状与文字的颜色,和你罩在画面上的调色。它们在
-可动画的调色通道相遇——那是时间线上唯一会动的颜色值。
+先为形状与文字选色,再围着它们调画面。写定的颜色、渐变档位和效果
+字段如今既能走预设调色通道,也能走动画样式轨。
 
 `motion-graphics` 承载这里点名各调用的操作契约。`motion-direction` 决定
 色彩是不是这条片子要动的通道之一。
@@ -12,9 +12,8 @@
 色相来——多出来的色相互相抢注意力,读起来业余。
 
 挑色时用 OKLCH 推理(`oklch(L C H)`:感知明度、彩度、色相角),因为
-按住 L 与 C 转 H 得到的色相视觉权重相等,HSL 做不到。然后**把 hex 写进
-文档**:`color`、`fill` 与所有效果颜色都是 CSS 颜色字符串,一个所有界面
-都解析得了的 hex,在这里比某个可能解析不了的记法值钱。
+按住 L 与 C 转 H 得到的色相视觉权重相等,HSL 做不到。静态颜色写进文档
+时优先用 hex;共享的解析器在样式轨里也收具名色、RGB 与 HSL。
 
 深色底板上,让强调色靠高明度与中彩度跳出来,而不是拉满饱和。炸开的
 饱和强调色在黑底上发抖。
@@ -31,7 +30,7 @@
 | 形状 | `shapeStyle.fill` 与 `stroke`,渐变用 `shapeStyle.fillStyle` |
 | 字幕 | `captionStyle.color`、`activeColor`、`outline`、`background` |
 | 转场 | `set_transition` 的 `dipToColor` `color` |
-| 画面 | `set_effects`——`color`、`curves`、`levels`、`liftGammaGain` |
+| 画面 | `set_effects`——`color`、`curves`、`levels`、`liftGammaGain`、`lut`、`stylize`、`generator` |
 
 渐变填充是 `{type: "linear", angle, stops}`、`{type: "radial", stops}` 或
 `{type: "solid", color}`。渐变点偏移是 0..1,所以填充与形状大小无关:
@@ -43,55 +42,83 @@
    {"offset": 0, "color": "#0b0f1a"}, {"offset": 1, "color": "#1b2440"}]}}}
 ```
 
-## 色彩不补间——调色才补间
+## 让写定的颜色与调色动起来
 
-时间线上没有任何东西会把一个 hex 插值到另一个。`textStyle.color` 与
-`shapeStyle.fill` 在片段一生中固定。让颜色动起来的三条路,按"是正确
-答案"的频率排序:
+在存储的动画上用 `styleTracks`,插值写定的颜色或渐变字段。受支持的
+目标包括 `text.color`、`shape.fill`、`shape.stroke`、
+`text.fill.angle`、`text.fill.stops.0.color`、`shape.fillStyle.angle`,
+以及 `shape.fillStyle.stops.0.color` 或 `.offset`。目标必须指向片段
+已有的字段。文字渐变会隐藏 `text.color`;`shapeStyle.fillStyle` 会隐藏
+`shape.fill`。颜色关键帧接受受支持的 CSS 颜色,含 hex、RGB、HSL 与
+具名色。效果颜色轨可以指向生成器上的 `effect.<effect-id>.colorA` 或
+`.colorB`,以及投影、色度键或用色的 stylize 模式上的 `.color`:
+`lightRays`、`lensFlare`、`innerShadow`、`innerGlow`、`edgeHighlight`
+和 `lightLeakOverlay`。辉光渲染器不用 `glow.color`。字段必须已经存在
+于效果上。`mode` 这类字符串字段不是颜色目标。
+
+一份带文字渐变的文档,下面这条动画移动它的第一个渐变点:
+
+```json
+{"id": "colour-shift", "role": "in", "preset": "fade", "durationMs": 600,
+ "styleTracks": [{"target": "text.fill.stops.0.color", "keyframes": [
+   {"t": 0, "value": "#8bd5ff"}, {"t": 1, "value": "#ffffff"}]}]}
+```
+
+`edit_timeline` 的 `animate_clip` 输入不收 `styleTracks`;它会丢弃该
+字段。这些动画要在完整文档里经 `set_timeline_document` 写入——该调用
+先校验再写入,并快照前一版文档;契约见 `motion-graphics`。要走
+`animate_clip` 做定点编辑,就用数值调色预设或自定义曲线。三种常用
+做法:
 
 1. **动画调色通道。**`hue`(度,相加)、`saturation`(0..4,相乘)、
    `brightness`(−1..1,相加)、`contrast`(0..4,相乘)、`temperature`
    与 `tint`(−1..1,相加)全是可动画属性。`saturation` 从 0 到 1 的
    `custom` 曲线就是一次色彩绽放;`colorFade` 是它的预设形态,
    `hueShift` 每个 `loop` 周期转满一圈。
-2. **叠化两个片段。**两个填色不同的形状同轨重叠,在它们之间叠化——
-   这是在两个写定的颜色之间移动的唯一办法,而不是从其中一个出发
-   绕色环。
-3. **重写片段。**观感只在一次剪切处变化的场合,第二个片段比任何曲线
-   都好推理。
+2. **动一条样式轨。**片段已带该样式时,移动形状或文字颜色,或一个
+   渐变点。
+3. **叠化两个片段。**变化还需要不同纹理或排版时,让两个填色不同的
+   形状同轨重叠、在它们之间叠化。
 
 按旋转插值色相不等于在两个颜色之间插值:`hue` 走色环的路,蓝到琥珀
 会路过绿,除非用负值反向走。
 
-## 按序调色——效果链按你给的顺序生效
+## 调画面
 
-`set_effects` 替换整条链并按列表顺序生效,所以列表**就是**调色顺序。
-改顺序就是改结果。
+`set_effects` 替换整条链。空间类、stylize、生成器与 LUT 步骤按列表
+顺序生效。渲染器会把旧式的颜色与模糊字段聚合进靠后的遍,所以重排两个
+`color` 效果并不会造出两次独立调色。共享观感必须叠在单镜校正之后时,
+用一条独立的调整片段。
+
+按这个顺序选校正,然后对着最终渲染判断:
 
 1. `levels`——先定黑位与白位。
 2. `color` 带 `brightness`、`temperature` 与 `tint`——曝光与色偏。
 3. `curves` 或 `color` 的 `contrast`——影调范围。
 4. `color` 的 `saturation` 与 `hue`——中间调颜色。
-5. `liftGammaGain`——分离色调:`lift` 让暗部偏冷,`gain` 让亮部偏暖。
-   青色暗部加暖亮部是电影感的默认,因为它讨好肤色。保持克制。
-6. `vignette`,以及任何 `glow`,收尾——它们收拢画面。
+5. `liftGammaGain`——分离暗部与亮部颜色。保持克制。
+6. `lut`——把 3D `.cube` 表的内容粘进 `cube`,混合比例设 `intensity`。
+   1D 表会被拒。LUT 的定义域与表值可以超出 0..1;渲染器在插值后对
+   最终颜色做钳制。
+7. `vignette`,以及任何 `glow`,收束观感。
 
 中性值即恒等:`brightness` 0、`contrast` 1、`saturation` 1、`hue` 0、
-`gamma` 1、`lift` `[0,0,0]`、`gain` `[1,1,1]`。点了名却什么都没设的
-效果不做事,而不是被拒。
+`gamma` 1、`lift` `[0,0,0]`、`gain` `[1,1,1]`。`lut` 效果要求完整的
+`.cube` 文本。
 
 序列里每一镜用同一套调色,否则它们剪不到一起。某一镜需要单独校正时,
 先把它往其他镜的方向校,再套共享观感。
 
-## 调色看渲染,不看预览帧
+## 在帧上、在运动中检查调色
 
-`preview_timeline_frame` 是 2D 合成器。它把 `color` 与 `blur` 映射到画布
-滤镜,而对 `chromaKey`、`vignette`、`sharpen` 以及 `color` 效果的
-`temperature` 与 `tint` 字段**没有等价物**。它会把这些列进
-`effects_not_applied`,而不是悄悄丢弃。运动不受影响——用帧判断时序与
-摆位,用 `render_timeline` 判断观感。
+`preview_timeline_frame` 用 Canvas 2D 像素遍实现受支持的效果链,包括
+调色、LUT、stylize 模式、生成器与抖动。判断细微效果或半透明边缘时,
+把同一时码的帧与 GPU 渲染对比。缺失的离屏面会出现在该帧的 `degraded`
+报告里。帧把不支持的效果类型列进 `effects_not_applied`;
+`validate_timeline` 把它们报为 `unknown_effect`。
 
-`unknown_effect` 表示这个构建完全应用不了该类型,图层按未调色绘制。
+合成按存储的编码 sRGB 通道值混合,合并图层前不做线性化。50% 混合就按
+那个输出判断,别期待线性光的中点。
 
 ## 对比与可读性
 
@@ -106,9 +133,12 @@
 
 ## 色带与发闷的中点
 
-暗色画面上的宽渐变会出色带。时间线上没有噪声生成器,所以修法是:
-缩短渐变的跨度、把渐变点在明度上拉近,或在其上铺一层 3–6% 不透明度的
-纹理图像片段,`blendMode` 用 `overlay` 或 `soft-light`。
+暗色画面上的宽渐变会出色带。在渐变后面加
+`{"type":"stylize","mode":"dither","enabled":true,"amount":1,"seed":4}`,
+配固定种子得到可复现的帧。抖动减少可见的 8-bit 阶梯;它救不回源媒体
+已经丢掉的精度,也不能保证视频编码器保留噪声。也可以缩短渐变跨度,
+或把渐变点在明度上拉近。要的是可见纹理那个观感时,`mode: "noise"` 或
+`"fractal"` 的 `generator` 效果正合适,而不只是修色带。
 
 中段发灰的渐变,是渐变点路过了低彩度。在中点加第三个渐变点、选彩度
 托住的值,别信两点的路径。
@@ -123,7 +153,7 @@
 ## 收尾自检
 
 - 一个主色、一个强调色、两三个中性色,中性色向主色偏调。
-- 每个颜色都写成文档解析得了的 hex。
+- 静态颜色写成受支持的 CSS 记法,优先 hex。
 - 效果链按调色顺序,同一观感贯穿成片每一镜。
-- 画面预览画不出的东西,用渲染判断。
+- 观感在预览帧与一段渲染上各查过。
 - 文字在实际背景上读得清,靠看确认。

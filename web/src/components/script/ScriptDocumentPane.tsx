@@ -71,10 +71,7 @@ import StoryboardLinkControl from "./StoryboardLinkControl";
 import ScriptSaveIndicator from "./ScriptSaveIndicator";
 import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
-import { i18n } from "../../i18n";
-=======
 import { useTranslation } from "react-i18next";
->>>>>>> f530159887 (i18n-mig: B15 workspace/textEditor/jsScript/script/chain_editor/compositor (51 of 59 files) — G3: +i18n.t(=0  -i18n.t(=225  +useTranslation(=61  +bare-t(=225)
 
 interface ScriptDocumentPaneProps {
   scriptId: string;

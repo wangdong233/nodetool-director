@@ -63,6 +63,7 @@ import {
   type GameModelRow
 } from "./LookStep";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const FLOW_LABELS = { title: "Game" } as const;
 
@@ -97,10 +98,10 @@ export const firstMissingDesignField = (
 ): string | null => {
   for (const member of design.cast) {
     if (member.name.trim().length === 0) {
-      return `a name for ${member.slot_id}`;
+      return i18n.t("storyboard:attrs.aNameForField", { defaultValue: "a name for {{field}}", field: member.slot_id });
     }
     if (member.descriptor.trim().length === 0) {
-      return `a descriptor for ${member.name || member.slot_id}`;
+      return i18n.t("storyboard:attrs.aDescriptorForField", { defaultValue: "a descriptor for {{field}}", field: member.name || member.slot_id });
     }
   }
   for (const slot of slots) {
@@ -108,7 +109,7 @@ export const firstMissingDesignField = (
       (entry) => entry.slot_id === slot.id
     );
     if ((prompt?.prompt ?? "").trim().length === 0) {
-      return `a prompt for ${slot.id}`;
+      return i18n.t("storyboard:attrs.aPromptForField", { defaultValue: "a prompt for {{field}}", field: slot.id });
     }
   }
   return null;
@@ -157,6 +158,7 @@ export const useGameSetupFlow = ({
   onOpenTutorial,
   onFinish
 }: GameSetupFlowOptions): GameSetupFlowResult => {
+  const { t } = useTranslation();
   const stage = useGameSetupStage(workflowId);
   const setup = useGameSetupDocument(workflowId);
   const { setGame } = useGameSetupWriter(workflowId);
@@ -407,7 +409,7 @@ export const useGameSetupFlow = ({
           ? undefined
           : {
               result: "Write the design: premise, loop, cast and one prompt per asset slot",
-              next: "Read and edit every line next. Nothing is generated and nothing is placed by this click.",
+              next: t("storyboard:attrs.readAndEditEveryLineNextNothingIsGeneratedAndNothingIsPlacedByThisClick", { defaultValue: "Read and edit every line next. Nothing is generated and nothing is placed by this click." }),
               model: designerModel,
               brief,
               maxOutputTokens: 4096,
@@ -442,7 +444,7 @@ export const useGameSetupFlow = ({
             return;
           }
           if (!template) {
-            throw new Error("Pick a template before writing the design.");
+            throw new Error(t("storyboard:attrs.pickATemplateBeforeWritingTheDesign", { defaultValue: "Pick a template before writing the design." }));
           }
           const refusal = await designGame({
             brief,
@@ -470,7 +472,7 @@ export const useGameSetupFlow = ({
         // to read its wait: the creator cannot continue while the design they
         // are reading is being replaced.
         pending: designing,
-        pendingLabel: "Re-designing",
+        pendingLabel: t("storyboard:attrs.reDesigning", { defaultValue: "Re-designing" }),
         render: () =>
           createElement(GameReviewStep, {
             design: design ?? blankDesign(""),
@@ -497,7 +499,7 @@ export const useGameSetupFlow = ({
       {
         stage: "look",
         label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
-        primaryLabel: "Build your game",
+        primaryLabel: t("storyboard:attrs.buildYourGame", { defaultValue: "Build your game" }),
         canAdvance:
           styleChoice !== null &&
           imageChoices.selectedId !== null &&
@@ -538,7 +540,7 @@ export const useGameSetupFlow = ({
         // are placed (game-prd § 4.3, D3).
         onAdvance: async () => {
           if (!template || design === null) {
-            throw new Error("Write the design before building.");
+            throw new Error(t("storyboard:attrs.writeTheDesignBeforeBuilding", { defaultValue: "Write the design before building." }));
           }
           const built = await buildGame({
             manifest: templateManifest(template),
@@ -559,6 +561,7 @@ export const useGameSetupFlow = ({
       design,
       designError,
       designGame,
+      t,
       designIsCurrent,
       designerModel,
       designing,

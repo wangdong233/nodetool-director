@@ -21,6 +21,7 @@ import LanguageModelSelect from "../../properties/LanguageModelSelect";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupFooterField } from "../SetupFooterField";
 import { WORKFLOW_CATEGORIES, workflowCategory } from "./categories";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowCategoryStepProps {
   selectedId: string | null;
@@ -55,6 +56,7 @@ const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
   selectedId,
   onSelect
 }) => {
+  const { t } = useTranslation();
   const chosen = workflowCategory(selectedId ?? undefined);
   return (
     <FlexColumn gap={GAP.comfortable}>

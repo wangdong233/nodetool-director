@@ -205,7 +205,7 @@ const AssetItemContextMenu = () => {
         type: openableTabType,
         ref: asset.id,
         mode: "view",
-        projectId: asset.project_id
+        projectId: asset.project_id,
         title: asset.name || t("editor:asset.untitled", { defaultValue: "Untitled" })
       });
       navigate("/workspace");
