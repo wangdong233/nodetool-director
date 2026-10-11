@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 
-import { useNavigate } from "react-router-dom";
 import { Node } from "@xyflow/react";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { NodeData } from "../../stores/NodeData";
@@ -12,6 +11,7 @@ import {
   constantToInputType,
   inputToConstantType
 } from "../../utils/NodeTypeMapping";
+import { openPageTab } from "../../components/workspace/openPageTab";
 import { useRunFromHere } from "./useRunFromHere";
 import { useDuplicateNodes } from "../useDuplicate";
 import { useCopyPaste } from "../handlers/useCopyPaste";
@@ -86,7 +86,6 @@ export function useNodeContextMenu(): UseNodeContextMenuReturn {
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
-  const navigate = useNavigate();
 
   const { runFromHere, isWorkflowRunning } = useRunFromHere(node);
 
@@ -128,9 +127,9 @@ export function useNodeContextMenu(): UseNodeContextMenuReturn {
   }, [nodeId, nodeData, addNotification, writeClipboard, closeContextMenu]);
 
   const handleFindTemplates = useCallback(() => {
-    navigate("/examples");
+    openPageTab("examples");
     closeContextMenu();
-  }, [navigate, closeContextMenu]);
+  }, [closeContextMenu]);
 
   const handleSelectAllSameType = useCallback(() => {
     if (node?.type) {

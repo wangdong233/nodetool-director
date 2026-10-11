@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 
@@ -23,17 +24,19 @@ import DownloadIcon from "@mui/icons-material/Download";
 import FavoriteStar from "./FavoriteStar";
 import DefaultModelPin from "./DefaultModelPin";
 import RecommendedDownloadRow from "./shared/RecommendedDownloadRow";
+import ModelRowDownload from "./shared/ModelRowDownload";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import { ModelSelectorModel } from "../../stores/ModelMenuStore";
 import type { UnifiedModel } from "../../stores/ApiTypes";
 
 import { useModelAvailability } from "../../hooks/useModelAvailability";
 import { openSettingsTab } from "../workspace/openPageTab";
-import { executionForDisplay } from "../../utils/modelNormalization";
+import {
+  executionForDisplay,
+  modelDownloadTarget
+} from "../../utils/modelNormalization";
 
 import type { Theme } from "@mui/material/styles";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const ROW_HEIGHT = 50;
 const DOWNLOAD_ROW_HEIGHT = 56;
@@ -88,11 +91,16 @@ const listStyles = (theme: Theme) =>
     "& .model-menu__model-item.is-unavailable .MuiListItemText-secondary": {
       color: theme.vars.palette.text.disabled
     },
-    "& .MuiListItemButton-root:hover .favorite-star": {
-      opacity: 1
-    },
-    "& .MuiListItemButton-root:hover .default-pin": {
-      opacity: 1
+    // Mouse only: the star and pin are revealed on hover. iOS Safari reads a
+    // tap on a row whose content changes on hover as the hover and drops the
+    // click, so on touch they stay visible and the row selects on one tap.
+    "@media (hover: hover)": {
+      "& .MuiListItemButton-root:hover .favorite-star": {
+        opacity: 1
+      },
+      "& .MuiListItemButton-root:hover .default-pin": {
+        opacity: 1
+      }
     },
     "& .model-menu__model-item.is-active": {
       background: theme.vars.palette.action.selected,
@@ -114,8 +122,9 @@ const HighlightedModelName = memo<{
       return { parts: [{ text: name, isMatch: false }] };
     }
 
-    // Split the name by search term, creating a RegExp only when searchTerm changes
-    const parts = name.split(new RegExp(`(${searchTerm})`, "gi"));
+    // Escape the term: typed text such as "gpt (" is not a valid pattern.
+    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = name.split(new RegExp(`(${escapedTerm})`, "gi"));
     return {
       parts: parts.map((part) => ({
         text: part,
@@ -161,6 +170,8 @@ interface ModelListProps<TModel extends ModelSelectorModel> {
   onDownloadSelect?: (m: UnifiedModel) => void;
   /** Start downloading a recommended model. */
   onDownloadStart?: (m: UnifiedModel) => void;
+  /** Download the files of a listed model that needs them before it runs. */
+  onModelDownload?: (m: TModel) => void;
   /**
    * Modality key (e.g. "language_model") this picker sets defaults for. When
    * provided, each row shows a "pin as default" toggle next to the favorite
@@ -183,6 +194,7 @@ function ModelList<TModel extends ModelSelectorModel>({
   downloadModels = [],
   onDownloadSelect,
   onDownloadStart,
+  onModelDownload,
   modelType,
   downloadTargetLabel
 }: ModelListProps<TModel>) {
@@ -288,16 +300,18 @@ function ModelList<TModel extends ModelSelectorModel>({
       const fav = isFavorite(m.provider || "", m.id || "");
       const { available, providerEnabled, hasKey } = getAvailability(m);
       const execution = executionForDisplay(m);
+      const downloadTarget = onModelDownload ? modelDownloadTarget(m) : null;
       const isActive = index === activeIndex;
-      const tooltipTitle =
-        execution.state !== "ready"
-          ? (execution.reason ?? i18n.t("editor:ui.thisModelIsNotReadyToUse", { defaultValue: "This model is not ready to use." }))
+      const tooltipTitle = downloadTarget
+        ? ""
+        : execution.state !== "ready"
+          ? (execution.reason ?? "This model is not ready to use.")
           : !providerEnabled && !hasKey
-            ? i18n.t("editor:ui.enableProviderAndAddAPIKeyInSettingsToUseThisModel", { defaultValue: "Enable provider and add API key in Settings to use this model" })
+            ? "Enable provider and add API key in Settings to use this model"
             : !providerEnabled
-              ? i18n.t("editor:ui.enableProviderInTheLeftSidebarToUseThisModel", { defaultValue: "Enable provider in the left sidebar to use this model" })
+              ? "Enable provider in the left sidebar to use this model"
               : !hasKey
-                ? i18n.t("editor:ui.addApiKeyInSettingsToUseThisModel", { defaultValue: "Add API key in Settings to use this model" })
+                ? "Add API key in Settings to use this model"
                 : "";
       return (
         <Tooltip disableInteractive title={tooltipTitle}>
@@ -338,6 +352,13 @@ function ModelList<TModel extends ModelSelectorModel>({
                         primaryColor={theme.vars.palette.primary.main}
                       />
                     </span>
+                    {downloadTarget ? (
+                      <ModelRowDownload
+                        target={downloadTarget}
+                        onDownload={() => onModelDownload?.(m)}
+                        targetLabel={downloadTargetLabel}
+                      />
+                    ) : (
                     <Tooltip
                       title={execution.reason ?? execution.label}
                       placement="top"
@@ -362,6 +383,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                         {execution.label}
                       </span>
                     </Tooltip>
+                    )}
                   </FlexRow>
                 }
                 secondary={
@@ -389,7 +411,9 @@ function ModelList<TModel extends ModelSelectorModel>({
       secondaryTextStyle,
       searchTerm,
       theme.vars.palette.primary.main,
-      modelType
+      modelType,
+      onModelDownload,
+      downloadTargetLabel
     ]
   );
 
@@ -488,9 +512,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                     "&:hover": { opacity: 0.8 }
                   }}
                   onClick={handleOpenSettings}
-                >
-                  Open Settings
-                </Box>
+                >{t("editor:ui.openSettings", { defaultValue: "Open Settings" })}</Box>
               </>
             }
             actionText={t("editor:ui.openSettings", { defaultValue: "Open Settings" })}

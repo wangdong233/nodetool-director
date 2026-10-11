@@ -6,7 +6,7 @@
  * title reads the same in the preview, the browser export and a workflow
  * render. What stays here is the browser's bitmap cache.
  *
- * The cache is what makes font loading load-bearing: a bitmap drawn before a
+ * The cache is why font loading must finish first: a bitmap drawn before a
  * bundled face arrives shows the fallback, and caching it keeps the wrong
  * glyphs on screen long after the file landed. So nothing is cached until
  * `bundledFontsReady()` says the corpus is drawable (D8).
@@ -23,14 +23,19 @@ import {
   drawStaggeredText,
   drawText,
   staggerPhase,
-  textStyleSignature
+  textRasterWindow,
+  textStyleSignature,
+  type RasterWindow
 } from "@nodetool-ai/timeline/render";
 import {
   bundledFontsReady,
-  ensureBundledFontsLoaded
+  ensureBundledFontsLoaded,
+  ensureGoogleFontLoaded,
+  googleFontFamilyReady
 } from "./fontLoading";
+import { BitmapFrameScope, bitmapByteSize } from "./BitmapFrameScope";
 
-const MAX_CACHE_ENTRIES = 64;
+export const TEXT_BITMAP_CACHE_BUDGET_BYTES = 64 * 1024 * 1024;
 
 export type { TextRenderStagger };
 
@@ -49,19 +54,81 @@ function compiledRefId(compiled: CompiledAnimation[]): number {
 /** Bounded per-compositor bitmap cache keyed by content and sequence size. */
 export class TextRasterizer {
   private cache = new Map<string, ImageBitmap>();
+  private pins = new Map<ImageBitmap, number>();
+  private owned = new Set<ImageBitmap>();
+  private deferredClose = new Set<ImageBitmap>();
+  private ownedBytes = 0;
   /**
    * The latest mid-stagger bitmap per style signature, tagged with the exact
-   * animation time it was drawn at. Replaced (and the previous one closed) on
-   * every animating frame — the caller has already composited the prior frame
-   * by the time the next one is rasterized. The time tag lets a paused
-   * playhead (same `localMs` re-requested every rAF tick) reuse the frame
-   * instead of re-rasterizing.
+   * animation time it was drawn at. Replacing it retires the prior bitmap;
+   * a frame scope keeps that bitmap alive until upload finishes. The time tag
+   * lets a paused playhead reuse the frame instead of re-rasterizing it.
    */
   private activeBitmaps = new Map<
     string,
     { timeKey: string; bitmap: ImageBitmap }
   >();
   private scratchSample: AnimationSample = createStaggerScratch();
+  private windows = new WeakMap<ImageBitmap, RasterWindow>();
+  private measureContext: OffscreenCanvasRenderingContext2D | null = null;
+
+  /**
+   * The window of the frame a bitmap from {@link rasterize} covers, or
+   * undefined when it covers the whole frame.
+   */
+  windowOf(bitmap: ImageBitmap): RasterWindow | undefined {
+    return this.windows.get(bitmap);
+  }
+
+  private measurer(): OffscreenCanvasRenderingContext2D | null {
+    this.measureContext ??= new OffscreenCanvas(1, 1).getContext("2d");
+    return this.measureContext;
+  }
+
+  get residentBytes(): number {
+    return this.ownedBytes;
+  }
+
+  private pin(bitmap: ImageBitmap, scope?: BitmapFrameScope): void {
+    if (!scope) return;
+    const added = scope.pin(bitmap, () => {
+      const count = (this.pins.get(bitmap) ?? 1) - 1;
+      if (count === 0) {
+        this.pins.delete(bitmap);
+        if (this.deferredClose.delete(bitmap)) this.close(bitmap);
+      } else this.pins.set(bitmap, count);
+      this.evictToBudget();
+    });
+    if (added) this.pins.set(bitmap, (this.pins.get(bitmap) ?? 0) + 1);
+  }
+
+  private close(bitmap: ImageBitmap): void {
+    if (!this.owned.delete(bitmap)) return;
+    this.ownedBytes -= bitmapByteSize(bitmap);
+    bitmap.close();
+  }
+
+  private retire(bitmap: ImageBitmap): void {
+    if (this.pins.has(bitmap)) this.deferredClose.add(bitmap);
+    else this.close(bitmap);
+  }
+
+  private evictToBudget(): void {
+    while (this.residentBytes > TEXT_BITMAP_CACHE_BUDGET_BYTES) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) {
+        const bitmap = this.cache.get(oldest);
+        this.cache.delete(oldest);
+        if (bitmap) this.retire(bitmap);
+        continue;
+      }
+      const active = this.activeBitmaps.keys().next().value;
+      if (active === undefined) break;
+      const entry = this.activeBitmaps.get(active);
+      this.activeBitmaps.delete(active);
+      if (entry) this.retire(entry.bitmap);
+    }
+  }
 
   /**
    * Rasterize `style` at sequence resolution. Pass `stagger` for a text clip
@@ -74,7 +141,9 @@ export class TextRasterizer {
     style: ClipTextStyle,
     width: number,
     height: number,
-    stagger?: TextRenderStagger | null
+    stagger: TextRenderStagger | null | undefined,
+    frameScope: BitmapFrameScope,
+    windowMarginPx?: number
   ): ImageBitmap | null {
     if (
       !style.text ||
@@ -88,9 +157,18 @@ export class TextRasterizer {
     // never opens the timeline should not fetch three megabytes of fonts.
     const fontsReady = bundledFontsReady();
     if (!fontsReady) void ensureBundledFontsLoaded();
+    const familyReady = googleFontFamilyReady(style.fontFamily);
+    if (!familyReady) {
+      ensureGoogleFontLoaded(style.fontFamily, style.fontWeight, style.fontStyle);
+    }
     const phase = stagger ? staggerPhase(stagger) : undefined;
-    const cacheable = phase !== "active" && fontsReady;
-    const baseKey = textStyleSignature(style, width, height);
+    const cacheable = phase !== "active" && fontsReady && familyReady;
+    // Staggered words move by their own animation, so they are not bounded by
+    // the block and keep the whole frame.
+    const windowed = windowMarginPx !== undefined && !stagger;
+    const baseKey = windowed
+      ? `${textStyleSignature(style, width, height)}|win:${windowMarginPx}`
+      : textStyleSignature(style, width, height);
     let key = baseKey;
     if (stagger && cacheable) {
       key += `|stg:${compiledRefId(stagger.compiled)}:${phase}`;
@@ -98,51 +176,74 @@ export class TextRasterizer {
     if (cacheable) {
       const lingering = this.activeBitmaps.get(baseKey);
       if (lingering) {
-        lingering.bitmap.close();
+        this.retire(lingering.bitmap);
         this.activeBitmaps.delete(baseKey);
       }
       const hit = this.cache.get(key);
-      if (hit) return hit;
+      if (hit) {
+        // Re-inserted so eviction drops the least recently drawn text, not
+        // the first one ever drawn.
+        this.cache.delete(key);
+        this.cache.set(key, hit);
+        this.pin(hit, frameScope);
+        return hit;
+      }
     } else if (stagger) {
       // Paused mid-window: the same frame is requested every tick.
       const timeKey = `${compiledRefId(stagger.compiled)}:${stagger.localMs}`;
       const last = this.activeBitmaps.get(baseKey);
-      if (last && last.timeKey === timeKey) return last.bitmap;
+      if (last && last.timeKey === timeKey) {
+        this.pin(last.bitmap, frameScope);
+        return last.bitmap;
+      }
     }
-    const canvas = new OffscreenCanvas(width, height);
+    let window: RasterWindow | undefined;
+    if (windowed) {
+      const measure = this.measurer();
+      const bounds = measure
+        ? textRasterWindow(measure, style, width, height, windowMarginPx)
+        : { x: 0, y: 0, width, height };
+      if (!bounds) return null;
+      window = bounds;
+    }
+    const canvas = new OffscreenCanvas(window?.width ?? width, window?.height ?? height);
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
+    if (window) ctx.translate(-window.x, -window.y);
     if (stagger) {
       drawStaggeredText(ctx, style, width, height, stagger, this.scratchSample);
     } else {
       drawText(ctx, style, width, height);
     }
     const bitmap = canvas.transferToImageBitmap();
+    if (window) this.windows.set(bitmap, window);
+    if (!this.owned.has(bitmap)) {
+      this.owned.add(bitmap);
+      this.ownedBytes += bitmapByteSize(bitmap);
+    }
+    this.pin(bitmap, frameScope);
     if (!cacheable) {
-      this.activeBitmaps.get(baseKey)?.bitmap.close();
+      const previous = this.activeBitmaps.get(baseKey)?.bitmap;
+      if (previous) this.retire(previous);
       this.activeBitmaps.set(baseKey, {
         timeKey: stagger
           ? `${compiledRefId(stagger.compiled)}:${stagger.localMs}`
           : "",
         bitmap
       });
+      this.evictToBudget();
       return bitmap;
     }
-    if (this.cache.size >= MAX_CACHE_ENTRIES) {
-      const oldest = this.cache.keys().next().value;
-      if (oldest !== undefined) {
-        this.cache.get(oldest)?.close();
-        this.cache.delete(oldest);
-      }
-    }
     this.cache.set(key, bitmap);
+    this.evictToBudget();
     return bitmap;
   }
 
   dispose(): void {
-    for (const bitmap of this.cache.values()) bitmap.close();
+    for (const bitmap of this.cache.values()) this.retire(bitmap);
     this.cache.clear();
-    for (const entry of this.activeBitmaps.values()) entry.bitmap.close();
+    for (const entry of this.activeBitmaps.values()) this.retire(entry.bitmap);
     this.activeBitmaps.clear();
+    for (const bitmap of [...this.owned]) this.retire(bitmap);
   }
 }

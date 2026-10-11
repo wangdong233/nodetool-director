@@ -2,13 +2,11 @@
   "name": "@nodetool-ai/fal-codegen",
   "type": "module",
   "engines": {
-    "node": ">=22.0.0 <23.0.0"
+    "node": "24.18.0"
   },
   "version": "0.1.0",
   "private": true,
   "description": "Code generator for FAL AI nodes",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "node ../../scripts/build-typescript-workspace.mjs",
     "generate": "tsx src/generate.ts",

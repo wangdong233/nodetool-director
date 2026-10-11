@@ -83,7 +83,7 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
   const { assemble } = useAssembleTimeline();
   const { extract } = useExtractScriptFromBoard();
   const { reproject } = useReprojectShots();
-  const { direct } = useDirectScreenplay();
+  const { direct, errorRef: directErrorRef } = useDirectScreenplay();
   const { data: allEntities } = useEntities();
   const { data: stylePresets } = useStylePresets();
 
@@ -111,6 +111,8 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
         action: shot.action,
         camera: shot.camera,
         motion: shot.motion,
+        graphics: shot.graphics,
+        production: shot.production,
         durationSeconds: shot.duration_seconds,
         durationSource: shot.duration_source,
         status: shot.status,
@@ -159,6 +161,29 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
         return [...requireBoard().shots].sort((a, b) => a.index - b.index);
       }
       return [requireShot(target)];
+    };
+
+    const assertGenerationAllowed = (
+      shot: Shot,
+      kind: "keyframe" | "clip" | "revision"
+    ) => {
+      const policy = shot.production;
+      if (!policy) return;
+      if (
+        kind !== "keyframe" &&
+        policy.media_strategy === "still_motion_graphics"
+      ) {
+        throw new Error(
+          `Shot ${shot.id} is still_motion_graphics; video generation is forbidden. Materialize its still/assets as editable Timeline layers instead.`
+        );
+      }
+      const protectedAssets =
+        policy.protected_inputs?.filter((input) => input.asset_id) ?? [];
+      if (kind === "keyframe" && protectedAssets.length > 0) {
+        throw new Error(
+          `Shot ${shot.id} protects source assets; the current keyframe generator cannot prove it preserves them. Use the protected assets directly in the Timeline or a policy-aware finishing path.`
+        );
+      }
     };
 
     const reRead = (id: string): Shot => {
@@ -214,6 +239,7 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
             )
           ),
         entityIds: board.entityIds,
+        motionDesign: board.screenplay?.motion_design,
         hasScreenplay: board.screenplay !== null,
         scriptId: linkedScriptId(board),
         selectedShotId: board.activeShotId,
@@ -287,13 +313,20 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
         }
         // The board's own length is what the flow's picker wrote, so a caller
         // that does not name one gets the run the creator set up (§ 7.7).
-        await direct(
+        const directed = await direct(
           boardId,
           shotCount ?? board.setupShotCount ?? DEFAULT_SHOT_COUNT
         );
-        // The hook reports a failed run through React state the tool layer
-        // cannot read, so the board itself is the evidence: a run that landed
-        // wrote a new screenplay.
+        // A run that did not land left its reason on the ref: a refusal while
+        // another run writes, or a provider failure. No reason means the
+        // creator canceled it.
+        if (directed === false) {
+          throw new Error(
+            directErrorRef.current ??
+              `The Director run for storyboard ${boardId} was canceled. The board is unchanged.`
+          );
+        }
+        // A run that landed wrote a new screenplay.
         if (requireBoard().screenplay === board.screenplay) {
           throw new Error(
             `The Director run for storyboard ${boardId} produced no screenplay. The board is unchanged; check the model and the provider, then retry.`
@@ -325,6 +358,8 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
             slug: input.slug,
             camera: input.camera,
             motion: input.motion,
+            graphics: input.graphics,
+            production: input.production,
             duration_seconds: input.durationSeconds
           });
           return toShotNode(reRead(id));
@@ -338,6 +373,8 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
           action: input.action,
           camera: input.camera,
           motion: input.motion,
+          graphics: input.graphics,
+          production: input.production,
           duration_seconds: input.durationSeconds,
           status: "planned"
         };
@@ -362,6 +399,15 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
         if (patch.slug !== undefined) next.slug = patch.slug;
         if (patch.camera !== undefined) next.camera = patch.camera;
         if (patch.motion !== undefined) next.motion = patch.motion;
+        if (patch.graphics !== undefined) {
+          if (patch.graphics === null) {
+            next.graphics = undefined;
+          } else {
+            next.graphics = patch.graphics;
+          }
+        }
+        if (patch.production !== undefined)
+          next.production = patch.production ?? undefined;
         if (patch.status !== undefined) next.status = patch.status;
         if (patch.dialogue !== undefined) next.dialogue = patch.dialogue;
         if (patch.notes !== undefined) next.notes = patch.notes;
@@ -497,19 +543,22 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
       },
 
       async generateKeyframe(target, options) {
-        return renderShots(target, "keyframe", options, (shot) =>
-          generateKeyframe(boardId, shot)
-        );
+        return renderShots(target, "keyframe", options, (shot) => {
+          assertGenerationAllowed(shot, "keyframe");
+          return generateKeyframe(boardId, shot);
+        });
       },
 
       async generateClip(target, options) {
-        return renderShots(target, "clip", options, (shot) =>
-          generateClip(boardId, shot)
-        );
+        return renderShots(target, "clip", options, (shot) => {
+          assertGenerationAllowed(shot, "clip");
+          return generateClip(boardId, shot);
+        });
       },
 
       async reviseShot(target, instruction) {
         const shot = requireShot(target);
+        assertGenerationAllowed(shot, "revision");
         await generateRevisedClip(boardId, shot, instruction);
         return toShotNode(reRead(shot.id));
       },
@@ -542,6 +591,7 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
     allEntities,
     stylePresets,
     direct,
+    directErrorRef,
     generateKeyframe,
     generateClip,
     generateRevisedClip,
@@ -552,8 +602,27 @@ export const useStoryboardAgentBridge = (boardId: string): void => {
 
   useEffect(() => {
     if (!boardId) return;
-    setStoryboardAgentHandler(boardId, handler);
+    let installed = false;
+    const register = (): void => {
+      if (useStoryboardStore.getState().getBoard(boardId) !== undefined) {
+        if (!installed) {
+          setStoryboardAgentHandler(boardId, handler);
+          installed = true;
+        }
+      } else if (installed) {
+        if (
+          hasStoryboardAgentHandler(boardId) &&
+          getStoryboardAgentHandler(boardId) === handler
+        ) {
+          setStoryboardAgentHandler(boardId, null);
+        }
+        installed = false;
+      }
+    };
+    register();
+    const unsubscribe = useStoryboardStore.subscribe(register);
     return () => {
+      unsubscribe();
       if (
         hasStoryboardAgentHandler(boardId) &&
         getStoryboardAgentHandler(boardId) === handler

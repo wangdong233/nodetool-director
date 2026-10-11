@@ -140,6 +140,7 @@ const animationInput = (vocab: TimelineToolVocabulary) => {
   const curves = customCurvesParam(vocab.animatedProperties);
   return z.object({
     role: animationRole,
+    enabled: z.boolean().optional(),
     preset: z
       .string()
       .describe(
@@ -299,8 +300,8 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
       shape: {
         asset: z.string().trim().min(1),
         trackId: z.string().optional(),
-        startMs: z.number().optional(),
-        durationMs: z.number().optional(),
+        startMs: z.number().nonnegative().optional(),
+        durationMs: z.number().positive().optional(),
         name: z.string().optional(),
         transform: clipTransformPatchParam
       }
@@ -311,8 +312,8 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
       shape: {
         text: z.string().trim().min(1),
         trackId: z.string().optional(),
-        startMs: z.number().optional(),
-        durationMs: z.number().optional(),
+        startMs: z.number().nonnegative().optional(),
+        durationMs: z.number().positive().optional(),
         opacity: clipOpacityParam,
         name: z.string().optional(),
         transform: clipTransformPatchParam,
@@ -331,8 +332,8 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
         shape: shapeStyleParams.optional(),
         shapeStyle: shapeStyleParams.optional(),
         trackId: z.string().optional(),
-        startMs: z.number().optional(),
-        durationMs: z.number().optional(),
+        startMs: z.number().nonnegative().optional(),
+        durationMs: z.number().positive().optional(),
         opacity: clipOpacityParam,
         name: z.string().optional(),
         transform: clipTransformPatchParam,
@@ -350,8 +351,8 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
           .min(1)
           .describe("Asset id of the .glb/.gltf model (from list_assets)."),
         trackId: z.string().optional(),
-        startMs: z.number().optional(),
-        durationMs: z.number().optional(),
+        startMs: z.number().nonnegative().optional(),
+        durationMs: z.number().positive().optional(),
         transform: clipTransformPatchParam,
         style: model3dStyleParams.optional()
       },
@@ -382,8 +383,8 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
         kind: z.enum(["text-to-video", "text-to-image", "text-to-audio"]),
         prompt: z.string(),
         trackId: z.string().optional(),
-        startMs: z.number().optional(),
-        durationMs: z.number().optional(),
+        startMs: z.number().nonnegative().optional(),
+        durationMs: z.number().positive().optional(),
         provider: z.string().optional(),
         model: z.string().optional(),
         voice: z.string().optional(),
@@ -395,9 +396,20 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
       }
     },
 
+    ui_timeline_get_clip_frames: {
+      description:
+        "Inspect visual frames from ONE rendered clip. `target` names the clip. Video samples source pixels, while text, shape and 3D clips use the shared renderer. To inspect the layered timeline, call preview_timeline_frame. Optional timesMs accepts absolute timeline times or clip-relative times outside the timeline span. Returns image data URLs with timeline/source timestamps.",
+      shape: {
+        target: targetParam,
+        timesMs: z.array(z.number().finite()).max(8).optional(),
+        count: z.number().min(1).max(8).optional(),
+        width: z.number().min(1).max(1024).optional()
+      }
+    },
+
     ui_timeline_generatively_edit_clip: {
       description:
-        "Start a nondestructive video edit for an existing clip. `clip_id` is explicit and `instruction` describes the change. The request uses the clip's submitted playable source window and returns a candidate take when generation completes; it never applies the candidate. Provide `provider` and `model` together for a known video-to-video model, or omit both to use the last-used video-edit model. The clip's generic model is never used as an edit model.",
+        "Start a nondestructive video edit for an existing clip. `clip_id` is explicit and `instruction` describes the change. The request uses the clip's submitted playable source window and returns a candidate take when generation completes; it never applies the candidate. Provide `provider` and `model` together for a known video-to-video model, or omit both in the browser to use the last-used video-edit model. Headless callers must provide the pair. The clip's generic model is never used as an edit model.",
       shape: generativelyEditClipParams.shape,
       finalize: strictGenerativelyEditClipParams
     },
@@ -449,7 +461,7 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
         "Duplicate a clip. The copy is placed immediately after the source (add `gapMs` for a gap) and keeps its generation binding so you can tweak the copy for a variation.",
       shape: {
         target: targetParam,
-        gapMs: z.number().optional()
+        gapMs: z.number().finite().optional()
       }
     },
 
@@ -465,9 +477,9 @@ function makeTimelineToolContracts(vocab: TimelineToolVocabulary) {
         outPointMs: z.number().optional(),
         fontSizePx: z.number().optional(),
         name: z.string().optional(),
-        opacity: z.number().optional(),
+        opacity: z.number().min(0).max(1).optional(),
         transform: clipTransformPatchParam,
-        speedMultiplier: z.number().optional(),
+        speedMultiplier: z.number().min(0.1).max(8).optional(),
         volumeDb: z.number().optional(),
         fadeInMs: z.number().optional(),
         fadeOutMs: z.number().optional(),
@@ -911,18 +923,8 @@ export function buildTimelineToolContracts(
   return contracts;
 }
 
-/**
- * Tools only the browser registers.
- *
- * `ui_timeline_get_clip_frames` samples pixels out of a rendered video clip,
- * which the headless surface has no rasterizer for. `ui_timeline_edit` batches
- * calls to the other tools through the browser registry, and the headless
- * bridge's `edit_timeline` already does that job by walking its own tool list.
- */
-export const BROWSER_ONLY_TIMELINE_TOOL_NAMES = [
-  "ui_timeline_get_clip_frames",
-  "ui_timeline_edit"
-] as const;
+/** Browser tool batching delegates through the browser registry. */
+export const BROWSER_ONLY_TIMELINE_TOOL_NAMES = ["ui_timeline_edit"] as const;
 
 /**
  * Tools only the headless bridge registers. `ui_timeline_insert_composition`

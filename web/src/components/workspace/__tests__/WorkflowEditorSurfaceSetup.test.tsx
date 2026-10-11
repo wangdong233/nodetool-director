@@ -10,7 +10,7 @@
  * The flow is mounted for real at its first step, not stubbed, so the
  * assertion is which surface comes back — that is what "resumes" means.
  */
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
@@ -36,7 +36,7 @@ jest.mock("../../panels/StatusMessage", () => ({
 }));
 jest.mock("../../editor/NodeCreateBridge", () => ({
   __esModule: true,
-  default: () => null
+  default: () => <div data-testid="node-create-bridge" />
 }));
 jest.mock("../SubgraphTabStrip", () => ({
   __esModule: true,
@@ -44,7 +44,13 @@ jest.mock("../SubgraphTabStrip", () => ({
 }));
 jest.mock("../SubgraphTabContent", () => ({
   __esModule: true,
-  default: () => null
+  default: ({ tab, active }: { tab: { key: string }; active: boolean }) => (
+    <div
+      data-testid="subgraph-content"
+      data-tab={tab.key}
+      data-active={String(active)}
+    />
+  )
 }));
 jest.mock("../WorkflowChainSurface", () => ({
   __esModule: true,
@@ -145,6 +151,7 @@ jest.mock("../../../hooks/workflow/useBuildFromPlan", () => ({
     building: false,
     result: null
   }),
+  isWorkflowBuildLive: () => false,
   readWorkflowBuild: () => mockPersistedBuild,
   workflowBuildResult: () => mockBuildResult
 }));
@@ -153,14 +160,28 @@ jest.mock("../../../serverState/useEntities", () => ({
 }));
 
 let settings: Record<string, unknown> = {};
-const nodeStore = { getState: () => ({ nodes: [], edges: [] }) };
+let canvasNodes: Array<{ id: string; type: string; data: object }> = [];
+const nodeStore = { getState: () => ({ nodes: canvasNodes, edges: [] }) };
 const managerState = {
   getWorkflow: () => ({ id: "w1", name: "W", settings, graph: null }),
-  getNodeStore: () => nodeStore,
+  getNodeStore: jest.fn((): typeof nodeStore | undefined => nodeStore),
   fetchWorkflow: jest.fn(async () => ({ id: "w1" })),
-  create: jest.fn(),
+  create: jest.fn(async () => ({ id: "copy-1", name: "Summarize a PDF" })),
+  delete: jest.fn(async () => {}),
   updateWorkflow: jest.fn(),
-  saveWorkflow: jest.fn(async () => {})
+  saveWorkflow: jest.fn(async () => {}),
+  // Step 1's inline examples browser reads the shipped examples.
+  loadTemplates: jest.fn(async () => ({
+    workflows: [
+      {
+        id: "summarize.json",
+        name: "Summarize a PDF",
+        description: "Read a PDF and write a summary",
+        tags: ["example"]
+      }
+    ],
+    next: null
+  }))
 };
 const mockCreateApplication = jest.fn(async () => ({
   id: "app-1",
@@ -174,17 +195,20 @@ jest.mock("../../../contexts/WorkflowManagerContext", () => ({
     selector(managerState),
   useWorkflowManagerStore: () => ({ getState: () => managerState })
 }));
+const mockTabs = {
+  closeTab: jest.fn(),
+  openTab: jest.fn(),
+  setTitle: jest.fn(),
+  tabs: [{ type: "workflow", ref: "w1", projectId: "project-1" }]
+};
 jest.mock("../../../stores/WorkspaceTabsStore", () => ({
   __esModule: true,
   creationProjectId: () => "default",
   tabId: (kind: string, ref: string) => `${kind}:${ref}`,
-  useWorkspaceTabsStore: (selector: (state: unknown) => unknown) =>
-    selector({
-      closeTab: jest.fn(),
-      openTab: jest.fn(),
-      setTitle: jest.fn(),
-      tabs: [{ type: "workflow", ref: "w1", projectId: "project-1" }]
-    })
+  useWorkspaceTabsStore: Object.assign(
+    (selector: (state: unknown) => unknown) => selector(mockTabs),
+    { getState: () => mockTabs }
+  )
 }));
 jest.mock("../../../hooks/useApplications", () => ({
   useCreateApplication: () => ({
@@ -205,12 +229,26 @@ jest.mock("../../../stores/NotificationStore", () => ({
     selector({ addNotification: mockAddNotification })
 }));
 
+// The game flow's host draws its own steps; this suite asks only whether a
+// workflow carrying `settings.game` mounts it instead of the canvas.
+jest.mock("../../setup/game/GameSetupHost", () => ({
+  __esModule: true,
+  default: ({ workflowId }: { workflowId: string }) => (
+    <div data-testid="game-setup-flow">{workflowId}</div>
+  )
+}));
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  writeGameSetup,
   writeWorkflowSetup,
   type WorkflowSetupStage
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 import WorkflowEditorSurface from "../WorkflowEditorSurface";
+import {
+  useSubgraphTabsStore,
+  type SubgraphTab
+} from "../../../stores/SubgraphTabsStore";
 
 const seed = (stage: WorkflowSetupStage) => {
   settings = writeWorkflowSetup({}, { stage, brief: "summarize the inbox" });
@@ -232,6 +270,54 @@ const renderSurface = () =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockPersistedBuild = null;
+  canvasNodes = [];
+  useSubgraphTabsStore.setState({ tabs: [], activeKey: null });
+});
+
+describe("WorkflowEditorSurface subgraphs", () => {
+  const subgraphTab = (workflowId: string, nodeId: string): SubgraphTab =>
+    // SAFETY: SubgraphTabContent is mocked, so nothing reads the store.
+    ({
+      key: `${workflowId}:${nodeId}`,
+      workflowId,
+      nodeId,
+      label: nodeId,
+      store: {}
+    }) as SubgraphTab;
+
+  it("shows the top-level subgraph holding an active nested subgraph", () => {
+    settings = {};
+    const outer = subgraphTab("w1", "outer");
+    const inner = subgraphTab(outer.key, "inner");
+    useSubgraphTabsStore.setState({ tabs: [outer, inner], activeKey: inner.key });
+    renderSurface();
+
+    const content = screen.getByTestId("subgraph-content");
+    expect(content).toHaveAttribute("data-tab", outer.key);
+    expect(content).toHaveAttribute("data-active", "true");
+  });
+
+  it("leaves node-menu requests to the open subgraph's canvas", () => {
+    settings = {};
+    renderSurface();
+    expect(screen.getByTestId("node-create-bridge")).toBeInTheDocument();
+
+    const outer = subgraphTab("w1", "outer");
+    act(() => {
+      useSubgraphTabsStore.setState({ tabs: [outer], activeKey: outer.key });
+    });
+    expect(screen.queryByTestId("node-create-bridge")).not.toBeInTheDocument();
+  });
+
+  it("ignores another workflow's open subgraph", () => {
+    settings = {};
+    const other = subgraphTab("w2", "outer");
+    useSubgraphTabsStore.setState({ tabs: [other], activeKey: other.key });
+    renderSurface();
+
+    expect(screen.queryByTestId("subgraph-content")).not.toBeInTheDocument();
+    expect(screen.getByTestId("node-create-bridge")).toBeInTheDocument();
+  });
 });
 
 describe("WorkflowEditorSurface workflow setup resume", () => {
@@ -260,6 +346,22 @@ describe("WorkflowEditorSurface workflow setup resume", () => {
     renderSurface();
 
     expect(screen.getByTestId("node-editor")).toBeInTheDocument();
+  });
+
+  it("renders the game flow for a workflow still designing a game", () => {
+    settings = writeGameSetup({}, { stage: "review", brief: "a fox" });
+    renderSurface();
+
+    expect(screen.getByTestId("game-setup-flow")).toHaveTextContent("w1");
+    expect(screen.queryByTestId("node-editor")).not.toBeInTheDocument();
+  });
+
+  it("renders the canvas once the game flow is done", () => {
+    settings = writeGameSetup({}, { stage: "done", game_id: "g1" });
+    renderSurface();
+
+    expect(screen.getByTestId("node-editor")).toBeInTheDocument();
+    expect(screen.queryByTestId("game-setup-flow")).not.toBeInTheDocument();
   });
 
   it("creates and opens an app for a reopened app-mode build", async () => {
@@ -315,4 +417,67 @@ describe("WorkflowEditorSurface workflow setup resume", () => {
       })
     );
   });
+});
+
+// The `+ New` placeholder exists only to host the flow. Picking an example
+// replaces it, so it goes rather than staying behind as "Untitled workflow",
+// and the copy is filed in the tab's project rather than the default one.
+it("files the example copy in the tab's project and deletes the placeholder", async () => {
+  seed("idea");
+  renderSurface();
+
+  await userEvent.click(
+    screen.getByRole("button", { name: /Start from an example/ })
+  );
+  await userEvent.click(await screen.findByText("Summarize a PDF"));
+
+  await waitFor(() => expect(managerState.delete).toHaveBeenCalledTimes(1));
+  expect(managerState.create).toHaveBeenCalledWith(
+    expect.objectContaining({ project_id: "project-1" }),
+    "nodetool-base",
+    "summarize"
+  );
+  expect(managerState.delete).toHaveBeenCalledWith(
+    expect.objectContaining({ id: "w1" })
+  );
+  expect(mockTabs.openTab).toHaveBeenCalledWith(
+    expect.objectContaining({ ref: "copy-1", projectId: "project-1" })
+  );
+  expect(mockTabs.closeTab).toHaveBeenCalledWith("workflow:w1");
+});
+
+// A built workflow can be sent back to step 1, by `ui_workflow_set_setup` for
+// one. Its canvas is the creator's work, not an empty placeholder.
+it("keeps a workflow whose canvas holds nodes when an example is picked", async () => {
+  seed("idea");
+  canvasNodes = [
+    { id: "step_1", type: "nodetool.text.Template", data: { properties: {} } }
+  ];
+  renderSurface();
+
+  await userEvent.click(
+    screen.getByRole("button", { name: /Start from an example/ })
+  );
+  await userEvent.click(await screen.findByText("Summarize a PDF"));
+
+  await waitFor(() =>
+    expect(mockTabs.openTab).toHaveBeenCalledWith(
+      expect.objectContaining({ ref: "copy-1" })
+    )
+  );
+  expect(managerState.delete).not.toHaveBeenCalled();
+});
+
+it("keeps a failed workflow load visible and lets the user retry", async () => {
+  managerState.getNodeStore.mockReturnValue(undefined);
+  managerState.fetchWorkflow.mockRejectedValue(new Error("offline"));
+  renderSurface();
+  expect(await screen.findByText("Could not load workflow")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Report" })).toBeVisible();
+  const callsBeforeRetry = managerState.fetchWorkflow.mock.calls.length;
+  await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(managerState.fetchWorkflow.mock.calls.length).toBeGreaterThan(
+    callsBeforeRetry
+  );
+  managerState.getNodeStore.mockReturnValue(nodeStore);
 });

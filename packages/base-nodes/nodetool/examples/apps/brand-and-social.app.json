@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Brand & Social",
-  "description": "Fill in your brand once — the asset kit and the thumbnail factory both read the same values.",
+  "description": "An agent opens your website, searches for what it leaves out, and fills in your brand. Edit anything it got wrong, then the asset kit and the thumbnail factory both read the same values.",
   "app": {
     "schemaVersion": 3,
     "ui": {
@@ -14,41 +14,81 @@
           "props": {
             "id": "title",
             "text": "🎨 Brand & Social",
-            "level": "1"
-          }
-        },
-        {
-          "type": "Text",
-          "props": {
-            "id": "tagline",
-            "text": "One brand identity drives two deliverables."
+            "level": "1",
+            "subtitle": "Paste your website. An agent researches the brand, then two deliverables read what it found."
           }
         },
         {
           "type": "Text",
           "props": {
             "id": "app-note",
-            "text": "Your brand name, audience, and voice persist between sessions."
+            "text": "Your brand fields persist between sessions. Research uses a model with browser and web search tools.",
+            "tone": "hint"
           }
         },
         {
-          "type": "Columns",
+          "type": "Stepper",
           "props": {
-            "id": "cols-your-brand",
-            "gap": 24,
-            "left": [
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
               {
-                "type": "Container",
+                "value": "research-your-brand",
+                "title": "Research your brand"
+              },
+              {
+                "value": "your-brand",
+                "title": "Your brand"
+              },
+              {
+                "value": "hooks-and-thumbnails",
+                "title": "Hooks & thumbnails"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-research-your-brand",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "research-your-brand"
+            },
+            "content": [
+              {
+                "type": "Heading",
                 "props": {
-                  "id": "panel-your-brand",
-                  "title": "Your brand",
-                  "content": [
+                  "id": "heading-research-your-brand",
+                  "text": "Research your brand",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-research-your-brand",
+                  "gap": 24,
+                  "left": [
+                    {
+                      "type": "TextInput",
+                      "props": {
+                        "id": "in-research-website",
+                        "binding": "op:research/in:in_website",
+                        "label": "Your website",
+                        "multiline": false,
+                        "events": []
+                      }
+                    },
                     {
                       "type": "ModelSelect",
                       "props": {
-                        "id": "model-kit-gen-prompts-model",
-                        "binding": "op:kit/prop:gen_prompts#model",
-                        "label": "Asset kit model",
+                        "id": "model-research-research-agent-model",
+                        "binding": "op:research/prop:research_agent#model",
+                        "label": "Research model",
                         "modelKind": "language_model",
                         "events": []
                       }
@@ -56,21 +96,155 @@
                     {
                       "type": "ModelSelect",
                       "props": {
-                        "id": "model-kit-txt2img-model",
-                        "binding": "op:kit/prop:txt2img#model",
-                        "label": "Asset kit model",
-                        "modelKind": "image_model",
+                        "id": "model-research-extract-fields-model",
+                        "binding": "op:research/prop:extract_fields#model",
+                        "label": "Brand profile fields model",
+                        "modelKind": "language_model",
                         "events": []
                       }
                     },
                     {
-                      "type": "ModelSelect",
+                      "type": "Button",
                       "props": {
-                        "id": "model-kit-brief-agent-model",
-                        "binding": "op:kit/prop:brief_agent#model",
-                        "label": "Asset kit model",
-                        "modelKind": "language_model",
-                        "events": []
+                        "id": "btn-research",
+                        "label": "Research my brand",
+                        "variant": "contained",
+                        "color": "primary",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "run",
+                            "operationId": "research",
+                            "key": "",
+                            "value": ""
+                          }
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:research/exec#running",
+                          "op": "notEmpty"
+                        }
+                      }
+                    }
+                  ],
+                  "right": [
+                    {
+                      "type": "Progress",
+                      "props": {
+                        "id": "progress-research",
+                        "binding": "op:research/exec#progress",
+                        "label": "Reading your site and searching…"
+                      }
+                    },
+                    {
+                      "type": "AgentActivity",
+                      "props": {
+                        "id": "transcript-research",
+                        "binding": "op:research/exec#transcript",
+                        "label": "What the agent is doing",
+                        "placeholder": "Pages opened and searches run appear here."
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-research",
+                        "binding": "op:research/exec#error",
+                        "title": "Research failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:research/exec#error",
+                          "op": "notEmpty"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Heading",
+                      "props": {
+                        "id": "lbl-research-research-notes",
+                        "text": "Research notes",
+                        "level": "3"
+                      }
+                    },
+                    {
+                      "type": "Markdown",
+                      "props": {
+                        "id": "out-research-research-notes",
+                        "binding": "op:research/out:out_notes",
+                        "text": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-research-your-brand"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-research-your-brand",
+                  "gap": 16,
+                  "left": [],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-research-your-brand",
+                        "label": "Next: Your brand",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-your-brand",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "your-brand"
+            },
+            "content": [
+              {
+                "type": "Heading",
+                "props": {
+                  "id": "heading-your-brand",
+                  "text": "Your brand",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-your-brand",
+                  "gap": 24,
+                  "left": [
+                    {
+                      "type": "Text",
+                      "props": {
+                        "id": "note",
+                        "text": "Research fills these in. Edit anything before you generate."
                       }
                     },
                     {
@@ -106,8 +280,8 @@
                     {
                       "type": "TextInput",
                       "props": {
-                        "id": "in-kit-brand-description",
-                        "binding": "op:kit/in:in_brand_description",
+                        "id": "in-branddescription",
+                        "binding": "var:brandDescription",
                         "label": "Describe your brand",
                         "multiline": true,
                         "events": []
@@ -116,8 +290,8 @@
                     {
                       "type": "TextInput",
                       "props": {
-                        "id": "in-kit-tagline",
-                        "binding": "op:kit/in:in_tagline",
+                        "id": "in-tagline",
+                        "binding": "var:tagline",
                         "label": "Tagline",
                         "multiline": false,
                         "events": []
@@ -130,6 +304,46 @@
                         "binding": "op:kit/in:in_primary_color",
                         "label": "Primary color",
                         "events": []
+                      }
+                    },
+                    {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-your-brand",
+                        "title": "Models (3)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-gen-prompts-model",
+                              "binding": "op:kit/prop:gen_prompts#model",
+                              "label": "Split into 4 prompts model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-txt2img-model",
+                              "binding": "op:kit/prop:txt2img#model",
+                              "label": "Render each image model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-brief-agent-model",
+                              "binding": "op:kit/prop:brief_agent#model",
+                              "label": "Draft brand brief model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -147,26 +361,35 @@
                             "key": "",
                             "value": ""
                           }
-                        ]
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:kit/exec#running",
+                          "op": "notEmpty"
+                        }
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-your-brand-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
                         "id": "progress-kit",
                         "binding": "op:kit/exec#progress",
                         "label": "Designing your assets…"
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-kit",
+                        "binding": "op:kit/exec#error",
+                        "title": "Asset generation failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:kit/exec#error",
+                          "op": "notEmpty"
+                        }
                       }
                     },
                     {
@@ -205,42 +428,88 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-your-brand"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-your-brand",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-your-brand",
+                        "label": "Back: Research your brand",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "research-your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-your-brand",
+                        "label": "Next: Hooks & thumbnails",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "hooks-and-thumbnails"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "type": "Columns",
+          "type": "Container",
           "props": {
-            "id": "cols-hooks-and-thumbnails",
-            "gap": 24,
-            "left": [
+            "id": "step-hooks-and-thumbnails",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "hooks-and-thumbnails"
+            },
+            "content": [
               {
-                "type": "Container",
+                "type": "Heading",
                 "props": {
-                  "id": "panel-hooks-and-thumbnails",
-                  "title": "Hooks & thumbnails",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-thumbnails-hooks-model",
-                        "binding": "op:thumbnails/prop:hooks#model",
-                        "label": "Thumbnails model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-thumbnails-thumbnail-model",
-                        "binding": "op:thumbnails/prop:thumbnail#model",
-                        "label": "Thumbnails model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-hooks-and-thumbnails",
+                  "text": "Hooks & thumbnails",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-hooks-and-thumbnails",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "TextInput",
                       "props": {
@@ -263,6 +532,36 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-hooks-and-thumbnails",
+                        "title": "Models (2)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-thumbnails-hooks-model",
+                              "binding": "op:thumbnails/prop:hooks#model",
+                              "label": "Stream hooks model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-thumbnails-thumbnail-model",
+                              "binding": "op:thumbnails/prop:thumbnail#model",
+                              "label": "Generate thumbnail model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-thumbnails",
@@ -277,26 +576,35 @@
                             "key": "",
                             "value": ""
                           }
-                        ]
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:thumbnails/exec#running",
+                          "op": "notEmpty"
+                        }
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-hooks-and-thumbnails-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
                         "id": "progress-thumbnails",
                         "binding": "op:thumbnails/exec#progress",
                         "label": "Writing hooks & rendering thumbnails…"
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-thumbnails",
+                        "binding": "op:thumbnails/exec#error",
+                        "title": "Thumbnails failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:thumbnails/exec#error",
+                          "op": "notEmpty"
+                        }
                       }
                     },
                     {
@@ -353,6 +661,39 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-hooks-and-thumbnails"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-hooks-and-thumbnails",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-hooks-and-thumbnails",
+                        "label": "Back: Your brand",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": []
+                }
               }
             ]
           }
@@ -362,6 +703,35 @@
     },
     "operations": [
       {
+        "id": "research",
+        "name": "Research",
+        "workflowId": "research",
+        "inputs": {},
+        "outputs": {
+          "out_brand_name": {
+            "to": "variable",
+            "variableId": "brandName"
+          },
+          "out_audience": {
+            "to": "variable",
+            "variableId": "audience"
+          },
+          "out_voice": {
+            "to": "variable",
+            "variableId": "voice"
+          },
+          "out_brand_description": {
+            "to": "variable",
+            "variableId": "brandDescription"
+          },
+          "out_tagline": {
+            "to": "variable",
+            "variableId": "tagline"
+          }
+        },
+        "policy": "replace"
+      },
+      {
         "id": "kit",
         "name": "Asset kit",
         "workflowId": "brand",
@@ -369,6 +739,14 @@
           "in_brand_name": {
             "from": "variable",
             "variableId": "brandName"
+          },
+          "in_brand_description": {
+            "from": "variable",
+            "variableId": "brandDescription"
+          },
+          "in_tagline": {
+            "from": "variable",
+            "variableId": "tagline"
           }
         },
         "outputs": {},
@@ -390,6 +768,17 @@
     ],
     "resources": [],
     "variables": [
+      {
+        "id": "step",
+        "name": "Step",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "research-your-brand",
+        "scope": "instance",
+        "persist": false
+      },
       {
         "id": "brandName",
         "name": "Brand name",
@@ -422,14 +811,463 @@
         "default": "friendly and confident, never corporate",
         "scope": "user",
         "persist": true
+      },
+      {
+        "id": "brandDescription",
+        "name": "Brand description",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "A climate-tech startup building friendly home-energy tools. Warm, optimistic and human, where nature meets precision engineering.",
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "tagline",
+        "name": "Tagline",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "Power that gives back",
+        "scope": "user",
+        "persist": true
       }
     ]
   },
   "workflows": [
     {
+      "key": "research",
+      "name": "Research a Brand from Its Website",
+      "description": "Paste a website and an agent researches the brand behind it: it opens the site with a browser, searches the web for what the site leaves out, and writes cited notes. An extractor turns the notes into a brand name, audience, voice, description and tagline that a brand kit can use. The researcher uses browser and web search tools. Pick a language model for the researcher and the extractor.",
+      "sourceId": "nodetool-base/Research a Brand from Its Website",
+      "graph": {
+        "nodes": [
+          {
+            "id": "comment",
+            "type": "nodetool.workflows.base_node.Comment",
+            "data": {
+              "comment": "# 🔎 Research a Brand from Its Website\n\nPaste a website and get research notes plus the five fields a brand kit needs: name, audience, voice, one-line description and tagline. Use it to start a brand kit from a site you do not know well.\n\n**How it works:** \"Website\" fills the \"Research brief\" prompt. \"Research agent (browser + web search)\" runs with the browser and web_search tools, capped at 12 turns and $1.00. It opens the site, searches for what the site leaves out, and writes notes with sources that go to \"Research notes\". \"Brand profile fields\", an Extractor, reads the notes and fills \"Brand name\", \"Audience\", \"Voice\", \"Brand description\" and \"Tagline\", leaving a field empty when the notes mark it unconfirmed. Each model step uses your default language model, or the one you pick on the node.\n\n**Try this:** Point \"Website\" at your own site, then edit any field before you generate assets from it."
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "zIndex": 0,
+              "width": 560,
+              "selectable": true,
+              "bypassed": false,
+              "height": 403
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in_website",
+            "type": "nodetool.input.StringInput",
+            "data": {
+              "name": "website",
+              "value": "https://nodetool.ai",
+              "description": "The brand's website. The agent starts here."
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 1014
+              },
+              "zIndex": 0,
+              "width": 300,
+              "title": "1️⃣ Website",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "research_prompt",
+            "type": "nodetool.text.Prompt",
+            "data": {
+              "prompt": "Research the brand behind this website: {{ WEBSITE }}\n\n1. Open the website with the browser tool. Open one or two more pages from it if the home page is thin, such as About or Pricing.\n2. Use web search once or twice for what the site does not say: who uses the product and how others describe the brand.\n3. Write research notes in Markdown with these sections:\n\n## Brand\nThe brand name exactly as the site writes it, and what it sells, in one or two sentences.\n\n## Audience\nWho it is for, as specifically as the evidence allows.\n\n## Voice\nThree adjectives for the tone of the site's copy, each with a short quote from the site that shows it.\n\n## Tagline\nThe site's own tagline or headline if it has one. Otherwise propose one of at most six words and say it is proposed.\n\n## Colors\nThe main brand colors you saw, as hex codes if the page exposes them.\n\n## Sources\nEvery URL you used.\n\nUse at most eight tool calls in total, then write the notes. If a page refuses to load, say so and move on. Write \"Not confirmed\" for anything you could not find. Do not invent facts."
+            },
+            "ui_properties": {
+              "position": {
+                "x": 400,
+                "y": 898
+              },
+              "zIndex": 0,
+              "width": 320,
+              "title": "Research brief",
+              "selectable": true,
+              "bypassed": false,
+              "height": 360
+            },
+            "dynamic_properties": {
+              "WEBSITE": ""
+            },
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "research_agent",
+            "type": "nodetool.agents.Agent",
+            "data": {
+              "model": {
+                "type": "language_model",
+                "provider": "",
+                "id": "",
+                "name": "",
+                "path": null,
+                "supported_tasks": []
+              },
+              "system": "You are a brand strategist doing desk research. You open pages and search before you write, quote the brand's own words where you can, and say plainly when something is not confirmed.",
+              "tools": [
+                {
+                  "type": "tool_name",
+                  "name": "browser"
+                },
+                {
+                  "type": "tool_name",
+                  "name": "web_search"
+                }
+              ],
+              "image": {
+                "type": "image",
+                "uri": "",
+                "asset_id": null,
+                "data": null,
+                "metadata": null
+              },
+              "audio": {
+                "type": "audio",
+                "uri": "",
+                "asset_id": null,
+                "data": null,
+                "metadata": null
+              },
+              "history": [],
+              "thread_id": null,
+              "max_tokens": 8000,
+              "max_turns": 12,
+              "cost_cap_usd": 1,
+              "timeout_s": 300
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 870
+              },
+              "zIndex": 0,
+              "width": 340,
+              "title": "🔎 Research agent (browser + web search)",
+              "selectable": true,
+              "bypassed": false,
+              "height": 340
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "extract_fields",
+            "type": "nodetool.agents.Extractor",
+            "data": {
+              "model": {
+                "type": "language_model",
+                "provider": "",
+                "id": "",
+                "name": "",
+                "path": null,
+                "supported_tasks": []
+              },
+              "system_prompt": "Extract a brand profile from the research notes in <TEXT>.\n- brand_name: the brand name exactly as written in the notes.\n- audience: who the brand is for, one sentence.\n- voice: the tone of voice as three adjectives and a short instruction, one sentence.\n- brand_description: what the brand is and how it should feel, one sentence.\n- tagline: the brand's own tagline, or the proposed one when the notes give no confirmed tagline, at most eight words.\nUse only the notes. Leave any other field empty when the notes say it is not confirmed.",
+              "text": "",
+              "image": {
+                "type": "image",
+                "uri": "",
+                "asset_id": null,
+                "data": null,
+                "metadata": null
+              },
+              "audio": {
+                "type": "audio",
+                "uri": "",
+                "asset_id": null,
+                "data": null,
+                "metadata": null
+              },
+              "max_tokens": 1024
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1260,
+                "y": 802
+              },
+              "zIndex": 0,
+              "width": 320,
+              "title": "Brand profile fields",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {
+              "brand_name": {
+                "type": "str",
+                "type_args": [],
+                "optional": false
+              },
+              "audience": {
+                "type": "str",
+                "type_args": [],
+                "optional": false
+              },
+              "voice": {
+                "type": "str",
+                "type_args": [],
+                "optional": false
+              },
+              "brand_description": {
+                "type": "str",
+                "type_args": [],
+                "optional": false
+              },
+              "tagline": {
+                "type": "str",
+                "type_args": [],
+                "optional": false
+              }
+            }
+          },
+          {
+            "id": "out_notes",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "research_notes"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1260,
+                "y": 1091
+              },
+              "zIndex": 0,
+              "width": 300,
+              "title": "Research notes",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_brand_name",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "brand_name"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 483
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Brand name",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_audience",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "audience"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 683
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Audience",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_voice",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "voice"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 883
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Voice",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_brand_description",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "brand_description"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 1083
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Brand description",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_tagline",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "tagline"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 1283
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Tagline",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          }
+        ],
+        "edges": [
+          {
+            "id": "e1",
+            "source": "in_website",
+            "sourceHandle": "output",
+            "target": "research_prompt",
+            "targetHandle": "WEBSITE",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e2",
+            "source": "research_prompt",
+            "sourceHandle": "output",
+            "target": "research_agent",
+            "targetHandle": "prompt",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e3",
+            "source": "research_agent",
+            "sourceHandle": "text",
+            "target": "extract_fields",
+            "targetHandle": "text",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e4",
+            "source": "research_agent",
+            "sourceHandle": "text",
+            "target": "out_notes",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e5",
+            "source": "extract_fields",
+            "sourceHandle": "brand_name",
+            "target": "out_brand_name",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e6",
+            "source": "extract_fields",
+            "sourceHandle": "audience",
+            "target": "out_audience",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e7",
+            "source": "extract_fields",
+            "sourceHandle": "voice",
+            "target": "out_voice",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e8",
+            "source": "extract_fields",
+            "sourceHandle": "brand_description",
+            "target": "out_brand_description",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          },
+          {
+            "id": "e9",
+            "source": "extract_fields",
+            "sourceHandle": "tagline",
+            "target": "out_tagline",
+            "targetHandle": "value",
+            "ui_properties": {
+              "className": "str"
+            },
+            "edge_type": "data"
+          }
+        ]
+      },
+      "version": null,
+      "graphHash": null
+    },
+    {
       "key": "brand",
       "name": "Brand Asset Generator",
-      "description": "Turn a brand name and vibe into a whole social kit in one run: the graph fans out to two branches at once — a streamed gallery of four on-brand, text-overlaid social images (Instagram, LinkedIn, X, product launch) and a one-page brand brief (voice, palette, tagline options). Differentiator: structured multi-asset outputs from a single fan-out graph. Uses fal-ai flux/schnell for images (paid) and gpt-5-mini for text.",
+      "description": "Turn a brand name and vibe into a whole social kit in one run: the graph fans out to two branches at once — a streamed gallery of four on-brand, text-overlaid social images (Instagram, LinkedIn, X, product launch) and a one-page brand brief (voice, palette, tagline options). Differentiator: structured multi-asset outputs from a single fan-out graph. Each model step uses your default model for its type, and the image steps are paid.",
       "sourceId": "nodetool-base/Brand Asset Generator",
       "graph": {
         "edges": [
@@ -551,17 +1389,17 @@
             "id": "comment-intro",
             "type": "nodetool.workflows.base_node.Comment",
             "data": {
-              "comment": "# 🏷️ Brand Asset Generator\n\nFrom a brand name + vibe, produce a full social kit in one run.\n\n**Two branches fan out from the same inputs:**\n- **Images** → an art director writes 4 prompts, each rendered, stamped with the brand name (in your color) and tagline, then collected into a gallery.\n- **Brief** → a strategist writes a one-page brand guideline (voice, palette, taglines).\n\n**Try this:** change the brand color or edit the two prompt templates to shift the whole kit."
+              "comment": "# 🏷️ Brand Asset Generator\n\nFrom a brand name and vibe, produces a social kit in one run: four on-brand images with text overlays and a one-page brand brief. Use it to rough out a launch kit before design work.\n\n**How it works:** The four inputs feed two branches. In the image branch, \"5 Write image prompts\" asks for four prompts (Instagram, LinkedIn, X, product launch), and \"6 Split into 4 prompts\" emits them one at a time. \"7 Render each image\" renders each at 1:1. \"8 Stamp brand name\" writes \"1 Brand name\" in \"4 Brand color\" at size 72, \"9 Overlay tagline\" adds \"3 Tagline\" in white at size 40, and \"10 Collect gallery\" gathers the four images. In the brief branch, \"5 Write brief prompt\" feeds \"6 Draft brand brief\", which writes voice, palette and tagline options. Pick a language model on \"6 Split into 4 prompts\" and \"6 Draft brand brief\", and an image model on \"7 Render each image\". Each image is a paid generation.\n\n**Try this:** Change \"4 Brand color\" to a deep red such as #B3261E and see the brand name on all four images change color."
             },
             "ui_properties": {
               "selected": false,
               "position": {
                 "x": 0,
-                "y": -260
+                "y": 0
               },
               "zIndex": 0,
-              "width": 520,
-              "height": 210,
+              "width": 560,
+              "height": 423,
               "selectable": true,
               "bypassed": false
             },
@@ -579,7 +1417,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 40
+                "y": 1302
               },
               "zIndex": 0,
               "width": 280,
@@ -601,7 +1439,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 200
+                "y": 1077
               },
               "zIndex": 0,
               "width": 280,
@@ -623,7 +1461,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 360
+                "y": 1707
               },
               "zIndex": 0,
               "width": 280,
@@ -648,7 +1486,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 520
+                "y": 1527
               },
               "zIndex": 0,
               "width": 280,
@@ -667,8 +1505,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 360,
-                "y": 60
+                "x": 380,
+                "y": 503
               },
               "zIndex": 0,
               "width": 300,
@@ -688,9 +1526,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -699,8 +1537,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 720,
-                "y": 60
+                "x": 780,
+                "y": 930
               },
               "zIndex": 0,
               "width": 280,
@@ -717,9 +1555,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/flux/schnell",
-                "name": "FLUX.1 Schnell",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -729,8 +1567,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1040,
-                "y": 20
+                "x": 1180,
+                "y": 1067
               },
               "zIndex": 0,
               "width": 360,
@@ -764,8 +1602,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1440,
-                "y": 40
+                "x": 1640,
+                "y": 1355
               },
               "zIndex": 0,
               "width": 280,
@@ -798,8 +1636,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1780,
-                "y": 60
+                "x": 2020,
+                "y": 1492
               },
               "zIndex": 0,
               "width": 280,
@@ -818,8 +1656,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2120,
-                "y": 80
+                "x": 2400,
+                "y": 1495
               },
               "zIndex": 0,
               "width": 240,
@@ -838,8 +1676,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2420,
-                "y": 100
+                "x": 2740,
+                "y": 1456
               },
               "selectable": true
             }
@@ -852,8 +1690,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 360,
-                "y": 560
+                "x": 380,
+                "y": 1452
               },
               "zIndex": 0,
               "width": 300,
@@ -874,9 +1712,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -901,8 +1739,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 720,
-                "y": 560
+                "x": 780,
+                "y": 1651
               },
               "zIndex": 0,
               "width": 300,
@@ -922,8 +1760,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1080,
-                "y": 600
+                "x": 1180,
+                "y": 1763
               },
               "selectable": true
             }
@@ -936,7 +1774,7 @@
     {
       "key": "hooks",
       "name": "Hook & Thumbnail Factory",
-      "description": "One video topic in, a full thumbnail pack out: scroll-stopping hook lines plus a color-graded, ready-to-post thumbnail for each. The differentiator is the fan-out — one hook stream drives a whole gallery of matching images in a single run. Uses fal-ai/flux/schnell (cheap, fast).",
+      "description": "One video topic in, a full thumbnail pack out: scroll-stopping hook lines plus a color-graded, ready-to-post thumbnail for each. The differentiator is the fan-out — one hook stream drives a whole gallery of matching images in a single run.",
       "sourceId": "nodetool-base/Hook & Thumbnail Factory",
       "graph": {
         "edges": [
@@ -1078,17 +1916,17 @@
             "id": "comment-intro",
             "type": "nodetool.workflows.base_node.Comment",
             "data": {
-              "comment": "# 🎬 Hook & Thumbnail Factory\n\nGive a video topic and audience. The graph writes scroll-stopping hook lines and, for **each** hook, generates a matching thumbnail — color-graded for punch and collected into a gallery. A whole thumbnail pack from one run.\n\n**Why a graph, not a chat box:** the hook stream fans out. `List Generator` emits one hook at a time; each hook flows through its own prompt → image → color-grade branch, so N hooks become N finished thumbnails in parallel. A chat box can list hooks; it can't hand you the images.\n\n**Pipeline:** Topic + audience + count → hook brief → List Generator (streams hooks) → per-hook thumbnail prompt → Text-to-Image → color grade → collect gallery\n\n**Try this:** change the topic, audience, or number of hooks; tweak the thumbnail style in the prompt. Pick a text model on the List Generator and an image model on Text-to-Image first."
+              "comment": "# 🎬 Hook & Thumbnail Factory\n\nGive a video topic and audience. The graph writes scroll-stopping hook lines and, for each hook, a matching color-graded thumbnail, all from one run.\n\n**How it works:** \"Video topic\", \"Target audience\" and \"How many hooks\" (4 by default) fill \"Build hook brief\". \"Stream hooks\" is a List Generator that emits one hook at a time, and \"Hook ideas\" previews each one. For every hook, \"Build thumbnail prompt\" combines it with the topic, \"Generate thumbnail\" renders a 16:9 image, and \"Color grade for punch\" raises contrast to 1.18 and brightness by 0.03. \"Latest thumbnail\" previews each image and \"Collect gallery\" gathers them into \"Thumbnail gallery\". Pick a text model on \"Stream hooks\" and an image model on \"Generate thumbnail\". Each thumbnail is one paid image.\n\n**Try this:** Set \"How many hooks\" to 2 for a cheaper test run, then raise \"contrast\" on \"Color grade for punch\" to 1.35 and compare how much the thumbnails pop."
             },
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": -560,
-                "y": 40
+                "x": 0,
+                "y": 0
               },
               "zIndex": 0,
-              "width": 500,
-              "height": 320,
+              "width": 560,
+              "height": 403,
               "selectable": true,
               "bypassed": false
             },
@@ -1106,8 +1944,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 60
+                "x": 0,
+                "y": 655
               },
               "zIndex": 0,
               "width": 280,
@@ -1129,8 +1967,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 300
+                "x": 0,
+                "y": 880
               },
               "zIndex": 0,
               "width": 280,
@@ -1154,8 +1992,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 540
+                "x": 0,
+                "y": 1105
               },
               "zIndex": 0,
               "width": 280,
@@ -1175,8 +2013,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 420,
-                "y": 120
+                "x": 380,
+                "y": 753
               },
               "zIndex": 0,
               "width": 340,
@@ -1198,9 +2036,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1209,8 +2047,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 800,
-                "y": 120
+                "x": 820,
+                "y": 761
               },
               "zIndex": 0,
               "width": 360,
@@ -1231,8 +2069,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1200,
-                "y": 120
+                "x": 1280,
+                "y": 483
               },
               "zIndex": 0,
               "width": 340,
@@ -1253,9 +2091,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/flux/schnell",
-                "name": "FLUX.1 Schnell",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1266,8 +2104,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1580,
-                "y": 120
+                "x": 1740,
+                "y": 634
               },
               "zIndex": 0,
               "width": 320,
@@ -1289,8 +2127,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1940,
-                "y": 160
+                "x": 2160,
+                "y": 776
               },
               "zIndex": 0,
               "width": 280,
@@ -1310,8 +2148,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 2260,
-                "y": 160
+                "x": 2540,
+                "y": 1002
               },
               "zIndex": 0,
               "width": 280,
@@ -1331,8 +2169,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 2580,
-                "y": 160
+                "x": 3000,
+                "y": 964
               },
               "zIndex": 0,
               "width": 280,
@@ -1352,8 +2190,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 800,
-                "y": 600
+                "x": 1280,
+                "y": 1039
               },
               "zIndex": 0,
               "width": 360,
@@ -1374,8 +2212,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1940,
-                "y": 540
+                "x": 2540,
+                "y": 632
               },
               "zIndex": 0,
               "width": 360,

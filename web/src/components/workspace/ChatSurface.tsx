@@ -17,11 +17,12 @@ import {
   creationProjectId,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
+import { useContextCommands } from "../../hooks/useContextCommands";
+import type { ContextCommand } from "../../stores/CommandMenuStore";
 import DocumentLoadStatus from "./DocumentLoadStatus";
-import { buildUiContext } from "../../lib/chat/uiContext";
+import { buildUiContext, type BuildUiContextOptions } from "../../lib/chat/uiContext";
 import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
-
 const whenChatStoreHydrated = (): Promise<void> => {
   const persistApi = useGlobalChatStore.persist;
   if (persistApi.hasHydrated()) {
@@ -94,6 +95,9 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
   const { model, setModel } = useThreadModel(refId);
   const connectionStatus = useGlobalChatStore((state) => state.status);
   const pendingTurnInFlight = useRef(false);
+  const inspectionUiContext = useCallback((): BuildUiContextOptions => ({
+    run: useChatDraftStore.getState().runReferences[refId]
+  }), [refId]);
 
   const workflowId = useGlobalChatStore(
     (state) =>
@@ -253,6 +257,18 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
     }
   }, [createNewThread, openTab]);
 
+  const busy = runtime.status === "loading" || runtime.status === "streaming";
+  const menuCommands = useMemo<ContextCommand[]>(() => {
+    const commands: ContextCommand[] = [
+      { id: "new-chat", label: "New Chat", run: handleNewChat }
+    ];
+    if (busy) {
+      commands.push({ id: "stop", label: "Stop Generating", run: handleStop });
+    }
+    return commands;
+  }, [busy, handleNewChat, handleStop]);
+  useContextCommands("Chat", menuCommands, active);
+
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <ChatView
@@ -278,6 +294,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
         currentLogUpdate={runtime.logUpdate}
         workflowId={workflowId}
         chatSource="workspace_chat"
+        uiContext={inspectionUiContext}
         noMessagesPlaceholder={noMessagesPlaceholder}
         showNewChatButton
         projectDocumentsSidebar={

@@ -50,7 +50,9 @@ import { throwApiError } from "../trpc/error-formatter.js";
 import { isRecord, isString } from "./wire-values.js";
 
 export const listApplicationsInput = z.object({
-  projectId: z.string().optional()
+  projectId: z.string().optional(),
+  /** Only apps with an operation that runs this workflow. */
+  workflowId: z.string().optional()
 });
 
 export const applicationIdInput = z.object({ id: z.string() });
@@ -61,12 +63,16 @@ export const updateApplicationInput = patchApplicationInput.and(
 export type UpdateApplicationInput = z.infer<typeof updateApplicationInput>;
 
 export function toListItem(app: Application): ApplicationListItem {
+  const document = app.toDocument();
   return {
     id: app.id,
     projectId: app.project_id,
     name: app.name,
     description: app.description,
-    operationCount: app.toDocument().operations.length,
+    operationCount: document.operations.length,
+    isRecipe: document.recipe !== undefined,
+    recipeSlug: document.recipe?.slug ?? null,
+    recipeCategory: document.recipe?.category ?? null,
     updatedAt: app.updated_at
   };
 }
@@ -111,6 +117,7 @@ async function documentFromWorkflow(
       )
     : null;
   if (parsed) return parsed;
+  if (raw) throwApiError(ApiErrorCode.INVALID_INPUT, "Workflow Application document is invalid or unsupported. Protection metadata cannot be discarded.");
   return scaffoldDocumentFromWorkflow(workflowId, workflow);
 }
 
@@ -309,12 +316,20 @@ export function scaffoldDocumentFromWorkflow(
 
 export async function listApplications(
   userId: string,
-  projectId?: string
+  projectId?: string,
+  workflowId?: string
 ): Promise<ApplicationListItem[]> {
   const apps = projectId
     ? await Application.listByProject(projectId, userId)
     : await Application.listByUser(userId);
-  return apps.map(toListItem);
+  const matching = workflowId
+    ? apps.filter((app) =>
+        app
+          .toDocument()
+          .operations.some((operation) => operation.workflowId === workflowId)
+      )
+    : apps;
+  return matching.map(toListItem);
 }
 
 export async function getApplication(
@@ -415,6 +430,12 @@ export async function updateApplication(
   if (input.name !== undefined) fields.name = input.name;
   if (input.description !== undefined) fields.description = input.description;
   if (input.document !== undefined) {
+    if (app.toDocument().recipe && input.document.recipe === undefined) {
+      throwApiError(
+        ApiErrorCode.INVALID_INPUT,
+        "Recipe metadata cannot be removed by an ordinary Application document update. Use a Recipe-compatible client."
+      );
+    }
     fields.document = JSON.stringify(input.document);
   }
 

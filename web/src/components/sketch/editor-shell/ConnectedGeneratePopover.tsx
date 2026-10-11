@@ -15,6 +15,8 @@
  * sketch modal has no session, same gate as SelectionActionBar).
  */
 
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -37,7 +39,9 @@ import {
   Popover,
   TextInput,
   Toast,
-  BORDER_RADIUS
+  BORDER_RADIUS,
+  SPACING,
+  getSpacingPx
 } from "../../ui_primitives";
 import MediaControlChip from "../../chat/composer/MediaControlChip";
 import MediaAspectRatioMenu from "../../chat/composer/MediaAspectRatioMenu";
@@ -58,8 +62,6 @@ import { useMediaOptions } from "../../../hooks/useModelsByProvider";
 import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
-import { SKETCH_SPACING } from "../sketchStyles";
-import { useTranslation } from "react-i18next";
 
 /** Most recent direct-gen binding's model, to seed the form's picker. */
 function seedModelFromBindings() {
@@ -221,11 +223,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
       await start(layerId);
       setPrompt("");
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
-      );
+      setError(e instanceof Error ? e.message : i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." }));
     } finally {
       setGenerating(false);
     }
@@ -266,7 +264,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           className="sketch-generate-form"
           data-testid="sketch-generate-form"
           gap={1}
-          sx={{ padding: SKETCH_SPACING.lg }}
+          sx={{ padding: getSpacingPx(SPACING.md) }}
         >
           <TextInput
             value={prompt}
@@ -300,7 +298,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
             <MediaControlChip
               ref={imageModelAnchorRef}
               icon={<ImageIcon fontSize="small" />}
-              label={modelName || t("editor:ui.selectModel", { defaultValue: "Select Model" })}
+              label={modelName || i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" })}
               active={imageModelOpen}
               onClick={() => setImageModelOpen(true)}
               truncate
@@ -375,7 +373,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
             data-testid="sketch-gen-submit"
             sx={{ alignSelf: "flex-end", height: 34 }}
           >
-            {t("editor:ui.generate", { defaultValue: "Generate" })}
+            Generate
           </EditorButton>
         </FlexColumn>
       </Popover>

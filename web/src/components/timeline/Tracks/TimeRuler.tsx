@@ -24,13 +24,16 @@ import type { Theme } from "@mui/material/styles";
 
 import { resolveTempo } from "@nodetool-ai/timeline";
 import type { TimelineMarker } from "@nodetool-ai/timeline";
-import {
-  useTimelinePlaybackStore,
-  useTimelinePlaybackStoreApi
-} from "../../../stores/timeline/TimelinePlaybackStore";
+import { useTimelinePlaybackStore } from "../../../stores/timeline/TimelinePlaybackStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
-import { BORDER_RADIUS, FONT_SIZE_MONO } from "../../ui_primitives";
+import {
+  BORDER_RADIUS,
+  FONT_SIZE_MONO,
+  SPACING,
+  TYPOGRAPHY,
+  getSpacingPx
+} from "../../ui_primitives";
 import { computeBarRulerTicks } from "./tempoGrid";
 import { useTranslation } from "react-i18next";
 
@@ -64,6 +67,10 @@ function pickRulerColors(theme: Theme, mode: "light" | "dark"): RulerColors {
 
 const RULER_HEIGHT_PX = 28;
 const MIN_LABEL_GAP_PX = 60;
+/** Visible height of a marker flag. */
+const MARKER_FLAG_HEIGHT_PX = 14;
+/** Minimum pointer target for a marker flag; the extra height is invisible. */
+const MARKER_HIT_HEIGHT_PX = 20;
 
 const rulerStyles = (theme: Theme) =>
   css({
@@ -92,21 +99,42 @@ const markerFlagStyles = (theme: Theme) =>
     transform: "translateX(-1px)",
     display: "flex",
     alignItems: "center",
-    gap: 2,
-    height: 14,
+    gap: getSpacingPx(SPACING.micro),
+    height: MARKER_FLAG_HEIGHT_PX,
     maxWidth: 140,
     padding: theme.spacing(0, 1),
     borderRadius: `0 ${BORDER_RADIUS.xs} ${BORDER_RADIUS.xs} 0`,
-    fontSize: FONT_SIZE_MONO.caption,
-    lineHeight: "14px",
+    ...TYPOGRAPHY.mono.caption,
+    lineHeight: `${MARKER_FLAG_HEIGHT_PX}px`,
     whiteSpace: "nowrap",
     color: theme.vars.palette.primary.contrastText,
     backgroundColor: theme.vars.palette.primary.main,
-    cursor: "pointer",
     pointerEvents: "auto",
-    "& .marker-label": {
+    "& .marker-seek": {
+      position: "relative",
+      minWidth: 0,
+      border: "none",
+      background: "transparent",
+      color: "inherit",
+      font: "inherit",
+      padding: 0,
+      margin: 0,
+      cursor: "pointer",
       overflow: "hidden",
-      textOverflow: "ellipsis"
+      textOverflow: "ellipsis",
+      // Extend the pointer target below the flag without drawing it taller.
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: MARKER_HIT_HEIGHT_PX
+      }
+    },
+    "& .marker-seek:focus-visible, & .marker-delete:focus-visible": {
+      outline: `2px solid ${theme.vars.palette.primary.contrastText}`,
+      outlineOffset: 1
     },
     "& .marker-delete": {
       display: "none",
@@ -116,16 +144,24 @@ const markerFlagStyles = (theme: Theme) =>
       cursor: "pointer",
       padding: 0,
       margin: 0,
-      fontSize: "var(--fontSizeSmaller)",
+      fontSize: FONT_SIZE_MONO.caption,
       lineHeight: 1
     },
-    "&:hover .marker-delete": { display: "inline" }
+    "&:hover .marker-delete, &:focus-within .marker-delete": {
+      display: "inline"
+    }
   });
 
 const canvasStyles = css({
+  // The draw pass reads the resolved size and family back through
+  // getComputedStyle: canvas 2D cannot parse the CSS variables directly.
+  ...TYPOGRAPHY.mono.caption,
   display: "block",
   width: "100%",
-  height: "100%"
+  height: "100%",
+  // A finger dragged along the ruler scrubs the playhead; without this the
+  // browser takes it as a pan and cancels the pointer.
+  touchAction: "none"
 });
 
 /**
@@ -185,15 +221,21 @@ const MarkerOverlayInner: React.FC<MarkerOverlayProps> = ({
             key={m.id}
             css={flagCss}
             style={{ left: contentPx, backgroundColor: m.color || undefined }}
-            title={`${m.label || "Marker"} — click to seek`}
-            data-testid="timeline-marker"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSeek(m.timeMs);
-            }}
           >
-            <span className="marker-label">{m.label || "Marker"}</span>
+            <button
+              type="button"
+              className="marker-seek"
+              data-testid="timeline-marker"
+              aria-label={`${m.label || "Marker"} at ${formatTimecode(m.timeMs, 500)}`}
+              title={`${m.label || "Marker"} — click to seek`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSeek(m.timeMs);
+              }}
+            >
+              {m.label || "Marker"}
+            </button>
             <button
               type="button"
               className="marker-delete"
@@ -264,9 +306,11 @@ export function formatTimecode(
     const fpsInt = Math.max(1, Math.round(fps));
     const totalFrames = Math.round((ms / 1000) * fps);
     const frame = totalFrames % fpsInt;
-    const wholeSec = Math.floor(totalFrames / fpsInt) % 60;
+    // Minutes come from the frame count at the nominal rate, like seconds
+    // and frames: at 29.97 the wall-clock minute runs ahead of the timecode.
+    const totalTcSec = Math.floor(totalFrames / fpsInt);
     const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-    return `${min}:${pad(wholeSec)}:${pad(frame)}`;
+    return `${Math.floor(totalTcSec / 60)}:${pad(totalTcSec % 60)}:${pad(frame)}`;
   }
   const decimals = majorMs >= 500 ? 1 : 2;
   const secText = sec.toFixed(decimals);
@@ -289,15 +333,15 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
     const { mode, systemMode } = useColorScheme();
     const activeMode = mode === "system" ? systemMode : mode;
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const ownsGestureRef = useRef(false);
 
     const msPerPx = useTimelineUIStore((s) => s.msPerPx);
     const scrollLeftPx = useTimelineUIStore((s) => s.scrollLeftPx);
     const rulerMode = useTimelineUIStore((s) => s.rulerMode);
     const tempo = useTimelineStore((s) => resolveTempo(s));
     const seek = useTimelinePlaybackStore((s) => s.seek);
-    const playbackStoreApi = useTimelinePlaybackStoreApi();
     const markers = useTimelineStore((s) => s.markers);
-    const removeScene = useTimelineStore((s) => s.removeScene);
+    const deleteMarker = useTimelineStore((s) => s.deleteMarker);
     const fps = useTimelineStore((s) => s.fps);
     const rangeInMs = useTimelinePlaybackStore((s) => s.rangeInMs);
     const rangeOutMs = useTimelinePlaybackStore((s) => s.rangeOutMs);
@@ -323,30 +367,6 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
       ro.observe(canvas);
       return () => ro.disconnect();
     }, []);
-
-    // Scrub/playhead aria value.
-    // aria-valuenow only needs to reflect the position for a11y, not track it
-    // at full frame rate — subscribing to reactive `currentTimeMs` would
-    // re-render this memoized ruler (and redraw its canvas) on every
-    // scrub/playback tick. Write the attribute imperatively off the playback
-    // store's transient channel instead, throttled to ~10 Hz, mirroring
-    // Playhead's subscribeTime effect.
-    const lastAriaBucketRef = useRef<number | null>(null);
-    useEffect(() => {
-      const applyAriaValue = (timeMs: number) => {
-        const bucket = Math.round(timeMs / 100);
-        if (bucket === lastAriaBucketRef.current) {
-          return;
-        }
-        lastAriaBucketRef.current = bucket;
-        canvasRef.current?.setAttribute(
-          "aria-valuenow",
-          String(Math.round(timeMs))
-        );
-      };
-      applyAriaValue(playbackStoreApi.getState().getTimeMs());
-      return playbackStoreApi.getState().subscribeTime(applyAriaValue);
-    }, [playbackStoreApi]);
 
     // Draw.
     // The draw inputs (scrollLeftPx especially) change on every scroll event,
@@ -460,7 +480,8 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
       // First tick time (floor to minorMs boundary)
       const firstTickMs = Math.floor(visibleStartMs / minorMs) * minorMs;
 
-      ctx.font = `10px ${th.typography.fontFamily ?? "sans-serif"}`;
+      const canvasStyle = getComputedStyle(canvas);
+      ctx.font = `${canvasStyle.fontSize} ${canvasStyle.fontFamily}`;
       ctx.textBaseline = "top";
       ctx.textAlign = "left";
 
@@ -570,7 +591,12 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
 
     const handlePointerDown = useCallback(
       (e: React.PointerEvent<HTMLCanvasElement>) => {
+        // Right and middle presses must not move the playhead.
+        if (e.button !== 0) {
+          return;
+        }
         e.currentTarget.setPointerCapture(e.pointerId);
+        ownsGestureRef.current = true;
         seek(pxToMs(e.clientX));
       },
       [pxToMs, seek]
@@ -578,13 +604,19 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
 
     const handlePointerMove = useCallback(
       (e: React.PointerEvent<HTMLCanvasElement>) => {
-        if (e.buttons !== 1) {
+        // Only scrub a drag that started on the ruler, not a clip dragged
+        // across it.
+        if (!ownsGestureRef.current || e.buttons !== 1) {
           return;
         }
         seek(pxToMs(e.clientX));
       },
       [pxToMs, seek]
     );
+
+    const handlePointerEnd = useCallback(() => {
+      ownsGestureRef.current = false;
+    }, []);
 
     return (
       <div
@@ -598,13 +630,14 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
           style={{ width: "100%", height: "100%" }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          onLostPointerCapture={handlePointerEnd}
           aria-label={
             rulerMode === "bars"
               ? t("timeline:attrs.barsRulerClickOrDragToSetPlayhead", { defaultValue: "Bars ruler — click or drag to set playhead" })
               : t("timeline:attrs.timeRulerClickOrDragToSetPlayhead", { defaultValue: "Time ruler — click or drag to set playhead" })
           }
-          role="slider"
-          aria-valuemin={0}
         />
         <MarkerOverlay
           markers={markers}
@@ -613,7 +646,7 @@ export const TimeRuler: React.FC<TimeRulerProps> = memo(
           viewportWidthPx={viewportWidthPx}
           headerWidthPx={headerWidthPx}
           onSeek={seek}
-          onRemove={removeScene}
+          onRemove={deleteMarker}
         />
       </div>
     );

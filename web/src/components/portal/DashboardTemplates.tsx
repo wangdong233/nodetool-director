@@ -45,7 +45,7 @@ import {
 } from "./entryCompatibility";
 import { useTranslation } from "react-i18next";
 
-/** Rows shown on the dashboard before the user searches or opens /examples. */
+/** Rows shown on the dashboard before the user searches or opens the Examples tab. */
 const MAX_VISIBLE = 18;
 
 /** Anchor the dashboard checklist scrolls to for its "open a template" step. */
@@ -357,7 +357,7 @@ const TemplateRow = memo(function TemplateRow({
 
 interface DashboardTemplatesProps {
   /**
-   * Render as the standalone /examples page: show every example (no cap),
+   * Render as the Examples page tab: show every example (no cap),
    * and drop the dashboard-only "Browse all"/"More…" links.
    */
   fullPage?: boolean;

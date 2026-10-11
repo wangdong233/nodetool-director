@@ -2,14 +2,13 @@ import {
   ipcMain,
   BrowserWindow,
   clipboard,
-  globalShortcut,
   shell,
   dialog,
   app,
 } from "electron";
 import fs from "fs/promises";
 import path from "path";
-import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import {
   getServerState,
@@ -17,9 +16,9 @@ import {
   showItemInFolder,
   runApp,
   initializeBackendServer,
-  stopServer,
+  restartServer,
 } from "./server";
-import { assertSafeReadablePath } from "./utils";
+import { assertSafeOpenablePath, assertSafeReadablePath } from "./utils";
 import { logMessage } from "./logger";
 import {
   IpcChannels,
@@ -45,8 +44,11 @@ import { applyVaultSwitch } from "./vaultSwitch";
 import { setMenuSnapToGrid } from "./menu";
 import { installMcpBundle } from "./mcpBundle";
 import { IpcRequest } from "./types.d";
-import { registerWorkflowShortcut, setupWorkflowShortcuts } from "./shortcuts";
-import { workflowShortcut } from "./workflowSettings";
+import {
+  registerWorkflowShortcut,
+  setupWorkflowShortcuts,
+  unregisterWorkflowShortcut,
+} from "./shortcuts";
 import { emitWorkflowsChanged, emitServerStateChanged } from "./tray";
 import {
   fetchAvailablePackages,
@@ -75,7 +77,7 @@ import {
   openPathInExplorer,
   openSystemDirectory,
 } from "./fileExplorer";
-import { isBoolean, isNonEmptyString, isString } from "./typePredicates";
+import { isBoolean, isNonEmptyString } from "./typePredicates";
 
 const nodePackInstallRequestSchema = z.object({ spec: z.string() }).strict();
 const nodePackUninstallRequestSchema = z.object({ name: z.string() }).strict();
@@ -114,8 +116,6 @@ const MIME_TYPE_MAP: Record<string, string> = {
   html: "text/html",
 };
 
-import WebSocket from "ws";
-
 /**
  * This module handles Inter-Process Communication (IPC) between the Electron main process
  * and renderer processes. It provides type-safe wrappers for IPC handlers and initializes
@@ -140,6 +140,9 @@ type IpcMainHandler<T extends keyof IpcRequest & keyof IpcResponse> = (
   data: IpcRequest[T],
 ) => Promise<IpcResponse[T]>;
 
+/** The runtime install folder the user last picked in the folder dialog. */
+let selectedRuntimeInstallLocation: string | null = null;
+
 // Channels that should have their payloads redacted for security
 const SENSITIVE_CHANNELS = ["clipboard:write-text", "clipboard:read-text"];
 // High-frequency channels that only log on error to reduce noise
@@ -147,16 +150,6 @@ const QUIET_CHANNELS = [
   "settings-get-close-behavior",
   "frontend-log",
 ];
-const LOCALHOST_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
-const LOCALHOST_PROXY_WS_STATES = new Map<
-  string,
-  {
-    senderId: number;
-    socket: WebSocket;
-  }
->();
-const LOCALHOST_PROXY_WS_IDS_BY_SENDER = new Map<number, Set<string>>();
-
 /**
  * Defense-in-depth check for URLs passed to `shell.openExternal` / browser.
  * The preload already filters schemes, but a compromised renderer could
@@ -169,106 +162,28 @@ const SAFE_EXTERNAL_PROTOCOLS = new Set([
   "mailto:",
 ]);
 
+/**
+ * Converts a clipboard `file://` URL to a local path. `URL.pathname` keeps a
+ * leading slash before a Windows drive letter (`/C:/x`) and drops UNC hosts;
+ * `fileURLToPath` applies the platform's rules.
+ */
+export function fileUrlToLocalPath(uri: string): string | null {
+  try {
+    return fileURLToPath(uri.trim());
+  } catch {
+    return null;
+  }
+}
+
 function isSafeExternalUrl(urlValue: unknown): boolean {
   if (!isNonEmptyString(urlValue)) {
     return false;
-  }
-  // Allow well-known OS-preference deep links used by our own code paths.
-  // These are expected to come from the main process, not the renderer, so
-  // we accept them here for completeness and log any unexpected call.
-  if (
-    urlValue.startsWith("x-apple.systempreferences:") ||
-    urlValue.startsWith("ms-settings:")
-  ) {
-    return true;
   }
   try {
     const parsed = new URL(urlValue);
     return SAFE_EXTERNAL_PROTOCOLS.has(parsed.protocol);
   } catch {
     return false;
-  }
-}
-
-function assertLocalhostUrl(
-  urlValue: string,
-  allowedProtocols: string[] = ["http:", "https:"],
-): URL {
-  let parsed: URL;
-  try {
-    parsed = new URL(urlValue);
-  } catch {
-    throw new Error("Invalid proxy URL");
-  }
-
-  if (!allowedProtocols.includes(parsed.protocol)) {
-    throw new Error(
-      `Only ${allowedProtocols.join("/")} URLs are allowed`,
-    );
-  }
-  if (!LOCALHOST_HOSTNAMES.has(parsed.hostname)) {
-    throw new Error("Only localhost URLs are allowed");
-  }
-  return parsed;
-}
-
-function sanitizeProxyMethod(method?: string): string {
-  const normalized = (method || "GET").toUpperCase();
-  const allowedMethods = new Set([
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "HEAD",
-    "OPTIONS",
-  ]);
-  if (!allowedMethods.has(normalized)) {
-    throw new Error(`Unsupported method: ${normalized}`);
-  }
-  return normalized;
-}
-
-function cleanupLocalhostProxyWsConnection(connectionId: string): void {
-  const existing = LOCALHOST_PROXY_WS_STATES.get(connectionId);
-  if (!existing) {
-    return;
-  }
-
-  const senderConnections = LOCALHOST_PROXY_WS_IDS_BY_SENDER.get(
-    existing.senderId,
-  );
-  if (senderConnections) {
-    senderConnections.delete(connectionId);
-    if (senderConnections.size === 0) {
-      LOCALHOST_PROXY_WS_IDS_BY_SENDER.delete(existing.senderId);
-    }
-  }
-
-  LOCALHOST_PROXY_WS_STATES.delete(connectionId);
-}
-
-function closeAllLocalhostProxyWsForSender(senderId: number): void {
-  const senderConnections = LOCALHOST_PROXY_WS_IDS_BY_SENDER.get(senderId);
-  if (!senderConnections) {
-    return;
-  }
-
-  for (const connectionId of senderConnections) {
-    const existing = LOCALHOST_PROXY_WS_STATES.get(connectionId);
-    if (existing) {
-      try {
-        existing.socket.close();
-      } catch (error) {
-        logMessage(
-          `Error closing localhost proxy websocket ${connectionId}: ${String(
-            error,
-          )}`,
-          "warn",
-        );
-      }
-    }
-    cleanupLocalhostProxyWsConnection(connectionId);
   }
 }
 
@@ -444,13 +359,7 @@ export function initializeIpcHandlers(): void {
           const paths = uriText
             .split("\n")
             .filter((line: string) => line.trim().startsWith("file://"))
-            .map((uri: string) => {
-              try {
-                return decodeURIComponent(new URL(uri.trim()).pathname);
-              } catch {
-                return null;
-              }
-            })
+            .map((uri: string) => fileUrlToLocalPath(uri))
             .filter((p: string | null): p is string => p !== null);
           if (paths.length > 0) {
             logMessage(`Read ${paths.length} file paths from text/uri-list`);
@@ -490,7 +399,7 @@ export function initializeIpcHandlers(): void {
               try {
                 // Handle both file:// URLs and plain paths
                 if (uri.startsWith("file://")) {
-                  return decodeURIComponent(new URL(uri.trim()).pathname);
+                  return fileUrlToLocalPath(uri);
                 }
                 return uri.trim();
               } catch {
@@ -527,11 +436,7 @@ export function initializeIpcHandlers(): void {
           // All lines look like paths
           const paths = possiblePaths.map((p: string) => {
             if (p.startsWith("file://")) {
-              try {
-                return decodeURIComponent(new URL(p).pathname);
-              } catch {
-                return p;
-              }
+              return fileUrlToLocalPath(p) ?? p;
             }
             return p;
           });
@@ -714,14 +619,7 @@ export function initializeIpcHandlers(): void {
   // Restart server handler
   createIpcMainHandler(IpcChannels.RESTART_SERVER, async () => {
     logMessage("Restarting backend server by user request");
-    try {
-      await stopServer();
-    } catch (e) {
-      logMessage(`Error while stopping server for restart: ${e}`, "warn");
-    }
-    // Small delay to ensure ports and resources are released before restart
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    await initializeBackendServer();
+    await restartServer();
     await setupWorkflowShortcuts();
   });
 
@@ -737,10 +635,11 @@ export function initializeIpcHandlers(): void {
     autoUpdater.quitAndInstall();
   });
 
-  // Window control handlers
-  ipcMain.on(IpcChannels.WINDOW_CLOSE, (_event) => {
+  // Window control handlers. Act on the window that sent the request: the
+  // frameless workflow window can send these without holding focus.
+  ipcMain.on(IpcChannels.WINDOW_CLOSE, (event) => {
     try {
-      const window = BrowserWindow.getFocusedWindow();
+      const window = BrowserWindow.fromWebContents(event.sender);
       if (window) {
         window.close();
       }
@@ -749,9 +648,9 @@ export function initializeIpcHandlers(): void {
     }
   });
 
-  ipcMain.on(IpcChannels.WINDOW_MINIMIZE, (_event) => {
+  ipcMain.on(IpcChannels.WINDOW_MINIMIZE, (event) => {
     try {
-      const window = BrowserWindow.getFocusedWindow();
+      const window = BrowserWindow.fromWebContents(event.sender);
       if (window) {
         window.minimize();
       }
@@ -760,9 +659,9 @@ export function initializeIpcHandlers(): void {
     }
   });
 
-  ipcMain.on(IpcChannels.WINDOW_MAXIMIZE, (_event) => {
+  ipcMain.on(IpcChannels.WINDOW_MAXIMIZE, (event) => {
     try {
-      const window = BrowserWindow.getFocusedWindow();
+      const window = BrowserWindow.fromWebContents(event.sender);
       if (window) {
         if (window.isMaximized()) {
           window.unmaximize();
@@ -808,10 +707,7 @@ export function initializeIpcHandlers(): void {
     IpcChannels.ON_DELETE_WORKFLOW,
     async (_event, workflow) => {
       logMessage(`Deleting workflow: ${workflow.name}`);
-      const shortcut = workflowShortcut(workflow);
-      if (shortcut) {
-        globalShortcut.unregister(shortcut);
-      }
+      unregisterWorkflowShortcut(workflow.id);
       emitWorkflowsChanged();
     },
   );
@@ -958,6 +854,17 @@ export function initializeIpcHandlers(): void {
       if (!isRuntimePackageId(data.packageId)) {
         return { success: false, message: `Unknown package ID: ${data.packageId}` };
       }
+      // The location becomes CONDA_ENV, from which the app later runs `uv`.
+      // Take only a folder the user picked in this process's own dialog.
+      if (
+        data.installLocation !== undefined &&
+        data.installLocation !== selectedRuntimeInstallLocation
+      ) {
+        return {
+          success: false,
+          message: "Choose the install location with the folder picker",
+        };
+      }
       logMessage(`Installing runtime package: ${data.packageId}`);
       return await installRuntimePackage(
         data.packageId,
@@ -978,6 +885,18 @@ export function initializeIpcHandlers(): void {
     },
   );
 
+  createIpcMainHandler(
+    IpcChannels.RUNTIME_PACKAGE_UPDATE,
+    async (_event, data: { packageId: string }) => {
+      if (!isRuntimePackageId(data.packageId)) {
+        return { success: false, message: `Unknown package ID: ${data.packageId}` };
+      }
+      logMessage(`Updating runtime package: ${data.packageId}`);
+      const { updateRuntimePackage } = await import("./packageManager");
+      return await updateRuntimePackage(data.packageId);
+    },
+  );
+
   createIpcMainHandler(IpcChannels.RUNTIME_GET_INSTALL_LOCATION, async () => {
     return getCondaInstallLocation();
   });
@@ -993,7 +912,8 @@ export function initializeIpcHandlers(): void {
       if (canceled || !filePaths?.[0]) {
         return null;
       }
-      return path.join(filePaths[0], "nodetool-env");
+      selectedRuntimeInstallLocation = path.join(filePaths[0], "nodetool-env");
+      return selectedRuntimeInstallLocation;
     },
   );
 
@@ -1020,213 +940,6 @@ export function initializeIpcHandlers(): void {
     logMessage(`${source}${message}`, data.level);
   });
 
-  createIpcMainHandler(
-    IpcChannels.LOCALHOST_PROXY_REQUEST,
-    async (_event, request) => {
-      const parsedUrl = assertLocalhostUrl(request.url);
-      const method = sanitizeProxyMethod(request.method);
-      const responseType = request.responseType || "text";
-      logMessage(
-        `[localhost-proxy] HTTP ${method} ${parsedUrl.toString()}`,
-        "info",
-      );
-
-      let response: Response;
-      try {
-        response = await fetch(parsedUrl.toString(), {
-          method,
-          headers: request.headers,
-          body: request.body,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logMessage(
-          `[localhost-proxy] HTTP ${method} ${parsedUrl.toString()} failed: ${message}`,
-          "warn",
-        );
-        return {
-          status: 0,
-          ok: false,
-          headers: {
-            "status-text": message,
-            "x-localhost-proxy-error": "1",
-          },
-          error: message,
-          data: responseType === "json" ? null : "",
-        };
-      }
-
-      const responseHeaders: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
-        responseHeaders[key] = value;
-      });
-
-      const data =
-        responseType === "json"
-          ? await response.json()
-          : await response.text();
-
-      logMessage(
-        `[localhost-proxy] HTTP ${method} ${parsedUrl.toString()} -> ${response.status}`,
-        response.ok ? "info" : "warn",
-      );
-
-      return {
-        status: response.status,
-        ok: response.ok,
-        headers: responseHeaders,
-        data,
-      };
-    },
-  );
-
-  createIpcMainHandler(
-    IpcChannels.LOCALHOST_PROXY_WS_OPEN,
-    async (event, request) => {
-      const parsedUrl = assertLocalhostUrl(request.url, ["ws:", "wss:"]);
-      const senderId = event.sender.id;
-      const connectionId = randomUUID();
-      logMessage(
-        `[localhost-proxy] WS open requested ${parsedUrl.toString()} (sender=${senderId})`,
-        "info",
-      );
-      const socket = new WebSocket(parsedUrl.toString(), request.protocols, {
-        headers: request.headers,
-      });
-
-      LOCALHOST_PROXY_WS_STATES.set(connectionId, { senderId, socket });
-      let senderConnections = LOCALHOST_PROXY_WS_IDS_BY_SENDER.get(senderId);
-      if (!senderConnections) {
-        senderConnections = new Set<string>();
-        LOCALHOST_PROXY_WS_IDS_BY_SENDER.set(senderId, senderConnections);
-        event.sender.once("destroyed", () => {
-          closeAllLocalhostProxyWsForSender(senderId);
-        });
-      }
-      senderConnections.add(connectionId);
-
-      socket.on("open", () => {
-        logMessage(
-          `[localhost-proxy] WS open ${connectionId} ${parsedUrl.toString()}`,
-          "info",
-        );
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IpcChannels.LOCALHOST_PROXY_WS_EVENT, {
-            connectionId,
-            event: "open",
-          });
-        }
-      });
-
-      socket.on("message", (data) => {
-        const textData =
-          isString(data)
-            ? data
-            : Array.isArray(data)
-              ? Buffer.concat(data).toString("utf8")
-              : Buffer.from(data as ArrayBuffer | SharedArrayBuffer).toString("utf8");
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IpcChannels.LOCALHOST_PROXY_WS_EVENT, {
-            connectionId,
-            event: "message",
-            data: textData,
-          });
-        }
-        logMessage(
-          `[localhost-proxy] WS message ${connectionId} (${textData.length} bytes)`,
-          "info",
-        );
-      });
-
-      socket.on("error", (error) => {
-        logMessage(
-          `[localhost-proxy] WS error ${connectionId}: ${error.message}`,
-          "error",
-        );
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IpcChannels.LOCALHOST_PROXY_WS_EVENT, {
-            connectionId,
-            event: "error",
-            error: error.message,
-          });
-        }
-      });
-
-      socket.on("close", (code, reason) => {
-        logMessage(
-          `[localhost-proxy] WS close ${connectionId} code=${code} reason=${reason.toString("utf8")}`,
-          "info",
-        );
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IpcChannels.LOCALHOST_PROXY_WS_EVENT, {
-            connectionId,
-            event: "close",
-            code,
-            reason: reason.toString("utf8"),
-          });
-        }
-        cleanupLocalhostProxyWsConnection(connectionId);
-      });
-
-      return { connectionId };
-    },
-  );
-
-  createIpcMainHandler(
-    IpcChannels.LOCALHOST_PROXY_WS_SEND,
-    async (event, request) => {
-      logMessage(
-        `[localhost-proxy] WS send ${request.connectionId} (${request.data.length} bytes)`,
-        "info",
-      );
-      const connection = LOCALHOST_PROXY_WS_STATES.get(request.connectionId);
-      if (!connection) {
-        logMessage(
-          `[localhost-proxy] WS send failed: connection ${request.connectionId} not found`,
-          "warn",
-        );
-        throw new Error("WebSocket connection not found");
-      }
-      if (connection.senderId !== event.sender.id) {
-        logMessage(
-          `[localhost-proxy] WS send denied for ${request.connectionId}: sender mismatch`,
-          "warn",
-        );
-        throw new Error("WebSocket connection belongs to another renderer");
-      }
-      if (connection.socket.readyState !== WebSocket.OPEN) {
-        logMessage(
-          `[localhost-proxy] WS send failed for ${request.connectionId}: socket not open`,
-          "warn",
-        );
-        throw new Error("WebSocket is not open");
-      }
-      connection.socket.send(request.data);
-    },
-  );
-
-  createIpcMainHandler(
-    IpcChannels.LOCALHOST_PROXY_WS_CLOSE,
-    async (event, request) => {
-      logMessage(
-        `[localhost-proxy] WS close requested ${request.connectionId}`,
-        "info",
-      );
-      const connection = LOCALHOST_PROXY_WS_STATES.get(request.connectionId);
-      if (!connection) {
-        logMessage(
-          `[localhost-proxy] WS close noop: ${request.connectionId} not found`,
-          "warn",
-        );
-        return;
-      }
-      if (connection.senderId !== event.sender.id) {
-        throw new Error("WebSocket connection belongs to another renderer");
-      }
-      connection.socket.close(request.code, request.reason);
-    },
-  );
-
   // Shell module handlers
   createIpcMainHandler(
     IpcChannels.SHELL_SHOW_ITEM_IN_FOLDER,
@@ -1239,7 +952,7 @@ export function initializeIpcHandlers(): void {
   createIpcMainHandler(IpcChannels.SHELL_OPEN_PATH, async (_event, path) => {
     let safePath: string;
     try {
-      safePath = assertSafeReadablePath(path);
+      safePath = assertSafeOpenablePath(path);
     } catch (error) {
       logMessage(
         `Refusing SHELL_OPEN_PATH for ${String(path)}: ${String(error)}`,
@@ -1267,11 +980,6 @@ export function initializeIpcHandlers(): void {
     },
   );
 
-  createIpcMainHandler(IpcChannels.SHELL_TRASH_ITEM, async (_event, path) => {
-    logMessage(`Moving to trash: ${path}`);
-    await shell.trashItem(path);
-  });
-
   // Hand the bundled NodeTool .mcpb to the OS so Claude Desktop can install it.
   createIpcMainHandler(IpcChannels.MCP_INSTALL_BUNDLE, async () => {
     logMessage("Installing NodeTool MCP bundle (.mcpb)");
@@ -1281,34 +989,6 @@ export function initializeIpcHandlers(): void {
   createIpcMainHandler(IpcChannels.SHELL_BEEP, async () => {
     shell.beep();
   });
-
-  createIpcMainHandler(
-    IpcChannels.SHELL_WRITE_SHORTCUT_LINK,
-    async (_event, request) => {
-      if (process.platform !== "win32") {
-        logMessage("Shortcut links are only supported on Windows", "warn");
-        return false;
-      }
-      logMessage(`Writing shortcut: ${request.shortcutPath}`);
-      return shell.writeShortcutLink(
-        request.shortcutPath,
-        request.operation || "create",
-        request.options || { target: "" },
-      );
-    },
-  );
-
-  createIpcMainHandler(
-    IpcChannels.SHELL_READ_SHORTCUT_LINK,
-    async (_event, shortcutPath) => {
-      if (process.platform !== "win32") {
-        logMessage("Shortcut links are only supported on Windows", "warn");
-        throw new Error("Shortcut links are only supported on Windows");
-      }
-      logMessage(`Reading shortcut: ${shortcutPath}`);
-      return shell.readShortcutLink(shortcutPath);
-    },
-  );
 
   // Settings handlers
   createIpcMainHandler(IpcChannels.SETTINGS_GET_CLOSE_BEHAVIOR, async () => {

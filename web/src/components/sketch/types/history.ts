@@ -12,7 +12,8 @@ import type {
   LayerContentBounds,
   LayerImageReference,
   LayerEffect,
-  SketchDocument
+  SketchDocument,
+  SketchGuide
 } from "./document";
 import type { Selection } from "./selection";
 
@@ -48,12 +49,21 @@ export interface PushHistoryOptions {
    */
   restoreMode?: HistoryRestoreMode;
   /**
-   * When true, skip all layer data capture and structure snapshotting.
-   * Only `selection`, `activeLayerId`, `maskLayerId`, and `documentCanvas`
-   * are stored. Undo/redo of selection-only entries restores the selection
-   * without touching layer canvases.
+   * When true, skip all layer data capture and structure snapshotting, for
+   * edits that change no layer (selections, guides). Only `selection`,
+   * `guides`, `activeLayerId`, `maskLayerId`, and `documentCanvas` are
+   * stored. Undo/redo of these entries restores them without touching layer
+   * canvases.
    */
   selectionOnly?: boolean;
+  /**
+   * `before` marks a checkpoint pushed before its edit runs (strokes,
+   * transforms, pixel ops): the entry holds the pre-edit state and its
+   * `action` names the edit that follows. The default, `after`, means the
+   * entry already holds the result of `action`. The History panel uses this
+   * to label each state by the edit that produced it.
+   */
+  timing?: "before" | "after";
 }
 
 export interface HistoryEntry {
@@ -78,8 +88,12 @@ export interface HistoryEntry {
   maskLayerId: string | null;
   /** Selection mask at the time of this entry. Restored by undo/redo. */
   selection?: Selection | null;
+  /** Ruler guides at the time of this entry. Restored by undo/redo; absent on entries saved before guides were recorded. */
+  guides?: SketchGuide[];
   /** Controls whether undo/redo must replay raster data or only restore structure. */
   restoreMode: HistoryRestoreMode;
   action: string;
+  /** Set when the entry was pushed before its edit ran. See {@link PushHistoryOptions.timing}. */
+  timing?: "before";
   timestamp: number;
 }

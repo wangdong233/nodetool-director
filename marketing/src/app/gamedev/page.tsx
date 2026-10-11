@@ -1,0 +1,73 @@
+import type { Metadata } from "next";
+import { ArrowUpRight, Download } from "lucide-react";
+import SiteHeader from "../../components/SiteHeader";
+import SiteFooter from "../../components/SiteFooter";
+import GameShowcase from "../../components/GameShowcase";
+import JsonLd from "../../components/JsonLd";
+import { SmartDownloadButton } from "../SmartDownloadButton";
+
+const title = "Game Development with NodeTool | Play, Build, and Edit";
+const description = "Play Kindle, Lumen, and Neon Drift. Build a game with an agent, then edit its art, levels, and rules in NodeTool Studio. Export a standalone browser game.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/gamedev" },
+  openGraph: { title, description, url: "https://nodetool.ai/gamedev", siteName: "NodeTool", type: "website", images: [{ url: "/games/kindle/poster.jpg", width: 1280, height: 720, alt: "Kindle, a platform adventure built in NodeTool" }] },
+  twitter: { card: "summary_large_image", title, description, images: ["/games/kindle/poster.jpg"] }
+};
+
+export default function GameDevelopmentPage() {
+  return (
+    <>
+      <SiteHeader />
+      <main id="content" className="bg-slate-950 text-slate-100">
+        <div className="mx-auto max-w-7xl px-6 pb-24 pt-36 lg:px-8">
+          <section className="mb-16 grid items-end gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <div>
+              <p className="mb-5 text-base font-medium text-cyan-200">Game development with NodeTool</p>
+              <h1 className="max-w-3xl text-5xl font-semibold leading-tight tracking-tight md:text-7xl">Make a world people can play.</h1>
+            </div>
+            <div className="max-w-lg">
+              <p className="text-lg leading-relaxed text-slate-300">Build a game with an agent, then shape its art, levels, and rules in Studio. Start by playing the examples below.</p>
+              <div className="mt-7 flex flex-wrap items-center gap-5">
+                <SmartDownloadButton icon={<Download className="h-4 w-4" aria-hidden="true" />} classNameOverride="focus-ring inline-flex items-center rounded-full bg-cyan-200 px-6 py-3 font-medium text-slate-950 hover:bg-cyan-100" />
+                <a href="#example-games" className="focus-ring rounded font-medium text-slate-100 hover:text-cyan-200">Play the examples</a>
+              </div>
+            </div>
+          </section>
+          <GameShowcase />
+          <section aria-labelledby="game-editor-title" className="mt-24 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <div>
+              <h2 id="game-editor-title" className="max-w-sm text-3xl font-semibold tracking-tight md:text-4xl">Edit the level where you play it.</h2>
+              <p className="mt-4 max-w-md leading-relaxed text-slate-300">The game editor opens each game in its own tab. Pick any object from the list of everything in the level, change its settings in the side panel, and press Play without leaving the tab. The same editor builds 2D and 3D games.</p>
+              <a href="https://docs.nodetool.ai/game-editor" className="focus-ring mt-6 inline-flex items-center gap-1 rounded font-medium text-cyan-200 hover:text-cyan-100">Read the game editor guide<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/surface-game-poster.webp" alt="The NodeTool game editor with Kindle open: the scene tree, the level, and the inspector" width={1920} height={1080} loading="lazy" decoding="async" className="hidden h-auto w-full motion-reduce:block" />
+              <video autoPlay muted loop playsInline preload="metadata" poster="/surface-game-poster.webp" aria-label="The game editor: the hero is selected in Kindle, then the level is played in the editor" className="block h-auto w-full motion-reduce:hidden">
+                <source src="/surface-game.webm" type='video/webm; codecs="vp9"' />
+                <source src="/surface-game.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </section>
+          <section aria-labelledby="game-process-title" className="mt-24 grid gap-10 border-t border-slate-700 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <h2 id="game-process-title" className="max-w-sm text-3xl font-semibold tracking-tight md:text-4xl">From first idea to the next level.</h2>
+            <ol className="space-y-8">
+              <li><h3 className="text-xl font-medium">Describe the game</h3><p className="mt-2 max-w-xl leading-relaxed text-slate-300">Give the agent a world, a player, and a goal. It builds the levels, sets up how things move and react, and prepares the art and sound in a game project you can edit.</p></li>
+              <li><h3 className="text-xl font-medium">Play, change, play again</h3><p className="mt-2 max-w-xl leading-relaxed text-slate-300">Change the art, adjust a jump, move an obstacle, or ask the agent to revise the rules. Play the result in Studio as you work.</p></li>
+              <li><h3 className="text-xl font-medium">Put it in someone else’s hands</h3><p className="mt-2 max-w-xl leading-relaxed text-slate-300">Export the game with its art and sound as a standalone web page. Share it on your own website. It works with a keyboard or a touch screen.</p></li>
+            </ol>
+          </section>
+          <div className="mt-16 flex flex-wrap items-center justify-between gap-6 border-t border-slate-700 pt-10">
+            <p className="max-w-xl text-lg leading-relaxed text-slate-300">Studio is free and open source. Your game stays editable. Connect your own model providers when you want to generate new assets.</p>
+            <SmartDownloadButton classNameOverride="focus-ring inline-flex items-center rounded-full bg-slate-100 px-6 py-3 font-medium text-slate-950 hover:bg-slate-200" />
+          </div>
+        </div>
+        <JsonLd data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://nodetool.ai" }, { "@type": "ListItem", position: 2, name: "Game development", item: "https://nodetool.ai/gamedev" }] }} />
+      </main>
+      <SiteFooter />
+    </>
+  );
+}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Screenplay, Shot } from "../creative.js";
+import { SCENE_CLIP_MAX_SHOTS, SCENE_CLIP_MIN_SHOTS } from "../one-take.js";
 import {
   creativeContext,
   productionRequirement,
@@ -32,6 +33,128 @@ const shotModelRef = z.object({
   name: z.string().optional()
 });
 
+/** Authored box of an element, normalized to the canvas (top-left origin). Values may leave 0..1 to bleed off an edge. */
+export const graphicsFrame = z.object({
+  box: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+  fit: z.enum(["contain", "cover"]).optional(),
+  align: z.object({
+    x: z.enum(["start", "center", "end"]).optional(),
+    y: z.enum(["start", "center", "end"]).optional()
+  }).optional(),
+  clip: z.boolean().optional()
+});
+/** Default type style of a text element. `size` is a fraction of the canvas width. */
+export const graphicsTypography = z.object({
+  size: z.number().positive().optional(),
+  weight: z.union([z.literal(400), z.literal(500), z.literal(600), z.literal(700)]).optional(),
+  align: z.enum(["left", "center", "right"]).optional(),
+  maxLines: z.number().int().positive().optional()
+});
+/** Properties agents may not change from the authored placement. */
+export const graphicsLock = z.array(z.enum(["position", "scale", "crop"]));
+/** Maximum deviation from the scaffold baseline: x, y as canvas fractions, scale as a ratio. */
+export const graphicsLimits = z.object({
+  x: z.number().nonnegative().optional(),
+  y: z.number().nonnegative().optional(),
+  scale: z.number().nonnegative().optional()
+});
+
+/** Template-owned shape style. A brand-color binding still decides the fill. `strokeWidth` is a fraction of the canvas width, `cornerRadius` is in normalized shape units. */
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+export const graphicsShapeStyle = z.object({
+  fill: hexColor.optional(),
+  stroke: hexColor.optional(),
+  strokeWidth: z.number().positive().optional(),
+  cornerRadius: z.number().nonnegative().optional()
+});
+
+/**
+ * How a template fills an asset element when its optional input is empty: an
+ * image generated from `prompt`. `{inputId}` placeholders take the text of that
+ * input, or the hex value of a color input.
+ */
+export const graphicsFallback = z.object({
+  prompt: z.string().trim().min(1)
+});
+
+export const storyboardShotGraphicsElement = z
+  .object({
+    id: z.string(),
+    kind: z.enum(["text", "asset", "shape"]),
+    role: z
+      .enum([
+        "headline",
+        "subhead",
+        "price",
+        "badge",
+        "cta",
+        "logo",
+        "product",
+        "decorative"
+      ])
+      .optional(),
+    text: z.string().optional(),
+    asset_id: z.string().optional(),
+    entity_id: z.string().optional(),
+    protected_input_id: z.string().optional(),
+    direction: z.string().optional(),
+    frame: graphicsFrame.optional(),
+    typography: graphicsTypography.optional(),
+    lock: graphicsLock.optional(),
+    limits: graphicsLimits.optional(),
+    style: graphicsShapeStyle.optional()
+  })
+  .passthrough();
+
+export const storyboardShotGraphics = z
+  .object({
+    mode: z
+      .enum(["none", "overlay", "graphics_first", "hybrid"])
+      .optional(),
+    direction: z.string().optional(),
+    elements: z.array(storyboardShotGraphicsElement).optional(),
+    review_rules: z.array(z.string()).optional()
+  })
+  .passthrough()
+  .superRefine((graphics, context) => {
+    const ids = graphics.elements?.map((element) => element.id) ?? [];
+    if (ids.some((id) => id.trim().length === 0) || new Set(ids).size !== ids.length) {
+      context.addIssue({ code: "custom", path: ["elements"], message: "Graphics element ids must be non-empty and unique within a shot." });
+    }
+    graphics.elements?.forEach((element, index) => {
+      if (element.kind === "text" && element.text === undefined) {
+        context.addIssue({ code: "custom", path: ["elements", index, "text"], message: "Text graphics need exact text." });
+      }
+      if (element.kind === "asset" && !element.asset_id && !element.entity_id && !element.protected_input_id) {
+        context.addIssue({ code: "custom", path: ["elements", index], message: "Asset graphics need asset_id or entity_id." });
+      }
+    });
+  });
+
+const storyboardTransitionIntent = z
+  .object({
+    from_shot_id: z.string(),
+    to_shot_id: z.string(),
+    direction: z.string().optional()
+  })
+  .passthrough();
+
+const storyboardContinuityIntent = z
+  .object({
+    id: z.string(),
+    shot_ids: z.array(z.string()),
+    direction: z.string()
+  })
+  .passthrough();
+
+export const storyboardMotionDesign = z
+  .object({
+    direction: z.string().optional(),
+    transitions: z.array(storyboardTransitionIntent).optional(),
+    continuities: z.array(storyboardContinuityIntent).optional()
+  })
+  .passthrough();
+
 export const storyboardShot = z
   .object({
     type: z.literal("shot"),
@@ -41,6 +164,11 @@ export const storyboardShot = z
     status: z.string(),
     slug: z.string().optional(),
     motion: z.string().optional(),
+    /** The picture the shot ends on; a one-take step's "End:". */
+    end_state: z.string().optional(),
+    /** What is heard in the shot; a one-take audio cue. */
+    sound: z.string().optional(),
+    graphics: storyboardShotGraphics.optional(),
     duration_seconds: z.number().optional(),
     keyframe: mediaRef.nullable().optional(),
     clip: mediaRef.nullable().optional(),
@@ -84,10 +212,25 @@ export const storyboardScreenplay = z
     script_id: z.string().nullable().optional(),
     /** The board's genre as it stood when this screenplay was directed. */
     genre: z.string().optional(),
+    /** Whole-board motion-design direction, including cross-shot intent. */
+    motion_design: storyboardMotionDesign.optional(),
     /** The authoritative scene list. Order is derived from `shot.index`. */
     scenes: z.array(storyboardScene).optional()
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((screenplay, context) => {
+    const shotIds = new Set(screenplay.shots.map((shot) => shot.id));
+    screenplay.motion_design?.transitions?.forEach((transition, index) => {
+      if (!shotIds.has(transition.from_shot_id) || !shotIds.has(transition.to_shot_id)) {
+        context.addIssue({ code: "custom", path: ["motion_design", "transitions", index], message: "Transition references a shot that is not in this screenplay." });
+      }
+    });
+    screenplay.motion_design?.continuities?.forEach((continuity, index) => {
+      if (continuity.id.trim().length === 0 || continuity.shot_ids.some((id) => !shotIds.has(id))) {
+        context.addIssue({ code: "custom", path: ["motion_design", "continuities", index], message: "Continuity needs a non-empty id and only existing shot ids." });
+      }
+    });
+  });
 export type StoryboardScreenplay = z.infer<typeof storyboardScreenplay>;
 
 // ── Normalization ───────────────────────────────────────────────────────────
@@ -110,7 +253,8 @@ const SHOT_KEY_ALIASES: Readonly<Record<string, string>> = {
   scriptTextSnapshot: "script_text_snapshot",
   durationSource: "duration_source",
   renderMode: "render_mode",
-  sceneId: "scene_id"
+  sceneId: "scene_id",
+  endState: "end_state"
 };
 
 // A scene has no multi-word key, so there is no scene alias table: `slugline`
@@ -124,6 +268,7 @@ const SCREENPLAY_KEY_ALIASES: Readonly<Record<string, string>> = {
   musicPrompt: "music_prompt",
   entityIds: "entity_ids",
   scriptId: "script_id",
+  motionDesign: "motion_design",
   createdAt: "created_at",
   updatedAt: "updated_at"
 };
@@ -327,6 +472,35 @@ export const storyboardImportSource = z
   .passthrough();
 export type StoryboardImportSource = z.infer<typeof storyboardImportSource>;
 
+// ── One take ────────────────────────────────────────────────────────────────
+// Mirrors `OneTakeDirection` in `one-take.ts`: the creator's own prompt. The
+// rest of the one-take prompt is compiled from the board by `compileOneTake`.
+// A missing prompt reads as empty, so a direction saved in an earlier shape
+// still loads.
+
+export const oneTakeDirection = z.object({
+  prompt: z.string().default(""),
+  duration_seconds: z.number().positive().nullable().optional(),
+  aspect_ratio: z.string().nullable().optional(),
+  resolution: z.string().nullable().optional(),
+  model: z
+    .object({ id: z.string(), provider: z.string(), name: z.string().optional() })
+    .nullable()
+    .optional()
+});
+export type OneTakeDirectionSchema = z.infer<typeof oneTakeDirection>;
+
+// Mirrors `SceneClipDirection` in `one-take.ts`: a run of 2 to 5 consecutive
+// shots rendered as one clip.
+export const sceneClipDirection = oneTakeDirection.extend({
+  id: z.string(),
+  shot_ids: z
+    .array(z.string())
+    .min(SCENE_CLIP_MIN_SHOTS)
+    .max(SCENE_CLIP_MAX_SHOTS)
+});
+export type SceneClipDirectionSchema = z.infer<typeof sceneClipDirection>;
+
 /** What the Director is asked for when the flow does not say otherwise. */
 export const DEFAULT_SETUP_SHOT_COUNT = 6;
 
@@ -369,7 +543,17 @@ export const storyboardDocument = z.object({
    */
   setupDirectedFrom: z.string().nullable().optional(),
   /** Optional shared product, audience, and reference context. */
-  creative_context: creativeContext.optional()
+  creative_context: creativeContext.optional(),
+  /**
+   * The board's one-take direction, when it renders as one continuous clip.
+   * Optional and additive: a board without it renders shot by shot.
+   */
+  one_take: oneTakeDirection.optional(),
+  /**
+   * Runs of consecutive shots rendered as one clip each. Optional and
+   * additive: a board without it renders shot by shot.
+   */
+  scene_clips: z.array(sceneClipDirection).optional()
 });
 export type StoryboardDocumentSchema = z.infer<typeof storyboardDocument>;
 

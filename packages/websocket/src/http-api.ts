@@ -1,3 +1,4 @@
+import { getUserId } from "./lib/http-user-id.js";
 import {
   createServer,
   type IncomingMessage,
@@ -29,6 +30,7 @@ import {
   Asset,
   Project
 } from "@nodetool-ai/models";
+import { resolveWorkerSettingsEnv } from "./worker-settings-env.js";
 import {
   loadPythonPackageMetadata,
   type NodeMetadata,
@@ -56,6 +58,7 @@ import {
   peekDebugSession,
   runWorkflow,
   submitEscalationVerdict,
+  type RunGeneration,
   type RunWorkflowOutcome
 } from "@nodetool-ai/execution/service";
 import { resolveWorkflowWorkspace } from "./lib/workflow-workspace.js";
@@ -68,8 +71,8 @@ import {
 import { handleFileRequest } from "./file-api.js";
 import {
   storeAssetWithThumbnail,
-  generateThumbnailForStoredAsset,
-  THUMBNAIL_SOURCE_MAX_BYTES
+  storeAssetFileWithThumbnail,
+  generateThumbnailForStoredAsset
 } from "./lib/thumbnail.js";
 import { FileStorageAdapter } from "@nodetool-ai/storage";
 import { getAssetAdapter, getTempAdapter } from "./lib/storage.js";
@@ -83,7 +86,7 @@ import {
   importWorkflowBundle,
   type BundledWorkflow
 } from "./lib/workflow-bundle.js";
-import { listExampleApps } from "./lib/example-apps.js";
+import { getExampleAppBundle, listExampleApps } from "./lib/example-apps.js";
 import {
   createWorkflow,
   deleteWorkflow,
@@ -93,6 +96,7 @@ import {
 import type { SdkV1ImplementationBoundary } from "./sdk/sdk-v1-handler-map.js";
 import { z } from "zod";
 import {
+  isBoolean,
   isNonEmptyString,
   isObjectLike,
   isRecord,
@@ -118,10 +122,16 @@ import {
   getAssetStorageKey,
   getAssetStoragePath,
   retrieveAssetBytes,
+  localAssetPath,
   normalizeAssetContentType
 } from "./lib/asset-paths.js";
 import { resolveAssetBytesForExport } from "./lib/asset-export.js";
+import {
+  autoSaveAssets,
+  primaryTextOutputName
+} from "./session/asset-autosave.js";
 import { toAssetResponse } from "./lib/asset-response.js";
+import { scheduleVideoProxy } from "./lib/video-proxy.js";
 
 export { toAssetResponse };
 export { getAssetFileName, getAssetStoragePath };
@@ -227,6 +237,7 @@ type WorkflowRuntimeEnvironment = {
   configureContext: (context: ProcessingContext) => void;
   assetStorage: StorageAdapter;
   storage: StorageAdapter;
+  persistGeneration: (generation: RunGeneration) => Promise<void>;
 };
 
 export async function getWorkflowRuntimeEnvironment(
@@ -247,7 +258,8 @@ export async function getWorkflowRuntimeEnvironment(
       const pythonBridge = createPythonBridge({
         workerArgs: process.env["NODETOOL_WORKER_NAMESPACES"]
           ? ["--namespaces", process.env["NODETOOL_WORKER_NAMESPACES"]]
-          : []
+          : [],
+        workerEnv: () => resolveWorkerSettingsEnv()
       });
 
       const logPythonBridgeDiagnostics = (context: string): void => {
@@ -409,7 +421,22 @@ export async function getWorkflowRuntimeEnvironment(
         // it the reference resolves to nothing and the node runs on an empty
         // input. Same pair the streaming WebSocket runner uses.
         assetStorage: getAssetAdapter(),
-        storage: getTempAdapter()
+        storage: getTempAdapter(),
+        // The same per-generation autosave the editor's runs do, so a later
+        // run with `node_ids` can reuse what this one generated.
+        persistGeneration: (generation: RunGeneration) =>
+          autoSaveAssets(generation.outputs, {
+            userId: generation.userId,
+            workflowId: generation.workflowId,
+            jobId: generation.jobId,
+            nodeId: generation.nodeId,
+            textOutputName: primaryTextOutputName(
+              registry.getMetadata(generation.nodeType)
+            ),
+            generationIndex: generation.index,
+            properties: generation.properties ?? undefined,
+            nodeType: generation.nodeType
+          })
       };
     })();
   }
@@ -461,12 +488,7 @@ function errorResponse(status: number, detail: string): Response {
   return jsonResponse({ detail }, { status });
 }
 
-export function getUserId(request: Request, headerName: string): string {
-  return (
-    request.headers.get(headerName) ?? request.headers.get("x-user-id") ?? "1"
-  );
-}
-
+export { getUserId } from "./lib/http-user-id.js";
 /** The raw JSON body, or null when there is nothing readable to parse. */
 async function readJsonBody(request: Request): Promise<unknown> {
   const contentType = request.headers.get("content-type") ?? "";
@@ -637,6 +659,26 @@ export async function handleWorkflowRun(
   const userId = getUserId(request, options.userIdHeader ?? "x-user-id");
   const body = await parseBody(request, workflowRunBodySchema);
 
+  const rawNodeIds = body?.node_ids;
+  let nodeIds: string[] | undefined;
+  if (rawNodeIds !== undefined && rawNodeIds !== null) {
+    if (
+      !Array.isArray(rawNodeIds) ||
+      rawNodeIds.length === 0 ||
+      !rawNodeIds.every(isString)
+    ) {
+      return errorResponse(
+        400,
+        "node_ids must be a non-empty array of node id strings"
+      );
+    }
+    nodeIds = rawNodeIds;
+  }
+  const reuseResults = body?.reuse_results;
+  if (reuseResults !== undefined && !isBoolean(reuseResults)) {
+    return errorResponse(400, "reuse_results must be a boolean");
+  }
+
   const runOptions: Parameters<typeof runWorkflow>[0] = {
     workflowId,
     userId,
@@ -651,6 +693,12 @@ export async function handleWorkflowRun(
     // The server's own import site, so a test that mocks it still governs.
     resolveWorkspace: resolveWorkflowWorkspace
   };
+  if (nodeIds) {
+    runOptions.nodeIds = nodeIds;
+  }
+  if (reuseResults !== undefined) {
+    runOptions.reuseResults = reuseResults;
+  }
   if (body?.max_decisions !== undefined) {
     runOptions.maxDecisions = body.max_decisions;
   }
@@ -1138,7 +1186,7 @@ export async function handleWorkflowExportBundle(
   }
   const { bytes } = await packWorkflowsBundle({
     workflows: [loaded],
-    fetchAssetBytes: resolveAssetBytesForExport
+    fetchAssetBytes: (ref) => resolveAssetBytesForExport(ref, userId)
   });
   return bundleResponse(bytes, loaded.name);
 }
@@ -1169,7 +1217,7 @@ export async function handleWorkflowsExportBundle(
   }
   const { bytes } = await packWorkflowsBundle({
     workflows,
-    fetchAssetBytes: resolveAssetBytesForExport
+    fetchAssetBytes: (ref) => resolveAssetBytesForExport(ref, userId)
   });
   const name =
     workflows.length === 1
@@ -1590,13 +1638,13 @@ export async function handleAssetsRoot(
             getAssetStorageKey(asset.user_id, asset.id, asset.content_type),
             staged.file.path
           );
-          if (staged.file.size <= THUMBNAIL_SOURCE_MAX_BYTES) {
-            await generateThumbnailForStoredAsset(
-              asset.user_id,
-              asset.id,
-              asset.content_type
-            );
-          }
+          // The stored file is local, so the thumbnail reads it in place at
+          // any size.
+          await generateThumbnailForStoredAsset(
+            asset.user_id,
+            asset.id,
+            asset.content_type
+          );
         } else if (fileBuffer) {
           await storeAssetWithThumbnail(
             asset.user_id,
@@ -1620,6 +1668,7 @@ export async function handleAssetsRoot(
         }
         throw error instanceof Error ? error : new Error(String(error));
       }
+      scheduleVideoProxy(asset);
     }
 
     return jsonResponse(await toAssetResponse(asset));
@@ -1655,69 +1704,82 @@ export async function handleExtractAudio(
     return errorResponse(400, "Asset is not a video");
   }
 
-  const videoBytes = await retrieveAssetBytes(
-    getAssetAdapter(),
-    source.user_id,
-    source.id,
-    source.content_type
-  );
-  if (!videoBytes) {
-    return errorResponse(404, "Asset bytes not found");
-  }
-
-  // Write the video bytes to a single temp input file, then probe + extract
-  // against that path (ffmpeg/ffprobe need a path).
+  // ffmpeg reads a local file (managed or external) in place. Only a backend
+  // with no local file has its bytes loaded and written to a temp input.
+  const adapter = getAssetAdapter();
   const dir = await fsp.mkdtemp(
     nodePath.join(os.tmpdir(), "nodetool-extract-")
   );
-  const inputPath = nodePath.join(dir, "input");
-  let wavBytes: Uint8Array;
-  let durationMs: number | null;
   try {
-    await fsp.writeFile(inputPath, videoBytes);
-    if (!(await probeHasAudio(inputPath))) {
-      return jsonResponse({ has_audio: false });
-    }
-    ({ bytes: wavBytes, durationMs } = await extractAudio(inputPath));
-  } catch (err) {
-    if (err instanceof MediaToolingMissingError) {
-      return errorResponse(
-        503,
-        "ffmpeg is required to extract audio from video. Install the ffmpeg runtime."
+    let inputPath = await localAssetPath(
+      adapter,
+      source.user_id,
+      source.id,
+      source.content_type
+    );
+    if (!inputPath) {
+      const videoBytes = await retrieveAssetBytes(
+        adapter,
+        source.user_id,
+        source.id,
+        source.content_type
       );
+      if (!videoBytes) {
+        return errorResponse(404, "Asset bytes not found");
+      }
+      inputPath = nodePath.join(dir, "input");
+      await fsp.writeFile(inputPath, videoBytes);
     }
-    throw err;
+
+    // The WAV stays on disk: it is stored from the file and thumbnailed from
+    // it, never held in memory whole.
+    const wavPath = nodePath.join(dir, "audio.wav");
+    let durationMs: number | null;
+    try {
+      if (!(await probeHasAudio(inputPath))) {
+        return jsonResponse({ has_audio: false });
+      }
+      ({ durationMs } = await extractAudio(inputPath, wavPath));
+    } catch (err) {
+      if (err instanceof MediaToolingMissingError) {
+        return errorResponse(
+          503,
+          "ffmpeg is required to extract audio from video. Install the ffmpeg runtime."
+        );
+      }
+      throw err;
+    }
+    const { size } = await fsp.stat(wavPath);
+
+    const audioAsset = (await Asset.create({
+      user_id: userId,
+      name: `${source.name} (audio)`,
+      content_type: "audio/wav",
+      parent_id: source.id,
+      workflow_id: source.workflow_id ?? null,
+      project_id: source.project_id,
+      node_id: null,
+      job_id: null,
+      metadata: null,
+      size,
+      duration: durationMs != null ? durationMs / 1000 : null
+    })) as Asset;
+
+    await storeAssetFileWithThumbnail(
+      audioAsset.user_id,
+      audioAsset.id,
+      getAssetFileName(audioAsset.id, audioAsset.content_type),
+      wavPath,
+      audioAsset.content_type
+    );
+
+    return jsonResponse({
+      has_audio: true,
+      asset: await toAssetResponse(audioAsset)
+    });
   } finally {
     await fsp.rm(dir, { recursive: true, force: true });
   }
-
-  const audioAsset = (await Asset.create({
-    user_id: userId,
-    name: `${source.name} (audio)`,
-    content_type: "audio/wav",
-    parent_id: source.id,
-    workflow_id: source.workflow_id ?? null,
-    project_id: source.project_id,
-    node_id: null,
-    job_id: null,
-    metadata: null,
-    size: wavBytes.byteLength,
-    duration: durationMs != null ? durationMs / 1000 : null
-  })) as Asset;
-
-  const audioKey = getAssetFileName(audioAsset.id, audioAsset.content_type);
-  await storeAssetWithThumbnail(
-    audioAsset.user_id,
-    audioAsset.id,
-    audioKey,
-    wavBytes,
-    audioAsset.content_type
-  );
-
-  return jsonResponse({
-    has_audio: true,
-    asset: await toAssetResponse(audioAsset)
-  });
 }
 
 export async function handleApiRequest(
@@ -1773,8 +1835,41 @@ export async function handleApiRequest(
     return jsonResponse(listExampleApps(options));
   }
 
+  const exampleApp = pathname.match(/^\/api\/applications\/examples\/([^/]+)$/);
+  if (exampleApp) {
+    if (request.method !== "GET") {
+      return errorResponse(405, "Method not allowed");
+    }
+    const bundle = getExampleAppBundle(options, decodeURIComponent(exampleApp[1]));
+    return bundle ? jsonResponse(bundle) : errorResponse(404, "Not found");
+  }
+
   if (pathname === "/api/nodes/metadata" || pathname === "/api/node/metadata") {
     return handleNodeMetadata(request, options);
+  }
+
+  const bundledFont = pathname.match(
+    /^\/api\/assets\/packages\/timeline\/fonts\/([^/]+)$/
+  );
+  if (bundledFont && request.method === "GET") {
+    const { handleBundledTimelineFont } =
+      await import("./routes/timeline-fonts.js");
+    return handleBundledTimelineFont(
+      decodeURIComponent(bundledFont[1]),
+      options
+    );
+  }
+
+  const scriptRun = pathname.match(/^\/api\/js-scripts\/([^/]+)\/run$/);
+  if (scriptRun && request.method === "POST") {
+    const { handleJsScriptRun } = await import("./routes/js-scripts.js");
+    return handleJsScriptRun(request, decodeURIComponent(scriptRun[1]), {
+      apiOptions: options
+    });
+  }
+
+  if (pathname === "/api/assets") {
+    return handleAssetsRoot(request, options);
   }
 
   if (pathname === "/api/workflows") {

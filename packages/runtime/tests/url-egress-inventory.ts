@@ -195,11 +195,14 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "media ref → bytes (Python bridge + TS nodes)",
     "The http(s) fallback every media resolution ends in; #5101 left it unguarded on purpose and this is the decision."
   ),
-  guardedMedia(
-    "packages/audio-nodes/src/lib/audio-wav.ts",
-    "AudioRef → bytes",
-    "Same fallback for audio refs."
-  ),
+  {
+    ...guardedMedia(
+      "packages/audio-nodes/src/lib/audio-wav.ts",
+      "AudioRef → shared media resolver",
+      "Delegates to loadMediaRefBytes, whose HTTP fallback calls fetchExternalMedia."
+    ),
+    guardedBy: ["loadMediaRefBytes"]
+  },
   guardedMedia(
     "packages/video-nodes/src/nodes/model3d/utils.ts",
     "Model3DRef / ImageRef → bytes",
@@ -242,6 +245,18 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "OpenAI media input",
     "Reads a ref's uri into a Blob for a multipart request."
   ),
+  {
+    file: "packages/runtime/src/providers/together-provider.ts",
+    owner: "Together image result downloads",
+    inputSource: "provider-response",
+    schemes: ["https"],
+    authScope: "none",
+    redirects: "checked-per-hop",
+    dnsRebinding: "deployment-egress",
+    policy: "guarded",
+    guardedBy: ["safeFetch"],
+    note: "Generated image URLs use safeFetch with the provider's injected transport. Fixed API requests and the existing video path retain their provider transport."
+  },
   guardedMedia(
     "packages/together-nodes/src/together-base.ts",
     "Together asset resolution",
@@ -312,12 +327,6 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "image_urls out of the generation response."
   ),
   guardedSafeFetch(
-    "packages/mediagen-nodes/src/mediagen-base.ts",
-    "MediaGen channel result downloads",
-    "provider-response",
-    "safeDownload routes every provider-returned URL (zhipu video_result, siliconflow images[].url and video results, hfspaces temp files) through safeFetch; channel submit/poll endpoints are fixed-host templates reached via ctx.fetchFn."
-  ),
-  guardedSafeFetch(
     "packages/runtime/src/providers/fal-provider.ts",
     "FAL provider result download",
     "provider-response",
@@ -360,6 +369,12 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "Presigned upload and provider result URLs; Higgsfield credentials are only sent to the fixed API host."
   ),
   guardedSafeFetch(
+    "packages/runtime/src/providers/useapi-provider.ts",
+    "useapi.net Google Flow and Dreamina result downloads",
+    "provider-response",
+    "Generated media URLs are screened; submit, upload and poll use the fixed API host."
+  ),
+  guardedSafeFetch(
     "packages/runtime/src/providers/meshy-provider.ts",
     "Meshy model download",
     "provider-response",
@@ -394,6 +409,12 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "Video frame sampling for providers with no video content part",
     "workflow",
     "Reads a video content part's URI so ffmpeg can sample stills from it."
+  ),
+  guardedSafeFetch(
+    "packages/timeline/src/fonts/google-fonts-fetch.ts",
+    "Google Fonts family resolution (timeline)",
+    "workflow",
+    "Resolves a document- or browser-authored fontFamily not in the bundled catalog against the google/fonts GitHub repo; assertGoogleFontsUrlAllowed narrows every URL to raw.githubusercontent.com before safeFetch runs its own check."
   ),
   guardedSafeFetch(
     "packages/runtime/src/providers/anthropic-provider.ts",
@@ -472,6 +493,30 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     note: "The only in-process fetches are DevTools discovery (GET /json/list, PUT /json/new) against the literal loopback host 127.0.0.1 on the operator-set GEMINI_CDP_PORT — reaching the operator's own channel Chrome is the feature. The other fetch the scan sees is source text of a page-side expression (exprFetchB64) that runs inside that Chrome's page context, not in this process."
   },
   {
+    file: "packages/whisper-cpp/src/whisper-server-provider.ts",
+    owner: "whisper.cpp server provider",
+    inputSource: "operator",
+    schemes: ["http", "https"],
+    authScope: "none",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "private-integration",
+    guardedBy: [],
+    note: "WHISPER_CPP_SERVER_URL names the operator's local service. This provider is excluded from the cloud profile."
+  },
+  {
+    file: "packages/integration-nodes/src/nodes/stable-diffusion-cpp.ts",
+    owner: "stable-diffusion.cpp server",
+    inputSource: "workflow",
+    schemes: ["http", "https"],
+    authScope: "none",
+    redirects: "manual-none",
+    dnsRebinding: "deployment-egress",
+    policy: "private-integration",
+    guardedBy: [],
+    note: "The graph author selects a local or LAN sd-server. Redirects are rejected. This node is excluded by the cloud profile's default allowlist."
+  },
+  {
     file: "packages/runtime/src/comfy-executor.ts",
     owner: "ComfyUI executor",
     inputSource: "workflow",
@@ -508,7 +553,7 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     note: "Every model-named URL goes through safeFetch; the one plain fetch is the operator's BROWSER_URL screenshot service, which is usually internal on purpose."
   },
   {
-    file: "packages/cli/src/nodetool.ts",
+    file: "packages/cli/src/nodetool-main.ts",
     owner: "CLI asset resolution",
     inputSource: "operator",
     schemes: ["http", "https"],
@@ -531,20 +576,69 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     guardedBy: [],
     note: "Talks to the server the operator is deploying, by the address they gave."
   },
-  {
-    file: "packages/node-sdk/src/package-registry-client.ts",
-    owner: "node-pack registry",
-    inputSource: "operator",
-    schemes: ["https"],
-    authScope: "none",
-    redirects: "runtime-follows",
-    dnsRebinding: "n/a",
-    policy: "private-integration",
-    guardedBy: [],
-    note: "A constant registry URL, overridable by env for a self-hosted registry."
-  },
+
 
   // ---------------------------------------------------------- browser-side only
+  {
+    file: "packages/runtime/src/providers/dreamina-provider.ts",
+    owner: "Dreamina browser generation and media downloads",
+    inputSource: "provider-response",
+    schemes: ["https"],
+    authScope: "the browser tab's Dreamina cookies; none on result downloads",
+    redirects: "runtime-follows",
+    dnsRebinding: "deployment-egress",
+    policy: "browser",
+    guardedBy: ["fetchExternalMedia"],
+    note: "API and upload fetches execute in the user's Dreamina tab. Server-side result downloads delegate to fetchExternalMedia, which checks each redirect hop."
+  },
+  {
+    file: "packages/game-renderer/src/standalone-player.ts",
+    owner: "standalone game player assets",
+    inputSource: "fixed",
+    schemes: ["relative"],
+    authScope: "the page's own cookies",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "browser",
+    guardedBy: [],
+    note: "The exported player fetches its fixed relative game.json and only asset paths under ./assets/ from its own static origin."
+  },
+  {
+    file: "packages/game-renderer/src/standalone-player3d.ts",
+    owner: "standalone 3D game player assets",
+    inputSource: "fixed",
+    schemes: ["relative"],
+    authScope: "the page's own cookies",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "browser",
+    guardedBy: [],
+    note: "The browser fetches fixed relative game.json and manifest.json plus digest-named ./assets/ paths validated against the closed manifest. Its connect-src self CSP constrains browser redirects to the static origin, and no server socket opens."
+  },
+  {
+    file: "packages/game-renderer/src/audio/player.ts",
+    owner: "browser game audio assets",
+    inputSource: "workflow",
+    schemes: ["http", "https", "relative"],
+    authScope: "the page's own cookies",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "browser",
+    guardedBy: [],
+    note: "The browser player supplies asset URLs resolved by the web app or relative paths under ./assets/ in a standalone export."
+  },
+  {
+    file: "packages/game-renderer/src/browser-fonts.ts",
+    owner: "browser game font assets",
+    inputSource: "workflow",
+    schemes: ["http", "https", "relative"],
+    authScope: "the page's own cookies",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "browser",
+    guardedBy: [],
+    note: "The browser player supplies asset URLs resolved by the web app or relative paths under ./assets/ in a standalone export."
+  },
   {
     file: "packages/image-nodes/src/nodes/image-io.ts",
     owner: "image ref → bytes (browser branch)",

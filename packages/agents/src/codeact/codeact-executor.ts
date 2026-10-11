@@ -101,7 +101,8 @@ import { annotateFailure } from "./action-diagnostics.js";
 import {
   mountActionModules,
   packagePromptLines,
-  sessionAllowedPackages
+  sessionAllowedPackages,
+  withGamePackage
 } from "./sandbox-packages.js";
 import {
   SANDBOX_PACKAGE_DOCS_TOOL_NAME,
@@ -111,6 +112,7 @@ import {
 } from "../capabilities/packs.js";
 import { GRAPH_DSL_PACKAGE, withGraphDslPackage } from "./graph-dsl-package.js";
 import { FLOW_PACKAGE, withFlowPackage } from "./flow-package.js";
+import { withTimelinePackage } from "./timeline-package.js";
 import {
   FABRIC_PACKAGE,
   FABRIC_PROMPT_SECTION,
@@ -137,6 +139,22 @@ import {
 } from "../utils/type-guards.js";
 
 const log = createLogger("nodetool.agents.codeact");
+
+/** Adapt the executor's Tool[] boundary to the sandbox's call interface. */
+function invokeTools(tools: readonly Tool[], context: ProcessingContext) {
+  const byName = new Map(tools.map((tool) => [tool.name, tool]));
+  return async (
+    name: string,
+    args: Record<string, unknown>,
+    toolCallId: string
+  ): Promise<unknown> => {
+    const tool = byName.get(name);
+    if (!tool) {
+      throw new Error(`Unknown tool "${name}"`);
+    }
+    return Tool.executeTool(tool, context, args, { toolCallId });
+  };
+}
 
 /**
  * Code actions batch several tool calls per turn, so the turn budget is
@@ -551,13 +569,20 @@ export class CodeActExecutor {
     // Authoring a graph is a package, not a builder: a belt that can save,
     // validate and run a workflow gets the DSL pack on its allowlist, provided
     // this machine installed it.
-    this.sandboxPackages = withFlowPackage(
-      withFabricPackage(
-        withGraphDslPackage(
-          this.sandboxPackages,
-          this.tools.map((t) => t.name),
+    this.sandboxPackages = withTimelinePackage(
+      withGamePackage(
+        withFlowPackage(
+          withFabricPackage(
+            withGraphDslPackage(
+              this.sandboxPackages,
+              this.tools.map((t) => t.name),
+              this.context.sandboxModuleCatalog
+            ),
+            this.context.sandboxModuleCatalog
+          ),
           this.context.sandboxModuleCatalog
         ),
+        this.tools.map((t) => t.name),
         this.context.sandboxModuleCatalog
       ),
       this.context.sandboxModuleCatalog
@@ -671,7 +696,8 @@ export class CodeActExecutor {
     this.sessionModuleExports = new Map();
     this.graftedSpecifiers = new Map();
     for (const tool of this.tools) {
-      const module = capabilityModuleOf(tool.name) ?? graftedModuleFor(tool.name);
+      const module =
+        capabilityModuleOf(tool.name) ?? graftedModuleFor(tool.name);
       this.graftedSpecifiers.set(tool.name, sandboxCapabilitySpecifier(module));
       const names = this.sessionModuleExports.get(module);
       if (names === undefined)
@@ -778,7 +804,7 @@ export class CodeActExecutor {
 
     const bridge = buildToolBridge({
       tools: this.tools,
-      context: this.context,
+      invoke: invokeTools(this.tools, this.context),
       onToolCall,
       onToolResult,
       maxToolCallsPerAction: this.maxToolCallsPerAction
@@ -817,7 +843,9 @@ export class CodeActExecutor {
     const callBeltTool = async (
       name: unknown,
       argsJson: unknown
-    ): Promise<{ ok: true; result: unknown } | { ok: false; error: string }> => {
+    ): Promise<
+      { ok: true; result: unknown } | { ok: false; error: string }
+    > => {
       const expired = stopIfPastDeadline();
       if (expired) return { ok: false, error: expired.detail };
       return bridgedCall(name, argsJson);
@@ -1006,12 +1034,7 @@ export class CodeActExecutor {
 
           const failure = outcome.success
             ? null
-            : annotateFailure(
-                outcome.error,
-                outcome.stack,
-                this.prelude,
-                code
-              );
+            : annotateFailure(outcome.error, outcome.stack, this.prelude, code);
 
           // A validated finish() completes the step even when the action
           // crashed after recording it — the model cannot retract a validated
@@ -1133,9 +1156,7 @@ export class CodeActExecutor {
               "agent.action.error": observation.error.slice(0, 500)
             });
           }
-          return images.length > 0
-            ? [{ type: "text", text }, ...images]
-            : text;
+          return images.length > 0 ? [{ type: "text", text }, ...images] : text;
         }
       );
     };
@@ -1245,10 +1266,9 @@ export class CodeActExecutor {
             const m = (item as { message?: Message }).message;
             if (m && m.role === "assistant") {
               turnsThisRound++;
-              lastAssistant =
-                isString(m.content)
-                  ? { ...m, content: removeThinkTags(m.content) }
-                  : m;
+              lastAssistant = isString(m.content)
+                ? { ...m, content: removeThinkTags(m.content) }
+                : m;
               roundMessages.push(lastAssistant);
             } else if (m) {
               roundMessages.push(m);

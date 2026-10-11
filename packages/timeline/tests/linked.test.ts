@@ -80,15 +80,47 @@ function renderedShot(
 
 /** Clip, track and link ids are minted per call; compare everything else. */
 const withoutIds = (clips: TimelineClip[]) =>
-  clips.map(
-    ({ id: _id, trackId: _trackId, linkId: _linkId, ...rest }) => rest
-  );
+  clips.map(({ id: _id, trackId: _trackId, linkId: _linkId, ...rest }) => rest);
 const trackShape = (tracks: TimelineTrack[]) =>
   tracks.map(({ id: _id, ...rest }) => rest);
 
 // ── buildLinkedTimeline ───────────────────────────────────────────────
 
 describe("buildLinkedTimeline", () => {
+  it("keeps a keyframe still and its voiced lines in a linked cut", () => {
+    const result = buildLinkedTimeline({
+      boardId: "board",
+      shots: [
+        renderedShot("a", 0, {
+          clip: null,
+          keyframe: { type: "image", asset_id: "still" },
+          script_line_ids: ["line"]
+        })
+      ],
+      script: {
+        scriptId: "script",
+        cast,
+        sections: [section([voicedLine("line", 2500)])]
+      }
+    });
+    const picture = result.clips.find(
+      (clip) => clip.storyboardShotId === "a" && clip.mediaType === "image"
+    );
+    expect(picture?.currentAssetId).toBe("still");
+    expect(picture?.durationMs).toBe(2500);
+    expect(result.clips.some((clip) => clip.scriptLineId === "line")).toBe(
+      true
+    );
+    expect(result.skippedShotIds).toEqual([]);
+    expect(result.skippedLineIds).toEqual([]);
+    expect(
+      result.clips.filter(
+        (clip) =>
+          clip.trackId ===
+          result.tracks.find((track) => track.name === "Shot Audio")?.id
+      )
+    ).toEqual([]);
+  });
   it("makes each shot as long as the takes it covers", () => {
     const result = buildLinkedTimeline({
       boardId: "board-1",
@@ -239,6 +271,7 @@ describe("buildLinkedTimeline", () => {
     expect(music?.startMs).toBe(0);
     expect(music?.durationMs).toBe(1000);
     expect(music?.status).toBe("draft");
+    expect(music?.bindingKind).toBe("text-to-music");
   });
 
   it("reports skipped shots and the lines they carried", () => {
@@ -476,7 +509,7 @@ describe("unlinked assembly is unchanged", () => {
         durationMs: 6000,
         mediaType: "audio",
         sourceType: "generated",
-        bindingKind: "text-to-audio",
+        bindingKind: "text-to-music",
         prompt: "low strings",
         status: "draft",
         locked: false,

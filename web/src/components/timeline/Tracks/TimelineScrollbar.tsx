@@ -17,7 +17,7 @@ import React, { memo, useCallback, useMemo, useRef } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { BORDER_RADIUS, MOTION } from "../../ui_primitives";
+import { BORDER_RADIUS, MOTION, SPACING_PX } from "../../ui_primitives";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTranslation } from "react-i18next";
 
@@ -83,7 +83,7 @@ const troughStyles = css({
   position: "relative",
   flex: "1 1 auto",
   height: TROUGH_HEIGHT_PX,
-  marginRight: 6,
+  marginRight: SPACING_PX.sm,
   minWidth: 0
 });
 

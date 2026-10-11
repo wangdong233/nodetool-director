@@ -47,9 +47,24 @@ export function installedPackAllowlist(
   return [...new Set((catalog?.summaries() ?? []).map((s) => s.packName))];
 }
 
+/** Admit the shipped builder when the belt can create and edit games. */
+export function withGamePackage(
+  allowed: readonly string[],
+  toolNames: Iterable<string>,
+  catalog: SandboxModuleCatalog | null | undefined
+): string[] {
+  const pack = "@nodetool-ai/sandbox-game";
+  const tools = new Set(toolNames);
+  if (allowed.includes(pack) || !tools.has("create_native_game") || !tools.has("edit_native_game") ||
+    !catalog?.summaries().some((summary) => summary.specifier === pack)) {
+    return [...allowed];
+  }
+  return [...allowed, pack];
+}
+
 /**
- * Chat session allowlist. A JS-script assistant may import every installed
- * pack; every other source leaves this unset so dsl+fabric stay the default.
+ * Chat session allowlist. JS scripts may import installed packs. Game chats
+ * admit the installed game builder alongside the normal platform defaults.
  */
 export function sandboxPackagesForChat(opts: {
   source?: string | null;
@@ -58,7 +73,11 @@ export function sandboxPackagesForChat(opts: {
 }): string[] | undefined {
   const isJsScript =
     opts.source === "jsscript_assistant" || opts.focusedType === "jsscript";
-  return isJsScript ? installedPackAllowlist(opts.catalog) : undefined;
+  if (isJsScript) { return installedPackAllowlist(opts.catalog); }
+  if (opts.source === "game_assistant" || opts.focusedType === "game") {
+    return installedPackAllowlist(opts.catalog).filter((name) => name === "@nodetool-ai/sandbox-game");
+  }
+  return undefined;
 }
 
 /**
@@ -80,16 +99,6 @@ function allowlistCovers(
 }
 
 /**
- * Pack-authored text reaches every prompt of the session, so it is stripped to
- * a single short line: no control characters, no newlines, no runaway length.
- * The rule lives in protocol, where the catalog that fills a summary's
- * description applies it too — one limit, enforced at both ends.
- */
-export function sanitizePackageDescription(text: string): string {
-  return sanitizeSandboxDescription(text);
-}
-
-/**
  * One line per allowed specifier the catalog knows: `specifier — description`.
  * A specifier the catalog cannot describe still gets its line — the model needs
  * to know it may import it.
@@ -104,7 +113,7 @@ export function packagePromptLines(
   );
   return allowed.map((specifier) => {
     const description = summaries.get(specifier)?.description;
-    const clean = description ? sanitizePackageDescription(description) : "";
+    const clean = description ? sanitizeSandboxDescription(description) : "";
     return clean ? `${specifier} — ${clean}` : specifier;
   });
 }

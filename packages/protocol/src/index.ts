@@ -3,6 +3,7 @@
  */
 
 export * from "./messages.js";
+export * from "./missing-runtime-package.js";
 export type { DocumentOp } from "./document-ops.js";
 export * from "./supervisor.js";
 export * from "./ws-commands.js";
@@ -11,6 +12,7 @@ export * from "./graph.js";
 export * from "./loop.js";
 export * from "./api-types.js";
 export * from "./custom-providers.js";
+export * from "./asset-file-name.js";
 export * from "./package-assets.js";
 export * from "./resource-uri.js";
 export * from "./model-selection.js";
@@ -27,14 +29,18 @@ export {
 export * from "./toolSchemas.js";
 export * from "./creative.js";
 export * from "./shot-prompt.js";
+export * from "./one-take.js";
 export * from "./render-record.js";
+export * from "./storyboard-render-spec.js";
 export * from "./style-presets.js";
 export * from "./screenplay-authoring.js";
 export * from "./script-authoring.js";
 export * from "./script-link.js";
 export * from "./script-fill.js";
+export * from "./script-pace.js";
 export * from "./sha256.js";
 export * from "./builtin-packs.js";
+export * from "./python-packs.js";
 export * from "./triggers.js";
 export * from "./cloud-profile.js";
 export * from "./app-deployment.js";
@@ -46,8 +52,17 @@ export * from "./sandbox-wasm.js";
 export * from "./skill-document.js";
 export * from "./wasm-binary.js";
 export * from "./resource-id.js";
+export * from "./run-trace.js";
+export * from "./browser-run-traces.js";
 export * from "./game-assets.js";
+export * from "./game.js";
+export * from "./game3d.js";
+export * from "./game-script-params.js";
+export * from "./game-particles.js";
+export * from "./game-script-events.js";
+export * from "./game-migration.js";
 export * from "./game-slot-prompt.js";
+export * from "./game-asset-catalog.js";
 export * from "./asset-generation.js";
 export * from "./production-authoring.js";
 export * from "./ai-video-production.js";
@@ -67,6 +82,14 @@ export * from "./token-providers.js";
 export * from "./predicates.js";
 export * from "./workflow-plan.js";
 export * from "./game-design.js";
+export * from "./native-game-templates.js";
 export * from "./game-flow-prompt.js";
 export * from "./game-graph.js";
 export * from "./mcp-server-config.js";
+
+export * from "./game-authoring.js";
+
+export * from "./workflow-document-revision.js";
+export * from "./run-readers.js";
+
+export type { GameStepTimings, GameSystemTiming } from "./game-step.js";

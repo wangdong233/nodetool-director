@@ -1,4 +1,5 @@
 import type { NodeClass, NodeRegistry } from "@nodetool-ai/node-sdk";
+import { getNodeMetadata } from "@nodetool-ai/node-sdk";
 
 export {
   IfNode,
@@ -31,6 +32,7 @@ export {
 export {
   AutomaticSpeechRecognitionNode,
   EmbeddingTextNode,
+  RerankNode,
   SaveTextFileNode,
   SaveTextNode,
   LoadTextFolderNode,
@@ -113,6 +115,7 @@ export {
 } from "@nodetool-ai/core-nodes/nodes/input";
 export { OutputNode, PreviewNode, OUTPUT_NODES } from "@nodetool-ai/audio-nodes/nodes/output";
 export { WorkflowNode, WORKFLOW_NODES } from "@nodetool-ai/core-nodes/nodes/workflow";
+export { AppNode, APP_NODES } from "@nodetool-ai/core-nodes/nodes/app";
 export { SubgraphNode, SUBGRAPH_NODES } from "@nodetool-ai/core-nodes/nodes/subgraph";
 export { CompareImagesNode, COMPARE_NODES } from "@nodetool-ai/core-nodes/nodes/compare";
 export {
@@ -213,6 +216,7 @@ export {
   PainterNode,
   UpscaleImageNode,
   RemoveBackgroundNode,
+  EstimateDepthNode,
   RelightImageNode,
   VectorizeImageNode,
   SegmentImageNode,
@@ -240,6 +244,7 @@ export {
   ResizeVideoNode,
   RotateVideoNode,
   SetSpeedVideoNode,
+  EaseCurveVideoNode,
   OverlayVideoNode,
   ColorBalanceVideoNode,
   DenoiseVideoNode,
@@ -274,6 +279,7 @@ export {
 export {
   LoadStoryboardNode,
   StoryboardShotsNode,
+  CreateStoryboardNode,
   RecastStoryboardNode,
   RenderStillsNode,
   RenderClipsNode,
@@ -350,7 +356,7 @@ export {
 export {
   LoadGameTemplateNode,
   SlotPromptNode,
-  ExportGodotProjectNode,
+  StageGameAssetsNode,
   GAME_TEMPLATE_NODES
 } from "@nodetool-ai/game-nodes";
 export {
@@ -420,6 +426,10 @@ export {
   resolveKieDynamicSchema
 } from "@nodetool-ai/integration-nodes/nodes/kie-dynamic";
 export {
+  resolveComfyWorkflow,
+  type ComfyResolvedSchema
+} from "@nodetool-ai/integration-nodes/nodes/comfy-schema";
+export {
   CollectionNode,
   CountNode,
   GetDocumentsNode,
@@ -454,6 +464,7 @@ import { EXTENDED_PLACEHOLDER_NODES } from "@nodetool-ai/core-nodes/nodes/extend
 import { INPUT_NODES } from "@nodetool-ai/core-nodes/nodes/input";
 import { OUTPUT_NODES } from "@nodetool-ai/audio-nodes/nodes/output";
 import { WORKFLOW_NODES } from "@nodetool-ai/core-nodes/nodes/workflow";
+import { APP_NODES } from "@nodetool-ai/core-nodes/nodes/app";
 import { SUBGRAPH_NODES } from "@nodetool-ai/core-nodes/nodes/subgraph";
 import { COMPARE_NODES } from "@nodetool-ai/core-nodes/nodes/compare";
 import { ENTITY_NODES } from "@nodetool-ai/core-nodes/nodes/entity";
@@ -496,6 +507,8 @@ import { KIE_DYNAMIC_NODES } from "@nodetool-ai/integration-nodes/nodes/kie-dyna
 import { VECTOR_NODES } from "@nodetool-ai/core-nodes/nodes/vector";
 import { GEMINI_NODES } from "@nodetool-ai/llm-nodes/nodes/gemini";
 import { COMFY_NODES } from "@nodetool-ai/integration-nodes/nodes/comfy";
+import { STABLE_DIFFUSION_CPP_NODES } from "@nodetool-ai/integration-nodes/nodes/stable-diffusion-cpp";
+export { StableDiffusionCppGenerateNode, STABLE_DIFFUSION_CPP_NODES } from "@nodetool-ai/integration-nodes/nodes/stable-diffusion-cpp";
 import { MESSAGING_NODES } from "@nodetool-ai/integration-nodes/nodes/messaging";
 import { MISTRAL_NODES } from "@nodetool-ai/llm-nodes/nodes/mistral";
 import { OPENAI_NODES } from "@nodetool-ai/llm-nodes/nodes/openai";
@@ -519,6 +532,7 @@ export const ALL_BASE_NODES: readonly NodeClass[] = [
   ...INPUT_NODES,
   ...OUTPUT_NODES,
   ...WORKFLOW_NODES,
+  ...APP_NODES,
   ...SUBGRAPH_NODES,
   ...COMPARE_NODES,
   ...ENTITY_NODES,
@@ -561,6 +575,7 @@ export const ALL_BASE_NODES: readonly NodeClass[] = [
   ...VECTOR_NODES,
   ...GEMINI_NODES,
   ...COMFY_NODES,
+  ...STABLE_DIFFUSION_CPP_NODES,
   ...MESSAGING_NODES,
   ...MISTRAL_NODES,
   ...OPENAI_NODES,
@@ -589,6 +604,7 @@ export function registerBaseNodes(registry: NodeRegistry): void {
     if (nodeClass.nodeType === "nodetool.workflows.base_node.Preview") {
       registry.register(nodeClass, {
         metadata: {
+          ...getNodeMetadata(nodeClass),
           title: "Preview",
           description: "Preview values inside the workflow graph",
           namespace: "nodetool.workflows.base_node",
@@ -635,6 +651,34 @@ export function registerBaseNodes(registry: NodeRegistry): void {
       });
       continue;
     }
+    if (nodeClass.nodeType === "nodetool.workflows.app_node.App") {
+      registry.register(nodeClass, {
+        metadata: {
+          title: "App",
+          description: nodeClass.description,
+          namespace: "nodetool.workflows.app_node",
+          node_type: "nodetool.workflows.app_node.App",
+          supports_dynamic_inputs: true,
+          supports_dynamic_outputs: true,
+          is_streaming_output: true,
+          properties: [
+            {
+              name: "app_id",
+              type: { type: "str", type_args: [] },
+              default: ""
+            },
+            {
+              name: "app_json",
+              type: { type: "dict", type_args: [] },
+              default: {}
+            }
+          ],
+          outputs: [],
+          inline_fields: []
+        }
+      });
+      continue;
+    }
     if (nodeClass.nodeType === "nodetool.workflows.subgraph.Subgraph") {
       registry.register(nodeClass, {
         metadata: {
@@ -644,6 +688,7 @@ export function registerBaseNodes(registry: NodeRegistry): void {
           namespace: "nodetool.workflows.subgraph",
           node_type: "nodetool.workflows.subgraph.Subgraph",
           supports_dynamic_inputs: true,
+          supports_dynamic_outputs: true,
           is_streaming_output: true,
           properties: [
             {

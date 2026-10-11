@@ -24,13 +24,21 @@ export interface Shortcut {
   descriptionKey?: string;
   /** Whether this shortcut is only available in the Electron app */
   electronOnly?: boolean;
-  /** Whether to skip keyboard combo registration in Electron (menu handles it via IPC) */
-  skipInElectron?: boolean;
   /** Whether this shortcut should be registered inside useNodeEditorShortcuts  */
   registerCombo?: boolean;
   /** Additional alternative key combinations that trigger the same shortcut */
   altKeyCombos?: string[][];
 }
+
+/**
+ * Node types added at the cursor with Shift + key.
+ */
+export const ADD_NODE_HOTKEYS = [
+  { slug: "addPromptNode", key: "P", label: "Prompt", nodeType: "nodetool.text.Prompt" },
+  { slug: "addTextToImageNode", key: "G", label: "Text to Image", nodeType: "nodetool.image.TextToImage" },
+  { slug: "addTextToVideoNode", key: "V", label: "Text to Video", nodeType: "nodetool.video.TextToVideo" },
+  { slug: "addAgentNode", key: "L", label: "Agent", nodeType: "nodetool.agents.Agent" }
+] as const;
 
 /**
  * Maps common modifier keys to their macOS equivalents.
@@ -307,8 +315,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     category: "editor",
     description: "Copy selected nodes",
     descriptionKey: "copySelectedNodes",
-    registerCombo: true,
-    skipInElectron: true
+    registerCombo: true
   },
   {
     title: "Cut",
@@ -317,8 +324,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     category: "editor",
     description: "Cut selected nodes",
     descriptionKey: "cutSelectedNodes",
-    registerCombo: true,
-    skipInElectron: true
+    registerCombo: true
   },
   {
     title: "Paste",
@@ -327,8 +333,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     category: "editor",
     description: "Paste nodes from clipboard",
     descriptionKey: "pasteNodesFromClipboard",
-    registerCombo: true,
-    skipInElectron: true
+    registerCombo: true
   },
   {
     title: "Undo",
@@ -571,7 +576,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
   {
     title: "Align Middle",
     slug: "alignMiddle",
-    keyCombo: ["Shift", "V"],
+    keyCombo: ["Shift", "E"],
     category: "editor",
     description: "Align selected nodes to their vertical center",
     descriptionKey: "alignSelectedNodesToTheirVerticalCenter",
@@ -595,6 +600,32 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     descriptionKey: "distributeSelectedNodesEvenlyHorizontally",
     registerCombo: true
   },
+  {
+    title: "Stack Selected",
+    slug: "stackSelected",
+    keyCombo: ["V"],
+    category: "editor",
+    description: "Stack selected nodes in one column",
+    registerCombo: true
+  },
+  {
+    title: "Arrange in Grid",
+    slug: "arrangeGrid",
+    keyCombo: ["G"],
+    category: "editor",
+    description: "Arrange selected nodes in a grid",
+    registerCombo: true
+  },
+  ...ADD_NODE_HOTKEYS.map(
+    ({ slug, key, label }): Shortcut => ({
+      title: `Add ${label}`,
+      slug,
+      keyCombo: ["Shift", key],
+      category: "editor",
+      description: `Add a ${label} node at the cursor`,
+      registerCombo: true
+    })
+  ),
   {
     title: "Delete Selected",
     titleKey: "deleteSelected",
@@ -894,8 +925,10 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "showKeyboardShortcuts",
     keyCombo: ["Control", "/"],
     keyComboMac: ["Meta", "/"],
+    // "?" arrives as key "?" with Shift held on US-style layouts.
+    altKeyCombos: [["Shift", "?"]],
     category: "editor",
-    description: "Open keyboard shortcuts panel",
+    description: "Open keyboard shortcuts panel (also ?)",
     descriptionKey: "openKeyboardShortcutsPanel",
     registerCombo: true
   },
@@ -921,15 +954,6 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     category: "editor" as const,
     description: "Find and navigate to nodes in the current workflow",
     descriptionKey: "findAndNavigateToNodesInTheCurrentWorkflow",
-    registerCombo: true
-  },
-  {
-    title: "Quick Add Node",
-    slug: "quickAddNode",
-    keyCombo: ["Control", "Shift", "A"],
-    category: "editor" as const,
-    description: "Quickly search and add a new node to the workflow",
-    descriptionKey: "quicklySearchAndAddANewNodeToTheWorkflow",
     registerCombo: true
   },
   {

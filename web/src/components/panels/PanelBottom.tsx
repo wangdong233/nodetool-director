@@ -1,16 +1,24 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import {
+  EmptyState,
+  TYPOGRAPHY,
   Tooltip,
   FlexColumn,
+  CONTROL,
+  SHADOW,
+  Z_INDEX,
+  reducedMotion,
   MOTION,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  Drawer
+  Drawer,
+  PanelHeader
 } from "../ui_primitives";
 import { useResizeBottomPanel } from "../../hooks/handlers/useResizeBottomPanel";
 import {
@@ -22,12 +30,13 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import isEqual from "../../utils/isEqual";
 import TracePanel from "./TracePanel";
-import LogPanel from "./LogPanel";
 import QueuePanel from "./jobs/QueuePanel";
 import WorkersPanel from "../workers/WorkersPanel";
 import WorkerStatusIndicator from "../workers/WorkerStatusIndicator";
-import { VersionHistoryPanel } from "../version";
-import PanelHeadline from "../ui/PanelHeadline";
+import {
+  VersionHistoryPanel,
+  type RestoredWorkflowTokens
+} from "../version/VersionHistoryPanel";
 import { useCombo } from "../../stores/KeyPressedStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
@@ -40,6 +49,7 @@ import { useSystemStatsStore } from "../../stores/systemStatsHandler";
 import { globalWebSocketManager } from "../../lib/websocket/GlobalWebSocketManager";
 import { BASE_URL } from "../../stores/BASE_URL";
 import type { NodeStoreState } from "../../stores/NodeStore";
+import PanelErrorBoundary from "../common/PanelErrorBoundary";
 
 // icons
 import TimelineIcon from "@mui/icons-material/Timeline";
@@ -47,10 +57,8 @@ import ArticleIcon from "@mui/icons-material/Article";
 import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
-const HEADER_HEIGHT = 32;
+const HEADER_HEIGHT = CONTROL.height.md;
 
 // Worker label derived from BASE_URL. Empty = local dev (Vite proxy → :7777).
 const workerLabel = (() => {
@@ -62,12 +70,27 @@ const workerLabel = (() => {
   }
 })();
 
-const useWsConnected = (): boolean => {
-  const [connected, setConnected] = useState(
-    () => globalWebSocketManager.isConnectionOpen()
-  );
+/**
+ * The live connection as the status bar names it. The app opens the socket
+ * the first time something needs it, so before that it is `idle`, not
+ * `offline`: a first-time user reading "offline" on a working app takes it
+ * as something to fix.
+ */
+export type WsStatus = "connected" | "connecting" | "offline" | "idle";
+
+const readWsStatus = (): WsStatus => {
+  if (globalWebSocketManager.isConnectionOpen()) return "connected";
+  if (!globalWebSocketManager.hasConnectionStarted()) return "idle";
+  return globalWebSocketManager.getConnectionState().isConnecting
+    ? "connecting"
+    : "offline";
+};
+
+export const useWsStatus = (): WsStatus => {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState(readWsStatus);
   useEffect(() => {
-    const sync = () => setConnected(globalWebSocketManager.isConnectionOpen());
+    const sync = () => setStatus(readWsStatus());
     const offOpen = globalWebSocketManager.subscribeEvent("open", sync);
     const offClose = globalWebSocketManager.subscribeEvent("close", sync);
     const offState = globalWebSocketManager.subscribeEvent("stateChange", sync);
@@ -78,10 +101,10 @@ const useWsConnected = (): boolean => {
       offState();
     };
   }, []);
-  return connected;
+  return status;
 };
 
-const useGraphCounts = (
+export const useGraphCounts = (
   workflowId: string | null | undefined
 ): { nodes: number; edges: number } => {
   const nodeStore = useWorkflowManager((state) =>
@@ -98,8 +121,15 @@ const useGraphCounts = (
       setCounts({ nodes: 0, edges: 0 });
       return;
     }
+    // Keep the previous object when the counts are unchanged. `nodes` gets a
+    // new identity on every drag frame, and a fresh object would re-render
+    // the whole bottom panel each time.
     const sync = (s: NodeStoreState) =>
-      setCounts({ nodes: s.nodes.length, edges: s.edges.length });
+      setCounts((prev) =>
+        prev.nodes === s.nodes.length && prev.edges === s.edges.length
+          ? prev
+          : { nodes: s.nodes.length, edges: s.edges.length }
+      );
     sync(nodeStore.getState());
     return nodeStore.subscribe((state: NodeStoreState, prev: NodeStoreState) => {
       if (state.nodes !== prev.nodes || state.edges !== prev.edges) {
@@ -113,29 +143,17 @@ const useGraphCounts = (
 
 interface ViewSpec {
   id: BottomPanelView;
+  label: string;
   icon: React.ReactNode;
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", icon: <ArticleIcon /> },
-  queue: { id: "queue", icon: <PlaylistPlayIcon /> },
-  workers: { id: "workers", icon: <MemoryIcon /> },
-  versions: { id: "versions", icon: <HistoryIcon /> },
-  trace: { id: "trace", icon: <TimelineIcon /> }
+  logs: { id: "logs", label: "Logs", icon: <ArticleIcon /> },
+  queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
+  workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
+  versions: { id: "versions", label: "Versions", icon: <HistoryIcon /> },
+  trace: { id: "trace", label: "Trace", icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
-
-// Resolved per call — a module-level i18n.t would freeze at module init,
-// before the async zh bundle lands, leaving zh boots stuck on English.
-const viewLabel = (view: BottomPanelView): string => {
-  const defaults: Record<BottomPanelView, string> = {
-    logs: "Logs",
-    queue: "Queue",
-    workers: "Workers",
-    versions: "Versions",
-    trace: "Trace"
-  };
-  return i18n.t(`editor:bottom.${view}`, { defaultValue: defaults[view] });
-};
 
 const PANEL_VIEWS = BOTTOM_PANEL_GROUPS.flatMap((g) => g.views);
 
@@ -145,32 +163,33 @@ const styles = (theme: Theme) =>
     bottom: "0",
     left: "0",
     right: "0",
-    zIndex: theme.zIndex.appBar,
+    zIndex: Z_INDEX.sticky,
     ".panel-container": {
       flexShrink: 0,
       position: "relative",
       backgroundColor: theme.vars.palette.background.default
     },
     ".panel-resize-button": {
-      height: "6px",
+      height: getSpacingPx(SPACING.sm),
       width: "100%",
       position: "absolute",
-      zIndex: theme.zIndex.drawer,
-      top: "-3px",
+      zIndex: Z_INDEX.overlay,
+      top: getSpacingPx(-SPACING.xs),
       left: "0",
       backgroundColor: "transparent",
       border: 0,
       borderRadius: 0,
       cursor: "ns-resize",
       transition: MOTION.all,
+      ...reducedMotion({ transition: MOTION.none }),
       "&::before": {
         content: '""',
         position: "absolute",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: "40px",
-        height: "4px",
+        width: getSpacingPx(SPACING.xxxl),
+        height: getSpacingPx(SPACING.xs),
         borderRadius: BORDER_RADIUS.xs,
         backgroundColor: theme.vars.palette.grey[600],
         opacity: 0.5,
@@ -178,7 +197,7 @@ const styles = (theme: Theme) =>
       },
       "&:hover": {
         backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: `0 0 8px ${theme.vars.palette.primary.main}40`,
+        boxShadow: SHADOW(theme).sm,
         transform: "scaleY(1.5)",
         "&::before": {
           opacity: 1,
@@ -187,7 +206,7 @@ const styles = (theme: Theme) =>
       },
       "&:active": {
         backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: `0 0 12px ${theme.vars.palette.primary.main}60`,
+        boxShadow: SHADOW(theme).md,
         transform: "scaleY(2)",
         "&::before": {
           opacity: 1,
@@ -203,7 +222,7 @@ const styles = (theme: Theme) =>
       border: "0",
       minHeight: 0
     },
-    ".panel-header": {
+    ".panel-tabbar": {
       height: `${HEADER_HEIGHT}px`,
       minHeight: `${HEADER_HEIGHT}px`,
       display: "flex",
@@ -212,7 +231,7 @@ const styles = (theme: Theme) =>
       padding: 0,
       backgroundColor: theme.vars.palette.background.default,
       borderTop: `1px solid ${theme.vars.palette.divider}`,
-      fontSize: "var(--fontSizeSmall)",
+      ...TYPOGRAPHY.sans.label,
       lineHeight: 1,
       color: theme.vars.palette.text.secondary,
       userSelect: "none",
@@ -227,12 +246,12 @@ const styles = (theme: Theme) =>
       },
 
       "& .status-dot": {
-        width: "6px",
-        height: "6px",
+        width: getSpacingPx(SPACING.sm),
+        height: getSpacingPx(SPACING.sm),
         borderRadius: BORDER_RADIUS.circle,
         backgroundColor: theme.vars.palette.success.main,
         flexShrink: 0,
-        boxShadow: `0 0 6px ${theme.vars.palette.success.main}99`,
+        boxShadow: SHADOW(theme).sm,
         "&.disconnected": {
           backgroundColor: theme.vars.palette.text.disabled,
           boxShadow: "none"
@@ -261,9 +280,8 @@ const styles = (theme: Theme) =>
         height: "100%",
         padding: `0 ${getSpacingPx(SPACING.lg)}`,
         color: theme.vars.palette.text.secondary,
-        fontSize: "var(--fontSizeSmall)",
+        ...TYPOGRAPHY.sans.label,
         lineHeight: 1,
-        fontWeight: 400,
         textTransform: "none",
         minWidth: "auto",
         display: "inline-flex",
@@ -274,6 +292,7 @@ const styles = (theme: Theme) =>
         border: "none",
         whiteSpace: "nowrap",
         transition: `${MOTION.background}, color ${MOTION.fast}`,
+        ...reducedMotion({ transition: MOTION.none }),
         "& svg": {
           fontSize: "var(--fontSizeNormal)",
           color: theme.vars.palette.text.disabled
@@ -303,7 +322,7 @@ const styles = (theme: Theme) =>
       "& .tab-count": {
         color: theme.vars.palette.text.disabled,
         fontVariantNumeric: "tabular-nums",
-        fontSize: "var(--fontSizeSmaller)"
+        ...TYPOGRAPHY.sans.caption
       },
 
       "& .meta-cluster": {
@@ -355,7 +374,7 @@ const TabButton = memo(function TabButton({
   onClick
 }: TabButtonProps) {
   return (
-    <Tooltip title={viewLabel(spec.id)} placement="top" delay={TOOLTIP_ENTER_DELAY}>
+    <Tooltip title={spec.label} placement="top" delay={TOOLTIP_ENTER_DELAY}>
       <button
         type="button"
         role="tab"
@@ -364,7 +383,7 @@ const TabButton = memo(function TabButton({
         onClick={onClick}
       >
         {spec.icon}
-        <span>{viewLabel(spec.id)}</span>
+        <span>{spec.label}</span>
         {count !== undefined && count > 0 && (
           <span className="tab-count">{count}</span>
         )}
@@ -373,20 +392,22 @@ const TabButton = memo(function TabButton({
   );
 });
 
-const PanelBodyContent = memo(function PanelBodyContent({
+export const PanelBodyContent = memo(function PanelBodyContent({
   activeView
 }: {
   activeView: BottomPanelView;
 }) {
-  const currentWorkflowId = useWorkflowManager((state) => state.currentWorkflowId);
+  const { t } = useTranslation();
+  const currentWorkflowId = useWorkspaceTabsStore((state) => {
+    const tab = state.tabs.find((item) => item.id === state.activeTabId);
+    return tab?.type === "workflow" ? tab.ref : null;
+  });
   const activeNodeStore = useWorkflowManager((state) =>
-    state.currentWorkflowId
-      ? state.nodeStores[state.currentWorkflowId]
-      : undefined
+    currentWorkflowId ? state.nodeStores[currentWorkflowId] : undefined
   );
 
   const handleRestoreVersion = useCallback(
-    async (version: WorkflowVersion) => {
+    async (version: WorkflowVersion, restored: RestoredWorkflowTokens) => {
       if (!activeNodeStore || !currentWorkflowId) {
         return;
       }
@@ -409,6 +430,11 @@ const PanelBodyContent = memo(function PanelBodyContent({
 
       storeState.setNodes(newNodes);
       storeState.setEdges(newEdges);
+      // The restore rewrote the row on the server. Without its new tokens
+      // the next save fails as an optimistic-concurrency conflict.
+      if (restored.updated_at) {
+        storeState.setWorkflowUpdatedAt(restored.updated_at, restored.etag);
+      }
       storeState.setWorkflowDirty(true);
     },
     [activeNodeStore, currentWorkflowId]
@@ -418,20 +444,27 @@ const PanelBodyContent = memo(function PanelBodyContent({
 
   switch (activeView) {
     case "logs":
-      return <LogPanel />;
+      return <PanelErrorBoundary panelName="Run logs"><TracePanel view="logs" /></PanelErrorBoundary>;
     case "queue":
       return (
         <FlexColumn
           className="queue-panel"
           fullWidth
           fullHeight
-          sx={{
-            overflow: "hidden",
-            padding: `0 ${getSpacingPx(SPACING.xl)}`
-          }}
+          sx={{ overflow: "hidden" }}
         >
-          <PanelHeadline title={viewLabel("queue")} docsTopic="debugging" />
-          <QueuePanel />
+          <PanelHeader title="Queue" docsTopic="debugging" />
+          <FlexColumn
+            fullWidth
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
+              paddingInline: getSpacingPx(SPACING.lg)
+            }}
+          >
+            <QueuePanel />
+          </FlexColumn>
         </FlexColumn>
       );
     case "workers":
@@ -443,9 +476,14 @@ const PanelBodyContent = memo(function PanelBodyContent({
           onRestore={handleRestoreVersion}
           onClose={closeView}
         />
-      ) : null;
+      ) : (
+        <EmptyState
+          title="Select a workflow to view its versions"
+          description="Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs."
+        />
+      );
     case "trace":
-      return <TracePanel />;
+      return <PanelErrorBoundary panelName="Run trace"><TracePanel /></PanelErrorBoundary>;
     default:
       return null;
   }
@@ -467,7 +505,8 @@ const PanelBottom: React.FC = () => {
 
   const activeView = useBottomPanelStore((state) => state.panel.activeView);
 
-  const isConnected = useWsConnected();
+  const wsStatus = useWsStatus();
+  const isConnected = wsStatus === "connected";
 
   const currentWorkflowId = useWorkflowManager(
     (state) => state.currentWorkflowId
@@ -518,18 +557,20 @@ const PanelBottom: React.FC = () => {
         PaperProps={{
           ref: panelRef,
           className: `panel panel-bottom ${isDragging ? "dragging" : ""}`,
+          sx: { ...reducedMotion({ transition: MOTION.none }), transition: `height ${MOTION.normal}` },
           style: {
             height: `${openHeight}px`,
-            left: 0,
+            // The workspace shell publishes the left rail's width. Legacy
+            // layouts set no var and keep the panel full-width.
+            left: "var(--workspace-content-left, 0px)",
             right: 0,
-            width: "100%",
+            width: "auto",
             borderTop: `1px solid ${theme.vars.palette.divider}`,
             backgroundColor: theme.vars.palette.background.default,
             boxShadow: isVisible
-              ? `0 -4px 10px ${theme.vars.palette.c_scrim_soft}`
+              ? SHADOW(theme).panelLeft
               : "none",
-            overflow: "hidden",
-            transition: `height ${MOTION.normal}`
+            overflow: "hidden"
           }
         }}
         variant="persistent"
@@ -550,24 +591,17 @@ const PanelBottom: React.FC = () => {
           />
         )}
         <div className="panel-content">
-          <div className="panel-header">
+          <div className="panel-tabbar">
             <div
               className="status-cluster"
               role="status"
-              aria-label={
-                t("editor:bottom.workerConnected", {
-                  defaultValue: "Worker {{state}}",
-                  state: isConnected
-                    ? t("editor:bottom.stateConnected", { defaultValue: "connected" })
-                    : t("editor:bottom.stateDisconnected", { defaultValue: "disconnected" })
-                })
-              }
+              aria-label={`Worker ${wsStatus}`}
             >
               <span
                 className={`status-dot ${isConnected ? "" : "disconnected"}`}
                 aria-hidden
               />
-              <span>{isConnected ? t("editor:bottom.stateConnected") : t("editor:bottom.stateOffline")}</span>
+              <span>{wsStatus}</span>
               <span className="sep" aria-hidden>·</span>
               <span>{workerLabel}</span>
               <WorkerStatusIndicator />
@@ -587,10 +621,10 @@ const PanelBottom: React.FC = () => {
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>
-                  <span className="meta-key">{t("editor:bottom.nodesLabel", { defaultValue: "nodes" })}</span>
+                  <span className="meta-key">nodes</span>
                   <span className="sep" aria-hidden>·</span>
                   <span className="meta-value">{edgeCount}</span>
-                  <span className="meta-key">{t("editor:bottom.edgesLabel", { defaultValue: "edges" })}</span>
+                  <span className="meta-key">edges</span>
                 </span>
               )}
               {systemStats && (

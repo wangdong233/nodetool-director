@@ -29,6 +29,7 @@
  * pack surface, outside its implementation".
  */
 
+import { workflowDocumentRevision } from "@nodetool-ai/protocol";
 import type { Workflow as WorkflowRow } from "@nodetool-ai/models";
 import type { NodeMetadata } from "@nodetool-ai/node-sdk";
 import {
@@ -63,7 +64,10 @@ function documentCore(name: WorkflowDocumentToolName): CapabilityImpl {
     if (!workflowId) {
       return {
         error: "workflow_id_required",
-        message: "workflow_id is required when no workflow is active."
+        message:
+          "workflow_id is required: this call was served from saved workflows " +
+          "and no editor tab is reachable. Pass workflow_id, or open the " +
+          "workflow with ui_open_workflow({workflow_id}) first."
       };
     }
 
@@ -77,6 +81,21 @@ function documentCore(name: WorkflowDocumentToolName): CapabilityImpl {
     const parsedGraph = workflowGraphSchema.safeParse(workflow["graph"]);
     if (!parsedGraph.success) {
       return { error: "Workflow has an invalid graph" };
+    }
+
+    const read = applyWorkflowDocumentTool(parsedGraph.data, "ui_get_graph", {}, {
+      workflowId: stored.id, resolveMetadata: () => undefined
+    }).result;
+    const documentRevision = workflowDocumentRevision(
+      stored.id, Array.isArray(read.nodes) ? read.nodes : [], Array.isArray(read.edges) ? read.edges : []
+    );
+    if (name !== "ui_get_graph" && params["based_on_revision"] !== undefined &&
+        params["based_on_revision"] !== documentRevision) {
+      return {
+        error: "document_revision_conflict", source: "server",
+        document_revision: documentRevision,
+        message: "The saved graph differs from the revision you read. Read ui_get_graph again and retry."
+      };
     }
 
     const metadataByType = new Map<string, NodeMetadata>();
@@ -107,7 +126,9 @@ function documentCore(name: WorkflowDocumentToolName): CapabilityImpl {
       workflowId: stored.id,
       resolveMetadata: (nodeType) => metadataByType.get(nodeType)
     });
-    if (!applied.changed) return applied.result;
+    if (!applied.changed) return {
+      ...applied.result, source: "server", document_revision: documentRevision
+    };
 
     // The same optimistic-concurrency write the PUT route performs: the read
     // above pinned `updated_at`, so a concurrent editor's save is a conflict
@@ -127,8 +148,15 @@ function documentCore(name: WorkflowDocumentToolName): CapabilityImpl {
           "conflict) — re-read it and retry."
       };
     }
+    const after = applyWorkflowDocumentTool(applied.graph, "ui_get_graph", {}, {
+      workflowId: stored.id, resolveMetadata: () => undefined
+    }).result;
     return {
       ...applied.result,
+      source: "server",
+      document_revision: workflowDocumentRevision(
+        stored.id, Array.isArray(after.nodes) ? after.nodes : [], Array.isArray(after.edges) ? after.edges : []
+      ),
       updated_at: persisted.updated_at,
       etag: persisted.getEtag()
     };

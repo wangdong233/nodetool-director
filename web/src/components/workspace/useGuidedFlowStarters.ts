@@ -7,6 +7,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { DEFAULT_NATIVE_GAME_TEMPLATE } from "@nodetool-ai/protocol";
 import {
   writeGameSetup,
   writeWorkflowSetup
@@ -16,9 +17,11 @@ import { useCreateStoryboard } from "../../hooks/storyboard/useStoryboards";
 import { useCreateScript } from "../../hooks/script/useScripts";
 import {
   useCreateTimeline,
+  useDeleteTimeline,
   useSeedTimelineDetail
 } from "../../hooks/useTimelineSequence";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
+import { useEntityLibraryStore } from "../../stores/EntityLibraryStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import {
   creationProjectId,
@@ -41,8 +44,11 @@ export interface GuidedFlowStarter {
   descriptionKey?: string;
   description: string;
   icon: ReactNode;
-  /** Start in the selected project, or the supplied project id. */
-  start: (projectId?: string) => Promise<void>;
+  /**
+   * Start in the selected project, or the supplied project id. Resolves to
+   * whether the flow opened; a failure has already been shown as a toast.
+   */
+  start: (projectId?: string) => Promise<boolean>;
 }
 
 /**
@@ -76,19 +82,21 @@ export const useGuidedFlowStarters = (
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
-  const openTab = useWorkspaceTabsStore((state) => state.openTab);
+  const openTab = useWorkspaceTabsStore((state) => state.openForegroundTab);
   const createStoryboard = useCreateStoryboard();
   const createScript = useCreateScript();
   const createTimeline = useCreateTimeline();
+  const deleteTimeline = useDeleteTimeline();
   const seedTimelineDetail = useSeedTimelineDetail();
   const createWorkflow = useWorkflowManager((state) => state.create);
 
   const runStart = useCallback(
-    async (id: EntryFlowId, start: () => Promise<void>) => {
+    async (id: EntryFlowId, start: () => Promise<void>): Promise<boolean> => {
       setStarting(id);
       try {
         await start();
         onStarted?.();
+        return true;
       } catch (error) {
         addNotification({
           type: "error",
@@ -97,6 +105,7 @@ export const useGuidedFlowStarters = (
             error instanceof Error ? error.message : "unknown error"
           }`
         });
+        return false;
       } finally {
         setStarting(null);
       }
@@ -136,10 +145,20 @@ export const useGuidedFlowStarters = (
         // PATCH straight after — before the tab opens, so the flow never
         // flashes the editor. The create seeded the detail cache with a
         // setup-less copy; the tab must not load that one.
-        const withSetup = await trpcClient.timeline.update.mutate({
-          id: sequence.id,
-          document: newVideoSetupDocument("")
-        });
+        let withSetup;
+        try {
+          withSetup = await trpcClient.timeline.update.mutate({
+            id: sequence.id,
+            document: newVideoSetupDocument("")
+          });
+        } catch (error) {
+          // A failed PATCH would leave an empty "Untitled timeline" behind
+          // that no tab opened (F15).
+          await deleteTimeline
+            .mutateAsync({ id: sequence.id })
+            .catch(() => undefined);
+          throw error;
+        }
         seedTimelineDetail(withSetup);
         openTab({
           type: "timeline",
@@ -153,7 +172,7 @@ export const useGuidedFlowStarters = (
           projectId: sequence.projectId
         });
       }),
-    [runStart, createTimeline, seedTimelineDetail, openTab]
+    [runStart, createTimeline, deleteTimeline, seedTimelineDetail, openTab]
   );
 
   const startScript = useCallback(
@@ -223,6 +242,8 @@ export const useGuidedFlowStarters = (
     [runStart, createWorkflow, openTab]
   );
 
+  // The Game flow's document is a workflow row carrying `settings.game`; the
+  // workflow tab hosts the flow until the build opens the game.
   const startGame = useCallback(
     (projectIdOverride?: string) =>
       runStart("game", async () => {
@@ -233,7 +254,10 @@ export const useGuidedFlowStarters = (
           tags: [],
           access: "private",
           project_id: projectId,
-          settings: writeGameSetup({}, { stage: "idea", brief: "" })
+          settings: writeGameSetup(
+            {},
+            { stage: "idea", brief: "", template: DEFAULT_NATIVE_GAME_TEMPLATE }
+          )
         });
         openTab({
           type: "workflow",
@@ -251,10 +275,11 @@ export const useGuidedFlowStarters = (
   );
 
   // Entities have no document tab — the library is their surface — so the
-  // starter opens it, where `Add entity` runs the same guided steps.
+  // starter opens it already in the guided `Add entity` steps.
   const startEntity = useCallback(
     () =>
       runStart("entity", async () => {
+        useEntityLibraryStore.getState().requestCreate();
         openPageTab("entities");
       }),
     [runStart]
@@ -263,7 +288,7 @@ export const useGuidedFlowStarters = (
   const starters = useMemo<readonly GuidedFlowStarter[]>(() => {
     const startById: Record<
       EntryFlowId,
-      (projectId?: string) => Promise<void>
+      (projectId?: string) => Promise<boolean>
     > = {
       entity: startEntity,
       storyboard: startStoryboard,

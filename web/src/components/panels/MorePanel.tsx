@@ -9,13 +9,12 @@ import {
   FlexColumn,
   ListGroup,
   ListItemRow,
-  PADDING,
   ScrollArea,
   SearchInput,
   SectionHeader,
-  SPACING
+  SPACING,
+  PanelHeader
 } from "../ui_primitives";
-import PanelHeadline from "../ui/PanelHeadline";
 import AppPagesList from "./AppPagesList";
 import { useTranslation } from "react-i18next";
 
@@ -81,12 +80,11 @@ const MorePanel: React.FC<MorePanelProps> = ({
   return (
     <FlexColumn fullHeight>
       {!isMobile && (
-        <PanelHeadline
+        <PanelHeader
           title={t("nav:tabs.more", { defaultValue: "More" })}
-          description={t("editor:ui.searchAndOpenAdditionalPanels")}
-        />
+          description={t("editor:ui.searchAndOpenAdditionalPanels", { defaultValue: "Search and open additional panels." })}        />
       )}
-      <FlexColumn padding={PADDING.spacious} gap={SPACING.md}>
+      <FlexColumn sx={{ py: SPACING.md, px: isMobile ? SPACING.xl : 0 }}>
         <SearchInput
           value={query}
           onChange={setQuery}
@@ -100,7 +98,10 @@ const MorePanel: React.FC<MorePanelProps> = ({
         thin
         sx={{ flex: 1, minHeight: 0, height: "auto" }}
       >
-        <FlexColumn padding={PADDING.spacious} gap={SPACING.lg}>
+        <FlexColumn
+          gap={SPACING.lg}
+          sx={{ pb: SPACING.md, px: isMobile ? SPACING.xl : 0 }}
+        >
           {filteredGroups.map((group) => (
             <FlexColumn key={group.id}>
               <SectionHeader

@@ -13,6 +13,7 @@
  * menu always did.
  */
 
+import { useTranslation } from "react-i18next";
 import {
   useCallback,
   useEffect,
@@ -22,13 +23,21 @@ import {
   useState
 } from "react";
 import {
+  DEFAULT_NATIVE_GAME_TEMPLATE,
   isModelSelected,
+  type CreativeContext,
   type Entity,
   type ProductionReferenceBinding
 } from "@nodetool-ai/protocol";
+import { createTopDownRoomGame, createNative3DGame } from "@nodetool-ai/game-runtime";
+import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 import {
   BORDER_RADIUS,
+  AlertBanner,
   Box,
   Caption,
   Chip,
@@ -38,10 +47,13 @@ import {
   FlexColumn,
   FlexRow,
   Label,
+  InspectorSelect,
   MenuItemPrimitive,
+  MOTION,
   Popover,
   ResponsiveImage,
   ScrollArea,
+  CONTROL,
   SPACING,
   SPACING_PX,
   Text,
@@ -57,14 +69,15 @@ import {
   exampleSeedRef
 } from "../../utils/exampleWorkflow";
 import type { BuildFromPlanResult } from "../../hooks/workflow/useBuildFromPlan";
-import type { BuildGameResult } from "../../hooks/game/useBuildGame";
 import { useFileHandling } from "../chat/hooks/useFileHandling";
+import { useComposerAssetUpload } from "../chat/hooks/useComposerAssetUpload";
 import { isMac } from "../../utils/platform";
 import { useTextareaAssetMention } from "../chat/composer/useTextareaAssetMention";
 import { useTextareaSkillMention } from "../chat/composer/useTextareaSkillMention";
 import { assetToUri } from "../node_types/editing/promptComposer/promptTokens";
 import { assetIdFromLocator, assetIdOf } from "../../utils/mediaRef";
 import { useEntities } from "../../serverState/useEntities";
+import EntityPickerDialog from "../entities/EntityPickerDialog";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import {
@@ -79,7 +92,6 @@ import {
   useOpenProject,
   useProjectSummaries
 } from "../../hooks/useProjects";
-import { i18n, useAppLanguage } from "../../i18n";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import {
   TEXT_FILE_TEMPLATES,
@@ -96,23 +108,32 @@ import useOnboardingStore, {
   isOnboardingFinished
 } from "../../stores/OnboardingStore";
 import GettingStartedChecklist from "../onboarding/GettingStartedChecklist";
-import DashboardExampleApps from "../portal/DashboardExampleApps";
+import StartExamples from "./StartExamples";
 import CurrentProjectDocuments from "./CurrentProjectDocuments";
 import LanguageModelMenuDialog from "../model_menu/LanguageModelMenuDialog";
+import ReportBugButton from "../support/ReportBugButton";
 import { openPageTab } from "../workspace/openPageTab";
-import { OptionCardGrid, type OptionCardItem } from "../setup/OptionCardGrid";
+import {
+  OPTION_CARD_CLASS,
+  OptionCardGrid,
+  type OptionCardItem
+} from "../setup/OptionCardGrid";
 import { ENTRY_CARDS, type EntryFlowId } from "../setup/entryCards";
 import StoryboardSetupHost from "../setup/storyboard/StoryboardSetupHost";
 import VideoSetupHost from "../setup/video/VideoSetupHost";
 import ScriptSetupHost from "../setup/script/ScriptSetupHost";
 import WorkflowSetupHost from "../setup/workflow/WorkflowSetupHost";
 import GameSetupHost from "../setup/game/GameSetupHost";
+import type { GameStartAlternative } from "../setup/game/IdeaStep";
+import type { BuildGameResult } from "../../hooks/game/useBuildGame";
 import EntitySetupHost from "../setup/entity/EntitySetupHost";
 import { newVideoSetupDocument } from "../setup/video/useVideoSetupFlow";
 import { newScriptSetupDocument } from "../setup/script/useScriptSetupFlow";
 import { startImageFlow } from "../setup/image/startImageFlow";
+import { MAX_IMAGE_REFERENCES } from "../setup/image/setupContext";
 import {
   useCreateTimeline,
+  useDeleteTimeline,
   useSeedTimelineDetail
 } from "../../hooks/useTimelineSequence";
 import { useCreateScript } from "../../hooks/script/useScripts";
@@ -122,6 +143,7 @@ import {
   writeGameSetup,
   writeWorkflowSetup
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
+import { newDocumentId } from "../../lib/newDocumentId";
 import { newStoryboardSetupDocument } from "../setup/storyboard/useStoryboardSetupFlow";
 import { stageChatTurn } from "../chat/pendingChatTurn";
 import { PROJECT_COLOR } from "./projectIdentity";
@@ -143,10 +165,8 @@ import scriptBackground from "../../assets/guided-flows/script.webp";
 import imageBackground from "../../assets/guided-flows/image.webp";
 import workflowBackground from "../../assets/guided-flows/workflow.webp";
 import gameBackground from "../../assets/guided-flows/game.webp";
-import { useTranslation } from "react-i18next";
 
-const ENTRY_BACKGROUNDS: Record<EntryFlowId, string> = {
-  entity: imageBackground,
+const ENTRY_BACKGROUNDS: Partial<Record<EntryFlowId, string>> = {
   storyboard: storyboardBackground,
   video: videoBackground,
   script: scriptBackground,
@@ -157,6 +177,13 @@ const ENTRY_BACKGROUNDS: Record<EntryFlowId, string> = {
 
 /** Width of the centered column, per the new-project mockup. */
 const COLUMN_WIDTH = 860;
+/** The measure of a centered line of intro copy, in px. */
+const INTRO_TEXT_WIDTH = 640;
+/** A dropped reference image's thumbnail, in px. */
+const REFERENCE_THUMB_SIZE = 48;
+/** The blank-document submenu's column, and the popover's room around it. */
+const SUBMENU_WIDTH = 320;
+const SUBMENU_MAX_WIDTH = 340;
 
 /** A starter pill at rest: outlined, quiet, the project's colour on hover. */
 const starterPillSx = {
@@ -171,6 +198,13 @@ const activeStarterPillSx = {
   borderColor: PROJECT_COLOR,
   backgroundColor: "rgba(var(--palette-info-lightChannel) / 0.12)",
   "&:hover": { backgroundColor: "rgba(var(--palette-info-lightChannel) / 0.2)" }
+} as const;
+
+/** A context control in the composer's toolbar: quiet until pointed at. */
+const composerToolSx = {
+  color: "text.secondary",
+  borderRadius: BORDER_RADIUS.pill,
+  "&:hover": { color: "text.primary", bgcolor: "action.hover" }
 } as const;
 
 interface SubmenuAnchor {
@@ -272,10 +306,18 @@ const SETUP_TAB_TYPE = {
   video: "timeline",
   script: "script",
   workflow: "workflow",
-  // The Game flow's document is a workflow, so its landing is the node editor
-  // with the graph the build placed (D25).
-  game: "workflow"
+  game: "game"
 } as const;
+
+/** What a flow makes, in the creator's words. */
+const SETUP_KIND_NOUN: Record<SetupTarget["kind"], string> = {
+  entity: "entity",
+  storyboard: "storyboard",
+  video: "video",
+  script: "script",
+  workflow: "workflow",
+  game: "game"
+};
 
 /**
  * One composer attachment, as a setup document may hold it.
@@ -349,53 +391,72 @@ const deleteSetupDocument = async (target: SetupTarget): Promise<void> => {
  * one run a test run, the Game flow just runs the graph, and the two results
  * differ only in that name.
  */
-const buildFailures = (
-  result: BuildFromPlanResult | BuildGameResult
-): string[] => {
+const buildFailures = (result: BuildFromPlanResult): string[] => {
   const lines: string[] = [];
   if (result.issues.length > 0) {
     lines.push(
-      i18n.t("editor:ui.connectionsCouldNotBeWired", {
-        defaultValue: "{{count}} connections could not be wired.",
-        count: result.issues.length
-      })
+      `${result.issues.length} connection${
+        result.issues.length === 1 ? "" : "s"
+      } could not be wired.`
     );
   }
   if (result.validationErrors.length > 0) {
     lines.push(
-      i18n.t("editor:ui.theGraphDidNotValidate", {
-        defaultValue: "The graph did not validate: {{errors}}",
-        errors: result.validationErrors.join("; ")
-      })
+      `The graph did not validate: ${result.validationErrors.join("; ")}`
     );
   }
-  const run = "testRun" in result ? result.testRun : result.run;
+  const run = result.testRun;
   if (run.error) {
-    lines.push(
-      i18n.t("editor:ui.theRunWasRefused", {
-        defaultValue: "The run was refused: {{error}}",
-        error: run.error
-      })
-    );
+    lines.push(`The run was refused: ${run.error}`);
   }
   return lines;
+};
+
+/** What a game build could not draw, one line. Empty when every slot drew. */
+const gameBuildFailures = (game: BuildGameResult): string[] =>
+  game.failures.length === 0
+    ? []
+    : [
+        `${game.failures.length} piece${
+          game.failures.length === 1 ? "" : "s"
+        } of art kept the placeholder (${game.failures
+          .map((failure) => failure.slot)
+          .join(", ")}): ${game.failures[0]?.reason ?? ""}`
+      ];
+
+/**
+ * Remove the workflow row that carried a finished Game flow. The game is the
+ * document from here on, and the row would otherwise sit in the workflow list
+ * as an empty "game" workflow. Best effort: the game is already open.
+ */
+const discardGameSetupWorkflow = async (workflowId: string): Promise<void> => {
+  try {
+    await trpcClient.workflows.delete.mutate({ id: workflowId });
+  } catch {
+    // The game opened; an orphaned setup row is harmless.
+  }
 };
 
 interface NewProjectSurfaceProps {
   flowRef?: string;
   initialSetupTarget?: SetupTarget | null;
+  /** False while this workspace tab is hidden behind another one. */
+  active?: boolean;
 }
 
 const NewProjectSurface = ({
   flowRef,
-  initialSetupTarget
+  initialSetupTarget,
+  active = true
 }: NewProjectSurfaceProps) => {
   const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
+  const [showMoreFlows, setShowMoreFlows] = useState(false);
+  const [gameDimension, setGameDimension] = useState<"2d" | "3d">("2d");
   // The starter row folds past `VISIBLE_STARTERS` until asked to show the rest.
   const [showAllStarters, setShowAllStarters] = useState(false);
   const [entityIds, setEntityIds] = useState<string[]>([]);
-  const [entityAnchor, setEntityAnchor] = useState<HTMLElement | null>(null);
+  const [entityPickerOpen, setEntityPickerOpen] = useState(false);
   const [submenu, setSubmenu] = useState<SubmenuAnchor | null>(null);
   const [starting, setStarting] = useState(false);
   // The card that was clicked, while its documents are being made. Set, and
@@ -410,10 +471,26 @@ const NewProjectSurface = ({
   const [modelAnchor, setModelAnchor] = useState<HTMLElement | null>(null);
   // A start requested before a provider was configured, resumed once one is.
   const [pendingStart, setPendingStart] = useState(false);
+  // A start parked on the model menu, resumed once a model is picked.
+  const [pendingModelStart, setPendingModelStart] = useState(false);
   // The flow can swap its own target and finish in the same tick — the example
   // route replaces the placeholder workflow with the copy, then finishes — so
   // the handlers read this rather than the render's copy of the state.
   const setupTargetRef = useRef<SetupTarget | null>(setupTarget);
+  // Whether this guided tab is the one on screen. The New Project tab itself
+  // (no `flowRef`) only finishes from a click, so it always is.
+  const guidedTabActive = useWorkspaceTabsStore(
+    (state) => !flowRef || state.activeTabId === tabId("guided-flow", flowRef)
+  );
+  const guidedTabActiveRef = useRef(guidedTabActive);
+  guidedTabActiveRef.current = guidedTabActive;
+  // A finish that could not hand off yet: held while this tab is hidden, or
+  // after its project failed to open.
+  const [heldFinish, setHeldFinish] = useState<{
+    result?: BuildFromPlanResult | null;
+    game?: BuildGameResult;
+  } | null>(null);
+  const [finishError, setFinishError] = useState<string | null>(null);
   const refInputRef = useRef<HTMLInputElement>(null);
   const modelButtonRef = useRef<HTMLButtonElement>(null);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -423,11 +500,12 @@ const NewProjectSurface = ({
 
   const {
     droppedFiles,
-    addFiles,
     addDroppedFiles,
     removeFile,
+    clearFiles,
     getFileContents
   } = useFileHandling();
+  const { uploadFiles, isUploading } = useComposerAssetUpload(addDroppedFiles);
   const { data: entities } = useEntities();
   // Both the user's own skills and the ones NodeTool ships: either is a
   // starter, and either is invoked the same way.
@@ -435,6 +513,7 @@ const NewProjectSurface = ({
   const summaries = useProjectSummaries();
   const createStoryboard = useCreateStoryboard();
   const createTimeline = useCreateTimeline();
+  const deleteTimeline = useDeleteTimeline();
   const seedTimelineDetail = useSeedTimelineDetail();
   const createScript = useCreateScript();
   const createWorkflow = useWorkflowManager((state) => state.create);
@@ -626,17 +705,17 @@ const NewProjectSurface = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files ?? []);
       if (files.length > 0) {
-        addFiles(files);
+        uploadFiles(files);
       }
       // Clear the input so picking the same file twice still registers.
       event.target.value = "";
     },
-    [addFiles]
+    [uploadFiles]
   );
 
   const handleStart = useCallback(async () => {
     const text = prompt.trim();
-    if (text.length === 0 || starting) {
+    if (text.length === 0 || starting || isUploading) {
       return;
     }
     // The first chat turn needs a model; route key-less users
@@ -645,7 +724,7 @@ const NewProjectSurface = ({
       addNotification({
         type: "info",
         alert: true,
-        content: i18n.t("home:notices.checkingModels", { defaultValue: "Still checking your language models. Try again in a moment." })
+        content: "Still checking your language models. Try again in a moment."
       });
       return;
     }
@@ -653,21 +732,21 @@ const NewProjectSurface = ({
       setPendingStart(true);
       openProviderOnboarding({
         capability: "generate_message",
-        reason: i18n.t("home:notices.needModel", { defaultValue: "Almost there — chat needs a model to run." })
+        reason: "Almost there — chat needs a model to run."
       });
       return;
     }
     // A configured provider is not a picked model: the chat's model selection
     // starts on the "empty" sentinel, and a send with it never leaves the
     // client. Open this surface's own model menu rather than point at a
-    // composer that is not on this screen.
+    // composer that is not on this screen, and start once a model is picked.
     if (!isModelSelected(selectedModel)) {
+      setPendingModelStart(true);
       setModelAnchor(modelButtonRef.current);
       addNotification({
-        type: "error",
+        type: "info",
         alert: true,
-        content:
-          i18n.t("home:notices.noModelSelected", { defaultValue: "No model selected. Pick a language model here before opening chat." })
+        content: "Pick a language model and the chat starts."
       });
       return;
     }
@@ -679,7 +758,7 @@ const NewProjectSurface = ({
           text: composeFirstTurn({
             prompt: text,
             starter,
-            entityNames: selectedEntities.map((entity) => entity.name)
+            entityIds: selectedEntities.map((entity) => entity.id)
           })
         },
         ...getFileContents()
@@ -691,10 +770,9 @@ const NewProjectSurface = ({
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
+        title: "New chat",
         projectId
       });
-      useOnboardingStore.getState().markStep("describe-idea");
       closeTab(
         tabId(flowRef ? "guided-flow" : "project-new", flowRef ?? PROJECT_NEW_REF)
       );
@@ -702,10 +780,9 @@ const NewProjectSurface = ({
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("editor:ui.couldNotOpenChatError", {
-          defaultValue: "Could not open chat: {{error}}",
-          error: error instanceof Error ? error.message : String(error)
-        })
+        content: `Could not open chat: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       });
     } finally {
       setStarting(false);
@@ -717,6 +794,7 @@ const NewProjectSurface = ({
     flowRef,
     getFileContents,
     hasConfiguredProvider,
+    isUploading,
     providerReadiness.loading,
     openTab,
     prompt,
@@ -727,7 +805,24 @@ const NewProjectSurface = ({
   ]);
 
   // A new flow gets its own tab. Changes within that flow keep the same tab.
-  const applySetupTarget = useCallback((target: SetupTarget | null) => {
+  // Every target records what the composer held, so "Change flow" can put it
+  // back (O6). A swap within the flow keeps the record it already had: the
+  // composer of a tab opened from Home is empty while the flow runs.
+  const applySetupTarget = useCallback((next: SetupTarget | null) => {
+    const target: SetupTarget | null =
+      next && !next.carried
+        ? {
+            ...next,
+            carried: setupTargetRef.current?.carried ?? {
+              references: droppedFiles.flatMap((file) =>
+                file.assetUri
+                  ? [{ uri: file.assetUri, name: file.name, type: file.type }]
+                  : []
+              ),
+              entityIds
+            }
+          }
+        : next;
     if (flowRef) {
       setupTargetRef.current = target;
       setSetupTarget(target);
@@ -738,7 +833,7 @@ const NewProjectSurface = ({
           type: "project-new",
           ref: PROJECT_NEW_REF,
           mode: "view",
-          title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
+          title: "Home"
         });
       }
       const ref = crypto.randomUUID();
@@ -752,10 +847,15 @@ const NewProjectSurface = ({
       });
       setActiveTab(id);
     }
-    if (target) {
-      useOnboardingStore.getState().markStep("start-guided-flow");
-    }
-  }, [flowRef, hasHomeTab, openTab, setActiveTab, setGuidedFlowTarget]);
+  }, [
+    droppedFiles,
+    entityIds,
+    flowRef,
+    hasHomeTab,
+    openTab,
+    setActiveTab,
+    setGuidedFlowTarget
+  ]);
 
   // Carry an in-progress flow from the former single-tab session storage into
   // a normal guided tab once. The draft itself already lives in its document.
@@ -773,11 +873,9 @@ const NewProjectSurface = ({
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("editor:ui.couldNotStartTheFlowError", {
-          defaultValue: "Could not start the {{flow}}: {{error}}",
-          flow,
-          error: error instanceof Error ? error.message : String(error)
-        })
+        content: `Could not start the ${flow}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       });
     },
     [addNotification]
@@ -792,13 +890,22 @@ const NewProjectSurface = ({
    * word.
    */
   const noteUncarriedContext = useCallback(
-    (flow: string, carries: { entities: boolean; references: boolean }) => {
+    (
+      flow: string,
+      // `references` is a count when the flow takes only so many.
+      carries: { entities: boolean; references: boolean | number }
+    ) => {
       const left: string[] = [];
-      if (!carries.references && droppedFiles.length > 0) {
+      const carried =
+        carries.references === true
+          ? droppedFiles.length
+          : carries.references === false
+            ? 0
+            : carries.references;
+      const leftOver = droppedFiles.length - carried;
+      if (leftOver > 0) {
         left.push(
-          `${droppedFiles.length} reference ${
-            droppedFiles.length === 1 ? "image" : "images"
-          }`
+          `${leftOver} reference ${leftOver === 1 ? "image" : "images"}`
         );
       }
       if (!carries.entities && selectedEntities.length > 0) {
@@ -880,19 +987,24 @@ const NewProjectSurface = ({
   // as one PATCH straight after — the flow reads it off the loaded sequence.
   const startVideoFlow = useCallback(
     async (projectId: string) => {
+  const { t } = useTranslation();
       if (starting) {
         return;
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newVideo", { defaultValue: "New video" });
+        text.length > 0 ? projectNameFromPrompt(text, null) : "New video";
       setStarting(true);
+      // The sequence made before its setup PATCH. A failure in between
+      // deletes it, so no empty timeline is left in the project (F15).
+      let unfinishedId: string | null = null;
       try {
         const references = await uploadComposerReferences(droppedFiles);
         const sequence = await createTimeline.mutateAsync({
           name,
           projectId
         });
+        unfinishedId = sequence.id;
         const entityReferenceBindings: ProductionReferenceBinding[] =
           selectedEntities.flatMap((entity) => {
             const assetId = assetIdOf(entity.reference_images?.[0]);
@@ -925,6 +1037,7 @@ const NewProjectSurface = ({
             })
           })
         });
+        unfinishedId = null;
         // The create seeded the detail cache with a sequence that has no setup;
         // the flow's first render must not read that copy (see
         // `useSeedTimelineDetail`).
@@ -938,6 +1051,11 @@ const NewProjectSurface = ({
           ownsProject: false
         });
       } catch (error) {
+        if (unfinishedId !== null) {
+          await deleteTimeline
+            .mutateAsync({ id: unfinishedId })
+            .catch(() => undefined);
+        }
         reportEntryFailure("video", error);
       } finally {
         setStarting(false);
@@ -946,6 +1064,7 @@ const NewProjectSurface = ({
     [
       applySetupTarget,
       createTimeline,
+      deleteTimeline,
       droppedFiles,
       entityIds,
       noteUncarriedContext,
@@ -1016,7 +1135,7 @@ const NewProjectSurface = ({
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newImage", { defaultValue: "New image" });
+        text.length > 0 ? projectNameFromPrompt(text, null) : "New image";
       setStarting(true);
       try {
         const references = await uploadComposerReferences(droppedFiles);
@@ -1027,7 +1146,10 @@ const NewProjectSurface = ({
           references,
           entityIds
         });
-        noteUncarriedContext("image", { entities: true, references: true });
+        noteUncarriedContext("image", {
+          entities: true,
+          references: Math.min(references.length, MAX_IMAGE_REFERENCES)
+        });
         if (!(await showDocumentProject(projectId, name))) {
           return;
         }
@@ -1036,7 +1158,7 @@ const NewProjectSurface = ({
             type: "project-new",
             ref: PROJECT_NEW_REF,
             mode: "view",
-            title: i18n.t("nav:tabs.home", { defaultValue: "Home" })
+            title: "Home"
           });
         }
         openTab({
@@ -1046,7 +1168,6 @@ const NewProjectSurface = ({
           title: name,
           projectId
         });
-        useOnboardingStore.getState().markStep("start-guided-flow");
         if (flowRef) closeTab(tabId("guided-flow", flowRef));
       } catch (error) {
         reportEntryFailure("image", error);
@@ -1114,13 +1235,6 @@ const NewProjectSurface = ({
     ]
   );
 
-  /**
-   * The Game card (game-prd § 4, D25/D30).
-   *
-   * The document is a workflow, as the Workflow flow's is, so the create is
-   * the same one — only the settings differ: `settings.game` at stage `idea`
-   * with the brief the composer holds.
-   */
   const startGameFlow = useCallback(
     async (projectId: string) => {
       if (starting) {
@@ -1128,28 +1242,56 @@ const NewProjectSurface = ({
       }
       const text = prompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newGame", { defaultValue: "New game" });
+        text.length > 0 ? projectNameFromPrompt(text, null) : "New game";
       setStarting(true);
       try {
-        const created = await createWorkflow({
+        // A 2D game is designed first: the flow's document is a workflow row
+        // carrying `settings.game`, the record the headless game tools share.
+        if (gameDimension === "2d") {
+          const setup = await createWorkflow({
+            name,
+            description: "",
+            tags: [],
+            access: "private",
+            project_id: projectId,
+            settings: writeGameSetup(
+              {},
+              { stage: "idea", brief: text, template: DEFAULT_NATIVE_GAME_TEMPLATE }
+            )
+          });
+          noteUncarriedContext("game", {
+            entities: false,
+            references: false
+          });
+          applySetupTarget({
+            kind: "game",
+            id: setup.id,
+            projectId,
+            name,
+            ownsProject: false
+          });
+          return;
+        }
+        const created = await trpcClient.games.create.mutate({
+          projectId,
           name,
-          description: "",
-          tags: [],
-          access: "private",
-          project_id: projectId,
-          settings: writeGameSetup({}, { stage: "idea", brief: text })
+          dimension: "3d",
+          document: createNative3DGame(newDocumentId())
         });
         noteUncarriedContext("game", {
           entities: false,
           references: false
         });
-        applySetupTarget({
-          kind: "game",
-          id: created.id,
-          projectId,
-          name,
-          ownsProject: false
+        if (!(await showDocumentProject(projectId, name))) return;
+        openTab({
+          type: "game",
+          ref: created.game.id,
+          mode: "edit",
+          title: name,
+          projectId
         });
+        useOnboardingStore.getState().markStep("start-guided-flow");
+        if (flowRef) closeTab(tabId("guided-flow", flowRef));
       } catch (error) {
         reportEntryFailure("game", error);
       } finally {
@@ -1158,10 +1300,15 @@ const NewProjectSurface = ({
     },
     [
       applySetupTarget,
+      closeTab,
       createWorkflow,
+      flowRef,
+      gameDimension,
       noteUncarriedContext,
+      openTab,
       prompt,
       reportEntryFailure,
+      showDocumentProject,
       starting
     ]
   );
@@ -1183,7 +1330,8 @@ const NewProjectSurface = ({
         );
         noteUncarriedContext("entity", {
           entities: false,
-          references: initialAssetId !== undefined
+          // The entity takes one reference image.
+          references: initialAssetId !== undefined ? 1 : 0
         });
         const target: SetupTarget = {
           kind: "entity",
@@ -1215,6 +1363,7 @@ const NewProjectSurface = ({
 
   const runDestinationFlow = useCallback(
     (id: EntryFlowId) => {
+  const { t } = useTranslation();
       const starters: Record<
         EntryFlowId,
         (projectId: string) => Promise<void>
@@ -1245,7 +1394,7 @@ const NewProjectSurface = ({
 
   const handleEntryCard = useCallback(
     (id: string) => {
-      if (pendingFlow !== null || starting) {
+      if (pendingFlow !== null || starting || isUploading) {
         return;
       }
       // Through the card list, so the id that reaches the starters is a known
@@ -1256,36 +1405,47 @@ const NewProjectSurface = ({
       }
       runDestinationFlow(card.id);
     },
-    [pendingFlow, runDestinationFlow, starting]
+    [isUploading, pendingFlow, runDestinationFlow, starting]
   );
 
   // The chosen card says what it is doing; the other cards are off, because a
   // second flow started over the first would create an unwanted draft.
   const entryOptions = useMemo<readonly OptionCardItem[]>(() => {
-    const cards = ENTRY_CARDS.map((card) => ({
+    const cards = ENTRY_CARDS.filter((card) =>
+      showMoreFlows || ["storyboard", "image", "workflow"].includes(card.id)
+    ).map((card) => ({
       ...card,
-      title: t(`home:entry.${card.id}.title`, { defaultValue: card.title }),
-      description: t(`home:entry.${card.id}.desc`, { defaultValue: card.description }),
+      description: card.id === "game" && gameDimension === "3d"
+        ? "Start with a playable 3D exploration scene in the built-in engine."
+        : card.description,
       image: ENTRY_BACKGROUNDS[card.id]
     }));
     if (pendingFlow === null) {
-      return cards;
+      // A card started now would take only the references already uploaded.
+      return isUploading
+        ? cards.map((card) => ({
+            ...card,
+            disabled: true,
+            disabledReason: "Waiting for your reference images to upload."
+          }))
+        : cards;
     }
     return cards.map((card) =>
       card.id === pendingFlow
         ? {
             ...card,
-            meta: t("home:surface.creatingMeta", { defaultValue: "Creating…" }),
+            meta: "Creating…",
             disabled: true,
-            disabledReason: t("home:surface.creating", { defaultValue: "Creating your project…" })
+            // Every card files a draft into the open project and makes none.
+            disabledReason: "Creating your draft…"
           }
         : {
             ...card,
             disabled: true,
-            disabledReason: t("home:surface.oneFlowStarting", { defaultValue: "One flow is already starting." })
+            disabledReason: "One flow is already starting."
           }
     );
-  }, [pendingFlow, t]);
+  }, [isUploading, pendingFlow, showMoreFlows, gameDimension]);
 
   /**
    * The flow's last step wrote stage `done`: hand the finished board its own
@@ -1296,39 +1456,118 @@ const NewProjectSurface = ({
    * here, because this tab is the last place that holds them.
    */
   const handleSetupFinished = useCallback(
-    async (result?: BuildFromPlanResult | BuildGameResult | null) => {
+    async (result?: BuildFromPlanResult | null, game?: BuildGameResult) => {
       const target = setupTargetRef.current;
       if (!target || target.kind === "entity") {
         return;
       }
-      if (!(await showDocumentProject(target.projectId, target.name))) {
+      // The Game flow's document is the workflow that carried the setup; the
+      // tab it opens is the game the build made.
+      if (target.kind === "game" && !game) {
         return;
       }
-      const failures = result ? buildFailures(result) : [];
+      // Every tab stays mounted, so a flow can finish (or load as finished)
+      // while the creator works in another tab or project. Opening its
+      // project then would pull them away, so the hand-off waits until this
+      // tab is in view again.
+      if (!guidedTabActiveRef.current) {
+        setHeldFinish({ result, game });
+        return;
+      }
+      if (!(await showDocumentProject(target.projectId, target.name))) {
+        // The document is done, so the flow has no step left to show. The
+        // hand-off is kept with a way to try it again.
+        setHeldFinish({ result, game });
+        setFinishError(
+          `Your ${SETUP_KIND_NOUN[target.kind]} is ready, but its project did not open.`
+        );
+        return;
+      }
+      setFinishError(null);
+      const failures = game
+        ? gameBuildFailures(game)
+        : result
+          ? buildFailures(result)
+          : [];
       if (failures.length > 0) {
         addNotification({
           type: "warning",
           alert: true,
-          content: i18n.t("editor:ui.openedYourWorkflowBut", {
-            defaultValue: "Opened your workflow, but {{failures}}",
-            failures: failures.join(" ")
-          })
+          content: `Opened your ${SETUP_KIND_NOUN[target.kind]}, but ${failures.join(" ")}`
         });
       }
       openTab({
         type: SETUP_TAB_TYPE[target.kind],
-        ref: target.id,
+        ref: game ? game.gameId : target.id,
         mode: "edit",
-        title: target.name,
+        title: game ? game.name : target.name,
         projectId: target.projectId
       });
+      if (game) {
+        await discardGameSetupWorkflow(target.id);
+      }
+      if (failures.length === 0) {
+        useOnboardingStore.getState().markStep("start-guided-flow");
+      }
       applySetupTarget(null);
       if (flowRef) closeTab(tabId("guided-flow", flowRef));
     },
     [addNotification, applySetupTarget, closeTab, flowRef, openTab, showDocumentProject]
   );
 
+  useEffect(() => {
+    if (heldFinish && guidedTabActive && finishError === null) {
+      setHeldFinish(null);
+      void handleSetupFinished(heldFinish.result, heldFinish.game);
+    }
+  }, [finishError, guidedTabActive, handleSetupFinished, heldFinish]);
+
+  const retryFinish = useCallback(() => {
+    const held = heldFinish;
+    setHeldFinish(null);
+    setFinishError(null);
+    void handleSetupFinished(held?.result, held?.game);
+  }, [handleSetupFinished, heldFinish]);
+
+  const handleGameFinished = useCallback(
+    (game: BuildGameResult) => {
+      void handleSetupFinished(null, game);
+    },
+    [handleSetupFinished]
+  );
+
+  /**
+   * A blank game from the Game flow's first step: the flow's workflow row is
+   * dropped, and the game opens in the project the flow was filed under.
+   */
+  const startBlankGame = useCallback(
+    async (kind: GameStartAlternative) => {
+      const target = setupTargetRef.current;
+      if (!target || target.kind !== "game") {
+        return;
+      }
+      const dimension = kind === "blank-3d" ? "3d" : "2d";
+      const created = await trpcClient.games.create.mutate({
+        projectId: target.projectId,
+        name: target.name,
+        dimension,
+        document:
+          dimension === "3d"
+            ? createNative3DGame(newDocumentId())
+            : createTopDownRoomGame(newDocumentId())
+      });
+      await handleSetupFinished(null, {
+        gameId: created.game.id,
+        name: created.game.name || target.name,
+        projectId: target.projectId,
+        failures: []
+      });
+    },
+    [handleSetupFinished]
+  );
+
   const handleEntityFinished = useCallback(() => {
+    useOnboardingStore.getState().markStep("start-guided-flow");
     applySetupTarget(null);
     openPageTab("entities");
     if (flowRef) closeTab(tabId("guided-flow", flowRef));
@@ -1341,9 +1580,10 @@ const NewProjectSurface = ({
    * draft is worth nothing and is deleted rather than left behind. The project
    * row the card made goes with it — but only when the card made one: a flow
    * filed into the open project leaves that project where it is. The brief
-   * the creator typed in step 1 comes back to the composer, which still holds
-   * every reference and entity it had — this surface never unmounted, it only
-   * rendered the flow instead.
+   * the creator typed in step 1 comes back to the composer. A flow opened
+   * from Home runs in its own tab, whose composer was empty, so the composer
+   * is refilled from what the target recorded when the card was clicked (O6). Step 1 offers no way to
+   * change references or entities, so that record is still what the flow holds.
    *
    * The host hands over the brief its own mounted document holds, before
    * anything is deleted. Reading it back from the server instead would race
@@ -1373,9 +1613,31 @@ const NewProjectSurface = ({
         }
       }
       setPrompt(brief);
+      const carried = target.carried;
+      if (carried) {
+        clearFiles();
+        addDroppedFiles(
+          carried.references.map((reference) => ({
+            id: "",
+            dataUri: reference.uri,
+            type: reference.type,
+            name: reference.name,
+            assetUri: reference.uri
+          }))
+        );
+        setEntityIds(carried.entityIds);
+      }
       applySetupTarget(null);
     },
-    [applySetupTarget, flowRef, openTab, personalProjectId, setActiveProjectId]
+    [
+      addDroppedFiles,
+      applySetupTarget,
+      clearFiles,
+      flowRef,
+      openTab,
+      personalProjectId,
+      setActiveProjectId
+    ]
   );
 
   /**
@@ -1423,31 +1685,58 @@ const NewProjectSurface = ({
         name: copy.name || example.name,
         ownsProject: placeholder.ownsProject
       });
-      await deleteSetupDocument(placeholder);
+      // The copy is already this tab's target, so a failed discard must not
+      // reject: the flow would stay up on a workflow with no setup and show
+      // nothing. The copy opens, and the leftover row is named instead.
+      try {
+        await deleteSetupDocument(placeholder);
+      } catch (error) {
+        addNotification({
+          type: "warning",
+          alert: true,
+          content: `The example opened, but the empty workflow "${placeholder.name}" could not be removed: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        });
+      }
       return copy.id;
     },
-    [applySetupTarget, createWorkflow]
+    [addNotification, applySetupTarget, createWorkflow]
   );
 
   /**
    * E2 § 8.1 "Start from a script": the brief goes to E3 and this tab becomes
-   * the script flow, in the project the video card already made. The sequence
-   * stays where it is — the script's `Send to timeline` is the way back.
+   * the script flow, in the project the video card already made. The draft
+   * sequence is discarded as Change flow discards it: it holds nothing yet,
+   * and the script's `Send to timeline` makes a sequence of its own.
    */
   const startScriptFromVideo = useCallback(
-    async (brief: string) => {
+    async (brief: string, creativeContext?: CreativeContext) => {
       const target = setupTargetRef.current;
-      if (!target) {
+      if (!target || starting) {
         return;
       }
       const text = brief.trim();
       const name =
         text.length > 0 ? projectNameFromPrompt(text, null) : target.name;
+      setStarting(true);
       try {
+        // The references and entities the video card took come along, as
+        // they would had the Script card been picked from the composer.
         const script = await createScript.mutateAsync({
           name,
           projectId: target.projectId,
-          document: newScriptSetupDocument(text)
+          document: newScriptSetupDocument(text, {
+            attachments: (target.carried?.references ?? []).map(
+              ({ uri, name: fileName, type }) => ({
+                uri,
+                name: fileName,
+                contentType: type
+              })
+            ),
+            entityIds: target.carried?.entityIds ?? [],
+            creativeContext
+          })
         });
         applySetupTarget({
           kind: "script",
@@ -1456,11 +1745,16 @@ const NewProjectSurface = ({
           name,
           ownsProject: target.ownsProject
         });
+        // The script is up either way; a draft that will not go only costs an
+        // empty row, so it is not worth an error.
+        await deleteSetupDocument(target).catch(() => undefined);
       } catch (error) {
         reportEntryFailure("script", error);
+      } finally {
+        setStarting(false);
       }
     },
-    [applySetupTarget, createScript, reportEntryFailure]
+    [applySetupTarget, createScript, reportEntryFailure, starting]
   );
 
   // A start that was parked on provider onboarding resumes on its own once a
@@ -1474,6 +1768,14 @@ const NewProjectSurface = ({
     setPendingStart(false);
     void resumeProject.current();
   }, [pendingStart, hasConfiguredProvider]);
+
+  useEffect(() => {
+    if (!pendingModelStart || !isModelSelected(selectedModel)) {
+      return;
+    }
+    setPendingModelStart(false);
+    void resumeProject.current();
+  }, [pendingModelStart, selectedModel]);
 
   // The handler rides the field wrapper, where MUI puts unknown props, and the
   // keydown reaches it by bubbling from the textarea. Both pickers only read
@@ -1531,6 +1833,53 @@ const NewProjectSurface = ({
     openPageTab("tutorials");
   }, []);
 
+  // The flow's last button unmounts with the flow, so focus would drop to the
+  // page. It goes to the control that retries the hand-off, unless the creator
+  // has already put it somewhere else.
+  const retryFinishRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (finishError === null) {
+      return;
+    }
+    const focused = document.activeElement;
+    if (focused === null || focused === document.body) {
+      retryFinishRef.current?.focus();
+    }
+  }, [finishError]);
+
+  if (setupTarget && finishError) {
+    return (
+      <FlexColumn gap={SPACING.md} sx={{ p: SPACING.xl, maxWidth: COLUMN_WIDTH }}>
+        <AlertBanner
+          severity="error"
+          title="Could not open it yet"
+          action={
+            <ReportBugButton
+              label="Report this failure"
+              variant="outlined"
+              size="small"
+              context={{
+                source: "manual",
+                summary: `Guided ${SETUP_KIND_NOUN[setupTarget.kind]} flow could not open its project`,
+                errorText: finishError
+              }}
+            />
+          }
+        >
+          {finishError}
+        </AlertBanner>
+        <EditorButton
+          ref={retryFinishRef}
+          variant="contained"
+          onClick={retryFinish}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          {`Open your ${SETUP_KIND_NOUN[setupTarget.kind]}`}
+        </EditorButton>
+      </FlexColumn>
+    );
+  }
+
   // An entry card was clicked: this tab is the flow now (PRD § 6.1).
   if (setupTarget) {
     if (setupTarget.kind === "entity") {
@@ -1560,8 +1909,11 @@ const NewProjectSurface = ({
       return (
         <VideoSetupHost
           sequenceId={setupTarget.id}
+          active={active}
           onFinish={handleSetupFinished}
-          onStartFromScript={(brief) => void startScriptFromVideo(brief)}
+          onStartFromScript={(brief, creativeContext) =>
+            void startScriptFromVideo(brief, creativeContext)
+          }
           onChangeFlow={handleChangeFlow}
         />
       );
@@ -1579,7 +1931,9 @@ const NewProjectSurface = ({
       return (
         <GameSetupHost
           workflowId={setupTarget.id}
-          onFinish={handleSetupFinished}
+          projectId={setupTarget.projectId}
+          onStartAlternative={startBlankGame}
+          onFinish={handleGameFinished}
           onChangeFlow={handleChangeFlow}
         />
       );
@@ -1605,12 +1959,15 @@ const NewProjectSurface = ({
 
   return (
     <ScrollArea fullHeight>
-      <FlexColumn align="center" sx={{ minHeight: "100%", px: SPACING.xl }}>
+      <FlexColumn
+        align="center"
+        sx={{ minHeight: "100%", px: { xs: SPACING.lg, sm: SPACING.xl } }}
+      >
         <FlexColumn
-          gap={SPACING.xl}
           sx={{
             width: "100%",
             maxWidth: `${COLUMN_WIDTH}px`,
+            gap: { xs: SPACING.xxl, sm: SPACING.xxxl },
             pt: SPACING.xl
           }}
         >
@@ -1626,31 +1983,291 @@ const NewProjectSurface = ({
             />
           )}
 
-          <CurrentProjectDocuments />
+          {/* The prompt is the page's first action, so it sits under the
+              question it answers. Its `/` and `@` menus open downward when
+              the field is too near the top of the viewport for them to fit
+              above it (`mentionMenuPosition`). */}
+          <FlexColumn
+            component="section"
+            aria-label="Describe what you want to make"
+            gap={SPACING.lg}
+            sx={{ pt: showOnboarding ? 0 : SPACING.xxl }}
+          >
+            <FlexColumn gap={SPACING.sm} align="center">
+              <Text size="giant" component="h1" sx={{ textAlign: "center" }}>{t("home:surface.title", { defaultValue: "What do you want to make?" })}</Text>
+              <Text
+                color="secondary"
+                sx={{ maxWidth: INTRO_TEXT_WIDTH, textAlign: "center" }}
+              >
+                An agent plans the documents and builds them while you watch.
+                Everything it makes stays editable.
+              </Text>
+            </FlexColumn>
 
-          <FlexColumn gap={SPACING.md} align="center">
-            <Text size="big">{t("home:surface.title", { defaultValue: "What do you want to make?" })}</Text>
-            <Caption
-              color="secondary"
-              sx={{ maxWidth: "560px", textAlign: "center" }}
+            <FlexColumn
+              sx={{
+                bgcolor: "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: BORDER_RADIUS.xl,
+                transition: MOTION.border,
+                "&:hover": { borderColor: "action.active" },
+                "&:focus-within": { borderColor: "primary.main" }
+              }}
             >
-              {t("home:surface.subtitle", { defaultValue: "An agent plans the documents and builds them while you watch. Everything it makes stays editable." })}
-            </Caption>
+              <TextInput
+                value={prompt}
+                autoFocus
+                multiline
+                minRows={3}
+                maxRows={12}
+                variant="standard"
+                label={t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
+                hideLabel
+                inputRef={promptRef}
+                placeholder="A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity."
+                onChange={(event) => setPrompt(event.target.value)}
+                onKeyDown={handlePromptKeyDown}
+                slotProps={{ input: { disableUnderline: true } }}
+                sx={{ px: SPACING.xl, pt: SPACING.lg }}
+              />
+              {mentionMenu}
+              {skillMenu}
+
+              {droppedFiles.length > 0 && (
+                <FlexRow gap={SPACING.md} wrap sx={{ px: SPACING.xl }}>
+                  {droppedFiles.map((file) => (
+                    <Box key={file.id} sx={{ position: "relative" }}>
+                      <ResponsiveImage
+                        locator={file.dataUri}
+                        alt={file.name}
+                        fit="cover"
+                        borderRadius={BORDER_RADIUS.sm}
+                        showErrorFallback
+                        sx={{ width: REFERENCE_THUMB_SIZE, height: REFERENCE_THUMB_SIZE }}
+                      />
+                      <CloseButton
+                        onClick={() => removeFile(file.id)}
+                        tooltip={`Remove ${file.name}`}
+                        buttonSize="small"
+                        iconVariant="clear"
+                        sx={{
+                          position: "absolute",
+                          top: -SPACING_PX.xs,
+                          right: -SPACING_PX.xs
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </FlexRow>
+              )}
+
+              {/* The context a turn carries sits quietly on the left; the one
+                  primary action is the send on the right. */}
+              <FlexRow
+                align="center"
+                gap={SPACING.xs}
+                wrap
+                sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.md }}
+              >
+                <EditorButton
+                  variant="text"
+                  color="inherit"
+                  density="normal"
+                  startIcon={<AddPhotoAlternateOutlinedIcon />}
+                  onClick={() => refInputRef.current?.click()}
+                  sx={composerToolSx}
+                >
+                  {droppedFiles.length === 0
+                    ? "Reference images"
+                    : `Ref images · ${droppedFiles.length}`}
+                </EditorButton>
+                <input
+                  ref={refInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  aria-label="Reference images"
+                  onChange={handleRefImages}
+                  style={{ display: "none" }}
+                />
+                <EditorButton
+                  variant="text"
+                  color="inherit"
+                  density="normal"
+                  startIcon={<PeopleAltOutlinedIcon />}
+                  onClick={() => setEntityPickerOpen(true)}
+                  sx={composerToolSx}
+                >
+                  {selectedEntities.length === 0
+                    ? "Entities · none"
+                    : `Entities · ${selectedEntities
+                        .map((entity) => entity.name)
+                        .join(", ")}`}
+                </EditorButton>
+                <EditorButton
+                  ref={modelButtonRef}
+                  variant="text"
+                  color="inherit"
+                  density="normal"
+                  startIcon={<AutoAwesomeOutlinedIcon />}
+                  onClick={(event) => setModelAnchor(event.currentTarget)}
+                  sx={composerToolSx}
+                >
+                  {isModelSelected(selectedModel)
+                    ? `Model · ${selectedModel?.name || selectedModel?.id}`
+                    : "Select a model"}
+                </EditorButton>
+                <Box sx={{ flex: 1 }} />
+                {estimate && (
+                  <Box
+                    component="span"
+                    sx={{ ...TYPOGRAPHY.mono.caption, color: "text.secondary" }}
+                  >
+                    {formatEstimate(estimate)}
+                  </Box>
+                )}
+                <Caption
+                  color="muted"
+                  aria-hidden
+                  sx={{ display: { xs: "none", sm: "block" }, px: SPACING.sm }}
+                >
+                  {sendShortcutLabel}
+                </Caption>
+                <EditorButton
+                  variant="contained"
+                  color="primary"
+                  density="normal"
+                  endIcon={<ArrowUpwardIcon />}
+                  disabled={
+                    prompt.trim().length === 0 || starting || isUploading
+                  }
+                  onClick={() => void handleStart()}
+                  sx={{ borderRadius: BORDER_RADIUS.pill }}
+                >
+                  Send to chat
+                </EditorButton>
+              </FlexRow>
+            </FlexColumn>
+
+            {starters.length > 0 && (
+              <FlexColumn gap={SPACING.md} align="center">
+                <FlexRow
+                  justify="center"
+                  gap={SPACING.sm}
+                  wrap
+                  role="group"
+                  aria-label={t("home:composer.skillGroup", { defaultValue: "Start from a skill" })}
+                >
+                  {visibleStarters.map((entry) => {
+                    const active = entry.name === starter?.name;
+                    return (
+                      <Tooltip
+                        key={entry.name}
+                        title={entry.description}
+                        placement="bottom"
+                        // Described by, not named by: the pill's name stays
+                        // the skill's label.
+                        describeChild
+                      >
+                        <Chip
+                          clickable
+                          compact
+                          variant="outlined"
+                          label={starterLabel(entry.name)}
+                          aria-pressed={active}
+                          onClick={() => handleToggleStarter(entry.name)}
+                          sx={{
+                            ...starterPillSx,
+                            ...(active && activeStarterPillSx)
+                          }}
+                        />
+                      </Tooltip>
+                    );
+                  })}
+                  {(hiddenStarterCount > 0 || showAllStarters) && (
+                    <Chip
+                      clickable
+                      compact
+                      variant="outlined"
+                      aria-expanded={showAllStarters}
+                      label={
+                        showAllStarters
+                          ? "Show fewer"
+                          : `${hiddenStarterCount} more`
+                      }
+                      onClick={() => setShowAllStarters((shown) => !shown)}
+                      sx={{ ...starterPillSx, borderStyle: "dashed" }}
+                    />
+                  )}
+                </FlexRow>
+                {starter ? (
+                  <Caption
+                    color="secondary"
+                    sx={{ maxWidth: INTRO_TEXT_WIDTH, textAlign: "center" }}
+                  >
+                    {starter.description}
+                  </Caption>
+                ) : (
+                  <Caption color="muted">
+                    Pick a skill to start from, or just describe what you want.
+                  </Caption>
+                )}
+              </FlexColumn>
+            )}
           </FlexColumn>
 
+          <CurrentProjectDocuments />
+
           <FlexColumn
+            component="section"
             id="guided-flows"
-            gap={SPACING.md}
+            aria-label={t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}
+            gap={SPACING.lg}
+            // Only the flow cards sit on black. The section's other buttons
+            // (More formats, the game dimension select, a card's expand
+            // control) keep their own surfaces.
             sx={{
-              "& button": { bgcolor: "common.black" },
-              '& button:not([aria-disabled="true"]):hover': {
+              [`& .${OPTION_CARD_CLASS}`]: { bgcolor: "common.black" },
+              [`& .${OPTION_CARD_CLASS}:not([aria-disabled="true"]):hover`]: {
                 bgcolor: "common.black",
                 borderColor: "primary.main"
               },
-              "& img": { opacity: 0.6 }
+              [`& .${OPTION_CARD_CLASS} img`]: {
+                opacity: 0.7,
+                transition: MOTION.opacity
+              },
+              [`& .${OPTION_CARD_CLASS}:not([aria-disabled="true"]):hover img`]:
+                {
+                  opacity: 0.9
+                }
             }}
           >
-            <Caption color="muted">{t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}</Caption>
+            <FlexRow align="flex-end" gap={SPACING.md} wrap>
+              <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minWidth: 0 }}>
+                <Text size="big" component="h2">{t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}</Text>
+                <Caption color="secondary">
+                  A few short steps, each ending in a document you keep
+                  editing.
+                </Caption>
+              </FlexColumn>
+              {showMoreFlows && <FlexRow align="center" gap={SPACING.sm}>
+                <Caption color="muted">Game card starts as</Caption>
+                <InspectorSelect
+                  label="Game dimension"
+                  value={gameDimension}
+                  options={[
+                    { value: "2d", label: "2D game" },
+                    { value: "3d", label: "3D exploration" }
+                  ]}
+                  onChange={(value) => {
+                    if (value === "2d" || value === "3d") {
+                      setGameDimension(value);
+                    }
+                  }}
+                />
+              </FlexRow>}
+            </FlexRow>
             <OptionCardGrid
               label={t("home:surface.guidedFlowsLabel", { defaultValue: "Guided creation flows" })}
               options={entryOptions}
@@ -1661,201 +2278,17 @@ const NewProjectSurface = ({
               // no pressed state, and each is its own tab stop.
               mode="navigation"
             />
-          </FlexColumn>
-
-          {/* The composer sits below the cards, not above them: its `/` and `@`
-              menus open upward from the box's top edge
-              (`useTextareaSkillMention`), so it needs the page above it as
-              headroom. */}
-          <Caption color="muted">{t("home:surface.orDescribe", { defaultValue: "Or describe what you want to make" })}</Caption>
-          <FlexColumn
-            gap={SPACING.lg}
-            sx={{
-              mt: -SPACING.lg,
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "primary.main",
-              borderRadius: BORDER_RADIUS.lg,
-              p: SPACING.xl
-            }}
-          >
-            <TextInput
-              value={prompt}
-              autoFocus
-              multiline
-              rows={3}
-              label={t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
-              hideLabel
-              inputRef={promptRef}
-              placeholder={t("home:composer.placeholder", { defaultValue: "A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity. Ctrl+Enter sends to chat." })}
-              onChange={(event) => setPrompt(event.target.value)}
-              onKeyDown={handlePromptKeyDown}
-            />
-            {mentionMenu}
-            {skillMenu}
-
-            {droppedFiles.length > 0 && (
-              <FlexRow gap={SPACING.md} wrap>
-                {droppedFiles.map((file) => (
-                  <Box key={file.id} sx={{ position: "relative" }}>
-                    <ResponsiveImage
-                      locator={file.dataUri}
-                      alt={file.name}
-                      fit="cover"
-                      borderRadius={BORDER_RADIUS.sm}
-                      showErrorFallback
-                      sx={{ width: "48px", height: "48px" }}
-                    />
-                    <CloseButton
-                      onClick={() => removeFile(file.id)}
-                      tooltip={t("home:composer.removeFile", { defaultValue: "Remove {{name}}", name: file.name })}
-                      buttonSize="small"
-                      iconVariant="clear"
-                      sx={{
-                        position: "absolute",
-                        top: -SPACING_PX.xs,
-                        right: -SPACING_PX.xs
-                      }}
-                    />
-                  </Box>
-                ))}
-              </FlexRow>
-            )}
-
-            <FlexRow align="center" gap={SPACING.md} wrap>
-              <EditorButton
-                variant="outlined"
-                density="compact"
-                onClick={() => refInputRef.current?.click()}
-              >
-                {t("home:composer.refImages", { defaultValue: "Ref images · {{count}}", count: String(droppedFiles.length) })}
-              </EditorButton>
-              <input
-                ref={refInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                aria-label={t("home:composer.refImagesAria", { defaultValue: "Reference images" })}
-                onChange={handleRefImages}
-                style={{ display: "none" }}
-              />
-              <EditorButton
-                variant="outlined"
-                density="compact"
-                onClick={(event) => setEntityAnchor(event.currentTarget)}
-              >
-                {selectedEntities.length === 0
-                  ? t("home:composer.entitiesNone", { defaultValue: "Entities · none" })
-                  : t("home:composer.entitiesList", { defaultValue: "Entities · {{list}}", list: selectedEntities.map((entity) => entity.name).join(", ") })}
-              </EditorButton>
-              <EditorButton
-                ref={modelButtonRef}
-                variant="outlined"
-                density="compact"
-                onClick={(event) => setModelAnchor(event.currentTarget)}
-              >
-                {isModelSelected(selectedModel)
-                  ? t("home:composer.modelName", {
-                      defaultValue: "Model · {{name}}",
-                      name: selectedModel?.name || selectedModel?.id || ""
-                    })
-                  : t("home:composer.selectModel", {
-                      defaultValue: "Select a model"
-                    })}
-              </EditorButton>
-              <Box sx={{ flex: 1 }} />
-              {estimate && (
-                <Box component="span" sx={{ ...TYPOGRAPHY.mono.caption }}>
-                  {formatEstimate(estimate)}
-                </Box>
-              )}
-              <Caption color="muted" aria-hidden>
-                {sendShortcutLabel}
-              </Caption>
-              <EditorButton
-                variant="contained"
-                color="primary"
-                density="normal"
-                disabled={prompt.trim().length === 0 || starting}
-                onClick={() => void handleStart()}
-              >
-                {t("home:composer.send", { defaultValue: "Send to chat" })}
-              </EditorButton>
-            </FlexRow>
-          </FlexColumn>
-
-          {starters.length > 0 && (
-            <FlexColumn
-              gap={SPACING.md}
-              align="center"
-              sx={{ mt: -SPACING.lg }}
+            <EditorButton
+              aria-expanded={showMoreFlows}
+              onClick={() => setShowMoreFlows((shown) => !shown)}
             >
-              <FlexRow
-                justify="center"
-                gap={SPACING.sm}
-                wrap
-                role="group"
-                aria-label={t("home:composer.skillGroup", { defaultValue: "Start from a skill" })}
-              >
-                {visibleStarters.map((entry) => {
-                  const active = entry.name === starter?.name;
-                  return (
-                    <Tooltip
-                      key={entry.name}
-                      title={t(`catalog:skills.${entry.name}.description`, { defaultValue: entry.description })}
-                      placement="bottom"
-                      // Described by, not named by: the pill's name stays the
-                      // skill's label.
-                      describeChild
-                    >
-                      <Chip
-                        clickable
-                        variant="outlined"
-                        label={t(`catalog:skills.${entry.name}.name`, { defaultValue: starterLabel(entry.name) })}
-                        aria-pressed={active}
-                        onClick={() => handleToggleStarter(entry.name)}
-                        sx={{
-                          ...starterPillSx,
-                          ...(active && activeStarterPillSx)
-                        }}
-                      />
-                    </Tooltip>
-                  );
-                })}
-                {(hiddenStarterCount > 0 || showAllStarters) && (
-                  <Chip
-                    clickable
-                    variant="outlined"
-                    aria-expanded={showAllStarters}
-                    label={
-                      showAllStarters
-                        ? t("home:composer.showFewer", { defaultValue: "Show fewer" })
-                        : t("home:composer.moreCount", { defaultValue: "{{count}} more", count: String(hiddenStarterCount) })
-                    }
-                    onClick={() => setShowAllStarters((shown) => !shown)}
-                    sx={{ ...starterPillSx, borderStyle: "dashed" }}
-                  />
-                )}
-              </FlexRow>
-              {starter ? (
-                <Caption
-                  color="secondary"
-                  sx={{ maxWidth: "620px", textAlign: "center" }}
-                >
-                  {t(`catalog:skills.${starter.name}.description`, { defaultValue: starter.description })}
-                </Caption>
-              ) : (
-                <Caption color="muted">
-                  {t("editor:ui.pickASkillToStartFromOrJustDescribeWhatYouWant")}
-                </Caption>
-              )}
-            </FlexColumn>
-          )}
+              {showMoreFlows ? "Fewer formats" : "More formats"}
+            </EditorButton>
+          </FlexColumn>
 
-          {/* Examples come after the composer: they are a place to browse,
-              not the first thing to do, and above it they pushed the prompt
-              below the fold. */}
-          <DashboardExampleApps compact onBrowseAll={handleOpenExamples} />
+          {/* Examples come after the flows: they are a place to browse, not
+              the first thing to do. */}
+          <StartExamples onBrowseAll={handleOpenExamples} />
         </FlexColumn>
 
         <Box sx={{ flex: 1, minHeight: SPACING.xxxl }} />
@@ -1878,10 +2311,10 @@ const NewProjectSurface = ({
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              {t("editor:ui.blankDocument")}
+              Blank document
             </Caption>
             <Caption color="muted">
-              {t("editor:ui.opensAsALooseTabOutsideAnyProject")}
+              — opens as a loose tab, outside any project
             </Caption>
             <Box sx={{ flex: 1 }} />
             <EditorButton
@@ -1889,14 +2322,14 @@ const NewProjectSurface = ({
               density="compact"
               onClick={handleOpenExamples}
             >
-              {t("editor:ui.browseExamples")}
+              Browse examples
             </EditorButton>
             <EditorButton
               variant="text"
               density="compact"
               onClick={handleOpenTutorials}
             >
-              {t("editor:ui.tutorials")}
+              Tutorials
             </EditorButton>
           </FlexRow>
           <Box
@@ -1930,7 +2363,7 @@ const NewProjectSurface = ({
                   display: "flex",
                   alignItems: "center",
                   gap: (theme) => theme.spacing(SPACING.md),
-                  height: "32px",
+                  height: CONTROL.height.md,
                   px: SPACING.md,
                   cursor: "pointer",
                   border: "none",
@@ -1947,12 +2380,8 @@ const NewProjectSurface = ({
                 >
                   {TYPE_GLYPH[entry.type]}
                 </Box>
-                {/* The strip's buttons are create actions, so their names —
-                  what a11y reads and what distinguishes them from the same
-                  noun elsewhere in the app — carry the "New" verb, same as
-                  the + menu (editor:ui.menuLabel.*). */}
                 <Label>
-                  {`${t(`editor:ui.menuLabel.${entry.key}`, { defaultValue: entry.menuLabel })}${entry.submenu ? " ▸" : ""}`}
+                  {entry.submenu ? `${entry.label} ▸` : entry.label}
                 </Label>
               </Box>
             ))}
@@ -1960,38 +2389,23 @@ const NewProjectSurface = ({
         </FlexColumn>
       </FlexColumn>
 
-      <Popover
-        open={entityAnchor !== null}
-        anchorEl={entityAnchor}
-        onClose={() => setEntityAnchor(null)}
-        placement="bottom-left"
-        maxWidth={320}
-        maxHeight="50vh"
-      >
-        <FlexColumn sx={{ width: 300, py: SPACING.micro }}>
-          {(entities ?? []).length === 0 ? (
-            <Caption color="secondary" sx={{ px: SPACING.md, py: SPACING.sm }}>
-              {t("editor:ui.theEntityLibraryIsEmpty")}
-            </Caption>
-          ) : (
-            (entities ?? []).map((entity) => (
-              <MenuItemPrimitive
-                key={entity.id}
-                label={entity.name}
-                secondary={entity.kind}
-                compact
-                selected={entityIds.includes(entity.id)}
-                onClick={() => toggleEntity(entity)}
-              />
-            ))
-          )}
-        </FlexColumn>
-      </Popover>
+      <EntityPickerDialog
+        open={entityPickerOpen}
+        onClose={() => setEntityPickerOpen(false)}
+        onSelect={toggleEntity}
+        title="Entities for this project"
+        multiple
+        selectedIds={entityIds}
+        entities={entities}
+      />
 
       <LanguageModelMenuDialog
         open={modelAnchor !== null}
         anchorEl={modelAnchor}
-        onClose={() => setModelAnchor(null)}
+        onClose={() => {
+          setModelAnchor(null);
+          setPendingModelStart(false);
+        }}
         onModelChange={(model) => {
           setSelectedModel(model);
           setModelAnchor(null);
@@ -2004,15 +2418,15 @@ const NewProjectSurface = ({
         anchorEl={submenu?.element ?? null}
         onClose={() => setSubmenu(null)}
         placement="top-left"
-        maxWidth={340}
+        maxWidth={SUBMENU_MAX_WIDTH}
         maxHeight="50vh"
       >
-        <FlexColumn sx={{ width: 320, py: SPACING.micro }}>
+        <FlexColumn sx={{ width: SUBMENU_WIDTH, py: SPACING.micro }}>
           {submenu?.kind === "texts" &&
             TEXT_FILE_TEMPLATES.map((template) => (
               <MenuItemPrimitive
                 key={template.filename}
-                label={t(`editor:ui.${template.labelKey ?? ""}`, { defaultValue: template.label })}
+                label={template.label}
                 compact
                 disabled={creating !== null}
                 onClick={() => {
@@ -2035,8 +2449,10 @@ const NewProjectSurface = ({
                 (exampleData ?? []).map((example) => (
                   <MenuItemPrimitive
                     key={example.slug}
-                    label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
-                    secondary={t("storyboard:attrs.shotsAlreadyRendered", { defaultValue: "{{count}} shots, already rendered", count: example.shotCount })}
+                    label={example.name}
+                    secondary={`${example.shotCount} shot${
+                      example.shotCount === 1 ? "" : "s"
+                    }, already rendered`}
                     compact
                     disabled={creating !== null}
                     onClick={() => {

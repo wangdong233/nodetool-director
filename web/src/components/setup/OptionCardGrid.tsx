@@ -5,7 +5,7 @@
  */
 
 import React, { memo } from "react";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 
 import {
   BORDER_RADIUS,
@@ -19,8 +19,12 @@ import {
 } from "../ui_primitives";
 import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { SetupCardButton, useRovingRadioGroup } from "./SetupCardButton";
+import { GalleryExpandButton, MEDIA_GALLERY_HOST_CLASS } from "./MediaGallery";
 import type { SetupCardGridMode } from "./SetupCardButton";
 import { useTranslation } from "react-i18next";
+
+/** The class every card in the grid carries, for a host that restyles them. */
+export const OPTION_CARD_CLASS = "option-card";
 
 export interface OptionCardItem {
   id: string;
@@ -116,7 +120,6 @@ const MediaCard: React.FC<{ option: OptionCardItem; image: MediaLocator }> = ({
   image
 }) => {
   const theme = useTheme();
-  const black = theme.palette.common.black;
   return (
     <Box sx={{ position: "relative" }}>
       <ResponsiveImage
@@ -135,10 +138,7 @@ const MediaCard: React.FC<{ option: OptionCardItem; image: MediaLocator }> = ({
           alignItems: "flex-end",
           padding: PADDING.compact,
           color: theme.vars.palette.common.white,
-          background: `linear-gradient(to top, ${alpha(black, 0.82)} 0%, ${alpha(
-            black,
-            0.45
-          )} 38%, ${alpha(black, 0)} 72%)`
+          background: `linear-gradient(to top, ${theme.vars.palette.c_scrim_strong} 0%, ${theme.vars.palette.c_scrim} 38%, transparent 72%)`
         }}
       >
         <CardText option={option} onImage />
@@ -172,9 +172,10 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
     >
       {options.map((option) => {
         const filled = variant === "media" && option.image !== undefined;
-        return (
+        const card = (
           <SetupCardButton
             key={option.id}
+            className={OPTION_CARD_CLASS}
             {...(single
               ? radioProps(option)
               : { role: "navigation" as const })}
@@ -203,6 +204,25 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
               </FlexColumn>
             )}
           </SetupCardButton>
+        );
+        if (option.image === undefined) {
+          return card;
+        }
+        // The card is a button, so the expand control sits beside it in a
+        // shared frame rather than inside it.
+        return (
+          <Box
+            key={option.id}
+            className={MEDIA_GALLERY_HOST_CLASS}
+            sx={{ position: "relative", display: "grid" }}
+          >
+            {card}
+            <GalleryExpandButton
+              locator={option.image}
+              kind="image"
+              caption={option.title}
+            />
+          </Box>
         );
       })}
     </Box>

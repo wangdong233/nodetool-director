@@ -10,11 +10,7 @@ import {
 import { AlternativesColumn } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { useTranslation } from "react-i18next";
-import {
-  SETUP_OPTION_MIN_WIDTH,
-  SETUP_WIDE_CONTENT_WIDTH
-} from "../layout";
-
+import { SETUP_WIDE_CONTENT_WIDTH, SETUP_OPTION_MIN_WIDTH } from "../layout";
 const ENTITY_KINDS: readonly {
   id: EntityKind;
   title: string;
@@ -96,9 +92,11 @@ export const DetailsStep = ({
         maxWidth: SETUP_WIDE_CONTENT_WIDTH
       }}
     >
-      <FlexColumn gap={GAP.spacious}>
+      <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
-          <Text size="big" component="h1">{t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}</Text>
+          <Text size="big" component="h1">
+            {t("storyboard:attrs.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}
+          </Text>
           <Text color="secondary">
             {t("storyboard:attrs.giveTheEntityAStableNameAndTheDescriptionGenerationPromptsShouldReuse", { defaultValue: "Give the entity a stable name and the description generation prompts should reuse." })}
           </Text>

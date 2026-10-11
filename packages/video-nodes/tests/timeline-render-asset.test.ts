@@ -69,7 +69,7 @@ vi.mock("../src/nodes/timeline/compositeRender.js", async (importOriginal) => {
     ...original,
     renderTimelineComposited: (opts: { outPath: string }) => {
       fsSync.writeFileSync(opts.outPath, Buffer.from("composited-bytes"));
-      return Promise.resolve({ totalFrames: 10, skippedClips: [] });
+      return Promise.resolve({ totalFrames: 10, skippedClips: [], fontsUnavailable: [] });
     }
   };
 });
@@ -107,6 +107,7 @@ let created: Array<Record<string, unknown>> = [];
 function contextFor(seq: unknown, withAssetStore: boolean) {
   const base: Record<string, unknown> = {
     getTimelineSequence: vi.fn().mockResolvedValue(seq),
+    localPath: vi.fn(async () => null),
     resolveAssetBytes: vi
       .fn()
       .mockResolvedValue({ bytes: new Uint8Array([1, 2, 3]) }),

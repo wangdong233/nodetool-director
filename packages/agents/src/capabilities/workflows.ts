@@ -36,20 +36,25 @@ import {
   outcomeResult,
   resolveRunEnvironment,
   summarizeWorkflowGraph,
-  unsetModelSelectionError,
+  unsetModelSelectionWarning,
   userIdOf,
   workflowRecord
 } from "../tools/mcp-tool-support.js";
 import {
+  PLAN_CORE_NODE_TYPES,
+  checkWorkflowPlan,
+  planInputSample,
   planNodeShape,
   planToPlacement,
   parseWorkflowPlan,
+  refineWorkflowPlan,
   resolveWorkflowPlan,
   readEntityMarker,
   GAME_DESIGNER_SYSTEM_PROMPT,
   GAME_DESIGN_TOOL_DESCRIPTION,
   GAME_DESIGN_TOOL_NAME,
-  GAME_INSPIRATION_CHIPS,
+  NATIVE_GAME_INSPIRATION_CHIPS,
+  pinnedGameInspirationChip,
   WORKFLOW_PLANNER_SYSTEM_PROMPT,
   WORKFLOW_PLAN_TOOL_DESCRIPTION,
   WORKFLOW_PLAN_TOOL_NAME,
@@ -58,7 +63,6 @@ import {
   designSourceOf,
   gameAudioChoice,
   gameGraphPlacement,
-  gameProjectDirectory,
   parseGameDesign,
   type GameGraphChoices,
   type PlanNodeLookup,
@@ -116,7 +120,12 @@ import {
   DEFAULT_VERSION_LIMIT,
   MAX_VERSION_LIMIT
 } from "./workflows.specs.js";
-import { isNumber, isObjectLike, isString } from "../utils/type-guards.js";
+import {
+  isBoolean,
+  isNumber,
+  isObjectLike,
+  isString
+} from "../utils/type-guards.js";
 import { resolveProjectId } from "./project-scope.js";
 
 /** The run environment this run can execute a workflow in, or null. */
@@ -229,10 +238,9 @@ const createWorkflow: CapabilityExport = {
     if (badModels) return badModels;
     const leftoverHandles = leftoverWiringHandleError(graph);
     if (leftoverHandles) return leftoverHandles;
-    if (run.nodeRegistry) {
-      const unselected = unsetModelSelectionError(graph, run.nodeRegistry);
-      if (unselected) return unselected;
-    }
+    const unselected = run.nodeRegistry
+      ? unsetModelSelectionWarning(graph, run.nodeRegistry)
+      : null;
 
     const created = (await Workflow.create({
       user_id: userIdOf(run.context),
@@ -245,7 +253,7 @@ const createWorkflow: CapabilityExport = {
       run_mode: "workflow",
       project_id: projectId
     })) as WorkflowRow;
-    return workflowRecord(created);
+    return { ...workflowRecord(created), ...unselected };
   }
 };
 
@@ -283,6 +291,7 @@ const updateWorkflow: CapabilityExport = {
     if (!existing) return notYours(id);
 
     const fields: Record<string, unknown> = {};
+    let unselected: Record<string, unknown> | null = null;
     if (params["graph"] !== undefined) {
       // The same three passes create_workflow runs, in the same order: an
       // update that skipped them could store a graph the create path would
@@ -299,8 +308,7 @@ const updateWorkflow: CapabilityExport = {
       const leftoverHandles = leftoverWiringHandleError(graph);
       if (leftoverHandles) return leftoverHandles;
       if (run.nodeRegistry) {
-        const unselected = unsetModelSelectionError(graph, run.nodeRegistry);
-        if (unselected) return unselected;
+        unselected = unsetModelSelectionWarning(graph, run.nodeRegistry);
       }
       fields.graph = graph;
     }
@@ -332,7 +340,7 @@ const updateWorkflow: CapabilityExport = {
           `Workflow ${id} changed since you read it — read it again and retry.`
       };
     }
-    return workflowRecord(updated as WorkflowRow);
+    return { ...workflowRecord(updated as WorkflowRow), ...unselected };
   }
 };
 
@@ -553,9 +561,43 @@ const setWorkflowAccess: CapabilityExport = {
   }
 };
 
+/**
+ * `node_ids` and `reuse_results` as the execution service takes them, or the
+ * error for a malformed value. A bad selection must not fall back to running
+ * (and billing) the whole workflow.
+ */
+function partialRunOptions(
+  params: Record<string, unknown>
+):
+  | { options: { nodeIds?: string[]; reuseResults?: boolean } }
+  | { error: string } {
+  const options: { nodeIds?: string[]; reuseResults?: boolean } = {};
+  const nodeIds = params["node_ids"];
+  if (nodeIds !== undefined && nodeIds !== null) {
+    if (
+      !Array.isArray(nodeIds) ||
+      nodeIds.length === 0 ||
+      !nodeIds.every(isString)
+    ) {
+      return { error: "node_ids must be a non-empty array of node id strings" };
+    }
+    options.nodeIds = nodeIds;
+  }
+  const reuse = params["reuse_results"];
+  if (reuse !== undefined && reuse !== null) {
+    if (!isBoolean(reuse)) {
+      return { error: "reuse_results must be a boolean" };
+    }
+    options.reuseResults = reuse;
+  }
+  return { options };
+}
+
 const runWorkflowCapability: CapabilityExport = {
   spec: runWorkflowCapabilitySpec,
   impl: async (run, params) => {
+    const partial = partialRunOptions(params);
+    if ("error" in partial) return partial;
     const env = await runEnvironmentOf(run);
     if (!env) return noRegistryError("run a workflow");
     const { runWorkflow } = await import("@nodetool-ai/execution/service");
@@ -564,6 +606,7 @@ const runWorkflowCapability: CapabilityExport = {
       userId: userIdOf(run.context),
       environment: env,
       params: (params["params"] as Record<string, unknown>) ?? {},
+      ...partial.options,
       interactive: params["interactive"] === true,
       // A run started from a project's agent thread is that project's spend.
       projectId: run.projectId ?? null
@@ -575,6 +618,8 @@ const runWorkflowCapability: CapabilityExport = {
 const debugWorkflow: CapabilityExport = {
   spec: debugWorkflowSpec,
   impl: async (run, params) => {
+    const partial = partialRunOptions(params);
+    if ("error" in partial) return partial;
     const env = await runEnvironmentOf(run);
     if (!env) return noRegistryError("debug a workflow");
     const { Job, Workflow } = await import("@nodetool-ai/models");
@@ -589,6 +634,7 @@ const debugWorkflow: CapabilityExport = {
       debug: true,
       environment: env,
       params: (params["params"] as Record<string, unknown>) ?? {},
+      ...partial.options,
       interactive: params["interactive"] === true,
       projectId: run.projectId ?? null
     });
@@ -832,6 +878,8 @@ async function withSecretRemediation(
 const startBackgroundJob: CapabilityExport = {
   spec: startBackgroundJobSpec,
   impl: async (run, params) => {
+    const partial = partialRunOptions(params);
+    if ("error" in partial) return partial;
     const env = await runEnvironmentOf(run);
     if (!env) return noRegistryError("start a background job");
     const { runWorkflow } = await import("@nodetool-ai/execution/service");
@@ -840,6 +888,7 @@ const startBackgroundJob: CapabilityExport = {
       userId: userIdOf(run.context),
       environment: env,
       params: (params["params"] as Record<string, unknown>) ?? {},
+      ...partial.options,
       background: true,
       projectId: run.projectId ?? null
     });
@@ -1004,10 +1053,9 @@ async function reviewPlan(
 ): Promise<ReturnType<typeof resolveWorkflowPlan>> {
   const registry = run.nodeRegistry;
   const providers = run.providers ?? {};
-  const { providerCapabilities } = await import("@nodetool-ai/runtime");
   const capabilities = new Set<string>();
   for (const provider of Object.values(providers)) {
-    for (const capability of providerCapabilities(provider)) {
+    for (const capability of provider.getCapabilities()) {
       capabilities.add(capability);
     }
   }
@@ -1067,7 +1115,7 @@ function placementToGraph(placement: WorkflowPlacement): {
       data: node.properties,
       ui_properties: { position: node.position, setup_step_id: node.setupStepId },
       dynamic_properties: node.dynamicProperties ?? {},
-      dynamic_outputs: {}
+      dynamic_outputs: node.dynamicOutputs ?? {}
     })),
     edges: placement.edges.map((edge, index) => ({
       id: `e${index + 1}`,
@@ -1111,13 +1159,49 @@ const setWorkflowSetup: CapabilityExport = {
 
 // ── plan_workflow ───────────────────────────────────────────────────────────
 
-/** Candidate node types for the planner prompt, ranked against the brief. */
+/**
+ * The step ids a plan repeats. The id names the step for every later edit and
+ * is carried onto the node the build places, so two steps sharing one cannot
+ * be told apart.
+ */
+function repeatedStepIds(steps: readonly { id: string }[]): string[] {
+  const seen = new Set<string>();
+  const repeated = new Set<string>();
+  for (const step of steps) {
+    if (seen.has(step.id)) repeated.add(step.id);
+    seen.add(step.id);
+  }
+  return [...repeated];
+}
+
+/** The first `step-N` id the plan does not use yet. */
+function freeStepId(steps: readonly { id: string }[]): string {
+  const taken = new Set(steps.map((step) => step.id));
+  let n = steps.length + 1;
+  while (taken.has(`step-${n}`)) n += 1;
+  return `step-${n}`;
+}
+
+/**
+ * Candidate node types for the planner prompt: the general-purpose nodes
+ * first, then the registry's ranking against the brief.
+ */
 function candidateLines(registry: NodeRegistry, terms: string[]): string[] {
-  const ranked = registry.searchMetadata(terms).slice(0, CANDIDATE_LIMIT);
-  return ranked.map(
-    (entry) =>
-      `- ${entry.meta.node_type}: ${entry.meta.title} — ${entry.meta.description.split("\n")[0]}`
-  );
+  const core = PLAN_CORE_NODE_TYPES.flatMap((nodeType) => {
+    const meta = registry.getMetadata(nodeType);
+    return meta ? [meta] : [];
+  });
+  const seen = new Set(core.map((meta) => meta.node_type));
+  const ranked = registry
+    .searchMetadata(terms)
+    .map((entry) => entry.meta)
+    .filter((meta) => !seen.has(meta.node_type));
+  return [...core, ...ranked]
+    .slice(0, CANDIDATE_LIMIT)
+    .map(
+      (meta) =>
+        `- ${meta.node_type}: ${meta.title} — ${meta.description.split("\n")[0]}`
+    );
 }
 
 const planWorkflow: CapabilityExport = {
@@ -1131,6 +1215,7 @@ const planWorkflow: CapabilityExport = {
     const supplied = params["plan"];
 
     let plan: WorkflowSetupPlan | null = null;
+    let planProblems: string[] = [];
     if (supplied !== undefined) {
       // A plan handed in replaces the model call outright: it is how a harness
       // case and a replay reach the builder with no provider at all.
@@ -1139,6 +1224,12 @@ const planWorkflow: CapabilityExport = {
       );
       if (!parsed.success) {
         return { error: "`plan` is not a plan ({inputs, steps, outputs})." };
+      }
+      const repeated = repeatedStepIds(parsed.data.steps);
+      if (repeated.length > 0) {
+        return {
+          error: `Every plan step needs its own id. Repeated: ${repeated.join(", ")}.`
+        };
       }
       plan = parsed.data;
     } else {
@@ -1164,37 +1255,51 @@ const planWorkflow: CapabilityExport = {
         };
       }
       const { generateStructured } = await import("@nodetool-ai/runtime");
+      const { plannedCodeStepProblems } = await import(
+        "@nodetool-ai/node-sdk/code-analysis"
+      );
       const category = owned.setup?.category ?? "";
       const terms = brief
         .split(/\s+/)
         .filter((term: string) => term.length > 2);
       const candidates = candidateLines(registry, terms);
-      const raw = await generateStructured(
-        await run.context.getProvider(provider),
-        {
-          model,
-          maxTokens: 4096,
-          messages: [
-            { role: "system", content: WORKFLOW_PLANNER_SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: [
-                `Task: ${brief}`,
-                category ? `Kind of workflow: ${category}` : "",
-                "",
-                "Candidate node types:",
-                ...candidates
-              ]
-                .filter((line) => line !== "")
-                .join("\n")
-            }
-          ],
-          toolName: WORKFLOW_PLAN_TOOL_NAME,
-          toolDescription: WORKFLOW_PLAN_TOOL_DESCRIPTION,
-          schema: buildWorkflowPlanSchema()
-        }
-      );
-      plan = parseWorkflowPlan(raw);
+      const planner = await run.context.getProvider(provider);
+      // The same check-and-repair loop the browser flow runs: a plan reaches
+      // review only after it builds, or after the round limit with its
+      // remaining problems reported.
+      const refined = await refineWorkflowPlan({
+        messages: [
+          { role: "system", content: WORKFLOW_PLANNER_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              `Task: ${brief}`,
+              category ? `Kind of workflow: ${category}` : "",
+              "",
+              "Candidate node types:",
+              ...candidates
+            ]
+              .filter((line) => line !== "")
+              .join("\n")
+          }
+        ],
+        generate: (messages) =>
+          generateStructured(planner, {
+            model,
+            maxTokens: 4096,
+            messages: [...messages],
+            toolName: WORKFLOW_PLAN_TOOL_NAME,
+            toolDescription: WORKFLOW_PLAN_TOOL_DESCRIPTION,
+            schema: buildWorkflowPlanSchema()
+          }),
+        check: (draft) =>
+          checkWorkflowPlan(draft, {
+            lookup: registryLookup(registry),
+            checkCode: plannedCodeStepProblems
+          })
+      });
+      plan = refined.plan;
+      planProblems = refined.problems;
       if (!plan) {
         return { error: "The planner did not return a plan." };
       }
@@ -1209,6 +1314,7 @@ const planWorkflow: CapabilityExport = {
       stage: "review",
       plan,
       review: reviewReport(resolved),
+      plan_problems: planProblems,
       nodes_placed: 0
     };
   }
@@ -1258,8 +1364,13 @@ const updateWorkflowPlanStep: CapabilityExport = {
       const [moved] = steps.splice(at, 1);
       steps.splice(Math.max(0, Math.min(steps.length, params["index"])), 0, moved);
     } else if (op === "add") {
+      if (at !== -1) {
+        return {
+          error: `The plan already has a step "${stepId ?? ""}". Pick another id, or omit step_id to get a free one.`
+        };
+      }
       const added: WorkflowPlanStep = {
-        id: stepId ?? `step-${steps.length + 1}`,
+        id: stepId ?? freeStepId(steps),
         title: fields.title ?? "New step",
         summary: fields.summary ?? "",
         node_type: fields.node_type ?? null
@@ -1338,7 +1449,14 @@ const buildWorkflowFromPlan: CapabilityExport = {
       };
     }
 
-    const placement = planToPlacement(plan, registryLookup(registry));
+    const models = isObjectLike(params["models"])
+      ? (params["models"] as Record<string, unknown>)
+      : undefined;
+    const placement = planToPlacement(
+      plan,
+      registryLookup(registry),
+      models === undefined ? {} : { models }
+    );
     const graph = placementToGraph(placement);
 
     const validation = await validateBuiltGraph(run, graph);
@@ -1352,6 +1470,18 @@ const buildWorkflowFromPlan: CapabilityExport = {
       );
       if (isError(written)) return written;
       savedRow = written;
+      // One version row per build, as the browser's build save adds. The
+      // setup answers change no graph, so they add none.
+      const { WorkflowVersion } = await import("@nodetool-ai/models");
+      await WorkflowVersion.create({
+        workflow_id: id,
+        user_id: userIdOf(run.context),
+        name: written.name,
+        description: "Built from the plan",
+        graph: written.graph,
+        version: await WorkflowVersion.nextVersion(id),
+        save_type: "manual"
+      });
     }
 
     return {
@@ -1362,12 +1492,16 @@ const buildWorkflowFromPlan: CapabilityExport = {
       saved: savedRow !== null,
       stage: save ? "done" : owned.setup?.stage ?? "setup",
       graph,
-      /** Plan input name → the sample a test run should send. */
+      /**
+       * Plan input name → the sample a test run should send, converted to the
+       * input's type. A media input, or a sample that does not convert, sends
+       * nothing.
+       */
       sample_inputs: Object.fromEntries(
-        plan.inputs.map((input: WorkflowSetupPlan["inputs"][number]) => [
-          input.name,
-          input.sample ?? ""
-        ])
+        plan.inputs.flatMap((input: WorkflowSetupPlan["inputs"][number]) => {
+          const sample = planInputSample(input);
+          return sample === undefined ? [] : [[input.name, sample]];
+        })
       ),
       /**
        * What the builder could not wire. Empty is the only value that means the
@@ -1429,7 +1563,7 @@ async function loadOwnedGame(
 async function persistGame(
   row: WorkflowRow,
   patch: Partial<GameSetup>,
-  extra: { graph?: WorkflowRow["graph"] } = {}
+  extra: { graph?: WorkflowRow["graph"]; workspaceId?: string } = {}
 ): Promise<WorkflowRow | { error: string }> {
   const { Workflow } = await import("@nodetool-ai/models");
   const fields: Parameters<typeof Workflow.updateFieldsIfUnchanged>[2] = {
@@ -1437,6 +1571,9 @@ async function persistGame(
   };
   if (extra.graph !== undefined) {
     fields.graph = extra.graph;
+  }
+  if (extra.workspaceId !== undefined) {
+    fields.workspace_id = extra.workspaceId;
   }
   const updated = await Workflow.updateFieldsIfUnchanged(
     row.id,
@@ -1457,17 +1594,17 @@ async function requireGameTemplate(game: GameSetup | null) {
   if (id === "") {
     return {
       error:
-        "This workflow has no game template yet. Pick one with set_game_setup — list_game_templates has the ids."
+        "This workflow has no native game template yet. Pick topdown with set_game_setup."
     };
   }
-  const { getTemplate, listTemplates } = await import(
-    "@nodetool-ai/godot-templates"
+  const { getNativeTemplate, listNativeTemplates } = await import(
+    "@nodetool-ai/game-nodes"
   );
   try {
-    return getTemplate(id);
+    return getNativeTemplate(id);
   } catch {
     return {
-      error: `Unknown template ${id}. Templates: ${listTemplates()
+      error: `Unknown template ${id}. Templates: ${listNativeTemplates()
         .map((t) => t.id)
         .join(", ")}.`
     };
@@ -1490,13 +1627,18 @@ function modelValue(
 async function loadStyle(
   run: CapabilityRun,
   entityId: string | undefined
-): Promise<{ name: string; descriptor: string } | null> {
+): Promise<{ name: string; descriptor: string; referenceAssetId?: string } | null> {
   if (!entityId) return null;
   const { Asset } = await import("@nodetool-ai/models");
   const asset = await Asset.find(userIdOf(run.context), entityId);
   const marker = readEntityMarker(asset?.metadata ?? null);
   if (!marker || marker.kind !== "style") return null;
-  return { name: marker.name, descriptor: marker.descriptor };
+  const style: { name: string; descriptor: string; referenceAssetId?: string } =
+    { name: marker.name, descriptor: marker.descriptor };
+  const referenceAssetId = marker.reference_asset_id ??
+    (asset?.content_type.startsWith("image/") ? asset.id : undefined);
+  if (referenceAssetId) style.referenceAssetId = referenceAssetId;
+  return style;
 }
 
 /**
@@ -1531,6 +1673,7 @@ const SET_GAME_STRING_FIELDS = [
   "sfx_node_type",
   "music_model",
   "project_name",
+  "game_id",
   "stage"
 ] as const;
 
@@ -1608,18 +1751,16 @@ const designGame: CapabilityExport = {
     } else {
       // No model: the shipped chip whose brief this is carries a pinned design,
       // so a keyless install still reaches the review step.
-      const chip = GAME_INSPIRATION_CHIPS.find(
-        (entry) =>
-          entry.template === template.id &&
-          entry.brief.trim().toLowerCase() === brief.toLowerCase()
-      );
+      const chip = pinnedGameInspirationChip(template.id, brief);
       if (!chip) {
         return {
           error:
             "Pass provider and model to design, or pass a `design` to store without calling one. " +
-            `Without either, only a shipped inspiration chip's brief designs: ${GAME_INSPIRATION_CHIPS.map(
-              (entry) => `"${entry.brief}"`
-            ).join(", ")}.`
+            `Without either, only a shipped inspiration chip's brief designs: ${NATIVE_GAME_INSPIRATION_CHIPS.filter(
+              (entry) => entry.template === template.id
+            )
+              .map((entry) => `"${entry.brief}"`)
+              .join(", ")}.`
         };
       }
       raw = chip.design;
@@ -1782,13 +1923,37 @@ const buildGame: CapabilityExport = {
       owned.game?.project_name?.trim() ||
       design.title.trim() ||
       template.id;
+    const { Game } = await import("@nodetool-ai/models");
+    let nativeGame = owned.game?.game_id
+      ? await Game.findOwned(userIdOf(run.context), owned.game.game_id)
+      : null;
+    if (nativeGame && nativeGame.project_id !== owned.row.project_id) {
+      return { error: "The selected game belongs to another project" };
+    }
+    if (owned.game?.game_id && !nativeGame) {
+      return { error: "The selected native game was not found" };
+    }
+    if (!nativeGame && params["save"] === false) {
+      return { error: "Create or select a native game before previewing the asset graph" };
+    }
+    if (!nativeGame) {
+      const { createNativeGame } = await import("./game.js");
+      const created = await createNativeGame(
+        userIdOf(run.context),
+        owned.row.project_id,
+        projectName
+      );
+      if ("error" in created) return created;
+      nativeGame = created.game;
+    }
     const choices: GameGraphChoices = {
       imageModel,
       sfxNodeType: gameAudioChoice(owned.game?.sfx_node_type),
       musicModel,
       style: await loadStyle(run, owned.game?.style_entity_id),
       projectName,
-      directory: gameProjectDirectory(projectName),
+      gameId: nativeGame.id,
+      directory: nativeGame.source_root,
       verify: true
     };
 
@@ -1806,8 +1971,8 @@ const buildGame: CapabilityExport = {
     if (save) {
       const written = await persistGame(
         owned.row,
-        { stage: "done", project_name: projectName },
-        { graph: graph as unknown as WorkflowRow["graph"] }
+        { stage: "done", project_name: projectName, game_id: nativeGame.id },
+        { graph: graph as unknown as WorkflowRow["graph"], workspaceId: nativeGame.workspace_id }
       );
       if (isError(written)) return written;
       savedRow = written;
@@ -1815,6 +1980,7 @@ const buildGame: CapabilityExport = {
 
     return {
       workflow_id: id,
+      game_id: nativeGame.id,
       saved: savedRow !== null,
       stage: save ? "done" : owned.game?.stage ?? "look",
       graph,

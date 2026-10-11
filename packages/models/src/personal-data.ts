@@ -34,7 +34,7 @@
 import { and, count, eq, inArray, notInArray, type SQL } from "drizzle-orm";
 import type { SQLiteColumn, SQLiteTable } from "drizzle-orm/sqlite-core";
 
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import {
   PERSONAL_DATA_REGISTRY,
   WITHHELD_VALUE,
@@ -59,6 +59,7 @@ import {
   applicationInvocations
 } from "./schema/application-budgets.js";
 import { applicationDeployments } from "./schema/application-deployments.js";
+import { appInstances } from "./schema/app-instances.js";
 import { applications, applicationVersions } from "./schema/applications.js";
 import { assets } from "./schema/assets.js";
 import { creditLedger, userSubscriptions } from "./schema/credits.js";
@@ -67,6 +68,9 @@ import { generationAttachments } from "./schema/generation-attachments.js";
 import { generationAttempts } from "./schema/generation-attempts.js";
 import { generationOutputs } from "./schema/generation-outputs.js";
 import { generationWebhookDeliveries } from "./schema/generation-webhook-deliveries.js";
+import { gameDraftChanges } from "./schema/game-draft-changes.js";
+import { gameRevisionMessages } from "./schema/game-revision-messages.js";
+import { games } from "./schema/games.js";
 import { imageDocumentVersions } from "./schema/image-document-versions.js";
 import { imageDocuments } from "./schema/image-documents.js";
 import { jobs } from "./schema/jobs.js";
@@ -91,6 +95,9 @@ import { timelineSequences } from "./schema/timeline-sequences.js";
 import { triggerInputs } from "./schema/trigger-inputs.js";
 import { triggerRegistrations } from "./schema/trigger-registrations.js";
 import { userEvents } from "./schema/user-events.js";
+import { errorTraces } from "./schema/error-traces.js";
+import { exportRunTraceTable, eraseRunTraceTable } from "./run-trace.js";
+import { bugReports } from "./schema/bug-reports.js";
 import {
   workflowCollaborators,
   workflowShares
@@ -194,7 +201,7 @@ async function countRows(
   table: SQLiteTable,
   where: SQL | undefined
 ): Promise<number> {
-  const [row] = await getDb()
+  const [row] = await getPortableDb()
     .select({ value: count() })
     .from(table)
     .where(where);
@@ -212,7 +219,7 @@ async function deleteRows(
 ): Promise<number> {
   const total = await countRows(table, where);
   if (total === 0) return 0;
-  await getDb().delete(table).where(where);
+  await getPortableDb().delete(table).where(where);
   return total;
 }
 
@@ -234,7 +241,7 @@ async function selectIds(
   column: TableColumn,
   where: SQL
 ): Promise<string[]> {
-  const rows = await getDb().select({ id: column }).from(table).where(where);
+  const rows = await getPortableDb().select({ id: column }).from(table).where(where);
   return (rows as { id: string }[]).map((row) => row.id);
 }
 
@@ -252,6 +259,7 @@ interface ErasureContext {
   readonly userId: string;
   /** Job ids, which are the run ids `run_events` and friends hang off. */
   readonly runIds: readonly string[];
+  readonly gameIds: readonly string[];
   readonly applicationIds: readonly string[];
   readonly grantIds: readonly string[];
   readonly workflowIds: readonly string[];
@@ -272,6 +280,7 @@ async function collectContext(
   return {
     userId,
     runIds: await selectIds(jobs, jobs.id, eq(jobs.user_id, userId)),
+    gameIds: await selectIds(games, games.id, eq(games.user_id, userId)),
     applicationIds: await selectIds(
       applications,
       applications.id,
@@ -374,6 +383,7 @@ export const ERASURE_STEPS: readonly ErasureStep[] = [
   ),
 
   // Applications: children first, the app itself last.
+  directStep("app_instances",appInstances,appInstances.user_id),
   indirectStep(
     "application_budgets",
     applicationBudgets,
@@ -464,11 +474,18 @@ export const ERASURE_STEPS: readonly ErasureStep[] = [
 
   // Content the person authored.
   directStep("nodetool_assets", assets, assets.user_id),
+  { table: "nodetool_run_spans", async run(ctx) { return deleted("nodetool_run_spans", "delete", await eraseRunTraceTable(ctx.userId, "spans")); } },
+  { table: "nodetool_run_traces", async run(ctx) { return deleted("nodetool_run_traces", "delete", await eraseRunTraceTable(ctx.userId, "traces")); } },
   directStep("nodetool_messages", messages, messages.user_id),
   directStep("nodetool_threads", threads, threads.user_id),
   directStep("nodetool_memories", memories, memories.user_id),
+  directStep("nodetool_error_traces", errorTraces, errorTraces.user_id),
+  directStep("nodetool_bug_reports", bugReports, bugReports.user_id),
   directStep("nodetool_settings", appSettings, appSettings.user_id),
   directStep("nodetool_workspaces", workspacesSchema, workspacesSchema.user_id),
+  indirectStep("game_draft_changes", gameDraftChanges, gameDraftChanges.game_id, (c) => c.gameIds),
+  indirectStep("game_revision_messages", gameRevisionMessages, gameRevisionMessages.game_id, (c) => c.gameIds),
+  directStep("games", games, games.user_id),
   directStep("projects", projects, projects.user_id),
   directStep("skills", skills, skills.user_id),
   directStep("scripts", scripts, scripts.user_id),
@@ -698,6 +715,7 @@ const DEFAULT_MAX_ROWS_PER_TABLE = 50_000;
 interface ExportContext {
   readonly userId: string;
   readonly runIds: readonly string[];
+  readonly gameIds: readonly string[];
   readonly applicationIds: readonly string[];
   readonly limit: number;
 }
@@ -711,7 +729,7 @@ async function selectRows(
   where: SQL | undefined,
   limit: number
 ): Promise<readonly Record<string, unknown>[]> {
-  const rows = await getDb().select().from(table).where(where).limit(limit);
+  const rows = await getPortableDb().select().from(table).where(where).limit(limit);
   return rows as Record<string, unknown>[];
 }
 
@@ -753,6 +771,9 @@ function indirectExport(
  * the subject's own id only.
  */
 export const EXPORT_HANDLERS: Readonly<Record<string, ExportHandler>> = {
+  nodetool_run_spans: (ctx) => exportRunTraceTable(ctx.userId, "spans", ctx.limit),
+  nodetool_run_traces: (ctx) => exportRunTraceTable(ctx.userId, "traces", ctx.limit),
+  app_instances:directExport(appInstances,appInstances.user_id),
   access_tokens: directExport(accessTokens, accessTokens.user_id),
   application_budgets: indirectExport(
     applicationBudgets,
@@ -788,6 +809,8 @@ export const EXPORT_HANDLERS: Readonly<Record<string, ExportHandler>> = {
   nodetool_credit_ledger: directExport(creditLedger, creditLedger.user_id),
   nodetool_jobs: directExport(jobs, jobs.user_id),
   nodetool_memories: directExport(memories, memories.user_id),
+  nodetool_error_traces: directExport(errorTraces, errorTraces.user_id),
+  nodetool_bug_reports: directExport(bugReports, bugReports.user_id),
   nodetool_messages: directExport(messages, messages.user_id),
   nodetool_oauth_credentials: directExport(
     oauthCredentials,
@@ -816,6 +839,9 @@ export const EXPORT_HANDLERS: Readonly<Record<string, ExportHandler>> = {
   ),
   nodetool_workflows: directExport(workflows, workflows.user_id),
   nodetool_workspaces: directExport(workspacesSchema, workspacesSchema.user_id),
+  game_draft_changes: indirectExport(gameDraftChanges, gameDraftChanges.game_id, (c) => c.gameIds),
+  game_revision_messages: indirectExport(gameRevisionMessages, gameRevisionMessages.game_id, (c) => c.gameIds),
+  games: directExport(games, games.user_id),
   projects: directExport(projects, projects.user_id),
   run_events: indirectExport(runEvents, runEvents.run_id, (c) => c.runIds),
   scripts: directExport(scripts, scripts.user_id),
@@ -882,6 +908,7 @@ export async function exportPersonalData(
   const ctx: ExportContext = {
     userId,
     runIds: await selectIds(jobs, jobs.id, eq(jobs.user_id, userId)),
+    gameIds: await selectIds(games, games.id, eq(games.user_id, userId)),
     applicationIds: await selectIds(
       applications,
       applications.id,

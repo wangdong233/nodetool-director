@@ -7,8 +7,9 @@ import { entries as providerEntries } from "./providerEntries";
 import { faqPageEntries } from "./faqEntries";
 import { ideasPageEntries } from "./ideasEntries";
 import { templateEntries } from "./templates";
+import { adLibraryEntries } from "./adLibrary";
 import { recipeEntries } from "./recipes";
-import { miniAppEntries } from "./miniApps";
+import { storyboardEntryPages } from "./storyboards";
 import { solutionRegistryEntries } from "./landingEntries";
 import { taskRegistryEntries } from "./taskEntries";
 import { showcasePageEntries } from "./showcasePages";
@@ -40,7 +41,8 @@ export const registryModules: RegistryModule[] = [
   { name: "ideas", entries: ideasPageEntries },
   { name: "templates", entries: templateEntries },
   { name: "recipes", entries: recipeEntries },
-  { name: "apps", entries: miniAppEntries },
+  { name: "ad-library", entries: adLibraryEntries },
+  { name: "storyboards", entries: storyboardEntryPages },
   { name: "solutions", entries: solutionRegistryEntries },
   { name: "tasks", entries: taskRegistryEntries },
   { name: "blog", entries: blogPageEntries },

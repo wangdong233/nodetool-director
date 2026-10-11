@@ -22,7 +22,7 @@ import type {
   AgentStrokeRequest
 } from "../painting/agentStrokes";
 import type { PaintSurface } from "@nodetool-ai/image-editor/painting.js";
-import { useSketchStore } from "../state/useSketchStore";
+import { useSketchInstance } from "../../../stores/sketch/SketchInstance";
 import { CoordinateMapper } from "../painting/CoordinateMapper";
 import { getCanvasRasterBounds } from "../transform/geometry/layerGeometry";
 
@@ -57,11 +57,16 @@ export function useCanvasImperativeHandle({
   cancelActiveTool,
   commitPendingCrop
 }: UseCanvasImperativeHandleParams): void {
+  // This editor's own store. Agent tools address a tab by id, and a paste or
+  // an asset drop can settle after a tab switch, so the focused editor that
+  // `useSketchStore.getState()` resolves to may be another document.
+  const { editor } = useSketchInstance();
   useImperativeHandle(
     ref,
     () => ({
       getLayerData: (layerId: string) => {
-        return runtime.getLayerData(layerId);
+        const layer = doc.layers.find((entry) => entry.id === layerId);
+        return layer?.type === "vector" ? layer.data : runtime.getLayerData(layerId);
       },
       setLayerData: (
         layerId: string,
@@ -137,17 +142,22 @@ export function useCanvasImperativeHandle({
         // closure is still the snapshot from the previous render — using it
         // makes drawLayerToContext composite with stale contentBounds and
         // visually drops or clips the in-between layers' pixels.
-        const liveDoc = useSketchStore.getState().document;
+        const liveDoc = editor.getState().document;
         const result = runtime.mergeLayerDown(upperLayerId, lowerLayerId, liveDoc);
         redraw();
         return result;
       },
       flattenVisible: () => {
-        const liveDoc = useSketchStore.getState().document;
+        const liveDoc = editor.getState().document;
         return runtime.flattenVisible(liveDoc);
       },
       cropCanvas: (x: number, y: number, width: number, height: number) => {
         runtime.cropLayers(x, y, width, height);
+        for (const layer of doc.layers) {
+          if (layer.type === "vector") {
+            runtime.setLayerData(layer.id, layer.data, layer.contentBounds, redraw);
+          }
+        }
         const displayCanvas = displayCanvasRef.current;
         if (displayCanvas) {
           displayCanvas.width = width;
@@ -177,7 +187,7 @@ export function useCanvasImperativeHandle({
         redraw();
       },
       mutateLayerPixels: (layerId, mutate) => {
-        const liveDoc = useSketchStore.getState().document;
+        const liveDoc = editor.getState().document;
         const layer = liveDoc.layers.find((entry) => entry.id === layerId);
         const canvas = runtime.getOrCreateLayerCanvas(
           layerId,
@@ -189,7 +199,7 @@ export function useCanvasImperativeHandle({
         redraw();
       },
       sampleComposite: (x, y) => {
-        const liveDoc = useSketchStore.getState().document;
+        const liveDoc = editor.getState().document;
         const image = runtime.readbackComposite(liveDoc, null, null);
         if (!image) {
           return null;
@@ -216,7 +226,7 @@ export function useCanvasImperativeHandle({
         if (!ctx) {
           return null;
         }
-        const liveDoc = useSketchStore.getState().document;
+        const liveDoc = editor.getState().document;
         const layer = liveDoc.layers.find((entry) => entry.id === layerId);
         const local = layer
           ? new CoordinateMapper({
@@ -241,7 +251,7 @@ export function useCanvasImperativeHandle({
         // Read live state, not the render closure: a batch can follow an edit
         // made earlier in the same tick, when the store is already ahead of
         // `doc`. Same reason `mergeLayerDown` reads the store below.
-        const state = useSketchStore.getState();
+        const state = editor.getState();
         const liveDoc = state.document;
         const stampCache = new Map<string, PaintSurface>();
         const outcomes: AgentStrokeOutcome[] = [];
@@ -351,6 +361,7 @@ export function useCanvasImperativeHandle({
       getViewportElement: (): HTMLElement | null => containerRef.current
     }),
     [
+      editor,
       doc,
       runtime,
       redraw,

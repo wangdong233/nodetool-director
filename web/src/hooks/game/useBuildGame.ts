@@ -1,176 +1,295 @@
 /**
- * Step 3's action: turn the reviewed design into a running graph
- * (game-prd § 5.4).
+ * The Game flow's build: make a playable game from the reviewed design.
  *
- * The build replays `gameGraphPlacement` through the same node tools an agent
- * drives — `ui_add_node`, `ui_update_node_data`, `ui_connect_nodes` — in
- * placement order, so the canvas fills the way a creator would have filled it
- * and the headless mirror produces the same graph. The placement is a pure
- * function of manifest, design and choices (D26), shared with the harness, so
- * what the harness graded is what gets placed.
+ * It creates the template's game in the workflow's project, records the game
+ * id on `settings.game` before anything is generated (so a reload or a retry
+ * reuses that game instead of making a second one), then generates each image
+ * slot through `games.generateAsset` — the same path the game editor's asset
+ * panel uses, which stages the image, records its prompt and binds it on the
+ * current draft. Every slot's prompt is `gameSlotPrompt` over the reviewed
+ * subject, the chosen style's descriptor and the slot's cast member, the
+ * builder the headless `build_game` graph uses.
  *
- * This hook runs from the workflow tab that owns the setup flow, so its node
- * store is already mounted. It must not navigate through `ui_open_workflow`:
- * that unmounts the setup shell before placement finishes and turns a rejected
- * tool call into a disappearing error. The terminal stage swaps the same tab
- * to the canvas after the build result has been recorded.
+ * Slots are generated one at a time so a cancel stops spending at the next
+ * slot. A slot that fails keeps the template's placeholder and is reported;
+ * the build fails only when no image slot succeeded. Sound slots keep the
+ * template's built-in sounds.
  *
- * `issues` is part of the result because a graph whose slots are all placed can
- * still be missing the export node, and that graph validates and writes no
- * project. The landing checklist reports them; nothing is auto-fixed.
+ * One build runs per workflow. The registry is module level because the step
+ * that starts a build can unmount while it runs (the tab is closed, or the
+ * host swaps), and a second click from a remounted step must not pay twice.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { createTopDownRoomGame } from "@nodetool-ai/game-runtime";
 import {
-  gameGraphPlacement,
-  planNodeShape,
-  type GameAssetManifest,
-  type GameGraphChoices
+  findNativeGameTemplate,
+  gameSlotGenerationRequest,
+  gameSlotPrompt,
+  type GameSlotSpec,
+  type GameStyleChoice
 } from "@nodetool-ai/protocol";
-import type { GameDesign } from "@nodetool-ai/protocol/api-schemas/workflows.js";
+import type {
+  GameDesign,
+  GameSetup
+} from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
-import { FrontendToolRegistry } from "../../lib/tools/frontendTools";
-import { getFrontendToolRuntimeState } from "../../lib/tools/frontendToolRuntimeState";
-import useMetadataStore from "../../stores/MetadataStore";
-import {
-  GAME_BUILD_KEY,
-  gameBuildRecord
-} from "../../components/setup/game/gameExtras";
-import { useGameSetupWriter } from "./useGameSetup";
+import { newDocumentId } from "../../lib/newDocumentId";
+import { trpcClient } from "../../trpc/client";
 
-/** What the landing checklist reads (game-prd § 4.4). */
-export interface BuildGameResult {
-  /** Nodes placed on the canvas. */
-  nodeCount: number;
-  /** Chains the builder could not place, empty on a clean build. */
-  issues: string[];
-  /** Errors from the graph check. Empty means the graph validated. */
-  validationErrors: string[];
-  /** Whether the run was started, and what it said if it was refused. */
-  run: { started: boolean; error: string | null };
-}
+/** The game document each native template starts from. */
+const TEMPLATE_DOCUMENTS: Record<
+  string,
+  (id: string) => ReturnType<typeof createTopDownRoomGame>
+> = {
+  topdown: createTopDownRoomGame
+};
+
+/** The slots the build generates: every visual one. Sounds keep the template's. */
+export const gameImageSlots = (
+  slots: readonly GameSlotSpec[]
+): GameSlotSpec[] =>
+  slots.filter((slot) => slot.kind !== "sfx" && slot.kind !== "music");
 
 export interface BuildGameInput {
-  manifest: GameAssetManifest;
+  projectId: string;
+  /** The game's name, also its tab title. */
+  name: string;
+  template: string;
   design: GameDesign;
-  choices: GameGraphChoices;
+  style: GameStyleChoice | null;
+  imageModel: { provider: string; id: string };
+  /** A game an earlier build of this workflow already made. */
+  gameId?: string;
+  /** Writes onto `settings.game`; the build records the game id with it. */
+  setGame: (patch: Partial<GameSetup>) => Promise<void>;
 }
+
+export interface BuildGameSlotFailure {
+  slot: string;
+  reason: string;
+}
+
+export interface BuildGameResult {
+  gameId: string;
+  name: string;
+  projectId: string;
+  /** Image slots that kept the template's placeholder, with why. */
+  failures: BuildGameSlotFailure[];
+}
+
+export interface BuildGameProgress {
+  /** The slot being generated, as the creator reads it. */
+  label: string;
+  done: number;
+  total: number;
+}
+
+interface BuildState {
+  controller: AbortController;
+  progress: BuildGameProgress | null;
+  listeners: Set<() => void>;
+}
+
+interface ActiveBuild extends BuildState {
+  promise: Promise<BuildGameResult>;
+}
+
+const activeBuilds = new Map<string, ActiveBuild>();
+
+/** True while a build of this workflow is running, from any mount. */
+export const isGameBuildLive = (workflowId: string): boolean =>
+  activeBuilds.has(workflowId);
+
+const notify = (build: BuildState): void => {
+  for (const listener of build.listeners) {
+    listener();
+  }
+};
+
+/** How a slot reads in the progress line. */
+const slotLabel = (slot: GameSlotSpec, design: GameDesign): string => {
+  const member = design.cast.find((entry) => entry.slot_id === slot.id);
+  return member?.name.trim() || slot.id;
+};
+
+const abortError = (): DOMException =>
+  new DOMException("The build was canceled.", "AbortError");
+
+const runBuild = async (
+  input: BuildGameInput,
+  build: BuildState
+): Promise<BuildGameResult> => {
+  const { signal } = build.controller;
+  const template = findNativeGameTemplate(input.template);
+  const createDocument = template ? TEMPLATE_DOCUMENTS[template.id] : undefined;
+  if (!template || !createDocument) {
+    throw new Error(
+      `The built-in engine cannot build the ${input.template} template.`
+    );
+  }
+
+  let gameId = input.gameId;
+  if (!gameId) {
+    const created = await trpcClient.games.create.mutate(
+      {
+        projectId: input.projectId,
+        name: input.name,
+        dimension: "2d",
+        document: createDocument(newDocumentId())
+      },
+      { signal }
+    );
+    gameId = created.game.id;
+  }
+  // Recorded before the first paid call, so a reload resumes on this game.
+  await input.setGame({ game_id: gameId, project_name: input.name });
+
+  const slots = gameImageSlots(template.manifest.slots);
+  const failures: BuildGameSlotFailure[] = [];
+  for (const [index, slot] of slots.entries()) {
+    if (signal.aborted) {
+      throw abortError();
+    }
+    build.progress = {
+      label: slotLabel(slot, input.design),
+      done: index,
+      total: slots.length
+    };
+    notify(build);
+    const subject =
+      input.design.slot_prompts.find((entry) => entry.slot_id === slot.id)
+        ?.prompt ?? "";
+    const { prompt } = gameSlotPrompt(
+      slot,
+      subject,
+      input.style,
+      input.design.cast
+    );
+    const request = gameSlotGenerationRequest(slot);
+    try {
+      await trpcClient.games.generateAsset.mutate(
+        {
+          id: gameId,
+          slot: slot.id,
+          kind: "image",
+          prompt,
+          ...(request.preparation && { preparation: request.preparation }),
+          provider: input.imageModel.provider,
+          model: input.imageModel.id
+        },
+        { signal }
+      );
+    } catch (cause) {
+      if (signal.aborted) {
+        throw abortError();
+      }
+      failures.push({
+        slot: slot.id,
+        reason: cause instanceof Error ? cause.message : String(cause)
+      });
+    }
+  }
+  if (slots.length > 0 && failures.length === slots.length) {
+    throw new Error(
+      `No art was generated: ${failures[0]?.reason ?? "every slot failed"}`
+    );
+  }
+  await input.setGame({ stage: "done" });
+  return { gameId, name: input.name, projectId: input.projectId, failures };
+};
+
+/** Start a build for a workflow, or join the one already running. */
+export const startGameBuild = (
+  workflowId: string,
+  input: BuildGameInput
+): Promise<BuildGameResult> => {
+  const running = activeBuilds.get(workflowId);
+  if (running) {
+    return running.promise;
+  }
+  const state: BuildState = {
+    controller: new AbortController(),
+    progress: null,
+    listeners: new Set()
+  };
+  const build: ActiveBuild = Object.assign(state, {
+    promise: runBuild(input, state).finally(() => {
+      if (activeBuilds.get(workflowId) === build) {
+        activeBuilds.delete(workflowId);
+      }
+      state.progress = null;
+      notify(state);
+    })
+  });
+  activeBuilds.set(workflowId, build);
+  notify(build);
+  return build.promise;
+};
+
+/** Stop the running build at its next slot. */
+export const cancelGameBuild = (workflowId: string): void => {
+  activeBuilds.get(workflowId)?.controller.abort();
+};
 
 export interface UseBuildGameResult {
-  buildGame: (input: BuildGameInput) => Promise<BuildGameResult>;
+  buildGame: (
+    input: BuildGameInput,
+    signal?: AbortSignal
+  ) => Promise<BuildGameResult>;
+  cancelBuild: () => void;
   building: boolean;
-  result: BuildGameResult | null;
-}
-
-/** One tool call, through the registry the agent uses. */
-let callSeq = 0;
-const callTool = (name: string, args: Record<string, unknown>) =>
-  FrontendToolRegistry.call(name, args, `game-build-${++callSeq}`, {
-    getState: getFrontendToolRuntimeState
-  });
-
-/** The `validation` block `ui_get_graph` returns. */
-interface GraphValidation {
-  errors?: unknown;
+  progress: BuildGameProgress | null;
 }
 
 export const useBuildGame = (workflowId: string): UseBuildGameResult => {
-  const [building, setBuilding] = useState(false);
-  const [result, setResult] = useState<BuildGameResult | null>(null);
-  const { setGame } = useGameSetupWriter(workflowId);
-
-  const buildGame = useCallback(
-    async (input: BuildGameInput): Promise<BuildGameResult> => {
-      setBuilding(true);
-      try {
-        const metadata = useMetadataStore.getState().metadata;
-        const placement = gameGraphPlacement(
-          input.manifest,
-          input.design,
-          input.choices,
-          (nodeType) => {
-            const meta = metadata[nodeType];
-            return meta ? planNodeShape(meta) : null;
-          }
-        );
-
-        for (const node of placement.nodes) {
-          await callTool("ui_add_node", {
-            workflow_id: workflowId,
-            id: node.id,
-            type: node.type,
-            position: node.position,
-            properties: node.properties
-          });
-          // The one write the add cannot carry: the slot this node fills, which
-          // is what the landing checklist maps a node to a row by.
-          if (node.setupStepId !== undefined) {
-            await callTool("ui_update_node_data", {
-              workflow_id: workflowId,
-              node_id: node.id,
-              data: { setupStepId: node.setupStepId }
-            });
-          }
-        }
-
-        for (const edge of placement.edges) {
-          await callTool("ui_connect_nodes", {
-            workflow_id: workflowId,
-            source_node_id: edge.source,
-            source_handle: edge.sourceHandle,
-            target_node_id: edge.target,
-            target_handle: edge.targetHandle
-          });
-        }
-
-        // The graph is placed: the stage is terminal from here, so a reload
-        // lands on the canvas rather than back in the flow (D3).
-        await setGame({ stage: "done" });
-
-        const graph = (await callTool("ui_get_graph", {
-          workflow_id: workflowId
-        })) as { validation?: GraphValidation };
-        const validationErrors = Array.isArray(graph.validation?.errors)
-          ? graph.validation.errors.map(String)
-          : [];
-
-        let run = { started: false, error: null as string | null };
-        if (validationErrors.length === 0 && placement.issues.length === 0) {
-          try {
-            await callTool("ui_run_workflow", {
-              workflow_id: workflowId,
-              params: {}
-            });
-            run = { started: true, error: null };
-          } catch (cause) {
-            run = {
-              started: false,
-              error: cause instanceof Error ? cause.message : String(cause)
-            };
-          }
-        }
-
-        const built: BuildGameResult = {
-          nodeCount: placement.nodes.length,
-          issues: placement.issues,
-          validationErrors,
-          run
-        };
-        // The landing checklist outlives this hook: the flow's surface is gone
-        // the moment the canvas opens, and a creator who reloads still has to
-        // see what the build came out as. `settings.game` is a passthrough bag,
-        // so the record travels with the workflow.
-        await setGame({ [GAME_BUILD_KEY]: gameBuildRecord(built) });
-        setResult(built);
-        return built;
-      } finally {
-        setBuilding(false);
-      }
-    },
-    [setGame, workflowId]
+  const [, setVersion] = useState(0);
+  const [subscribed, setSubscribed] = useState<ActiveBuild | null>(
+    () => activeBuilds.get(workflowId) ?? null
   );
 
-  return { buildGame, building, result };
+  // Follow the build that is running for this workflow, including one a
+  // previous mount started.
+  useEffect(() => {
+    const build = subscribed ?? activeBuilds.get(workflowId) ?? null;
+    if (!build) {
+      return undefined;
+    }
+    const listener = () => setVersion((value) => value + 1);
+    build.listeners.add(listener);
+    if (build !== subscribed) {
+      setSubscribed(build);
+    }
+    return () => {
+      build.listeners.delete(listener);
+    };
+  }, [subscribed, workflowId]);
+
+  const buildGame = useCallback(
+    (input: BuildGameInput, signal?: AbortSignal) => {
+      const promise = startGameBuild(workflowId, input);
+      const build = activeBuilds.get(workflowId) ?? null;
+      setSubscribed(build);
+      // The shell's Cancel aborts its own signal; that stops this build.
+      signal?.addEventListener("abort", () => cancelGameBuild(workflowId), {
+        once: true
+      });
+      return promise;
+    },
+    [workflowId]
+  );
+
+  const cancelBuild = useCallback(() => {
+    cancelGameBuild(workflowId);
+  }, [workflowId]);
+
+  const live = subscribed !== null && activeBuilds.get(workflowId) === subscribed;
+  return {
+    buildGame,
+    cancelBuild,
+    building: live,
+    progress: live ? subscribed.progress : null
+  };
 };
 
 export default useBuildGame;

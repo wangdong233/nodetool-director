@@ -10,7 +10,8 @@
     { "path": "../runtime" },
     { "path": "../node-sdk" },
     { "path": "../nodes-utils" },
-    { "path": "../godot" },
-    { "path": "../godot-templates" }
+    { "path": "../audio-nodes" },
+    { "path": "../image-nodes" },
+    { "path": "../storage" }
   ]
 }

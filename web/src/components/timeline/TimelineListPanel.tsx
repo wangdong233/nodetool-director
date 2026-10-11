@@ -2,6 +2,8 @@ import AddIcon from "@mui/icons-material/Add";
 import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import { memo, useCallback, useRef, useState } from "react";
+import { useTheme } from "@mui/material/styles";
+import type { Theme } from "@mui/material/styles";
 import type { ChangeEvent, DragEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -21,6 +23,8 @@ import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { importTimelineZip } from "../../utils/timelineBundle";
+import { buildTimelineDocumentPayload } from "../../hooks/timeline/timelineDocumentPayload";
+import { isTranscriptClip } from "../../stores/timeline/transcriptOps";
 import {
   DocumentListPanel,
   FlexRow,
@@ -29,6 +33,7 @@ import {
   Tooltip,
   BORDER_RADIUS,
   FONT_WEIGHT,
+  SHADOW,
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
@@ -39,7 +44,7 @@ import { useTranslation } from "react-i18next";
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
 
-function createTimelineDragImage(name: string): HTMLElement {
+function createTimelineDragImage(name: string, theme: Theme): HTMLElement {
   const container = document.createElement("div");
   container.style.cssText = `
     position: absolute;
@@ -55,9 +60,9 @@ function createTimelineDragImage(name: string): HTMLElement {
     gap: ${getSpacingPx(SPACING.lg)};
     padding: ${getSpacingPx(SPACING.md)};
     box-sizing: border-box;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: ${SHADOW(theme).md};
     color: var(--palette-text-primary);
-    font-family: Inter, sans-serif;
+    font-family: var(--fontFamily1);
     pointer-events: none;
     z-index: ${DRAG_IMAGE_Z_INDEX};
   `;
@@ -117,10 +122,8 @@ const TimelineListItem = memo(function TimelineListItem({
   onCommitRename,
   onCancelRename
 }: TimelineListItemProps) {
-  // Language anchor for the memo'd row (F-26): the fallback name and the
-  // rename field label render through `t`.
   const { t } = useTranslation();
-  const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
+  const theme = useTheme();  const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
   const clearDrag = useDragDropStore((state) => state.clearDrag);
   const handleDragStart = useCallback(
     (event: DragEvent<HTMLButtonElement>) => {
@@ -134,7 +137,7 @@ const TimelineListItem = memo(function TimelineListItem({
         event.dataTransfer
       );
       event.dataTransfer.effectAllowed = "copyMove";
-      const dragImage = createTimelineDragImage(name);
+      const dragImage = createTimelineDragImage(name, theme);
       document.body.appendChild(dragImage);
       event.dataTransfer.setDragImage(dragImage, 10, 10);
       window.setTimeout(() => document.body.removeChild(dragImage), 0);
@@ -144,7 +147,7 @@ const TimelineListItem = memo(function TimelineListItem({
         metadata: { sourceId: id, sourceName: name || "Untitled video" }
       });
     },
-    [id, name, updatedAt, setActiveDrag]
+    [id, name, updatedAt, setActiveDrag, theme]
   );
   const handleDragEnd = useCallback(() => {
     clearDrag();
@@ -194,7 +197,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
           projectId: timeline.projectId
         });
       } else {
-        navigate(`/timeline/${timeline.id}`);
+        navigate(`/timeline/${timeline.id}?mode=edit`);
       }
       setVisibility(false);
     } catch (error) {
@@ -232,7 +235,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
             projectId: timeline.projectId
           });
         } else {
-          navigate(`/timeline/${timeline.id}`);
+          navigate(`/timeline/${timeline.id}?mode=edit`);
         }
         setVisibility(false);
         const addNotification =
@@ -316,7 +319,7 @@ const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
         openTab({
           type: "timeline",
           ref: id,
-          mode: "edit",
+          mode: "view",
           title: name || "Untitled video",
           projectId
         });
@@ -371,13 +374,15 @@ const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
         });
         await updateTimeline.mutateAsync({
           id: copy.id,
-          document: {
-            tracks: source.tracks,
-            clips: source.clips,
-            markers: source.markers,
-            transcript: source.transcript,
-            scriptEnabled: source.scriptEnabled
-          }
+          document: buildTimelineDocumentPayload({
+            ...source,
+            trackFolders: source.trackFolders ?? [],
+            mediaTracks: source.mediaTracks ?? [],
+            transcript: source.transcript ?? [],
+            scriptEnabled:
+              source.scriptEnabled ?? source.clips.some(isTranscriptClip),
+            camera2d: source.camera2d ?? null
+          })
         });
       } catch (error) {
         notifyMutationError("duplicate the timeline", error);

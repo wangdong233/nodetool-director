@@ -150,3 +150,71 @@ describe("validateTimelineSequence — clip effects", () => {
     expect(effectWarnings(result)).toHaveLength(1);
   });
 });
+
+describe("validateTimelineSequence — effect_animate_ignored", () => {
+  const animated = (effects: Json[]): ReturnType<typeof validateTimelineSequence> =>
+    validateTimelineSequence(doc([clip({ id: "a", mediaType: "shape", effects })]));
+  const ignored = (result: ReturnType<typeof validateTimelineSequence>) =>
+    result.warnings.filter((w) => w.code === "effect_animate_ignored");
+
+  it("stays quiet on modes that read the clock", () => {
+    const result = animated([
+      { id: "g", type: "generator", enabled: true, mode: "meshGradient", animate: true },
+      { id: "s", type: "stylize", enabled: true, mode: "turbulence", amount: 0.3, animate: true },
+      { id: "c", type: "generator", enabled: true, mode: "conicGradient", animate: false }
+    ]);
+    expect(ignored(result)).toEqual([]);
+  });
+
+  it("warns that a conic gradient does not turn on its own", () => {
+    const found = ignored(animated([{ id: "c", type: "generator", enabled: true, mode: "conicGradient", animate: true }]));
+    expect(found).toHaveLength(1);
+    expect(found[0]?.path).toBe("effects[0].animate");
+    expect(found[0]?.message).toContain("effect.c.angle");
+  });
+
+  it("warns that animate switches a gradient wipe's map", () => {
+    const found = ignored(animated([{ id: "w", type: "stylize", enabled: true, mode: "gradientWipe", amount: 0.5, animate: true }]));
+    expect(found).toHaveLength(1);
+    expect(found[0]?.message).toContain("selects the map");
+  });
+});
+
+describe("validateTimelineSequence — effect_washes_out", () => {
+  const graded = (effects: Json[]): ReturnType<typeof validateTimelineSequence> =>
+    validateTimelineSequence(
+      doc([clip({ id: "a", mediaType: "adjustment", name: "Finish", effects })])
+    );
+  const washedOut = (result: ReturnType<typeof validateTimelineSequence>) =>
+    result.warnings.filter((w) => w.code === "effect_washes_out");
+
+  it("stays quiet on a subtle grade", () => {
+    const result = graded([
+      { id: "1", type: "color", enabled: true, saturation: 1.06, contrast: 1.04, brightness: 0.02 }
+    ]);
+    expect(washedOut(result)).toEqual([]);
+  });
+
+  it("warns that brightness 1 drives the picture to white", () => {
+    const found = washedOut(
+      graded([{ id: "1", type: "color", enabled: true, saturation: 1.06, contrast: 1.04, brightness: 1 }])
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]?.message).toContain('sets brightness 1');
+    expect(found[0]?.message).toContain("drives the picture to white");
+    expect(found[0]?.message).toContain("brightness is an offset from -1 to 1 where 0 is unchanged");
+  });
+
+  it("warns that a low contrast flattens the picture", () => {
+    const found = washedOut(
+      graded([{ id: "1", type: "color", enabled: true, contrast: 0.05 }])
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]?.message).toContain("removes nearly all contrast");
+  });
+
+  it("stays quiet on a disabled effect", () => {
+    const result = graded([{ id: "1", type: "color", enabled: false, brightness: 1 }]);
+    expect(washedOut(result)).toEqual([]);
+  });
+});

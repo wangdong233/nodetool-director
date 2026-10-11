@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/timeline",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Core timeline types and status models for the NodeTool timeline feature",
   "type": "module",
   "engines": {
@@ -16,10 +16,14 @@
   },
   "dependencies": {
     "@nodetool-ai/gpu": "*",
-    "@nodetool-ai/protocol": "*"
+    "@nodetool-ai/protocol": "*",
+    "yoga-layout": "~3.2.1",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^0.1.65",
+    "@nodetool-ai/config": "*",
+    "@nodetool-ai/runtime": "*",
     "@types/node": "^22.0.0",
     "@webgpu/types": "^0.1.70",
     "typescript": "npm:@typescript/typescript6@6.0.2",
@@ -44,6 +48,12 @@
       "import": "./dist/render/index.js",
       "default": "./dist/render/index.js"
     },
+    "./testing": {
+      "nodetool-dev": "./src/testing/index.ts",
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "default": "./dist/testing/index.js"
+    },
     "./scene": {
       "nodetool-dev": "./src/scene.ts",
       "types": "./dist/scene.d.ts",
@@ -61,6 +71,24 @@
       "types": "./dist/fonts/register-node.d.ts",
       "import": "./dist/fonts/register-node.js",
       "default": "./dist/fonts/register-node.js"
+    },
+    "./fonts/google-node": {
+      "nodetool-dev": "./src/fonts/google-fonts-node.ts",
+      "types": "./dist/fonts/google-fonts-node.d.ts",
+      "import": "./dist/fonts/google-fonts-node.js",
+      "default": "./dist/fonts/google-fonts-node.js"
+    },
+    "./fonts/google-fetch": {
+      "nodetool-dev": "./src/fonts/google-fonts-fetch.ts",
+      "types": "./dist/fonts/google-fonts-fetch.d.ts",
+      "import": "./dist/fonts/google-fonts-fetch.js",
+      "default": "./dist/fonts/google-fonts-fetch.js"
+    },
+    "./examples/node": {
+      "nodetool-dev": "./src/examples/node.ts",
+      "types": "./dist/examples/node.d.ts",
+      "import": "./dist/examples/node.js",
+      "default": "./dist/examples/node.js"
     }
   },
   "license": "MIT",
@@ -92,10 +120,18 @@
     "types"
   ],
   "peerDependencies": {
-    "@napi-rs/canvas": ">=0.1.65"
+    "@napi-rs/canvas": ">=0.1.65",
+    "@nodetool-ai/config": "*",
+    "@nodetool-ai/runtime": "*"
   },
   "peerDependenciesMeta": {
     "@napi-rs/canvas": {
+      "optional": true
+    },
+    "@nodetool-ai/config": {
+      "optional": true
+    },
+    "@nodetool-ai/runtime": {
       "optional": true
     }
   }

@@ -33,8 +33,25 @@ export default {
     // it at module load.
     "^typegpu$": "<rootDir>/src/__mocks__/typegpu.ts",
     "^typegpu/data$": "<rootDir>/src/__mocks__/typegpuData.ts",
+    // `yoga-layout` (the timeline flex layout resolver) is ESM-only with a
+    // top-level `await` — not just untransformed like the ESM deps above,
+    // but impossible to `require()` at all (a module with top-level await
+    // cannot be represented in CommonJS; Node's own `require(esm)` support
+    // explicitly refuses one). Unlike `typegpu` above, this is NOT a stub —
+    // it computes real layouts via the same WASM binary, synchronously
+    // instantiated through Emscripten's own `instantiateWasm` hook. See its
+    // header comment for the full explanation.
+    "^yoga-layout$": "<rootDir>/src/__mocks__/yogaLayoutSync.cjs",
     "^@nodetool-ai/app-runtime$":
       "<rootDir>/../packages/app-runtime/src/index.ts",
+    "^@nodetool-ai/game-runtime$":
+      "<rootDir>/../packages/game-runtime/src/index.ts",
+    "^@nodetool-ai/game-renderer$":
+      "<rootDir>/../packages/game-renderer/src/index.ts",
+    "^@nodetool-ai/game-renderer/browser$":
+      "<rootDir>/../packages/game-renderer/src/browser.ts",
+    "^@nodetool-ai/game-renderer/audio$":
+      "<rootDir>/../packages/game-renderer/src/audio.ts",
     "^@nodetool-ai/protocol$": "<rootDir>/../packages/protocol/src/index.ts",
     // Subpath imports carry the ESM `.js` extension (`api-schemas/code-gen.js`);
     // strip it before the generic subpath mapping resolves to source.
@@ -54,6 +71,8 @@ export default {
       "<rootDir>/../packages/timeline/src/render/index.ts",
     // The GPU-free half of `/render`. The agent bridge parses mask paths with
     // it, and pulling `/render` for that would drag TypeGPU into the suite.
+    "^@nodetool-ai/timeline/testing$":
+      "<rootDir>/../packages/timeline/src/testing/index.ts",
     "^@nodetool-ai/timeline/scene$":
       "<rootDir>/../packages/timeline/src/scene.ts",
     // node-sdk ships ESM-only dist; the cost-estimate subpath is a pure module
@@ -144,6 +163,8 @@ export default {
     "^react-markdown$": "<rootDir>/src/__mocks__/reactMarkdownMock.tsx",
     "^remark-gfm$": "<rootDir>/src/__mocks__/emptyModule.ts",
     "^rehype-raw$": "<rootDir>/src/__mocks__/emptyModule.ts",
+    "^remark-math$": "<rootDir>/src/__mocks__/emptyModule.ts",
+    "^rehype-katex$": "<rootDir>/src/__mocks__/emptyModule.ts",
     "^@xyflow/react$": "<rootDir>/src/__mocks__/xyflowReact.tsx",
     "^.*contexts/WorkflowManagerContext$": "<rootDir>/src/__mocks__/WorkflowManagerContext.tsx",
     "^.*selection/magicWandAsync$": "<rootDir>/src/__mocks__/magicWandAsync.ts",
@@ -187,6 +208,8 @@ export default {
     "tests/debug-harness/",
     "tests/smoke/",
     "tests/journeys/",
+    // Node test runner owns these offline Playwright checks.
+    "tests/agentic-qa/",
     // Shared helpers living inside __tests__ dirs — not suites themselves.
     "/__tests__/testRuntime\\.tsx$"
   ]

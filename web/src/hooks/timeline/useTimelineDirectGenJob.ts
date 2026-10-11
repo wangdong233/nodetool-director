@@ -1,15 +1,17 @@
 /**
  * useTimelineDirectGenJob — direct-gen (text-to-image / image-to-image /
- * text-to-video / text-to-audio) for timeline clips. Mirrors
+ * text-to-video / image-to-video / text-to-audio) for timeline clips. Mirrors
  * `useDirectGenJob` for the sketch editor: fires a `generate_media`
  * WebSocket RPC and writes the resulting asset back onto the clip
  * (currentAssetId + ClipVersion) when it returns.
  *
  * Workflow-bound clips go through `useGenerateClip` instead; this hook only
  * handles clips whose `bindingKind` is `"text-to-image"`, `"image-to-image"`,
- * `"text-to-video"`, or `"text-to-audio"`.
+ * `"text-to-video"`, `"image-to-video"`, or `"text-to-audio"`.
  */
 import { useCallback } from "react";
+import { assertProductionGenerationAllowed, productionRequirement } from "@nodetool-ai/protocol";
+import { trpcClient } from "../../trpc/client";
 import {
   globalWebSocketManager,
   type WebSocketMessage
@@ -51,11 +53,12 @@ import {
 } from "../../lib/websocket/lookupGenerations";
 import { watchGeneration } from "../../lib/websocket/generationWatch";
 import { useAssetStore } from "../../stores/AssetStore";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
 import { probeMediaDurationMs } from "../../utils/probeMediaDuration";
 import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
-
+import { imageToVideoRequestSeconds } from "./imageToVideoSettings";
 interface DirectGenRpcResponse extends WebSocketMessage {
   type: "rpc_response";
   request_id: string;
@@ -64,7 +67,81 @@ interface DirectGenRpcResponse extends WebSocketMessage {
   error?: { code?: string; message?: string };
 }
 
-type TimelineStoreHandle = Pick<TimelineStoreApi, "getState">;
+/** The document store, with its undo history when the caller has one. */
+type TimelineStoreHandle = Pick<TimelineStoreApi, "getState"> &
+  Partial<Pick<TimelineStoreApi, "temporal">>;
+
+/** The clip fields a generation owns: its status and what it produced. */
+type GenerationPatch = Partial<
+  Pick<
+    TimelineClip,
+    | "status"
+    | "versions"
+    | "currentAssetId"
+    | "activeTakeId"
+    | "inPointMs"
+    | "outPointMs"
+  >
+>;
+
+/** Apply a generation patch to one saved snapshot of a clip. */
+const carryGenerationPatch = (
+  clip: TimelineClip,
+  patch: GenerationPatch
+): TimelineClip => {
+  const next = { ...clip, ...patch };
+  if (patch.versions) {
+    // A snapshot keeps its own takes: an undone take deletion still restores
+    // the take. Only versions the snapshot has never seen are added.
+    const known = new Set((clip.versions ?? []).map((version) => version.id));
+    next.versions = [
+      ...(clip.versions ?? []),
+      ...patch.versions.filter((version) => !known.has(version.id))
+    ];
+  }
+  return next;
+};
+
+/**
+ * Write a generation's status or result outside the undo history.
+ *
+ * A render is not an edit. Recorded as one, Undo removed a paid take or put
+ * the clip back to "generating" with nothing in flight, so it spun forever.
+ * The patch is also carried into every saved snapshot that has the clip, so
+ * undoing an earlier edit does not drop the take either.
+ */
+function writeGenerationState(
+  timeline: TimelineStoreHandle,
+  clipId: string,
+  patch: GenerationPatch
+): void {
+  const history = timeline.temporal;
+  if (!history) {
+    timeline.getState().patchClip(clipId, patch);
+    return;
+  }
+  const tracking = history.getState().isTracking;
+  if (tracking) history.getState().pause();
+  try {
+    timeline.getState().patchClip(clipId, patch);
+  } finally {
+    if (tracking) history.getState().resume();
+  }
+  const carry = <S extends { clips: TimelineClip[] }>(snapshot: S): S =>
+    snapshot.clips.some((clip) => clip.id === clipId)
+      ? {
+          ...snapshot,
+          clips: snapshot.clips.map((clip) =>
+            clip.id === clipId ? carryGenerationPatch(clip, patch) : clip
+          )
+        }
+      : snapshot;
+  const { pastStates, futureStates } = history.getState();
+  history.setState({
+    pastStates: pastStates.map(carry),
+    futureStates: futureStates.map(carry)
+  });
+}
 
 interface UseTimelineDirectGenJobApi {
   /** Returns the requestId once the RPC has been dispatched (or null on validation failure). */
@@ -103,6 +180,7 @@ interface InFlightJob {
   generationRecipe?: VideoGenerationRecipe;
   candidateOnly?: boolean;
   lineDelivery?: LineDeliveryRequest;
+  submittedParams?: Record<string, unknown>;
 }
 
 type DirectGenRequestMetadata =
@@ -147,8 +225,109 @@ const clearInFlight = (
 };
 
 function fail(timeline: TimelineStoreHandle, clipId: string): void {
-  timeline.getState().patchClip(clipId, { status: "failed" });
+  writeGenerationState(timeline, clipId, { status: "failed" });
 }
+
+/**
+ * Fail a clip and say why. A clip that flips to "failed" with no reason leaves
+ * the creator (or the agent that asked) guessing what to fix.
+ */
+function failWithReason(
+  timeline: TimelineStoreHandle,
+  clipId: string,
+  reason: string
+): void {
+  fail(timeline, clipId);
+  const name = timeline.getState().clips.find((c) => c.id === clipId)?.name;
+  useNotificationStore.getState().addNotification({
+    type: "error",
+    content: `Generation did not start${name ? ` for "${name}"` : ""}: ${reason}`,
+    dedupeKey: `timeline-direct-gen-start-${clipId}`,
+    replaceExisting: true
+  });
+}
+
+/** The clip's generation parameters as they are right now. */
+const snapshotSubmittedParams = (
+  clip: TimelineClip
+): Record<string, unknown> => ({
+  prompt: clip.prompt,
+  provider: clip.provider,
+  model: clip.model,
+  strength: clip.strength,
+  numInferenceSteps: clip.numInferenceSteps,
+  width: clip.width,
+  height: clip.height,
+  voice: clip.voice,
+  aspectRatio: clip.aspectRatio,
+  resolution: clip.resolution,
+  negativePrompt: clip.negativePrompt,
+  referenceImageIds: clip.referenceImageIds,
+  referenceEntityIds: clip.referenceEntityIds
+});
+
+/**
+ * A text-to-video clip's references as the request sends them. Picked images
+ * go as reference images, so they are `[Image 1]`, `[Image 2]`, … in pick
+ * order. Entities go as `entity://` mentions: the server writes each name and
+ * descriptor into the prompt and sends its image after the picked ones.
+ */
+export const directGenReferences = (
+  clip: Pick<TimelineClip, "prompt" | "referenceImageIds" | "referenceEntityIds">
+): { images: Array<{ type: "image"; asset_id: string }>; prompt: string } => {
+  const prompt = (clip.prompt ?? "").trim();
+  const entityIds = clip.referenceEntityIds ?? [];
+  return {
+    images: (clip.referenceImageIds ?? []).map((assetId) => ({
+      type: "image" as const,
+      asset_id: assetId
+    })),
+    prompt:
+      entityIds.length > 0
+        ? `${prompt}\n\nCast: ${entityIds.map((id) => `entity://${id}`).join(", ")}.`
+        : prompt
+  };
+};
+
+/** Every request still open for one clip, whatever kind it is. */
+const inFlightForClip = (
+  sequenceId: string | null,
+  clipId: string
+): InFlightJob[] =>
+  [...inFlight.values()].filter(
+    (job) => job.sequenceId === sequenceId && job.clipId === clipId
+  );
+
+/**
+ * Starts that have passed their guards but have not yet reached
+ * `subscribeDirectGen`. `start` awaits a storyboard lookup before the clip is
+ * marked generating, so a second call in that window would pass the status
+ * guard and send a second paid request.
+ */
+const startingDirectGen = new Set<string>();
+
+/**
+ * Drop the live subscriptions of one sequence without settling anything.
+ *
+ * Called when the editor closes. The pending entries stay, so the next open
+ * reattaches each request and lands it from its generation row. Letting the
+ * subscription survive the editor means the reply settles the entry and
+ * patches a store that no longer saves.
+ */
+export function detachSequenceJobs(sequenceId: string): void {
+  for (const job of [...inFlight.values()]) {
+    if (job.sequenceId === sequenceId) {
+      job.cleanup();
+    }
+  }
+}
+
+/** Clear every module-level record. Test isolation only. */
+export const __resetDirectGenJobsForTests = (): void => {
+  for (const job of [...inFlight.values()]) job.cleanup();
+  inFlight.clear();
+  startingDirectGen.clear();
+};
 
 async function fitGeneratedAudio(
   timeline: TimelineStoreHandle,
@@ -211,7 +390,8 @@ export function landDirectGen(
   outcome: DirectGenOutcome,
   generationRecipe?: VideoGenerationRecipe,
   candidateOnly = false,
-  lineDelivery?: LineDeliveryRequest
+  lineDelivery?: LineDeliveryRequest,
+  submittedParams?: Record<string, unknown>
 ): void {
   // Any subscription still open for this clip is done: it would settle a
   // second time on the reply and append the same version twice.
@@ -234,7 +414,12 @@ export function landDirectGen(
         .getState()
         .settle(sequenceId, clipId, undefined, requestId);
     }
-    if (!keepAcceptedTake) store.patchClip(clipId, { status: "failed" });
+    if (
+      !keepAcceptedTake &&
+      (sequenceId === null || store.sequenceId === sequenceId)
+    ) {
+      writeGenerationState(timeline, clipId, { status: "failed" });
+    }
     return;
   }
 
@@ -255,7 +440,7 @@ export function landDirectGen(
   const current = store.clips.find((c) => c.id === clipId);
   if (!current) return;
   const activeTakeId = activeTakeIdOf(current);
-  const submittedParams = recipe
+  const recordedParams = recipe
     ? {
         prompt: recipe.prompt,
         provider: recipe.provider,
@@ -279,19 +464,9 @@ export function landDirectGen(
           instructions: delivery.instructions,
           speed: delivery.speed
         }
-      : {
-          prompt: current.prompt,
-          provider: current.provider,
-          model: current.model,
-          strength: current.strength,
-          numInferenceSteps: current.numInferenceSteps,
-          width: current.width,
-          height: current.height,
-          voice: current.voice,
-          aspectRatio: current.aspectRatio,
-          resolution: current.resolution,
-          negativePrompt: current.negativePrompt
-        };
+      : (submittedParams ??
+        pendingJob?.submittedParams ??
+        snapshotSubmittedParams(current));
   const versionOverrides: Partial<ClipVersion> = {
     jobId: requestId,
     assetId: first,
@@ -299,7 +474,7 @@ export function landDirectGen(
     dependencyHash: "",
     durationMs: current.durationMs,
     requestId,
-    paramOverridesSnapshot: submittedParams
+    paramOverridesSnapshot: recordedParams
   };
   if (recipe) {
     Object.assign(versionOverrides, {
@@ -326,7 +501,7 @@ export function landDirectGen(
   const newVersion = makeClipVersion(versionOverrides);
   // Locked clips don't get their currentAssetId replaced — but the version
   // is still recorded so the user can restore it later.
-  const patch: Partial<TimelineClip> = {
+  const patch: GenerationPatch = {
     status: "generated",
     versions: [...(current.versions ?? []), newVersion]
   };
@@ -339,7 +514,7 @@ export function landDirectGen(
     patch.inPointMs = undefined;
     patch.outPointMs = undefined;
   }
-  store.patchClip(clipId, patch);
+  writeGenerationState(timeline, clipId, patch);
   if (
     (current.bindingKind === "text-to-audio" ||
       current.bindingKind === "text-to-music") &&
@@ -404,7 +579,7 @@ const applyProductionCandidate = (
     }
   });
   if (landed !== current) {
-    timeline.getState().patchClip(clipId, { versions: landed.versions });
+    writeGenerationState(timeline, clipId, { versions: landed.versions });
   }
   return true;
 };
@@ -479,7 +654,7 @@ const applyMediaEditCandidate = (
     mediaEdit: request
   });
   if (next !== current) {
-    timeline.getState().patchClip(clipId, { versions: next.versions });
+    writeGenerationState(timeline, clipId, { versions: next.versions });
   }
   return true;
 };
@@ -587,7 +762,8 @@ export function subscribeDirectGen(
   mediaEdit?: MediaEditRequest,
   productionOrRecipe?: DirectGenRequestMetadata,
   candidateOnly = false,
-  lineDelivery?: LineDeliveryRequest
+  lineDelivery?: LineDeliveryRequest,
+  submittedParams?: Record<string, unknown>
 ): () => void {
   const production = isPendingProductionRequest(productionOrRecipe)
     ? productionOrRecipe
@@ -596,7 +772,9 @@ export function subscribeDirectGen(
     isPendingProductionRequest(productionOrRecipe)
       ? undefined
       : productionOrRecipe;
-  clearInFlight(sequenceId, clipId, production ? requestId : undefined);
+  // Only this request's own earlier subscription is replaced. Other requests
+  // on the same clip (an edit, a New take, a production attempt) are separate.
+  clearInFlight(sequenceId, clipId, requestId);
   let unsubscribe: (() => void) | undefined;
   let stopWatch: (() => void) | undefined;
   const cleanup = () => {
@@ -650,7 +828,8 @@ export function subscribeDirectGen(
         outcome,
         generationRecipe,
         candidateOnly,
-        lineDelivery
+        lineDelivery,
+        submittedParams
       );
     }
   };
@@ -696,7 +875,9 @@ export function subscribeDirectGen(
                 "The video edit expired before producing a candidate."
               );
           } else {
-            useDirectGenPendingStore.getState().settle(sequenceId, clipId);
+            useDirectGenPendingStore
+              .getState()
+              .settle(sequenceId, clipId, undefined, requestId);
           }
         }
         if (!mediaEdit && !production && !candidateOnly) {
@@ -737,7 +918,8 @@ export function subscribeDirectGen(
           directOutcome,
           generationRecipe,
           candidateOnly,
-          lineDelivery
+          lineDelivery,
+          submittedParams
         );
       }
     });
@@ -751,7 +933,8 @@ export function subscribeDirectGen(
     production,
     generationRecipe,
     candidateOnly,
-    lineDelivery
+    lineDelivery,
+    submittedParams
   });
   return cleanup;
 }
@@ -835,13 +1018,122 @@ const recoverSettledProduction = (
  */
 export async function reattachSequenceJobs(
   timeline: TimelineStoreHandle,
+  sequenceId: string,
+  /** Returns false once the editor that asked has gone away. */
+  isCurrent: () => boolean = () => true
+): Promise<void> {
+  await reattachRestoredJobs(timeline, sequenceId, isCurrent);
+  if (isCurrent()) failOrphanedGenerating(timeline, sequenceId);
+}
+
+/**
+ * A direct-gen clip saved as "generating" or "queued" whose request has no
+ * live record here: the entry expired, the request ran in another browser, or
+ * this is a fresh tab. Nothing will ever settle it, so it fails and offers
+ * Retry instead of spinning forever with Generate disabled.
+ *
+ * Runs after reattachment, when every recoverable request is either landed or
+ * subscribed again.
+ */
+function failOrphanedGenerating(
+  timeline: TimelineStoreHandle,
   sequenceId: string
+): void {
+  const state = timeline.getState();
+  if (state.sequenceId !== sequenceId) return;
+  failOrphanedImports(timeline, sequenceId);
+  const orphaned = state.clips.filter(
+    (clip) =>
+      (clip.status === "generating" || clip.status === "queued") &&
+      isDirectGenBindingKind(clip.bindingKind) &&
+      !inFlightForClip(sequenceId, clip.id).some(
+        (job) => !job.mediaEdit && !job.production && !job.candidateOnly
+      )
+  );
+  if (orphaned.length === 0) return;
+  for (const clip of orphaned) {
+    writeGenerationState(timeline, clip.id, { status: "failed" });
+  }
+  useNotificationStore.getState().addNotification({
+    type: "warning",
+    content:
+      orphaned.length === 1
+        ? `"${orphaned[0].name}" was generating when this timeline closed and its request could not be found. Retry to generate it again.`
+        : `${orphaned.length} clips were generating when this timeline closed and their requests could not be found. Retry to generate them again.`,
+    dedupeKey: `timeline-direct-gen-orphaned-${sequenceId}`,
+    replaceExisting: true
+  });
+}
+
+/**
+ * Ask the server to stop these requests. Clearing the clip alone left the
+ * provider call running, so Cancel then Generate paid for two renders.
+ * Nothing waits on the reply: the clip is already settled locally.
+ */
+function sendCancelGeneration(requestIds: readonly string[]): void {
+  if (requestIds.length === 0) return;
+  globalWebSocketManager
+    .send({
+      command: "cancel_generation",
+      request_id: crypto.randomUUID(),
+      data: { request_ids: [...requestIds] }
+    })
+    .catch((error: unknown) => {
+      console.error("Failed to cancel generation on the server:", error);
+    });
+}
+
+/**
+ * An imported clip saved while its media was still being produced, such as
+ * the audio extracted from a dropped video. The request that fills it lives
+ * only in the tab that dropped the video, so on load nothing will.
+ */
+function failOrphanedImports(
+  timeline: TimelineStoreHandle,
+  sequenceId: string
+): void {
+  const orphaned = timeline
+    .getState()
+    .clips.filter(
+      (clip) =>
+        clip.sourceType === "imported" &&
+        clip.status === "generating" &&
+        !clip.currentAssetId
+    );
+  if (orphaned.length === 0) return;
+  for (const clip of orphaned) {
+    writeGenerationState(timeline, clip.id, { status: "failed" });
+  }
+  useNotificationStore.getState().addNotification({
+    type: "warning",
+    content:
+      orphaned.length === 1
+        ? `"${orphaned[0].name}" was still being extracted when this timeline closed. Import the video again to extract its audio.`
+        : `${orphaned.length} clips were still being extracted when this timeline closed. Import their videos again to extract the audio.`,
+    dedupeKey: `timeline-import-orphaned-${sequenceId}`,
+    replaceExisting: true
+  });
+}
+
+const isDirectGenBindingKind = (kind: string | undefined): boolean =>
+  kind === "text-to-image" ||
+  kind === "image-to-image" ||
+  kind === "text-to-video" ||
+  kind === "image-to-video" ||
+  kind === "text-to-audio" ||
+  kind === "text-to-music";
+
+async function reattachRestoredJobs(
+  timeline: TimelineStoreHandle,
+  sequenceId: string,
+  isCurrent: () => boolean
 ): Promise<void> {
   const restored = useDirectGenPendingStore.getState().restore(sequenceId);
   recoverSettledMediaEdits(timeline, sequenceId);
   recoverSettledProduction(timeline, sequenceId);
   if (restored.length === 0) return;
   await globalWebSocketManager.ensureConnection();
+  if (!isCurrent()) return;
 
   const clips = timeline.getState().clips;
   const live = restored.filter((job) => {
@@ -867,7 +1159,9 @@ export async function reattachSequenceJobs(
         assetIds: []
       });
     } else {
-      useDirectGenPendingStore.getState().settle(sequenceId, job.clipId);
+      useDirectGenPendingStore
+        .getState()
+        .settle(sequenceId, job.clipId, undefined, job.requestId);
     }
     return false;
   });
@@ -876,6 +1170,9 @@ export async function reattachSequenceJobs(
   }
 
   const outcomes = await lookupGenerations(live.map((job) => job.requestId));
+  // The editor closed while the rows were being read. Subscribing now would
+  // leave a listener patching a store nothing saves.
+  if (!isCurrent()) return;
 
   for (const job of live) {
     const outcome = outcomes.get(job.requestId);
@@ -915,7 +1212,8 @@ export async function reattachSequenceJobs(
           directOutcome,
           job.generationRecipe,
           job.candidateOnly,
-          job.lineDelivery
+          job.lineDelivery,
+          job.submittedParams
         );
       }
       continue;
@@ -925,7 +1223,7 @@ export async function reattachSequenceJobs(
     // is left of this entry's own window, after which the clip fails and
     // offers Retry rather than rendering forever.
     if (!job.mediaEdit && !job.production && !job.candidateOnly) {
-      timeline.getState().patchClip(job.clipId, { status: "generating" });
+      writeGenerationState(timeline, job.clipId, { status: "generating" });
     }
     subscribeDirectGen(
       timeline,
@@ -936,7 +1234,8 @@ export async function reattachSequenceJobs(
       job.mediaEdit,
       job.production ?? job.generationRecipe,
       job.candidateOnly,
-      job.lineDelivery
+      job.lineDelivery,
+      job.submittedParams
     );
   }
 }
@@ -996,7 +1295,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
   // switch to another timeline instance mid-generation can't redirect them.
   const timeline = useTimelineStoreApi();
 
-  const start = useCallback(
+  const runStart = useCallback(
     async (
       clipId: string,
       productionCandidate?: CompiledProductionCandidate,
@@ -1018,6 +1317,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
         kind !== "text-to-image" &&
         kind !== "image-to-image" &&
         kind !== "text-to-video" &&
+        kind !== "image-to-video" &&
         kind !== "text-to-audio" &&
         kind !== "text-to-music"
       ) {
@@ -1030,32 +1330,48 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
         return null;
       }
       if (!clip.provider || !clip.model) {
-        fail(timeline, clipId);
+        failWithReason(timeline, clipId, "choose a provider and model first.");
         return null;
       }
       const prompt = (
         productionCandidate?.snapshot.prompt ?? clip.prompt ?? ""
       ).trim();
       if (!prompt) {
-        fail(timeline, clipId);
+        failWithReason(timeline, clipId, "the prompt is empty.");
         return null;
       }
 
-      // image-to-image needs a rendered source clip to draw bytes from.
+      // image-to-image and image-to-video need a rendered source clip to
+      // draw bytes from.
+      const hasSourceClip =
+        kind === "image-to-image" || kind === "image-to-video";
       let sourceAssetId: string | undefined;
-      if (kind === "image-to-image") {
+      if (hasSourceClip) {
         if (!clip.sourceClipId) {
-          fail(timeline, clipId);
+          failWithReason(timeline, clipId, "choose a source clip first.");
           return null;
         }
         const sourceClip = timeline
           .getState()
           .clips.find((c) => c.id === clip.sourceClipId);
         if (!sourceClip?.currentAssetId) {
-          fail(timeline, clipId);
+          failWithReason(
+            timeline,
+            clipId,
+            "the source clip has not been generated yet."
+          );
           return null;
         }
         sourceAssetId = sourceClip.currentAssetId;
+      }
+
+      for (const candidate of [clip, hasSourceClip ? timeline.getState().clips.find(c => c.id === clip.sourceClipId) : undefined]) {
+        if (!candidate?.storyboardBoardId) { continue; }
+        const board = await trpcClient.storyboards.get.query({ id: candidate.storyboardBoardId });
+        const shot = board.document.shots.find(shot => shot.id === candidate.storyboardShotId);
+        if (!shot) { throw new Error("Storyboard generation source shot was not found."); }
+        const capability = kind === "text-to-video" ? (productionCandidate?.executionRoute === "reference_to_video" ? "reference_to_video" : "text_to_video") : kind === "image-to-video" ? "image_to_video" : kind === "image-to-image" ? "image_to_image" : "text_to_image";
+        assertProductionGenerationAllowed(shot.production === undefined ? undefined : productionRequirement.parse(shot.production), capability);
       }
 
       const recipeResult =
@@ -1075,8 +1391,14 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
       if (production === null) return null;
       const requestId =
         production?.attemptId ?? preparedRequestId ?? crypto.randomUUID();
+      // What this request sends, frozen now. The clip may be edited while the
+      // render runs, and the take must record what was actually rendered.
+      const submittedParams =
+        production || generationRecipe
+          ? undefined
+          : snapshotSubmittedParams(clip);
       if (!production) {
-        timeline.getState().patchClip(clipId, { status: "generating" });
+        writeGenerationState(timeline, clipId, { status: "generating" });
       }
       // Watched from the send, not only from a reattach. A socket that drops
       // and reconnects without a reload — a network blip — leaves the reply
@@ -1091,7 +1413,9 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
         Date.now() + PENDING_TTL_MS,
         undefined,
         production ?? generationRecipe,
-        false
+        false,
+        undefined,
+        submittedParams
       );
       if (sequenceId) {
         // Recorded before the send, so a reply that arrives after the tab is
@@ -1102,7 +1426,8 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
           startedAt: Date.now(),
           bucket: durationBucketKey(kind, clip.model),
           ...(generationRecipe !== undefined && { generationRecipe }),
-          ...(production !== undefined && { production })
+          ...(production !== undefined && { production }),
+          ...(submittedParams !== undefined && { submittedParams })
         });
       }
 
@@ -1119,6 +1444,14 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
           ? Math.round(clip.durationMs / 1000)
           : undefined;
       }
+      if (kind === "image-to-video") {
+        framingParams.duration = imageToVideoRequestSeconds(clip.durationMs);
+      }
+
+      // The clip's own references. A production request carries its own.
+      const picked = !production && kind === "text-to-video"
+        ? directGenReferences(clip)
+        : { images: [], prompt };
 
       try {
         await globalWebSocketManager.send({
@@ -1130,15 +1463,20 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
                 ? "image"
                 : kind === "image-to-image"
                   ? "image_edit"
-                  : kind === "text-to-video"
+                  : kind === "text-to-video" || kind === "image-to-video"
                     ? "video"
                     : kind === "text-to-music"
                       ? "music"
                       : "audio",
             provider: clip.provider,
             model: clip.model,
-            prompt,
+            prompt: production ? prompt : picked.prompt,
             source_asset_id: sourceAssetId,
+            timeline_context: sequenceId ? {
+              sequence_id: sequenceId,
+              source_clip_id: hasSourceClip ? clip.sourceClipId ?? undefined : undefined,
+              target_clip_id: clip.id
+            } : undefined,
             width: clip.width,
             height: clip.height,
             strength: clip.strength,
@@ -1150,7 +1488,8 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
             variations: 1,
             voice: kind === "text-to-audio" ? clip.voice : undefined,
             capability:
-              production?.executionRoute === "reference_to_video"
+              production?.executionRoute === "reference_to_video" ||
+              picked.images.length > 0
                 ? "reference_to_video"
                 : undefined,
             reference_images:
@@ -1159,7 +1498,9 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
                     type: "image",
                     asset_id: assetId
                   }))
-                : undefined,
+                : picked.images.length > 0
+                  ? picked.images
+                  : undefined,
             ...framingParams
           }
         });
@@ -1184,13 +1525,48 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
               .settle(sequenceId, clipId, undefined, requestId);
           }
         }
-        if (!production) fail(timeline, clipId);
+        if (!production) {
+          failWithReason(
+            timeline,
+            clipId,
+            "the request could not be submitted. Check the connection and try again."
+          );
+        }
         return null;
       }
 
       return requestId;
     },
     [timeline]
+  );
+
+  const start = useCallback(
+    async (
+      clipId: string,
+      productionCandidate?: CompiledProductionCandidate,
+      preparedRequestId?: string
+    ): Promise<string | null> => {
+      const sequenceId = timeline.getState().sequenceId;
+      // Both guards run before the first await in `runStart`. The synchronous
+      // key covers two calls racing through the storyboard lookup, and the
+      // in-flight check refuses a start while an edit, New take or earlier
+      // render of the same clip is still open. Sending a second request would
+      // otherwise replace the first one's record and orphan a paid result.
+      const startKey = `${sequenceId ?? ""}:${clipId}:${
+        productionCandidate?.identity.requestId ?? ""
+      }`;
+      if (startingDirectGen.has(startKey)) return null;
+      if (!productionCandidate && inFlightForClip(sequenceId, clipId).length > 0) {
+        return null;
+      }
+      startingDirectGen.add(startKey);
+      try {
+        return await runStart(clipId, productionCandidate, preparedRequestId);
+      } finally {
+        startingDirectGen.delete(startKey);
+      }
+    },
+    [timeline, runStart]
   );
 
   const startNewTake = useCallback(
@@ -1265,7 +1641,9 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
         return requestId;
       } catch {
         clearInFlight(sequenceId, input.clipId, requestId);
-        useDirectGenPendingStore.getState().settle(sequenceId, input.clipId);
+        useDirectGenPendingStore
+          .getState()
+          .settle(sequenceId, input.clipId, undefined, requestId);
         return null;
       }
     },
@@ -1360,45 +1738,83 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
     [timeline]
   );
 
-  const cancel = useCallback(
-    (clipId: string) => {
+  const cancelRequests = useCallback(
+    (clipId: string, scope: "auto" | "edit") => {
       const sequenceId = timeline.getState().sequenceId;
-      const inFlightJob = clearInFlight(sequenceId, clipId);
-      const pendingEditJob = sequenceId
-        ? useDirectGenPendingStore
-            .getState()
-            .pending[
-              sequenceId
-            ]?.find((job) => job.clipId === clipId && job.mediaEdit)
-        : undefined;
-      const mediaEdit = inFlightJob?.mediaEdit ?? pendingEditJob?.mediaEdit;
-      const mediaEditRequestId =
-        inFlightJob?.requestId ?? pendingEditJob?.requestId;
-      if (mediaEdit && mediaEditRequestId) {
-        useDirectGenPendingStore.getState().settleEdit({
-          sequenceId: mediaEdit.sourceContext.sequenceId,
-          clipId: mediaEdit.sourceContext.clipId,
-          requestId: mediaEditRequestId,
-          mediaEdit,
-          status: "cancelled",
-          assetIds: []
-        });
-        return;
+      type Target = {
+        requestId: string;
+        mediaEdit?: MediaEditRequest;
+        production?: unknown;
+        candidateOnly?: boolean;
+      };
+      // Every open request for this clip, each by its own id. Cancelling
+      // matches by request, not by clip, so stopping a render does not take
+      // an edit or a New take on the same clip down with it.
+      const byId = new Map<string, Target>();
+      for (const job of inFlightForClip(sequenceId, clipId)) {
+        byId.set(job.requestId, job);
       }
       if (sequenceId) {
-        useDirectGenPendingStore.getState().settle(sequenceId, clipId);
+        for (const job of useDirectGenPendingStore.getState().pending[
+          sequenceId
+        ] ?? []) {
+          if (job.clipId === clipId && !byId.has(job.requestId)) {
+            byId.set(job.requestId, job);
+          }
+        }
       }
+      const targets = [...byId.values()];
+      const edits = targets.filter((job) => job.mediaEdit);
+      const generations = targets.filter(
+        (job) => !job.mediaEdit && !job.production && !job.candidateOnly
+      );
+      const takes = targets.filter((job) => !job.mediaEdit && job.candidateOnly);
+      const chosen =
+        scope === "edit"
+          ? edits
+          : generations.length > 0
+            ? generations
+            : edits.length > 0
+              ? edits
+              : takes;
+      for (const job of chosen) {
+        clearInFlight(sequenceId, clipId, job.requestId);
+        if (job.mediaEdit) {
+          useDirectGenPendingStore.getState().settleEdit({
+            sequenceId: job.mediaEdit.sourceContext.sequenceId,
+            clipId: job.mediaEdit.sourceContext.clipId,
+            requestId: job.requestId,
+            mediaEdit: job.mediaEdit,
+            status: "cancelled",
+            assetIds: []
+          });
+        } else if (sequenceId) {
+          useDirectGenPendingStore
+            .getState()
+            .settle(sequenceId, clipId, undefined, job.requestId);
+        }
+      }
+      sendCancelGeneration(chosen.map((job) => job.requestId));
+      if (scope === "edit" || (edits.length > 0 && generations.length === 0)) {
+        return;
+      }
+      if (chosen.length === 0 && takes.length > 0) return;
       // Settle back to whatever idle status the clip's fields warrant — a
       // generated/stale clip should not regress to "Draft" just because the
       // user cancelled a re-roll. `deriveIdleClipStatus` produces draft only
       // when the clip has no rendered asset.
       const clip = timeline.getState().clips.find((c) => c.id === clipId);
       if (!clip) return;
-      timeline
-        .getState()
-        .patchClip(clipId, { status: deriveIdleClipStatus(clip) });
+      writeGenerationState(timeline, clipId, {
+        status: deriveIdleClipStatus(clip)
+      });
     },
     [timeline]
+  );
+
+  const cancel = useCallback(
+    (clipId: string) => cancelRequests(clipId, "auto"),
+    [cancelRequests]
   );
 
   const cancelEdit = useCallback(
@@ -1406,9 +1822,9 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
       const sequenceId = timeline.getState().sequenceId;
       if (!sequenceId) return;
       useDirectGenPendingStore.getState().clearEditFailure(sequenceId, clipId);
-      cancel(clipId);
+      cancelRequests(clipId, "edit");
     },
-    [cancel, timeline]
+    [cancelRequests, timeline]
   );
 
   return { start, startNewTake, startEdit, cancel, cancelEdit };

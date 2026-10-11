@@ -8,6 +8,7 @@ import type {
 } from "@nodetool-ai/timeline";
 import type {
   CompositorBlendMode,
+  FrameSourceWindow,
   MatteMode,
   ResolvedTransition
 } from "@nodetool-ai/timeline/render";
@@ -50,6 +51,13 @@ export interface CompositeLayer {
    * effects and no blend mode, which is the path that allocates nothing.
    */
   precomposeGroupId?: string;
+  /**
+   * The source is this window of a frame-sized raster: a text or shape
+   * rasterized only where it draws. Placed as the whole raster would be. Only
+   * the WebGPU backend reads it, so only that backend is handed windowed
+   * sources (see `compositeLayers.ts`).
+   */
+  sourceWindow?: FrameSourceWindow;
   /** Rounded-corner radius in source pixels. Default 0. */
   borderRadius?: number;
   /**
@@ -77,6 +85,13 @@ export interface CompositeLayer {
    * matte source never draws itself.
    */
   matte?: CompositeMatte;
+  /**
+   * Set when the layer has a matte whose source has no pixels yet (a video
+   * still loading its metadata). The WebGPU path draws nothing for it, as the
+   * shared compositor does for a matte source it cannot upload, rather than
+   * showing everything the matte is there to hide.
+   */
+  mattePending?: true;
   /** Per-clip GPU effects applied as a pre-pass before this layer's draw. */
   effects?: ClipEffect[];
   /**

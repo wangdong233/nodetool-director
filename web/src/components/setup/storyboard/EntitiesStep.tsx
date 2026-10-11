@@ -1,12 +1,23 @@
+import { i18n } from "../../../i18n";
 /**
  * The storyboard setup's consistency step. Entities are reusable reference
  * images plus canonical descriptions. The selection is stored on the board,
  * while every shot gets an explicit selection the creator can refine here.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Suspense,
+  lazy,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import { useTheme } from "@mui/material/styles";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
+import { formatUsd } from "@nodetool-ai/model-pricing";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { useEntities, useSaveEntity } from "../../../serverState/useEntities";
@@ -14,17 +25,20 @@ import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { entitiesForShot } from "../../../stores/storyboard/shotEntities";
 import { rpcRequest } from "../../../lib/websocket/rpcRequest";
 import { useDefaultStillModel } from "../../../hooks/storyboard/useDefaultStillModel";
+import { useDefaultDirectorModel } from "../../../hooks/storyboard/useDefaultDirectorModel";
+import { useInStudio } from "../../../studio/StudioContext";
+import { useImageModelsByProvider } from "../../../hooks/useModelsByProvider";
+import { priceRenderStep } from "../../../hooks/storyboard/shotCostPricing";
 import EntityAssetPickerDialog from "../../entities/EntityAssetPickerDialog";
 import EntityEditorDialog from "../../entities/EntityEditorDialog";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
-import { useTranslation } from "react-i18next";
+import { GallerySource, useMediaGallery } from "../MediaGallery";
 import {
   AlertBanner,
   BORDER_RADIUS,
   Caption,
   Checkbox,
-  Dialog,
   EditorButton,
   EmptyState,
   FlexColumn,
@@ -48,24 +62,82 @@ import {
   type EntitySuggestion
 } from "./entitySuggestions";
 import {
+  referenceImageModel,
+  type ReferenceImageModel
+} from "./referenceImageModel";
+import {
+  boardScreenplaySnapshot,
+  cancelEntityFind,
+  finishEntityFind,
+  getEntitySuggestions,
+  setEntitySuggestions,
+  startEntityFind,
+  useEntityFindEmpty,
+  useEntityFindRunning,
+  useEntitySuggestions
+} from "./setupChoices";
+import {
   SETUP_FIELD_WIDTH,
   SETUP_MEDIA_WIDTH,
   SETUP_WIDE_CONTENT_WIDTH
 } from "../layout";
 
+// The estimate pulls in the provider price tables, as on the review step.
+const GenerationEstimateLine = lazy(() =>
+  import("../GenerationSummary").then((module) => ({
+    default: module.GenerationEstimateLine
+  }))
+);
+
+/** What `Find entities` lets the screenplay model answer with. */
+const SUGGESTIONS_MAX_OUTPUT_TOKENS = 2048;
+/** The size a suggested entity's reference is drawn at. */
+const REFERENCE_RESOLUTION = "1K";
+
+/** One entity creation, as the flow tracks it. */
+export interface EntityCreation {
+  /** Aborted when the creator cancels the step's pending work. */
+  signal: AbortSignal;
+  /** Call once the creation settles, however it ended. */
+  done: () => void;
+}
+
 interface EntitiesStepProps {
   boardId: string;
   readOnly?: boolean;
+  /**
+   * Report a creation to the flow, so the shell holds Continue and Skip until
+   * it lands and its Cancel can stop it (F9).
+   */
+  onCreationStart?: () => EntityCreation;
 }
 
 const EMPTY_ENTITY_IDS: string[] = [];
 const ENTITY_PREVIEW_SIZE = SPACING_PX.xxxl * 4;
 const ENTITY_GROUPS = [
-  { kind: "character", label: "Characters", labelKey: "storyboard:attrs.characters" },
-  { kind: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },
-  { kind: "prop", label: "Props", labelKey: "storyboard:attrs.props" },
-  { kind: "style", label: "Styles", labelKey: "storyboard:attrs.styles" }
+  { kind: "character", label: "Characters" },
+  { kind: "location", label: "Locations" },
+  { kind: "prop", label: "Props" },
+  { kind: "style", label: "Styles" }
 ] as const;
+
+const REFERENCE_MODEL_HELPER =
+  i18n.t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." });
+
+const editOnlyMessage = (name: string): string =>
+  `${name} only edits images, so it cannot draw a reference from a description. Pick a model that creates images from text.`;
+
+const referenceModelHelperText = (
+  model: ReferenceImageModel | null
+): string => {
+  if (model?.kind === "edit_only") {
+    return editOnlyMessage(model.name);
+  }
+  if (model?.substituteFor) {
+    return `${model.substituteFor} only edits images, so references use ${model.model.name}. Stills in the Look step keep ${model.substituteFor}.`;
+  }
+  return REFERENCE_MODEL_HELPER;
+};
 
 const setIdSelected = (
   ids: readonly string[],
@@ -80,30 +152,63 @@ const setIdSelected = (
 
 export const EntitiesStep = ({
   boardId,
-  readOnly = false
+  readOnly = false,
+  onCreationStart
 }: EntitiesStepProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { data: entities, isLoading } = useEntities();
+  const {
+    data: entities,
+    isLoading,
+    isError: entitiesFailed,
+    error: entitiesError,
+    refetch: refetchEntities
+  } = useEntities();
   const saveEntity = useSaveEntity();
   useDefaultStillModel(boardId, !readOnly);
+  // `Find entities` asks the screenplay model. A shotlist import skips the
+  // genre step that fills it in, so this step fills it in too. Studio pins
+  // its own.
+  const inStudio = useInStudio();
+  useDefaultDirectorModel(boardId, !readOnly && !inStudio);
   const board = useStoryboardStore((state) => state.boards[boardId]);
   const setEntityIds = useStoryboardStore((state) => state.setEntityIds);
   const updateShot = useStoryboardStore((state) => state.updateShot);
   const setImageModel = useStoryboardStore((state) => state.setImageModel);
+  const { models: imageModels } = useImageModelsByProvider();
+  const referenceModel = board?.imageModel
+    ? referenceImageModel(board.imageModel, imageModels)
+    : null;
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [previewEntity, setPreviewEntity] = useState<Entity | null>(null);
+  const openGallery = useMediaGallery();
   const [newAssetId, setNewAssetId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [onlySelected, setOnlySelected] = useState(false);
   const [createdEntities, setCreatedEntities] = useState<Entity[]>([]);
-  const [suggestions, setSuggestions] = useState<EntitySuggestion[]>([]);
-  const [suggesting, setSuggesting] = useState(false);
+  const suggestions = useEntitySuggestions(boardId);
+  const dropSuggestion = (key: string): void =>
+    setEntitySuggestions(
+      boardId,
+      getEntitySuggestions(boardId).filter(
+        (candidate) => `${candidate.kind}:${candidate.name}` !== key
+      )
+    );
+  // Held per board, so a step remounted mid-call shows it running (B1).
+  const suggesting = useEntityFindRunning(boardId);
+  const foundNone = useEntityFindEmpty(boardId);
   const [creatingKeys, setCreatingKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
   const [assistError, setAssistError] = useState<string | null>(null);
+  // Which action failed, so the banner names it: finding entities or
+  // creating one.
+  const [assistFailure, setAssistFailure] = useState<"find" | "create">(
+    "create"
+  );
   const mountedRef = useRef(true);
+  const priceIdBase = useId();
+  const findButtonRef = useRef<HTMLButtonElement>(null);
+  const [findEnded, setFindEnded] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -138,6 +243,48 @@ export const EntitiesStep = ({
     }
   };
 
+  // The Find button is disabled while it runs and Cancel leaves with the run,
+  // so focus that fell to the page goes back to Find when the run ends.
+  useEffect(() => {
+    if (!findEnded || suggesting) {
+      return;
+    }
+    setFindEnded(false);
+    const active = document.activeElement;
+    if (active === null || active === document.body) {
+      findButtonRef.current?.focus();
+    }
+  }, [findEnded, suggesting]);
+
+  // The screenplay `Find entities` sends, for the call and its estimate.
+  const suggestionsPrompt = useMemo(() => {
+    const screenplay = boardScreenplaySnapshot(board);
+    return screenplay ? buildEntitySuggestionsPrompt(screenplay) : "";
+  }, [board]);
+
+  // What one `Create <name>` costs: one reference image at 1K from the model
+  // that will draw it, which may be the text-to-image variant of the still
+  // model.
+  const createPrice = useMemo(() => {
+    if (referenceModel?.kind !== "ready") {
+      return null;
+    }
+    return priceRenderStep(
+      "Reference",
+      referenceModel.model,
+      "reference image model",
+      REFERENCE_RESOLUTION,
+      undefined,
+      []
+    );
+  }, [referenceModel]);
+  const createPriceText =
+    createPrice === null
+      ? null
+      : createPrice.cost === null
+        ? "Price unknown"
+        : `About ${formatUsd(createPrice.cost)}`;
+
   const handleCreated = (entity: Entity | null): void => {
     if (entity) {
       setCreatedEntities((current) => [...current, entity]);
@@ -146,50 +293,70 @@ export const EntitiesStep = ({
   };
 
   const suggestFromStory = async (): Promise<void> => {
+  const { t } = useTranslation();
+    if (readOnly) {
+      return;
+    }
     const current = useStoryboardStore.getState().getBoard(boardId);
-    const screenplay = current?.screenplay;
+    // The reviewed board, not `board.screenplay`: review edits land on the
+    // board's own shots and title, and the envelope keeps the first draft (F11).
+    const screenplay = boardScreenplaySnapshot(current);
     const model = current?.directorModel;
     if (!screenplay || !model?.id) {
+      setAssistFailure("find");
       setAssistError(
-        t("storyboard:attrs.theStoryboardNeedsAScreenplayAndDirectorModelFirst", { defaultValue: "The storyboard needs a screenplay and Director model first." })
+        i18n.t("storyboard:attrs.theStoryboardNeedsAScreenplayAndDirectorModelFirst", { defaultValue: "The storyboard needs a screenplay and Director model first." })
       );
       return;
     }
-    setSuggesting(true);
+    const controller = startEntityFind(boardId);
     setAssistError(null);
+    let found: EntitySuggestion[] | null = null;
     try {
-      const answer = await rpcRequest("generate_text", {
-        provider: model.provider,
-        model: model.id,
-        system: ENTITY_SUGGESTIONS_SYSTEM_PROMPT,
-        prompt: buildEntitySuggestionsPrompt(screenplay),
-        max_tokens: 2048,
-        schema: ENTITY_SUGGESTIONS_SCHEMA,
-        schema_name: "storyboard_entity_suggestions",
-        schema_description:
-          "Visually important reusable entities found in a storyboard screenplay."
-      });
-      if (!mountedRef.current) return;
-      setSuggestions(parseEntitySuggestions(answer.data));
+      const answer = await rpcRequest(
+        "generate_text",
+        {
+          provider: model.provider,
+          model: model.id,
+          system: ENTITY_SUGGESTIONS_SYSTEM_PROMPT,
+          prompt: buildEntitySuggestionsPrompt(screenplay),
+          max_tokens: SUGGESTIONS_MAX_OUTPUT_TOKENS,
+          schema: ENTITY_SUGGESTIONS_SCHEMA,
+          schema_name: "storyboard_entity_suggestions",
+          schema_description:
+            "Visually important reusable entities found in a storyboard screenplay."
+        },
+        undefined,
+        controller.signal
+      );
+      // Kept per board, so an answer paid for after the creator moved on
+      // (Continue, Back) is waiting when they return.
+      found = parseEntitySuggestions(answer.data);
     } catch (error) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || controller.signal.aborted) return;
+      setAssistFailure("find");
       setAssistError(
         error instanceof Error
           ? error.message
-          : t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
+          : i18n.t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
       );
     } finally {
-      if (mountedRef.current) {
-        setSuggesting(false);
+      if (finishEntityFind(boardId, controller, found) && mountedRef.current) {
+        setFindEnded(true);
       }
     }
+  };
+
+  const cancelFind = (): void => {
+    cancelEntityFind(boardId);
+    setFindEnded(true);
   };
 
   const createSuggestion = async (
     suggestion: EntitySuggestion
   ): Promise<void> => {
     const key = `${suggestion.kind}:${suggestion.name}`;
-    if (creatingKeys.has(key)) {
+    if (readOnly || creatingKeys.has(key)) {
       return;
     }
     const existing = availableEntities.find(
@@ -199,36 +366,50 @@ export const EntitiesStep = ({
     );
     if (existing) {
       setBoardEntity(existing, true);
-      setSuggestions((current) =>
-        current.filter(
-          (candidate) => `${candidate.kind}:${candidate.name}` !== key
-        )
-      );
+      dropSuggestion(key);
       return;
     }
-    const model =
+    const selected =
       useStoryboardStore.getState().getBoard(boardId)?.imageModel ?? null;
-    if (!model?.id) {
-      setAssistError(t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
+    if (!selected?.id) {
+      setAssistFailure("create");
+      setAssistError(i18n.t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
       return;
     }
+    const resolved = referenceImageModel(selected, imageModels);
+    if (resolved.kind === "edit_only") {
+      setAssistFailure("create");
+      setAssistError(editOnlyMessage(resolved.name));
+      return;
+    }
+    const { model } = resolved;
+    const creation = onCreationStart?.();
+    const signal = creation?.signal;
     setCreatingKeys((current) => new Set(current).add(key));
     setAssistError(null);
     try {
-      const answer = await rpcRequest("generate_media", {
-        mode: "image",
-        provider: model.provider,
-        model: model.id,
-        prompt: suggestion.referencePrompt,
-        aspect_ratio: "1:1",
-        resolution: "1K",
-        variations: 1
-      });
+      const answer = await rpcRequest(
+        "generate_media",
+        {
+          mode: "image",
+          provider: model.provider,
+          model: model.id,
+          prompt: suggestion.referencePrompt,
+          aspect_ratio: "1:1",
+          resolution: "1K",
+          variations: 1
+        },
+        undefined,
+        signal
+      );
+      if (signal?.aborted) {
+        return;
+      }
       const assetId = Array.isArray(answer.asset_ids)
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error(t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
+        throw new Error(i18n.t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
       }
       const entity = await saveEntity.mutateAsync({
         assetId,
@@ -239,22 +420,27 @@ export const EntitiesStep = ({
         reference_asset_id: assetId
       });
       if (!entity) {
-        throw new Error(t("storyboard:attrs.theEntityCouldNotBeSaved", { defaultValue: "The entity could not be saved." }));
+        throw new Error(i18n.t("storyboard:attrs.theEntityCouldNotBeSaved", { defaultValue: "The entity could not be saved." }));
       }
+      // A creation canceled while it was being saved stays off the board: the
+      // creator asked for it to stop (F10).
+      if (signal?.aborted) {
+        return;
+      }
+      // The entity is saved and paid for, so it joins the board even when the
+      // step has unmounted: the board is a store write, not component state.
+      setBoardEntity(entity, true);
+      dropSuggestion(key);
       if (!mountedRef.current) return;
       setCreatedEntities((current) => [...current, entity]);
-      setBoardEntity(entity, true);
-      setSuggestions((current) =>
-        current.filter(
-          (candidate) => `${candidate.kind}:${candidate.name}` !== key
-        )
-      );
     } catch (error) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || signal?.aborted) return;
+      setAssistFailure("create");
       setAssistError(
-        error instanceof Error ? error.message : t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
+        error instanceof Error ? error.message : i18n.t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
       );
     } finally {
+      creation?.done();
       if (mountedRef.current) {
         setCreatingKeys((current) => {
           const next = new Set(current);
@@ -298,7 +484,9 @@ export const EntitiesStep = ({
       sx={{ maxWidth: 1040, width: "100%", minWidth: 0 }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big" component="h1">{t("storyboard:attrs.keepPeopleAndPlacesConsistent", { defaultValue: "Keep people and places consistent" })}</Text>
+        <Text size="big" component="h1">
+          Keep people and places consistent
+        </Text>
         <Text color="secondary" sx={{ maxWidth: "65ch" }}>
           Choose the characters, places, and props that need to look consistent
           across shots.
@@ -322,28 +510,72 @@ export const EntitiesStep = ({
               you want to use.
             </Caption>
           </FlexColumn>
-          <EditorButton
-            variant="outlined"
-            onClick={() => void suggestFromStory()}
-            disabled={suggesting}
-          >
-            {suggesting
-              ? t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
-              : suggestions.length > 0
-                ? t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
-                : t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
-          </EditorButton>
+          <FlexColumn gap={SPACING.xs} align="flex-end">
+            <FlexRow gap={SPACING.sm} align="center">
+              <EditorButton
+                ref={findButtonRef}
+                variant="outlined"
+                onClick={() => void suggestFromStory()}
+                disabled={readOnly || suggesting}
+              >
+                {suggesting
+                  ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
+                  : suggestions.length > 0
+                    ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
+                    : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
+              </EditorButton>
+              {suggesting ? (
+                // Named apart from the footer's Cancel, which stops entity
+                // creations: both can be on screen at once.
+                <EditorButton
+                  variant="text"
+                  onClick={cancelFind}
+                  aria-label="Cancel finding entities"
+                >
+                  Cancel
+                </EditorButton>
+              ) : null}
+            </FlexRow>
+            {foundNone && !suggesting ? (
+              <Caption role="status">
+                No recurring characters, places or props were found in your
+                screenplay.
+              </Caption>
+            ) : null}
+            {readOnly ? null : (
+              <Suspense
+                fallback={
+                  <Caption color="secondary">Loading estimate…</Caption>
+                }
+              >
+                <GenerationEstimateLine
+                  result="Find the characters, places, and props in your screenplay"
+                  next="Nothing is created until you choose."
+                  model={board?.directorModel ?? null}
+                  brief={`${ENTITY_SUGGESTIONS_SYSTEM_PROMPT}\n${suggestionsPrompt}`}
+                  maxOutputTokens={SUGGESTIONS_MAX_OUTPUT_TOKENS}
+                />
+              </Suspense>
+            )}
+          </FlexColumn>
         </FlexRow>
 
         {assistError ? (
           <AlertBanner
             severity="error"
-            title={t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })}
+            title={
+              assistFailure === "find"
+                ? "Could not find entities"
+                : i18n.t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })
+            }
             action={
               <ReportBugButton
                 context={{
                   source: "provider-call",
-                  summary: "Storyboard entity creation failed",
+                  summary:
+                    assistFailure === "find"
+                      ? "Storyboard entity suggestions failed"
+                      : "Storyboard entity creation failed",
                   errorText: assistError
                 }}
               />
@@ -366,11 +598,12 @@ export const EntitiesStep = ({
             ) ? (
               <FormField
                 label={t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
-                helperText={t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." })}
+                helperText={referenceModelHelperText(referenceModel)}
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
                 <ImageModelSelect
                   value={board?.imageModel?.id ?? ""}
+                  provider={board?.imageModel?.provider}
                   task="text_to_image"
                   onChange={(model) => {
                     if (!readOnly) {
@@ -382,7 +615,7 @@ export const EntitiesStep = ({
               </FormField>
             ) : null}
             <FlexColumn gap={SPACING.md}>
-              {suggestions.map((suggestion) => {
+              {suggestions.map((suggestion, suggestionIndex) => {
                 const creating = creatingKeys.has(
                   `${suggestion.kind}:${suggestion.name}`
                 );
@@ -413,23 +646,37 @@ export const EntitiesStep = ({
                       </FlexRow>
                       <Text color="secondary">{suggestion.descriptor}</Text>
                     </FlexColumn>
-                    <EditorButton
-                      variant="contained"
-                      disabled={
-                        (!existing && !board?.imageModel?.id) || creating
-                      }
-                      onClick={() => void createSuggestion(suggestion)}
-                    >
-                      {creating ? (
-                        <ThinkingIndicator
-                          label={`Creating ${suggestion.name}`}
-                        />
-                      ) : existing ? (
-                        `Use ${suggestion.name}`
-                      ) : (
-                        `Create ${suggestion.name}`
-                      )}
-                    </EditorButton>
+                    <FlexRow gap={SPACING.sm} align="center">
+                      {!existing && createPriceText ? (
+                        <Caption id={`${priceIdBase}-${suggestionIndex}`}>
+                          {createPriceText}
+                        </Caption>
+                      ) : null}
+                      <EditorButton
+                        variant="contained"
+                        aria-describedby={
+                          !existing && createPriceText
+                            ? `${priceIdBase}-${suggestionIndex}`
+                            : undefined
+                        }
+                        disabled={
+                          readOnly ||
+                          (!existing && !board?.imageModel?.id) ||
+                          creating
+                        }
+                        onClick={() => void createSuggestion(suggestion)}
+                      >
+                        {creating ? (
+                          <ThinkingIndicator
+                            label={`Creating ${suggestion.name}`}
+                          />
+                        ) : existing ? (
+                          `Use ${suggestion.name}`
+                        ) : (
+                          `Create ${suggestion.name}`
+                        )}
+                      </EditorButton>
+                    </FlexRow>
                   </FlexRow>
                 );
               })}
@@ -449,16 +696,47 @@ export const EntitiesStep = ({
           variant="outlined"
           startIcon={<AddPhotoAlternateOutlinedIcon />}
           onClick={() => setPickerOpen(true)}
-        >{t("storyboard:attrs.createEntityFromAnImage", { defaultValue: "Create entity from an image" })}</EditorButton>
+          disabled={readOnly}
+        >
+          Create entity from an image
+        </EditorButton>
       </FlexRow>
 
       {isLoading ? (
-        <LoadingSpinner text={t("editor:ui.loadingEntities")} />
+        <LoadingSpinner text="Loading entities" />
+      ) : entitiesFailed && !entities ? (
+        // A failed load is not an empty library: saying "No entities yet"
+        // would send the creator to make again what they already have.
+        <AlertBanner
+          severity="error"
+          title="Could not load your entities"
+          action={
+            <FlexRow gap={SPACING.sm}>
+              <EditorButton
+                variant="text"
+                size="small"
+                onClick={() => void refetchEntities()}
+              >
+                Try again
+              </EditorButton>
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Storyboard entity library failed to load",
+                  errorText: entitiesError?.message
+                }}
+              />
+            </FlexRow>
+          }
+        >
+          {entitiesError?.message ??
+            "The entity library did not load. Try again, or skip this step."}
+        </AlertBanner>
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
           title={t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description={t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep")}
+          description="Create one from a generated or uploaded image, or skip this step."
           size="small"
         />
       ) : (
@@ -488,7 +766,9 @@ export const EntitiesStep = ({
               variant={onlySelected ? "outlined" : "text"}
               aria-pressed={onlySelected}
               onClick={() => setOnlySelected(!onlySelected)}
-            >{t("storyboard:attrs.selectedOnly", { defaultValue: "Selected only" })}</EditorButton>
+            >
+              Selected only
+            </EditorButton>
           </FlexRow>
           <ScrollArea maxHeight="min(48vh, 480px)">
             <FlexColumn gap={SPACING.xl}>
@@ -497,32 +777,31 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
-                      : t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
+                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
+                      : i18n.t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
                   }
                   description={
                     onlySelected && !query
-                      ? t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
-                      : t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
+                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
+                      : i18n.t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
                   }
                   size="small"
                 />
               ) : (
-                ENTITY_GROUPS.map(({ kind, label, labelKey }) => {
+                ENTITY_GROUPS.map(({ kind, label }) => {
                   const group = visibleEntities.filter(
                     (entity) => entity.kind === kind
                   );
                   if (group.length === 0) return null;
-                  const heading = t(labelKey, { defaultValue: label });
                   return (
                     <FlexColumn
                       key={kind}
                       gap={SPACING.md}
                       component="section"
-                      aria-label={heading}
+                      aria-label={label}
                     >
                       <FlexRow gap={SPACING.md} align="baseline">
-                        <Label component="h3">{heading}</Label>
+                        <Label component="h3">{label}</Label>
                         <Caption>{group.length}</Caption>
                       </FlexRow>
                       <FlexColumn
@@ -561,8 +840,10 @@ export const EntitiesStep = ({
                             {entity.reference_images?.[0] ? (
                               <EditorButton
                                 variant="text"
-                                aria-label={t("storyboard:attrs.viewNameReferenceImage", { defaultValue: "View {{name}} reference image", name: entity.name })}
-                                onClick={() => setPreviewEntity(entity)}
+                                aria-label={`View ${entity.name} reference image`}
+                                onClick={() =>
+                                  openGallery?.(entity.reference_images?.[0])
+                                }
                                 sx={{
                                   p: SPACING.none,
                                   width: ENTITY_PREVIEW_SIZE,
@@ -578,6 +859,15 @@ export const EntitiesStep = ({
                                   alt=""
                                   aspectRatio="1/1"
                                   borderRadius={BORDER_RADIUS.sm}
+                                />
+                                <GallerySource
+                                  locator={entity.reference_images[0]}
+                                  kind="image"
+                                  caption={
+                                    entity.descriptor
+                                      ? `${entity.name}: ${entity.descriptor}`
+                                      : entity.name
+                                  }
                                 />
                               </EditorButton>
                             ) : (
@@ -600,12 +890,15 @@ export const EntitiesStep = ({
                             <Checkbox
                               size="small"
                               checked={selectedSet.has(entity.id)}
-                              onChange={(_, checked) =>
-                                setBoardEntity(entity, checked)
-                              }
+                              disabled={readOnly}
+                              onChange={(_, checked) => {
+                                if (!readOnly) {
+                                  setBoardEntity(entity, checked);
+                                }
+                              }}
                               slotProps={{
                                 input: {
-                                  "aria-label": `${t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })} · ${t(`storyboard:attrs.${entity.kind}`, { defaultValue: entity.kind })}`
+                                  "aria-label": `${entity.name} · ${entity.kind}`
                                 }
                               }}
                               labelProps={{
@@ -632,7 +925,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })}
+                                    {entity.name}
                                   </Label>
                                   <Caption
                                     sx={{
@@ -643,9 +936,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {entity.descriptor
-                                      ? t(`catalog:styles.${entity.name}.description`, { defaultValue: entity.descriptor })
-                                      : t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
+                                    {entity.descriptor || "No description"}
                                   </Caption>
                                 </FlexColumn>
                               }
@@ -666,10 +957,10 @@ export const EntitiesStep = ({
         <FlexColumn gap={SPACING.xl}>
           <FlexColumn gap={SPACING.xs}>
             <Text size="big" component="h2">
-              {t("storyboard:attrs.assignEachShot", { defaultValue: "Assign each shot" })}
+              Assign each shot
             </Text>
             <Text color="secondary">
-              {t("storyboard:attrs.removeAnEntityFromShotsWhereItShouldNotAppear", { defaultValue: "Remove an entity from shots where it should not appear." })}
+              Remove an entity from shots where it should not appear.
             </Text>
           </FlexColumn>
           <FlexColumn
@@ -730,9 +1021,12 @@ export const EntitiesStep = ({
                           </FlexRow>
                         }
                         checked={shotIds.has(entity.id)}
-                        onChange={(_, checked) =>
-                          toggleShot(shot.id, entity.id, checked)
-                        }
+                        disabled={readOnly}
+                        onChange={(_, checked) => {
+                          if (!readOnly) {
+                            toggleShot(shot.id, entity.id, checked);
+                          }
+                        }}
                         labelProps={{
                           sx: {
                             m: SPACING.none,
@@ -757,25 +1051,6 @@ export const EntitiesStep = ({
         </FlexColumn>
       ) : null}
 
-      <Dialog
-        open={previewEntity !== null}
-        onClose={() => setPreviewEntity(null)}
-        title={previewEntity?.name}
-        maxWidth="md"
-        fullWidth
-      >
-        {previewEntity?.reference_images?.[0] ? (
-          <FlexColumn gap={SPACING.lg}>
-            <ResponsiveImage
-              locator={previewEntity.reference_images[0]}
-              alt={t("storyboard:attrs.nameReferenceImage", { defaultValue: "{{name}} reference image", name: previewEntity.name })}
-              fit="contain"
-              sx={{ height: "70vh", bgcolor: "background.default" }}
-            />
-            <Text color="secondary">{previewEntity.descriptor}</Text>
-          </FlexColumn>
-        ) : null}
-      </Dialog>
       <EntityAssetPickerDialog
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}

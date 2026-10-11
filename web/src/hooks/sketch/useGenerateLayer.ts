@@ -22,8 +22,11 @@ import {
   workflowQueryKey
 } from "../../serverState/useWorkflow";
 import { useSketchGenerationStore } from "../../stores/sketch/SketchGenerationStore";
-import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
-import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
+import {
+  getActiveSketchInstance,
+  useSketchInstance,
+  type SketchInstance
+} from "../../stores/sketch/SketchInstance";
 import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
@@ -59,6 +62,13 @@ interface LayerGenerationBinding {
   locked?: boolean;
 }
 
+/**
+ * The editor a generation writes its result into. An inactive workspace tab
+ * stays mounted but leaves the activation stack, so a job that settles after
+ * a tab switch must not resolve the stores through `getState()` then.
+ */
+export type LayerGenerationTarget = Pick<SketchInstance, "session" | "canvasRef">;
+
 interface LayerGenerationCompletion {
   jobId: string;
   assetId: string;
@@ -68,6 +78,7 @@ interface LayerGenerationCompletion {
 }
 
 interface JobSubscriptionContext {
+  target: LayerGenerationTarget;
   layerId: string;
   documentId: string;
   workflowId: string;
@@ -121,10 +132,11 @@ const loadImageAsDataUrl = (url: string): Promise<string> =>
   });
 
 const applyAssetToLayer = async (
+  target: LayerGenerationTarget,
   layerId: string,
   assetId: string
 ): Promise<void> => {
-  const setLayerData = useSketchCanvasRefStore.getState().setLayerData;
+  const setLayerData = target.canvasRef.getState().setLayerData;
   if (!setLayerData) return;
   try {
     const asset = await useAssetStore.getState().get(assetId);
@@ -343,7 +355,7 @@ export const handleJobMessage = async (
           status: "success"
         });
 
-        useSketchSessionStore.getState().recordGeneratedVersion(
+        context.target.session.getState().recordGeneratedVersion(
           context.layerId,
           {
             version,
@@ -352,7 +364,7 @@ export const handleJobMessage = async (
           }
         );
 
-        await applyAssetToLayer(context.layerId, assetId);
+        await applyAssetToLayer(context.target, context.layerId, assetId);
 
         context.onComplete?.({
           jobId,
@@ -451,6 +463,8 @@ const subscribeJob = async (
 };
 
 interface StartLayerGenerationOptions {
+  /** The editor the layer belongs to. Defaults to the focused one. */
+  target?: LayerGenerationTarget;
   onComplete?: (info: LayerGenerationCompletion) => void;
   onFailed?: (errorMessage: string) => void;
   onSettled?: (outcome: LayerGenerationOutcome) => void;
@@ -468,6 +482,8 @@ export const startLayerGeneration = async (
   binding: LayerGenerationBinding,
   options: StartLayerGenerationOptions = {}
 ): Promise<string | null> => {
+  // Resolved before any await, while the caller's editor is still focused.
+  const target = options.target ?? getActiveSketchInstance();
   if (binding.locked) {
     throw new Error("Layer is locked");
   }
@@ -531,6 +547,7 @@ export const startLayerGeneration = async (
     await subscribeJob(
       jobId,
       {
+        target,
         layerId: binding.layerId,
         documentId: binding.documentId,
         workflowId: binding.workflowId,
@@ -573,14 +590,19 @@ export const useGenerateLayer = (
   options: UseGenerateLayerOptions
 ): UseGenerateLayerResult => {
   const { binding, onComplete, onFailed } = options;
+  const instance = useSketchInstance();
   const jobState = useSketchGenerationStore(
     (state) => state.layerJobs[binding.layerId]
   );
   const clearJob = useSketchGenerationStore((state) => state.clearJob);
 
   const generateLayer = useCallback(async () => {
-    await startLayerGeneration(binding, { onComplete, onFailed });
-  }, [binding, onComplete, onFailed]);
+    await startLayerGeneration(binding, {
+      target: instance,
+      onComplete,
+      onFailed
+    });
+  }, [binding, instance, onComplete, onFailed]);
 
   const cancelLayerGeneration = useCallback(async () => {
     if (!jobState?.jobId) {

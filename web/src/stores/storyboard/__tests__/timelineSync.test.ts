@@ -5,7 +5,11 @@
  * back-sync modules patch that sequence unchanged; these cases hold them to it.
  */
 
-import { buildLinkedTimeline, makeClip, makeTrack } from "@nodetool-ai/timeline";
+import {
+  buildLinkedTimeline,
+  makeClip,
+  makeTrack
+} from "@nodetool-ai/timeline";
 import type { TimelineClip } from "@nodetool-ai/timeline";
 import type { Shot } from "@nodetool-ai/protocol";
 import { useStoryboardStore, type StoryboardBoard } from "../StoryboardStore";
@@ -72,6 +76,8 @@ const seedBoard = (timelineId: string | null): void => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  getQuery.mockReset();
+  updateMutate.mockReset();
   useStoryboardStore.setState({ boards: {}, serverRevisions: {}, history: {} });
   useScriptStore.setState({
     scripts: {},
@@ -82,9 +88,133 @@ beforeEach(() => {
 });
 
 describe("syncShotClipToTimeline", () => {
+  it("patches only the shot's source clips, not its finished layers (S2)", async () => {
+    seedBoard("tl-1");
+    getQuery.mockResolvedValue({
+      id: "tl-1",
+      updatedAt: "rev-1",
+      tracks: [track],
+      clips: [
+        shotClip({ id: "legacy" }),
+        shotClip({ id: "source", storyboardElementId: "$source" }),
+        shotClip({
+          id: "source-audio",
+          mediaType: "audio",
+          storyboardElementId: "$source-audio"
+        }),
+        shotClip({
+          id: "headline",
+          mediaType: "text",
+          currentAssetId: undefined,
+          storyboardElementId: "headline"
+        }),
+        shotClip({
+          id: "logo",
+          mediaType: "image",
+          currentAssetId: "logo-asset",
+          storyboardElementId: "logo"
+        }),
+        shotClip({ id: "still", mediaType: "image", currentAssetId: "still" })
+      ],
+      markers: []
+    });
+    updateMutate.mockResolvedValue({});
+
+    expect(await syncShotClipToTimeline("board-1", "shot-1", "new-clip")).toBe(
+      true
+    );
+    const assets = Object.fromEntries(
+      (updateMutate.mock.calls[0][0].document.clips as TimelineClip[]).map(
+        (clip) => [clip.id, clip.currentAssetId]
+      )
+    );
+    expect(assets).toEqual({
+      legacy: "new-clip",
+      source: "new-clip",
+      "source-audio": "new-clip",
+      headline: undefined,
+      logo: "logo-asset",
+      still: "still"
+    });
+  });
+
+  it("re-reads and reapplies the rendered shot after a revision conflict", async () => {
+    seedBoard("tl-1");
+    getQuery
+      .mockResolvedValueOnce({
+        id: "tl-1",
+        updatedAt: "rev-1",
+        tracks: [track],
+        clips: [shotClip()],
+        markers: []
+      })
+      .mockResolvedValueOnce({
+        id: "tl-1",
+        updatedAt: "rev-2",
+        tracks: [track],
+        clips: [shotClip({ name: "Renamed by editor" })],
+        markers: []
+      });
+    updateMutate
+      .mockRejectedValueOnce({
+        data: { apiCode: "ALREADY_EXISTS" },
+        message: "revision conflict"
+      })
+      .mockResolvedValueOnce({});
+
+    expect(await syncShotClipToTimeline("board-1", "shot-1", "new-clip")).toBe(
+      true
+    );
+    expect(updateMutate).toHaveBeenCalledTimes(2);
+    expect(updateMutate.mock.calls[1][0].baseUpdatedAt).toBe("rev-2");
+    expect(updateMutate.mock.calls[1][0].document.clips[0]).toEqual(
+      expect.objectContaining({
+        name: "Renamed by editor",
+        currentAssetId: "new-clip"
+      })
+    );
+  });
+
+  it("uses the latest selected shot clip when an older selection loses a revision race", async () => {
+    seedBoard("tl-1");
+    useStoryboardStore
+      .getState()
+      .upsertShot("board-1", renderedShot("shot-1", 0, []));
+    getQuery.mockResolvedValue({
+      id: "tl-1",
+      updatedAt: "rev-2",
+      tracks: [track],
+      clips: [shotClip()],
+      markers: []
+    });
+    updateMutate
+      .mockImplementationOnce(async () => {
+        useStoryboardStore.getState().setShotClip("board-1", "shot-1", {
+          type: "video",
+          asset_id: "latest-clip"
+        });
+        throw {
+          data: { apiCode: "ALREADY_EXISTS" },
+          message: "revision conflict"
+        };
+      })
+      .mockResolvedValueOnce({});
+
+    expect(
+      await syncShotClipToTimeline("board-1", "shot-1", "older-clip")
+    ).toBe(true);
+    expect(updateMutate.mock.calls[1][0].document.clips[0].currentAssetId).toBe(
+      "latest-clip"
+    );
+  });
+
   it("no-ops when the board has no linked timeline", async () => {
     seedBoard(null);
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "new-clip");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "new-clip"
+    );
     expect(result).toBe(false);
     expect(getQuery).not.toHaveBeenCalled();
   });
@@ -100,7 +230,11 @@ describe("syncShotClipToTimeline", () => {
     });
     updateMutate.mockResolvedValue({});
 
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "new-clip");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "new-clip"
+    );
 
     expect(result).toBe(true);
     expect(updateMutate).toHaveBeenCalledTimes(1);
@@ -125,7 +259,11 @@ describe("syncShotClipToTimeline", () => {
       markers: []
     });
 
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "new-clip");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "new-clip"
+    );
 
     expect(result).toBe(false);
     expect(updateMutate).not.toHaveBeenCalled();
@@ -141,7 +279,11 @@ describe("syncShotClipToTimeline", () => {
       markers: []
     });
 
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "new-clip");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "new-clip"
+    );
 
     expect(result).toBe(false);
     expect(updateMutate).not.toHaveBeenCalled();
@@ -151,7 +293,11 @@ describe("syncShotClipToTimeline", () => {
     seedBoard("tl-1");
     getQuery.mockRejectedValue(new Error("boom"));
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "new-clip");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "new-clip"
+    );
     expect(result).toBe(false);
     warn.mockRestore();
   });
@@ -308,7 +454,8 @@ describe("back-sync into a jointly assembled sequence", () => {
     const result = await syncLineClipToTimeline("script-1", "line-1", newTake);
 
     expect(result).toBe(true);
-    const clips = updateMutate.mock.calls[0][0].document.clips as TimelineClip[];
+    const clips = updateMutate.mock.calls[0][0].document
+      .clips as TimelineClip[];
     const patched = clips.find((c) => c.scriptLineId === "line-1");
     expect(patched?.currentAssetId).toBe("asset-line-1-b");
     expect(patched?.durationMs).toBe(5000);
@@ -341,10 +488,15 @@ describe("back-sync into a jointly assembled sequence", () => {
     getQuery.mockResolvedValue(jointSequence());
     updateMutate.mockResolvedValue({});
 
-    const result = await syncShotClipToTimeline("board-1", "shot-1", "clip-1-b");
+    const result = await syncShotClipToTimeline(
+      "board-1",
+      "shot-1",
+      "clip-1-b"
+    );
 
     expect(result).toBe(true);
-    const clips = updateMutate.mock.calls[0][0].document.clips as TimelineClip[];
+    const clips = updateMutate.mock.calls[0][0].document
+      .clips as TimelineClip[];
     const patched = clips.find(
       (c) => c.mediaType === "video" && c.storyboardShotId === "shot-1"
     );
@@ -377,7 +529,8 @@ describe("back-sync into a jointly assembled sequence", () => {
 
     await syncShotClipToTimeline("board-1", "shot-1", "clip-1-b");
 
-    const clips = updateMutate.mock.calls[0][0].document.clips as TimelineClip[];
+    const clips = updateMutate.mock.calls[0][0].document
+      .clips as TimelineClip[];
     const twin = clips.find(
       (c) =>
         c.mediaType === "audio" &&

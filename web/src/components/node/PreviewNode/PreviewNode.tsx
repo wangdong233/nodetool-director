@@ -2,10 +2,11 @@
 import { css } from "@emotion/react";
 
 import React, { memo, useCallback, useMemo, useState } from "react";
-import { Handle, NodeProps, Position, useReactFlow } from "@xyflow/react";
+import { Handle, NodeProps, Position } from "@xyflow/react";
 import { getCopySource, getOutputFromResult } from "../outputResult";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
-  Text,
+  CheckerDropzone,
   Container,
   MOTION,
   BORDER_RADIUS,
@@ -28,7 +29,7 @@ import { createAssetFile } from "../../../utils/createAssetFile";
 import { tableStyles } from "../../../styles/TableStyles";
 import OutputRenderer from "../OutputRenderer";
 import { getPreviewNodeSelectionSx } from "../selectionStyles";
-import { NodeHeader } from "../NodeHeader";
+import { NodeHeader, NODE_HEADER_MIN_HEIGHT } from "../NodeHeader";
 import NodeResizeHandle from "../NodeResizeHandle";
 import { NodeOutputs } from "../NodeOutputs";
 import PreviewActions from "./PreviewActions";
@@ -58,14 +59,21 @@ const styles = (theme: Theme) =>
         minWidth: "150px",
         maxWidth: "unset",
         minHeight: "80px",
-        borderRadius: `calc(${theme.rounded.node} - 1px)`,
-        border: `1px solid ${theme.vars.palette.grey[700]}`
+        borderRadius: theme.rounded.node
+      },
+      // The body padding of every other node. `.react-flow__node .node-body`
+      // (nodes.base.css) resets it at equal specificity, so the class is
+      // doubled to outrank it.
+      ".react-flow__node &&": {
+        "--node-body-padding": getSpacingPx(SPACING.md),
+        padding: "var(--node-body-padding)"
       },
       "&.preview-node": {
-        padding: 0,
         margin: 0,
         "&.collapsed": {
-          ...NODE_COLLAPSED_LAYOUT
+          ...NODE_COLLAPSED_LAYOUT,
+          "--node-body-padding": "0px",
+          padding: "0 !important"
         },
         /* Fragment children flatten: hide everything except target handle + header strip */
         "&.collapsed .preview-node-content > *:not(.react-flow__handle):not(.node-header)": {
@@ -93,6 +101,7 @@ const styles = (theme: Theme) =>
         minHeight: 0
       },
       ".preview-node-content > .content": {
+        marginTop: getSpacingPx(SPACING.xs),
         flex: 1,
         minHeight: 0,
         height: "100%"
@@ -134,19 +143,19 @@ const styles = (theme: Theme) =>
           height: "fit-content !important"
         },
       // header — keep full hit target; stack above NodeOutputs' right column (z-index 3).
-      // Pad the title clear of the node's rounded top corners (radius
-      // `--rounded-node`); with padding:0 the flush-left title was clipped at the
-      // top-left where the corner curve cuts into the glyphs.
       ".node-header": {
         position: "relative",
         zIndex: Z_INDEX.raised,
         width: "100%",
-        minHeight: "unset",
-        top: 0,
-        left: 0,
         margin: 0,
-        padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)} 0`, // was 3px 8px 0
         border: 0
+      },
+      // Input and output sit on the header line, centered on its 24px row.
+      ".preview-node-content > .react-flow__handle-left": {
+        top: NODE_HEADER_MIN_HEIGHT / 2
+      },
+      ".output-handle-column.output-handle-column": {
+        top: (NODE_HEADER_MIN_HEIGHT - 18) / 2
       },
       "& .react-flow__resize-control.handle.bottom.right": {
         opacity: 0,
@@ -193,23 +202,6 @@ const styles = (theme: Theme) =>
           height: "100%"
         }
       },
-      ".hint": {
-        position: "absolute",
-        opacity: 0,
-        textAlign: "center",
-        top: "50px",
-        left: "50%",
-        width: "80%",
-        fontSize: "var(--fontSizeSmaller)",
-        fontWeight: 400,
-        transform: "translate(-50%, -50%)",
-        zIndex: 0,
-        color: theme.vars.palette.grey[200],
-        transition: `opacity ${MOTION.normal} ${1000}ms`
-      },
-      "&:hover .hint": {
-        opacity: 0.7
-      },
       "& .tensor": {
         width: "100%",
         maxHeight: "500px",
@@ -241,15 +233,17 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
   const [isContentFocused, setIsContentFocused] = useState(false);
   const getMetadata = useMetadataStore((state) => state.getMetadata);
   const nodeMetadata = getMetadata(props.type);
-  const { getEdges } = useReactFlow();
-
-  const incomingValueEdge = useMemo(
-    () =>
-      getEdges().find(
-        (edge) => edge.target === props.id && edge.targetHandle === "value"
-      ),
-    [getEdges, props.id]
-  );
+  // Subscribed through the node store so an edge connected or replaced after
+  // mount updates the preview source. Shallow equality keeps unrelated edge
+  // changes from re-rendering.
+  const incomingValueEdge = useNodes((state) => {
+    const edge = state.edges.find(
+      (e) => e.target === props.id && e.targetHandle === "value"
+    );
+    return edge
+      ? { source: edge.source, sourceHandle: edge.sourceHandle ?? null }
+      : undefined;
+  });
 
   // Live display reads this Preview node's OWN stream buffer (outputResults),
   // which `output_update` appends to per chunk during a run, scoped to the
@@ -468,16 +462,10 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
             hasParent={hasParent}
             metadataTitle="Preview"
             selected={props.selected}
-            backgroundColor={"transparent"}
-            showIcon={false}
+            iconType="preview"
             workflowId={props.data.workflow_id}
             hideLogs={true}
           />
-          {!displayResult && (
-            <Text className="hint">
-              {t("editor:ui.displaysAnyDataFromConnectedNodes")}
-            </Text>
-          )}
           <PreviewActions
             onDownload={handleDownload}
             onAddToAssets={handleAddToAssets}
@@ -502,7 +490,14 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
           onBlur={handleContentBlur}
           onPointerDown={handleContentPointerDown}
         >
-          {memoizedOutputRenderer}
+          {displayResult ? (
+            memoizedOutputRenderer
+          ) : (
+            <CheckerDropzone
+              message="Run to preview connected data"
+              icon={<VisibilityIcon />}
+            />
+          )}
         </div>
       </div>
     </Container>

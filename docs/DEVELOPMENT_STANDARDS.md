@@ -71,7 +71,7 @@ native executable.
 
 ## 2. ES Modules & Node Runtime
 
-All packages use `"type": "module"`. The required runtime is **Node.js 22.22.1** (see `.nvmrc`) to match Electron 39's embedded Node.
+All packages use `"type": "module"`. The required runtime is **Node.js 24.18.0** (see [`.nvmrc`](../.nvmrc)) to match Electron 41.10.6's embedded Node, pinned in [`electron/package.json`](../electron/package.json).
 
 ### Rules
 
@@ -82,7 +82,7 @@ All packages use `"type": "module"`. The required runtime is **Node.js 22.22.1**
 - **`AbortController` / `AbortSignal`** is mandatory for any cancellable async operation — long-running fetches, streams, subprocesses, LLM calls. Plumb the signal through; do not invent custom cancellation flags.
 - **Native fetch (Node 22)** — no `node-fetch`, no `axios` in new code unless there is a specific reason (e.g. interceptor needs) documented in the PR.
 - **No CommonJS interop hacks.** If a dep is CJS-only, import its default export and document the constraint.
-- **Pin Node version** in CI and package `engines`. **target**: every workspace `package.json` declares `"engines": { "node": ">=22.22.1 <23" }`.
+- **Pin Node version** in CI and package `engines`. **target**: every workspace `package.json` declares `"engines": { "node": "24.18.0" }`.
 
 ---
 
@@ -253,34 +253,41 @@ The node graph uses ReactFlow 12.11. The runtime semantics live in `@nodetool-ai
 ### target
 
 - Every new feature ships with at least one test at the lowest level it can fail (unit), and one integration test for cross-module concerns.
-- Mutation testing (Stryker or equivalent) verifies tests actually catch regressions.
+- Mutation testing (`nodetool-mutator`, see the [policy](#mutation-testing-policy)) verifies tests actually catch regressions.
 
 ### Mutation testing policy
 
-Mutation testing (Stryker) runs via `npm run test:mutation` over the
-correctness- and security-critical packages: `agents`, `auth`, `config`,
-`kernel`, `node-sdk`, `runtime`, `security`, `storage`. Each has a
-`stryker.config.json` and a `test:mutation` script.
+Mutation testing runs through `nodetool-mutator`
+([`packages/mutator`](../packages/mutator/README.md)), a TypeScript port of
+[unclebob/mutator](https://github.com/unclebob/mutator). `npm run test:mutation`
+covers the correctness- and security-critical packages: `agents`, `auth`,
+`config`, `kernel`, `node-sdk`, `runtime`, `security`, `storage`. Each package's
+`test:mutation` script names its targets.
 
-- **Gated packages** (`auth`, `kernel`, `node-sdk`, `runtime`, `security`,
-  `agents`) set a `break` threshold — a drop below it fails the run.
-- **Report-only packages** (`config`, `storage`) were onboarded with
-  `break: null` while their suites are strengthened. Ratchet `break` upward as
-  the score improves; do not let it regress.
+- A mutant is killed when the tests fail or time out. The score is
+  killed / (killed + survived). Sites on lines no test covers are reported as
+  uncovered and not run.
+- Runs are differential. The snapshot under `.metrics/mutate/` (gitignored)
+  records each function's hash and each mutant's outcome, so the next run
+  reruns only survivors and functions whose text changed.
+- `Mutation Testing` runs weekly and reports the score per package.
+  `Mutation Testing (changed functions)` runs on pull requests and lists
+  survivors in the functions the PR adds or rewrites. Both are advisory.
 - **Excluded:** integration-heavy packages like `websocket` are intentionally
   not mutation-tested (their value is in end-to-end/contract tests). Revisit if
   pure-logic modules there grow.
 
-`node-sdk` carries a second Stryker config, `stryker.crash.config.json`, whose
-test oracle is the crash-fuzzer corpus alone (`tests/fuzz/`, run with
-`npm run test:crash-fuzz`). It mutates the four parser sources —
-`graph-validation.ts`, `code-analysis.ts`, `code-node-validation.ts`,
-`validation.ts` — and answers a different question from the gated config: not
-"do the tests catch regressions" but "does fuzzed input reach this branch at
-all". A survivor there is a hole in the corpus, so the config is report-only
-(`break: null`) and the nightly `Crash Fuzzer` workflow is what acts on it.
+`node-sdk`'s `test:mutation:crash` runs the same tool with the crash-fuzzer
+corpus (`tests/fuzz/`, run with `npm run test:crash-fuzz`) as its only test
+suite. It mutates the four parser sources (`graph-validation.ts`,
+`code-analysis.ts`, `code-node-validation.ts`, `validation.ts`) and answers a
+different question: not "do the tests catch regressions" but "does fuzzed
+input reach this branch at all". A survivor there is a hole in the corpus. Its
+snapshots go to `.metrics/mutate-crash/`, and the nightly `Crash Fuzzer`
+workflow acts on them.
 
-Reports land in each package's gitignored `reports/mutation/` directory.
+The earlier Stryker setup is still reachable as `test:mutation:stryker` in the
+packages whose `test:mutation` used to run it. CI no longer runs it.
 
 ---
 
@@ -490,7 +497,7 @@ We use **OpenTelemetry** for tracing across agents and workflows (`workflow.run`
 
 - **Span the right things**: every external call (LLM, HTTP, DB, subprocess) gets a span. Every workflow step gets a span. Every IPC call gets a span.
 - **Semantic conventions**: use `gen_ai.*`, `http.*`, `db.*`, `rpc.*` attributes per OpenTelemetry conventions. Don't invent attribute names.
-- **No PII in spans.** Names, prompts containing user data, and tool inputs are hashed or redacted before being attached.
+- **Run content stays owner-scoped.** Registered run traces may store capped prompts, responses and tool content in the separate content column. Apply the shared content classification, credential redaction and retention rules in [App run observability](app-runs-design.md#410-content-and-retention-policy). External sinks exclude content by default. Public runs and error traces store no content.
 - **Errors recorded on spans**: `span.recordException(e)` + `span.setStatus({ code: ERROR })`.
 - **Structured logs** only. JSON, single-line, with `level`, `timestamp`, `traceId`, `spanId`, `message`, and contextual fields.
 - **Log levels**: `error` (alertable), `warn` (recoverable), `info` (lifecycle), `debug` (developer-only, gated by env). No `console.log` in `packages/*/src/` in committed code.

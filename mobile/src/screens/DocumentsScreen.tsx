@@ -1,5 +1,6 @@
 /**
- * The documents browser: every kind in one list.
+ * The documents browser: storyboards, timelines, and sketches in one list.
+ * Other document kinds open in the desktop or web app.
  *
  * Web puts each open document in a workspace tab with a left rail of sections.
  * A phone has no room for either, so the rail collapses into filter chips and
@@ -24,11 +25,12 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DocumentKind } from '../documents/kinds';
 
-import { RootStackParamList } from '../navigation/types';
+import type { TabScreenNavigationProp } from '../navigation/types';
+import { ErrorState, LoadingState } from '../components/ScreenState';
+import LoadErrorBanner from '../components/LoadErrorBanner';
 import { useTheme } from '../hooks/useTheme';
 import type { ThemeColors, ThemeShadows } from '../utils/theme';
 import { DOCUMENT_KINDS, documentKindInfo } from '../documents/kinds';
@@ -41,7 +43,7 @@ import {
 } from '../documents/useDocuments';
 
 type DocumentsScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Documents'>;
+  navigation: TabScreenNavigationProp<'Documents'>;
 };
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -188,24 +190,11 @@ export default function DocumentsScreen({ navigation }: DocumentsScreenProps) {
         case 'StoryboardEditor':
           navigation.navigate('StoryboardEditor', { id: entry.id, name: entry.name });
           break;
-        case 'ScriptEditor':
-          navigation.navigate('ScriptEditor', { id: entry.id, name: entry.name });
-          break;
-        case 'JsScriptEditor':
-          navigation.navigate('JsScriptEditor', { id: entry.id, name: entry.name });
-          break;
         case 'TimelineViewer':
           navigation.navigate('TimelineViewer', { id: entry.id, name: entry.name });
           break;
         case 'SketchViewer':
           navigation.navigate('SketchViewer', { id: entry.id, name: entry.name });
-          break;
-        case 'DocumentViewer':
-          navigation.navigate('DocumentViewer', {
-            kind: entry.kind,
-            id: entry.id,
-            name: entry.name,
-          });
           break;
       }
     },
@@ -318,40 +307,26 @@ export default function DocumentsScreen({ navigation }: DocumentsScreenProps) {
   );
 
   if (isLoading) {
+    return <LoadingState label="Loading documents" />;
+  }
+
+  if (error && documents.length === 0) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.centerText, { color: colors.textSecondary }]}>
-          Loading documents...
-        </Text>
-      </View>
+      <ErrorState
+        title="Couldn't load documents"
+        message={error.message || 'Check your connection and try again.'}
+        onRetry={() => { void refetch(); }}
+      />
     );
   }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {error ? (
-        <View
-          style={[
-            styles.errorBanner,
-            { backgroundColor: colors.primaryMuted, borderColor: colors.border },
-          ]}
-        >
-          <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
-          <Text style={[styles.errorText, { color: colors.error }]} numberOfLines={2}>
-            {error.message || 'Could not load documents'}
-          </Text>
-          <TouchableOpacity
-            onPress={() => refetch()}
-            accessibilityRole="button"
-            accessibilityLabel="Retry loading documents"
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="refresh-outline" size={18} color={colors.error} />
-          </TouchableOpacity>
-        </View>
-      ) : null}
+      <LoadErrorBanner
+        error={error ? error.message || 'Could not refresh documents' : null}
+        onRetry={() => { void refetch(); }}
+        retryLabel="Retry loading documents"
+      />
 
       <ScrollView
         horizontal
@@ -422,7 +397,7 @@ export default function DocumentsScreen({ navigation }: DocumentsScreenProps) {
               {activeKind === null ? 'No documents yet' : 'Nothing of this kind'}
             </Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              Storyboards, scripts, timelines, and sketches are usually built by
+              Storyboards, timelines, and sketches are usually built by
               asking the assistant. Describe what you want and it writes the
               document for you.
             </Text>
@@ -569,31 +544,6 @@ function FilterChip({ label, iconName, isActive, onPress, colors }: FilterChipPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    gap: 12,
-  },
-  centerText: {
-    fontSize: 15,
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: 16,
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  errorText: {
-    flex: 1,
-    fontSize: 13,
   },
   // A horizontal ScrollView is still a flex child of the column above it: left
   // to grow it takes the leftover vertical space and stretches every chip to

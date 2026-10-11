@@ -1,6 +1,7 @@
 ---
 name: nodetool-3d-scene
 description: "Build, edit, validate or render a NodeTool 3D model: glTF objects, transforms, lights, materials, and headless Blender renders."
+featured: true
 ---
 
 # Work a NodeTool 3D model
@@ -9,9 +10,9 @@ A 3D model is a `.glb` or `.gltf` **asset**, addressed by its asset id. The
 capabilities edit the stored glTF in place and save it back over the same asset,
 so the id stays valid and an open editor reloads it.
 
-For a 2D game built from a Godot template and generated art, use
-`godot-game`. For a 3D clip inside a cut, build the model
-here and place it on a timeline.
+For a 2D game, use `native-game`. The built-in game engine will add 3D scene
+support later. For a 3D clip inside a cut, build the model here and place it
+on a timeline.
 
 ## The loop
 
@@ -46,6 +47,11 @@ here and place it on a timeline.
 delete renumbers them. Duplicate names make addressing ambiguous, which
 `validate_model3d` warns about.
 
+`delete_object` keeps the file valid: an animation left with no channels is
+removed, and so is a skin that lost a joint, which leaves its mesh in the bind
+pose. `set_material_color` recolors only the named object, copying a material
+or mesh it shares with another object first.
+
 These are the `ui_3d_*` verbs with no editor open. The operations, the units and
 the addressing live in `@nodetool-ai/model3d`, shared with the browser editor, so
 a model built headlessly opens there unchanged.
@@ -59,10 +65,13 @@ it". Use `render_model3d` when an actual picture is required.
 ## What `validate_model3d` catches
 
 The glTF version, references that resolve to nothing (node, mesh, accessor,
-material, buffer), a cycle in the node hierarchy, a node carrying both a matrix
-and TRS fields, a buffer view reading past its buffer, an undeclared light, and
-an extension this build cannot honor. It warns on an empty scene, geometry with
-no light, and duplicate names.
+material, buffer, skin, camera, skin joint, animation target and sampler), a
+node with two parents, a cycle in the node hierarchy, a node carrying both a
+matrix and TRS fields, an accessor with an unknown type or reading past its
+buffer view, a buffer view reading past its buffer, an undeclared light, and an
+extension this build cannot honor. It warns on an empty scene, geometry with no
+light, and duplicate names. It only reads the document, and it handles
+hierarchies of any depth.
 
 ## On a timeline
 

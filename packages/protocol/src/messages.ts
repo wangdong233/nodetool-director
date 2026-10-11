@@ -375,8 +375,13 @@ export type ProviderCost = z.infer<typeof providerCostSchema>;
  * matching the prose the provider layer wrote.
  */
 export const nodeErrorDetailSchema = z.object({
-  /** `provider_auth`: the provider refused the credential (401/403). */
+  /**
+   * `provider_auth`: the provider refused the credential (401/403).
+   * `missing_runtime_package`: an optional package is not installed.
+   */
   code: z.string(),
+  /** Runtime package to install, for `missing_runtime_package`. */
+  runtime_package: z.string().nullable().optional(),
   /** Provider id as the runtime knows it (e.g. `openai`). */
   provider: z.string().nullable().optional(),
   /** Secret key holding that provider's credential (e.g. `OPENAI_API_KEY`). */
@@ -679,7 +684,9 @@ export const providerSessionSchema = z.object({
    */
   checkpoint: z.number(),
   /** Optional hash of the system prompt; a mismatch invalidates the session. */
-  systemHash: z.string().optional()
+  systemHash: z.string().optional(),
+  /** The upstream session contains protected third-party tool content. */
+  traceContentSuppressed: z.boolean().optional()
 });
 export type ProviderSession = z.infer<typeof providerSessionSchema>;
 
@@ -747,6 +754,8 @@ export const llmCallUpdateSchema = z.object({
   node_name: z.string().nullable().optional(),
   provider: z.string(),
   model: z.string(),
+  /** The provider method for a non-chat call (`textToImage`, `textToSpeech`, …). Absent for chat. */
+  operation: z.string().nullable().optional(),
   messages: z.array(z.object({ role: z.string(), content: z.unknown() })),
   response: z.unknown(),
   tool_calls: z
@@ -980,6 +989,8 @@ export type ResourceChangeMessage = z.infer<
   typeof resourceChangeMessageOutSchema
 >;
 
+export type RunTraceMessage = import("./run-trace.js").StoredRunTraceUpdate & { type: "run_trace"; resnapshot_required?: boolean };
+
 export type WebSocketControlMessage =
   | PingMessage
   | ClientToolManifestMessage
@@ -993,6 +1004,7 @@ export type WebSocketServerMessage =
   | RendererToolCallMessage
   | SystemStatsMessage
   | ResourceChangeMessage
+  | RunTraceMessage
   | RpcResponseMessage
   | Record<string, unknown>;
 

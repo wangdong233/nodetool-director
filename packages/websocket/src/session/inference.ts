@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { createLogger } from "@nodetool-ai/config";
 import { getModelUnitPrice } from "@nodetool-ai/model-pricing";
-import { Asset, Prediction, Project } from "@nodetool-ai/models";
+import { Asset, Prediction, Project, TimelineSequence, findFinishResourceIds, assertStoryboardClipGenerationAllowed } from "@nodetool-ai/models";
 import { extractPricingParams } from "@nodetool-ai/node-sdk/pricing-params";
 import { resolveNodetoolDelegate } from "@nodetool-ai/protocol";
 import { GenerationAlreadyAcceptedError } from "@nodetool-ai/runtime";
@@ -27,6 +27,7 @@ import type {
   InpaintingParams,
   Message as ProviderMessage,
   MessageContent,
+  NamedReferenceImage,
   PromptAssetRef,
   ProviderTool,
   TextToImageParams,
@@ -54,6 +55,8 @@ export interface DirectMediaGenerationRequest {
     | "image"
     | "image_edit"
     | "inpaint"
+    | "upscale"
+    | "outpaint"
     | "video"
     | "video_edit"
     | "video_extend"
@@ -72,6 +75,15 @@ export interface DirectMediaGenerationRequest {
   numInferenceSteps?: number;
   /** Sampling seed; providers that take none ignore it. */
   seed?: number;
+  /** Magnification for "upscale", e.g. 2 or 4. */
+  scale?: number;
+  /** Source pixels to add on each side, for "outpaint". */
+  padding?: {
+    left?: number;
+    right?: number;
+    top?: number;
+    bottom?: number;
+  };
   durationSeconds?: number;
   extensionMode?: "start" | "end";
   variations?: number;
@@ -88,8 +100,14 @@ export interface DirectMediaGenerationRequest {
    * a frame that was already delivered to a dead socket.
    */
   requestId?: string;
+  /**
+   * Aborts the provider call. The `cancel_generation` command fires it, so a
+   * render the creator cancelled stops instead of finishing and billing.
+   */
+  signal?: AbortSignal;
   /** Submission-time timeline mapping for a native video edit. */
   sourceContext?: DirectMediaSourceContext;
+  timelineContext?: { sequenceId: string; sourceClipId?: string; targetClipId?: string };
   capability?: "reference_to_video";
   referenceImages?: unknown[];
   referenceAssetIds?: readonly string[];
@@ -127,16 +145,27 @@ interface VideoEditReferences {
   images: Uint8Array[];
 }
 
-async function resolveVideoEditReferences(
+/**
+ * Strip sentence punctuation after an `entity://` id. A loop, not `/\.+$/`:
+ * the regex backtracks quadratically on a long dot run followed by another
+ * character, and the prompt is user input.
+ */
+function trimTrailingDots(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === ".") end -= 1;
+  return value.slice(0, end);
+}
+
+async function resolveVideoEditReferenceIds(
   userId: string,
   req: DirectMediaGenerationRequest
-): Promise<VideoEditReferences> {
+): Promise<Omit<VideoEditReferences, "images">> {
   const ownedResolver = entityRefResolver(userId);
   const assets = new Map<string, ReturnType<typeof ownedResolver.getAssetInfo>>();
   const requestedEntities = new Set([
     ...(req.entityIds ?? []),
     ...Array.from(req.prompt.matchAll(/entity:\/\/([A-Za-z0-9._~-]+)/g),
-      (match) => match[1].replace(/\.+$/, ""))
+      (match) => trimTrailingDots(match[1]))
   ]);
   const resolvedEntityIds = new Set<string>();
   const resolver: ReturnType<typeof entityRefResolver> = {
@@ -179,10 +208,7 @@ async function resolveVideoEditReferences(
       ref.uri.slice("asset://".length, ref.uri.lastIndexOf("."))
     )
   ])];
-  const images = assetIds.length
-    ? await resolveReferenceAssets(userId, assetIds.map((asset_id) => ({ asset_id })), "image")
-    : [];
-  return { prompt: expanded.prompt, assetIds, entityIds: [...resolvedEntityIds], images };
+  return { prompt: expanded.prompt, assetIds, entityIds: [...resolvedEntityIds] };
 }
 
 /**
@@ -305,6 +331,25 @@ export function entityRefResolver(userId: string): {
  * whose asset is gone (or reads back empty) contributes nothing — the same
  * drop rule as an unresolvable mention.
  */
+/**
+ * Resolve entity reference images with their entity names. An image that can
+ * no longer be read drops, together with its name.
+ */
+export async function resolveNamedEntityReferences(
+  userId: string,
+  refs: PromptAssetRef[],
+  names: readonly string[]
+): Promise<NamedReferenceImage[]> {
+  const out: NamedReferenceImage[] = [];
+  for (const [index, ref] of refs.entries()) {
+    const [image] = await resolveEntityReferenceImages(userId, [ref]);
+    if (image) {
+      out.push({ name: names[index] ?? "", image });
+    }
+  }
+  return out;
+}
+
 export async function resolveEntityReferenceImages(
   userId: string,
   refs: PromptAssetRef[]
@@ -415,6 +460,32 @@ export interface DirectInferenceDeps {
    * that is still generating instead of billing for an answer nobody reads.
    */
   registerAbort: (controller: AbortController) => () => void;
+}
+
+/**
+ * Refuse a bare prompt for a model the catalog lists as editing-only. Such a
+ * model needs an input image, and its provider rejects the request with an
+ * error that names neither the cause nor the fix (AtlasCloud's edit
+ * endpoints answer "index 0 out of range"). An unlisted model, or one with
+ * no declared tasks, is left to the provider.
+ */
+async function assertTextToImageModel(
+  provider: BaseProvider,
+  modelId: string
+): Promise<void> {
+  if (typeof provider.getAvailableImageModels !== "function") {
+    return;
+  }
+  const model = (await provider.getAvailableImageModels()).find(
+    (candidate) => candidate.id === modelId
+  );
+  const tasks = model?.supportedTasks;
+  if (model && tasks?.length && !tasks.includes("text_to_image")) {
+    throw new Error(
+      `${model.name || modelId} only edits images and needs an input image. ` +
+        "Choose a model that creates images from text."
+    );
+  }
 }
 
 /**
@@ -660,7 +731,10 @@ export class DirectInferenceHandler {
     if (!req.model) {
       throw new Error("model is required");
     }
-    if (!req.prompt || !req.prompt.trim()) {
+    // An upscale or a reframe works from the image alone; the prompt is an
+    // optional hint there.
+    const promptOptional = req.mode === "upscale" || req.mode === "outpaint";
+    if (!promptOptional && (!req.prompt || !req.prompt.trim())) {
       throw new Error("prompt is required");
     }
     if (req.mode !== "video_edit" && (req.referenceAssetIds?.length || req.entityIds?.length)) {
@@ -698,10 +772,18 @@ export class DirectInferenceHandler {
     if (req.projectId && req.projectId !== "default") {
       await Project.requireOwned(userId, req.projectId);
     }
-    const provider = await this.session.resolveProvider(req.provider, userId);
-    const videoEditReferences = req.mode === "video_edit"
-      ? await resolveVideoEditReferences(userId, req)
+    await assertTimelineGenerationAllowed(userId, req);
+    const videoEditReferenceIds = req.mode === "video_edit"
+      ? await resolveVideoEditReferenceIds(userId, req)
       : undefined;
+    if (videoEditReferenceIds) {
+      await assertTimelineGenerationAllowed(userId, req, videoEditReferenceIds.assetIds);
+    }
+    const provider = await this.session.resolveProvider(req.provider, userId);
+    const videoEditReferences = videoEditReferenceIds ? {
+      ...videoEditReferenceIds,
+      images: await resolveReferenceAssets(userId, videoEditReferenceIds.assetIds.map(asset_id => ({ asset_id })), "image")
+    } : undefined;
     if (req.mode === "video_edit" || req.mode === "video_extend") {
       const extension = req.mode === "video_extend";
       const task = extension ? "extend_video" : "video_to_video";
@@ -898,9 +980,11 @@ export class DirectInferenceHandler {
     const userId = this.session.requireUserId();
     const variations = Math.max(1, Math.min(Number(req.variations ?? 1), 8));
 
+    req.signal?.throwIfAborted();
     const { generate, seamAssetId, storeAsset } = createGenerationRun({
       userId,
       providerId: req.provider,
+      signal: req.signal,
       modelId: req.model,
       provider,
       origin: { surface: "rpc", request_id: req.requestId ?? null },
@@ -931,13 +1015,27 @@ export class DirectInferenceHandler {
     // a Consistency references block, reference image routed into the
     // generation inputs below — the same rule node prompts get through
     // mapPromptAssetsToInputs. A mention that resolves to no entity drops.
-    const { prompt, referenceImages } = videoEditReferences
-      ? { prompt: videoEditReferences.prompt, referenceImages: [] }
+    const { prompt, referenceImages, referenceNames } = videoEditReferences
+      ? {
+          prompt: videoEditReferences.prompt,
+          referenceImages: [],
+          referenceNames: []
+        }
       : await expandEntitiesForGeneration(req.prompt, entityRefResolver(userId));
-    const entityImageBytes = await resolveEntityReferenceImages(
-      userId,
-      referenceImages
-    );
+    // A video call takes the images named, so a provider with a reference
+    // mode can mention each one in its prompt. Image modes take bare bytes.
+    const videoReferences =
+      req.mode === "video"
+        ? await resolveNamedEntityReferences(
+            userId,
+            referenceImages,
+            referenceNames
+          )
+        : [];
+    const entityImageBytes =
+      req.mode === "video"
+        ? []
+        : await resolveEntityReferenceImages(userId, referenceImages);
 
     // Image modes are pixel-addressed on several providers (GPT Image's
     // `size`): derive explicit dimensions from the resolution tier + aspect
@@ -989,6 +1087,8 @@ export class DirectInferenceHandler {
               {
                 model: videoModel,
                 prompt,
+                // Entity images follow the picked ones, each with its name.
+                references: videoReferences,
                 durationSeconds: req.durationSeconds ?? null,
                 aspectRatio: req.aspectRatio ?? null,
                 resolution: req.resolution ?? null,
@@ -1007,6 +1107,7 @@ export class DirectInferenceHandler {
         const i2vParams: ImageToVideoParams = {
           model: videoModel,
           prompt,
+          references: videoReferences,
           aspectRatio: req.aspectRatio ?? null,
           resolution: req.resolution ?? null,
           durationSeconds: req.durationSeconds ?? null
@@ -1022,6 +1123,7 @@ export class DirectInferenceHandler {
         const params: TextToVideoParams = {
           model: videoModel,
           prompt,
+          references: videoReferences,
           durationSeconds: req.durationSeconds ?? null
         };
         generated = await generate(
@@ -1240,6 +1342,7 @@ export class DirectInferenceHandler {
           )
       );
     } else if (req.mode === "image") {
+      await assertTextToImageModel(provider, req.model);
       const params: TextToImageParams = {
         model: imageModel,
         prompt,
@@ -1264,6 +1367,54 @@ export class DirectInferenceHandler {
         (abort) =>
           provider.textToImages({ ...params, signal: abort }, variations)
       );
+    } else if (req.mode === "upscale" || req.mode === "outpaint") {
+      if (!req.sourceAssetId) {
+        throw new Error(`source_asset_id is required for ${req.mode}`);
+      }
+      const sourceBytes = await retrieveSourceAssetBytes(
+        userId,
+        req.sourceAssetId
+      );
+      const hint = prompt.trim() || null;
+      if (req.mode === "upscale") {
+        generated = await generate(
+          "upscale_image",
+          { prompt: hint, scale: req.scale ?? null, image: sourceBytes },
+          {},
+          async () => [
+            await provider.upscaleImage(sourceBytes, {
+              model: imageModel,
+              scale: req.scale ?? null,
+              prompt: hint,
+              seed: req.seed ?? null
+            })
+          ]
+        );
+      } else {
+        if (!req.padding && !req.aspectRatio) {
+          throw new Error("padding or aspect_ratio is required for outpaint");
+        }
+        generated = await generate(
+          "outpaint_image",
+          {
+            prompt: hint,
+            padding: req.padding ?? null,
+            aspect_ratio: req.aspectRatio ?? null,
+            images: [sourceBytes]
+          },
+          {},
+          async (abort) => [
+            await provider.outpaintImage([sourceBytes], {
+              model: imageModel,
+              prompt: hint,
+              padding: req.padding ?? null,
+              aspectRatio: req.aspectRatio ?? null,
+              seed: req.seed ?? null,
+              signal: abort
+            })
+          ]
+        );
+      }
     } else if (req.mode === "inpaint") {
       if (!req.sourceAssetId) {
         throw new Error("source_asset_id is required for inpaint");
@@ -1480,5 +1631,44 @@ export class DirectInferenceHandler {
       .filter((w) => w.word.length > 0);
 
     return { text: result.text, words };
+  }
+}
+
+/** Resolve protection from authorized persisted documents, never client-reported policy. */
+async function assertTimelineGenerationAllowed(userId: string, req: DirectMediaGenerationRequest, resolvedReferenceIds: readonly string[] = []): Promise<void> {
+  const context = req.timelineContext ?? (req.sourceContext ? { sequenceId: req.sourceContext.sequenceId, sourceClipId: req.sourceContext.clipId } : undefined);
+  if (!context) { return; }
+  const sequenceIds = await findFinishResourceIds("timeline", context.sequenceId, userId, req.projectId ?? undefined);
+  if (!req.timelineContext && sequenceIds.length === 0) { return; }
+  if (sequenceIds.length !== 1) { throw new Error("Timeline generation context was not found uniquely in the caller's project."); }
+  const sequence = await TimelineSequence.findById(sequenceIds[0]);
+  if (!sequence || sequence.user_id !== userId || (req.projectId && req.projectId !== sequence.project_id)) {
+    throw new Error("Timeline generation context was not found in the caller's project.");
+  }
+  const clips = sequence.toDocument().clips;
+  const resolveClip = (id: string) => {
+    const matches = clips.filter(clip => clip.id === id || (/^[a-f0-9]{12}$/.test(id) && clip.id.startsWith(id)));
+    if (matches.length > 1) { throw new Error("Timeline generation clip prefix is ambiguous."); }
+    return matches[0];
+  };
+  const source = context.sourceClipId ? resolveClip(context.sourceClipId) : undefined;
+  if (context.sourceClipId && (!source || source.currentAssetId !== req.sourceAssetId)) {
+    throw new Error("Timeline generation source changed or was not found. Save and retry.");
+  }
+  const target = context.targetClipId ? resolveClip(context.targetClipId) : undefined;
+  const referencedAssets = new Set([
+    ...(req.referenceAssetIds ?? []),
+    ...resolvedReferenceIds,
+    ...(req.referenceImages ?? []).map(ref => referenceAssetId(ref, "image")),
+    ...(req.referenceVideos ?? []).map(ref => referenceAssetId(ref, "video"))
+  ]);
+  const referencedClips = clips.filter(clip => clip.currentAssetId && referencedAssets.has(clip.currentAssetId));
+  for (const clip of [source, target, ...referencedClips]) {
+    if (!clip?.storyboardBoardId) { continue; }
+    const capability = req.mode === "video" ? (req.capability ?? (req.sourceAssetId ? "image_to_video" : "text_to_video"))
+      : req.mode === "video_edit" || req.mode === "video_extend" ? "video_to_video"
+      : req.mode === "image_edit" || req.mode === "inpaint" || req.mode === "upscale" || req.mode === "outpaint" ? "image_to_image"
+      : "text_to_image";
+    await assertStoryboardClipGenerationAllowed(userId, sequence.project_id, clip, capability);
   }
 }

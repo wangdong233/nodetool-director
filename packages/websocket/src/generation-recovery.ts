@@ -1,3 +1,9 @@
+import { z } from "zod";
+import {
+  getAssetFileName,
+  storyboardRenderProvenance,
+  storyboardRenderVersion
+} from "@nodetool-ai/protocol";
 import {
   DurableGenerationRecoveryWorker,
   type DurableGenerationRecoveryOptions
@@ -14,7 +20,9 @@ import {
   Storyboard
 } from "@nodetool-ai/models";
 import type { GenerationAttachmentTransition } from "@nodetool-ai/models";
+import { recoverTimelineMediaEdit } from "./timeline-generation-recovery.js";
 import { storeAssetWithThumbnail } from "./lib/thumbnail.js";
+import { getAssetStorageKey } from "./lib/asset-paths.js";
 
 /** One attachment result, so the write path and the already-written path
  * cannot disagree about what "attached" means. */
@@ -64,12 +72,38 @@ export function createGenerationRecoveryWorker(
           error: "Saved output has no asset to attach"
         };
       }
+      if (attachment.target_type === "timeline_clip") {
+        return recoverTimelineMediaEdit(generation, attachment.target_id, output.asset_id);
+      }
       if (
         attachment.target_type !== "storyboard_keyframe" &&
         attachment.target_type !== "storyboard_clip"
       ) {
         return null;
       }
+      const intents = z
+        .array(
+          z.object({
+            target_type: z.string(),
+            target_id: z.string(),
+            provenance: z.unknown().optional()
+          })
+        )
+        .safeParse(generation.metadata?.attachments);
+      const intent = intents.success
+        ? intents.data.find(
+            (item) =>
+              item.target_type === attachment.target_type &&
+              item.target_id === attachment.target_id
+          )
+        : undefined;
+      const parsed = storyboardRenderProvenance.safeParse(intent?.provenance);
+      const expectedKind =
+        attachment.target_type === "storyboard_keyframe" ? "keyframe" : "clip";
+      const provenance =
+        parsed.success && parsed.data.render_inputs.kind === expectedKind
+          ? parsed.data
+          : undefined;
       const storyboardId = generation.document_id;
       if (!storyboardId) {
         return { status: "target_deleted", error: "Storyboard id is missing" };
@@ -112,11 +146,14 @@ export function createGenerationRecoveryWorker(
           );
         }
         if (isKeyframe) {
-          const ref = {
-            type: "image" as const,
-            asset_id: output.asset_id,
-            uri: `asset://${output.asset_id}`
-          };
+          const ref = storyboardRenderVersion(
+            {
+              type: "image" as const,
+              asset_id: output.asset_id,
+              uri: `asset://${output.asset_id}`
+            },
+            provenance
+          );
           const versions =
             shot.keyframe_versions ?? (shot.keyframe ? [shot.keyframe] : []);
           document.shots[index] = {
@@ -131,11 +168,14 @@ export function createGenerationRecoveryWorker(
               shouldSelect && !shot.keyframe ? "keyframe_ready" : shot.status
           };
         } else {
-          const ref = {
-            type: "video" as const,
-            asset_id: output.asset_id,
-            uri: `asset://${output.asset_id}`
-          };
+          const ref = storyboardRenderVersion(
+            {
+              type: "video" as const,
+              asset_id: output.asset_id,
+              uri: `asset://${output.asset_id}`
+            },
+            provenance
+          );
           const versions = shot.clip_versions ?? (shot.clip ? [shot.clip] : []);
           document.shots[index] = {
             ...shot,
@@ -226,12 +266,13 @@ export function createGenerationRecoveryWorker(
         content_type: contentType,
         parent_id: generation.user_id
       });
-      const extension =
-        contentType.split("/", 2)[1]?.replace(/[^a-z0-9]/giu, "") || "bin";
+      // Readers locate the bytes by this same mapping (`image/jpeg` is
+      // `.jpg`, `audio/mpeg` is `.mp3`), so deriving the extension from the
+      // MIME subtype stored files nothing could find.
       await storeAssetWithThumbnail(
         generation.user_id,
         asset.id,
-        `${assetId}.${extension}`,
+        getAssetFileName(assetId, contentType),
         bytes,
         contentType
       );
@@ -240,7 +281,11 @@ export function createGenerationRecoveryWorker(
       return {
         status: "ready",
         asset_id: asset.id,
-        storage_key: `${generation.user_id}/${assetId}.${extension}`,
+        storage_key: getAssetStorageKey(
+          generation.user_id,
+          assetId,
+          contentType
+        ),
         provider_ref: sourceUrl,
         raw_result: descriptor.rawResult
       };

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1-labs
 
-FROM node:22-slim AS deps
+FROM node:24.18.0-bookworm-slim AS deps
 
 # Native build dependencies are only needed while installing/building packages.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -52,6 +52,11 @@ RUN npm run build:packages
 # the deps stage). verify-backend-bundle re-checks the staged layout so a
 # staging regression fails the image build, not a deploy.
 #
+# The server profile also installs the optional runtime packages (PDF,
+# Office, OCR and IMAP libraries the desktop app installs on demand) into
+# /app/backend/optional-node; NODETOOL_OPTIONAL_NODE_MODULES below points the
+# backend's optional-module loader at it.
+#
 # The bundler stages externals as _modules/ only because electron-builder
 # globs exclude any "node_modules" dir; that constraint doesn't exist here, so
 # rename it to node_modules and let server.mjs / db-migrate.mjs resolve their
@@ -76,14 +81,16 @@ ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH \
 RUN cd web && NODE_OPTIONS="$WEB_BUILD_NODE_OPTIONS" npm run build \
     && find dist -name '*.map' -delete
 
-FROM node:22-slim AS runtime
+FROM node:24.18.0-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     NODETOOL_ENV=production \
+    NODETOOL_STORAGE_AUTO_CLEANUP=1 \
     HOST=0.0.0.0 \
     STATIC_FOLDER=/app/web/dist \
-    CHROMA_PATH=/workspace/chroma \
-    ASSET_BUCKET=/workspace/assets \
+    ASSET_FOLDER=/workspace/assets \
+    VECTORSTORE_DB_PATH=/workspace/vectorstore.db \
+    USERS_FILE=/workspace/users.json \
     HF_HOME=/workspace/hf-cache
 
 # Runtime-only OS packages. Key management is provided through
@@ -97,7 +104,10 @@ ENV NODE_ENV=production \
 #   poppler-utils     — PDF agents, pdf-to-image nodes (pdftoppm/pdftotext)
 #   qpdf              — PDF agents (split/merge/optimize/check)
 #   pandoc            — document conversion nodes
-#   postgresql-client — psql/pg_dump for DATABASE_URL deployments
+#   postgresql-client-17 — psql/pg_dump for DATABASE_URL deployments, from
+#                     PGDG: pg_dump refuses servers newer than itself, and
+#                     bookworm ships 15 while docker-compose
+#                     runs postgres:17.
 #   jq/zip/unzip      — everyday shell plumbing for agents
 #   mesa-vulkan-drivers — lavapipe, a software Vulkan device. The image nodes
 #                     and the timeline compositor run their shaders on Dawn,
@@ -119,10 +129,18 @@ ENV NODE_ENV=production \
 RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' \
       > /etc/apt/sources.list.d/backports.list \
     && apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl wget \
+    ca-certificates curl \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+       https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && . /etc/os-release \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    wget \
     ffmpeg git jq zip unzip \
     poppler-utils qpdf pandoc \
-    postgresql-client \
+    postgresql-client-17 \
     python3 python3-venv \
     chromium fonts-liberation fonts-noto-color-emoji \
     libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
@@ -137,13 +155,17 @@ RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' \
 # chrome-launcher (browser_* agent tools) locates the system Chromium.
 ENV CHROME_PATH=/usr/bin/chromium
 
+# Optional runtime packages the server bundle installed (see the build stage).
+ENV NODETOOL_OPTIONAL_NODE_MODULES=/app/backend/optional-node/node_modules
+
 # Python tool venv on PATH for every execute_bash call: the PDF stack the PDF
 # agent's prompt references, plus yt-dlp. The cloud profile drops the yt-dlp
 # node and capability (docs/CLOUD_NODE_CURATION.md), but a self-hosted install
 # runs this same image with NODETOOL_NODE_PROFILE=full and keeps both.
 RUN python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir \
-       yt-dlp pypdf pdfplumber pypdfium2 reportlab \
+       yt-dlp==2026.8.19 pypdf==6.19.0 pdfplumber==0.11.10 \
+       pypdfium2==5.14.0 reportlab==5.0.1 \
     && rm -rf /root/.cache
 ENV PATH="/opt/venv/bin:$PATH"
 
@@ -152,7 +174,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # any workspace directory without a per-run npm install. NODE_PATH only
 # affects CommonJS resolution as a last-resort fallback; the ESM server
 # ignores it, so /app/backend/node_modules resolution is unchanged.
-RUN npm install -g pdf-lib docx && npm cache clean --force
+RUN npm install -g pdf-lib@1.17.1 docx@9.7.1 && npm cache clean --force
 ENV NODE_PATH=/usr/local/lib/node_modules
 
 WORKDIR /app

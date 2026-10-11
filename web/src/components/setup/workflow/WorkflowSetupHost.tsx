@@ -10,7 +10,7 @@
  * on `settings.setup`, so a reload resumes at the same step.
  */
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { isModelSelected } from "@nodetool-ai/protocol";
 
 import {
@@ -28,13 +28,24 @@ import { useWorkflowManagerStore } from "../../../contexts/WorkflowManagerContex
 import {
   useWorkflowSetupDocument
 } from "../../../hooks/workflow/useWorkflowSetup";
-import { readWorkflowFile } from "../../../hooks/workflow/importWorkflowFile";
 import {
+  importWorkflowGraph,
+  readWorkflowFile
+} from "../../../hooks/workflow/importWorkflowFile";
+import {
+  isWorkflowBuildLive,
   readWorkflowBuild,
   workflowBuildResult,
   type BuildFromPlanResult
 } from "../../../hooks/workflow/useBuildFromPlan";
 import type { Workflow } from "../../../stores/ApiTypes";
+import {
+  EditorButton,
+  FlexColumn,
+  GAP,
+  PADDING,
+  ThinkingIndicator
+} from "../../ui_primitives";
 import { SetupFlow } from "../SetupFlow";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useWorkflowSetupFlow } from "./useWorkflowSetupFlow";
@@ -50,23 +61,37 @@ interface RoleModel {
   ref: Record<string, unknown>;
 }
 
-const toRoleModels = (
-  models: readonly { id: string; provider: string; name?: string | null }[],
+export const toRoleModels = (
+  models: readonly {
+    id: string;
+    provider: string;
+    name?: string | null;
+    voices?: string[] | null;
+  }[],
   propertyType: string
 ): RoleModel[] =>
-  models.map((model) => ({
-    id: `${model.provider}:${model.id}`,
-    provider: model.provider,
-    name: model.name ?? model.id,
-    ref: {
+  models.map((model) => {
+    const ref: Record<string, unknown> = {
       type: propertyType,
       provider: model.provider,
       id: model.id,
       name: model.name ?? model.id,
       path: null,
       supported_tasks: []
+    };
+    // A voice model speaks with the voice its select shows first until one
+    // is picked, so the built node carries the same list and default.
+    if (Array.isArray(model.voices)) {
+      ref.voices = model.voices;
+      ref.selected_voice = model.voices[0] ?? "";
     }
-  }));
+    return {
+      id: `${model.provider}:${model.id}`,
+      provider: model.provider,
+      name: model.name ?? model.id,
+      ref
+    };
+  });
 
 export interface WorkflowSetupHostProps {
   workflowId: string;
@@ -220,36 +245,40 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
 
   const handleImport = useCallback(
     async (file: File) => {
-      const imported = await readWorkflowFile(file);
-      const state = store.getState();
-      const workflow = state.getWorkflow(workflowId);
-      if (!workflow) {
-        throw new Error(i18n.t("editor:ui.workflowIdIsNotOpen", { defaultValue: "Workflow {{id}} is not open.", id: workflowId }));
-      }
-      const next = {
-        ...workflow,
-        graph: imported as NonNullable<typeof workflow.graph>
-      };
-      state.updateWorkflow(next);
-      await state.saveWorkflow(next);
+      await importWorkflowGraph(
+        store.getState(),
+        workflowId,
+        await readWorkflowFile(file)
+      );
     },
     [store, workflowId]
   );
 
   const setup = useWorkflowSetupDocument(workflowId);
   const persistedBuild = readWorkflowBuild(setup);
+  // The hand-off runs once per mount: the flow's own finish, the build's
+  // result, or the fallback below for a `done` no step wrote.
+  const finishedRef = useRef(false);
   const handleFinish = useCallback(
     (result: BuildFromPlanResult | null) => {
+      if (finishedRef.current) {
+        return;
+      }
+      finishedRef.current = true;
       // The build record lives on settings.setup because this host can be
       // remounted after the setup flow has already returned. Prefer the
       // in-memory result for the current build, but do not discard the saved
       // explanation when the flow has been restored from the document.
       onFinish(
         result ??
-          (persistedBuild === null ? null : workflowBuildResult(persistedBuild))
+          (persistedBuild === null
+            ? null
+            : workflowBuildResult(persistedBuild, {
+                live: isWorkflowBuildLive(workflowId)
+              }))
       );
     },
-    [onFinish, persistedBuild]
+    [onFinish, persistedBuild, workflowId]
   );
 
   const config = useWorkflowSetupFlow({
@@ -268,6 +297,67 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
     () => onChangeFlow?.(brief),
     [brief, onChangeFlow]
   );
+
+  // A `done` that no step of this flow handed off: the document loaded that
+  // way (a reload during the build's test run), or the agent's
+  // `ui_workflow_set_setup` or `ui_workflow_build_from_plan` wrote it while
+  // this tab was open. The shell has no step for `done`, so without this the
+  // tab stays blank. The build's own `done` waits for its result.
+  const loaded = setup !== null;
+  const settledDone = loaded && config.stage === "done" && !config.building;
+  useEffect(() => {
+    if (settledDone) {
+      handleFinish(null);
+    }
+  }, [handleFinish, settledDone]);
+
+  // The build writes `done` once the graph is placed, then validates and test
+  // runs it. The shell has no step for `done`, so this covers that wait, with
+  // the way to stop it.
+  const checking = config.stage === "done" && config.building;
+  // The shell's footer, and the Cancel the keyboard was on, are gone with it,
+  // so focus goes to this screen's Cancel rather than to the page.
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const active = document.activeElement;
+    if (checking && (active === null || active === document.body)) {
+      cancelRef.current?.focus();
+    }
+  }, [checking]);
+  if (checking) {
+    return (
+      <FlexColumn
+        align="center"
+        justify="center"
+        gap={GAP.comfortable}
+        sx={{ padding: PADDING.section }}
+      >
+        <ThinkingIndicator
+          label="Checking and test-running your workflow"
+          announce
+        />
+        <EditorButton
+          ref={cancelRef}
+          variant="text"
+          onClick={() => void config.cancelBuild()}
+        >
+          Cancel
+        </EditorButton>
+      </FlexColumn>
+    );
+  }
+
+  if (settledDone) {
+    return (
+      <FlexColumn
+        align="center"
+        justify="center"
+        sx={{ padding: PADDING.section }}
+      >
+        <ThinkingIndicator label="Opening your workflow" announce />
+      </FlexColumn>
+    );
+  }
 
   return (
     <SetupFlow

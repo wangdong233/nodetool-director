@@ -1,3 +1,7 @@
+import type { AppRunContext, AppRunCostAccount, AppRunDocumentRef } from "./run-context.js";
+import { getRunTraceScope, type RunTraceScope } from "./run-trace-context.js";
+import { withSpan } from "./tracing-helpers.js";
+import { traceStorageAdapter } from "./traced-storage.js";
 /**
  * ProcessingContext – runtime context for node execution.
  *
@@ -15,13 +19,13 @@ import type {
   Entity,
   EntityKind,
   EntitySource,
-  GameAssetManifest,
   GenerationOrigin,
   GenerationReceipt,
   ProcessingMessage,
   ProviderCost
 } from "@nodetool-ai/protocol";
 import {
+  assetFileNameCandidates,
   buildAssetGenerationMetadata,
   isShortResourceId,
   packageAssetHttpPath,
@@ -43,7 +47,7 @@ import {
   VIDEO_TO_AUDIO_TASK,
   VideoToAudioRequest
 } from "./providers/video-to-audio.js";
-import { encodeRawImageRef } from "./image-codec.js";
+import { encodeRawImageRef, validateImageEvidence } from "./image-codec.js";
 import { extForImageMime, sniffImageMime } from "./providers/image-mime.js";
 import {
   GenerationScopeError,
@@ -52,7 +56,7 @@ import {
   isAuthoritativeProviderTerminalError,
   runWithGenerationReceipt
 } from "./generation-receipt.js";
-import { generationRegistry } from "./generation-registry.js";
+import { generationRegistry, type GenerationDelivery } from "./generation-registry.js";
 import { redactGenerationParams } from "./redact-params.js";
 import {
   isCallable,
@@ -69,19 +73,13 @@ import {
   inlineTextAssetRefs
 } from "./prompt-asset-refs.js";
 import { getNodeBuiltinSync } from "@nodetool-ai/config";
-import type { StorageAdapter } from "@nodetool-ai/storage";
+import type { StorageAdapter, StorageEntry } from "@nodetool-ai/storage";
 import type { Workspace } from "./workspace.js";
 
 // `node:fs/promises`, `node:path`, `node:url`, `node:crypto` are loaded
 // lazily so this module loads in browser / Edge runtimes. `resolveWorkspacePath`
 // and the `randomUUID` fallback both degrade gracefully when these are
 // unavailable.
-/**
- * Secret values shorter than this are not recorded for masking: redacting a
- * two-character value would blank unrelated text wherever it happens to occur.
- */
-const MIN_MASKABLE_SECRET_LENGTH = 8;
-
 /**
  * ProcessingContext variable key carrying the provider/model the currently
  * running agent loop is itself talking to. Every loop that executes tools
@@ -314,6 +312,7 @@ export type ProviderCapability =
   | "relight_image"
   | "segment_image"
   | "vectorize_image"
+  | "estimate_depth"
   | "text_to_video"
   | "image_to_video"
   | "reference_to_video"
@@ -329,6 +328,7 @@ export type ProviderCapability =
   | "video_to_audio"
   | "automatic_speech_recognition"
   | "generate_embedding"
+  | "rerank"
   | "text_to_3d"
   | "image_to_3d"
   | "render_model3d"
@@ -399,6 +399,7 @@ export interface GenerationResult<T = ProviderPredictionResult> {
   assets: AssetRef[];
   receipt: GenerationReceipt | null;
   duration_ms: number;
+  delivery?: GenerationDelivery;
 }
 
 /** Raised by a durable host when an idempotent request is already owned. */
@@ -410,6 +411,11 @@ export class GenerationAlreadyAcceptedError extends Error {
 }
 
 export interface GenerationRunOptions {
+  /** Deliver saved output before the generation becomes observable as settled. */
+  finalizeOutput?: (
+    output: unknown,
+    assets: readonly AssetRef[]
+  ) => Promise<GenerationDelivery>;
   /** A receipt known only after persistence finishes. */
   receiptAfterPersist?: () => Partial<GenerationReceipt> | null;
   /** A host-local generation, such as a Blender render, has no provider. */
@@ -434,6 +440,7 @@ export interface GenerationRunOptions {
     readonly output?: unknown;
     readonly error?: string;
     readonly receipt: GenerationReceipt | null;
+    readonly delivery?: GenerationDelivery;
     /** Positional media asset ids. Null preserves a failed save's index. */
     readonly assetIds: readonly (string | null)[];
   }) => void | Promise<void>;
@@ -469,6 +476,8 @@ export type ProviderPredictionResult = Awaited<
       | "referenceToVideo"
       | "upscaleImage"
       | "removeBackground"
+      | "estimateDepth"
+      | "rerank"
       | "relightImage"
       | "segmentImage"
       | "vectorizeImage"
@@ -757,8 +766,6 @@ export interface ProcessingContextModelInterfaces {
    * updates the entity it made last time instead of growing the library.
    */
   upsertEntity?: (args: EntityUpsertArgs) => Promise<EntityUpsertResult>;
-  /** The shipped Godot templates and the asset slots each declares. */
-  listGameTemplates?: () => Promise<GameTemplateInfo[]>;
 }
 
 /** The arguments {@link ProcessingContextModelInterfaces.upsertEntity} takes. */
@@ -786,12 +793,6 @@ export interface EntityUpsertArgs {
 export interface EntityUpsertResult {
   entity: Entity;
   created: boolean;
-}
-
-/** One shipped game template: its id and the asset slots it declares. */
-export interface GameTemplateInfo {
-  id: string;
-  manifest: GameAssetManifest;
 }
 
 /**
@@ -1077,6 +1078,39 @@ function resolveWorkspaceOption(opts: {
   return workspaceFactory(opts);
 }
 
+/**
+ * The listed entry holding the asset `bareId`, or undefined.
+ *
+ * A short resource id is a prefix of the stored id, so the key continues with
+ * more hex before its extension; a full id is followed by the extension
+ * itself. A hierarchical id (`user-1/image`) lives in the full key, a flat id
+ * in the last segment — both forms are matched. Generated thumbnails
+ * (`<id>_thumb.<ext>`) are skipped unless they are the id being resolved, so a
+ * legit `banner_thumb` still matches instead of being dropped by a substring
+ * test. Preview proxies (`<id>_proxy.<ext>`) are skipped the same way.
+ */
+function findListedAsset(
+  entries: readonly StorageEntry[],
+  bareId: string
+): StorageEntry | undefined {
+  const bareEndsWithThumb = bareId.endsWith("_thumb");
+  const needle = isShortResourceId(bareId) ? bareId : `${bareId}.`;
+  return entries.find((entry) => {
+    const key = entry.key;
+    const lastSegment = key.split("/").pop() ?? "";
+    if (!key.startsWith(needle) && !lastSegment.startsWith(needle)) {
+      return false;
+    }
+    // A preview proxy (`<id>_proxy.mp4`) and its manifest sit next to the
+    // asset. A short id must never resolve to them: renders read the original.
+    if (/_proxy\.[^./]+$/.test(lastSegment) && !bareId.endsWith("_proxy")) {
+      return false;
+    }
+    const isThumb = /_thumb\.[^./]+$/.test(lastSegment);
+    return !isThumb || bareEndsWithThumb;
+  });
+}
+
 export class ProcessingContext {
   readonly jobId: string;
   readonly workflowId: string | null;
@@ -1201,6 +1235,11 @@ export class ProcessingContext {
     | null = null;
   /** Every secret value the resolver handed out this run (see {@link ProcessingContext.getResolvedSecretValues}). */
   private _resolvedSecrets = new Set<string>();
+  /** Identity shared by all work beneath an app operation. */
+  readonly appRunContext: AppRunContext | null;
+  runTraceContext: RunTraceScope | null;
+  readonly appRunCostAccount: AppRunCostAccount | null;
+  private _appRunDocuments = new Map<string, AppRunDocumentRef>();
   /** Fetch function used by HTTP helpers. */
   private _fetch: (input: string, init?: RequestInit) => Promise<Response>;
   /** Optional temporary URL resolver for stored assets. */
@@ -1312,6 +1351,9 @@ export class ProcessingContext {
     retainMessageQueue?: boolean;
     /** Optional durable lifecycle owned by the host. */
     generationLifecycle?: GenerationLifecycleHooks;
+    appRunContext?: AppRunContext;
+    runTraceContext?: RunTraceScope;
+    appRunCostAccount?: AppRunCostAccount;
   }) {
     this.jobId = opts.jobId;
     this.workflowId = opts.workflowId ?? null;
@@ -1323,9 +1365,13 @@ export class ProcessingContext {
     this.assetOutputMode = opts.assetOutputMode ?? "native";
     this.persistOutputAssets = opts.persistOutputAssets ?? true;
     this._generationLifecycle = opts.generationLifecycle ?? null;
+    this.appRunContext = opts.appRunContext ? Object.freeze({ ...opts.appRunContext }) : null;
+    this.runTraceContext = opts.runTraceContext ?? getRunTraceScope() ?? null;
+    if (this.runTraceContext?.secretValues instanceof Set) { this._resolvedSecrets = this.runTraceContext.secretValues; }
+    this.appRunCostAccount = opts.appRunCostAccount ?? (this.appRunContext ? { llmCostUsd: 0, unpriced: false } : null);
     this.cache = opts.cache ?? new MemoryCache();
-    this.storage = opts.storage ?? null;
-    this.assetStorage = opts.assetStorage ?? null;
+    this.storage = traceStorageAdapter(opts.storage ?? null);
+    this.assetStorage = traceStorageAdapter(opts.assetStorage ?? null);
     this.workspaceStorage = opts.workspaceStorage ?? null;
     if (opts.onMessage) {
       this._messageListeners.add(opts.onMessage);
@@ -1373,14 +1419,20 @@ export class ProcessingContext {
   copy(opts?: {
     shareMemory?: boolean;
     inheritMessageListeners?: boolean;
+    jobId?: string;
+    workflowId?: string | null;
+    appRunContext?: AppRunContext;
+    runTraceContext?: RunTraceScope;
+    generationLifecycle?: GenerationLifecycleHooks;
+    workspace?: Workspace | null;
   }): ProcessingContext {
     const next = new ProcessingContext({
-      jobId: this.jobId,
+      jobId: opts?.jobId ?? this.jobId,
       projectId: this.projectId,
-      workflowId: this.workflowId,
+      workflowId: opts?.workflowId !== undefined ? opts.workflowId : this.workflowId,
       threadId: this.threadId,
       userId: this.userId,
-      workspaceDir: this.workspaceDir,
+      workspace: opts?.workspace !== undefined ? opts.workspace : this.workspace,
       assetOutputMode: this.assetOutputMode,
       persistOutputAssets: this.persistOutputAssets,
       cache: this.cache,
@@ -1396,7 +1448,11 @@ export class ProcessingContext {
       tempUrlResolver: this._tempUrlResolver ?? undefined,
       modelInterfaces: this._modelInterfaces ?? undefined,
       retainMessageQueue: this._retainMessageQueue,
-      triggerEvent: this.triggerEvent
+      triggerEvent: this.triggerEvent,
+      generationLifecycle: opts?.generationLifecycle ?? this._generationLifecycle ?? undefined,
+      appRunContext: opts?.appRunContext ?? this.appRunContext ?? undefined,
+      runTraceContext: opts?.runTraceContext ?? this.runTraceContext ?? undefined,
+      appRunCostAccount: !opts?.appRunContext || opts.appRunContext.appRunId === this.appRunContext?.appRunId ? this.appRunCostAccount ?? undefined : undefined
     });
     if (opts?.inheritMessageListeners !== false) {
       for (const listener of this._messageListeners) {
@@ -1405,6 +1461,10 @@ export class ProcessingContext {
     }
     if (opts?.shareMemory) {
       (next as { memory: AgentMemory }).memory = this.memory;
+    }
+    if (!opts?.runTraceContext) { next._resolvedSecrets = this._resolvedSecrets; }
+    if (next.appRunContext?.appRunId === this.appRunContext?.appRunId) {
+      next._appRunDocuments = this._appRunDocuments;
     }
     next.signal = this.signal;
     next._providerResolver = this._providerResolver;
@@ -1686,7 +1746,7 @@ export class ProcessingContext {
   async getSecret(key: string): Promise<string | null> {
     if (!this._secretResolver) return null;
     const value = await this._secretResolver(key, this.userId);
-    if (value != null && value.length >= MIN_MASKABLE_SECRET_LENGTH) {
+    if (value != null && value.length > 0) {
       this._resolvedSecrets.add(value);
     }
     return value ?? null;
@@ -1982,6 +2042,32 @@ export class ProcessingContext {
     return this._totalCost;
   }
 
+  /** Null means at least one LLM call could not be priced. */
+  getAppRunLlmCost(): number | null {
+    return this.appRunCostAccount && !this.appRunCostAccount.unpriced
+      ? this.appRunCostAccount.llmCostUsd
+      : null;
+  }
+
+  getAppRunDocuments(): AppRunDocumentRef[] {
+    return [...this._appRunDocuments.values()].map((reference) => ({
+      ...reference
+    }));
+  }
+
+  private recordAppRunDocument<T extends PersistedRecordLike | null>(
+    kind: AppRunDocumentRef["kind"],
+    document: T
+  ): T {
+    if (this.appRunContext && document) {
+      this._appRunDocuments.set(`${kind}:${document.id}`, {
+        kind,
+        id: document.id
+      });
+    }
+    return document;
+  }
+
   getOperationCosts(): ReadonlyArray<Record<string, unknown>> {
     return this._operationCosts;
   }
@@ -2179,7 +2265,8 @@ export class ProcessingContext {
     args: ModelInterfaceArgs<"createImageDocument">
   ): Promise<PersistedRecordLike> {
     const fn = this.requireModelInterface("createImageDocument");
-    return fn({ userId: this.userId, ...args });
+    const document = await fn({ userId: this.userId, ...args });
+    return this.recordAppRunDocument("sketch", document);
   }
 
   /** Load a persisted timeline sequence owned by the current user. */
@@ -2193,7 +2280,8 @@ export class ProcessingContext {
     sequence: unknown
   ): Promise<PersistedRecordLike> {
     const fn = this.requireModelInterface("createTimelineSequence");
-    return fn({ userId: this.userId, sequence });
+    const document = await fn({ userId: this.userId, sequence });
+    return this.recordAppRunDocument("timeline", document);
   }
 
   /** Replace a persisted timeline sequence's document. */
@@ -2202,7 +2290,8 @@ export class ProcessingContext {
     sequence: unknown
   ): Promise<PersistedRecordLike | null> {
     const fn = this.requireModelInterface("updateTimelineSequence");
-    return fn({ userId: this.userId, id, sequence });
+    const document = await fn({ userId: this.userId, id, sequence });
+    return this.recordAppRunDocument("timeline", document);
   }
 
   /** Load a persisted script owned by the current user. */
@@ -2216,7 +2305,8 @@ export class ProcessingContext {
     args: ModelInterfaceArgs<"createScript">
   ): Promise<PersistedRecordLike> {
     const fn = this.requireModelInterface("createScript");
-    return fn({ userId: this.userId, ...args });
+    const document = await fn({ userId: this.userId, ...args });
+    return this.recordAppRunDocument("script", document);
   }
 
   /** Replace a persisted script's document (and optional timeline link). */
@@ -2225,7 +2315,8 @@ export class ProcessingContext {
     args: Omit<ModelInterfaceArgs<"updateScript">, "id">
   ): Promise<PersistedRecordLike | null> {
     const fn = this.requireModelInterface("updateScript");
-    return fn({ userId: this.userId, id, ...args });
+    const document = await fn({ userId: this.userId, id, ...args });
+    return this.recordAppRunDocument("script", document);
   }
 
   /** Load a persisted storyboard owned by the current user. */
@@ -2255,7 +2346,8 @@ export class ProcessingContext {
     args: ModelInterfaceArgs<"createStoryboard">
   ): Promise<PersistedRecordLike> {
     const fn = this.requireModelInterface("createStoryboard");
-    return fn({ userId: this.userId, ...args });
+    const document = await fn({ userId: this.userId, ...args });
+    return this.recordAppRunDocument("storyboard", document);
   }
 
   /** Replace a persisted storyboard's document (and optional timeline link). */
@@ -2264,7 +2356,8 @@ export class ProcessingContext {
     args: Omit<ModelInterfaceArgs<"updateStoryboard">, "id">
   ): Promise<PersistedRecordLike | null> {
     const fn = this.requireModelInterface("updateStoryboard");
-    return fn({ userId: this.userId, id, ...args });
+    const document = await fn({ userId: this.userId, id, ...args });
+    return this.recordAppRunDocument("storyboard", document);
   }
 
   /** The current user's entity library, narrowed by the given filters. */
@@ -2289,12 +2382,6 @@ export class ProcessingContext {
     return fn({ userId: this.userId, ...args });
   }
 
-  /** The shipped game templates and the asset slots each declares. */
-  async listGameTemplates(): Promise<GameTemplateInfo[]> {
-    const fn = this.requireModelInterface("listGameTemplates");
-    return fn();
-  }
-
   /**
    * Recursively list the non-folder assets in `folderId`, or `null` when the id
    * is not a folder. Backed by the optional `listFolderAssets` model interface;
@@ -2314,7 +2401,7 @@ export class ProcessingContext {
    * `null` when that interface is not configured.
    */
   async getAssetInfo(assetId: string): Promise<AssetInfoEntry | null> {
-    const fn = this._modelInterfaces?.getAssetInfo;
+    const fn = this.modelInterfaces()?.getAssetInfo;
     if (!fn) {
       return null;
     }
@@ -2408,6 +2495,130 @@ export class ProcessingContext {
   }
 
   /**
+   * The adapters an asset reference is looked up in. Assets live in the asset
+   * store; `this.storage` is the *temp* store on server paths. The asset
+   * adapter goes first and the temp adapter stays as the fallback so
+   * runtime-materialized refs still resolve.
+   */
+  private assetAdapters(): StorageAdapter[] {
+    return [this.assetStorage, this.storage].filter(
+      (adapter, index, all): adapter is StorageAdapter =>
+        adapter !== null && all.indexOf(adapter) === index
+    );
+  }
+
+  /**
+   * Keys an asset id candidate may be stored under: `<userId>/<id>.<ext>`
+   * (uploads — the current owner-prefixed layout), `<id>.<ext>` (the flat
+   * legacy layout) and `assets/<id>` (runtime-materialized refs). The
+   * owner-prefixed key goes first: without it every reference misses all the
+   * exact lookups and falls through to the prefix listing, which degrades to
+   * `list("")` — a full recursive walk / whole-bucket `listObjectsV2` across
+   * every tenant, on every asset reference.
+   */
+  private assetKeysFor(candidate: string): string[] {
+    const keys = [candidate, `assets/${candidate}`];
+    if (this.userId && !candidate.startsWith(`${this.userId}/`)) {
+      keys.unshift(`${this.userId}/${candidate}`);
+    }
+    return keys;
+  }
+
+  /**
+   * Prefixes to list, narrowest first, when no exact key matched.
+   *
+   * S3 treats `list(<owner>/<bareId>)` as a raw-string prefix match — bounded
+   * to a handful of entries. `list("")` is the last resort: it is a
+   * multi-thousand-object scan on production S3 backends, and on Supabase it
+   * lists only the bucket's immediate children — which under the
+   * owner-prefixed layout are folders, so it never sees an asset at all.
+   *
+   * The owner prefix is what makes this work for uploads. They are stored at
+   * `<userId>/<id>.<ext>`, and a ref that carries no extension (`asset://<id>`,
+   * or a bare `asset_id`) misses every exact-key lookup. Listing the owner's
+   * own folder finds it on every adapter: hierarchical ones
+   * (file/supabase/memory) list its children, and prefix-matching ones (S3)
+   * stay scoped to that one user.
+   */
+  private assetListingPrefixes(bareId: string): string[] {
+    const owner = this.userId;
+    return owner && !bareId.startsWith(`${owner}/`)
+      ? [`${owner}/${bareId}`, bareId, owner, ""]
+      : [bareId, ""];
+  }
+
+  /**
+   * Resolve an asset reference to a local file holding its bytes — the path
+   * counterpart of {@link resolveAssetBytes}, for callers such as ffmpeg that
+   * read a file in place instead of loading it into memory.
+   *
+   * Looks the reference up in the same adapters and under the same keys,
+   * including the extension-tolerant listing, and asks each adapter for
+   * `localPath`. That finds a managed file under the local asset root and an
+   * external asset's in-place file. Returns null when no adapter keeps a local
+   * file for it (object stores, the in-memory store, HTTP-only and
+   * `package://` references); the caller then falls back to
+   * {@link resolveAssetBytes}. The path is for reading only, and it is an
+   * asset-store path, not a workspace file.
+   */
+  async localPath(uri: string): Promise<string | null> {
+    const trimmed = uri.trim();
+    if (!trimmed || parsePackageAssetUri(trimmed)) {
+      return null;
+    }
+    const adapters = this.assetAdapters();
+    const tryLocalPath = async (
+      adapter: StorageAdapter,
+      storageUri: string
+    ): Promise<string | null> => {
+      try {
+        return await adapter.localPath(storageUri);
+      } catch {
+        // An adapter that cannot answer is treated as having no local file.
+        return null;
+      }
+    };
+
+    if (trimmed.includes("://") && !trimmed.startsWith("asset://")) {
+      for (const adapter of adapters) {
+        const direct = await tryLocalPath(adapter, trimmed);
+        if (direct) {
+          return direct;
+        }
+      }
+    }
+
+    const idCandidates = this.parseAssetIdCandidates(trimmed);
+    for (const adapter of adapters) {
+      for (const candidate of idCandidates) {
+        for (const key of this.assetKeysFor(candidate)) {
+          const found = await tryLocalPath(adapter, adapter.uriForKey(key));
+          if (found) {
+            return found;
+          }
+        }
+      }
+      const bareId = idCandidates[idCandidates.length - 1];
+      if (!bareId) {
+        continue;
+      }
+      for (const prefix of this.assetListingPrefixes(bareId)) {
+        try {
+          const listing = await adapter.list(prefix);
+          const match = findListedAsset(listing.entries, bareId);
+          const found = match ? await tryLocalPath(adapter, match.uri) : null;
+          if (found) {
+            return found;
+          }
+        } catch {
+          // A listing that fails leaves the next, wider prefix to try.
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Resolve an `asset://<id>[.ext]` reference (or bare id / storage URI) to its
    * raw bytes.
    *
@@ -2419,19 +2630,14 @@ export class ProcessingContext {
    * trail for callers that build detailed errors; `null` bytes means unresolved.
    */
   async resolveAssetBytes(
-    assetId: string
+    assetId: string,
+    options?: { requireOwnedAsset?: boolean }
   ): Promise<{ bytes: Uint8Array | null; attempts: string[] }> {
-    const idCandidates = this.parseAssetIdCandidates(assetId);
+    let idCandidates = this.parseAssetIdCandidates(assetId);
     const trimmed = assetId.trim();
     const attempts: string[] = [];
 
-    // Assets live in the asset store; `this.storage` is the *temp* store on
-    // server paths. Probe the asset adapter first and keep the temp adapter as
-    // the fallback so runtime-materialized refs still resolve.
-    const adapters = [this.assetStorage, this.storage].filter(
-      (adapter, index, all): adapter is StorageAdapter =>
-        adapter !== null && all.indexOf(adapter) === index
-    );
+    const adapters = this.assetAdapters();
 
     const tryStorageUri = async (
       adapter: StorageAdapter,
@@ -2528,20 +2734,36 @@ export class ProcessingContext {
       }
     }
 
-    for (const adapter of adapters) {
-      // Keys assets are written under: `<userId>/<id>.<ext>` (uploads — the
-      // current owner-prefixed layout), `<id>.<ext>` (the flat legacy layout)
-      // and `assets/<id>` (runtime-materialized refs). The owner-prefixed key
-      // goes first: without it every reference misses all the exact lookups
-      // and falls through to the prefix listing below, which degrades to
-      // `list("")` — a full recursive walk / whole-bucket `listObjectsV2`
-      // across every tenant, on every asset reference.
+    // An asset row names the stored file exactly (`<owner>/<id>.<ext>`), so a
+    // reference that resolves to one is read by key and never by listing.
+    let assetRowFound = false;
+    if (this.hasModelInterface("getAssetInfo")) {
+      let asset: AssetInfoEntry | null = null;
+      const ownerPrefix = `${this.userId}/`;
+      const rowIdCandidates = new Set(idCandidates);
       for (const candidate of idCandidates) {
-        const keys = [candidate, `assets/${candidate}`];
-        if (this.userId && !candidate.startsWith(`${this.userId}/`)) {
-          keys.unshift(`${this.userId}/${candidate}`);
+        if (candidate.startsWith(ownerPrefix)) {
+          rowIdCandidates.add(candidate.slice(ownerPrefix.length));
         }
-        for (const key of keys) {
+      }
+      for (const candidate of rowIdCandidates) {
+        asset = await this.getAssetInfo(candidate);
+        if (asset) {
+          break;
+        }
+      }
+      if (asset) {
+        assetRowFound = true;
+        idCandidates = assetFileNameCandidates(asset.id, asset.content_type);
+      } else if (options?.requireOwnedAsset) {
+        attempts.push(`asset unavailable or not owned: ${trimmed}`);
+        return { bytes: null, attempts };
+      }
+    }
+
+    for (const adapter of adapters) {
+      for (const candidate of idCandidates) {
+        for (const key of this.assetKeysFor(candidate)) {
           const bytes = await tryStorageUri(adapter, adapter.uriForKey(key));
           if (bytes) {
             return { bytes, attempts };
@@ -2550,68 +2772,24 @@ export class ProcessingContext {
       }
       // Extension-tolerant fallback: locate the stored file whose name starts
       // with the id, since the URN extension may differ from the one on disk
-      // (e.g. jpeg vs jpg). Only reached when the exact-key lookups all miss.
-      //
-      // Try a narrow prefix first (S3 treats `list(<owner>/<bareId>)` as a
-      // raw-string prefix match — bounded to a handful of entries) before
-      // widening. `list("")` is the last resort: it is a multi-thousand-object
-      // scan on production S3 backends, and on Supabase it lists only the
-      // bucket's immediate children — which under the owner-prefixed layout
-      // are folders, so it never sees an asset at all.
-      //
-      // The owner prefix is what makes this work for uploads. They are stored
-      // at `<userId>/<id>.<ext>`, and a ref that carries no extension
-      // (`asset://<id>`, or a bare `asset_id`) misses every exact-key lookup
-      // above. Listing the owner's own folder finds it on every adapter:
-      // hierarchical ones (file/supabase/memory) list its children, and
-      // prefix-matching ones (S3) stay scoped to that one user.
+      // (e.g. jpeg vs jpg). Only reached when the exact-key lookups all miss
+      // and no asset row named the file.
       const bareId = idCandidates[idCandidates.length - 1];
-      if (bareId) {
-        const tryListing = async (
-          prefix: string
-        ): Promise<Uint8Array | null> => {
+      if (bareId && !assetRowFound) {
+        for (const prefix of this.assetListingPrefixes(bareId)) {
           try {
             const listing = await adapter.list(prefix);
-            const bareEndsWithThumb = bareId.endsWith("_thumb");
-            // A short resource id is a prefix of the stored id, so the key
-            // continues with more hex before its extension; a full id is
-            // followed by the extension itself.
-            const needle = isShortResourceId(bareId) ? bareId : `${bareId}.`;
-            const match = listing.entries.find((entry) => {
-              const key = entry.key;
-              const lastSegment = key.split("/").pop() ?? "";
-              // A hierarchical id (`user-1/image`) lives in the full key, a flat
-              // id in the last segment — match against whichever form fits.
-              const matches =
-                key.startsWith(needle) || lastSegment.startsWith(needle);
-              if (!matches) {
-                return false;
-              }
-              // Skip generated thumbnails (`<id>_thumb.<ext>`) — but only ones
-              // that aren't the id we're resolving, so a legit `banner_thumb`
-              // still matches instead of being dropped by a substring test.
-              const isThumb = /_thumb\.[^./]+$/.test(lastSegment);
-              return !isThumb || bareEndsWithThumb;
-            });
+            const match = findListedAsset(listing.entries, bareId);
             if (match) {
-              return await tryStorageUri(adapter, match.uri);
+              const bytes = await tryStorageUri(adapter, match.uri);
+              if (bytes) {
+                return { bytes, attempts };
+              }
             }
           } catch (error) {
             attempts.push(
               `storage list error (${error instanceof Error ? error.message : String(error)})`
             );
-          }
-          return null;
-        };
-        const owner = this.userId;
-        const prefixes =
-          owner && !bareId.startsWith(`${owner}/`)
-            ? [`${owner}/${bareId}`, bareId, owner, ""]
-            : [bareId, ""];
-        for (const prefix of prefixes) {
-          const bytes = await tryListing(prefix);
-          if (bytes) {
-            return { bytes, attempts };
           }
         }
       }
@@ -2910,16 +3088,12 @@ export class ProcessingContext {
     };
 
     // Strict, anchored sanitizer for the URIs that may flow into the asset /
-    // storage retrieval path. Two schemes are recognized — `asset://<id>.<ext>`
-    // (the user-mentioned-asset scheme) and the legacy `/api/storage/<key>`
-    // browser-facing path that older DB messages still carry. The character
-    // class matches the one in `prompt-asset-refs`' parser regex, so a
-    // hand-typed token and an inline expansion behave identically. Everything
-    // else (data URIs, external http(s), arbitrary or attacker-supplied
-    // strings) is rejected and the part passes through untouched — so the
-    // storage adapter never sees an unrecognized URI shape.
+    // storage retrieval path. Accept asset references, the browser-facing
+    // storage route, and URIs from configured storage adapters. External URLs
+    // and unrecognized schemes stay out of the storage adapter. `:` is allowed
+    // for named owner ids such as `projects/personal:<user_id>/assets/…`.
     const RESOLVABLE_URI_RE =
-      /^(?:asset:\/\/|\/api\/storage\/)[A-Za-z0-9._~\-/]+$/;
+      /^(?:asset:\/\/|\/?api\/storage\/|(?:memory|file|s3|supabase):\/\/)[A-Za-z0-9._~/%:-]+$/;
     const isResolvableUri = (uri: string): boolean =>
       RESOLVABLE_URI_RE.test(uri);
 
@@ -2931,14 +3105,14 @@ export class ProcessingContext {
     // must not break every later turn in the thread.
     const unresolvedNote = (kind: string, uri: string): MessageContent => ({
       type: "text",
-      text: `[attached ${kind} could not be loaded: ${uri}]`
+      text: `[attached ${kind} could not be ${kind === "image" ? "shown" : "loaded"}: ${uri}]`
     });
 
     // A resolved block reaches the provider as a `data:` URI, which the model
     // cannot pass to a tool. Emit the stored handle beside it so "make it like
     // this" can become `edit_image({input_file: "asset://…"})` — only for the
-    // two schemes `isResolvableUri` admits, never for a `data:` URI the caller
-    // already inlined.
+    // URIs `isResolvableUri` admits, never for a `data:` URI the caller already
+    // inlined.
     const attachedNote = (kind: string, uri: string): MessageContent => ({
       type: "text",
       text: `[attached ${kind} ${uri}]`
@@ -3060,6 +3234,82 @@ export class ProcessingContext {
     return resolved;
   }
 
+  private async resolveRequiredImageEvidence(
+    messages: Message[],
+    required: readonly string[] = []
+  ): Promise<Message[]> {
+    const evidence = new Map<string, MessageContent>();
+    const resolve = async (ref: MediaRefValue): Promise<MessageContent> => {
+      const identity = ref.uri?.startsWith("data:")
+        ? "inline image"
+        : ref.uri ?? ref.asset_id ?? "inline image";
+      const cached = ref.uri ? evidence.get(ref.uri) : undefined;
+      if (cached) {
+        return cached;
+      }
+      try {
+        const bytes = await loadMediaRefBytes(ref, this);
+        if (!bytes?.length) {
+          throw new Error("no image bytes");
+        }
+        const mimeType = sniffImageMime(bytes);
+        if (
+          !mimeType ||
+          !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(
+            mimeType
+          )
+        ) {
+          throw new Error("unsupported image format");
+        }
+        await validateImageEvidence(bytes);
+        const block: MessageContent = {
+          type: "image_url",
+          image: {
+            uri: `data:${mimeType};base64,${Buffer.from(bytes).toString("base64")}`,
+            mimeType
+          }
+        };
+        if (ref.uri) {
+          evidence.set(ref.uri, block);
+        }
+        return block;
+      } catch (error) {
+        throw new Error(
+          `Required image evidence unavailable: ${identity} (${error instanceof Error ? error.message : String(error)})`
+        );
+      }
+    };
+    for (const uri of required) {
+      await resolve({ type: "image", uri });
+    }
+    const result: Message[] = [];
+    for (const message of messages) {
+      if (!Array.isArray(message.content)) {
+        result.push(message);
+        continue;
+      }
+      const content: MessageContent[] = [];
+      let imageIndex = 0;
+      for (const part of message.content) {
+        if (part.type === "image_url") {
+          imageIndex++;
+          content.push(await resolve(part.image), {
+            type: "text",
+            text: `[required image ${
+              part.image.uri && !part.image.uri.startsWith("data:")
+                ? part.image.uri
+                : `inline image ${imageIndex}`
+            }]`
+          });
+        } else {
+          content.push(part);
+        }
+      }
+      result.push({ ...message, content });
+    }
+    return result;
+  }
+
   private async dispatchCapability(
     provider: BaseProvider,
     req: ProviderPredictionRequest
@@ -3068,9 +3318,17 @@ export class ProcessingContext {
     switch (req.capability) {
       case "generate_message":
         return provider.generateMessageTraced({
-          messages: await this.resolveMessageMediaUris(
-            (params.messages as Message[]) ?? []
-          ),
+          messages:
+            params.strict_image_evidence === true
+              ? await this.resolveRequiredImageEvidence(
+                  (params.messages as Message[]) ?? [],
+                  Array.isArray(params.required_images)
+                    ? params.required_images.filter(isString)
+                    : []
+                )
+              : await this.resolveMessageMediaUris(
+                  (params.messages as Message[]) ?? []
+                ),
           model: req.model,
           tools: params.tools as Parameters<
             BaseProvider["generateMessage"]
@@ -3235,24 +3493,52 @@ export class ProcessingContext {
         return provider.vectorizeImage(params.image as Uint8Array, {
           model: { id: req.model, name: req.model, provider: req.provider }
         });
+      case "estimate_depth":
+        return provider.estimateDepth(params.image as Uint8Array, {
+          model: { id: req.model, name: req.model, provider: req.provider },
+          signal: isAbortSignal(params.signal) ? params.signal : this.signal
+        });
+      case "rerank":
+        return provider.rerank({
+          model: req.model,
+          query: isString(params.query) ? params.query : "",
+          // Every entry stays, so result indices point into the caller's list.
+          documents: Array.isArray(params.documents)
+            ? params.documents.map((doc) => (isString(doc) ? doc : String(doc)))
+            : [],
+          topK: isNumber(params.top_k) ? params.top_k : undefined,
+          signal: isAbortSignal(params.signal) ? params.signal : this.signal
+        });
       case "track_object": {
         const request = objectTrackingRequestSchema.parse(params);
         if (!provider.getCapabilities().includes("track_object")) {
-          throw new Error("The selected provider does not support object tracking.");
+          throw new Error(
+            "The selected provider does not support object tracking."
+          );
         }
-        const signal = params.signal instanceof AbortSignal ? params.signal : this.signal;
+        const signal =
+          params.signal instanceof AbortSignal ? params.signal : this.signal;
         signal.throwIfAborted();
-        const video = await loadMediaRefBytes({ type: "video", asset_id: request.sourceAssetId }, this);
+        const video = await loadMediaRefBytes(
+          { type: "video", asset_id: request.sourceAssetId },
+          this
+        );
         if (!video?.byteLength) {
           throw new Error("The tracking source video could not be loaded.");
         }
         signal.throwIfAborted();
-        const output = await provider.trackObject(video, { ...request, model: req.model, signal });
+        const output = await provider.trackObject(video, {
+          ...request,
+          model: req.model,
+          signal
+        });
         signal.throwIfAborted();
         return parseObjectTrackingResult(output, request);
       }
       case "video_to_video": {
-        const signal = isAbortSignal(params.signal) ? params.signal : this.signal;
+        const signal = isAbortSignal(params.signal)
+          ? params.signal
+          : this.signal;
         const referenceImages = coerceByteList(
           params.reference_images ?? params.referenceImages
         );
@@ -3263,7 +3549,8 @@ export class ProcessingContext {
         return provider.videoToVideo(params.video as Uint8Array, {
           model: { id: req.model, name: req.model, provider: req.provider },
           prompt: params.prompt as string | undefined,
-          referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
+          referenceImages:
+            referenceImages.length > 0 ? referenceImages : undefined,
           referenceAssetIds:
             referenceAssetIds.length > 0 ? referenceAssetIds : undefined,
           signal,
@@ -3283,8 +3570,7 @@ export class ProcessingContext {
                 params.source.durationSeconds ?? params.source.duration_seconds,
               startSeconds:
                 params.source.startSeconds ?? params.source.start_seconds,
-              endSeconds:
-                params.source.endSeconds ?? params.source.end_seconds
+              endSeconds: params.source.endSeconds ?? params.source.end_seconds
             }
           : params.source;
         const request = VideoToAudioRequest.parse({
@@ -3305,7 +3591,9 @@ export class ProcessingContext {
                 this
               );
         if (!video?.byteLength) {
-          throw new Error("video_to_audio requires nonempty source video bytes");
+          throw new Error(
+            "video_to_audio requires nonempty source video bytes"
+          );
         }
         return requestVideoToAudio(provider, video, request, {
           signal: params.signal as AbortSignal | undefined
@@ -3485,6 +3773,7 @@ export class ProcessingContext {
     opts?: GenerationRunOptions
   ): Promise<GenerationResult<T>> {
     const id = req.id ?? randomUUID();
+    return withSpan("generation", { "generation.id": id, "generation.provider": req.provider, "generation.kind": req.capability }, async () => {
     const startedAt = Date.now();
     const origin = this.generationOrigin(req, req.origin);
     const controller = new AbortController();
@@ -3542,6 +3831,21 @@ export class ProcessingContext {
       const assets = persistedAssets.filter(
         (asset): asset is AssetRef => asset !== null
       );
+      let delivery: GenerationDelivery | undefined;
+      if (opts?.finalizeOutput) {
+        try {
+          delivery = await opts.finalizeOutput(output, assets);
+        } catch (error) {
+          delivery = {
+            status: "failed",
+            error: error instanceof Error ? error.message : String(error)
+          };
+        }
+      }
+      const deliveryFields: { delivery?: GenerationDelivery } = {};
+      if (delivery) {
+        deliveryFields.delivery = delivery;
+      }
       const late = opts?.receiptAfterPersist?.() ?? null;
       const receipt: GenerationReceipt | null =
         late || recorded ? { ...(recorded ?? {}), ...(late ?? {}) } : null;
@@ -3559,7 +3863,8 @@ export class ProcessingContext {
           status: "completed",
           output: providerResult ?? output,
           receipt,
-          assetIds: durableAssetIds
+          assetIds: durableAssetIds,
+          ...deliveryFields
         });
       } catch (terminalError) {
         this.emit({
@@ -3575,7 +3880,7 @@ export class ProcessingContext {
         "completed",
         req,
         id,
-        generationResultData(req.capability, output),
+        delivery ? { delivery } : generationResultData(req.capability, output),
         undefined,
         startedAt,
         { origin, asset_ids: assetIds, receipt }
@@ -3583,14 +3888,16 @@ export class ProcessingContext {
       generationRegistry.settle(id, {
         status: "completed",
         asset_ids: assetIds,
-        receipt
+        receipt,
+        ...deliveryFields
       });
       return {
         id,
         output,
         assets,
         receipt,
-        duration_ms: Date.now() - startedAt
+        duration_ms: Date.now() - startedAt,
+        ...deliveryFields
       };
     } catch (error) {
       const cause = error instanceof GenerationScopeError ? error.cause : error;
@@ -3630,6 +3937,21 @@ export class ProcessingContext {
           // can be finalized by the recovery worker.
         }
       }
+      if (this.appRunContext && !durableAccepted && !terminalAttempted) {
+        try {
+          terminalAttempted = true;
+          await terminal?.({
+            generationId: id,
+            request: req,
+            status: signal.aborted ? "cancelled" : "failed",
+            error: message,
+            receipt,
+            assetIds: []
+          });
+        } catch {
+          // Preserve the provider failure; the live ledger can retry its write.
+        }
+      }
       this.emitPrediction(status, req, id, null, message, startedAt, {
         origin,
         receipt
@@ -3642,6 +3964,7 @@ export class ProcessingContext {
       });
       throw cause;
     }
+    });
   }
 
   /**
@@ -3935,6 +4258,21 @@ export class ProcessingContext {
           // retried by the recovery worker.
         }
       }
+      if (this.appRunContext && !durableAccepted && !terminalAttempted) {
+        try {
+          terminalAttempted = true;
+          await terminal?.({
+            generationId: id,
+            request: req,
+            status: signal.aborted ? "cancelled" : "failed",
+            error: message,
+            receipt,
+            assetIds: []
+          });
+        } catch {
+          // Preserve the provider failure; the live ledger can retry its write.
+        }
+      }
       this.emitPrediction(status, req, id, null, message, startedAt, {
         origin,
         receipt
@@ -4008,8 +4346,7 @@ export class ProcessingContext {
               params.source.durationSeconds ?? params.source.duration_seconds,
             startSeconds:
               params.source.startSeconds ?? params.source.start_seconds,
-            endSeconds:
-              params.source.endSeconds ?? params.source.end_seconds
+            endSeconds: params.source.endSeconds ?? params.source.end_seconds
           }
         : params.source;
       const request = VideoToAudioRequest.parse({

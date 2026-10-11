@@ -33,6 +33,8 @@ import {
 } from "./tools/external-capability-tools.js";
 import { getAllMcpTools } from "./tools/mcp-tools.js";
 import { buildToolBridge, TOOLS_PRELUDE } from "./codeact/tool-api.js";
+import { UNGATED } from "./capabilities/invoke.js";
+import { capabilityRunForTools } from "./capabilities/legacy-tools.js";
 import { NODETOOL_API_PRELUDE_FULL } from "./codeact/nodetool-api.js";
 
 export const NODETOOL_PRELUDE = `${TOOLS_PRELUDE}\n${NODETOOL_API_PRELUDE_FULL}`;
@@ -77,7 +79,12 @@ export async function assembleJsScriptToolbelt(
 
 export function sandboxToolBridgeGlobals(
   context: ProcessingContext,
-  tools: Tool[] = assembleSandboxToolbelt()
+  tools: Tool[] = assembleSandboxToolbelt(),
+  options: { signal?: AbortSignal } = {}
 ): Record<string, unknown> {
-  return buildToolBridge({ tools, context }).globals;
+  const run = capabilityRunForTools(tools, context, {
+    gate: UNGATED,
+    ...options
+  });
+  return buildToolBridge({ tools, invoke: run.invoke }).globals;
 }

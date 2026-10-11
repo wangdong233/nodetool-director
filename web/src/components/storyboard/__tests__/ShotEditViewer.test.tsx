@@ -8,7 +8,13 @@
  * which store write the result lands through.
  */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import type { ImageRef, Shot } from "@nodetool-ai/protocol";
@@ -45,6 +51,7 @@ jest.mock("../../../serverState/useAssetUpload", () => ({
 import ShotEditViewer from "../ShotEditViewer";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
+import { useStoryboardGenerationStore } from "../../../stores/storyboard/StoryboardGenerationStore";
 
 const BOARD = "board-viewer";
 
@@ -98,6 +105,7 @@ beforeEach(() => {
 
 afterEach(() => {
   useStoryboardStore.getState().removeBoard(BOARD);
+  useStoryboardGenerationStore.setState({ shotJobs: {}, jobToShot: {} });
 });
 
 describe("ShotEditViewer keyboard", () => {
@@ -191,6 +199,88 @@ describe("ShotEditViewer versions (criterion 15)", () => {
     );
     expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("1 / 2");
     expect(storedShot().keyframe?.asset_id).toBe("still-2");
+  });
+
+  it("pages the takes with a finger swipe on the unzoomed stage", () => {
+    // jsdom has no PointerEvent, so fireEvent would drop pointerType.
+    class FakePointerEvent extends MouseEvent {
+      pointerType: string;
+      constructor(type: string, props: PointerEventInit = {}) {
+        super(type, props);
+        this.pointerType = props.pointerType ?? "mouse";
+      }
+    }
+    const original = window.PointerEvent;
+    window.PointerEvent = FakePointerEvent as unknown as typeof PointerEvent;
+    renderViewer(
+      seedShot({
+        keyframe: image("still-2"),
+        keyframe_versions: [image("still-1"), image("still-2")]
+      })
+    );
+    const stage = screen.getByTestId("shot-edit-stage");
+    const swipe = (fromX: number, toX: number, toY = 100) => {
+      fireEvent.pointerDown(stage, {
+        button: 0,
+        pointerType: "touch",
+        clientX: fromX,
+        clientY: 100
+      });
+      fireEvent.pointerUp(stage, {
+        pointerType: "touch",
+        clientX: toX,
+        clientY: toY
+      });
+    };
+
+    swipe(100, 300);
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("1 / 2");
+    // Mostly vertical: a scroll, not a swipe.
+    swipe(300, 250, 400);
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("1 / 2");
+    swipe(300, 100);
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("2 / 2");
+    expect(storedShot().keyframe?.asset_id).toBe("still-2");
+    window.PointerEvent = original;
+  });
+
+  it("shows a still made current outside the viewer, such as in the takes gallery", () => {
+    const { rerender } = renderViewer(
+      seedShot({
+        keyframe: image("still-1"),
+        keyframe_versions: [image("still-1"), image("still-2"), image("still-3")]
+      })
+    );
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("1 / 3");
+    act(() => {
+      useStoryboardStore.getState().acceptKeyframeVersion(BOARD, "shot-1", 2);
+    });
+    rerender(
+      <ThemeProvider theme={mockTheme}>
+        <ShotEditViewer boardId={BOARD} shot={storedShot()} />
+      </ThemeProvider>
+    );
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("3 / 3");
+    expect(screen.getByText("Take 3, current still")).toBeInTheDocument();
+  });
+
+  it("shows a take that lands while open, without making it current", () => {
+    const { rerender } = renderViewer(seedShot());
+    act(() => {
+      useStoryboardStore
+        .getState()
+        .appendShotKeyframeVersion(BOARD, "shot-1", image("still-edit"));
+    });
+    rerender(
+      <ThemeProvider theme={mockTheme}>
+        <ShotEditViewer boardId={BOARD} shot={storedShot()} />
+      </ThemeProvider>
+    );
+    expect(screen.getByTestId("shot-version-pager")).toHaveTextContent("2 / 2");
+    expect(
+      screen.getByText("Previewing take 2. Take 1, current still")
+    ).toBeInTheDocument();
+    expect(storedShot().keyframe?.asset_id).toBe("still-1");
   });
 
   it("adds the flip as a new take, leaving the still it mirrored in place", async () => {
@@ -292,5 +382,41 @@ describe("ShotEditViewer versions (criterion 15)", () => {
     expect(onBeforeImageEditor).toHaveBeenCalled();
     expect(copiedStillMock).not.toHaveBeenCalled();
     expect(uploadAssetMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("ShotEditViewer generation overlay", () => {
+  it("covers the stage while the shot's still job runs", () => {
+    useStoryboardGenerationStore.setState({
+      shotJobs: {
+        "shot-1": {
+          shotId: "shot-1",
+          boardId: BOARD,
+          jobId: "job-1",
+          kind: "keyframe",
+          status: "running"
+        }
+      },
+      jobToShot: { "job-1": "shot-1" }
+    });
+    renderViewer(seedShot());
+    expect(screen.getByTestId("shot-edit-generating")).toBeInTheDocument();
+    expect(screen.getByTestId("shot-edit-stage")).toHaveAttribute(
+      "aria-busy",
+      "true"
+    );
+  });
+
+  it("covers the stage while the shot renders", () => {
+    renderViewer(seedShot({ status: "keyframe_generating" }));
+    expect(screen.getByTestId("shot-edit-generating")).toBeInTheDocument();
+  });
+
+  it("shows the still bare once nothing runs", () => {
+    renderViewer(seedShot());
+    expect(screen.queryByTestId("shot-edit-generating")).toBeNull();
+    expect(screen.getByTestId("shot-edit-stage")).not.toHaveAttribute(
+      "aria-busy"
+    );
   });
 });

@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { recipeEntries } from "../../src/data/recipes";
+import { storyboardExamples } from "../../src/data/storyboardExamples";
 
 // Static route/metadata/media coverage lives in static-seo.spec.ts and uses
 // HTTP responses. Browser work stays representative so hydration and user
 // navigation are exercised without opening a page for every prerendered route.
 const HYDRATION_ROUTES = [
   "/",
-  "/apps",
   "/models",
   "/recipes/ugc-product-video",
   "/download"
@@ -25,17 +25,6 @@ test.describe("marketing smoke", () => {
       await expect(page.locator("h1")).toBeVisible();
     });
   }
-
-  test("mini-app cards show available results", async ({ page }) => {
-    await page.goto("/apps");
-    await expect(
-      page.getByRole("heading", { name: "AI mini apps anyone can use" })
-    ).toBeVisible();
-    await expect(page.getByTestId("mini-app-result").first()).toBeVisible();
-    const appCard = page.locator('a[href="/apps/ad-maker"]');
-    await expect(appCard.getByTestId("mini-app-result")).toBeVisible();
-    await expect(appCard.getByAltText("Ad Maker mini app")).toHaveCount(0);
-  });
 
   test("shared header exposes the global nav (Pricing + Docs)", async ({
     page
@@ -64,16 +53,12 @@ test.describe("marketing smoke", () => {
     await page.goto("/");
 
     const proof = page.getByRole("region", {
-      name: "Made with NodeTool"
+      name: "Build your next campaign"
     });
     await expect(proof).toBeVisible();
     await expect(proof.getByText("Still to review")).toHaveCount(0);
 
     const expectedRoutes = [
-      "/recipes/ugc-product-video",
-      "/recipes/directed-campaign-kit",
-      "/recipes/viral-video-ad-engine",
-      "/recipes/impossible-product-worlds",
       "/recipes/ecommerce-sku-visual-factory",
       "/recipes/multilingual-video-dubber",
       "/recipes/storyboard-to-trailer"
@@ -115,22 +100,51 @@ test.describe("marketing smoke", () => {
       await expect(project.getByText(run.essentialLimitation)).toHaveCount(0);
     }
 
-    const campaignProject = proof.locator("article", {
-      has: page.locator('a[href="/recipes/directed-campaign-kit"]')
+    const catalogueProject = proof.locator("article", {
+      has: page.locator('a[href="/recipes/ecommerce-sku-visual-factory"]')
     });
-    const campaignImage = campaignProject.getByRole("img", {
-      name: /square campaign image of an olive travel cup/i
+    const catalogueImage = catalogueProject.getByRole("img", {
+      name: /accepted olive travel cup reference/i
     });
-    await expect(campaignImage).toHaveCount(1);
+    await expect(catalogueImage).toHaveCount(1);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(campaignImage).toBeVisible();
-    expect((await campaignImage.boundingBox())?.width ?? 0).toBeGreaterThan(
+    await expect(catalogueImage).toBeVisible();
+    expect((await catalogueImage.boundingBox())?.width ?? 0).toBeGreaterThan(
       300
     );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth)
     ).toBeLessThanOrEqual(390);
+  });
+
+  test("homepage shows the ad library and the example storyboards", async ({
+    page
+  }) => {
+    await page.goto("/");
+
+    const ads = page.getByRole("region", {
+      name: "Ideas for your next social media ad."
+    });
+    await expect(ads.locator('a[href^="/ad-library/"]')).toHaveCount(4);
+    await expect(ads.locator('a[href="/ad-library"]')).toBeVisible();
+
+    const boards = page.getByRole("region", {
+      name: "Start from a finished storyboard."
+    });
+    await expect(boards.getByRole("article")).toHaveCount(
+      storyboardExamples.length
+    );
+    const stills = boards.locator("img");
+    await expect(stills).toHaveCount(
+      storyboardExamples.reduce((sum, board) => sum + board.shots.length, 0)
+    );
+    for (const still of await stills.all()) {
+      await still.scrollIntoViewIfNeeded();
+      await expect
+        .poll(() => still.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0);
+    }
   });
 
   test("advertising showcase opens the impossible product worlds recipe", async ({
@@ -172,19 +186,16 @@ test.describe("marketing smoke", () => {
 
     await expect(
       page.locator("#guided-flow ol").first().locator("li span:last-child")
-    ).toHaveText(["Idea", "Story", "Entities", "Look"]);
+    ).toHaveText(["Brief", "Timing", "Reference", "Generate", "Review"]);
 
     for (const name of [
       "01 Product",
-      "02 Idea",
-      "03 Story",
-      "04 Review",
-      "05 Entities",
-      "06 Look",
-      "07 Stills",
-      "08 Motion",
-      "09 Timeline",
-      "10 Delivery"
+      "02 Brief",
+      "03 Timing",
+      "04 Reference",
+      "05 Generate",
+      "06 Review",
+      "07 Delivery"
     ]) {
       await page.getByRole("button", { name, exact: true }).click();
       const image = page.locator(
@@ -222,20 +233,6 @@ test.describe("marketing smoke", () => {
     );
     expect(duration).toBeGreaterThan(15);
     expect(duration).toBeLessThan(15.2);
-  });
-
-  test("the UGC mini app shows its captured outputs without recipe proof", async ({
-    page
-  }) => {
-    await page.goto("/apps/ugc-product-video");
-
-    await expect(
-      page.getByRole("heading", { name: "Output from a live run" })
-    ).toBeVisible();
-    await expect(page.getByText("Final Poster", { exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("region", { name: "Turns out I needed the green one." })
-    ).toHaveCount(0);
   });
 
   test("every UGC recipe step shows its source visual", async ({ page }) => {
@@ -442,9 +439,6 @@ test.describe("marketing smoke", () => {
 
     await page.goto("/templates");
     await expect(
-      page.getByRole("link", { name: "runnable mini apps" })
-    ).toHaveAttribute("href", "/apps");
-    await expect(
       page.getByRole("link", { name: "node-based AI workflows" })
     ).toHaveAttribute("href", "/node-based-ai");
 
@@ -460,7 +454,9 @@ test.describe("marketing smoke", () => {
 
     await page.goto("/studio");
     await expect(
-      page.getByRole("link", { name: "visual node-based AI guide" })
+      page
+        .locator("footer")
+        .getByRole("link", { name: "Node-based AI", exact: true })
     ).toHaveAttribute("href", "/node-based-ai");
   });
 });

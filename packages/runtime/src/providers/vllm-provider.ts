@@ -2,8 +2,12 @@ import {
   OpenAICompatProvider,
   type OpenAICompatProviderOptions
 } from "./openai-compat-provider.js";
-import { trimTrailingSlashes } from "./openai-compat/index.js";
-import type { LanguageModel } from "./types.js";
+import { localServerRoot } from "./openai-compat/index.js";
+import type { ProviderCapability } from "./base-provider.js";
+import type { ASRModel, EmbeddingModel, LanguageModel } from "./types.js";
+
+/** Cap on the model-list probe so an unreachable host can't stall the model menu. */
+const MODEL_LIST_TIMEOUT_MS = 5_000;
 
 interface VLLMProviderOptions extends OpenAICompatProviderOptions {
   baseURL?: string;
@@ -30,7 +34,7 @@ export class VLLMProvider extends OpenAICompatProvider {
         "VLLM_BASE_URL is required (options.baseURL, secret, or env)"
       );
     }
-    const baseURL = trimTrailingSlashes(String(rawBaseURL));
+    const baseURL = localServerRoot(String(rawBaseURL));
 
     const apiKey =
       secrets.VLLM_API_KEY && secrets.VLLM_API_KEY.trim().length > 0
@@ -61,12 +65,55 @@ export class VLLMProvider extends OpenAICompatProvider {
     return true;
   }
 
+  /**
+   * Send no output cap unless the caller set one. vLLM rejects a request whose
+   * prompt plus `max_completion_tokens` exceeds `--max-model-len`, so the base
+   * class's 16384 default failed every call on a model served with a smaller
+   * window. Without the field vLLM fills the remaining window.
+   */
+  protected override get defaultMaxTokens(): number | undefined {
+    return undefined;
+  }
+
+  /**
+   * vLLM serves chat, embeddings (`/v1/embeddings`) and transcription
+   * (`/v1/audio/transcriptions`), and has no image, video or speech endpoint.
+   */
+  protected override declaredCapabilities(): readonly ProviderCapability[] {
+    return [
+      "generate_embedding",
+      "automatic_speech_recognition"
+    ];
+  }
+
   override async getAvailableLanguageModels(): Promise<LanguageModel[]> {
+    const ids = await this.listServedModelIds();
+    return ids.map((id) => ({ id, name: id, provider: "vllm" }));
+  }
+
+  /**
+   * `/v1/models` does not report a model's task, so every served model is
+   * offered as a candidate. The server rejects a call to an endpoint its
+   * model does not support.
+   */
+  override async getAvailableEmbeddingModels(): Promise<EmbeddingModel[]> {
+    const ids = await this.listServedModelIds();
+    return ids.map((id) => ({ id, name: id, provider: "vllm" }));
+  }
+
+  /** Same listing as {@link getAvailableEmbeddingModels}, for transcription. */
+  override async getAvailableASRModels(): Promise<ASRModel[]> {
+    const ids = await this.listServedModelIds();
+    return ids.map((id) => ({ id, name: id, provider: "vllm" }));
+  }
+
+  private async listServedModelIds(): Promise<string[]> {
     try {
       const response = await this._vllmFetch(`${this._vllmBaseURL}/v1/models`, {
         headers: {
           Authorization: `Bearer ${this.apiKey}`
-        }
+        },
+        signal: AbortSignal.timeout(MODEL_LIST_TIMEOUT_MS)
       });
 
       if (!response.ok) {
@@ -77,17 +124,12 @@ export class VLLMProvider extends OpenAICompatProvider {
         data?: Array<{ id?: string }>;
       };
       // Stryker disable next-line ArrayDeclaration: the fallback is filtered downstream (rows need a string id), so [] vs any array is observably identical.
-    const rows = payload.data ?? [];
+      const rows = payload.data ?? [];
       return rows
+        .map((row) => row.id)
         .filter(
-          (row): row is { id: string } =>
-            typeof row.id === "string" && row.id.length > 0
-        )
-        .map((row) => ({
-          id: row.id,
-          name: row.id,
-          provider: "vllm"
-        }));
+          (id): id is string => typeof id === "string" && id.length > 0
+        );
     } catch {
       return [];
     }

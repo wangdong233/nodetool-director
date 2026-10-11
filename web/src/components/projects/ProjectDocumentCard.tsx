@@ -20,7 +20,9 @@ import {
 } from "../ui_primitives";
 import { TYPE_COLOR, TYPE_GLYPH, seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import ProjectDocumentPreview from "./ProjectDocumentPreview";
-import CopyProjectDocumentAction from "./CopyProjectDocumentAction";
+import CopyProjectDocumentAction, {
+  isCopyableDocument
+} from "./CopyProjectDocumentAction";
 import {
   documentProgress,
   documentStatusLine,
@@ -124,7 +126,7 @@ const ProjectDocumentCard = ({
             </Box>
           )}
         </FlexRow>
-        {!compact && (
+        {!compact && isCopyableDocument(document) && (
           <CopyProjectDocumentAction
             document={document}
             sourceProjectId={sourceProjectId}

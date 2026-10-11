@@ -12,9 +12,7 @@
  */
 
 import React, { memo, useCallback, useRef } from "react";
-import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
-import type { Theme } from "@mui/material/styles";
 import WbSunnyOutlinedIcon from "@mui/icons-material/WbSunnyOutlined";
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import OpenWithOutlinedIcon from "@mui/icons-material/OpenWithOutlined";
@@ -36,9 +34,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { CLIP_FADE_SHAPE_OPTIONS } from "../fadeShapes";
 import {
   CollapsibleSection,
-  FlexColumn,
-  SPACING,
-  getSpacingPx
+  FlexColumn
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
 import {
@@ -48,9 +44,10 @@ import {
   InspectorSectionTitle,
   InspectorSelect,
   InspectorSliderRow,
-  InspectorToggleRow
+  InspectorToggleRow,
+  sectionContentStyles
 } from "./InspectorPrimitives";
-import { parseSeconds } from "./InspectorPrimitives.helpers";
+import { parseFiniteNumber, parseSeconds } from "./InspectorPrimitives.helpers";
 import { ClipEffectsList } from "./ClipEffectsList";
 import { ClipMaskMatte } from "./ClipMaskMatte";
 import { ClipTransitionSection } from "./ClipTransitionSection";
@@ -113,14 +110,6 @@ function upsertEffect(
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
-const sectionContentStyles = (theme: Theme) =>
-  css({
-    display: "flex",
-    flexDirection: "column",
-    gap: getSpacingPx(SPACING.micro),
-    padding: theme.spacing(SPACING.micro, SPACING.none, SPACING.md)
-  });
-
 // Hoisted so InspectorPillInput's memo holds: an inline literal would be a
 // fresh reference every render, re-rendering every pill whenever one changed.
 const SCRUB_SECONDS = { step: 0.02, min: 0 };
@@ -165,8 +154,8 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
 
     const onPatchNumber = useCallback(
       (field: string, raw: string, min?: number, max?: number) => {
-        const parsed = Number(raw);
-        if (!Number.isFinite(parsed)) return;
+        const parsed = parseFiniteNumber(raw);
+        if (parsed === null) return;
         const value =
           min != null && max != null ? clamp(parsed, min, max) : parsed;
         patchClip(clipRef.current.id, { [field]: value });
@@ -237,47 +226,42 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
     );
     const handlePositionXCommit = useCallback(
       (raw: string) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return;
+        const n = parseFiniteNumber(raw);
+        if (n === null) return;
         const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...tf, position: { ...tf.position, x: n } });
-      },
+        setTransform({ ...tf, position: { ...tf.position, x: n } });      },
       [setTransform]
     );
     const handlePositionYCommit = useCallback(
       (raw: string) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return;
+        const n = parseFiniteNumber(raw);
+        if (n === null) return;
         const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...tf, position: { ...tf.position, y: n } });
-      },
+        setTransform({ ...tf, position: { ...tf.position, y: n } });      },
       [setTransform]
     );
     const handleScaleXCommit = useCallback(
       (raw: string) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return;
+        const n = parseFiniteNumber(raw);
+        if (n === null || n <= 0) return;
         const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...tf, scale: { ...tf.scale, x: n } });
-      },
+        setTransform({ ...tf, scale: { ...tf.scale, x: n } });      },
       [setTransform]
     );
     const handleScaleYCommit = useCallback(
       (raw: string) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return;
+        const n = parseFiniteNumber(raw);
+        if (n === null || n <= 0) return;
         const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...tf, scale: { ...tf.scale, y: n } });
-      },
+        setTransform({ ...tf, scale: { ...tf.scale, y: n } });      },
       [setTransform]
     );
     const handleRotationCommit = useCallback(
       (raw: string) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return;
+        const n = parseFiniteNumber(raw);
+        if (n === null) return;
         const tf = clipRef.current.transform ?? IDENTITY_TRANSFORM;
-        setTransform({ ...tf, rotation: (n * Math.PI) / 180 });
-      },
+        setTransform({ ...tf, rotation: (n * Math.PI) / 180 });      },
       [setTransform]
     );
     const handleAnchorXChange = useCallback(
@@ -442,6 +426,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                 value={clip.opacity ?? 1}
                 display={`${Math.round((clip.opacity ?? 1) * 100)}%`}
                 onChange={handleOpacityChange}
+                resetValue={1}
               />
             )}
             {isOverlay && !isSounding && (
@@ -601,6 +586,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   value={clip.borderRadius ?? 0}
                   display={`${(clip.borderRadius ?? 0).toFixed(0)}px`}
                   onChange={handleBorderRadiusChange}
+                  origin={0}
                 />
                 <InspectorDivider />
                 <InspectorSliderRow
@@ -611,6 +597,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   value={crop.left}
                   display={cropDisplay(crop.left)}
                   onChange={handleCropLeftChange}
+                  origin={0}
                 />
                 <InspectorSliderRow
                   label={t("timeline:attrs.cropR", { defaultValue: "Crop R" })}
@@ -620,6 +607,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   value={crop.right}
                   display={cropDisplay(crop.right)}
                   onChange={handleCropRightChange}
+                  origin={0}
                 />
                 <InspectorSliderRow
                   label={t("timeline:attrs.cropT", { defaultValue: "Crop T" })}
@@ -629,6 +617,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   value={crop.top}
                   display={cropDisplay(crop.top)}
                   onChange={handleCropTopChange}
+                  origin={0}
                 />
                 <InspectorSliderRow
                   label={t("timeline:attrs.cropB", { defaultValue: "Crop B" })}
@@ -638,6 +627,7 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
                   value={crop.bottom}
                   display={cropDisplay(crop.bottom)}
                   onChange={handleCropBottomChange}
+                  origin={0}
                 />
               </FlexColumn>
             </CollapsibleSection>

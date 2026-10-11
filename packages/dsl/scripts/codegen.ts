@@ -19,7 +19,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ALL_BASE_NODES } from "@nodetool-ai/base-nodes";
-import { getNodeMetadata } from "@nodetool-ai/node-sdk";
+import { ALL_NODES as WHISPER_CPP_NODES } from "@nodetool-ai/whisper-cpp";
+import { getNodeMetadata, typeMetaToString } from "@nodetool-ai/node-sdk";
 import type {
   NodeMetadata,
   PropertyMetadata,
@@ -421,7 +422,7 @@ function generateFile(namespace: string, nodes: NodeInfo[]): string {
   const lines: string[] = [HEADER];
 
   // Core imports
-  const coreImports = ["createNode", "Connectable", "DslNode"];
+  const coreImports = ["createNode", "Connectable", "NodeWithOutputs", "NodeOptions"];
   lines.push(`import { ${coreImports.join(", ")} } from "../core.js";`);
 
   // Types imports
@@ -465,6 +466,9 @@ function generateFile(namespace: string, nodes: NodeInfo[]): string {
         `  ${propName}${optional ? "?" : ""}: Connectable<${tsType}>;`
       );
     }
+    if (meta.supports_dynamic_inputs) {
+      lines.push("  [name: string]: unknown;");
+    }
     lines.push("};");
     lines.push("");
 
@@ -489,8 +493,8 @@ function generateFile(namespace: string, nodes: NodeInfo[]): string {
     const defaultOutput =
       meta.outputs.length === 1 ? JSON.stringify(meta.outputs[0].name) : null;
     const returnType = defaultOutput
-      ? `DslNode<${className}Outputs, ${defaultOutput}>`
-      : `DslNode<${className}Outputs>`;
+      ? `NodeWithOutputs<${className}Outputs, ${defaultOutput}>`
+      : `NodeWithOutputs<${className}Outputs>`;
 
     // Static options baked in from node metadata.
     const baseOpts: string[] = [];
@@ -498,15 +502,18 @@ function generateFile(namespace: string, nodes: NodeInfo[]): string {
       .map((out) => JSON.stringify(out.name))
       .join(", ");
     baseOpts.push(`outputNames: [${outputNames}]`);
+    baseOpts.push(`outputTypes: ${JSON.stringify(Object.fromEntries(meta.outputs.map((out) => [out.name, typeMetaToString(out.type)])))}`);
     if (defaultOutput) baseOpts.push(`defaultOutput: ${defaultOutput}`);
     if (meta.is_streaming_output) baseOpts.push("streaming: true");
     if (meta.is_streaming_input) baseOpts.push("streamingInput: true");
+    if (meta.input_mode) baseOpts.push(`inputMode: ${JSON.stringify(meta.input_mode)}`);
+    if (meta.output_correlation) baseOpts.push(`outputCorrelation: ${JSON.stringify(meta.output_correlation)}`);
     const inputsExpr = hasProps ? "inputs" : "inputs ?? {}";
 
-    const optsExpr = `{ ${baseOpts.join(", ")} }`;
+    const optsExpr = `{ id: options?.id, ${baseOpts.join(", ")} }`;
 
     lines.push(
-      `export function ${factoryName}(${inputsArg}): ${returnType} {`
+      `export function ${factoryName}(${inputsArg}, options?: NodeOptions): ${returnType} {`
     );
     lines.push(
       `  return createNode("${meta.node_type}", ${inputsExpr}, ${optsExpr});`
@@ -557,7 +564,7 @@ function generateAll(): GeneratedOutput {
   const byNamespace = new Map<string, NodeInfo[]>();
   let totalNodes = 0;
 
-  for (const nodeClass of ALL_BASE_NODES) {
+  for (const nodeClass of [...ALL_BASE_NODES, ...WHISPER_CPP_NODES]) {
     let meta: NodeMetadata;
     try {
       meta = getNodeMetadata(nodeClass);

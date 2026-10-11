@@ -35,6 +35,11 @@ import {
 } from "@nodetool-ai/protocol";
 import { getSecret, Setting } from "@nodetool-ai/models";
 import type { WebSocketChatClient } from "./websocket-client.js";
+import { registerTransformersJsProvider } from "@nodetool-ai/transformers-js-provider";
+import { registerWhisperCppProviders } from "@nodetool-ai/whisper-cpp";
+
+registerTransformersJsProvider();
+registerWhisperCppProviders();
 
 /**
  * Chat-capable providers surfaced in interactive autocomplete (`/provider <tab>`)
@@ -61,6 +66,9 @@ export const KNOWN_PROVIDERS = [
   "alibaba",
   "together",
   "openrouter",
+  "requesty",
+  "opper",
+  "api_route",
   "huggingface",
   "replicate",
   "kie",
@@ -78,6 +86,8 @@ export type KnownProvider = (typeof KNOWN_PROVIDERS)[number];
  * subscription instead of a key).
  */
 const LOCAL_PROVIDERS: readonly string[] = [
+  "whisper_cpp",
+  "whisper_cpp_server",
   "lmstudio",
   "ollama",
   "mlx",
@@ -116,6 +126,9 @@ export const DEFAULT_MODELS: Record<string, string> = {
   alibaba: "qwen3-max",
   together: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   openrouter: "openai/gpt-5.4-mini",
+  requesty: "openai/gpt-4o-mini",
+  opper: "gpt-5.4-mini",
+  api_route: "claude-haiku-4-5",
   huggingface: "meta-llama/Llama-3.3-70B-Instruct",
   replicate: "anthropic/claude-4.5-sonnet",
   kie: "gpt-5-5",
@@ -339,7 +352,9 @@ function toUnifiedModel(
     downloaded:
       model.provider === "ollama" ||
       model.provider === "llama_cpp" ||
-      model.provider === "node_llama_cpp",
+      model.provider === "node_llama_cpp" ||
+      model.provider === "whisper_cpp" ||
+      model.provider === "whisper_cpp_server",
     tags: [model.provider],
     voices: model.voices ?? null,
     supported_tasks: model.supportedTasks ?? null,

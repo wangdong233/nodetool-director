@@ -6,6 +6,7 @@ import type {
   TimelineMarker,
   TimelineTempo,
   TimelineSetup,
+  TimelineSource,
   TranscriptLine,
   MediaTrack
 } from "@nodetool-ai/timeline";
@@ -14,9 +15,10 @@ import {
   ModelChangeEvent,
   ModelChangeMeta,
   ModelObserver,
-  createTimeOrderedUuid
+  createTimeOrderedUuid,
+  nextUpdatedAtAfter
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import { timelineSequences } from "./schema/timeline-sequences.js";
 import { TimelineSequenceVersion } from "./timeline-sequence-version.js";
 
@@ -59,21 +61,12 @@ export function timelineDocumentDurationMs(doc: TimelineDocument): number {
   }, 0);
 }
 
-// Guarantees a strictly increasing updated_at so a mutation is never a no-op
-// against the CAS predicate even when two writes land within the same ms.
-function nextUpdatedAtAfter(previous: string): string {
-  const now = new Date();
-  const previousMs = Date.parse(previous);
-  if (Number.isFinite(previousMs) && now.getTime() <= previousMs) {
-    return new Date(previousMs + 1).toISOString();
-  }
-  return now.toISOString();
-}
-
 export interface TimelineDocument {
   tracks: TimelineTrack[];
+  trackFolders?: TimelineSequenceDoc["trackFolders"];
   clips: TimelineClip[];
   markers: TimelineMarker[];
+  storyboardMaterializations?: TimelineSequenceDoc["storyboardMaterializations"];
   /** Studio transcript lines. Optional for documents written before Studio. */
   transcript?: TranscriptLine[];
   /** Whether the script lane + transcript panel are shown. Unset on legacy. */
@@ -85,6 +78,11 @@ export interface TimelineDocument {
   setup?: TimelineSetup;
   /** Sequence this one was retargeted from. Unset on a sequence built directly. */
   templateId?: string | null;
+  /**
+   * The authoring code this timeline was baked from, and the scene hashes the
+   * last bake recorded. Unset on a sequence nobody authored with code.
+   */
+  source?: TimelineSource | null;
   /** Subject/object tracks (P0 AI Video, Phase 2). Unset on a document with none. */
   mediaTracks?: MediaTrack[];
 }
@@ -157,14 +155,17 @@ export class TimelineSequence extends DBModel {
       height: this.height,
       durationMs: this.duration_ms,
       tracks: doc.tracks,
+      trackFolders: doc.trackFolders,
       clips: doc.clips,
       markers: doc.markers,
+      storyboardMaterializations: doc.storyboardMaterializations,
       transcript: doc.transcript ?? [],
       scriptEnabled: doc.scriptEnabled,
       tempo: doc.tempo,
       camera2d: doc.camera2d,
       setup: doc.setup,
       templateId: doc.templateId,
+      source: doc.source,
       mediaTracks: doc.mediaTracks,
       createdAt: this.created_at,
       updatedAt: this.updated_at
@@ -177,14 +178,17 @@ export class TimelineSequence extends DBModel {
   ): TimelineSequence {
     const doc: TimelineDocument = {
       tracks: seq.tracks,
+      trackFolders: seq.trackFolders,
       clips: seq.clips,
       markers: seq.markers,
+      storyboardMaterializations: seq.storyboardMaterializations,
       transcript: seq.transcript ?? [],
       scriptEnabled: seq.scriptEnabled,
       tempo: seq.tempo,
       camera2d: seq.camera2d,
       setup: seq.setup,
       templateId: seq.templateId,
+      source: seq.source,
       mediaTracks: seq.mediaTracks
     };
     return new TimelineSequence({
@@ -229,7 +233,7 @@ export class TimelineSequence extends DBModel {
     userId: string,
     limit = 50
   ): Promise<TimelineSequence[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(timelineSequences)
@@ -244,7 +248,7 @@ export class TimelineSequence extends DBModel {
     userId: string,
     limit = 50
   ): Promise<TimelineSequence[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(timelineSequences)
@@ -300,7 +304,7 @@ export class TimelineSequence extends DBModel {
     meta?: ModelChangeMeta
   ): Promise<TimelineSequence | null> {
     validateTimelineDocument(doc);
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(timelineSequences)
@@ -355,7 +359,7 @@ export class TimelineSequence extends DBModel {
       // the snapshot) keeps it.
       write.duration_ms ??= timelineDocumentDurationMs(doc);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(timelineSequences)

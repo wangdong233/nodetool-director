@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { useNodes, useNodeStoreRef } from "../contexts/NodeContext";
 import { useSurroundWithGroup } from "./nodes/useSurroundWithGroup";
+import {
+  applyAbsolutePositions,
+  layoutSelection
+} from "../utils/selectionLayout";
 
 interface SelectionActionsReturn {
   alignLeft: () => void;
@@ -11,6 +15,8 @@ interface SelectionActionsReturn {
   alignBottom: () => void;
   distributeHorizontal: () => void;
   distributeVertical: () => void;
+  stackSelected: () => void;
+  arrangeGrid: () => void;
   deleteSelected: () => void;
   duplicateSelected: () => void;
   groupSelected: () => void;
@@ -26,6 +32,15 @@ const getNodeWidth = (node: { measured?: { width?: number } }) =>
 const getNodeHeight = (node: { measured?: { height?: number } }) =>
   node.measured?.height ?? 0;
 
+/** Reading order: top to bottom, then left to right, then id for ties. */
+const byReadingOrder = (
+  a: { id: string; position: { x: number; y: number } },
+  b: { id: string; position: { x: number; y: number } }
+) =>
+  a.position.y - b.position.y ||
+  a.position.x - b.position.x ||
+  a.id.localeCompare(b.id);
+
 export const useSelectionActions = (): SelectionActionsReturn => {
   // Use store ref to avoid subscribing to entire nodes/edges arrays
   // Only subscribe to the functions we need
@@ -38,162 +53,135 @@ export const useSelectionActions = (): SelectionActionsReturn => {
   const store = useNodeStoreRef();
   const surroundWithGroup = useSurroundWithGroup();
 
+  // Group children store positions relative to their group, so layout works
+  // in canvas coordinates and writes each result back relative to its parent.
+  // A child of a selected group is left out: it moves with the group.
+  const getLayoutNodes = useCallback(
+    () => layoutSelection(getSelectedNodes(), store.getState().nodes),
+    [getSelectedNodes, store]
+  );
+
+  const applyPositions = useCallback(
+    (positions: Map<string, { x: number; y: number }>) => {
+      setNodes(applyAbsolutePositions(store.getState().nodes, positions));
+    },
+    [setNodes, store]
+  );
+
   const alignLeft = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const leftMostX = Math.min(...selectedNodes.map((n) => n.position.x));
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          return { ...node, position: { ...node.position, x: leftMostX } };
-        }
-        return node;
-      })
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [n.id, { x: leftMostX, y: n.position.y }])
+      )
     );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const alignCenter = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const avgCenterX =
-      selectedNodes.reduce((sum, n) => {
-        const nodeWidth = n.measured?.width ?? NODE_WIDTH;
-        return sum + n.position.x + nodeWidth / 2;
-      }, 0) / selectedNodes.length;
+      selectedNodes.reduce(
+        (sum, n) => sum + n.position.x + getNodeWidth(n) / 2,
+        0
+      ) / selectedNodes.length;
 
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          const nodeWidth = node.measured?.width ?? NODE_WIDTH;
-          return {
-            ...node,
-            position: { ...node.position, x: avgCenterX - nodeWidth / 2 }
-          };
-        }
-        return node;
-      })
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [
+          n.id,
+          { x: avgCenterX - getNodeWidth(n) / 2, y: n.position.y }
+        ])
+      )
     );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const alignRight = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const rightMostX = Math.max(
-      ...selectedNodes.map(
-        (n) => n.position.x + (n.measured?.width ?? NODE_WIDTH)
+      ...selectedNodes.map((n) => n.position.x + getNodeWidth(n))
+    );
+
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [
+          n.id,
+          { x: rightMostX - getNodeWidth(n), y: n.position.y }
+        ])
       )
     );
-
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          const nodeWidth = node.measured?.width ?? NODE_WIDTH;
-          return {
-            ...node,
-            position: { ...node.position, x: rightMostX - nodeWidth }
-          };
-        }
-        return node;
-      })
-    );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const alignTop = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const topMostY = Math.min(...selectedNodes.map((n) => n.position.y));
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          return { ...node, position: { ...node.position, y: topMostY } };
-        }
-        return node;
-      })
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [n.id, { x: n.position.x, y: topMostY }])
+      )
     );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const alignMiddle = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const avgCenterY =
-      selectedNodes.reduce((sum, n) => {
-        const nodeHeight = n.measured?.height ?? 0;
-        return sum + n.position.y + nodeHeight / 2;
-      }, 0) / selectedNodes.length;
+      selectedNodes.reduce(
+        (sum, n) => sum + n.position.y + getNodeHeight(n) / 2,
+        0
+      ) / selectedNodes.length;
 
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          const nodeHeight = node.measured?.height ?? 0;
-          return {
-            ...node,
-            position: { ...node.position, y: avgCenterY - nodeHeight / 2 }
-          };
-        }
-        return node;
-      })
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [
+          n.id,
+          { x: n.position.x, y: avgCenterY - getNodeHeight(n) / 2 }
+        ])
+      )
     );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const alignBottom = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
 
     const bottomMostY = Math.max(
-      ...selectedNodes.map((n) => n.position.y + (n.measured?.height ?? 0))
+      ...selectedNodes.map((n) => n.position.y + getNodeHeight(n))
     );
 
-    const selectedIds = new Set(selectedNodes.map((n) => n.id));
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        if (selectedIds.has(node.id)) {
-          const nodeHeight = node.measured?.height ?? 0;
-          return {
-            ...node,
-            position: { ...node.position, y: bottomMostY - nodeHeight }
-          };
-        }
-        return node;
-      })
+    applyPositions(
+      new Map(
+        selectedNodes.map((n) => [
+          n.id,
+          { x: n.position.x, y: bottomMostY - getNodeHeight(n) }
+        ])
+      )
     );
-  }, [getSelectedNodes, setNodes, store]);
+  }, [getLayoutNodes, applyPositions]);
 
   const distributeHorizontal = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
@@ -206,29 +194,17 @@ export const useSelectionActions = (): SelectionActionsReturn => {
       return a.id.localeCompare(b.id);
     });
 
-    const leftMostX = Math.min(...sortedByX.map((n) => n.position.x));
-
-    const positionMap = new Map<string, number>();
-    let currentX = leftMostX;
+    const positions = new Map<string, { x: number; y: number }>();
+    let currentX = Math.min(...sortedByX.map((n) => n.position.x));
     sortedByX.forEach((node) => {
-      positionMap.set(node.id, currentX);
+      positions.set(node.id, { x: currentX, y: node.position.y });
       currentX += getNodeWidth(node) + HORIZONTAL_SPACING;
     });
-
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        const newX = positionMap.get(node.id);
-        if (newX !== undefined) {
-          return { ...node, position: { ...node.position, x: newX } };
-        }
-        return node;
-      })
-    );
-  }, [getSelectedNodes, setNodes, store]);
+    applyPositions(positions);
+  }, [getLayoutNodes, applyPositions]);
 
   const distributeVertical = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    const selectedNodes = getLayoutNodes();
     if (selectedNodes.length < 2) {
       return;
     }
@@ -241,26 +217,77 @@ export const useSelectionActions = (): SelectionActionsReturn => {
       return a.id.localeCompare(b.id);
     });
 
-    const topMostY = Math.min(...sortedByY.map((n) => n.position.y));
-
-    const positionMap = new Map<string, number>();
-    let currentY = topMostY;
+    const positions = new Map<string, { x: number; y: number }>();
+    let currentY = Math.min(...sortedByY.map((n) => n.position.y));
     sortedByY.forEach((node) => {
-      positionMap.set(node.id, currentY);
+      positions.set(node.id, { x: node.position.x, y: currentY });
       currentY += getNodeHeight(node) + VERTICAL_SPACING;
     });
+    applyPositions(positions);
+  }, [getLayoutNodes, applyPositions]);
 
-    const { nodes } = store.getState();
-    setNodes(
-      nodes.map((node) => {
-        const newY = positionMap.get(node.id);
-        if (newY !== undefined) {
-          return { ...node, position: { ...node.position, y: newY } };
-        }
-        return node;
-      })
+  const stackSelected = useCallback(() => {
+    const selectedNodes = getLayoutNodes();
+    if (selectedNodes.length < 2) {
+      return;
+    }
+
+    const sorted = [...selectedNodes].sort(byReadingOrder);
+    const left = Math.min(...sorted.map((n) => n.position.x));
+    let currentY = Math.min(...sorted.map((n) => n.position.y));
+
+    const positions = new Map<string, { x: number; y: number }>();
+    sorted.forEach((node) => {
+      positions.set(node.id, { x: left, y: currentY });
+      currentY += getNodeHeight(node) + VERTICAL_SPACING;
+    });
+    applyPositions(positions);
+  }, [getLayoutNodes, applyPositions]);
+
+  const arrangeGrid = useCallback(() => {
+    const selectedNodes = getLayoutNodes();
+    if (selectedNodes.length < 2) {
+      return;
+    }
+
+    const sorted = [...selectedNodes].sort(byReadingOrder);
+    const columns = Math.ceil(Math.sqrt(sorted.length));
+    const columnWidths = new Array<number>(columns).fill(0);
+    const rows = Math.ceil(sorted.length / columns);
+    const rowHeights = new Array<number>(rows).fill(0);
+    sorted.forEach((node, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      columnWidths[column] = Math.max(columnWidths[column], getNodeWidth(node));
+      rowHeights[row] = Math.max(rowHeights[row], getNodeHeight(node));
+    });
+
+    const left = Math.min(...sorted.map((n) => n.position.x));
+    const top = Math.min(...sorted.map((n) => n.position.y));
+    const columnX = columnWidths.map(
+      (_, column) =>
+        left +
+        columnWidths
+          .slice(0, column)
+          .reduce((sum, width) => sum + width + HORIZONTAL_SPACING, 0)
     );
-  }, [getSelectedNodes, setNodes, store]);
+    const rowY = rowHeights.map(
+      (_, row) =>
+        top +
+        rowHeights
+          .slice(0, row)
+          .reduce((sum, height) => sum + height + VERTICAL_SPACING, 0)
+    );
+
+    const positions = new Map<string, { x: number; y: number }>();
+    sorted.forEach((node, index) => {
+      positions.set(node.id, {
+        x: columnX[index % columns],
+        y: rowY[Math.floor(index / columns)]
+      });
+    });
+    applyPositions(positions);
+  }, [getLayoutNodes, applyPositions]);
 
   const deleteSelected = useCallback(() => {
     const selectedNodes = getSelectedNodes();
@@ -358,6 +385,8 @@ export const useSelectionActions = (): SelectionActionsReturn => {
     alignBottom,
     distributeHorizontal,
     distributeVertical,
+    stackSelected,
+    arrangeGrid,
     deleteSelected,
     duplicateSelected,
     groupSelected,

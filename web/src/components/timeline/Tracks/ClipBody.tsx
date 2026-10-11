@@ -3,14 +3,15 @@
  * ClipBody
  *
  * The rendered clip: selection ring, header strip, filmstrip / waveform /
- * image fill, animation markers, the two trim handles, lock and status badges.
+ * image fill, animation markers, the two trim handles, lock and status badges,
+ * and the "Media offline" badge for a missing in-place file.
  * Pure presentation — every handler comes in as a stable prop from `Clip`, so
  * the `memo` here holds across the parent's store-driven re-renders.
  */
 
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { css } from "@emotion/react";
-import { useTheme } from "@mui/material/styles";
+import { useColorScheme, useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
@@ -27,6 +28,9 @@ import {
   getSpacingPx,
   MagicGenerationFill,
   FONT_SIZE_MONO,
+  FONT_SIZE_SANS,
+  FONT_WEIGHT,
+  TYPOGRAPHY,
   MOTION,
   Z_INDEX
 } from "../../ui_primitives";
@@ -47,6 +51,7 @@ import {
   selectFilmstripCells
 } from "./filmstripCells";
 import { useAssetUrl } from "./useAssetUrl";
+import { ClipMediaOffline } from "./ClipMediaOffline";
 import { openPersistedFold } from "../Inspector/usePersistedFold";
 import { useTranslation } from "react-i18next";
 
@@ -155,8 +160,8 @@ const clipDotStyles = (accent: string) =>
 
 const clipNameStyles = (theme: Theme) =>
   css({
-    fontSize: "var(--fontSizeSmaller)",
-    fontWeight: 500,
+    fontSize: FONT_SIZE_SANS.caption,
+    fontWeight: FONT_WEIGHT.medium,
     letterSpacing: "-0.005em",
     color: theme.vars.palette.text.primary,
     whiteSpace: "nowrap",
@@ -172,10 +177,9 @@ const clipNameStyles = (theme: Theme) =>
 const clipDurationStyles = (theme: Theme) =>
   css({
     flexShrink: 0,
-    fontFamily:
-      "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-    fontSize: "var(--fontSizeSmaller)",
-    fontWeight: 500,
+    fontFamily: TYPOGRAPHY.mono.caption.fontFamily,
+    fontSize: FONT_SIZE_MONO.caption,
+    fontWeight: FONT_WEIGHT.medium,
     color: theme.vars.palette.text.secondary,
     letterSpacing: "0",
     textShadow: `0 1px 2px ${theme.vars.palette.c_scrim}`
@@ -210,6 +214,7 @@ const waveformStyles = css({
 // generating clip in the timeline reads identically to a generating layer
 // on the canvas. Clips to the clip's rounded body.
 interface WaveformCanvasProps {
+  assetId: string | undefined;
   url: string | undefined;
   inPointMs: number;
   outPointMs: number;
@@ -218,13 +223,21 @@ interface WaveformCanvasProps {
 
 /** Draws audio peaks on a canvas, sized to the clip's pixel width. */
 const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
+  assetId,
   url,
   inPointMs,
   outPointMs,
   widthPx
 }) => {
   const theme = useTheme();
-  const { peaks, durationMs } = useAudioPeaks(url);
+  // Canvas 2D ignores a `var(--…)` fillStyle, which is what
+  // `theme.vars.palette` holds, so read the active scheme's plain value.
+  const { mode, systemMode } = useColorScheme();
+  const activeMode = (mode === "system" ? systemMode : mode) ?? "dark";
+  const successColor =
+    theme.colorSchemes?.[activeMode]?.palette?.success?.main ??
+    theme.palette.success.main;
+  const { peaks, durationMs } = useAudioPeaks(assetId, url);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Coalesce redraws into a single animation frame. During a drag/resize the
@@ -242,7 +255,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     inPointMs,
     outPointMs,
     widthPx,
-    successColor: theme.vars.palette.success.main
+    successColor
   });
   drawInputsRef.current = {
     peaks,
@@ -250,7 +263,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     inPointMs,
     outPointMs,
     widthPx,
-    successColor: theme.vars.palette.success.main
+    successColor
   };
 
   const draw = useCallback(() => {
@@ -310,7 +323,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
     // Decide whether anything beyond a sub-pixel width change actually
     // happened. Width changes during a drag are gated to whole pixels (the
     // canvas can't show finer detail); other inputs force a redraw.
-    const inputsKey = `${durationMs}|${inPointMs}|${outPointMs}|${url || ""}`;
+    const inputsKey = `${durationMs}|${inPointMs}|${outPointMs}|${url || ""}|${successColor}`;
     const otherInputsChanged = inputsKey !== lastInputsKeyRef.current;
     const widthChanged =
       Math.abs(Math.floor(widthPx) - lastDrawnWidthRef.current) >= 1;
@@ -329,7 +342,7 @@ const WaveformCanvas: React.FC<WaveformCanvasProps> = ({
         rafIdRef.current = null;
       }
     };
-  }, [peaks, durationMs, inPointMs, outPointMs, widthPx, url, draw]);
+  }, [peaks, durationMs, inPointMs, outPointMs, widthPx, url, successColor, draw]);
 
   return <canvas ref={canvasRef} css={waveformStyles} aria-hidden />;
 };
@@ -387,10 +400,9 @@ const transitionWedgeStyles = (theme: Theme, tint: string, accent: string) =>
       position: "absolute",
       left: getSpacingPx(SPACING.sm),
       bottom: getSpacingPx(SPACING.xs),
-      fontFamily:
-        "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+      fontFamily: TYPOGRAPHY.mono.caption.fontFamily,
       fontSize: FONT_SIZE_MONO.caption,
-      fontWeight: 500,
+      fontWeight: FONT_WEIGHT.medium,
       lineHeight: 1,
       color: theme.vars.palette.text.secondary,
       textShadow: `0 1px 2px ${theme.vars.palette.c_scrim}`,
@@ -411,7 +423,14 @@ const keyframeDiamondStyles = (theme: Theme) =>
     border: `1px solid ${theme.vars.palette.background.paper}`,
     cursor: "pointer",
     padding: 0,
-    zIndex: Z_INDEX.base + 3
+    zIndex: Z_INDEX.base + 3,
+    // 7px is too small to hit reliably; widen the target, not the diamond,
+    // the same way the fade handles do.
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      inset: -6
+    }
   });
 
 /**
@@ -874,6 +893,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
         role="option"
         tabIndex={0}
         aria-label={clip.name || `Clip ${clip.id}`}
+        title={displayName || undefined}
       >
         {filmstripCells && (
           <div css={filmstripStyles}>
@@ -1018,6 +1038,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
 
         {clip.mediaType === "audio" && (
           <WaveformCanvas
+            assetId={clip.currentAssetId}
             url={audioUrl}
             inPointMs={clip.inPointMs ?? 0}
             outPointMs={(clip.inPointMs ?? 0) + clip.durationMs}
@@ -1114,6 +1135,13 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
           data-testid={`clip-trim-end-${clipId}`}
           data-focus-id={`timeline-trim-end-${clipId}`}
         />
+
+        {(clip.mediaType === "video" ||
+          clip.mediaType === "overlay" ||
+          clip.mediaType === "image" ||
+          clip.mediaType === "audio") && (
+          <ClipMediaOffline assetId={clip.currentAssetId} />
+        )}
 
         {clip.locked && (
           <div css={lockIconStyles}>

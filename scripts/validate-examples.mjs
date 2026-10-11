@@ -9,7 +9,8 @@
 //
 // This is the CI guardrail (Phase 0 of docs/plans/examples-revamp.md): every
 // example must validate with --warnings-as-errors, so a warning-level drift
-// (an unselected model, say) fails the gate too, not just hard errors. It
+// fails the gate too, not just hard errors. Unselected models are exempt:
+// examples ship them blank and the editor fills them when the graph loads. It
 // runs against the built CLI (packages/cli/dist), since validate loads the
 // node registry from the decorator packages' dist output.
 //
@@ -38,6 +39,9 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { Worker, isMainThread, parentPort } from "node:worker_threads";
 
+import { parseApplicationBundle, validateApplicationBundleBindings } from "@nodetool-ai/app-runtime";
+import { jsScriptDocument } from "@nodetool-ai/protocol/api-schemas/js-scripts.js";
+
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const cliValidate = join(repoRoot, "packages/cli/dist/validate/index.js");
@@ -65,10 +69,17 @@ const PYTHON_ONLY_NODES = {
  * what is left, so a file with nothing but exempt issues renders as valid.
  */
 function withoutPythonOnlyNodes(report, allowed) {
-  if (allowed.length === 0) return { report, exercised: [] };
   const allow = new Set(allowed);
   const exercised = new Set();
   const issues = report.issues.filter((issue) => {
+    // Examples ship every model unselected on purpose: the editor fills each
+    // with the user's default (web/src/utils/applyDefaultModels.ts).
+    if (
+      issue.code === "property" &&
+      /requires a [a-z0-9_]+_model\b/.test(issue.message ?? "")
+    ) {
+      return false;
+    }
     const exempt =
       issue.code === "unknown_node" && allow.has(issue.nodeType ?? "");
     if (exempt) exercised.add(issue.nodeType);
@@ -123,7 +134,7 @@ if (!isMainThread) {
 
   // Ready for the first job.
   parentPort.postMessage({ ready: true });
-} else {
+} else if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   await main();
 }
 
@@ -162,20 +173,25 @@ function findExamples(dir) {
 // five of them shipped `provider: "huggingface_fal_ai"`, which the runtime
 // cannot construct. Validate each embedded graph with the same validator the
 // plain examples get.
-function expandBundle(file) {
-  let bundle;
+export function expandBundle(file) {
+  let raw;
   try {
-    bundle = JSON.parse(readFileSync(file, "utf8"));
+    raw = JSON.parse(readFileSync(file, "utf8"));
   } catch (err) {
     return { parseError: err.message, workflows: [] };
   }
-  const workflows = Array.isArray(bundle?.workflows) ? bundle.workflows : [];
+  const bundle = parseApplicationBundle(raw);
+  if (!bundle) return { parseError: "invalid Application bundle or unresolved Recipe bindings", workflows: [] };
+  const problems = validateApplicationBundleBindings(bundle);
+  if (bundle.workflows.length === 0 && bundle.scripts.length === 0) problems.push("bundle declares no workflows or scripts");
+  if (bundle.app.operations.length === 0) problems.push("bundle declares no executable operations");
+  for (const script of bundle.scripts) {
+    const parsed = jsScriptDocument.safeParse(script.document);
+    if (!parsed.success) problems.push(`Script ${script.key}: ${parsed.error.issues.map((issue) => issue.message).join(", ")}`);
+  }
   return {
-    parseError: workflows.length === 0 ? "bundle declares no workflows" : null,
-    workflows: workflows.map((wf, i) => ({
-      label: wf?.name || wf?.key || `workflow[${i}]`,
-      graph: wf?.graph
-    }))
+    parseError: problems.length ? problems.join("\n") : null,
+    workflows: bundle.workflows.map((workflow) => ({label: workflow.name || workflow.key, graph: workflow.graph}))
   };
 }
 
@@ -294,7 +310,38 @@ function checkStoryboard(file) {
   return problems.length > 0 ? problems.join("\n") : null;
 }
 
-/** Check a shipped timeline's document, dimensions, and package media. */
+/**
+ * A game bundle ships a document whose asset slots bind `package://` files,
+ * which installing copies into the user's assets. The document must pass the
+ * engine's validator, and every bound file and the poster must be on disk.
+ */
+async function checkGame(file) {
+  let bundle;
+  try {
+    bundle = JSON.parse(readFileSync(file, "utf8"));
+  } catch (err) {
+    return `not parsable JSON: ${err.message}`;
+  }
+  const problems = [];
+  for (const key of ["name", "description", "controls"]) {
+    if (!bundle?.[key]) problems.push(`bundle has no ${key}`);
+  }
+  const { validateAnyGame } = await import("@nodetool-ai/game-runtime");
+  const report = validateAnyGame(bundle?.document);
+  if (!report.valid) problems.push(...report.diagnostics.map((error) => `invalid game: ${error.message}`));
+  const media = Object.values(bundle?.document?.assets ?? {}).map((binding) => binding.assetId);
+  for (const uri of [bundle?.posterUri, ...media]) {
+    const match = /^package:\/\/([^/]+)\/(.+)$/.exec(uri ?? "");
+    if (!match || match[2].split("/").some((part) => part === ".." || part === ".")) {
+      problems.push(`invalid package media: ${uri}`);
+      continue;
+    }
+    const onDisk = join(repoRoot, "packages/base-nodes/nodetool/assets", match[1], ...match[2].split("/"));
+    if (!statSafe(onDisk)?.isFile()) problems.push(`missing package media: ${uri}`);
+  }
+  return problems.length > 0 ? problems.join("\n") : null;
+}
+
 async function checkTimeline(file) {
   let bundle;
   try {
@@ -315,7 +362,12 @@ async function checkTimeline(file) {
     }
   }
   if (parsed.data.clips.length === 0) problems.push("timeline has no clips");
-  for (const uri of [bundle.videoUri, bundle.posterUri]) {
+  // The video, the poster, and every package still a clip names: an installed
+  // copy keeps those references verbatim.
+  const clipMedia = parsed.data.clips
+    .map((clip) => clip.currentAssetId)
+    .filter((id) => typeof id === "string" && id.startsWith("package://"));
+  for (const uri of [bundle.videoUri, bundle.posterUri, ...new Set(clipMedia)]) {
     const match = /^package:\/\/([^/]+)\/(.+)$/.exec(uri ?? "");
     if (!match || match[2].split("/").some((part) => part === ".." || part === ".")) {
       problems.push(`invalid package media: ${uri}`);
@@ -500,6 +552,7 @@ async function main() {
   const bundles = examples.filter((f) => f.endsWith(".app.json"));
   const storyboards = examples.filter((f) => f.endsWith(".storyboard.json"));
   const timelines = examples.filter((f) => f.endsWith(".timeline.json"));
+  const games = examples.filter((f) => f.endsWith(".game.json"));
   const compositions = examples.filter((f) => f.endsWith(".composition.json"));
   const recipes = examples.filter((f) => f.endsWith(".recipe.json"));
   const workflowExamples = examples.filter(
@@ -507,6 +560,7 @@ async function main() {
       !f.endsWith(".app.json") &&
       !f.endsWith(".storyboard.json") &&
       !f.endsWith(".timeline.json") &&
+      !f.endsWith(".game.json") &&
       !f.endsWith(".composition.json") &&
       !f.endsWith(".recipe.json")
   );
@@ -556,6 +610,7 @@ async function main() {
       `${bundles.length} app bundle(s), ` +
       `${storyboards.length} storyboard(s), ` +
       `${timelines.length} timeline(s), ` +
+      `${games.length} game(s), ` +
       `${compositions.length} composition(s), and ` +
       `${recipes.length} recipe(s)...\n`
   );
@@ -594,6 +649,7 @@ async function main() {
       jobs.push({ label: rel, failure: parseError });
       continue;
     }
+    if (workflows.length === 0) jobs.push({ label: rel, output: null });
     for (const [i, wf] of workflows.entries()) {
       const label = `${rel} › ${wf.label}`;
       if (!wf.graph) {
@@ -618,6 +674,9 @@ async function main() {
   }
   for (const file of timelines) {
     jobs.push({ label: file.slice(repoRoot.length + 1), failure: await checkTimeline(file) });
+  }
+  for (const file of games) {
+    jobs.push({ label: file.slice(repoRoot.length + 1), failure: await checkGame(file) });
   }
   // A composition is a document fragment, not a graph: what rots is a
   // parameter pointer that no longer lands on a child field, or a clip the

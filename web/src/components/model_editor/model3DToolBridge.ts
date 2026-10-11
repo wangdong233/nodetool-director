@@ -26,6 +26,77 @@ export interface Model3DTransformPatch {
   scale?: [number, number, number];
 }
 
+export interface Model3DMaterialInfo {
+  /** Index into the mesh's material list. */
+  slot: number;
+  name: string;
+  /** Three.js material type, e.g. "MeshStandardMaterial". */
+  type: string;
+  color?: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+  metalness?: number;
+  roughness?: number;
+  opacity: number;
+  transparent: boolean;
+}
+
+export interface Model3DLightInfo {
+  type: string;
+  color: string;
+  intensity: number;
+  /** Point and spot lights: range, 0 for unlimited. */
+  distance?: number;
+  decay?: number;
+  /** Spot lights: cone half-angle in degrees. */
+  angle?: number;
+  penumbra?: number;
+}
+
+export interface Model3DGeometryInfo {
+  /** Three.js geometry type, e.g. "BoxGeometry". */
+  type: string;
+  /** Construction parameters. Angles are in degrees. */
+  params: Record<string, number>;
+}
+
+/** One object with its material, light and geometry settings. */
+export interface Model3DObjectDetail extends Model3DSceneNode {
+  children: string[];
+  materials?: Model3DMaterialInfo[];
+  light?: Model3DLightInfo;
+  geometry?: Model3DGeometryInfo;
+}
+
+export interface Model3DMaterialPatch {
+  /** Material slot to change. Every slot when left out. */
+  slot?: number;
+  color?: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+  metalness?: number;
+  roughness?: number;
+  opacity?: number;
+}
+
+export interface Model3DLightPatch {
+  color?: string;
+  intensity?: number;
+  distance?: number;
+  decay?: number;
+  /** Cone half-angle in degrees. */
+  angle?: number;
+  penumbra?: number;
+}
+
+/** What an undo or redo did, or null fields when there was nothing to do. */
+export interface Model3DHistoryResult {
+  /** Label of the step that was undone or redone, or null when none was. */
+  applied: string | null;
+  nextUndo: string | null;
+  nextRedo: string | null;
+}
+
 /**
  * Operations the live {@link Model3DEditor} exposes to the agent tooling layer.
  * Each mutator returns the affected node so the agent gets immediate feedback.
@@ -44,6 +115,16 @@ export interface Model3DToolHandler {
   setVisibility: (idOrName: string, visible: boolean) => Model3DSceneNode;
   renameObject: (idOrName: string, name: string) => Model3DSceneNode;
   setMaterialColor: (idOrName: string, color: string) => Model3DSceneNode;
+  getObject: (idOrName: string) => Model3DObjectDetail;
+  duplicateObject: (idOrName: string) => Model3DSceneNode;
+  /** Move under `parent`, or to the scene root with null. Keeps the world transform. */
+  setParent: (idOrName: string, parent: string | null) => Model3DSceneNode;
+  setMaterial: (idOrName: string, patch: Model3DMaterialPatch) => Model3DObjectDetail;
+  setLight: (idOrName: string, patch: Model3DLightPatch) => Model3DObjectDetail;
+  /** Rebuild a primitive's geometry. Angles are in degrees. */
+  setGeometry: (idOrName: string, params: Record<string, number>) => Model3DObjectDetail;
+  undo: () => Model3DHistoryResult;
+  redo: () => Model3DHistoryResult;
   frameScene: () => void;
   /**
    * Render the current viewport and return it as a PNG `data:` URL, so a
@@ -56,11 +137,21 @@ let handler: Model3DToolHandler | null = null;
 
 /**
  * Register (or clear, with null) the handler for the currently-open editor.
- * The editor calls this on mount and clears it on unmount so the ui_3d_* tools
- * always operate on the live scene — or fail cleanly when no editor is open.
+ * The editor calls this while it is the active tab and calls the returned
+ * disposer when it stops being active or unmounts, so the ui_3d_* tools always
+ * operate on the live scene — or fail cleanly when no editor is open. The
+ * disposer clears the handler only if it is still `next`, so one editor
+ * leaving never unregisters another that registered after it.
  */
-export function setModel3DToolHandler(next: Model3DToolHandler | null): void {
+export function setModel3DToolHandler(
+  next: Model3DToolHandler | null
+): () => void {
   handler = next;
+  return () => {
+    if (handler === next) {
+      handler = null;
+    }
+  };
 }
 
 export function getModel3DToolHandler(): Model3DToolHandler {

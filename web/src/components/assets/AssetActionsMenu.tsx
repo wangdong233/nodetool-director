@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import React, { useCallback, useMemo, useState } from "react";
@@ -15,6 +17,9 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import AssetSearchInput from "./AssetSearchInput";
 import AssetActions from "./AssetActions";
 import SearchErrorBoundary from "../SearchErrorBoundary";
@@ -29,6 +34,7 @@ import {
   Popover,
   MenuItemPrimitive,
   FlexRow,
+  TruncatedText,
   Box,
   Divider,
   BORDER_RADIUS,
@@ -36,10 +42,8 @@ import {
   MOTION,
   SPACING, getSpacingPx
 } from "../ui_primitives";
-import { TYPE_FILTERS, TypeFilterKey, localizedTypeFilterLabel } from "../../utils/formatUtils";
-import { useAppLanguage } from "../../i18n";
+import { TYPE_FILTERS, TypeFilterKey } from "../../utils/formatUtils";
 import isEqual from "../../utils/isEqual";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -127,7 +131,15 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
     (next: TypeFilterKey) => setTypeFilter(next),
     [setTypeFilter]
   );
-  const { folderFiles, folderTree } = useAssets();
+  const favoritesOnly = useAssetGridStore((state) => state.favoritesOnly);
+  const setFavoritesOnly = useAssetGridStore(
+    (state) => state.setFavoritesOnly
+  );
+  const modelFilter = useAssetGridStore((state) => state.modelFilter);
+  const setModelFilter = useAssetGridStore((state) => state.setModelFilter);
+  const [modelFilterAnchor, setModelFilterAnchor] =
+    useState<HTMLElement | null>(null);
+  const { folderFiles, folderTree, modelOptions } = useAssets();
   const { handleSelectAllAssets, handleDeselectAssets } =
     useAssetSelection(folderFiles);
   const [expanded, setExpanded] = useState(false);
@@ -148,14 +160,16 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
   );
 
   const theme = useTheme();
-  // Subscribe so localized filter labels re-render on language change.
-  useAppLanguage();
 
   const typeFilterActive = typeFilter !== "all";
-  const typeFilterEntry = TYPE_FILTERS.find((f) => f.key === typeFilter);
-  const typeFilterLabel = typeFilterEntry
-    ? localizedTypeFilterLabel(typeFilterEntry.key, typeFilterEntry.label)
-    : t("common:typeFilters.all", { defaultValue: "All" });
+  const typeFilterLabel =
+    TYPE_FILTERS.find((f) => f.key === typeFilter)?.label ?? "All";
+  const modelFilterLabel = modelFilter
+    ? (modelOptions.find((m) => m.id === modelFilter)?.label ?? modelFilter)
+    : "Any model";
+  // Offer the model filter only when the view holds generated assets, or a
+  // model is already picked and has to stay clearable.
+  const showModelFilter = modelOptions.length > 0 || modelFilter !== null;
 
   return (
     <Box
@@ -189,7 +203,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {!isFullscreenAssets && !hideFolderControls && hasFolders && (
           <ToolbarIconButton
             icon={foldersVisible ? <FolderIcon /> : <FolderOffIcon />}
-            tooltip={foldersVisible ? t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : t("editor:explorer.showFolders", { defaultValue: "Show folders" })}
+            tooltip={foldersVisible ? i18n.t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : i18n.t("editor:explorer.showFolders", { defaultValue: "Show folders" })}
             onClick={toggleFoldersVisible}
             tooltipPlacement="top"
             nodrag={false}
@@ -222,11 +236,52 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           </FlexRow>
         </ToolbarIconButton>
 
+        {/* Filter: generating model */}
+        {showModelFilter && (
+          <ToolbarIconButton
+            tooltip="Filter by model"
+            onClick={(e) => setModelFilterAnchor(e.currentTarget)}
+            tooltipPlacement="top"
+            nodrag={false}
+            active={modelFilter !== null}
+            sx={{
+              borderRadius: BORDER_RADIUS.sm,
+              px: SPACING.micro,
+              gap: SPACING.micro,
+              fontSize: FONT_SIZE_SANS.label,
+              maxWidth: 200
+            }}
+          >
+            <FlexRow
+              align="center"
+              gap={SPACING.micro}
+              sx={{ minWidth: 0, "& .MuiSvgIcon-root": { fontSize: 18 } }}
+            >
+              <SmartToyOutlinedIcon />
+              <TruncatedText component="span" sx={{ fontSize: "inherit" }}>
+                {modelFilterLabel}
+              </TruncatedText>
+              <ArrowDropDownIcon />
+            </FlexRow>
+          </ToolbarIconButton>
+        )}
+
+        {/* Filter: starred assets from every folder */}
+        <ToolbarIconButton
+          icon={favoritesOnly ? <StarIcon /> : <StarBorderIcon />}
+          tooltip={favoritesOnly ? "Show all assets" : "Show favorites"}
+          onClick={() => setFavoritesOnly(!favoritesOnly)}
+          tooltipPlacement="top"
+          nodrag={false}
+          active={favoritesOnly}
+          aria-pressed={favoritesOnly}
+        />
+
         {/* Search, sort & resize (sidebar only; always shown in fullscreen) */}
         {!isFullscreenAssets && (
           <ToolbarIconButton
             icon={<TuneIcon />}
-            tooltip={expanded ? t("editor:explorer.hideSearchSort", { defaultValue: "Hide search & sort" }) : t("editor:explorer.searchSortResize", { defaultValue: "Search, sort & resize" })}
+            tooltip={expanded ? i18n.t("editor:explorer.hideSearchSort", { defaultValue: "Hide search & sort" }) : i18n.t("editor:explorer.searchSortResize", { defaultValue: "Search, sort & resize" })}
             onClick={() => setExpanded((prev) => !prev)}
             tooltipPlacement="top"
             nodrag={false}
@@ -269,12 +324,43 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {TYPE_FILTERS.map((filter) => (
           <MenuItemPrimitive
             key={filter.key}
-            label={localizedTypeFilterLabel(filter.key, filter.label)}
+            label={filter.label}
             icon={TYPE_FILTER_ICONS[filter.key]}
             selected={typeFilter === filter.key}
             onClick={() => {
               handleTypeFilterChange(filter.key);
               setTypeFilterAnchor(null);
+            }}
+            dense
+          />
+        ))}
+      </Popover>
+
+      <Popover
+        open={Boolean(modelFilterAnchor)}
+        anchorEl={modelFilterAnchor}
+        onClose={() => setModelFilterAnchor(null)}
+        placement="bottom-left"
+        paperSx={{ py: SPACING.micro, minWidth: 160 }}
+      >
+        <MenuItemPrimitive
+          label="Any model"
+          icon={<FilterAltOffIcon />}
+          selected={modelFilter === null}
+          onClick={() => {
+            setModelFilter(null);
+            setModelFilterAnchor(null);
+          }}
+          dense
+        />
+        {modelOptions.map((model) => (
+          <MenuItemPrimitive
+            key={model.id}
+            label={model.label}
+            selected={modelFilter === model.id}
+            onClick={() => {
+              setModelFilter(model.id);
+              setModelFilterAnchor(null);
             }}
             dense
           />

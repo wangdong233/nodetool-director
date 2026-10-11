@@ -71,9 +71,32 @@ function nodetoolStubPlugin(): Plugin {
   };
 }
 
-// Tests that persist rows through the real @nodetool-ai/models database. They
-// run in their own project without the stub plugin.
-const realPackageTests = ["tests/local-model-interfaces-sketch.test.ts"];
+// Tests that need real workspace packages run without the stub plugin.
+const realPackageTests = [
+  "tests/runs-integration.test.ts",
+  "tests/app-debug-harness.test.ts",
+  "tests/app-debug-target.test.ts",
+  "tests/example-apps-e2e.test.ts",
+  "tests/typed-dsl.test.ts",
+  "tests/game-command.test.ts",
+  "tests/game-command-eval.test.ts",
+  "tests/game-command3d.test.ts",
+  "tests/game-command-capture-budget.test.ts",
+  "tests/game-command-smoke.test.ts",
+  "tests/game-command-benchmark.test.ts",
+  "tests/gameBenchmarkTiming.test.ts",
+  "tests/game-command-golden.test.ts",
+  "tests/game-command-sky-golden.test.ts",
+  "tests/game-command-post-golden.test.ts",
+  "tests/game-command-shadow-golden.test.ts",
+  "tests/gameGoldenDiagnostics.test.ts",
+  "tests/local-model-interfaces-sketch.test.ts",
+  "tests/local-model-interface-parity.test.ts",
+  "src/commands/__tests__/timeline-render-audio.test.ts",
+  "src/commands/__tests__/timeline-render-completeness.test.ts",
+  "tests/game-command-input-bindings.test.ts",
+  "tests/game-command-hud-ui.test.ts"
+];
 
 export default defineConfig({
   test: {

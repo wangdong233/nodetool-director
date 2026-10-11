@@ -14,7 +14,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { Box, FlexColumn, FlexRow } from "../components/ui_primitives";
+import {
+  Box,
+  EditorButton,
+  FlexColumn,
+  FlexRow,
+  WarningBanner,
+  STUDIO_ASSISTANT_WIDTH
+} from "../components/ui_primitives";
 import StoryboardBoard from "../components/storyboard/StoryboardBoard";
 import type { StoryboardReviewRequest } from "../components/storyboard/StoryboardBoard";
 import StoryboardAgentPanel from "../components/storyboard/StoryboardAgentPanel";
@@ -32,6 +39,8 @@ import {
   useStoryboardSetupFlow,
   useStoryboardSetupStage
 } from "../components/setup/storyboard/useStoryboardSetupFlow";
+import DocumentLoadStatus from "../components/workspace/DocumentLoadStatus";
+import type { DocumentLoadState } from "../stores/documentSync";
 import StudioShell from "./StudioShell";
 import {
   STUDIO_CLIP_MODEL,
@@ -40,7 +49,10 @@ import {
 } from "./curatedModels";
 
 /** Stamp the curated models onto a board that has none selected. */
-const useStudioModelPolicy = (boardId: string) => {
+const useStudioModelPolicy = (
+  boardId: string,
+  loadState: DocumentLoadState
+): void => {
   const hasAnyModel = useStoryboardStore((state) => {
     const board = state.boards[boardId];
     return board
@@ -48,13 +60,13 @@ const useStudioModelPolicy = (boardId: string) => {
       : null;
   });
   useEffect(() => {
-    if (hasAnyModel === false) {
+    if (loadState === "ready" && hasAnyModel === false) {
       const store = useStoryboardStore.getState();
       store.setDirectorModel(boardId, STUDIO_DIRECTOR_MODEL);
       store.setImageModel(boardId, STUDIO_STILL_MODEL);
       store.setVideoModel(boardId, STUDIO_CLIP_MODEL);
     }
-  }, [hasAnyModel, boardId]);
+  }, [hasAnyModel, boardId, loadState]);
 };
 
 const StudioStoryboardPage = () => {
@@ -72,10 +84,11 @@ const StudioStoryboardPage = () => {
     ensureBoard(boardId);
   }, [ensureBoard, boardId]);
 
-  useStoryboardServerSync(boardId);
+  const [retryToken, setRetryToken] = useState(0);
+  const loadState = useStoryboardServerSync(boardId, retryToken);
   useStoryboardAgentBridge(boardId);
   useStoryboardGenerationSubscriptions(boardId);
-  useStudioModelPolicy(boardId);
+  useStudioModelPolicy(boardId, loadState);
 
   // The board's undo buttons advertise ⌘Z; the page is the only surface, so
   // it is always the active one.
@@ -83,7 +96,7 @@ const StudioStoryboardPage = () => {
   const redo = useStoryboardStore((state) => state.redo);
   useDocumentUndoShortcuts({
     active: true,
-    enabled: true,
+    enabled: loadState === "ready",
     onUndo: useCallback(() => undo(boardId), [undo, boardId]),
     onRedo: useCallback(() => redo(boardId), [redo, boardId])
   });
@@ -97,7 +110,8 @@ const StudioStoryboardPage = () => {
   // Director's first draft (PRD D9, criterion 6).
   const { extract } = useExtractScriptFromBoard();
   const extractReviewed = useCallback(async () => {
-    await extract(boardId, { open: false });
+    // A second pass through review re-projects the script it already made.
+    await extract(boardId, { open: false, relink: true });
   }, [boardId, extract]);
   const setupConfig = useStoryboardSetupFlow({
     boardId,
@@ -111,13 +125,41 @@ const StudioStoryboardPage = () => {
   );
 
   const { assemble, assembling, error: assembleError } = useAssembleTimeline();
+  const [assemblyNotice, setAssemblyNotice] = useState<{
+    sequenceId: string;
+    warnings: string[];
+  } | null>(null);
   const handleAssemble = useCallback(() => {
+    setAssemblyNotice(null);
     void assemble(boardId)
-      .then((result) => navigate(`/studio/timeline/${result.sequenceId}`))
+      .then((result) => {
+        if (result.warnings.length > 0) {
+          setAssemblyNotice({
+            sequenceId: result.sequenceId,
+            warnings: result.warnings
+          });
+        } else {
+          navigate(`/studio/timeline/${result.sequenceId}`);
+        }
+      })
       .catch(() => {
         // Surfaced via assembleError; swallow to keep the click handler quiet.
       });
   }, [assemble, boardId, navigate]);
+
+  if (loadState !== "ready") {
+    return (
+      <StudioShell title={title || "Storyboard"}>
+        <DocumentLoadStatus
+          state={loadState}
+          label="storyboard"
+          onRetry={() => setRetryToken((value) => value + 1)}
+          onClose={() => navigate("/workspace")}
+          closeLabel="Back to workspace"
+        />
+      </StudioShell>
+    );
+  }
 
   if (setupStage !== "done") {
     return (
@@ -129,6 +171,21 @@ const StudioStoryboardPage = () => {
 
   return (
     <StudioShell title={title || "Untitled storyboard"}>
+      {assemblyNotice && (
+        <WarningBanner
+          message="Timeline created with omissions"
+          description={assemblyNotice.warnings.join(" ")}
+          action={
+            <EditorButton
+              onClick={() =>
+                navigate(`/studio/timeline/${assemblyNotice.sequenceId}`)
+              }
+            >
+              Open timeline
+            </EditorButton>
+          }
+        />
+      )}
       <FlexRow
         sx={{
           flex: 1,
@@ -151,6 +208,9 @@ const StudioStoryboardPage = () => {
             directing={directing}
             directError={directError}
             onAssemble={handleAssemble}
+            onOpenTimeline={(timelineId) =>
+              navigate(`/studio/timeline/${timelineId}`)
+            }
             assembling={assembling}
             assembleError={assembleError}
             reviewRequest={reviewRequest}
@@ -159,7 +219,7 @@ const StudioStoryboardPage = () => {
         <FlexColumn
           fullHeight
           sx={{
-            width: 320,
+            width: STUDIO_ASSISTANT_WIDTH,
             flexShrink: 0,
             minHeight: 0,
             borderLeft: `1px solid ${theme.vars.palette.divider}`

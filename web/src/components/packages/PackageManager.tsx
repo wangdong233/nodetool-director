@@ -2,27 +2,38 @@
  * PackageManager — the unified "install everything here" surface, as a two-pane
  * workspace.
  *
- * The left {@link PackageRail} switches between Software (system runtimes) and
- * Node Packs (Included / Registry / Third-party) and navigates categories; the
- * right pane shows the focused, searchable, status-filtered list for the active
- * category. Data and derivation live in {@link usePackageManager}. Rendered
+ * The left {@link PackageRail} picks one of four lists: Included, Python
+ * packs, Third-party and Software. The right pane shows that list with one
+ * search box and one status filter. Search and filter stay set when the user
+ * picks another list. Data and derivation live in {@link usePackageManager}. Rendered
  * full-screen by {@link PackagesPage} (title/back live in the page hero).
  */
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { useGlobalCombo } from "../../stores/KeyPressedStore";
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent
+} from "react";
 import { useTheme } from "@mui/material/styles";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+
+import { useGlobalCombo } from "../../stores/KeyPressedStore";
 
 import {
   AlertBanner,
   Box,
   Chip,
   EditorButton,
+  EmptyState,
   FlexColumn,
   FlexRow,
   LabeledSwitch,
   SearchInput,
   Text,
+  ToggleGroup,
+  ToggleOption,
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
@@ -30,40 +41,38 @@ import PackageRail from "./PackageRail";
 import PackageRow from "./PackageRow";
 import ConsolePanel from "./ConsolePanel";
 import PackagesMenu from "../menus/PackagesMenu";
-import { useTranslation } from "react-i18next";
 import {
+  PM_CATEGORIES,
   usePackageManager,
-  type PMTab,
+  type PMCategory,
+  type PMFilter,
   type PMRow
 } from "./usePackageManager";
 
-const DEFAULT_CAT = {
-  software: "all",
-  packs: "included"
-} satisfies Record<PMTab, string>;
-
-/** Persist the active tab + category so reopening the Package Manager lands
- *  where the user left off. */
+/** Persist the active list so reopening the Package Manager lands where the
+ *  user left off. */
 const STORAGE_KEY = "nodetool.packageManager.location";
 
-const loadLocation = () => {
-  const fallback = { tab: "packs" as PMTab, cat: "included" };
+const isCategory = (value: unknown): value is PMCategory =>
+  PM_CATEGORIES.includes(value as PMCategory);
+
+const loadCategory = (): PMCategory => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw) as { tab?: PMTab; cat?: string };
-    if (parsed.tab === "software" || parsed.tab === "packs") {
-      return { tab: parsed.tab, cat: parsed.cat ?? DEFAULT_CAT[parsed.tab] };
-    }
+    if (!raw) return "included";
+    const parsed = JSON.parse(raw) as { tab?: string; cat?: string };
+    if (isCategory(parsed.cat)) return parsed.cat;
+    // Older saves held a Software tab with runtime groups as categories.
+    if (parsed.tab === "software") return "runtimes";
   } catch {
     // Corrupt/blocked storage — fall back to the default landing spot.
   }
-  return fallback;
+  return "included";
 };
 
-const saveLocation = (tab: PMTab, cat: string) => {
+const saveCategory = (cat: PMCategory) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tab, cat }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ cat }));
   } catch {
     // Storage unavailable (private mode / quota) — persistence is optional.
   }
@@ -75,7 +84,6 @@ const saveLocation = (tab: PMTab, cat: string) => {
  * "Installed"). "Always on" / "Not installed" stay neutral.
  */
 const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   if (!badge) return null;
   const styles: Record<
@@ -83,22 +91,22 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
     { label: string; bg: string; fg: string }
   > = {
     alwaysOn: {
-      label: t("editor:ui.alwaysOn", { defaultValue: "Always on" }),
+      label: "Always on",
       bg: theme.vars.palette.action.selected,
       fg: theme.vars.palette.text.secondary
     },
     installed: {
-      label: t("editor:ui.installed", { defaultValue: "Installed" }),
+      label: "Installed",
       bg: `rgba(${theme.vars.palette.success.mainChannel} / 0.14)`,
       fg: theme.vars.palette.success.main
     },
     update: {
-      label: t("editor:ui.updateAvailable", { defaultValue: "Update available" }),
+      label: "Update available",
       bg: `rgba(${theme.vars.palette.warning.mainChannel} / 0.16)`,
       fg: theme.vars.palette.warning.main
     },
     notInstalled: {
-      label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }),
+      label: "Not installed",
       bg: theme.vars.palette.action.hover,
       fg: theme.vars.palette.text.secondary
     }
@@ -115,7 +123,6 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
-  const { t } = useTranslation();
   if (row.toggle) {
     return (
       <LabeledSwitch
@@ -138,9 +145,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy
-            ? t("editor:ui.working", { defaultValue: "Working…" })
-            : t("editor:ui.update", { defaultValue: "Update" })}
+          {busy ? "Working…" : "Update"}
         </EditorButton>
       )}
       {install && (
@@ -150,9 +155,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy
-            ? t("editor:ui.installing", { defaultValue: "Installing…" })
-            : t("editor:ui.install", { defaultValue: "Install" })}
+          {busy ? "Installing…" : "Install"}
         </EditorButton>
       )}
       {uninstall && (
@@ -162,9 +165,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy
-            ? t("editor:ui.working", { defaultValue: "Working…" })
-            : t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
+          {busy ? "Working…" : "Uninstall"}
         </EditorButton>
       )}
     </>
@@ -192,31 +193,36 @@ const PackageRowItem = memo(function PackageRowItem({ row }: { row: PMRow }) {
 });
 
 function PackageManager() {
-  const { t } = useTranslation();
-  const [{ tab, cat }, setLocation] = useState(loadLocation);
+  const [cat, setCat] = useState(loadCategory);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<PMFilter>("all");
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const model = usePackageManager({ tab, cat, q, filter });
+  const model = usePackageManager({ cat, q, filter });
 
   useEffect(() => {
-    saveLocation(tab, cat);
-  }, [tab, cat]);
-
-  const handleTab = useCallback((next: PMTab) => {
-    setLocation({ tab: next, cat: DEFAULT_CAT[next] });
-    setFilter("all");
-    setQ("");
-  }, []);
+    saveCategory(cat);
+  }, [cat]);
 
   const handleCat = useCallback((id: string) => {
-    setLocation((prev) => ({ ...prev, cat: id }));
+    if (isCategory(id)) setCat(id);
+  }, []);
+
+  const handleFilter = useCallback(
+    (_event: MouseEvent<HTMLElement>, value: PMFilter | null) => {
+      if (value) setFilter(value);
+    },
+    []
+  );
+
+  const clearSearchAndFilter = useCallback(() => {
+    setQ("");
     setFilter("all");
   }, []);
 
   const showSearch = !model.isThirdParty && !model.notice;
-  const showChips = showSearch && model.chips.length > 0;
+  const showFilter = showSearch && model.filters.length > 0;
+  const narrowed = q.trim() !== "" || filter !== "all";
 
   // "/" focuses the search box. The store owns the gate — it skips while
   // anything editable is focused and when the box cannot take focus (e.g. this
@@ -238,8 +244,6 @@ function PackageManager() {
       }}
     >
       <PackageRail
-        tab={tab}
-        onTab={handleTab}
         categories={model.categories}
         activeCat={cat}
         onCat={handleCat}
@@ -248,16 +252,20 @@ function PackageManager() {
       <FlexColumn sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
         <FlexColumn
           gap={0}
-          sx={{ flexShrink: 0, pt: 2.75, px: { xs: 1.75, sm: 3.75 } }}
+          sx={{
+            flexShrink: 0,
+            pt: SPACING.lg,
+            px: { xs: SPACING.md, sm: SPACING.xl }
+          }}
         >
           {model.isSoftware && (
             <FlexRow
-              gap={1.75}
+              gap={SPACING.md}
               align="center"
               sx={(theme) => ({
-                mb: 2.5,
-                px: 1.875,
-                py: 1.375,
+                mb: SPACING.lg,
+                px: SPACING.md,
+                py: SPACING.sm,
                 borderRadius: BORDER_RADIUS.xl,
                 border: `1px solid ${theme.vars.palette.divider}`,
                 backgroundColor: theme.vars.palette.background.paper
@@ -269,7 +277,7 @@ function PackageManager() {
                 weight={600}
                 sx={{ textTransform: "uppercase", letterSpacing: "0.09em" }}
               >
-                {t("editor:ui.installLocation")}
+                Install location
               </Text>
               <Text size="small" family="secondary" truncate>
                 {model.installLocation || "Default conda environment"}
@@ -280,15 +288,15 @@ function PackageManager() {
                   density="compact"
                   onClick={model.onChangeLocation}
                 >
-                  {t("editor:ui.change")}
+                  Change…
                 </EditorButton>
               </Box>
             </FlexRow>
           )}
 
           <FlexRow gap={2} align="flex-start">
-            <FlexColumn gap={0.75} sx={{ flex: 1, minWidth: 0 }}>
-              <FlexRow gap={1.25} align="center">
+            <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minWidth: 0 }}>
+              <FlexRow gap={SPACING.sm} align="center">
                 <Text size="big" weight={600}>
                   {model.title}
                 </Text>
@@ -330,7 +338,7 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder={t("editor:ui.searchPress", { defaultValue: "Search…  (press /)" })}
+                    placeholder="Search…  (press /)"
                     showClear
                   />
                 </Box>
@@ -338,19 +346,28 @@ function PackageManager() {
             )}
           </FlexRow>
 
-          {showChips && (
-            <FlexRow gap={1} sx={{ flexWrap: "wrap", mt: 2.25 }}>
-              {model.chips.map((chip) => (
-                <Chip
-                  key={chip.id}
-                  label={`${chip.label}  ${chip.count}`}
-                  active={filter === chip.id}
-                  clickable
-                  onClick={() => setFilter(chip.id)}
-                  compact
-                />
-              ))}
-            </FlexRow>
+          {showFilter && (
+            <Box sx={{ mt: SPACING.md, maxWidth: "100%", overflowX: "auto" }}>
+              <ToggleGroup
+                value={filter}
+                exclusive
+                segmented
+                onChange={handleFilter}
+                aria-label="Status filter"
+              >
+                {model.filters.map((option) => (
+                  <ToggleOption key={option.id} value={option.id}>
+                    {option.label}
+                    <Box
+                      component="span"
+                      sx={{ ml: SPACING.sm, color: "text.secondary" }}
+                    >
+                      {option.count}
+                    </Box>
+                  </ToggleOption>
+                ))}
+              </ToggleGroup>
+            </Box>
           )}
 
           <Box
@@ -364,7 +381,14 @@ function PackageManager() {
 
         <FlexColumn
           gap={2}
-          sx={{ flex: 1, minHeight: 0, overflowY: "auto", pt: 2, px: 3.75, pb: 4 }}
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            pt: 2,
+            px: SPACING.xl,
+            pb: 4
+          }}
         >
           {model.error && (
             <AlertBanner severity="error" compact>
@@ -377,40 +401,39 @@ function PackageManager() {
           ) : model.isThirdParty ? (
             <PackagesMenu />
           ) : model.rows.length > 0 ? (
-            <FlexColumn gap={1.75}>
-              {model.rows.map((row) => (
-                <PackageRowItem key={row.key} row={row} />
+            <FlexColumn gap={SPACING.md}>
+              {model.rows.map((row, index) => (
+                <Fragment key={row.key}>
+                  {row.group && row.group !== model.rows[index - 1]?.group && (
+                    <Text
+                      size="small"
+                      color="secondary"
+                      weight={600}
+                      sx={{
+                        textTransform: "uppercase",
+                        letterSpacing: "0.09em",
+                        pt: index === 0 ? 0 : SPACING.md
+                      }}
+                    >
+                      {row.group}
+                    </Text>
+                  )}
+                  <PackageRowItem row={row} />
+                </Fragment>
               ))}
             </FlexColumn>
           ) : (
-            <FlexColumn
-              align="center"
-              justify="center"
-              gap={1}
-              sx={{ textAlign: "center", py: 9 }}
-            >
-              <FlexRow
-                align="center"
-                justify="center"
-                sx={(theme) => ({
-                  width: 46,
-                  height: 46,
-                  borderRadius: BORDER_RADIUS.xl,
-                  border: `1px solid ${theme.vars.palette.divider}`,
-                  color: theme.vars.palette.text.secondary,
-                  mb: 0.5
-                })}
-              >
-                <SearchOutlinedIcon sx={{ fontSize: 20 }} />
-              </FlexRow>
-              <Text size="normal" weight={600} color="secondary">
-                {t("editor:ui.noPacksMatch")}
-              </Text>
-              <Text size="small" color="secondary" sx={{ maxWidth: "40ch" }}>
-                Try a different search term or switch the status filter back to
-                All.
-              </Text>
-            </FlexColumn>
+            <EmptyState
+              variant={narrowed ? "no-results" : "empty"}
+              title={narrowed ? "Nothing matches" : "Nothing here yet"}
+              description={
+                narrowed
+                  ? "No package in this list matches the search and the status filter."
+                  : "This list has no packages."
+              }
+              actionText={narrowed ? "Show all" : undefined}
+              onAction={narrowed ? clearSearchAndFilter : undefined}
+            />
           )}
 
           {model.console && (

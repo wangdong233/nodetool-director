@@ -35,6 +35,13 @@ import {
   makeAffineTransform
 } from "../types";
 import { makeToolContext } from "./_toolContextFixture";
+import { useSketchStore } from "../state/useSketchStore";
+
+// Snapping has its own tests. These drags start a few pixels from the
+// canvas edge, where snapping would move them onto it.
+beforeEach(() => {
+  useSketchStore.setState({ snapEnabled: false });
+});
 
 // ─── Test helpers ──────────────────────────────────────────────────────────
 
@@ -876,6 +883,35 @@ describe("PaintSession stroke-start latency optimizations", () => {
     );
 
     expect(ctx.redraw).not.toHaveBeenCalled();
+  });
+
+  it("move() repaints only the segment it painted, not the whole stroke", () => {
+    const engine = new BrushEngine({ ...DEFAULT_BRUSH_SETTINGS, size: 10, stabilizer: 0 });
+    const session = new PaintSession(engine);
+    const ctx = makeToolContext();
+    session.begin(ctx, makePointerEvent());
+    session.move(
+      ctx,
+      makePointerEvent({ point: { x: 30, y: 30 } }),
+      [makePointerEvent({ point: { x: 30, y: 30 } })]
+    );
+    jest.mocked(ctx.redrawDirty).mockClear();
+
+    session.move(
+      ctx,
+      makePointerEvent({ point: { x: 60, y: 60 } }),
+      [makePointerEvent({ point: { x: 60, y: 60 } })]
+    );
+
+    expect(ctx.redrawDirty).toHaveBeenCalledTimes(1);
+    const [x, y, w, h] = jest.mocked(ctx.redrawDirty).mock.calls[0];
+    // The segment runs from (30,30) to (60,60); the stroke began at (10,10).
+    expect(x).toBeGreaterThan(10);
+    expect(y).toBeGreaterThan(10);
+    expect(x + w).toBeGreaterThanOrEqual(60);
+    expect(y + h).toBeGreaterThanOrEqual(60);
+    // The commit still covers the whole stroke.
+    expect(engine.getDirtyRect()?.minX).toBeLessThanOrEqual(10);
   });
 });
 

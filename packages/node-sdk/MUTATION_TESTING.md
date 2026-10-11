@@ -31,7 +31,6 @@ field-classification.ts    |  100.00 |     12 |        0
 metadata.ts                |  100.00 |    151 |        0
 node-metadata.ts           |  100.00 |    221 |        0
 pack-loader.ts             |  100.00 |    208 |        0
-package-registry-client.ts |  100.00 |     41 |        0
 pricing-bundle.ts          |  100.00 |     19 |        0
 registry.ts                |  100.00 |    185 |        0
 search.ts                  |  100.00 |     77 |        0
@@ -75,7 +74,7 @@ and are not in the security package's config:
 
 `mutate` covers `src/**/*.ts` minus:
 
-- **`src/index.ts`, `src/docs/index.ts`** — pure re-export barrels.
+- **`src/index.ts`** — the package's re-export barrel.
 - **`src/nodes/test-nodes.ts`** — test fixtures, not shipped behaviour.
 - **`src/docs/**`** — the markdown documentation *generators*. Their output is
   human-facing text, not a behavioural contract (the same reason the security

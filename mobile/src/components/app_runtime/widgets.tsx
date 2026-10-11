@@ -32,15 +32,20 @@ import {
 } from "react-native";
 import {
   composeUserMessage,
+  parseChoiceCardOptions,
   encodeBinding,
   formatDuration,
+  isOperationRunning,
   messagesFrom,
   messageText,
   readSketchBinding,
   readTimelineBinding,
   sketchSummary,
+  operationTranscript,
+  parseBinding,
   timelineSummary,
   WIDGET_CATALOG,
+  type ActivityEntry,
   type AppEvent,
   type ConditionProps,
 } from "@nodetool-ai/app-runtime";
@@ -66,6 +71,7 @@ import {
   useBindingValue,
   useCondition,
   useFormatted,
+  useRuntimeSelector,
 } from "./AppRuntimeContext";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { SliderControl } from "./SliderControl";
@@ -339,6 +345,28 @@ const TimelineWidget: React.FC<WidgetProps> = (widget) => {
   );
 };
 
+/**
+ * A storyboard an operation produced: a plain id or a `{type: "storyboard", id}`
+ * ref. The board editor is desktop-only, so the phone says one exists.
+ */
+const StoryboardWidget: React.FC<WidgetProps> = (widget) => {
+  const { colors } = useTheme();
+  const { value } = useWidgetRuntime({ ...widget, bindingMode: "read" });
+  const bound = Array.isArray(value) ? value[value.length - 1] : value;
+  const id = isRecord(bound) && bound.type === "storyboard" ? str(bound.id) : str(bound);
+  if (id.trim()) {
+    return (
+      <DocumentCard title="Storyboard" meta="Open on desktop to view" colors={colors} />
+    );
+  }
+  return (
+    <Placeholder
+      text={str(widget.props.placeholder) || "No storyboard yet"}
+      colors={colors}
+    />
+  );
+};
+
 /** A cell's text: primitives print, anything structured falls back to JSON. */
 const cellText = (value: unknown): string => {
   if (value == null) {return "";}
@@ -473,6 +501,93 @@ const TableWidget: React.FC<WidgetProps> = (widget) => {
         ))}
       </View>
     </ScrollView>
+  );
+};
+
+const TOOL_STATUS_TEXT: Record<string, string> = {
+  running: "Running",
+  done: "Done",
+  error: "Failed",
+};
+
+/**
+ * What an agent does during a run: its text and each tool call with the
+ * outcome, bound to `op:<id>/exec#transcript`. The newest entry stays in view
+ * while the run is live.
+ */
+const AgentActivityWidget: React.FC<WidgetProps> = (widget) => {
+  const { colors } = useTheme();
+  const ref = parseBinding(str(widget.props.binding));
+  const operationId = ref?.kind === "execution" ? ref.operationId : null;
+  const entries = useRuntimeSelector((state) =>
+    operationId ? operationTranscript(state, operationId) : NO_ACTIVITY
+  );
+  const running = useRuntimeSelector((state) =>
+    operationId ? isOperationRunning(state, operationId) : false
+  );
+  if (!running && entries.length === 0) {
+    const placeholder = str(widget.props.placeholder);
+    return placeholder ? <Placeholder text={placeholder} colors={colors} /> : null;
+  }
+  const label = str(widget.props.label);
+  return (
+    <View style={styles.field}>
+      {label ? (
+        <Text style={[styles.label, { color: colors.text }]}>
+          {label}
+          {running ? " · Working" : ""}
+        </Text>
+      ) : null}
+      <ScrollView
+        style={{ maxHeight: numOr(widget.props.height, 360) }}
+        nestedScrollEnabled
+      >
+        <View style={styles.field}>
+          {entries.map((entry, index) =>
+            entry.kind === "tool" ? (
+              <View
+                key={entry.id}
+                style={[styles.activityTool, { backgroundColor: colors.surfaceElevated }]}
+              >
+                <View style={styles.row}>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.rowLabel, styles.body, { color: colors.text }]}
+                  >
+                    {entry.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.hint,
+                      {
+                        color:
+                          entry.status === "error"
+                            ? colors.error
+                            : entry.status === "done"
+                              ? colors.success
+                              : colors.textSecondary,
+                      },
+                    ]}
+                  >
+                    {TOOL_STATUS_TEXT[entry.status]}
+                  </Text>
+                </View>
+                {entry.result ? (
+                  <Text
+                    numberOfLines={3}
+                    style={[styles.hint, { color: colors.textSecondary }]}
+                  >
+                    {entry.result}
+                  </Text>
+                ) : null}
+              </View>
+            ) : (
+              <MarkdownRenderer key={`text-${index}`} content={entry.text} />
+            )
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -2579,6 +2694,64 @@ const ChatComposerWidget: React.FC<WidgetProps> = (widget) => {
   );
 };
 
+const ChoiceCardsWidget: React.FC<WidgetProps> = (widget) => {
+  const { colors } = useTheme();
+  const { value, setValue, emit } = useWidgetRuntime({ ...widget, bindingMode: "write" });
+  const { value: boundOptions } = useWidgetRuntime({ id: `${widget.id}-options`, bindingMode: "read", binding: str(widget.props.optionsBinding) || undefined });
+  const options = parseChoiceCardOptions(widget.props.optionsBinding ? boundOptions : widget.props.options);
+  const images = useResolvedMediaUris(options.map((option) => str(option.image)));
+  return <View style={styles.field}>
+    <FieldLabel text={str(widget.props.label)} colors={colors} />
+    <View style={styles.tileGrid}>{options.map((option, index) => {
+      const optionValue = str(option.value);
+      const selected = str(value) === optionValue;
+      const disabled = widget.disabled || option.disabled === true;
+      const image = images[index];
+      return <TouchableOpacity key={optionValue || index} accessibilityRole="radio" accessibilityState={{ selected, disabled }} disabled={disabled} onPress={() => { if (disabled) { return; } setValue(optionValue); emit("change"); }} style={[styles.documentCard, { borderColor: selected ? colors.primary : colors.border, opacity: disabled ? 0.5 : 1, width: "48%" }]}>
+        {image ? <Image source={{ uri: image }} style={[styles.image, { height: 96 }]} resizeMode="cover" /> : null}
+        <Text style={[styles.label, { color: colors.text }]}>{str(option.title) || optionValue}</Text>
+        {str(option.description) ? <Text style={[styles.hint, { color: colors.textTertiary }]}>{str(option.description)}</Text> : null}
+      </TouchableOpacity>;
+    })}</View>
+  </View>;
+};
+
+const StepperWidget: React.FC<WidgetProps> = (widget) => {
+  const { colors } = useTheme();
+  const { value, setValue, emit } = useWidgetRuntime({ ...widget, bindingMode: "write" });
+  const steps = Array.isArray(widget.props.steps) ? widget.props.steps.filter(isRecord) : [];
+  const found = steps.findIndex((step) => str(step.value) === str(value));
+  const current = found;
+  const firstStep = steps[0] ? str(steps[0].value) : undefined;
+  React.useEffect(() => {
+    if (value == null && firstStep !== undefined && !widget.disabled) { setValue(firstStep); }
+  }, [setValue, firstStep, value, widget.disabled]);
+  return <View style={styles.field}>
+    <FieldLabel text={str(widget.props.label)} colors={colors} />
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}><View style={styles.chipRow}>{steps.map((step, index) => {
+      const disabled = widget.disabled || step.disabled === true || (index < current && widget.props.allowBack === false);
+      const selected = index === current;
+      return <TouchableOpacity key={str(step.value) || index} accessibilityRole="button" accessibilityState={{ selected, disabled }} disabled={disabled} onPress={() => { if (disabled) { return; } setValue(str(step.value)); emit("change"); }} style={[styles.chip, { backgroundColor: selected ? colors.primary : colors.inputBg, borderColor: selected ? colors.primary : colors.border, opacity: disabled ? 0.5 : 1 }]}>
+        <Text style={{ color: selected ? colors.textOnPrimary : colors.text }}>{step.completed === true ? "✓ " : ""}{str(step.title) || str(step.value)}</Text>
+      </TouchableOpacity>;
+    })}</View></ScrollView>
+    {steps[current] && str(steps[current].description) ? <Text style={[styles.hint, { color: colors.textTertiary }]}>{str(steps[current].description)}</Text> : null}
+  </View>;
+};
+
+const ApprovalWidget: React.FC<WidgetProps> = (widget) => {
+  const { colors } = useTheme();
+  const { value, setValue, emit } = useWidgetRuntime({ ...widget, bindingMode: "write" });
+  const choose = (next: "approved" | "rejected") => { if (widget.disabled) { return; } setValue(next); emit("change"); };
+  return <View style={[styles.panel, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+    <FieldLabel text={str(widget.props.label)} colors={colors} />
+    {str(widget.props.description) ? <Text style={[styles.hint, { color: colors.textTertiary }]}>{str(widget.props.description)}</Text> : null}
+    <View style={styles.chipRow}>
+      {(["approved", "rejected"] as const).map((choice) => <TouchableOpacity key={choice} accessibilityRole="button" accessibilityState={{ selected: value === choice, disabled: widget.disabled }} disabled={widget.disabled} onPress={() => choose(choice)} style={[styles.chip, { backgroundColor: value === choice ? colors.primary : colors.inputBg, borderColor: value === choice ? colors.primary : colors.border, opacity: widget.disabled ? 0.5 : 1 }]}><Text style={{ color: value === choice ? colors.textOnPrimary : colors.text }}>{choice === "approved" ? str(widget.props.approveLabel) || "Approve" : str(widget.props.rejectLabel) || "Needs changes"}</Text></TouchableOpacity>)}
+    </View>
+  </View>;
+};
+
 const ButtonWidget: React.FC<WidgetProps> = (widget) => {
   const { colors } = useTheme();
   const { emit, running } = useWidgetRuntime({
@@ -2785,8 +2958,11 @@ export const RENDERERS: Record<string, React.FC<WidgetProps>> = {
   Output: MediaOutputWidget,
   Sketch: SketchWidget,
   Timeline: TimelineWidget,
+  Storyboard: StoryboardWidget,
+  StoryboardPreview: StoryboardWidget,
   Table: TableWidget,
   Progress: ProgressWidget,
+  AgentActivity: AgentActivityWidget,
   Alert: AlertWidget,
   CodeBlock: CodeBlockWidget,
   List: ListWidget,
@@ -2806,6 +2982,9 @@ export const RENDERERS: Record<string, React.FC<WidgetProps>> = {
   Switch: SwitchWidget,
   Select: SelectWidget,
   RadioGroup: RadioGroupWidget,
+  ChoiceCards: ChoiceCardsWidget,
+  Stepper: StepperWidget,
+  Approval: ApprovalWidget,
   CheckboxGroup: CheckboxGroupWidget,
   DateInput: DateInputWidget,
   ColorInput: ColorInputWidget,
@@ -2849,17 +3028,14 @@ const WidgetNode: React.FC<{ node: ComponentNode }> = ({ node }) => {
 
   const Renderer = RENDERERS[node.type];
   if (!Renderer) {
-    // A catalog type with no renderer here is one mobile has yet to grow; an
-    // unknown type is a document from a newer builder. Both say so rather than
-    // vanish.
-    const known = node.type in WIDGET_CATALOG;
+    // A catalog type with no renderer here, or a type from a newer web
+    // builder. Mobile does not chase web widgets one by one: the app still
+    // renders, and the widget names itself and points at desktop or web.
+    const name =
+      node.type in WIDGET_CATALOG ? WIDGET_CATALOG[node.type].label : node.type;
     return (
       <UnknownWidget
-        label={
-          known
-            ? `${WIDGET_CATALOG[node.type].label} is not available on mobile`
-            : `Unknown widget: ${node.type}`
-        }
+        label={`${name} opens in the NodeTool desktop or web app.`}
       />
     );
   }
@@ -2887,9 +3063,16 @@ export const ComponentList: React.FC<{ nodes: ComponentNode[] }> = ({
   </View>
 );
 
+const NO_ACTIVITY: ReadonlyArray<ActivityEntry> = [];
+
 const styles = StyleSheet.create({
   stack: {
     gap: 16,
+  },
+  activityTool: {
+    gap: 4,
+    padding: 10,
+    borderRadius: 10,
   },
   row: {
     flexDirection: "row",

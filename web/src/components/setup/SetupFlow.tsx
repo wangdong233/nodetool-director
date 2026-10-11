@@ -9,6 +9,7 @@
  * to whatever container it is given.
  */
 
+import { useTranslation } from "react-i18next";
 import React, {
   lazy,
   Suspense,
@@ -40,7 +41,7 @@ import {
   ThinkingIndicator
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../i18n";
+import { MediaGalleryProvider } from "./MediaGallery";
 import type {
   SetupFlowConfig,
   SetupOperationContext,
@@ -105,9 +106,10 @@ export interface SetupFlowProps<Stage extends string> {
    * otherwise mean leaving the guided surface altogether.
    *
    * The shell asks before it calls this, and its question promises two things
-   * the host owes: the description already typed, and any references with it,
-   * carry over to the flow picked next, and the draft document created for
-   * this flow is discarded rather than left behind as an empty project row.
+   * the host owes: the description already typed, and the references and
+   * entities that came with it, carry over to the flow picked next, and the
+   * draft document created for this flow is discarded rather than left behind
+   * as an empty project row.
    */
   onChangeFlow?: () => void | Promise<void>;
 }
@@ -117,12 +119,35 @@ export function SetupFlow<Stage extends string>({
   onChangeFlow,
   readOnly = false
 }: SetupFlowProps<Stage>): React.ReactElement | null {
+  const { t } = useTranslation();
   const { labels, steps, stage, onStageChange } = config;
   const [busy, setBusy] = useState(false);
+  // True only while the shell awaits the step's own `onAdvance`, the one run
+  // it holds an abort signal for.
+  const [advancing, setAdvancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [canceledStage, setCanceledStage] = useState<Stage | null>(null);
   const [cancelingStage, setCancelingStage] = useState<Stage | null>(null);
   const [confirmingChange, setConfirmingChange] = useState(false);
+  const [changingFlow, setChangingFlow] = useState(false);
+  // Kept apart from the step's own error, whose "Try again" runs the step: a
+  // failed discard is retried from "Change flow", not by advancing.
+  const [changeFlowError, setChangeFlowError] = useState<string | null>(null);
+  // Every failure and the canceled notice belong to the stage that produced
+  // them. A stage reached any other way than the shell's own buttons (an
+  // import that jumps ahead, a second host, Continue after a failed Change
+  // flow) starts clean, so it never shows the old message or a "Try again"
+  // for a run it has not had.
+  const [shownStage, setShownStage] = useState(stage);
+  if (shownStage !== stage) {
+    setShownStage(stage);
+    setError(null);
+    setChangeFlowError(null);
+    setCanceledStage(null);
+    // "Change flow?" promises a draft with nothing generated. A stage moved
+    // on by the agent or another host may now hold a paid plan.
+    setConfirmingChange(false);
+  }
   const blockedReasonId = useId();
   // A phone cannot fit the controls, the estimate and the buttons on one
   // row, so the footer stacks there.
@@ -133,6 +158,10 @@ export function SetupFlow<Stage extends string>({
   const entries = useMemo(() => stepperEntries(steps), [steps]);
   const step = currentIndex >= 0 ? steps[currentIndex] : undefined;
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const primaryRef = useRef<HTMLButtonElement | null>(null);
+  const changeFlowRef = useRef<HTMLButtonElement | null>(null);
+  const errorRef = useRef<HTMLDivElement | null>(null);
+  const changeFlowErrorRef = useRef<HTMLDivElement | null>(null);
 
   // A model call outlives the stage that asked for it. The stage plus a
   // counter that moves on every stage change is the token an in-flight action
@@ -146,6 +175,11 @@ export function SetupFlow<Stage extends string>({
   const activeOperationRef = useRef<Promise<unknown> | null>(null);
   const continueAfterUnmountRef = useRef(false);
   const shortcutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // What had focus when a run started. The locked body and button drop it to
+  // the page, so a run that ends on the same step hands it back.
+  const returnFocusRef = useRef<{ element: HTMLElement; stage: Stage } | null>(
+    null
+  );
   if (stageRef.current !== stage) {
     stageRef.current = stage;
     revisionRef.current += 1;
@@ -197,6 +231,9 @@ export function SetupFlow<Stage extends string>({
       return;
     }
     setError(null);
+    // Leaving a canceled step clears it, so coming back shows the step body
+    // again instead of a canceled notice whose only way out is a paid Retry.
+    setCanceledStage(null);
     const previous = steps[currentIndex - 1];
     if (previous) {
       onStageChange(previous.stage);
@@ -209,6 +246,7 @@ export function SetupFlow<Stage extends string>({
         return;
       }
       setError(null);
+      setCanceledStage(null);
       onStageChange(steps[index].stage);
     },
     [onStageChange, readOnly, steps]
@@ -216,19 +254,85 @@ export function SetupFlow<Stage extends string>({
 
   const handleChangeFlow = useCallback(async () => {
     setConfirmingChange(false);
-    setError(null);
+    setChangeFlowError(null);
+    setChangingFlow(true);
     try {
       await onChangeFlow?.();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setChangeFlowError(
+        cause instanceof Error ? cause.message : String(cause)
+      );
+      // The dialog hands focus back to Change flow while the discard has it
+      // disabled, so focus falls to the page. The step stays up, so it goes
+      // back to Change flow, which is how the creator retries.
+      if (changeFlowRef.current) {
+        returnFocusRef.current = {
+          element: changeFlowRef.current,
+          stage: stageRef.current
+        };
+      }
+    } finally {
+      setChangingFlow(false);
     }
   }, [onChangeFlow]);
 
   const canceled = canceledStage === stage || step?.canceled === true;
   const canceling = cancelingStage === stage;
   const pending = canceling || (!canceled && (busy || step?.pending === true));
+  // Cancel is offered only where pressing it stops something: the shell's own
+  // run, which it can abort, or a step that says how to stop its run.
+  const cancelable =
+    (advancing && step?.cancelable !== false) || step?.onCancel !== undefined;
+  // A step that reports its own `canceled` state owns what retrying means, as
+  // the workflow review does by planning again. Every other cancel returns to
+  // the step it says is unchanged, so picking something else does not need a
+  // paid Retry of the old choice first.
+  const backToStep = canceled && step?.canceled !== true;
+  const locked = pending || changingFlow;
+  // The question stays answerable only while Change flow itself is live. A
+  // run, an import or the agent can take that away while it is open.
+  const changeFlowAvailable =
+    onChangeFlow !== undefined &&
+    currentIndex === 0 &&
+    !readOnly &&
+    !locked &&
+    step?.holdNavigation !== true;
+  if (confirmingChange && !changeFlowAvailable) {
+    setConfirmingChange(false);
+  }
+
+  // A failure is reported at the top of the scrolled body, and the button
+  // that failed is in the footer, so the banner is brought into view.
+  useEffect(() => {
+    if (error) {
+      errorRef.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [error]);
+  useEffect(() => {
+    if (changeFlowError) {
+      changeFlowErrorRef.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [changeFlowError]);
+
+  useEffect(() => {
+    const saved = returnFocusRef.current;
+    if (locked || !saved) {
+      return;
+    }
+    returnFocusRef.current = null;
+    const active = document.activeElement;
+    if (
+      saved.stage !== stage ||
+      !saved.element.isConnected ||
+      (active !== null && active !== document.body)
+    ) {
+      return;
+    }
+    saved.element.focus({ preventScroll: true });
+  }, [locked, stage]);
 
   const handlePrimary = useCallback(async () => {
+  const { t } = useTranslation();
     if (!step || readOnly) {
       return;
     }
@@ -237,11 +341,18 @@ export function SetupFlow<Stage extends string>({
     const controller = new AbortController();
     activeControllerRef.current = controller;
     continueAfterUnmountRef.current = step.continueAfterUnmount === true;
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement !== document.body
+        ? { element: document.activeElement, stage: step.stage }
+        : null;
     setError(null);
     setCanceledStage(null);
     setCancelingStage(null);
     setBusy(true);
+    setAdvancing(true);
     const run = (async () => {
+  const { t } = useTranslation();
       try {
         const context: SetupOperationContext = { signal: controller.signal };
         const shouldAdvance = await step.onAdvance?.(context);
@@ -273,6 +384,7 @@ export function SetupFlow<Stage extends string>({
           activeControllerRef.current = null;
           continueAfterUnmountRef.current = false;
           setBusy(false);
+          setAdvancing(false);
         }
       }
     })();
@@ -290,24 +402,38 @@ export function SetupFlow<Stage extends string>({
     if (!step || !pending) {
       return;
     }
-    operationRef.current += 1;
+    const cancellation = (operationRef.current += 1);
     continueAfterUnmountRef.current = false;
     activeControllerRef.current?.abort();
     activeControllerRef.current = null;
     setError(null);
+    setAdvancing(false);
     setCanceledStage(step.stage);
     setCancelingStage(step.stage);
+    // Cancel leaves with the wait. A run the shell did not start saved no
+    // control to return to, so focus goes to the button that takes its place.
+    if (returnFocusRef.current === null && primaryRef.current) {
+      returnFocusRef.current = {
+        element: primaryRef.current,
+        stage: step.stage
+      };
+    }
     const operation = activeOperationRef.current;
     void Promise.allSettled([
       operation ?? Promise.resolve(),
       Promise.resolve(step.onCancel?.())
     ]).then(() => {
-      if (stageRef.current === step.stage) {
+      if (operationRef.current === cancellation) {
         setCancelingStage(null);
         setBusy(false);
       }
     });
   }, [pending, step]);
+
+  // Leaves the canceled state and shows the step again, unchanged.
+  const handleBackToStep = useCallback(() => {
+    setCanceledStage(null);
+  }, []);
 
   const handleSkip = useCallback(async () => {
     if (!step?.onSkip || readOnly) {
@@ -335,8 +461,18 @@ export function SetupFlow<Stage extends string>({
   }, [currentIndex, isCurrent, onStageChange, readOnly, step, steps]);
 
   const blocked = step?.canAdvance === false;
-  const shortcutActionRef = useRef({ blocked, pending, handlePrimary });
-  shortcutActionRef.current = { blocked, pending, handlePrimary };
+  const handlePrimaryAction = backToStep ? handleBackToStep : handlePrimary;
+  const shortcutActionRef = useRef({
+    blocked,
+    pending: locked,
+    handlePrimary: handlePrimaryAction
+  });
+  shortcutActionRef.current = {
+    // The button is live on a blocked step when it only returns to it.
+    blocked: blocked && !backToStep,
+    pending: locked,
+    handlePrimary: handlePrimaryAction
+  };
 
   // The primary action from the keyboard. Every step's body is a text field or
   // a picker, and a plain Enter belongs to whatever has focus — a line break in
@@ -346,10 +482,17 @@ export function SetupFlow<Stage extends string>({
   // before the shell decides whether the step may advance.
   const handleShortcut = useCallback(
     (event: React.KeyboardEvent) => {
+  const { t } = useTranslation();
       if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
         return;
       }
-      if (pending || readOnly) {
+      // React bubbles keys out of portals, so a dialog opened from a step
+      // (add a style, the gallery, "Change flow?") would otherwise start the
+      // step's action behind it.
+      if (!event.currentTarget.contains(event.target as Node)) {
+        return;
+      }
+      if (locked || readOnly) {
         return;
       }
       event.preventDefault();
@@ -364,7 +507,7 @@ export function SetupFlow<Stage extends string>({
         }
       }, 0);
     },
-    [pending, readOnly]
+    [locked, readOnly]
   );
 
   // A stage outside the flow (a finished document) belongs to the editor, not
@@ -377,15 +520,41 @@ export function SetupFlow<Stage extends string>({
     (best, entry, index) => (entry.firstIndex <= currentIndex ? index : best),
     0
   );
+  const primaryText = backToStep
+    ? currentIndex > entries[currentEntry].firstIndex
+      ? `Back to ${SUBSTEP_LABEL.toLowerCase()}`
+      : "Back to this step"
+    : canceled
+      ? "Retry"
+      : error
+        ? "Try again"
+        : step.primaryLabel;
+  const bodyLocked = readOnly || locked;
 
   // Why the button is off comes first, and replaces the detail: a cost
   // estimate beside a dead button answers a question nobody asked.
+  // Every status reads at the estimate's size, so the line holds one size
+  // whichever state it is in.
   const status = pending ? (
-    <ThinkingIndicator label={step.pendingLabel ?? i18n.t("storyboard:attrs.working", { defaultValue: "Working" })} announce />
+    <FlexRow gap={GAP.normal} align="center" wrap>
+      <Text size="small" component="div">
+        <ThinkingIndicator label={step.pendingLabel ?? "Working"} announce />
+      </Text>
+      {/* The body locks while the run reads it, so the step says why. */}
+      <Caption size="small" color="secondary">
+        Changes are paused
+      </Caption>
+    </FlexRow>
+  ) : changingFlow ? (
+    <Caption size="small" color="secondary">
+      Discarding this draft
+    </Caption>
   ) : canceled ? (
-    <Caption color="secondary">Canceled</Caption>
+    <Caption size="small" color="secondary">
+      Canceled
+    </Caption>
   ) : blocked && step.blockedReason ? (
-    <Caption color="secondary" id={blockedReasonId}>
+    <Caption size="small" color="secondary" id={blockedReasonId}>
       {step.blockedReason}
     </Caption>
   ) : step.primaryDetail ? (
@@ -409,7 +578,7 @@ export function SetupFlow<Stage extends string>({
       align="center"
       wrap
     >
-      {step.footerControls({ readOnly: readOnly || pending })}
+      {step.footerControls({ readOnly: readOnly || locked })}
     </FlexRow>
   ) : null;
 
@@ -444,6 +613,7 @@ export function SetupFlow<Stage extends string>({
             }}
           >
             {entries.map((entry, index) => {
+  const { t } = useTranslation();
               // The marker moves inside a merged entry: once the plan arrives,
               // the creator is on the review, and the stepper says so.
               const onSubstep =
@@ -472,7 +642,7 @@ export function SetupFlow<Stage extends string>({
                     <EditorButton
                       variant="text"
                       onClick={() => handleRewind(entry.lastIndex)}
-                      disabled={pending || readOnly}
+                      disabled={locked || readOnly || step.holdNavigation}
                       sx={{ fontSize: FONT_SIZE_SANS.body }}
                     >
                       {text}
@@ -506,7 +676,8 @@ export function SetupFlow<Stage extends string>({
 
       {readOnly ? (
         <AlertBanner severity="info" title="View only">
-          {i18n.t("storyboard:attrs.thisSetupCanBeReviewedHereButItCannotBeChangedInViewMode", { defaultValue: "This setup can be reviewed here, but it cannot be changed in view mode." })}
+          This setup can be reviewed here, but it cannot be changed in view
+          mode.
         </AlertBanner>
       ) : null}
 
@@ -518,10 +689,61 @@ export function SetupFlow<Stage extends string>({
         fullHeight
         sx={{ flex: 1, minHeight: 0, paddingBottom: SPACING.xxl }}
       >
+        {/* A failure is reported above the step, not in place of it: the
+            creator can pick something else right here, or try again. */}
+        {changeFlowError && currentIndex === 0 ? (
+          <AlertBanner
+            ref={changeFlowErrorRef}
+            severity="error"
+            title="We couldn't discard this draft"
+            sx={{ marginBottom: SPACING.xl }}
+            action={
+              <ReportBugButton
+                label="Report this failure"
+                variant="outlined"
+                size="small"
+                context={{
+                  source: "manual",
+                  summary: `${labels.title} setup failed to change flow`,
+                  errorText: changeFlowError
+                }}
+              />
+            }
+          >
+            {`${changeFlowError} Press Change flow to try again.`}
+          </AlertBanner>
+        ) : null}
+        {error && !canceled ? (
+          <AlertBanner
+            ref={errorRef}
+            severity="error"
+            title="We couldn't complete this step"
+            sx={{ marginBottom: SPACING.xl }}
+            action={
+              <ReportBugButton
+                label="Report this failure"
+                variant="outlined"
+                size="small"
+                context={{
+                  source: "manual",
+                  summary: `${labels.title} setup failed at ${step.label}`,
+                  errorText: error
+                }}
+              />
+            }
+          >
+            {error}
+          </AlertBanner>
+        ) : null}
         <Box
           component="fieldset"
-          disabled={readOnly}
-          aria-readonly={readOnly || undefined}
+          // A pending run already read the step, so the body locks with it
+          // and a pick made now cannot be lost or answered for the old one.
+          // View mode does not disable it: each step honors `readOnly`, and
+          // expanding a gallery or playing a sample changes nothing.
+          disabled={locked}
+          aria-readonly={bodyLocked || undefined}
+          aria-busy={locked || undefined}
           sx={{ border: 0, margin: 0, padding: 0, minWidth: 0, width: "100%" }}
         >
           {canceled ? (
@@ -534,36 +756,17 @@ export function SetupFlow<Stage extends string>({
               </AlertBanner>
               <Text size="normal" color="secondary">
                 {canceling
-                  ? i18n.t("storyboard:attrs.stoppingTheCanceledRequestBeforeRetryIsAvailable", { defaultValue: "Stopping the canceled request before retry is available." })
-                  : i18n.t("storyboard:attrs.retryWhenYouAreReadyANewRequestWillBeStartedDeliberatelyAndTheCanceledRequestCannotReplaceThisDraft", { defaultValue: "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft." })}
+                  ? "Stopping the canceled request."
+                  : backToStep
+                    ? "Go back to the step when you are ready. The canceled request cannot replace this draft."
+                    : "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft."}
               </Text>
-            </FlexColumn>
-          ) : error ? (
-            <FlexColumn gap={GAP.spacious} fullWidth>
-              <Text size="big" component="h1">
-                We couldn&apos;t complete this step
-              </Text>
-              <AlertBanner severity="error" title="What failed">
-                {error}
-              </AlertBanner>
-              <Text size="normal" color="secondary">
-                {i18n.t("storyboard:attrs.yourSetupIsStillHereTryAgainBelowGoBackToChangeItOrReportTheFailureWithItsDiagnostics", { defaultValue: "Your setup is still here. Try again below, go back to change it, or report the failure with its diagnostics." })}
-              </Text>
-              <FlexRow gap={GAP.normal} align="center" wrap>
-                <ReportBugButton
-                  label="Report this failure"
-                  variant="outlined"
-                  size="medium"
-                  context={{
-                    source: "manual",
-                    summary: i18n.t("editor:ui.flowSetupFailedAtStep", { defaultValue: "{{title}} setup failed at {{step}}", title: labels.title, step: step.label }),
-                    errorText: error
-                  }}
-                />
-              </FlexRow>
             </FlexColumn>
           ) : (
-            step.render({ readOnly })
+            // Each step is one view: its gallery pages through its own media.
+            <MediaGalleryProvider>
+              {step.render({ readOnly: bodyLocked })}
+            </MediaGalleryProvider>
           )}
         </Box>
       </ScrollArea>
@@ -609,7 +812,7 @@ export function SetupFlow<Stage extends string>({
                 variant="text"
                 size="large"
                 onClick={handleBack}
-                disabled={currentIndex === 0 || pending}
+                disabled={currentIndex === 0 || locked || step.holdNavigation}
                 sx={{ fontSize: FONT_SIZE_SANS.body }}
               >
                 Back
@@ -619,10 +822,11 @@ export function SetupFlow<Stage extends string>({
                 switch — an enabled control that does nothing is worse than none. */}
               {onChangeFlow && currentIndex === 0 ? (
                 <EditorButton
+                  ref={changeFlowRef}
                   variant="text"
                   size="large"
                   onClick={() => setConfirmingChange(true)}
-                  disabled={pending}
+                  disabled={locked || step.holdNavigation}
                   sx={{ fontSize: FONT_SIZE_SANS.body }}
                 >
                   Change flow
@@ -633,10 +837,10 @@ export function SetupFlow<Stage extends string>({
                   variant="text"
                   size="large"
                   onClick={() => void handleSkip()}
-                  disabled={pending}
+                  disabled={locked}
                   sx={{ fontSize: FONT_SIZE_SANS.body }}
                 >
-                  {step.skipLabel ?? i18n.t("storyboard:attrs.skip", { defaultValue: "Skip" })}
+                  {step.skipLabel ?? "Skip"}
                 </EditorButton>
               ) : null}
             </FlexRow>
@@ -650,7 +854,7 @@ export function SetupFlow<Stage extends string>({
               {narrow ? null : footerControls}
               {narrow ? null : status}
               <FlexRow gap={GAP.normal} align="center">
-                {pending && !canceled ? (
+                {pending && !canceled && cancelable ? (
                   <EditorButton
                     variant="text"
                     size="large"
@@ -661,24 +865,25 @@ export function SetupFlow<Stage extends string>({
                   </EditorButton>
                 ) : null}
                 <EditorButton
+                  ref={primaryRef}
                   variant="contained"
                   size="large"
-                  onClick={handlePrimary}
-                  disabled={blocked || pending}
+                  onClick={() => void handlePrimaryAction()}
+                  disabled={(blocked && !backToStep) || locked}
                   // The reason a dead button is dead is beside it, where a mouse can
                   // read it; the description says it to a screen reader too.
                   aria-describedby={
                     blocked && step.blockedReason ? blockedReasonId : undefined
                   }
                   aria-keyshortcuts="Meta+Enter Control+Enter"
-                  title={`${canceled ? i18n.t("storyboard:attrs.retry", { defaultValue: "Retry" }) : error ? i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" }) : step.primaryLabel} (${i18n.t("storyboard:attrs.cmdEnterOrCtrlEnter", { defaultValue: "\u2318\u21A9 or Ctrl+\u2318\u21A9" })})`}
+                  title={`${primaryText} (\u2318\u21A9 or Ctrl+\u21A9)`}
                   sx={{
                     fontSize: FONT_SIZE_SANS.body,
                     paddingX: narrow ? SPACING.xl : SPACING.xxl,
                     whiteSpace: "nowrap"
                   }}
                 >
-                  {canceled ? "Retry" : error ? "Try again" : step.primaryLabel}
+                  {primaryText}
                 </EditorButton>
               </FlexRow>
             </FlexRow>
@@ -687,19 +892,19 @@ export function SetupFlow<Stage extends string>({
       ) : null}
 
       <Dialog
-        open={confirmingChange}
+        open={confirmingChange && changeFlowAvailable}
         onClose={() => setConfirmingChange(false)}
         title="Change flow?"
         showActions
         destructive
-        confirmText={i18n.t("editor:ui.discardAndChoose", { defaultValue: "Discard and choose" })}
-        cancelText={i18n.t("editor:ui.keepThisDraft", { defaultValue: "Keep this draft" })}
+        confirmText={t("editor:ui.discardAndChoose", { defaultValue: "Discard and choose" })}
+        cancelText={t("editor:ui.keepThisDraft", { defaultValue: "Keep this draft" })}
         onConfirm={() => void handleChangeFlow()}
         onCancel={() => setConfirmingChange(false)}
         maxWidth="xs"
       >
         <Text size="normal">
-          {i18n.t("editor:ui.whatYouTypedComesWithYouThisFlowDraftIsDiscarded", { defaultValue: "What you have typed comes with you to the flow you pick next. This {{title}} draft is discarded — nothing has been generated for it yet.", title: labels.title.toLowerCase() })}
+          {`Your brief, and the references and entities you started with, come with you to the flow you pick next. This ${labels.title.toLowerCase()} draft is discarded with anything else added on this step, such as creative context, imported files and placed media. Nothing has been generated for it yet.`}
         </Text>
       </Dialog>
     </FlexColumn>

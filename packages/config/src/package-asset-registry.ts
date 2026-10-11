@@ -40,7 +40,10 @@ export const PACKAGE_RUNTIME_ASSETS: readonly PackageAssetRef[] = [
   { pkg: "@nodetool-ai/runtime", path: "providers/aki-manifest.json" },
   { pkg: "@nodetool-ai/together-nodes", path: "together-manifest.json" },
   { pkg: "@nodetool-ai/topaz-nodes", path: "topaz-manifest.json" },
-  { pkg: "@nodetool-ai/video-nodes", path: "render3d-page.js" }
+  { pkg: "@nodetool-ai/video-nodes", path: "render3d-page.js" },
+  { pkg: "@nodetool-ai/game-renderer", path: "player-v1.js" },
+  { pkg: "@nodetool-ai/game-renderer", path: "game3d-capture-page.js" },
+  { pkg: "@nodetool-ai/game-renderer", path: "game3d-player.js" }
 ];
 
 /**
@@ -79,25 +82,6 @@ export interface PackageAssetDirRef {
  * two lists together.
  */
 export const PACKAGE_RUNTIME_ASSET_DIRS: readonly PackageAssetDirRef[] = [
-  {
-    // The shipped Godot templates. `base-nodes` imports `game-nodes`, whose
-    // template dropdown reads this directory at decoration time, so an
-    // unstaged copy takes the whole node registry down in the packaged app.
-    // The file list is one manifest per template, not all 87 files: a template
-    // that lost its manifest is the failure that reaches a user, and the rest
-    // of the tree comes along with the directory copy.
-    pkg: "@nodetool-ai/godot-templates",
-    path: "templates",
-    bundleDir: "godot-templates",
-    files: [
-      "platformer/manifest.json",
-      "platformer/project.godot",
-      "shmup/manifest.json",
-      "shmup/project.godot",
-      "topdown/manifest.json",
-      "topdown/project.godot"
-    ]
-  },
   {
     pkg: "@nodetool-ai/timeline",
     path: "fonts",

@@ -10,6 +10,7 @@ import {
   draftFromShot,
   hasShotFieldChanges,
   isDraftDirty,
+  isDurationInvalid,
   parseDuration,
   savedShot,
   shotPatchFromDraft,
@@ -36,6 +37,8 @@ describe("draftFromShot", () => {
         notes: "Do not paint the sky",
         duration_seconds: 6,
         duration_source: "manual",
+        end_state: "The lamp fills the frame",
+        sound: "Surf",
         camera: {
           framing: "close-up",
           angle: "low angle",
@@ -49,6 +52,8 @@ describe("draftFromShot", () => {
 
     expect(draft).toEqual({
       renderMode: "keyframe",
+      graphics: undefined,
+      motion: "",
       slug: "Opening",
       sceneId: null,
       lighting: "hard key",
@@ -61,7 +66,9 @@ describe("draftFromShot", () => {
       movement: "dolly in",
       equipment: "dolly",
       lens: "85mm",
-      notes: "Do not paint the sky"
+      notes: "Do not paint the sky",
+      endState: "The lamp fills the frame",
+      sound: "Surf"
     });
   });
 
@@ -141,6 +148,24 @@ describe("withDuration on a linked board (PRD D9)", () => {
 
   it("leaves the source alone on an unlinked board", () => {
     expect(withDuration(original, "6", false).durationSource).toBeUndefined();
+  });
+
+  it("keeps a pinned shot pinned while the typed length is invalid", () => {
+    const pinned = withDuration(original, "6", true);
+    expect(withDuration(pinned, "0", true)).toMatchObject({
+      durationSeconds: "0",
+      durationSource: "manual"
+    });
+  });
+});
+
+describe("isDurationInvalid", () => {
+  it("flags text that is not a positive length, but not an empty cell", () => {
+    expect(isDurationInvalid("0")).toBe(true);
+    expect(isDurationInvalid("-3")).toBe(true);
+    expect(isDurationInvalid("soon")).toBe(true);
+    expect(isDurationInvalid("")).toBe(false);
+    expect(isDurationInvalid("6")).toBe(false);
   });
 });
 

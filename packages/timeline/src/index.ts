@@ -7,6 +7,7 @@ export * from "./defaults.js";
 export * from "./authoring.js";
 export * from "./authoredStyles.js";
 export * from "./trackOrder.js";
+export * from "./source-merge.js";
 // `dependencyHash` is intentionally NOT re-exported: it depends on
 // `node:crypto`, which breaks browser bundles. Server consumers should
 // import it directly from "@nodetool-ai/timeline/dependencyHash".
@@ -24,10 +25,12 @@ export * from "./composition.js";
 export * from "./crop.js";
 export * from "./splitClip.js";
 export * from "./trimClip.js";
+export * from "./clipSpeed.js";
 export * from "./rippleEdit.js";
 export * from "./dropResolve.js";
 export * from "./transitionAtCut.js";
 export * from "./audioFade.js";
+export * from "./clipAudio.js";
 export * from "./keyframes.js";
 export * from "./model3d.js";
 export * from "./model3dBake.js";
@@ -37,6 +40,7 @@ export * from "./generatedMatte.js";
 export * from "./mediaTrack.js";
 export * from "./reframe.js";
 export * from "./takes.js";
+export * from "./shotLink.js";
 export * from "./generative.js";
 export * from "./extension.js";
 export * from "./extensionRequest.js";
@@ -56,3 +60,8 @@ export * from "./snapping/index.js";
 export * from "./animation/index.js";
 export * from "./midi/index.js";
 export * from "./fonts/index.js";
+export * from "./finish-storyboard.js";
+export * from "./storyboardValidation.js";
+export { stableSerialize } from "./stableSerialize.js";
+
+export * from "./storyboardDesignFrame.js";

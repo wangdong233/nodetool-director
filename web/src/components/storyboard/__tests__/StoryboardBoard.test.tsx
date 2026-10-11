@@ -8,6 +8,13 @@ import { useLastModelStore } from "../../../stores/lastModelStore";
 
 jest.mock("../../../hooks/useResolvedMediaUri");
 
+/** Whether the board renders at phone width. */
+let mockCompact = false;
+jest.mock("@mui/material", () => ({
+  ...jest.requireActual("@mui/material"),
+  useMediaQuery: () => mockCompact
+}));
+
 let mockShots: Shot[] = [];
 /** The board's scene records; empty is a legacy board (PRD § 7.7.7). */
 let mockScenes: Scene[] = [];
@@ -18,7 +25,11 @@ let activeShot: string | null = null;
 let mockTimelineId: string | null = null;
 let mockTimelineClips: Array<Record<string, unknown>> = [];
 /** The board's render models. Null on both leaves the toolbar unpriced. */
-let boardModels: { imageModel: unknown; videoModel: unknown } = {
+let boardModels: {
+  imageModel: unknown;
+  videoModel: unknown;
+  sceneClips?: unknown[];
+} = {
   imageModel: null,
   videoModel: null
 };
@@ -248,6 +259,7 @@ jest.mock("../ShotCard", () => ({
   default: ({
     shot,
     caption,
+    sceneClipTag,
     selected,
     onSelect,
     draggable,
@@ -260,6 +272,7 @@ jest.mock("../ShotCard", () => ({
   }: {
     shot: Shot;
     caption?: string;
+    sceneClipTag?: string;
     renderContext?: import("@nodetool-ai/protocol").BoardRenderContext | null;
     selected?: boolean;
     onSelect?: (id: string) => void;
@@ -274,6 +287,7 @@ jest.mock("../ShotCard", () => ({
       data-testid="shot-card"
       data-shot-id={shot.id}
       data-caption={caption}
+      data-scene-clip={sceneClipTag}
       // The board owns deriving this and handing it to every card; without it
       // a stale still shows no marker and nothing else would notice.
       data-stale={
@@ -339,6 +353,12 @@ jest.mock("../ShotEditPanel", () => ({
 jest.mock("../ShotInspector", () => stub("shot-inspector"));
 // The real preview mounts the timeline compositor — not viable under jsdom.
 jest.mock("../StoryboardPreview", () => stub("storyboard-preview"));
+jest.mock("../StoryboardSlideshow", () => ({
+  __esModule: true,
+  default: ({ startShotId }: { startShotId?: string | null }) => (
+    <div data-testid="slideshow" data-start-shot-id={startShotId ?? ""} />
+  )
+}));
 jest.mock("../StoryboardEntitiesField", () => stub("entities"));
 
 const mockExportStoryboardZip = jest.fn(
@@ -378,6 +398,7 @@ const makeShot = (id: string, sceneId?: string): Shot => {
 };
 
 beforeEach(() => {
+  mockCompact = false;
   nextIndex = 0;
   mockScenes = [];
   mockGenre = "";
@@ -533,7 +554,9 @@ describe("StoryboardBoard download", () => {
     const user = userEvent.setup();
     renderBoard(jest.fn());
 
-    await user.click(screen.getByRole("button", { name: "More board actions" }));
+    await user.click(
+      screen.getByRole("button", { name: "More board actions" })
+    );
 
     expect(
       screen.getByRole("menuitem", { name: "Download ZIP" })
@@ -546,7 +569,9 @@ describe("StoryboardBoard download", () => {
     const user = userEvent.setup();
     renderBoard(jest.fn());
 
-    await user.click(screen.getByRole("button", { name: "More board actions" }));
+    await user.click(
+      screen.getByRole("button", { name: "More board actions" })
+    );
     await user.click(screen.getByRole("menuitem", { name: "Download ZIP" }));
 
     expect(mockFlushStoryboardSave).toHaveBeenCalledWith("board-1");
@@ -628,6 +653,28 @@ describe("StoryboardBoard toolbar", () => {
     ).toBeDisabled();
   });
 
+  it("folds the board tools into one icon row on a phone", async () => {
+    mockCompact = true;
+    mockShots = [makeShot("s1")];
+    const user = userEvent.setup();
+    renderBoard(jest.fn());
+
+    // One column fills the width at any card size.
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add shot" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Slideshow" })).toBeEnabled();
+    const settings = screen.getByRole("button", { name: "Board settings" });
+    expect(settings).toHaveAttribute("aria-expanded", "false");
+    // The buttons that spend money keep their labels.
+    expect(
+      screen.getByRole("button", { name: "Render stills (1)" })
+    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Render clips" })).toBeDisabled();
+
+    await user.click(settings);
+    expect(settings).toHaveAttribute("aria-expanded", "true");
+  });
+
   it("highlights clip rendering after every shot has a still", () => {
     mockShots = [
       {
@@ -644,6 +691,27 @@ describe("StoryboardBoard toolbar", () => {
     expect(
       screen.getByRole("button", { name: "Render stills" })
     ).not.toHaveAttribute("aria-current");
+  });
+
+  it("does not count a shot another shot's clip covers as a clip to render", () => {
+    mockShots = [
+      {
+        ...makeShot("s1"),
+        status: "keyframe_ready",
+        keyframe: { type: "image", asset_id: "still-1" }
+      },
+      {
+        ...makeShot("s2"),
+        status: "keyframe_ready",
+        keyframe: { type: "image", asset_id: "still-2" },
+        covered_by: { shot_id: "s1", start_seconds: 2 } as Shot["covered_by"]
+      }
+    ];
+    renderBoard(jest.fn());
+
+    expect(
+      screen.getByRole("button", { name: "Render clips (1)" })
+    ).toBeInTheDocument();
   });
 
   it("treats a URI-backed legacy keyframe as a completed still", () => {
@@ -960,6 +1028,29 @@ describe("StoryboardBoard keyboard navigation", () => {
     expect(mockSelectShot).toHaveBeenLastCalledWith("board-1", "s1");
   });
 
+  it("selects a clicked card and opens the slideshow on it", async () => {
+    activeShot = "s1";
+    renderBoard(jest.fn());
+    expect(screen.queryByTestId("slideshow")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "s2" }));
+    expect(mockSelectShot).toHaveBeenCalledWith("board-1", "s2");
+    expect(screen.getByTestId("slideshow")).toHaveAttribute(
+      "data-start-shot-id",
+      "s2"
+    );
+  });
+
+  it("does not open the slideshow when an arrow key moves the selection", () => {
+    activeShot = "s1";
+    renderBoard(jest.fn());
+    screen.getByRole("button", { name: "s1" }).focus();
+    fireEvent.keyDown(screen.getByRole("group", { name: "Shots" }), {
+      key: "ArrowRight"
+    });
+    expect(screen.queryByTestId("slideshow")).not.toBeInTheDocument();
+  });
+
   it("clears the selection on Escape", () => {
     activeShot = "s2";
     renderBoard(jest.fn());
@@ -1089,6 +1180,44 @@ describe("StoryboardBoard scene headers", () => {
   });
 });
 
+describe("StoryboardBoard scene clips", () => {
+  it("offers a scene clip only on a scene with two or more shots", () => {
+    mockScenes = [
+      { type: "scene", id: "sc-a", slugline: "INT. FLAT — DAY" },
+      { type: "scene", id: "sc-b", slugline: "EXT. STREET — NIGHT" }
+    ];
+    mockShots = [
+      makeShot("a1", "sc-a"),
+      makeShot("b1", "sc-b"),
+      makeShot("b2", "sc-b")
+    ];
+    renderBoard(jest.fn());
+    const headers = screen.getAllByRole("group", { name: /^Scene \d$/ });
+    expect(
+      within(headers[0]).queryByRole("button", { name: /scene clip/i })
+    ).not.toBeInTheDocument();
+    expect(
+      within(headers[1]).getByRole("button", { name: /scene clip/i })
+    ).toBeInTheDocument();
+  });
+
+  it("names a saved scene clip in its header and tags its cards", () => {
+    mockShots = [makeShot("s1"), makeShot("s2"), makeShot("s3")];
+    boardModels = {
+      ...boardModels,
+      sceneClips: [{ id: "clip-1", prompt: "", shot_ids: ["s2", "s3"] }]
+    };
+    renderBoard(jest.fn());
+    expect(
+      screen.getByRole("button", { name: "Shots 2\u20133 \u00B7 not rendered" })
+    ).toBeInTheDocument();
+    const tags = screen
+      .getAllByTestId("shot-card")
+      .map((card) => card.getAttribute("data-scene-clip"));
+    expect(tags).toEqual([null, "Clip 1/2 \u00B7 0-5s", "Clip 2/2 \u00B7 5-10s"]);
+  });
+});
+
 describe("StoryboardBoard insert point", () => {
   it("inserts after the card it follows", async () => {
     mockShots = [makeShot("s1"), makeShot("s2")];
@@ -1169,7 +1298,9 @@ describe("StoryboardBoard Change Style", () => {
     const user = userEvent.setup();
     renderBoard(jest.fn());
 
-    await user.click(screen.getByRole("button", { name: "More board actions" }));
+    await user.click(
+      screen.getByRole("button", { name: "More board actions" })
+    );
     await user.click(screen.getByRole("menuitem", { name: "Change style…" }));
     const grid = await screen.findByRole("radiogroup", { name: "Art style" });
     await user.click(within(grid).getByRole("radio", { name: /Noir/ }));
@@ -1186,7 +1317,7 @@ describe("StoryboardBoard Change Style", () => {
 });
 
 describe("StoryboardBoard next steps", () => {
-  it("explains why timeline creation is disabled for a still-only board", () => {
+  it("offers timeline creation for a still-only board", () => {
     mockShots = [
       {
         ...makeShot("s1"),
@@ -1199,10 +1330,9 @@ describe("StoryboardBoard next steps", () => {
       </ThemeProvider>
     );
 
-    expect(screen.getByRole("button", { name: "Create timeline" })).toBeDisabled();
     expect(
-      screen.getByText("Render a clip to create a timeline.")
-    ).toBeVisible();
+      screen.getByRole("button", { name: "Create timeline" })
+    ).toBeEnabled();
   });
 
   it("offers Create timeline once a shot has a clip", () => {
@@ -1276,6 +1406,37 @@ describe("StoryboardBoard next steps", () => {
   });
 });
 
+describe("StoryboardBoard linked timeline", () => {
+  it("offers no Open timeline button without a linked timeline", () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <StoryboardBoard boardId="board-1" onAssemble={jest.fn()} />
+      </ThemeProvider>
+    );
+    expect(
+      screen.queryByRole("button", { name: "Open timeline" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the linked timeline next to the rebuild button", async () => {
+    mockTimelineId = "timeline-1";
+    const onOpenTimeline = jest.fn();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <StoryboardBoard
+          boardId="board-1"
+          onAssemble={jest.fn()}
+          onOpenTimeline={onOpenTimeline}
+        />
+      </ThemeProvider>
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Open timeline" }));
+
+    expect(onOpenTimeline).toHaveBeenCalledWith("timeline-1");
+  });
+});
+
 describe("StoryboardBoard selection", () => {
   it("opens the inspector for the selected shot", () => {
     mockShots = [makeShot("s1")];
@@ -1299,13 +1460,9 @@ describe("StoryboardBoard shot editing placement", () => {
     );
   };
 
-  /** The grid cell holding a card, i.e. what the editor must follow. */
-  const cellOf = (shotId: string): HTMLElement =>
-    screen.getByLabelText(shotId).parentElement as HTMLElement;
-
-  it("opens the editor directly under the edited card, inside the grid", async () => {
+  it("opens the editor in an overlay over the board, which goes inert", async () => {
     mockShots = [makeShot("s1"), makeShot("s2"), makeShot("s3")];
-    renderBoard(jest.fn());
+    const view = renderBoard(jest.fn());
     expect(screen.queryByTestId("shot-edit-panel")).not.toBeInTheDocument();
 
     await editCard("s2");
@@ -1314,11 +1471,13 @@ describe("StoryboardBoard shot editing placement", () => {
 
     const panel = screen.getByTestId("shot-edit-panel");
     expect(panel).toHaveAttribute("data-shot-id", "s2");
-    const cell = cellOf("s2");
-    const row = cell.nextElementSibling as HTMLElement;
-    expect(row).toContainElement(panel);
-    // Same parent as the card's cell — a row of the grid, not a layer over it.
-    expect(row.parentElement).toBe(cell.parentElement);
+    const board = view.container.querySelector(".storyboard-board");
+    // A layer beside the board, not a row inside its grid.
+    expect(board).not.toContainElement(panel);
+    expect(board).toHaveAttribute("inert");
+
+    await userEvent.click(screen.getByRole("button", { name: "Close editor" }));
+    expect(board).not.toHaveAttribute("inert");
   });
 
   it("opens the requested shot editor when the queue has an unreviewed take", () => {
@@ -1339,6 +1498,25 @@ describe("StoryboardBoard shot editing placement", () => {
     expect(mockSelectShot).toHaveBeenCalledWith("board-1", "s2");
   });
 
+  it("lets another card open the editor after the edited shot is deleted", async () => {
+    mockShots = [makeShot("s1"), makeShot("s2")];
+    const view = renderBoard(jest.fn());
+
+    await editCard("s1");
+    mockShots = [makeShot("s2")];
+    view.rerender(
+      <ThemeProvider theme={mockTheme}>
+        <StoryboardBoard boardId="board-1" onDirect={jest.fn()} />
+      </ThemeProvider>
+    );
+    await editCard("s2");
+
+    expect(screen.getByTestId("shot-edit-panel")).toHaveAttribute(
+      "data-shot-id",
+      "s2"
+    );
+  });
+
   it("closes the editor without touching the selection", async () => {
     mockShots = [makeShot("s1"), makeShot("s2")];
     mockSelectShot.mockClear();
@@ -1352,16 +1530,17 @@ describe("StoryboardBoard shot editing placement", () => {
     expect(mockSelectShot).not.toHaveBeenCalled();
   });
 
-  it("moves the editor under the shot it steps to", async () => {
+  it("moves the editor to the shot it steps to", async () => {
     mockShots = [makeShot("s1"), makeShot("s2")];
     renderBoard(jest.fn());
 
     await editCard("s1");
     await userEvent.click(screen.getByRole("button", { name: "Step to s2" }));
 
-    const panel = screen.getByTestId("shot-edit-panel");
-    expect(panel).toHaveAttribute("data-shot-id", "s2");
-    expect(cellOf("s2").nextElementSibling).toContainElement(panel);
+    expect(screen.getByTestId("shot-edit-panel")).toHaveAttribute(
+      "data-shot-id",
+      "s2"
+    );
   });
 
   it("offers no editor on a read-only board", () => {

@@ -138,7 +138,11 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
         "sequence and must be the only op in its call; call it once per " +
         "target format. " +
         "Clip transforms accept rotationX and rotationY in degrees and perspective " +
-        "in pixels through add_*_clip and set_clip_params. Custom animation curves " +
+        "in pixels through add_*_clip and set_clip_params. For every clip, " +
+        "transform.position.x/y are sequence pixels relative to the frame " +
+        "center (0/0 means no offset, positive x moves right, positive y " +
+        "moves down), including add_text_clip and add_shape_clip. " +
+        "Custom animation curves " +
         "can animate rotationX and rotationY. Start with get_state to " +
         "read track and clip ids. To lay existing videos end to end, call " +
         'add_media_clip once per asset ({"op": "add_media_clip", "asset": ' +
@@ -190,7 +194,8 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
         "width, height, fill?, stroke?, strokeWidthPx?}, where x/y/width/" +
         "height are 0..1 fractions of the frame; those keys are also read " +
         "from the op itself, and with no geometry at all the shape is a " +
-        "full-frame rect. " +
+        "full-frame rect. Shape geometry uses the top-left frame origin, " +
+        "so shape.x/y are not transform.position.x/y. " +
         'set_clip_params takes {"target", ...fields}; a caption clip\'s look ' +
         'is "captionStyle": {fontFamily?, fontSizeFrac?, color?, activeColor?, ' +
         "outline?, bottomMarginFrac?, background?}, each field optional and " +
@@ -200,9 +205,13 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
         '"outPointMs" — and refuses a key it does not know by name rather ' +
         "than ignoring it. " +
         'set_effects takes {"target", "effects": [{type, ...}]} and replaces ' +
-        "the whole chain — types color, blur, glow, dropShadow, vignette, " +
-        "sharpen, chromaKey, curves, levels, liftGammaGain, applied in the " +
-        "order given. An empty list clears it. " +
+        "the whole chain — types color, blur, pixelate, posterize, " +
+        "directionalBlur, lensDistortion, stylize, generator, lut, glow, " +
+        "dropShadow, vignette, sharpen, chromaKey, grain, curves, levels, " +
+        "liftGammaGain, applied in the " +
+        "order given. blur takes radius in pixels, e.g. {type: \"blur\", " +
+        "radius: 80}; unknown parameters such as amount are rejected. " +
+        "An empty list clears it. " +
         'add_marker takes {"timeMs", "label"?, "color"?, "note"?} and ' +
         'delete_marker {"target"} (marker id or label). ' +
         "set_markers_from_beats and snap_to_beats both take a grid — " +
@@ -239,7 +248,7 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
         "the clip's content start, 960 ticks to a quarter note — so trimming " +
         "the clip hides notes instead of deleting them. " +
         'set_track_instrument takes {"track", "instrument"}, either a named ' +
-        'voice — {"preset": "bass"}, one of saw-lead, square-lead, soft-pad, ' +
+        'voice — {"preset": "bass"}, including saw-lead, square-lead, soft-pad, ' +
         "pluck, bass, bell, the FableSynth WT-1 wavetable patches " +
         "wt1-prime-lead, wt1-bloom-pad, wt1-vox-morph, wt1-chime-bell, the " +
         "BL-1 acid basslines bl1-acid, bl1-deep, bl1-rubber, and the DR-1 " +
@@ -249,7 +258,16 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
         "from 36 (kick, kick 2, snare, clap, rim, closed hat, open hat, ride, " +
         "three toms, crash, two percs, vox, glitch) and is silent above 51. " +
         "get_state reports the preset a track's instrument matches as " +
-        "presetId. " +
+        "presetId. Soundtrack voices include sampler (load audio assets into key ranges), wt1-cinematic-strings, " +
+        "wt1-chamber-strings, wt1-short-strings, wt1-low-strings, " +
+        "wt1-warm-brass, wt1-air-choir, wt1-dark-swell, wt1-soft-keys, " +
+        "wt1-glass-mallet, wt1-muted-pluck, bl1-cinematic-sub, " +
+        "bl1-score-pulse, bl1-rounded-bass, and dr1-cinematic. " +
+        "These are synthesized instruments. Use low strings around MIDI " +
+        "36–55, ensembles around 48–79, and basses around 28–48. " +
+        "dr1-cinematic uses MIDI 36–51: low boom, gran cassa, field snare, " +
+        "ensemble strike, wood tick, shaker, brush, metal wash, low/mid/high " +
+        "taiko, cymbal swell, low metal, small bell, deep gong, tension hit. " +
         'set_tempo takes {"bpm", offset_ms?, beats_per_bar?, beat_unit?} and ' +
         "rescales every midi clip around offset_ms — halving the BPM doubles " +
         "each midi clip's start and length — while picture and audio stay " +
@@ -277,6 +295,15 @@ export const EDIT_TIMELINE_SCHEMA: JsonSchema = {
 export const VALIDATE_TIMELINE_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
+    normalize: {
+      type: "boolean",
+      description: "For inline authoring preflight, fill omitted bookkeeping, effect ids and referenced tracks exactly as set_timeline_document does. Default false inspects the document as sent."
+    },
+    tier: {
+      type: "string",
+      enum: ["standard", "showcase"],
+      description: "Default standard checks correctness. Showcase compares scene-group count, custom-animation density, effect variety and clip density with shipped examples, and checks fast-motion blur, finish, camera depth and concurrent layers. These structural checks do not judge aesthetic quality."
+    },
     timeline_id: {
       type: "string",
       description: "The ID of a saved timeline sequence to validate"
@@ -473,7 +500,9 @@ export const editTimelineSpec: CapabilitySpec = {
   category: "write",
   userMessage: (params) => {
     const count = Array.isArray(params["ops"]) ? params["ops"].length : 0;
-    return `Editing timeline ${String(params["timeline_id"])} (${count} ops)`;
+    const id = params["timeline_id"];
+    const target = typeof id === "string" && id ? ` ${id}` : "";
+    return `Editing timeline${target} (${count} ${count === 1 ? "op" : "ops"})`;
   }
 };
 
@@ -492,7 +521,13 @@ export const SET_TIMELINE_DOCUMENT_SCHEMA: JsonSchema = {
         "anything you leave out is dropped — read the current document with " +
         "get_timeline and send it back changed, rather than sending only the " +
         "part you edited. `markers` may be omitted and defaults to an empty " +
-        "list."
+        "list. The `timeline` object get_timeline returns is accepted as " +
+        "is: its `name` renames the sequence, and its other row fields " +
+        "(`id`, `projectId`, `workflowId`, `durationMs`, `createdAt`, " +
+        "`updatedAt`) are ignored. A midi track's " +
+        "`instrument: {preset: \"<id>\"}` and a " +
+        "typewriter animation's plain `durationMs` resolve as the " +
+        "edit_timeline ops resolve them."
     },
     fps: {
       type: "number",
@@ -552,7 +587,7 @@ export const validateTimelineSpec: CapabilitySpec = {
     "render, unknown animation presets, incomplete bindings, and fields a " +
     "schema round trip would strip. Pass an inline `document` to check one you " +
     "are building, or `timeline_id` to validate a saved sequence. Run it after " +
-    "timeline edits and before rendering.",
+    "timeline edits and before rendering. Pass tier: \"showcase\" for structural warnings about scene-group count, custom animations per visible second, effect variety, clip density, fast motion without blur, finish and camera depth. Each gap names a shipped example. Warnings do not change ok and cannot certify aesthetic quality.",
   inputSchema: VALIDATE_TIMELINE_SCHEMA,
   category: "read",
   userMessage: (params) =>
@@ -683,9 +718,12 @@ export const previewTimelineFrameSpec: CapabilitySpec = {
     "applied as a multiply instead of the export's addition — each with the " +
     "clip it happened to; " +
     "`effects_not_applied` names the effect types it cannot draw at all. " +
-    "Unlike get_clip_frames, which samples one clip's " +
-    "source media, this is the finished picture. Needs no browser, GPU or " +
-    "open editor. Sample the middle of an animation, not its endpoints — " +
+    "`complete` is false when a layer is skipped, the preview is degraded, " +
+    "an effect is omitted or a font falls back. A missing 3D renderer is " +
+    "reported as model3d_unavailable. Never verify the complete composition " +
+    "from an incomplete frame. Unlike get_clip_frames, which samples one clip's " +
+    "source media, this composites the sequence. The 2D path needs no browser, " +
+    "GPU or open editor; 3D layers need headless Chromium. Sample the middle of an animation, not its endpoints — " +
     "the endpoints are the states you already know. `range` sweeps a window " +
     "densely and `sheet` returns the sweep as one labelled contact sheet, " +
     "which is how you watch a move play out rather than checking one instant.",
@@ -772,8 +810,10 @@ export const compareTimelineFramesSpec: CapabilitySpec = {
     "it after a change nobody asked for — a restructure, a composition " +
     "insert, a snap pass — so you can say which frames it touched instead " +
     "of hoping it touched none. A difference of 0 everywhere is the proof " +
-    "an edit was cosmetic; a difference at times you did not expect is the " +
-    "regression.",
+    "an edit was cosmetic when complete is true; a difference at times you " +
+    "did not expect is the regression. Incomplete previews return null " +
+    "difference scores and aggregate metrics, with skipped layers and " +
+    "degradations for each side. They cannot establish visual equivalence.",
   inputSchema: COMPARE_TIMELINE_FRAMES_SCHEMA,
   category: "read",
   userMessage: () => "Comparing timeline frames"
@@ -1482,6 +1522,172 @@ export const deleteTimelineSpec: CapabilitySpec = {
   userMessage: (params) => `Deleting timeline sequence ${params["timeline_id"]}`
 };
 
+export const getTimelineCodeSpec: CapabilitySpec = {
+  name: "get_timeline_code",
+  description:
+    "The authoring code a timeline was baked from, and per-scene bake status. " +
+    "Returns {code, baked_at, scenes: [{name, group_id, edited}]} — `code` is " +
+    "null when the timeline carries none. `edited` is true when a scene's " +
+    "subtree has changed since the last bake (a hand edit, or an " +
+    "`edit_timeline` op) and a rebake would keep it and report a conflict.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      timeline_id: {
+        type: "string",
+        description: "The timeline to read. You must own it."
+      }
+    },
+    required: ["timeline_id"]
+  },
+  category: "read",
+  userMessage: (params) =>
+    `Reading the authoring code for timeline ${String(params["timeline_id"])}`
+};
+
+export const SET_TIMELINE_CODE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    timeline_id: {
+      type: "string",
+      description: "The timeline to write code onto. You must own it."
+    },
+    code: {
+      type: "string",
+      description:
+        "An @nodetool-ai/sandbox-timeline script: import the pack, build " +
+        "scenes with video()/scene()/series(), call v.save()."
+    },
+    force: {
+      description:
+        "true to overwrite every scene regardless of hand edits, or an " +
+        "array of scene names to force just those.",
+      oneOf: [{ type: "boolean" }, { type: "array", items: { type: "string" } }]
+    },
+    require_match: {
+      type: "boolean",
+      description:
+        "Attach the code only if it bakes to exactly the document saved " +
+        "now; otherwise write nothing and return a warning. v.save() uses " +
+        "this to attach the program it printed."
+    }
+  },
+  required: ["timeline_id", "code"]
+};
+
+export const setTimelineCodeSpec: CapabilitySpec = {
+  name: "set_timeline_code",
+  description:
+    "Attach or replace a timeline's authoring code, bake it, and merge the " +
+    "result into the document scene by scene: an untouched scene is replaced " +
+    "by the new build, a hand-edited one is kept and reported in `conflicts` " +
+    "(pass `force` to overwrite it anyway). Returns " +
+    "{timeline_id, errors, warnings, conflicts, scenes}.",
+  inputSchema: SET_TIMELINE_CODE_SCHEMA,
+  category: "write",
+  userMessage: (params) =>
+    `Setting authoring code on timeline ${String(params["timeline_id"])}`
+};
+
+export const EDIT_TIMELINE_CODE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    timeline_id: {
+      type: "string",
+      description: "The timeline whose code to edit. You must own it."
+    },
+    edits: {
+      type: "array",
+      description:
+        "Exact-match string replacements applied to the stored code, in " +
+        "order. Each `old` must match exactly once.",
+      items: {
+        type: "object",
+        properties: {
+          old: { type: "string" },
+          new: { type: "string" }
+        },
+        required: ["old", "new"]
+      },
+      minItems: 1
+    },
+    force: {
+      oneOf: [{ type: "boolean" }, { type: "array", items: { type: "string" } }]
+    }
+  },
+  required: ["timeline_id", "edits"]
+};
+
+export const editTimelineCodeSpec: CapabilitySpec = {
+  name: "edit_timeline_code",
+  description:
+    "Edit a timeline's stored authoring code by exact-match string " +
+    "replacement, then bake and merge the result the way set_timeline_code " +
+    "does. Each edit's `old` must match exactly once in the current code — " +
+    "zero or more than one match is refused, naming the count.",
+  inputSchema: EDIT_TIMELINE_CODE_SCHEMA,
+  category: "write",
+  userMessage: (params) =>
+    `Editing authoring code on timeline ${String(params["timeline_id"])}`
+};
+
+export const rebakeTimelineCodeSpec: CapabilitySpec = {
+  name: "rebake_timeline_code",
+  description:
+    "Re-run a timeline's stored authoring code and merge the result into the " +
+    "document, without changing the code itself. Same merge rule as " +
+    "set_timeline_code: an untouched scene is replaced, a hand-edited one is " +
+    "kept and reported in `conflicts` unless `force` names it.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      timeline_id: {
+        type: "string",
+        description: "The timeline to rebake. You must own it."
+      },
+      force: {
+        oneOf: [{ type: "boolean" }, { type: "array", items: { type: "string" } }]
+      }
+    },
+    required: ["timeline_id"]
+  },
+  category: "write",
+  userMessage: (params) => `Rebaking timeline ${String(params["timeline_id"])}`
+};
+
+export const DETACH_TIMELINE_CODE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    timeline_id: {
+      type: "string",
+      description: "The timeline to detach scenes on. You must own it."
+    },
+    scenes: {
+      description:
+        "Scene names to stop tracking, or \"all\" to detach every scene and " +
+        "drop the code entirely.",
+      oneOf: [
+        { const: "all" },
+        { type: "array", items: { type: "string" }, minItems: 1 }
+      ]
+    }
+  },
+  required: ["timeline_id", "scenes"]
+};
+
+export const detachTimelineCodeSpec: CapabilitySpec = {
+  name: "detach_timeline_code",
+  description:
+    "Stop tracking the named scenes (or every scene, with \"all\") against the " +
+    "timeline's authoring code. A detached scene becomes plain hand-edited " +
+    "content: a later rebake never touches it again. \"all\" also drops the " +
+    "stored code itself.",
+  inputSchema: DETACH_TIMELINE_CODE_SCHEMA,
+  category: "write",
+  userMessage: (params) =>
+    `Detaching code tracking on timeline ${String(params["timeline_id"])}`
+};
+
 /** Every spec this module declares, in declaration order. */
 export const timelinesSpecs: readonly CapabilitySpec[] = [
   listTimelinesSpec,
@@ -1506,5 +1712,10 @@ export const timelinesSpecs: readonly CapabilitySpec[] = [
   videoToAudioSpec,
   recordedVoiceReplacementSpec,
   lipSyncSpec,
+  getTimelineCodeSpec,
+  setTimelineCodeSpec,
+  editTimelineCodeSpec,
+  rebakeTimelineCodeSpec,
+  detachTimelineCodeSpec,
   deleteTimelineSpec
 ];

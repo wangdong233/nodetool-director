@@ -50,14 +50,14 @@ import {
   Fab,
   FlexColumn,
   FlexRow,
+  InspectorSectionTitle,
   MobileBottomSheet,
-  Text,
   Tooltip,
-  SPACING,
   TYPOGRAPHY,
   Z_INDEX
 } from "../ui_primitives";
 import TransformContextMenu from "./TransformContextMenu";
+import { sketchSectionSx } from "./Inspector/sketchSectionSx";
 import type { SketchDocument } from "./types";
 import type { SketchPersistenceSnapshot } from "../../stores/sketch/persistence";
 import {
@@ -77,12 +77,14 @@ import {
 } from "./editor-shell";
 import { ConnectedGeneratedLayerSection } from "./Inspector/ConnectedGeneratedLayerSection";
 import SketchAgentPanel from "./SketchAgentPanel";
+import { SketchRulersAndGuides } from "./guides/SketchRulersAndGuides";
+import { SketchHistoryPanel } from "./history/SketchHistoryPanel";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
 import { useSketchAgentBridge } from "../../hooks/sketch/useSketchAgentBridge";
 import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchWorkflowFreshnessCheck } from "../../hooks/sketch/useSketchWorkflowFreshnessCheck";
-import { SKETCH_SIZE, SKETCH_FONT } from "./sketchStyles";
+import { SKETCH_SIZE } from "./sketchStyles";
 import { ColorFieldPicker } from "./ColorFieldPicker";
 import { SKETCH_PRESET_SWATCHES, colorToHex6 } from "./types";
 import { useSketchStore } from "./state/useSketchStore";
@@ -113,22 +115,6 @@ export interface SketchEditorHandle {
 }
 
 const PRESET_SWATCH_SIZE = 18;
-
-/** Shared label for inspector section headers. */
-const SectionTitle: React.FC<{ children: React.ReactNode }> = ({
-  children
-}) => (
-  <Text
-    size="small"
-    sx={{
-      ...TYPOGRAPHY.sans.label,
-      color: "text.primary",
-      fontSize: SKETCH_FONT.section
-    }}
-  >
-    {children}
-  </Text>
-);
 
 const ConnectedColorPanel = memo(function ConnectedColorPanel() {
   const foregroundColor = useSketchStore((s) => s.foregroundColor) || "#ffffff";
@@ -167,11 +153,10 @@ const ColorSectionHeader = memo(function ColorSectionHeader() {
       justify="space-between"
       sx={{ width: "100%", pr: 1 }}
     >
-      <SectionTitle>{t("sketch:attrs.color", { defaultValue: "Color" })}</SectionTitle>
-      <Chip
+      <InspectorSectionTitle title={t("sketch:attrs.color", { defaultValue: "Color" })} />      <Chip
         compact
         label={colorToHex6(foregroundColor)}
-        sx={{ fontFamily: SKETCH_FONT.familyMono, border: "none", backgroundColor: "transparent", color: "text.secondary" }}
+        sx={{ fontFamily: TYPOGRAPHY.mono.code.fontFamily, border: "none", backgroundColor: "transparent", color: "text.secondary" }}
       />
     </FlexRow>
   );
@@ -332,7 +317,8 @@ function SketchEditor({
           strokes.length === 1
             ? "paint stroke"
             : `paint ${strokes.length} strokes`,
-          snapshots
+          snapshots,
+          { timing: "before" }
         );
 
         const outcomes = canvas.paintStrokes(strokes);
@@ -354,7 +340,11 @@ function SketchEditor({
           throw new Error("The canvas is not ready yet.");
         }
         canvas.drainPendingStrokeCommit();
-        pushHistory(label, { [layerId]: canvas.snapshotLayerCanvas(layerId) });
+        pushHistory(
+          label,
+          { [layerId]: canvas.snapshotLayerCanvas(layerId) },
+          { timing: "before" }
+        );
         canvas.mutateLayerPixels(layerId, mutate);
         session.canvasActions.handleStrokeEnd(
           layerId,
@@ -409,6 +399,7 @@ function SketchEditor({
 
   // Color / Layers / Canvas sections. Shared between the docked desktop
   // column and the mobile bottom sheet so the two stay in lockstep.
+  const sectionSx = sketchSectionSx(theme);
   const rightPanelSections = (
     <>
       <CollapsibleSection
@@ -416,40 +407,16 @@ function SketchEditor({
         title={<ColorSectionHeader />}
         defaultOpen={false}
         compact
-        sx={{
-          flexShrink: 0,
-          fontSize: theme.fontSizeSmall,
-          borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          "& > [role='button']": {
-            padding: theme.spacing(SPACING.md, SPACING.lg),
-            "&:focus-visible": {
-              outline: `2px solid ${theme.vars.palette.primary.main}`,
-              outlineOffset: "-2px"
-            }
-          }
-        }}
+        sx={sectionSx}
       >
         <ConnectedColorPanel />
       </CollapsibleSection>
 
       <CollapsibleSection
         className="sketch-editor__layers-section"
-        title={<SectionTitle>{t("sketch:attrs.layers", { defaultValue: "Layers" })}</SectionTitle>}
-        defaultOpen
+        title={<InspectorSectionTitle title={t("sketch:attrs.layers", { defaultValue: "Layers" })} />}        defaultOpen
         compact
-        sx={{
-          flexShrink: 0,
-          fontSize: theme.fontSizeSmall,
-          minHeight: 0,
-          borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          "& > [role='button']": {
-            padding: theme.spacing(SPACING.md, SPACING.lg),
-            "&:focus-visible": {
-              outline: `2px solid ${theme.vars.palette.primary.main}`,
-              outlineOffset: "-2px"
-            }
-          }
-        }}
+        sx={{ ...sectionSx, minHeight: 0 }}
       >
         <ConnectedLayersPanel
           onClearLayer={session.canvasActions.handleClearLayer}
@@ -499,22 +466,23 @@ function SketchEditor({
       </CollapsibleSection>
 
       <CollapsibleSection
-        className="sketch-editor__canvas-section"
-        title={<SectionTitle>{t("sketch:attrs.canvas", { defaultValue: "Canvas" })}</SectionTitle>}
+        className="sketch-editor__history-section"
+        title={<InspectorSectionTitle title="History" />}
         defaultOpen={false}
         compact
-        sx={{
-          flexShrink: 0,
-          fontSize: theme.fontSizeSmall,
-          borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          "& > [role='button']": {
-            padding: theme.spacing(SPACING.md, SPACING.lg),
-            "&:focus-visible": {
-              outline: `2px solid ${theme.vars.palette.primary.main}`,
-              outlineOffset: "-2px"
-            }
-          }
-        }}
+        sx={sectionSx}
+      >
+        <SketchHistoryPanel
+          onUndo={session.handleUndo}
+          onRedo={session.handleRedo}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        className="sketch-editor__canvas-section"
+        title={<InspectorSectionTitle title={t("sketch:attrs.canvas", { defaultValue: "Canvas" })} />}        defaultOpen={false}
+        compact
+        sx={sectionSx}
       >
         <ConnectedCanvasSizePanel
           onCanvasResize={session.canvasActions.handleCanvasResize}
@@ -600,6 +568,7 @@ function SketchEditor({
               }
               segmentation={session.segmentation}
             />
+            <SketchRulersAndGuides />
           </Container>
           {/*
           Tool top bar sits above the canvas in z-order but does not consume flex

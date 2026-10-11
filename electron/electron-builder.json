@@ -7,24 +7,18 @@
         "buildResources": "resources"
     },
     "afterPack": "scripts/after-pack.cjs",
+    "electronFuses": {
+        "runAsNode": false,
+        "enableNodeOptionsEnvironmentVariable": false,
+        "enableNodeCliInspectArguments": false
+    },
     "files": [
         "assets/**/*",
         "dist-electron/main.js",
         "dist-electron/**/*",
         "dist-web/**/*",
         "!dist-web/**/*.map",
-        "!dist-electron/**/*.map",
-        "app-update.yml",
-        "!node_modules/sharp/**",
-        "!node_modules/@img/**",
-        "!node_modules/better-sqlite3/**",
-        "!node_modules/sqlite-vec/**",
-        "!node_modules/bufferutil/**"
-    ],
-    "asarUnpack": [
-        "**/node-llama-cpp/**/*.node",
-        "**/@node-llama-cpp/**/*.node",
-        "**/node-llama-cpp/llama/**"
+        "!dist-electron/**/*.map"
     ],
     "extraResources": [
         {
@@ -37,7 +31,11 @@
         },
         {
             "from": "../chrome-extension/dist",
-            "to": "chrome-extension"
+            "to": "chrome-extension",
+            "filter": [
+                "**/*",
+                "!**/*.map"
+            ]
         },
         {
             "from": "backend-bundle",
@@ -60,7 +58,7 @@
         }
     ],
     "dmg": {
-        "size": "4g"
+        "size": "8g"
     },
     "mac": {
         "category": "public.app-category.developer-tools",
@@ -87,9 +85,7 @@
         "notarize": true,
         "extendInfo": {
             "NSMicrophoneUsageDescription": "Allow access to your microphone for audio recording",
-            "NSCameraUsageDescription": "Allow access to your camera for video recording",
-            "com.apple.security.device.audio-input": true,
-            "com.apple.security.device.camera": true
+            "NSCameraUsageDescription": "Allow access to your camera for video recording"
         }
     },
     "win": {

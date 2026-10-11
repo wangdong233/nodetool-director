@@ -1,9 +1,10 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
+import React, { useState } from "react";
 import {
   Caption,
   EditorButton,
   FlexColumn,
+  FlexRow,
   GAP,
   SPACING,
   TYPOGRAPHY
@@ -21,7 +22,17 @@ export interface ExampleBriefsProps {
   briefRef?: React.RefObject<HTMLElement | null>;
 }
 
-/** Full sentences wrap; the current brief is never offered back as an example. */
+/** What an example replaced, kept until the creator edits the brief. */
+interface Replaced {
+  previous: string;
+  applied: string;
+}
+
+/**
+ * Full sentences wrap; the current brief is never offered back as an example.
+ * An example picked over typed text replaces it at once and offers Undo, so a
+ * stray click never costs the creator their own words.
+ */
 export function ExampleBriefs({
   examples,
   brief,
@@ -29,17 +40,48 @@ export function ExampleBriefs({
   briefRef
 }: ExampleBriefsProps) {
   const { t } = useTranslation();
-  const choices = [...new Set(examples.map((text) => text.trim()))]
+  const [replaced, setReplaced] = useState<Replaced | null>(null);
+  // The example last put in the brief. A brief still equal to it is not the
+  // creator's text, so picking another example over it offers no Undo.
+  const [lastApplied, setLastApplied] = useState<string | null>(null);  const choices = [...new Set(examples.map((text) => text.trim()))]
     .filter((text) => text && text !== brief.trim())
     .slice(0, 3);
-  if (choices.length === 0) return null;
+  // Undo stays only while the brief is still the example it applied. A later
+  // edit is the creator's own text, and Undo would throw that away instead.
+  const undo = replaced && replaced.applied === brief.trim() ? replaced : null;
+  if (choices.length === 0 && !undo) return null;
   const apply = (text: string) => {
+    // A second example over the first keeps the creator's own text as the
+    // one Undo brings back.
+    const briefIsExample = lastApplied !== null && lastApplied === brief.trim();
+    setReplaced(
+      undo
+        ? { previous: undo.previous, applied: text }
+        : brief.trim().length > 0 && !briefIsExample
+          ? { previous: brief, applied: text }
+          : null
+    );
+    setLastApplied(text);
     onSelect(text);
+    briefRef?.current?.focus();
+  };
+  const restore = () => {
+    if (!undo) return;
+    setReplaced(null);
+    onSelect(undo.previous);
     briefRef?.current?.focus();
   };
   return (
     <FlexColumn role="group" aria-label={t("storyboard:attrs.inspiration", { defaultValue: "Inspiration" })} gap={GAP.tight}>
-      <Caption>{t("storyboard:attrs.tryAnExample", { defaultValue: "Try an example" })}</Caption>
+      {undo ? (
+        <FlexRow gap={GAP.normal} align="center" wrap>
+          <Caption role="status">The example replaced your text.</Caption>
+          <EditorButton variant="text" size="small" onClick={restore}>
+            Undo
+          </EditorButton>
+        </FlexRow>
+      ) : null}
+      {choices.length > 0 ? <Caption>Try an example</Caption> : null}
       {choices.map((text) => (
         <EditorButton
           key={text}

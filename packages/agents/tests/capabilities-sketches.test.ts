@@ -181,6 +181,26 @@ describe("sketches capability behaviour", () => {
     expect(edited.layers.map((layer) => layer.name)).toEqual(["Layer 1", "Ink"]);
   });
 
+  it("edits a sketch addressed by its 12-character id prefix", async () => {
+    const created = (await run().invoke("create_sketch", {
+      name: "Cover"
+    })) as { image_document_id: string };
+    expect(created.image_document_id).toMatch(/^[0-9a-f]{32}$/);
+    const shortId = created.image_document_id.slice(0, 12);
+
+    const edited = (await run().invoke("edit_sketch", {
+      image_document_id: shortId,
+      ops: [{ op: "add_layer", name: "Ink" }]
+    })) as {
+      image_document_id: string;
+      applied: number;
+      layers: Array<{ name: string }>;
+    };
+    expect(edited.applied).toBe(1);
+    expect(edited.image_document_id).toBe(created.image_document_id);
+    expect(edited.layers.map((layer) => layer.name)).toEqual(["Layer 1", "Ink"]);
+  });
+
   it("returns the existing sketch when create is retried with the same id", async () => {
     const first = (await run().invoke("create_sketch", {
       name: "Poster",
@@ -451,6 +471,46 @@ describe("sketches capability behaviour", () => {
       image: `asset://${asset.id}.png`,
       bounds: { x: 0, y: 0, width: 1024, height: 768 }
     });
+  });
+
+  it("stores the full asset id when an edit uses a compact id", async () => {
+    const { Asset } = await import("@nodetool-ai/models");
+    const asset = await Asset.create<InstanceType<typeof Asset>>({
+      user_id: "u1",
+      name: "photo.png",
+      content_type: "image/png"
+    });
+    const row = await makeSketch();
+    const result = (await run().invoke("edit_sketch", {
+      image_document_id: row.id,
+      ops: [{ op: "set_layer_image", target: "Background", image: asset.id.slice(0, 12) }]
+    })) as { applied?: number; error?: string };
+
+    expect(result.applied).toBe(1);
+    const stored = await ImageDocument.findById(row.id);
+    const layer = stored!.toDocumentData().sketch.layers[0];
+    expect(decodeSketchLayerData(layer.data, 1024, 768).image).toBe(`asset://${asset.id}`);
+  });
+
+  it("rejects an ambiguous compact asset id without changing the sketch", async () => {
+    const { Asset } = await import("@nodetool-ai/models");
+    const prefix = "abcdef123456";
+    for (const suffix of ["00000000000000000001", "00000000000000000002"]) {
+      await Asset.create<InstanceType<typeof Asset>>({
+        id: `${prefix}${suffix}`,
+        user_id: "u1",
+        name: "photo.png",
+        content_type: "image/png"
+      });
+    }
+    const row = await makeSketch();
+    const result = (await run().invoke("edit_sketch", {
+      image_document_id: row.id,
+      ops: [{ op: "set_layer_image", target: "Background", image: prefix }]
+    })) as { error?: string };
+    expect(result.error).toContain("matches more than one row");
+    const stored = await ImageDocument.findById(row.id);
+    expect(stored!.toDocumentData().sketch.layers[0].data).toBeNull();
   });
 
   it("refuses an image reference no asset backs, instead of writing an empty layer", async () => {

@@ -453,10 +453,14 @@ describe("useTimelineExternalSync merge — token ordering", () => {
     act(() => {
       useTimelineStore.getState().loadSequence(seqDoc(T0, [clip("C1", "T1")]));
       getTimelineTemporal().clear();
+      // The first edit stays, so the draft is dirty; the second sits on the
+      // redo branch. (A document undone back to the saved one is clean and
+      // is replaced by the server copy instead of merged.)
       useTimelineStore.getState().patchClip("C1", { durationMs: 400 });
+      useTimelineStore.getState().patchClip("C1", { startMs: 100 });
       getTimelineTemporal().undo();
     });
-    expect(useTimelineStore.getState().clips[0]?.durationMs).toBe(1000);
+    expect(useTimelineStore.getState().clips[0]?.startMs).toBe(0);
 
     (
       getQuery as unknown as { mockResolvedValue: (v: unknown) => void }
@@ -484,9 +488,9 @@ describe("useTimelineExternalSync merge — token ordering", () => {
     act(() => {
       getTimelineTemporal().redo();
     });
-    expect(
-      useTimelineStore.getState().clips.find((c) => c.id === "C1")?.durationMs
-    ).toBe(400);
+    const redone = useTimelineStore.getState().clips.find((c) => c.id === "C1");
+    expect(redone?.startMs).toBe(100);
+    expect(redone?.durationMs).toBe(400);
     expect(useTimelineStore.getState().clips.map((c) => c.id)).toEqual([
       "C1",
       "C2"
@@ -507,6 +511,7 @@ describe("useTimelineExternalSync merge — token ordering", () => {
     });
     act(() => {
       useTimelineStore.getState().loadSequence(seqDoc(T0, [clip("C1", "T1")]));
+      getTimelineTemporal().clear();
     });
 
     let answer: (sequence: TimelineSequence) => void = () => {};
@@ -540,7 +545,12 @@ describe("useTimelineExternalSync merge — token ordering", () => {
     expect(updateMutate).toHaveBeenCalled();
 
     await act(async () => {
-      answer(seqDoc(T3, [clip("C1", "T1"), clip("C3", "T1")]));
+      answer(
+        seqDoc(T3, [
+          clip("C1", "T1", { durationMs: 400 }),
+          clip("C3", "T1")
+        ])
+      );
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
@@ -549,12 +559,79 @@ describe("useTimelineExternalSync merge — token ordering", () => {
     const state = useTimelineStore.getState();
     expect(state.clips.map((c) => c.id)).toEqual(["C1", "C3"]);
     expect(state.baseUpdatedAt).toBe(T3);
-    // A reload replaces the document and clears history; a merge would have
-    // left the user's own trim on the undo stack.
-    expect(getTimelineTemporal().pastStates.length).toBe(0);
     expect(
       useConflictStore.getState().byKey["timelinesequence:seq-1"]
     ).toBeUndefined();
+    // F29: adopting the server copy keeps the user's trim on the undo stack,
+    // rebased so undoing it keeps the external clip.
+    expect(getTimelineTemporal().pastStates.length).toBe(1);
+    act(() => {
+      getTimelineTemporal().undo();
+    });
+    const undone = useTimelineStore.getState();
+    expect(undone.clips.map((c) => c.id)).toEqual(["C1", "C3"]);
+    expect(undone.clips[0]?.durationMs).toBe(1000);
+
+    rendered.unmount();
+  });
+
+  it("keeps undo history when a clean editor reloads an external write (F29)", async () => {
+    (
+      getQuery as unknown as { mockResolvedValue: (v: unknown) => void }
+    ).mockResolvedValue(seqDoc(T0, [clip("C1", "T1")]));
+    const rendered = renderHook(() => {
+      useTimelineAutosave({ debounceMs: 1 });
+      useTimelineExternalSync("seq-1");
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      useTimelineStore.getState().loadSequence(seqDoc(T0, [clip("C1", "T1")]));
+      getTimelineTemporal().clear();
+    });
+    act(() => {
+      useTimelineStore
+        .getState()
+        .patchClip("C1", { durationMs: 400 } as Partial<TimelineClip>);
+    });
+    // Autosave lands: the editor is clean with one undo entry.
+    (updateMutate as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({ updatedAt: T1 });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(getTimelineTemporal().pastStates.length).toBe(1);
+
+    (
+      getQuery as unknown as { mockResolvedValue: (v: unknown) => void }
+    ).mockResolvedValue(
+      seqDoc(T3, [clip("C1", "T1", { durationMs: 400 }), clip("C3", "T1")])
+    );
+    await act(async () => {
+      handleDocumentResourceChange("timelinesequence", {
+        event: "updated",
+        id: "seq-1",
+        updatedAt: T3
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(useTimelineStore.getState().clips.map((c) => c.id)).toEqual([
+      "C1",
+      "C3"
+    ]);
+    expect(useTimelineStore.getState().baseUpdatedAt).toBe(T3);
+    expect(getTimelineTemporal().pastStates.length).toBe(1);
+    act(() => {
+      getTimelineTemporal().undo();
+    });
+    expect(useTimelineStore.getState().clips.map((c) => c.id)).toEqual([
+      "C1",
+      "C3"
+    ]);
+    expect(useTimelineStore.getState().clips[0]?.durationMs).toBe(1000);
 
     rendered.unmount();
   });

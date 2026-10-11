@@ -9,6 +9,7 @@ import {
   type TimelineSequence
 } from "@nodetool-ai/timeline";
 
+import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import {
   Caption,
   Checkbox,
@@ -56,8 +57,11 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   const { createAdaptations, isCreating, error } =
     useCreateFormatAdaptation(sequence);
 
+  // The query's sequence is the one loaded when the editor opened; the clips
+  // come from the live document so edits since then count.
+  const clips = useTimelineStore((state) => state.clips);
   const sequenceWithTracks = sequence
-    ? { ...sequence, mediaTracks: [...mediaTracks] }
+    ? { ...sequence, clips, mediaTracks: [...mediaTracks] }
     : undefined;
   const smartUnavailable = Boolean(
     sequenceWithTracks &&
@@ -73,7 +77,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   }, [open, smartUnavailable]);
 
   const readyTracks = mediaTracks.filter((track) => {
-    const clip = sequence?.clips.find((candidate) => candidate.id === track.clipId);
+    const clip = clips.find((candidate) => candidate.id === track.clipId);
     return (
       mediaTrackCanDriveReframe(track) &&
       clip !== undefined &&
@@ -112,8 +116,20 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     if (trackId) {
       options.trackId = trackId;
     }
-    const createdIds = await createAdaptations(options);
-    if (createdIds.length > 0) onClose();
+    const { createdAspectRatios, failures } = await createAdaptations(options);
+    if (failures.length === 0 && createdAspectRatios.length > 0) {
+      onClose();
+      return;
+    }
+    // Keep the dialog open on a partial failure, with only the formats that
+    // still need creating selected, so a retry cannot duplicate the rest.
+    if (createdAspectRatios.length > 0) {
+      setFormats((current) => {
+        const next = new Set(current);
+        for (const ratio of createdAspectRatios) next.delete(ratio);
+        return next;
+      });
+    }
   };
 
   const cannotCreate =
@@ -162,7 +178,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
             <Radio value="center" label={t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
               value="smart"
-              label={t("timeline:adapt.smartReframe", { defaultValue: "Smart Reframe" })}
+              label="Smart reframe"
               size="small"
               disabled={smartUnavailable}
             />
@@ -189,7 +205,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
           )}
           {smartUnavailable && (
             <Caption color="muted">
-              Smart Reframe needs a current subject track or authored framing
+              Smart reframe needs a current subject track or authored framing
               for every visual clip. Use Center until those signals exist.
             </Caption>
           )}

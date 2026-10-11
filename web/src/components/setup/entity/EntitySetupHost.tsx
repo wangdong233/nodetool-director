@@ -1,8 +1,11 @@
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   createElement,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
@@ -13,6 +16,7 @@ import {
 } from "../../../serverState/useEntities";
 import { useAssetStore } from "../../../stores/AssetStore";
 import { useNotificationStore } from "../../../stores/NotificationStore";
+import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
 import { SetupFlow } from "../SetupFlow";
 import type { SetupFlowConfig, SetupStep } from "../types";
 import {
@@ -20,15 +24,14 @@ import {
   type EntityDetailsValue
 } from "./DetailsStep";
 import { ReferenceStep } from "./ReferenceStep";
-import { ReviewStep } from "./ReviewStep";
-import { i18n } from "../../../i18n";
+import { ReviewFallback, ReviewStep } from "./ReviewStep";
 import {
   clearEntitySetupDraft,
   readEntitySetupDraft,
+  sweepClosedGuidedEntityDrafts,
   writeEntitySetupDraft,
   type EntitySetupStage
 } from "./entitySetupDraft";
-import { useTranslation } from "react-i18next";
 
 export interface EntitySetupHostProps {
   readonly projectId?: string;
@@ -37,6 +40,11 @@ export interface EntitySetupHostProps {
   readonly initialAssetId?: string;
   readonly onFinish: (entity: Entity) => void;
   readonly onChangeFlow?: (descriptor: string) => void | Promise<void>;
+  /**
+   * Told while the entity is being saved or its blank reference uploads, so
+   * an exit outside the flow can wait for work it cannot stop.
+   */
+  readonly onBusyChange?: (busy: boolean) => void;
 }
 
 const tagsFromText = (value: string): string[] =>
@@ -73,9 +81,9 @@ const EntitySetupHost = ({
   initialDescriptor = "",
   initialAssetId,
   onFinish,
-  onChangeFlow
+  onChangeFlow,
+  onBusyChange
 }: EntitySetupHostProps) => {
-  const { t } = useTranslation();
   const recoveredDraft = useMemo(
     () => readEntitySetupDraft(draftKey ?? projectId),
     [draftKey, projectId]
@@ -100,6 +108,10 @@ const EntitySetupHost = ({
   const [assetId, setAssetId] = useState<string | null>(
     recoveredDraft?.assetId ?? initialAssetId ?? null
   );
+  // Read by the blank start after its upload, which outlives the render that
+  // started it.
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
   const [pickerOpen, setPickerOpen] = useState(false);
   // The blank reference being made, while the card reads as busy.
   const [startingBlank, setStartingBlank] = useState(false);
@@ -123,6 +135,36 @@ const EntitySetupHost = ({
     });
   }, [assetId, details, draftKey, projectId, stage]);
 
+  // Drafts left by guided tabs that closed while another flow ran, or before
+  // the unmount cleanup below existed, go when an entity flow opens.
+  useEffect(() => {
+    sweepClosedGuidedEntityDrafts(
+      new Set(
+        useWorkspaceTabsStore
+          .getState()
+          .tabs.filter((tab) => tab.type === "guided-flow")
+          .map((tab) => tab.ref)
+      )
+    );
+  }, []);
+
+  // A draft keyed by a guided tab can only be recovered by that tab, so it
+  // goes when the tab closes. Unmounting with the tab still open (another
+  // route, a flow change) keeps it.
+  useEffect(() => {
+    if (!draftKey) {
+      return;
+    }
+    return () => {
+      const tabOpen = useWorkspaceTabsStore
+        .getState()
+        .tabs.some((tab) => tab.type === "guided-flow" && tab.ref === draftKey);
+      if (!tabOpen) {
+        clearEntitySetupDraft(draftKey);
+      }
+    };
+  }, [draftKey]);
+
   const handlePick = useCallback((pickedAssetId: string) => {
     setAssetId(pickedAssetId);
     setPickerOpen(false);
@@ -130,23 +172,25 @@ const EntitySetupHost = ({
 
   /**
    * The blank escape hatch: a plain canvas becomes the reference image and
-   * the review step opens, with the name and descriptor filled only where
-   * the creator left them empty — everything stays editable one step back.
-   * Failures toast rather than stranding the card, which the shell would
-   * otherwise leave busy with nothing to say.
+   * the review step opens, with the name filled only where the creator left
+   * it empty. The descriptor stays as written: it seasons every prompt the
+   * entity appears in, so a filler sentence would too, and the review asks
+   * for one instead. Failures toast rather than stranding the card, which
+   * the shell would otherwise leave busy with nothing to say.
    */
   const startBlank = useCallback(async () => {
     setStartingBlank(true);
     try {
       const asset = await createAsset(await createBlankReferenceFile());
+      // The creator moved on while the canvas uploaded, so the flow stays
+      // where they are (F17).
+      if (stageRef.current !== "details") {
+        return;
+      }
       setDetails((current) => ({
         ...current,
         name:
-          current.name.trim().length > 0 ? current.name : i18n.t("storyboard:attrs.untitledEntity", { defaultValue: "Untitled entity" }),
-        descriptor:
-          current.descriptor.trim().length > 0
-            ? current.descriptor
-            : i18n.t("storyboard:attrs.aReusableVisualEntity", { defaultValue: "A reusable visual entity." })
+          current.name.trim().length > 0 ? current.name : i18n.t("storyboard:attrs.untitledEntity", { defaultValue: "Untitled entity" })
       }));
       setAssetId(asset.id);
       setStage("review");
@@ -154,10 +198,9 @@ const EntitySetupHost = ({
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("storyboard:attrs.couldNotStartABlankEntity", {
-          defaultValue: "Could not start a blank entity: {{message}}",
-          message: error instanceof Error ? error.message : String(error)
-        })
+        content: `Could not start a blank entity: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       });
     } finally {
       setStartingBlank(false);
@@ -166,7 +209,7 @@ const EntitySetupHost = ({
 
   const save = useCallback(async () => {
     if (!referenceAssetId || entitiesLoading || entitiesError) {
-      throw new Error(t("storyboard:attrs.chooseAReferenceImageBeforeCreatingTheEntity", { defaultValue: "Choose a reference image before creating the entity." }));
+      throw new Error("Choose a reference image before creating the entity.");
     }
     const input: Parameters<typeof saveEntity.mutateAsync>[0] = {
       assetId: referenceAssetId,
@@ -182,7 +225,7 @@ const EntitySetupHost = ({
     }
     const entity = await saveEntity.mutateAsync(input);
     if (!entity) {
-      throw new Error(t("storyboard:attrs.theEntityCouldNotBeReadAfterItWasCreated", { defaultValue: "The entity could not be read after it was created." }));
+      throw new Error(i18n.t("storyboard:attrs.theEntityCouldNotBeReadAfterItWasCreated", { defaultValue: "The entity could not be read after it was created." }));
     }
     clearEntitySetupDraft(draftKey ?? projectId);
     onFinish(entity);
@@ -194,23 +237,34 @@ const EntitySetupHost = ({
     onFinish,
     projectId,
     referenceAssetId,
-    saveEntity,
-    t
+    saveEntity
   ]);
+
+  const reviewBlockedReason = entitiesError
+    ? i18n.t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
+    : entitiesLoading
+      ? i18n.t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
+      : !referenceAssetId
+        ? "Go back and choose a reference image"
+        : details.name.trim().length === 0
+          ? "Go back and name the entity"
+          : "Go back and describe the traits to preserve";
 
   const steps = useMemo<SetupStep<EntitySetupStage>[]>(
     () => [
       {
         stage: "details",
-        label: t("storyboard:attrs.details", { defaultValue: "Details" }),
-        primaryLabel: t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
+        label: i18n.t("storyboard:attrs.details", { defaultValue: "Details" }),
+        primaryLabel: i18n.t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
         canAdvance:
           details.name.trim().length > 0 &&
           details.descriptor.trim().length > 0,
         blockedReason:
           details.name.trim().length === 0
-            ? t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
-            : t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
+            ? i18n.t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
+            : i18n.t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
+        pending: startingBlank,
+        pendingLabel: "Preparing a blank reference",
         render: () =>
           createElement(DetailsStep, {
             value: details,
@@ -221,15 +275,15 @@ const EntitySetupHost = ({
       },
       {
         stage: "reference",
-        label: t("storyboard:attrs.reference", { defaultValue: "Reference" }),
-        primaryLabel: t("storyboard:attrs.reviewEntity", { defaultValue: "Review entity" }),
+        label: i18n.t("storyboard:attrs.reference", { defaultValue: "Reference" }),
+        primaryLabel: i18n.t("storyboard:attrs.reviewEntity", { defaultValue: "Review entity" }),
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
-          ? t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
+          ? "Could not verify your entity library"
           : entitiesLoading
-            ? t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
-            : t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
+            ? "Loading your entity library"
+            : i18n.t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
         render: () =>
           createElement(ReferenceStep, {
             name: details.name,
@@ -247,10 +301,20 @@ const EntitySetupHost = ({
       },
       {
         stage: "review",
-        label: t("storyboard:attrs.review", { defaultValue: "Review" }),
-        primaryLabel: t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
+        label: i18n.t("storyboard:attrs.review", { defaultValue: "Review" }),
+        primaryLabel: i18n.t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
+        canAdvance:
+          referenceAssetId !== null &&
+          !entitiesLoading &&
+          !entitiesError &&
+          details.name.trim().length > 0 &&
+          details.descriptor.trim().length > 0,
+        blockedReason: reviewBlockedReason,
         pending: saveEntity.isPending,
-        pendingLabel: t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
+        pendingLabel: i18n.t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
+        // The asset is tagged before the save resolves, so a Cancel would
+        // say the draft is unchanged about an entity that was created.
+        cancelable: false,
         render: () =>
           referenceAssetId
             ? createElement(ReviewStep, {
@@ -260,7 +324,7 @@ const EntitySetupHost = ({
                 descriptor: details.descriptor.trim(),
                 tags: tagsFromText(details.tags)
               })
-            : null,
+            : createElement(ReviewFallback, { loading: entitiesLoading }),
         onAdvance: save
       }
     ],
@@ -272,6 +336,7 @@ const EntitySetupHost = ({
       handlePick,
       pickerOpen,
       referenceAssetId,
+      reviewBlockedReason,
       save,
       saveEntity.isPending,
       startBlank,
@@ -279,8 +344,13 @@ const EntitySetupHost = ({
     ]
   );
 
+  const busy = saveEntity.isPending || startingBlank;
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
+
   const config: SetupFlowConfig<EntitySetupStage> = {
-    labels: { title: "Entity", titleKey: "home:entry.entity.title" },
+    labels: { title: "Entity" },
     steps,
     stage,
     onStageChange: setStage

@@ -11,7 +11,7 @@
  * this dialog PATCHes, while `tempo` rides in the document slice the autosave
  * hook already carries, so applying it is one `setTempo` call on the store.
  */
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { resolveTempo } from "@nodetool-ai/timeline";
@@ -22,6 +22,7 @@ import {
   FlexColumn,
   FlexRow,
   SelectField,
+  SPACING,
   Text,
   TextInput
 } from "../ui_primitives";
@@ -132,8 +133,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
   );
   const [offsetText, setOffsetText] = useState(String(tempo.offsetMs));
 
-  // Re-seed the draft from the store each time the dialog opens.
-  useEffect(() => {
+  // Re-seed the draft from the store each time the dialog opens. Store
+  // changes while it is open (a failed save's rollback) keep the typed draft.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setWidthText(String(width));
       setHeightText(String(height));
@@ -143,7 +147,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
       setBeatUnit(String(tempo.timeSignature.beatUnit));
       setOffsetText(String(tempo.offsetMs));
     }
-  }, [open, width, height, fps, tempo]);
+  }
 
   const widthNum = Number(widthText);
   const heightNum = Number(heightText);
@@ -199,6 +203,16 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
 
   const handleApply = async () => {
     if (!allValid) return;
+    // A failed canvas save keeps the dialog open; the hook reports the error
+    // and puts the previous canvas back.
+    if (canvasDirty) {
+      const saved = await save({
+        width: widthNum,
+        height: heightNum,
+        fps: fpsNum
+      });
+      if (!saved) return;
+    }
     if (tempoDirty) {
       setTempo({
         bpm: bpmNum,
@@ -208,9 +222,6 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
           beatUnit: beatUnitNum
         }
       });
-    }
-    if (canvasDirty) {
-      await save({ width: widthNum, height: heightNum, fps: fpsNum });
     }
     onClose();
   };
@@ -228,10 +239,12 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
       confirmDisabled={!allValid || !dirty || isSaving}
       minWidth="min(440px, 100vw - 32px)"
     >
-      <FlexColumn gap={4} sx={{ py: 1 }}>
+      <FlexColumn gap={SPACING.xl} sx={{ py: SPACING.xs }}>
         {/* ── Canvas size ─────────────────────────────────────────── */}
-        <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}</Text>
+        <FlexColumn gap={SPACING.sm}>
+          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
+            {t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}
+          </Text>
           {/* Label hidden — the section header names it; an outlined variant
               keeps it consistent with the Width/Height fields below. */}
           <SelectField
@@ -252,7 +265,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             )}
             size="small"
           />
-          <FlexRow gap={1.5} align="flex-start" sx={{ mt: 2 }}>
+          <FlexRow gap={SPACING.sm} align="flex-start" sx={{ mt: SPACING.md }}>
             <TextInput
               label={t("timeline:project.width", { defaultValue: "Width" })}
               type="number"
@@ -285,9 +298,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
         </FlexColumn>
 
         {/* ── Frame rate ──────────────────────────────────────────── */}
-        <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}</Text>
-          <FlexRow gap={1.5} align="flex-start">
+        <FlexColumn gap={SPACING.sm}>
+          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
+            {t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}
+          </Text>
+          <FlexRow gap={SPACING.sm} align="flex-start">
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
                 label={t("timeline:project.frameRate", { defaultValue: "Frame rate preset" })}
@@ -326,9 +341,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
         </FlexColumn>
 
         {/* ── Tempo ───────────────────────────────────────────────── */}
-        <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.tempo", { defaultValue: "Tempo" })}</Text>
-          <FlexRow gap={1.5} align="flex-start">
+        <FlexColumn gap={SPACING.sm}>
+          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
+            {t("timeline:attrs.tempo", { defaultValue: "Tempo" })}
+          </Text>
+          <FlexRow gap={SPACING.sm} align="flex-start">
             <TextInput
               label="BPM"
               type="number"
@@ -380,7 +397,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               offsetText !== "" && !offsetValid ? t("timeline:attrs.zeroOrMore", { defaultValue: "0 or more" }) : undefined
             }
             inputProps={{ min: 0, step: 1 }}
-            sx={{ mt: 2, width: 160 }}
+            sx={{ mt: SPACING.md, width: 160 }}
           />
           {midiClipCount > 0 && (
             <Caption sx={{ color: "text.secondary" }}>

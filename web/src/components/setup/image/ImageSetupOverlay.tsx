@@ -26,6 +26,7 @@ import { useTheme } from "@mui/material/styles";
 import { Box, PADDING, ScrollArea, Z_INDEX } from "../../ui_primitives";
 import { useSketchStore } from "../../sketch/state/useSketchStore";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
+import { useOnboardingStore } from "../../../stores/OnboardingStore";
 import { useSaveEntity } from "../../../serverState/useEntities";
 import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import {
@@ -34,34 +35,59 @@ import {
 } from "../../../stores/WorkspaceTabsStore";
 import { SetupFlow } from "../SetupFlow";
 import { ContactSheet } from "./ContactSheet";
+import { MediaGalleryProvider } from "../MediaGallery";
 import { useImageSetupFlow } from "./useImageSetupFlow";
 import { i18n } from "../../../i18n";
 
 export interface ImageSetupOverlayProps {
   /** Runs whenever the flow hands the document back to the editor. */
   onFinish?: () => void;
+  /** Told whether the flow is covering the editor, so its shortcuts pause. */
+  onCoveringChange?: (covering: boolean) => void;
 }
 
 export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
-  onFinish
+  onFinish,
+  onCoveringChange
 }) => {
   const theme = useTheme();
   const createWorkflow = useWorkflowManager((state) => state.create);
   const [batch, setBatch] = useState<readonly string[]>([]);
+  // Every variation layer this session generated, across batches. `Back to
+  // generation settings` starts a new sheet, but picking from it still has to
+  // hide the earlier batches, or they stay visible over the pick (F13).
+  const [sessionLayers, setSessionLayers] = useState<readonly string[]>([]);
   const [makingMore, setMakingMore] = useState(false);
   const [makeMoreError, setMakeMoreError] = useState<string | null>(null);
   const saveEntity = useSaveEntity();
   const setSetup = useSketchStore((state) => state.setSetup);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
+  // Moves on every exit from the contact sheet, so a "Make more" batch that
+  // lands after the creator left it does not bring the sheet back (F4).
+  const sheetSessionRef = useRef(0);
 
   const handleGenerated = useCallback((layerIds: readonly string[]) => {
     setBatch(layerIds);
+    setSessionLayers((current) => [...current, ...layerIds]);
   }, []);
 
   const finish = useCallback(() => {
+    sheetSessionRef.current += 1;
     setBatch([]);
+    setMakingMore(false);
     onFinish?.();
   }, [onFinish]);
+
+  const pickRenderedImage = useCallback(
+    (layerId: string) => {
+      if (!useSketchSessionStore.getState().bindings[layerId]?.currentAssetId) {
+        return;
+      }
+      useOnboardingStore.getState().markStep("start-guided-flow");
+      finish();
+    },
+    [finish]
+  );
 
   const { config, look } = useImageSetupFlow({
     onGenerated: handleGenerated,
@@ -71,25 +97,39 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
   const makeMore = useCallback(() => {
     setMakeMoreError(null);
     setMakingMore(true);
+    const session = sheetSessionRef.current;
+    // The layers exist before their start requests return, so the sheet and
+    // `Pick` learn of them then: a pick made while they start must hide them.
     void look
-      .generate()
-      .then((layerIds) => {
-        setBatch((current) => [...current, ...layerIds]);
+      .generate((layerIds) => {
+        setSessionLayers((current) => [...current, ...layerIds]);
+        if (session === sheetSessionRef.current) {
+          setBatch((current) => [...current, ...layerIds]);
+        }
       })
       .catch((cause: unknown) => {
+        if (session !== sheetSessionRef.current) {
+          return;
+        }
         setMakeMoreError(
           cause instanceof Error
             ? cause.message
             : i18n.t("storyboard:attrs.anotherBatchCouldNotBeStarted", { defaultValue: "Another batch could not be started." })
         );
       })
-      .finally(() => setMakingMore(false));
+      .finally(() => {
+        if (session === sheetSessionRef.current) {
+          setMakingMore(false);
+        }
+      });
   }, [look]);
 
   // Back to the look step with every variation kept: they are layers on the
   // document, and the next batch is added beside them (F7).
   const backToSettings = useCallback(() => {
+    sheetSessionRef.current += 1;
     setBatch([]);
+    setMakingMore(false);
     setMakeMoreError(null);
     setSetup({ stage: "look" });
   }, [setSetup]);
@@ -132,6 +172,7 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
       const name = animate ? i18n.t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" }) : i18n.t("storyboard:attrs.imageCanvas", { defaultValue: "Image canvas" });
       const workflow = await createWorkflow({
         name,
+        project_id: projectId,
         description: "",
         tags: [],
         access: "private",
@@ -164,6 +205,10 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
   const covering = batch.length > 0 || config.stage !== "done";
 
   useEffect(() => {
+    onCoveringChange?.(covering);
+  }, [covering, onCoveringChange]);
+
+  useEffect(() => {
     const surface = surfaceRef.current;
     const parent = surface?.parentElement;
     if (!covering || !surface || !parent) {
@@ -173,14 +218,19 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
       (child): child is HTMLElement =>
         child instanceof HTMLElement && child !== surface
     );
+    // A step field that took focus on mount (the brief) keeps it; only focus
+    // still outside the flow is pulled in, and only that is returned to.
+    const focusInside = surface.contains(document.activeElement);
     const returnTo =
-      document.activeElement instanceof HTMLElement
+      !focusInside && document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
     for (const element of covered) {
       element.setAttribute("inert", "");
     }
-    surface.focus({ preventScroll: true });
+    if (!focusInside) {
+      surface.focus({ preventScroll: true });
+    }
     return () => {
       for (const element of covered) {
         element.removeAttribute("inert");
@@ -188,6 +238,31 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
       returnTo?.focus({ preventScroll: true });
     };
   }, [covering]);
+
+  // Generate, "Back to generation settings" and a pick from a newer batch
+  // swap the flow and the sheet. The control that was pressed goes with the
+  // view it was in, so the keyboard lands on the new view's heading instead
+  // of falling to the page.
+  const showingSheet = batch.length > 0;
+  const shownViewRef = useRef(showingSheet);
+  useEffect(() => {
+    if (shownViewRef.current === showingSheet) {
+      return;
+    }
+    shownViewRef.current = showingSheet;
+    const surface = surfaceRef.current;
+    const active = document.activeElement;
+    if (!surface || (active !== surface && surface.contains(active))) {
+      return;
+    }
+    const heading =
+      surface.querySelector<HTMLElement>("fieldset h1, fieldset h2") ??
+      surface.querySelector<HTMLElement>("h2");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }, [showingSheet]);
 
   if (!covering) {
     return null;
@@ -210,17 +285,22 @@ export const ImageSetupOverlay: React.FC<ImageSetupOverlayProps> = ({
       <ScrollArea fullHeight>
         {batch.length > 0 ? (
           <Box sx={{ padding: PADDING.section }}>
-            <ContactSheet
-              layerIds={batch}
-              onPick={finish}
-              onMakeMore={makeMore}
-              makeMorePending={makingMore}
-              makeMoreError={makeMoreError}
-              onBackToSettings={backToSettings}
-              onOpenEditor={finish}
-              onSaveToLibrary={saveToLibrary}
-              onOpenCanvas={openCanvas}
-            />
+            <MediaGalleryProvider>
+              <ContactSheet
+                layerIds={batch}
+                siblingLayerIds={sessionLayers}
+                onPick={pickRenderedImage}
+                onMakeMore={makeMore}
+                makeMoreDetail={look.primaryDetail}
+                regenerateDetail={look.perImageDetail}
+                makeMorePending={makingMore}
+                makeMoreError={makeMoreError}
+                onBackToSettings={backToSettings}
+                onOpenEditor={finish}
+                onSaveToLibrary={saveToLibrary}
+                onOpenCanvas={openCanvas}
+              />
+            </MediaGalleryProvider>
           </Box>
         ) : (
           <SetupFlow config={config} />

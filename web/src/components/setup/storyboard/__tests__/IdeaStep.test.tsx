@@ -6,13 +6,7 @@
 import React from "react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within
-} from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
@@ -196,6 +190,19 @@ describe("IdeaStep", () => {
     expect(board()?.brief).toBe("Fifteen seconds for a running-shoe launch.");
   });
 
+  // The clicked example leaves the list, so the keyboard goes to the field
+  // whose text just changed (O5).
+  it("focuses the brief after an example is picked", async () => {
+    const user = userEvent.setup();
+    renderStep();
+
+    await user.click(
+      screen.getByText("Fifteen seconds for a running-shoe launch.")
+    );
+
+    expect(screen.getByRole("textbox")).toHaveFocus();
+  });
+
   // Every flow puts its entry paths in a column beside the box, and this step
   // is read alongside the other four.
   it("keeps the entry paths in the side column, not behind a disclosure", () => {
@@ -319,9 +326,7 @@ describe("IdeaStep — upload your file", () => {
     );
 
     await waitFor(() => expect(board()?.shots).toHaveLength(4));
-    expect(
-      screen.getByText("Imported from script.fdx")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Imported from script.fdx")).toBeInTheDocument();
     expect(screen.getByLabelText("Your story")).toHaveAttribute("readonly");
 
     await user.click(screen.getByRole("button", { name: "Edit as text" }));
@@ -332,6 +337,22 @@ describe("IdeaStep — upload your file", () => {
         "readonly"
       )
     );
+  });
+
+  it("offers no example over a held script", async () => {
+    const user = userEvent.setup();
+    renderStep();
+    expect(
+      screen.getByRole("group", { name: "Inspiration" })
+    ).toBeInTheDocument();
+
+    await user.upload(
+      screen.getByLabelText("Upload your file"),
+      upload("script.fdx", "text/xml", fixture("two-scenes.fdx"))
+    );
+
+    await waitFor(() => expect(board()?.shots).toHaveLength(4));
+    expect(screen.queryByRole("group", { name: "Inspiration" })).toBeNull();
   });
 
   it("sends a PDF to the extraction route and lands its text", async () => {
@@ -351,6 +372,35 @@ describe("IdeaStep — upload your file", () => {
     expect(getImportSource(BOARD)?.kind).toBe("text");
   });
 
+  it("drops a PDF that lands after the creator moved on", async () => {
+    const user = userEvent.setup();
+    let land: (answer: Response) => void = () => undefined;
+    restFetch.mockReturnValue(
+      new Promise<Response>((resolve) => {
+        land = resolve;
+      })
+    );
+    useStoryboardStore.getState().setSetup(BOARD, { stage: "idea" });
+    renderStep();
+
+    await user.upload(
+      screen.getByLabelText("Upload your file"),
+      upload("script.pdf", "application/pdf", "%PDF-1.7")
+    );
+    await waitFor(() => expect(restFetch).toHaveBeenCalled());
+    act(() =>
+      useStoryboardStore
+        .getState()
+        .setSetup(BOARD, { brief: "A brief typed meanwhile", stage: "genre" })
+    );
+    await act(async () => {
+      land(routeAnswer(200, { text: "FADE IN. A door opens.", pages: 1 }));
+    });
+
+    expect(board()?.brief).toBe("A brief typed meanwhile");
+    expect(getImportSource(BOARD)).toBeUndefined();
+  });
+
   it("writes nothing and shows the route's notice for a scanned PDF", async () => {
     const user = userEvent.setup();
     const scanned =
@@ -366,6 +416,10 @@ describe("IdeaStep — upload your file", () => {
     );
 
     expect(await screen.findByText(scanned)).toBeInTheDocument();
+    // Every error surface reaches the bug-report dialog, and the notice still
+    // closes.
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
     expect(board()?.brief).toBe("");
     expect(getImportSource(BOARD)).toBeUndefined();
   });
@@ -487,4 +541,122 @@ describe("IdeaStep examples (zh)", () => {
     const inspiration = screen.getByRole("group", { name: "灵感" });
     expect(within(inspiration).queryByText(zh)).not.toBeInTheDocument();
   });
+});
+
+describe("IdeaStep — the flow's holds", () => {
+  // F9: the flow holds Continue on this report while a file is read.
+  it("reports a file being read until it lands", async () => {
+    const user = userEvent.setup();
+    let land: (answer: Response) => void = () => undefined;
+    restFetch.mockReturnValue(
+      new Promise<Response>((resolve) => {
+        land = resolve;
+      })
+    );
+    const onImportingChange = jest.fn();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <IdeaStep
+          boardId={BOARD}
+          onStartBlank={jest.fn()}
+          onOpenTutorial={jest.fn()}
+          onImportingChange={onImportingChange}
+        />
+      </ThemeProvider>
+    );
+
+    await user.upload(
+      screen.getByLabelText("Upload your file"),
+      upload("script.pdf", "application/pdf", "%PDF-1.7")
+    );
+    await waitFor(() =>
+      expect(onImportingChange).toHaveBeenLastCalledWith(true)
+    );
+    await act(async () => {
+      land(routeAnswer(200, { text: "FADE IN. A door opens.", pages: 1 }));
+    });
+
+    await waitFor(() =>
+      expect(onImportingChange).toHaveBeenLastCalledWith(false)
+    );
+    expect(board()?.brief).toBe("FADE IN. A door opens.");
+  });
+
+  // A second file started while one is read would let the first one's
+  // landing release Continue while the second is still being read.
+  it("holds the imported file's controls and the shotlist while a file is read", async () => {
+    const user = userEvent.setup();
+    restFetch.mockResolvedValueOnce(
+      routeAnswer(200, { text: "FADE IN. A door opens.", pages: 1 })
+    );
+    renderStep();
+    await user.upload(
+      screen.getByLabelText("Upload your file"),
+      upload("first.pdf", "application/pdf", "%PDF-1.7")
+    );
+    await waitFor(() => expect(getImportSource(BOARD)?.kind).toBe("text"));
+
+    let land: (answer: Response) => void = () => undefined;
+    restFetch.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        land = resolve;
+      })
+    );
+    await user.upload(
+      screen.getByLabelText("Upload your file"),
+      upload("second.pdf", "application/pdf", "%PDF-1.7")
+    );
+    await waitFor(() => expect(restFetch).toHaveBeenCalledTimes(2));
+
+    expect(screen.getByRole("button", { name: "Replace file" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Remove the file" })
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Import your shotlist/ })
+    ).toHaveAttribute("aria-disabled", "true");
+
+    await act(async () => {
+      land(routeAnswer(200, { text: "INT. HALL. Night.", pages: 1 }));
+    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Replace file" })).toBeEnabled()
+    );
+  });
+
+  // F16: view mode shows the brief and changes nothing.
+  it("writes nothing and offers no import in view mode", async () => {
+    const user = userEvent.setup();
+    useStoryboardStore.getState().setSetup(BOARD, { brief: "A kept brief" });
+    const onStartBlank = jest.fn();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <IdeaStep
+          boardId={BOARD}
+          onStartBlank={onStartBlank}
+          onOpenTutorial={jest.fn()}
+          readOnly
+        />
+      </ThemeProvider>
+    );
+
+    await user.type(screen.getByRole("textbox", { name: "Your story" }), "!");
+
+    expect(board()?.brief).toBe("A kept brief");
+    // The cards stay focusable and say why they are off (aria-disabled).
+    for (const name of [
+      /Upload your file/,
+      /Import your shotlist/,
+      /Start with a blank storyboard/
+    ]) {
+      expect(screen.getByRole("button", { name })).toHaveAttribute(
+        "aria-disabled",
+        "true"
+      );
+    }
+    await user.click(
+      screen.getByRole("button", { name: /Start with a blank storyboard/ })
+    );
+    expect(screen.queryByRole("group", { name: "Inspiration" })).toBeNull();
+    expect(onStartBlank).not.toHaveBeenCalled();  });
 });

@@ -7,6 +7,7 @@ import {
   AssetList,
   AssetRef,
   ASRModel,
+  RerankModel,
   AudioRef,
   CalendarEvent,
   Chunk,
@@ -99,6 +100,7 @@ import {
 export type { AssetList };
 export type { AssetRef };
 export type { ASRModel };
+export type { RerankModel };
 export type { AudioRef };
 export type { CalendarEvent };
 export type { CollectionCreate };
@@ -290,6 +292,11 @@ export interface NodeMetadata extends BaseNodeMetadata {
    * unsafe, so the workflow supervisor withholds `retry` for it.
    */
   retry_safe?: boolean;
+  /**
+   * List properties that keep their static items when an edge feeds them:
+   * the node receives the connected items followed by the static ones.
+   */
+  append_static_inputs?: string[];
   /**
    * Per-type cache lifetime for partial runs (seconds, or the `"forever"`
    * sentinel — never `Infinity`, which is not JSON-safe). Only consulted for

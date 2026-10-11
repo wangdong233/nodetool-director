@@ -39,6 +39,9 @@ export {
 } from "./setting-catalog.js";
 
 export {
+  setLogHook,
+  type LogHook,
+  type LogEntry,
   configureLogging,
   getLogLevel,
   createLogger,
@@ -75,6 +78,9 @@ export {
   getDefaultVectorstoreDbPath,
   getDefaultAssetsPath,
   getDefaultTransformersJsCacheDir,
+  getHfHubCacheDir,
+  getHfHomeDir,
+  getLlamaCppCacheDir,
   getAssetFilePath,
   buildAssetUrl,
   getManagedWorkspacesDir,
@@ -89,3 +95,5 @@ export {
   SIGNED_URL_TTL,
   type StorageConfig
 } from "./storage-config.js";
+
+export { createTraceTextRedactor, redactPrivateKeys, redactTraceText } from "./trace-redaction.js";

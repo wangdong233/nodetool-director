@@ -8,7 +8,7 @@ vi.mock("@nodetool-ai/transformers-js-nodes", async () => {
     recommendedFor: (type: string) => {
       const M: Record<string, Array<{ repo_id: string }>> = {
         "tjs.text_generation": [
-          { repo_id: "onnx-community/Qwen3.5-2B-ONNX" },
+          { repo_id: "onnx-community/Qwen3-1.7B-ONNX" },
           { repo_id: "HuggingFaceTB/SmolLM3-3B-ONNX" }
         ],
         "tjs.text_to_speech": [
@@ -20,13 +20,20 @@ vi.mock("@nodetool-ai/transformers-js-nodes", async () => {
         ],
         "tjs.feature_extraction": [
           { repo_id: "Xenova/all-MiniLM-L6-v2" }
+        ],
+        "tjs.background_removal": [{ repo_id: "briaai/RMBG-1.4" }],
+        "tjs.depth_estimation": [
+          { repo_id: "onnx-community/depth-anything-v2-small" }
+        ],
+        "tjs.text_ranking": [
+          { repo_id: "mixedbread-ai/mxbai-rerank-xsmall-v1" }
         ]
       };
       return M[type] ?? [];
     },
     scanTransformersJsCache: vi.fn(async () => [
       { repo_id: "onnx-community/Kokoro-82M-v1.0-ONNX", size_bytes: 100 },
-      { repo_id: "onnx-community/Qwen3.5-2B-ONNX", size_bytes: 200 }
+      { repo_id: "onnx-community/Qwen3-1.7B-ONNX", size_bytes: 200 }
     ])
   };
 });
@@ -34,7 +41,9 @@ vi.mock("@nodetool-ai/transformers-js-nodes", async () => {
 import {
   discoverASRModels,
   discoverEmbeddingModels,
+  discoverImageModels,
   discoverLanguageModels,
+  discoverRerankModels,
   discoverTTSModels
 } from "../src/model-discovery.js";
 
@@ -44,7 +53,7 @@ describe("model-discovery", () => {
   it("language models include all recommended text-generation repos", async () => {
     const models = await discoverLanguageModels();
     const ids = models.map((m) => m.id);
-    expect(ids).toContain("onnx-community/Qwen3.5-2B-ONNX");
+    expect(ids).toContain("onnx-community/Qwen3-1.7B-ONNX");
     expect(ids).toContain("HuggingFaceTB/SmolLM3-3B-ONNX");
     for (const m of models) {
       expect(m.provider).toBe("transformers_js");
@@ -71,10 +80,43 @@ describe("model-discovery", () => {
     expect(embed.map((m) => m.id)).toContain("Xenova/all-MiniLM-L6-v2");
   });
 
+  it("tags each image model with the capability it serves", async () => {
+    const models = await discoverImageModels();
+    expect(
+      models.map((m) => [m.id, m.supportedTasks, m.adapter?.artifactRef?.modelType])
+    ).toEqual([
+      ["briaai/RMBG-1.4", ["remove_background"], "tjs.background_removal"],
+      [
+        "onnx-community/depth-anything-v2-small",
+        ["estimate_depth"],
+        "tjs.depth_estimation"
+      ]
+    ]);
+  });
+
+  it("lists reranking models with their download type", async () => {
+    const [model] = await discoverRerankModels();
+    expect(model.id).toBe("mixedbread-ai/mxbai-rerank-xsmall-v1");
+    expect(model.adapter?.artifactRef?.modelType).toBe("tjs.text_ranking");
+  });
+
+  it("names the repository and download type each model loads", async () => {
+    const [asr] = await discoverASRModels();
+    expect(asr.adapter?.artifactRef).toEqual({
+      source: "huggingface",
+      repoId: "onnx-community/whisper-large-v3-turbo",
+      modelType: "tjs.automatic_speech_recognition"
+    });
+    const [embed] = await discoverEmbeddingModels();
+    expect(embed.adapter?.artifactRef?.modelType).toBe(
+      "tjs.feature_extraction"
+    );
+  });
+
   it("does not duplicate when a repo is both recommended and cached", async () => {
     const lang = await discoverLanguageModels();
     const occurrences = lang.filter(
-      (m) => m.id === "onnx-community/Qwen3.5-2B-ONNX"
+      (m) => m.id === "onnx-community/Qwen3-1.7B-ONNX"
     );
     expect(occurrences).toHaveLength(1);
   });

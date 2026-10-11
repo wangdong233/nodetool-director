@@ -3,14 +3,14 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { BuildUiContextOptions } from "../../lib/chat/uiContext";
 import { getPuckAgentHandler } from "./puck/puckAgentBridge";
+import { tAttr } from "./i18nAttrs";
 
 import ChatView from "../chat/containers/ChatView";
 import ChatPanelHeader from "../chat/containers/ChatPanelHeader";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useChatViewThread } from "../../hooks/chat/useChatViewThread";
 import useThreadModel from "../../hooks/chat/useThreadModel";
-import { Box, Caption, FlexColumn, Text } from "../ui_primitives";
-import { tAttr } from "./i18nAttrs";
+import { Box, FlexColumn } from "../ui_primitives";
 
 type ChatViewStatus = React.ComponentProps<typeof ChatView>["status"];
 
@@ -180,24 +180,9 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
         backgroundColor: "background.paper"
       }}
     >
-      <Box
-        sx={{
-          px: 3,
-          py: 2,
-          borderBottom: "1px solid",
-          borderColor: "divider"
-        }}
-      >
-        <Text size="small" weight={500}>
-          {tAttr("App Builder Agent")}
-        </Text>
-        <Caption color="secondary" sx={{ display: "block", mt: 0.5 }}>
-          {tAttr(
-            "Build the app layout and bind widgets to workflow inputs and outputs."
-          )}
-        </Caption>
-      </Box>
       <ChatPanelHeader
+        title="App Builder Agent"
+        description="Build the app layout and bind widgets to workflow inputs and outputs."
         onNewChat={handleNewChat}
         onSelectThread={selectThread}
         threadId={threadId}

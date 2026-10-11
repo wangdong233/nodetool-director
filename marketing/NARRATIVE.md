@@ -1,16 +1,18 @@
 # Narrative
 
-What the site says, in what order, and why. [docs/BRAND.md](../docs/BRAND.md)
-carries the repo-wide brand and verbal guidelines (mission, voice, the four
-messaging pillars, lexicon); `PRODUCT.md` covers brand, users, and design
-principles; this file covers the message; `POSITIONING_PLAN.md` covers the
-competitive positioning, landing-page blueprint, and launch plan. When homepage
-copy and this file disagree, one of them is wrong — fix both in the same change.
-The page is edited more often than this file, so when in doubt the page is the
-newer of the two: bring the doc up to it, then fix the page.
+What the site says, in what order, and why. This file covers the message.
+[docs/BRAND.md](../docs/BRAND.md) carries the repo-wide brand and verbal
+guidelines: mission, voice, the four messaging pillars, and the lexicon.
+`PRODUCT.md` covers brand, users, and design principles. `POSITIONING_PLAN.md`
+covers the competitive positioning, landing-page blueprint, and launch plan.
+
+When page copy and this file disagree, one of them is wrong. Fix both in the
+same change. The page is edited more often than this file, so when in doubt
+the page is the newer of the two. Bring the doc up to it, then fix the page.
 
 The homepage, README, and docs share the primary tagline and intro in
-`BRAND.md`. Film production is a showcase of the broader workspace.
+`BRAND.md`. The homepage hero paragraph restates the intro in plain words:
+what NodeTool makes, what the agent does, and what the reader keeps. Film production is a showcase of the broader workspace.
 
 ## The register
 
@@ -68,22 +70,22 @@ this order of importance:
 
 Provider lists, node counts, tool counts, and architecture belong under those
 claims, not next to them. On the homepage they are one strip of links to
-`/studio`, `/developers`, and `/apps`, not ten sections.
+`/studio` and `/developers`, not ten sections.
 
 ## Order of the page
 
-Hero → **the agent builds the project** (a brief, then a board, takes, and a cut
-that opens) → the three steps (Pitch / Automate / Direct) → the editors, framed
-as control over that project → how teams are using it (the recipes, each a real
-run with its bundle) → **every model, your keys** → **apps for everything** →
-ownership → **build the workflows that work for you** → comparison → Studio vs
+Hero → the editors, framed as control over the project → finished films with
+their editable timelines → ad library → example storyboards → **the agent
+builds the project** (a brief, then a board, takes, and a cut that opens) →
+**every model, your keys** → recipes for related
+production work ("Build your next campaign") → ownership → **build the workflows that work for you** → comparison → Studio vs
 Cloud → ways in → FAQ → community → download.
 
 Three rules produced that order:
 
 **The product before its parts.** The agent working inside a real project is the
 second beat, because it is the only one a hosted platform cannot copy sentence
-for sentence. Recipes, models, and apps read as evidence for that story once it
+for sentence. Recipes and models read as evidence for that story once it
 has landed, and as a catalogue before it.
 
 **Control answers velocity.** The editors follow the agent immediately, because
@@ -106,24 +108,46 @@ One page per industry, named flatly after the industry, in the form leading
 platforms use: **AI for Advertising**, not a coined phrase. `/marketing` is that
 page today and is reachable at `/ai-for-ads`.
 
-The grammar of a vertical page is fixed, and it is short:
+The hero of an industry page has a fixed grammar:
 
-1. The industry name as the `<h1>`, plain.
-2. One paragraph covering the whole pipeline (ideation through delivery) and
-   three benefits in one breath: teams move faster, they pitch more ambitious
-   work, costs come down.
-3. Two credibility chips beside the CTA — something countable, like the number
-   of shipped workflows and the model count.
-4. Proof, then the CTA verb.
+1. **The industry name as the `<h1>`, plain.** "AI for advertising."
+2. **One paragraph, two sentences.** The first names the outcome, from the
+   first concept to the delivered asset. The second names the mechanism: the
+   agent builds a workflow the team reruns. Do not add a list of benefits.
+3. **Two credibility chips beside the CTA.** Each is a number or a set of
+   names. Derive a number from the data that renders the proof, so it cannot
+   drift. The advertising page counts `adRecipes` from `src/data/adLibrary.ts`
+   and names the video models.
+4. **The download CTA and one anchor to the proof below.**
+5. **One row of three facts**, each specific enough to check against the
+   page: the variant axes, the price, the formats from one run.
 
-A vertical page argues about the industry's job, never about a competitor. What
-makes ours different from a hosted platform's is stated as fact in the benefit
-paragraph ("on your own keys, at provider list prices") and then dropped.
+The proof follows the hero directly. On the advertising page that is the ad
+library, then the timeline showcase.
+
+A vertical page argues about the industry's job, never about a competitor.
+What makes ours different from a hosted platform's is stated as fact in the
+chips and the fact row ("on your keys", "Provider list prices"), never as a
+grievance.
+
+The current advertising paragraph shows the pattern:
+
+> Take a product brief from the first concept to delivered ads in every
+> format. Describe the campaign, and the agent builds a workflow you rerun for
+> every SKU, market, and aspect ratio.
 
 Advertising and marketing (`/marketing`) is the current industry vertical.
-`/studio` is the desktop-edition page and `/agents` is the builder/operator
-page. Film production remains a strong demonstration on both routes, but it is
-not their product category.
+
+Game development (`/gamedev`) is the exception to the `<h1>` rule. Its hero
+leads with the outcome, "Make a world people can play.", and then with the
+shipped Kindle, Lumen, and Neon Drift games. Visitors can play a standalone
+browser export, then open the same example in Studio to edit its art, levels,
+and rules. Regenerate its browser exports with `npm run build:packages`, then
+`npm --prefix marketing run gen:games`.
+
+`/studio` is the desktop-edition page and `/agents` is the builder and
+operator page. Film production remains a strong demonstration on both routes,
+but it is not their product category.
 
 ## Product routes
 
@@ -136,30 +160,22 @@ not their product category.
   automation around real creative artifacts. It starts with one product
   example, then exposes the technical entry points.
 
-## Apps for everything
-
-A grid of small, single-purpose tools, each named as a verb phrase for the job
-it does and described in one sentence: "Cut a product out of its background."
-"Relight a product for a seasonal campaign." "Score a silent clip."
-
-The names come from the recipe steps in `recipeEntries.generated.ts` and the
-mini-apps in `miniAppEntries.generated.ts`, so the grid is never aspirational —
-every tile opens something that runs. The homepage shows a strip and links to
-`/apps`; the full catalogue lives there.
-
-This beat exists because a reader who does not want to direct a film still needs
-to see something they would use on Tuesday. It sits after the editors and before
-ownership.
 
 ## Jobs, not demos
 
-The homepage shows selected recipes (`/recipes`) under "Made with NodeTool".
-Each pairs example media with a guide to making related work in Studio. The four use cases on `/use-cases`
+The homepage shows shipped timeline examples under "Every film is a timeline you
+can open." Each pairs a full film with a capture of its editable timeline. Lead
+with Serein, Kite, and Tidewater, followed by Cadence, Prism, and Voltra.
+T minus 30 stays outside the marketing showcase. The advertising page uses the
+same showcase directly below its ad library.
+
+Selected recipes (`/recipes`) follow under "Build your next campaign". Each
+pairs example media with a guide to making related work in Studio. The use cases on `/use-cases`
 (trailer, teaser, product video, poster) are demos of a surface; they stay on
 their own pages.
 
 Each recipe card shows one result, a short description, and a link to the guide.
-The featured card plays the finished ad on request. Model details belong on the
+Expanded recipe showcases play the featured ad on request. Model details belong on the
 recipe page. Internal review status and production checklists stay in the run
 records. Describe the visible result accurately, including when it is a
 storyboard rather than a finished film. Do not put estimated costs on cards.
@@ -170,10 +186,9 @@ The old page named an enemy — the closed AI studio — in its own section, and
 compared against it before the reader had seen a single finished job. That
 section is gone.
 
-The reason is not politeness. Naming Runway, LTX Studio, Figma Weave, Flora or
-Naming a competitor on our homepage puts their name in the reader's head at our expense
-and asks them to accept a competitive claim before they have any reason to
-trust us. None of those companies names anyone on their own front page. The
+The reason is not politeness. Naming a competitor on our homepage puts their
+name in the reader's head at our expense and asks them to accept a competitive
+claim before they have any reason to trust us. None of those companies names anyone on their own front page. The
 strong move is the same one they make: show what the product does and let the
 difference be self-evident.
 
@@ -284,6 +299,3 @@ Beyond [docs/WRITING_STYLE.md](../docs/WRITING_STYLE.md) and
   the agent. See the avoid table in `BRAND.md`.
 - No "magic", "revolutionary", "seamless", "powerful", "unlock", "empower". If a
   sentence survives its own deletion, delete it.
-- The three steps are the creator's verbs and the agent's in one voice: you
-  pitch, the agent automates, you direct. The visual under each step shows the
-  film story (a board, stills, a cut), never a generic node chain.

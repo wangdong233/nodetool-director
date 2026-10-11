@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/cli",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "NodeTool chat CLI — interactive AI chat with agent mode and tool support",
   "type": "module",
   "engines": {
@@ -22,6 +22,7 @@
     "@inquirer/prompts": "^8.5.2",
     "@nodetool-ai/agents": "*",
     "@nodetool-ai/atlascloud-nodes": "*",
+    "@nodetool-ai/browser": "*",
     "@nodetool-ai/app-runtime": "*",
     "@nodetool-ai/base-nodes": "*",
     "@nodetool-ai/chat": "*",
@@ -32,6 +33,8 @@
     "@nodetool-ai/elevenlabs-nodes": "*",
     "@nodetool-ai/execution": "*",
     "@nodetool-ai/fal-nodes": "*",
+    "@nodetool-ai/game-runtime": "*",
+    "@nodetool-ai/game-renderer": "*",
     "@nodetool-ai/huggingface": "*",
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/kernel": "*",
@@ -49,7 +52,9 @@
     "@nodetool-ai/storage": "*",
     "@nodetool-ai/telegram": "*",
     "@nodetool-ai/transformers-js-nodes": "*",
+    "@nodetool-ai/transformers-js-provider": "*",
     "@nodetool-ai/vectorstore": "*",
+    "@nodetool-ai/video-nodes": "*",
     "@nodetool-ai/websocket": "*",
     "@trpc/client": "^11.0.0",
     "@trpc/server": "^11.0.0",
@@ -66,7 +71,8 @@
     "string-width": "^8.1.1",
     "wrap-ansi": "^9.0.0",
     "zod": "^4.1.13",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "@nodetool-ai/whisper-cpp": "*"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

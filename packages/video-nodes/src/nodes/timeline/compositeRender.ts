@@ -11,6 +11,7 @@
  */
 
 import type { TimelineClip, TimelineSequence } from "@nodetool-ai/timeline";
+import { ensureGoogleFonts } from "@nodetool-ai/timeline/fonts/google-node";
 import type {
   FrameAdjustment,
   FrameLayer,
@@ -18,7 +19,7 @@ import type {
   FrameSample,
   RasterContext2D
 } from "@nodetool-ai/timeline/render";
-import { hasTimeRemap } from "@nodetool-ai/timeline";
+import { computeModel3DBakeHash } from "@nodetool-ai/timeline";
 import {
   HeadlessFrameCompositor,
   clipSourceTimeSec,
@@ -38,11 +39,11 @@ import { createCanvas } from "@napi-rs/canvas";
 import { setImmediate } from "node:timers/promises";
 
 import {
-  decodeImageRgba,
+  decodeStillRgba,
   fitWithin,
   openFrameEncoder,
   openSourceFrameStream,
-  openVideoFrameStream,
+  probeVideoFrameRate,
   probeVideoSize,
   type FrameEncoder,
   type RawImage
@@ -67,6 +68,17 @@ interface CompositeRenderOptions {
   /** Destination file — a video container, or the PNG sequence's zip. */
   outPath: string;
   /**
+   * Frame indices to render, instead of every frame of `durationMs`. Indices
+   * outside the timeline are dropped, and the rest render in ascending order,
+   * because a clip's video decodes forward only.
+   */
+  frames?: readonly number[];
+  /**
+   * Receive each composited frame (straight-alpha RGBA8) with its timeline
+   * index. When set, no encoder opens and `outPath` is not written.
+   */
+  writeFrame?: (frame: number, rgba: Uint8Array) => Promise<void>;
+  /**
    * Container, encoder and alpha, resolved by `resolveTimelineOutput`. Absent
    * means today's default: H.264 in MP4 over an opaque ground.
    */
@@ -79,10 +91,32 @@ interface CompositeRenderOptions {
   signal?: AbortSignal;
 }
 
-interface CompositeRenderResult {
+export interface TimelineExportDiagnostic {
+  clipId: string;
+  /** Nominal output-frame interval affected, clipped to the export duration. */
+  startMs: number;
+  endMs: number;
+  reason:
+    | "scene_drop"
+    | "missing_asset"
+    | "unavailable_media"
+    | "decode_failure"
+    | "unsupported_layer";
+  detail: string;
+}
+
+export interface CompositeRenderResult {
+  complete: boolean;
+  diagnostics: TimelineExportDiagnostic[];
   totalFrames: number;
   /** Clips whose media could not be decoded, by name — reported, not fatal. */
   skippedClips: string[];
+  /**
+   * Families a text or caption layer names that are neither bundled nor
+   * resolvable from Google Fonts (offline, not on Google Fonts, a network
+   * error) — drawn in the fallback face, reported rather than silent (D8).
+   */
+  fontsUnavailable: string[];
 }
 
 /** Let the API service pending requests during a frame with many raster layers. */
@@ -103,6 +137,21 @@ export class CompositorUnavailableError extends Error {
 /** The rejection a cancelled render throws, named the way callers test for. */
 function abortError(): Error {
   return new DOMException("Timeline render cancelled", "AbortError");
+}
+
+async function awaitWithAbort<T>(pending: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return pending;
+  if (signal.aborted) throw abortError();
+  let onAbort: (() => void) | undefined;
+  const aborted = new Promise<never>((_resolve, reject) => {
+    onAbort = () => reject(abortError());
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  try {
+    return await Promise.race([pending, aborted]);
+  } finally {
+    if (onAbort) signal.removeEventListener("abort", onAbort);
+  }
 }
 
 async function acquireDevice(): Promise<GPUDevice> {
@@ -146,9 +195,16 @@ export async function renderTimelineComposited(
   const height = Math.max(2, Math.floor(opts.height / 2) * 2);
   const totalFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
   const frameMs = 1000 / fps;
+  // Positions, font sizes and stroke widths are in sequence pixels. A render
+  // smaller than the sequence (a preview scale) samples and rasterizes at the
+  // sequence size and lets the compositor scale the result to the frame, so
+  // the layout matches the full-size render.
+  const referenceWidth = sequence.width > 0 ? sequence.width : width;
+  const referenceHeight = sequence.height > 0 ? sequence.height : height;
+  const frameSize = { width, height };
   const canvas = {
-    width,
-    height,
+    width: referenceWidth,
+    height: referenceHeight,
     // A `"line"` stagger is counted against the wrapped line count, so the
     // count measures through the same kind of context the rasterizer draws on.
     // SAFETY: `RasterContext2D` is the subset of the 2D canvas API the
@@ -160,10 +216,20 @@ export async function renderTimelineComposited(
 
   if (signal?.aborted) throw abortError();
   const device = await acquireDevice();
+  if (signal?.aborted) throw abortError();
   const compositor = new HeadlessFrameCompositor(device, width, height);
-  const rasterizer = new NodeRasterizer(width, height);
-  const encoder: FrameEncoder =
-    output.format === "png_sequence"
+  compositor.setReferenceSize(referenceWidth, referenceHeight);
+  const { unavailable: fontsUnavailable } = await ensureGoogleFonts(sequence);
+  const rasterizer = new NodeRasterizer(referenceWidth, referenceHeight);
+  const frameIndices = opts.frames
+    ? [...new Set(opts.frames)]
+        .filter((frame) => Number.isInteger(frame) && frame >= 0 && frame < totalFrames)
+        .sort((a, b) => a - b)
+    : Array.from({ length: totalFrames }, (_, frame) => frame);
+  const { writeFrame } = opts;
+  const encoder: FrameEncoder | null = writeFrame
+    ? null
+    : output.format === "png_sequence"
       ? openPngSequenceEncoder({
           outPath,
           width,
@@ -184,6 +250,33 @@ export async function renderTimelineComposited(
   const images = new Map<string, RawImage | null>();
   const assetPaths = new Map<string, Promise<string | null>>();
   const skippedClips = new Set<string>();
+  const diagnostics: TimelineExportDiagnostic[] = [];
+  const latestDiagnostic = new Map<string, TimelineExportDiagnostic>();
+  const clipsById = new Map(sequence.clips.map((clip) => [clip.id, clip]));
+  const diagnose = (
+    clipId: string,
+    timeMs: number,
+    reason: TimelineExportDiagnostic["reason"],
+    detail: string
+  ): void => {
+    const startMs = Math.max(0, timeMs);
+    const endMs = Math.min(durationMs, startMs + frameMs);
+    const key = JSON.stringify([clipId, reason, detail]);
+    const previous = latestDiagnostic.get(key);
+    if (previous && startMs <= previous.endMs + 0.000001) {
+      previous.endMs = Math.max(previous.endMs, endMs);
+    } else {
+      const diagnostic = { clipId, startMs, endMs, reason, detail };
+      diagnostics.push(diagnostic);
+      latestDiagnostic.set(key, diagnostic);
+    }
+    skippedClips.add(clipsById.get(clipId)?.name ?? clipId);
+  };
+  const closeVideoSources = (): void => {
+    for (const source of videoSources.values()) source.close();
+    videoSources.clear();
+  };
+  signal?.addEventListener("abort", closeVideoSources, { once: true });
 
   const pathFor = (assetId: string): Promise<string | null> => {
     let pending = assetPaths.get(assetId);
@@ -197,11 +290,10 @@ export async function renderTimelineComposited(
   const imageFor = async (assetId: string): Promise<RawImage | null> => {
     if (images.has(assetId)) return images.get(assetId) ?? null;
     const file = await pathFor(assetId);
+    if (signal?.aborted) throw abortError();
     let decoded: RawImage | null = null;
-    if (file) {
-      const size = await probeVideoSize(file);
-      if (size) decoded = await decodeImageRgba(file, fitWithin(size, canvas));
-    }
+    if (file) decoded = await decodeStillRgba(file, frameSize);
+    if (signal?.aborted) throw abortError();
     images.set(assetId, decoded);
     return decoded;
   };
@@ -217,67 +309,48 @@ export async function renderTimelineComposited(
     const existing = videoSources.get(key);
     if (existing) return existing;
     const file = await pathFor(assetId);
+    if (signal?.aborted) throw abortError();
     if (!file) return null;
     const size = await probeVideoSize(file);
+    if (signal?.aborted) throw abortError();
     if (!size) return null;
-    const decodeSize = fitWithin(size, canvas);
+    const decodeSize = fitWithin(size, frameSize);
     // `clipSourceTimeSec` at the clip's own start is its in point — or, for a
     // remapped clip, its curve's first source position — expressed the same way
     // the preview seeks, so the first decoded frame is the frame the preview
     // shows at the cut.
     const startSec = clipSourceTimeSec(clip, clip.startMs);
     const endMs = clip.startMs + clip.durationMs;
-    let source: ClipVideoSource;
-    if (hasTimeRemap(clip)) {
-      // A curve can hold, revisit or reverse through the source, which a
-      // forward-only stream cannot serve; this one reopens ffmpeg to seek back.
-      const stream = openSourceFrameStream({
-        filePath: file,
-        size: decodeSize,
-        fps,
-        startSec
-      });
-      source = {
-        width: stream.width,
-        height: stream.height,
-        endMs,
-        async frameAt(timeMs: number): Promise<ClipFrame | null> {
-          const sourceSec = clipSourceTimeSec(clip, timeMs);
-          const rgba = await stream.frameAtSourceSec(sourceSec);
-          if (!rgba) return null;
-          // Keyed on the source instant, not the timeline one: a hold shows the
-          // same pixels at many timeline frames and should upload once.
-          return {
-            rgba,
-            version: `${key}@${Math.round(sourceSec * fps)}`
-          };
-        },
-        close: () => stream.close()
-      };
-    } else {
-      const stream = openVideoFrameStream({
-        filePath: file,
-        size: decodeSize,
-        fps,
-        startSec,
-        speed: clip.speedBaked ? 1 : Math.max(0.0001, clip.speedMultiplier ?? 1)
-      });
-      source = {
-        width: stream.width,
-        height: stream.height,
-        endMs,
-        async frameAt(timeMs: number): Promise<ClipFrame | null> {
-          const index = Math.max(
-            0,
-            Math.round(((timeMs - clip.startMs) * fps) / 1000)
-          );
-          const rgba = await stream.frameAt(index);
-          if (!rgba) return null;
-          return { rgba, version: `${key}#${index}` };
-        },
-        close: () => stream.close()
-      };
-    }
+    const nativeFps = await probeVideoFrameRate(file);
+    const stream = openSourceFrameStream({
+      filePath: file,
+      size: decodeSize,
+      fps: nativeFps,
+      startSec,
+      nativeSampling: true
+    });
+    const frameVersions = new WeakMap<Uint8Array, string>();
+    let nextFrameVersion = 0;
+    const source: ClipVideoSource = {
+      width: stream.width,
+      height: stream.height,
+      endMs,
+      async frameAt(timeMs: number): Promise<ClipFrame | null> {
+        const sourceSec =
+          clip.model3dStyle?.bake?.assetId === assetId
+            ? Math.max(0, (timeMs - clip.startMs) / 1000)
+            : clipSourceTimeSec(clip, timeMs);
+        const rgba = await stream.frameAtSourceSec(sourceSec);
+        if (!rgba) return null;
+        let version = frameVersions.get(rgba);
+        if (version === undefined) {
+          version = `${key}@${nextFrameVersion++}`;
+          frameVersions.set(rgba, version);
+        }
+        return { rgba, version };
+      },
+      close: () => stream.close()
+    };
     videoSources.set(key, source);
     return source;
   };
@@ -292,12 +365,18 @@ export async function renderTimelineComposited(
      */
     const sampleAt = async (timeMs: number, frameTimeMs = timeMs, sampleIndex = 0, sampleCount = 1): Promise<FrameSample> => {
       const layers: FrameLayer[] = [];
-      const { layers: active, adjustments, precomposites } = computeActiveLayersWithHorizon(
+      const {
+        layers: active,
+        adjustments,
+        precomposites,
+        droppedLayers
+      } = computeActiveLayersWithHorizon(
         sequence.tracks,
         sequence.clips,
         timeMs,
         {
           canvas,
+          model3dBakeHash: (clip) => computeModel3DBakeHash(clip, sequence),
           animationCache: animCache,
           mediaTracks: sequence.mediaTracks,
           camera2d: sequence.camera2d,
@@ -305,6 +384,9 @@ export async function renderTimelineComposited(
           layerTimeMs: (clip) => layerShutterTime(clip, frameTimeMs, sampleIndex, sampleCount, frameMs, output.motionBlur)
         }
       );
+      for (const dropped of droppedLayers) {
+        diagnose(dropped.clipId, frameTimeMs, "scene_drop", dropped.reason);
+      }
       /**
        * A resolved layer as something the compositor can upload: its pixels,
        * its own shape mask rasterized at that size, and — for a matted layer —
@@ -360,7 +442,9 @@ export async function renderTimelineComposited(
         if (layer.kind === "caption" && layer.caption) {
           const raster = rasterizer.caption(layer.caption);
           if (!raster) return null;
-          return finish({
+          // No `finish`: the clip's shape mask belongs to its picture, and a
+          // caption has no layer space to mask in — the browser leaves it off.
+          return {
             ...common,
             id: id("c"),
             source: raster,
@@ -376,7 +460,7 @@ export async function renderTimelineComposited(
             // here keeps its geometry — and a dip's one solid — off a layer
             // that composites untransformed anyway.
             transition: undefined
-          });
+          };
         }
 
         if (layer.kind === "text" && anim.textStyle) {
@@ -402,75 +486,150 @@ export async function renderTimelineComposited(
           return finish({ ...common, id: id("s"), source: raster });
         }
 
-        if (!layer.assetId) return null;
-
-        if (layer.kind === "video") {
-          const stream = await videoFor(layer.clip, layer.assetId);
-          if (!stream) {
-            skippedClips.add(layer.clip.name);
-            return null;
-          }
-          const decoded = await stream.frameAt(layerTimeMs);
-          if (!decoded) return null;
-          return finish({
-            ...common,
-            id: id("v"),
-            source: {
-              rgba: decoded.rgba,
-              width: stream.width,
-              height: stream.height,
-              version: decoded.version
-            }
-          });
-        }
-
-        const image = await imageFor(layer.assetId);
-        if (!image) {
-          skippedClips.add(layer.clip.name);
+        if (layer.kind === "model3d") {
+          diagnose(
+            layer.clipId,
+            frameTimeMs,
+            "unsupported_layer",
+            "Live or stale-bake 3D requires a fresh bake before server export"
+          );
           return null;
         }
-        return finish({
-          ...common,
-          id: id("i"),
-          source: { ...image, version: layer.assetId }
-        });
+        if (!layer.assetId) {
+          diagnose(
+            layer.clipId,
+            frameTimeMs,
+            "missing_asset",
+            "Active layer has no media asset"
+          );
+          return null;
+        }
+        if (!(await pathFor(layer.assetId))) {
+          diagnose(
+            layer.clipId,
+            frameTimeMs,
+            "unavailable_media",
+            "Media asset has no readable file"
+          );
+          return null;
+        }
+        try {
+          if (layer.kind === "video") {
+            const stream = await videoFor(layer.clip, layer.assetId);
+            if (!stream) {
+              diagnose(
+                layer.clipId,
+                frameTimeMs,
+                "decode_failure",
+                "Media has no video stream"
+              );
+              return null;
+            }
+            const decoded = await stream.frameAt(layerTimeMs);
+            if (!decoded) {
+              diagnose(
+                layer.clipId,
+                frameTimeMs,
+                "decode_failure",
+                "Video decoder returned no frame"
+              );
+              return null;
+            }
+            return finish({
+              ...common,
+              id: id("v"),
+              source: {
+                rgba: decoded.rgba,
+                width: stream.width,
+                height: stream.height,
+                version: decoded.version
+              }
+            });
+          }
+
+          const image = await imageFor(layer.assetId);
+          if (!image) {
+            diagnose(
+              layer.clipId,
+              frameTimeMs,
+              "decode_failure",
+              "Image decoder returned no frame"
+            );
+            return null;
+          }
+          return finish({
+            ...common,
+            id: id("i"),
+            source: { ...image, version: layer.assetId }
+          });
+        } catch (error) {
+          if (
+            signal?.aborted ||
+            (error instanceof Error && error.name === "MissingBinaryError")
+          ) {
+            throw error;
+          }
+          diagnose(
+            layer.clipId,
+            frameTimeMs,
+            "decode_failure",
+            error instanceof Error ? error.message : String(error)
+          );
+          return null;
+        }
       };
 
       for (let index = 0; index < active.length; index++) {
         if (index > 0 && index % YIELD_EVERY_LAYERS === 0) {
           await setImmediate();
         }
+        if (signal?.aborted) throw abortError();
         const layer = active[index];
         const built = await frameLayerFor(layer);
+        if (signal?.aborted) throw abortError();
         if (!built) continue;
         if (layer.matte) {
           const source = await frameLayerFor(layer.matte.layer, "m:");
-          if (source) {
-            built.matte = {
-              mode: layer.matte.mode,
-              invert: layer.matte.invert,
-              layer: source,
-              strength: layer.matte.strength,
-              featherPx: layer.matte.featherPx
-            };
+          if (signal?.aborted) throw abortError();
+          if (!source) {
+            diagnose(
+              layer.clipId,
+              frameTimeMs,
+              "decode_failure",
+              "Required matte source could not be rendered"
+            );
+            continue;
           }
+          built.matte = {
+            mode: layer.matte.mode,
+            invert: layer.matte.invert,
+            layer: source,
+            strength: layer.matte.strength,
+            featherPx: layer.matte.featherPx
+          };
         }
         layers.push(built);
       }
 
       return {
         layers,
-        adjustments: adjustments.map((adjustment): FrameAdjustment => ({
-          id: adjustment.clipId,
-          zIndex: trackZ(adjustment.trackIndex),
-          opacity: adjustment.opacity,
-          effects: adjustment.effects,
-          shapeMask: adjustment.mask
-            ? rasterizer.mask(adjustment.mask, width, height) ?? undefined
-            : undefined,
-          wipe: adjustment.wipe,
-          precomposeGroupId: adjustment.precomposeGroupId
-        })),
+        adjustments: adjustments.map(
+          (adjustment): FrameAdjustment => ({
+            id: adjustment.clipId,
+            zIndex: trackZ(adjustment.trackIndex),
+            opacity: adjustment.opacity,
+            effects: adjustment.effects,
+            shapeMask: adjustment.mask
+              ? (rasterizer.mask(
+                  adjustment.mask,
+                  referenceWidth,
+                  referenceHeight
+                ) ?? undefined)
+              : undefined,
+            wipe: adjustment.wipe,
+            precomposeGroupId: adjustment.precomposeGroupId
+          })
+        ),
         precomposites: precomposites.map(
           (group): FramePrecomposite => ({
             id: group.clipId,
@@ -503,6 +662,7 @@ export async function renderTimelineComposited(
         timeMs,
         {
           canvas,
+          model3dBakeHash: (clip) => computeModel3DBakeHash(clip, sequence),
           animationCache: animCache,
           mediaTracks: sequence.mediaTracks,
           camera2d: sequence.camera2d,
@@ -529,7 +689,7 @@ export async function renderTimelineComposited(
       );
     };
 
-    for (let frame = 0; frame < totalFrames; frame++) {
+    for (const [done, frame] of frameIndices.entries()) {
       if (signal?.aborted) throw abortError();
       const timeMs = (frame * 1000) / fps;
       const motionBlur = resolveFrameMotionBlur(
@@ -558,21 +718,38 @@ export async function renderTimelineComposited(
         // otherwise finish 32 composites and decodes before it noticed.
         if (signal?.aborted) throw abortError();
         samples.push(await sampleAt(sampleMs, timeMs, samples.length, sampleTimes.length));
+        if (signal?.aborted) throw abortError();
       }
 
-      await encoder.write(
-        await compositor.renderFrameSamples(samples, { alpha: output.alpha })
+      const pixels = await awaitWithAbort(
+        compositor.renderFrameSamples(samples, { alpha: output.alpha }),
+        signal
       );
-      opts.onProgress?.(frame + 1, totalFrames);
+      if (signal?.aborted) throw abortError();
+      await awaitWithAbort(
+        writeFrame
+          ? writeFrame(frame, pixels)
+          : (encoder?.write(pixels) ?? Promise.resolve()),
+        signal
+      );
+      opts.onProgress?.(done + 1, frameIndices.length);
     }
 
-    await encoder.finish();
-    return { totalFrames, skippedClips: [...skippedClips] };
+    if (signal?.aborted) throw abortError();
+    if (encoder) await awaitWithAbort(encoder.finish(), signal);
+    return {
+      complete: diagnostics.length === 0,
+      diagnostics,
+      totalFrames: frameIndices.length,
+      skippedClips: [...skippedClips],
+      fontsUnavailable
+    };
   } catch (error) {
-    encoder.abort();
+    encoder?.abort();
     throw error;
   } finally {
-    for (const source of videoSources.values()) source.close();
+    signal?.removeEventListener("abort", closeVideoSources);
+    closeVideoSources();
     compositor.dispose();
   }
 }

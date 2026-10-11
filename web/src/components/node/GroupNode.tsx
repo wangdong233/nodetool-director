@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import { useTheme } from "@mui/material/styles";
@@ -30,7 +32,6 @@ import {
   darken,
   brighten,
   desaturate,
-  luminance,
   toHex
 } from "../../utils/colorMath";
 import { hexToRgba } from "../../utils/ColorUtils";
@@ -45,8 +46,7 @@ import { useKeyPressed } from "../../stores/KeyPressedStore";
 import RunGroupButton from "./RunGroupButton";
 import BypassGroupButton from "./BypassGroupButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
+import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../ui_primitives";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 200;
@@ -110,7 +110,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
       pointerEvents: "auto",
       zIndex: Z_INDEX.dropdown
     },
-    // Header label — flush at the top-left edge, not rounded, uses darkened group color.
+    // Header label: plain title text in the group color, flush at the top-left edge.
     // Scales inversely with zoom so it appears the same size on screen.
     ".group-label": {
       position: "absolute",
@@ -118,9 +118,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
       height: `${HEADER_HEIGHT}px`,
       display: "flex",
       alignItems: "center",
-      padding: `0 ${getSpacingPx(SPACING.md)}`,
-      borderRadius: BORDER_RADIUS.sm,
-      color: theme.vars.palette.common.white,
+      padding: 0,
       ".title-sizer": {
         position: "absolute",
         visibility: "hidden",
@@ -128,7 +126,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
         pointerEvents: "none",
         fontFamily: theme.fontFamily1,
         fontSize: "var(--fontSizeNormal)",
-        fontWeight: 400,
+        fontWeight: 500,
         letterSpacing: "0.02em"
       },
       transformOrigin: "bottom left",
@@ -145,11 +143,9 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
         border: 0,
         padding: 0,
         margin: 0,
-        color: theme.vars.palette.c_white,
-        textShadow: "0 1px 2px rgba(0, 0, 0, 0.4)",
         fontFamily: theme.fontFamily1,
         fontSize: "var(--fontSizeNormal)",
-        fontWeight: 400,
+        fontWeight: 500,
         letterSpacing: "0.02em",
         pointerEvents: "none",
         "&:focus": {
@@ -188,7 +184,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
       ".run-button": {
         width: "28px !important",
         height: "28px !important",
-        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
+        boxShadow: SHADOW(theme).sm,
         "& svg": {
           fontSize: "var(--fontSizeBig) !important"
         }
@@ -505,20 +501,17 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     const bodyBg = hexToRgba(bodyTintHex, GROUP_BG_OPACITY);
     const subtleBorder = `1px solid ${hexToRgba(bodyTintHex, GROUP_BORDER_OPACITY)}`;
     const labelBg = toHex(brighten(desaturate(parse(bodyTintHex), 0.4), 0.25));
-    const labelTextColor = luminance(labelBg) > 0.55 ? "#000000" : "#ffffff";
-    return { bodyBg, subtleBorder, labelBg, labelTextColor };
+    return { bodyBg, subtleBorder, labelBg };
   }, [color]);
-  const { bodyBg, subtleBorder, labelBg, labelTextColor } = colorTokens;
+  const { bodyBg, subtleBorder, labelBg } = colorTokens;
 
+  // One 1px edge in every state, as on nodes; selection and hover recolor it.
   const rootStyle = useMemo<React.CSSProperties>(() => ({
-    ...(props.selected
-      ? {
-          border: `2px solid ${theme.vars.palette.primary.main}`,
-          boxShadow: `0 0 0 1px ${theme.vars.palette.primary.main}40, inset 0 0 20px ${theme.vars.palette.primary.main}10`
-        }
+    border: props.selected
+      ? `1px solid ${theme.vars.palette.primary.main}`
       : nodeHovered
-        ? { border: `2px solid ${theme.vars.palette.primary.main}` }
-        : { border: subtleBorder }),
+        ? `1px solid color-mix(in srgb, ${theme.vars.palette.primary.main} 60%, transparent)`
+        : subtleBorder,
     opacity: modifierActive ? 0.5 : nodeHovered ? 0.8 : 1,
     pointerEvents: modifierActive ? "all" : "none",
     backgroundColor: bodyBg
@@ -529,22 +522,22 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     height: `${HEADER_HEIGHT * Math.max(labelScale, actionsScale)}px`
   }), [screenGapPx, labelScale, actionsScale]);
 
+  // Plain title text over the frame, like a node title: the group color
+  // marks the text, no filled pill.
   const labelDivStyle = useMemo<React.CSSProperties>(() => ({
-    backgroundColor: labelBg,
-    color: labelTextColor,
+    color: labelBg,
     bottom: 0,
     transform: `scale(${labelScale})`,
     maxWidth: `${labelMaxCssWidth}px`,
     overflow: "hidden",
     transition: `max-width ${MOTION.fast}`
-  }), [labelBg, labelTextColor, labelScale, labelMaxCssWidth]);
+  }), [labelBg, labelScale, labelMaxCssWidth]);
 
   const inputStyle = useMemo<React.CSSProperties>(() => ({
     width: `${Math.max(headlineTextWidth + 2, 12)}px`,
-    color: labelTextColor,
-    maxWidth: "unset",
-    textShadow: labelTextColor === "#000000" ? "none" : undefined
-  }), [headlineTextWidth, labelTextColor]);
+    color: labelBg,
+    maxWidth: "unset"
+  }), [headlineTextWidth, labelBg]);
 
   const actionsStyle = useMemo<React.CSSProperties>(() => ({
     bottom: 0,
@@ -580,10 +573,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         title={
           <span>
             <b>{t("editor:ui.selectGroupNode", { defaultValue: "SELECT GROUP NODE:" })}</b> <br />
-            {t("editor:ui.holdCtrlOrCmdKeyClick", { defaultValue: "Hold CTRL or ⌘ key + click" })} <br />
+            Hold CTRL or ⌘ key + click <br />
             <br />
             <b>{t("editor:ui.editGroupTitleLabel", { defaultValue: "EDIT GROUP TITLE:" })}</b> <br />
-            {t("editor:ui.doubleClickTheLabel")}
+            Double click the label
           </span>
         }
       >
@@ -600,7 +593,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             aria-label={t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
-            placeholder={t("timeline:attrs.group", { defaultValue: "Group" })}
+            placeholder="Group"
             style={inputStyle}
           />
           <span
@@ -646,7 +639,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           {hasChildren && (
             <div style={POPOVER_ROW_STYLE}>
               <span style={menuTextStyle}>
-                {someChildrenBypassed ? t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
+                {someChildrenBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
               </span>
               <BypassGroupButton
                 isBypassed={someChildrenBypassed}
@@ -656,7 +649,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           )}
           <div style={POPOVER_ROW_STYLE}>
             <span style={menuTextStyle}>
-              {t("editor:ui.groupColor", { defaultValue: "Group color" })}
+              Group color
             </span>
             <ColorPicker
               buttonSize={24}

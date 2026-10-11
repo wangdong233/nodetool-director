@@ -7,6 +7,7 @@
  * provider onboarding. Both are what `Continue to setup` reads (criterion 4);
  * the flow's own suite pins the button.
  */
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
@@ -20,9 +21,25 @@ jest.mock("../../../../stores/ProviderOnboardingStore", () => ({
     openProviderOnboarding(...args)
 }));
 
+const str = { type: "str", type_args: [] };
 const metadata = {
-  "nodetool.text.Template": { node_type: "nodetool.text.Template" },
-  "nodetool.text.Concat": { node_type: "nodetool.text.Concat" }
+  "nodetool.text.Template": {
+    node_type: "nodetool.text.Template",
+    properties: [{ name: "string", type: str }],
+    outputs: [{ name: "output", type: str }]
+  },
+  "nodetool.text.Concat": {
+    node_type: "nodetool.text.Concat",
+    properties: [{ name: "a", type: str }],
+    outputs: [{ name: "output", type: str }]
+  },
+  "nodetool.code.Code": {
+    node_type: "nodetool.code.Code",
+    properties: [{ name: "code", type: str }],
+    outputs: [],
+    supports_dynamic_inputs: true,
+    supports_dynamic_outputs: true
+  }
 };
 jest.mock("../../../../stores/MetadataStore", () => ({
   __esModule: true,
@@ -133,7 +150,7 @@ describe("WorkflowReviewStep", () => {
     expect(
       screen.queryByRole("combobox", { name: "Node type for step 1" })
     ).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: "Change" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Change node/ }));
     const search = screen.getByRole("combobox", {
       name: "Node type for step 1"
     });
@@ -162,6 +179,31 @@ describe("WorkflowReviewStep", () => {
       capability: "generate_message",
       reason: "Step 1 needs a language model."
     });
+  });
+
+  // The model list is still being read on a first visit. That is a wait,
+  // not a missing provider, so it says so instead of asking to connect one.
+  it("says the models are being read instead of asking to connect a provider", () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <WorkflowReviewStep
+          plan={{
+            ...PLAN,
+            steps: [{ ...PLAN.steps[0], model_role: "language" }]
+          }}
+          onPlanChange={jest.fn()}
+          onReplan={jest.fn()}
+          providerConfigured={() => false}
+          roleLoading={(role) => role === "language"}
+        />
+      </ThemeProvider>
+    );
+    expect(
+      screen.getByText("Reading the language models your providers offer…")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No language provider connected")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
+    expect(screen.queryByText(/No connected provider offers/)).toBeNull();
   });
 
   it("shows no marker when the role is covered", () => {
@@ -195,6 +237,40 @@ describe("WorkflowReviewStep", () => {
     expect(onPlanChange.mock.calls[1][0].steps.map((s: { id: string }) => s.id)).toEqual([
       "s2"
     ]);
+  });
+
+  it("moves keyboard focus to the next row when a step is removed", async () => {
+    const Stateful = () => {
+      const [plan, setPlan] = React.useState<WorkflowSetupPlan>({
+        ...PLAN,
+        steps: [
+          ...PLAN.steps,
+          {
+            id: "s2",
+            title: "Join",
+            summary: "",
+            node_type: "nodetool.text.Concat"
+          }
+        ]
+      });
+      return (
+        <ThemeProvider theme={mockTheme}>
+          <WorkflowReviewStep
+            plan={plan}
+            onPlanChange={setPlan}
+            onReplan={jest.fn()}
+            providerConfigured={() => true}
+          />
+        </ThemeProvider>
+      );
+    };
+    render(<Stateful />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Remove step 1" }));
+    expect(screen.getByRole("button", { name: "Remove step 1" })).toHaveFocus();
+
+    await userEvent.click(screen.getByRole("button", { name: "Remove step 1" }));
+    expect(screen.getByRole("button", { name: "Add a step" })).toHaveFocus();
   });
 
   it("adds a step with no node type, which the red marker then blocks on", async () => {
@@ -263,9 +339,72 @@ describe("WorkflowReviewStep", () => {
     expect(screen.getByLabelText("text (string)")).toHaveAttribute("readonly");
   });
 
+  it("warns, before anything runs, about a Code step that would fail", () => {
+    renderStep({
+      ...PLAN,
+      steps: [
+        {
+          id: "s1",
+          title: "Prompts",
+          summary: "one per row",
+          node_type: "nodetool.code.Code",
+          code: 'for (const row of inputs.input) { await output("output", row); }'
+        }
+      ]
+    });
+    expect(
+      screen.getByText("This plan would fail when it runs")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/output\(\) can be set only once per run/)
+    ).toBeInTheDocument();
+  });
+
+  it("shows no run-time warning for a plan that builds", () => {
+    renderStep(PLAN);
+    expect(
+      screen.queryByText("This plan would fail when it runs")
+    ).not.toBeInTheDocument();
+  });
+
   it("runs the planner again from Re-plan", async () => {
     const { onReplan } = renderStep(PLAN);
     await userEvent.click(screen.getByRole("button", { name: "Re-plan" }));
     expect(onReplan).toHaveBeenCalledTimes(1);
+  });
+
+  // A re-plan's answer replaces the whole plan, so nothing typed meanwhile
+  // may be written only to be overwritten.
+  it("holds every edit while a re-plan runs", async () => {
+    const onPlanChange = jest.fn();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <WorkflowReviewStep
+          plan={PLAN}
+          onPlanChange={onPlanChange}
+          onReplan={jest.fn()}
+          replanPending
+          providerConfigured={() => true}
+        />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByRole("textbox", { name: "Step 1 title" })).toBeDisabled();
+    expect(
+      screen.getByRole("textbox", { name: "Step 1 description" })
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Remove step 1" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Add a step" })).toBeDisabled();
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Output 1" }),
+      "x"
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Change node: nodetool.text.Template" })
+    );
+    expect(
+      screen.queryByRole("combobox", { name: "Node type for step 1" })
+    ).toBeNull();
+    expect(onPlanChange).not.toHaveBeenCalled();
   });
 });

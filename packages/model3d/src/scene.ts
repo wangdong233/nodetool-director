@@ -14,13 +14,18 @@
 
 import {
   emptyGltf,
+  type GltfAnimationChannel,
   type GltfJson,
   type GltfMaterial,
+  type GltfMesh,
   type GltfNode,
   type Model3DFile
 } from "./gltf.js";
 import {
+  composeMatrix,
   decomposeMatrix,
+  multiplyMatrices,
+  transformPoint,
   eulerDegreesToQuaternion,
   hexToLinearRgb,
   linearRgbToHex,
@@ -70,6 +75,8 @@ export class Model3DOperationError extends Error {
 
 const ID_KEY = "nodetool_id";
 const VISIBLE_KEY = "visible";
+/** The key the browser editor writes for a hidden object. */
+const EDITOR_HIDDEN_KEY = "nodetool_hidden";
 const SELECTED_KEY = "nodetool_selected";
 const LIGHTS_EXTENSION = "KHR_lights_punctual";
 
@@ -86,8 +93,21 @@ const nodesOf = (json: GltfJson): GltfNode[] => {
   return json.nodes;
 };
 
+/** The node list for reading. Unlike {@link nodesOf} it never adds a field. */
+const readNodes = (json: GltfJson): readonly GltfNode[] => json.nodes ?? [];
+
+/** The active scene's root node indices, read without changing the document. */
+const sceneRootIndices = (json: GltfJson): readonly number[] => {
+  const scenes = json.scenes ?? [];
+  const index = typeof json.scene === "number" ? json.scene : 0;
+  return (scenes[index] ?? scenes[0])?.nodes ?? [];
+};
+
 const activeScene = (json: GltfJson) => {
-  json.scenes ??= [{ nodes: [] }];
+  json.scenes ??= [];
+  if (json.scenes.length === 0) {
+    json.scenes.push({ nodes: [] });
+  }
   const index = typeof json.scene === "number" ? json.scene : 0;
   const scene = json.scenes[index] ?? json.scenes[0];
   scene.nodes ??= [];
@@ -107,40 +127,73 @@ const extrasOf = (node: GltfNode): Record<string, unknown> => {
  */
 export function ensureObjectIds(json: GltfJson): void {
   const nodes = nodesOf(json);
+  objectIds(nodes).forEach((id, index) => {
+    if (extrasOf(nodes[index])[ID_KEY] !== id) {
+      extrasOf(nodes[index])[ID_KEY] = id;
+    }
+  });
+}
+
+/**
+ * The id each node answers to: the one {@link ensureObjectIds} gives it.
+ * Listing and lookup read ids through here too, so an id shown before the
+ * first edit always names the object it named in the listing, even when two
+ * nodes carry the same stored id or a stored id equals another's fallback.
+ */
+function objectIds(nodes: readonly GltfNode[]): string[] {
+  const ids: string[] = [];
   const used = new Set<string>();
   // Claim first, mint second, so a minted id cannot collide with one a later
   // node already holds. A repeated id (a .glb whose objects were duplicated in
   // another tool carries the same extras twice) is kept by the first node —
   // the one `resolveTarget` resolves it to — and the rest are re-minted.
-  const keepsItsId = nodes.map((node) => {
-    const id = isRecord(node.extras) ? node.extras[ID_KEY] : undefined;
-    if (typeof id !== "string" || id.length === 0 || used.has(id)) {
-      return false;
+  nodes.forEach((node, index) => {
+    const id = isRecord(node?.extras) ? node.extras[ID_KEY] : undefined;
+    if (typeof id === "string" && id.length > 0 && !used.has(id)) {
+      ids[index] = id;
+      used.add(id);
     }
-    used.add(id);
-    return true;
   });
   let seq = 1;
-  nodes.forEach((node, index) => {
-    if (keepsItsId[index]) {
+  nodes.forEach((_node, index) => {
+    if (ids[index] !== undefined) {
+      return;
+    }
+    // Prefer `node-<index>`, the id a document without stored ids lists.
+    const fallback = `node-${index}`;
+    if (!used.has(fallback)) {
+      ids[index] = fallback;
+      used.add(fallback);
       return;
     }
     while (used.has(`obj_${seq}`)) {
       seq += 1;
     }
-    extrasOf(node)[ID_KEY] = `obj_${seq}`;
+    ids[index] = `obj_${seq}`;
     used.add(`obj_${seq}`);
   });
+  return ids;
 }
 
-const idOf = (node: GltfNode, index: number): string => {
-  const id = isRecord(node.extras) ? node.extras[ID_KEY] : undefined;
-  return typeof id === "string" && id.length > 0 ? id : `node-${index}`;
-};
+/**
+ * The id each node of `nodes` lists under, in node order. The browser editor
+ * stamps these onto the objects it loads, so an id an agent read from the
+ * file keeps naming the same object after the editor saves it in its own
+ * node order.
+ */
+export const listObjectIds = (nodes: readonly GltfNode[]): string[] => objectIds(nodes);
+
+/** A 32-hex id, the repository's resource id form. */
+const freshObjectId = (): string =>
+  Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+
+const idOf = (json: GltfJson, index: number): string => objectIds(readNodes(json))[index];
 
 /** Every node's parent index, or -1 for a scene root. */
 function parentIndices(json: GltfJson): number[] {
-  const nodes = nodesOf(json);
+  const nodes = readNodes(json);
   const parents = new Array<number>(nodes.length).fill(-1);
   nodes.forEach((node, index) => {
     for (const child of node.children ?? []) {
@@ -152,24 +205,37 @@ function parentIndices(json: GltfJson): number[] {
   return parents;
 }
 
-function readTransform(node: GltfNode): {
+interface TransformFields {
   position: Vec3;
   rotation: Vec3;
   scale: Vec3;
-} {
+}
+
+/** A node's transform at full precision, rotation in Euler degrees. */
+function readRawTransform(node: GltfNode): TransformFields {
   if (Array.isArray(node.matrix) && node.matrix.length === 16) {
     const trs = decomposeMatrix(node.matrix);
     return {
-      position: trs.translation.map(round6) as Vec3,
-      rotation: quaternionToEulerDegrees(trs.rotation).map(round6) as Vec3,
-      scale: trs.scale.map(round6) as Vec3
+      position: trs.translation,
+      rotation: quaternionToEulerDegrees(trs.rotation),
+      scale: trs.scale
     };
   }
   const rotation = (node.rotation ?? [0, 0, 0, 1]) as Quat;
   return {
-    position: (node.translation ?? [0, 0, 0]).map(round6) as Vec3,
-    rotation: quaternionToEulerDegrees(rotation).map(round6) as Vec3,
-    scale: (node.scale ?? [1, 1, 1]).map(round6) as Vec3
+    position: [...(node.translation ?? [0, 0, 0])] as Vec3,
+    rotation: quaternionToEulerDegrees(rotation),
+    scale: [...(node.scale ?? [1, 1, 1])] as Vec3
+  };
+}
+
+/** {@link readRawTransform} rounded for display. */
+function readTransform(node: GltfNode): TransformFields {
+  const raw = readRawTransform(node);
+  return {
+    position: raw.position.map(round6) as Vec3,
+    rotation: raw.rotation.map(round6) as Vec3,
+    scale: raw.scale.map(round6) as Vec3
   };
 }
 
@@ -242,19 +308,19 @@ function serializeObject(
   json: GltfJson,
   node: GltfNode,
   index: number,
-  parents: number[]
+  parents: number[],
+  ids: string[] = objectIds(readNodes(json))
 ): Model3DSceneObject {
   const parent = parents[index];
   const extras = isRecord(node.extras) ? node.extras : {};
   const color = materialColorOf(json, node);
   const object: Model3DSceneObject = {
-    uuid: idOf(node, index),
+    uuid: ids[index],
     name: node.name ?? objectType(json, node),
     type: objectType(json, node),
-    visible: extras[VISIBLE_KEY] !== false,
+    visible: extras[VISIBLE_KEY] !== false && extras[EDITOR_HIDDEN_KEY] !== true,
     ...readTransform(node),
-    parentUuid:
-      parent >= 0 ? idOf(nodesOf(json)[parent] as GltfNode, parent) : null
+    parentUuid: parent >= 0 ? ids[parent] : null
   };
   if (color) {
     object.materialColor = color;
@@ -262,29 +328,39 @@ function serializeObject(
   return object;
 }
 
-/** Every object in the document's active scene, parents before children. */
+/**
+ * Every object in the document's active scene, parents before children. The
+ * walk is iterative, so a deep hierarchy cannot overflow the stack, and it
+ * only reads the document.
+ */
 export function listScene(json: GltfJson): Model3DSceneObject[] {
-  const nodes = nodesOf(json);
+  const nodes = readNodes(json);
   const parents = parentIndices(json);
+  const ids = objectIds(nodes);
   const out: Model3DSceneObject[] = [];
   const seen = new Set<number>();
-  const visit = (index: number): void => {
-    const node = nodes[index];
-    if (!node || seen.has(index)) {
-      return;
-    }
-    seen.add(index);
-    out.push(serializeObject(json, node, index, parents));
-    for (const child of node.children ?? []) {
-      visit(child);
+  const visitFrom = (start: number): void => {
+    const stack = [start];
+    while (stack.length > 0) {
+      const index = stack.pop() as number;
+      const node = nodes[index];
+      if (!node || seen.has(index)) {
+        continue;
+      }
+      seen.add(index);
+      out.push(serializeObject(json, node, index, parents, ids));
+      const children = node.children ?? [];
+      for (let i = children.length - 1; i >= 0; i -= 1) {
+        stack.push(children[i]);
+      }
     }
   };
-  for (const root of activeScene(json).nodes ?? []) {
-    visit(root);
+  for (const root of sceneRootIndices(json)) {
+    visitFrom(root);
   }
   // A node outside the active scene is still in the file; report it rather
   // than pretending the document is smaller than it is.
-  nodes.forEach((_, index) => visit(index));
+  nodes.forEach((_, index) => visitFrom(index));
   return out;
 }
 
@@ -309,15 +385,15 @@ function setSelectedId(json: GltfJson, id: string | null): void {
 
 /** Resolve a target by id or case-insensitive name. Throws when nothing matches. */
 export function resolveTarget(json: GltfJson, target: string): number {
-  const nodes = nodesOf(json);
+  const nodes = readNodes(json);
   const raw = target.trim();
-  const byId = nodes.findIndex((node, index) => idOf(node, index) === raw);
+  const byId = objectIds(nodes).indexOf(raw);
   if (byId >= 0) {
     return byId;
   }
   const lower = raw.toLowerCase();
   const byName = nodes.findIndex(
-    (node) => (node.name ?? "").toLowerCase() === lower
+    (node) => (node.name ?? "").trim().toLowerCase() === lower
   );
   if (byName >= 0) {
     return byName;
@@ -329,13 +405,20 @@ export function resolveTarget(json: GltfJson, target: string): number {
 // Mutations
 // ---------------------------------------------------------------------------
 
+/**
+ * `base`, or `base N` with the first free N. Names are compared without case,
+ * because {@link resolveTarget} looks them up without case.
+ */
 function uniqueName(json: GltfJson, base: string): string {
-  const taken = new Set(nodesOf(json).map((node) => node.name ?? ""));
-  if (!taken.has(base)) {
+  // Trimmed too, as resolveTarget trims: "Box " must count as taken by "Box".
+  const taken = new Set(
+    readNodes(json).map((node) => (node.name ?? "").trim().toLowerCase())
+  );
+  if (!taken.has(base.toLowerCase())) {
     return base;
   }
   let n = 2;
-  while (taken.has(`${base} ${n}`)) {
+  while (taken.has(`${base} ${n}`.toLowerCase())) {
     n += 1;
   }
   return `${base} ${n}`;
@@ -531,13 +614,42 @@ export function addObject(
     };
   }
 
+  // A new node needs an id no earlier object ever held. Left to
+  // `ensureObjectIds`, it would take `node-<index>`, which a deleted object
+  // may have answered to, so an agent holding that id would edit this one.
+  extrasOf(node)[ID_KEY] = freshObjectId();
   const nodes = nodesOf(json);
   nodes.push(node);
   const index = nodes.length - 1;
   activeScene(json).nodes?.push(index);
   ensureObjectIds(json);
-  setSelectedId(json, idOf(node, index));
+  setSelectedId(json, idOf(json, index));
   return serializeObject(json, node, index, parentIndices(json));
+}
+
+/**
+ * Rewrite a `KHR_animation_pointer` target such as `/nodes/3/translation`
+ * through `remap`. Returns false when the pointer names a removed node.
+ */
+function remapAnimationPointer(
+  target: GltfAnimationChannel["target"] | undefined,
+  remap: (index: number) => number
+): boolean {
+  const extensions = target?.extensions;
+  const ext = isRecord(extensions) ? extensions["KHR_animation_pointer"] : undefined;
+  if (!isRecord(ext) || typeof ext.pointer !== "string") {
+    return true;
+  }
+  const match = /^\/nodes\/(\d+)(\/.*)?$/.exec(ext.pointer);
+  if (!match) {
+    return true;
+  }
+  const next = remap(Number(match[1]));
+  if (next < 0) {
+    return false;
+  }
+  ext.pointer = `/nodes/${next}${match[2] ?? ""}`;
+  return true;
 }
 
 /** Remap every node index in the document through `mapping` (-1 = removed). */
@@ -559,6 +671,9 @@ function remapNodeIndices(json: GltfJson, mapping: number[]): void {
   }
   for (const animation of json.animations ?? []) {
     animation.channels = (animation.channels ?? []).filter((channel) => {
+      if (!remapAnimationPointer(channel.target, remap)) {
+        return false;
+      }
       const target = channel.target?.node;
       if (typeof target !== "number") {
         return true;
@@ -571,15 +686,74 @@ function remapNodeIndices(json: GltfJson, mapping: number[]): void {
       return true;
     });
   }
-  for (const skin of json.skins ?? []) {
-    skin.joints = (skin.joints ?? []).map(remap).filter((index) => index >= 0);
-    if (typeof skin.skeleton === "number") {
-      const next = remap(skin.skeleton);
-      if (next < 0) {
-        delete skin.skeleton;
-      } else {
-        skin.skeleton = next;
+  // A sampler only the dropped channels played would still count toward the
+  // clip's length (animationDurations reads every sampler), so it goes too.
+  for (const animation of json.animations ?? []) {
+    const samplers = animation.samplers ?? [];
+    const samplerMapping = new Map<number, number>();
+    const keptSamplers: unknown[] = [];
+    for (const channel of animation.channels) {
+      const index = channel.sampler;
+      if (!samplerMapping.has(index) && index >= 0 && index < samplers.length) {
+        samplerMapping.set(index, keptSamplers.length);
+        keptSamplers.push(samplers[index]);
       }
+    }
+    if (keptSamplers.length === samplers.length) {
+      continue;
+    }
+    animation.samplers = keptSamplers;
+    for (const channel of animation.channels) {
+      channel.sampler = samplerMapping.get(channel.sampler) ?? channel.sampler;
+    }
+  }
+  // glTF requires every animation to have a channel.
+  if (json.animations) {
+    json.animations = json.animations.filter(
+      (animation) => (animation.channels ?? []).length > 0
+    );
+    if (json.animations.length === 0) {
+      delete json.animations;
+    }
+  }
+  // A skin that lost a joint no longer matches its inverse bind matrices, so
+  // it goes, and the meshes it deformed stay as they are in the bind pose.
+  if (json.skins) {
+    const skinMapping: number[] = [];
+    const keptSkins: NonNullable<GltfJson["skins"]> = [];
+    json.skins.forEach((skin, index) => {
+      const joints = skin.joints ?? [];
+      if (joints.length === 0 || joints.some((joint) => remap(joint) < 0)) {
+        skinMapping[index] = -1;
+        return;
+      }
+      skin.joints = joints.map(remap);
+      if (typeof skin.skeleton === "number") {
+        const next = remap(skin.skeleton);
+        if (next < 0) {
+          delete skin.skeleton;
+        } else {
+          skin.skeleton = next;
+        }
+      }
+      skinMapping[index] = keptSkins.length;
+      keptSkins.push(skin);
+    });
+    for (const node of nodesOf(json)) {
+      if (typeof node.skin !== "number") {
+        continue;
+      }
+      const next = skinMapping[node.skin] ?? -1;
+      if (next < 0) {
+        delete node.skin;
+      } else {
+        node.skin = next;
+      }
+    }
+    if (keptSkins.length > 0) {
+      json.skins = keptSkins;
+    } else {
+      delete json.skins;
     }
   }
 }
@@ -607,6 +781,9 @@ export function deleteObject(
     }
   }
 
+  const selected = selectedId(json);
+  const ids = objectIds(nodes);
+  const selectionDoomed = [...doomed].some((i) => ids[i] === selected);
   const mapping: number[] = [];
   const kept: GltfNode[] = [];
   nodes.forEach((node, i) => {
@@ -619,7 +796,7 @@ export function deleteObject(
   });
   json.nodes = kept;
   remapNodeIndices(json, mapping);
-  if (selectedId(json) === removed.uuid) {
+  if (selectionDoomed) {
     setSelectedId(json, null);
   }
   return removed;
@@ -633,7 +810,9 @@ export function setTransform(
   ensureObjectIds(json);
   const index = resolveTarget(json, target);
   const node = nodesOf(json)[index];
-  const current = readTransform(node);
+  // Unpatched fields keep full precision: the rounded listing would turn a
+  // scale of 1e-7 into 0 and make the object vanish.
+  const current = readRawTransform(node);
   const next = {
     position: patch.position ?? current.position,
     rotation: patch.rotation ?? current.rotation,
@@ -665,6 +844,7 @@ export function setVisibility(
   const extras = extrasOf(node);
   if (visible) {
     delete extras[VISIBLE_KEY];
+    delete extras[EDITOR_HIDDEN_KEY];
   } else {
     extras[VISIBLE_KEY] = false;
   }
@@ -710,11 +890,21 @@ export function setMaterialColor(
       `"${node.name ?? target}" is a ${objectType(json, node)}, which has no material.`
     );
   }
-  const mesh = json.meshes?.[node.mesh];
+  let mesh = json.meshes?.[node.mesh];
   if (!mesh) {
     throw new Model3DOperationError(
       `"${node.name ?? target}" references mesh ${node.mesh}, which the document does not have.`
     );
+  }
+  // Another node drawing the same mesh would change color too, so this node
+  // gets its own copy of the mesh. The copy shares geometry accessors; only
+  // its material slots are its own.
+  const meshIndex = node.mesh;
+  const meshUsers = readNodes(json).filter((other) => other.mesh === meshIndex).length;
+  if (meshUsers > 1 && json.meshes) {
+    mesh = JSON.parse(JSON.stringify(mesh)) as GltfMesh;
+    json.meshes.push(mesh);
+    node.mesh = json.meshes.length - 1;
   }
 
   // Counted once for the document rather than per primitive: a model with
@@ -780,11 +970,42 @@ export function selectObject(
 export function sceneBounds(
   json: GltfJson
 ): { min: Vec3; max: Vec3; center: Vec3; size: Vec3 } | null {
-  const nodes = nodesOf(json);
+  const nodes = readNodes(json);
   const parents = parentIndices(json);
   const min: Vec3 = [Infinity, Infinity, Infinity];
   const max: Vec3 = [-Infinity, -Infinity, -Infinity];
   let found = false;
+
+  const localMatrix = (node: GltfNode): number[] =>
+    Array.isArray(node.matrix) && node.matrix.length === 16
+      ? node.matrix
+      : composeMatrix(
+          (node.translation ?? [0, 0, 0]) as Vec3,
+          (node.rotation ?? [0, 0, 0, 1]) as Quat,
+          (node.scale ?? [1, 1, 1]) as Vec3
+        );
+
+  // World matrices, filled in from the root down along each node's ancestry.
+  // The walk is iterative and stops at a repeated node, so neither a deep
+  // hierarchy nor a cycle can hang it.
+  const world = new Map<number, number[]>();
+  const worldOf = (index: number): number[] => {
+    const chain: number[] = [];
+    const onChain = new Set<number>();
+    let cursor = index;
+    while (cursor >= 0 && !world.has(cursor) && !onChain.has(cursor)) {
+      chain.push(cursor);
+      onChain.add(cursor);
+      cursor = parents[cursor];
+    }
+    let matrix = cursor >= 0 && world.has(cursor) ? (world.get(cursor) as number[]) : null;
+    for (let i = chain.length - 1; i >= 0; i -= 1) {
+      const local = localMatrix(nodes[chain[i]]);
+      matrix = matrix ? multiplyMatrices(matrix, local) : local;
+      world.set(chain[i], matrix);
+    }
+    return world.get(index) as number[];
+  };
 
   nodes.forEach((node, index) => {
     if (typeof node.mesh !== "number") {
@@ -794,36 +1015,26 @@ export function sceneBounds(
     if (!mesh) {
       return;
     }
-    // Accumulate the node's world transform by walking up its parents. Only
-    // translation and scale are applied: an oriented box needs the corners
-    // rotated, and the extra precision is not worth the matrix stack here.
-    let offset: Vec3 = [0, 0, 0];
-    let factor: Vec3 = [1, 1, 1];
-    let cursor = index;
-    let guard = 0;
-    while (cursor >= 0 && guard < nodes.length + 1) {
-      const { position, scale } = readTransform(nodes[cursor]);
-      offset = [
-        offset[0] * scale[0] + position[0],
-        offset[1] * scale[1] + position[1],
-        offset[2] * scale[2] + position[2]
-      ];
-      factor = [factor[0] * scale[0], factor[1] * scale[1], factor[2] * scale[2]];
-      cursor = parents[cursor];
-      guard += 1;
-    }
-
     for (const primitive of mesh.primitives ?? []) {
       const accessor = json.accessors?.[primitive.attributes?.POSITION ?? -1];
       if (!accessor?.min || !accessor.max) {
         continue;
       }
       found = true;
-      for (let axis = 0; axis < 3; axis += 1) {
-        const lo = accessor.min[axis] * factor[axis] + offset[axis];
-        const hi = accessor.max[axis] * factor[axis] + offset[axis];
-        min[axis] = Math.min(min[axis], lo, hi);
-        max[axis] = Math.max(max[axis], lo, hi);
+      const matrix = worldOf(index);
+      const lo = accessor.min;
+      const hi = accessor.max;
+      // Transform all eight corners, so a rotated box is bounded correctly.
+      for (let corner = 0; corner < 8; corner += 1) {
+        const point = transformPoint(matrix, [
+          corner & 1 ? hi[0] : lo[0],
+          corner & 2 ? hi[1] : lo[1],
+          corner & 4 ? hi[2] : lo[2]
+        ]);
+        for (let axis = 0; axis < 3; axis += 1) {
+          min[axis] = Math.min(min[axis], point[axis]);
+          max[axis] = Math.max(max[axis], point[axis]);
+        }
       }
     }
   });

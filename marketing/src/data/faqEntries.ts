@@ -37,6 +37,7 @@ export type FaqSurface =
   | "agents"
   | "cloud"
   | "comparison"
+  | "developers"
   | "models"
   | "pricing"
   | "studio";
@@ -87,7 +88,7 @@ const seeds: FaqSeed[] = [
     slug: "what-is-nodetool",
     question: "What is NodeTool?",
     answerMd:
-      "NodeTool is an open-source agent-first creative workspace. Create and edit images, video, audio, and text with agents that work alongside you. Describe what you want, let the agent build it, then take over whenever you like. You get an editable project, not just a finished file: your workflows, assets, and edits stay together. Use supported local models or connect cloud providers with your own keys.",
+      "NodeTool is an open-source app for making images, video, audio, and text with AI. You describe what you want, and a built-in AI agent does the work: it writes, generates, and edits inside NodeTool's editors. Then you can change any part yourself. You get an editable project, not just a finished file, so your steps, media, and edits stay together. Run supported AI models on your own computer, or connect online AI providers such as OpenAI, Google, and fal.ai with your own accounts.",
     category: "general",
     relatedRoute: "/",
     surfaces: ["landing", "agents", "comparison"],
@@ -99,7 +100,7 @@ const seeds: FaqSeed[] = [
       "Yes. The whole project is **AGPL-3.0** on [GitHub](https://github.com/nodetool-ai/nodetool). Studio and Cloud are built from the same source, and nothing is held back for a paid tier. You can host it yourself at any time.",
     category: "general",
     relatedRoute: "/studio",
-    surfaces: ["landing", "comparison"],
+    surfaces: ["comparison", "developers", "landing"],
   },
   {
     slug: "what-is-byok",
@@ -108,7 +109,7 @@ const seeds: FaqSeed[] = [
       "It means you connect your own provider accounts and pay each provider directly at its published price. NodeTool does not add a credit system or a provider-price markup. The provider still receives the requests you send to its models. You will sometimes see this written as **BYOK**.",
     category: "byok",
     relatedRoute: "/pricing",
-    surfaces: ["agents", "cloud", "comparison", "models", "pricing", "studio"],
+    surfaces: ["agents", "cloud", "comparison", "developers", "models", "pricing", "studio"],
   },
   {
     slug: "how-much-does-nodetool-cost",
@@ -132,7 +133,7 @@ const seeds: FaqSeed[] = [
     slug: "studio-or-cloud",
     question: "Studio or Cloud — which should I use?",
     answerMd:
-      "Use Studio for production work. It is the desktop edition for macOS, Windows, and Linux, and it can use hosted providers without a local GPU or run supported local models on suitable hardware. Cloud is the browser edition for evaluation and lightweight access while it is in alpha. Current import and export coverage can change during the alpha, so verify the project path you need before relying on a cross-edition handoff.",
+      "Use Studio for real projects. It is the desktop app for macOS, Windows, and Linux. It works with online AI providers without a graphics card, and it can run supported AI models on your own computer if the hardware is strong enough. Cloud runs in your web browser and is in alpha, an early test version, so use it to try NodeTool. Moving projects between Cloud and Studio may not cover everything during the alpha, so check that the move you need works before you rely on it.",
     category: "editions",
     relatedRoute: "/cloud",
     surfaces: ["cloud", "pricing", "studio"],
@@ -168,7 +169,7 @@ const seeds: FaqSeed[] = [
     slug: "how-is-nodetool-different-from-comfyui",
     question: "How is NodeTool different from ComfyUI?",
     answerMd:
-      "ComfyUI is an editor for image models. NodeTool is the studio around it: image, video, music, and words on one canvas, every major model a click away, and editing tools such as masks, inpaint, relight, and layers built in. Both are open source and both work by connecting blocks on a canvas.",
+      "ComfyUI is a node editor for image and video generation. NodeTool is the studio around it: image, video, music, and words on one canvas, every major model a click away, and editing tools such as masks, inpaint, relight, and layers built in. Both are open source and both work by connecting blocks on a canvas.",
     category: "comparison",
     relatedRoute: "/alternatives/comfyui",
     surfaces: ["comparison"],
@@ -233,10 +234,19 @@ const seeds: FaqSeed[] = [
     slug: "what-does-agent-first-mean",
     question: "What does it mean that NodeTool is agent-first?",
     answerMd:
-      "The node canvas, sketch pad, storyboard, video timeline, script editor, 3D scene, and app builder expose operations that agents can call as tools. The agent can change the workflow or project on the same surfaces you use, and the execution record shows tool calls, results, errors, and interventions. The toolbelt is also exposed over **MCP** for compatible external agents.",
+      "It means the AI agent works in the same editors you do. The node canvas, sketch pad, storyboard, video timeline, script editor, 3D scene, game editor, and app builder each give the agent the actions you have, so it can change your project the way you would. A log records every action the agent took, its result, and any error. Coding agents outside NodeTool, such as Claude Code, can use the same actions through **MCP**, the standard way AI agents connect to outside tools.",
     category: "general",
     relatedRoute: "/agents",
     surfaces: ["landing", "agents"],
+  },
+  {
+    slug: "use-nodetool-from-claude-code",
+    question: "Can I use NodeTool from Claude Code, Codex, or Cursor?",
+    answerMd:
+      "Yes. NodeTool runs as an MCP server. Run `npx -y --package=@nodetool-ai/cli nodetool mcp install` and restart the agent. The command registers NodeTool with Claude Code, Codex, and OpenCode, and `nodetool mcp config` prints a config block for Cursor, Claude Desktop, and other clients. The agent gets workflows, image, video, and audio generation, and your asset library as tools. Studio is optional. When Studio runs, the agent's changes appear in the open editor.",
+    category: "general",
+    relatedRoute: "/agents",
+    surfaces: ["agents", "developers"],
   },
   {
     slug: "what-is-a-planning-agent",
@@ -254,7 +264,7 @@ const seeds: FaqSeed[] = [
       "No. Studio can use hosted providers, where the model runs on the provider's hardware. A GPU matters only when you choose to run supported open-weight models on your computer. The requirement then depends on the model and runtime; smaller models may run on CPU at lower speed.",
     category: "models",
     relatedRoute: "/solutions/local-first",
-    surfaces: ["landing", "models", "studio"],
+    surfaces: ["developers", "landing", "models", "studio"],
   },
   {
     slug: "what-should-i-expect-from-cloud-alpha",

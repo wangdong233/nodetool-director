@@ -54,6 +54,9 @@ import {
   StatWidget,
   DownloadWidget,
   RadioGroupWidget,
+  ChoiceCardsWidget,
+  StepperWidget,
+  ApprovalWidget,
   CheckboxGroupWidget,
   DateInputWidget,
   TabsWidget,
@@ -72,6 +75,9 @@ import {
 } from "./WorkflowInputWidget";
 import { ChatThreadWidget, ChatComposerWidget } from "./ChatWidgets";
 import { SketchWidget, TimelineWidget } from "./DocumentWidgets";
+import { StoryboardWidget } from "./StoryboardWidget";
+import { StoryboardPreviewWidget } from "./StoryboardPreviewWidget";
+import { AgentActivityWidget } from "./AgentActivityWidget";
 import { SketchPadWidget } from "./SketchPadWidget";
 import { GalleryWidget, Model3DWidget, PDFWidget } from "./MediaWidgets";
 import { ImageComparerWidget } from "./ImageComparerWidget";
@@ -204,6 +210,29 @@ const optionsField: ArrayField = {
   defaultItemProps: { value: "Option" },
   getItemSummary: (item: Record<string, unknown>) =>
     String(item.value ?? "option")
+};
+
+const choiceCardsField: ArrayField = {
+  type: "array", label: "Cards",
+  arrayFields: {
+    value: { type: "text", label: "Value" }, title: { type: "text", label: "Title" },
+    description: { type: "textarea", label: "Description" }, image: { type: "text", label: "Image URL" },
+    disabled: { type: "radio", label: "Disabled", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
+  },
+  defaultItemProps: { value: "option", title: "Option", description: "", image: "", disabled: false },
+  getItemSummary: (item: Record<string, unknown>) => String(item.title ?? item.value ?? "card")
+};
+
+const stepperField: ArrayField = {
+  type: "array", label: "Steps",
+  arrayFields: {
+    value: { type: "text", label: "Value" }, title: { type: "text", label: "Title" },
+    description: { type: "textarea", label: "Description" },
+    disabled: { type: "radio", label: "Disabled", options: [{ label: "No", value: false }, { label: "Yes", value: true }] },
+    completed: { type: "radio", label: "Completed", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
+  },
+  defaultItemProps: { value: "step", title: "Step", description: "", disabled: false, completed: false },
+  getItemSummary: (item: Record<string, unknown>) => String(item.title ?? item.value ?? "step")
 };
 
 /**
@@ -358,6 +387,8 @@ export const appConfig: Config = {
         "Switch",
         "Select",
         "RadioGroup",
+        "ChoiceCards",
+        "Stepper",
         "CheckboxGroup",
         "DateInput",
         "ResourcePicker",
@@ -381,9 +412,9 @@ export const appConfig: Config = {
     },
     ai: {
       title: "Chat & AI",
-      components: ["ChatThread", "ChatComposer", "ModelSelect"]
+      components: ["ChatThread", "ChatComposer", "ModelSelect", "AgentActivity"]
     },
-    actions: { title: "Actions", components: ["Button"] },
+    actions: { title: "Actions", components: ["Button", "Approval"] },
     display: {
       title: "Display",
       components: [
@@ -395,6 +426,8 @@ export const appConfig: Config = {
         "Video",
         "Sketch",
         "Timeline",
+        "Storyboard",
+        "StoryboardPreview",
         "Json",
         "Table",
         "List",
@@ -439,6 +472,7 @@ export const appConfig: Config = {
             { label: "H3", value: "3" }
           ]
         },
+        subtitle: { type: "textarea", label: "Subtitle" },
         binding: bindingField("read"),
         ...conditionalFields()
       },
@@ -449,10 +483,19 @@ export const appConfig: Config = {
       label: "Text",
       fields: {
         text: { type: "textarea", label: "Text" },
+        tone: {
+          type: "select",
+          label: "Tone",
+          options: [
+            { label: "Default", value: "default" },
+            { label: "Muted", value: "muted" },
+            { label: "Hint", value: "hint" }
+          ]
+        },
         binding: bindingField("read"),
         ...conditionalFields()
       },
-      defaultProps: { text: "Text block" },
+      defaultProps: { text: "Text block", tone: "default" },
       render: withConditions((props) => <TextWidget {...props} />)
     },
     Markdown: {
@@ -488,6 +531,9 @@ export const appConfig: Config = {
           ]
         },
         filename: { type: "text", label: "Download filename" },
+        aspectRatio: { type: "text", label: "Aspect ratio (e.g. 9 / 16, replaces height)" },
+        width: { type: "number", label: "Width (px, empty fills the row)" },
+        caption: { type: "text", label: "Caption" },
         ...conditionalFields({ format: false })
       },
       defaultProps: {
@@ -570,6 +616,34 @@ export const appConfig: Config = {
       },
       render: withConditions((props) => <SketchWidget {...props} />)
     },
+    Storyboard: {
+      label: "Storyboard",
+      fields: {
+        binding: bindingField("read"),
+        height: { type: "number", label: "Height (px)" },
+        placeholder: { type: "text", label: "Placeholder" },
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: {
+        height: 640,
+        placeholder: "No storyboard yet"
+      },
+      render: withConditions((props) => <StoryboardWidget {...props} />)
+    },
+    StoryboardPreview: {
+      label: "Storyboard Preview",
+      fields: {
+        binding: bindingField("read"),
+        height: { type: "number", label: "Height (px)" },
+        placeholder: { type: "text", label: "Placeholder" },
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: {
+        height: 400,
+        placeholder: "No storyboard yet"
+      },
+      render: withConditions((props) => <StoryboardPreviewWidget {...props} />)
+    },
     Timeline: {
       label: "Timeline",
       fields: {
@@ -643,6 +717,18 @@ export const appConfig: Config = {
       },
       defaultProps: { label: "" },
       render: withConditions((props) => <ProgressWidget {...props} />)
+    },
+    AgentActivity: {
+      label: "Agent Activity",
+      fields: {
+        label: { type: "text", label: "Label" },
+        binding: bindingField("read"),
+        height: { type: "number", label: "Height (px)" },
+        placeholder: { type: "text", label: "Placeholder" },
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: { label: "Agent", height: 360, placeholder: "" },
+      render: withConditions((props) => <AgentActivityWidget {...props} />)
     },
     List: {
       label: "List",
@@ -856,6 +942,7 @@ export const appConfig: Config = {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
         placeholder: { type: "text", label: "Placeholder" },
+        hint: { type: "text", label: "Hint" },
         multiline: {
           type: "radio",
           label: "Multiline",
@@ -948,7 +1035,48 @@ export const appConfig: Config = {
       },
       render: withConditions((props) => <RadioGroupWidget {...props} />)
     },
-    CheckboxGroup: {
+    ChoiceCards: {
+      label: "Choice Cards",
+      fields: {
+        binding: bindingField("write"),
+        label: { type: "text", label: "Label" },
+        options: choiceCardsField,
+        optionsBinding: bindingField("read"),
+        columns: { type: "number", label: "Columns" },
+        events: eventsField("change", { commits: false }),
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: { label: "Choose a direction", columns: 2, options: [{ value: "Option A" }, { value: "Option B" }] },
+      render: withConditions((props) => <ChoiceCardsWidget {...props} />)
+    },
+    Stepper: {
+      label: "Guided Steps",
+      fields: {
+        binding: bindingField("write"),
+        label: { type: "text", label: "Label" },
+        steps: stepperField,
+        allowBack: { type: "radio", label: "Allow back", options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+        events: eventsField("change", { commits: false }),
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: { label: "", allowBack: true, steps: [{ value: "Inputs" }, { value: "Review" }, { value: "Build" }] },
+      render: withConditions((props) => <StepperWidget {...props} />)
+    },
+    Approval: {
+      label: "Approval",
+      fields: {
+        binding: bindingField("write"),
+        label: { type: "text", label: "Label" },
+        description: { type: "textarea", label: "Description" },
+        approveLabel: { type: "text", label: "Approve label" },
+        rejectLabel: { type: "text", label: "Reject label" },
+        events: eventsField("change", { commits: false }),
+        ...conditionalFields({ format: false })
+      },
+      defaultProps: { label: "Review", description: "", approveLabel: "Approve", rejectLabel: "Needs changes" },
+      render: withConditions((props) => <ApprovalWidget {...props} />)
+    },
+        CheckboxGroup: {
       label: "Checkbox Group",
       fields: {
         binding: bindingField("write"),
@@ -1249,6 +1377,22 @@ export const appConfig: Config = {
             { label: "Warning", value: "warning" }
           ]
         },
+        fullWidth: {
+          type: "radio",
+          label: "Width",
+          options: [
+            { label: "Full", value: true },
+            { label: "Fit label", value: false }
+          ]
+        },
+        align: {
+          type: "radio",
+          label: "Align (fit label)",
+          options: [
+            { label: "Start", value: "start" },
+            { label: "End", value: "end" }
+          ]
+        },
         events: eventsField("click"),
         ...conditionalFields({ format: false })
       },
@@ -1265,24 +1409,40 @@ export const appConfig: Config = {
       label: "Panel",
       fields: {
         title: { type: "text", label: "Title" },
-        content: { type: "slot" }
+        variant: {
+          type: "select",
+          label: "Style",
+          options: [
+            { label: "Panel", value: "panel" },
+            { label: "Card", value: "card" },
+            { label: "Plain", value: "plain" }
+          ]
+        },
+        columns: { type: "number", label: "Columns" },
+        content: { type: "slot" },
+        visibleWhen: conditionField("Visible when")
       },
-      defaultProps: { title: "", content: [] },
-      render: ({ title, content }) => (
-        <ContainerWidget title={title} content={content} />
-      )
+      defaultProps: { title: "", variant: "panel", columns: 1, content: [] },
+      render: withConditions((props) => <ContainerWidget {...props} />)
     },
     Columns: {
       label: "Columns",
       fields: {
         gap: { type: "number", label: "Gap (px)" },
+        layout: {
+          type: "select",
+          label: "Layout",
+          options: [
+            { label: "Equal halves", value: "equal" },
+            { label: "Main and aside", value: "main-aside" }
+          ]
+        },
         left: { type: "slot" },
-        right: { type: "slot" }
+        right: { type: "slot" },
+        visibleWhen: conditionField("Visible when")
       },
-      defaultProps: { gap: 16, left: [], right: [] },
-      render: ({ gap, left, right }) => (
-        <ColumnsWidget gap={gap} left={left} right={right} />
-      )
+      defaultProps: { gap: 16, layout: "equal", left: [], right: [] },
+      render: withConditions((props) => <ColumnsWidget {...props} />)
     },
     Tabs: {
       label: "Tabs",
@@ -1325,16 +1485,11 @@ export const appConfig: Config = {
             { label: "No", value: false }
           ]
         },
-        content: { type: "slot" }
+        content: { type: "slot" },
+        visibleWhen: conditionField("Visible when")
       },
       defaultProps: { title: "Section", defaultOpen: true, content: [] },
-      render: ({ title, defaultOpen, content }) => (
-        <AccordionWidget
-          title={title}
-          defaultOpen={defaultOpen}
-          content={content}
-        />
-      )
+      render: withConditions((props) => <AccordionWidget {...props} />)
     },
     Divider: {
       label: "Divider",

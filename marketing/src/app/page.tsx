@@ -7,18 +7,19 @@ import React, { useEffect, useState, useCallback } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import NodeToolHero from "../components/NodeToolHero";
-import BuildRunDeploy from "../components/BuildRunDeploy";
 import OwnershipSection from "../components/OwnershipSection";
 import ModelSupportSection from "../components/ModelSupportSection";
 import SurfaceShowcase from "../components/SurfaceShowcase";
+import TimelineShowcase from "../components/TimelineShowcase";
 import ProjectSection from "../components/ProjectSection";
 import CommunitySection from "../components/CommunitySection";
 import ContactSection from "../components/ContactSection";
 import ComparisonSection from "../components/ComparisonSection";
 import EditionsCompareSection from "../components/EditionsCompareSection";
 import RecipeShowcase from "../components/RecipeShowcase";
+import AdLibraryOverview from "../components/AdLibraryOverview";
+import StoryboardExamplesSection from "../components/StoryboardExamplesSection";
 import UnderneathSection from "../components/UnderneathSection";
-import AppsSection from "../components/AppsSection";
 import WaysInSection from "../components/WaysInSection";
 import FaqBlock from "../components/FaqBlock";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -210,32 +211,30 @@ export default function Home() {
           </div>
         </section>
 
-        {/* The agent, directly under the hero: a brief becomes a project that
-            is still open, and the next note goes back to the agent
-            (NARRATIVE.md § Order of the page) */}
-        <ProjectSection />
-
-        {/* The same loop in three steps (Pitch / Automate / Direct) */}
-        <section aria-labelledby="how-title" className="rhythm-section pt-4">
-          <div className={`${sectionContainer}`}>
-            <BuildRunDeploy />
-          </div>
-        </section>
-
         {/* What the reader controls once the agent has built something: the
-            five editors, each over a loop of the real thing (#surface-<id>) */}
+            seven editors, each over a loop of the real thing (#surface-<id>) */}
         <SurfaceShowcase />
 
-        {/* Proof, after the product is understood: guided recipes with editable
-            steps and example media */}
-        <RecipeShowcase />
+        <TimelineShowcase />
+
+        {/* Social ad concepts, each a rendered NodeTool timeline */}
+        <AdLibraryOverview compact />
+
+        {/* The example storyboards that ship with the app, shot by shot */}
+        <StoryboardExamplesSection />
+
+        {/* The agent builds a project from a brief: shown once the reader has
+            seen the boards and cuts it produces (NARRATIVE.md § Order of the
+            page) */}
+        <ProjectSection />
 
         {/* Model breadth on your own keys, under the agent story rather than in
             front of it */}
         <ModelSupportSection reducedMotion={reducedMotion} />
 
-        {/* One job, one tool — for the reader who is not here to direct a film */}
-        <AppsSection />
+        {/* Proof once the story has landed, after the apps: guided recipes with editable
+            steps and example media */}
+        <RecipeShowcase compact />
 
         {/* Ownership: keys, project file, source. Local inference stays on
             /studio; the calculator lives on /pricing. */}
@@ -321,12 +320,12 @@ export default function Home() {
               id="closing-cta-title"
               className="text-3xl md:text-4xl font-bold tracking-tight text-white"
             >
-              Ready to call action?
+              Start making with NodeTool.
             </h2>
             <p className="mt-4 text-lg text-slate-300">
-              Download the open-source studio for macOS, Windows, and Linux.
-              Free, AGPL-3.0. Or try Cloud in your browser, in alpha, with
-              nothing to install.
+              Download Studio, the free and open-source desktop app for macOS,
+              Windows, and Linux. Or try Cloud in your browser with nothing to
+              install. Cloud is in alpha.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <SmartDownloadButton
@@ -337,7 +336,7 @@ export default function Home() {
                 href="https://app.nodetool.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => track("Try Cloud")}
+                onClick={() => track("Try Cloud", { placement: "closing" })}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/10 px-6 py-3.5 text-sm font-semibold text-blue-200 transition-all hover:border-blue-400 hover:bg-blue-500/20 focus-ring"
               >
                 Try Cloud in your browser (alpha)

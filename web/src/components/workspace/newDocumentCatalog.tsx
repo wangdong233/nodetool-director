@@ -40,8 +40,6 @@ import {
   type WorkspaceTabType
 } from "../../stores/WorkspaceTabsStore";
 import { newDocumentId } from "../../lib/newDocumentId";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 /** Render a blank white PNG to seed a "New sketch" canvas asset. */
 const createBlankImageFile = (): Promise<File> =>
@@ -91,7 +89,6 @@ const createBlankModelFile = async (): Promise<File> => {
 
 export interface TextFileTemplate {
   label: string;
-  labelKey?: string;
   filename: string;
   mimeType: string;
   content: string;
@@ -99,37 +96,37 @@ export interface TextFileTemplate {
 
 export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
   {
-    label: "Markdown (.md)", labelKey: "markdownMd",
+    label: "Markdown (.md)",
     filename: "Untitled.md",
     mimeType: "text/markdown",
     content: "# Untitled\n"
   },
   {
-    label: "JSON (.json)", labelKey: "jsonJson",
+    label: "JSON (.json)",
     filename: "Untitled.json",
     mimeType: "application/json",
     content: "{}\n"
   },
   {
-    label: "YAML (.yaml)", labelKey: "yamlYaml",
+    label: "YAML (.yaml)",
     filename: "Untitled.yaml",
     mimeType: "application/x-yaml",
     content: "---\n"
   },
   {
-    label: "CSV (.csv)", labelKey: "csvCsv",
+    label: "CSV (.csv)",
     filename: "Untitled.csv",
     mimeType: "text/csv",
     content: "Column 1\n"
   },
   {
-    label: "TSV (.tsv)", labelKey: "tsvTsv",
+    label: "TSV (.tsv)",
     filename: "Untitled.tsv",
     mimeType: "text/tab-separated-values",
     content: "Column 1\n"
   },
   {
-    label: "Plain text (.txt)", labelKey: "plainTextTxt",
+    label: "Plain text (.txt)",
     filename: "Untitled.txt",
     mimeType: "text/plain",
     content: ""
@@ -143,7 +140,6 @@ export interface NewDocumentEntry {
   key: string;
   /** The document, named — what the grid shows. */
   label: string;
-  labelKey?: string;
   /** The same as an action — what the menu shows. */
   menuLabel: string;
   /** The tab this opens; the grid draws its glyph and color from the type. */
@@ -181,13 +177,13 @@ export const useNewDocumentCatalog = (
   options: NewDocumentCatalogOptions = {},
   onCreated?: () => void
 ): NewDocumentCatalog => {
-  const { t } = useTranslation();
   const [creating, setCreating] = useState<string | null>(null);
 
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
-  const openTab = useWorkspaceTabsStore((state) => state.openTab);
+  const openTab = useWorkspaceTabsStore((state) => state.openForegroundTab);
+  const openGlobalTab = useWorkspaceTabsStore((state) => state.openTab);
   const createNew = useWorkflowManager((state) => state.createNew);
   const createNewThread = useGlobalChatStore((state) => state.createNewThread);
   const createAsset = useAssetStore((state) => state.createAsset);
@@ -206,38 +202,17 @@ export const useNewDocumentCatalog = (
     () => projectId ?? creationProjectId(),
     [projectId]
   );
-  const openCreatedTab = useCallback(
-    (tab: {
-      type: WorkspaceTabType;
-      ref: string;
-      mode?: "view" | "edit";
-      title: string;
-      projectId?: string;
-    }) =>
-      openTab({
-        ...tab,
-        projectId: tab.projectId ?? targetProject()
-      }),
-    [openTab, targetProject]
-  );
   const createProjectAsset = useCallback(
-    (file: File) =>
-      createAsset(
-        file,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        targetProject()
-      ),
-    [createAsset, targetProject]
+    (file: File, destinationProjectId: string) =>
+      createAsset(file, undefined, undefined, undefined, undefined, destinationProjectId),
+    [createAsset]
   );
 
   const runCreate = useCallback(
-    async (label: string, create: () => Promise<void>) => {
+    async (label: string, create: (destinationProjectId: string) => Promise<void>) => {
       setCreating(label);
       try {
-        await create();
+        await create(targetProject());
         onCreated?.();
       } catch (error) {
         addNotification({
@@ -251,111 +226,118 @@ export const useNewDocumentCatalog = (
         setCreating(null);
       }
     },
-    [addNotification, onCreated]
+    [addNotification, onCreated, targetProject]
   );
 
   const createWorkflow = useCallback(
     () =>
-      runCreate("workflow", async () => {
-        const workflow = await createNew(targetProject());
-        openCreatedTab({
+      runCreate("workflow", async (destinationProjectId) => {
+        const workflow = await createNew(destinationProjectId);
+        openTab({
           type: "workflow",
           ref: workflow.id,
           mode: "edit",
-          title: workflow.name
+          title: workflow.name,
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createNew, openCreatedTab, targetProject]
+    [runCreate, createNew, openTab]
   );
 
   const createChat = useCallback(
     () =>
-      runCreate("chat", async () => {
+      runCreate("chat", async (destinationProjectId) => {
         const threadId = await createNewThread(undefined, undefined, {
-          projectId: targetProject()
+          projectId: destinationProjectId
         });
-        openCreatedTab({
+        openTab({
           type: "chat",
           ref: threadId,
           mode: "view",
-          title: "New chat"
+          title: "New chat",
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createNewThread, openCreatedTab, targetProject]
+    [runCreate, createNewThread, openTab]
   );
 
   const createTextFile = useCallback(
     (template: TextFileTemplate) =>
-      runCreate("text file", async () => {
+      runCreate("text file", async (destinationProjectId) => {
         const asset = await createProjectAsset(
           new File([template.content], template.filename, {
             type: template.mimeType
-          })
+          }),
+          destinationProjectId
         );
-        openCreatedTab({
+        openTab({
           type: "text",
           ref: asset.id,
           mode: "edit",
-          title: asset.name || template.filename
+          title: asset.name || template.filename,
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createProjectAsset, openCreatedTab]
+    [runCreate, createProjectAsset, openTab]
   );
 
   const createImage = useCallback(
     () =>
-      runCreate("sketch", async () => {
-        const asset = await createProjectAsset(await createBlankImageFile());
-        openCreatedTab({
+      runCreate("sketch", async (destinationProjectId) => {
+        const asset = await createProjectAsset(await createBlankImageFile(), destinationProjectId);
+        openTab({
           type: "image",
           ref: asset.id,
           mode: "edit",
-          title: asset.name || "Untitled sketch"
+          title: asset.name || "Untitled sketch",
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createProjectAsset, openCreatedTab]
+    [runCreate, createProjectAsset, openTab]
   );
 
   const createSvg = useCallback(
     () =>
-      runCreate("SVG", async () => {
+      runCreate("SVG", async (destinationProjectId) => {
         const asset = await createProjectAsset(
-          new File([BLANK_SVG], "Untitled.svg", { type: "image/svg+xml" })
+          new File([BLANK_SVG], "Untitled.svg", { type: "image/svg+xml" }),
+          destinationProjectId
         );
-        openCreatedTab({
+        openTab({
           type: "svg",
           ref: asset.id,
           mode: "edit",
-          title: asset.name || "Untitled.svg"
+          title: asset.name || "Untitled.svg",
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createProjectAsset, openCreatedTab]
+    [runCreate, createProjectAsset, openTab]
   );
 
   const createVideo = useCallback(
     () =>
-      runCreate("timeline", async () => {
+      runCreate("timeline", async (destinationProjectId) => {
         const sequence = await createTimeline.mutateAsync({
-          name: i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
-          projectId: targetProject()
+          name: "Untitled timeline",
+          projectId: destinationProjectId
         });
         openTab({
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
-          title: sequence.name || i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
+          title: sequence.name || "Untitled timeline",
           projectId: sequence.projectId
         });
       }),
-    [runCreate, createTimeline, openTab, targetProject]
+    [runCreate, createTimeline, openTab]
   );
 
   const createBlankStoryboard = useCallback(
     () =>
-      runCreate("storyboard", async () => {
+      runCreate("storyboard", async (destinationProjectId) => {
         const created = await createStoryboard.mutateAsync({
-          name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
-          projectId: targetProject()
+          name: "Untitled storyboard",
+          projectId: destinationProjectId
         });
         openTab({
           type: "storyboard",
@@ -365,15 +347,15 @@ export const useNewDocumentCatalog = (
           projectId: created.projectId
         });
       }),
-    [runCreate, createStoryboard, openTab, targetProject]
+    [runCreate, createStoryboard, openTab]
   );
 
   const installStoryboardExample = useCallback(
     (slug: string, name: string) =>
-      runCreate(name, async () => {
+      runCreate(name, async (destinationProjectId) => {
         const created = await installExampleStoryboard.mutateAsync({
           slug,
-          projectId: targetProject()
+          projectId: destinationProjectId
         });
         openTab({
           type: "storyboard",
@@ -383,16 +365,16 @@ export const useNewDocumentCatalog = (
           projectId: created.projectId
         });
       }),
-    [runCreate, installExampleStoryboard, openTab, targetProject]
+    [runCreate, installExampleStoryboard, openTab]
   );
 
   const createApp = useCallback(
     () =>
-      runCreate("app", async () => {
+      runCreate("app", async (destinationProjectId) => {
         const created = await createApplication.mutateAsync({
-          name: i18n.t("editor:ui.untitledApp", { defaultValue: "Untitled app" }),
+          name: "Untitled app",
           description: "",
-          projectId: targetProject()
+          projectId: destinationProjectId
         });
         openTab({
           type: "application",
@@ -402,15 +384,15 @@ export const useNewDocumentCatalog = (
           projectId: created.projectId
         });
       }),
-    [runCreate, createApplication, openTab, targetProject]
+    [runCreate, createApplication, openTab]
   );
 
   const createScriptDocument = useCallback(
     () =>
-      runCreate("script", async () => {
+      runCreate("script", async (destinationProjectId) => {
         const created = await createScript.mutateAsync({
-          name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
-          projectId: targetProject()
+          name: "Untitled script",
+          projectId: destinationProjectId
         });
         openTab({
           type: "script",
@@ -420,15 +402,15 @@ export const useNewDocumentCatalog = (
           projectId: created.projectId
         });
       }),
-    [runCreate, createScript, openTab, targetProject]
+    [runCreate, createScript, openTab]
   );
 
   const createJsScriptDocument = useCallback(
     () =>
-      runCreate(i18n.t("editor:ui.jsScript", { defaultValue: "JS script" }), async () => {
+      runCreate("JS script", async (destinationProjectId) => {
         const created = await createJsScript.mutateAsync({
-          name: i18n.t("editor:ui.untitledJsScript", { defaultValue: "Untitled JS script" }),
-          projectId: targetProject()
+          name: "Untitled JS script",
+          projectId: destinationProjectId
         });
         openTab({
           type: "jsscript",
@@ -438,7 +420,7 @@ export const useNewDocumentCatalog = (
           projectId: created.projectId
         });
       }),
-    [runCreate, createJsScript, openTab, targetProject]
+    [runCreate, createJsScript, openTab]
   );
 
   const createSkillDocument = useCallback(
@@ -447,38 +429,39 @@ export const useNewDocumentCatalog = (
         const created = await createSkill.mutateAsync({
           id: newDocumentId(),
           name: `skill-${Date.now().toString(36)}`,
-          description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
+          description: "A reusable skill for the NodeTool agent.",
           content:
             "# New skill\n\nDescribe what this skill does and when the agent should use it."
         });
-        openTab({
+        openGlobalTab({
           type: "skill",
           ref: created.id,
           mode: "edit",
           title: created.name || "Untitled skill"
         });
       }),
-    [runCreate, createSkill, openTab]
+    [runCreate, createSkill, openGlobalTab]
   );
 
   const createModel = useCallback(
     () =>
-      runCreate(i18n.t("editor:ui.model3d", { defaultValue: "3D model" }), async () => {
-        const asset = await createProjectAsset(await createBlankModelFile());
-        openCreatedTab({
+      runCreate("3D model", async (destinationProjectId) => {
+        const asset = await createProjectAsset(await createBlankModelFile(), destinationProjectId);
+        openTab({
           type: "model3d",
           ref: asset.id,
           mode: "edit",
-          title: asset.name || "Untitled model"
+          title: asset.name || "Untitled model",
+          projectId: destinationProjectId
         });
       }),
-    [runCreate, createProjectAsset, openCreatedTab]
+    [runCreate, createProjectAsset, openTab]
   );
 
   const entries: NewDocumentEntry[] = [
     {
       key: "workflow",
-      label: "Workflow", labelKey: "workflow",
+      label: "Workflow",
       menuLabel: "New workflow",
       type: "workflow",
       icon: <AddRoundedIcon fontSize="small" />,
@@ -486,7 +469,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "chat",
-      label: "Chat", labelKey: "chat",
+      label: "Chat",
       menuLabel: "New chat",
       type: "chat",
       icon: <ForumOutlinedIcon fontSize="small" />,
@@ -494,15 +477,15 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "text",
-      label: "Text", labelKey: "text",
-      menuLabel: t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
+      label: "Text",
+      menuLabel: "New text file…",
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
     },
     {
       key: "image",
-      label: "Sketch", labelKey: "sketch",
+      label: "Sketch",
       menuLabel: "New sketch",
       type: "image",
       icon: <ImageOutlinedIcon fontSize="small" />,
@@ -510,7 +493,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "svg",
-      label: "SVG", labelKey: "svg",
+      label: "SVG",
       menuLabel: "New SVG",
       type: "svg",
       icon: <CategoryOutlinedIcon fontSize="small" />,
@@ -518,7 +501,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "video",
-      label: "Timeline", labelKey: "timeline",
+      label: "Timeline",
       menuLabel: "New timeline",
       type: "timeline",
       icon: <MovieOutlinedIcon fontSize="small" />,
@@ -526,15 +509,15 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "storyboard",
-      label: "Storyboard", labelKey: "storyboard",
-      menuLabel: t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
+      label: "Storyboard",
+      menuLabel: "New storyboard…",
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"
     },
     {
       key: "app",
-      label: "App", labelKey: "app",
+      label: "App",
       menuLabel: "New app",
       type: "application",
       icon: <DashboardCustomizeOutlinedIcon fontSize="small" />,
@@ -542,7 +525,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "script",
-      label: "Script", labelKey: "script",
+      label: "Script",
       menuLabel: "New script",
       type: "script",
       icon: <RecordVoiceOverOutlinedIcon fontSize="small" />,
@@ -550,7 +533,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "jsscript",
-      label: "JS script", labelKey: "jsScript",
+      label: "JS script",
       menuLabel: "New JS script",
       type: "jsscript",
       icon: <DataObjectOutlinedIcon fontSize="small" />,
@@ -558,7 +541,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "skill",
-      label: "Skill", labelKey: "skill",
+      label: "Skill",
       menuLabel: "New skill",
       type: "skill",
       icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
@@ -566,7 +549,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "model3d",
-      label: "3D model", labelKey: "model3d",
+      label: "3D model",
       menuLabel: "New 3D model",
       type: "model3d",
       icon: <ViewInArOutlinedIcon fontSize="small" />,

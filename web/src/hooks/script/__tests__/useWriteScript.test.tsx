@@ -17,6 +17,7 @@ jest.mock("../../../lib/websocket/rpcRequest", () => ({
 }));
 
 import { useWriteScript } from "../useWriteScript";
+import { readWriterSignature, writerSignature } from "../scriptWriteSignature";
 import { useScriptStore } from "../../../stores/script/ScriptStore";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import {
@@ -50,7 +51,11 @@ beforeEach(() => {
   rpcRequest.mockReset();
   useScriptStore.setState({ scripts: {}, history: {} } as never);
   useGlobalChatStore.setState({
-    selectedModel: { type: "language_model", id: "claude-sonnet-5", provider: "anthropic" }
+    selectedModel: {
+      type: "language_model",
+      id: "claude-sonnet-5",
+      provider: "anthropic"
+    }
   } as never);
   seed();
 });
@@ -102,6 +107,101 @@ describe("writeScript", () => {
     ]);
     expect(linesNow().every((line) => line.takes.length === 0)).toBe(true);
     expect(scriptNow().setup?.stage).toBe("review");
+  });
+
+  it("records the settings consumed by a pending write", async () => {
+    useScriptStore.getState().setSetup(SCRIPT, { length_seconds: 30 });
+    const requestedSignature = writerSignature(scriptNow().setup, null);
+    let finish = (_answer: typeof writerAnswer): void => {};
+    rpcRequest.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const { result } = renderHook(() => useWriteScript());
+    let pending: Promise<boolean>;
+    act(() => {
+      pending = result.current.write(SCRIPT);
+    });
+    act(() => {
+      useScriptStore.getState().setSetup(SCRIPT, {
+        length_seconds: 120,
+        format: "dialogue"
+      });
+    });
+    await act(async () => {
+      finish(writerAnswer);
+      expect(await pending).toBe(true);
+    });
+    expect(readWriterSignature(scriptNow().setup)).toBe(requestedSignature);
+    expect(readWriterSignature(scriptNow().setup)).not.toBe(
+      writerSignature(scriptNow().setup, null)
+    );
+    expect(scriptNow().setup?.length_seconds).toBe(120);
+  });
+
+  it.each([false, true])(
+    "ignores a late result after cancellation (import: %s)",
+    async (imported) => {
+      if (imported) {
+        setSource(importedFromText(IMPORTED));
+      }
+      const before = scriptNow();
+      let finish = (_answer: typeof writerAnswer): void => {};
+      rpcRequest.mockReturnValue(
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+      );
+      const controller = new AbortController();
+      const { result } = renderHook(() => useWriteScript());
+      let pending: Promise<boolean>;
+      act(() => {
+        pending = result.current.write(SCRIPT, { signal: controller.signal });
+      });
+      act(() => {
+        controller.abort();
+      });
+      await act(async () => {
+        finish(writerAnswer);
+        expect(await pending).toBe(false);
+      });
+      expect(rpcRequest.mock.calls[0][3].aborted).toBe(true);
+      expect(scriptNow()).toEqual(before);
+      expect(result.current.writing).toBe(false);
+      expect(result.current.error).toBeNull();
+    }
+  );
+
+  it("cancels a review rewrite without reporting an error", async () => {
+    rpcRequest.mockResolvedValue(writerAnswer);
+    const { result } = renderHook(() => useWriteScript());
+    await act(async () => {
+      await result.current.write(SCRIPT);
+    });
+    setSource(importedFromText(IMPORTED));
+    const before = scriptNow();
+    rpcRequest.mockImplementation(
+      (_command, _payload, _timeout, signal: AbortSignal) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true }
+          );
+        })
+    );
+    let pending: Promise<boolean>;
+    act(() => {
+      pending = result.current.write(SCRIPT, { rewrite: true });
+    });
+    await act(async () => {
+      result.current.cancel();
+      expect(await pending).toBe(false);
+    });
+    expect(scriptNow()).toEqual(before);
+    expect(result.current.writing).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it("keeps imported words verbatim, whatever the answer says", async () => {
@@ -172,6 +272,87 @@ describe("writeScript", () => {
     ]);
   });
 
+  it("gives a screenplay that names nobody one speaker to read it", async () => {
+    setSource({
+      kind: "fdx",
+      preserve: "verbatim",
+      label: "Final Draft screenplay",
+      lines: [
+        { text: "Are you coming or not?", speakerName: "" },
+        { text: "Give me a minute.", speakerName: "" }
+      ],
+      speakers: [],
+      attributed: true,
+      text: "Are you coming or not?\nGive me a minute."
+    });
+    const { result } = renderHook(() => useWriteScript());
+
+    await act(async () => {
+      expect(await result.current.write(SCRIPT)).toBe(true);
+    });
+
+    // With no cast the review asked for a speaker and offered none.
+    expect(scriptNow().cast.map((speaker) => speaker.name)).toEqual([
+      "Narrator"
+    ]);
+    const narrator = scriptNow().cast[0].id;
+    expect(linesNow().map((line) => line.speakerId)).toEqual([
+      narrator,
+      narrator
+    ]);
+  });
+
+  it("keeps the voices picked for an attributed import when it is prepared again", async () => {
+    setSource({
+      kind: "fdx",
+      preserve: "verbatim",
+      label: "Final Draft screenplay",
+      lines: [
+        { text: "Are you coming or not?", speakerName: "SOPHIA" },
+        { text: "Give me a minute.", speakerName: "MARCUS" }
+      ],
+      speakers: ["SOPHIA", "MARCUS"],
+      attributed: true,
+      text: "Are you coming or not?\nGive me a minute."
+    });
+    const { result } = renderHook(() => useWriteScript());
+    await act(async () => {
+      expect(await result.current.write(SCRIPT)).toBe(true);
+    });
+    const sophia = scriptNow().cast.find((s) => s.name === "SOPHIA")!;
+    const voice = { provider: "elevenlabs", model: "eleven_v3", voice: "v-1" };
+    useScriptStore.getState().updateSpeaker(SCRIPT, sophia.id, { voice });
+
+    await act(async () => {
+      expect(await result.current.write(SCRIPT)).toBe(true);
+    });
+
+    const again = scriptNow().cast.find((s) => s.name === "SOPHIA")!;
+    expect(again.id).toBe(sophia.id);
+    expect(again.voice).toEqual(voice);
+    expect(linesNow()[0].speakerId).toBe(sophia.id);
+  });
+
+  it("leaves language out of the signature of an attributed import", () => {
+    const source: ImportedScript = {
+      kind: "fdx",
+      preserve: "verbatim",
+      label: "Final Draft screenplay",
+      lines: [{ text: "Give me a minute.", speakerName: "MARCUS" }],
+      speakers: ["MARCUS"],
+      attributed: true,
+      text: "Give me a minute."
+    };
+    const setup = scriptNow().setup!;
+    expect(writerSignature({ ...setup, language: "de" }, source)).toBe(
+      writerSignature({ ...setup, language: "fr" }, source)
+    );
+    // Text that goes to a model still counts the language.
+    expect(writerSignature({ ...setup, language: "de" }, null)).not.toBe(
+      writerSignature({ ...setup, language: "fr" }, null)
+    );
+  });
+
   it("turns an SRT's cues into lines that carry their timings", async () => {
     const srt = [
       "1",
@@ -195,8 +376,12 @@ describe("writeScript", () => {
       "A tide clock has one hand.",
       "It goes round once a lunar day."
     ]);
-    expect(linesNow().map((line) => line.targetDurationMs)).toEqual([2750, 3750]);
-    expect(scriptNow().cast.map((speaker) => speaker.name)).toEqual(["Narrator"]);
+    expect(linesNow().map((line) => line.targetDurationMs)).toEqual([
+      2750, 3750
+    ]);
+    expect(scriptNow().cast.map((speaker) => speaker.name)).toEqual([
+      "Narrator"
+    ]);
   });
 
   // CI caught this and an isolated run did not: the id prefix came from
@@ -261,7 +446,11 @@ describe("writeScript", () => {
           {
             title: "Open",
             lines: [
-              { id: kept.id, speaker: "Narrator", text: "It started as a weekend build." },
+              {
+                id: kept.id,
+                speaker: "Narrator",
+                text: "It started as a weekend build."
+              },
               { speaker: "Narrator", text: "A brand new line." }
             ]
           }
@@ -342,6 +531,20 @@ describe("writeScript", () => {
     expect(scriptNow().setup?.stage).toBe("format");
   });
 
+  it("has the reason on errorRef by the time a refused write resolves (F5)", async () => {
+    rpcRequest.mockRejectedValue(new Error("no credit"));
+    const { result } = renderHook(() => useWriteScript());
+    // The render-time snapshot a caller's closure holds while it awaits.
+    const { errorRef } = result.current;
+
+    let reason: string | null = null;
+    await act(async () => {
+      await result.current.write(SCRIPT);
+      reason = errorRef.current;
+    });
+    expect(reason).toBe("no credit");
+  });
+
   it("refuses a script with no brief and no import", async () => {
     useScriptStore.getState().setSetup(SCRIPT, { brief: "" });
     const { result } = renderHook(() => useWriteScript());
@@ -351,5 +554,42 @@ describe("writeScript", () => {
     });
     expect(rpcRequest).not.toHaveBeenCalled();
     expect(result.current.error).toMatch(/brief/i);
+  });
+});
+
+describe("one write per script", () => {
+  // The setup flow and the agent bridge each hold a `useWriteScript`. The
+  // agent's `ui_script_write` must lock the flow's steps and refuse a second
+  // paid write while the first runs.
+  it("shows another caller's write and refuses a second one", async () => {
+    let finish = (_answer: typeof writerAnswer): void => {};
+    rpcRequest.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const flow = renderHook(() => useWriteScript(SCRIPT));
+    const agent = renderHook(() => useWriteScript(SCRIPT));
+    let pending: Promise<boolean>;
+    act(() => {
+      pending = agent.result.current.write(SCRIPT);
+    });
+    expect(flow.result.current.writing).toBe(true);
+
+    let second = true;
+    await act(async () => {
+      second = await flow.result.current.write(SCRIPT);
+    });
+    expect(second).toBe(false);
+    expect(flow.result.current.error).toBe(
+      "This script is already being written."
+    );
+    expect(rpcRequest).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish(writerAnswer);
+      expect(await pending).toBe(true);
+    });
+    expect(flow.result.current.writing).toBe(false);
   });
 });

@@ -130,6 +130,8 @@ export function useTransformActions({
 }: UseTransformActionsParams): UseTransformActionsReturn {
   /** Original transform saved when the transform tool activates. */
   const transformOriginalRef = useRef<LayerTransform | null>(null);
+  /** The layer `transformOriginalRef` belongs to; cancel restores it there. */
+  const transformOriginalLayerIdRef = useRef<string | null>(null);
   const multiTransformOriginalRef = useRef<Record<
     string,
     LayerTransform
@@ -158,7 +160,10 @@ export function useTransformActions({
               [activeLayerId]: canvasRef.current.snapshotLayerCanvas(activeLayerId)
             }
           : undefined;
-      pushHistory(label, layerCanvasSnapshots, { restoreMode: "structure-only" });
+      pushHistory(label, layerCanvasSnapshots, {
+        restoreMode: "structure-only",
+        timing: "before"
+      });
     },
     [pushHistory, document.activeLayerId, canvasRef]
   );
@@ -195,6 +200,7 @@ export function useTransformActions({
       : undefined;
     if (layer) {
       transformOriginalRef.current = cloneTransform(layer.transform);
+      transformOriginalLayerIdRef.current = layer.id;
     }
   }, [document]);
 
@@ -234,7 +240,7 @@ export function useTransformActions({
       return false;
     }
     const activeLayer = document.layers.find((layer) => layer.id === activeLayerId);
-    if (!activeLayer) {
+    if (!activeLayer || activeLayer.type === "vector") {
       return false;
     }
     const originalSnapshot = canvas.snapshotLayerCanvas(activeLayerId);
@@ -292,6 +298,12 @@ export function useTransformActions({
         return false;
       }
 
+      if (activeLayer.type === "vector") {
+        if (record.selectionScoped) { return false; }
+        setLayerTransform(layerId, cloneTransform(record.transform));
+        syncSketchOutputsNow();
+        return true;
+      }
       const originalSnapshot = canvas.snapshotLayerCanvas(layerId);
       if (!originalSnapshot) {
         return false;
@@ -419,7 +431,9 @@ export function useTransformActions({
       transformToolHandler.isMultiTarget()
     ) {
       const ids = [...transformToolHandler.getMultiTargetLayerIds()];
-      pushHistory("transform bake", snapshotLayersForHistory(canvasRef, ids));
+      pushHistory("transform bake", snapshotLayersForHistory(canvasRef, ids), {
+        timing: "before"
+      });
       const primary =
         document.layers.find((l) => l.id === document.activeLayerId) ??
         document.layers.find((l) => l.id === ids[0]);
@@ -434,7 +448,7 @@ export function useTransformActions({
       };
       const idSet = new Set(ids);
       for (const lyr of document.layers) {
-        if (!idSet.has(lyr.id)) {
+        if (!idSet.has(lyr.id) || lyr.type === "vector") {
           continue;
         }
         const layerId = lyr.id;
@@ -458,11 +472,20 @@ export function useTransformActions({
       return;
     }
 
+    if (activeLayer.type === "vector") {
+      pushHistory("transform vector", undefined, { restoreMode: "structure-only" });
+      storeLastCommittedTransform(activeLayer.transform, false);
+      transformOriginalRef.current = null;
+      syncSketchOutputsNow();
+      return;
+    }
+
     const selectionSession = selectionFreeTransformRef.current;
     if (selectionSession && selectionSession.layerId === activeLayerId) {
       pushHistory(
         "transform bake",
-        snapshotLayersForHistory(canvasRef, [activeLayerId])
+        snapshotLayersForHistory(canvasRef, [activeLayerId]),
+        { timing: "before" }
       );
       storeLastCommittedTransform(activeLayer.transform, true);
       canvas.reconcileLayerToDocumentSpace(activeLayerId);
@@ -498,7 +521,8 @@ export function useTransformActions({
 
     pushHistory(
       "transform bake",
-      snapshotLayersForHistory(canvasRef, [activeLayerId])
+      snapshotLayersForHistory(canvasRef, [activeLayerId]),
+      { timing: "before" }
     );
     const newData = canvas.reconcileLayerToDocumentSpace(activeLayerId);
     storeLastCommittedTransform(activeLayer.transform, false);
@@ -546,12 +570,16 @@ export function useTransformActions({
       transformOriginalRef.current = null;
       return;
     }
-    const activeLayerId = document.activeLayerId;
+    // The active layer may have changed since the baseline was saved, so
+    // restore the layer the baseline came from.
+    const originalLayerId =
+      transformOriginalLayerIdRef.current ?? document.activeLayerId;
     const original = transformOriginalRef.current;
     if (original) {
-      setLayerTransform(activeLayerId, original);
+      setLayerTransform(originalLayerId, original);
     }
     transformOriginalRef.current = null;
+    transformOriginalLayerIdRef.current = null;
   }, [document.activeLayerId, setLayerTransform, restoreSelectionFreeTransformState]);
 
   /** Reset: set transform to identity. */
@@ -594,7 +622,7 @@ export function useTransformActions({
   const bakeLayerTransformIntoDocumentSpace = useCallback(
     (layerId: string) => {
       const layer = document.layers.find((entry) => entry.id === layerId);
-      if (!layer || !canvasRef.current) {
+      if (!layer || layer.type === "vector" || !canvasRef.current) {
         return;
       }
 
@@ -608,7 +636,8 @@ export function useTransformActions({
 
       pushHistory(
         "transform bake",
-        snapshotLayersForHistory(canvasRef, [layerId])
+        snapshotLayersForHistory(canvasRef, [layerId]),
+        { timing: "before" }
       );
       const data = canvasRef.current.reconcileLayerToDocumentSpace(layerId);
       commitLayerTransform(layerId, { ...IDENTITY_AFFINE });

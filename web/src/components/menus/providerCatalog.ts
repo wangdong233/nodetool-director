@@ -129,20 +129,12 @@ export const PROVIDER_META: ProviderMeta[] = [
     tag: "Popular",
     docsUrl: "https://platform.openai.com/docs",
     icon: openaiIcon,
-    mono: true
-  },
-  {
-    key: "CODEX_SUBSCRIPTION",
-    providerId: PROVIDER_IDS.CODEX,
-    name: "Codex",
-    description: "Use Codex models through your ChatGPT subscription.",
-    section: "popular",
-    docsUrl: "https://developers.openai.com/codex/",
-    icon: openaiIcon,
     mono: true,
-    note: "Signs in with your ChatGPT account.",
+    // One card for both OpenAI paths, as in provider onboarding: two cards
+    // with the same logo read as a duplicate to a new user.
+    note: "Sign in with your ChatGPT account to use Codex models, or add an API key.",
     oauth: "openai",
-    oauthOnly: true
+    oauthProviderId: PROVIDER_IDS.CODEX
   },
   {
     key: "CLAUDE_SUBSCRIPTION",
@@ -465,6 +457,30 @@ export const PROVIDER_META: ProviderMeta[] = [
     docsUrl: "https://kie.ai/"
   },
   {
+    key: "REQUESTY_API_KEY",
+    providerId: PROVIDER_IDS.REQUESTY,
+    name: "Requesty",
+    description: "Access multiple AI models through one OpenAI-compatible router.",
+    section: "gateways",
+    docsUrl: "https://docs.requesty.ai"
+  },
+  {
+    key: "OPPER_API_KEY",
+    providerId: PROVIDER_IDS.OPPER,
+    name: "Opper",
+    description: "Access multiple AI models through one EU-hosted OpenAI-compatible gateway.",
+    section: "gateways",
+    docsUrl: "https://docs.opper.ai"
+  },
+  {
+    key: "API_ROUTE_API_KEY",
+    providerId: PROVIDER_IDS.API_ROUTE,
+    name: "API Route",
+    description: "Use hosted chat models through an OpenAI-compatible API.",
+    section: "gateways",
+    docsUrl: "https://www.api-route.com/docs/quickstart"
+  },
+  {
     key: "SERPAPI_API_KEY",
     name: "SerpAPI",
     description: "Web search via SerpAPI.",
@@ -509,6 +525,20 @@ export const PROVIDER_META: ProviderMeta[] = [
     description: "Rent marketplace GPUs to run NodeTool workers.",
     section: "compute",
     docsUrl: "https://docs.vast.ai/"
+  },
+  {
+    key: "VERDA_CLIENT_ID",
+    name: "Verda",
+    description: "Cloud API client id for renting GPU instances as workers.",
+    section: "compute",
+    docsUrl: "https://docs.verda.com/welcome-to-verda/api-credentials/"
+  },
+  {
+    key: "VERDA_CLIENT_SECRET",
+    name: "Verda (secret)",
+    description: "Cloud API client secret, paired with the Verda client id.",
+    section: "compute",
+    docsUrl: "https://docs.verda.com/welcome-to-verda/api-credentials/"
   },
   {
     key: "LLAMA_API_KEY",
@@ -565,30 +595,6 @@ export const PROVIDER_META: ProviderMeta[] = [
     docsUrl: "https://github.com/nodetool-ai/nodetool"
   }
 ];
-
-/**
- * Sections whose entries are AI model providers — connecting one of them means
- * NodeTool can run a model. `search` (web-search APIs), `compute` (GPU rental,
- * local-server auth) and `advanced` (tracing, mail, server auth) are
- * credentials for something else, so they don't count.
- */
-const MODEL_PROVIDER_SECTIONS: ReadonlySet<ProviderMeta["section"]> = new Set([
-  "popular",
-  "language",
-  "media",
-  "gateways"
-]);
-
-/**
- * Secret keys that, once configured, mean the user has an AI provider. OAuth-
- * only entries are excluded: their `key` is a display id, not a stored secret,
- * and their connection state comes from the OAuth token endpoints.
- */
-export const AI_PROVIDER_SECRET_KEYS: ReadonlySet<string> = new Set(
-  PROVIDER_META.filter(
-    (meta) => MODEL_PROVIDER_SECTIONS.has(meta.section) && !meta.oauthOnly
-  ).map((meta) => meta.key)
-);
 
 export const getProviderMeta = (key: string): ProviderMeta | undefined =>
   PROVIDER_META.find((p) => p.key === key);

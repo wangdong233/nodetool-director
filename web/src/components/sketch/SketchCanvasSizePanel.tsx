@@ -3,6 +3,8 @@
  * and edge resize-handle toggle (formerly embedded in SketchLayersPanel).
  */
 
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import React, {
   useCallback,
   useEffect,
@@ -14,7 +16,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import AspectRatioIcon from "@mui/icons-material/CropOriginal";
 import ResolutionIcon from "@mui/icons-material/Tv";
 import { CANVAS_PRESETS } from "./types";
-import { sketchFieldSx, SKETCH_COLORS, SKETCH_FONT, SKETCH_SPACING, SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
+import { sketchFieldSx, SKETCH_COLORS, SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
 import {
   FlexColumn,
   FlexRow,
@@ -24,14 +26,16 @@ import {
   MenuItem,
   Select,
   Switch,
-  TextField
+  TextField,
+  FONT_SIZE_SANS,
+  SPACING,
+  getSpacingPx
 } from "../ui_primitives";
 import MediaControlChip from "../chat/composer/MediaControlChip";
 import MediaOptionMenu, {
   type MediaOption
 } from "../chat/composer/MediaOptionMenu";
 import MediaAspectRatioMenu from "../chat/composer/MediaAspectRatioMenu";
-import { useTranslation } from "react-i18next";
 import {
   deriveImageSizePreset,
   IMAGE_ASPECT_RATIOS,
@@ -72,13 +76,13 @@ const dimensionFieldSx = {
   minWidth: 0,
   "& .MuiInputBase-root": {
     ...sketchFieldSx,
-    fontSize: SKETCH_FONT.md,
+    fontSize: FONT_SIZE_SANS.label,
     height: "28px"
   },
   "& .MuiInputBase-input": {
-    padding: `${SKETCH_SPACING.sm} ${SKETCH_SPACING.lg}`
+    padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`
   },
-  "& .MuiInputLabel-root": { fontSize: SKETCH_FONT.sm }
+  "& .MuiInputLabel-root": { fontSize: FONT_SIZE_SANS.label }
 } as const;
 
 interface SketchCanvasSizePanelProps {
@@ -205,12 +209,14 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
   return (
     <FlexColumn className="sketch-canvas-size-panel" padding={1} gap={1}>
       <FlexRow align="center" justify="space-between" sx={{ minHeight: 32 }}>
-        <Text sx={{ fontSize: SKETCH_FONT.sm, color: SKETCH_COLORS.textMuted }}>{t("sketch:attrs.resizeHandles", { defaultValue: "Resize handles" })}</Text>
+        <Text sx={{ fontSize: FONT_SIZE_SANS.label, color: SKETCH_COLORS.textMuted }}>
+          Resize handles
+        </Text>
         <Tooltip
           title={
             canvasResizeHandlesEnabled
-              ? t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" })
-              : t("sketch:attrs.showResizeHandlesOnCanvas", { defaultValue: "Show resize handles on canvas" })
+              ? i18n.t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" })
+              : i18n.t("sketch:attrs.showResizeHandlesOnCanvas", { defaultValue: "Show resize handles on canvas" })
           }
           placement="left"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -221,7 +227,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
             checked={canvasResizeHandlesEnabled}
             onChange={(_, checked) => onCanvasResizeHandlesEnabledChange(checked)}
             inputProps={{
-              "aria-label": t("sketch:attrs.toggleCanvasResizeHandles", { defaultValue: "Toggle canvas resize handles" })
+              "aria-label": i18n.t("sketch:attrs.toggleCanvasResizeHandles", { defaultValue: "Toggle canvas resize handles" })
             }}
           />
         </Tooltip>
@@ -246,7 +252,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
           ...sketchFieldSx,
           width: "100%",
           marginTop: 0.5,
-          fontSize: SKETCH_FONT.sm,
+          fontSize: FONT_SIZE_SANS.label,
           "& .MuiSelect-select": { py: 1, px: 2 }
         }}
         renderValue={() => {
@@ -256,13 +262,11 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
           return (
             <Text
               sx={{
-                fontSize: SKETCH_FONT.sm,
+                fontSize: FONT_SIZE_SANS.label,
                 color: match ? "grey.200" : SKETCH_COLORS.textFaint
               }}
             >
-              {match
-                ? match.label
-                : t("sketch:attrs.presets", { defaultValue: "Presets…" })}
+              {match ? match.label : i18n.t("sketch:attrs.presets", { defaultValue: "Presets…" })}
             </Text>
           );
         }}
@@ -271,7 +275,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
           <MenuItem
             key={preset.label}
             value={preset.label}
-            sx={{ fontSize: SKETCH_FONT.sm }}
+            sx={{ fontSize: FONT_SIZE_SANS.label }}
           >
             {preset.label} - {preset.width}×{preset.height}
           </MenuItem>
@@ -279,7 +283,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
       </Select>
 
       <FlexColumn gap={0.5} sx={{ mt: 2 }}>
-        <Text sx={{ fontSize: SKETCH_FONT.sm, color: SKETCH_COLORS.textMuted }}>
+        <Text sx={{ fontSize: FONT_SIZE_SANS.label, color: SKETCH_COLORS.textMuted }}>
           Aspect &amp; resolution
         </Text>
         <FlexRow align="center" gap={0.5}>
@@ -320,14 +324,14 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
       <FlexRow align="center" gap={1} sx={{ mt: 2 }}>
         <TextField
           size="small"
-          label={t("sketch:attrs.width", { defaultValue: "Width" })}
+          label="Width"
           type="number"
           value={customWidth}
           onChange={(e) => setCustomWidth(e.target.value)}
           inputProps={{ min: 1, max: 4096, step: 1 }}
           sx={dimensionFieldSx}
         />
-        <Text sx={{ fontSize: SKETCH_FONT.md, color: SKETCH_COLORS.textFaint }}>
+        <Text sx={{ fontSize: FONT_SIZE_SANS.label, color: SKETCH_COLORS.textFaint }}>
           ×
         </Text>
         <TextField
@@ -342,7 +346,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         <StateIconButton
           icon={<CheckIcon sx={{ fontSize: 18 }} />}
           tooltip={t("sketch:attrs.applyCanvasSize", { defaultValue: "Apply canvas size" })}
-          ariaLabel={t("sketch:attrs.applyCanvasSize", { defaultValue: "Apply canvas size" })}
+          ariaLabel="Apply canvas size"
           onClick={handleApplyCustomSize}
           isActive={canvasCustomSizeApply.dirty}
           color="primary"

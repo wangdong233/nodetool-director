@@ -2,12 +2,12 @@ import { BaseNode, prop } from "@nodetool-ai/node-sdk";
 import type { Platform } from "@nodetool-ai/protocol";
 import type { OutputCorrelation } from "@nodetool-ai/protocol";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
-import { assetRefToPromptToken } from "@nodetool-ai/runtime";
+import { assetRefToPromptToken, loadMediaRefBytes } from "@nodetool-ai/runtime";
+import type { MediaRefValue } from "@nodetool-ai/runtime";
 import {
   tagAsServer,
   renderTemplate,
-  referencedVariables,
-  base64ToBytes
+  referencedVariables
 } from "@nodetool-ai/nodes-utils";
 import type { TemplateVars } from "@nodetool-ai/nodes-utils";
 import {
@@ -20,7 +20,8 @@ import {
   SAVE_TO_WORKSPACE_TITLE
 } from "@nodetool-ai/nodes-utils";
 import {
-  isNonEmptyString,
+  isNumber,
+  isObjectLike,
   isString
 } from "@nodetool-ai/node-sdk";
 
@@ -50,12 +51,22 @@ function isAsrResult<T>(value: T): value is T & { text: string } {
   );
 }
 
-/** What an `audio` slot delivers: an `AudioRef`, or `{}` before one is wired. */
-type AudioLike = { data?: unknown; uri?: unknown };
-
 /** The embedding capability's answer — one vector per embedded chunk. */
 function isEmbeddingVectors<T>(value: T): value is T & number[][] {
   return Array.isArray(value) && value.every((row) => Array.isArray(row));
+}
+
+/** The rerank capability's answer: scored indices into the documents. */
+function isRerankResults<T>(
+  value: T
+): value is T & Array<{ index: number; score: number }> {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (row) =>
+        isObjectLike(row) && isNumber(row.index) && isNumber(row.score)
+    )
+  );
 }
 
 /**
@@ -198,9 +209,9 @@ export class AutomaticSpeechRecognitionNode extends BaseNode {
     type: "asr_model",
     default: {
       type: "asr_model",
-      provider: "fal_ai",
-      id: "openai/whisper-large-v3",
-      name: "",
+      provider: "openai",
+      id: "gpt-4o-mini-transcribe",
+      name: "GPT-4o Mini Transcribe",
       path: null
     },
     title: "Model"
@@ -220,7 +231,8 @@ export class AutomaticSpeechRecognitionNode extends BaseNode {
     description: "The audio to transcribe",
     required: true
   })
-  declare audio: AudioLike | null;
+  /** An `AudioRef`, or `{}` before one is wired. */
+  declare audio: MediaRefValue | null;
 
   @prop({
     type: "str",
@@ -250,24 +262,13 @@ export class AutomaticSpeechRecognitionNode extends BaseNode {
 
   async process(context?: ProcessingContext): Promise<AutomaticSpeechRecognitionNodeOutputs> {
     const { providerId, modelId } = modelConfig(this.model);
-    const audio: AudioLike = this.audio ?? {};
-    let bytes: Uint8Array = new Uint8Array();
-    if (isString(audio.data)) {
-      bytes = base64ToBytes(audio.data);
-    } else if (audio.data instanceof Uint8Array) {
-      bytes = new Uint8Array(audio.data);
-    } else if (isNonEmptyString(audio.uri)) {
-      if (context?.storage) {
-        const stored = await context.storage.retrieve(audio.uri);
-        if (stored !== null) bytes = new Uint8Array(stored);
-      }
-      if (bytes.length === 0 && audio.uri.startsWith("file://")) {
-        const fs = await loadNodeFsPromises();
-        bytes = new Uint8Array(
-          await fs.readFile(audio.uri.slice("file://".length))
-        );
-      }
-    }
+    const audio: MediaRefValue = this.audio ?? {};
+    // The shared resolver reads every ref an app hands this node: an uploaded
+    // asset id, `asset://`, a shipped `package://` input, a storage path or an
+    // http URL. Reading `storage` and `file://` alone dropped all the others.
+    const bytes =
+      (await loadMediaRefBytes(audio, context)) ??
+      new Uint8Array();
 
     if (
       context &&
@@ -378,6 +379,102 @@ export class EmbeddingTextNode extends BaseNode {
       throw new Error("Embedding expected vectors from the provider.");
     }
     return { output: averageVectors(vectors) };
+  }
+}
+
+/** Output handles RerankNode.process() emits. */
+type RerankNodeOutputs = {
+  documents: string[];
+  scores: number[];
+  indices: number[];
+};
+
+export class RerankNode extends BaseNode {
+  static readonly nodeType = "nodetool.text.Rerank";
+  static readonly title = "Rerank";
+  static readonly description =
+    "Sort documents by how relevant they are to a query, using a reranking model.\n    rerank, retrieval, search, relevance, RAG, cross-encoder\n\n    Use cases:\n    - Reorder vector search results before they reach an LLM\n    - Keep the best few passages for a question\n    - Score candidate answers against a query";
+  static readonly metadataOutputTypes = {
+    documents: "list[str]",
+    scores: "list[float]",
+    indices: "list[int]"
+  };
+  static readonly inlineFields = ["top_k"];
+  static readonly inputFields = ["query", "documents"];
+
+  @prop({
+    type: "rerank_model",
+    default: {
+      type: "rerank_model",
+      provider: "transformers_js",
+      id: "mixedbread-ai/mxbai-rerank-xsmall-v1",
+      name: "mxbai Rerank XSmall v1"
+    },
+    title: "Model",
+    description: "The reranking model to use"
+  })
+  declare model: ModelSelection;
+
+  @prop({
+    type: "str",
+    default: "",
+    title: "Query",
+    description: "The question or search text to rank against"
+  })
+  declare query: string;
+
+  @prop({
+    type: "list[str]",
+    default: [],
+    title: "Documents",
+    description: "The texts to rank"
+  })
+  declare documents: string[];
+
+  @prop({
+    type: "int",
+    default: 0,
+    title: "Top K",
+    description: "Keep only the best this many documents. 0 keeps all.",
+    min: 0
+  })
+  declare top_k: number;
+
+  async process(context?: ProcessingContext): Promise<RerankNodeOutputs> {
+    if (!this.query) {
+      throw new Error("query must not be empty");
+    }
+    const documents = Array.isArray(this.documents)
+      ? this.documents.map((doc) => (isString(doc) ? doc : String(doc)))
+      : [];
+    if (documents.length === 0) {
+      return { documents: [], scores: [], indices: [] };
+    }
+    const { providerId, modelId } = modelConfig(this.model);
+    if (!context || !hasProviderPrediction(context.runProviderPrediction)) {
+      throw new Error("Rerank requires a processing context with provider access");
+    }
+    if (!providerId || !modelId) {
+      throw new Error("Rerank requires a reranking model with provider and id");
+    }
+    const results = await context.runProviderPrediction({
+      provider: providerId,
+      capability: "rerank",
+      model: modelId,
+      params: {
+        query: this.query,
+        documents,
+        top_k: this.top_k > 0 ? this.top_k : undefined
+      }
+    });
+    if (!isRerankResults(results)) {
+      throw new Error("Rerank expected scored documents from the provider.");
+    }
+    return {
+      documents: results.map((r) => documents[r.index]),
+      scores: results.map((r) => r.score),
+      indices: results.map((r) => r.index)
+    };
   }
 }
 
@@ -1112,6 +1209,7 @@ export class TemplateTextNode extends BaseNode {
 export const TEXT_EXTRA_NODES = tagAsServer([
   AutomaticSpeechRecognitionNode,
   EmbeddingTextNode,
+  RerankNode,
   SaveTextFileNode,
   SaveTextNode,
   LoadTextFolderNode,

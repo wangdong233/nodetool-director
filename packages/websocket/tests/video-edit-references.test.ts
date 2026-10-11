@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Asset } from "@nodetool-ai/models";
+import { Asset, initTestDb } from "@nodetool-ai/models";
 import { BaseProvider } from "@nodetool-ai/runtime";
 import type { VideoToVideoParams } from "@nodetool-ai/runtime";
 import { generateMediaDataSchema } from "@nodetool-ai/protocol";
@@ -23,6 +23,13 @@ class EditProvider extends BaseProvider {
   readonly calls: VideoToVideoParams[] = [];
   tasks = ["video_to_video", "video_to_video_reference"];
   constructor() { super("fal_ai"); }
+  protected override declaredCapabilities() {
+    return [
+      "text_to_video",
+      "image_to_video",
+      "video_to_video"
+    ] as const;
+  }
   override async getAvailableVideoModels() {
     return [{ id: "edit", name: "Edit", provider: "fal_ai", supportedTasks: this.tasks }];
   }
@@ -53,6 +60,7 @@ function handler(provider: EditProvider): DirectInferenceHandler {
 
 describe("video edit references", () => {
   beforeEach(() => {
+    initTestDb();
     vi.clearAllMocks();
     vi.spyOn(Asset, "find").mockImplementation(async (_user, id) =>
       id === "missing" ? null : new Asset({
@@ -127,6 +135,25 @@ describe("video edit references", () => {
     expect(trim).not.toHaveBeenCalled();
   });
 
+  it("drops sentence punctuation after an entity:// reference", async () => {
+    const provider = new EditProvider();
+    await handler(provider).runDirectMediaGeneration({
+      ...request(), referenceAssetIds: [], prompt: "Keep entity://entity..."
+    });
+    expect(Asset.find).toHaveBeenCalledWith("user", "entity");
+  });
+
+  // The trailing-dot trim was `/\.+$/`, which backtracks quadratically on a
+  // long dot run followed by another character: 200k dots blocked the event
+  // loop for about 30 seconds.
+  it("reads an entity:// reference with a long interior dot run in linear time", async () => {
+    const id = `${".".repeat(200_000)}x`;
+    await handler(new EditProvider())
+      .runDirectMediaGeneration({ ...request(), referenceAssetIds: [], prompt: `entity://${id}` })
+      .catch(() => undefined);
+    expect(Asset.find).toHaveBeenCalledWith("user", id);
+  });
+
   it("validates explicit ids on the wire", () => {
     expect(generateMediaDataSchema.safeParse({ mode: "video_edit", reference_asset_ids: [""] }).success).toBe(false);
     expect(generateMediaDataSchema.parse({ mode: "video_edit", reference_asset_ids: ["reference"] }).reference_asset_ids).toEqual(["reference"]);
@@ -143,6 +170,8 @@ describe("video edit references", () => {
         mode: "video_edit", provider: "fal_ai", model: "edit", prompt: "Keep identity",
         source_asset_id: "source", reference_asset_ids: ["reference"], entity_ids: ["entity"]
       } });
+      // generate_media answers from a detached task.
+      await session.commands.settled();
       expect(provider.calls[0]).toMatchObject({
         referenceAssetIds: ["reference", "entity"], referenceImages: [new Uint8Array([3]), new Uint8Array([2])]
       });

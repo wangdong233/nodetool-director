@@ -94,6 +94,7 @@ type BugReportSource =
   | "app-crash"
   | "panel-crash"
   | "job-failure"
+  | "operation-failure"
   | "provider-call"
   | "notification"
   | "manual";
@@ -103,6 +104,7 @@ const SOURCE_LABELS: Record<BugReportSource, string> = {
   "app-crash": "App crash",
   "panel-crash": "Panel crash",
   "job-failure": "Job failure",
+  "operation-failure": "Operation failure",
   "provider-call": "Failed provider call",
   notification: "Error notification",
   manual: "Manual report"
@@ -179,6 +181,23 @@ function errorSectionContent(context: BugReportContext): string {
     parts.push("", "--- Stack trace ---", context.stackTrace);
   }
   return redactSecretsInText(parts.join("\n")) || "(no error text captured)";
+}
+
+/**
+ * The server's redacted error traces, as the Markdown `errorTraces.report`
+ * returns. Fetched after the dialog opens, so it is built on its own rather
+ * than in {@link buildBundleSections}.
+ */
+export function buildServerErrorSection(markdown: string): BundleSection {
+  return {
+    id: "server-errors",
+    label: "Recent server errors",
+    description:
+      "Errors the server recorded in the last hour: message, stack and the job or route. Stored redacted, with no prompts or keys.",
+    fileName: "server-errors.md",
+    content: redactSecretsInText(markdown),
+    defaultIncluded: true
+  };
 }
 
 /**
@@ -292,7 +311,9 @@ const MAX_ISSUE_BODY_CHARS = 6000;
 
 export function buildIssueBody(input: IssueBodyInput): string {
   const { context } = input;
-  const contextLines: string[] = [`Reported from: ${sourceLabel(context.source)}`];
+  const contextLines: string[] = [
+    `Reported from: ${sourceLabel(context.source)}`
+  ];
   if (context.nodeType) {
     contextLines.push(
       `Node: \`${context.nodeType}\`${context.nodeTitle ? ` ("${context.nodeTitle}")` : ""}`
@@ -372,7 +393,11 @@ export function buildIssueTitle(
   return `[Bug]: ${prefix}${subject}`.slice(0, 120);
 }
 
-export function buildIssueUrl(baseUrl: string, body: string, title: string): string {
+export function buildIssueUrl(
+  baseUrl: string,
+  body: string,
+  title: string
+): string {
   const search = new URLSearchParams({ title, body, labels: "bug" });
   return `${baseUrl}?${search.toString()}`;
 }
@@ -390,20 +415,34 @@ export interface BundleFile {
   content: string | Uint8Array;
 }
 
-export function zipBundle(files: BundleFile[]): Blob {
+export function zipBundleBytes(files: BundleFile[]): ReturnType<typeof zipSync> {
   const entries: Record<string, Uint8Array> = {};
   for (const file of files) {
     entries[file.name] = isString(file.content)
       ? strToU8(file.content)
       : file.content;
   }
-  const zipped = zipSync(entries);
+  return zipSync(entries);
+}
+
+export function zipBundle(files: BundleFile[]): Blob {
+  const zipped = zipBundleBytes(files);
   // fflate may hand back a view into a pooled buffer; Blob needs the exact bytes.
   const bytes = zipped.buffer.slice(
     zipped.byteOffset,
     zipped.byteOffset + zipped.byteLength
   );
   return new Blob([bytes], { type: "application/zip" });
+}
+
+/** Base64 for the tRPC upload, in chunks so a large zip cannot overflow the call stack. */
+export function bytesToBase64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + CHUNK));
+  }
+  return btoa(binary);
 }
 
 export function bundleFileName(context: BugReportContext, now: Date): string {

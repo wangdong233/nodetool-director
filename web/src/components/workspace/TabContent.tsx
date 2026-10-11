@@ -21,6 +21,8 @@ const ScriptSurface = React.lazy(() => import("./ScriptSurface"));
 const JsScriptSurface = React.lazy(() => import("./JsScriptSurface"));
 const SkillSurface = React.lazy(() => import("./SkillSurface"));
 const ApplicationSurface = React.lazy(() => import("./ApplicationSurface"));
+const ExampleAppSurface = React.lazy(() => import("./ExampleAppSurface"));
+const GameSurface = React.lazy(() => import("./GameSurface"));
 const ChatSurface = React.lazy(() => import("./ChatSurface"));
 const PageSurface = React.lazy(() => import("./PageSurface"));
 const WorkspaceFileSurface = React.lazy(
@@ -83,7 +85,11 @@ const surfaceFor = (tab: WorkspaceTab, active: boolean) => {
         />
       );
     case "application":
-      return <ApplicationSurface refId={tab.ref} mode={tab.mode} />;
+      return <ApplicationSurface refId={tab.ref} mode={tab.mode} instanceId={tab.instanceId} selectedRunId={tab.selectedRunId} />;
+    case "example-app":
+      return <ExampleAppSurface slug={tab.ref} title={tab.title} />;
+    case "game":
+      return <GameSurface refId={tab.ref} active={active} mode={tab.mode} />;
     case "chat":
       return <ChatSurface refId={tab.ref} active={active} />;
     case "page":
@@ -92,11 +98,17 @@ const surfaceFor = (tab: WorkspaceTab, active: boolean) => {
       return <ProjectListSurface />;
     case "project":
       // Old persisted overview tabs land on editor home.
-      return <NewProjectSurface />;
+      return <NewProjectSurface active={active} />;
     case "guided-flow":
-      return <NewProjectSurface flowRef={tab.ref} initialSetupTarget={tab.setupTarget} />;
+      return (
+        <NewProjectSurface
+          flowRef={tab.ref}
+          initialSetupTarget={tab.setupTarget}
+          active={active}
+        />
+      );
     case "project-new":
-      return <NewProjectSurface />;
+      return <NewProjectSurface active={active} />;
     default: {
       // Exhaustiveness guard — a new WorkspaceTabType must add a case here.
       const exhaustive: never = tab.type;

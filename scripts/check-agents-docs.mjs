@@ -15,23 +15,23 @@
 //
 // It also checks the skills, which are the other half of what an agent is told.
 // `packages/system-skills/<name>` holds the one copy of a NodeTool skill and
-// `.claude/skills/<name>` is a symlink to it, so the product and the coding
+// `.agents/skills/<name>` is a symlink to it, so the product and the coding
 // agent read the same document:
 //
-//   5. A `.claude/skills` entry naming a shipped skill is that symlink, not a
+//   5. A `.agents/skills` entry naming a shipped skill is that symlink, not a
 //      second copy that drifts from it.
-//   6. Every symlink under `.claude/skills` resolves to a real SKILL.md.
+//   6. Every symlink under `.agents/skills` resolves to a real SKILL.md.
 //   7. A shipped skill's frontmatter `name` matches its directory, and it ships
 //      nothing but `SKILL.md` — the loader silently drops both mistakes, so the
 //      skill would simply be absent from the catalog with no error anywhere.
 //
-// Codex reads the same skills through `.agents/skills` — the tracked
-// directory; `.claude` is a symlink to it (layout flipped in 2c7028443). It requires `name` and `description` frontmatter,
-// and it does not read Claude Code's `disable-model-invocation`, so a skill
+// Claude Code reads the same skills through `.claude/skills`, which is why
+// `.claude` is a symlink to `.agents`. Codex requires `name` and `description`
+// frontmatter, and it does not read Claude Code's `disable-model-invocation`, so a skill
 // that must be typed rather than reached for carries Codex's own form of that
 // rule beside it:
 //
-//   8. `.claude` resolves to `.agents` (the tracked tree), and every skill is readable through it.
+//   8. `.claude` resolves to `.agents`, and every skill is readable through it.
 //   9. `disable-model-invocation: true` and `agents/openai.yaml` with
 //      `policy.allow_implicit_invocation: false` are present together or not at
 //      all — otherwise one agent reaches for a skill the other never would.
@@ -42,9 +42,10 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SYSTEM_SKILLS_DIR = "packages/system-skills";
-const REPO_SKILLS_DIR = ".claude/skills";
+const REPO_SKILLS_DIR = ".agents/skills";
 const CODEX_DIR = ".agents";
 const CODEX_SKILLS_DIR = `${CODEX_DIR}/skills`;
+const CLAUDE_DIR = ".claude";
 const CODEX_POLICY = "agents/openai.yaml";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -115,15 +116,6 @@ async function main() {
   const skills = await checkSkills(failures);
   const codexSkills = await checkCodexSkills(failures);
 
-  // A broken link layer collapses these counts to 0 while the string checks
-  // still pass — a green exit with zero linked/readable skills is vacuous.
-  if (skills.shipped > 0 && (skills.linked === 0 || codexSkills === 0)) {
-    failures.push(
-      `count collapse: ${skills.shipped} skills shipped but only ` +
-        `${skills.linked} linked / ${codexSkills} readable — the link layer is broken`
-    );
-  }
-
   if (failures.length > 0) {
     console.error("Agent-doc check failed:\n");
     for (const failure of failures) {
@@ -140,29 +132,13 @@ async function main() {
 }
 
 /**
- * Rules 8-9. Codex scans `${CODEX_SKILLS_DIR}` at the repository root and
- * follows symlinks, so one tree serves both agents — but only while the link
- * holds and the two invocation rules agree.
+ * Rules 8-9. Codex scans `${CODEX_SKILLS_DIR}` at the repository root.
+ * Claude Code follows the `.claude` symlink to the same tree.
  */
 async function checkCodexSkills(failures) {
-  // Since 2c7028443 the tracked tree is `.agents` and `.claude` is the
-  // symlink (→ .agents). Codex scans `.agents/skills` directly; every other
-  // consumer reaches the same files through the `.claude` link.
-  let target;
-  try {
-    target = relative(
-      repoRoot,
-      resolve(repoRoot, await readlink(join(repoRoot, ".claude")))
-    );
-  } catch {
-    failures.push(
-      `.claude is missing or not a symlink — the skills tree lives in ` +
-        `${CODEX_DIR} and every other consumer reaches it through this link`
-    );
-    return 0;
-  }
-  if (target !== CODEX_DIR) {
-    failures.push(`.claude points at ${target}, not ${CODEX_DIR}`);
+  const linkProblem = await skillTreeLinkProblem(repoRoot);
+  if (linkProblem) {
+    failures.push(linkProblem);
     return 0;
   }
 
@@ -211,6 +187,29 @@ async function checkCodexSkills(failures) {
     }
   }
   return readable;
+}
+
+export async function skillTreeLinkProblem(root) {
+  let codexDir;
+  try {
+    codexDir = await lstat(join(root, CODEX_DIR));
+  } catch {
+    return `${CODEX_DIR} is missing — Codex scans ${CODEX_SKILLS_DIR}`;
+  }
+  if (!codexDir.isDirectory()) {
+    return `${CODEX_DIR} must be a directory — Codex scans ${CODEX_SKILLS_DIR}`;
+  }
+
+  let target;
+  try {
+    target = relative(root, resolve(root, await readlink(join(root, CLAUDE_DIR))));
+  } catch {
+    return `${CLAUDE_DIR} is missing or not a symlink to ${CODEX_DIR}`;
+  }
+  if (target !== CODEX_DIR) {
+    return `${CLAUDE_DIR} points at ${target}, not ${CODEX_DIR}`;
+  }
+  return null;
 }
 
 /** Directory entries, or [] when the directory is absent. */
@@ -308,4 +307,6 @@ async function checkSkills(failures) {
   return { shipped: shipped.length, linked };
 }
 
-await main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main();
+}

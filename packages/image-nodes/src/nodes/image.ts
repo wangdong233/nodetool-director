@@ -1815,7 +1815,15 @@ export class TextToImageNode extends BaseNode {
   declare resolution: string;
 
   async process(context?: ProcessingContext): Promise<TextToImageNodeOutputs> {
-    const prompt = this.prompt;
+    // The Prompt composer writes entity and text-asset mentions as tokens.
+    // Expand them here, as ImageToImage does, or the model reads the literal
+    // `entity://<id>`.
+    const overrides = await mapPromptAssetsToInputs(
+      [{ name: "prompt", value: this.prompt }],
+      [],
+      context
+    );
+    const prompt = isString(overrides.prompt) ? overrides.prompt : this.prompt;
     const aspectRatio = this.aspect_ratio;
     const resolution = this.resolution;
     const { width, height } = resolveImageSize(resolution, aspectRatio);
@@ -1907,13 +1915,13 @@ export class ImageToImageNode extends BaseNode {
   declare negative_prompt: string;
 
   @prop({
-    type: "list[dict]",
+    type: "list[entity]",
     default: [],
     title: "Entities",
     description:
       "Consistency entities (characters, styles, locations) whose descriptors are injected into the prompt and whose reference images are appended to the input images"
   })
-  declare entities: Record<string, unknown>[];
+  declare entities: Entity[];
 
   @prop({
     type: "float",
@@ -1984,11 +1992,13 @@ export class ImageToImageNode extends BaseNode {
     ).filter((b) => b.length > 0);
     // Entities may supply the source images: their reference images are
     // appended to the list at the provider layer, so an empty wired input is
-    // fine as long as an entity carries an image.
-    const entities = Array.isArray(this.entities) ? this.entities : [];
+    // fine as long as an entity carries an image. A picked entity carries only
+    // its id, so resolve against the library before looking for one.
+    const entities = await resolveEntities(this.entities, context);
     const entityHasImage = entities.some(
-      (e: { image?: unknown; reference_images?: unknown[] } | null) =>
-        !!e?.image || (e?.reference_images?.length ?? 0) > 0
+      (e) =>
+        !!(e as { image?: unknown }).image ||
+        (e.reference_images?.length ?? 0) > 0
     );
     if (bytesList.length === 0 && !entityHasImage) {
       throw new Error("The input image is empty.");
@@ -2524,7 +2534,7 @@ function compositorLayerState(raw: unknown): CompositorLayerState {
   // resolves to "normal" via coerceBlendMode.
   return {
     opacity,
-    blend_mode: coerceBlendMode(r.blend_mode),
+    blend_mode: coerceBlendMode(isString(r.blend_mode) ? r.blend_mode : undefined),
     visible,
     transform: compositorLayerTransform(r.transform)
   };
@@ -3014,6 +3024,69 @@ export class RemoveBackgroundNode extends BaseNode {
   }
 }
 
+/** Output handles EstimateDepthNode.process() emits. */
+type EstimateDepthNodeOutputs = {
+  output: ImageRef;
+};
+
+export class EstimateDepthNode extends BaseNode {
+  static readonly nodeType = "nodetool.image.EstimateDepth";
+  static readonly body = "content_card";
+  static readonly title = "Estimate Depth";
+  static readonly description =
+    "Estimate a depth map from an image. Brighter pixels are nearer to the camera.\n    image, depth, depth map, 3D, estimation, AI";
+  static readonly metadataOutputTypes = { output: "image" };
+  static readonly inlineFields = [];
+  static readonly inputFields = ["image"];
+  static readonly autoSaveAsset = true;
+
+  @prop({
+    type: "image_model",
+    default: {
+      type: "image_model",
+      provider: "transformers_js",
+      id: "onnx-community/depth-anything-v2-small",
+      name: "Depth Anything v2 Small",
+      path: null,
+      supported_tasks: ["estimate_depth"]
+    },
+    title: "Model",
+    description: "The depth-estimation model to use"
+  })
+  declare model: ImageModel;
+
+  @prop({
+    type: "image",
+    default: { type: "image", uri: "", asset_id: null, data: null, metadata: null },
+    title: "Image",
+    description: "Input image to estimate depth from"
+  })
+  declare image: ImageRefLike;
+
+  async process(context?: ProcessingContext): Promise<EstimateDepthNodeOutputs> {
+    const bytes = await imageBytesAsync(this.image, context);
+    if (bytes.length === 0) throw new Error("The input image is empty.");
+    const { providerId, modelId } = getModelConfig(this.serialize());
+    if (!hasProviderSupport(context, providerId, modelId)) {
+      throw new Error("No provider available for depth estimation.");
+    }
+    const output = (await context.runProviderPrediction({
+      provider: providerId,
+      capability: "estimate_depth",
+      model: modelId,
+      params: { image: bytes }
+    })) as Uint8Array;
+    const meta = await metadataFor(output);
+    return {
+      output: imageRef(output, {
+        mimeType: "image/png",
+        width: meta.width,
+        height: meta.height
+      })
+    };
+  }
+}
+
 /** Output handles RelightImageNode.process() emits. */
 type RelightImageNodeOutputs = {
   output: ImageRef;
@@ -3341,8 +3414,8 @@ const IMAGE_TRANSFORM_NODES = tagAsContentCard(
 // members below pin themselves to `NODE_ONLY` (they cannot run on the workers /
 // edge V8 isolates: no fs, no native addons). The pure-JS list nodes
 // (BatchToList, ImagesToList) and the provider/HTTP generation nodes
-// (TextToImage, ImageToImage, Upscale, RemoveBackground, Relight, Vectorize,
-// Segment)
+// (TextToImage, ImageToImage, Upscale, RemoveBackground, EstimateDepth,
+// Relight, Vectorize, Segment)
 // keep the full server set — they only touch sharp via metadataFor, which
 // degrades to undefined dimensions off-Node.
 const IMAGE_SERVER_NODES = tagAsServer([
@@ -3359,6 +3432,7 @@ const IMAGE_SERVER_NODES = tagAsServer([
   ImageToImageNode,
   UpscaleImageNode,
   RemoveBackgroundNode,
+  EstimateDepthNode,
   RelightImageNode,
   VectorizeImageNode,
   SegmentImageNode

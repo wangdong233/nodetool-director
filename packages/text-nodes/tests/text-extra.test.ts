@@ -164,4 +164,90 @@ describe("declared props are wired into process()", () => {
     expect(calls[0]?.text).toEqual(["short"]);
     expect(result.output).toEqual([7, 8]);
   });
+
+  it("RerankNode routes to rerank and maps scored indices back to documents", async () => {
+    const { RerankNode } = await import("@nodetool-ai/text-nodes");
+    const calls: Array<{ capability: string; params: Record<string, unknown> }> = [];
+    const context = {
+      runProviderPrediction: async (req: {
+        capability: string;
+        params: Record<string, unknown>;
+      }) => {
+        calls.push(req);
+        return [
+          { index: 2, score: 0.9 },
+          { index: 0, score: 0.4 }
+        ];
+      }
+    };
+
+    const node = new RerankNode();
+    node.assign({
+      query: "bread",
+      documents: ["a", "", "c"],
+      top_k: 2,
+      model: { provider: "transformers_js", id: "mixedbread-ai/mxbai-rerank-xsmall-v1" }
+    });
+    const result = await node.process(
+      context as unknown as Parameters<RerankNode["process"]>[0]
+    );
+
+    expect(calls[0]?.capability).toBe("rerank");
+    // The empty document stays, so the provider's indices match the input.
+    expect(calls[0]?.params.documents).toEqual(["a", "", "c"]);
+    expect(calls[0]?.params.top_k).toBe(2);
+    expect(result).toEqual({
+      documents: ["c", "a"],
+      scores: [0.9, 0.4],
+      indices: [2, 0]
+    });
+  });
+
+  it("RerankNode returns empty lists for no documents without calling a provider", async () => {
+    const { RerankNode } = await import("@nodetool-ai/text-nodes");
+    let called = false;
+    const context = {
+      runProviderPrediction: async () => {
+        called = true;
+        return [];
+      }
+    };
+    const node = new RerankNode();
+    node.assign({ query: "bread", documents: [] });
+    const result = await node.process(
+      context as unknown as Parameters<RerankNode["process"]>[0]
+    );
+    expect(called).toBe(false);
+    expect(result).toEqual({ documents: [], scores: [], indices: [] });
+  });
+});
+
+describe("AutomaticSpeechRecognitionNode — audio refs", () => {
+  it("transcribes an uploaded asset that carries only its id", async () => {
+    const { AutomaticSpeechRecognitionNode } = await import(
+      "@nodetool-ai/text-nodes"
+    );
+    const audio = new Uint8Array([1, 2, 3]);
+    const resolved: string[] = [];
+    const sent: unknown[] = [];
+    const context = {
+      resolveAssetBytes: async (uri: string) => {
+        resolved.push(uri);
+        return { bytes: audio };
+      },
+      runProviderPrediction: async (request: { params: { audio: unknown } }) => {
+        sent.push(request.params.audio);
+        return { text: "hello" };
+      }
+    };
+    const node = new AutomaticSpeechRecognitionNode();
+    node.assign({
+      model: { type: "asr_model", provider: "fake", id: "fake-asr" },
+      audio: { type: "audio", asset_id: "a".repeat(32) }
+    });
+    const result = await node.process(context as never);
+    expect(resolved).toEqual([`asset://${"a".repeat(32)}`]);
+    expect(sent).toEqual([audio]);
+    expect(result.text).toBe("hello");
+  });
 });

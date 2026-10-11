@@ -344,7 +344,10 @@ export function verifyBackendBundle(bundleDir) {
         errors.push(`examples/timelines/${file} is not readable: ${err.message}`);
         continue;
       }
-      for (const uri of [bundle.videoUri, bundle.posterUri]) {
+      const clipMedia = (bundle.document?.clips ?? [])
+        .map((clip) => clip.currentAssetId)
+        .filter((id) => typeof id === "string" && id.startsWith("package://"));
+      for (const uri of [bundle.videoUri, bundle.posterUri, ...new Set(clipMedia)]) {
         const match = /^package:\/\/([^/]+)\/(.+)$/.exec(uri ?? "");
         const asset = match && path.join(bundleDir, "assets", match[1], ...match[2].split("/"));
         if (!asset || !existsSync(asset)) {
@@ -353,6 +356,29 @@ export function verifyBackendBundle(bundleDir) {
       }
     }
     summary.push(`${timelines.length} example timeline(s) staged with their media`);
+  }
+
+  const gameDir = path.join(bundleDir, "examples", "games");
+  const games = (listFiles(gameDir) ?? []).filter((file) => file.endsWith(".game.json"));
+  for (const file of games) {
+    let bundle;
+    try {
+      bundle = JSON.parse(readFileSync(path.join(gameDir, file), "utf8"));
+    } catch (err) {
+      errors.push(`examples/games/${file} is not readable: ${err.message}`);
+      continue;
+    }
+    const media = Object.values(bundle.document?.assets ?? {}).map((binding) => binding.assetId);
+    for (const uri of [bundle.posterUri, ...media]) {
+      const match = /^package:\/\/([^/]+)\/(.+)$/.exec(uri ?? "");
+      const asset = match && path.join(bundleDir, "assets", match[1], ...match[2].split("/"));
+      if (!asset || !existsSync(asset)) {
+        errors.push(`examples/games/${file} has missing media: ${uri}`);
+      }
+    }
+  }
+  if (games.length > 0) {
+    summary.push(`${games.length} example game(s) staged with their media`);
   }
 
   const assets = listFiles(path.join(bundleDir, "assets", "nodetool-base"));
@@ -444,6 +470,21 @@ export function verifyBackendBundle(bundleDir) {
     const absent = [...new Set(files)].filter(
       (file) => !existsSync(path.join(packDir, ...file.split("/")))
     );
+    // A guest pack names an npm library the sandbox compiler bundles on first
+    // import. It resolves upward from _sandbox/ to the staged modules, which
+    // afterPack promotes to backend/node_modules.
+    const npmNames = declared
+      .filter((module) => module?.kind === "js" && typeof module.npm === "string")
+      .map((module) => module.npm);
+    const unstagedNpm = npmNames.filter(
+      (name) => !readPackageVersion(path.join(bundleDir, "_modules", ...name.split("/")))
+    );
+    if (unstagedNpm.length > 0) {
+      errors.push(
+        `_sandbox/${pack} compiles npm module(s) not staged under _modules/: ` +
+          `${unstagedNpm.join(", ")}. The packaged sandbox could not import the pack.`
+      );
+    }
     if (absent.length > 0) {
       errors.push(
         `_sandbox/${pack} declares file(s) that are not staged: ${absent.join(", ")}.`
@@ -545,6 +586,27 @@ export function verifyBackendBundle(bundleDir) {
       `Mediabunny ${mediabunnyVersion} server codecs staged with ` +
         nodeAvTarget
     );
+  }
+
+  // esbuild's JS API throws "cannot be bundled" unless it runs from its own
+  // lib/main.js, so an inlined copy leaves every npm sandbox module
+  // uncompiled. The sandbox compiler needs it staged with its platform binary.
+  if (serverSource.includes("The esbuild JavaScript API cannot be bundled")) {
+    errors.push(
+      "server.mjs inlines esbuild's JS API, which refuses to run outside " +
+        "esbuild/lib/main.js. Keep esbuild in COMMON_EXTERNAL_PACKAGES."
+    );
+  }
+  const esbuildPlatforms = listFiles(path.join(modulesDir, "@esbuild")) ?? [];
+  if (!readPackageVersion(path.join(modulesDir, "esbuild"))) {
+    errors.push("_modules/esbuild is missing or has no readable package.json");
+  } else if (esbuildPlatforms.length === 0) {
+    errors.push(
+      "no @esbuild/<platform> binary staged under _modules/@esbuild — the " +
+        "sandbox compiler could not start esbuild."
+    );
+  } else {
+    summary.push(`esbuild staged with binary: ${esbuildPlatforms.join(", ")}`);
   }
 
   const sharpVersion = readPackageVersion(path.join(modulesDir, "sharp"));

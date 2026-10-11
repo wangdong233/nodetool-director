@@ -1,6 +1,7 @@
 ---
 name: storyboard-core
 description: "Use NodeTool storyboard, entity-casting, rendering, and timeline-assembly tools for video production or debugging their contracts."
+featured: true
 ---
 
 The shared half of every NodeTool video job. The use-case skills carry the style,
@@ -19,6 +20,7 @@ from an example. Load other sections only when the task reaches them.
 |---|---|
 | Phone-shot video with a person: UGC ad, testimonial, comedy, day-in-the-life, vlog | `/ugc-video` |
 | Product film: pack shot, hero, brand spot, with or without talent | `/product-commercial` |
+| Sound-off motion-graphics ad from real screenshots and product photos, no generated footage | `/motion-ad` |
 | Rebuild an existing ad or clip you were given | `/video-clone` |
 | Voiceover drives the picture: explainer, faceless video, narrated piece | `/script-video` |
 | Narrative with dialogue, score and a title: short film, trailer, scene | `/short-film` |
@@ -58,8 +60,9 @@ Every tool in both families takes an explicit `storyboard_id`. There is no
 "act on whatever is open" fallback.
 
 Prefer headless. Reach for `ui_storyboard_*` when the user is watching the board fill
-in, or when you need `set_screenplay` — board-level `title`, `logline`, `style_bible`,
-`narration` and `music_prompt` live on the screenplay and nothing headless writes them.
+in, or when you need `set_screenplay` for `title`, `logline` or `style_bible`.
+Headless `edit_storyboard` → `set_board` writes screenplay-level `narration` and
+`music_prompt` while preserving the other screenplay fields.
 Bridge the two with `ui_open_document {type: "storyboard", id}`.
 
 ## The loop
@@ -248,6 +251,8 @@ Work with no editor open. Shot `target` = shot id, 0-based index as a string, or
 | `assemble_storyboard_timeline` | `storyboard_id`, `name?`, `fps?` (default 30) |
 | `extract_script_from_storyboard` | `storyboard_id`, `name?`, `relink?` |
 | `delete_storyboard` | `storyboard_id` |
+| `get_storyboard_one_take` | `storyboard_id` → `prompt` (the creator's), `compiled` (REFS, STEPS, AUDIO from the board), `full_prompt`, references with `[Image N]` (the shot stills, in shot order), shot windows, duration, `settings` (stored `duration_seconds`, `aspect_ratio`, `resolution`, `model`), `effective` (after board fallbacks), warnings |
+| `update_storyboard_one_take` | `storyboard_id`, `prompt?`, `duration_seconds?`, `aspect_ratio?`, `resolution?`, `model?` `{provider, id, name?}` (null clears one), `shots?` `[{shot_id, end_state?, sound?}]`, `expected_revision?` |
 
 Render limits: **24 shots per call**, `concurrency` default 3, max 8.
 
@@ -264,9 +269,10 @@ still is reported in the results, not rendered — render its still first, or se
 `{"op": "add_shot", ...}` · `update_shot {target, ...}` · `remove_shot {target}` ·
 `reorder_shot {target, index}` · `set_board {...}`
 
-Shot fields (add and update both): `action`, `slug`, `camera`, `motion`, `dialogue`,
+Shot fields (add and update both): `action`, `slug`, `camera`, `motion`, `graphics`, `dialogue`,
 `narration`, `notes`, `duration_seconds`, `duration_source` (`audio`\|`manual`),
-`render_mode` (`keyframe`\|`direct`), `entity_ids`, `location_id`, `covered_by`, `index`.
+`render_mode` (`keyframe`\|`direct`\|`reference`), `entity_ids`, `location_id`, `covered_by`, `index`.
+`graphics` is semantic design intent (`mode`, `direction`, exact text/assets in `elements`), not Timeline keyframes; pass `null` on `update_shot` to clear it.
 
 `camera` is `{framing?, lens?, angle?, movement?}`.
 
@@ -274,19 +280,19 @@ Shot fields (add and update both): `action`, `slug`, `camera`, `motion`, `dialog
 window into another shot's clip. See § Fusing shots below. `null` undoes it.
 
 Board fields (`set_board` only): `brief`, `style`, `aspect_ratio`, `entity_ids`,
-`image_model`, `video_model`. The two model fields take a model **object** from
-`find_model`, or null.
+`image_model`, `video_model`, `narration`, `music_prompt`. The two model fields
+take a model **object** from `find_model`, or null. `narration` and `music_prompt`
+take strings and update the screenplay. An empty string clears that direction.
 
 **An edit cannot set `keyframe`, `clip` or `status`.** Those belong to the render
 tools; passing them raises an error naming the right tool. `covered_by` is the one
 exception: coverage is a picture that arrived without a render, so setting it marks
 the shot `rendered` and clearing it puts the shot back to `keyframe_ready`/`planned`.
 
-**An edit cannot set `title`, `logline`, `style_bible`, `narration` or `music_prompt`
-at the board level.** Those live on the screenplay, which only
-`ui_storyboard_set_screenplay` writes. Per-*shot* `narration` is an ordinary shot
-field and works fine headlessly. Board narration and music matter because
-`assemble_storyboard_timeline` turns them into draft audio clips.
+**An edit cannot set `title`, `logline` or `style_bible` at the board level.**
+Use `ui_storyboard_set_screenplay` for those fields. Per-shot `narration` remains
+a shot field. Board narration and music are separate screenplay fields:
+`assemble_storyboard_timeline` turns them into draft audio clips on unlinked boards.
 
 #### Fusing shots
 
@@ -316,7 +322,7 @@ Removing the covering shot clears the coverage and reports which shots it uncove
 ### Storyboard — browser (`ui_storyboard_*`)
 
 The board must be open as a workspace tab; its id comes from the `ui_context` system
-block. Not open → `ui_open_document {type: "storyboard", id, focus?}`. Target =
+block. Not open → `edit_storyboard` edits the saved board. Use `ui_open_document {type: "storyboard", id}` to show it to the user. Target =
 shot id, index as a string, or `"selected"`. **Slugs are not resolved here.**
 
 | Tool | Arguments |
@@ -577,7 +583,7 @@ LOOP
    {asset_id, kind, name, descriptor}. There is no create-from-text.
    Each entity: one name, one kind, one canonical descriptor sentence.
 3. edit_storyboard set_board {entity_ids, image_model, video_model,
-   brief, style, aspect_ratio}. Models come from find_model — there is no
+   brief, style, aspect_ratio, narration, music_prompt}. Models come from find_model — there is no
    default and an unset model fails the render.
 4. Direct with edit_storyboard add_shot, one op per shot. Give every shot a
    slug (1a, 2a, ...). Fields: action, slug, camera {framing, lens, angle,

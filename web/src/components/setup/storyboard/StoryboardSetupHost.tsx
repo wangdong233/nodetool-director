@@ -14,7 +14,9 @@ import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useStoryboardServerSync } from "../../../hooks/storyboard/useStoryboardServerSync";
 import { useStoryboardAgentBridge } from "../../../hooks/storyboard/useStoryboardAgentBridge";
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
+import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
 import { SetupFlow } from "../SetupFlow";
+import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import { useStoryboardSetupFlow } from "./useStoryboardSetupFlow";
 import { i18n } from "../../../i18n";
 
@@ -55,6 +57,7 @@ const StoryboardSetupHost = ({
       ),
     [boardId, onChangeFlow]
   );
+  useFinishIfLoadedDone(loadState === "ready", config.stage, onFinish);
 
   // The store seeds an empty board on mount, and an empty board's stage reads
   // `done` — rendering before the server copy lands would show no flow at all.
@@ -64,6 +67,17 @@ const StoryboardSetupHost = ({
         state={loadState}
         label={i18n.t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })}
       />
+    );
+  }
+
+  // The look step writes `done` before it sends the stills (D3) and the host
+  // opens the board only after they are away. The shell has no step for
+  // `done`, so this covers that wait instead of a blank panel.
+  if (config.stage === "done") {
+    return (
+      <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
+        <ThinkingIndicator label="Opening your storyboard" announce />
+      </FlexColumn>
     );
   }
 

@@ -17,7 +17,16 @@
  * planner that refuses an empty one.
  */
 
-import React, { memo, useCallback, useMemo, useRef, useState } from "react";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 
 import {
   AlertBanner,
@@ -39,13 +48,13 @@ import { useEntities } from "../../../serverState/useEntities";
 import { useSetupMediaImport } from "../../../hooks/timeline/useSetupMediaImport";
 import type { SetupMediaImportResult } from "../../../hooks/timeline/useSetupMediaImport";
 import { assetIdFromLocator } from "../../../utils/mediaRef";
+import ReportBugButton from "../../support/ReportBugButton";
 import { ExampleBriefs } from "../ExampleBriefs";
+import { GalleryFrame } from "../MediaGallery";
 import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -70,19 +79,45 @@ export interface IdeaStepProps {
    */
   onStartFromScript?: () => void;
   onValidationChange?: (reason: string | undefined) => void;
+  /**
+   * Reports an upload in progress, so the flow can hold `Continue` until the
+   * dropped media is placed. A late upload otherwise lands after the stage
+   * moved and the plan is drafted without it.
+   */
+  onImportingChange?: (importing: boolean) => void;
+  /**
+   * The step cannot change the draft: a run is pending or Change flow is
+   * discarding it. The fieldset disables the controls, not a drop.
+   */
+  readOnly?: boolean;
 }
+
+/** Why the ways out of the step wait for an upload. */
+const UPLOAD_PENDING_REASON = "Wait for your files to finish uploading";
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartBlank,
   onStartFromScript,
-  onValidationChange
+  onValidationChange,
+  onImportingChange,
+  readOnly = false
 }) => {
   const { t } = useTranslation();
   const brief = useTimelineStore((state) => state.setup?.brief ?? "");
   const setSetup = useTimelineStore((state) => state.setSetup);
   const { importFiles, importing } = useSetupMediaImport();
+  // Placed media lives on this draft, which the script hand-off discards.
+  const hasPlacedMedia = useTimelineStore((state) => state.clips.length > 0);
   const [error, setError] = useState<string | null>(null);
+  // Whether `error` is a failed import rather than a hint about the drop.
+  const [importFailed, setImportFailed] = useState(false);
   const [imported, setImported] = useState<SetupMediaImportResult | null>(null);
+  // Dropped files that are not media, by name. The picker cannot offer them,
+  // so only a drop fills this.
+  const [rejected, setRejected] = useState<string[]>([]);
+  // `importing` is state, so two drops in one tick both read false. The ref
+  // closes that gap.
+  const importingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const mediaInput = useRef<HTMLInputElement>(null);
   const briefField = useRef<HTMLElement | null>(null);
@@ -103,12 +138,20 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     [setSetup]
   );
 
+  useEffect(() => {
+    onImportingChange?.(importing);
+  }, [importing, onImportingChange]);
+  useEffect(() => () => onImportingChange?.(false), [onImportingChange]);
+
   const runImport = useCallback(
-    async (files: readonly File[]) => {
-      if (files.length === 0) {
+    async (files: readonly File[], notMedia: string[] = []) => {
+      if (files.length === 0 || importingRef.current) {
         return;
       }
+      importingRef.current = true;
       setError(null);
+      setImportFailed(false);
+      setRejected(notMedia);
       try {
         // Drop order is the cut order, so the files are uploaded and placed in
         // the order they arrived.
@@ -119,6 +162,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         }
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause));
+        setImportFailed(true);
+      } finally {
+        importingRef.current = false;
       }
     },
     [importFiles]
@@ -133,13 +179,19 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     [runImport]
   );
 
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    if (!Array.from(event.dataTransfer.types).includes("Files")) {
-      return;
-    }
-    event.preventDefault();
-    setDragging(true);
-  }, []);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent) => {
+      if (
+        readOnly ||
+        !Array.from(event.dataTransfer.types).includes("Files")
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setDragging(true);
+    },
+    [readOnly]
+  );
 
   const handleDragLeave = useCallback(() => setDragging(false), []);
 
@@ -151,62 +203,85 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       }
       event.preventDefault();
       setDragging(false);
-      const media = files.filter(isMediaFile);
-      if (media.length === 0) {
-        setError(i18n.t("storyboard:attrs.dropVideoAudioOrImagesNothingElseGoesOnATrack", { defaultValue: "Drop video, audio or images. Nothing else goes on a track." }));
+      if (readOnly) {
         return;
       }
-      await runImport(media);
+      if (importing || importingRef.current) {
+        setImportFailed(false);
+        setError("Wait for the current upload to finish, then drop again.");
+        return;
+      }
+      const media = files.filter(isMediaFile);
+      const notMedia = files
+        .filter((file) => !isMediaFile(file))
+        .map((file) => file.name);
+      if (media.length === 0) {
+        setImportFailed(false);
+        setError(
+          `No track takes ${notMedia.join(" · ")}. Drop video, audio or images.`
+        );
+        return;
+      }
+      await runImport(media, notMedia);
     },
-    [runImport]
+    [importing, readOnly, runImport]
+  );
+
+  const skippedNames = useMemo(
+    () => [
+      ...rejected,
+      ...(imported?.skipped ?? []).map((asset) => asset.name)
+    ],
+    [imported, rejected]
   );
 
   // The shipped boards carry briefs that work as video setup prompts. Timeline
-  // examples are finished edits and do not carry those source prompts. Each
-  // logline is looked up in the zh-only catalog overlay by its stable board
-  // slug (显示即所发: the localized chip text is the brief it inserts, one
-  // string for both).
+  // examples are finished edits and do not carry those source prompts.
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) =>
-          t(`catalog:storyboardExamples.${example.slug}.logline`, {
-            defaultValue: example.logline.trim()
-          })
-        )
+        .map((example) => example.logline.trim())
         .filter((logline) => logline.length > 0)
         .slice(0, INSPIRATION_COUNT),
-    [examples, t]
+    [examples]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
         id: "media",
-        title: t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" }),
-        description: t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
+        title: "Drop your media",
+        description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
-        disabledReason: importing ? t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
+        disabledReason: importing ? i18n.t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
       },
       {
         id: "script",
-        title: t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
-        description: t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
+        title: i18n.t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
+        description: i18n.t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
         onSelect: onStartFromScript ?? (() => undefined),
-        disabled: !onStartFromScript,
-        disabledReason: onStartFromScript
-          ? undefined
-          : t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
+        // Leaving the flow mid-upload would drop the media still arriving,
+        // and leaving after it would drop the clips it placed.
+        disabled: !onStartFromScript || importing || hasPlacedMedia,
+        disabledReason: !onStartFromScript
+          ? i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
+          : importing
+            ? UPLOAD_PENDING_REASON
+            : hasPlacedMedia
+              ? "Your media is on this timeline and would be left behind. Plan the beats here instead."
+              : undefined
       },
       {
         id: "blank",
-        title: t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
-        description: t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
-        onSelect: onStartBlank
+        title: i18n.t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
+        description: i18n.t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
+        onSelect: onStartBlank,
+        disabled: importing,
+        disabledReason: importing ? UPLOAD_PENDING_REASON : undefined
       }
     ],
-    [t, importing, onStartBlank, onStartFromScript]
+    [hasPlacedMedia, importing, onStartBlank, onStartFromScript, t]
   );
 
   return (
@@ -230,10 +305,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {t("editor:ui.whatSTheVideo")}
+            What&apos;s the video?
           </Text>
           <Text size="normal" color="secondary">
-            {t("editor:ui.weLlPlanTheBeatsAndCutItOnTheTimeline")}
+            We&apos;ll plan the beats and cut it on the timeline.
           </Text>
         </FlexColumn>
 
@@ -256,18 +331,39 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         />
 
         {dragging ? (
-          <Caption color="secondary" role="status">{t("storyboard:attrs.dropToPlaceYourMediaOnTheTimeline", { defaultValue: "Drop to place your media on the timeline." })}</Caption>
+          <Caption color="secondary" role="status">
+            Drop to place your media on the timeline.
+          </Caption>
         ) : null}
 
         {error ? (
           <AlertBanner severity="error" onClose={() => setError(null)}>
-            {error}
+            <FlexRow gap={GAP.normal} align="center" wrap>
+              <Text size="normal" component="span">
+                {error}
+              </Text>
+              {importFailed ? (
+                <ReportBugButton
+                  context={{
+                    source: "operation-failure",
+                    summary: "Video media import failed",
+                    errorText: error
+                  }}
+                />
+              ) : null}
+            </FlexRow>
           </AlertBanner>
         ) : null}
 
         {imported ? (
           <AlertBanner
-            severity={imported.skipped.length > 0 ? "warning" : "info"}
+            severity={
+              imported.failed.length > 0
+                ? "error"
+                : skippedNames.length > 0
+                  ? "warning"
+                  : "info"
+            }
             onClose={() => setImported(null)}
           >
             <FlexColumn gap={GAP.micro}>
@@ -283,11 +379,29 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                   {imported.placed.map((asset) => asset.name).join(" · ")}
                 </Caption>
               ) : null}
-              {imported.skipped.length > 0 ? (
+              {imported.failed.map((failure) => (
+                <Caption key={failure.name} component="span" color="error">
+                  {`${failure.name} did not upload: ${failure.reason}`}
+                </Caption>
+              ))}
+              {imported.failed.length > 0 ? (
+                <Box>
+                  <ReportBugButton
+                    context={{
+                      source: "operation-failure",
+                      summary: "Video media upload failed",
+                      errorText: imported.failed
+                        .map((failure) => `${failure.name}: ${failure.reason}`)
+                        .join("\n")
+                    }}
+                  />
+                </Box>
+              ) : null}
+              {skippedNames.length > 0 ? (
                 <Caption component="span" color="secondary">
-                  {`No track takes ${imported.skipped
-                    .map((asset) => asset.name)
-                    .join(" · ")}. Video, audio and images only.`}
+                  {`No track takes ${skippedNames.join(
+                    " · "
+                  )}. Video, audio and images only.`}
                 </Caption>
               ) : null}
             </FlexColumn>
@@ -310,22 +424,29 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                   );
                   return (
                     <FlexColumn key={reference.uri} gap={GAP.micro}>
-                      <ResponsiveImage
+                      <GalleryFrame
                         locator={reference.uri}
-                        preferThumbnail
-                        alt={reference.name ?? t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
-                        fit="cover"
-                        borderRadius={BORDER_RADIUS.sm}
-                        showErrorFallback
-                        sx={{
-                          width: REFERENCE_THUMBNAIL,
-                          height: REFERENCE_THUMBNAIL
-                        }}
-                      />
+                        kind="image"
+                        caption={reference.name ?? undefined}
+                        label={reference.name ?? "reference image"}
+                      >
+                        <ResponsiveImage
+                          locator={reference.uri}
+                          preferThumbnail
+                          alt={reference.name ?? i18n.t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
+                          fit="cover"
+                          borderRadius={BORDER_RADIUS.sm}
+                          showErrorFallback
+                          sx={{
+                            width: REFERENCE_THUMBNAIL,
+                            height: REFERENCE_THUMBNAIL
+                          }}
+                        />
+                      </GalleryFrame>
                       <Caption color="secondary">
                         {binding
                           ? `${binding.kind} conditioning`
-                          : t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
+                          : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
                       </Caption>
                     </FlexColumn>
                   );
@@ -340,7 +461,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     label={`${entity.name} · ${
                       creativeContext?.reference_bindings?.find(
                         (binding) => binding.entity_id === entity.id
-                      )?.kind ?? t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
+                      )?.kind ?? "inspiration only"
                     }`}
                     size="small"
                   />

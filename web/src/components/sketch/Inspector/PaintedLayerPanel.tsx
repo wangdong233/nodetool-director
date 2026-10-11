@@ -13,9 +13,9 @@ import type { Layer } from "../types";
 import { useTranslation } from "react-i18next";
 import {
   Caption,
-  CollapsibleSection,
   FlexColumn,
   FlexRow,
+  InspectorSection,
   Label,
   Panel,
   Text
@@ -50,8 +50,7 @@ export const PaintedLayerPanel: React.FC<PaintedLayerPanelProps> = memo(
             <Caption color="secondary">{describeKind(layer)}</Caption>
           </FlexColumn>
 
-          <CollapsibleSection title={t("ui2:attrs.layer", { defaultValue: "Layer" })} defaultOpen>
-            <FlexColumn gap={0.5}>
+          <InspectorSection title={t("ui2:attrs.layer", { defaultValue: "Layer" })} divider={false}>            <FlexColumn gap={0.5}>
               <Text size="small">
                 Opacity: {Math.round(layer.opacity * 100)}%
               </Text>
@@ -65,7 +64,7 @@ export const PaintedLayerPanel: React.FC<PaintedLayerPanelProps> = memo(
                 Effects: {layer.effects.length === 0 ? "none" : layer.effects.length}
               </Text>
             </FlexColumn>
-          </CollapsibleSection>
+          </InspectorSection>
         </FlexColumn>
       </Panel>
     );

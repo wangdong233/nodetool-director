@@ -12,13 +12,17 @@ import React, { memo, useCallback, useRef } from "react";
 import CompareArrowsOutlinedIcon from "@mui/icons-material/CompareArrowsOutlined";
 import type { ClipTransition, TimelineClip } from "@nodetool-ai/timeline";
 
-import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
+import {
+  useTimelineStore,
+  useTimelineStoreApi
+} from "../../../stores/timeline/TimelineStore";
+import { runAsOneUndoEntry } from "../../../stores/timeline/useTimelineHistoryBatch";
 import {
   Caption,
   CollapsibleSection,
   FlexColumn,
   SPACING,
-  TextInput
+  BatchedColorInput
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
 import {
@@ -163,46 +167,65 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
   ({ clip }) => {
     const { t } = useTranslation();
     const patchClip = useTimelineStore((s) => s.patchClip);
+    const setTransitionDuration = useTimelineStore(
+      (s) => s.setTransitionDuration
+    );
+    const removeTransition = useTimelineStore((s) => s.removeTransition);
+    const trackLocked = useTimelineStore(
+      (s) => s.tracks.find((track) => track.id === clip.trackId)?.locked ?? false
+    );
+    const storeApi = useTimelineStoreApi();
     const [open, setOpen] = usePersistedFold("transition");
+    const locked = !!clip.locked || trackLocked;
 
     // Same latest-clip ref ClipAdjustments uses: the handlers stay
     // referentially stable so one row's edit does not re-render the rest.
     const clipRef = useRef(clip);
     clipRef.current = clip;
+    const lockedRef = useRef(locked);
+    lockedRef.current = locked;
 
-    const setTransition = useCallback(
-      (next: ClipTransition | undefined) => {
-        patchClip(clipRef.current.id, { transitionIn: next });
-      },
-      [patchClip]
-    );
-
+    // Length changes go through the store's cut actions, which cap the
+    // transition and grow the previous clip under it.
     const handleModeChange = useCallback(
       (value: string) => {
-        setTransition(
-          buildTransition(value as TransitionMode, clipRef.current.transitionIn)
-        );
+        if (lockedRef.current) return;
+        const { id, transitionIn } = clipRef.current;
+        const mode = value as TransitionMode;
+        if (mode === "auto") {
+          removeTransition(id);
+          return;
+        }
+        const next = buildTransition(mode, transitionIn);
+        if (!next) return;
+        runAsOneUndoEntry(storeApi, () => {
+          patchClip(id, { transitionIn: next });
+          setTransitionDuration(id, next.durationMs);
+        });
       },
-      [setTransition]
+      [patchClip, removeTransition, setTransitionDuration, storeApi]
     );
 
     const handleDurationCommit = useCallback(
       (raw: string) => {
         const ms = parseSeconds(raw);
-        const current = clipRef.current.transitionIn;
-        if (ms == null || !current) return;
-        setTransition({ ...current, durationMs: Math.max(0, ms) });
+        if (lockedRef.current || ms == null || !clipRef.current.transitionIn) {
+          return;
+        }
+        setTransitionDuration(clipRef.current.id, Math.max(0, ms));
       },
-      [setTransition]
+      [setTransitionDuration]
     );
 
     const patchField = useCallback(
       (patch: Record<string, unknown>) => {
         const current = clipRef.current.transitionIn;
-        if (!current) return;
-        setTransition({ ...current, ...patch } as ClipTransition);
+        if (lockedRef.current || !current) return;
+        patchClip(clipRef.current.id, {
+          transitionIn: { ...current, ...patch } as ClipTransition
+        });
       },
-      [setTransition]
+      [patchClip]
     );
 
     const handleEasingChange = useCallback(
@@ -240,6 +263,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                 value={mode}
                 options={TRANSITION_MODES.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
                 onChange={handleModeChange}
+                disabled={locked}
               />
             </InspectorRow>
 
@@ -250,20 +274,19 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                   unit="s"
                   scrub={SCRUB_SECONDS}
                   onCommit={handleDurationCommit}
-                  ariaLabel={t("timeline:attrs.transitionDuration", { defaultValue: "Transition duration" })}
-                />
+                  disabled={locked}
+                  ariaLabel={t("timeline:attrs.transitionDuration", { defaultValue: "Transition duration" })}                />
               </InspectorRow>
             )}
 
             {mode === "dipToColor" && (
               <InspectorRow label={t("timeline:attrs.color", { defaultValue: "Color" })}>
-                <TextInput
-                  type="color"
+                <BatchedColorInput
                   value={readString(transition, "color") ?? "#000000"}
-                  onChange={(event) =>
-                    patchField({ color: event.target.value })
-                  }
-                  inputProps={{ "aria-label": t("timeline:attrs.transitionColor", { defaultValue: "Transition color" }) }}
+                  onChange={(color) => patchField({ color })}
+                  disabled={locked}
+                  ariaLabel={t("timeline:attrs.transitionColor", { defaultValue: "Transition color" })}
+
                 />
               </InspectorRow>
             )}
@@ -275,6 +298,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                   value={readString(transition, "direction") ?? "left"}
                   options={DIRECTION_OPTIONS}
                   onChange={(direction) => patchField({ direction })}
+                  disabled={locked}
                 />
               </InspectorRow>
             )}
@@ -288,6 +312,8 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                 value={readNumber(transition, "softness") ?? 0}
                 display={(readNumber(transition, "softness") ?? 0).toFixed(2)}
                 onChange={(softness) => patchField({ softness })}
+                disabled={locked}
+                origin={0}
               />
             )}
 
@@ -299,7 +325,13 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
               />
             )}
 
-            <Caption color="muted">{t(MODE_HINT_KEYS[mode], { defaultValue: MODE_HINTS[mode] })}</Caption>
+            <Caption color="muted">
+              {clip.locked
+                ? t("timeline:attrs.unlockTheClipToEditItsTransition", { defaultValue: "Unlock the clip to edit its transition." })
+                : trackLocked
+                  ? t("timeline:attrs.unlockTheTrackToEditThisTransition", { defaultValue: "Unlock the track to edit this transition." })
+                  : t(MODE_HINT_KEYS[mode], { defaultValue: MODE_HINTS[mode] })}
+            </Caption>
           </FlexColumn>
         </CollapsibleSection>
       </>

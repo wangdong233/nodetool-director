@@ -140,8 +140,6 @@ export function pitchName(pitch: number): string {
   return `${NOTE_NAMES[semitone]}${octave}`;
 }
 
-/** Middle C. */
-export const MIDDLE_C = 60;
 /** C3 — the bottom of the default view. */
 export const DEFAULT_LOW_PITCH = 48;
 /** C5 — the top of the default view. */
@@ -169,4 +167,25 @@ export function initialTopPitch(
   // pitch there is a row for, and a view shorter than the range must keep its
   // bottom row at or above 0.
   return Math.min(127, Math.max(rows - 1, top));
+}
+
+/**
+ * The grid tick nearest `tick` (or at or before it, for `floor`) on a grid of
+ * `stepTicks` anchored at `phaseTick`. The drawn grid sits at
+ * `tempo.offsetMs + i * interval` on the timeline, so in clip-content ticks it
+ * is shifted by the clip's start and in-point, and a snap that ignores the
+ * shift lands notes off the lines. Never before tick 0.
+ */
+export function snapTickToGrid(
+  tick: number,
+  stepTicks: number,
+  phaseTick: number,
+  mode: "round" | "floor" = "round"
+): number {
+  if (!Number.isFinite(stepTicks) || stepTicks <= 0) {
+    return Math.max(0, Math.round(tick));
+  }
+  const index = (tick - phaseTick) / stepTicks;
+  const snapped = mode === "floor" ? Math.floor(index + 1e-9) : Math.round(index);
+  return Math.max(0, Math.round(phaseTick + snapped * stepTicks));
 }

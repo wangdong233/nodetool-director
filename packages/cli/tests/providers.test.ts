@@ -6,6 +6,14 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+vi.mock("@nodetool-ai/whisper-cpp", () => ({
+  registerWhisperCppProviders: vi.fn()
+}));
+
+vi.mock("@nodetool-ai/transformers-js-provider", () => ({
+  registerTransformersJsProvider: vi.fn()
+}));
+
 vi.mock("@nodetool-ai/models", () => ({
   getSecret: vi.fn(async (key: string) => process.env[key] ?? null)
 }));
@@ -72,6 +80,9 @@ vi.mock("@nodetool-ai/runtime", () => {
     alibaba: "DASHSCOPE_API_KEY",
     together: "TOGETHER_API_KEY",
     openrouter: "OPENROUTER_API_KEY",
+    requesty: "REQUESTY_API_KEY",
+    opper: "OPPER_API_KEY",
+    api_route: "API_ROUTE_API_KEY",
     huggingface: "HF_TOKEN",
     replicate: "REPLICATE_API_TOKEN",
     kie: "KIE_API_KEY",
@@ -155,6 +166,8 @@ const ALL_HOSTED_KEYS = [
   "DASHSCOPE_API_KEY",
   "TOGETHER_API_KEY",
   "OPENROUTER_API_KEY",
+  "REQUESTY_API_KEY",
+  "OPPER_API_KEY",
   "HF_TOKEN",
   "REPLICATE_API_TOKEN",
   "KIE_API_KEY",
@@ -267,6 +280,9 @@ describe("KNOWN_PROVIDERS", () => {
       "alibaba",
       "together",
       "openrouter",
+      "requesty",
+      "opper",
+      "api_route",
       "huggingface",
       "replicate",
       "kie",

@@ -21,16 +21,16 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import { NodeData } from "../../stores/NodeData";
-import { NodeHeader } from "./NodeHeader";
+import { NodeHeader, NODE_HEADER_MIN_HEIGHT } from "./NodeHeader";
 import { NodeOutputs } from "./NodeOutputs";
 import NodeResizeHandle from "./NodeResizeHandle";
-import { CopyButton, ToolbarIconButton, Container, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
+import { CopyButton, ToolbarIconButton, Container, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../ui_primitives";
 import TextEditorModal from "../properties/TextEditorModal";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { isHandleConnected } from "../../hooks/nodes/edgeIndex";
 import { colorForType } from "../../config/data_types";
-import { editorClassNames, cn } from "../editor_ui";
+import { NodeTextPreview, editorClassNames, cn } from "../editor_ui";
 import HandleTooltip from "../HandleTooltip";
 import type { NodeStoreState } from "../../stores/NodeStore";
 import { useTranslation } from "react-i18next";
@@ -40,6 +40,8 @@ import {
 } from "../../styles/collapsedNodeTokens";
 
 const MAX_AUTO_HEIGHT = 600;
+
+const NO_ACTIVATE = (): void => {};
 
 const styles = (theme: Theme) =>
   css({
@@ -54,21 +56,22 @@ const styles = (theme: Theme) =>
       maxWidth: "600px",
       minHeight: "100px",
       borderRadius: theme.rounded.node,
-      border: `1px solid ${theme.vars.palette.grey[900]}`,
+      border: `1px solid ${theme.vars.palette.divider}`,
       backgroundColor: theme.vars.palette.c_node_bg
     },
     "&.selected": {
-      outline: `3px solid var(--node-primary-color, ${theme.vars.palette.primary.main})`,
-      outlineOffset: "-2px",
-      boxShadow: `0 0 0 1px var(--node-primary-color, #666), 0 1px 10px rgba(0,0,0,0.5)`
+      borderColor: `color-mix(in srgb, var(--node-primary-color, ${theme.vars.palette.primary.main}) 82%, white 18%)`,
+      boxShadow: SHADOW(theme).sm
     },
     ".header-wrapper": {
       position: "relative",
       flexShrink: 0
     },
+    // Like every other node, the handle is centered on the node's edge: the
+    // header sits inside the body padding, so step back past it.
     ".header-wrapper .input-handle-wrapper": {
       position: "absolute",
-      left: "-8px",
+      left: "calc(-6px - var(--node-body-padding, 0px))",
       top: "50%",
       transform: "translateY(-50%)",
       zIndex: Z_INDEX.dropdown + 1
@@ -77,6 +80,15 @@ const styles = (theme: Theme) =>
       top: "50%",
       left: 0,
       transform: "translateY(-50%)"
+    },
+    // The output column spans the full body width, outside the padding.
+    // Its first row sits on the header line, level with the input.
+    // Doubled class: outranks the column's own offset from NodeOutputs.
+    ".output-handle-column.output-handle-column": {
+      top: `calc(var(--node-body-padding, 0px) + ${(NODE_HEADER_MIN_HEIGHT - 18) / 2}px)`
+    },
+    ".output-handle-container .react-flow__handle-right": {
+      right: "-6px"
     },
     ".header-actions": {
       position: "absolute",
@@ -99,7 +111,9 @@ const styles = (theme: Theme) =>
       flex: "1 1 auto",
       display: "flex",
       flexDirection: "column",
-      padding: `0 ${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
+      // The node padding is the only side inset, as on other nodes; the
+      // value starts 4px below the header.
+      padding: `${getSpacingPx(SPACING.xs)} 0 0`,
       minHeight: 0,
       overflow: "hidden"
     },
@@ -118,7 +132,7 @@ const styles = (theme: Theme) =>
       fontSize: theme.fontSizeSmaller || "0.75rem",
       fontWeight: 400,
       lineHeight: "1.2em",
-      padding: getSpacingPx(SPACING.md),
+      padding: getSpacingPx(SPACING.sm),
       overflowY: "auto",
       transition: MOTION.background,
       "&:focus": {
@@ -128,6 +142,9 @@ const styles = (theme: Theme) =>
         opacity: 0.7,
         cursor: "default"
       }
+    },
+    ".node-text-preview.constant-string-textarea": {
+      overflowY: "hidden"
     },
     "&.collapsed": {
       ...NODE_COLLAPSED_LAYOUT,
@@ -143,9 +160,14 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   const { id, type, data, selected } = props;
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
+  // The text area exists only while editing; a static preview stands in
+  // for it otherwise, so the body never catches a pan or a zoom.
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textElRef = useRef<HTMLElement | null>(null);
+  const caretRef = useRef<number | null>(null);
   const lastEmittedHeight = useRef<number>(0);
   const [isFocused, setIsFocused] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { updateNodeData, updateNode } = useNodes(
@@ -211,7 +233,7 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     if (data.collapsed) {
       return;
     }
-    const textarea = textareaRef.current;
+    const textarea = textElRef.current;
     if (!textarea) {
       return;
     }
@@ -240,7 +262,35 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
       lastEmittedHeight.current = desiredNodeH;
       updateNode(id, { height: desiredNodeH });
     }
-  }, [localValue, id, updateNode, data.collapsed]);
+  }, [localValue, id, updateNode, data.collapsed, isEditing]);
+
+  const startEditing = useCallback((caretOffset: number | null) => {
+    caretRef.current = caretOffset;
+    setIsEditing(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!isEditing || !textarea) {
+      return;
+    }
+    const caret = caretRef.current ?? textarea.value.length;
+    textarea.focus();
+    textarea.setSelectionRange(caret, caret);
+  }, [isEditing]);
+
+  const setTextareaRef = useCallback((el: HTMLTextAreaElement | null) => {
+    textareaRef.current = el;
+    if (el) {
+      textElRef.current = el;
+    }
+  }, []);
+
+  const setPreviewRef = useCallback((el: HTMLDivElement | null) => {
+    if (el) {
+      textElRef.current = el;
+    }
+  }, []);
 
   const headerColor = useMemo(() => {
     const firstOutputType = metadata?.outputs?.[0]?.type?.type as
@@ -328,28 +378,45 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         </div>
       </div>
 
-      {/* Textarea body — nodrag prevents dragging when selecting text.
-          nowheel (when focused) lets mouse wheel scroll the textarea
-          instead of zooming the canvas. */}
-      <div
-        className={cn(
-          "constant-string-body nodrag nopan",
-          isFocused && editorClassNames.nowheel
-        )}
-      >
-        <textarea
-          ref={textareaRef}
-          className="constant-string-textarea"
-          aria-label={t("editor:ui.stringValue", { defaultValue: "String value" })}
-          value={localValue}
-          onChange={handleChange}
-          readOnly={isConnected}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          spellCheck={false}
-        />
-      </div>
-
+      {isEditing && !isConnected ? (
+        /* nodrag keeps text selection from dragging the node. nowheel (when
+           focused) lets the wheel scroll the text area. */
+        <div
+          className={cn(
+            "constant-string-body nodrag nopan",
+            isFocused && editorClassNames.nowheel
+          )}
+        >
+          <textarea
+            ref={setTextareaRef}
+            className="constant-string-textarea"
+            aria-label={t("editor:ui.stringValue", { defaultValue: "String value" })}
+            value={localValue}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => {
+              setIsFocused(false);
+              setIsEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.currentTarget.blur();
+              }
+            }}
+            spellCheck={false}
+          />
+        </div>
+      ) : (
+        <div className="constant-string-body">
+          <NodeTextPreview
+            ref={setPreviewRef}
+            className="constant-string-textarea"
+            value={localValue}
+            onActivate={isConnected ? NO_ACTIVATE : startEditing}
+            ariaLabel="Edit string value"
+          />
+        </div>
+      )}
       <div className="node-content-container">
         <NodeOutputs id={id} outputs={metadata.outputs} />
       </div>

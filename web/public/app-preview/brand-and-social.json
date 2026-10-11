@@ -2,11 +2,11 @@
   "slug": "brand-and-social",
   "name": "Brand & Social",
   "emoji": "🎨",
-  "description": "Fill in your brand once — the asset kit and the thumbnail factory both read the same values.",
-  "tagline": "One brand identity drives two deliverables.",
-  "note": "Your brand name, audience, and voice persist between sessions.",
+  "description": "An agent opens your website, searches for what it leaves out, and fills in your brand. Edit anything it got wrong, then the asset kit and the thumbnail factory both read the same values.",
+  "tagline": "Paste your website. An agent researches the brand, then two deliverables read what it found.",
+  "note": "Your brand fields persist between sessions. Research uses a model with browser and web search tools.",
   "featured": true,
-  "image": "/app-preview/img/brand-and-social.jpg",
+  "image": null,
   "app": {
     "schemaVersion": 3,
     "ui": {
@@ -19,41 +19,81 @@
           "props": {
             "id": "title",
             "text": "🎨 Brand & Social",
-            "level": "1"
-          }
-        },
-        {
-          "type": "Text",
-          "props": {
-            "id": "tagline",
-            "text": "One brand identity drives two deliverables."
+            "level": "1",
+            "subtitle": "Paste your website. An agent researches the brand, then two deliverables read what it found."
           }
         },
         {
           "type": "Text",
           "props": {
             "id": "app-note",
-            "text": "Your brand name, audience, and voice persist between sessions."
+            "text": "Your brand fields persist between sessions. Research uses a model with browser and web search tools.",
+            "tone": "hint"
           }
         },
         {
-          "type": "Columns",
+          "type": "Stepper",
           "props": {
-            "id": "cols-your-brand",
-            "gap": 24,
-            "left": [
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
               {
-                "type": "Container",
+                "value": "research-your-brand",
+                "title": "Research your brand"
+              },
+              {
+                "value": "your-brand",
+                "title": "Your brand"
+              },
+              {
+                "value": "hooks-and-thumbnails",
+                "title": "Hooks & thumbnails"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-research-your-brand",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "research-your-brand"
+            },
+            "content": [
+              {
+                "type": "Heading",
                 "props": {
-                  "id": "panel-your-brand",
-                  "title": "Your brand",
-                  "content": [
+                  "id": "heading-research-your-brand",
+                  "text": "Research your brand",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-research-your-brand",
+                  "gap": 24,
+                  "left": [
+                    {
+                      "type": "TextInput",
+                      "props": {
+                        "id": "in-research-website",
+                        "binding": "op:research/in:in_website",
+                        "label": "Your website",
+                        "multiline": false,
+                        "events": []
+                      }
+                    },
                     {
                       "type": "ModelSelect",
                       "props": {
-                        "id": "model-kit-gen-prompts-model",
-                        "binding": "op:kit/prop:gen_prompts#model",
-                        "label": "Asset kit model",
+                        "id": "model-research-research-agent-model",
+                        "binding": "op:research/prop:research_agent#model",
+                        "label": "Research model",
                         "modelKind": "language_model",
                         "events": []
                       }
@@ -61,21 +101,155 @@
                     {
                       "type": "ModelSelect",
                       "props": {
-                        "id": "model-kit-txt2img-model",
-                        "binding": "op:kit/prop:txt2img#model",
-                        "label": "Asset kit model",
-                        "modelKind": "image_model",
+                        "id": "model-research-extract-fields-model",
+                        "binding": "op:research/prop:extract_fields#model",
+                        "label": "Brand profile fields model",
+                        "modelKind": "language_model",
                         "events": []
                       }
                     },
                     {
-                      "type": "ModelSelect",
+                      "type": "Button",
                       "props": {
-                        "id": "model-kit-brief-agent-model",
-                        "binding": "op:kit/prop:brief_agent#model",
-                        "label": "Asset kit model",
-                        "modelKind": "language_model",
-                        "events": []
+                        "id": "btn-research",
+                        "label": "Research my brand",
+                        "variant": "contained",
+                        "color": "primary",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "run",
+                            "operationId": "research",
+                            "key": "",
+                            "value": ""
+                          }
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:research/exec#running",
+                          "op": "notEmpty"
+                        }
+                      }
+                    }
+                  ],
+                  "right": [
+                    {
+                      "type": "Progress",
+                      "props": {
+                        "id": "progress-research",
+                        "binding": "op:research/exec#progress",
+                        "label": "Reading your site and searching…"
+                      }
+                    },
+                    {
+                      "type": "AgentActivity",
+                      "props": {
+                        "id": "transcript-research",
+                        "binding": "op:research/exec#transcript",
+                        "label": "What the agent is doing",
+                        "placeholder": "Pages opened and searches run appear here."
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-research",
+                        "binding": "op:research/exec#error",
+                        "title": "Research failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:research/exec#error",
+                          "op": "notEmpty"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Heading",
+                      "props": {
+                        "id": "lbl-research-research-notes",
+                        "text": "Research notes",
+                        "level": "3"
+                      }
+                    },
+                    {
+                      "type": "Markdown",
+                      "props": {
+                        "id": "out-research-research-notes",
+                        "binding": "op:research/out:out_notes",
+                        "text": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-research-your-brand"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-research-your-brand",
+                  "gap": 16,
+                  "left": [],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-research-your-brand",
+                        "label": "Next: Your brand",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-your-brand",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "your-brand"
+            },
+            "content": [
+              {
+                "type": "Heading",
+                "props": {
+                  "id": "heading-your-brand",
+                  "text": "Your brand",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-your-brand",
+                  "gap": 24,
+                  "left": [
+                    {
+                      "type": "Text",
+                      "props": {
+                        "id": "note",
+                        "text": "Research fills these in. Edit anything before you generate."
                       }
                     },
                     {
@@ -111,8 +285,8 @@
                     {
                       "type": "TextInput",
                       "props": {
-                        "id": "in-kit-brand-description",
-                        "binding": "op:kit/in:in_brand_description",
+                        "id": "in-branddescription",
+                        "binding": "var:brandDescription",
                         "label": "Describe your brand",
                         "multiline": true,
                         "events": []
@@ -121,8 +295,8 @@
                     {
                       "type": "TextInput",
                       "props": {
-                        "id": "in-kit-tagline",
-                        "binding": "op:kit/in:in_tagline",
+                        "id": "in-tagline",
+                        "binding": "var:tagline",
                         "label": "Tagline",
                         "multiline": false,
                         "events": []
@@ -135,6 +309,46 @@
                         "binding": "op:kit/in:in_primary_color",
                         "label": "Primary color",
                         "events": []
+                      }
+                    },
+                    {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-your-brand",
+                        "title": "Models (3)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-gen-prompts-model",
+                              "binding": "op:kit/prop:gen_prompts#model",
+                              "label": "Split into 4 prompts model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-txt2img-model",
+                              "binding": "op:kit/prop:txt2img#model",
+                              "label": "Render each image model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-kit-brief-agent-model",
+                              "binding": "op:kit/prop:brief_agent#model",
+                              "label": "Draft brand brief model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -152,26 +366,35 @@
                             "key": "",
                             "value": ""
                           }
-                        ]
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:kit/exec#running",
+                          "op": "notEmpty"
+                        }
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-your-brand-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
                         "id": "progress-kit",
                         "binding": "op:kit/exec#progress",
                         "label": "Designing your assets…"
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-kit",
+                        "binding": "op:kit/exec#error",
+                        "title": "Asset generation failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:kit/exec#error",
+                          "op": "notEmpty"
+                        }
                       }
                     },
                     {
@@ -210,42 +433,88 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-your-brand"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-your-brand",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-your-brand",
+                        "label": "Back: Research your brand",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "research-your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-your-brand",
+                        "label": "Next: Hooks & thumbnails",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "hooks-and-thumbnails"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "type": "Columns",
+          "type": "Container",
           "props": {
-            "id": "cols-hooks-and-thumbnails",
-            "gap": 24,
-            "left": [
+            "id": "step-hooks-and-thumbnails",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "hooks-and-thumbnails"
+            },
+            "content": [
               {
-                "type": "Container",
+                "type": "Heading",
                 "props": {
-                  "id": "panel-hooks-and-thumbnails",
-                  "title": "Hooks & thumbnails",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-thumbnails-hooks-model",
-                        "binding": "op:thumbnails/prop:hooks#model",
-                        "label": "Thumbnails model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-thumbnails-thumbnail-model",
-                        "binding": "op:thumbnails/prop:thumbnail#model",
-                        "label": "Thumbnails model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-hooks-and-thumbnails",
+                  "text": "Hooks & thumbnails",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-hooks-and-thumbnails",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "TextInput",
                       "props": {
@@ -268,6 +537,36 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-hooks-and-thumbnails",
+                        "title": "Models (2)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-thumbnails-hooks-model",
+                              "binding": "op:thumbnails/prop:hooks#model",
+                              "label": "Stream hooks model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-thumbnails-thumbnail-model",
+                              "binding": "op:thumbnails/prop:thumbnail#model",
+                              "label": "Generate thumbnail model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-thumbnails",
@@ -282,26 +581,35 @@
                             "key": "",
                             "value": ""
                           }
-                        ]
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:thumbnails/exec#running",
+                          "op": "notEmpty"
+                        }
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-hooks-and-thumbnails-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
                         "id": "progress-thumbnails",
                         "binding": "op:thumbnails/exec#progress",
                         "label": "Writing hooks & rendering thumbnails…"
+                      }
+                    },
+                    {
+                      "type": "Alert",
+                      "props": {
+                        "id": "error-thumbnails",
+                        "binding": "op:thumbnails/exec#error",
+                        "title": "Thumbnails failed",
+                        "text": "",
+                        "severity": "error",
+                        "visibleWhen": {
+                          "binding": "op:thumbnails/exec#error",
+                          "op": "notEmpty"
+                        }
                       }
                     },
                     {
@@ -358,6 +666,39 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-hooks-and-thumbnails"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-hooks-and-thumbnails",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-hooks-and-thumbnails",
+                        "label": "Back: Your brand",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "your-brand"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": []
+                }
               }
             ]
           }
@@ -367,6 +708,35 @@
     },
     "operations": [
       {
+        "id": "research",
+        "name": "Research",
+        "workflowId": "research",
+        "inputs": {},
+        "outputs": {
+          "out_brand_name": {
+            "to": "variable",
+            "variableId": "brandName"
+          },
+          "out_audience": {
+            "to": "variable",
+            "variableId": "audience"
+          },
+          "out_voice": {
+            "to": "variable",
+            "variableId": "voice"
+          },
+          "out_brand_description": {
+            "to": "variable",
+            "variableId": "brandDescription"
+          },
+          "out_tagline": {
+            "to": "variable",
+            "variableId": "tagline"
+          }
+        },
+        "policy": "replace"
+      },
+      {
         "id": "kit",
         "name": "Asset kit",
         "workflowId": "brand",
@@ -374,6 +744,14 @@
           "in_brand_name": {
             "from": "variable",
             "variableId": "brandName"
+          },
+          "in_brand_description": {
+            "from": "variable",
+            "variableId": "brandDescription"
+          },
+          "in_tagline": {
+            "from": "variable",
+            "variableId": "tagline"
           }
         },
         "outputs": {},
@@ -395,6 +773,17 @@
     ],
     "resources": [],
     "variables": [
+      {
+        "id": "step",
+        "name": "Step",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "research-your-brand",
+        "scope": "instance",
+        "persist": false
+      },
       {
         "id": "brandName",
         "name": "Brand name",
@@ -427,10 +816,183 @@
         "default": "friendly and confident, never corporate",
         "scope": "user",
         "persist": true
+      },
+      {
+        "id": "brandDescription",
+        "name": "Brand description",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "A climate-tech startup building friendly home-energy tools. Warm, optimistic and human, where nature meets precision engineering.",
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "tagline",
+        "name": "Tagline",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "Power that gives back",
+        "scope": "user",
+        "persist": true
       }
     ]
   },
   "workflows": [
+    {
+      "key": "research",
+      "name": "Research a Brand from Its Website",
+      "graph": {
+        "nodes": [
+          {
+            "id": "in_website",
+            "type": "nodetool.input.StringInput",
+            "data": {
+              "name": "website",
+              "value": "https://nodetool.ai",
+              "description": "The brand's website. The agent starts here."
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 1014
+              },
+              "zIndex": 0,
+              "width": 300,
+              "title": "1️⃣ Website",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_notes",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "research_notes"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1260,
+                "y": 1091
+              },
+              "zIndex": 0,
+              "width": 300,
+              "title": "Research notes",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_brand_name",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "brand_name"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 483
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Brand name",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_audience",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "audience"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 683
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Audience",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_voice",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "voice"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 883
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Voice",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_brand_description",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "brand_description"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 1083
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Brand description",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out_tagline",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "tagline"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 1680,
+                "y": 1283
+              },
+              "zIndex": 0,
+              "width": 280,
+              "title": "Tagline",
+              "selectable": true,
+              "bypassed": false
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          }
+        ],
+        "edges": []
+      }
+    },
     {
       "key": "brand",
       "name": "Brand Asset Generator",
@@ -447,7 +1009,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 40
+                "y": 1302
               },
               "zIndex": 0,
               "width": 280,
@@ -469,7 +1031,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 200
+                "y": 1077
               },
               "zIndex": 0,
               "width": 280,
@@ -491,7 +1053,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 360
+                "y": 1707
               },
               "zIndex": 0,
               "width": 280,
@@ -516,7 +1078,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 520
+                "y": 1527
               },
               "zIndex": 0,
               "width": 280,
@@ -535,8 +1097,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2420,
-                "y": 100
+                "x": 2740,
+                "y": 1456
               },
               "selectable": true
             }
@@ -549,8 +1111,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1080,
-                "y": 600
+                "x": 1180,
+                "y": 1763
               },
               "selectable": true
             }
@@ -575,8 +1137,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 60
+                "x": 0,
+                "y": 655
               },
               "zIndex": 0,
               "width": 280,
@@ -598,8 +1160,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 300
+                "x": 0,
+                "y": 880
               },
               "zIndex": 0,
               "width": 280,
@@ -623,8 +1185,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 40,
-                "y": 540
+                "x": 0,
+                "y": 1105
               },
               "zIndex": 0,
               "width": 280,
@@ -644,8 +1206,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 2580,
-                "y": 160
+                "x": 3000,
+                "y": 964
               },
               "zIndex": 0,
               "width": 280,
@@ -665,8 +1227,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 800,
-                "y": 600
+                "x": 1280,
+                "y": 1039
               },
               "zIndex": 0,
               "width": 360,
@@ -687,8 +1249,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1940,
-                "y": 540
+                "x": 2540,
+                "y": 632
               },
               "zIndex": 0,
               "width": 360,
@@ -706,8 +1268,8 @@
     }
   ],
   "values": {
-    "op:kit/in:in_brand_description": "A climate-tech startup building friendly home-energy tools. Warm, optimistic and human, where nature meets precision engineering.",
-    "op:kit/in:in_tagline": "Power that gives back",
+    "op:research/in:in_website": "https://nodetool.ai",
+    "op:research/out:out_notes": "## Brand\n**Aurora Labs** sells friendly home-energy tools.\n\n## Sources\n- https://example.com",
     "op:kit/out:out_assets": {
       "$demo": "image"
     },
@@ -718,8 +1280,11 @@
       "$demo": "image"
     },
     "op:thumbnails/out:preview_hooks": "1. “You're losing $100/month by not knowing this.”\n2. “$5 a day → $1M. Here's the math nobody shows you.”",
+    "var:step": "research-your-brand",
     "var:brandName": "Aurora Labs",
     "var:audience": "outdoor-minded people in their 30s",
-    "var:voice": "friendly and confident, never corporate"
+    "var:voice": "friendly and confident, never corporate",
+    "var:brandDescription": "A climate-tech startup building friendly home-energy tools. Warm, optimistic and human, where nature meets precision engineering.",
+    "var:tagline": "Power that gives back"
   }
 }

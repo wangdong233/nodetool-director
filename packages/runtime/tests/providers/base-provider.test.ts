@@ -298,51 +298,32 @@ describe("BaseProvider – getCapabilities", () => {
     expect(caps).toEqual(["generate_message", "generate_messages"]);
   });
 
-  it("derives capabilities from overridden methods (heuristic path)", () => {
-    class ImageProvider extends TestProvider {
+  it("does not infer capabilities from overridden methods", () => {
+    class UndeclaredProvider extends TestProvider {
       override async getAvailableImageModels() {
         return [];
       }
-    }
-    const caps = new ImageProvider().getCapabilities();
-    expect(caps).toContain("text_to_image");
-    expect(caps).toContain("image_to_image");
-  });
-
-  it("advertises text_to_music when getAvailableMusicModels is overridden", () => {
-    class MusicProvider extends TestProvider {
-      override async getAvailableMusicModels() {
-        return [];
-      }
-    }
-    const caps = new MusicProvider().getCapabilities();
-    expect(caps).toContain("text_to_music");
-    // Music override must not imply TTS / video.
-    expect(caps).not.toContain("text_to_speech");
-    expect(caps).not.toContain("text_to_video");
-  });
-
-  it("advertises reference_to_video only when the method is overridden", () => {
-    class ReferenceProvider extends TestProvider {
       override async referenceToVideo() {
         return new Uint8Array();
       }
     }
-    expect(new TestProvider().getCapabilities()).not.toContain("reference_to_video");
-    expect(new ReferenceProvider().getCapabilities()).toContain("reference_to_video");
+    expect(new UndeclaredProvider().getCapabilities()).toEqual([
+      "generate_message",
+      "generate_messages"
+    ]);
   });
 
-  it("honors an explicit capability declaration (override seam)", () => {
+  it("adds message generation to the declared capabilities once", () => {
     class ExplicitProvider extends TestProvider {
       protected override declaredCapabilities() {
-        return ["text_to_speech" as const];
+        return ["text_to_speech", "generate_message"] as const;
       }
     }
-    const caps = new ExplicitProvider().getCapabilities();
-    // Explicit list is honored and message generation is always included.
-    expect(caps).toContain("text_to_speech");
-    expect(caps).toContain("generate_message");
-    expect(caps).toContain("generate_messages");
+    expect(new ExplicitProvider().getCapabilities()).toEqual([
+      "generate_message",
+      "generate_messages",
+      "text_to_speech"
+    ]);
   });
 });
 
@@ -377,6 +358,35 @@ describe("toolResultToText", () => {
 });
 
 describe("BaseProvider.generateLoop – turn boundary", () => {
+  it("keeps providedToolsOnly out of upstream generation arguments without changing supplied tools", async () => {
+    class CapturingProvider extends TestProvider {
+      requests: Parameters<BaseProvider["generateMessages"]>[0][] = [];
+      override async *generateMessages(
+        args: Parameters<BaseProvider["generateMessages"]>[0]
+      ): AsyncGenerator<ProviderStreamItem> {
+        this.requests.push(args);
+        yield { type: "chunk", content: "ok", done: true };
+      }
+    }
+    const provider = new CapturingProvider();
+    const tools = [
+      { name: "edit_timeline", description: "Edit the isolated draft" }
+    ];
+    const events: ProviderStreamItem[] = [];
+    for await (const event of provider.generateLoop({
+      messages: [{ role: "user", content: "Finish" }],
+      model: "test",
+      tools,
+      providedToolsOnly: true
+    })) {
+      events.push(event);
+    }
+    expect(events.length).toBeGreaterThan(0);
+    expect(provider.requests).toHaveLength(1);
+    expect(provider.requests[0]).not.toHaveProperty("providedToolsOnly");
+    expect(provider.requests[0].tools).toEqual(tools);
+  });
+
   /**
    * Mirrors what every real provider does: tool calls are yielded first, then a
    * terminal `done: true` chunk closing THAT completion. Anthropic, OpenAI,

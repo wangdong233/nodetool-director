@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
@@ -148,6 +148,48 @@ describe("SettingsPage", () => {
       ).toBeInTheDocument();
     } finally {
       await resetI18nForTest();
+    }
+  });
+
+  it("lists only sections that match the search in the sidebar", async () => {
+    // jsdom has no layout, so model CSS-hidden sections via checkVisibility.
+    const original = HTMLElement.prototype.checkVisibility;
+    HTMLElement.prototype.checkVisibility = function checkVisibility(
+      this: HTMLElement
+    ) {
+      const section = this.closest(".settings-section");
+      return !section || section.querySelector(".settings-item") !== null;
+    };
+    try {
+      const user = userEvent.setup();
+      renderSettings();
+      const sidebar = screen.getByRole("navigation", {
+        name: "Settings sections"
+      });
+      expect(
+        within(sidebar).getByRole("button", { name: "Execution" })
+      ).toBeInTheDocument();
+
+      await user.type(
+        screen.getByRole("textbox", { name: "Search settings" }),
+        "grid snap"
+      );
+
+      expect(
+        within(sidebar).getByRole("button", { name: "Canvas & Navigation" })
+      ).toBeInTheDocument();
+      expect(
+        within(sidebar).queryByRole("button", { name: "Execution" })
+      ).not.toBeInTheDocument();
+
+      await user.clear(
+        screen.getByRole("textbox", { name: "Search settings" })
+      );
+      expect(
+        within(sidebar).getByRole("button", { name: "Execution" })
+      ).toBeInTheDocument();
+    } finally {
+      HTMLElement.prototype.checkVisibility = original;
     }
   });
 });

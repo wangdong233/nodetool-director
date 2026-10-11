@@ -4,10 +4,11 @@
  * Port of Python's `nodetool.models.message`.
  */
 
-import { eq, and, or, gt, lt, desc, asc } from "drizzle-orm";
+import { eq, and, or, gt, gte, lt, desc, asc, inArray, isNotNull } from "drizzle-orm";
 import type { ProviderSession } from "@nodetool-ai/protocol";
 import { DBModel, createTimeOrderedUuid } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
+import { eraseRunTraceParentForModelDeletion } from "./run-trace.js";
 import { messages } from "./schema/messages.js";
 
 /**
@@ -68,6 +69,14 @@ export class Message extends DBModel {
   declare provider_session: ProviderSession | null;
   declare created_at: string;
 
+  override async delete(): Promise<void> {
+    await eraseRunTraceParentForModelDeletion({ kind: "message", id: this.id });
+    await eraseRunTraceParentForModelDeletion({ kind: "thread", id: this.thread_id });
+    await super.delete();
+    await eraseRunTraceParentForModelDeletion({ kind: "message", id: this.id });
+    await eraseRunTraceParentForModelDeletion({ kind: "thread", id: this.thread_id });
+  }
+
   constructor(data: Record<string, unknown>) {
     super(data);
     const now = new Date().toISOString();
@@ -117,7 +126,7 @@ export class Message extends DBModel {
     opts: { limit?: number; startKey?: string; reverse?: boolean } = {}
   ): Promise<[Message[], string]> {
     const { limit = 50, reverse = false, startKey } = opts;
-    const db = getDb();
+    const db = getPortableDb();
     const conditions = [eq(messages.thread_id, threadId)];
     // Seek past the cursor row so following the returned cursor actually
     // advances. Without this, every page returned the same first page while
@@ -155,14 +164,65 @@ export class Message extends DBModel {
 
   /** Delete all messages for a thread. */
   static async deleteByThread(threadId: string): Promise<number> {
-    const db = getDb();
+    const db = getPortableDb();
     const where = eq(messages.thread_id, threadId);
     const existing = await db
       .select({ id: messages.id })
       .from(messages)
       .where(where);
     if (existing.length === 0) return 0;
+    await eraseRunTraceParentForModelDeletion({ kind: "thread", id: threadId });
     await db.delete(messages).where(where);
+    await eraseRunTraceParentForModelDeletion({ kind: "thread", id: threadId });
     return existing.length;
+  }
+
+  /**
+   * Rewind a thread to just before `messageId`: delete that message and every
+   * later one, so the next turn continues from the history before it. This is
+   * what Regenerate and editing a sent message do.
+   *
+   * Provider session tokens on the surviving rows are cleared too. A token
+   * resumes the upstream transcript as it stood after its turn, and that
+   * transcript still holds the turns deleted here, so the next turn must rebuild
+   * its context from the stored rows instead.
+   *
+   * Returns the deleted ids, or null when the message is not in the thread.
+   */
+  static async rewind(
+    threadId: string,
+    messageId: string
+  ): Promise<string[] | null> {
+    const target = await Message.get<Message>(messageId);
+    if (!target || target.thread_id !== threadId) return null;
+    const db = getPortableDb();
+    const fromTarget = and(
+      eq(messages.thread_id, threadId),
+      or(
+        gt(messages.created_at, target.created_at),
+        and(
+          eq(messages.created_at, target.created_at),
+          gte(messages.id, target.id)
+        )
+      )
+    );
+    const doomed = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(fromTarget);
+    const ids = doomed.map((row) => row.id);
+    for (const id of ids) {
+      await eraseRunTraceParentForModelDeletion({ kind: "message", id });
+    }
+    if (ids.length > 0) {
+      await db.delete(messages).where(inArray(messages.id, ids));
+    }
+    await db
+      .update(messages)
+      .set({ provider_session: null })
+      .where(
+        and(eq(messages.thread_id, threadId), isNotNull(messages.provider_session))
+      );
+    return ids;
   }
 }

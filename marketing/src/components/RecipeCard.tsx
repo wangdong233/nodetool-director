@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import type { RecipeEntry } from "@/data/recipes";
+import AutoplayVideo from "./AutoplayVideo";
+import TrackedLink from "./TrackedLink";
 
 interface RecipeCardProps {
   readonly recipe: RecipeEntry;
@@ -22,12 +24,14 @@ export default function RecipeCard({
         <p className="mt-4 max-w-xl flex-1 text-base leading-relaxed text-slate-300">
           {recipe.outcome}
         </p>
-        <a
+        <TrackedLink
           href={recipe.route}
+          event="Open Recipe"
+          eventProps={{ recipe: recipe.slug, placement: "card" }}
           className="focus-ring mt-7 inline-flex w-fit items-center gap-2 rounded text-sm font-medium text-amber-300 transition-colors hover:text-amber-200 motion-reduce:transition-none"
         >
           Follow the steps <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </a>
+        </TrackedLink>
       </div>
     );
 
@@ -75,13 +79,15 @@ export default function RecipeCard({
       <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-300">
         {run.summary}
       </p>
-      <a
+      <TrackedLink
         href={recipe.route}
+        event="Open Recipe"
+        eventProps={{ recipe: recipe.slug, placement: featured ? "featured" : "card" }}
         aria-label={`Explore the ${recipe.name} project`}
         className="focus-ring mt-7 inline-flex w-fit items-center gap-2 rounded text-sm font-medium text-amber-300 transition-colors hover:text-amber-200 motion-reduce:transition-none"
       >
         Explore project <ArrowRight className="h-4 w-4" aria-hidden="true" />
-      </a>
+      </TrackedLink>
     </div>
   );
 
@@ -92,9 +98,8 @@ export default function RecipeCard({
       <article className="overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
         <div className="bg-slate-950">
           {video ? (
-            <video
+            <AutoplayVideo
               controls
-              playsInline
               preload="none"
               poster={video.poster}
               aria-label={`${recipe.name} finished cut`}
@@ -102,7 +107,7 @@ export default function RecipeCard({
             >
               {video.webm && <source src={video.webm} type="video/webm" />}
               <source src={video.mp4} type="video/mp4" />
-            </video>
+            </AutoplayVideo>
           ) : (
             <Image
               src={run.card.src}

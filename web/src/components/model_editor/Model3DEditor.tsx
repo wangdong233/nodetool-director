@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import {
   memo,
@@ -9,68 +11,154 @@ import {
   useState,
   type MutableRefObject
 } from "react";
-import { useGlobalCombo } from "../../stores/KeyPressedStore";
+import { registerComboCallback, useKeyPressedStore } from "../../stores/KeyPressedStore";
+import type { ContextCommand } from "../../stores/CommandMenuStore";
+import { useContextCommands } from "../../hooks/useContextCommands";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Grid, Environment, TransformControls } from "@react-three/drei";
+import {
+  OrbitControls,
+  Grid,
+  TransformControls,
+  GizmoHelper,
+  GizmoViewport
+} from "@react-three/drei";
 
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
 import AspectRatioIcon from "@mui/icons-material/AspectRatio";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
-import GridOnIcon from "@mui/icons-material/GridOn";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
+import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SaveIcon from "@mui/icons-material/Save";
+import PublicIcon from "@mui/icons-material/Public";
+import ControlCameraIcon from "@mui/icons-material/ControlCamera";
+import StraightenIcon from "@mui/icons-material/Straighten";
+import KeyboardIcon from "@mui/icons-material/Keyboard";
+import CircleIcon from "@mui/icons-material/Circle";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 
 import {
+  AlertBanner,
+  Box,
+  ConfirmDialog,
+  Divider,
+  EditorButton,
+  EmptyState,
   FlexColumn,
   FlexRow,
-  Text,
-  Divider,
   LoadingSpinner,
-  ToolbarIconButton,
+  MenuItemPrimitive,
+  Text,
   ToggleGroup,
   ToggleOption,
-  EditorButton,
+  ToolbarIconButton,
+  Tooltip,
+  UndoRedoButtons,
   CloseButton,
-  BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx } from "../ui_primitives";
-import SceneOutliner from "./SceneOutliner";
+  PanelHeader,
+  BORDER_RADIUS,
+  SPACING,
+  Z_INDEX,
+  getSpacingPx
+} from "../ui_primitives";
+import ReportBugButton from "../support/ReportBugButton";
+import { deserializeDragData, DRAG_DATA_MIME } from "../../lib/dragdrop/serialization";
+import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
+import SceneOutliner, { type OutlinerAction } from "./SceneOutliner";
 import PropertiesPanel from "./PropertiesPanel";
 import Model3DChatPanel from "./Model3DChatPanel";
+import EditorStatusBar from "./EditorStatusBar";
+import AnimationBar from "./AnimationBar";
+import ViewportHud from "./ViewportHud";
+import { MenuButton } from "./MenuButton";
+import { readViewPrefs, writeViewPrefs, type ViewPrefs } from "./viewPrefs";
+import { createAnimationPreview } from "./animationPreview";
+import { importModelFile, importModelUrl, isModelFileName } from "./importModel";
+import ShortcutsDialog from "./ShortcutsDialog";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
-import { buildSceneTree } from "./sceneTree";
-import { disposeObject } from "./sceneTree";
+import {
+  buildSceneTree,
+  clearScene,
+  disposeObject,
+  isLightTarget,
+  replaceSceneContent
+} from "./sceneTree";
 import {
   createPrimitive,
   PRIMITIVE_LABELS,
   type PrimitiveKind
 } from "./objectFactory";
 import { exportSceneToGlb } from "./exportGltf";
-import { i18n } from "../../i18n";
 import {
-  setModel3DToolHandler,
-  type Model3DSceneNode,
-  type Model3DToolHandler,
-  type Model3DTransformPatch
-} from "./model3DToolBridge";
-import { useTranslation } from "react-i18next";
+  bindTracksToUuids,
+  cloneObjectDeep,
+  computeSceneStats,
+  nextAvailableName,
+  removeStrayLightChildren,
+  restoreEditorSettings,
+  restoreHiddenFlags,
+  restoreNodeNames,
+  stampObjectIds,
+  type LoadedGltfNames
+} from "./sceneOps";
+import { createEditorHistory, type EditorCommand } from "./editorHistory";
+import {
+  addObjectCommand,
+  captureTransform,
+  removeObject,
+  reparentObject,
+  setValueCommand,
+  transformCommand,
+  transformsEqual,
+  type RecordEdit,
+  type TransformSnapshot
+} from "./editorCommands";
+import {
+  EDITOR_SHORTCUTS,
+  shortcutKeys,
+  withShortcut,
+  type EditorAction
+} from "./editorShortcuts";
+import {
+  CameraRig,
+  CaptureBridge,
+  GroundAxes,
+  LightGizmos,
+  SelectionBounds,
+  StudioEnvironment,
+  WireframeOverlay,
+  captureModelOnly,
+  isVisibleInTree,
+  type CameraRequest,
+  type CameraRequestInput,
+  type CaptureHandles,
+  type ViewPreset
+} from "./ViewportHelpers";
+import { useModel3DAgentTools } from "./useModel3DAgentTools";
 
 type GizmoMode = "translate" | "rotate" | "scale";
+type GizmoSpace = "world" | "local";
 
-const PANEL_WIDTH = 240;
+const LEFT_PANEL_WIDTH = 260;
+const RIGHT_PANEL_WIDTH = 300;
 // The assistant hosts a chat conversation, so it gets more room than the
 // scene/properties panels.
 const ASSISTANT_PANEL_WIDTH = 320;
 
+/** Snap increments: world units, degrees, and scale factor. */
+const SNAP = { translate: 0.25, rotateDeg: 15, scale: 0.1 } as const;
+
 // Remembers whether the assistant panel was left open across editor sessions.
 const ASSISTANT_OPEN_KEY = "model3d.assistantOpen";
-
 const readAssistantOpen = (): boolean => {
+  const { t } = useTranslation();
   try {
     return localStorage.getItem(ASSISTANT_OPEN_KEY) === "true";
   } catch {
@@ -87,16 +175,17 @@ const styles = (theme: Theme) =>
       backgroundColor: theme.vars.palette.grey[900]
     },
     ".editor-toolbar": {
-      padding: theme.spacing(1.5, 3),
-      gap: getSpacingPx(SPACING.md),
+      padding: `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.lg)}`,
+      gap: getSpacingPx(SPACING.sm),
       alignItems: "center",
       borderBottom: `1px solid ${theme.vars.palette.divider}`,
       backgroundColor: theme.vars.palette.background.paper,
       flexShrink: 0,
-      flexWrap: "wrap"
+      flexWrap: "wrap",
+      minHeight: 44
     },
     ".editor-title": {
-      maxWidth: "260px",
+      maxWidth: "240px",
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap"
@@ -106,21 +195,16 @@ const styles = (theme: Theme) =>
       minHeight: 0
     },
     ".side-panel": {
-      width: `${PANEL_WIDTH}px`,
       flexShrink: 0,
       minHeight: 0,
       backgroundColor: theme.vars.palette.background.paper,
       borderRight: `1px solid ${theme.vars.palette.divider}`
     },
+    ".side-panel.left": { width: `${LEFT_PANEL_WIDTH}px` },
     ".side-panel.right": {
+      width: `${RIGHT_PANEL_WIDTH}px`,
       borderRight: "none",
       borderLeft: `1px solid ${theme.vars.palette.divider}`
-    },
-
-    ".panel-header": {
-      padding: theme.spacing(2, 3),
-      borderBottom: `1px solid ${theme.vars.palette.divider}`,
-      flexShrink: 0
     },
     ".panel-body": {
       flex: 1,
@@ -131,62 +215,74 @@ const styles = (theme: Theme) =>
     ".canvas-wrap": {
       flex: 1,
       minWidth: 0,
-      position: "relative"
+      position: "relative",
+      overflow: "hidden",
+      background: `radial-gradient(ellipse at 50% 35%, ${theme.vars.palette.grey[800]} 0%, ${theme.vars.palette.grey[900]} 75%)`
     },
-    ".add-menu": {
-      position: "relative"
-    },
-    ".add-dropdown": {
+    ".viewport-hud": {
       position: "absolute",
-      top: "100%",
-      left: 0,
-      zIndex: Z_INDEX.dropdown,
-      marginTop: getSpacingPx(SPACING.xs),
-      padding: getSpacingPx(SPACING.xs),
-      minWidth: "160px",
-      backgroundColor: theme.vars.palette.background.paper,
-      border: `1px solid ${theme.vars.palette.divider}`,
+      top: getSpacingPx(SPACING.md),
+      left: getSpacingPx(SPACING.md),
+      zIndex: Z_INDEX.raised,
+      padding: getSpacingPx(SPACING.micro),
+      gap: getSpacingPx(SPACING.micro),
+      alignItems: "center",
       borderRadius: BORDER_RADIUS.md,
-      boxShadow: theme.shadows[6]
+      border: `1px solid ${theme.vars.palette.divider}`,
+      backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.72)`,
+      backdropFilter: "blur(8px)"
     },
-    ".add-dropdown .MuiButton-root": {
-      justifyContent: "flex-start",
-      width: "100%"
+    ".viewport-banner": {
+      position: "absolute",
+      top: getSpacingPx(SPACING.md),
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: Z_INDEX.dropdown,
+      maxWidth: "70%"
+    },
+    ".animation-bar": {
+      position: "absolute",
+      left: getSpacingPx(SPACING.md),
+      // Leave room for the axis widget in the bottom-right corner.
+      right: 160,
+      bottom: getSpacingPx(SPACING.md),
+      zIndex: Z_INDEX.raised,
+      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.md)}`,
+      borderRadius: BORDER_RADIUS.md,
+      border: `1px solid ${theme.vars.palette.divider}`,
+      backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.72)`,
+      backdropFilter: "blur(8px)"
+    },
+    ".drop-hint": {
+      position: "absolute",
+      inset: getSpacingPx(SPACING.md),
+      zIndex: Z_INDEX.overlay,
+      pointerEvents: "none",
+      borderRadius: BORDER_RADIUS.lg,
+      border: `2px dashed ${theme.vars.palette.primary.main}`,
+      backgroundColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.08)`
+    },
+    ".dirty-dot": {
+      fontSize: "var(--fontSizeSmaller)",
+      color: theme.vars.palette.warning.main
     },
     ".overlay": {
       position: "absolute",
       inset: 0,
       zIndex: Z_INDEX.overlay,
       backgroundColor: theme.vars.palette.c_scrim
-    },
-    ".load-error": {
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      maxWidth: "80%",
-      padding: `${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.xxl)}`,
-      textAlign: "center",
-      backgroundColor: "rgba(0,0,0,0.8)",
-      borderRadius: BORDER_RADIUS.lg
     }
   });
 
-interface FitCameraProps {
-  root: THREE.Object3D;
-  trigger: number;
-}
-
 interface OrbitControlsLike {
   target: THREE.Vector3;
-  update: () => void;
 }
 
 const isOrbitControlsLike = (obj: unknown): obj is OrbitControlsLike =>
   obj !== null &&
   typeof obj === "object" &&
   "target" in obj &&
-  typeof (obj as OrbitControlsLike).update === "function";
+  (obj as OrbitControlsLike).target instanceof THREE.Vector3;
 
 /**
  * An externally driven camera pose, in orbit terms around a target point.
@@ -230,129 +326,27 @@ const PosedCamera = ({ pose }: { pose: Model3DCameraPose }) => {
   return null;
 };
 
-/** Frames the camera to the editor root's bounding box on demand. */
-const FitCamera = ({ root, trigger }: FitCameraProps) => {
-  const { camera, controls } = useThree();
-
+/** Publishes the orbit controls' target so new objects spawn where the user looks. */
+const OrbitTargetBridge = ({
+  targetRef
+}: {
+  targetRef: MutableRefObject<THREE.Vector3 | null>;
+}) => {
+  const { controls } = useThree();
   useEffect(() => {
-    const box = new THREE.Box3().setFromObject(root);
-    if (box.isEmpty()) {
-      return;
-    }
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    const perspective =
-      camera instanceof THREE.PerspectiveCamera ? camera : null;
-    const maxDim = Math.max(size.x, size.y, size.z, 0.001);
-
-    if (perspective) {
-      const fitHeightDistance =
-        maxDim / (2 * Math.tan(THREE.MathUtils.degToRad(perspective.fov / 2)));
-      const fitWidthDistance =
-        fitHeightDistance / Math.max(perspective.aspect, 0.1);
-      const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.5;
-      const dir = new THREE.Vector3(1, 0.7, 1).normalize();
-      perspective.position.copy(center.clone().add(dir.multiplyScalar(distance)));
-      perspective.near = Math.max(distance / 100, 0.01);
-      perspective.far = Math.max(distance * 20, 100);
-      perspective.lookAt(center);
-      perspective.updateProjectionMatrix();
-    }
-    if (isOrbitControlsLike(controls)) {
-      controls.target.copy(center);
-      controls.update();
-    }
-  }, [root, trigger, camera, controls]);
-
-  return null;
-};
-
-interface CaptureHandles {
-  gl: THREE.WebGLRenderer;
-  scene: THREE.Scene;
-  camera: THREE.Camera;
-}
-
-interface CaptureBridgeProps {
-  targetRef: MutableRefObject<CaptureHandles | null>;
-}
-
-/**
- * Publishes the live renderer/scene/camera (from inside the Canvas) to a ref the
- * editor owns, so `captureView` can render a screenshot for the agent on demand.
- */
-const CaptureBridge = ({ targetRef }: CaptureBridgeProps) => {
-  const { gl, scene, camera } = useThree();
-  useEffect(() => {
-    targetRef.current = { gl, scene, camera };
+    targetRef.current = isOrbitControlsLike(controls) ? controls.target : null;
     return () => {
       targetRef.current = null;
     };
-  }, [gl, scene, camera, targetRef]);
+  }, [controls, targetRef]);
   return null;
 };
 
-interface AddMenuProps {
-  onAdd: (kind: PrimitiveKind) => void;
-}
-
-const PRIMITIVE_ORDER: PrimitiveKind[] = [
-  "box",
-  "sphere",
-  "plane",
-  "cylinder",
-  "torus",
-  "directionalLight",
-  "pointLight"
+const ADD_MENU_GROUPS: { title: string; kinds: PrimitiveKind[] }[] = [
+  { title: "Mesh", kinds: ["box", "sphere", "plane", "cylinder", "cone", "torus"] },
+  { title: "Light", kinds: ["directionalLight", "pointLight", "spotLight"] },
+  { title: "Other", kinds: ["empty"] }
 ];
-
-const AddMenu = ({ onAdd }: AddMenuProps) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div className="add-menu" ref={ref}>
-      <EditorButton
-        density="compact"
-        variant="text"
-        startIcon={<AddIcon />}
-        onClick={() => setOpen((v) => !v)}
-      >
-        Add
-      </EditorButton>
-      {open && (
-        <FlexColumn className="add-dropdown" gap={2}>
-          {PRIMITIVE_ORDER.map((kind) => (
-            <EditorButton
-              key={kind}
-              density="compact"
-              variant="text"
-              onClick={() => {
-                onAdd(kind);
-                setOpen(false);
-              }}
-            >
-              {PRIMITIVE_LABELS[kind]}
-            </EditorButton>
-          ))}
-        </FlexColumn>
-      )}
-    </div>
-  );
-};
 
 interface Model3DEditorProps {
   url: string;
@@ -365,11 +359,26 @@ interface Model3DEditorProps {
    */
   cameraPose?: Model3DCameraPose;
   /**
-   * Skip the drei `Environment` preset and light the scene with lamps only.
-   * The preset is an HDR fetched from a CDN: with no network it never
-   * resolves, the Canvas stays suspended, and the frame comes out blank.
+   * Skip the environment map and light the scene with lamps only. Video
+   * renders use this to keep the lighting of earlier recordings.
    */
   offlineLighting?: boolean;
+  /**
+   * Whether this editor is the visible workspace tab. Only the active editor
+   * receives the agent's ui_3d_* tool calls. Defaults to true for hosts that
+   * mount a single editor.
+   */
+  active?: boolean;
+  /** Told whenever the scene gains or loses unsaved edits. */
+  onDirtyChange?: (dirty: boolean) => void;
+  /**
+   * The file was written from elsewhere while this editor had unsaved
+   * edits. The editor warns that a save would replace that change.
+   */
+  externallyChanged?: boolean;
+  /** Reopen the file from storage, discarding the unsaved edits. */
+  onReloadExternal?: () => void;
+  onDismissExternal?: () => void;
 }
 
 const Model3DEditor = ({
@@ -378,10 +387,15 @@ const Model3DEditor = ({
   onSave,
   onClose,
   cameraPose,
-  offlineLighting = false
+  offlineLighting = false,
+  active = true,
+  onDirtyChange,
+  externallyChanged = false,
+  onReloadExternal,
+  onDismissExternal
 }: Model3DEditorProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Persistent group that owns all editable content and is exported on save.
   const rootRef = useRef<THREE.Group>(null);
@@ -391,16 +405,51 @@ const Model3DEditor = ({
     rootRef.current = group;
   }
   const root = rootRef.current;
+  // Clips from the loaded file, written back on save so it keeps them.
+  const [animationClips, setAnimationClips] = useState<THREE.AnimationClip[]>([]);
+  const preview = useMemo(
+    () => createAnimationPreview(root, animationClips),
+    [root, animationClips]
+  );
+  const [previewActive, setPreviewActive] = useState(false);
+  // Remounting the animation bar resets its controls after the editor stops
+  // the preview itself.
+  const [previewEpoch, setPreviewEpoch] = useState(0);
+  const stopPreview = useCallback(() => {
+    if (preview.isActive()) {
+      preview.stop();
+      setPreviewActive(false);
+      setPreviewEpoch((e) => e + 1);
+    }
+  }, [preview]);
+
+  const historyRef = useRef<ReturnType<typeof createEditorHistory> | null>(null);
+  if (historyRef.current === null) {
+    historyRef.current = createEditorHistory();
+  }
+  const history = historyRef.current;
+  const [savedRevision, setSavedRevision] = useState(() => history.revision());
 
   const [tick, setTick] = useState(0);
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
   const [gizmoMode, setGizmoMode] = useState<GizmoMode>("translate");
-  const [showGrid, setShowGrid] = useState(true);
+  const [gizmoSpace, setGizmoSpace] = useState<GizmoSpace>("world");
+  const [viewPrefs, setViewPrefs] = useState<ViewPrefs>(readViewPrefs);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [fitTrigger, setFitTrigger] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [cameraRequest, setCameraRequest] = useState<CameraRequest | null>(null);
   const [showAssistant, setShowAssistant] = useState<boolean>(readAssistantOpen);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // Holding Ctrl (or Cmd) inverts the snap toggle while dragging, as in Unity.
+  const modifierHeld = useKeyPressedStore(
+    (state) => state.pressedKeys.has("control") || state.pressedKeys.has("meta")
+  );
+  const snapActive = viewPrefs.snap !== modifierHeld;
 
   const toggleAssistant = useCallback(() => {
     setShowAssistant((open) => {
@@ -414,7 +463,82 @@ const Model3DEditor = ({
     });
   }, []);
 
+  const togglePref = useCallback((key: keyof ViewPrefs) => {
+    setViewPrefs((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      writeViewPrefs(next);
+      return next;
+    });
+  }, []);
+
   const bump = useCallback(() => setTick((t) => t + 1), []);
+  // A gizmo drag changes only the dragged object's transform. It refreshes
+  // the Inspector alone, so the outliner, stats and wireframe are not rebuilt
+  // on every pointer move.
+  const [dragTick, setDragTick] = useState(0);
+  const bumpDrag = useCallback(() => setDragTick((t) => t + 1), []);
+  const nonce = useRef(0);
+  const requestCamera = useCallback(
+    (request: CameraRequestInput) => {
+      nonce.current += 1;
+      setCameraRequest({ ...request, nonce: nonce.current });
+    },
+    []
+  );
+
+  // --- History ---------------------------------------------------------------
+
+  const pushCommand = useCallback(
+    (command: EditorCommand) => {
+      history.push(command);
+      bump();
+    },
+    [history, bump]
+  );
+
+  // Every edit first ends the animation preview. Stopping it puts back the
+  // rest pose it recorded, so a transform set during playback would otherwise
+  // be undone by the next stop or save while history still lists it.
+  const record: RecordEdit = useCallback(
+    (edit) => {
+      stopPreview();
+      const before = edit.get();
+      const same = edit.equals ? edit.equals(before, edit.value) : Object.is(before, edit.value);
+      if (same) {
+        edit.release?.(edit.value);
+        return;
+      }
+      edit.set(edit.value);
+      pushCommand(
+        setValueCommand(edit.label, edit.set, before, edit.value, edit.mergeKey, edit.release)
+      );
+    },
+    [pushCommand, stopPreview]
+  );
+
+  const undo = useCallback(() => {
+    stopPreview();
+    if (history.undo()) {
+      bump();
+    }
+  }, [history, bump, stopPreview]);
+
+  const redo = useCallback(() => {
+    stopPreview();
+    if (history.redo()) {
+      bump();
+    }
+  }, [history, bump, stopPreview]);
+
+  const revision = history.revision();
+  const isDirty = revision !== savedRevision;
+  void tick;
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+  // Closing the editor discards its edits, so nothing is unsaved any more.
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   // Mirror of selectedUuid for the tool-bridge handler, which is registered once
   // with stable callbacks and must read the latest selection without re-registering.
@@ -423,6 +547,8 @@ const Model3DEditor = ({
     selectedUuidRef.current = selectedUuid;
   }, [selectedUuid]);
 
+  const orbitTargetRef = useRef<THREE.Vector3 | null>(null);
+
   // Live render handles published by <CaptureBridge> for screenshot capture.
   const captureRef = useRef<CaptureHandles | null>(null);
   const captureView = useCallback((): string => {
@@ -430,10 +556,12 @@ const Model3DEditor = ({
     if (!capture) {
       throw new Error("3D viewport is not ready to capture yet.");
     }
-    const { gl, scene, camera } = capture;
-    gl.render(scene, camera);
-    return gl.domElement.toDataURL("image/png");
-  }, []);
+    return captureModelOnly(
+      capture,
+      root,
+      new THREE.Color(theme.palette.grey[900])
+    );
+  }, [root, theme]);
 
   // Load the GLB/GLTF into the editor root once per URL.
   useEffect(() => {
@@ -449,17 +577,22 @@ const Model3DEditor = ({
           disposeObject(gltf.scene);
           return;
         }
-        // Dispose any previously loaded content before swapping in the new model.
-        while (root.children.length > 0) {
-          const child = root.children[0];
-          root.remove(child);
-          disposeObject(child);
+        bindTracksToUuids(gltf.animations, gltf.scene);
+        if (gltf.parser) {
+          restoreNodeNames(gltf as unknown as LoadedGltfNames);
+          stampObjectIds(gltf as unknown as LoadedGltfNames);
         }
-        gltf.scene.name = gltf.scene.name || "Model";
-        root.add(gltf.scene);
+        removeStrayLightChildren(gltf.scene);
+        restoreHiddenFlags(gltf.scene);
+        restoreEditorSettings(gltf.scene);
+        replaceSceneContent(root, gltf.scene);
+        setAnimationClips(gltf.animations);
+        setPreviewActive(false);
+        history.clear();
+        setSavedRevision(history.revision());
         setSelectedUuid(null);
         setIsLoading(false);
-        setFitTrigger((t) => t + 1);
+        requestCamera({ kind: "frameAll", instant: true });
         bump();
       },
       undefined,
@@ -479,17 +612,20 @@ const Model3DEditor = ({
     return () => {
       cancelled = true;
       // Release GPU resources for the current scene on URL change/unmount.
-      while (root.children.length > 0) {
-        const child = root.children[0];
-        root.remove(child);
-        disposeObject(child);
-      }
+      history.clear();
+      clearScene(root);
+      setAnimationClips([]);
     };
-  }, [url, root, bump]);
+  }, [url, root, bump, history, requestCamera]);
 
   const treeNodes = useMemo(() => {
     void tick;
     return buildSceneTree(root);
+  }, [root, tick]);
+
+  const stats = useMemo(() => {
+    void tick;
+    return computeSceneStats(root);
   }, [root, tick]);
 
   const selectedObject = useMemo(() => {
@@ -500,273 +636,610 @@ const Model3DEditor = ({
     return root.getObjectByProperty("uuid", selectedUuid) ?? null;
   }, [root, selectedUuid, tick]);
 
-  const handleToggleVisible = useCallback(
-    (uuid: string) => {
-      const obj = root.getObjectByProperty("uuid", uuid);
-      if (obj) {
-        obj.visible = !obj.visible;
-        bump();
-      }
-    },
-    [root, bump]
-  );
+  const takenNames = useCallback((): Set<string> => {
+    const names = new Set<string>();
+    root.traverse((child) => names.add(child.name));
+    return names;
+  }, [root]);
 
-  // Find an object by uuid, then by exact name, then by case-insensitive name.
-  const findObject = useCallback(
-    (idOrName: string): THREE.Object3D | null => {
-      const byUuid = root.getObjectByProperty("uuid", idOrName);
-      if (byUuid) {
-        return byUuid;
-      }
-      const byName = root.getObjectByName(idOrName);
-      if (byName) {
-        return byName;
-      }
-      const lower = idOrName.trim().toLowerCase();
-      let match: THREE.Object3D | null = null;
-      root.traverse((child) => {
-        if (!match && child !== root && child.name.toLowerCase() === lower) {
-          match = child;
-        }
-      });
-      return match;
-    },
-    [root]
-  );
-
-  const toNode = useCallback(
-    (obj: THREE.Object3D): Model3DSceneNode => ({
-      uuid: obj.uuid,
-      name: obj.name || obj.type,
-      type: obj.type,
-      visible: obj.visible,
-      position: [obj.position.x, obj.position.y, obj.position.z],
-      rotation: [
-        THREE.MathUtils.radToDeg(obj.rotation.x),
-        THREE.MathUtils.radToDeg(obj.rotation.y),
-        THREE.MathUtils.radToDeg(obj.rotation.z)
-      ],
-      scale: [obj.scale.x, obj.scale.y, obj.scale.z],
-      parentUuid:
-        obj.parent && obj.parent !== root ? obj.parent.uuid : null
-    }),
-    [root]
-  );
-
-  // Pick a unique name in the scene, suffixing "<base> 2", "<base> 3", … on collision.
-  const uniqueName = useCallback(
-    (base: string): string => {
-      const existing = new Set<string>();
-      root.traverse((child) => existing.add(child.name));
-      if (!existing.has(base)) {
-        return base;
-      }
-      let counter = 2;
-      let candidate = `${base} ${counter}`;
-      while (existing.has(candidate)) {
-        counter += 1;
-        candidate = `${base} ${counter}`;
-      }
-      return candidate;
-    },
-    [root]
-  );
+  // --- Scene edits -----------------------------------------------------------
 
   const addPrimitiveObject = useCallback(
     (kind: PrimitiveKind, name?: string): THREE.Object3D => {
       const obj = createPrimitive(kind);
-      obj.name = uniqueName(name?.trim() || PRIMITIVE_LABELS[kind]);
+      obj.name = nextAvailableName(name?.trim() || PRIMITIVE_LABELS[kind], takenNames());
+      // New objects appear where the user is looking, resting on the ground.
+      const target = orbitTargetRef.current;
+      if (target) {
+        obj.position.x += target.x;
+        obj.position.z += target.z;
+      }
+      if (obj instanceof THREE.Mesh) {
+        obj.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(obj);
+        obj.position.y += -box.min.y;
+      }
       root.add(obj);
+      pushCommand(addObjectCommand(`Add ${PRIMITIVE_LABELS[kind]}`, obj, root));
       setSelectedUuid(obj.uuid);
-      bump();
       return obj;
     },
-    [root, uniqueName, bump]
+    [root, takenNames, pushCommand]
   );
 
-  const handleAdd = useCallback(
-    (kind: PrimitiveKind) => {
-      addPrimitiveObject(kind);
+  const deleteObject = useCallback(
+    (obj: THREE.Object3D) => {
+      if (obj === root) {
+        return;
+      }
+      const command = removeObject(`Delete ${obj.name || obj.type}`, obj);
+      if (command) {
+        pushCommand(command);
+      }
+      if (selectedUuidRef.current === obj.uuid) {
+        setSelectedUuid(null);
+      }
     },
-    [addPrimitiveObject]
+    [root, pushCommand]
   );
+
+  const duplicateObject = useCallback(
+    (obj: THREE.Object3D): THREE.Object3D | null => {
+      const parent = obj.parent;
+      if (!parent || obj === root) {
+        return null;
+      }
+      // Copy the rest pose, not the animated frame on screen.
+      stopPreview();
+      const copy = cloneObjectDeep(obj);
+      copy.name = nextAvailableName(obj.name || obj.type, takenNames());
+      parent.add(copy);
+      // Keep the copy next to its source in the scene list.
+      const children = parent.children;
+      children.splice(children.indexOf(copy), 1);
+      children.splice(children.indexOf(obj) + 1, 0, copy);
+      pushCommand(addObjectCommand(`Duplicate ${obj.name || obj.type}`, copy, parent));
+      setSelectedUuid(copy.uuid);
+      return copy;
+    },
+    [root, takenNames, pushCommand, stopPreview]
+  );
+
+  // --- Import ----------------------------------------------------------------
+
+  const [importError, setImportError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [dropActive, setDropActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const placeImport = useCallback(
+    (group: THREE.Object3D) => {
+      group.name = nextAvailableName(group.name, takenNames());
+      root.add(group);
+      // Centre the model on the point the camera orbits, resting on the ground.
+      group.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(group);
+      if (!box.isEmpty()) {
+        const center = box.getCenter(new THREE.Vector3());
+        const target = orbitTargetRef.current ?? new THREE.Vector3();
+        group.position.x += target.x - center.x;
+        group.position.z += target.z - center.z;
+        group.position.y -= box.min.y;
+      }
+      pushCommand(addObjectCommand(`Import ${group.name}`, group, root));
+      setSelectedUuid(group.uuid);
+      requestCamera({ kind: "focus", uuid: group.uuid });
+    },
+    [root, takenNames, pushCommand, requestCamera]
+  );
+
+  const runImport = useCallback(
+    async (load: () => Promise<THREE.Object3D>) => {
+      setIsImporting(true);
+      setImportError(null);
+      try {
+        placeImport(await load());
+      } catch (error) {
+        setImportError(error instanceof Error ? error.message : "The model could not be read.");
+      } finally {
+        setIsImporting(false);
+      }
+    },
+    [placeImport]
+  );
+
+  const handleImportFiles = useCallback(
+    (files: FileList | File[]) => {
+      const models = Array.from(files).filter((file) => isModelFileName(file.name));
+      if (models.length === 0) {
+        setImportError("Only .glb and .gltf files can be added to the scene.");
+        return;
+      }
+      for (const file of models) {
+        void runImport(() => importModelFile(file));
+      }
+    },
+    [runImport]
+  );
+
+  const acceptsDrop = (e: React.DragEvent): boolean =>
+    e.dataTransfer.types.includes("Files") || e.dataTransfer.types.includes(DRAG_DATA_MIME);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (acceptsDrop(e)) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      setDropActive(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      setDropActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDropActive(false);
+      const dragData = deserializeDragData(e.dataTransfer);
+      if (dragData?.type === "asset") {
+        const asset = dragData.payload;
+        const assetUrl = resolveStaticMediaUri(asset.get_url);
+        if (!assetUrl || !isModelFileName(asset.name)) {
+          setImportError(`${asset.name} is not a .glb or .gltf model.`);
+          return;
+        }
+        void runImport(() => importModelUrl(assetUrl, asset.name));
+        return;
+      }
+      if (e.dataTransfer.files.length > 0) {
+        handleImportFiles(e.dataTransfer.files);
+      }
+    },
+    [runImport, handleImportFiles]
+  );
+
+  const setVisible = useCallback(
+    (obj: THREE.Object3D, visible: boolean) =>
+      record({
+        label: visible ? "Show" : "Hide",
+        get: () => obj.visible,
+        set: (v) => {
+          obj.visible = v;
+        },
+        value: visible
+      }),
+    [record]
+  );
+
+  const renameObject = useCallback(
+    (obj: THREE.Object3D, next: string) =>
+      record({
+        label: "Rename",
+        get: () => obj.name,
+        set: (v) => {
+          obj.name = v;
+        },
+        value: next
+      }),
+    [record]
+  );
+
+  const reparent = useCallback(
+    (uuid: string, parentUuid: string | null) => {
+      const obj = root.getObjectByProperty("uuid", uuid);
+      const parent = parentUuid ? root.getObjectByProperty("uuid", parentUuid) : root;
+      if (!obj || !parent || obj.parent === parent) {
+        return;
+      }
+      stopPreview();
+      const command = reparentObject(
+        `Parent ${obj.name || obj.type}`,
+        obj,
+        parent,
+        parent.children.length
+      );
+      if (command) {
+        pushCommand(command);
+      }
+    },
+    [root, pushCommand, stopPreview]
+  );
+
+  // --- Selection actions -------------------------------------------------------
 
   const handleDelete = useCallback(() => {
-    if (!selectedObject) {
+    if (selectedObject) {
+      deleteObject(selectedObject);
+    }
+  }, [selectedObject, deleteObject]);
+
+  const handleDuplicate = useCallback(() => {
+    if (selectedObject) {
+      duplicateObject(selectedObject);
+    }
+  }, [selectedObject, duplicateObject]);
+
+  const handleToggleHidden = useCallback(() => {
+    if (selectedObject) {
+      setVisible(selectedObject, !selectedObject.visible);
+    }
+  }, [selectedObject, setVisible]);
+
+  const handleUnhideAll = useCallback(() => {
+    const hidden: THREE.Object3D[] = [];
+    root.traverse((node) => {
+      if (node !== root && !node.visible && !isLightTarget(node)) {
+        hidden.push(node);
+      }
+    });
+    if (hidden.length === 0) {
       return;
     }
-    selectedObject.parent?.remove(selectedObject);
-    disposeObject(selectedObject);
-    setSelectedUuid(null);
-    bump();
-  }, [selectedObject, bump]);
+    hidden.forEach((node) => {
+      node.visible = true;
+    });
+    pushCommand({
+      label: "Show all",
+      undo: () => hidden.forEach((node) => (node.visible = false)),
+      redo: () => hidden.forEach((node) => (node.visible = true))
+    });
+  }, [root, pushCommand]);
+
+  const handleToggleVisible = useCallback(
+    (uuid: string) => {
+      const obj = root.getObjectByProperty("uuid", uuid);
+      if (obj) {
+        setVisible(obj, !obj.visible);
+      }
+    },
+    [root, setVisible]
+  );
+
+  const handleRename = useCallback(
+    (uuid: string, next: string) => {
+      const obj = root.getObjectByProperty("uuid", uuid);
+      if (obj && next.trim()) {
+        renameObject(obj, next.trim());
+      }
+    },
+    [root, renameObject]
+  );
+
+  const handleOutlinerAction = useCallback(
+    (action: OutlinerAction, uuid: string) => {
+      const obj = root.getObjectByProperty("uuid", uuid);
+      if (!obj) {
+        return;
+      }
+      switch (action) {
+        case "duplicate":
+          duplicateObject(obj);
+          break;
+        case "delete":
+          deleteObject(obj);
+          break;
+        case "focus":
+          requestCamera({ kind: "focus", uuid });
+          break;
+        case "toggleVisible":
+          setVisible(obj, !obj.visible);
+          break;
+        case "unparent":
+          reparent(uuid, null);
+          break;
+        default:
+          break;
+      }
+    },
+    [root, duplicateObject, deleteObject, requestCamera, setVisible, reparent]
+  );
+
+  const focusSelection = useCallback(() => {
+    if (selectedUuidRef.current) {
+      requestCamera({ kind: "focus", uuid: selectedUuidRef.current });
+    } else {
+      requestCamera({ kind: "frameAll" });
+    }
+  }, [requestCamera]);
+
+  const frameAll = useCallback(() => requestCamera({ kind: "frameAll" }), [requestCamera]);
+  const setView = useCallback(
+    (view: ViewPreset) => requestCamera({ kind: "view", view }),
+    [requestCamera]
+  );
+
+  // --- Gizmo -------------------------------------------------------------------
+
+  const dragStart = useRef<{ object: THREE.Object3D; before: TransformSnapshot } | null>(null);
+  // Releasing a gizmo drag over empty space fires a "missed" click; ignore it.
+  const lastDragEnd = useRef(0);
+
+  const handleGizmoDown = useCallback(() => {
+    if (selectedObject) {
+      dragStart.current = { object: selectedObject, before: captureTransform(selectedObject) };
+      setIsDragging(true);
+    }
+  }, [selectedObject]);
+
+  const handleGizmoUp = useCallback(() => {
+    const start = dragStart.current;
+    dragStart.current = null;
+    lastDragEnd.current = performance.now();
+    setIsDragging(false);
+    if (!start) {
+      return;
+    }
+    const after = captureTransform(start.object);
+    if (!transformsEqual(start.before, after)) {
+      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
+      pushCommand(
+        transformCommand(`${verb} ${start.object.name || start.object.type}`, start.object, start.before, after)
+      );
+    }
+  }, [gizmoMode, pushCommand]);
 
   const handleSceneClick = useCallback((e: ThreeEvent<MouseEvent>) => {
+    // The raycaster hits hidden meshes too. Leave the event to the next hit,
+    // so a hidden object is not selected and does not block the one behind it.
+    if (!isVisibleInTree(e.object)) {
+      return;
+    }
     e.stopPropagation();
+    // A drag that orbited the camera is not a click. Neither is a press on
+    // the gizmo: it is not part of the scene, so the click reaches the
+    // object behind the handle.
+    if (e.delta > 4 || performance.now() - lastDragEnd.current < 250) {
+      return;
+    }
     setSelectedUuid(e.object.uuid);
   }, []);
 
+  const handlePointerMissed = useCallback(() => {
+    if (performance.now() - lastDragEnd.current < 250) {
+      return;
+    }
+    setSelectedUuid(null);
+  }, []);
+
+  // --- Save / close ------------------------------------------------------------
+
   const savingRef = useRef(false);
+  // While the model loads, or after it failed to load, the scene is empty.
+  // Saving then would overwrite the file with nothing.
+  const canSave = !isLoading && !loadError;
   const handleSave = useCallback(async () => {
-    if (savingRef.current) {
+    if (savingRef.current || !canSave) {
       return;
     }
     savingRef.current = true;
     setIsSaving(true);
+    setSaveError(null);
+    const savingRevision = history.revision();
+    // Save the rest pose, not the animation frame on screen.
+    stopPreview();
     try {
-      const blob = await exportSceneToGlb(root);
+      const blob = await exportSceneToGlb(root, animationClips);
       await onSave(blob);
+      setSavedRevision(savingRevision);
     } catch (error) {
       console.error("[Model3DEditor] Failed to export GLB:", error);
-      setLoadError(
+      setSaveError(
         error instanceof Error ? error.message : i18n.t("editor:ui.failedToExportModel", { defaultValue: "Failed to export model" })
       );
     } finally {
       savingRef.current = false;
       setIsSaving(false);
     }
-  }, [root, onSave]);
+  }, [root, onSave, history, stopPreview, animationClips, canSave]);
 
-  // Expose scene operations to the agent tooling layer (ui_3d_* tools) while
-  // this editor is mounted. Built from stable callbacks so it registers once.
-  useEffect(() => {
-    const requireObject = (idOrName: string): THREE.Object3D => {
-      const obj = findObject(idOrName);
-      if (!obj) {
-        throw new Error(`Object not found in scene: ${idOrName}`);
-      }
-      return obj;
-    };
+  const requestClose = useCallback(() => {
+    if (isDirty) {
+      setConfirmCloseOpen(true);
+    } else {
+      onClose();
+    }
+  }, [isDirty, onClose]);
 
-    const handler: Model3DToolHandler = {
-      listScene: () => {
-        const nodes: Model3DSceneNode[] = [];
-        root.traverse((child) => {
-          if (child !== root) {
-            nodes.push(toNode(child));
-          }
-        });
-        return nodes;
-      },
-      getSelected: () => {
-        const id = selectedUuidRef.current;
-        if (!id) {
-          return null;
-        }
-        const obj = root.getObjectByProperty("uuid", id);
-        return obj ? toNode(obj) : null;
-      },
-      addPrimitive: (kind, name) => toNode(addPrimitiveObject(kind, name)),
-      selectObject: (idOrName) => {
-        if (!idOrName) {
-          setSelectedUuid(null);
-          return null;
-        }
-        const obj = requireObject(idOrName);
-        setSelectedUuid(obj.uuid);
-        return toNode(obj);
-      },
-      deleteObject: (idOrName) => {
-        const obj = requireObject(idOrName);
-        if (obj === root) {
-          throw new Error("Cannot delete the scene root.");
-        }
-        const node = toNode(obj);
-        obj.parent?.remove(obj);
-        disposeObject(obj);
-        if (selectedUuidRef.current === obj.uuid) {
-          setSelectedUuid(null);
-        }
-        bump();
-        return node;
-      },
-      setTransform: (idOrName, patch: Model3DTransformPatch) => {
-        const obj = requireObject(idOrName);
-        if (patch.position) {
-          obj.position.set(
-            patch.position[0],
-            patch.position[1],
-            patch.position[2]
-          );
-        }
-        if (patch.rotation) {
-          obj.rotation.set(
-            THREE.MathUtils.degToRad(patch.rotation[0]),
-            THREE.MathUtils.degToRad(patch.rotation[1]),
-            THREE.MathUtils.degToRad(patch.rotation[2])
-          );
-        }
-        if (patch.scale) {
-          obj.scale.set(patch.scale[0], patch.scale[1], patch.scale[2]);
-        }
-        obj.updateMatrixWorld();
-        bump();
-        return toNode(obj);
-      },
-      setVisibility: (idOrName, visible) => {
-        const obj = requireObject(idOrName);
-        obj.visible = visible;
-        bump();
-        return toNode(obj);
-      },
-      renameObject: (idOrName, name) => {
-        const obj = requireObject(idOrName);
-        const trimmed = name.trim();
-        if (!trimmed) {
-          throw new Error("Object name cannot be empty.");
-        }
-        obj.name = trimmed;
-        bump();
-        return toNode(obj);
-      },
-      setMaterialColor: (idOrName, color) => {
-        const obj = requireObject(idOrName);
-        if (!(obj instanceof THREE.Mesh)) {
-          throw new Error(
-            `Object is not a mesh and has no material: ${idOrName}`
-          );
-        }
-        const applyColor = (material: THREE.Material) => {
-          const colored = material as THREE.Material & { color?: THREE.Color };
-          if (!colored.color) {
-            throw new Error("Material has no color channel.");
-          }
-          colored.color.set(color);
-          material.needsUpdate = true;
-        };
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach(applyColor);
-        } else {
-          applyColor(obj.material);
-        }
-        bump();
-        return toNode(obj);
-      },
-      frameScene: () => {
-        setFitTrigger((t) => t + 1);
-      },
-      captureView
-    };
+  // --- Agent tools ---------------------------------------------------------------
 
-    setModel3DToolHandler(handler);
-    return () => setModel3DToolHandler(null);
-  }, [root, findObject, toNode, addPrimitiveObject, bump, captureView]);
+  useModel3DAgentTools({
+    active,
+    root,
+    history,
+    selectedUuidRef,
+    setSelectedUuid,
+    pushCommand,
+    beforeEdit: stopPreview,
+    refresh: bump,
+    addPrimitive: addPrimitiveObject,
+    deleteObject,
+    duplicateObject,
+    setVisible,
+    renameObject,
+    requestCamera,
+    captureView
+  });
+
+  // --- Shortcuts -------------------------------------------------------------------
+
+  const actions = useMemo<Record<EditorAction, () => void>>(
+    () => ({
+      undo,
+      redo,
+      save: () => void handleSave(),
+      translate: () => setGizmoMode("translate"),
+      rotate: () => setGizmoMode("rotate"),
+      scale: () => setGizmoMode("scale"),
+      toggleSpace: () => setGizmoSpace((s) => (s === "world" ? "local" : "world")),
+      toggleSnap: () => togglePref("snap"),
+      duplicate: handleDuplicate,
+      delete: handleDelete,
+      deselect: () => setSelectedUuid(null),
+      focusSelection,
+      frameAll,
+      hide: handleToggleHidden,
+      unhideAll: handleUnhideAll,
+      viewFront: () => setView("front"),
+      viewBack: () => setView("back"),
+      viewRight: () => setView("right"),
+      viewLeft: () => setView("left"),
+      viewTop: () => setView("top"),
+      viewBottom: () => setView("bottom"),
+      toggleGrid: () => togglePref("grid"),
+      toggleWireframe: () => togglePref("wireframe"),
+      showShortcuts: () => setShortcutsOpen(true)
+    }),
+    [
+      undo,
+      redo,
+      handleSave,
+      togglePref,
+      handleDuplicate,
+      handleDelete,
+      focusSelection,
+      frameAll,
+      handleToggleHidden,
+      handleUnhideAll,
+      setView
+    ]
+  );
 
   // The store's shared gate replaces this handler's own "am I typing?" check.
-  useGlobalCombo("control+s", handleSave);
-  useGlobalCombo("meta+s", handleSave);
-  useGlobalCombo("delete", handleDelete);
-  useGlobalCombo("backspace", handleDelete);
-  useGlobalCombo("g", () => setGizmoMode("translate"), { preventDefault: false });
-  useGlobalCombo("r", () => setGizmoMode("rotate"), { preventDefault: false });
-  useGlobalCombo("s", () => setGizmoMode("scale"), { preventDefault: false });
+  // `target` skips these bindings while the editor sits in an inert background
+  // workspace tab, so its keys reach the visible tab instead.
+  const getContainer = useCallback(() => containerRef.current, []);
+  const actionsRef = useRef(actions);
+  actionsRef.current = actions;
+  useEffect(() => {
+    const releases = EDITOR_SHORTCUTS.flatMap((shortcut) =>
+      shortcut.combos.map((combo) =>
+        registerComboCallback(combo, {
+          callback: () => actionsRef.current[shortcut.action](),
+          // Tool keys must not swallow typing elsewhere; Ctrl combos do.
+          preventDefault: combo.includes("+"),
+          // Ctrl+S saves from inside an Inspector field too, instead of
+          // falling through to the browser's "Save page" dialog.
+          allowInInputs: shortcut.action === "save",
+          target: getContainer
+        })
+      )
+    );
+    return () => releases.forEach((release) => release());
+  }, [getContainer]);
+
+  // The same actions, listed in the Cmd+K menu while this tab is on screen.
+  const menuCommands = useMemo<ContextCommand[]>(
+    () =>
+      EDITOR_SHORTCUTS.filter((shortcut) => shortcut.action !== "deselect").map(
+        (shortcut) => ({
+          id: shortcut.action,
+          label: shortcut.label,
+          keywords: [shortcut.group],
+          shortcut: shortcut.keys.join("+"),
+          run: () => actionsRef.current[shortcut.action]()
+        })
+      ),
+    []
+  );
+  useContextCommands("3D Model", menuCommands, active && !cameraPose);
+
+  // --- Render ------------------------------------------------------------------------
+
+  const statusHint = useMemo(() => {
+    if (previewActive) {
+      return "Animation preview · the gizmo is hidden · press stop to return to the rest pose and edit";
+    }
+    if (isDragging) {
+      return snapActive
+        ? `Snapping to ${gizmoMode === "rotate" ? `${SNAP.rotateDeg}°` : gizmoMode === "scale" ? SNAP.scale : `${SNAP.translate} units`} · release Ctrl to move freely`
+        : "Hold Ctrl to snap";
+    }
+    if (selectedObject) {
+      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
+      return `${tool} (${gizmoSpace}) · drag the gizmo, hold Ctrl to snap · F focus · Ctrl+D duplicate · Del delete`;
+    }
+    return "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts";
+  }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject]);
+
+  const palette = useMemo(
+    () => ({
+      accent: theme.palette.primary.main,
+      x: theme.palette.error.main,
+      y: theme.palette.success.main,
+      z: theme.palette.info.main,
+      gridCell: theme.palette.grey[800],
+      gridSection: theme.palette.grey[600],
+      wire: theme.palette.grey[100]
+    }),
+    [theme]
+  );
+
+  const gizmoPalette = useMemo(
+    // The light icons are DOM elements, so they can use the theme's CSS
+    // variables and follow the active color scheme.
+    () => ({
+      accent: theme.vars.palette.primary.main,
+      surface: theme.vars.palette.background.paper,
+      border: theme.vars.palette.divider
+    }),
+    [theme]
+  );
+
+  const selectLight = useCallback((uuid: string) => setSelectedUuid(uuid), []);
+
+  const interactive = !cameraPose;
+  const undoLabel = history.undoLabel();
+  const redoLabel = history.redoLabel();
+
+  const loadErrorContext = useMemo(
+    () => ({
+      source: "operation-failure" as const,
+      summary: "3D model failed to load in the 3D editor",
+      errorText: loadError ?? undefined
+    }),
+    [loadError]
+  );
+  const saveErrorContext = useMemo(
+    () => ({
+      source: "operation-failure" as const,
+      summary: "3D model failed to save from the 3D editor",
+      errorText: saveError ?? undefined
+    }),
+    [saveError]
+  );
 
   return (
-    <FlexColumn css={styles(theme)} className="model-3d-editor" fullWidth fullHeight>
+    <FlexColumn
+      ref={containerRef}
+      css={styles(theme)}
+      className="model-3d-editor"
+      fullWidth
+      fullHeight
+    >
       <FlexRow className="editor-toolbar" fullWidth>
-        <Text size="small" weight={600} className="editor-title" title={name}>
-          {name || "3D Model"}
-        </Text>
+        <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
+          <Text size="small" weight={600} className="editor-title" title={name}>
+            {name || "3D Model"}
+          </Text>
+          {isDirty && (
+            <Tooltip title="Unsaved changes">
+              <CircleIcon className="dirty-dot" aria-label="Unsaved changes" />
+            </Tooltip>
+          )}
+        </FlexRow>
+        <Divider orientation="vertical" flexItem />
+        <UndoRedoButtons
+          canUndo={history.canUndo()}
+          canRedo={history.canRedo()}
+          onUndo={undo}
+          onRedo={redo}
+          size="small"
+          undoTooltip={withShortcut(undoLabel ? `Undo ${undoLabel}` : "Undo", "undo")}
+          redoTooltip={withShortcut(redoLabel ? `Redo ${redoLabel}` : "Redo", "redo")}
+        />
         <Divider orientation="vertical" flexItem />
         <ToggleGroup
           size="small"
@@ -774,136 +1247,335 @@ const Model3DEditor = ({
           value={gizmoMode}
           onChange={(_e, value) => value && setGizmoMode(value as GizmoMode)}
         >
-          <ToggleOption value="translate" size="small">
-            <OpenWithIcon fontSize="small" />
+          <ToggleOption value="translate" size="small" aria-label="Move tool">
+            <Tooltip title={withShortcut("Move", "translate")}>
+              <OpenWithIcon fontSize="small" />
+            </Tooltip>
           </ToggleOption>
-          <ToggleOption value="rotate" size="small">
-            <ThreeDRotationIcon fontSize="small" />
+          <ToggleOption value="rotate" size="small" aria-label="Rotate tool">
+            <Tooltip title={withShortcut("Rotate", "rotate")}>
+              <ThreeDRotationIcon fontSize="small" />
+            </Tooltip>
           </ToggleOption>
-          <ToggleOption value="scale" size="small">
-            <AspectRatioIcon fontSize="small" />
+          <ToggleOption value="scale" size="small" aria-label="Scale tool">
+            <Tooltip title={withShortcut("Scale", "scale")}>
+              <AspectRatioIcon fontSize="small" />
+            </Tooltip>
           </ToggleOption>
         </ToggleGroup>
-        <Divider orientation="vertical" flexItem />
-        <AddMenu onAdd={handleAdd} />
         <ToolbarIconButton
-          icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip={t("editor:ui.deleteSelectedDel", { defaultValue: "Delete selected (Del)" })}
-          onClick={handleDelete}
+          icon={gizmoSpace === "world" ? <PublicIcon fontSize="small" /> : <ControlCameraIcon fontSize="small" />}
+          tooltip={withShortcut(
+            gizmoSpace === "world" ? "World space: gizmo follows the scene axes" : "Local space: gizmo follows the object",
+            "toggleSpace"
+          )}
+          onClick={actions.toggleSpace}
+          size="small"
+          ariaLabel={`Transform space: ${gizmoSpace}`}
+        />
+        <ToolbarIconButton
+          icon={<StraightenIcon fontSize="small" />}
+          tooltip={withShortcut(
+            `Snapping ${viewPrefs.snap ? "on" : "off"}: ${SNAP.translate} units, ${SNAP.rotateDeg}°, ${SNAP.scale} scale. Hold Ctrl to invert`,
+            "toggleSnap"
+          )}
+          onClick={actions.toggleSnap}
+          active={viewPrefs.snap}
+          size="small"
+          ariaLabel="Toggle snapping"
+        />
+        <Divider orientation="vertical" flexItem />
+        <MenuButton label="Add" icon={<AddIcon />} tooltip="Add an object at the view center">
+          {(close) =>
+            ADD_MENU_GROUPS.flatMap((group, groupIndex) =>
+              group.kinds.map((kind, index) => (
+                <MenuItemPrimitive
+                  key={kind}
+                  label={PRIMITIVE_LABELS[kind]}
+                  dividerBefore={groupIndex > 0 && index === 0}
+                  icon={
+                    group.title === "Light" ? (
+                      <LightbulbOutlinedIcon fontSize="small" />
+                    ) : (
+                      <ViewInArOutlinedIcon fontSize="small" />
+                    )
+                  }
+                  onClick={() => {
+                    addPrimitiveObject(kind);
+                    close();
+                  }}
+                />
+              ))
+            ).concat(
+              <MenuItemPrimitive
+                key="import"
+                label="Import model…"
+                dividerBefore
+                icon={<FileUploadOutlinedIcon fontSize="small" />}
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  close();
+                }}
+              />
+            )
+          }
+        </MenuButton>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+          multiple
+          hidden
+          aria-label="Import model file"
+          onChange={(e) => {
+            if (e.target.files) {
+              handleImportFiles(e.target.files);
+            }
+            e.target.value = "";
+          }}
+        />
+        <ToolbarIconButton
+          icon={<ContentCopyIcon fontSize="small" />}
+          tooltip="Duplicate"
+          shortcut={shortcutKeys("duplicate")}
+          onClick={handleDuplicate}
           disabled={!selectedObject}
           size="small"
         />
         <ToolbarIconButton
-          icon={<CenterFocusStrongIcon fontSize="small" />}
-          tooltip={t("editor:ui.frameScene", { defaultValue: "Frame scene" })}
-          onClick={() => setFitTrigger((t) => t + 1)}
+          icon={<DeleteOutlineIcon fontSize="small" />}
+          tooltip="Delete"
+          shortcut={shortcutKeys("delete")}
+          onClick={handleDelete}
+          disabled={!selectedObject}
           size="small"
         />
-        <ToolbarIconButton
-          icon={<GridOnIcon fontSize="small" />}
-          tooltip={t("editor:ui.toggleGrid", { defaultValue: "Toggle grid" })}
-          onClick={() => setShowGrid((v) => !v)}
-          active={showGrid}
-          size="small"
-        />
-        <FlexRow style={{ marginLeft: "auto" }} gap={1} align="center">
+        <FlexRow sx={{ marginLeft: "auto" }} gap={SPACING.xs} align="center">
+          <ToolbarIconButton
+            icon={<KeyboardIcon fontSize="small" />}
+            tooltip="Keyboard shortcuts"
+          shortcut={shortcutKeys("showShortcuts")}
+            onClick={actions.showShortcuts}
+            size="small"
+          />
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" }) : t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
+            tooltip={showAssistant ? i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"
           />
-          <EditorButton
-            density="compact"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={() => void handleSave()}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving…" : "Save"}
-          </EditorButton>
-          <CloseButton onClick={onClose} tooltip={t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
+          <Tooltip title={withShortcut(isDirty ? "Save changes" : "No unsaved changes", "save")}>
+            <span>
+              <EditorButton
+                density="compact"
+                variant={isDirty ? "contained" : "outlined"}
+                startIcon={<SaveIcon />}
+                onClick={() => void handleSave()}
+                disabled={isSaving || !canSave}
+              >
+                {isSaving ? "Saving…" : "Save"}
+              </EditorButton>
+            </span>
+          </Tooltip>
+          <CloseButton onClick={requestClose} tooltip={i18n.t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
         </FlexRow>
       </FlexRow>
 
       <FlexRow className="editor-body" fullWidth>
         <FlexColumn className="side-panel left" fullHeight>
-          <FlexRow className="panel-header">
-            <Text size="small" weight={600}>
-              Scene
-            </Text>
-          </FlexRow>
+          <PanelHeader
+            title="Scene"
+            count={`${stats.objects} ${stats.objects === 1 ? "object" : "objects"}`}
+          />
           <div className="panel-body">
             <SceneOutliner
               nodes={treeNodes}
               selectedUuid={selectedUuid}
               onSelect={setSelectedUuid}
               onToggleVisible={handleToggleVisible}
+              onRename={handleRename}
+              onReparent={reparent}
+              onAction={handleOutlinerAction}
             />
           </div>
         </FlexColumn>
 
-        <div className="canvas-wrap">
-          {loadError && (
-            <FlexColumn className="load-error" gap={1} align="center">
-              <Text size="normal" color="error">
-                {loadError}
+        <div
+          className={dropActive ? "canvas-wrap drop-active" : "canvas-wrap"}
+          onDragOver={interactive ? handleDragOver : undefined}
+          onDragLeave={interactive ? handleDragLeave : undefined}
+          onDrop={interactive ? handleDrop : undefined}
+        >
+          {interactive && !loadError && (
+            <ViewportHud
+              className="viewport-hud"
+              prefs={viewPrefs}
+              canFocus={!!selectedObject}
+              onView={setView}
+              onFrameAll={frameAll}
+              onFocus={focusSelection}
+              onTogglePref={togglePref}
+            />
+          )}
+          {importError && (
+            <Box className="viewport-banner">
+              <AlertBanner severity="warning" compact onClose={() => setImportError(null)}>
+                Import failed: {importError}
+              </AlertBanner>
+            </Box>
+          )}
+          {dropActive && (
+            <FlexColumn className="drop-hint" align="center" justify="center">
+              <Text>Drop a .glb or .gltf model to add it to the scene</Text>
+            </FlexColumn>
+          )}
+          {externallyChanged && !saveError && (
+            <Box className="viewport-banner">
+              <AlertBanner
+                severity="warning"
+                compact
+                action={
+                  <FlexRow gap={SPACING.xs}>
+                    <EditorButton density="compact" variant="text" onClick={onDismissExternal}>
+                      Keep editing
+                    </EditorButton>
+                    <EditorButton density="compact" variant="outlined" onClick={onReloadExternal}>
+                      Reload
+                    </EditorButton>
+                  </FlexRow>
+                }
+              >
+                This model was changed outside the editor. Reload to see that change and lose your unsaved edits, or save to replace it.
+              </AlertBanner>
+            </Box>
+          )}
+          {saveError && (
+            <Box className="viewport-banner">
+              <AlertBanner
+                severity="error"
+                compact
+                onClose={() => setSaveError(null)}
+                action={<ReportBugButton context={saveErrorContext} size="small" />}
+              >
+                Save failed: {saveError}
+              </AlertBanner>
+            </Box>
+          )}
+          {loadError ? (
+            <FlexColumn fullWidth fullHeight align="center" justify="center" gap={SPACING.md}>
+              <EmptyState
+                variant="error"
+                title="This model could not be opened"
+                description={loadError}
+              />
+              <ReportBugButton context={loadErrorContext} variant="outlined" />
+            </FlexColumn>
+          ) : (
+            <Canvas
+              // Background workspace tabs stay mounted at opacity 0. Rendering
+              // them at full frame rate would spend GPU time on nothing.
+              frameloop={active ? "always" : "never"}
+              camera={{ position: [3, 2, 3], fov: 50 }}
+              gl={{ preserveDrawingBuffer: true, alpha: true, antialias: true }}
+              onPointerMissed={handlePointerMissed}
+            >
+              <ambientLight intensity={offlineLighting ? 1.6 : 0.25} />
+              <directionalLight position={[5, 8, 5]} intensity={offlineLighting ? 2.4 : 0.8} />
+              {offlineLighting ? (
+                <directionalLight position={[-6, 3, -4]} intensity={1.1} />
+              ) : (
+                <StudioEnvironment />
+              )}
+              {viewPrefs.grid && (
+                <>
+                  <Grid
+                    position={[0, -0.001, 0]}
+                    args={[20, 20]}
+                    cellSize={0.5}
+                    cellThickness={0.6}
+                    cellColor={palette.gridCell}
+                    sectionSize={2}
+                    sectionThickness={1}
+                    sectionColor={palette.gridSection}
+                    fadeDistance={40}
+                    fadeStrength={1.5}
+                    infiniteGrid
+                  />
+                  <GroundAxes xColor={palette.x} zColor={palette.z} />
+                </>
+              )}
+              <primitive object={root} onClick={handleSceneClick} />
+              {interactive && (
+                <>
+                  <SelectionBounds object={selectedObject} color={palette.accent} />
+                  {viewPrefs.wireframe && (
+                    <WireframeOverlay root={root} tick={tick} color={palette.wire} />
+                  )}
+                  {viewPrefs.lightIcons && (
+                    <LightGizmos
+                      root={root}
+                      tick={tick}
+                      selectedUuid={selectedUuid}
+                      palette={gizmoPalette}
+                      onSelect={selectLight}
+                    />
+                  )}
+                </>
+              )}
+              {interactive && selectedObject && !previewActive && (
+                <TransformControls
+                  object={selectedObject}
+                  mode={gizmoMode}
+                  space={gizmoSpace}
+                  size={0.9}
+                  translationSnap={snapActive ? SNAP.translate : null}
+                  rotationSnap={snapActive ? THREE.MathUtils.degToRad(SNAP.rotateDeg) : null}
+                  scaleSnap={snapActive ? SNAP.scale : null}
+                  onMouseDown={handleGizmoDown}
+                  onMouseUp={handleGizmoUp}
+                  onObjectChange={bumpDrag}
+                />
+              )}
+              {cameraPose ? (
+                <PosedCamera pose={cameraPose} />
+              ) : (
+                <>
+                  <OrbitControls makeDefault enableDamping={false} />
+                  <OrbitTargetBridge targetRef={orbitTargetRef} />
+                  <CameraRig root={root} request={cameraRequest} />
+                  <GizmoHelper alignment="bottom-right" margin={[72, 72]}>
+                    <GizmoViewport
+                      axisColors={[palette.x, palette.y, palette.z]}
+                      labelColor={theme.palette.common.black}
+                    />
+                  </GizmoHelper>
+                </>
+              )}
+              <CaptureBridge targetRef={captureRef} />
+            </Canvas>
+          )}
+          {!loadError && !isLoading && animationClips.length > 0 && (
+            <AnimationBar
+              key={previewEpoch}
+              className="animation-bar"
+              preview={preview}
+              onActiveChange={setPreviewActive}
+            />
+          )}
+          {(isSaving || isLoading || isImporting) && (
+            <FlexColumn className="overlay" align="center" justify="center" gap={SPACING.md}>
+              <LoadingSpinner />
+              <Text color="primary">
+                {isSaving ? "Saving…" : isImporting ? "Importing model…" : "Loading model…"}
               </Text>
             </FlexColumn>
           )}
-          <Canvas
-            camera={{ position: [3, 2, 3], fov: 50 }}
-            gl={{ preserveDrawingBuffer: true }}
-            onPointerMissed={() => setSelectedUuid(null)}
-            style={{ background: theme.vars.palette.grey[900] }}
-          >
-            <ambientLight intensity={offlineLighting ? 1.6 : 0.4} />
-            <directionalLight position={[5, 8, 5]} intensity={offlineLighting ? 2.4 : 1} />
-            {offlineLighting ? (
-              <directionalLight position={[-6, 3, -4]} intensity={1.1} />
-            ) : (
-              <Environment preset="studio" />
-            )}
-            {showGrid && (
-              <Grid
-                position={[0, -0.001, 0]}
-                args={[20, 20]}
-                cellSize={0.5}
-                cellThickness={0.5}
-                cellColor="#6f6f6f"
-                sectionSize={2}
-                sectionThickness={1}
-                sectionColor="#9d9d9d"
-                fadeDistance={30}
-                infiniteGrid
-              />
-            )}
-            <primitive object={root} onClick={handleSceneClick} />
-            {selectedObject && (
-              <TransformControls
-                object={selectedObject}
-                mode={gizmoMode}
-                onObjectChange={bump}
-              />
-            )}
-            {cameraPose ? (
-              <PosedCamera pose={cameraPose} />
-            ) : (
-              <OrbitControls makeDefault enableDamping={false} />
-            )}
-            <FitCamera root={root} trigger={fitTrigger} />
-            <CaptureBridge targetRef={captureRef} />
-          </Canvas>
         </div>
 
         <FlexColumn className="side-panel right" fullHeight>
-          <FlexRow className="panel-header">
-            <Text size="small" weight={600}>
-              {t("editor:ui.properties")}
-            </Text>
-          </FlexRow>
-          <PropertiesPanel object={selectedObject} tick={tick} onChanged={bump} />
+          <PanelHeader title="Inspector" />
+          <PropertiesPanel object={selectedObject} tick={tick + dragTick} record={record} />
         </FlexColumn>
 
         {/* Kept mounted (toggled via display) so the chat connection and
@@ -912,20 +1584,14 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel={t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
+            ariaLabel={i18n.t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
           >
-            <FlexRow className="panel-header" justify="space-between" align="center">
-              <FlexRow gap={1} align="center">
-                <AutoAwesomeIcon fontSize="small" />
-                <Text size="small" weight={600}>
-                  Assistant
-                </Text>
-              </FlexRow>
-              <CloseButton
-                onClick={() => toggleAssistant()}
-                tooltip={t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
-              />
-            </FlexRow>
+            <PanelHeader
+              title="Assistant"
+              icon={<AutoAwesomeIcon />}
+              onClose={() => toggleAssistant()}
+              closeLabel={i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
+            />
             <div className="panel-body">
               <Model3DChatPanel />
             </div>
@@ -933,12 +1599,29 @@ const Model3DEditor = ({
         </div>
       </FlexRow>
 
-      {(isSaving || isLoading) && (
-        <FlexColumn className="overlay" align="center" justify="center" gap={2}>
-          <LoadingSpinner />
-          <Text color="primary">{isSaving ? "Saving..." : "Loading model..."}</Text>
-        </FlexColumn>
-      )}
+      <EditorStatusBar
+        selection={
+          selectedObject
+            ? { name: selectedObject.name || selectedObject.type, type: selectedObject.type }
+            : null
+        }
+        hint={statusHint}
+        stats={stats}
+      />
+
+      <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <ConfirmDialog
+        open={confirmCloseOpen}
+        onClose={() => setConfirmCloseOpen(false)}
+        onConfirm={() => {
+          setConfirmCloseOpen(false);
+          onClose();
+        }}
+        title="Discard unsaved changes?"
+        content="Closing the editor now loses the edits made since the last save."
+        confirmText="Discard and close"
+        cancelText="Keep editing"
+      />
     </FlexColumn>
   );
 };

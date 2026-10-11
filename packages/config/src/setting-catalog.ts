@@ -89,12 +89,24 @@ s(
 s(
   "USERS_FILE",
   "Folders",
-  "Path to users.yaml file for multi-user bearer token authentication. Defaults to ~/.config/nodetool/users.yaml for local deployments."
+  "Path to the users.json registry of API users and hashed bearer tokens. Defaults to ~/.config/nodetool/users.json, or %APPDATA%\\nodetool\\users.json on Windows."
 );
 s(
   "TRANSFORMERS_JS_CACHE_DIR",
   "TransformersJs",
-  "Cache directory for Transformers.js (@huggingface/transformers) model downloads. Defaults to <data-dir>/transformers-js-cache. This is separate from the Python HuggingFace Hub cache because the on-disk layout differs."
+  "Cache directory for Transformers.js (@huggingface/transformers) model downloads. Defaults to <data-dir>/transformers-js-cache. This is separate from the Python HuggingFace Hub cache because the on-disk layout differs. Restart the backend after changing this setting."
+);
+
+s(
+  "NODETOOL_EXTERNAL_ASSET_THRESHOLD_BYTES",
+  "Folders",
+  "Desktop app only: files imported at or above this size, in bytes, stay where they are and the asset references them in place instead of copying them into the asset folder (default: 1073741824, 1 GiB)."
+);
+
+s(
+  "NODETOOL_VIDEO_PROXY_MIN_SIZE_PX",
+  "Folders",
+  "Desktop app only: an imported video whose longer side is at least this many pixels gets a smaller all-intra preview proxy, made in the background, so timeline scrubbing seeks fast. Export always reads the original. 0 makes a proxy for every video, a negative value turns background proxies off (default: 1920)."
 );
 
 // Autosave
@@ -136,6 +148,12 @@ s(
   "Execution",
   "Maximum number of concurrent runs of the same workflow before additional runs queue (default: 4). Only applies to runs that opt into concurrency (e.g. timeline/sketch generation); canvas runs always stay sequential per workflow. Also bounded by MAX_CONCURRENT_JOBS."
 );
+s(
+  "NODETOOL_PYTHON_ON_DEMAND",
+  "Execution",
+  "Start the Python worker when a workflow first needs it instead of at server launch (default: false). Python-only providers such as huggingface-local appear once the worker has started. Restart the backend after changing this setting.",
+  ["true", "false"]
+);
 // Agent budgets — the bounds one agent run shares across every loop it starts
 // (a chat turn, its sub-agents, an AgentNode it spawns). See A1 in
 // docs/plans/agent-system-improvements.md.
@@ -170,7 +188,7 @@ s(
 s(
   "NODETOOL_CHAT_COMPACTION_TOKENS",
   "Agents",
-  "Estimated prompt size, in tokens, at which a chat turn summarizes the earlier part of its thread before calling the model (default: 120000). The estimate tokenizes the message text and tool calls and scores each attached image, audio, video or document at a fixed per-modality figure. It misses the tool definitions the same turn sends, so leave room under the model's context window rather than setting it close. A provider that holds the conversation itself (a resumed session, the Claude Agent SDK) is not measured this way; it compacts when it reports that the transcript no longer fits."
+  "Prompt size, in tokens, at which a chat turn summarizes the earlier part of its thread before calling the model. Unset, the threshold is 90% of the model's input window, read from the provider's Models API (Anthropic `max_input_tokens`), then models.dev by provider and model, then a 128000-token fallback. The prompt size is the larger of the provider-reported size of the thread's last call and a local estimate of the messages. A provider that holds the conversation itself (a resumed session, the Claude Agent SDK) is not measured this way; it compacts when it reports that the transcript no longer fits."
 );
 s(
   "NODETOOL_CHAT_COMPACTION_KEEP_TURNS",
@@ -186,7 +204,17 @@ s(
 s(
   "VLLM_BASE_URL",
   "vLLM",
-  "Base URL for the vLLM OpenAI-compatible server (e.g., http://localhost:7777)"
+  "Base URL for the vLLM OpenAI-compatible server (e.g., http://127.0.0.1:8000, vLLM's default port)."
+);
+s(
+  "OLLAMA_API_URL",
+  "Ollama",
+  "Base URL of the Ollama server (default: http://127.0.0.1:11434). Set it when Ollama runs on another host or port, for example in WSL, Docker or on another machine."
+);
+s(
+  "OLLAMA_KEEP_ALIVE",
+  "Ollama",
+  "How long Ollama keeps a model loaded after a request, in Ollama's duration syntax (default: 10m). -1 keeps it loaded, 0 unloads it at once."
 );
 s(
   "OLLAMA_CONTEXT_LENGTH",
@@ -201,7 +229,7 @@ s(
 s(
   "LLAMA_CPP_CONTEXT_LENGTH",
   "LlamaCpp",
-  "Context window size (in tokens) for llama.cpp models. Defaults to 128000."
+  "Context size (in tokens) the llama.cpp server was started with (its -c option). The server does not report it, so NodeTool uses this value to budget prompts. Unset, the model's published context window is used."
 );
 s(
   "NODE_LLAMA_CPP_MODELS_DIR",
@@ -219,6 +247,24 @@ s(
   "LMStudio",
   "Base URL for the LM Studio OpenAI-compatible server (e.g., http://localhost:1234)"
 );
+sec(
+  "LMSTUDIO_API_KEY",
+  "LMStudio",
+  "API key for an LM Studio server that requires authentication. Leave empty for a default LM Studio install."
+);
+s("WHISPER_CPP_MODELS_DIR", "WhisperCpp", "Additional directory containing local ggml whisper.cpp and VAD model files. The Hugging Face hub cache is always scanned.");
+s("WHISPER_CPP_GPU_BACKEND", "WhisperCpp", "Backend for in-process whisper.cpp inference. 'auto' uses Metal on macOS, and on Windows and Linux tries the CUDA build, then the Vulkan build, then the default CPU build. Restart the backend after changing this setting.", ["auto", "metal", "cuda", "vulkan", "cpu"]);
+s(
+  "WAN2GP_MCP_URL",
+  "Wan2GP",
+  "MCP endpoint of the Wan2GP server the Wan2GP nodes call (default: http://127.0.0.1:7866/mcp). A node's own server URL field overrides it. Restart the backend after changing this setting, because the Python worker reads it at start."
+);
+s(
+  "NODETOOL_TORCH_DEVICE",
+  "PythonNodes",
+  "Device the Python worker runs PyTorch models on: cuda, cuda:N for a specific GPU, mps, or cpu. Unset, the worker picks MPS, then CUDA, then CPU. Restart the backend after changing this setting, because the Python worker reads it at start."
+);
+s("WHISPER_CPP_SERVER_URL", "WhisperCppServer", "Base URL for a user-run whisper.cpp server (e.g., http://127.0.0.1:8080).");
 
 // NodeSupabase
 s(
@@ -285,6 +331,21 @@ sec(
   "OPENROUTER_API_KEY",
   "OpenRouter",
   "OpenRouter API key for accessing multiple AI models through a unified API. Get yours at https://openrouter.ai/settings/keys"
+);
+sec(
+  "REQUESTY_API_KEY",
+  "Requesty",
+  "Requesty API key for accessing multiple AI models through one OpenAI-compatible router. Get yours at https://app.requesty.ai/api-keys"
+);
+sec(
+  "OPPER_API_KEY",
+  "Opper",
+  "Opper API key for accessing multiple AI models through one EU-hosted OpenAI-compatible gateway. Get yours at https://platform.opper.ai"
+);
+sec(
+  "API_ROUTE_API_KEY",
+  "API Route",
+  "API Route key for hosted OpenAI-compatible chat models. Get yours at https://www.api-route.com/api-keys"
 );
 sec(
   "ANTHROPIC_API_KEY",
@@ -456,6 +517,16 @@ sec(
   "Vast.ai API key for renting marketplace GPUs to run NodeTool workers. Get yours at https://cloud.vast.ai/manage-keys/"
 );
 sec(
+  "VERDA_CLIENT_ID",
+  "Verda",
+  "Verda cloud API client id for renting GPU instances to run NodeTool workers. Create credentials at https://cloud.verda.com/ (distinct from the inference key)."
+);
+sec(
+  "VERDA_CLIENT_SECRET",
+  "Verda",
+  "Verda cloud API client secret, paired with VERDA_CLIENT_ID. Credentials are tied to the team member who created them and are deleted when that member is removed."
+);
+sec(
   "NODE_SUPABASE_KEY",
   "NodeSupabase",
   "Supabase service key for user-provided nodes"
@@ -511,6 +582,9 @@ sec(
   "Higgsfield",
   "Higgsfield API key secret. Get credentials at https://platform.higgsfield.ai/"
 );
+sec("USEAPI_API_TOKEN", "useapi.net", "API token for Google Flow and Dreamina through useapi.net. Get yours at https://useapi.net/");
+s("USEAPI_GOOGLE_FLOW_EMAIL", "useapi.net", "Google Flow account email for reference image uploads");
+s("USEAPI_DREAMINA_ACCOUNT", "useapi.net", "Dreamina account ID (region:email) for reference image uploads");
 sec("MESHY_API_KEY", "Meshy", "Meshy AI API key for 3D model generation. Get yours at https://app.meshy.ai/settings/api-keys");
 sec("RODIN_API_KEY", "Rodin", "Rodin AI API key for 3D model generation. Get yours at https://hyperhuman.deemos.com/");
 sec(

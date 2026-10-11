@@ -10,11 +10,13 @@
 
 import type {
   CaptionStyle,
+  ClipEffect,
   ClipMask,
   ClipShapeStyle,
   ClipTextStyle,
   ShapeFill
 } from "../types.js";
+import { isClipBlurEffect, isClipColorEffect, isClipDropShadowEffect, isClipGlowEffect } from "../types.js";
 import type {
   AnimationSample,
   CompiledAnimation,
@@ -27,6 +29,7 @@ import {
   styleTrackValue
 } from "../animation/index.js";
 import { flattenNormalizedPath, pointAtPathFraction } from "../pathSampling.js";
+import { CAPTION_FONT_WEIGHT } from "../fonts/google-fonts.js";
 import type { MeasureTextWidth } from "./textLayout.js";
 import { parseSvgPath, tracePath, type PathSegment } from "./svgPath.js";
 import {
@@ -41,8 +44,10 @@ import { flatPathLength } from "./shapeGeometry.js";
 import {
   layoutStaggerUnits,
   layoutTextBlock,
+  graphemeCount,
   segmentGraphemes,
   textFontSpec,
+  textFontVariationSettings,
   textLetterSpacingPx,
   type TextBlockBox,
   type TextBlockLayout,
@@ -153,6 +158,14 @@ export interface RasterContext2D extends MaskContext2D {
    * a text draw places the glyphs itself when it is missing.
    */
   letterSpacing?: string;
+  /**
+   * CSS `font-variation-settings`, e.g. `"wght" 800`. Optional for the same
+   * reason `letterSpacing` is: universal on `@napi-rs/canvas` and modern
+   * browsers, but not on every context this interface is satisfied by. Set
+   * alongside `font` wherever text is drawn or measured — see
+   * {@link textFontVariationSettings}.
+   */
+  fontVariationSettings?: string;
   measureText(text: string): { width: number };
   fillText(text: string, x: number, y: number): void;
   strokeText(text: string, x: number, y: number): void;
@@ -172,7 +185,6 @@ type BlockScrim = NonNullable<CaptionStyle["background"]>;
 const CAPTION_INACTIVE_COLOR = "#FFFFFF";
 const CAPTION_ACTIVE_COLOR = "#FFD60A";
 const CAPTION_OUTLINE_COLOR = "rgba(0, 0, 0, 0.85)";
-const CAPTION_FONT_WEIGHT = 700;
 /** Font size as a fraction of frame height, and the floor it never goes under. */
 const CAPTION_FONT_SIZE_FRAC = 0.05;
 const CAPTION_MIN_FONT_SIZE_PX = 24;
@@ -256,6 +268,7 @@ interface MeasuredWord {
 /** A caption's look with every default filled in, in surface pixels. */
 interface ResolvedCaptionStyle {
   font: string;
+  fontVariationSettings: string;
   fontSizePx: number;
   lineHeightPx: number;
   color: string;
@@ -315,6 +328,11 @@ function resolveCaptionStyle(
       fontWeight: CAPTION_FONT_WEIGHT,
       fontFamily: style?.fontFamily
     }),
+    fontVariationSettings: textFontVariationSettings({
+      fontSizePx,
+      fontWeight: CAPTION_FONT_WEIGHT,
+      fontFamily: style?.fontFamily
+    }),
     fontSizePx,
     lineHeightPx: fontSizePx * CAPTION_LINE_HEIGHT,
     color: style?.color ?? CAPTION_INACTIVE_COLOR,
@@ -364,8 +382,11 @@ export function drawCaption(
   width: number,
   height: number
 ): void {
+  // Between cues there is nothing to say, and no scrim to draw behind it.
+  if (caption.words.length === 0) return;
   const style = resolveCaptionStyle(caption.style, height);
   ctx.font = style.font;
+  ctx.fontVariationSettings = style.fontVariationSettings;
   ctx.textBaseline = "alphabetic";
   ctx.lineJoin = "round";
 
@@ -432,15 +453,39 @@ export function drawCaption(
   });
 }
 
+/** The weight token `textFontSpec` writes right before the `Npx` size token. */
+const FONT_WEIGHT_TOKEN = /(\d+)\s+[\d.]+px/;
+
 /**
  * A {@link MeasureTextWidth} backed by a 2D context. A host hands one to the
  * scene model so a `"line"` stagger is counted against the same wrap the
- * rasterizer draws through; the context is measured, never drawn to, so a
- * 1×1 scratch canvas is enough.
+ * rasterizer draws through, and so the flex layout resolver
+ * (`render/layout.ts`) measures a text leaf's intrinsic size and wrap width
+ * against the same metrics `drawText` will actually paint with; the context
+ * is measured, never drawn to, so a 1×1 scratch canvas is enough.
+ *
+ * Sets `fontVariationSettings` from the weight in `font` before measuring —
+ * `prepareText` (the actual draw path) does the same, for the reason
+ * {@link textFontVariationSettings} explains: a variable face's `ctx.font`
+ * weight number alone does not reliably select the matching instance in
+ * every 2D canvas implementation, so an un-set context can measure at the
+ * face's *default* instance while the font ultimately draws at the
+ * *requested* weight — systematically narrower or wider than what gets
+ * painted. For a bold display face at a large size that gap is easily tens
+ * of pixels: wide enough that the flex resolver's "measure once, feed that
+ * exact width back in as the wrap width" round trip (`layout.ts`) wraps a
+ * line the draw pass never intended to wrap, changing its height and
+ * throwing off every sibling stacked against it. Without this, this was the
+ * actual mechanism behind the S3/S4 stacked-headline bug: layout measured a
+ * narrower (regular-instance) width than `prepareText` drew at (bold), so
+ * the "single line" box `layoutTextBlock` reported here never matched the
+ * two-line block `drawText` actually painted.
  */
 export function measureTextWith(ctx: RasterContext2D): MeasureTextWidth {
   return (text, font) => {
     ctx.font = font;
+    const weight = font.match(FONT_WEIGHT_TOKEN)?.[1] ?? "400";
+    ctx.fontVariationSettings = `"wght" ${weight}`;
     return ctx.measureText(text).width;
   };
 }
@@ -475,6 +520,7 @@ export function textStyleSignature(
     style.letterSpacingPx ?? 0,
     style.lineHeight ?? 1.2,
     style.verticalAlign ?? "middle",
+    style.strikethrough ? "strike" : "-",
     style.stroke ? `${style.stroke.color}@${style.stroke.widthPx}` : "-",
     style.shadow
       ? `${style.shadow.color}@${style.shadow.blurPx}/${style.shadow.offsetX}/${style.shadow.offsetY}`
@@ -509,6 +555,8 @@ interface TextPaint {
   stroke: { color: string; widthPx: number } | null;
   shadow: { color: string; blurPx: number; offsetX: number; offsetY: number } | null;
   letterSpacingPx: number;
+  /** Thickness of the line through each run, or 0 for none. */
+  strikePx: number;
   /** True when the context advances the glyphs itself. */
   nativeSpacing: boolean;
   /** Unspaced advance, for placing the glyphs by hand. */
@@ -551,6 +599,7 @@ function prepareText(
   staggerUnit?: StaggerUnit
 ): { layout: TextBlockLayout; units: TextStaggerUnit[]; paint: TextPaint } {
   ctx.font = textFontSpec(style);
+  ctx.fontVariationSettings = textFontVariationSettings(style);
   clearShadow(ctx);
   setLetterSpacing(ctx, 0);
   const measure = (text: string): number => ctx.measureText(text).width;
@@ -576,6 +625,7 @@ function prepareText(
         style.stroke && style.stroke.widthPx > 0 ? { ...style.stroke } : null,
       shadow: style.shadow ? { ...style.shadow } : null,
       letterSpacingPx,
+      strikePx: style.strikethrough ? Math.max(1, style.fontSizePx * 0.07) : 0,
       nativeSpacing,
       measure
     }
@@ -645,6 +695,17 @@ function paintTextRun(
   }
   ctx.fillStyle = paint.fill;
   advanceRun(ctx, paint, text, x, y, "fill");
+  if (paint.strikePx > 0) {
+    // The glyphs' extent: the spacing after the last glyph is not ink. Native
+    // spacing would put that trailing advance in the measure, so measure
+    // unspaced, as the layout does.
+    if (paint.nativeSpacing) setLetterSpacing(ctx, 0);
+    const graphemes = graphemeCount(text);
+    const runWidth =
+      paint.measure(text) + paint.letterSpacingPx * Math.max(0, graphemes - 1);
+    if (paint.nativeSpacing) setLetterSpacing(ctx, paint.letterSpacingPx);
+    ctx.fillRect(x, y - paint.strikePx / 2, runWidth, paint.strikePx);
+  }
   if (paint.shadow) clearShadow(ctx);
 }
 
@@ -1363,4 +1424,145 @@ function featherEllipse(
   ctx.ellipse(0, 0, 1, 1, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+/**
+ * The part of a `frameWidth × frameHeight` raster a drawing can put pixels
+ * in, in whole pixels and inside the frame. A host rasterizes only this window
+ * — the same drawing, translated by `-x, -y` — and places it through
+ * `sourceWindow`, so a 40-pixel title costs a 40-pixel bitmap instead of a
+ * frame-sized one.
+ */
+export interface RasterWindow {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Window edges snap to this many pixels, so a window that grows by a pixel
+ * between frames (a trim, a typewriter) keeps its size and its texture.
+ */
+const RASTER_WINDOW_SNAP_PX = 16;
+
+function snappedWindow(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  frameWidth: number,
+  frameHeight: number
+): RasterWindow | null {
+  if (![x0, y0, x1, y1].every(Number.isFinite)) {
+    return { x: 0, y: 0, width: frameWidth, height: frameHeight };
+  }
+  const left = Math.max(0, Math.floor(x0 / RASTER_WINDOW_SNAP_PX) * RASTER_WINDOW_SNAP_PX);
+  const top = Math.max(0, Math.floor(y0 / RASTER_WINDOW_SNAP_PX) * RASTER_WINDOW_SNAP_PX);
+  const right = Math.min(frameWidth, Math.ceil(x1 / RASTER_WINDOW_SNAP_PX) * RASTER_WINDOW_SNAP_PX);
+  const bottom = Math.min(frameHeight, Math.ceil(y1 / RASTER_WINDOW_SNAP_PX) * RASTER_WINDOW_SNAP_PX);
+  if (right <= left || bottom <= top) return null;
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/**
+ * Where {@link drawShape} can draw, padded by `marginPx` on every side for an
+ * effect that spreads past the outline. Null when the shape draws nothing in
+ * the frame.
+ *
+ * The outline's control points bound its curves. A stroke is padded by five
+ * widths, which covers a miter at the default limit of 10; a dash or a trim
+ * only removes ink.
+ */
+export function shapeRasterWindow(
+  style: ClipShapeStyle,
+  frameWidth: number,
+  frameHeight: number,
+  marginPx = 0
+): RasterWindow | null {
+  const segments = buildShapeSegments(style, frameWidth, frameHeight);
+  if (!segments || segments.length === 0) return null;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  const include = (x: number, y: number): void => {
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  };
+  for (const segment of segments) {
+    if (segment.kind === "close") continue;
+    include(segment.x, segment.y);
+    if (segment.kind === "cubic") {
+      include(segment.x1, segment.y1);
+      include(segment.x2, segment.y2);
+    } else if (segment.kind === "quad") {
+      include(segment.x1, segment.y1);
+    }
+  }
+  const stroke = style.stroke && (style.strokeWidthPx ?? 0) > 0 ? style.strokeWidthPx! * 5 : 0;
+  // One pixel of antialiasing on each side of the outline.
+  const pad = stroke + Math.max(0, marginPx) + 2;
+  return snappedWindow(x0 - pad, y0 - pad, x1 + pad, y1 + pad, frameWidth, frameHeight);
+}
+
+/**
+ * Where {@link drawText} can draw, padded by `marginPx` for an effect that
+ * spreads past the glyphs. Null when the text draws nothing.
+ *
+ * The block box from the shared layout, grown by a font size for glyphs that
+ * reach past their line (a tight line height, an italic overhang) and by the
+ * stroke, the shadow and the scrim padding. Text on a path answers the whole
+ * frame: its glyphs follow the path, not the block.
+ */
+export function textRasterWindow(
+  ctx: RasterContext2D,
+  style: ClipTextStyle,
+  frameWidth: number,
+  frameHeight: number,
+  marginPx = 0
+): RasterWindow | null {
+  if (!style.text) return null;
+  if (style.path) return { x: 0, y: 0, width: frameWidth, height: frameHeight };
+  ctx.save();
+  ctx.font = textFontSpec(style);
+  ctx.fontVariationSettings = textFontVariationSettings(style);
+  setLetterSpacing(ctx, 0);
+  const box = layoutTextBlock((text) => ctx.measureText(text).width, style, frameWidth, frameHeight).box;
+  ctx.restore();
+  const shadow = style.shadow
+    ? Math.max(Math.abs(style.shadow.offsetX), Math.abs(style.shadow.offsetY)) + Math.max(0, style.shadow.blurPx) * 2
+    : 0;
+  const pad =
+    style.fontSizePx +
+    (style.stroke?.widthPx ?? 0) +
+    shadow +
+    Math.max(0, style.background?.paddingPx ?? 0) +
+    Math.max(0, marginPx);
+  return snappedWindow(box.x - pad, box.y - pad, box.x + box.width + pad, box.y + box.height + pad, frameWidth, frameHeight);
+}
+
+/**
+ * How far past its own ink an effect chain can move a layer's pixels, or null
+ * when one of the effects reads the whole raster — a generator, a vignette,
+ * grain, anything placed by frame position — and so needs the frame-sized
+ * source. Blurs reach three radii, the Gaussian's practical extent. A colour
+ * grade is per pixel and keeps transparent pixels transparent, so it adds no
+ * margin.
+ */
+export function rasterWindowMarginPx(effects: readonly ClipEffect[] | undefined): number | null {
+  let margin = 0;
+  for (const effect of effects ?? []) {
+    if (!effect.enabled) continue;
+    if (isClipBlurEffect(effect) || isClipGlowEffect(effect)) {
+      margin += Math.max(0, effect.radius) * 3;
+    } else if (isClipDropShadowEffect(effect)) {
+      margin += Math.max(Math.abs(effect.offsetX), Math.abs(effect.offsetY)) + Math.max(0, effect.blur) * 3;
+    } else if (!isClipColorEffect(effect)) {
+      return null;
+    }
+  }
+  return margin;
 }

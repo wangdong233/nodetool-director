@@ -1,12 +1,15 @@
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SourceViewerPanel } from "./SourceViewerPanel";
 import { i18n } from "../../i18n";
 
 const mockSetSourceRange = jest.fn((range) => {
+  const { t } = useTranslation();
   mockSourceRange = range;
 });
-let mockSourceRange: { inMs: number; outMs: number } | null = null;
+let mockSourceRange: { assetId: string; inMs: number; outMs: number } | null = null;
+const mockUIStoreApi = { getState: () => ({ sourceRange: mockSourceRange, setSourceRange: mockSetSourceRange, selectClip: jest.fn() }) };
 const mockPerformSourceEdit = jest.fn((_kind: unknown, _context: unknown) => "clip-1");
 const mockAsset = {
   id: "beach",
@@ -23,7 +26,7 @@ jest.mock("../../stores/AssetGridStore", () => ({
 }));
 jest.mock("../../stores/timeline/TimelineUIStore", () => ({
   useTimelineUIStore: (selector: (state: unknown) => unknown) => selector({ sourceRange: mockSourceRange, setSourceRange: mockSetSourceRange }),
-  useTimelineUIStoreApi: () => ({ getState: () => ({ sourceRange: mockSourceRange, setSourceRange: mockSetSourceRange, selectClip: jest.fn() }) })
+  useTimelineUIStoreApi: () => mockUIStoreApi
 }));
 jest.mock("../../stores/timeline/TimelineStore", () => ({ useTimelineStoreApi: () => ({ getState: () => ({}) }) }));
 jest.mock("../../stores/timeline/TimelinePlaybackStore", () => ({ useTimelinePlaybackStoreApi: () => ({ getState: () => ({ currentTimeMs: 0 }) }) }));
@@ -44,8 +47,8 @@ jest.mock("../ui_primitives", () => ({
   Text: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
   Tooltip: ({ children }: React.PropsWithChildren) => <>{children}</>,
   TruncatedText: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
-  VideoPlayer: ({ onDurationChange, onTimeUpdate }: { onDurationChange?: (duration: number) => void; onTimeUpdate?: (time: number) => void }) => <button aria-label={i18n.t("ui:attrs.videoPlayer", { defaultValue: "Video player" })} onClick={() => { onDurationChange?.(5); onTimeUpdate?.(2); }}>Video</button>,
-  SPACING: { md: 1, xs: 1, sm: 1 },
+  VideoPlayer: ({ onDurationChange, onTimeUpdate }: { onDurationChange?: (duration: number) => void; onTimeUpdate?: (time: number) => void }) => <button aria-label="Video player" onClick={() => { onDurationChange?.(5); onTimeUpdate?.(2); }}>Video</button>,
+  FONT_WEIGHT: { medium: 500 },  SPACING: { md: 1, xs: 1, sm: 1 },
   getSpacingPx: () => "1px"
 }));
 jest.mock("./Inspector/InspectorPrimitives", () => ({
@@ -63,7 +66,7 @@ describe("SourceViewerPanel", () => {
   });
 
   it("passes entered seconds to Append as milliseconds", () => {
-    mockSourceRange = { inMs: 1000, outMs: 5000 };
+    mockSourceRange = { assetId: "beach", inMs: 1000, outMs: 5000 };
     const view = render(<SourceViewerPanel />);
     fireEvent.change(screen.getByLabelText("Source in point"), { target: { value: "1" } });
     fireEvent.blur(screen.getByLabelText("Source in point"));
@@ -75,12 +78,13 @@ describe("SourceViewerPanel", () => {
     fireEvent.blur(screen.getByLabelText("Source out point"));
     view.rerender(<SourceViewerPanel />);
     fireEvent.click(screen.getByRole("button", { name: "Append" }));
-    expect(mockPerformSourceEdit).toHaveBeenCalledWith("append", expect.objectContaining({ ui: expect.objectContaining({ sourceRange: { inMs: 1000, outMs: 2000 } }) }));
+    expect(mockPerformSourceEdit).toHaveBeenCalledWith("append", expect.objectContaining({ ui: expect.objectContaining({ sourceRange: { assetId: "beach", inMs: 1000, outMs: 2000 } }) }));
   });
 });
 
 
 it("marks the source playhead with I/O without forwarding to the timeline", () => {
+  mockSourceRange = null;
   render(<SourceViewerPanel />);
   fireEvent.click(screen.getByRole("button", { name: "Video player" }));
   mockSetSourceRange.mockClear();
@@ -88,9 +92,9 @@ it("marks the source playhead with I/O without forwarding to the timeline", () =
   window.addEventListener("keydown", forwarded);
   try {
     fireEvent.keyDown(screen.getByTestId("source-viewer"), { key: "i" });
-    expect(mockSetSourceRange).toHaveBeenLastCalledWith({ inMs: 2000, outMs: 5000 });
+    expect(mockSetSourceRange).toHaveBeenLastCalledWith({ assetId: "beach", inMs: 2000, outMs: 5000 });
     fireEvent.keyDown(screen.getByTestId("source-viewer"), { key: "o" });
-    expect(mockSetSourceRange).toHaveBeenLastCalledWith({ inMs: 2000, outMs: 2000 });
+    expect(mockSetSourceRange).toHaveBeenLastCalledWith({ assetId: "beach", inMs: 2000, outMs: 2000 });
     expect(forwarded).not.toHaveBeenCalled();
     mockSetSourceRange.mockClear();
     fireEvent.keyDown(screen.getByLabelText("Source in point"), { key: "i" });
@@ -99,4 +103,22 @@ it("marks the source playhead with I/O without forwarding to the timeline", () =
   } finally {
     window.removeEventListener("keydown", forwarded);
   }
+});
+
+
+it("keeps marks on the same asset when the panel remounts", () => {
+  mockSetSourceRange.mockClear();
+  mockSourceRange = { assetId: "beach", inMs: 1000, outMs: 2000 };
+  const view = render(<SourceViewerPanel />);
+  view.unmount();
+  render(<SourceViewerPanel />);
+  expect(mockSetSourceRange).not.toHaveBeenCalledWith(null);
+  expect(mockSourceRange).toEqual({ assetId: "beach", inMs: 1000, outMs: 2000 });
+});
+
+it("clears marks left on a different asset", () => {
+  mockSetSourceRange.mockClear();
+  mockSourceRange = { assetId: "other", inMs: 1000, outMs: 2000 };
+  render(<SourceViewerPanel />);
+  expect(mockSetSourceRange).toHaveBeenCalledWith(null);
 });

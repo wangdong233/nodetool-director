@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +18,9 @@ import {
   dataframeToCsv,
   parseCsvToDataframe
 } from "../../utils/csvDataframe";
+import { useContextCommands } from "../../hooks/useContextCommands";
+import type { ContextCommand } from "../../stores/CommandMenuStore";
+import { isMac } from "../../utils/platform";
 import MonacoPane from "./MonacoPane";
 import DataTable from "../node/DataTable/DataTable";
 import EditorToolbar from "../textEditor/EditorToolbar";
@@ -27,10 +32,11 @@ import {
   LoadingSpinner,
   BORDER_RADIUS
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 interface TextDocumentEditorProps {
   asset: Asset;
+  /** Whether the editor's tab is on screen; lists its commands in the Cmd+K menu. */
+  active?: boolean;
 }
 
 const textAssetKey = (id: string) => ["textAsset", id] as const;
@@ -87,7 +93,10 @@ const styles = (theme: Theme) =>
  * (dirty dot) and persisted back via the asset update API (Cmd/Ctrl+S or the
  * toolbar Save button).
  */
-const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
+const TextDocumentEditor = ({
+  asset,
+  active = false
+}: TextDocumentEditorProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const editorStyles = useMemo(() => styles(theme), [theme]);
@@ -220,6 +229,41 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
     saveMutation.mutate(content);
   }, [content, savedContent, isSaving, saveMutation]);
 
+  const menuCommands = useMemo<ContextCommand[]>(() => {
+    const mod = isMac() ? "⌘" : "Ctrl+";
+    const shiftMod = isMac() ? "⌘⇧" : "Ctrl+Shift+";
+    const commands: ContextCommand[] = [];
+    if (isDirty && !isSaving) {
+      commands.push({
+        id: "save",
+        label: i18n.t("common:action.save", { defaultValue: "Save" }),
+        run: handleSave,
+        shortcut: `${mod}S`
+      });
+    }
+    if (!isCsv) {
+      commands.push(
+        { id: "undo", label: "Undo", run: handleUndo, shortcut: `${mod}Z` },
+        { id: "redo", label: "Redo", run: handleRedo, shortcut: `${shiftMod}Z` }
+      );
+      commands.push({
+        id: "word-wrap",
+        label: wordWrap ? "Turn Off Word Wrap" : "Turn On Word Wrap",
+        run: () => setWordWrap((wrap) => !wrap)
+      });
+    }
+    return commands;
+  }, [
+    isDirty,
+    isSaving,
+    isCsv,
+    wordWrap,
+    handleSave,
+    handleUndo,
+    handleRedo
+  ]);
+  useContextCommands("Text", menuCommands, active);
+
   const delimiter = useMemo(
     () => csvDelimiterFor(asset.name ?? ""),
     [asset.name]
@@ -254,7 +298,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           sx={{ alignItems: "center", justifyContent: "center" }}
         >
           <Caption sx={{ color: "error.main" }}>
-            {t("editor:ui.failedToLoadTextContent")}
+            Failed to load text content
           </Caption>
         </FlexColumn>
       );
@@ -290,7 +334,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
+                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("common:action.save", { defaultValue: "Save" })}
                 </EditorButton>
               </>
             }
@@ -330,7 +374,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           />
           <FlexRow align="center" gap={0.5} sx={{ px: 1 }}>
             {isDirty && (
-              <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
+              <span className="dirty-dot" aria-label="Unsaved changes" />
             )}
             <EditorButton
               variant="contained"
@@ -339,7 +383,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
+              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("common:action.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
         </FlexRow>

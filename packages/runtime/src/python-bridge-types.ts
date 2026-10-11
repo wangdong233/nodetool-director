@@ -125,6 +125,20 @@ export interface ProgressEvent {
 }
 
 /**
+ * Per-call options for `execute` / `execute.stream`.
+ *
+ * `signal` is the run's cancellation: aborting it sends a `cancel` frame for
+ * the request and rejects the call, so the worker can stop a long node
+ * instead of the run waiting for it to finish. `onUpdate` receives the data
+ * of each `update` frame — a serialized `log_update`, `preview_update` or
+ * `binary_update` the node posted while running.
+ */
+export interface ExecuteOptions {
+  signal?: AbortSignal;
+  onUpdate?: (update: Record<string, unknown>) => void;
+}
+
+/**
  * Structural subset of the `@nodetool-ai/protocol` UnifiedModel that the bridge
  * passes through verbatim from the worker's `models.list_cached` response.
  *
@@ -461,6 +475,14 @@ export interface PythonBridgeOptions {
    * hangs mid-download cannot leak its pending entries forever. Default ~5min.
    */
   downloadIdleTimeoutMs?: number;
+  /**
+   * Extra environment for a spawned local worker, resolved each time the
+   * worker starts (stdio bridge only). The host supplies settings the worker
+   * reads from its environment at start, such as `NODETOOL_TORCH_DEVICE` and
+   * `WAN2GP_MCP_URL`, so a value saved in Settings reaches a worker the user
+   * never exported it to. Merged over the inherited environment.
+   */
+  workerEnv?: () => Promise<Record<string, string>>;
 }
 
 export type StreamCallback = (chunk: Record<string, unknown>) => void;
@@ -525,7 +547,8 @@ export interface PythonBridge extends EventEmitter {
     secrets: Record<string, string>,
     blobs: ExecuteInputBlobs,
     onProgress?: (event: ProgressEvent) => void,
-    identity?: ExecuteIdentity
+    identity?: ExecuteIdentity,
+    options?: ExecuteOptions
   ): Promise<ExecuteResult>;
   executeStream(
     nodeType: string,
@@ -533,7 +556,8 @@ export interface PythonBridge extends EventEmitter {
     secrets: Record<string, string>,
     blobs: ExecuteInputBlobs,
     onProgress?: (event: ProgressEvent) => void,
-    identity?: ExecuteIdentity
+    identity?: ExecuteIdentity,
+    options?: ExecuteOptions
   ): AsyncGenerator<ExecuteResult>;
   cancel(requestId: string): void;
   getNodeMetadata(): PythonNodeMetadata[];
@@ -564,7 +588,8 @@ export interface PythonBridge extends EventEmitter {
     providerId: string,
     text: string,
     model: string,
-    options?: Record<string, unknown>
+    options?: Record<string, unknown>,
+    signal?: AbortSignal
   ): AsyncGenerator<Uint8Array>;
   providerTextToImage(
     providerId: string,
@@ -602,12 +627,14 @@ export interface PythonBridge extends EventEmitter {
   providerTextToAudio(
     providerId: string,
     params: Record<string, unknown>,
-    secrets?: Record<string, string>
+    secrets?: Record<string, string>,
+    signal?: AbortSignal
   ): Promise<Uint8Array>;
   providerTTSEncoded(
     providerId: string,
     params: Record<string, unknown>,
-    secrets?: Record<string, string>
+    secrets?: Record<string, string>,
+    signal?: AbortSignal
   ): Promise<Uint8Array>;
   providerASR(
     providerId: string,

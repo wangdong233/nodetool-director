@@ -1,23 +1,61 @@
 import React, { useMemo, ReactNode } from 'react';
 import { StyleSheet, View, ScrollView, Platform, ViewStyle } from 'react-native';
-import Markdown, { ASTNode, RenderRules } from 'react-native-markdown-display';
+import Markdown, {
+  ASTNode,
+  MarkdownIt,
+  RenderRules,
+  renderRules as defaultRenderRules,
+} from 'react-native-markdown-display';
+import { parseResourceUri } from '@nodetool-ai/protocol/resource-uri';
 import SyntaxHighlighter from 'react-native-syntax-highlighter';
 // Deep imports: the `styles/prism` barrel pulls all 47 themes into the bundle.
 import atomDark from 'react-syntax-highlighter/dist/esm/styles/prism/atom-dark';
 import tomorrow from 'react-syntax-highlighter/dist/esm/styles/prism/tomorrow';
 import { useTheme } from '../../hooks/useTheme';
+import { InlineResourcePreview } from './InlineResourcePreview';
+import { resourceMentionsPlugin } from './resourceMentions';
+
+/**
+ * One parser for every message. `resourceMentionsPlugin` turns a bare resource
+ * URI, and a code span holding only one, into an image token, so the `image`
+ * rule below sees every resource reference the agent can write.
+ */
+const markdownParser = MarkdownIt({ typographer: true }).use(resourceMentionsPlugin);
 
 interface ChatMarkdownProps {
   content: string;
 }
 
 export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
-  const { colors, mode } = useTheme();
+  const { colors, isDark } = useTheme();
 
-  const codeTheme = mode === 'dark' ? atomDark : tomorrow;
+  const codeTheme = isDark ? atomDark : tomorrow;
   const fontFamily = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
 
   const rules: RenderRules = useMemo(() => ({
+    // `![Label](sketch://<id>)`, `![Label](timeline://<id>)`, and the forms the
+    // plugin rewrites: a resource URI gets a preview and a chip, anything else
+    // is an ordinary image.
+    image: (node, children, parent, styles, allowedImageHandlers, defaultImageHandler) => {
+      const src = String(node.attributes.src ?? '');
+      if (parseResourceUri(src) !== null) {
+        return (
+          <InlineResourcePreview
+            key={node.key}
+            uri={src}
+            label={String(node.attributes.alt ?? '')}
+          />
+        );
+      }
+      return defaultRenderRules.image?.(
+        node,
+        children,
+        parent,
+        styles,
+        allowedImageHandlers,
+        defaultImageHandler
+      );
+    },
     fence: (node: ASTNode, _children: ReactNode[], _parent: ASTNode[], styles: Record<string, ViewStyle>) => {
       const language = (node as ASTNode & { sourceInfo?: string }).sourceInfo || node.attributes['lang'] as string | undefined || 'text';
 
@@ -102,7 +140,7 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       textDecorationLine: 'underline',
     },
     blockquote: {
-      backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: colors.inputBg,
       borderLeftWidth: 3,
       borderLeftColor: colors.primary,
       paddingLeft: 12,
@@ -110,7 +148,7 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       marginVertical: 8,
     },
     code_inline: {
-      backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: colors.inputBg,
       color: colors.primary,
       fontFamily: fontFamily,
       fontSize: 13,
@@ -119,7 +157,7 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       borderRadius: 4,
     },
     code_block: {
-      backgroundColor: mode === 'dark' ? '#1E1E1E' : '#F5F5F5',
+      backgroundColor: colors.surfaceElevated,
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
@@ -127,7 +165,7 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       borderColor: colors.border,
     },
     fence: {
-      backgroundColor: mode === 'dark' ? '#1E1E1E' : '#F5F5F5',
+      backgroundColor: colors.surfaceElevated,
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
@@ -149,7 +187,7 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       marginVertical: 8,
     },
     thead: {
-      backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: colors.inputBg,
     },
     th: {
       padding: 8,
@@ -177,14 +215,14 @@ export const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content }) => {
       fontStyle: 'italic',
       color: colors.text,
     },
-  }), [colors, mode, fontFamily]);
+  }), [colors, fontFamily]);
 
   if (!content) {
     return null;
   }
 
   return (
-    <Markdown style={markdownStyles} rules={rules}>
+    <Markdown style={markdownStyles} rules={rules} markdownit={markdownParser}>
       {content}
     </Markdown>
   );

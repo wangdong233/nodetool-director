@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createEmptyDocument } from "@nodetool-ai/app-runtime";
 
 import { eq } from "drizzle-orm";
+import { emptyJsScriptDocument } from "@nodetool-ai/protocol/api-schemas/js-scripts.js";
 
-import { getDb, initTestDb } from "../src/db.js";
+import { getPortableDb, initTestDb } from "../src/db.js";
 import { applicationVersions } from "../src/schema/applications.js";
 import {
   applicationBudgets,
@@ -28,6 +29,9 @@ import {
 } from "../src/application-budget.js";
 import { Workflow } from "../src/workflow.js";
 import { WorkflowVersion } from "../src/workflow-version.js";
+import { JsScript } from "../src/js-script.js";
+import { JsScriptVersion } from "../src/js-script-version.js";
+import { jsScriptVersions } from "../src/schema/js-script-versions.js";
 
 const documentWith = (workflowId = "wf1") => {
   const doc = createEmptyDocument("Demo");
@@ -239,11 +243,63 @@ describe("application releases", () => {
     );
   });
 
+  it("preserves the exact script version through publishing, reload and rollback", async () => {
+    const script = await JsScript.create<JsScript>({
+      user_id: "u1",
+      document: JSON.stringify({...emptyJsScriptDocument(), code: "await output('out', 'original');", outputs: [{name: "out", type: "str"}]})
+    });
+    const original = await JsScriptVersion.snapshot(script, {saveType: "manual"});
+    const document = createEmptyDocument("Script app");
+    document.operations = [{id: "plan", name: "Plan", workflowId: "", target: {kind: "script", scriptId: script.id, scriptVersion: original.version}, inputs: {}, outputs: {}, policy: "replace"}];
+    const app = await Application.create<Application>({user_id: "u1", document: JSON.stringify(document)});
+    script.document = JSON.stringify({...script.toDocument(), code: "await output('out', 'changed');"});
+    await script.save();
+    await JsScriptVersion.snapshot(script, {saveType: "manual"});
+
+    const first = await publishApplication(app);
+    expect(first.document.operations).toEqual(app.toDocument().operations);
+    expect(first.workflows).toEqual([]);
+    expect(first.capabilities.workflows).toEqual([]);
+    expect((await releasedApplicationRelease(app.id))?.document.operations[0]?.target).toEqual(document.operations[0]?.target);
+    expect(await JsScriptVersion.listForScript(script.id)).toHaveLength(2);
+    await publishApplication(app);
+    await releaseApplicationVersion(app.id, first.version);
+    expect((await releasedApplicationRelease(app.id))?.version).toBe(first.version);
+    expect((await releasedApplicationRelease(app.id))?.document.operations[0]?.target).toEqual(document.operations[0]?.target);
+  });
+
+  it("publishes mixed workflow and script bindings without inventing a workflow for the script", async () => {
+    const script = await JsScript.create<JsScript>({user_id: "u1"});
+    const version = await JsScriptVersion.snapshot(script, {saveType: "manual"});
+    const document = documentWith();
+    document.operations.push({id: "finish", name: "Finish", workflowId: "", target: {kind: "script", scriptId: script.id, scriptVersion: version.version}, inputs: {}, outputs: {}, policy: "replace"});
+    const app = await Application.create<Application>({user_id: "u1", document: JSON.stringify(document)});
+    const release = await publishApplication(app);
+    expect(release.workflows.map(workflow => workflow.workflowId)).toEqual(["wf1"]);
+    expect(release.capabilities.workflows.map(workflow => workflow.workflowId)).toEqual(["wf1"]);
+    expect(release.document.operations[0]?.workflowVersion).toBe(1);
+    expect(release.document.operations[1]?.target).toEqual(document.operations[1]?.target);
+  });
+
+  it.each(["missing", "foreign", "invalid", "foreign-version"])("rejects a %s pinned script before writing workflow or Application versions", async failure => {
+    const script = await JsScript.create<JsScript>({user_id: failure === "foreign" ? "other" : "u1"});
+    const version = await JsScriptVersion.snapshot(script, {saveType: "manual"});
+    if (failure === "invalid" || failure === "foreign-version") {
+      await getPortableDb().update(jsScriptVersions).set(failure === "invalid" ? {document: "{}"} : {user_id: "other"}).where(eq(jsScriptVersions.id, version.id));
+    }
+    const document = documentWith();
+    document.operations.push({id: "finish", name: "Finish", workflowId: "", target: {kind: "script", scriptId: script.id, scriptVersion: failure === "missing" ? version.version + 1 : version.version}, inputs: {}, outputs: {}, policy: "replace"});
+    const app = await Application.create<Application>({user_id: "u1", document: JSON.stringify(document)});
+    await expect(publishApplication(app)).rejects.toThrow(/Cannot publish: script .* bound to operation finish/);
+    expect(await listApplicationVersions(app.id)).toEqual([]);
+    expect(await WorkflowVersion.listForWorkflow("wf1")).toEqual([]);
+  });
+
   it("reports no pinned graph on a snapshot published before pinning", async () => {
     const app = await createApp();
     await publishApplication(app);
     // Simulate a row written by the pre-pinning publish path.
-    await getDb()
+    await getPortableDb()
       .update(applicationVersions)
       .set({ workflow_graphs: null })
       .where(eq(applicationVersions.application_id, app.id));
@@ -347,7 +403,7 @@ describe("deleting an application", () => {
       | typeof applicationBudgets,
     applicationId: string
   ): Promise<number> => {
-    const rows = await getDb().select().from(table);
+    const rows = await getPortableDb().select().from(table);
     return rows.filter(
       (r: Record<string, unknown>) => r.application_id === applicationId
     ).length;
@@ -424,7 +480,7 @@ describe("release transitions", () => {
     await publishApplication(app);
     await publishApplication(app);
 
-    const rows = await getDb()
+    const rows = await getPortableDb()
       .select()
       .from(applicationVersions)
       .where(eq(applicationVersions.application_id, app.id));
@@ -441,7 +497,7 @@ describe("release transitions", () => {
     const published = await publishApplication(app);
 
     await expect(
-      getDb()
+      getPortableDb()
         .insert(applicationVersions)
         .values({
           id: "dupe",

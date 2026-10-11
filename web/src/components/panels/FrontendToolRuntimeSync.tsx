@@ -2,7 +2,12 @@ import { memo, useCallback, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useNavigate } from "react-router-dom";
 
-import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
+import { createAgentHandlerRegistry } from "../../lib/tools/agentHandlerRegistry";
+import type { NodeStore } from "../../stores/NodeStore";
+import {
+  useWorkflowManagerStore,
+  useWorkflowManager
+} from "../../contexts/WorkflowManagerContext";
 import useMetadataStore from "../../stores/MetadataStore";
 import { setFrontendToolRuntimeState } from "../../lib/tools/frontendToolRuntimeState";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
@@ -24,6 +29,7 @@ import {
  */
 const FrontendToolRuntimeSync = memo(function FrontendToolRuntimeSync() {
   const navigate = useNavigate();
+  const workflowManager = useWorkflowManagerStore();
   const {
     openWorkflows,
     currentWorkflowId,
@@ -171,7 +177,6 @@ const FrontendToolRuntimeSync = memo(function FrontendToolRuntimeSync() {
       nodeMetadata,
       getModelRoleAvailability,
       getOpenWorkflowIds: () => openWorkflows.map((workflow) => workflow.id),
-      openWorkflow,
       runWorkflow: runWorkflowById,
       switchTab,
       copyToClipboard,
@@ -181,6 +186,14 @@ const FrontendToolRuntimeSync = memo(function FrontendToolRuntimeSync() {
       addWorkflow,
       removeWorkflow,
       getNodeStore,
+      whenWorkflowReady: (id, signal) => {
+        const registry = createAgentHandlerRegistry<NodeStore>();
+        const notify = (): void =>
+          registry.set(id, workflowManager.getState().getNodeStore(id) ?? null);
+        const unsubscribe = workflowManager.subscribe(notify);
+        notify();
+        return registry.whenReady(id, () => true, signal).finally(unsubscribe);
+      },
       updateWorkflow,
       saveWorkflow,
       getCurrentWorkflow,
@@ -194,10 +207,10 @@ const FrontendToolRuntimeSync = memo(function FrontendToolRuntimeSync() {
       copy
     });
   }, [
+    workflowManager,
     nodeMetadata,
     getModelRoleAvailability,
     openWorkflows,
-    openWorkflow,
     runWorkflowById,
     switchTab,
     copyToClipboard,

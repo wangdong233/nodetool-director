@@ -22,14 +22,8 @@ import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { buildPreviewSequence, previewSignature } from "./previewSequence";
 import { useTranslation } from "react-i18next";
 
-const PREVIEW_HEIGHT = 400;
-
-const frameSx = {
-  width: "100%",
-  height: PREVIEW_HEIGHT,
-  minHeight: 0,
-  overflow: "hidden"
-} as const;
+/** Grows with the window, so the player stays the board's main picture. */
+const PREVIEW_HEIGHT = "max(400px, 60vh)";
 
 const emptySx = {
   width: "100%",
@@ -58,10 +52,13 @@ const statusLine = (
 
 interface StoryboardPreviewProps {
   boardId: string;
+  /** Player height: px, or any CSS length. */
+  height?: number | string;
 }
 
 const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
-  boardId
+  boardId,
+  height = PREVIEW_HEIGHT
 }) => {
   const { t } = useTranslation();
   // Subscribe to a signature string, not the board: a board object is replaced
@@ -88,7 +85,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
 
   return (
     <FlexColumn gap={SPACING.sm} className="storyboard-preview">
-      <Box sx={frameSx}>
+      <Box sx={{ width: "100%", height, minHeight: 0, overflow: "hidden" }}>
         <TimelineRenderer
           sequence={preview.sequence}
           showMetadata={false}
@@ -98,7 +95,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
       <FlexRow gap={SPACING.sm} align="center">
         <Caption color="secondary">
           {statusLine(
-            preview.sequence.clips.length,
+            preview.shotCount,
             preview.stillShotIds.length,
             preview.skippedShotIds.length
           )}

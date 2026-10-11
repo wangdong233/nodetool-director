@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactMarkdown, { defaultUrlTransform, type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -9,7 +9,8 @@ import InlineResourcePreview, {
   isInlinePreviewUri
 } from "./InlineResourcePreview";
 import "../../../styles/markdown/nodetool-markdown.css";
-import { Caption, FlexColumn, SPACING, getSpacingPx } from "../../ui_primitives";
+import { Box, Caption, FlexColumn, SPACING, getSpacingPx } from "../../ui_primitives";
+import LazyModel3DViewer from "../../asset_viewer/LazyModel3DViewer";
 import { CodeBlock } from "./markdown_elements/CodeBlock";
 import { PreRenderer } from "./markdown_elements/PreRenderer";
 import { BORDER_RADIUS } from "../../ui_primitives";
@@ -21,13 +22,23 @@ import ResourceChip from "./ResourceChip";
 import { EntityMentionChip } from "../../node_types/editing/promptComposer/EntityMentionChip";
 import { remarkEntityMentions } from "./remarkEntityMentions";
 import { remarkResourceMentions } from "./remarkResourceMentions";
+import rehypeSanitizeChatHtml from "./rehypeSanitizeChatHtml";
+import {
+  loadMathPlugins,
+  mayContainMath,
+  normalizeMathDelimiters,
+  type MathPlugins
+} from "./mathMarkdown";
 import { isNumber, isString } from "../../../utils/typePredicates";
+import { assetIdFromLocator } from "../../../utils/mediaRef";
 import "../../../styles/markdown/github-markdown.css";
 import { useTranslation } from "react-i18next";
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"];
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".mkv", ".m4v", ".ogv"];
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".opus"];
+const MODEL3D_EXTENSIONS = [".glb", ".gltf"];
+const DOCUMENT_EXTENSIONS = [".pdf"];
 
 const hrefPath = (href: string): string => href.toLowerCase().split(/[?#]/)[0];
 
@@ -39,14 +50,19 @@ const hasExtension = (href: string, extensions: readonly string[]): boolean => {
 const isImageHref = (href: string): boolean => hasExtension(href, IMAGE_EXTENSIONS);
 const isVideoHref = (href: string): boolean => hasExtension(href, VIDEO_EXTENSIONS);
 const isAudioHref = (href: string): boolean => hasExtension(href, AUDIO_EXTENSIONS);
+const isModel3DHref = (href: string): boolean => hasExtension(href, MODEL3D_EXTENSIONS);
+const isDocumentHref = (href: string): boolean => hasExtension(href, DOCUMENT_EXTENSIONS);
 
-type MediaKind = "video" | "audio" | "image";
+/** `document` is a paged file (a PDF) previewed by its first-page thumbnail. */
+type MediaKind = "video" | "audio" | "image" | "model3d" | "document";
 
 const mimeKind = (mime: string | undefined): MediaKind | null => {
   if (!mime) return null;
   if (mime.startsWith("video/")) return "video";
   if (mime.startsWith("audio/")) return "audio";
   if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("model/gltf")) return "model3d";
+  if (mime === "application/pdf") return "document";
   return null;
 };
 
@@ -64,6 +80,12 @@ const mediaKind = (
   }
   if (isImageHref(href) || (resolvedSrc && isImageHref(resolvedSrc))) {
     return "image";
+  }
+  if (isModel3DHref(href) || (resolvedSrc && isModel3DHref(resolvedSrc))) {
+    return "model3d";
+  }
+  if (isDocumentHref(href) || (resolvedSrc && isDocumentHref(resolvedSrc))) {
+    return "document";
   }
   return mimeKind(mime);
 };
@@ -87,6 +109,22 @@ const markdownStyles = css({
     marginTop: "0px",
     maxHeight: "80vh",
     overflow: "auto"
+  },
+  // A wide equation scrolls inside its own block instead of being clipped by
+  // the column, and KaTeX's own spans must not break mid-formula.
+  ".katex-display": {
+    overflowX: "auto",
+    overflowY: "hidden"
+  },
+  ".katex": {
+    wordBreak: "normal",
+    overflowWrap: "normal"
+  },
+  // A wide table scrolls sideways in its own box. Breaking anywhere would
+  // let the cells shrink to one letter per line on a phone instead.
+  "th, td": {
+    wordBreak: "normal",
+    overflowWrap: "break-word"
   }
 });
 
@@ -95,7 +133,11 @@ const REMARK_PLUGINS: Options["remarkPlugins"] = [
   remarkEntityMentions,
   remarkResourceMentions
 ];
-const REHYPE_PLUGINS: Options["rehypePlugins"] = [rehypeRaw];
+// Raw HTML in a message renders, but only through the allowlist right after it.
+const REHYPE_PLUGINS: Options["rehypePlugins"] = [
+  rehypeRaw,
+  rehypeSanitizeChatHtml
+];
 
 /** An `entity://<id>` mention — its own scheme, not one of the resource kinds. */
 const isEntityUri = (url: string): boolean => url.startsWith("entity://");
@@ -125,6 +167,21 @@ const videoCss = css({
   backgroundColor: "var(--palette-grey-900)"
 });
 
+const documentThumbCss = css({
+  display: "block",
+  maxWidth: "100%",
+  maxHeight: "320px",
+  height: "auto",
+  borderRadius: BORDER_RADIUS.md
+});
+
+const model3dFrameSx = {
+  width: "100%",
+  height: 280,
+  overflow: "hidden",
+  borderRadius: BORDER_RADIUS.md
+} as const;
+
 const extractStorageKey = (uri: string | null | undefined): string | null => {
   if (!uri) return null;
   if (uri.startsWith("/api/storage/")) return uri.slice("/api/storage/".length);
@@ -135,6 +192,7 @@ const useChatAsset = (
   src: string | undefined
 ): {
   resolvedSrc: string | undefined;
+  thumbSrc: string | undefined;
   contentType: string | undefined;
   pending: boolean;
 } => {
@@ -146,12 +204,18 @@ const useChatAsset = (
     { key: key ?? "" },
     { enabled: Boolean(key), staleTime: 6 * 24 * 60 * 60 * 1000 }
   );
+  const unresolved = {
+    thumbSrc: undefined,
+    contentType: undefined,
+    pending: false
+  };
   if (!src) {
-    return { resolvedSrc: undefined, contentType: undefined, pending: false };
+    return { ...unresolved, resolvedSrc: undefined };
   }
   if (isAssetUri) {
     return {
       resolvedSrc: fromAsset.url,
+      thumbSrc: fromAsset.thumbUrl,
       contentType: fromAsset.contentType,
       pending: fromAsset.pending
     };
@@ -160,27 +224,19 @@ const useChatAsset = (
     // Legacy `/api/storage/<key>` markdown — resolve through the signed-URL
     // path so owner-prefixed keys and cloud backends work.
     return {
+      ...unresolved,
       resolvedSrc: data?.url,
-      contentType: undefined,
       pending: isPending && !isError
     };
   }
   const pkgPath = packageAssetHttpPath(src);
   if (pkgPath) {
-    return {
-      resolvedSrc: `${BASE_URL}${pkgPath}`,
-      contentType: undefined,
-      pending: false
-    };
+    return { ...unresolved, resolvedSrc: `${BASE_URL}${pkgPath}` };
   }
   if (src.startsWith("/api/")) {
-    return {
-      resolvedSrc: `${BASE_URL}${src}`,
-      contentType: undefined,
-      pending: false
-    };
+    return { ...unresolved, resolvedSrc: `${BASE_URL}${src}` };
   }
-  return { resolvedSrc: src, contentType: undefined, pending: false };
+  return { ...unresolved, resolvedSrc: src };
 };
 
 /**
@@ -207,12 +263,28 @@ const isBlockEmbedSrc = (src: string): boolean =>
   isInlinePreviewUri(src) ||
   isVideoHref(src) ||
   isAudioHref(src) ||
+  isModel3DHref(src) ||
+  isDocumentHref(src) ||
   isUntypedAssetSrc(src);
 
 /** Asset links may resolve to video/audio even without a file extension. */
 const isBlockEmbedHref = (href: string): boolean =>
   isBlockEmbedSrc(href) ||
   (href.startsWith("asset://") && !isImageHref(href));
+
+/**
+ * An image embed that names a file no media renderer can show: an asset whose
+ * row reports a non-image type, or an `asset://<id>.<ext>` with an extension
+ * that is not an image. A plain URL without either keeps the `<img>` default.
+ */
+const isNonMediaFile = (href: string, contentType: string | undefined): boolean => {
+  if (contentType) return !contentType.startsWith("image/");
+  return (
+    href.startsWith("asset://") &&
+    !isUntypedAssetSrc(href) &&
+    !isImageHref(href)
+  );
+};
 
 const containsBlockEmbed = (node: unknown): boolean => {
   const children = (node as HastNodeLike | undefined)?.children;
@@ -230,12 +302,72 @@ const containsBlockEmbed = (node: unknown): boolean => {
   );
 };
 
+/**
+ * A file chat has no inline renderer for: a chip for a resource (it opens the
+ * asset), or a plain anchor to the file for any other URL.
+ */
+const FileReference: React.FC<{
+  href: string;
+  resolvedSrc: string | undefined;
+  label: string;
+}> = ({ href, resolvedSrc, label }) =>
+  isResourceUri(href) ? (
+    <ResourceChip uri={href} label={label || href} />
+  ) : (
+    <a href={resolvedSrc ?? href} target="_blank" rel="noopener noreferrer">
+      {label || href}
+    </a>
+  );
+
 const ChatMarkdownMedia: React.FC<{
+  href: string;
   resolvedSrc: string;
+  thumbSrc?: string;
   kind: MediaKind;
   label: string;
   imgProps?: React.ComponentPropsWithoutRef<"img">;
-}> = ({ resolvedSrc, kind, label, imgProps }) => {
+}> = ({ href, resolvedSrc, thumbSrc, kind, label, imgProps }) => {
+  if (kind === "document") {
+    // The server renders a PDF's first page as the asset thumbnail. Clicking
+    // it opens the file; the chip beneath opens the asset.
+    return (
+      <FlexColumn
+        gap={SPACING.xs}
+        align="flex-start"
+        data-testid="document-preview"
+      >
+        {thumbSrc ? (
+          <a href={resolvedSrc} target="_blank" rel="noopener noreferrer">
+            <img
+              src={thumbSrc}
+              alt={label ? `First page of ${label}` : "First page"}
+              css={documentThumbCss}
+              loading="lazy"
+            />
+          </a>
+        ) : null}
+        <FileReference href={href} resolvedSrc={resolvedSrc} label={label} />
+      </FlexColumn>
+    );
+  }
+  if (kind === "model3d") {
+    // A 3D model asset previews in a viewer with a chip that opens it in the
+    // 3D editor. Without an asset id (a plain URL) there is nothing to open.
+    const assetId = assetIdFromLocator(href);
+    if (assetId) {
+      return (
+        <InlineResourcePreview
+          uri={`model3d://${assetId}`}
+          label={label || assetId}
+        />
+      );
+    }
+    return (
+      <Box sx={model3dFrameSx}>
+        <LazyModel3DViewer url={resolvedSrc} compact />
+      </Box>
+    );
+  }
   if (kind === "video") {
     return (
       <video
@@ -303,18 +435,29 @@ const ChatMarkdownImg: React.FC<React.ComponentPropsWithoutRef<"img">> = ({
   ...props
 }) => {
   const href = src != null ? src : "";
-  const { resolvedSrc, contentType, pending } = useChatAsset(href || undefined);
+  const { resolvedSrc, thumbSrc, contentType, pending } = useChatAsset(
+    href || undefined
+  );
   if (!resolvedSrc) {
     // Still resolving: render nothing rather than flashing a failure.
     return pending || !href ? null : (
       <UnresolvedMedia href={href} label={alt ?? ""} />
     );
   }
-  const kind = mediaKind(href, resolvedSrc, contentType) ?? "image";
+  const kind = mediaKind(href, resolvedSrc, contentType);
+  if (!kind && isNonMediaFile(href, contentType)) {
+    // A zip, a spreadsheet, a text file embedded with image syntax: an <img>
+    // of it is broken, so link the file instead.
+    return (
+      <FileReference href={href} resolvedSrc={resolvedSrc} label={alt ?? ""} />
+    );
+  }
   return (
     <ChatMarkdownMedia
+      href={href}
       resolvedSrc={resolvedSrc}
-      kind={kind}
+      thumbSrc={thumbSrc}
+      kind={kind ?? "image"}
       label={alt ?? ""}
       imgProps={props}
     />
@@ -337,18 +480,47 @@ const ChatMarkdownAssetLink: React.FC<{ href: string; label: string }> = ({
   href,
   label
 }) => {
-  const { resolvedSrc, contentType } = useChatAsset(href);
+  const { resolvedSrc, thumbSrc, contentType } = useChatAsset(href);
   const kind = mediaKind(href, resolvedSrc, contentType);
   if (kind && resolvedSrc) {
     return (
       <ChatMarkdownMedia
+        href={href}
         resolvedSrc={resolvedSrc}
+        thumbSrc={thumbSrc}
         kind={kind}
         label={label}
       />
     );
   }
   return <ResourceChip uri={href} label={label} />;
+};
+
+/**
+ * The math plugins, once a message that may hold math asks for them. Null
+ * until they load, and for every message without math.
+ */
+const useMathPlugins = (wanted: boolean): MathPlugins | null => {
+  const [plugins, setPlugins] = useState<MathPlugins | null>(null);
+  useEffect(() => {
+    if (!wanted || plugins) {
+      return;
+    }
+    let cancelled = false;
+    loadMathPlugins()
+      .then((loaded) => {
+        if (!cancelled) {
+          setPlugins(loaded);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load math rendering:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [wanted, plugins]);
+  return wanted ? plugins : null;
 };
 
 const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
@@ -416,15 +588,30 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
     [t, onInsertCode]
   );
 
+  const hasMath = mayContainMath(content || "");
+  const math = useMathPlugins(hasMath);
+  const remarkPlugins = useMemo(
+    () => (math ? [...(REMARK_PLUGINS ?? []), math.remark] : REMARK_PLUGINS),
+    [math]
+  );
+  const rehypePlugins = useMemo(
+    () => (math ? [...(REHYPE_PLUGINS ?? []), math.rehype] : REHYPE_PLUGINS),
+    [math]
+  );
+  const markdown = useMemo(
+    () => (math ? normalizeMathDelimiters(content || "") : content || ""),
+    [math, content]
+  );
+
   return (
     <div css={markdownStyles} className="markdown markdown-body">
       <ReactMarkdown
-        remarkPlugins={REMARK_PLUGINS}
-        rehypePlugins={REHYPE_PLUGINS}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         urlTransform={urlTransform}
         components={components}
       >
-        {content || ""}
+        {markdown}
       </ReactMarkdown>
     </div>
   );

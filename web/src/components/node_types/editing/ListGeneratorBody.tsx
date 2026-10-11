@@ -45,6 +45,7 @@ import {
 import MarkdownRenderer from "../../../utils/MarkdownRenderer";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import HandleColumn from "../../node/HandleColumn";
+import NodeModelChips from "../../node/NodeModelChips";
 import NodeProgress from "../../node/NodeProgress";
 import FormatListNumberedRoundedIcon from "@mui/icons-material/FormatListNumberedRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
@@ -106,7 +107,15 @@ const styles = (theme: Theme) =>
     display: "flex",
     flexDirection: "column",
     gap: theme.spacing(SPACING.sm),
-    padding: theme.spacing(SPACING.md),
+    // No top padding: the stacked input column brings its own top margin,
+    // which levels its first row with the first output.
+    padding: `0 ${theme.spacing(SPACING.md)} ${theme.spacing(SPACING.md)}`,
+
+    // The input column sits inside this body's side padding: step the
+    // handle back to the node edge.
+    "& > .handle-column .react-flow__handle-left": {
+      left: `calc(-6px - var(--node-body-padding, 0px) - ${theme.spacing(SPACING.md)})`
+    },
 
     ".list-header": {
       display: "flex",
@@ -216,6 +225,7 @@ const styles = (theme: Theme) =>
 
 const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
   id,
+  nodeType,
   nodeMetadata,
   data,
   workflowId,
@@ -336,6 +346,12 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
         </div>
       )}
 
+      <NodeModelChips
+        id={id}
+        nodeType={nodeType}
+        nodeMetadata={nodeMetadata}
+        data={data}
+      />
       {!isOutputNode && (
         <div className="outputs-row">
           <NodeOutputs id={id} outputs={nodeMetadata.outputs} />

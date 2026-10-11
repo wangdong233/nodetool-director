@@ -311,6 +311,30 @@ style or no asset) as an error and `bake_stale` as a warning.
 camera and animation time — [docs/harnesses.md § 3D clips in
 preview_timeline_frame](../../../../docs/harnesses.md#3d-clips-in-preview_timeline_frame).
 
+## Storyboard shots
+
+A video clip linked to a storyboard shot (`storyboardBoardId` and
+`storyboardShotId`, set by assembly or by **Link to shot** in the Inspector)
+plays the shot's selected take. The shot owns the takes. When its selection
+changes, on the board or here, every unlocked clip following the shot,
+its audio twin included, gets the new take in one undo step
+(`useLinkedShotTakes`, `applyShotTakeToClip` in `@nodetool-ai/timeline`). A
+take shorter than the clip's source window moves or shortens the window.
+
+While the editor is open, `TimelineLinkedBoards` loads and autosaves the boards
+its shot clips come from, unless another editor already saves the board.
+
+Selecting a shot clip adds a **Shot** tab to the side panel:
+
+- **Takes** lists the shot's renders. Picking one switches the cut to it.
+  **New take** renders another with the board's render dialog.
+- **Shot** is a one-column form over the board's shot draft (`shotDraft`). Save
+  writes only the fields changed here.
+- **Derived shot** takes N frames of the clip as reference images, adds a
+  reference-mode shot after this one on the board, and puts its clip on a new
+  track above this one over the same span. The render dialog opens on the new
+  shot.
+
 ## Persistence
 
 Every `TimelineStore` mutation (clip add, move, trim, split, delete) is
@@ -331,10 +355,11 @@ live preview, so an exported frame is identical to what playback showed:
   `nodetool.timeline.RenderTimeline` node all drive their layer lists from it,
   so a render is the same picture wherever it runs.
 - `render/TimelineRenderer.ts` — steps the playhead in exact `1 / fps`
-  increments, seeks each video element to the precise source frame (waiting for
-  `seeked` so decoding is deterministic, not best-effort), composites at full
-  sequence resolution with the shared `WebGPUCompositor`, then encodes each
-  frame with WebCodecs and muxes to MP4 via [mediabunny](https://mediabunny.dev).
+  increments and requests each video source at its precise timestamp.
+  `render/SequentialVideoSource.ts` reuses a decoder for supported forward
+  streams. Other sources use video-element seeks, waiting for `seeked` before
+  compositing. The renderer composites at full sequence resolution, encodes
+  frames with WebCodecs, and muxes to MP4 via [mediabunny](https://mediabunny.dev).
 - `render/renderAudio.ts` — mixes the audio tracks down through the same
   `AudioGraph` (clip gain, fades, speed, mute/solo, DSP chain) driven by an
   `OfflineAudioContext`.
@@ -366,6 +391,12 @@ are approximated with `ctx.filter`; the GPU-only effects (chroma key, vignette,
 sharpen) are skipped in the fallback. This keeps the timeline preview rendering
 and documentation screenshots capturing real frames without a GPU. The heavier
 WebGPU/typegpu bundle is dynamically imported only when `navigator.gpu` exists.
+
+The live preview's **Preview quality** control selects Auto, Full, Half, or
+Quarter backing resolution. Auto uses Half during playback when the sequence
+is at least 3840 pixels wide or 2160 pixels high, then restores Full when
+paused. Other sequences use Full. Layer placement remains in sequence pixels,
+and browser and server exports render at the configured sequence resolution.
 
 ## AI Assistant (agent editing)
 

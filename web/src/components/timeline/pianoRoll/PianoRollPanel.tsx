@@ -43,7 +43,6 @@ import { PianoRoll } from "./PianoRoll";
 import { useTranslation } from "react-i18next";
 
 const HANDLE_HEIGHT_PX = 6;
-const TOUCH_HANDLE_HEIGHT_PX = 20;
 /** Arrow-key step for keyboard resizing. */
 const KEYBOARD_RESIZE_STEP_PX = 20;
 

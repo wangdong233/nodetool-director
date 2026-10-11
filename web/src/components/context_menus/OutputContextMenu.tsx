@@ -41,7 +41,11 @@ import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { useHandleNodePlacement } from "../../hooks/useHandleNodePlacement";
 import { isNumber } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-
+import { useAddConnectedNode } from "../../hooks/nodes/useAddConnectedNode";
+import {
+  outputQuickActionsFor,
+  type OutputQuickAction
+} from "../../config/outputQuickActions";
 const NODE_ROW_HEIGHT = 28;
 
 const OutputContextMenu: React.FC = () => {
@@ -205,10 +209,6 @@ const OutputContextMenu: React.FC = () => {
         initialPosition(anchor)
       );
 
-      if (targetHandle) {
-        newNode.data.dynamic_properties[targetHandle] = true;
-      }
-
       const extendedMetadata = metadata as NodeMetadata & { style?: unknown };
       if (extendedMetadata.style) {
         newNode.style = extendedMetadata.style;
@@ -341,6 +341,40 @@ const OutputContextMenu: React.FC = () => {
       sourceHandle,
       sourceType,
       transformOutput
+    ]
+  );
+
+  const addConnectedNode = useAddConnectedNode();
+  const quickActions = useMemo(
+    () =>
+      outputQuickActionsFor(sourceType?.type).filter(
+        (action) => allMetadata[action.nodeType] !== undefined
+      ),
+    [allMetadata, sourceType?.type]
+  );
+  const handleQuickAction = useCallback(
+    (action: OutputQuickAction, event?: React.MouseEvent<HTMLElement>) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      if (nodeId && sourceHandle && sourceType) {
+        addConnectedNode({
+          nodeType: action.nodeType,
+          sourceId: nodeId,
+          sourceHandle,
+          sourceType: sourceType.type,
+          targetHandle: action.targetHandle,
+          anchor: anchorPosition()
+        });
+      }
+      closeContextMenu();
+    },
+    [
+      addConnectedNode,
+      anchorPosition,
+      closeContextMenu,
+      nodeId,
+      sourceHandle,
+      sourceType
     ]
   );
 
@@ -654,6 +688,28 @@ const OutputContextMenu: React.FC = () => {
               </Box>
             )}
           </Box>
+        )}
+        {showStaticActions && sourceHandle != null && quickActions.length > 0 && (
+          <>
+            <Divider />
+            <Box sx={{ px: 1, py: 0.5 }}>
+              {quickActions.map((action) => (
+                <Box
+                  key={action.key}
+                  component="button"
+                  type="button"
+                  className={`output-quick-action output-quick-action-${action.key}`}
+                  onClick={(event: React.MouseEvent<HTMLElement>) =>
+                    handleQuickAction(action, event)
+                  }
+                  sx={actionRowStyles}
+                >
+                  <span className="icon-bg"><action.Icon /></span>
+                  <Text size="small">{action.label}</Text>
+                </Box>
+              ))}
+            </Box>
+          </>
         )}
         {showStaticActions && <Divider />}
         <Box

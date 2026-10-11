@@ -24,6 +24,7 @@ import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { useBoardScriptLines } from "../../hooks/storyboard/useShotDuration";
 import { useShotTimelineLink } from "../../hooks/storyboard/useShotTimelineLink";
 import ShotActionText from "./ShotActionText";
+import ShotRenderDialog from "./ShotRenderDialog";
 import { isShotGenerating } from "./ShotStatusPill";
 import {
   Box,
@@ -103,7 +104,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
     (state) => state.boards[boardId]?.screenplay?.script_id ?? null
   );
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
-  const { generateKeyframe, generateRevisedClip } = useGenerateShot();
+  const { generateRevisedClip } = useGenerateShot();
   const { data: allEntities } = useEntities();
 
   const [iterateOpen, setIterateOpen] = useState(false);
@@ -165,9 +166,9 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
   // A start that throws records its reason on the shot's job state (and
   // toasts it), which is what the card's error line shows — so the rejection
   // is already reported and only needs to not go unhandled.
-  const handleRegenerate = useCallback(() => {
-    void generateKeyframe(boardId, shot).catch(() => undefined);
-  }, [generateKeyframe, boardId, shot]);
+  const [stillRenderOpen, setStillRenderOpen] = useState(false);
+  const handleRegenerate = useCallback(() => setStillRenderOpen(true), []);
+  const closeStillRender = useCallback(() => setStillRenderOpen(false), []);
 
   const handleIterateConfirm = useCallback(() => {
     const instruction = iterateText.trim();
@@ -253,8 +254,10 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               onClick={handleRegenerate}
               disabled={isGenerating}
               sx={quietActionSx}
-              title={t("storyboard:attrs.renderANewStillFromThisShotSavedFields", { defaultValue: "Render a new still from this shot's saved fields" })}
-            >{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+              title={t("storyboard:attrs.renderANewStillAndPickItsModel", { defaultValue: "Render a new still and pick its model" })}
+            >
+              {t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}
+            </EditorButton>
             <EditorButton
               onClick={() => setConfirmDelete(true)}
               disabled={isGenerating}
@@ -291,6 +294,16 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           />
         </FlexColumn>
       </Dialog>
+
+      {/* Mounted only while open: it subscribes to the model catalog. */}
+      {stillRenderOpen && (
+        <ShotRenderDialog
+          boardId={boardId}
+          shot={shot}
+          step="still"
+          onClose={closeStillRender}
+        />
+      )}
 
       <Dialog
         open={confirmDelete}

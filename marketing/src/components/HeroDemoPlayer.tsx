@@ -18,8 +18,9 @@
  * start the reel by hand.
  */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Maximize2, Pause, Play } from "lucide-react";
+import { Maximize2, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { usePrefersReducedMotion } from "../lib/useGridParallax";
+import { track } from "../lib/analytics";
 
 interface HeroDemoPlayerProps {
   alt: string;
@@ -27,6 +28,8 @@ interface HeroDemoPlayerProps {
   priority?: boolean;
   /** Printed under the frame. Without it the reel has to explain itself. */
   caption?: string;
+  /** The reel has an audio track: autoplay stays muted, and a button unmutes. */
+  hasSound?: boolean;
 }
 
 export default function HeroDemoPlayer({
@@ -34,6 +37,7 @@ export default function HeroDemoPlayer({
   caption,
   mediaBase = "/hero-project",
   priority = true,
+  hasSound = false,
 }: HeroDemoPlayerProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -42,6 +46,7 @@ export default function HeroDemoPlayer({
   const [hasMetadata, setHasMetadata] = useState(false);
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
   const reducedMotion = usePrefersReducedMotion();
 
   // Load the reel only when the hero is actually on screen — a multi-MB file
@@ -89,9 +94,21 @@ export default function HeroDemoPlayer({
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      void video.play().catch(() => {});
+      void video.play().then(() => track("View Demo", { action: "play", placement: "demo" })).catch(() => {
+        // The play control remains available when the browser refuses playback.
+      });
     } else {
       video.pause();
+    }
+  }, []);
+
+  const toggleSound = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setMuted(video.muted);
+    if (!video.muted && video.paused) {
+      void video.play().catch(() => {});
     }
   }, []);
 
@@ -104,11 +121,16 @@ export default function HeroDemoPlayer({
       | (HTMLVideoElement & { webkitEnterFullscreen?: () => void })
       | null;
     if (frame?.requestFullscreen) {
-      void frame.requestFullscreen().catch(() => {});
+      void frame.requestFullscreen().then(() => track("View Demo", { action: "fullscreen", placement: "demo" })).catch(() => {
+        // Fullscreen is optional. The inline demo remains available.
+      });
       void video?.play().catch(() => {});
       return;
     }
-    video?.webkitEnterFullscreen?.();
+    if (video?.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+      track("View Demo", { action: "fullscreen", placement: "demo" });
+    }
   }, []);
 
   return (
@@ -155,6 +177,20 @@ export default function HeroDemoPlayer({
         )}
 
         <div className="absolute bottom-3 right-3 flex items-center gap-2">
+          {hasSound && hasMetadata && (
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-label={muted ? "Turn the sound on" : "Turn the sound off"}
+              className="rounded-full border border-slate-600/80 bg-slate-950/70 p-2 text-slate-200 backdrop-blur hover:text-white focus-ring"
+            >
+              {muted ? (
+                <VolumeX className="h-4 w-4" aria-hidden />
+              ) : (
+                <Volume2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
           {hasMetadata && (
             <button
               type="button"

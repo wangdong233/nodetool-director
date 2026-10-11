@@ -30,23 +30,33 @@ jest.mock("../../../contexts/WorkflowManagerContext", () => ({
   useWorkflowManagerStore: () => ({ getState: () => managerState })
 }));
 
-const metadata = {
+const metadata: Record<string, Record<string, unknown>> = {
   "nodetool.text.Template": {
     node_type: "nodetool.text.Template",
     title: "Template",
     description: "Format a string",
     namespace: "nodetool.text",
-    properties: [],
-    outputs: []
+    properties: [{ name: "string", type: { type: "str", type_args: [] } }],
+    outputs: [{ name: "output", type: { type: "str", type_args: [] } }]
   },
   "nodetool.mail.SendEmail": {
     node_type: "nodetool.mail.SendEmail",
     title: "Send Email",
     description: "Send an email message",
     namespace: "nodetool.mail",
-    properties: [],
-    outputs: []
+    properties: [{ name: "body", type: { type: "str", type_args: [] } }],
+    outputs: [{ name: "output", type: { type: "str", type_args: [] } }]
   }
+};
+metadata["nodetool.code.Code"] = {
+  node_type: "nodetool.code.Code",
+  title: "Code",
+  description: "Execute JavaScript",
+  namespace: "nodetool.code",
+  properties: [{ name: "code", type: { type: "str", type_args: [] } }],
+  outputs: [],
+  supports_dynamic_inputs: true,
+  supports_dynamic_outputs: true
 };
 jest.mock("../../../stores/MetadataStore", () => ({
   __esModule: true,
@@ -60,9 +70,15 @@ import {
   readWorkflowSetup,
   writeWorkflowSetup
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
-import { WORKFLOW_INSPIRATION_CHIPS } from "@nodetool-ai/protocol";
 import { changeAppLanguage } from "../../../i18n";
 import {
+  PLAN_CODE_NODE_TYPE,
+  WORKFLOW_INSPIRATION_CHIPS,
+  WORKFLOW_PLAN_MAX_ROUNDS
+} from "@nodetool-ai/protocol";
+import { generateSnippetMetadata } from "../../../config/snippetMetadata";
+import {
+  PLAN_SET_ASIDE_REASON,
   usePlanWorkflow,
   pinnedChipPlan,
   planCandidates,
@@ -138,7 +154,7 @@ describe("planWorkflow", () => {
   });
 
   it("leaves a step the registry ranks nothing for as null", async () => {
-    rpcRequest.mockResolvedValueOnce({
+    rpcRequest.mockResolvedValue({
       data: {
         inputs: [],
         steps: [
@@ -156,6 +172,33 @@ describe("planWorkflow", () => {
       await result.current.planWorkflow({ brief: "do a thing", model: MODEL });
     });
     expect(readWorkflowSetup(settings)?.plan?.steps[0].node_type).toBeNull();
+    // The planner was asked to repair it before giving up.
+    expect(rpcRequest).toHaveBeenCalledTimes(WORKFLOW_PLAN_MAX_ROUNDS);
+  });
+
+  it("sends a plan that would fail back to the planner before storing it", async () => {
+    const step = (code: string) => ({
+      data: {
+        inputs: [{ name: "csv", type: "string", sample: "name\nmug" }],
+        steps: [{ title: "Prompts", summary: "one per row", node_type: PLAN_CODE_NODE_TYPE, code }],
+        outputs: [{ name: "prompt", type: "string" }]
+      }
+    });
+    rpcRequest
+      .mockResolvedValueOnce(
+        step('for (const row of inputs.input) { await output("output", row.name); }')
+      )
+      .mockResolvedValueOnce(
+        step('for (const row of inputs.input) { await emit("output", row.name); }')
+      );
+    const { result } = renderHook(() => usePlanWorkflow("w1"));
+    await act(async () => {
+      await result.current.planWorkflow({ brief: "prompts from a CSV", model: MODEL });
+    });
+    expect(rpcRequest).toHaveBeenCalledTimes(2);
+    const repair = rpcRequest.mock.calls[1][1].messages;
+    expect(repair[3].content).toContain("output() can be set only once per run");
+    expect(readWorkflowSetup(settings)?.plan?.steps[0].code).toContain("emit(");
   });
 
   it("offers the planner only node types the registry has", async () => {
@@ -168,7 +211,7 @@ describe("planWorkflow", () => {
         model: MODEL
       });
     });
-    const prompt = String(rpcRequest.mock.calls[0][1].prompt);
+    const prompt = String(rpcRequest.mock.calls[0][1].messages[1].content);
     expect(prompt).toContain("nodetool.text.Template");
     for (const line of prompt.split("\n").filter((l) => l.startsWith("- "))) {
       expect(Object.keys(metadata)).toContain(line.slice(2).split(":")[0]);
@@ -236,7 +279,7 @@ describe("planWorkflow", () => {
 
     await act(async () => {
       release(ANSWER);
-      expect(await pending).toBeNull();
+      expect(await pending).toBe(PLAN_SET_ASIDE_REASON);
     });
     const setup = readWorkflowSetup(settings);
     expect(setup?.stage).toBe("idea");
@@ -267,7 +310,7 @@ describe("planWorkflow", () => {
 
     await act(async () => {
       release(ANSWER);
-      expect(await pending).toBeNull();
+      expect(await pending).toBe(PLAN_SET_ASIDE_REASON);
     });
     expect(readWorkflowSetup(settings)?.brief).toBe("new");
     expect(readWorkflowSetup(settings)?.plan).toBeUndefined();
@@ -293,7 +336,7 @@ describe("planWorkflow", () => {
 
     await act(async () => {
       release(ANSWER);
-      expect(await pending).toBeNull();
+      expect(await pending).toBe("Planning was canceled.");
     });
     expect(readWorkflowSetup(settings)?.plan).toBeUndefined();
 
@@ -324,7 +367,7 @@ describe("planWorkflow", () => {
     const resumed = renderHook(() => usePlanWorkflow("w1"));
     await act(async () => {
       release(ANSWER);
-      expect(await pending).toBeNull();
+      expect(await pending).toBe("Planning was canceled.");
     });
     expect(resumed.result.current.planning).toBe(false);
     expect(readWorkflowSetup(settings)?.plan).toBeUndefined();
@@ -354,6 +397,161 @@ describe("planWorkflow", () => {
       ).toContain("Connect a provider");
     });
     expect(result.current.error).toContain("Connect a provider");
+  });
+});
+
+describe("planWorkflow while the document changes", () => {
+  const LOOPED = {
+    data: {
+      inputs: [{ name: "csv", type: "string", sample: "name\nmug" }],
+      steps: [
+        {
+          title: "Prompts",
+          summary: "one per row",
+          node_type: PLAN_CODE_NODE_TYPE,
+          code: 'for (const row of inputs.input) { await output("output", row.name); }'
+        }
+      ],
+      outputs: [{ name: "prompt", type: "string" }]
+    }
+  };
+
+  // F2: any write to `settings` used to void the request, a save response
+  // included, so the answer was dropped and the shell advanced to an empty
+  // review. Only the stage, the brief and the category decide.
+  it("stores the plan when an unrelated settings write lands meanwhile", async () => {
+    settings = writeWorkflowSetup({}, { stage: "category", brief: "b" });
+    let release: (value: unknown) => void = () => undefined;
+    rpcRequest.mockReturnValueOnce(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    const { result, rerender } = renderHook(() => usePlanWorkflow("w1"));
+    let pending: Promise<string | null> = Promise.resolve(null);
+    await act(async () => {
+      pending = result.current.planWorkflow({ brief: "b", model: MODEL });
+    });
+
+    settings = writeWorkflowSetup(settings, {
+      planner_model: { provider: "openai", id: "gpt-y" }
+    });
+    rerender();
+
+    await act(async () => {
+      release(ANSWER);
+      expect(await pending).toBeNull();
+    });
+    expect(readWorkflowSetup(settings)?.stage).toBe("review");
+    expect(readWorkflowSetup(settings)?.plan?.steps).toHaveLength(2);
+  });
+
+  it("sets the answer aside when the category changes meanwhile", async () => {
+    settings = writeWorkflowSetup(
+      {},
+      { stage: "category", brief: "b", category: "content-pipeline" }
+    );
+    let release: (value: unknown) => void = () => undefined;
+    rpcRequest.mockReturnValueOnce(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    const { result } = renderHook(() => usePlanWorkflow("w1"));
+    let pending: Promise<string | null> = Promise.resolve(null);
+    await act(async () => {
+      pending = result.current.planWorkflow({
+        brief: "b",
+        category: "content-pipeline",
+        model: MODEL
+      });
+    });
+
+    settings = writeWorkflowSetup(settings, { category: "media-batch" });
+
+    await act(async () => {
+      release(ANSWER);
+      expect(await pending).toBe(PLAN_SET_ASIDE_REASON);
+    });
+    expect(readWorkflowSetup(settings)?.plan).toBeUndefined();
+    expect(result.current.error).toBeNull();
+  });
+
+  // F10: a failed repair round used to discard the draft the first round
+  // produced, and the creator saw a refusal instead of a plan to fix.
+  it("stores the first draft when a repair call fails", async () => {
+    settings = writeWorkflowSetup({}, { stage: "category", brief: "b" });
+    rpcRequest
+      .mockResolvedValueOnce(LOOPED)
+      .mockRejectedValueOnce(new Error("429 rate limited"));
+    const { result } = renderHook(() => usePlanWorkflow("w1"));
+    await act(async () => {
+      expect(
+        await result.current.planWorkflow({ brief: "b", model: MODEL })
+      ).toBeNull();
+    });
+    expect(rpcRequest).toHaveBeenCalledTimes(2);
+    expect(readWorkflowSetup(settings)?.plan?.steps[0].code).toContain(
+      "output("
+    );
+    expect(result.current.error).toBeNull();
+  });
+
+  it("says the plan is being checked during a repair round", async () => {
+    settings = writeWorkflowSetup({}, { stage: "category", brief: "b" });
+    let release: (value: unknown) => void = () => undefined;
+    rpcRequest.mockResolvedValueOnce(LOOPED).mockReturnValueOnce(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    const { result } = renderHook(() => usePlanWorkflow("w1"));
+    let pending: Promise<string | null> = Promise.resolve(null);
+    await act(async () => {
+      pending = result.current.planWorkflow({ brief: "b", model: MODEL });
+    });
+    expect(result.current.planningPhase).toBe("checking");
+    await act(async () => {
+      release(ANSWER);
+      await pending;
+    });
+  });
+
+  // F11: a refusal on one step used to stay on the hook and show above a
+  // valid plan after the creator moved on.
+  // The plan is on screen once the stage moves to review, so a refused save
+  // has to say so there. It used to read as "the brief changed", and the
+  // shell dropped even that because the stage had moved.
+  it("says when the plan it wrote could not be saved", async () => {
+    settings = writeWorkflowSetup({}, { stage: "category", brief: "b" });
+    rpcRequest.mockResolvedValueOnce(ANSWER);
+    saveWorkflow.mockRejectedValueOnce(new Error("Conflict"));
+    const { result, rerender } = renderHook(() => usePlanWorkflow("w1"));
+    let reason: string | null = null;
+    await act(async () => {
+      reason = await result.current.planWorkflow({ brief: "b", model: MODEL });
+    });
+    rerender();
+    expect(reason).toContain("Conflict");
+    expect(reason).not.toBe(PLAN_SET_ASIDE_REASON);
+    expect(readWorkflowSetup(settings)?.stage).toBe("review");
+    expect(result.current.error).toContain("could not be saved");
+    expect(result.current.planningStatus).toBe("error");
+  });
+
+  it("clears a refusal once the stage changes", async () => {
+    settings = writeWorkflowSetup({}, { stage: "review", brief: "b" });
+    rpcRequest.mockRejectedValueOnce(new Error("provider is down"));
+    const { result, rerender } = renderHook(() => usePlanWorkflow("w1"));
+    await act(async () => {
+      await result.current.planWorkflow({ brief: "b", model: MODEL });
+    });
+    expect(result.current.error).toBe("provider is down");
+
+    settings = writeWorkflowSetup(settings, { stage: "setup" });
+    rerender();
+    expect(result.current.error).toBeNull();
+    expect(result.current.planningStatus).toBe("idle");
   });
 });
 
@@ -460,5 +658,36 @@ describe("resolvePlanNodeTypes", () => {
     expect(resolvePlanNodeTypes(plan, metadata as never).steps[0].node_type).toBe(
       "nodetool.mail.SendEmail"
     );
+  });
+
+  it("turns a step that lands on a Code-node snippet into a Code step", () => {
+    const withSnippets = {
+      ...metadata,
+      ...generateSnippetMetadata(),
+      [PLAN_CODE_NODE_TYPE]: {
+        node_type: PLAN_CODE_NODE_TYPE,
+        title: "Code",
+        description: "Execute JavaScript",
+        namespace: "nodetool.code",
+        properties: [],
+        outputs: []
+      }
+    };
+    const plan = {
+      inputs: [],
+      steps: [
+        {
+          id: "s1",
+          title: "Parse CSV",
+          summary: "Parse CSV text into an array of objects",
+          node_type: "nodetool.json.ParseCSV"
+        }
+      ],
+      outputs: []
+    };
+    const [step] = resolvePlanNodeTypes(plan, withSnippets as never).steps;
+    expect(step.node_type).toBe(PLAN_CODE_NODE_TYPE);
+    expect(step.code).toContain('headers');
+    expect(step.code_inputs).toEqual(["text"]);
   });
 });

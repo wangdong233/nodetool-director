@@ -61,7 +61,7 @@ import {
 import { isObjectLike, isString } from "../utils/typePredicates";
 import { creationProjectId } from "./WorkspaceTabsStore";
 import { i18n } from "../i18n";
-
+import useAuth from "./useAuth";
 // Include additional runtime statuses used during message streaming
 type ChatStatus =
   | ConnectionState
@@ -238,6 +238,8 @@ export interface GlobalChatState {
   lastUsedThreadId: string | null;
   isLoadingThreads: boolean;
   threadsLoaded: boolean;
+  /** Why the thread list failed to load. Send and connection errors stay in `error`. */
+  threadsError: string | null;
 
   // Message caching
   messageCache: Record<string, Message[]>; // threadId -> messages
@@ -341,19 +343,17 @@ export interface GlobalChatState {
   /**
    * Send a message to `threadId`, or to the current thread when omitted
    * (creating one if none exists). Threads generate independently, so a
-   * send to a background thread does not disturb the current one.
+   * send to a background thread does not disturb the current one. Rejects
+   * when no model is selected or the message cannot reach the socket.
    */
   sendMessage: (
     message: Message | ChatOutgoingMessage,
     threadId?: string
   ) => Promise<void>;
   /**
-   * The same send, with its outcome reported instead of swallowed.
-   *
-   * `sendMessage` returns without throwing when nothing could be sent — no
-   * model is selected, or the socket refused to connect — so a caller that
-   * consumed something to build the turn (the project agent's staged first
-   * prompt) cannot tell a delivered turn from a dropped one. This reports it.
+   * The same send, with pre-send refusals returned as an outcome instead of
+   * thrown. Callers holding staged prompts can distinguish a refusal before
+   * the turn entered history from a transport error after it was recorded.
    */
   trySendMessage: (
     message: Message | ChatOutgoingMessage,
@@ -384,6 +384,12 @@ export interface GlobalChatState {
   ) => Promise<string>;
   switchThread: (threadId: string) => void;
   deleteThread: (threadId: string) => Promise<void>;
+  /**
+   * Drop `messageId` and every later message from `threadId`, on the server
+   * and in the cache, so the next send continues from the history before it.
+   * Regenerate and editing a sent message are a rewind followed by a send.
+   */
+  rewindThread: (threadId: string, messageId: string) => Promise<void>;
   getCurrentMessages: () => Message[];
   loadMessages: (threadId: string, cursor?: string) => Promise<Message[]>;
   updateThreadTitle: (threadId: string, title: string) => Promise<void>;
@@ -394,6 +400,9 @@ export interface GlobalChatState {
   // Message cache management
   addMessageToCache: (threadId: string, message: Message) => void;
 }
+
+/** A 32-hex message id, the shape the server mints and accepts from a client. */
+const newMessageId = (): string => crypto.randomUUID().replace(/-/g, "");
 
 function buildDefaultLanguageModel(): LanguageModel {
   return {
@@ -452,20 +461,20 @@ const ensureThreadSubscription = (
 };
 
 /**
- * The slice written to localStorage. Newer keys are optional because a
+ * The slice written to localStorage: the user's model and permission
+ * selections only. Conversations (`threads`) and their workflow bindings come
+ * from the server on every load; the in-memory `threads` and `messageCache`
+ * maps are request caches for the session. Newer keys are optional because a
  * payload persisted before they existed does not carry them, and `migrate`
  * rebuilds what it can — persist merges the rest from the store's initial
  * state.
  */
 interface PersistedChatState {
-  threads: Record<string, Thread>;
   lastUsedThreadId: string | null;
   selectedModel: LanguageModel | null;
   threadModel?: Record<string, LanguageModel>;
   permissionMode: Record<string, PermissionMode>;
   lastPermissionMode?: PermissionMode;
-  workflowThreadId?: Record<string, string>;
-  threadWorkflowId?: Record<string, string | null>;
 }
 
 const useGlobalChatStore = create<GlobalChatState>()(
@@ -553,6 +562,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
       lastUsedThreadId: null as string | null,
       isLoadingThreads: false,
       threadsLoaded: false,
+      threadsError: null,
 
       // Message cache
       messageCache: {},
@@ -982,7 +992,10 @@ const useGlobalChatStore = create<GlobalChatState>()(
         message: Message | ChatOutgoingMessage,
         targetThreadId?: string
       ) => {
-        await get().trySendMessage(message, targetThreadId);
+        const outcome = await get().trySendMessage(message, targetThreadId);
+        if (!outcome.ok) {
+          throw new Error(outcome.error);
+        }
       },
 
       trySendMessage: async (
@@ -1115,8 +1128,12 @@ const useGlobalChatStore = create<GlobalChatState>()(
 
         // Prepare messages for cache and wire (workflow_id only on wire)
         // Preserve workflow_id if already set by caller (e.g., WorkflowAssistantChat)
+        // The turn carries an id from the start. The server keeps it, so the
+        // cached copy can name the stored row (see rewindThread).
+        const messageId = message.id ?? newMessageId();
         const messageForCache: Message = {
           ...message,
+          id: messageId,
           thread_id: threadId
         };
         if (mediaGeneration) {
@@ -1138,6 +1155,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
         } = message;
         const chatMessageData = {
           ...messageWithoutTools,
+          id: messageId,
           workflow_id: message.workflow_id ?? boundWorkflowId,
           project_id: boundProjectId,
           thread_id: threadId,
@@ -1235,42 +1253,51 @@ const useGlobalChatStore = create<GlobalChatState>()(
       },
 
       fetchThreads: async () => {
+        if (useAuth.getState().state !== "logged_in" || get().isLoadingThreads) {
+          return;
+        }
+        const threadsAtRequest = get().threads;
+        const workflowIdsAtRequest = get().threadWorkflowId;
         set({ isLoadingThreads: true });
         try {
           const data = await trpcClient.threads.list.query({ limit: 100 });
 
-          const threadsRecord: Record<string, Thread> = {};
-          data.threads.forEach((thread) => {
-            threadsRecord[thread.id] = thread;
-          });
-
           // Merge with existing threads so locally-created/optimistic threads
-          // that haven't reached the server yet don't get wiped (the server
-          // response wins for ids present in both). Also hydrate the
-          // thread→workflow map from the server so the editor can scope its
-          // thread list after a fresh load (before any message is sent).
+          // that haven't reached the server yet don't get wiped. Preserve
+          // changes made while this request was in flight. Hydrate the
+          // thread→workflow map for entries that stayed unchanged locally.
           set((state) => {
+            const threads = { ...state.threads };
             const threadWorkflowId = { ...state.threadWorkflowId };
             for (const thread of data.threads) {
-              if (thread.workflow_id != null) {
+              if (state.threads[thread.id] === threadsAtRequest[thread.id]) {
+                threads[thread.id] = thread;
+              }
+              if (
+                thread.workflow_id != null &&
+                state.threadWorkflowId[thread.id] === workflowIdsAtRequest[thread.id]
+              ) {
                 threadWorkflowId[thread.id] = thread.workflow_id;
               }
             }
             return {
-              threads: { ...state.threads, ...threadsRecord },
+              threads,
               threadWorkflowId,
               threadsLoaded: true,
+              threadsError: null,
               error: null
             };
           });
         } catch (error) {
           console.error("Failed to fetch threads:", error);
+          const message =
+            error instanceof Error
+              ? error.message
+              : i18n.t("editor:ui.failedToLoadChatThreads", { defaultValue: "Failed to load chat threads" });
           set({
-            threadsLoaded: true,
-            error:
-              error instanceof Error
-                ? error.message
-                : i18n.t("editor:ui.failedToLoadChatThreads", { defaultValue: "Failed to load chat threads" })
+            threadsLoaded: false,
+            threadsError: message,
+            error: message
           });
         } finally {
           set({ isLoadingThreads: false });
@@ -1403,6 +1430,34 @@ const useGlobalChatStore = create<GlobalChatState>()(
           ...mirrorsForThread(state, threadId)
         }));
         get().loadMessages(threadId);
+      },
+
+      rewindThread: async (threadId: string, messageId: string) => {
+        try {
+          await trpcClient.messages.rewind.mutate({
+            thread_id: threadId,
+            message_id: messageId
+          });
+        } catch (error) {
+          // A turn that never reached the server, or a thread it never
+          // created, has nothing stored to rewind: the cache is all there is.
+          if (!isTRPCErrorWithCode(error, ApiErrorCode.NOT_FOUND)) {
+            throw error;
+          }
+        }
+        set((state) => {
+          const cached = state.messageCache[threadId] ?? [];
+          const index = cached.findIndex((message) => message.id === messageId);
+          if (index < 0) {
+            return {};
+          }
+          return {
+            messageCache: {
+              ...state.messageCache,
+              [threadId]: cached.slice(0, index)
+            }
+          };
+        });
       },
 
       deleteThread: async (threadId: string) => {
@@ -1823,37 +1878,30 @@ const useGlobalChatStore = create<GlobalChatState>()(
     }),
     {
       name: "global-chat-storage",
-      version: 1,
-      // Persist minimal subset incl. selections; do not persist message cache
-      partialize: (state) =>
-        ({
-          threads: state.threads || {},
-          lastUsedThreadId: state.lastUsedThreadId,
-          selectedModel: state.selectedModel,
-          threadModel: state.threadModel,
-          permissionMode: state.permissionMode,
-          lastPermissionMode: state.lastPermissionMode,
-          // Per-workflow thread binding so the editor side panel restores the
-          // right conversation across reloads.
-          workflowThreadId: state.workflowThreadId,
-          threadWorkflowId: state.threadWorkflowId
-        }),
+      // Version 2 stopped persisting conversations; `migrate` drops the
+      // `threads` and workflow-binding maps an older payload carries.
+      version: 2,
+      // Persist selections only. Threads and messages are server state,
+      // fetched by `fetchThreads`/`loadMessages` and cached in memory.
+      partialize: (state) => ({
+        lastUsedThreadId: state.lastUsedThreadId,
+        selectedModel: state.selectedModel,
+        threadModel: state.threadModel,
+        permissionMode: state.permissionMode,
+        lastPermissionMode: state.lastPermissionMode
+      }),
       // Default persist merge is shallow, so a rehydrate that finishes after
-      // createNewThread would replace `threads` and drop the new conversation.
+      // a thread was created would replace the per-thread maps.
       merge: (persistedState, currentState) => {
         if (!isObjectLike(persistedState) || Array.isArray(persistedState)) {
           return currentState;
         }
         const persisted = persistedState as Partial<PersistedChatState>;
-        // SAFETY: overlay is a persisted subset; the four maps are rebuilt so
+        // SAFETY: overlay is a persisted subset; the two maps are rebuilt so
         // in-memory keys win over a late rehydrate.
         return {
           ...currentState,
           ...persisted,
-          threads: {
-            ...(persisted.threads ?? {}),
-            ...currentState.threads
-          },
           permissionMode: {
             ...(persisted.permissionMode ?? {}),
             ...currentState.permissionMode
@@ -1861,24 +1909,15 @@ const useGlobalChatStore = create<GlobalChatState>()(
           threadModel: {
             ...(persisted.threadModel ?? {}),
             ...currentState.threadModel
-          },
-          workflowThreadId: {
-            ...(persisted.workflowThreadId ?? {}),
-            ...currentState.workflowThreadId
-          },
-          threadWorkflowId: {
-            ...(persisted.threadWorkflowId ?? {}),
-            ...currentState.threadWorkflowId
           }
         } as GlobalChatState;
       },
       migrate: (persistedState, _version) => {
         // Corrupt localStorage (string, null, etc.) must yield a usable
         // default rather than passing the raw value through; selectors
-        // that read `threads`/`permissionMode` would otherwise see
+        // that read `permissionMode`/`threadModel` would otherwise see
         // `undefined` and crash.
         const fallback = {
-          threads: {},
           lastUsedThreadId: null as string | null,
           selectedModel: null as LanguageModel | null,
           threadModel: {} as Record<string, LanguageModel>,
@@ -1890,12 +1929,6 @@ const useGlobalChatStore = create<GlobalChatState>()(
         }
         const state = persistedState as Record<string, unknown>;
         return {
-          threads:
-            state.threads &&
-            isObjectLike(state.threads) &&
-            !Array.isArray(state.threads)
-              ? (state.threads as Record<string, Thread>)
-              : fallback.threads,
           lastUsedThreadId:
             isString(state.lastUsedThreadId)
               ? state.lastUsedThreadId
@@ -1976,5 +2009,16 @@ export const useThreadRuntime = (threadId: string | null): ThreadRuntime =>
   );
 
 export type { ThreadRuntime } from "../core/chat/threadRuntime";
+
+// Defer outside Supabase's auth callback before the transport reads its session.
+useAuth.subscribe((state, previous) => {
+  if (state.state === "logged_in" && previous.state !== "logged_in") {
+    setTimeout(() => {
+      if (!useGlobalChatStore.getState().threadsLoaded) {
+        void useGlobalChatStore.getState().fetchThreads();
+      }
+    }, 0);
+  }
+});
 
 export default useGlobalChatStore;

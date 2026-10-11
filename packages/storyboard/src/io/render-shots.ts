@@ -11,12 +11,20 @@
  * generation origin and conflict handling.
  */
 
-import { stampRenderInputs } from "@nodetool-ai/protocol";
+import {
+  assertProductionGenerationAllowed,
+  CLIP_RESOLUTION,
+  STILL_RESOLUTION,
+  storyboardRenderVersion,
+  stampRenderInputs
+} from "@nodetool-ai/protocol";
+import { productionCandidateIdentityForDestination } from "@nodetool-ai/timeline";
 import type {
   ClipVersion,
   ImageRef,
   KeyframeVersion,
-  Shot
+  Shot,
+  StoryboardRenderProvenance
 } from "@nodetool-ai/protocol";
 import type { StoryboardDocument } from "../document.js";
 import type { ShotRenderPlan } from "../render-plan.js";
@@ -28,6 +36,7 @@ export interface RenderGenerationRequest {
   provider: string;
   capability:
     | "text_to_image"
+    | "image_to_image"
     | "image_to_video"
     | "reference_to_video"
     | "text_to_video";
@@ -41,6 +50,7 @@ export interface RenderGenerationRequest {
     target_type: "storyboard_keyframe" | "storyboard_clip";
     target_id: string;
     selected: boolean;
+    provenance: StoryboardRenderProvenance;
   };
 }
 
@@ -86,10 +96,16 @@ export interface StoryboardRenderHost {
 export interface RenderShotsOptions {
   /** Renders in flight at once. Defaults to 1. */
   concurrency?: number;
-  /** Named resolution tier for clips, when the caller overrides one. */
+  /** Named resolution tier, overriding the shared still or clip default. */
   resolution?: string;
   /** Ids for the generation rows. Defaults to `crypto.randomUUID`. */
   newId?: () => string;
+  /**
+   * The still model supports `image_to_image`. A still whose entities carry
+   * reference images then renders through it, and the provider layer passes
+   * those images as inputs. Otherwise stills render from text alone.
+   */
+  stillModelTakesImages?: boolean;
 }
 
 /** One shot's outcome, in plan order. */
@@ -108,11 +124,24 @@ export interface ShotRenderOutcome {
   error?: string;
 }
 
+/** The generation request body the renderer builds for one shot. */
+type RenderParams = {
+  prompt: string;
+  entities: ShotRenderPlan["entities"];
+  aspect_ratio: string;
+  resolution: string;
+  duration_seconds?: number;
+  image?: Uint8Array;
+  images?: Uint8Array[];
+  reference_images?: Array<Uint8Array | null | undefined>;
+};
+
+interface PatchError {
+  error: string;
+}
+
 /** Attempts to land a document write: the first try plus one re-read-and-reapply (ADR 0001). */
 const CAS_ATTEMPTS = 2;
-
-const errorMessage = (e: unknown): string =>
-  e instanceof Error ? e.message : String(e);
 
 /** Run `task` over `items`, at most `limit` in flight. */
 async function mapWithConcurrency<T, R>(
@@ -148,7 +177,7 @@ async function patchShot(
   storyboardId: string,
   shotId: string,
   patch: (shot: Shot) => Shot
-): Promise<Shot | { error: string }> {
+): Promise<Shot | PatchError> {
   for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
     const snapshot = await host.getStoryboard(storyboardId);
     if (!snapshot) {
@@ -175,17 +204,21 @@ async function patchShot(
   };
 }
 
-const isError = (value: unknown): value is { error: string } =>
-  !!value &&
-  typeof value === "object" &&
-  typeof (value as { error?: unknown }).error === "string";
+const isError = (value: Shot | PatchError): value is PatchError =>
+  "error" in value;
+
+const hasReferenceImages = (plan: ShotRenderPlan): boolean =>
+  plan.entities.some((entity) => entity.reference_images.length > 0);
 
 /** The provider capability a plan calls. */
 const capabilityFor = (
-  plan: ShotRenderPlan
+  plan: ShotRenderPlan,
+  stillModelTakesImages: boolean
 ): RenderGenerationRequest["capability"] =>
   plan.kind === "keyframe"
-    ? "text_to_image"
+    ? stillModelTakesImages && hasReferenceImages(plan)
+      ? "image_to_image"
+      : "text_to_image"
     : plan.mode === "reference"
       ? "reference_to_video"
       : plan.mode === "direct"
@@ -214,7 +247,13 @@ export async function renderShots(
       ok: false
     };
     if (plan.slug !== undefined) base.slug = plan.slug;
-    const capability = capabilityFor(plan);
+    if (plan.preflightError !== undefined) {
+      return { ...base, error: plan.preflightError };
+    }
+    const capability = capabilityFor(
+      plan,
+      plan.stillModelTakesImages ?? options.stillModelTakesImages === true
+    );
     if (capability === "image_to_video" && !plan.sourceKeyframe) {
       return {
         ...base,
@@ -223,14 +262,16 @@ export async function renderShots(
       };
     }
     try {
-      const params: Record<string, unknown> = {
+      const params: RenderParams = {
         prompt: plan.prompt,
         entities: plan.entities,
-        aspect_ratio: plan.aspectRatio
+        aspect_ratio: plan.aspectRatio,
+        resolution:
+          options.resolution ??
+          (plan.kind === "keyframe" ? STILL_RESOLUTION : CLIP_RESOLUTION)
       };
-      if (plan.kind === "clip") {
-        params["resolution"] = options.resolution;
-        params["duration_seconds"] = plan.durationSeconds;
+      if (plan.kind === "clip" && plan.durationSeconds !== undefined) {
+        params.duration_seconds = plan.durationSeconds;
       }
       if (capability === "image_to_video" && plan.sourceKeyframe) {
         const seed = host.loadMedia
@@ -242,10 +283,10 @@ export async function renderShots(
             error: "The shot's still could not be read back from storage."
           };
         }
-        params["image"] = seed;
+        params.image = seed;
         // Keep the historical serialized shape for callers that inspect the
         // generation request. It contains exactly the one selected start frame.
-        params["images"] = [seed];
+        params.images = [seed];
       }
       if (capability === "reference_to_video" && !host.loadMedia) {
         return {
@@ -268,94 +309,138 @@ export async function renderShots(
               "A storyboard entity reference image could not be read from storage."
           };
         }
-        params["reference_images"] = references;
+        params.reference_images = references;
       }
-      const generationId = newId();
-      const persist: RenderGenerationRequest["persist"] =
-        plan.kind === "keyframe"
-          ? { name: `shot-${plan.index + 1}-still` }
-          : { name: `shot-${plan.index + 1}-clip`, mime: "video/mp4" };
-      const result = await host.runGeneration({
-        id: generationId,
-        provider: plan.model.provider,
-        capability,
-        model: plan.model.model,
-        params,
-        persist,
-        destination: {
-          document_id: ref.id,
-          target_type:
-            plan.kind === "keyframe"
-              ? "storyboard_keyframe"
-              : "storyboard_clip",
-          target_id: plan.shotId,
-          selected: true
-        }
-      });
-      const asset = result.assets[0];
-      if (!asset?.asset_id) {
-        return {
-          ...base,
-          error:
-            "The render succeeded but could not be saved as an asset, so it cannot be attached to the shot. This host has no asset storage wired."
+      const candidates = plan.productionCandidates ?? [undefined];
+      const batchId =
+        plan.productionCandidates !== undefined ? newId() : undefined;
+      let outcome: ShotRenderOutcome = base;
+      for (const candidate of candidates) {
+        const generationId = newId();
+        const identity =
+          candidate !== undefined && batchId !== undefined
+            ? productionCandidateIdentityForDestination(
+                batchId,
+                "storyboard_shot",
+                plan.shotId,
+                candidate.identity.variationIndex
+              )
+            : undefined;
+        const productionSnapshot =
+          candidate !== undefined && identity !== undefined
+            ? { ...candidate.snapshot, ...identity }
+            : undefined;
+        const provenance: StoryboardRenderProvenance = {
+          render_inputs: stampRenderInputs(plan.renderInputs),
+          ...(identity !== undefined && {
+            candidateId: identity.candidateId,
+            batchId: identity.batchId,
+            requestId: identity.requestId,
+            variationId: identity.variationId,
+            variationIndex: identity.variationIndex,
+            productionSnapshot
+          })
         };
-      }
-      const assetId = asset.asset_id;
-      const assetUri = asset.uri ?? "";
-      const render_inputs = stampRenderInputs(plan.renderInputs);
-      const updated = await patchShot(host, ref.id, plan.shotId, (current) => {
-        if (plan.kind === "keyframe") {
-          const keyframe: KeyframeVersion = {
-            type: "image",
-            asset_id: assetId,
-            uri: assetUri,
-            render_inputs
-          };
-          const versions =
-            current.keyframe_versions ??
-            (current.keyframe ? [current.keyframe] : []);
+        const persist: RenderGenerationRequest["persist"] =
+          plan.kind === "keyframe"
+            ? { name: `shot-${plan.index + 1}-still` }
+            : { name: `shot-${plan.index + 1}-clip`, mime: "video/mp4" };
+        const current = await host.getStoryboard(ref.id);
+        const currentShot = current?.document.shots.find((shot) => shot.id === plan.shotId);
+        if (!currentShot) throw new Error(`Shot ${plan.shotId} no longer exists.`);
+        assertProductionGenerationAllowed(currentShot.production, capability);
+        const result = await host.runGeneration({
+          id: generationId,
+          provider: plan.model.provider,
+          capability,
+          model: plan.model.model,
+          params,
+          persist,
+          destination: {
+            document_id: ref.id,
+            target_type:
+              plan.kind === "keyframe"
+                ? "storyboard_keyframe"
+                : "storyboard_clip",
+            target_id: plan.shotId,
+            selected: true,
+            provenance
+          }
+        });
+        const asset = result.assets[0];
+        if (!asset?.asset_id) {
           return {
-            ...current,
-            keyframe,
-            keyframe_versions: [...versions, keyframe],
-            status: "keyframe_ready"
+            ...base,
+            error:
+              "The render succeeded but could not be saved as an asset, so it cannot be attached to the shot. This host has no asset storage wired."
           };
         }
-        const clip: ClipVersion = {
-          type: "video",
-          asset_id: assetId,
-          uri: assetUri,
-          render_inputs
+        const assetId = asset.asset_id;
+        const assetUri = asset.uri ?? "";
+        const updated = await patchShot(
+          host,
+          ref.id,
+          plan.shotId,
+          (current) => {
+            if (plan.kind === "keyframe") {
+              const keyframe: KeyframeVersion = storyboardRenderVersion(
+                {
+                  type: "image",
+                  asset_id: assetId,
+                  uri: assetUri
+                },
+                provenance
+              );
+              const versions =
+                current.keyframe_versions ??
+                (current.keyframe ? [current.keyframe] : []);
+              return {
+                ...current,
+                keyframe,
+                keyframe_versions: [...versions, keyframe],
+                status: "keyframe_ready"
+              };
+            }
+            const clip: ClipVersion = storyboardRenderVersion(
+              {
+                type: "video",
+                asset_id: assetId,
+                uri: assetUri
+              },
+              provenance
+            );
+            const bytes = result.output;
+            if (bytes instanceof Uint8Array && host.videoDurationSeconds) {
+              const seconds = host.videoDurationSeconds(bytes);
+              if (seconds !== null) clip.duration = seconds;
+            }
+            const versions =
+              current.clip_versions ?? (current.clip ? [current.clip] : []);
+            return {
+              ...current,
+              clip,
+              clip_versions: [...versions, clip],
+              status: "rendered"
+            };
+          }
+        );
+        if (isError(updated)) return { ...base, error: updated.error };
+        outcome = {
+          ...base,
+          ok: true,
+          assetId,
+          assetUri,
+          generationId,
+          status: updated.status
         };
-        const bytes = result.output;
-        if (bytes instanceof Uint8Array && host.videoDurationSeconds) {
-          const seconds = host.videoDurationSeconds(bytes);
-          if (seconds !== null) clip.duration = seconds;
-        }
-        const versions =
-          current.clip_versions ?? (current.clip ? [current.clip] : []);
-        return {
-          ...current,
-          clip,
-          clip_versions: [...versions, clip],
-          status: "rendered"
-        };
-      });
-      if (isError(updated)) return { ...base, error: updated.error };
-      return {
-        ...base,
-        ok: true,
-        assetId,
-        assetUri,
-        generationId,
-        status: updated.status
-      };
+      }
+      return outcome;
     } catch (e) {
       await patchShot(host, ref.id, plan.shotId, (current) => ({
         ...current,
         status: "failed"
       }));
-      return { ...base, error: `${capability} failed: ${errorMessage(e)}` };
+      return { ...base, error: `${capability} failed: ${e instanceof Error ? e.message : String(e)}` };
     }
   });
 }

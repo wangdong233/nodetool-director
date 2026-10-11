@@ -2,6 +2,9 @@
  * The `+ New` menu's guided starters file into the selected project directly.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { useEntityLibraryStore } from "../../../stores/EntityLibraryStore";
+
+jest.mock("../../../stores/GlobalChatStore", () => ({ __esModule: true, default: { getState: () => ({ threads: {} }) } }));
 
 const createStoryboard = jest.fn(async () => ({
   id: "b1",
@@ -19,8 +22,10 @@ jest.mock("../../../hooks/script/useScripts", () => ({
 
 const createTimeline = jest.fn(async () => ({ id: "seq-1" }));
 const seedTimelineDetail = jest.fn();
+const deleteTimeline = jest.fn(async () => undefined);
 jest.mock("../../../hooks/useTimelineSequence", () => ({
   useCreateTimeline: () => ({ mutateAsync: createTimeline }),
+  useDeleteTimeline: () => ({ mutateAsync: deleteTimeline }),
   useSeedTimelineDetail: () => seedTimelineDetail
 }));
 
@@ -43,12 +48,14 @@ jest.mock("../../../stores/WorkspaceTabsStore", () => ({
   useWorkspaceTabsStore: <T,>(
     selector: (s: {
       openTab: jest.Mock;
+      openForegroundTab: jest.Mock;
       activeProjectId: string | null;
       personalProjectId: string | null;
     }) => T
   ): T =>
     selector({
       openTab,
+      openForegroundTab: openTab,
       activeProjectId: "p-current",
       personalProjectId: null
     }),
@@ -78,8 +85,9 @@ jest.mock("../../setup/image/startImageFlow", () => ({
 }));
 
 const timelineUpdate = jest.fn();
+const gameCreate = jest.fn(async () => ({ game: { id: "game-1", projectId: "p-game", name: "Untitled game" } }));
 jest.mock("../../../trpc/client", () => ({
-  trpcClient: { timeline: { update: { mutate: timelineUpdate } } }
+  trpcClient: { timeline: { update: { mutate: timelineUpdate } }, games: { create: { mutate: gameCreate } } }
 }));
 
 const openPageTab = jest.fn();
@@ -136,7 +144,8 @@ describe("useGuidedFlowStarters", () => {
     );
   });
 
-  it("opens the entity library directly", async () => {
+  it("opens the entity library in the guided add flow", async () => {
+    useEntityLibraryStore.setState({ createRequested: false });
     const { hook } = renderStarters();
     const entity = hook.result.current.starters.find(
       (entry) => entry.id === "entity"
@@ -146,6 +155,38 @@ describe("useGuidedFlowStarters", () => {
     });
 
     await waitFor(() => expect(openPageTab).toHaveBeenCalledWith("entities"));
+    expect(useEntityLibraryStore.getState().createRequested).toBe(true);
     expect(createProject).not.toHaveBeenCalled();
   });
+});
+
+it("starts the Game flow on a workflow that carries the game setup", async () => {
+  const { hook } = renderStarters();
+  await act(async () => { await hook.result.current.starters.find((entry) => entry.id === "game")!.start("p-game"); });
+  expect(managerCreate).toHaveBeenCalledWith(expect.objectContaining({
+    project_id: "p-game",
+    settings: { game: expect.objectContaining({ stage: "idea", brief: "", template: "topdown" }) }
+  }));
+  // No game exists until the flow builds one.
+  expect(gameCreate).not.toHaveBeenCalled();
+  expect(openTab).toHaveBeenCalledWith(expect.objectContaining({ type: "workflow", projectId: "p-game" }));
+});
+
+// The setup PATCH follows the create. When it fails, the empty timeline it
+// was for is deleted rather than left in the project (F15).
+it("deletes the new timeline when its setup cannot be written", async () => {
+  timelineUpdate.mockRejectedValueOnce(new Error("PATCH refused"));
+  const { hook } = renderStarters();
+  const video = hook.result.current.starters.find(
+    (entry) => entry.id === "video"
+  )!;
+  await act(async () => {
+    await video.start();
+  });
+
+  expect(deleteTimeline).toHaveBeenCalledWith({ id: "seq-1" });
+  expect(openTab).not.toHaveBeenCalled();
+  expect(addNotification).toHaveBeenCalledWith(
+    expect.objectContaining({ type: "error" })
+  );
 });

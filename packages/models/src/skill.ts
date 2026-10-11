@@ -4,9 +4,10 @@ import {
   ModelChangeEvent,
   ModelChangeMeta,
   ModelObserver,
-  createTimeOrderedUuid
+  createTimeOrderedUuid,
+  nextUpdatedAtAfter
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import { skills } from "./schema/skills.js";
 import { isValidSkillDescription, isValidSkillName } from "@nodetool-ai/protocol";
 
@@ -31,15 +32,6 @@ export class SkillConflictError extends Error {
     super(`Skill ${id} was modified concurrently`);
     this.name = "SkillConflictError";
   }
-}
-
-function nextUpdatedAtAfter(previous: string): string {
-  const now = new Date();
-  const previousMs = Date.parse(previous);
-  if (Number.isFinite(previousMs) && now.getTime() <= previousMs) {
-    return new Date(previousMs + 1).toISOString();
-  }
-  return now.toISOString();
 }
 
 function assertValidSkillFields(fields: {
@@ -124,7 +116,7 @@ export class Skill extends DBModel {
     userId: string,
     name: string
   ): Promise<Skill | null> {
-    const db = getDb();
+    const db = getPortableDb();
     const [row] = await db
       .select()
       .from(skills)
@@ -137,7 +129,7 @@ export class Skill extends DBModel {
     userId: string,
     limit = 100
   ): Promise<Skill[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(skills)
@@ -171,7 +163,7 @@ export class Skill extends DBModel {
     ) {
       assertValidSkillFields(fields);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(skills)

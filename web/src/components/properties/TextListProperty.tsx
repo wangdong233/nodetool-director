@@ -6,10 +6,13 @@ import PropertyLabel from "../node/PropertyLabel";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { listDropzoneStyles } from "./shared/listDropzoneStyles";
 import { Tooltip, Text, CloseButton, MOTION, SPACING, BORDER_RADIUS, getSpacingPx } from "../ui_primitives";
 import DescriptionIcon from "@mui/icons-material/Description";
 import isEqual from "../../utils/isEqual";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
+import { useNotificationStore } from "../../stores/NotificationStore";
+import { settleUploads } from "./shared/settleUploads";
 import { isElectron } from "../../utils/browser";
 import {
   deserializeDragData,
@@ -96,42 +99,7 @@ const styles = (theme: Theme) =>
     ".remove-button .MuiSvgIcon-root": {
       fontSize: "var(--fontSizeNormal)"
     },
-    ".dropzone": {
-      position: "relative",
-      minHeight: "80px",
-      width: "100%",
-      border: "0",
-      maxWidth: "none",
-      textAlign: "center",
-      transition: MOTION.all,
-      outline: `1px dashed ${theme.vars.palette.grey[600]}`,
-      margin: `${theme.spacing(SPACING.sm)} 0`,
-      backgroundColor: `rgba(0, 0, 0, 0.2)`,
-      borderRadius: BORDER_RADIUS.md,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      "&:hover": {
-        outline: `1px dashed ${theme.vars.palette.grey[400]}`,
-        backgroundColor: `rgba(0, 0, 0, 0.3)`
-      },
-      "&.drag-over": {
-        backgroundColor: theme.vars.palette.grey[600],
-        outline: `2px dashed ${theme.vars.palette.grey[100]}`,
-        outlineOffset: "-2px"
-      }
-    },
-    ".dropzone p": {
-      textAlign: "center",
-      fontFamily: theme.fontFamily2,
-      textTransform: "uppercase",
-      letterSpacing: "1px",
-      fontSize: "var(--fontSizeSmaller)",
-      color: theme.vars.palette.grey[500],
-      margin: getSpacingPx(SPACING.xl),
-      lineHeight: "1.1em"
-    }
+    ...listDropzoneStyles(theme)
   });
 
 const TEXT_EXTENSIONS = [".txt", ".md", ".json", ".csv", ".xml", ".html", ".htm", ".yaml", ".yml", ".log", ".ini", ".cfg", ".conf"];
@@ -190,21 +158,27 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
     () => flattenTextItems(props.value),
     [props.value]
   );
+  // Read at upload completion: the list may have changed while files uploaded.
+  const textsRef = useRef(texts);
+  textsRef.current = texts;
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTexts = useCallback(
     (newTexts: TextItem[]) => {
-      const updatedTexts = [...texts, ...newTexts];
+      const updatedTexts = [...textsRef.current, ...newTexts];
+      textsRef.current = updatedTexts;
       props.onChange(updatedTexts);
     },
-    [texts, props]
+    [props]
   );
 
   const handleRemoveText = useCallback(
     (index: number) => {
       const updatedTexts = texts.filter((_, i) => i !== index);
+      textsRef.current = updatedTexts;
       props.onChange(updatedTexts);
     },
     [texts, props]
@@ -297,13 +271,13 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
       );
 
       try {
-        const newTexts = await Promise.all(uploadPromises);
+        const newTexts = await settleUploads(uploadPromises, "text files", addNotification);
         handleAddTexts(newTexts);
       } catch (error) {
         console.error("Failed to upload text files:", error);
       }
     },
-    [uploadAsset, handleAddTexts, filteredAssets, globalSearchResults, selectedAssets]
+    [uploadAsset, addNotification, handleAddTexts, filteredAssets, globalSearchResults, selectedAssets]
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -360,13 +334,13 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
           });
         });
 
-        const newTexts = await Promise.all(uploadPromises);
+        const newTexts = await settleUploads(uploadPromises, "text files", addNotification);
         handleAddTexts(newTexts);
       }
     } catch (error) {
       console.error("Error opening file picker:", error);
     }
-  }, [uploadAsset, handleAddTexts]);
+  }, [uploadAsset, addNotification, handleAddTexts]);
 
   const handleBrowserFilePicker = useCallback(() => {
     fileInputRef.current?.click();
@@ -398,7 +372,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
     );
 
     try {
-      const newTexts = await Promise.all(uploadPromises);
+      const newTexts = await settleUploads(uploadPromises, "text files", addNotification);
       handleAddTexts(newTexts);
     } catch (error) {
       console.error("Failed to upload text files:", error);
@@ -408,7 +382,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [uploadAsset, handleAddTexts]);
+  }, [uploadAsset, addNotification, handleAddTexts]);
 
   const handleDropzoneClick = useCallback(() => {
     if (isElectron && window.api?.dialog?.openFile) {

@@ -15,6 +15,7 @@ import {
   type SetStateAction
 } from "react";
 import type { Asset } from "../../../stores/ApiTypes";
+import { useSketchInstance } from "../../../stores/sketch/SketchInstance";
 import type { SketchCanvasRef } from "../SketchCanvas";
 import {
   createDefaultLayer,
@@ -26,7 +27,6 @@ import {
   type PushHistoryOptions,
   type SketchDocument
 } from "../types";
-import { useSketchStore } from "../state";
 import {
   getCanvasRasterBounds,
   getLayerGeometry
@@ -39,6 +39,7 @@ import {
   resolveSketchPasteImageCanvas,
   writeImageCanvasToSystemClipboardPng
 } from "../sketchClipboard";
+import { notifyMutationError } from "../../../utils/notifyMutationError";
 import { resolveAssetUri } from "../../node/output/hooks";
 
 // ── Module-level helpers ────────────────────────────────────────────
@@ -172,7 +173,6 @@ interface UseCanvasGeometryActionsParams {
     options?: PushHistoryOptions
   ) => void;
   updateLayerData: (layerId: string, data: string | null) => void;
-  setDocument: (doc: SketchDocument) => void;
   setZoom: (zoom: number) => void;
   setPan: (pan: Point) => void;
   resizeCanvas: (width: number, height: number) => void;
@@ -193,6 +193,8 @@ interface UseCanvasGeometryActionsParams {
 interface HandlePasteOptions {
   targetLayerId?: string;
   pasteAnchorDocument?: Point | null;
+  /** False when the caller already pushed the checkpoint for this edit. */
+  recordHistory?: boolean;
 }
 
 export interface UseCanvasGeometryActionsReturn {
@@ -222,7 +224,7 @@ export interface UseCanvasGeometryActionsReturn {
     width: number,
     height: number
   ) => void;
-  handleClearLayer: () => void;
+  handleClearLayer: (options?: { recordHistory?: boolean }) => void;
   handleFillLayerWithColor: (color: string) => void;
   handleTrimLayerToBounds: () => void;
   contextMenu: { x: number; y: number } | null;
@@ -231,7 +233,8 @@ export interface UseCanvasGeometryActionsReturn {
   transformContextMenu: { x: number; y: number } | null;
   handleTransformContextMenu: (x: number, y: number) => void;
   handleTransformContextMenuClose: () => void;
-  handleCopy: () => void;
+  /** Copy the active layer or selection. Returns the copy's document-space top-left. */
+  handleCopy: () => Point | null;
   handleCut: () => void;
   handlePaste: (
     preferInternalClipboardFirst?: boolean,
@@ -259,7 +262,6 @@ export function useCanvasGeometryActions({
   document,
   pushHistory,
   updateLayerData,
-  setDocument,
   setZoom,
   setPan,
   resizeCanvas,
@@ -269,6 +271,10 @@ export function useCanvasGeometryActions({
   reconcileAllLayerTransforms,
   syncSketchOutputsNow
 }: UseCanvasGeometryActionsParams): UseCanvasGeometryActionsReturn {
+  // This editor's own store. Agent tools address a tab by id, and a paste or
+  // an asset drop can settle after a tab switch, so the focused editor that
+  // `useSketchStore.getState()` resolves to may be another document.
+  const { editor } = useSketchInstance();
   // ─── Canvas crop finalization ──────────────────────────────────
   const finalizeCanvasCrop = useCallback(
     (x: number, y: number, width: number, height: number) => {
@@ -276,7 +282,7 @@ export function useCanvasGeometryActions({
         return;
       }
       canvasRef.current.cropCanvas(x, y, width, height);
-      const state = useSketchStore.getState();
+      const state = editor.getState();
       const nextDocument = {
         ...state.document,
         canvas: {
@@ -284,7 +290,7 @@ export function useCanvasGeometryActions({
           width,
           height
         },
-        layers: state.document.layers.map((layer) => ({
+        layers: state.document.layers.map((layer) => layer.type === "vector" ? layer : ({
           ...layer,
           transform: { ...IDENTITY_AFFINE },
           contentBounds: {
@@ -294,36 +300,52 @@ export function useCanvasGeometryActions({
             height
           }
         })),
+        guides: state.document.guides?.map((guide) => ({
+          ...guide,
+          position: guide.position - (guide.orientation === "horizontal" ? y : x)
+        })),
         metadata: {
           ...state.document.metadata,
           updatedAt: new Date().toISOString()
         }
       };
-      useSketchStore.setState((state) => ({
+      editor.setState((state) => ({
         ...state,
         document: nextDocument
       }));
       for (const layer of nextDocument.layers) {
+        if (layer.type === "vector") {
+          editor.getState().offsetLayerTransform(layer.id, -x, -y);
+          continue;
+        }
         const data = canvasRef.current.getLayerData(layer.id);
         updateLayerData(layer.id, data);
       }
     },
-    [updateLayerData, canvasRef]
+    [editor, updateLayerData, canvasRef]
   );
 
   // ─── Clear active layer (or selection area) ────────────────────
-  const handleClearLayer = useCallback(() => {
+  const handleClearLayer = useCallback((options?: { recordHistory?: boolean }) => {
+    const recordHistory = options?.recordHistory !== false;
     const activeLayerId = document.activeLayerId;
     if (!activeLayerId || !canvasRef.current) {
       return;
     }
     const layer = document.layers.find((entry) => entry.id === activeLayerId);
-    if (!layer) {
+    if (
+      !layer ||
+      layer.locked ||
+      layer.type === "vector" ||
+      layer.type === "group"
+    ) {
       return;
     }
-    const sel = useSketchStore.getState().selection;
+    const sel = editor.getState().selection;
     if (sel && selectionHasAnyPixels(sel)) {
-      pushHistory("clear selection");
+      if (recordHistory) {
+        pushHistory("clear selection", undefined, { timing: "before" });
+      }
       const layerCanvas = canvasRef.current.getLayerCanvas(activeLayerId);
       const offset = getLayerGeometry(layer, layerCanvas, {
         width: Math.max(
@@ -343,11 +365,14 @@ export function useCanvasGeometryActions({
       );
       syncPixelLayerFromCanvas(activeLayerId);
     } else {
-      pushHistory("clear layer");
+      if (recordHistory) {
+        pushHistory("clear layer", undefined, { timing: "before" });
+      }
       canvasRef.current.clearLayer(activeLayerId);
       commitPixelLayerChange(activeLayerId, null);
     }
   }, [
+    editor,
     document.activeLayerId,
     document.layers,
     document.canvas.width,
@@ -366,9 +391,9 @@ export function useCanvasGeometryActions({
       if (!activeLayerId || !canvasRef.current || !layer || layer.locked) {
         return;
       }
-      const sel = useSketchStore.getState().selection;
+      const sel = editor.getState().selection;
       if (sel && selectionHasAnyPixels(sel)) {
-        pushHistory("fill selection");
+        pushHistory("fill selection", undefined, { timing: "before" });
         const layerCanvas = canvasRef.current.getLayerCanvas(activeLayerId);
         const offset = getLayerGeometry(layer, layerCanvas, {
           width: Math.max(
@@ -388,12 +413,13 @@ export function useCanvasGeometryActions({
           color
         );
       } else {
-        pushHistory("fill layer");
+        pushHistory("fill layer", undefined, { timing: "before" });
         canvasRef.current.fillLayerWithColor(activeLayerId, color);
       }
       syncPixelLayerFromCanvas(activeLayerId);
     },
     [
+      editor,
       document.activeLayerId,
       document.layers,
       document.canvas.width,
@@ -419,7 +445,7 @@ export function useCanvasGeometryActions({
       return;
     }
 
-    pushHistory("trim layer");
+    pushHistory("trim layer", undefined, { timing: "before" });
     const trimmed = canvasRef.current.trimLayerToBounds(activeLayerId);
     if (!trimmed) {
       return;
@@ -448,30 +474,31 @@ export function useCanvasGeometryActions({
       if (dW === 0 && dH === 0) {
         return;
       }
-      const { pan: p, zoom } = useSketchStore.getState();
+      const { pan: p, zoom } = editor.getState();
       setPan({
         x: p.x + (dW / 2) * zoom,
         y: p.y + (dH / 2) * zoom
       });
     },
-    [setPan]
+    [editor, setPan]
   );
 
   const handleCanvasResize = useCallback(
     (width: number, height: number) => {
-      const { document: doc } = useSketchStore.getState();
+      const { document: doc } = editor.getState();
       const dW = width - doc.canvas.width;
       const dH = height - doc.canvas.height;
+      editor.getState().commitPendingEdit();
       resizeCanvas(width, height);
       nudgePanForCanvasPixelDelta(dW, dH);
       pushHistory("resize canvas");
     },
-    [pushHistory, resizeCanvas, nudgePanForCanvasPixelDelta]
+    [editor, pushHistory, resizeCanvas, nudgePanForCanvasPixelDelta]
   );
 
   /** Push a single history snapshot before a drag-resize begins. */
   const handleCanvasResizeStart = useCallback(() => {
-    pushHistory("resize canvas");
+    pushHistory("resize canvas", undefined, { timing: "before" });
   }, [pushHistory]);
 
   /** Apply new canvas dimensions during a drag-resize (no history push). */
@@ -481,7 +508,7 @@ export function useCanvasGeometryActions({
       height: number,
       options?: { translateLayers?: Point; resizeFromCenter?: boolean }
     ) => {
-      const { document: doc } = useSketchStore.getState();
+      const { document: doc } = editor.getState();
       const dW = width - doc.canvas.width;
       const dH = height - doc.canvas.height;
       if (dW === 0 && dH === 0) {
@@ -491,26 +518,27 @@ export function useCanvasGeometryActions({
       const t = options?.translateLayers;
       if (t && (t.x !== 0 || t.y !== 0)) {
         offsetAllPaintLayersTransform(t.x, t.y);
+        editor.getState().offsetGuides(t.x, t.y);
       }
       const hasLayerTranslate = t != null && (t.x !== 0 || t.y !== 0);
       if (!options?.resizeFromCenter && !hasLayerTranslate) {
         nudgePanForCanvasPixelDelta(dW, dH);
       }
     },
-    [resizeCanvas, offsetAllPaintLayersTransform, nudgePanForCanvasPixelDelta]
+    [editor, resizeCanvas, offsetAllPaintLayersTransform, nudgePanForCanvasPixelDelta]
   );
 
   // ─── Zoom handlers ─────────────────────────────────────────────
   const handleZoomIn = useCallback(() => {
-    const { zoom } = useSketchStore.getState();
+    const { zoom } = editor.getState();
     setZoom(zoom * 1.3);
-  }, [setZoom]);
+  }, [editor, setZoom]);
   const handleZoomOut = useCallback(
     () => {
-      const { zoom } = useSketchStore.getState();
+      const { zoom } = editor.getState();
       setZoom(zoom / 1.3);
     },
-    [setZoom]
+    [editor, setZoom]
   );
   /**
    * Fit the whole artboard into the viewport, below the floating tool bar,
@@ -525,7 +553,7 @@ export function useCanvasGeometryActions({
       setPan({ x: 0, y: 0 });
       return;
     }
-    const { document: doc } = useSketchStore.getState();
+    const { document: doc } = editor.getState();
     const topBar = canvas
       .getViewportElement()
       ?.closest(".sketch-editor")
@@ -540,7 +568,7 @@ export function useCanvasGeometryActions({
     );
     setZoom(fit.zoom);
     setPan(fit.pan);
-  }, [canvasRef, setZoom, setPan]);
+  }, [editor, canvasRef, setZoom, setPan]);
 
   // ─── Crop completion ───────────────────────────────────────────
   const handleCropComplete = useCallback(
@@ -548,11 +576,12 @@ export function useCanvasGeometryActions({
       if (!canvasRef.current) {
         return;
       }
+      editor.getState().commitPendingEdit();
       reconcileAllLayerTransforms();
       finalizeCanvasCrop(x, y, width, height);
       pushHistory("crop");
     },
-    [pushHistory, canvasRef, reconcileAllLayerTransforms, finalizeCanvasCrop]
+    [editor, pushHistory, canvasRef, reconcileAllLayerTransforms, finalizeCanvasCrop]
   );
 
   const handleCropCanvasToActiveLayerVisiblePixels = useCallback(() => {
@@ -596,6 +625,7 @@ export function useCanvasGeometryActions({
       return;
     }
 
+    editor.getState().commitPendingEdit();
     reconcileAllLayerTransforms();
     finalizeCanvasCrop(
       cropBounds.x,
@@ -605,6 +635,7 @@ export function useCanvasGeometryActions({
     );
     pushHistory("crop to active layer visible pixels");
   }, [
+    editor,
     document.activeLayerId,
     document.layers,
     document.canvas.width,
@@ -642,6 +673,7 @@ export function useCanvasGeometryActions({
       activeLayer.transform
     );
 
+    editor.getState().commitPendingEdit();
     reconcileAllLayerTransforms();
     finalizeCanvasCrop(
       cropBounds.x,
@@ -651,6 +683,7 @@ export function useCanvasGeometryActions({
     );
     pushHistory("crop to active layer extents");
   }, [
+    editor,
     document.activeLayerId,
     document.layers,
     canvasRef,
@@ -660,7 +693,7 @@ export function useCanvasGeometryActions({
   ]);
 
   const handleCropCanvasToSelection = useCallback(() => {
-    const store = useSketchStore.getState();
+    const store = editor.getState();
     const sel = store.selection;
     if (!sel) return;
     const bounds = getSelectionBounds(sel);
@@ -688,15 +721,16 @@ export function useCanvasGeometryActions({
       return;
     }
 
+    editor.getState().commitPendingEdit();
     reconcileAllLayerTransforms();
     finalizeCanvasCrop(minX, minY, cropW, cropH);
     // Drop the selection: after the canvas is cropped to the bbox, the
     // selection's document-space origin no longer points anywhere
     // meaningful (it referred to the pre-crop document) and showing it
     // at the wrong place is more confusing than just clearing it.
-    useSketchStore.getState().setSelection(null);
+    editor.getState().setSelection(null);
     pushHistory("crop to selection");
-  }, [reconcileAllLayerTransforms, finalizeCanvasCrop, pushHistory]);
+  }, [editor, reconcileAllLayerTransforms, finalizeCanvasCrop, pushHistory]);
 
   // ─── Context menu ──────────────────────────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -730,24 +764,24 @@ export function useCanvasGeometryActions({
   const clipboardCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   /** Copy the selected region (or full layer) to the internal clipboard. */
-  const handleCopy = useCallback(() => {
+  const handleCopy = useCallback((): Point | null => {
     if (!canvasRef.current) {
-      return;
+      return null;
     }
     const layerId = document.activeLayerId;
     if (!layerId) {
-      return;
+      return null;
     }
     const layer = document.layers.find((l) => l.id === layerId);
     if (!layer) {
-      return;
+      return null;
     }
     const snapshot = canvasRef.current.snapshotLayerCanvas(layerId);
     if (!snapshot) {
-      return;
+      return null;
     }
 
-    const sel = useSketchStore.getState().selection;
+    const sel = editor.getState().selection;
     const tmp = buildSketchInternalClipboardCanvas({
       snapshot,
       layer,
@@ -756,12 +790,23 @@ export function useCanvasGeometryActions({
       selection: sel
     });
     if (!tmp) {
-      return;
+      return null;
     }
 
     clipboardCanvasRef.current = tmp;
     writeImageCanvasToSystemClipboardPng(tmp);
+    // A selection copy starts at the selection's top-left; a whole-layer copy
+    // is the layer raster, which starts at the layer's composite offset.
+    const bounds = sel && selectionHasAnyPixels(sel) ? getSelectionBounds(sel) : null;
+    if (bounds && bounds.width > 0 && bounds.height > 0) {
+      return { x: bounds.x, y: bounds.y };
+    }
+    return getLayerGeometry(layer, snapshot, {
+      width: document.canvas.width,
+      height: document.canvas.height
+    }).compositeOffset;
   }, [
+    editor,
     canvasRef,
     document.activeLayerId,
     document.layers,
@@ -793,12 +838,20 @@ export function useCanvasGeometryActions({
       // immediately paste into it inside the same tick — can target the
       // freshly-added layer. The React closure still holds the
       // pre-add document and would otherwise miss the new layer.
-      const liveDoc = useSketchStore.getState().document;
+      const liveDoc = editor.getState().document;
       const layerId = options?.targetLayerId ?? liveDoc.activeLayerId;
       if (!layerId) {
         return;
       }
 
+      // Vector layers hold no pixels, and locked layers reject pixel edits.
+      if (
+        liveDoc.layers.some(
+          (layer) => layer.id === layerId && (layer.type === "vector" || layer.locked)
+        )
+      ) {
+        return;
+      }
       const imageToPaste = await resolveSketchPasteImageCanvas({
         internalBuffer: clipboardCanvasRef.current,
         preferInternalClipboardFirst
@@ -807,7 +860,9 @@ export function useCanvasGeometryActions({
         return;
       }
 
-      pushHistory("paste");
+      if (options?.recordHistory !== false) {
+        pushHistory("paste", undefined, { timing: "before" });
+      }
 
       const pasteSnapshot = canvasRef.current.snapshotLayerCanvas(layerId);
       if (!pasteSnapshot) {
@@ -835,7 +890,7 @@ export function useCanvasGeometryActions({
         options && "pasteAnchorDocument" in options
           ? options.pasteAnchorDocument ?? null
           : canvasRef.current.getPasteAnchorDocumentPoint();
-      const sel = useSketchStore.getState().selection;
+      const sel = editor.getState().selection;
       const bounds = sel ? getSelectionBounds(sel) : null;
 
       drawSketchPasteOnLayerContext(ctx, imageToPaste, {
@@ -849,6 +904,7 @@ export function useCanvasGeometryActions({
       canvasRef.current.redrawDisplay();
     },
     [
+      editor,
       canvasRef,
       document.activeLayerId,
       document.canvas.height,
@@ -888,6 +944,10 @@ export function useCanvasGeometryActions({
         return null;
       }
 
+      // One undo step removes the new layer with its pixels, so the
+      // checkpoint goes before the layer exists and `createLayer` records
+      // no history of its own.
+      pushHistory("paste", undefined, { timing: "before" });
       const newLayerId = createLayer();
       if (!newLayerId) {
         return null;
@@ -898,8 +958,6 @@ export function useCanvasGeometryActions({
       // run yet) and the paste silently bails.
       canvasRef.current.setLayerData(newLayerId, null);
 
-      pushHistory("paste");
-
       const snapshot = canvasRef.current.snapshotLayerCanvas(newLayerId);
       if (!snapshot) {
         return newLayerId;
@@ -909,7 +967,7 @@ export function useCanvasGeometryActions({
         return newLayerId;
       }
 
-      const liveDoc = useSketchStore.getState().document;
+      const liveDoc = editor.getState().document;
       const docWidth = liveDoc.canvas.width;
       const docHeight = liveDoc.canvas.height;
       const anchor =
@@ -926,7 +984,7 @@ export function useCanvasGeometryActions({
       canvasRef.current.redrawDisplay();
       return newLayerId;
     },
-    [canvasRef, pushHistory, syncPixelLayerFromCanvas]
+    [editor, canvasRef, pushHistory, syncPixelLayerFromCanvas]
   );
 
   /** Import a dropped or externally-provided image file into the active layer. */
@@ -943,6 +1001,17 @@ export function useCanvasGeometryActions({
         return;
       }
 
+      if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) {
+        try {
+          editor.getState().addVectorLayer(file.name.replace(/\.svg$/i, ""), await file.text());
+        } catch (error) {
+          notifyMutationError("import the SVG layer", error);
+        }
+        return;
+      }
+      if (editor.getState().document.layers.find((layer) => layer.id === layerId)?.locked) {
+        return;
+      }
       const bitmap = await createImageBitmap(file);
       const tmp = window.document.createElement("canvas");
       tmp.width = bitmap.width;
@@ -953,7 +1022,7 @@ export function useCanvasGeometryActions({
       }
       bitmap.close();
 
-      pushHistory("drop image");
+      pushHistory("drop image", undefined, { timing: "before" });
 
       const snapshot = canvasRef.current.snapshotLayerCanvas(layerId);
       if (!snapshot) {
@@ -970,7 +1039,7 @@ export function useCanvasGeometryActions({
       syncPixelLayerFromCanvas(layerId);
       canvasRef.current.redrawDisplay();
     },
-    [canvasRef, document.activeLayerId, pushHistory, syncPixelLayerFromCanvas]
+    [editor, canvasRef, document.activeLayerId, pushHistory, syncPixelLayerFromCanvas]
   );
 
   const handleDropAsset = useCallback(
@@ -984,8 +1053,11 @@ export function useCanvasGeometryActions({
         }
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
+        // The download can take seconds. Build on the document as it is now,
+        // not as it was at the drop, so strokes made meanwhile are kept.
+        const liveDoc = editor.getState().document;
         const nextLayer = createDefaultLayer(
-          asset.name || `Imported ${document.layers.length + 1}`,
+          asset.name || `Imported ${liveDoc.layers.length + 1}`,
           "raster",
           bitmap.width,
           bitmap.height
@@ -1001,13 +1073,16 @@ export function useCanvasGeometryActions({
           objectFit: "fill"
         };
 
-        pushHistory("import asset");
-        setDocument({
-          ...document,
-          layers: [...document.layers, nextLayer],
+        // Add the layer to the document as it is after the fetch, and keep
+        // undo history: `setDocument` would reset it.
+        pushHistory("import asset", undefined, { timing: "before" });
+        const { document: liveDocument, replaceDocument } = editor.getState();
+        replaceDocument({
+          ...liveDocument,
+          layers: [...liveDocument.layers, nextLayer],
           activeLayerId: nextLayer.id,
           metadata: {
-            ...document.metadata,
+            ...liveDocument.metadata,
             updatedAt: new Date().toISOString()
           }
         });
@@ -1015,7 +1090,7 @@ export function useCanvasGeometryActions({
         console.error("Failed to import dropped asset:", error);
       }
     },
-    [document, pushHistory, setDocument]
+    [editor, pushHistory]
   );
 
   // ─── Adjustment preview (auto-apply with snapshot) ─────────────
@@ -1034,6 +1109,9 @@ export function useCanvasGeometryActions({
       if (!layerId) {
         return;
       }
+      if (editor.getState().document.layers.some((layer) => layer.id === layerId && layer.type === "vector")) {
+        return;
+      }
       const allZero =
         brightness === 0 && contrast === 0 && saturation === 0;
       if (allZero) {
@@ -1047,6 +1125,9 @@ export function useCanvasGeometryActions({
         return;
       }
       if (adjustmentBaseRef.current === null) {
+        // The preview is recorded as one edit when applied. Record a pending
+        // stroke first so it keeps its own undo step.
+        editor.getState().commitPendingEdit();
         adjustmentBaseRef.current =
           canvasRef.current.snapshotLayerCanvas(layerId);
       }
@@ -1059,7 +1140,7 @@ export function useCanvasGeometryActions({
       canvasRef.current.applyAdjustments(brightness, contrast, saturation);
       syncPixelLayerFromCanvas(layerId);
     },
-    [document.activeLayerId, syncPixelLayerFromCanvas, canvasRef]
+    [document.activeLayerId, editor, syncPixelLayerFromCanvas, canvasRef]
   );
 
   /** Commit the current adjustment preview — exactly one undo step. */
@@ -1104,13 +1185,16 @@ export function useCanvasGeometryActions({
     if (!layerId) {
       return;
     }
-    const sel = useSketchStore.getState().selection;
+    if (editor.getState().document.layers.some((layer) => layer.id === layerId && layer.type === "vector")) {
+      return;
+    }
+    const sel = editor.getState().selection;
     const hasSelection = sel && selectionHasAnyPixels(sel);
-    pushHistory("invert colors");
+    pushHistory("invert colors", undefined, { timing: "before" });
     canvasRef.current.invertLayerColors(hasSelection ? sel : null);
     syncPixelLayerFromCanvas(layerId);
     syncSketchOutputsNow();
-  }, [document.activeLayerId, pushHistory, syncPixelLayerFromCanvas, syncSketchOutputsNow, canvasRef]);
+  }, [editor, document.activeLayerId, pushHistory, syncPixelLayerFromCanvas, syncSketchOutputsNow, canvasRef]);
 
   // Auto-apply adjustments with 100ms debounce
   useEffect(() => {

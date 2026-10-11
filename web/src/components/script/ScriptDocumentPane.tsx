@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { memo, useCallback, useMemo, useState } from "react";
 import type { DragEvent } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -36,7 +38,6 @@ import {
 } from "../ui_primitives";
 import { formatDuration } from "../../utils/formatUtils";
 import { useInStudio } from "../../studio/StudioContext";
-import { i18n } from "../../i18n";
 import {
   useScript,
   useScriptCast,
@@ -53,6 +54,7 @@ import {
   dismissVoicingRun,
   readVoicingRun,
   retryVoicing,
+  useVoicingLive,
   voiceAll,
   type VoicingRun
 } from "../../stores/script/scriptVoicing";
@@ -63,6 +65,7 @@ import {
 } from "../../hooks/script/useVoiceCostEstimate";
 import { exportScriptSubtitles } from "../../stores/script/scriptSubtitles";
 import { useScriptPlaythrough } from "../../hooks/script/useScriptPlaythrough";
+import { useScriptWriting } from "../../hooks/script/scriptWrites";
 import { useAssembleScriptTimeline } from "../../hooks/script/useAssembleScriptTimeline";
 import ScriptLineRow, { TEXT_INSET, type LineKeyNav } from "./ScriptLineRow";
 import { useScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
@@ -71,11 +74,14 @@ import StoryboardLinkControl from "./StoryboardLinkControl";
 import ScriptSaveIndicator from "./ScriptSaveIndicator";
 import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
-import { useTranslation } from "react-i18next";
+import { useContextCommands } from "../../hooks/useContextCommands";
+import type { ContextCommand } from "../../stores/CommandMenuStore";
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
   readOnly: boolean;
+  /** Whether the pane's tab is on screen; lists its commands in the Cmd+K menu. */
+  active?: boolean;
 }
 
 /** A pending drop position: land the dragged line before `beforeLineId` (or at
@@ -111,9 +117,7 @@ const InsertLineGap = ({
   onDrop: (e: DragEvent<HTMLElement>) => void;
   active: boolean;
   inset: number;
-}) => {
-  const { t } = useTranslation();
-  return (
+}) => (
   <Box
     onDragOver={onDragOver}
     onDrop={onDrop}
@@ -134,7 +138,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label={t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
+      aria-label={i18n.t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -159,8 +163,7 @@ const InsertLineGap = ({
       />
     </Box>
   </Box>
-)
-  };
+);
 
 /**
  * One line: the insert/drop gap above it plus the row itself. Owns the per-line
@@ -215,6 +218,7 @@ const SectionLine = memo(function SectionLine({
 
   const handleGapDragOver = useCallback(
     (e: DragEvent<HTMLElement>) => {
+  const { t } = useTranslation();
       if (!dragActive) return;
       e.preventDefault();
       onDropTarget(line.id);
@@ -463,7 +467,6 @@ const VoiceAllButton = ({
   estimate: VoiceCostEstimate;
   onClick: () => void;
 }) => {
-  const { t } = useTranslation();
   const { lineCount, characters, cost, pricedLineCount, breakdowns, reasons, notes } =
     estimate;
   const priced = pricedLineCount > 0 && cost > 0;
@@ -476,21 +479,14 @@ const VoiceAllButton = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {lineCount === 0
-              ? t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
-              : t("editor:ui.voiceCostSummary", {
-                  count: lineCount,
-                  lineCount,
-                  characters,
-                  price: priced ? ` · ${t("editor:ui.about", { defaultValue: "about" })} ${formatUsd(cost)}` : "",
-                  partial:
-                    partial
-                      ? t("editor:ui.linesPricedParenthetical", {
-                          defaultValue: " ({{priced}} of {{total}} lines priced)",
-                          priced: pricedLineCount,
-                          total: lineCount
-                        })
-                      : ""
-                })}
+              ? i18n.t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
+              : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
+                  priced ? ` · about ${formatUsd(cost)}` : ""
+                }${
+                  partial
+                    ? ` (${pricedLineCount} of ${lineCount} lines priced)`
+                    : ""
+                }`}
           </Text>
           {breakdowns.map((breakdown) => (
             <Caption key={breakdown} color="secondary">
@@ -510,7 +506,8 @@ const VoiceAllButton = ({
             ))}
           {priced && (
             <Caption color="secondary">
-              {t("editor:ui.listPriceFromTheProviderCatalog", { defaultValue: "List price from the provider catalog. Voicing is billed by the provider at its own rates." })}
+              List price from the provider catalog. Voicing is billed by the
+              provider at its own rates.
             </Caption>
           )}
         </FlexColumn>
@@ -522,16 +519,13 @@ const VoiceAllButton = ({
         startIcon={<GraphicEqIcon fontSize="small" />}
         onClick={onClick}
       >
-        {priced ? `Voice all · ~${formatUsd(cost)}` : t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
+        {priced ? `Voice all · ~${formatUsd(cost)}` : i18n.t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
       </EditorButton>
     </Tooltip>
   );
 };
 
-/** The first words of a line, for naming it in the failure list. Resolves
- * through the shared i18n instance — a module-level function has no hook, and
- * the caller (VoicingStrip) re-renders on language change via its own
- * useTranslation anchor, so the label resolves fresh each render (r12). */
+/** The first words of a line, for naming it in the failure list. */
 const lineLabel = (text: string): string => {
   const trimmed = text.trim();
   if (trimmed === "") {
@@ -551,6 +545,10 @@ const lineLabel = (text: string): string => {
  * a count, or completed — names every line that failed with the reason it gave,
  * and retries them through the same path that voiced the rest.
  *
+ * A queued or running record with no run going in this page was left by a page
+ * that closed mid-run. No take is still coming, so it reads as stopped rather
+ * than as a spinner that never ends.
+ *
  * A script nobody has voiced carries no record, and this renders nothing.
  */
 const VoicingStrip = ({
@@ -560,9 +558,6 @@ const VoicingStrip = ({
   scriptId: string;
   readOnly?: boolean;
 }) => {
-  // Language anchor: every string below renders through `t`, so the strip
-  // re-renders on a language switch (memo-safe, F-26).
-  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const lineText = useScriptStore(
     useShallow((state) => {
@@ -576,6 +571,9 @@ const VoicingStrip = ({
     })
   );
   const [retrying, setRetrying] = useState<readonly string[]>([]);
+  const live = useVoicingLive(scriptId);
+  // Voicing refuses while a write replaces the lines.
+  const writing = useScriptWriting(scriptId);
 
   const run: VoicingRun | null = readVoicingRun(setup);
 
@@ -591,46 +589,34 @@ const VoicingStrip = ({
     return null;
   }
 
-  if (run.status === "queued") {
+  const stopped = run.status !== "completed" && !live;
+
+  if (run.status === "queued" && !stopped) {
     return (
       <AlertBanner severity="info" compact sx={{ marginX: SPACING.md }}>
-        {t("editor:ui.voicingQueuedFor", {
-          count: run.total,
-          defaultValue: "Voicing queued for {{count}} lines."
-        })}
+        {`Voicing queued for ${run.total} ${run.total === 1 ? "line" : "lines"}.`}
       </AlertBanner>
     );
   }
 
-  if (run.status === "running") {
+  if (run.status === "running" && !stopped) {
     return (
       <AlertBanner severity="info" compact sx={{ marginX: SPACING.md }}>
         <FlexRow align="center" gap={SPACING.xs}>
           <LoadingSpinner size={16} />
           <Text size="smaller">
-            {t("editor:ui.voicingProgress", {
-              count: run.total,
-              defaultValue:
-                "Voicing {{done}} of {{total}} lines{{failedNote}}",
-              done: run.voiced + run.failed.length,
-              total: run.total,
-              failedNote:
-                run.failed.length > 0
-                  ? t("editor:ui.failedSoFar", {
-                      count: run.failed.length,
-                      defaultValue: " · {{count}} failed so far"
-                    })
-                  : ""
-            })}
+            {`Voicing ${run.voiced + run.failed.length} of ${run.total} ${
+              run.total === 1 ? "line" : "lines"
+            }${run.failed.length > 0 ? ` · ${run.failed.length} failed so far` : ""}`}
           </Text>
         </FlexRow>
       </AlertBanner>
     );
   }
 
-  const busy = retrying.length > 0;
+  const busy = retrying.length > 0 || live || writing;
 
-  if (run.failed.length === 0) {
+  if (run.failed.length === 0 && !stopped) {
     return (
       <AlertBanner
         severity="success"
@@ -638,10 +624,7 @@ const VoicingStrip = ({
         onClose={readOnly ? undefined : () => dismissVoicingRun(scriptId)}
         sx={{ marginX: SPACING.md }}
       >
-        {t("editor:ui.voicedCount", {
-          count: run.voiced,
-          defaultValue: "Voiced {{count}} lines."
-        })}
+        {`Voiced ${run.voiced} ${run.voiced === 1 ? "line" : "lines"}.`}
       </AlertBanner>
     );
   }
@@ -655,46 +638,45 @@ const VoicingStrip = ({
     >
       <FlexColumn gap={SPACING.xs}>
         <Text size="smaller">
-          {t("editor:ui.voicedOfTotal", {
-            count: run.total,
-            defaultValue: "Voiced {{voiced}} of {{total}} lines.",
-            voiced: run.voiced,
-            total: run.total
-          })}{" "}
-          {t("editor:ui.couldNotBeVoiced", {
-            count: run.failed.length,
-            defaultValue: "{{count}} lines could not be voiced."
-          })}
+          {`${stopped ? "Voicing stopped before it finished. " : ""}Voiced ${run.voiced} of ${run.total} lines.${
+            run.failed.length > 0
+              ? ` ${run.failed.length} ${
+                  run.failed.length === 1 ? "line" : "lines"
+                } could not be voiced.`
+              : ""
+          }${stopped && !readOnly ? " Press Voice all to voice the rest." : ""}`}
         </Text>
-        <FlexColumn
-          gap={SPACING.xs}
-          component="ul"
-          sx={{ margin: 0, paddingLeft: 0, listStyle: "none" }}
-        >
-          {run.failed.map((failure) => (
-            <FlexRow
-              key={failure.lineId}
-              component="li"
-              gap={SPACING.sm}
-              align="center"
-              wrap
-            >
-              <Caption>
-                {`${lineLabel(lineText[failure.lineId] ?? "")} — ${failure.error}`}
-              </Caption>
-              {readOnly ? null : (
-                <EditorButton
-                  size="small"
-                  variant="text"
-                  disabled={busy}
-                  onClick={() => retry([failure.lineId])}
-                >
-                  {t("editor:explorer.retry", { defaultValue: "Retry" })}
-                </EditorButton>
-              )}
-            </FlexRow>
-          ))}
-        </FlexColumn>
+        {run.failed.length === 0 ? null : (
+          <FlexColumn
+            gap={SPACING.xs}
+            component="ul"
+            sx={{ margin: 0, paddingLeft: 0, listStyle: "none" }}
+          >
+            {run.failed.map((failure) => (
+              <FlexRow
+                key={failure.lineId}
+                component="li"
+                gap={SPACING.sm}
+                align="center"
+                wrap
+              >
+                <Caption>
+                  {`${lineLabel(lineText[failure.lineId] ?? "")} — ${failure.error}`}
+                </Caption>
+                {readOnly ? null : (
+                  <EditorButton
+                    size="small"
+                    variant="text"
+                    disabled={busy}
+                    onClick={() => retry([failure.lineId])}
+                  >
+                    Retry
+                  </EditorButton>
+                )}
+              </FlexRow>
+            ))}
+          </FlexColumn>
+        )}
         {readOnly || run.failed.length < 2 ? null : (
           <FlexRow>
             <EditorButton
@@ -703,12 +685,9 @@ const VoicingStrip = ({
               disabled={busy}
               onClick={() => retry(run.failed.map((failure) => failure.lineId))}
             >
-              {busy
-                ? t("editor:ui.retrying", { defaultValue: "Retrying…" })
-                : t("editor:ui.retryAll", {
-                    count: run.failed.length,
-                    defaultValue: "Retry all {{count}}"
-                  })}
+              {retrying.length > 0
+                ? i18n.t("editor:ui.retrying", { defaultValue: "Retrying…" })
+                : `Retry all ${run.failed.length}`}
             </EditorButton>
           </FlexRow>
         )}
@@ -719,9 +698,9 @@ const VoicingStrip = ({
 
 const ScriptDocumentPane = ({
   scriptId,
-  readOnly
+  readOnly,
+  active = false
 }: ScriptDocumentPaneProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inStudio = useInStudio();
@@ -748,6 +727,12 @@ const ScriptDocumentPane = ({
   const focusedLineId = useScriptLineFocus(scriptId, sections.length > 0);
   const highlightedLineId = currentLineId ?? focusedLineId;
   const [voicingAll, setVoicingAll] = useState(false);
+  // A run started elsewhere in this page, such as the guided flow's last step,
+  // is voicing these lines already: a second Voice all would pay for them twice.
+  const voicingLive = useVoicingLive(scriptId);
+  // A write the agent started replaces these lines, so voicing them now would
+  // pay for takes the write throws away. Voicing refuses it.
+  const writing = useScriptWriting(scriptId);
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const { assemble, assembling, error: assembleError } =
     useAssembleScriptTimeline();
@@ -869,6 +854,7 @@ const ScriptDocumentPane = ({
   }, [assemble, scriptId]);
 
   const onExportSubtitles = useCallback(() => {
+  const { t } = useTranslation();
     const script = useScriptStore.getState().getScript(scriptId);
     if (!script) return;
     const result = exportScriptSubtitles(script, { format: "srt" });
@@ -917,6 +903,39 @@ const ScriptDocumentPane = ({
   const showAssemble = !readOnly && !inStudio;
   const workflowMedia = useMemo(() => scriptWorkflowMedia(sections), [sections]);
 
+  const menuCommands = useMemo<ContextCommand[]>(() => {
+    if (!hasVoicedLine) {
+      return [];
+    }
+    const commands: ContextCommand[] = [];
+    if (showAssemble && !assembling) {
+      commands.push({
+        id: "send-to-timeline",
+        label: storyboardId
+          ? "Assemble Video"
+          : timelineId
+            ? "Update Timeline"
+            : "Send to Timeline",
+        run: onSendToTimeline
+      });
+    }
+    commands.push({
+      id: "export-subtitles",
+      label: "Export Subtitles (SRT)",
+      run: onExportSubtitles
+    });
+    return commands;
+  }, [
+    hasVoicedLine,
+    showAssemble,
+    assembling,
+    storyboardId,
+    timelineId,
+    onSendToTimeline,
+    onExportSubtitles
+  ]);
+  useContextCommands("Script", menuCommands, active);
+
   return (
     <FlexColumn
       data-focus-id="script-document"
@@ -944,15 +963,17 @@ const ScriptDocumentPane = ({
             canRedo={canRedo}
             onUndo={onUndo}
             onRedo={onRedo}
-            undoTooltip={t("storyboard:attrs.undoCmdZ", { defaultValue: "Undo (⌘Z)" })}
-            redoTooltip={t("storyboard:attrs.redoCmdZ", { defaultValue: "Redo (⌘⇧Z)" })}
+            undoTooltip={i18n.t("storyboard:attrs.undoCmdZ", { defaultValue: "Undo (⌘Z)" })}
+            redoTooltip={i18n.t("storyboard:attrs.redoCmdZ", { defaultValue: "Redo (⌘⇧Z)" })}
           />
         )}
         {!readOnly &&
-          (voicingAll ? (
+          (voicingAll || voicingLive || writing ? (
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner size={18} />
-              <Text size="smaller">{t("editor:ui.voicing", { defaultValue: "Voicing…" })}</Text>
+              <Text size="smaller">
+                {voicingAll || voicingLive ? i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" }) : i18n.t("editor:ui.writing", { defaultValue: "Writing…" })}
+              </Text>
             </FlexRow>
           ) : (
             <VoiceAllButton
@@ -967,14 +988,14 @@ const ScriptDocumentPane = ({
             startIcon={<StopIcon fontSize="small" />}
             onClick={stop}
           >
-            {t("ui2:attrs.stop", { defaultValue: "Stop" })}
+            Stop
           </EditorButton>
         ) : (
           <Tooltip
             title={
               hasVoicedLine
-                ? t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
-                : t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
+                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
+                : i18n.t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
             }
           >
             <span>
@@ -985,7 +1006,7 @@ const ScriptDocumentPane = ({
                 onClick={play}
                 disabled={!hasVoicedLine}
               >
-                {t("editor:ui.playThrough")}
+                Play through
               </EditorButton>
             </span>
           </Tooltip>
@@ -993,14 +1014,8 @@ const ScriptDocumentPane = ({
         <Box sx={{ flex: 1 }} />
         {!isEmpty && (
           <Text size="smaller" sx={{ color: "text.secondary" }}>
-            {t("editor:ui.lineCount", {
-              count: lineCount,
-              defaultValue: "{{count}} line"
-            })}{" · "}
-            {t("editor:ui.wordCount", {
-              count: wordCount,
-              defaultValue: "{{count}} word"
-            })}
+            {lineCount} {lineCount === 1 ? "line" : "lines"} · {wordCount}{" "}
+            {wordCount === 1 ? "word" : "words"}
             {durationLabel ? ` · ${durationLabel}` : ""}
           </Text>
         )}
@@ -1015,18 +1030,18 @@ const ScriptDocumentPane = ({
             title={
               hasVoicedLine
                 ? storyboardId
-                  ? t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
+                  ? i18n.t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
                   : undefined
-                : t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
+                : i18n.t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
             }
           >
             {assembling
-              ? t("editor:ui.assembling")
+              ? "Assembling…"
               : storyboardId
-                ? t("editor:ui.assembleVideo")
+                ? "Assemble video"
                 : timelineId
-                  ? t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
-                  : t("editor:ui.sendToTimeline")}
+                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
+                  : "Send to timeline"}
           </EditorButton>
         )}
         {hasVoicedLine && (
@@ -1039,8 +1054,8 @@ const ScriptDocumentPane = ({
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
-              ariaLabel={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              tooltip={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              ariaLabel="More actions"
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
             />
@@ -1052,12 +1067,12 @@ const ScriptDocumentPane = ({
               <MenuItemPrimitive
                 compact
                 icon={<SubtitlesIcon fontSize="small" />}
-                label={t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
+                label={i18n.t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
                     ? undefined
-                    : t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
+                    : i18n.t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
                 }
                 onClick={() => {
                   setMoreAnchor(null);
@@ -1091,13 +1106,9 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title={t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
-            description={t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
-            actionText={
-              readOnly
-                ? undefined
-                : t("editor:ui.addFirstLine", { defaultValue: "Add first line" })
-            }
+            title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
+            description={i18n.t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
+            actionText={readOnly ? undefined : i18n.t("editor:ui.addFirstLine", { defaultValue: "Add first line" })}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />
         )}
@@ -1126,7 +1137,7 @@ const ScriptDocumentPane = ({
               startIcon={<AddIcon fontSize="small" />}
               onClick={() => addSection(scriptId)}
             >
-              {t("editor:ui.addSection", { defaultValue: "Add section" })}
+              Add section
             </EditorButton>
           </FlexRow>
         )}

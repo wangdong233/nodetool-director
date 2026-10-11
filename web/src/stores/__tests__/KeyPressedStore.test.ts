@@ -89,6 +89,88 @@ describe("KeyPressedStore", () => {
       unregister();
     });
 
+    it("releases keys held with Meta when Meta goes up, since macOS sends no keyup for them", () => {
+      const callback = jest.fn();
+      const unregister = registerComboCallback("f", {
+        callback,
+        scope: "canvas"
+      });
+      const releaseListeners = initKeyListeners();
+      const input = document.createElement("input");
+      document.body.appendChild(input);
+      input.focus();
+
+      act(() => {
+        input.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "Meta", metaKey: true, bubbles: true })
+        );
+        input.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "v", metaKey: true, bubbles: true })
+        );
+        // No keyup for "v": the browser drops it while Meta is held.
+        input.dispatchEvent(
+          new KeyboardEvent("keyup", { key: "Meta", metaKey: false, bubbles: true })
+        );
+      });
+      expect(useKeyPressedStore.getState().getPressedKeys()).toEqual([]);
+
+      input.blur();
+      act(() => {
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "f", bubbles: true })
+        );
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      input.remove();
+      releaseListeners();
+      unregister();
+    });
+
+    it("fires a Shift+? combo from a real ? key event, but not while typing in an input", () => {
+      const callback = jest.fn();
+      const unregister = registerComboCallback("?+shift", {
+        callback,
+        scope: "canvas"
+      });
+      const releaseListeners = initKeyListeners();
+      const press = () => {
+        act(() => {
+          window.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "?",
+              code: "Slash",
+              shiftKey: true,
+              bubbles: true
+            })
+          );
+        });
+        act(() => {
+          window.dispatchEvent(
+            new KeyboardEvent("keyup", {
+              key: "?",
+              code: "Slash",
+              shiftKey: false,
+              bubbles: true
+            })
+          );
+        });
+      };
+
+      press();
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      const input = document.createElement("input");
+      document.body.appendChild(input);
+      input.focus();
+      press();
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      input.remove();
+      releaseListeners();
+      unregister();
+    });
+
     it("adds a pressed key", () => {
       const { setKeysPressed } = useKeyPressedStore.getState();
       act(() => {

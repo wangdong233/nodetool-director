@@ -109,6 +109,27 @@ export const SET_WORKFLOW_ACCESS_SCHEMA: JsonSchema = {
   required: ["workflow_id", "access"]
 };
 
+const NODE_IDS_PROPERTY = {
+  type: "array",
+  items: { type: "string" },
+  minItems: 1,
+  description:
+    "Run only these nodes and what they need upstream. Unrelated branches " +
+    "and downstream nodes are skipped, so they are not executed or billed. " +
+    "An upstream generator (image, video, audio, LLM) with a previous " +
+    "generation in this workflow is fed that saved output instead of " +
+    "running again; see reuse_results. The selected nodes always run. " +
+    "Omit to run the whole workflow."
+} as const;
+
+const REUSE_RESULTS_PROPERTY = {
+  type: "boolean",
+  description:
+    "With node_ids: reuse upstream generators' previous generations " +
+    "(default true). Set false to run every upstream node again. The " +
+    "result's partial_run lists what ran and what was reused."
+} as const;
+
 export const RUN_WORKFLOW_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
@@ -120,6 +141,8 @@ export const RUN_WORKFLOW_SCHEMA: JsonSchema = {
       type: "object",
       description: "Dictionary of input parameters for the workflow"
     },
+    node_ids: NODE_IDS_PROPERTY,
+    reuse_results: REUSE_RESULTS_PROPERTY,
     interactive: {
       type: "boolean",
       description:
@@ -141,6 +164,8 @@ export const DEBUG_WORKFLOW_SCHEMA: JsonSchema = {
       type: "object",
       description: "Input parameters keyed by input-node name"
     },
+    node_ids: NODE_IDS_PROPERTY,
+    reuse_results: REUSE_RESULTS_PROPERTY,
     interactive: {
       type: "boolean",
       description:
@@ -260,7 +285,8 @@ export const createWorkflowSpec: CapabilitySpec = {
     "Create a new workflow with a name, graph structure, and optional " +
     "metadata. Model properties are checked before the workflow is created: " +
     "an unregistered provider or a model id the provider does not offer is " +
-    "returned as an error instead of being saved.",
+    "returned as an error instead of being saved. A model left unselected " +
+    "is saved with a warning, and a run is refused until one is picked.",
   inputSchema: CREATE_WORKFLOW_SCHEMA,
   category: "write",
   userMessage: (params) => `Creating workflow '${params["name"]}'`
@@ -547,7 +573,9 @@ export const startBackgroundJobSpec: CapabilitySpec = {
       params: {
         type: "object",
         description: "Optional input parameters"
-      }
+      },
+      node_ids: NODE_IDS_PROPERTY,
+      reuse_results: REUSE_RESULTS_PROPERTY
     },
     required: ["workflow_id"]
   },
@@ -706,6 +734,12 @@ export const BUILD_WORKFLOW_FROM_PLAN_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
     workflow_id: { type: "string", description: "The workflow. You must own it." },
+    models: {
+      type: "object",
+      description:
+        'The model each role runs on, keyed by role ("language", "image", "video", "audio"), as find_model returns it on `ref`. A step whose role has no entry is built with its model unset, and the validation reports it.',
+      additionalProperties: { type: "object" }
+    },
     save: {
       type: "boolean",
       description:
@@ -737,7 +771,7 @@ export const SET_GAME_SETUP_SCHEMA: JsonSchema = {
     template: {
       type: "string",
       description:
-        "Game template id, as list_game_templates returns: platformer, topdown, shmup."
+        "Native game template id. The built-in engine currently ships topdown."
     },
     style_entity_id: {
       type: "string",
@@ -761,7 +795,11 @@ export const SET_GAME_SETUP_SCHEMA: JsonSchema = {
     project_name: {
       type: "string",
       description:
-        "The Godot project's name, which also names its export directory games/<slug>."
+        "The built-in game's name."
+    },
+    game_id: {
+      type: "string",
+      description: "An existing built-in game in the workflow's project. Omit to create one during build_game."
     },
     stage: {
       type: "string",
@@ -904,7 +942,7 @@ export const buildWorkflowFromPlanSpec: CapabilitySpec = {
 export const setGameSetupSpec: CapabilitySpec = {
   name: "set_game_setup",
   description:
-    "Write the guided game-setup answers on a workflow: the `brief` (one sentence about the game), the `template` whose loop it uses, the style entity and models every asset is generated with, and the `project_name` the Godot project takes. Omit a field to leave it unchanged. The stages run idea → template → review → look → done. Setting the stage is what moves an open flow to that step.",
+    "Write the guided game-setup answers on a workflow: the brief, native template, style entity, generation models, game name, and optional existing game_id. Omit a field to leave it unchanged. The stages run idea → template → review → look → done.",
   inputSchema: SET_GAME_SETUP_SCHEMA,
   category: "write",
   userMessage: () => "Writing the game setup"
@@ -931,7 +969,7 @@ export const updateGameDesignSpec: CapabilitySpec = {
 export const buildGameSpec: CapabilitySpec = {
   name: "build_game",
   description:
-    "Build the workflow's graph from its stored game design and validate it. Places one generate → resize → check chain per asset slot the template needs, feeds every checker into one nodetool.game.ExportGodotProject node, and runs the same checks as validate_workflow. Refused while the design has an unnamed cast member or an empty slot prompt. Run the workflow afterwards to generate the assets and write the project.",
+    "Build and validate the native game's asset-generation graph. Creates a built-in game when game_id is absent, binds the workflow to its workspace, and stages checked asset candidates through nodetool.game.StageGameAssets. Install selected bindings with install_native_game_asset after the workflow runs.",
   inputSchema: BUILD_GAME_SCHEMA,
   category: "write",
   userMessage: () => "Building the game graph"

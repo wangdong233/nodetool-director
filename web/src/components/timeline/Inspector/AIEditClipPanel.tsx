@@ -1,5 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import StopRoundedIcon from "@mui/icons-material/StopRounded";
@@ -21,21 +23,26 @@ import { isElectron, isLocalhost } from "../../../lib/env";
 import { estimateGenerationCost } from "../../../utils/generationCostEstimate";
 import { generationCostLine } from "../../costs/costLine";
 import CostEstimateLine from "../../costs/CostEstimateLine";
-import VideoModelSelect from "../../properties/VideoModelSelect";
 import CuratedModelSelect from "../../properties/curated/CuratedModelSelect";
 import {
   Caption,
   CollapsibleSection,
   EditorButton,
+  Divider,
   EmptyState,
   FlexColumn,
   FlexRow,
   LoadingSpinner,
+  SelectField,
   SPACING,
   TextInput
 } from "../../ui_primitives";
-import { InspectorSectionTitle, InspectorSliderRow } from "./InspectorPrimitives";
-import { useTranslation } from "react-i18next";
+import {
+  INSPECTOR_FORM_SX,
+  InspectorSectionTitle,
+  InspectorSliderRow
+} from "./InspectorPrimitives";
+import { usePersistedFold } from "./usePersistedFold";
 
 interface AIEditClipPanelProps {
   clipId: string;
@@ -43,6 +50,9 @@ interface AIEditClipPanelProps {
 
 const DEFAULT_STRENGTH = 0.65;
 const IS_MANAGED_BUILD = !isLocalhost && !isElectron;
+
+const modelKey = (model: { id: string; provider: string }): string =>
+  `${model.provider}:${model.id}`;
 
 const toVideoModelValue = (model: {
   id: string;
@@ -74,6 +84,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
   const { t } = useTranslation();
   const clip = useTimelineStore((state) => findClipById(state.clips, clipId));
   const sequenceId = useTimelineStore((state) => state.sequenceId);
+  const [open, setOpen] = usePersistedFold("ai-edit", true);
   const { models, isLoading, error, refetch } = useVideoModelsByProvider({
     task: "video_to_video"
   });
@@ -156,15 +167,8 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     return availableModels[0];
   }, [availableModels, clip?.model, clip?.provider]);
 
-  useEffect(() => {
-    if (isLoading || error) return;
-    if (!selectedModel || !catalogModel) {
-      setSelectedModel(
-        preferredModel ? toVideoModelValue(preferredModel) : null
-      );
-    }
-  }, [catalogModel, error, isLoading, preferredModel, selectedModel]);
-
+  // Runs before the model default below, so the reset on a new clip (and on
+  // mount) cannot clear the default it just chose.
   useEffect(() => {
     setInstruction("");
     setSelectedModel(null);
@@ -174,6 +178,15 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     setNewTakeInstruction("");
     setStrength(DEFAULT_STRENGTH);
   }, [clipId]);
+
+  useEffect(() => {
+    if (isLoading || error) return;
+    if (!selectedModel || !catalogModel) {
+      setSelectedModel(
+        preferredModel ? toVideoModelValue(preferredModel) : null
+      );
+    }
+  }, [catalogModel, error, isLoading, preferredModel, selectedModel]);
 
   useEffect(() => {
     if (clip?.strength !== undefined) {
@@ -200,6 +213,25 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     setSubmissionFailed(false);
   }, []);
 
+  const modelOptions = useMemo(
+    () =>
+      availableModels.map((model) => ({
+        value: modelKey(model),
+        label: model.name
+      })),
+    [availableModels]
+  );
+
+  const handleModelKeyChange = useCallback(
+    (key: string) => {
+      const model = availableModels.find((item) => modelKey(item) === key);
+      if (model) {
+        handleModelChange(toVideoModelValue(model));
+      }
+    },
+    [availableModels, handleModelChange]
+  );
+
   const handleSubmit = useCallback(async () => {
     if (!clip || !eligibility.ok || !selectedModel || !instruction.trim()) {
       return;
@@ -224,7 +256,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
 
   const newTakeEligibility = useMemo(() => {
     if (!clip || clip.mediaType !== "video") {
-      return { ok: false as const, reason: t("timeline:attrs.newTakeRequiresAVideoClip", { defaultValue: "New take requires a video clip." }) };
+      return { ok: false as const, reason: i18n.t("timeline:attrs.newTakeRequiresAVideoClip", { defaultValue: "New take requires a video clip." }) };
     }
     const activeId = activeTakeIdOf(clip);
     const activeTake = activeId
@@ -232,8 +264,8 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
       : undefined;
     return activeTake
       ? getReplayRecipe(activeTake)
-      : { ok: false as const, reason: t("timeline:attrs.thisClipHasNoAcceptedTake", { defaultValue: "This clip has no accepted take." }) };
-  }, [t, clip]);
+      : { ok: false as const, reason: i18n.t("timeline:attrs.thisClipHasNoAcceptedTake", { defaultValue: "This clip has no accepted take." }) };
+  }, [clip, t]);
 
   const handleNewTake = useCallback(async () => {
     if (!clip || !newTakeEligibility.ok) return;
@@ -276,34 +308,35 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
   const unavailableReason = !eligibility.ok
     ? eligibility.error
     : error
-      ? t("timeline:attrs.theVideoEditModelCatalogCouldNotBeLoadedRetryToCheckCompatibleProviders", { defaultValue: "The video edit model catalog could not be loaded. Retry to check compatible providers." })
+      ? i18n.t("timeline:attrs.theVideoEditModelCatalogCouldNotBeLoadedRetryToCheckCompatibleProviders", { defaultValue: "The video edit model catalog could not be loaded. Retry to check compatible providers." })
       : noCompatibleModel
-        ? t("timeline:attrs.noCompatibleVideoEditModelIsAvailableAddAProviderOrInstallALocalModelThatSupportsVideo_to_video", { defaultValue: "No compatible video edit model is available. Add a provider or install a local model that supports video_to_video." })
+        ? i18n.t("timeline:attrs.noCompatibleVideoEditModelIsAvailableAddAProviderOrInstallALocalModelThatSupportsVideo_to_video", { defaultValue: "No compatible video edit model is available. Add a provider or install a local model that supports video_to_video." })
         : undefined;
   const settlementMessage = active
     ? undefined
     : settledStatus === "cancelled"
-      ? t("timeline:attrs.theEditWasCancelledTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The edit was cancelled. The accepted media was left unchanged." })
+      ? i18n.t("timeline:attrs.theEditWasCancelledTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The edit was cancelled. The accepted media was left unchanged." })
       : settledStatus === "expired"
-        ? t("timeline:attrs.theEditExpiredBeforeItFinishedTheCapturedRequestIsAvailableToRetry", { defaultValue: "The edit expired before it finished. The captured request is available to retry." })
+        ? i18n.t("timeline:attrs.theEditExpiredBeforeItFinishedTheCapturedRequestIsAvailableToRetry", { defaultValue: "The edit expired before it finished. The captured request is available to retry." })
         : settledStatus === "orphaned"
-          ? t("timeline:attrs.theSourceClipWasDeletedBeforeTheEditFinishedTheResultWasKeptForInspectionAndWasNotApplied", { defaultValue: "The source clip was deleted before the edit finished. The result was kept for inspection and was not applied." })
+          ? i18n.t("timeline:attrs.theSourceClipWasDeletedBeforeTheEditFinishedTheResultWasKeptForInspectionAndWasNotApplied", { defaultValue: "The source clip was deleted before the edit finished. The result was kept for inspection and was not applied." })
           : settledStatus === "failed"
-            ? t("timeline:attrs.theProviderFailedThisEditTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The provider failed this edit. The accepted media was left unchanged." })
+            ? i18n.t("timeline:attrs.theProviderFailedThisEditTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The provider failed this edit. The accepted media was left unchanged." })
             : undefined;
 
   return (
     <CollapsibleSection
       title={
         <InspectorSectionTitle
-          title={t("timeline:attrs.aiEdit", { defaultValue: "AI Edit" })}
+          title="AI edit"
           icon={<AutoAwesomeOutlinedIcon />}
         />
       }
-      defaultOpen
+      open={open}
+      onToggle={setOpen}
       unmountOnExit={false}
     >
-      <FlexColumn gap={SPACING.sm} sx={{ p: SPACING.md }}>
+      <FlexColumn sx={INSPECTOR_FORM_SX}>
         {!eligibility.ok ? (
           <EmptyState
             variant="empty"
@@ -314,16 +347,17 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
         ) : (
           <>
             <TextInput
+              label="Instruction"
               value={instruction}
               onChange={(event) => setInstruction(event.target.value)}
-              placeholder={t("timeline:attrs.describeTheChangeToMake", { defaultValue: "Describe the change to make…" })}
+              placeholder="e.g. Make it golden hour"
               multiline
-              minRows={2}
-              maxRows={6}
+              minRows={3}
+              maxRows={8}
               compact
               fullWidth
               inputProps={{
-                "aria-label": t("timeline:attrs.editInstruction", { defaultValue: "Edit instruction" }),
+                "aria-label": i18n.t("timeline:attrs.editInstruction", { defaultValue: "Edit instruction" }),
                 "data-testid": "ai-edit-instruction"
               }}
               disabled={active}
@@ -337,7 +371,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 size="small"
                 title={t("timeline:attrs.noCompatibleModel", { defaultValue: "No compatible model" })}
                 description={unavailableReason}
-                actionText={error ? t("timeline:attrs.retryModelCatalog", { defaultValue: "Retry model catalog" }) : undefined}
+                actionText={error ? i18n.t("timeline:attrs.retryModelCatalog", { defaultValue: "Retry model catalog" }) : undefined}
                 onAction={
                   error
                     ? () => void refetch()
@@ -352,10 +386,13 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 onChange={handleModelChange}
               />
             ) : (
-              <VideoModelSelect
-                value={selectedModel?.id ?? ""}
-                task="video_to_video"
-                onChange={handleModelChange}
+              <SelectField
+                label="Model"
+                size="small"
+                value={selectedModel ? modelKey(selectedModel) : ""}
+                options={modelOptions}
+                onChange={handleModelKeyChange}
+                disabled={active}
               />
             )}
 
@@ -371,49 +408,70 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               />
             )}
 
-            <FlexRow justify="flex-end" fullWidth>
-              <CostEstimateLine
-                estimate={generationCostLine(costEstimate)}
-                title={t("timeline:attrs.estimatedCostOfThisVideoEdit", { defaultValue: "Estimated cost of this video edit" })}
-              />
-            </FlexRow>
-
-            <EditorButton
-              fullWidth
-              variant={active ? "outlined" : "contained"}
-              color={active ? "warning" : "primary"}
-              startIcon={
-                active ? <StopRoundedIcon /> : <AutoAwesomeOutlinedIcon />
-              }
-              disabled={
-                active
-                  ? false
-                  : !instruction.trim() || !modelOptionsReady
-              }
-              onClick={() => {
-                if (active) {
-                  cancel(clip.id);
-                } else {
-                  void handleSubmit();
+            <FlexColumn gap={SPACING.xs}>
+              <EditorButton
+                fullWidth
+                variant={active ? "outlined" : "contained"}
+                color={active ? "warning" : "primary"}
+                startIcon={
+                  active ? <StopRoundedIcon /> : <AutoAwesomeOutlinedIcon />
                 }
-              }}
-              data-testid="ai-edit-submit"
-            >
-              {active ? "Cancel" : failed ? "Retry" : "Edit video"}
-            </EditorButton>
+                disabled={
+                  active
+                    ? false
+                    : !instruction.trim() || !modelOptionsReady
+                }
+                onClick={() => {
+                  if (active) {
+                    cancel(clip.id);
+                  } else {
+                    void handleSubmit();
+                  }
+                }}
+                data-testid="ai-edit-submit"
+              >
+                {active ? "Cancel" : failed ? "Retry" : "Edit video"}
+              </EditorButton>
+              <FlexRow justify="flex-end" fullWidth>
+                <CostEstimateLine
+                  estimate={generationCostLine(costEstimate)}
+                  title={t("timeline:attrs.estimatedCostOfThisVideoEdit", { defaultValue: "Estimated cost of this video edit" })}
+                />
+              </FlexRow>
+            </FlexColumn>
+
+            {active && (
+              <LoadingSpinner
+                variant="dots"
+                size="small"
+                text="Editing video…"
+              />
+            )}
+            {settlementMessage && (
+              <Caption color="error">{settlementMessage}</Caption>
+            )}
+            {failed && (
+              <Caption color="error">
+                {editFailure ??
+                  "The edit failed. Update the instruction or model and retry."}
+              </Caption>
+            )}
+            {errorMessage && <Caption color="error">{errorMessage}</Caption>}
 
             {canNewTake && (
-              <FlexColumn gap={SPACING.sm}>
+              <>
+                <Divider />
                 <TextInput
+                  label={t("timeline:attrs.newTake", { defaultValue: "New take" })}
                   value={newTakeInstruction}
                   onChange={(event) => setNewTakeInstruction(event.target.value)}
-                  placeholder={t("timeline:attrs.optionalNewtakeDirection", { defaultValue: "Optional new-take direction…" })}
+                  placeholder="Optional direction for the new take"
                   multiline
                   minRows={2}
                   maxRows={4}
                   compact
                   fullWidth
-                  inputProps={{ "aria-label": t("timeline:attrs.newTakeDirection", { defaultValue: "New take direction" }) }}
+                  inputProps={{ "aria-label": i18n.t("timeline:attrs.newTakeDirection", { defaultValue: "New take direction" }) }}
                   disabled={active || newTakeActive}
                 />
                 <EditorButton
@@ -423,38 +481,12 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   onClick={() => void handleNewTake()}
                   data-testid="new-take-submit"
                 >
-                  {newTakeActive ? t("timeline:attrs.generatingNewTake", { defaultValue: "Generating new take…" }) : t("timeline:attrs.newTake", { defaultValue: "New take" })}
+                  {newTakeActive ? i18n.t("timeline:attrs.generatingNewTake", { defaultValue: "Generating new take…" }) : i18n.t("timeline:attrs.newTake", { defaultValue: "New take" })}
                 </EditorButton>
-              </FlexColumn>
-            )}
-
-            {settlementMessage && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {settlementMessage}
-              </Caption>
-            )}
-            {failed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {editFailure ??
-                  "The edit failed. Update the instruction or model and retry."}
-              </Caption>
-            )}
-            {active && (
-              <LoadingSpinner
-                variant="dots"
-                size="small"
-                text={t("editor:ui.editingVideo")}
-              />
-            )}
-            {errorMessage && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {errorMessage}
-              </Caption>
-            )}
-            {newTakeError && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {newTakeError}
-              </Caption>
+                {newTakeError && (
+                  <Caption color="error">{newTakeError}</Caption>
+                )}
+              </>
             )}
           </>
         )}

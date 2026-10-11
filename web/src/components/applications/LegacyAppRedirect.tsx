@@ -1,5 +1,5 @@
 import { memo, useEffect } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { trpcClient } from "../../trpc/client";
@@ -38,8 +38,8 @@ const findApplicationForWorkflow = async (
  */
 const LegacyAppRedirect = () => {
   const { t } = useTranslation();
-  const { workflowId } = useParams<{ workflowId?: string }>();
-  const openTab = useWorkspaceTabsStore((state) => state.openTab);
+  const navigate = useNavigate();  const { workflowId } = useParams<{ workflowId?: string }>();
+  const openTab = useWorkspaceTabsStore((state) => state.openForegroundTab);
 
   const { data, isLoading } = useQuery({
     queryKey: ["application-for-workflow", workflowId],
@@ -53,7 +53,7 @@ const LegacyAppRedirect = () => {
       openTab({
         type: "application",
         ref: data.id,
-        mode: "edit",
+        mode: "view",
         title: data.name || "Untitled app",
         projectId: data.projectId
       });
@@ -81,8 +81,9 @@ const LegacyAppRedirect = () => {
         <EmptyState
           variant="error"
           title={t("editor:ui.appNotFound", { defaultValue: "App not found" })}
-          description={t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne")}
-        />
+          description={t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne", { defaultValue: "No app is built on this workflow. Open the Apps panel to create one." })}
+          actionText="Back to workspace"
+          onAction={() => navigate("/workspace", { replace: true })}        />
       </FlexColumn>
     );
   }

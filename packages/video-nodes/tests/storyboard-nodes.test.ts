@@ -8,7 +8,7 @@
  * which is the only question the write contract and the skip gates are about.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createFakeContext,
   type BaseProvider,
@@ -40,6 +40,7 @@ import {
 
 import {
   AssembleTimelineNode,
+  CreateStoryboardNode,
   LoadStoryboardNode,
   RecastStoryboardNode,
   RenderClipsNode,
@@ -73,7 +74,10 @@ const entity = (
   descriptor: string
 ): Entity => ({ type: "entity", id, kind, name, descriptor });
 
-const HERO = entity("ent-hero", "character", "Nova", "a courier in a red coat");
+const HERO: Entity = {
+  ...entity("ent-hero", "character", "Nova", "a courier in a red coat"),
+  reference_images: [{ type: "image", data: new Uint8Array([1, 2, 3]) }]
+};
 const RIVAL = entity("ent-rival", "character", "Kai", "a courier in a blue coat");
 
 const shot = (id: string, index: number, over: Partial<Shot> = {}): Shot => ({
@@ -342,6 +346,10 @@ beforeEach(() => {
   h = harness();
 });
 
+afterEach(() => {
+  h.cleanup();
+});
+
 // ── LoadStoryboard / StoryboardShots ────────────────────────────────────────
 
 describe("LoadStoryboardNode", () => {
@@ -472,6 +480,42 @@ describe("RecastStoryboardNode", () => {
 // ── Render gates ────────────────────────────────────────────────────────────
 
 describe("RenderStillsNode", () => {
+  it("forwards the storyboard destination for durable still recovery", async () => {
+    seedBoard(h, "tpl", boardDocument({ shots: [shot("shot-1", 0)] }));
+    const node = new RenderStillsNode();
+    node.assign({ storyboard: writable("tpl") });
+    await node.process(h.context);
+    const version = h.boards.get("tpl")?.document.shots[0].keyframe;
+    expect(version?.render_inputs).toEqual(expect.objectContaining({
+      kind: "keyframe",
+      model: "flux",
+      recorded_at: expect.any(String)
+    }));
+    expect(vi.mocked(h.context.runGeneration).mock.calls[0][0].destination).toEqual({
+      document_id: "tpl",
+      target_type: "storyboard_keyframe",
+      target_id: "shot-1",
+      selected: true,
+      provenance: { render_inputs: version?.render_inputs }
+    });
+    expect(h.generationRequests[0].params.resolution).toBe("1K");
+  });
+
+  it("renders each shot's still model and detects image support per model", async () => {
+    seedBoard(h, "tpl", boardDocument({ imageModel: null, shots: [
+      shot("shot-1", 0, { still_model: { provider: "fal_ai", id: "image-edit" }, entity_ids: [HERO.id] }),
+      shot("shot-2", 1, { still_model: { provider: "fal_ai", id: "image-text" }, entity_ids: [HERO.id] })
+    ] }));
+    h.entities.set(HERO.id, { ...HERO, reference_images: [{ type: "image", asset_id: "hero", uri: "asset://hero" }] });
+    vi.mocked(h.context.getProvider).mockResolvedValue({ getAvailableImageModels: async () => [
+      { id: "image-edit", provider: "fal_ai", name: "Image Edit", supportedTasks: ["text_to_image", "image_to_image"] },
+      { id: "image-text", provider: "fal_ai", name: "Image Text", supportedTasks: ["text_to_image"] }
+    ] } as unknown as BaseProvider);
+    const node = new RenderStillsNode();
+    node.assign({ storyboard: writable("tpl") });
+    expect((await node.process(h.context)).rendered).toEqual(["shot-1", "shot-2"]);
+    expect(h.generations).toEqual([{ capability: "image_to_image", model: "image-edit" }, { capability: "text_to_image", model: "image-text" }]);
+  });
   it("skips a shot whose still the board would render the same way", async () => {
     const doc = boardDocument();
     doc.shots[0].keyframe = freshKeyframe(doc, doc.shots[0], [HERO], "still-1");
@@ -531,6 +575,62 @@ describe("RenderStillsNode", () => {
 });
 
 describe("RenderClipsNode", () => {
+  it.each([{ targets: ["shot-1"] }, { max_shots: 1 }])("validates only the gated batch on a mixed board: %j", async (selection) => {
+    seedBoard(h, "tpl", boardDocument({
+      videoModel: { type: "video_model", provider: "fal_ai", id: "text-only", supported_tasks: ["text_to_video"] },
+      shots: [shot("shot-1", 0, { render_mode: "direct" }), shot("shot-2", 1, { render_mode: "reference" })]
+    }));
+    const node = new RenderClipsNode();
+    node.assign({ storyboard: writable("tpl"), ...selection });
+    expect((await node.process(h.context)).rendered).toEqual(["shot-1"]);
+    expect(h.generations).toEqual([{ capability: "text_to_video", model: "text-only" }]);
+  });
+
+  it("forwards the storyboard destination for durable clip recovery", async () => {
+    seedBoard(h, "tpl", boardDocument({ shots: [shot("shot-1", 0, { render_mode: "direct" })] }));
+    const node = new RenderClipsNode();
+    node.assign({ storyboard: writable("tpl") });
+    await node.process(h.context);
+    const version = h.boards.get("tpl")?.document.shots[0].clip;
+    expect(version?.render_inputs).toEqual(expect.objectContaining({
+      kind: "clip",
+      model: "kling",
+      recorded_at: expect.any(String)
+    }));
+    expect(version?.productionSnapshot).toEqual(expect.objectContaining({
+      candidateId: version?.candidateId,
+      destinationId: "shot-1",
+      model: "kling",
+      variationIndex: 1
+    }));
+    expect(vi.mocked(h.context.runGeneration).mock.calls[0][0].destination).toEqual({
+      document_id: "tpl",
+      target_type: "storyboard_clip",
+      target_id: "shot-1",
+      selected: true,
+      provenance: {
+        render_inputs: version?.render_inputs,
+        candidateId: version?.candidateId,
+        batchId: version?.batchId,
+        requestId: version?.requestId,
+        variationId: version?.variationId,
+        variationIndex: version?.variationIndex,
+        productionSnapshot: version?.productionSnapshot
+      }
+    });
+    expect(h.generationRequests[0].params.resolution).toBe("1080p");
+  });
+
+  it("renders shot models without requiring a board default", async () => {
+    seedBoard(h, "tpl", boardDocument({ videoModel: null, shots: [
+      shot("shot-1", 0, { render_mode: "direct", clip_model: { provider: "fal_ai", id: "text-only" } }),
+      shot("shot-2", 1, { render_mode: "reference", clip_model: { provider: "fal_ai", id: "kling" } })
+    ] }));
+    const node = new RenderClipsNode();
+    node.assign({ storyboard: writable("tpl") });
+    expect((await node.process(h.context)).rendered).toEqual(["shot-1", "shot-2"]);
+    expect(h.generations).toEqual([{ capability: "text_to_video", model: "text-only" }, { capability: "reference_to_video", model: "kling" }]);
+  });
   it("dispatches all three mixed modes through their matching capabilities", async () => {
     h.entities.set("ent-hero", {
       ...HERO,
@@ -1160,5 +1260,84 @@ describe("AssembleTimelineNode and the approved cut", () => {
     expect(held).toMatchObject({ startMs: 4000, durationMs: 2000 });
     expect(held?.currentAssetId).toBeUndefined();
     expect(result.skipped_shots).toEqual(["shot-2"]);
+  });
+});
+
+// ── CreateStoryboard ────────────────────────────────────────────────────────
+
+describe("CreateStoryboardNode", () => {
+  const screenplay = {
+    title: "Pier at Dusk",
+    logline: "A courier waits for a boat",
+    style_bible: "noir, wet streets",
+    aspect_ratio: "9:16",
+    shots: [
+      { action: "Nova waits on the pier", camera: { framing: "wide" } },
+      { action: "Nova checks the parcel", camera: { framing: "close-up" } }
+    ]
+  };
+  const imageModel = { type: "image_model", provider: "fal_ai", id: "flux" };
+
+  it("saves the screenplay as a board a render node may write", async () => {
+    h.withBoardListing();
+    const node = new CreateStoryboardNode();
+    node.assign({ screenplay, cast: [HERO], image_model: imageModel });
+
+    const out = await node.process(h.context);
+
+    expect(out.created).toBe(true);
+    expect(out.storyboard).toMatchObject({ type: "storyboard", writable: true });
+    expect(out.shot_count).toBe(2);
+    const row = h.boards.get(out.storyboard.id!)!;
+    expect(row.name).toBe("Pier at Dusk");
+    expect(row.document.shots.map((entry) => entry.index)).toEqual([0, 1]);
+    expect(row.document.style).toBe("noir, wet streets");
+    expect(row.document.aspectRatio).toBe("9:16");
+    expect(row.document.entityIds).toEqual([HERO.id]);
+    expect(row.document.imageModel).toMatchObject({ provider: "fal_ai", id: "flux" });
+    expect(row.document.videoModel).toBeNull();
+
+    const stills = new RenderStillsNode();
+    stills.assign({ storyboard: out.storyboard });
+    await stills.process(h.context);
+    expect(h.generations.map((g) => g.capability)).toEqual([
+      "text_to_image",
+      "text_to_image"
+    ]);
+  });
+
+  it("returns the board it made last run instead of creating a second", async () => {
+    h.withBoardListing();
+    const first = new CreateStoryboardNode();
+    first.assign({ screenplay, name: "Pier" });
+    const made = await first.process(h.context);
+
+    const again = new CreateStoryboardNode();
+    again.assign({ screenplay, name: "Pier" });
+    const reused = await again.process(h.context);
+
+    expect(reused.created).toBe(false);
+    expect(reused.storyboard.id).toBe(made.storyboard.id);
+    expect(h.boards.size).toBe(1);
+  });
+
+  it("never hands out a hand-made board that shares the name", async () => {
+    h.withBoardListing();
+    seedBoard(h, "board-hand", boardDocument(), { name: "Pier", projectId: "default" });
+    const node = new CreateStoryboardNode();
+    node.assign({ screenplay, name: "Pier" });
+
+    const out = await node.process(h.context);
+
+    expect(out.created).toBe(true);
+    expect(out.storyboard.id).not.toBe("board-hand");
+  });
+
+  it("refuses a screenplay with no shots", async () => {
+    const node = new CreateStoryboardNode();
+    node.assign({ screenplay: { title: "Empty", shots: [] }, reuse_existing: false });
+
+    await expect(node.process(h.context)).rejects.toThrow(/Director/);
+    expect(h.boards.size).toBe(0);
   });
 });

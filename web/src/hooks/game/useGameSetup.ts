@@ -1,17 +1,11 @@
 /**
- * The Game flow's state, which lives on the workflow it produces
- * (game-prd § 5.1, D25).
+ * The Game flow's state, which lives on the workflow that carries it.
  *
- * `settings.game` is a second optional bag beside `settings.setup`, so a
- * workflow saved before this flow existed reads stage `done` and opens as the
- * node editor it always did (criterion 2). Every write merges — the brief as
- * it is typed, then the template, then the design — and leaves the rest of
- * `settings` untouched, `setup` included.
- *
- * The flow is a function of what is on the document plus the live registry, so
- * any host builds the same steps from a workflow id and resumes at the same
- * place. This mirrors `useWorkflowSetup` field for field; only the reader and
- * the writer differ.
+ * `settings.game` is the record the headless `set_game_setup`, `design_game`
+ * and `build_game` capabilities read and write, so a game designed by an agent
+ * and one designed in this flow are the same document. Every write merges and
+ * leaves the rest of `settings` alone, and goes through the workflow's one
+ * save queue, so a design write and a typed edit never race each other.
  */
 
 import { useCallback } from "react";
@@ -22,17 +16,11 @@ import {
   type GameSetupStage
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
+import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import {
-  useWorkflowManager,
-  useWorkflowManagerStore
-} from "../../contexts/WorkflowManagerContext";
-
-/** A workflow that has no `settings.game` is finished, not mid-flow. */
-export const useGameSetupStage = (workflowId: string): GameSetupStage =>
-  useWorkflowManager(
-    (state) =>
-      readGameSetup(state.getWorkflow(workflowId)?.settings)?.stage ?? "done"
-  );
+  reportSetupSaveError,
+  useWorkflowSettingsWriter
+} from "../workflow/useWorkflowSetup";
 
 /** The whole game record, or null on a workflow that never went through it. */
 export const useGameSetupDocument = (workflowId: string): GameSetup | null =>
@@ -40,40 +28,36 @@ export const useGameSetupDocument = (workflowId: string): GameSetup | null =>
     (state) => readGameSetup(state.getWorkflow(workflowId)?.settings) ?? null
   );
 
-export interface GameSetupWriter {
-  /** Merge a patch into `settings.game` and persist it. */
-  setGame: (patch: Partial<GameSetup>) => Promise<void>;
-}
-
-/**
- * Write setup answers back onto the workflow.
- *
- * The write goes through the manager's `updateWorkflow` (so the open editor and
- * the tab list see it at once) and then `saveWorkflow` (so a reload resumes at
- * the same step). A refused save rejects rather than resolving quietly: the
- * shell puts the reason on the button, and a stage that did not persist would
- * otherwise strand the creator one refresh later.
- */
-export const useGameSetupWriter = (workflowId: string): GameSetupWriter => {
-  const store = useWorkflowManagerStore();
-
-  const setGame = useCallback(
-    async (patch: Partial<GameSetup>) => {
-      const state = store.getState();
-      const workflow = state.getWorkflow(workflowId);
-      if (!workflow) {
-        throw new Error(`Workflow ${workflowId} is not open.`);
-      }
-      const settings = writeGameSetup(workflow.settings, patch);
-      state.updateWorkflow({ ...workflow, settings });
-      // The row's graph can be behind the canvas — the build places nodes and
-      // then writes stage `done` — so save what the editor holds when there is
-      // one, and the stored graph when there is not.
-      const live = state.getNodeStore(workflowId)?.getState().getWorkflow();
-      await state.saveWorkflow({ ...(live ?? workflow), settings });
-    },
-    [store, workflowId]
+/** A workflow with no `settings.game` is not mid-flow. */
+export const useGameSetupStage = (workflowId: string): GameSetupStage =>
+  useWorkflowManager(
+    (state) =>
+      readGameSetup(state.getWorkflow(workflowId)?.settings)?.stage ?? "done"
   );
 
-  return { setGame };
+/** True once the workflow row is in the manager, whatever it holds. */
+export const useGameWorkflowLoaded = (workflowId: string): boolean =>
+  useWorkflowManager((state) => state.getWorkflow(workflowId) !== undefined);
+
+export interface GameSetupWriter {
+  /** Merge a patch and save it now. Rejects when the save fails. */
+  setGame: (patch: Partial<GameSetup>) => Promise<void>;
+  /** The same, for callers nobody awaits: a failure becomes a notification. */
+  setGameQuietly: (patch: Partial<GameSetup>) => void;
+  /** Merge a typed edit at once and save it after the typing pauses. */
+  editGame: (patch: Partial<GameSetup>) => void;
+}
+
+export const useGameSetupWriter = (workflowId: string): GameSetupWriter => {
+  const { write, edit } = useWorkflowSettingsWriter<Partial<GameSetup>>(
+    workflowId,
+    writeGameSetup
+  );
+  const setGameQuietly = useCallback(
+    (patch: Partial<GameSetup>) => {
+      write(patch).catch(reportSetupSaveError);
+    },
+    [write]
+  );
+  return { setGame: write, setGameQuietly, editGame: edit };
 };

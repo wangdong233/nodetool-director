@@ -11,6 +11,8 @@ import { CopyButton, LoadingSpinner, ToolbarIconButton, SPACING, BORDER_RADIUS, 
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import TextEditorModal from "./TextEditorModal";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
+import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivation";
+import { EditorActivationCover, cn } from "../editor_ui";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { useTranslation } from "react-i18next";
 
@@ -33,7 +35,7 @@ const rootStyles = (theme: Theme) =>
     ".json-action-buttons": {
       position: "absolute",
       right: 0,
-      top: "-3px",
+      top: `-${getSpacingPx(SPACING.micro)}`,
       opacity: 0.8,
       zIndex: Z_INDEX.dropdown
     },
@@ -45,6 +47,7 @@ const rootStyles = (theme: Theme) =>
       fontSize: "var(--fontSizeSmall)"
     },
     ".editor-wrapper": {
+      position: "relative",
       height: "120px",
       overflow: "hidden",
       backgroundColor: "var(--palette-grey-600)",
@@ -64,7 +67,7 @@ const rootStyles = (theme: Theme) =>
     },
     ".editor-placeholder": {
       padding: `0 ${getSpacingPx(SPACING.md)}`,
-      fontFamily: "monospace",
+      fontFamily: "var(--fontFamily2)",
       whiteSpace: "pre-wrap",
       overflow: "hidden",
       alignItems: "flex-start",
@@ -97,6 +100,15 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
+  // Follow external writes (reset, undo/redo, agent edits) while the user is
+  // not typing, so blur never writes stale text back.
+  const storeValue = props.value?.data ?? "";
+  useEffect(() => {
+    if (!isFocused && storeValue !== value) {
+      setValue(storeValue);
+    }
+  }, [storeValue, isFocused, value]);
+
   const {
     MonacoEditor,
     monacoLoadError,
@@ -104,6 +116,9 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
     loadMonacoIfNeeded,
     monacoOnMount
   } = useMonacoEditor();
+  // On the canvas the editor stays covered until clicked; see the hook.
+  const activation = useCodeEditorActivation();
+  const { attachEditor } = activation;
 
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
@@ -158,6 +173,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
   const handleEditorMount = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
       monacoOnMount(editor);
+      attachEditor(editor);
       const blur = editor.onDidBlurEditorText(() => {
         setIsFocused(false);
         validateJSONRef.current(editor.getValue());
@@ -170,7 +186,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         focus.dispose();
       });
     },
-    [monacoOnMount]
+    [monacoOnMount, attachEditor]
   );
 
   // Defer Monaco loading until the user shows interest — hovering the
@@ -241,10 +257,19 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
           onPointerDown={(e) => e.stopPropagation()}
         >
           <div
-            className={`editor-wrapper nodrag ${isFocused ? "nowheel" : ""}`}
+            className={cn(
+              "editor-wrapper",
+              (props.isInspector === true || activation.isActive) && "nodrag",
+              isFocused && "nowheel"
+            )}
             onFocus={handleInteract}
             onClick={handleInteract}
           >
+            {props.isInspector !== true &&
+              activation.editor &&
+              !activation.isActive && (
+                <EditorActivationCover onActivate={activation.activateAt} />
+              )}
             {MonacoEditor ? (
               <MonacoEditor
                 value={value}

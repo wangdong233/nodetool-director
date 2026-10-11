@@ -8,7 +8,7 @@
  * document with no `setup` at all opens as the editor and always has.
  */
 
-import { createElement, useCallback, useMemo, useRef } from "react";
+import { createElement, useCallback, useMemo, useState } from "react";
 import {
   composeImagePrompt,
   type SketchSetupStage
@@ -22,8 +22,14 @@ import {
 } from "../../../hooks/sketch/useRefineBrief";
 import { useUploadFirstLayer } from "../../../hooks/sketch/useUploadFirstLayer";
 import type { GenerationSummaryProps } from "../GenerationSummary";
-import type { SetupFlowConfig, SetupStep } from "../types";
+import { IMAGE_INPUT_TOKENS } from "../generationEstimate";
+import type {
+  SetupFlowConfig,
+  SetupOperationContext,
+  SetupStep
+} from "../types";
 import { IdeaStep } from "./IdeaStep";
+import { imageReferences, readReferences } from "./setupContext";
 import {
   ImageModelFooterField,
   LookStep,
@@ -47,7 +53,11 @@ export const useImageSetupStage = (): SketchSetupStage =>
 const FLOW_LABELS = { title: "Image" } as const;
 
 export interface ImageSetupFlowOptions {
-  /** Runs once the last step has written `done` and the batch is enqueued. */
+  /**
+   * Runs once the last step has written `done` and the batch's layers exist,
+   * before their jobs are started, so the host shows the contact sheet in the
+   * same render the stage leaves the flow (F14).
+   */
   onGenerated: (layerIds: readonly string[]) => void;
   /** Runs when an alternative finishes the flow without generating. */
   onFinish: () => void;
@@ -69,6 +79,10 @@ export const useImageSetupFlow = ({
   const brief = useSketchStore((state) => state.document.setup?.brief ?? "");
   const useCase = useSketchStore((state) => state.document.setup?.use_case);
   const refined = useSketchStore((state) => state.document.setup?.refined);
+  // The refinement sends up to this many attached images, each billed as input.
+  const referenceCount = useSketchStore(
+    (state) => imageReferences(readReferences(state.document.setup)).length
+  );
   const refinedFrom = useSketchStore((state) =>
     typeof state.document.setup?.refined_from === "string"
       ? state.document.setup.refined_from
@@ -76,21 +90,24 @@ export const useImageSetupFlow = ({
   );
   const {
     expandBrief,
+    cancel,
     refining,
-    error: refineError,
     model: refineModel
   } = useRefineBrief();
+  // Only a failed `Re-refine` belongs on the review. A use-case refinement
+  // reports on the shell's button, and its failure must not greet a creator
+  // who reaches the review with the brief they already had.
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const upload = useUploadFirstLayer(onFinish);
   const look = useLookStep();
 
-  // The reason a refused run gives arrives as state one render after the call
-  // resolves, so the step's own closure cannot see it. Mirror it and read the
-  // mirror, so the shell puts the real message on the button.
-  const refineErrorRef = useRef<string | null>(null);
-  refineErrorRef.current = refineError;
-
+  // A failed Re-refine belongs to the visit that asked for it. Coming back to
+  // the review later must not show it, with a paid "Try again", again.
   const onStageChange = useCallback(
-    (next: SketchSetupStage) => setSetup({ stage: next }),
+    (next: SketchSetupStage) => {
+      setReviewError(null);
+      setSetup({ stage: next });
+    },
     [setSetup]
   );
 
@@ -99,17 +116,26 @@ export const useImageSetupFlow = ({
     onFinish();
   }, [onFinish, setSetup]);
 
-  const refine = useCallback(async () => {
-    const refinedOk = await expandBrief();
-    if (!refinedOk) {
-      throw new Error(
-        refineErrorRef.current ?? i18n.t("storyboard:attrs.theModelDidNotReturnABrief", { defaultValue: "The model did not return a brief." })
-      );
-    }
-  }, [expandBrief]);
+  const refine = useCallback(
+    async (context?: SetupOperationContext) => {
+      setReviewError(null);
+      const outcome = await expandBrief(context?.signal);
+      if (!outcome.ok) {
+        throw new Error(outcome.error ?? i18n.t("storyboard:attrs.theModelDidNotReturnABrief", { defaultValue: "The model did not return a brief." }));
+      }
+    },
+    [expandBrief]
+  );
 
+  // The review's fields are the creator's draft, so another pass polishes
+  // them rather than replacing them with a fresh expansion (O4).
   const reRefine = useCallback(() => {
-    void expandBrief();
+    setReviewError(null);
+    void expandBrief(undefined, { keepEdits: true }).then((outcome) => {
+      if (!outcome.ok) {
+        setReviewError(outcome.error);
+      }
+    });
   }, [expandBrief]);
 
   // Coming back to the use case and pressing its button again must not pay for
@@ -131,10 +157,22 @@ export const useImageSetupFlow = ({
             next: "You read and fix the brief next. No layer is added and no image is rendered here.",
             model: refineModel,
             brief,
-            maxOutputTokens: REFINE_BRIEF_MAX_TOKENS
+            maxOutputTokens: REFINE_BRIEF_MAX_TOKENS,
+            extraInputTokens: referenceCount * IMAGE_INPUT_TOKENS
           }
         : undefined,
-    [brief, refineModel]
+    [brief, referenceCount, refineModel]
+  );
+  // Re-refine also sends the five edited fields back as context.
+  const reRefineSummary = useMemo<GenerationSummaryProps | undefined>(
+    () =>
+      refineSummary && refined
+        ? {
+            ...refineSummary,
+            brief: `${brief}\n${Object.values(refined).join("\n")}`
+          }
+        : refineSummary,
+    [brief, refineSummary, refined]
   );
 
   // PRD § 10.3 renders `composeImagePrompt`, so an empty one is an empty
@@ -150,6 +188,11 @@ export const useImageSetupFlow = ({
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0,
         blockedReason: "Describe the image, or upload one to edit",
+        // An upload finishes the flow when it lands, so Continue waits for it
+        // rather than racing it to the next step (F17).
+        pending: upload.uploading,
+        pendingLabel: "Reading your file",
+        onCancel: upload.cancel,
         footerControls: (context) =>
           createElement(BriefModelFooterField, { readOnly: context.readOnly }),
         render: () =>
@@ -173,7 +216,8 @@ export const useImageSetupFlow = ({
         render: () => createElement(UseCaseStep),
         // D4: this is the only thing the step does. No layer is added and no
         // job is started — the answer is text the creator reviews next.
-        onAdvance: briefIsCurrent ? undefined : refine
+        onAdvance: briefIsCurrent ? undefined : refine,
+        onCancel: cancel
       },
       {
         stage: "review",
@@ -186,14 +230,14 @@ export const useImageSetupFlow = ({
         // brief they are reading is being replaced (F2).
         pending: refining,
         pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
-        render: () =>
+        onCancel: cancel,        render: () =>
           createElement(ReviewStep, {
             onReRefine: reRefine,
             refining,
             // The failure belongs beside the control that asked for it, with
             // the edited brief still in the boxes (F9).
-            error: refineError,
-            generation: refineSummary
+            error: reviewError,
+            generation: reRefineSummary
           })
       },
       {
@@ -210,24 +254,28 @@ export const useImageSetupFlow = ({
           }),
         render: () => createElement(LookStep, { look }),
         // `generate` writes the terminal stage itself, before it enqueues
-        // anything (D3); the host then shows the contact sheet.
+        // anything (D3). The host gets the layers in that same tick: waiting
+        // for the start requests would leave a render where the stage is
+        // `done`, no batch is known, and the bare editor shows (F14).
         onAdvance: async () => {
-          onGenerated(await look.generate());
+          await look.generate(onGenerated);
         }
       }
     ],
     [
       brief,
       briefIsCurrent,
+      cancel,
       look,
       onGenerated,
       promptIsWritable,
       t,
       reRefine,
       refine,
-      refineError,
       refineSummary,
+      reRefineSummary,
       refining,
+      reviewError,
       startBlank,
       upload,
       useCase

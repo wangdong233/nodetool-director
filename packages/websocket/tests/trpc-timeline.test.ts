@@ -422,6 +422,37 @@ describe("timeline router", () => {
       expect(JSON.parse(savedDocumentJson).mediaTracks).toEqual([]);
     });
 
+    it("saves track folders and keeps the retarget lineage", async () => {
+      const folder = { id: "f1", name: "Titles" };
+      let savedDocumentJson = JSON.stringify({
+        tracks: [],
+        clips: [],
+        markers: [],
+        templateId: "seq-template"
+      });
+      const sequence = makeSeq({ document: savedDocumentJson });
+      TS.findById.mockResolvedValue(sequence);
+      TS.update.mockImplementation((_id, fields) => {
+        savedDocumentJson = (fields as { document: string }).document;
+        sequence.document = savedDocumentJson;
+        return Promise.resolve(sequence);
+      });
+      const caller = createCaller(makeCtx());
+
+      await caller.timeline.update({
+        id: "seq-1",
+        document: { tracks: [], trackFolders: [folder], clips: [], markers: [] }
+      });
+      expect(JSON.parse(savedDocumentJson).trackFolders).toEqual([folder]);
+      expect(JSON.parse(savedDocumentJson).templateId).toBe("seq-template");
+
+      await caller.timeline.update({
+        id: "seq-1",
+        document: { tracks: [], clips: [], markers: [], scriptEnabled: true }
+      });
+      expect(JSON.parse(savedDocumentJson).trackFolders).toEqual([folder]);
+    });
+
     it("persists a clip's word-level caption through the round-trip", async () => {
       TS.findById.mockResolvedValue(makeSeq());
       TS.update.mockResolvedValue(makeSeq());
@@ -548,6 +579,16 @@ describe("timeline router", () => {
       expect((await caller.timeline.get({ id: "seq-1" })).camera2d).toEqual(camera2d);
       await caller.timeline.update({ id: "seq-1", document: { tracks: [], clips: [], markers: [], camera2d: null } });
       expect((await caller.timeline.get({ id: "seq-1" })).camera2d).toBeNull();
+    });
+
+    it("preserves materialization ownership on ordinary saves and graphics-only duration", async () => {
+      const ownership = [{ boardId: "board-1", elementKeys: ["shot/product"] }];
+      const sequence = makeSeq({ document: JSON.stringify({ tracks: [], clips: [], markers: [], storyboardMaterializations: ownership }) });
+      TS.findById.mockResolvedValue(sequence);
+      const caller = createCaller(makeCtx());
+      await caller.timeline.update({ id: "seq-1", durationMs: 3000, document: { tracks: [], clips: [], markers: [] } });
+      expect(TS.update.mock.calls[0][1].duration_ms).toBe(3000);
+      expect(JSON.parse(TS.update.mock.calls[0][1].document).storyboardMaterializations).toEqual(ownership);
     });
 
     it("persists tempo through update and returns it from get", async () => {

@@ -23,13 +23,18 @@ export const staticEntries: PageEntry[] = [
   // finding 2). Priority sits with the segment landings, above the comparison
   // pages it feeds.
   { route: "/node-based-ai", title: "Node-based AI", description: "Build AI workflows with nodes, not prompts.", priority: 0.9, changeFrequency: "monthly", indexable: true },
+  // The landing page for "node based workflow" searches: why the graph can be
+  // trusted with paid runs, with the rendered workflow reel as its hero.
+  { route: "/node-based-workflows", title: "Node-based workflows", description: "Node-based workflows you can check, run, and rerun.", priority: 0.9, changeFrequency: "monthly", indexable: true },
   { route: "/agents", title: "AI Agents", description: "Build planning agents on a visual canvas.", priority: 0.8, changeFrequency: "monthly", indexable: true },
-  { route: "/developers", title: "For Developers", description: "One QuickJS sandbox for your code and your agent's.", priority: 0.8, changeFrequency: "monthly", indexable: true },
+  { route: "/developers", title: "For Developers", description: "Give your coding agent images, video, speech, and workflows over MCP.", priority: 0.8, changeFrequency: "monthly", indexable: true },
+  { route: "/libraries/browser", title: "@nodetool-ai/browser", description: "Drive one Chrome page over CDP, headless or in your own signed-in tab.", priority: 0.6, changeFrequency: "monthly", indexable: true },
+  { route: "/libraries/sandbox-compiler", title: "@nodetool-ai/sandbox-compiler", description: "Check whether an npm package runs in a QuickJS sandbox before you load it.", priority: 0.6, changeFrequency: "monthly", indexable: true },
   { route: "/marketing", title: "For Marketing", description: "Produce campaign assets with AI workflows.", priority: 0.8, changeFrequency: "monthly", indexable: true },
+  { route: "/gamedev", title: "Game Development", description: "Play and edit example games made in NodeTool Studio.", priority: 0.8, changeFrequency: "monthly", indexable: true },
   // /alternatives/* comes from the competitorEntries engine module.
   { route: "/templates", title: "AI Workflow Templates", description: "Browse ready-to-run NodeTool workflow templates by category.", priority: 0.8, changeFrequency: "weekly", indexable: true },
   { route: "/recipes", title: "AI Workflow Recipes", description: "Multi-step NodeTool recipes: the workflows to run, in order, shipped inside Studio.", priority: 0.8, changeFrequency: "monthly", indexable: true },
-  { route: "/apps", title: "AI Mini Apps", description: "Ready-to-use AI mini apps built with NodeTool's App Builder.", priority: 0.8, changeFrequency: "weekly", indexable: true },
   { route: "/use-cases/product-video", title: "Product Video", description: "Make product videos with AI workflows.", priority: 0.6, changeFrequency: "monthly", indexable: true },
   { route: "/use-cases/movie-poster", title: "Movie Poster", description: "Generate movie posters with AI workflows.", priority: 0.6, changeFrequency: "monthly", indexable: true },
   { route: "/use-cases/movie-trailer", title: "Movie Trailer", description: "Storyboard a trailer, then cut it on the timeline.", priority: 0.6, changeFrequency: "monthly", indexable: true },

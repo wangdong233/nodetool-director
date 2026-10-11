@@ -26,6 +26,9 @@
  * the author — selects the checks.
  */
 
+import { computeAffected, type PackageInfo } from "../affected/affected.js";
+import { isGlobalGateFile } from "./changed-files.js";
+
 export type HarnessKind = "static" | "execution" | "eval" | "meta";
 
 export type HarnessCapability =
@@ -46,6 +49,15 @@ interface HarnessSelfcheck {
    * staging, image builds) needs `--expensive`.
    */
   cost: "cheap" | "expensive";
+  /**
+   * True when the command is only workspace test-suite runs (`npm run test
+   * --workspace=...`) that `npm run test:affected` already runs in full for
+   * the same diff. Set only when that holds for every path of every covering
+   * surface: a suite in a workspace the diff does not make affected, or in
+   * `web`/`electron` (related tests only), is not redundant. The registry test
+   * derives this from the real workspace graph and fails on drift.
+   */
+  suiteOnly?: boolean;
 }
 
 export interface HarnessEntry {
@@ -113,22 +125,17 @@ const WORKFLOW_PLAN_SUITES =
   "npm run test --workspace=packages/agents -- app-build-workflow-plan && " +
   "npm run test --workspace=web -- src/components/setup/workflow src/hooks/workflow src/lib/tools/builtin/__tests__/workflowSetupTools";
 
-/**
- * The Game-flow suites: the protocol contracts (designer, slot prompt, graph
- * builder, settings), criterion 5's chip build against the real node registry,
- * the export node over the filled fixture, the four headless capabilities, and
- * the browser flow's steps and tools. One constant so the entry's `command` and
- * its `selfcheck` cannot drift.
- *
- * Vitest takes these positional arguments as file-path filters.
- */
+/** Native game schemas, simulation, renderer, graph, and persistence checks. */
 const GAME_FLOW_SUITES =
   "npm run test --workspace=packages/protocol -- game && " +
   "npm run test --workspace=packages/base-nodes -- game-graph-chips && " +
   "npm run test --workspace=packages/game-nodes && " +
-  "npm run test --workspace=packages/agents -- capabilities-game-setup capabilities-godot && " +
-  "npm run test --workspace=packages/websocket -- trpc-games && " +
-  "npm run test --workspace=web -- src/components/setup/game src/hooks/game src/lib/tools/builtin/__tests__/gameSetupTools";
+  "npm run test --workspace=packages/game-runtime && " +
+  "npm run test --workspace=packages/game-renderer && " +
+  "npm run test --workspace=packages/websocket -- trpc-games trpc-game-asset-browser gameDraftHistory style-presets && " +
+  "npm run test --workspace=packages/agents -- game && " +
+  "npm run test --workspace=packages/cli -- game-command && " +
+  "npm run test --workspace=web -- src/stores/game src/components/game src/components/setup/game src/hooks/game";
 
 /**
  * Durable generation recovery without a provider call. These suites exercise
@@ -173,8 +180,9 @@ const TIMELINE_NATIVE_MEDIA_EDITING_SUITES =
   "npm run test --workspace=packages/timeline -- extension && " +
   "npm run test --workspace=packages/runtime -- video-extension && " +
   "npm run test --workspace=packages/websocket -- video-extension-inference && " +
-  "npm run test --workspace=packages/agents -- timeline-generative-edit timeline-tool-loop && " +
-  "npm run test --workspace=web -- useTimelineAgentBridge timelineTools nativeMediaEditingAcceptance nativeMediaEditingPreview timelineExtension useTimelineExtension ExtendClipPanel";
+  "npm run test --workspace=packages/agents -- timeline-headless-media-parity timeline-tool-contracts timeline-generative-edit timeline-tool-loop && " +
+  "npm run test --workspace=web -- useTimelineAgentBridge timelineTools nativeMediaEditingAcceptance nativeMediaEditingPreview timelineExtension useTimelineExtension ExtendClipPanel" +
+  " && npm run test --workspace=packages/websocket -- generation-recovery-media";
 
 /**
  * The audio-driven-motion suites: `bake_audio_animation`'s own arithmetic
@@ -312,6 +320,31 @@ export const HARNESSES: HarnessEntry[] = [
     selfcheck: {
       command:
         "npm run test --workspace=packages/dsl -- flow-core flow-streaming flow-abort",
+      cost: "cheap",
+      suiteOnly: true
+    }
+  },
+  {
+    id: "app-runs",
+    title: "Durable app operation and generation attachment check",
+    command: "npm run test --workspace=packages/execution -- app-operation app-run-generation",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § App runs phase 1",
+    selfcheck: {
+      command: "npm run test --workspace=packages/execution -- app-operation app-run-generation",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "run-traces",
+    title: "Durable app trace, content policy and ancestry check",
+    command: "npm run test --workspace=packages/execution --workspace=packages/runtime --workspace=packages/models --workspace=packages/websocket -- run-trace external-trace-privacy http-tracing",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § Run traces phase 2",
+    selfcheck: {
+      command: "npm run test --workspace=packages/execution --workspace=packages/runtime --workspace=packages/models --workspace=packages/websocket -- run-trace external-trace-privacy http-tracing",
       cost: "cheap"
     }
   },
@@ -323,10 +356,88 @@ export const HARNESSES: HarnessEntry[] = [
     capabilities: ["json", "interact", "no-db"],
     docs: "docs/harnesses.md § nodetool app debug",
     selfcheck: {
+      // Ad Maker shows one step at a time, so the check walks both steps the
+      // way a person does before it judges whether every run is reachable.
       command:
-        "npm run dev:nodetool -- app debug packages/base-nodes/nodetool/examples/apps/ad-maker.app.json --no-run",
+        "npm run dev:nodetool -- app debug packages/base-nodes/nodetool/examples/apps/ad-maker.app.json --no-run --interact '[{\"set\":{\"key\":\"step\",\"value\":\"settle-the-message\"}},{\"set\":{\"key\":\"step\",\"value\":\"direct-the-campaign-image\"}}]'",
       cost: "cheap"
     }
+  },
+  {
+    id: "run-readers",
+    title: "Run reader, debug history and CLI failure-path check",
+    command: "npm run test --workspace=packages/execution --workspace=packages/models --workspace=packages/websocket --workspace=packages/agents --workspace=packages/cli -- runs-phase3 app-debug-versioned-targets app-debug-workflow-inputs-phase3 capabilities-runs runs-command runs-integration run-readers job-find runs-trpc sandbox-api-coverage",
+    kind: "execution",
+    capabilities: ["json"],
+    docs: "docs/harnesses.md § Run readers phase 3",
+    selfcheck: {
+      command: "npm run test --workspace=packages/execution --workspace=packages/models --workspace=packages/websocket --workspace=packages/agents --workspace=packages/cli -- runs-phase3 app-debug-versioned-targets app-debug-workflow-inputs-phase3 capabilities-runs runs-command runs-integration run-readers job-find runs-trpc sandbox-api-coverage",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "browser-run-spans",
+    title: "Browser run ownership, ancestry and restart check",
+    command: "npm run test --workspace=packages/websocket -- browser-run-spans-phase4 browser-app-run-phase4 app-runs-workflow",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § Run inspection phase 4",
+    selfcheck: {
+      command: "npm run test --workspace=packages/websocket -- browser-run-spans-phase4 browser-app-run-phase4 app-runs-workflow",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "run-inspection-ui",
+    title: "Stored trace, activity replay and browser recorder check",
+    command: "npm run test --workspace=web -- --runInBand --testPathPattern='browserRunTrace|browserWorkflowRunner|WorkflowRunner.test|TracePanel.test|TraceStore|useRuns|runTraceCache|appRunActivity|AgentActivityWidget|useWidgetRuntime|sketchPadWidget|workflowFormWidget|chatWidgets|mediaWidgets|buttonWidget|recorderWidgets|conditionalWidget|errorTraceReporting|ChatSurface.test|AskRunAgentButton|useAppRuntime|runJsScript.test'",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § Run inspection phase 4",
+    selfcheck: {
+      command: "npm run test --workspace=web -- --runInBand --testPathPattern='browserRunTrace|browserWorkflowRunner|WorkflowRunner.test|TracePanel.test|TraceStore|useRuns|runTraceCache|appRunActivity|AgentActivityWidget|useWidgetRuntime|sketchPadWidget|workflowFormWidget|chatWidgets|mediaWidgets|buttonWidget|recorderWidgets|conditionalWidget|errorTraceReporting|ChatSurface.test|AskRunAgentButton|useAppRuntime|runJsScript.test'",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "run-inspection-browser",
+    title: "Browser action ancestry and Trace/Logs reload journey",
+    command: "npm run test:journeys --workspace=web -- run-observability.spec.ts",
+    kind: "execution",
+    capabilities: ["browser"],
+    docs: "docs/harnesses.md § Run inspection phase 4"
+  },
+  {
+    id: "app-instance-history",
+    title: "Instance management, pinned versions and history projection check",
+    command: "npm run test --workspace=packages/models --workspace=packages/execution --workspace=packages/websocket -- app-instance run-list-app-metadata runs-phase3 app-operation",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § App instances and history phase 5",
+    selfcheck: {
+      command: "npm run test --workspace=packages/models --workspace=packages/execution --workspace=packages/websocket -- app-instance run-list-app-metadata runs-phase3 app-operation",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "app-instance-history-ui",
+    title: "Instance tabs, management cache and app host check",
+    command: "npm run test --workspace=web -- --runInBand --testPathPattern='WorkspaceTabsStore|useAppInstances|useAppInstance|ApplicationSurface|ApplicationRunView|AppRuntimeView|AppRunHistory|useAppRuntime'",
+    kind: "execution",
+    capabilities: [],
+    docs: "docs/harnesses.md § App instances and history phase 5",
+    selfcheck: {
+      command: "npm run test --workspace=web -- --runInBand --testPathPattern='WorkspaceTabsStore|useAppInstances|useAppInstance|ApplicationSurface|ApplicationRunView|AppRuntimeView|AppRunHistory|useAppRuntime'",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "app-instance-history-browser",
+    title: "Independent app instances and read-only historical results journey",
+    command: "npm run test:journeys --workspace=web -- app-instances.spec.ts run-observability.spec.ts",
+    kind: "execution",
+    capabilities: ["browser"],
+    docs: "docs/harnesses.md § App instances and history phase 5"
   },
   {
     id: "app-build",
@@ -374,6 +485,41 @@ export const HARNESSES: HarnessEntry[] = [
     kind: "execution",
     capabilities: ["json", "interact", "no-db"],
     docs: "docs/harnesses.md § nodetool timeline validate / debug"
+  },
+  {
+    id: "timeline-render",
+    title: "Timeline GPU render (video, stills or contact sheet)",
+    command:
+      "nodetool timeline render <id|file.json> [--stills] [--sheet [columns]] [--only <clips>] [--frames <spec>] [--scale <n>]",
+    kind: "execution",
+    capabilities: ["json", "no-db"],
+    agentTool: "render_timeline",
+    docs: "docs/harnesses.md § nodetool timeline render",
+    selfcheck: {
+      // Frame selection, preview scale and zero-area layers through the real
+      // GPU compositor. Skips with a reason when there is no WebGPU adapter.
+      command:
+        "npm run test --workspace=packages/video-nodes -- timeline-render-frames.gpu timeline-contact-sheet && " +
+        "npm run test --workspace=packages/cli -- timeline-render timeline-command",
+      cost: "cheap"
+    }
+  },
+  {
+    id: "timeline-score",
+    title: "Timeline craft scorecard (agent output vs. shipped showcase examples)",
+    command:
+      "nodetool timeline score <id|file.json> [--json] [--min-score <n>] [--sheet <out.png>]",
+    kind: "static",
+    capabilities: ["json", "no-db"],
+    docs: "docs/harnesses.md § nodetool timeline score",
+    selfcheck: {
+      // Deterministic: the metrics/formula core, plus the reference band
+      // computed from the shipped examples at test time — no model, no key.
+      command:
+        "npm run test --workspace=packages/execution -- timeline-score && " +
+        "npm run test --workspace=packages/cli -- timeline-score",
+      cost: "cheap"
+    }
   },
   {
     id: "serein-timeline-repro",
@@ -441,7 +587,11 @@ export const HARNESSES: HarnessEntry[] = [
     capabilities: ["no-db"],
     agentTool: "bake_audio_animation",
     docs: "docs/harnesses.md § Audio-driven timeline motion",
-    selfcheck: { command: TIMELINE_AUDIO_DRIVE_SUITES, cost: "cheap" }
+    selfcheck: {
+      command: TIMELINE_AUDIO_DRIVE_SUITES,
+      cost: "cheap",
+      suiteOnly: true
+    }
   },
   {
     id: "timeline-generated-matte",
@@ -514,12 +664,14 @@ export const HARNESSES: HarnessEntry[] = [
     agentTool: "test_js_script",
     docs: "docs/harnesses.md § nodetool jsscript",
     selfcheck: {
-      // Two checked-in fixtures with deterministic cases: no network, no
-      // secrets, no database. One sums a buffered list input; the other reads
-      // the numbers off `stream` from items the cases stage.
+      // Three checked-in fixtures with deterministic cases: no network, no
+      // secrets, no database. One sums a buffered list input; one reads the
+      // numbers off `stream` from items the cases stage; one imports a shipped
+      // sandbox pack, which resolves only when the CLI installs the catalog.
       command:
         "npm run dev:nodetool -- jsscript test packages/cli/tests/fixtures/js-script-sum.json && " +
-        "npm run dev:nodetool -- jsscript test packages/cli/tests/fixtures/js-script-running-total.json",
+        "npm run dev:nodetool -- jsscript test packages/cli/tests/fixtures/js-script-running-total.json && " +
+        "npm run dev:nodetool -- jsscript test packages/cli/tests/fixtures/js-script-timeline-pack.json",
       cost: "cheap"
     }
   },
@@ -561,7 +713,8 @@ export const HARNESSES: HarnessEntry[] = [
     docs: "docs/harnesses.md § nodetool chat",
     selfcheck: {
       command: "npm run test --workspace=packages/cli -- tests/chat-app.test.ts tests/chat-media.test.ts tests/terminal-keyboard.test.ts tests/terminal-input.test.ts tests/terminal-mouse.test.ts tests/terminal-screen.test.ts tests/chat-prompts.test.ts tests/chat-sessions.test.ts tests/websocket-client.test.ts",
-      cost: "cheap"
+      cost: "cheap",
+      suiteOnly: true
     }
   },
   {
@@ -689,20 +842,11 @@ export const HARNESSES: HarnessEntry[] = [
   },
   {
     id: "game-flow",
-    title:
-      "Game flow (design contract, slot graph, export node, headless tools)",
-    // No CLI command owns the flow: the surface is `settings.game` on a
-    // workflow and the Godot project the graph it builds writes. The checked-in
-    // suites are the headless surface — they build every shipped chip's design
-    // against the real node registry and hand the graph to the same validator
-    // `validate_workflow` runs, then run the export node over the filled
-    // fixture and read the project it wrote. Verification under real Godot is
-    // the one part that needs a binary: those cases skip with a reason when
-    // `GODOT_BIN` is unset rather than reporting green.
+    title: "Native game engine (validate, simulate, render, stage, persist)",
     command: GAME_FLOW_SUITES,
     kind: "static",
     capabilities: ["no-db"],
-    docs: "docs/creation-flows/game-prd.md § 8",
+    docs: "docs/plans/builtin-game-engine-design.md",
     selfcheck: { command: GAME_FLOW_SUITES, cost: "cheap" }
   },
   {
@@ -797,6 +941,20 @@ export const HARNESSES: HarnessEntry[] = [
     }
   },
   {
+    id: "mutator",
+    title: "Mutation testing (nodetool-mutator)",
+    command: "npm run mutate -- --base origin/main packages/<name>/src",
+    kind: "static",
+    capabilities: ["no-db"],
+    docs: "docs/harnesses.md § npm run mutate",
+    selfcheck: {
+      // Parses and binds every site in the tool's own source through the
+      // built CLI, without running a test.
+      command: "npm run mutate -- --scan packages/mutator/src",
+      cost: "cheap"
+    }
+  },
+  {
     id: "recipes",
     title: "Recipe chains (shipped manifests, the app listing, the site pages)",
     // A recipe names shipped example workflows and stores no graph, so what
@@ -837,7 +995,8 @@ export const HARNESSES: HarnessEntry[] = [
     docs: "docs/plans/tutorial-focus-animation.md",
     selfcheck: {
       command: "npm run test --workspace=demo",
-      cost: "cheap"
+      cost: "cheap",
+      suiteOnly: true
     }
   },
   {
@@ -870,7 +1029,8 @@ export const HARNESSES: HarnessEntry[] = [
       // resolution, drain/shutdown. Multi-minute (255 files), so this stays
       // an --expensive selfcheck rather than the default gate.
       command: "npm run test --workspace=packages/websocket",
-      cost: "expensive"
+      cost: "expensive",
+      suiteOnly: true
     }
   },
   {
@@ -882,7 +1042,8 @@ export const HARNESSES: HarnessEntry[] = [
     docs: "packages/models/AGENTS.md",
     selfcheck: {
       command: "npm run test --workspace=packages/models",
-      cost: "cheap"
+      cost: "cheap",
+      suiteOnly: true
     }
   },
   {
@@ -1048,16 +1209,15 @@ export const SURFACES: SurfaceEntry[] = [
     // `capability-suites` covers the seam — dispatch, classification, and what
     // a process with no action layer answers. The half below it runs in
     // `npm run test:integration --workspace=packages/browser`, which
-    // launches a real Chrome with the built extension loaded and drives the
-    // production transport end to end. It is not a selfcheck: it downloads
-    // Chrome and binds port 7777, so a diff to the relay still needs it run
-    // by hand.
+    // launches a real Chrome with the built extension loaded and its native
+    // host registered, and drives the production transport end to end. It is
+    // not a selfcheck: it downloads Chrome, so a diff to the relay still
+    // needs it run by hand.
     paths: [
       "chrome-extension/",
       "packages/browser/",
       "packages/agents/src/capabilities/browser.ts",
-      "packages/agents/src/capabilities/browser.specs.ts",
-      "packages/websocket/src/extension-cdp-bridge.ts"
+      "packages/agents/src/capabilities/browser.specs.ts"
     ]
   },
   {
@@ -1117,21 +1277,143 @@ export const SURFACES: SurfaceEntry[] = [
   },
   {
     id: "game-creation-flow",
-    title:
-      "Game creation flow (settings.game, designer, slot graph, export node, seeds)",
+    title: "Native game creation and editing",
     harnesses: ["game-flow", "capability-suites", "validate"],
     paths: [
+      "packages/cli/src/commands/game.ts",
+      "packages/protocol/src/game.ts",
+      "packages/protocol/src/game3d.ts",
       "packages/protocol/src/game-design.ts",
       "packages/protocol/src/game-graph.ts",
       "packages/protocol/src/game-flow-prompt.ts",
+      "packages/protocol/src/native-game-templates.ts",
       "packages/protocol/src/style-presets.ts",
       "packages/game-nodes/",
+      "packages/game-runtime/",
+      "packages/game-renderer/",
+      "packages/godot/",
+      "packages/godot-templates/",
       "packages/base-nodes/tests/game-graph-chips.test.ts",
       "packages/websocket/src/trpc/routers/games.ts",
+      "packages/websocket/src/trpc/routers/gameDraftHistory.ts",
       "packages/websocket/src/lib/style-presets.ts",
+      "web/src/components/game/",
       "web/src/components/setup/game/",
       "web/src/hooks/game/",
-      "web/src/lib/tools/builtin/gameSetup.ts"
+      "web/src/stores/game/",
+      "web/tests/journeys/native-game3d-editor.spec.ts",
+      "web/src/components/workspace/GameSurface.tsx",
+      "web/src/components/projects/NewProjectSurface.tsx",
+      "packages/protocol/src/game-script-params.ts"
+    ]
+  },
+  {
+    id: "app-runs",
+    title: "App instances and durable operation runs",
+    harnesses: ["app-runs"],
+    paths: [
+      "packages/models/src/app-instance.ts",
+      "packages/models/src/migrations/versions.ts",
+      "packages/protocol/src/api-schemas/app-runs.ts",
+      "packages/execution/src/service/app-operation.ts",
+      "packages/execution/src/app-run-generation.ts",
+      "packages/websocket/src/lib/app-instances-service.ts",
+      "packages/websocket/src/routes/app-runs.ts",
+      "packages/websocket/src/trpc/routers/app-instances.ts",
+      "packages/websocket/src/trpc/routers/app-runs.ts",
+      "web/src/components/appbuilder/runtime/"
+    ]
+  },
+  {
+    id: "run-traces",
+    title: "Server run trace persistence and privacy",
+    harnesses: ["run-traces"],
+    paths: [
+      "packages/protocol/src/run-trace.ts",
+      "packages/models/src/run-trace.ts",
+      "packages/models/src/migrations/run-traces.ts",
+      "packages/models/src/schema/run-traces.ts",
+      "packages/models/src/schema-pg/run-traces.ts",
+      "packages/runtime/src/run-trace-",
+      "packages/runtime/src/telemetry.ts",
+      "packages/runtime/src/trace-exporters.ts",
+      "packages/runtime/src/providers/loop-tracing.ts",
+      "packages/execution/src/run-trace-store.ts",
+      "packages/execution/src/service/run-trace-lifecycle.ts",
+      "packages/websocket/src/lib/http-tracing.ts",
+      "packages/websocket/src/storage-retention.ts"
+    ]
+  },
+  {
+    id: "run-readers",
+    title: "Common run inspection for agents and CLI",
+    harnesses: ["run-readers"],
+    paths: [
+      "packages/protocol/src/run-readers.ts",
+      "packages/protocol/src/api-schemas/runs.ts",
+      "packages/models/src/run-readers.ts",
+      "packages/execution/src/runs.ts",
+      "packages/execution/src/app-debug/run-recording.ts",
+      "packages/execution/src/service/app-debug-service.ts",
+      "packages/agents/src/capabilities/runs",
+      "packages/agents/src/capabilities/jobs.ts",
+      "packages/agents/src/evals/codeact-api-runs.ts",
+      "packages/cli/src/commands/runs.ts",
+      "packages/cli/src/app-debug/harness.ts",
+      "packages/websocket/src/trpc/routers/runs.ts",
+      "packages/websocket/src/lib/app-debug-service.ts"
+    ]
+  },
+  {
+    id: "run-inspection",
+    title: "Browser run ingestion and durable UI inspection",
+    harnesses: ["browser-run-spans", "run-inspection-ui", "run-inspection-browser"],
+    paths: [
+      "packages/protocol/src/browser-run-traces.ts",
+      "packages/execution/src/browser-app-run.ts",
+      "packages/execution/src/browser-run-spans.ts",
+      "packages/execution/src/browser-trace-policy.ts",
+      "packages/websocket/src/routes/run-spans.ts",
+      "packages/websocket/src/lib/test-ui-run-routes.ts",
+      "web/src/lib/browserRunTrace.ts",
+      "web/src/lib/workflow/browserWorkflowRunner.ts",
+      "web/src/components/panels/TracePanel.tsx",
+      "web/src/components/appbuilder/runtime/",
+      "web/src/components/appbuilder/AppRuntimeView.tsx",
+      "web/src/components/appbuilder/puck/useWidgetRuntime.ts",
+      "web/src/components/appbuilder/puck/conditionalWidget.tsx",
+      "web/src/components/workspace/ChatSurface.tsx",
+      "web/src/stores/ChatDraftStore.ts",
+      "web/src/components/appbuilder/puck/AgentActivityWidget.tsx",
+      "web/src/components/runs/",
+      "web/src/serverState/useRuns.ts",
+      "web/src/serverState/runTraceCache.ts",
+      "web/src/serverState/appRunActivity.ts",
+      "web/src/hooks/useAppOperationRun.ts",
+      "web/src/hooks/useRunInspection.ts",
+      "web/src/stores/TraceStore.ts",
+      "web/tests/journeys/run-observability.spec.ts"
+    ]
+  },
+  {
+    id: "app-instance-history",
+    title: "App instance management and historical results",
+    harnesses: ["app-instance-history", "app-instance-history-ui", "app-instance-history-browser"],
+    paths: [
+      "packages/models/src/app-instance",
+      "packages/models/src/run-readers.ts",
+      "packages/execution/src/runs.ts",
+      "packages/protocol/src/api-schemas/app-runs.ts",
+      "packages/websocket/src/lib/app-instances-service.ts",
+      "packages/websocket/src/routes/app-runs.ts",
+      "packages/websocket/src/trpc/routers/app-instances.ts",
+      "web/src/components/appbuilder/",
+      "web/src/components/workspace/ApplicationSurface.tsx",
+      "web/src/components/workspace/TabContent.tsx",
+      "web/src/stores/WorkspaceTabsStore.ts",
+      "web/src/serverState/useAppInstances.ts",
+      "web/src/serverState/useRuns.ts",
+      "web/tests/journeys/app-instances.spec.ts"
     ]
   },
   {
@@ -1160,6 +1442,8 @@ export const SURFACES: SurfaceEntry[] = [
     harnesses: [
       "timeline-validate",
       "timeline-debug",
+      "timeline-render",
+      "timeline-score",
       "timeline-versions",
       "eval"
     ],
@@ -1169,9 +1453,13 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/execution/src/timeline-debug/",
       "packages/cli/src/timeline-debug/",
       "packages/cli/src/commands/timeline-versions.ts",
+      "packages/cli/src/commands/timeline-render.ts",
+      "packages/cli/src/commands/timeline-score.ts",
+      "packages/video-nodes/src/nodes/timeline/compositeRender.ts",
       "packages/agents/src/tools/timeline-version-tools.ts",
       "packages/models/src/timeline-sequence-version.ts",
-      "packages/websocket/src/trpc/routers/timeline.ts"
+      "packages/websocket/src/trpc/routers/timeline.ts",
+      "scripts/motion-craft-eval.mjs"
     ]
   },
   {
@@ -1204,6 +1492,14 @@ export const SURFACES: SurfaceEntry[] = [
     harnesses: ["timeline-native-media-editing"],
     paths: [
       "packages/timeline/src/generative.ts",
+      "packages/agents/src/capabilities/timelines.ts",
+      "packages/agents/src/capabilities/timeline-media-edit.ts",
+      "packages/agents/src/capabilities/timeline-clip-frames.ts",
+      "packages/agents/tests/timeline-headless-media-parity.test.ts",
+      "packages/runtime/src/trim-video-window.ts",
+      "packages/websocket/src/timeline-generation-recovery.ts",
+      "packages/websocket/src/lib/media.ts",
+      "packages/websocket/tests/generation-recovery-media.test.ts",
       "packages/timeline/src/extension.ts",
       "packages/timeline/src/extensionRequest.ts",
       "packages/timeline/src/takes.ts",
@@ -1222,18 +1518,6 @@ export const SURFACES: SurfaceEntry[] = [
       "web/src/components/timeline/preview/__tests__/nativeMediaEditingPreview.test.tsx",
       "web/src/lib/tools/builtin/timeline.ts"
     ]
-  },
-  {
-    id: "timeline-native-media-editing-server-generation-gap",
-    title: "Server edit_timeline generative-edit submission",
-    harnesses: [],
-    paths: ["packages/agents/src/capabilities/timelines.ts"],
-    gap:
-      "edit_timeline deliberately excludes ui_timeline_generatively_edit_clip: " +
-      "it can persist a timeline document but cannot submit or reconcile a " +
-      "durable media-generation job. A future harness should drive that " +
-      "server-side job through candidate creation, explicit apply_take, and " +
-      "a restored undo snapshot without inventing an asset id."
   },
   {
     id: "timeline-audio-drive",
@@ -1387,20 +1671,21 @@ export const SURFACES: SurfaceEntry[] = [
     ]
   },
   {
-    id: "godot",
-    title:
-      "Godot game pipeline (slot contract, game nodes, project writer, templates, godot capabilities)",
+    id: "native-game",
+    title: "Native game assets, nodes, renderer, and agent capabilities",
     harnesses: ["capability-suites"],
     paths: [
       "packages/protocol/src/game-assets.ts",
       "packages/protocol/fixtures/game-assets/",
-      "packages/godot/",
-      "packages/godot-templates/",
+      "packages/game-runtime/",
+      "packages/game-renderer/",
       "packages/image-nodes/src/nodes/game.ts",
       "packages/audio-nodes/src/nodes/game.ts",
-      "packages/game-nodes/src/project.ts",
-      "packages/agents/src/capabilities/godot.ts",
-      "packages/agents/src/capabilities/godot.specs.ts"
+      "packages/game-nodes/src/nodes/game.ts",
+      "packages/agents/src/capabilities/game.ts",
+      "packages/agents/src/capabilities/game.specs.ts",
+      "packages/agents/src/capabilities/game3d.ts",
+      "packages/agents/src/capabilities/game-asset-source.ts"
     ]
   },
   {
@@ -1442,7 +1727,7 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/video-nodes/src/nodes/storyboard.ts",
       "packages/base-nodes/nodetool/examples/nodetool-base/Per-SKU Ad Factory.json",
       "packages/base-nodes/nodetool/examples/nodetool-base/Localized Explainer.json",
-      "packages/base-nodes/nodetool/examples/nodetool-base/Platformer Asset Pack.json",
+      "packages/base-nodes/nodetool/examples/nodetool-base/Top-down Native Asset Pack.json",
       "packages/base-nodes/nodetool/examples/nodetool-base/Three Ratios.json",
       "packages/cli/fixtures/graph-resources/",
       "scripts/graph-resources-fixtures.mjs"
@@ -1487,7 +1772,9 @@ export const SURFACES: SurfaceEntry[] = [
     paths: [
       "demo/src/",
       "demo/scripts/render-tutorials.ts",
-      "demo/scripts/render-marketing.ts"
+      "demo/scripts/render-marketing.ts",
+      "demo/scripts/encode-hero.mjs",
+      "demo/scripts/vibe-track.ts"
     ]
   },
   {
@@ -1516,6 +1803,12 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/kie-nodes/src/kie-manifest.json",
       "scripts/provider-codegen-check.mjs"
     ]
+  },
+  {
+    id: "mutation-testing",
+    title: "Mutation testing tool and its score report",
+    harnesses: ["mutator"],
+    paths: ["packages/mutator/", "scripts/mutation-score.mjs"]
   },
   {
     id: "deploy-image",
@@ -1630,6 +1923,7 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/together-nodes/",
       "packages/topaz-nodes/",
       "packages/transformers-js-nodes/",
+      "packages/whisper-cpp/",
       "packages/video-nodes/",
       // Portable runner (graph + registry → a Request/Response handler); CI
       // groups it with the node packages for the same reason.
@@ -1838,18 +2132,24 @@ export function auditPathClaims(
 // The gate: diff → touched surfaces → selfchecks to run.
 // ---------------------------------------------------------------------------
 
-interface GateCheck {
+export interface GateCheck {
   harnessId: string;
   command: string;
   cost: "cheap" | "expensive";
+  /** The selfcheck's `suiteOnly`: `test:affected` already runs these suites. */
+  suiteOnly: boolean;
   /** Touched surfaces this check verifies. */
   surfaces: string[];
 }
 
 export interface GatePlan {
   changedFiles: string[];
-  /** Touched surfaces with the files that touched them. */
-  surfaces: Array<{ id: string; files: string[] }>;
+  /**
+   * Touched surfaces with the files that touched them. `viaDependency` marks
+   * a surface touched only because a workspace holding one of its paths is
+   * downstream of a changed workspace (`files` may then be empty).
+   */
+  surfaces: Array<{ id: string; files: string[]; viaDependency?: boolean }>;
   /** Deduped selfchecks for every harness covering a touched surface. */
   checks: GateCheck[];
   /**
@@ -1859,20 +2159,35 @@ export interface GatePlan {
   manual: Array<{ harnessId: string; command: string; surfaces: string[] }>;
   /** Touched surfaces with no harness at all (documented gaps). */
   uncoveredSurfaces: string[];
-  /** Changed files no surface claims. */
+  /** Changed files no surface claims and no global rule absorbs. */
   unmappedFiles: string[];
+  /**
+   * Changed files that force the whole selfcheck set (`isGlobalGateFile`).
+   * When non-empty, `checks` holds every selfcheck.
+   */
+  globalFiles: string[];
 }
 
+/**
+ * Select checks for a diff. Without `packages`, a surface is touched only by a
+ * changed path under one of its prefixes. With them, a surface is also touched
+ * when one of its paths lies inside a workspace downstream of a changed one,
+ * since its code then runs against changed code (`viaDependency`).
+ */
 export function planGate(
   changedFiles: string[],
   harnesses: HarnessEntry[] = HARNESSES,
-  surfaces: SurfaceEntry[] = SURFACES
+  surfaces: SurfaceEntry[] = SURFACES,
+  packages?: PackageInfo[]
 ): GatePlan {
   const byId = new Map(harnesses.map((h) => [h.id, h]));
   const touched = new Map<string, string[]>();
+  const viaDependency = new Set<string>();
   const unmappedFiles: string[] = [];
+  const globalFiles = changedFiles.filter(isGlobalGateFile);
 
   for (const file of changedFiles) {
+    if (isGlobalGateFile(file)) continue;
     let matched = false;
     for (const s of surfaces) {
       if (s.paths.some((p) => file === p || file.startsWith(p))) {
@@ -1883,6 +2198,23 @@ export function planGate(
       }
     }
     if (!matched) unmappedFiles.push(file);
+  }
+
+  if (packages) {
+    const dirs = computeAffected(changedFiles, packages)
+      .affected.map((name) => packages.find((p) => p.name === name)?.dir)
+      .filter((d): d is string => d !== undefined)
+      .map((d) => d.replace(/^\.\//, "").replace(/\/+$/, ""));
+    for (const s of surfaces) {
+      if (touched.has(s.id)) continue;
+      const inside = s.paths.some((p) =>
+        dirs.some((d) => p === d || p.startsWith(`${d}/`))
+      );
+      if (inside) {
+        touched.set(s.id, []);
+        viaDependency.add(s.id);
+      }
+    }
   }
 
   const checkByHarness = new Map<string, GateCheck>();
@@ -1910,6 +2242,7 @@ export function planGate(
             harnessId: id,
             command: h.selfcheck.command,
             cost: h.selfcheck.cost,
+            suiteOnly: h.selfcheck.suiteOnly ?? false,
             surfaces: [s.id]
           });
         }
@@ -1928,12 +2261,32 @@ export function planGate(
     }
   }
 
+  // A global file selects every selfcheck, as `--all` does; surfaces it
+  // would not otherwise name stay with an empty list.
+  if (globalFiles.length > 0) {
+    for (const h of harnesses) {
+      if (!h.selfcheck || checkByHarness.has(h.id)) continue;
+      checkByHarness.set(h.id, {
+        harnessId: h.id,
+        command: h.selfcheck.command,
+        cost: h.selfcheck.cost,
+        suiteOnly: h.selfcheck.suiteOnly ?? false,
+        surfaces: []
+      });
+    }
+  }
+
   return {
     changedFiles,
-    surfaces: [...touched.entries()].map(([id, files]) => ({ id, files })),
+    surfaces: [...touched.entries()].map(([id, files]) => ({
+      id,
+      files,
+      ...(viaDependency.has(id) && { viaDependency: true })
+    })),
     checks: [...checkByHarness.values()],
     manual: [...manualByHarness.values()],
     uncoveredSurfaces,
-    unmappedFiles
+    unmappedFiles,
+    globalFiles
   };
 }

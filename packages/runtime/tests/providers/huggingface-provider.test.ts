@@ -500,6 +500,26 @@ describe("HuggingFaceProvider", () => {
         [0.3, 0.4]
       ]);
     });
+
+    it("truncates to the requested dimensions and re-normalizes", async () => {
+      const mockClient = makeMockHfClient({
+        featureExtraction: vi.fn().mockResolvedValue([3, 4, 12])
+      });
+      const provider = new HuggingFaceProvider(
+        { HF_TOKEN: "hf_test" },
+        { hfClient: mockClient }
+      );
+
+      const result = await provider.generateEmbedding({
+        text: "a",
+        model: "test",
+        dimensions: 2
+      });
+
+      expect(result[0][0]).toBeCloseTo(0.6);
+      expect(result[0][1]).toBeCloseTo(0.8);
+      expect(result[0]).toHaveLength(2);
+    });
   });
 
   describe("textToSpeechEncoded", () => {
@@ -652,15 +672,12 @@ describe("HuggingFaceProvider", () => {
   });
 
   describe("capabilities", () => {
-    it("advertises every supported modality", async () => {
-      const { providerCapabilities } = await import(
-        "../../src/providers/base-provider.js"
-      );
+    it("advertises every supported modality", () => {
       const provider = new HuggingFaceProvider(
         { HF_TOKEN: "hf_test" },
         { hfClient: makeMockHfClient() }
       );
-      const caps = providerCapabilities(provider);
+      const caps = provider.getCapabilities();
       expect(caps).toEqual(
         expect.arrayContaining([
           "text_to_image",

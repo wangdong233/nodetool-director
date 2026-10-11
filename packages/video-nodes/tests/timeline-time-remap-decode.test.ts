@@ -3,9 +3,9 @@
  *
  * `openVideoFrameStream` is forward-only: it decodes a clip once, in source
  * order, because a rate-retimed clip never asks for a source instant it has
- * already passed. A remap curve can. `openSourceFrameStream` is the answer —
- * it reopens the decode to seek backwards — and this asks ffmpeg whether the
- * frames that come back are the ones the curve names.
+ * already passed. A remap curve can. `openSourceFrameStream` retains bounded
+ * reverse windows, and this asks ffmpeg whether the frames that come back are
+ * the ones the curve names.
  *
  * The second half runs the same curves through `renderTimelineComposited`, so
  * the claim covers the wiring too: that a remapped clip reaches the
@@ -20,6 +20,7 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { execFileSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -138,7 +139,38 @@ describe("openSourceFrameStream", () => {
     }
   }, 60_000);
 
-  it("serves a reverse curve by reopening, and the frames descend", async () => {
+  it.skipIf(process.platform === "win32")(
+    "keeps the decode window when the grid probe answers slowly",
+    async () => {
+      // A loaded CI runner can take over a second to start ffprobe. A shim
+      // that delays the real binary must not push the stream into seek mode.
+      const realFfprobe = execFileSync("which", ["ffprobe"], { encoding: "utf8" }).trim();
+      const shimDir = await fs.mkdtemp(path.join(os.tmpdir(), "slow-ffprobe-"));
+      const shim = path.join(shimDir, "ffprobe");
+      await fs.writeFile(shim, `#!/bin/sh\nsleep 2\nexec "${realFfprobe}" "$@"\n`, { mode: 0o755 });
+      const originalPath = process.env.PATH;
+      process.env.PATH = `${shimDir}${path.delimiter}${originalPath ?? ""}`;
+      const stream = openSourceFrameStream({
+        filePath: clipPath,
+        size: { width: WIDTH, height: HEIGHT },
+        fps: FPS,
+        startSec: 0
+      });
+      try {
+        for (let k = 0; k < SOURCE_FRAMES; k++) {
+          expect(await stream.frameAtSourceSec(k / FPS)).not.toBeNull();
+        }
+        expect(stream.reopens).toBe(0);
+      } finally {
+        stream.close();
+        process.env.PATH = originalPath;
+        await fs.rm(shimDir, { recursive: true, force: true });
+      }
+    },
+    60_000
+  );
+
+  it("serves a reverse curve from a bounded window, and the frames descend", async () => {
     // The curve a reverse writes: t ascends over the clip, sourceMs descends.
     const sourceSecs: number[] = [];
     for (let k = SOURCE_FRAMES - 1; k >= 0; k--) sourceSecs.push(k / FPS);
@@ -163,14 +195,14 @@ describe("openSourceFrameStream", () => {
       expect(grays.map(nearestFrameIndex)).toEqual(
         sourceSecs.map((sec) => Math.round(sec * FPS))
       );
-      // Every step but the first is a backwards seek, so every one reopened.
-      expect(stream.reopens).toBe(sourceSecs.length - 1);
+      expect(stream.reopens).toBe(1);
+      expect(stream.reverseWindowBytes).toBeLessThanOrEqual(SOURCE_FRAMES * WIDTH * HEIGHT * 4);
     } finally {
       stream.close();
     }
   }, 120_000);
 
-  it("holds the last frame past the end of the media, like the rate path", async () => {
+  it.each([0, 0.025])("holds the last frame past the end of the media with source offset %s", async (offset) => {
     const stream = openSourceFrameStream({
       filePath: clipPath,
       size: { width: WIDTH, height: HEIGHT },
@@ -179,9 +211,13 @@ describe("openSourceFrameStream", () => {
     });
     try {
       await stream.frameAtSourceSec(0);
-      const past = await stream.frameAtSourceSec(SOURCE_FRAMES / FPS + 5);
+      const past = await stream.frameAtSourceSec(SOURCE_FRAMES / FPS + 5 + offset);
       expect(past).not.toBeNull();
       expect(nearestFrameIndex(grayAt(past!))).toBe(SOURCE_FRAMES - 1);
+      const held = await stream.frameAtSourceSec(SOURCE_FRAMES / FPS + 5 + offset);
+      expect(nearestFrameIndex(grayAt(held!))).toBe(SOURCE_FRAMES - 1);
+      const beginning = await stream.frameAtSourceSec(0);
+      expect(nearestFrameIndex(grayAt(beginning!))).toBe(0);
     } finally {
       stream.close();
     }

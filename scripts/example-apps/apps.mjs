@@ -15,17 +15,34 @@
 //                  outputs: { "<output name>": { to: "variable", variableId } } } ]
 //              Inputs with no mapping are driven by a widget; outputs with no
 //              mapping are displayed.
+//   modelOverrides { <bundleKey>: { <nodeId>: <model ref> } }
+//   propOverrides  { <bundleKey>: { <nodeId>: { <prop>: value } } } for a
+//              template default that suits the template but not the app
 //   sections   [ { title, op?, controls: [...], results: [...] } ]
 //   content    Optional authored widget tree, used instead of sections.
+//   steps      `true` shows one section at a time behind a Stepper. A
+//              section's `key` defaults to its slugified title, and the build
+//              declares the `step` variable unless the app does. A section may
+//              carry an `intro` and a `nextWhen` variable that must be filled
+//              before Next. Use it when sections run in order.
+//   layout     "tabs" puts each section on its own tab (at most three), for
+//              sections that are alternatives rather than steps.
+//
+// Model pickers for the graph's own model nodes are generated per section and
+// placed above its first run button. Two or more fold into a closed "Models"
+// accordion.
 //
 // Control kinds: input, text, model, number, slider, select, image, video, audio,
-// switch, color, run, note. Result kinds: progress, activity, error, show, showVar,
-// heading, note.
+// switch, color, run, note. Result kinds: progress, activity, transcript, error, show, showVar,
+// heading, note, and textVar for an editable variable under the run that fills it.
 // `text`, `model`, `select` and `slider` take an input name or `{ node, prop }` to drive
-// a node property inside the graph; `default` seeds the preview value.
+// a node property inside the graph; `default` seeds the preview value. `model` also
+// takes `{ variable }`: one picker for a model that several operations read.
 // `image`, `video`, and `audio` take a variable id or `{ input }`.
 // See buildControl() in the builder for the exact props each one emits.
 
+import { PRODUCT_PRICE_DROP_BUNDLE, PRODUCT_PRICE_DROP_DEBUG_INTERACTIONS } from "./product-price-drop.mjs";
+import { AD_LIBRARY_APPS } from "./ad-library-recipes.mjs";
 import { DIRECTED_CAMPAIGN_KIT_APP } from "./directed-campaign-kit.mjs";
 import { PODCAST_PRODUCTION_DESK_APP } from "./podcast-production-desk.mjs";
 import { UGC_PRODUCT_VIDEO_APP } from "./ugc-product-video.mjs";
@@ -59,26 +76,23 @@ const ATLASCLOUD_YOUCHUAN_REMOVE_BACKGROUND = {
   path: null,
   supported_tasks: ["remove_background"]
 };
-const ATLASCLOUD_SYNC_LIPSYNC = {
-  type: "video_model",
-  provider: "atlascloud",
-  id: "sync/lipsync-v3",
-  name: "Sync Lipsync v3",
+
+const NANO_BANANA_EDIT = {
+  type: "image_model",
+  provider: "fal_ai",
+  id: "fal-ai/nano-banana/edit",
+  name: "Nano Banana Edit",
   path: null,
-  supported_tasks: ["lip_sync"]
-};
-const OPENAI_TRANSCRIBE = {
-  type: "asr_model",
-  provider: "openai",
-  id: "gpt-4o-mini-transcribe",
-  name: "GPT-4o Mini Transcribe",
-  path: null
+  supported_tasks: []
 };
 
 export const EXAMPLE_APPS = [
+  {slug: "product-price-drop", name: "Product Price Drop", description: PRODUCT_PRICE_DROP_BUNDLE.description, tagline: "Exact product, editable prices, deterministic motion.", workflows: {}, featured: true, bundle: PRODUCT_PRICE_DROP_BUNDLE, debugInteractions: PRODUCT_PRICE_DROP_DEBUG_INTERACTIONS},
+  ...AD_LIBRARY_APPS,
   // ── 1 ──────────────────────────────────────────────────────────────────────
   {
     slug: "photo-studio",
+    layout: "tabs",
     name: "Photo Studio",
     emoji: "📸",
     featured: true,
@@ -88,6 +102,9 @@ export const EXAMPLE_APPS = [
       "A live photo editor and a batch retoucher behind one surface. The single-photo grade is pure GPU filters, so it runs with no API key at all.",
     note: "✨ `Enhance` runs locally. `Batch` adds a cloud grading pass and is billed per image.",
     workflows: { enhance: "Image Enhance", batch: "Photo Enhancement Suite" },
+    // The template's FLUX schnell is text-to-image only, so it drew a new
+    // picture instead of grading the photo it was given.
+    modelOverrides: { batch: { 3: NANO_BANANA_EDIT } },
     variables: [
       { id: "sourceImage", name: "Source photo", scope: "instance", type: "image" }
     ],
@@ -121,7 +138,7 @@ export const EXAMPLE_APPS = [
         controls: [
           { input: "photos", op: "batch", label: "Your photos" },
           { slider: "brightness_adjust", op: "batch", label: "Brightness", min: 0.5, max: 1.5, step: 0.05, pace: "release" },
-          { slider: "color_boost", op: "batch", label: "Color boost", min: 0, max: 2, step: 0.05, pace: "release" },
+          { slider: "color_boost", op: "batch", label: "Color boost", min: 0.5, max: 2, step: 0.05, pace: "release" },
           { run: ["batch"], label: "Enhance my photos" }
         ],
         results: [
@@ -136,6 +153,7 @@ export const EXAMPLE_APPS = [
   // ── 3 ──────────────────────────────────────────────────────────────────────
   {
     slug: "concept-studio",
+    steps: true,
     name: "Concept Studio",
     emoji: "🖌️",
     featured: true,
@@ -181,7 +199,7 @@ export const EXAMPLE_APPS = [
             ]
           },
           { text: "mood_keywords", op: "concepts", label: "Mood keywords" },
-          { slider: "variations", op: "concepts", label: "How many variations?", min: 1, max: 8, step: 1 },
+          { slider: "variations", op: "concepts", label: "How many variations?", min: 2, max: 8, step: 1 },
           { run: ["concepts"], label: "Generate concept art" }
         ],
         results: [
@@ -229,34 +247,60 @@ export const EXAMPLE_APPS = [
     ]
   },
 
-
-
   // ── 6 ──────────────────────────────────────────────────────────────────────
   {
     slug: "brand-and-social",
+    steps: true,
     name: "Brand & Social",
     emoji: "🎨",
     featured: true,
-    tagline: "One brand identity drives two deliverables.",
+    tagline: "Paste your website. An agent researches the brand, then two deliverables read what it found.",
     description:
-      "Fill in your brand once — the asset kit and the thumbnail factory both read the same values.",
-    note: "Your brand name, audience, and voice persist between sessions.",
+      "An agent opens your website, searches for what it leaves out, and fills in your brand. Edit anything it got wrong, then the asset kit and the thumbnail factory both read the same values.",
+    note: "Your brand fields persist between sessions. Research uses a model with browser and web search tools.",
     workflows: {
+      research: "Research a Brand from Its Website",
       brand: "Brand Asset Generator",
       hooks: "Hook & Thumbnail Factory"
     },
     variables: [
       { id: "brandName", name: "Brand name", scope: "user", persist: true, type: "str", default: "Aurora Labs" },
       { id: "audience", name: "Audience", scope: "user", persist: true, type: "str", default: "outdoor-minded people in their 30s" },
-      { id: "voice", name: "Brand voice", scope: "user", persist: true, type: "str", default: "friendly and confident, never corporate" }
+      { id: "voice", name: "Brand voice", scope: "user", persist: true, type: "str", default: "friendly and confident, never corporate" },
+      {
+        id: "brandDescription",
+        name: "Brand description",
+        scope: "user",
+        persist: true,
+        type: "str",
+        default: "A climate-tech startup building friendly home-energy tools. Warm, optimistic and human, where nature meets precision engineering."
+      },
+      { id: "tagline", name: "Tagline", scope: "user", persist: true, type: "str", default: "Power that gives back" }
     ],
     operations: [
+      {
+        id: "research",
+        name: "Research",
+        workflow: "research",
+        policy: "replace",
+        outputs: {
+          brand_name: { to: "variable", variableId: "brandName" },
+          audience: { to: "variable", variableId: "audience" },
+          voice: { to: "variable", variableId: "voice" },
+          brand_description: { to: "variable", variableId: "brandDescription" },
+          tagline: { to: "variable", variableId: "tagline" }
+        }
+      },
       {
         id: "kit",
         name: "Asset kit",
         workflow: "brand",
         policy: "replace",
-        inputs: { brand_name: { from: "variable", variableId: "brandName" } }
+        inputs: {
+          brand_name: { from: "variable", variableId: "brandName" },
+          brand_description: { from: "variable", variableId: "brandDescription" },
+          tagline: { from: "variable", variableId: "tagline" }
+        }
       },
       {
         id: "thumbnails",
@@ -268,18 +312,35 @@ export const EXAMPLE_APPS = [
     ],
     sections: [
       {
+        title: "Research your brand",
+        op: "research",
+        controls: [
+          { text: "website", op: "research", label: "Your website" },
+          { model: { node: "research_agent", prop: "model" }, op: "research", label: "Research model", modelKind: "language_model" },
+          { run: ["research"], label: "Research my brand", disabledWhen: "research" }
+        ],
+        results: [
+          { progress: "research", label: "Reading your site and searching…" },
+          { transcript: "research", label: "What the agent is doing", placeholder: "Pages opened and searches run appear here." },
+          { error: "research", label: "Research failed" },
+          { show: "research_notes", op: "research", as: "Markdown", label: "Research notes", demo: "## Brand\n**Aurora Labs** sells friendly home-energy tools.\n\n## Sources\n- https://example.com" }
+        ]
+      },
+      {
         title: "Your brand",
         controls: [
+          { note: "Research fills these in. Edit anything before you generate." },
           { textVar: "brandName", label: "Brand name" },
           { textVar: "audience", label: "Who is it for?", multiline: true },
           { textVar: "voice", label: "Brand voice", multiline: true },
-          { text: "brand_description", op: "kit", label: "Describe your brand", multiline: true },
-          { text: "tagline", op: "kit", label: "Tagline" },
+          { textVar: "brandDescription", label: "Describe your brand", multiline: true },
+          { textVar: "tagline", label: "Tagline" },
           { color: "primary_color", op: "kit", label: "Primary color" },
-          { run: ["kit"], label: "Generate brand assets" }
+          { run: ["kit"], label: "Generate brand assets", disabledWhen: "kit" }
         ],
         results: [
           { progress: "kit", label: "Designing your assets…" },
+          { error: "kit", label: "Asset generation failed" },
           { show: "social_assets", op: "kit", as: "Image", label: "Your brand assets", demo: IMG },
           { show: "brand_brief", op: "kit", as: "Markdown", label: "Brand brief", demo: "**Aurora Labs — brand direction.** Warm, optimistic, human. Nature meets precision engineering." }
         ]
@@ -290,10 +351,11 @@ export const EXAMPLE_APPS = [
         controls: [
           { text: "Video Topic", op: "thumbnails", label: "What's your video about?", multiline: true },
           { number: "Number of Hooks", op: "thumbnails", label: "How many hooks?", min: 3, max: 8 },
-          { run: ["thumbnails"], label: "Make hooks & thumbnails" }
+          { run: ["thumbnails"], label: "Make hooks & thumbnails", disabledWhen: "thumbnails" }
         ],
         results: [
           { progress: "thumbnails", label: "Writing hooks & rendering thumbnails…" },
+          { error: "thumbnails", label: "Thumbnails failed" },
           { show: "thumbnail_gallery", op: "thumbnails", as: "Image", label: "Thumbnail gallery", demo: IMG },
           { show: "hooks", op: "thumbnails", as: "Markdown", label: "Hook ideas", demo: "1. “You're losing $100/month by not knowing this.”\n2. “$5 a day → $1M. Here's the math nobody shows you.”" },
           { show: "thumbnail", op: "thumbnails", as: "Image", label: "Featured thumbnail" }
@@ -305,6 +367,7 @@ export const EXAMPLE_APPS = [
   // ── 7 ──────────────────────────────────────────────────────────────────────
   {
     slug: "product-launch-kit",
+    steps: true,
     name: "Product Launch Kit",
     emoji: "📦",
     tagline: "One product photo in, mockups and a launch video out.",
@@ -347,13 +410,13 @@ export const EXAMPLE_APPS = [
           { textVar: "audience", label: "Who is it for?", multiline: true },
           { text: "product_name", op: "mockups", label: "Product name" },
           { text: "product_description", op: "mockups", label: "Describe the product", multiline: true },
-          { number: "num_scenes", op: "mockups", label: "How many scenes?", min: 1, max: 6 },
+          { number: "num_scenes", op: "mockups", label: "How many scenes?", min: 2, max: 6 },
           { run: ["mockups"], label: "Generate mockups" }
         ],
         results: [
           { progress: "mockups", label: "Staging your mockups…" },
           { show: "mockup", op: "mockups", as: "Image", label: "Mockups", demo: IMG },
-          { show: "scene", op: "mockups", as: "Markdown", label: "Shot list" }
+          { show: "scene", op: "mockups", as: "Image", label: "Scenes before the product goes in" }
         ]
       },
       {
@@ -376,6 +439,7 @@ export const EXAMPLE_APPS = [
   // ── 8 ──────────────────────────────────────────────────────────────────────
   {
     slug: "film-studio",
+    steps: true,
     name: "Film Studio",
     emoji: "🎬",
     featured: true,
@@ -422,22 +486,31 @@ export const EXAMPLE_APPS = [
     ],
     sections: [
       {
-        title: "The film",
+        title: "Shoot",
+        intro: "Write the film in one line and pick a look. One run directs, storyboards, shoots and scores it.",
         op: "produce",
         controls: [
-          { note: "💸 Each run of Produce or Rough cut incurs video and music generation charges." },
           { textVar: "brief", label: "Your film in one line", multiline: true },
           { textVar: "style", label: "Visual style", multiline: true },
           { text: "Shot Count", op: "produce", label: "Number of shots" },
-          { run: ["produce"], label: "Shoot my film", disabledWhen: "produce" },
-          { run: ["cut"], label: "Give me the rough cut", disabledWhen: "cut" }
+          { run: ["produce"], label: "Shoot my film", disabledWhen: "produce" }
         ],
         results: [
           { progress: "produce", label: "Directing, storyboarding & shooting…" },
           { error: "produce", label: "Film production failed" },
           { show: "direction", op: "produce", as: "Markdown", label: "Direction document", demo: "## THE BENDING LIGHT\n\n**Logline** — A keeper follows her own beam to the thing it will no longer stop pointing at." },
           { show: "storyboard", op: "produce", as: "Image", label: "Storyboard keyframes", demo: IMG },
-          { show: "film", op: "produce", as: "Video", label: "Finished film", demo: VIDEO },
+          { show: "film", op: "produce", as: "Video", label: "Finished film", demo: VIDEO }
+        ]
+      },
+      {
+        title: "Rough cut",
+        intro: "Cut the same brief into a timeline you can keep editing. This run generates video again.",
+        op: "cut",
+        controls: [
+          { run: ["cut"], label: "Give me the rough cut", disabledWhen: "cut" }
+        ],
+        results: [
           { progress: "cut", label: "Cutting the timeline…" },
           { error: "cut", label: "Rough cut failed" },
           { show: "film", op: "cut", as: "Video", label: "Editable rough cut" }
@@ -481,10 +554,10 @@ export const EXAMPLE_APPS = [
     slug: "model-arena",
     name: "Model Arena",
     emoji: "⚖️",
-    tagline: "One brief, three frontier models, answered side by side.",
+    tagline: "Three models answer one brief. A fourth judges them blind.",
     description:
-      "Three answers in three columns, each streaming independently. A missing provider key fails one column, not the run.",
-    note: "Choose one configured language model per column.",
+      "Three answers in three columns, each streaming independently, then a judge model scores them as A, B and C without knowing which model wrote which.",
+    note: "Choose one configured language model per column and one for the judge.",
     workflows: { arena: "Model Arena" },
     operations: [
       { id: "compare", name: "Compare", workflow: "arena", policy: "replace" }
@@ -496,13 +569,19 @@ export const EXAMPLE_APPS = [
         controls: [
           { text: "brief", op: "compare", label: "Your brief", multiline: true },
           { text: "context", op: "compare", label: "Extra context", multiline: true },
-          { run: ["compare"], label: "Compare the models" }
+          { model: { node: "openai_lane", prop: "model" }, op: "compare", label: "Model A", modelKind: "language_model" },
+          { model: { node: "anthropic_lane", prop: "model" }, op: "compare", label: "Model B", modelKind: "language_model" },
+          { model: { node: "gemini_lane", prop: "model" }, op: "compare", label: "Model C", modelKind: "language_model" },
+          { model: { node: "judge", prop: "model" }, op: "compare", label: "Judge", modelKind: "language_model" },
+          { run: ["compare"], label: "Compare the models", disabledWhen: "compare" }
         ],
         results: [
-          { progress: "compare", label: "Asking three models…" },
+          { progress: "compare", label: "Asking three models, then the judge…" },
+          { error: "compare", label: "A model failed" },
           { show: "openai", op: "compare", as: "Markdown", label: "Model A", demo: "**Model A:** leads with a crisp three-point structure and ships a concrete next step." },
           { show: "anthropic", op: "compare", as: "Markdown", label: "Model B", demo: "**Model B:** longer reasoning, names the tradeoff explicitly, flags one risk the others miss." },
-          { show: "gemini", op: "compare", as: "Markdown", label: "Model C", demo: "**Model C:** tightest answer, strongest factual recall, lightest on caveats." }
+          { show: "gemini", op: "compare", as: "Markdown", label: "Model C", demo: "**Model C:** tightest answer, strongest factual recall, lightest on caveats." },
+          { show: "verdict", op: "compare", as: "Markdown", label: "Blind verdict", demo: "## Winner\n**B.** The only answer that ties the build-vs-buy call to the two spare engineers and the churn risk." }
         ]
       }
     ]
@@ -578,696 +657,10 @@ export const EXAMPLE_APPS = [
     ]
   },
 
-  // ── 13 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "product-reshoot",
-    name: "Product Reshoot",
-    emoji: "📦",
-    showEmoji: false,
-    featured: true,
-    tagline: "Relight the product. Change the set. Keep the product fixed.",
-    description:
-      "Start with one product photo and make three production-ready passes: a new set, a seasonal relight, or a clean cutout for compositing.",
-    note:
-      "Choose a treatment, review the result, then reuse the same product reference for another pass.",
-    workflows: {
-      backdrop: "Put a Product on a Studio Backdrop",
-      relight: "Relight a Product for a Seasonal Campaign",
-      cutout: "Cut a Product Out of Its Background"
-    },
-    modelOverrides: {
-      backdrop: { bg: ATLASCLOUD_YOUCHUAN_REMOVE_BACKGROUND },
-      cutout: { bg: ATLASCLOUD_YOUCHUAN_REMOVE_BACKGROUND }
-    },
-    variables: [
-      { id: "productPhoto", name: "Product photo", scope: "instance", type: "image" }
-    ],
-    operations: [
-      {
-        id: "backdrop",
-        name: "Backdrop",
-        workflow: "backdrop",
-        policy: "replace",
-        inputs: { photo: { from: "variable", variableId: "productPhoto" } }
-      },
-      {
-        id: "relight",
-        name: "Relight",
-        workflow: "relight",
-        policy: "replace",
-        inputs: { photo: { from: "variable", variableId: "productPhoto" } }
-      },
-      {
-        id: "cutout",
-        name: "Cut out",
-        workflow: "cutout",
-        policy: "replace",
-        inputs: { photo: { from: "variable", variableId: "productPhoto" } }
-      }
-    ],
-    sections: [
-      {
-        title: "Your product",
-        controls: [{ image: "productPhoto", label: "Product photo" }]
-      },
-      {
-        title: "Set the scene",
-        op: "backdrop",
-        controls: [
-          {
-            model: { node: "bg", prop: "model" },
-            op: "backdrop",
-            label: "Background removal model",
-            modelKind: "image_model",
-            task: "remove_background"
-          },
-          {
-            model: { node: "comp", prop: "model" },
-            op: "backdrop",
-            label: "Scene model",
-            modelKind: "image_model",
-            task: "image_to_image"
-          },
-          {
-            select: { node: "comp", prop: "prompt" },
-            op: "backdrop",
-            label: "Scene direction",
-            default:
-              "Keep the product as it is. Change only what is around it: warm concrete plinth, soft studio key from upper left, blurred background.",
-            options: [
-              "Keep the product as it is. Change only what is around it: warm concrete plinth, soft studio key from upper left, blurred background.",
-              "Keep the product as it is. Change only what is around it: white marble surface, bright daylight from a window, soft shadow.",
-              "Keep the product as it is. Change only what is around it: dark slate table, single hard spotlight, deep black background.",
-              "Keep the product as it is. Change only what is around it: pale oak shelf, morning light, out-of-focus plants behind.",
-              "Keep the product as it is. Change only what is around it: wet black rock at the shoreline, overcast sky, sea spray."
-            ]
-          },
-          {
-            run: ["backdrop"],
-            label: "Render the new set",
-            disabledWhen: "backdrop"
-          }
-        ],
-        results: [
-          { progress: "backdrop", label: "Cutting out and placing…" },
-          { error: "backdrop", label: "The set treatment failed" },
-          { note: "Review the product edges, shadow, and surface before keeping the treatment." },
-          { show: "styled", op: "backdrop", as: "Image", label: "Set treatment", demo: IMG }
-        ]
-      },
-      {
-        title: "Relight the product",
-        op: "relight",
-        controls: [
-          {
-            model: { node: "rl", prop: "model" },
-            op: "relight",
-            label: "Relight model",
-            modelKind: "image_model",
-            task: "image_to_image"
-          },
-          {
-            select: { node: "rl", prop: "prompt" },
-            op: "relight",
-            label: "Seasonal light",
-            default: "warm low winter sun from the left, long soft shadows",
-            options: [
-              "warm low winter sun from the left, long soft shadows",
-              "bright summer noon, hard overhead sun, short crisp shadows",
-              "soft spring window light from the right, gentle falloff",
-              "autumn golden hour from behind, amber rim light",
-              "cool blue evening light, neon reflections"
-            ]
-          },
-          {
-            run: ["relight"],
-            label: "Render the relight",
-            disabledWhen: "relight"
-          }
-        ],
-        results: [
-          { progress: "relight", label: "Relighting…" },
-          { error: "relight", label: "The relight failed" },
-          { note: "Keep the product identity fixed while you compare the light and shadow." },
-          { show: "seasonal", op: "relight", as: "Image", label: "Seasonal relight", demo: IMG }
-        ]
-      },
-      {
-        title: "Prepare a cutout",
-        op: "cutout",
-        controls: [
-          {
-            model: { node: "bg", prop: "model" },
-            op: "cutout",
-            label: "Background removal model",
-            modelKind: "image_model",
-            task: "remove_background"
-          },
-          {
-            run: ["cutout"],
-            label: "Remove the background",
-            disabledWhen: "cutout"
-          }
-        ],
-        results: [
-          { progress: "cutout", label: "Removing the background…" },
-          { error: "cutout", label: "The cutout failed" },
-          { note: "Use the transparent result in a layout, product page, or campaign composite." },
-          { show: "cutout", op: "cutout", as: "Image", label: "Transparent cutout", demo: IMG }
-        ]
-      }
-    ]
-  },
-
-  // ── 14 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "product-shot-video",
-    name: "Product Shot Video",
-    emoji: "🎥",
-    showEmoji: false,
-    featured: true,
-    tagline: "Turn a product photo into a controlled moving shot.",
-    description:
-      "Keep the product reference fixed and choose one camera move for a looping ad or a turntable clip for the product page.",
-    note:
-      "Choose an ad loop or turntable model. Review the motion before exporting the shot.",
-    workflows: {
-      loop: "Ad Loop from a Product Photo",
-      turntable: "Spin a Packshot into a Turntable Clip"
-    },
-    variables: [
-      { id: "productPhoto", name: "Product photo", scope: "instance", type: "image" }
-    ],
-    operations: [
-      {
-        id: "loop",
-        name: "Ad loop",
-        workflow: "loop",
-        policy: "replace",
-        inputs: { product_photo: { from: "variable", variableId: "productPhoto" } }
-      },
-      {
-        id: "turntable",
-        name: "Turntable",
-        workflow: "turntable",
-        policy: "replace",
-        inputs: { photo: { from: "variable", variableId: "productPhoto" } }
-      }
-    ],
-    sections: [
-      {
-        title: "Your product",
-        controls: [{ image: "productPhoto", label: "A clean product photo" }]
-      },
-      {
-        title: "Make a hero loop",
-        op: "loop",
-        controls: [
-          {
-            model: { node: "animate", prop: "model" },
-            op: "loop",
-            label: "Video model",
-            modelKind: "video_model",
-            task: "image_to_video"
-          },
-          {
-            select: "motion",
-            op: "loop",
-            label: "Camera move",
-            options: [
-              "Slow orbit around the product as a soft highlight travels across its surface",
-              "Slow push in toward the product as the background falls out of focus",
-              "Gentle dolly from left to right, product fixed, light sweeping across",
-              "Rise from a low angle to eye level, product centered, soft reflections",
-              "Hold still while steam and light drift around the product"
-            ]
-          },
-          {
-            run: ["loop"],
-            label: "Render the hero loop",
-            disabledWhen: "loop"
-          }
-        ],
-        results: [
-          { progress: "loop", label: "Animating…" },
-          { error: "loop", label: "The hero loop failed" },
-          { note: "Check the first and last frame for a clean loop and stable product geometry." },
-          { show: "ad_loop", op: "loop", as: "Video", label: "Rendered hero loop", demo: VIDEO }
-        ]
-      },
-      {
-        title: "Make a turntable",
-        op: "turntable",
-        controls: [
-          {
-            model: { node: "v", prop: "model" },
-            op: "turntable",
-            label: "Video model",
-            modelKind: "video_model",
-            task: "image_to_video"
-          },
-          {
-            select: { node: "v", prop: "prompt" },
-            op: "turntable",
-            label: "Turntable direction",
-            default: "slow orbit around the product, fixed lighting, product stays centered",
-            options: [
-              "slow orbit around the product, fixed lighting, product stays centered",
-              "full 360 degree turntable rotation, product centered, studio lighting fixed",
-              "slow half turn revealing the back of the product, fixed lighting",
-              "gentle rocking turn, product centered, soft studio light"
-            ]
-          },
-          {
-            run: ["turntable"],
-            label: "Render the turntable",
-            disabledWhen: "turntable"
-          }
-        ],
-        results: [
-          { progress: "turntable", label: "Rendering the turntable…" },
-          { error: "turntable", label: "The turntable failed" },
-          { note: "Use the turntable when the product page needs a clear view around the packshot." },
-          { show: "turntable", op: "turntable", as: "Video", label: "Rendered turntable", demo: VIDEO }
-        ]
-      }
-    ]
-  },
-
-  // ── 15 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "multi-shot-video",
-    name: "Multi-Shot Video",
-    emoji: "🎬",
-    featured: true,
-    tagline: "One logline in, a cut sequence of shots out.",
-    description:
-      "A director model writes the shot list and a style bible, every shot is rendered as a keyframe and animated, and the clips are cut together into one video.",
-    note: "💸 Each shot generates a keyframe and a video clip. Video is metered by duration, so start with a small shot count.",
-    workflows: { trailer: "Movie Trailer Generator" },
-    operations: [
-      {
-        id: "trailer",
-        name: "Direct",
-        workflow: "trailer",
-        policy: "replace",
-        timeoutMs: 1200000
-      }
-    ],
-    sections: [
-      {
-        title: "The brief",
-        op: "trailer",
-        controls: [
-          { text: "Logline", op: "trailer", label: "Logline", multiline: true },
-          {
-            select: "Visual Style",
-            op: "trailer",
-            label: "Visual style",
-            options: [
-              "cinematic film still, theatrical key art, anamorphic framing, high-contrast daylight, dust and sparks, handheld telephoto, motion blur, hard sun, blown-out sky, fine film grain, gritty",
-              "moody neo-noir, wet streets, sodium and neon, deep shadows, slow dolly moves, shallow focus",
-              "warm indie drama, natural window light, handheld 35mm, soft grain, muted pastel palette",
-              "clean sci-fi, cool white light, wide static compositions, glass and steel, minimal color",
-              "animated storybook, painterly textures, soft gradients, gentle camera drift"
-            ]
-          },
-          { slider: "Shot Count", op: "trailer", label: "How many shots?", min: 1, max: 8, step: 1 },
-          {
-            run: ["trailer"],
-            label: "Direct the video",
-            disabledWhen: "trailer"
-          }
-        ],
-        results: [
-          { progress: "trailer", label: "Writing, rendering and cutting shots…" },
-          { error: "trailer", label: "Video production failed" },
-          { show: "trailer", op: "trailer", as: "Video", label: "Your video", demo: VIDEO }
-        ]
-      }
-    ]
-  },
-
-  // ── 16 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "scene-builder",
-    name: "Scene Builder",
-    emoji: "🎞️",
-    showEmoji: false,
-    featured: true,
-    tagline: "Approve the frame, then animate the shot.",
-    description:
-      "Describe a scene, review the editorial still, then animate that exact frame so the subject, framing, and color carry into the moving shot.",
-    note:
-      "Approve the still before you render the moving shot.",
-    workflows: { look: "Editorial Still from a Line", motion: "Bring a Still to Life" },
-    variables: [
-      { id: "still", name: "The still", scope: "instance", type: "image" }
-    ],
-    operations: [
-      {
-        id: "look",
-        name: "Look",
-        workflow: "look",
-        policy: "replace",
-        outputs: { picture: { to: "variable", variableId: "still" } }
-      },
-      {
-        id: "motion",
-        name: "Motion",
-        workflow: "motion",
-        policy: "replace",
-        inputs: { still: { from: "variable", variableId: "still" } }
-      }
-    ],
-    sections: [
-      {
-        title: "Approve the frame",
-        op: "look",
-        controls: [
-          {
-            model: { node: "img", prop: "model" },
-            op: "look",
-            label: "Image model",
-            modelKind: "image_model",
-            task: "text_to_image"
-          },
-          { text: "subject", op: "look", label: "Scene brief", multiline: true },
-          { run: ["look"], label: "Render the still", disabledWhen: "look" }
-        ],
-        results: [
-          { progress: "look", label: "Rendering the still…" },
-          { error: "look", label: "The still failed" },
-          { note: "Approve the composition before moving to the shot." },
-          { showVar: "still", as: "Image", label: "Approved still", demo: IMG }
-        ]
-      },
-      {
-        title: "Animate the approved frame",
-        op: "motion",
-        controls: [
-          {
-            model: { node: "vid", prop: "model" },
-            op: "motion",
-            label: "Video model",
-            modelKind: "video_model",
-            task: "image_to_video"
-          },
-          {
-            select: "motion",
-            op: "motion",
-            label: "Shot direction",
-            options: [
-              "Slow push in with a gentle parallax drift",
-              "Slow pull back revealing more of the scene",
-              "Lateral dolly left to right with foreground parallax",
-              "Locked-off camera, only atmosphere and light move",
-              "Slow tilt up from the ground to the sky"
-            ]
-          },
-          {
-            slider: { node: "vid", prop: "duration" },
-            op: "motion",
-            label: "Shot length",
-            min: 6,
-            max: 10,
-            step: 2,
-            default: 6
-          },
-          {
-            run: ["motion"],
-            label: "Render the moving shot",
-            disabledWhen: "motion"
-          }
-        ],
-        results: [
-          { progress: "motion", label: "Animating…" },
-          { error: "motion", label: "The moving shot failed" },
-          { note: "Review the motion for continuity with the approved still." },
-          { show: "animated", op: "motion", as: "Video", label: "Moving shot", demo: VIDEO }
-        ]
-      }
-    ]
-  },
-
-  // ── 17 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "video-restyle",
-    name: "Video Restyle",
-    emoji: "🎨",
-    featured: false,
-    tagline: "Repaint a clip in a new style while its motion stays put.",
-    description:
-      "Upload footage, name the look and what must survive, and a video-to-video model applies the style while the motion stays put.",
-    note: "Video restyling is billed per clip.",
-    workflows: { restyle: "Video Restyle Studio" },
-    operations: [
-      { id: "restyle", name: "Restyle", workflow: "restyle", policy: "replace" }
-    ],
-    sections: [
-      {
-        title: "Restyle a clip",
-        op: "restyle",
-        controls: [
-          {
-            model: { node: "restyle", prop: "model" },
-            op: "restyle",
-            label: "Restyle model",
-            modelKind: "video_model",
-            task: "video_to_video"
-          },
-          {
-            video: { input: "source_video", op: "restyle" },
-            op: "restyle",
-            label: "The clip"
-          },
-          {
-            select: "style",
-            op: "restyle",
-            label: "The look",
-            options: [
-              "1980s anime cel animation, hand-inked outlines, flat gouache color, visible film grain",
-              "claymation, soft studio light, fingerprints in the clay, stop-motion cadence",
-              "black and white 16mm documentary, heavy grain, high contrast",
-              "oil painting, thick impasto brushwork, warm gallery light",
-              "neon cyberpunk, wet reflections, magenta and cyan rim light",
-              "pencil sketch on paper, cross-hatched shading, visible paper grain"
-            ]
-          },
-          { text: "preserve", op: "restyle", label: "What must survive" },
-          { run: ["restyle"], label: "Restyle the clip" }
-        ],
-        results: [
-          { progress: "restyle", label: "Repainting every frame…" },
-          { show: "restyled", op: "restyle", as: "Video", label: "Restyled clip", demo: VIDEO }
-        ]
-      }
-    ]
-  },
-
-  // ── 18 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "ai-spokesperson",
-    name: "AI Spokesperson",
-    emoji: "🗣️",
-    featured: false,
-    tagline: "Give a presenter clip a new script.",
-    description:
-      "Text-to-speech voices the script, then a lip-sync model redrives the mouth in the source footage so the delivery matches. Localize a take, fix a fluffed line, or spin one recording into many variants.",
-    note: "Voice generation and lip-sync are both billed per run.",
-    workflows: { revoice: "AI Spokesperson" },
-    modelOverrides: {
-      revoice: { sync: ATLASCLOUD_SYNC_LIPSYNC }
-    },
-    operations: [
-      { id: "revoice", name: "Revoice", workflow: "revoice", policy: "replace" }
-    ],
-    sections: [
-      {
-        title: "New words, same take",
-        op: "revoice",
-        controls: [
-          { input: "presenter_clip", op: "revoice", label: "Presenter clip" },
-          { text: "script", op: "revoice", label: "What they should say", multiline: true },
-          {
-            model: { node: "sync", prop: "model" },
-            op: "revoice",
-            label: "Lip-sync model",
-            modelKind: "video_model",
-            task: "lip_sync"
-          },
-          {
-            run: ["revoice"],
-            label: "Revoice the clip",
-            disabledWhen: "revoice"
-          }
-        ],
-        results: [
-          { progress: "revoice", label: "Voicing and syncing…" },
-          { error: "revoice", label: "The revoice failed" },
-          { show: "revoiced_clip", op: "revoice", as: "Video", label: "Revoiced clip", demo: VIDEO }
-        ]
-      }
-    ]
-  },
-
-  // ── 19 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "upscale-image",
-    name: "Upscale Image",
-    emoji: "🔍",
-    featured: false,
-    tagline: "Enlarge an image without the softness of a plain resize.",
-    description:
-      "Two upscalers behind one drop zone. ESRGAN reconstructs the detail that is there, which is what you want for a photo. Clarity invents plausible detail, which is what you want when the source is small.",
-    note: "One billed generation per upscale.",
-    workflows: {
-      faithful: "Upscale a Still",
-      clarity: "Take a Product Shot to Print Resolution"
-    },
-    operations: [
-      {
-        id: "faithful",
-        name: "Faithful",
-        workflow: "faithful",
-        policy: "replace"
-      },
-      {
-        id: "clarity",
-        name: "Clarity",
-        workflow: "clarity",
-        policy: "replace"
-      }
-    ],
-    sections: [
-      {
-        title: "Faithful",
-        op: "faithful",
-        controls: [
-          {
-            model: { node: "up", prop: "model" },
-            op: "faithful",
-            label: "Faithful model",
-            modelKind: "image_model",
-            task: "upscale"
-          },
-          {
-            image: { input: "picture", op: "faithful" },
-            op: "faithful",
-            label: "The image to enlarge (faithful)"
-          },
-          {
-            slider: { node: "up", prop: "scale" },
-            op: "faithful",
-            label: "Scale",
-            min: 2,
-            max: 4,
-            step: 2,
-            default: 4
-          },
-          { run: ["faithful"], label: "Upscale (ESRGAN)" }
-        ],
-        results: [
-          { progress: "faithful", label: "Reconstructing detail…" },
-          { show: "enlarged", op: "faithful", as: "Image", label: "Enlarged", demo: IMG }
-        ]
-      },
-      {
-        title: "Clarity",
-        op: "clarity",
-        controls: [
-          {
-            model: { node: "up", prop: "model" },
-            op: "clarity",
-            label: "Clarity model",
-            modelKind: "image_model",
-            task: "upscale"
-          },
-          {
-            image: { input: "photo", op: "clarity" },
-            op: "clarity",
-            label: "The image to enlarge (clarity)"
-          },
-          {
-            slider: { node: "up", prop: "scale" },
-            op: "clarity",
-            label: "Scale",
-            min: 2,
-            max: 4,
-            step: 2,
-            default: 4
-          },
-          { run: ["clarity"], label: "Upscale (Clarity)" }
-        ],
-        results: [
-          { progress: "clarity", label: "Adding detail…" },
-          { show: "print_ready", op: "clarity", as: "Image", label: "Print-ready", demo: IMG }
-        ]
-      }
-    ]
-  },
-
-  // ── 20 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "vertical-cut",
-    name: "Vertical Cut",
-    emoji: "📱",
-    featured: false,
-    tagline: "Landscape footage in, a 9:16 post and its cover frame out.",
-    description:
-      "Resize a 16:9 clip to the vertical frame and pull a still at the timestamp you choose for the cover. Both run locally through ffmpeg.",
-    note: "✨ Keyless. Both steps run on your machine.",
-    workflows: {
-      vertical: "Cut a Landscape Clip for Vertical",
-      cover: "Pull a Still from a Clip"
-    },
-    variables: [
-      { id: "clip", name: "The clip", scope: "instance", type: "video" }
-    ],
-    operations: [
-      {
-        id: "vertical",
-        name: "Vertical",
-        workflow: "vertical",
-        policy: "parallel",
-        inputs: { clip: { from: "variable", variableId: "clip" } }
-      },
-      {
-        id: "cover",
-        name: "Cover",
-        workflow: "cover",
-        policy: "parallel",
-        inputs: { clip: { from: "variable", variableId: "clip" } }
-      }
-    ],
-    sections: [
-      {
-        title: "Cut for vertical",
-        controls: [
-          { video: "clip", label: "Landscape clip" },
-          {
-            slider: { node: "frame", prop: "time" },
-            op: "cover",
-            label: "Cover frame at (seconds)",
-            min: 0,
-            max: 30,
-            step: 0.5,
-            default: 2
-          },
-          { run: ["vertical", "cover"], label: "Cut it" }
-        ],
-        results: [
-          { progress: "vertical", label: "Resizing…" },
-          { show: "vertical", op: "vertical", as: "Video", label: "Vertical clip", demo: VIDEO },
-          { show: "still", op: "cover", as: "Image", label: "Cover frame", demo: IMG }
-        ]
-      }
-    ]
-  },
-
   // ── 21 ─────────────────────────────────────────────────────────────────────
   {
     slug: "ad-maker",
+    steps: true,
     name: "Ad Maker",
     emoji: "📣",
     showEmoji: false,
@@ -1327,7 +720,7 @@ export const EXAMPLE_APPS = [
     ],
     sections: [
       {
-        title: "1 · Settle the message",
+        title: "Settle the message",
         controls: [
           { textVar: "offer", label: "Offer or product brief", multiline: true },
           {
@@ -1376,7 +769,7 @@ export const EXAMPLE_APPS = [
         ]
       },
       {
-        title: "2 · Direct the campaign image",
+        title: "Direct the campaign image",
         controls: [
           {
             model: { node: "ag", prop: "model" },
@@ -1438,6 +831,7 @@ export const EXAMPLE_APPS = [
   // manifest describes in prose becomes a variable carried between them.
   {
     slug: "trailer-room",
+    steps: true,
     name: "Trailer Room",
     emoji: "🎞️",
     featured: false,
@@ -1552,6 +946,7 @@ export const EXAMPLE_APPS = [
   // ── 23 ─────────────────────────────────────────────────────────────────────
   {
     slug: "sku-factory",
+    steps: true,
     name: "SKU Factory",
     emoji: "🏷️",
     featured: false,
@@ -1571,6 +966,8 @@ export const EXAMPLE_APPS = [
       cutout: { bg: ATLASCLOUD_YOUCHUAN_REMOVE_BACKGROUND },
       listing: { ag: CODEX_LUNA }
     },
+    // LTX 2.3 fast takes 6 to 20 seconds, so the template's 4 is dropped.
+    propOverrides: { turntable: { v: { duration: 6 } } },
     variables: [
       { id: "packshot", name: "The packshot", scope: "instance", type: "image" }
     ],
@@ -1683,10 +1080,10 @@ export const EXAMPLE_APPS = [
             slider: { node: "v", prop: "duration" },
             op: "turntable",
             label: "Seconds",
-            min: 4,
-            max: 8,
+            min: 6,
+            max: 10,
             step: 2,
-            default: 4
+            default: 6
           },
           { run: ["turntable"], label: "Spin it" },
           {
@@ -1716,31 +1113,26 @@ export const EXAMPLE_APPS = [
     name: "Dubbing Desk",
     emoji: "🌍",
     featured: false,
-    tagline: "One presenter clip, spoken in another language, checked and subtitled.",
+    tagline: "One presenter clip, spoken in another language, voiced, subtitled and lip-synced.",
     description:
-      "The Multilingual Video Dubber chain behind one surface. Transcribing writes the script into a variable the revoice and back-translation steps both read, so the words that get dubbed are the words you can see.",
+      "A presenter clip taken through four steps: transcribe it, translate the script into the language you pick, voice and subtitle the translation, then lip-sync the footage. You can edit the script and the translation before anything is voiced, so the words that get dubbed are the words you see.",
     note: "Transcription, translation, speech, and lip-sync use configured models and are billed per run.",
+    steps: true,
     workflows: {
       transcribe: "Transcribe a Clip",
-      revoice: "Localise a Script and Revoice It",
-      check: "One Tagline, Six Markets",
-      spokesperson: "AI Spokesperson",
-      subtitles: "Subtitle Text from a Recording"
-    },
-    modelOverrides: {
-      revoice: { ag: CODEX_LUNA },
-      check: { ag: CODEX_LUNA },
-      subtitles: { ag: CODEX_LUNA }
+      translate: "Translate a Script for Dubbing",
+      voice: "Narrate a Script",
+      subtitles: "Subtitle Lines from a Script",
+      spokesperson: "Lip-sync a Clip to a Voice Track"
     },
     variables: [
+      { id: "step", name: "Step", scope: "instance", type: "str", default: "clip" },
       { id: "clip", name: "The clip", scope: "instance", type: "video" },
-      {
-        id: "script",
-        name: "Script",
-        scope: "instance",
-        type: "str",
-        default: ""
-      }
+      { id: "script", name: "Script", scope: "instance", type: "str", default: "" },
+      { id: "translation", name: "Translation", scope: "instance", type: "str", default: "" },
+      { id: "narration", name: "Voice track", scope: "instance", type: "audio" },
+      // One language model translates and writes the subtitles.
+      { id: "llm", name: "Language model", scope: "instance", type: "language_model", default: CODEX_LUNA }
     ],
     operations: [
       {
@@ -1752,18 +1144,33 @@ export const EXAMPLE_APPS = [
         outputs: { transcript: { to: "variable", variableId: "script" } }
       },
       {
-        id: "revoice",
-        name: "Revoice",
-        workflow: "revoice",
+        id: "translate",
+        name: "Translate",
+        workflow: "translate",
         policy: "replace",
-        inputs: { script: { from: "variable", variableId: "script" } }
+        inputs: {
+          script: { from: "variable", variableId: "script" },
+          model: { from: "variable", variableId: "llm" }
+        },
+        outputs: { translation: { to: "variable", variableId: "translation" } }
       },
       {
-        id: "check",
-        name: "Back-translate",
-        workflow: "check",
-        policy: "parallel",
-        inputs: { tagline: { from: "variable", variableId: "script" } }
+        id: "voice",
+        name: "Voice",
+        workflow: "voice",
+        policy: "replace",
+        inputs: { script: { from: "variable", variableId: "translation" } },
+        outputs: { narration: { to: "variable", variableId: "narration" } }
+      },
+      {
+        id: "subtitles",
+        name: "Subtitles",
+        workflow: "subtitles",
+        policy: "replace",
+        inputs: {
+          script: { from: "variable", variableId: "translation" },
+          model: { from: "variable", variableId: "llm" }
+        }
       },
       {
         id: "spokesperson",
@@ -1773,77 +1180,84 @@ export const EXAMPLE_APPS = [
         timeoutMs: 900000,
         inputs: {
           presenter_clip: { from: "variable", variableId: "clip" },
-          script: { from: "variable", variableId: "script" }
+          voice_track: { from: "variable", variableId: "narration" }
         }
-      },
-      {
-        id: "subtitles",
-        name: "Subtitles",
-        workflow: "subtitles",
-        policy: "parallel",
-        inputs: { recording: { from: "variable", variableId: "clip" } }
       }
     ],
     sections: [
       {
-        title: "The footage",
+        key: "clip",
+        title: "Clip",
+        intro: "Add a clip of one person who talks to the camera. The app writes down what they say.",
+        nextWhen: "script",
         controls: [
           { video: "clip", label: "Presenter clip" },
-          { run: ["transcribe"], label: "Get the script back out" },
-          { textVar: "script", label: "The script that gets dubbed", multiline: true },
-          { run: ["revoice", "subtitles"], label: "Revoice and subtitle" }
+          { op: "transcribe", model: { node: "asr", prop: "model" }, modelKind: "asr_model", label: "Transcription model" },
+          { run: ["transcribe"], label: "Transcribe the clip", disabledWhen: "transcribe" }
         ],
         results: [
           { progress: "transcribe", label: "Transcribing…" },
-          { progress: "revoice", label: "Translating and voicing…" },
+          { error: "transcribe", label: "Transcription failed" },
+          { textVar: "script", label: "What they say", multiline: true }
+        ]
+      },
+      {
+        key: "translate",
+        title: "Translate",
+        intro: "Pick the language of the dub and a language model. The same model writes the subtitles later. Read the translation and fix it before it is voiced.",
+        nextWhen: "translation",
+        controls: [
           {
-            show: "spanish_audio",
-            op: "revoice",
-            as: "Audio",
-            label: "Localised voice track",
-            demo: AUDIO
+            select: "language",
+            op: "translate",
+            label: "Target language",
+            options: ["Spanish", "French", "German", "Italian", "Portuguese", "Dutch", "Polish", "Japanese", "Korean", "Chinese", "Hindi", "Arabic"]
           },
+          { model: { variable: "llm" }, modelKind: "language_model", label: "Language model" },
+          { run: ["translate"], label: "Translate the script", disabledWhen: "translate" }
+        ],
+        results: [
+          { progress: "translate", label: "Translating…" },
+          { error: "translate", label: "Translation failed" },
+          { textVar: "translation", label: "The dubbed script", multiline: true }
+        ]
+      },
+      {
+        key: "voice",
+        title: "Voice",
+        intro: "Speak the translation with a new voice and break it into subtitle lines. The lip-sync uses this voice track.",
+        nextWhen: "narration",
+        controls: [
+          { op: "voice", model: { node: "tts", prop: "model" }, modelKind: "tts_model", label: "Voice" },
+          { run: ["voice", "subtitles"], label: "Voice and subtitle", disabledWhen: "voice" }
+        ],
+        results: [
+          { progress: "voice", label: "Voicing…" },
+          { error: "voice", label: "Voicing failed" },
+          { showVar: "narration", as: "Audio", label: "Voice track", demo: AUDIO },
+          { progress: "subtitles", label: "Writing subtitles…" },
+          { error: "subtitles", label: "Subtitles failed" },
           {
             show: "captions",
             op: "subtitles",
             as: "Markdown",
             label: "Subtitle lines",
-            demo: "1\n00:00:00,000 --> 00:00:02,400\nOur spring release ships today."
+            demo: "1\nNuestro lanzamiento de primavera\nsale hoy."
           }
         ]
       },
       {
-        title: "Make the mouth match",
+        key: "lipsync",
+        title: "Lip-sync",
+        intro: "Redraw the mouth so the presenter speaks the voice track from the last step. Lip-sync is billed per second of footage.",
         controls: [
-          { note: "💸 Lip-sync redraws the footage and is metered per second." },
-          { run: ["spokesperson"], label: "Lip-sync the clip" }
+          { op: "spokesperson", model: { node: "sync", prop: "model" }, modelKind: "video_model", label: "Lip-sync model" },
+          { run: ["spokesperson"], label: "Lip-sync the clip", disabledWhen: "spokesperson" }
         ],
         results: [
-          { progress: "spokesperson", label: "Redriving the mouth…" },
-          {
-            show: "revoiced_clip",
-            op: "spokesperson",
-            as: "Video",
-            label: "Dubbed cut",
-            demo: VIDEO
-          }
-        ]
-      },
-      {
-        title: "Check what you shipped",
-        controls: [
-          { text: "tagline", op: "check", label: "A line to read back", multiline: true },
-          { run: ["check"], label: "Show me all six" }
-        ],
-        results: [
-          { progress: "check", label: "Localising…" },
-          {
-            show: "localised",
-            op: "check",
-            as: "Markdown",
-            label: "Six markets, back-translated",
-            demo: "**de** — Schneller als letzte Saison. _(Faster than last season.)_\n\n**fr** — Plus rapide que la saison dernière. _(Faster than last season.)_"
-          }
+          { progress: "spokesperson", label: "Redrawing the mouth…" },
+          { error: "spokesperson", label: "Lip-sync failed" },
+          { show: "revoiced_clip", op: "spokesperson", as: "Video", label: "Dubbed clip", demo: VIDEO }
         ]
       }
     ]
@@ -1852,6 +1266,7 @@ export const EXAMPLE_APPS = [
   // ── 25 ─────────────────────────────────────────────────────────────────────
   {
     slug: "viral-ad-engine",
+    steps: true,
     name: "Viral Ad Engine",
     emoji: "📈",
     featured: false,

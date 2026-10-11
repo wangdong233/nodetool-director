@@ -10,12 +10,14 @@
 
 import { withGenerationSeam } from "./_helpers/generation-seam.js";
 import { describe, expect, it, vi } from "vitest";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import type { Message, MessageContent } from "@nodetool-ai/protocol";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import { createLocalWorkspace } from "@nodetool-ai/runtime";
+import { parseWavBytes, readWavHeader } from "@nodetool-ai/audio-nodes";
 import { toolFromCapability } from "../src/capabilities/adapters.js";
 import { DEFAULT_UNDERSTAND_VIDEO_TOKENS } from "../src/capabilities/media.specs.js";
 import { UNGATED, createCapabilityRun } from "../src/capabilities/invoke.js";
@@ -654,6 +656,30 @@ describe("ffmpeg and yt_dlp capabilities", () => {
     }
   });
 
+  it.each(["absolute path", "file URI"])(
+    "ffmpeg does not stage a host file named by %s in inputs",
+    async (kind) => {
+      // On a remote MCP session or a cloud chat the host disk is not the
+      // caller's. A staged copy would land in the workspace, readable back.
+      const dir = await mkdtemp(join(tmpdir(), "ffmpeg-inputs-host-"));
+      const outside = await mkdtemp(join(tmpdir(), "ffmpeg-host-secret-"));
+      try {
+        const secret = join(outside, "secret.txt");
+        await writeFile(secret, "do-not-leak");
+        const ref = kind === "file URI" ? pathToFileURL(secret).href : secret;
+        const result = (await asTool(ffmpeg).process(workspaceContext(dir), {
+          args: ["-i", "a.txt", "out.mp4"],
+          inputs: { "a.txt": ref }
+        })) as Record<string, unknown>;
+        expect(String(result["error"])).toMatch(/could not read/);
+        await expect(readFile(join(dir, "a.txt"), "utf8")).rejects.toThrow();
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+        await rm(outside, { recursive: true, force: true });
+      }
+    }
+  );
+
   it("ffmpeg refuses an inputs name that escapes the workspace", async () => {
     const dir = await mkdtemp(join(tmpdir(), "ffmpeg-inputs-"));
     try {
@@ -759,7 +785,7 @@ describe("generate_speech when both TTS paths fail", () => {
     // textToSpeech". Discarding the encoded error reported the one thing that
     // was not wrong, and a live session went hunting for another TTS model
     // with the real reason sitting in the error it never saw.
-    const context = {
+    const context = withGenerationSeam({
       userId: "user-1",
       textToSpeechEncoded: async () => {
         throw new Error("model fal-ai/gemini-3.1-flash-tts is not enabled");
@@ -767,7 +793,7 @@ describe("generate_speech when both TTS paths fail", () => {
       streamProviderPrediction: async function* () {
         throw new Error("fal_ai does not support textToSpeech");
       }
-    } as unknown as ProcessingContext;
+    }) as unknown as ProcessingContext;
 
     const result = (await asTool(generateSpeech).process(context, {
       provider: "fal_ai",
@@ -777,6 +803,55 @@ describe("generate_speech when both TTS paths fail", () => {
 
     expect(String(result["error"])).toContain("is not enabled");
     expect(String(result["error"])).toContain("streaming fallback then failed");
+  });
+});
+
+describe("generate_speech streaming PCM content", () => {
+  function streamingContext(pieces: readonly { samples?: Int16Array; sampleRate?: number }[]) {
+    const createAsset = vi.fn(async (_args: { content: Uint8Array; contentType: string }) => ({ id: "speech-asset" }));
+    const context = withGenerationSeam({
+      userId: "user-1",
+      textToSpeechEncoded: async () => null,
+      streamProviderPrediction: async function* () { yield* pieces; },
+      hasModelInterface: (name: string) => name === "createAsset",
+      createAsset
+    });
+    return { context: context as unknown as ProcessingContext, createAsset };
+  }
+
+  it.each([
+    { name: "empty stream", pieces: [] },
+    { name: "metadata-only stream", pieces: [{ sampleRate: 24000 }] },
+    { name: "zero-length PCM chunk", pieces: [{ samples: new Int16Array(), sampleRate: 24000 }] }
+  ])("rejects $name before WAV wrapping or asset creation", async ({ pieces }) => {
+    const { context, createAsset } = streamingContext(pieces);
+    const result = await asTool(generateSpeech).process(context, {
+      provider: "openai", model: "tts-1", text: "hello"
+    });
+    expect(result).toMatchObject({ error: expect.stringMatching(/no audio (data|samples)/i) });
+    expect(createAsset).not.toHaveBeenCalled();
+  });
+
+  it.each([0, -1, NaN, Infinity, 24000.5])("rejects invalid supplied PCM sample rate %s", async (sampleRate) => {
+    const { context, createAsset } = streamingContext([{ samples: new Int16Array([0]), sampleRate }]);
+    const result = await asTool(generateSpeech).process(context, {
+      provider: "openai", model: "tts-1", text: "hello"
+    });
+    expect(result).toMatchObject({ error: expect.stringMatching(/invalid.*sample rate/i) });
+    expect(createAsset).not.toHaveBeenCalled();
+  });
+
+  it("preserves nonempty silent PCM and its sample rate", async () => {
+    const { context, createAsset } = streamingContext([{ samples: new Int16Array(240), sampleRate: 32000 }]);
+    const result = await asTool(generateSpeech).process(context, {
+      provider: "openai", model: "tts-1", text: "hello"
+    });
+    expect(result).toMatchObject({ type: "audio", asset_id: "speech-asset" });
+    expect(createAsset).toHaveBeenCalledOnce();
+    const saved = createAsset.mock.calls[0][0];
+    expect(saved.contentType).toBe("audio/wav");
+    expect(readWavHeader(saved.content)).toMatchObject({ sampleRate: 32000, dataSize: 480 });
+    expect(parseWavBytes(saved.content)?.samples).toEqual(new Float32Array(240));
   });
 });
 
@@ -791,7 +866,7 @@ describe("generate_music through the adapter", () => {
       data: new Uint8Array([1, 2, 3]),
       mimeType: "audio/mpeg"
     }));
-    const context = {
+    const context = withGenerationSeam({
       userId: "user-1",
       textToMusic,
       workspace: {
@@ -800,7 +875,7 @@ describe("generate_music through the adapter", () => {
         read: async () => null,
         key: (p: string) => p
       }
-    } as unknown as ProcessingContext;
+    }) as unknown as ProcessingContext;
 
     const result = (await asTool(generateMusic).process(context, {
       provider: "fal_ai",
@@ -819,12 +894,12 @@ describe("generate_music through the adapter", () => {
   });
 
   it("names the model when the provider refuses", async () => {
-    const context = {
+    const context = withGenerationSeam({
       userId: "user-1",
       textToMusic: async () => {
         throw new Error("model is not enabled for this key");
       }
-    } as unknown as ProcessingContext;
+    }) as unknown as ProcessingContext;
 
     const result = (await asTool(generateMusic).process(context, {
       provider: "fal_ai",

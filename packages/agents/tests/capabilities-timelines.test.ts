@@ -1,3 +1,4 @@
+import { createTimelineToolBridge } from "../src/evals/surfaces/timeline.js";
 /**
  * The `timelines` capability module.
  *
@@ -10,7 +11,7 @@
  * directly.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import {
   Asset,
@@ -19,7 +20,7 @@ import {
   TimelineSequenceVersion,
   initTestDb
 } from "@nodetool-ai/models";
-import { module as timelines } from "../src/capabilities/timelines.js";
+import { applyOps, module as timelines } from "../src/capabilities/timelines.js";
 import { createCapabilityRun, UNGATED } from "../src/capabilities/invoke.js";
 import {
   capabilityCategoryFor,
@@ -135,6 +136,11 @@ describe("timelines capability module", () => {
       "video_to_audio",
       "recorded_voice_replacement",
       "lip_sync",
+      "get_timeline_code",
+      "set_timeline_code",
+      "edit_timeline_code",
+      "rebake_timeline_code",
+      "detach_timeline_code",
       "delete_timeline"
     ]);
   });
@@ -402,6 +408,7 @@ describe("timelines capability behaviour", () => {
     const read = (await run().invoke("get_timeline", {
       timeline_id: created.timeline_id
     })) as {
+      revision: number;
       timeline: {
         clips: Array<{
           mediaType: string;
@@ -413,6 +420,7 @@ describe("timelines capability behaviour", () => {
         }>;
       };
     };
+    expect(read.revision).toBe((await TimelineSequence.findById(created.timeline_id))!.revision);
     const placed = read.timeline.clips[0];
     expect(placed.mediaType).toBe("model3d");
     expect(placed.currentAssetId).toBe("asset_glb");
@@ -825,6 +833,75 @@ describe("timelines capability behaviour", () => {
     expect(missing.error).toContain("was not found");
   });
 
+  it("adds showcase warnings for inline and saved documents and rejects unknown tiers", async () => {
+    const row = await makeTimeline();
+    for (const target of [{ document: JSON.parse(document()) }, { timeline_id: row.id }]) {
+      const result = await run().invoke("validate_timeline", { ...target, tier: "showcase" });
+      expect(result).toMatchObject({ ok: true, warnings: expect.arrayContaining([
+        expect.objectContaining({ code: "showcase_scene_groups_missing" }),
+        expect.objectContaining({ code: "showcase_layer_density_low" })
+      ]) });
+      expect(await run().invoke("validate_timeline", { ...target, tier: "standard" })).toMatchObject({ summary: "No issues found." });
+    }
+    expect(await run().invoke("validate_timeline", { document: JSON.parse(document()), tier: "cinematic" })).toMatchObject({ error: expect.any(String) });
+  });
+
+  it("resolves a stack layout's children before measuring showcase collision boxes", async () => {
+    const stackDocument = (gapPx: number) =>
+      JSON.stringify({
+        tracks: [
+          { id: "t-stack", name: "Stack", type: "video", index: 0, visible: true, locked: false },
+          { id: "t-line1", name: "Line1", type: "video", index: 1, visible: true, locked: false },
+          { id: "t-line2", name: "Line2", type: "video", index: 2, visible: true, locked: false }
+        ],
+        clips: [
+          {
+            id: "stack", trackId: "t-stack", name: "Stack", startMs: 0, durationMs: 2000,
+            mediaType: "group", sourceType: "imported", status: "generated", locked: false, versions: [],
+            layout: { display: "flex", flexDirection: "column" }
+          },
+          {
+            id: "line1", trackId: "t-line1", name: "Line1", startMs: 0, durationMs: 2000,
+            mediaType: "text", sourceType: "imported", status: "generated", locked: false, versions: [],
+            parentId: "stack", textStyle: { text: "Title line", fontSizePx: 40, color: "#ffffff" }
+          },
+          {
+            id: "line2", trackId: "t-line2", name: "Line2", startMs: 0, durationMs: 2000,
+            mediaType: "text", sourceType: "imported", status: "generated", locked: false, versions: [],
+            parentId: "stack", textStyle: { text: "Subtitle line", fontSizePx: 40, color: "#ffffff" },
+            // Flex `gap` cannot go negative; a negative separation (the case
+            // that must still collide) is a negative top margin instead.
+            flexItem: { margin: { top: gapPx } }
+          }
+        ],
+        markers: []
+      });
+
+    const clear = (await run().invoke("validate_timeline", {
+      document: JSON.parse(stackDocument(100)),
+      tier: "showcase"
+    })) as { warnings: Array<{ code: string }> };
+    expect(clear.warnings.map((w) => w.code)).not.toContain("showcase_text_collision");
+
+    const overlap = (await run().invoke("validate_timeline", {
+      document: JSON.parse(stackDocument(-60)),
+      tier: "showcase"
+    })) as { warnings: Array<{ code: string }> };
+    expect(overlap.warnings.map((w) => w.code)).toContain("showcase_text_collision");
+
+    // The DB-backed path (a saved sequence, not an inline document) must
+    // resolve the same layout the same way — this is the path r1's
+    // build.mjs hit with "Cannot read properties of undefined (reading
+    // 'get')" against an earlier version of the layout-resolution change.
+    const row = await makeTimeline({ document: stackDocument(-60) });
+    const saved = (await run().invoke("validate_timeline", {
+      timeline_id: row.id,
+      tier: "showcase"
+    })) as { warnings: Array<{ code: string }>; error?: string };
+    expect(saved.error).toBeUndefined();
+    expect(saved.warnings.map((w) => w.code)).toContain("showcase_text_collision");
+  });
+
   it("reads a saved sequence through the run's loader", async () => {
     const loaded = createCapabilityRun({
       context: ctx(),
@@ -966,6 +1043,30 @@ describe("set_timeline_document", () => {
     expect(stored?.fps).toBe(24);
   });
 
+  it("accepts the sequence get_timeline returned and applies its name", async () => {
+    const row = await makeTimeline();
+    const { timeline } = (await run().invoke("get_timeline", {
+      timeline_id: row.id
+    })) as { timeline: Record<string, unknown> };
+    const result = (await run().invoke("set_timeline_document", {
+      timeline_id: row.id,
+      document: { ...timeline, ...replacement(), name: "Siam Awakening" }
+    })) as {
+      ok: boolean;
+      name: string;
+      validation: { warnings: { code: string; path?: string }[] };
+    };
+
+    expect(result).toMatchObject({ ok: true, name: "Siam Awakening" });
+    expect(
+      result.validation.warnings.filter((w) => w.code === "field_stripped")
+    ).toEqual([]);
+    const stored = await TimelineSequence.findById(row.id);
+    expect(stored?.name).toBe("Siam Awakening");
+    expect(stored?.project_id).toBe("default");
+    expect(stored?.toDocument()).not.toHaveProperty("name");
+  });
+
   it("fills the bookkeeping a hand-authored document leaves out", async () => {
     const row = await makeTimeline();
     const result = (await run().invoke("set_timeline_document", {
@@ -1029,9 +1130,8 @@ describe("set_timeline_document", () => {
     const row = await makeTimeline();
     const before = await TimelineSequence.findById(row.id);
     const broken = replacement();
-    // A clip on a track the document does not have: an error the validator
-    // raises, and a cut that cannot render.
-    broken.clips[0].trackId = "track-does-not-exist";
+    // Duplicate clip ids remain invalid after authoring normalization.
+    broken.clips[0].id = broken.clips[1].id;
 
     const result = (await run().invoke("set_timeline_document", {
       timeline_id: row.id,
@@ -1045,7 +1145,7 @@ describe("set_timeline_document", () => {
     expect(result.written).toBe(false);
     expect(result.validation.ok).toBe(false);
     expect(result.validation.errors.map((e) => e.code)).toContain(
-      "clip_track_missing"
+      "duplicate_id"
     );
     expect(result.error).toContain("was not written");
 
@@ -1133,5 +1233,177 @@ describe("set_timeline_document", () => {
       document: replacement()
     })) as { error: string };
     expect(theirs.error).toContain("was not found");
+  });
+});
+
+// The full bake→merge round trip (real sandbox, real DB) lives in
+// `codeact-timeline-package.test.ts`, which has a real `sandboxModuleCatalog`
+// wired in. `ctx()` here has none, so these tests cover the guard rails —
+// ownership, "no source to act on", a bake that fails cleanly — rather than
+// re-running the happy path.
+describe("get_timeline_code, set_timeline_code, edit_timeline_code, rebake_timeline_code, detach_timeline_code", () => {
+  it("get_timeline_code answers nulls for a timeline with no authoring code", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("get_timeline_code", {
+      timeline_id: row.id
+    })) as { code: string | null; baked_at: string | null; scenes: unknown[] };
+    expect(result).toEqual({ code: null, baked_at: null, scenes: [] });
+  });
+
+  it("get_timeline_code refuses a timeline that is not the caller's", async () => {
+    const row = await makeTimeline();
+    const result = (await run("other").invoke("get_timeline_code", {
+      timeline_id: row.id
+    })) as { error: string };
+    expect(result.error).toContain("was not found");
+  });
+
+  it("set_timeline_code refuses empty code", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("set_timeline_code", {
+      timeline_id: row.id,
+      code: "   "
+    })) as { error: string };
+    expect(result.error).toContain("code is required");
+  });
+
+  it("set_timeline_code reports a bake failure rather than throwing, when sandbox packages cannot be resolved here", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("set_timeline_code", {
+      timeline_id: row.id,
+      code: `
+import { video } from "@nodetool-ai/sandbox-timeline";
+const v = video({ width: 1080, height: 1920, fps: 30 });
+v.series([v.scene("one", 1, (s) => { s.text("hi", {}); })]);
+await v.save(nodetool.timelines, { name: "x" });
+`
+    })) as { timeline_id: string; errors: string[] };
+    expect(result.timeline_id).toBe(row.id);
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0]).toContain("sandbox packages cannot be resolved");
+
+    // Nothing was written — the timeline still carries no authoring code.
+    const after = await TimelineSequence.findById(row.id);
+    expect(after!.toDocument().source).toBeUndefined();
+  });
+
+  it("edit_timeline_code refuses when the timeline has no authoring code yet", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("edit_timeline_code", {
+      timeline_id: row.id,
+      edits: [{ old: "x", new: "y" }]
+    })) as { error: string };
+    expect(result.error).toContain("no authoring code to edit");
+  });
+
+  it("rebake_timeline_code refuses when the timeline has no authoring code yet", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("rebake_timeline_code", {
+      timeline_id: row.id
+    })) as { error: string };
+    expect(result.error).toContain("no authoring code to rebake");
+  });
+
+  it("detach_timeline_code answers an empty list for a timeline with no authoring code", async () => {
+    const row = await makeTimeline();
+    const result = (await run().invoke("detach_timeline_code", {
+      timeline_id: row.id,
+      scenes: "all"
+    })) as { scenes: string[] };
+    expect(result.scenes).toEqual([]);
+  });
+
+  it("detach_timeline_code refuses a bad scenes argument", async () => {
+    const row = await makeTimeline();
+    const seq = await TimelineSequence.findById(row.id);
+    await TimelineSequence.updateFieldsIfUnchanged(seq!.id, seq!.updated_at, {
+      document: JSON.stringify({
+        ...JSON.parse(document()),
+        source: {
+          lang: "js",
+          code: "x",
+          bakedAt: new Date().toISOString(),
+          scenes: { one: { groupId: "g1", hash: "h1" } }
+        }
+      })
+    });
+    const result = (await run().invoke("detach_timeline_code", {
+      timeline_id: row.id,
+      scenes: 123
+    })) as { error: string };
+    expect(result.error).toContain('scenes must be "all"');
+  });
+});
+
+
+describe("pure backend track batches", () => {
+  beforeEach(() => initTestDb());
+  afterEach(() => ModelObserver.clear());
+  it("matches the actual headless adapter including failures, stable IDs and metadata", async () => {
+    const row = await makeTimeline();
+    const original = row.toDocument();
+    original.clips[0] = {
+      ...original.clips[0]!,
+      sourceType: "generated",
+      bindingKind: "text-to-audio",
+      startMs: 5678
+    };
+    original.tempo = {
+      bpm: 97,
+      offsetMs: 50,
+      timeSignature: { beatsPerBar: 3, beatUnit: 4 }
+    };
+    // Both sides mint one track id; pin it so the records can be compared.
+    const uuid = vi
+      .spyOn(globalThis.crypto, "randomUUID")
+      .mockReturnValue("0000aaaa-0000-0000-0000-000000000001");
+    const bridge = createTimelineToolBridge({
+      sequence: {
+        ...original,
+        fps: row.fps,
+        width: row.width,
+        height: row.height
+      }
+    });
+    const ops = [
+      { op: "ui_timeline_add_track", input: { type: "midi", name: "Voice" } },
+      {
+        op: "ui_timeline_move_track",
+        input: { target: "Voice", before: "Video 1" }
+      },
+      { op: "ui_timeline_delete_track", input: { target: "Video 1" } },
+      {
+        op: "ui_timeline_delete_track",
+        input: { target: "Video 1", deleteClips: true }
+      },
+      { op: "ui_timeline_move_track", input: { target: "absent", toIndex: 0 } }
+    ];
+    const expectedRecords = [];
+    for (const { op, input } of ops) {
+      const tool = bridge.tools.find((tool) => tool.name === op)!;
+      try {
+        expectedRecords.push({
+          op,
+          ok: true,
+          result: await tool.execute(input)
+        });
+      } catch (error) {
+        expectedRecords.push({
+          op,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+    const actual = await applyOps(run(), row, original, ops);
+    expect(actual.records).toEqual(expectedRecords);
+    expect(actual.records[0]?.result).toMatchObject({ track: { instrument: { type: "subtractive" } } });
+    expect(actual.state).toEqual(bridge.finalState());
+    expect(original.tracks).toHaveLength(1);
+    expect(original.clips).toHaveLength(1);
+    expect(actual.records[0]?.result).toMatchObject({
+      track: { id: "0000aaaa000000000000000000000001" }
+    });
+    uuid.mockRestore();
   });
 });

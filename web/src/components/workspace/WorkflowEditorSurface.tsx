@@ -11,6 +11,7 @@ import {
 } from "../../hooks/workflow/useWorkflowSetup";
 import {
   readWorkflowBuild,
+  isWorkflowBuildLive,
   workflowBuildResult,
   type BuildFromPlanResult
 } from "../../hooks/workflow/useBuildFromPlan";
@@ -26,13 +27,19 @@ import {
 import { useCreateApplication } from "../../hooks/useApplications";
 import { useOpenApplication } from "../../hooks/useOpenApplication";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
-import GameSetupHost from "../setup/game/GameSetupHost";
 import WorkflowSetupHost from "../setup/workflow/WorkflowSetupHost";
+import GameSetupHost from "../setup/game/GameSetupHost";
+import type { GameStartAlternative } from "../setup/game/IdeaStep";
+import { useGameSetupStage } from "../../hooks/game/useGameSetup";
+import type { BuildGameResult } from "../../hooks/game/useBuildGame";
+import { createNative3DGame, createTopDownRoomGame } from "@nodetool-ai/game-runtime";
+import { newDocumentId } from "../../lib/newDocumentId";
+import { trpcClient } from "../../trpc/client";
+import ReportBugButton from "../support/ReportBugButton";
 import {
   examplePackageName,
   exampleSeedRef
 } from "../../utils/exampleWorkflow";
-import { useGameSetupStage } from "../../hooks/game/useGameSetup";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
 import { ConnectableNodesProvider } from "../../providers/ConnectableNodesProvider";
 import KeyboardProvider from "../KeyboardProvider";
@@ -43,17 +50,23 @@ import NodeCreateBridge from "../editor/NodeCreateBridge";
 import WorkflowChainSurface from "./WorkflowChainSurface";
 import SubgraphTabStrip from "./SubgraphTabStrip";
 import SubgraphTabContent from "./SubgraphTabContent";
-import { useSubgraphTabsStore } from "../../stores/SubgraphTabsStore";
+import {
+  findActiveChildTab,
+  useSubgraphTabsStore
+} from "../../stores/SubgraphTabsStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import {
   BORDER_RADIUS,
+  CloseButton,
   ConflictBanner,
   Box,
   FlexColumn,
   LoadingSpinner,
+  EmptyState,
   SPACING
 } from "../ui_primitives";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
+import { useBrowserPreviewsOnLoad } from "../../hooks/nodes/useBrowserPreviewsOnLoad";
 import WorkflowGraphPreview from "../version/WorkflowGraphPreview";
 import { WorkflowLandingChecklist } from "../setup/workflow/WorkflowLandingChecklist";
 import { i18n } from "../../i18n";
@@ -77,14 +90,12 @@ interface WorkflowEditorSurfaceProps {
  * The per-workflow NodeStore stays owned by the WorkflowManager; this surface
  * just looks it up (and triggers a fetch when a restored tab has none yet).
  *
- * A workflow whose `settings.game` is not at stage `done` is still mid-flow,
- * and this tab is where it is reopened after a refresh or a close — the New
- * Project tab that started the flow holds its target in component state, which
- * a reload throws away (game-prd criterion 2). So the setup host takes the tab
- * until the flow finishes, and `Build your game` hands the same tab back to
- * the canvas rather than opening a second one. A workflow saved before the
- * flow existed has no `game` key and reads `done`, so it opens as it always
- * did.
+ * A workflow whose `settings.game` is not at stage `done` is still in the
+ * Game flow, and this tab is where it is reopened after a refresh or a close,
+ * or where the `+ New` menu's Game entry opens it. The game setup host takes
+ * the tab until the build makes the game, which then opens in its own tab
+ * while this one closes. A workflow saved before the flow existed has no
+ * `game` key and reads `done`, so it opens as it always did.
  */
 const WorkflowEditorSurface = ({
   workflowId,
@@ -97,8 +108,10 @@ const WorkflowEditorSurface = ({
     state.getNodeStore(workflowId)
   );
   const workflow = useWorkflowManager((state) => state.getWorkflow(workflowId));
+  useBrowserPreviewsOnLoad(nodeStore, active && mode !== "view");
   const fetchWorkflow = useWorkflowManager((state) => state.fetchWorkflow);
   const createWorkflow = useWorkflowManager((state) => state.create);
+  const deleteWorkflow = useWorkflowManager((state) => state.delete);
   const closeTab = useWorkspaceTabsStore((state) => state.closeTab);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const workflowProjectId = useWorkspaceTabsStore(
@@ -116,18 +129,20 @@ const WorkflowEditorSurface = ({
     (state) => state.settings.editorViewMode
   );
   const [missing, setMissing] = useState(false);
-  const gameStage = useGameSetupStage(workflowId);
+  // Why the last load failed, or null while it has not.
+  const [loadFailed, setLoadFailed] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   // A workflow flow still in setup (`settings.setup` not at `done`) is where
   // this tab lands after a refresh or a close — same rule as the game flow
   // above. A workflow saved before the flow existed has no `setup` key and
   // reads `done`, so it opens as the canvas it always did.
   const setupStage = useWorkflowSetupStage(workflowId);
+  const gameStage = useGameSetupStage(workflowId);
+  const [gameFinished, setGameFinished] = useState(false);
   const setup = useWorkflowSetupDocument(workflowId);
   const persistedBuild = readWorkflowBuild(setup);
   // The document reaches stage `done` in the same click that places the nodes,
   // but this keeps the swap independent of when that save lands.
-  const [gameFinished, setGameFinished] = useState(false);
-  const finishGameFlow = useCallback(() => setGameFinished(true), []);
   // The document reaches stage `done` in the same click that places the
   // nodes, but this keeps the swap independent of when that save lands.
   const [setupFinished, setSetupFinished] = useState(false);
@@ -177,7 +192,9 @@ const WorkflowEditorSurface = ({
     !landingDismissed &&
     (landingResult ??
       (setupStage === "done" && persistedBuild
-        ? workflowBuildResult(persistedBuild)
+        ? workflowBuildResult(persistedBuild, {
+            live: isWorkflowBuildLive(workflowId)
+          })
         : null));
   const landingRunMode =
     setup?.run_mode === "app" || setup?.run_mode === "trigger"
@@ -269,13 +286,96 @@ const WorkflowEditorSurface = ({
     workflowProjectId
   ]);
   /**
+   * The Game flow made its game: the game opens in its own tab, and this
+   * tab, which only hosted the flow, closes with the workflow row that
+   * carried it. A refused delete leaves a harmless row, so it is reported.
+   */
+  const finishGameFlow = useCallback(
+    async (result: BuildGameResult) => {
+      setGameFinished(true);
+      openTab({
+        type: "game",
+        ref: result.gameId,
+        mode: "edit",
+        title: result.name,
+        projectId: workflowProjectId ?? result.projectId
+      });
+      if (result.failures.length > 0) {
+        addNotification({
+          type: "warning",
+          alert: true,
+          content: `Opened your game, but ${result.failures.length} piece${
+            result.failures.length === 1 ? "" : "s"
+          } of art kept the placeholder: ${result.failures[0]?.reason ?? ""}`
+        });
+      }
+      closeTab(tabId("workflow", workflowId));
+      if (workflow) {
+        try {
+          await deleteWorkflow(workflow);
+        } catch (cause) {
+          addNotification({
+            type: "warning",
+            alert: true,
+            content: `Opened your game, but could not remove its setup workflow: ${
+              cause instanceof Error ? cause.message : String(cause)
+            }`
+          });
+        }
+      }
+    },
+    [
+      addNotification,
+      closeTab,
+      deleteWorkflow,
+      openTab,
+      workflow,
+      workflowId,
+      workflowProjectId
+    ]
+  );
+
+  /** "Start with a blank room" or a blank 3D game, from the flow's step 1. */
+  const startBlankGame = useCallback(
+    async (kind: GameStartAlternative) => {
+      const projectId = workflowProjectId ?? workflow?.project_id ?? "";
+      const name = workflow?.name || "Untitled game";
+      const created = await trpcClient.games.create.mutate({
+        projectId,
+        name,
+        dimension: kind === "blank-3d" ? "3d" : "2d",
+        document:
+          kind === "blank-3d"
+            ? createNative3DGame(newDocumentId())
+            : createTopDownRoomGame(newDocumentId())
+      });
+      await finishGameFlow({
+        gameId: created.game.id,
+        name: created.game.name || name,
+        projectId,
+        failures: []
+      });
+    },
+    [finishGameFlow, workflow, workflowProjectId]
+  );
+
+  /**
    * "Start from an example" in step 1's inline browser: the copy lands in a
    * new row (materialized server-side from the example's package), which
    * opens as its own tab while this placeholder closes. The tab's project
-   * carries over, so the copy stays in the group it was started from.
+   * carries over, so the copy stays in the group it was started from. The
+   * placeholder was made by `+ New` for this flow and holds nothing yet, so it
+   * is deleted rather than left behind as an "Untitled workflow".
    */
   const startFromExample = useCallback(
     async (example: Workflow): Promise<string | null> => {
+      const placeholder = workflow;
+      const projectId =
+        useWorkspaceTabsStore
+          .getState()
+          .tabs.find(
+            (tab) => tab.type === "workflow" && tab.ref === workflowId
+          )?.projectId ?? placeholder?.project_id;
       const tags = example.tags ?? [];
       const copy = await createWorkflow(
         {
@@ -283,16 +383,12 @@ const WorkflowEditorSurface = ({
           description: example.description,
           package_name: example.package_name,
           tags: tags.includes("example") ? tags : [...tags, "example"],
-          access: "private"
+          access: "private",
+          project_id: projectId
         },
         examplePackageName(example),
         exampleSeedRef(example)
       );
-      const projectId = useWorkspaceTabsStore
-        .getState()
-        .tabs.find(
-          (tab) => tab.type === "workflow" && tab.ref === workflowId
-        )?.projectId;
       openTab({
         type: "workflow",
         ref: copy.id,
@@ -301,16 +397,46 @@ const WorkflowEditorSurface = ({
         projectId
       });
       closeTab(tabId("workflow", workflowId));
+      // A workflow sent back to step 1 after it was built (the agent's
+      // `ui_workflow_set_setup` can do that) holds the creator's graph, so
+      // only an empty canvas is a placeholder.
+      const canvasNodes =
+        nodeStore?.getState().nodes.length ??
+        placeholder?.graph?.nodes?.length ??
+        0;
+      if (placeholder && canvasNodes === 0) {
+        // The copy is open whatever happens here, so a refused delete is
+        // reported rather than turned into a failed pick.
+        try {
+          await deleteWorkflow(placeholder);
+        } catch (cause) {
+          addNotification({
+            type: "warning",
+            alert: true,
+            content: `Opened the example, but could not remove the empty workflow: ${
+              cause instanceof Error ? cause.message : String(cause)
+            }`
+          });
+        }
+      }
       return copy.id;
     },
-    [closeTab, createWorkflow, openTab, workflowId]
+    [
+      addNotification,
+      closeTab,
+      createWorkflow,
+      deleteWorkflow,
+      nodeStore,
+      openTab,
+      workflow,
+      workflowId
+    ]
   );
   // Only this workflow's subgraph tabs may take over its canvas — another
-  // workflow tab's open subgraph must not hijack this one.
+  // workflow tab's open subgraph must not hijack this one. A nested subgraph
+  // is reached through the top-level subgraph that contains it.
   const activeSubgraph = useSubgraphTabsStore((state) =>
-    state.tabs.find(
-      (tab) => tab.key === state.activeKey && tab.workflowId === workflowId
-    )
+    findActiveChildTab(state.tabs, state.activeKey, workflowId)
   );
 
   useEffect(() => {
@@ -320,20 +446,50 @@ const WorkflowEditorSurface = ({
     }
 
     let cancelled = false;
-    void fetchWorkflow(workflowId).then((loadedWorkflow) => {
-      if (cancelled || loadedWorkflow) {
-        return;
-      }
-      setMissing(true);
-      closeTab(tabId("workflow", workflowId));
-    });
+    setLoadFailed(null);
+    void fetchWorkflow(workflowId, { throwOnError: true })
+      .then((loadedWorkflow) => {
+        if (cancelled || loadedWorkflow) {
+          return;
+        }
+        setMissing(true);
+        closeTab(tabId("workflow", workflowId));
+      })
+      .catch((cause: unknown) => {
+        if (!cancelled) {
+          setLoadFailed(cause instanceof Error ? cause.message : String(cause));
+        }
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [nodeStore, fetchWorkflow, workflowId, closeTab]);
+  }, [nodeStore, fetchWorkflow, workflowId, closeTab, loadAttempt]);
 
   if (!nodeStore) {
+    if (loadFailed !== null) {
+      return (
+        <EmptyState
+          variant="error"
+          title="Could not load workflow"
+          description={
+            <FlexColumn align="center" gap={SPACING.sm}>
+              Check your connection and try again. Your tab is still open.
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Workflow tab failed to load",
+                  errorText: loadFailed,
+                  workflowId
+                }}
+              />
+            </FlexColumn>
+          }
+          actionText="Retry"
+          onAction={() => setLoadAttempt((attempt) => attempt + 1)}
+        />
+      );
+    }
     if (missing) {
       return null;
     }
@@ -348,10 +504,6 @@ const WorkflowEditorSurface = ({
     );
   }
 
-  if (gameStage !== "done" && !gameFinished) {
-    return <GameSetupHost workflowId={workflowId} onFinish={finishGameFlow} />;
-  }
-
   if (mode === "view") {
     return (
       <WorkflowGraphPreview
@@ -359,6 +511,17 @@ const WorkflowEditorSurface = ({
         workflowId={workflowId}
         width="100%"
         height="100%"
+      />
+    );
+  }
+
+  if (gameStage !== "done" && !gameFinished) {
+    return (
+      <GameSetupHost
+        workflowId={workflowId}
+        {...(workflowProjectId && { projectId: workflowProjectId })}
+        onStartAlternative={startBlankGame}
+        onFinish={(result) => void finishGameFlow(result)}
       />
     );
   }
@@ -411,6 +574,18 @@ const WorkflowEditorSurface = ({
                     zIndex: STATUS_MESSAGE_Z_INDEX + 1
                   }}
                 >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: SPACING.sm,
+                      right: SPACING.sm
+                    }}
+                  >
+                    <CloseButton
+                      tooltip="Dismiss"
+                      onClick={() => setLandingDismissed(true)}
+                    />
+                  </Box>
                   <WorkflowLandingChecklist
                     result={visibleLanding}
                     runMode={landingRunMode}
@@ -451,7 +626,7 @@ const WorkflowEditorSurface = ({
                     mounted underneath so returning to it keeps its viewport. */}
                 {activeSubgraph && !showChain && (
                   <div style={{ position: "absolute", inset: 0 }}>
-                    <SubgraphTabContent tab={activeSubgraph} />
+                    <SubgraphTabContent tab={activeSubgraph} active={active} />
                   </div>
                 )}
                 {showChain && (
@@ -472,7 +647,9 @@ const WorkflowEditorSurface = ({
               </div>
               {active && <FloatingToolBar />}
               {active && <QueueOverlay />}
-              {active && <NodeCreateBridge />}
+              {active && !(activeSubgraph && !showChain) && (
+                <NodeCreateBridge />
+              )}
             </KeyboardProvider>
           </ConnectableNodesProvider>
         </ContextMenuProvider>

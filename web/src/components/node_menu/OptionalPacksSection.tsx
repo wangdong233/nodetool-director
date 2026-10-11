@@ -258,7 +258,7 @@ const OptionalPacksSection = () => {
               </FlexRow>
             </FlexRow>
 
-            <FlexColumn gap={0.25}>
+            <FlexColumn gap={SPACING.micro}>
               {OPTIONAL_NODE_PACKS.map((pack) => (
                 <div className="pack-row" key={pack.id}>
                   <LabeledSwitch
@@ -285,7 +285,7 @@ const OptionalPacksSection = () => {
             {keyedProviders.length > 0 && (
               <>
                 <Divider />
-                <FlexColumn gap={0.25}>
+                <FlexColumn gap={SPACING.micro}>
                   <Text size="small" weight={600}>
                     {t("editor:ui.providers")}
                   </Text>
@@ -293,7 +293,7 @@ const OptionalPacksSection = () => {
                     {t("editor:ui.providerNodesAppearOnceYouAddTheirAPIKey", { defaultValue: "Provider nodes appear once you add their API key — setting a key enables the pack automatically." })}
                   </Text>
                 </FlexColumn>
-                <FlexColumn gap={0.25}>
+                <FlexColumn gap={SPACING.micro}>
                   {keyedProviders.map((provider) => {
                     const hasKey = isApiKeySet(provider.requiredKey);
                     return (
@@ -336,7 +336,7 @@ const OptionalPacksSection = () => {
             {localPacks.length > 0 && (
               <>
                 <Divider />
-                <FlexColumn gap={0.25}>
+                <FlexColumn gap={SPACING.micro}>
                   <Text size="small" weight={600}>
                     {t("editor:ui.localPacks", { defaultValue: "Local packs" })}
                   </Text>
@@ -344,7 +344,7 @@ const OptionalPacksSection = () => {
                     {t("editor:ui.runLocallyNoAPIKeyRequired", { defaultValue: "Run locally — no API key required." })}
                   </Text>
                 </FlexColumn>
-                <FlexColumn gap={0.25}>
+                <FlexColumn gap={SPACING.micro}>
                   {localPacks.map((pack) => (
                     <div className="pack-row" key={pack.id}>
                       <LabeledSwitch

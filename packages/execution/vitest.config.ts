@@ -67,6 +67,17 @@ export default defineConfig({
         __dirname,
         "../timeline/src/dependencyHash.ts"
       ),
+      // The craft-score reference band loads the shipped examples through
+      // this subpath, same as the product. Alias before the root (Vite alias
+      // is prefix-based).
+      "@nodetool-ai/timeline/examples/node": resolve(
+        __dirname,
+        "../timeline/src/examples/node.ts"
+      ),
+      "@nodetool-ai/timeline/ops": resolve(
+        __dirname,
+        "../timeline/src/ops/index.ts"
+      ),
       "@nodetool-ai/timeline": resolve(__dirname, "../timeline/src/index.ts")
     }
   },

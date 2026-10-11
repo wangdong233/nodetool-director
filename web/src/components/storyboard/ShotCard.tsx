@@ -5,15 +5,15 @@
  * a glance: the rendered clip or selected still, status, and render progress.
  * The description lives in the inspector opened by selecting the card.
  *
- * Two rows of controls sit on top of that: {@link ShotHoverToolbar} on the
- * media (drag grip, fullscreen, render still or clip with a picked model,
- * download, duplicate, delete) and the action
- * footer (Edit, Iterate, Regenerate, Upload). Both swallow their clicks, so
- * reaching for an action never also selects the card.
+ * One row of controls sits on the media's top left: {@link ShotHoverToolbar}
+ * with the drag grip, the card's actions (edit, regenerate the still, render a
+ * clip, upload a still), fullscreen, and a menu for the rest. It swallows its
+ * clicks, so reaching for an action never also selects the card.
  * `Edit` asks the board to open the shot's editor directly under this card
  * ({@link ShotEditPanel}).
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import type {
@@ -22,7 +22,14 @@ import type {
   Shot,
   VideoRef
 } from "@nodetool-ai/protocol";
+import {
+  resolveEffectiveProductionRequirement,
+  shotRenderMode
+} from "@nodetool-ai/protocol";
+import { formatUsd } from "@nodetool-ai/model-pricing";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
 import {
   Box,
@@ -35,8 +42,8 @@ import {
   MagicGenerationFill,
   ProgressBar,
   ResponsiveImage,
+  StatusPill,
   Text,
-  TextInput,
   ToolbarIconButton,
   UploadButton,
   VideoPlayer,
@@ -48,6 +55,7 @@ import {
   runningGradientBackground
 } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
+import ShotDesignFrame from "./ShotDesignFrame";
 import ShotHoverToolbar from "./ShotHoverToolbar";
 import ShotMediaViewer from "./ShotMediaViewer";
 import ShotRenderDialog, { type ShotRenderStep } from "./ShotRenderDialog";
@@ -57,6 +65,9 @@ import { shotWorkflowMedia } from "./shotWorkflowMedia";
 import { useStoryboardGenerationStore } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
+import { useBoardImageModel } from "../../hooks/storyboard/useShotCostEstimate";
+import { priceRenderStep } from "../../hooks/storyboard/shotCostPricing";
+import { STILL_RESOLUTION } from "../../hooks/storyboard/renderSpec";
 import {
   useResolvedMedia,
   useResolvedMediaUri
@@ -64,7 +75,7 @@ import {
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { useTranslation } from "react-i18next";
+import { captureLastFrame } from "./lastFrame";
 
 interface ShotCardProps {
   boardId: string;
@@ -75,6 +86,11 @@ interface ShotCardProps {
    * rather than counting shots it cannot see.
    */
   caption?: string;
+  /**
+   * This shot's part of a scene clip, as `Clip 2/3 · 4-9s`. The board
+   * resolves scene clips, so the card is told its part.
+   */
+  sceneClipTag?: string;
   /**
    * The board values a version's render record is compared against, for the
    * stale marker on the pill. Passed in from where the board's models, style
@@ -130,7 +146,10 @@ const swallowClick = (event: React.MouseEvent): void => {
 };
 
 /** Footer actions read as quiet text until hovered; the media is the card. */
-const footerButtonSx = { minWidth: 0, px: SPACING.xs } as const;
+/** True for a drag carrying files from outside the page. */
+const isFileDrag = (event: React.DragEvent): boolean =>
+  Array.from(event.dataTransfer?.types ?? []).includes("Files");
+
 
 /** The render bar sits on the thumbnail's bottom edge, 3px per the design. */
 const RENDER_BAR_HEIGHT = 3;
@@ -146,6 +165,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   boardId,
   shot,
   caption,
+  sceneClipTag,
   renderContext,
   selected,
   onSelect,
@@ -167,8 +187,6 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
     null
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [iterateOpen, setIterateOpen] = useState(false);
-  const [iterateText, setIterateText] = useState("");
   const [renderStep, setRenderStep] = useState<ShotRenderStep | null>(null);
 
   // Why the last still or clip failed. Kept on the shot's job state until the
@@ -184,11 +202,38 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   const {
     generateKeyframe,
     generateClip,
-    generateRevisedClip,
     retryFailedRequest
   } = useGenerateShot();
+  // The regenerate tooltip says what a still costs before its dialog opens:
+  // the same per-step price the shot editor's cost line shows.
+  const boardImageModel = useBoardImageModel(boardId);
+  const stillCost = useMemo(
+    () =>
+      priceRenderStep(
+        "Still",
+        shot.still_model ?? boardImageModel,
+        "still model",
+        STILL_RESOLUTION,
+        undefined,
+        []
+      ).cost,
+    [shot.still_model, boardImageModel]
+  );
   const duplicateShot = useStoryboardStore((state) => state.duplicateShot);
   const removeShot = useStoryboardStore((state) => state.removeShot);
+  const setShotKeyframe = useStoryboardStore((state) => state.setShotKeyframe);
+  const setShotStatus = useStoryboardStore((state) => state.setShotStatus);
+  // The clip the previous shot ends on, for continuing this shot from its
+  // last frame. Null while that shot has no clip; unused on the first shot.
+  const previousClip = useStoryboardStore(
+    useCallback(
+      (state) =>
+        state.boards[boardId]?.shots.find((s) => s.index === shot.index - 1)
+          ?.clip ?? null,
+      [boardId, shot.index]
+    )
+  );
+  const previousClipUri = useResolvedMediaUri(previousClip);
   const appendShotKeyframeVersion = useStoryboardStore(
     (state) => state.appendShotKeyframeVersion
   );
@@ -197,9 +242,15 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   const failed = shot.status === "failed" || !!failedJob?.mediaEdit;
   const isGenerating = isShotGenerating(shot);
   const stillRendering = shot.status === "keyframe_generating";
+  // A keyframe shot animates its still, so its clip waits for one.
+  const clipNeedsStill = shotRenderMode(shot) === "keyframe" && !shot.keyframe;
   // A rendered take can be previewed before the creator accepts it as the
   // shot's clip. Use the latest take when there is no accepted clip yet.
-  const previewClip = shot.clip ?? shot.clip_versions?.at(-1);
+  const previewClip =
+    resolveEffectiveProductionRequirement(undefined, shot.production)
+      ?.media_strategy === "still_motion_graphics"
+      ? undefined
+      : (shot.clip ?? shot.clip_versions?.at(-1));
   const clipUri = useResolvedMediaUri(previewClip);
   // Download needs a URL, not a locator, and the still's is not otherwise
   // resolved here — the preview primitive resolves its own. Both forms of the
@@ -213,7 +264,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   // A ref with neither a locator nor an asset behind it has nothing to show:
   // the card says so rather than waiting on a resolution that never lands.
   const hasKeyframe = Boolean(shot.keyframe?.uri || shot.keyframe?.asset_id);
-  const shotName = `${shot.index + 1}. ${shot.slug ?? t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}`;
+  const shotName = `${shot.index + 1}. ${shot.slug ?? "Untitled shot"}`;
   // What the preview shows is what fullscreen opens: the clip once there is
   // one, the selected still before that.
   const previewMedia: ImageRef | VideoRef | null =
@@ -263,11 +314,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
     () => setConfirmDelete(false),
     []
   );
-  const handleOpenIterate = useCallback(() => setIterateOpen(true), []);
   const handleRenderStill = useCallback(() => setRenderStep("still"), []);
   const handleRenderClip = useCallback(() => setRenderStep("clip"), []);
   const handleCloseRender = useCallback(() => setRenderStep(null), []);
-  const handleCloseIterate = useCallback(() => setIterateOpen(false), []);
 
   const handleDownload = useCallback(() => {
     if (!downloadUri) {
@@ -292,20 +341,6 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
     () => onEdit?.(shot.id, "fields"),
     [onEdit, shot.id]
   );
-  const handleRegenerate = useCallback(() => {
-    void generateKeyframe(boardId, shot).catch(() => undefined);
-  }, [generateKeyframe, boardId, shot]);
-
-  const handleIterateConfirm = useCallback(() => {
-    const instruction = iterateText.trim();
-    if (instruction.length > 0) {
-      void generateRevisedClip(boardId, shot, instruction).catch(
-        () => undefined
-      );
-    }
-    setIterateOpen(false);
-    setIterateText("");
-  }, [iterateText, generateRevisedClip, boardId, shot]);
 
   // An uploaded image becomes a candidate take. Current media changes only
   // when the creator explicitly accepts it in the takes gallery.
@@ -328,15 +363,52 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             type: "error",
             alert: true,
             dismissable: true,
-            content: t("storyboard:attrs.theStillCouldNotBeUploaded", {
-              defaultValue: "The still could not be uploaded. {{error}}",
-              error: String(error)
-            })
+            content: `The still could not be uploaded. ${error}`
           })
       });
     },
-    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id, t]
+    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id]
   );
+
+  // The previous shot's last frame becomes this shot's current still, so the
+  // two clips cut on the same picture. Earlier stills stay as takes.
+  const handleUseLastFrame = useCallback(() => {
+    if (!previousClipUri) {
+      return;
+    }
+    const reportFailure = (error: unknown): void =>
+      useNotificationStore.getState().addNotification({
+        type: "error",
+        alert: true,
+        dismissable: true,
+        content: `The last frame of shot ${shot.index} could not be used. ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      });
+    captureLastFrame(previousClipUri, `shot-${shot.index}-last-frame.png`)
+      .then((file) =>
+        uploadAsset({
+          file,
+          onCompleted: (asset) => {
+            setShotKeyframe(boardId, shot.id, mediaRefFromAsset(asset, "image"));
+            if (!shot.clip) {
+              setShotStatus(boardId, shot.id, "keyframe_ready");
+            }
+          },
+          onFailed: reportFailure
+        })
+      )
+      .catch(reportFailure);
+  }, [
+    previousClipUri,
+    shot.index,
+    shot.id,
+    shot.clip,
+    uploadAsset,
+    setShotKeyframe,
+    setShotStatus,
+    boardId
+  ]);
 
   const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -348,6 +420,11 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   );
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      // Files dragged in from the desktop are not a card reorder: let the
+      // browser refuse them rather than swallow the drop.
+      if (isFileDrag(event)) {
+        return;
+      }
       event.preventDefault();
       onDragEnter?.(shot.id);
     },
@@ -356,6 +433,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   // Without preventDefault on dragover the browser refuses the drop.
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      if (isFileDrag(event)) {
+        return;
+      }
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
     },
@@ -363,6 +443,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   );
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      if (isFileDrag(event)) {
+        return;
+      }
       event.preventDefault();
       onDrop?.(shot.id);
     },
@@ -393,18 +476,6 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
       sx={{
         overflow: "hidden",
         position: "relative",
-        "& .shot-card-actions": {
-          opacity: 0,
-          transition: MOTION.opacity,
-          ...reducedMotion({ transition: MOTION.none })
-        },
-        "&:hover .shot-card-actions, &:focus-within .shot-card-actions": {
-          opacity: 1,
-          pointerEvents: "auto"
-        },
-        "@media (pointer: coarse)": {
-          "& .shot-card-actions": { opacity: 1, pointerEvents: "auto" }
-        },
         borderRadius: BORDER_RADIUS.lg,
         borderColor:
           dropTarget || selected
@@ -434,7 +505,16 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         }}
         onDoubleClick={previewMedia ? handleOpenViewer : undefined}
       >
-        {previewClip ? (
+        {shot.graphics && shot.graphics.mode !== "none" ? (
+          <ShotDesignFrame
+            boardId={boardId}
+            shot={
+              previewClip && previewClip !== shot.clip
+                ? { ...shot, clip: previewClip }
+                : shot
+            }
+          />
+        ) : previewClip ? (
           <Box sx={{ width: "100%", height: "100%" }} onClick={swallowClick}>
             <VideoPlayer
               locator={previewClip}
@@ -463,7 +543,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
+            {stillRendering ? "Rendering still…" : "No still yet"}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -493,7 +573,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
+            previewClip ? "View clip fullscreen" : "View still fullscreen"
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -501,9 +581,57 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           onDownload={downloadUri ? handleDownload : undefined}
           downloadLabel={downloadKind}
           sendToWorkflowItems={workflowMedia}
+          useLastFrame={
+            readOnly || shot.index === 0
+              ? undefined
+              : {
+                  label: `Use last frame of shot ${shot.index}`,
+                  disabled: isGenerating || !previousClipUri,
+                  onSelect: handleUseLastFrame
+                }
+          }
           onDuplicate={readOnly ? undefined : handleDuplicate}
           onDelete={readOnly ? undefined : handleOpenDeleteConfirm}
-        />
+        >
+          {!readOnly && (
+            <>
+              {onEdit && (
+                <ToolbarIconButton
+                  icon={<EditOutlinedIcon sx={{ fontSize: "1em" }} />}
+                  tooltip="Edit shot"
+                  ariaLabel="Edit shot"
+                  onClick={handleEdit}
+                />
+              )}
+              <ToolbarIconButton
+                icon={<AutorenewIcon sx={{ fontSize: "1em" }} />}
+                tooltip={`Render a new still and pick its model${
+                  stillCost ? ` · about ${formatUsd(stillCost)}` : ""
+                }`}
+                ariaLabel="Regenerate still"
+                onClick={handleRenderStill}
+                disabled={isGenerating}
+              />
+              <ToolbarIconButton
+                icon={<MovieOutlinedIcon sx={{ fontSize: "1em" }} />}
+                tooltip={
+                  clipNeedsStill
+                    ? "Render a still first"
+                    : "Render a clip and pick its model"
+                }
+                ariaLabel="Render clip"
+                onClick={handleRenderClip}
+                disabled={isGenerating || clipNeedsStill}
+              />
+              <UploadButton
+                onFileSelect={handleUpload}
+                tooltip="Upload your own still"
+                accept="image/*"
+                multiple={false}
+              />
+            </>
+          )}
+        </ShotHoverToolbar>
         <ShotStatusPill
           shot={shot}
           renderContext={shotRenderContext}
@@ -532,9 +660,20 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
       </FlexColumn>
 
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, minWidth: 0 }}>
-        <Caption color="secondary">
-          {caption ?? t("storyboard:attrs.shotNumber", { defaultValue: "Shot {{count}}", count: shot.index + 1 })}
-        </Caption>
+        <FlexRow align="center" gap={SPACING.sm} wrap>
+          <Caption color="secondary">
+            {caption ?? `Shot ${shot.index + 1}`}
+          </Caption>
+          {sceneClipTag && (
+            <StatusPill
+              tone="neutral"
+              data-testid="shot-scene-clip-tag"
+              sx={{ borderColor: CLIP_COLOR }}
+            >
+              {sceneClipTag}
+            </StatusPill>
+          )}
+        </FlexRow>
         <Text
           size="small"
           sx={{
@@ -561,7 +700,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             data-testid="shot-render-error"
             sx={{ color: "error.main", minWidth: 0 }}
           >
-            {renderError ?? t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
+            {renderError ?? "The render failed. Try again."}
           </Caption>
           {!readOnly && (
             <EditorButton
@@ -569,58 +708,12 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               variant="outlined"
               onClick={handleRetry}
               sx={{ flexShrink: 0 }}
-            >{t("storyboard:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
+            >
+              Retry
+            </EditorButton>
           )}
         </FlexRow>
       )}
-      {!readOnly && (
-        <FlexRow
-          align="center"
-          gap={SPACING.micro}
-          onClick={swallowClick}
-          data-testid="shot-card-footer"
-          className="shot-card-actions"
-          sx={{
-            position: "absolute",
-            top: SPACING.xs,
-            bottom: "auto",
-            left: SPACING.xs,
-            right: "auto",
-            p: SPACING.xs,
-            bgcolor: "c_scrim",
-            borderRadius: BORDER_RADIUS.sm
-          }}
-        >
-          {onEdit && (
-            <EditorButton size="small" onClick={handleEdit} sx={footerButtonSx}>{t("storyboard:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
-          )}
-          <EditorButton
-            size="small"
-            onClick={handleOpenIterate}
-            disabled={isGenerating || !shot.clip}
-            sx={footerButtonSx}
-            title={
-              shot.clip
-                ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" })
-                : t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
-            }
-          >{t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}</EditorButton>
-          <ToolbarIconButton
-            icon={<AutorenewIcon sx={{ fontSize: "1em" }} />}
-            tooltip={t("storyboard:attrs.renderANewStillFromThisShotFields", { defaultValue: "Render a new still from this shot's fields" })}
-            ariaLabel={t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
-            onClick={handleRegenerate}
-            disabled={isGenerating}
-          />
-          <UploadButton
-            onFileSelect={handleUpload}
-            tooltip={t("storyboard:attrs.uploadYourOwnStill", { defaultValue: "Upload your own still" })}
-            accept="image/*"
-            multiple={false}
-          />
-        </FlexRow>
-      )}
-
       <ShotMediaViewer
         boardId={boardId}
         media={viewerMedia}
@@ -630,30 +723,6 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
       {/* The dialogs sit inside the card, so their clicks would bubble into
           its selection handler through the React tree. */}
       <Box onClick={swallowClick}>
-        <Dialog
-          open={iterateOpen}
-          onClose={handleCloseIterate}
-          title={t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
-          onConfirm={handleIterateConfirm}
-          confirmText={t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
-          confirmDisabled={iterateText.trim().length === 0}
-        >
-          <FlexColumn gap={SPACING.xs}>
-            <Caption color="secondary">
-              Describe the change to make. The current clip is re-rendered with
-              your note applied.
-            </Caption>
-            <TextInput
-              value={iterateText}
-              placeholder={t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
-              onChange={(event) => setIterateText(event.target.value)}
-              multiline
-              rows={3}
-              autoFocus
-            />
-          </FlexColumn>
-        </Dialog>
-
         {/* Mounted only while open: it subscribes to both model catalogs. */}
         {renderStep && (
           <ShotRenderDialog

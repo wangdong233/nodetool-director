@@ -1,10 +1,11 @@
+import { i18n } from "../../i18n";
 /**
  * usePackageManager — the data model behind the two-pane Package Manager.
  *
- * Subscribes to the four package stores (runtimes, builtin packs, registry
+ * Subscribes to the four package stores (runtimes, builtin packs, Python
  * packs, third-party packs), runs their fetch/console effects, and derives the
  * view model the UI renders: left-rail categories with counts, right-pane
- * title/subtitle/count, status-filter chips, and the filtered row list.
+ * title/subtitle/count, the status filter, and the filtered row list.
  */
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -18,12 +19,26 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
-import { useTranslation } from "react-i18next";
 
-export type PMTab = "software" | "packs";
+/** The rail entries. Each one is a list in the right pane. */
+export type PMCategory = "included" | "python" | "thirdparty" | "runtimes";
+
+export const PM_CATEGORIES: readonly PMCategory[] = [
+  "included",
+  "python",
+  "thirdparty",
+  "runtimes"
+];
+
+/**
+ * One status filter for every list. "installed" also matches a package with
+ * an update, so a filter never hides a package the user has.
+ */
+export type PMFilter = "all" | "installed" | "available";
 
 /** Curated display group for each runtime id (the store has no group field). */
-const RUNTIME_GROUP: Record<string, "language" | "media" | "ai"> = {
+type RuntimeGroup = "language" | "media" | "ai";
+const RUNTIME_GROUP: Record<string, RuntimeGroup> = {
   python: "language",
   nodejs: "language",
   ffmpeg: "media",
@@ -32,51 +47,52 @@ const RUNTIME_GROUP: Record<string, "language" | "media" | "ai"> = {
   "yt-dlp": "media",
   "transformers-js": "ai",
   "tensorflow-js": "ai",
-  "node-llama-cpp": "ai"
+  "node-llama-cpp": "ai",
+  "whisper-cpp": "ai",
+  "tesseract-ocr": "ai",
+  playwright: "media"
 };
-const runtimeGroup = (id: string) => RUNTIME_GROUP[id] ?? "media";
+const runtimeGroup = (id: string): RuntimeGroup => RUNTIME_GROUP[id] ?? "media";
+const RUNTIME_GROUP_ORDER: RuntimeGroup[] = ["language", "media", "ai"];
+const RUNTIME_GROUP_LABEL: Record<RuntimeGroup, string> = {
+  language: i18n.t("editor:ui.languages", { defaultValue: "Languages" }),
+  media: "Media & documents",
+  ai: i18n.t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" })
+};
 
 /** Prefix marking an optional-node-pack (menu visibility) row id, to keep it
  *  distinct from builtin pack ids. */
 const OPTIONAL_PREFIX = "optional:";
 
-const TITLE_KEYS: Record<string, string> = {
-  all: "editor:ui.allRuntimes",
-  language: "editor:ui.languages",
-  media: "editor:ui.mediaDocs",
-  ai: "editor:ui.aiRuntimes",
-  thirdparty: "editor:ui.thirdParty",
-  included: "editor:ui.includedPacks",
-  python: "editor:ui.registryPacks"
+const LABELS: Record<PMCategory, string> = {
+  included: i18n.t("editor:ui.included", { defaultValue: "Included" }),
+  python: "Python packs",
+  thirdparty: i18n.t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
+  runtimes: "Software"
 };
 
-const TITLES: Record<string, string> = {
-  all: "All runtimes",
-  language: "Languages",
-  media: "Media & docs",
-  ai: "AI runtimes",
+const TITLES: Record<PMCategory, string> = {
   included: "Included packs",
-  python: "Registry packs",
-  thirdparty: "Third-party packs"
+  python: "Python packs",
+  thirdparty: "Third-party packs",
+  runtimes: "Software"
 };
 
-/** Catalog keys for the pane subtitles (render-time resolution). */
-const SUBTITLE_KEYS: Record<string, string> = {
-  software: "editor:ui.pmSubtitleSoftware",
-  included: "editor:ui.pmSubtitleIncluded",
-  python: "editor:ui.pmSubtitleRegistry",
-  thirdparty: "editor:ui.pmSubtitleThirdParty"
-};
-
-const SUBTITLES: Record<string, string> = {
-  software:
-    "Interpreters and tools NodeTool installs into your environment. Each runtime powers its own node types.",
+const SUBTITLES: Record<PMCategory, string> = {
   included:
-    "Reveal advanced and niche node categories, and toggle local packs. Provider nodes appear automatically once you set their API key.",
+    "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key.",
   python:
-    "Install node packs from the registry. The server restarts to load or unload nodes after a change.",
+    "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack.",
   thirdparty:
-    "Third-party packs run in-process as the server user. Only trust packs you know."
+    "Third-party packs run in-process as the server user. Only trust packs you know.",
+  runtimes:
+    "Interpreters and tools NodeTool installs into your environment. Each runtime powers its own node types."
+};
+
+/** Filter labels per list. Included packs are switched, not installed. */
+const FILTER_LABELS: Record<"switch" | "install", Record<PMFilter, string>> = {
+  switch: { all: "All", installed: "On", available: "Off" },
+  install: { all: "All", installed: i18n.t("editor:ui.installed", { defaultValue: "Installed" }), available: i18n.t("editor:ui.notInstalled", { defaultValue: "Not installed" }) }
 };
 
 export interface PMCount {
@@ -87,6 +103,8 @@ export interface PMCount {
 
 export interface PMRow {
   key: string;
+  /** Heading of the group the row belongs to, for lists shown in groups. */
+  group?: string;
   name: string;
   desc: string;
   version?: string;
@@ -115,8 +133,8 @@ interface PackageManagerModel {
   title: string;
   subtitle: string;
   count: number;
-  /** Status-filter chips for the active list; `[]` when not applicable. */
-  chips: PMCount[];
+  /** Status filter options for the active list; `[]` when not applicable. */
+  filters: { id: PMFilter; label: string; count: number }[];
   rows: PMRow[];
   installLocation: string | null;
   onChangeLocation: () => void;
@@ -125,12 +143,12 @@ interface PackageManagerModel {
   error: string | null;
   console: { lines: string[]; onClear: () => void; busy: boolean } | null;
   thirdPartyCount: number;
-  /** Bulk "update everything with an upgrade" action for the registry tab;
-   *  `null` when it doesn't apply (wrong tab, or nothing to update). */
+  /** Bulk "update everything with an upgrade" action for the Python packs;
+   *  `null` when it doesn't apply (another list, or nothing to update). */
   bulkUpdate: { count: number; busy: boolean; onUpdateAll: () => void } | null;
 }
 
-/** Join the registry list with installed records by repo_id (see registry tab). */
+/** Join the catalog with installed records by repo_id. */
 function mergePython(available: PackageInfo[], installed: InstalledPackage[]) {
   const byRepo = new Map<
     string,
@@ -163,13 +181,11 @@ function mergePython(available: PackageInfo[], installed: InstalledPackage[]) {
 }
 
 export function usePackageManager(params: {
-  tab: PMTab;
-  cat: string;
+  cat: PMCategory;
   q: string;
-  filter: string;
+  filter: PMFilter;
 }): PackageManagerModel {
-  const { t } = useTranslation();
-  const { tab, cat, q, filter } = params;
+  const { cat, q, filter } = params;
 
   const {
     builtins,
@@ -205,6 +221,7 @@ export function usePackageManager(params: {
     rtRefresh,
     rtInstall,
     rtUninstall,
+    rtUpdate,
     selectInstallLocation,
     rtSubscribe,
     rtUnsubscribe,
@@ -220,6 +237,7 @@ export function usePackageManager(params: {
       rtRefresh: s.refresh,
       rtInstall: s.install,
       rtUninstall: s.uninstall,
+      rtUpdate: s.update,
       selectInstallLocation: s.selectInstallLocation,
       rtSubscribe: s.subscribeConsole,
       rtUnsubscribe: s.unsubscribeConsole,
@@ -290,10 +308,10 @@ export function usePackageManager(params: {
 
   return useMemo<PackageManagerModel>(() => {
     const query = q.trim().toLowerCase();
-    const isSoftware = tab === "software";
-    const isThirdParty = tab === "packs" && cat === "thirdparty";
+    const isSoftware = cat === "runtimes";
+    const isThirdParty = cat === "thirdparty";
 
-    // The "Included" list mirrors the node menu: the always-on core pack plus
+    // The i18n.t("editor:ui.included", { defaultValue: "Included" }) list mirrors the node menu: the always-on core pack plus
     // keyless local packs (Transformers.js, Hugging Face) keep a manual toggle;
     // key-gated provider packs are hidden (their nodes come on with the API
     // key). The optional node-pack categories — which declutter the node menu —
@@ -338,108 +356,85 @@ export function usePackageManager(params: {
       });
     }
 
-    const categories: PMCount[] = isSoftware
-      ? [
-          { id: "all", label: t("editor:ui.allRuntimes", { defaultValue: "All runtimes" }), count: statuses.length },
-          {
-            id: "language",
-            label: t("editor:ui.languages", { defaultValue: "Languages" }),
-            count: statuses.filter((p) => runtimeGroup(p.id) === "language")
-              .length
-          },
-          {
-            id: "media",
-            label: t("editor:ui.mediaDocs", { defaultValue: "Media & docs" }),
-            count: statuses.filter((p) => runtimeGroup(p.id) === "media").length
-          },
-          {
-            id: "ai",
-            label: t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" }),
-            count: statuses.filter((p) => runtimeGroup(p.id) === "ai").length
-          }
-        ]
-      : [
-          { id: "included", label: t("editor:ui.included", { defaultValue: "Included" }), count: includedItems.length },
-          { id: "python", label: t("editor:ui.registry", { defaultValue: "Registry" }), count: pythonPacks.length },
-          {
-            id: "thirdparty",
-            label: t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
-            count: thirdPartyPacks.length
-          }
-        ];
+    const categoryCounts: Record<PMCategory, number> = {
+      included: includedItems.length,
+      python: pythonPacks.length,
+      thirdparty: thirdPartyPacks.length,
+      runtimes: statuses.length
+    };
+    const categories: PMCount[] = PM_CATEGORIES.map((id) => ({
+      id,
+      label: LABELS[id],
+      count: categoryCounts[id]
+    }));
 
     let rows: PMRow[] = [];
     let baseCount = 0;
-    const chips: PMCount[] = [];
+    const filters: PackageManagerModel["filters"] = [];
+    const matchesQuery = (text: string) =>
+      !query || text.toLowerCase().includes(query);
 
-    const applyChips = <T>(
+    /** Count each filter option over `list`, then keep the active option. */
+    const applyFilter = <T>(
       list: T[],
-      defs: { id: string; label: string; pred: (item: T) => boolean }[]
-    ) => {
-      const counts = new Map<string, number>();
-      for (const d of defs) {
-        counts.set(d.id, 0);
-      }
-
-      const activeDef = defs.find((d) => d.id === filter) ?? defs[0];
-      const filtered: T[] = [];
-
-      for (const item of list) {
-        let isActiveMatch = false;
-        for (const d of defs) {
-          if (d.pred(item)) {
-            counts.set(d.id, (counts.get(d.id) ?? 0) + 1);
-            if (d.id === activeDef.id) {
-              isActiveMatch = true;
-            }
-          }
+      kind: "switch" | "install",
+      isOn: (item: T) => boolean
+    ): T[] => {
+      const on = list.filter(isOn);
+      const labels = FILTER_LABELS[kind];
+      filters.push(
+        { id: "all", label: labels.all, count: list.length },
+        { id: "installed", label: labels.installed, count: on.length },
+        {
+          id: "available",
+          label: labels.available,
+          count: list.length - on.length
         }
-        if (isActiveMatch) {
-          filtered.push(item);
-        }
-      }
-
-      for (const d of defs) {
-        chips.push({ id: d.id, label: d.label, count: counts.get(d.id) ?? 0 });
-      }
-
-      return filtered;
+      );
+      if (filter === "installed") return on;
+      if (filter === "available") return list.filter((item) => !isOn(item));
+      return list;
     };
 
     if (isSoftware) {
-      const inCat =
-        cat === "all" || !cat
-          ? statuses
-          : statuses.filter((p) => runtimeGroup(p.id) === cat);
-      baseCount = inCat.length;
-      const searched = query
-        ? inCat.filter((p) =>
-            (p.name + " " + p.description).toLowerCase().includes(query)
-          )
-        : inCat;
-      const filtered = applyChips(searched, [
-        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
-        { id: "installed", label: t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
-        { id: "available", label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }), pred: (p) => !p.installed }
-      ]);
-      rows = filtered.map((rt) => {
+      baseCount = statuses.length;
+      const searched = statuses.filter((p) =>
+        matchesQuery(p.name + " " + p.description)
+      );
+      const filtered = applyFilter(searched, "install", (p) => p.installed);
+      // Show the runtimes in groups: languages, then media, then AI.
+      const ordered = RUNTIME_GROUP_ORDER.flatMap((group) =>
+        filtered.filter((p) => runtimeGroup(p.id) === group)
+      );
+      rows = ordered.map((rt) => {
         const busy = rtBusy.includes(rt.id) || rt.installing;
+        const hasUpdate = rt.installed && Boolean(rt.updateAvailable);
         const row: PMRow = {
           key: rt.id,
+          group: RUNTIME_GROUP_LABEL[runtimeGroup(rt.id)],
           name: rt.name,
           desc: rt.description,
-          badge: rt.installed ? "installed" : "notInstalled"
+          badge: hasUpdate
+            ? "update"
+            : rt.installed
+              ? "installed"
+              : "notInstalled"
         };
+        if (hasUpdate) {
+          row.version = `v${rt.installedVersion}  →  v${rt.latestVersion}`;
+        } else if (rt.installed && rt.installedVersion) {
+          row.version = `v${rt.installedVersion}`;
+        }
         // Installing runs through the desktop app; in the browser the row is
         // status-only.
         if (rtAvailable) {
           row.buttons = {
             install: !rt.installed,
-            update: false,
+            update: hasUpdate,
             uninstall: rt.installed,
             busy,
             onInstall: () => void rtInstall(rt.id),
-            onUpdate: () => {},
+            onUpdate: () => void rtUpdate(rt.id),
             onUninstall: () => void rtUninstall(rt.id)
           };
         }
@@ -447,16 +442,10 @@ export function usePackageManager(params: {
       });
     } else if (cat === "included") {
       baseCount = includedItems.length;
-      const searched = query
-        ? includedItems.filter((p) =>
-            (p.name + " " + p.description).toLowerCase().includes(query)
-          )
-        : includedItems;
-      const filtered = applyChips(searched, [
-        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
-        { id: "enabled", label: t("editor:ui.enabled", { defaultValue: "Enabled" }), pred: (p) => p.enabled },
-        { id: "disabled", label: t("editor:ui.disabled", { defaultValue: "Disabled" }), pred: (p) => !p.enabled }
-      ]);
+      const searched = includedItems.filter((p) =>
+        matchesQuery(p.name + " " + p.description)
+      );
+      const filtered = applyFilter(searched, "switch", (p) => p.enabled);
       rows = filtered.map((item) => ({
         key: item.id,
         name: item.name,
@@ -464,34 +453,19 @@ export function usePackageManager(params: {
         badge: item.required ? "alwaysOn" : null,
         toggle: {
           enabled: item.enabled,
-          label: item.enabled
-            ? t("editor:ui.enabled", { defaultValue: "Enabled" })
-            : t("editor:ui.disabled", { defaultValue: "Disabled" }),
+          label: item.enabled ? i18n.t("editor:ui.enabled", { defaultValue: "Enabled" }) : i18n.t("editor:ui.disabled", { defaultValue: "Disabled" }),
           disabled: item.required,
           onChange: item.onToggle
         }
       }));
     } else if (cat === "python") {
       baseCount = pythonPacks.length;
-      const searched = query
-        ? pythonPacks.filter((p) =>
-            (p.name + " " + p.description).toLowerCase().includes(query)
-          )
-        : pythonPacks;
-      const filtered = applyChips(searched, [
-        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
-        {
-          id: "installed",
-          label: t("editor:ui.installed", { defaultValue: "Installed" }),
-          pred: (p) => !!p.installed && !p.installed.hasUpdate
-        },
-        {
-          id: "updates",
-          label: t("settings:general.secUpdates", { defaultValue: "Updates" }),
-          pred: (p) => !!p.installed?.hasUpdate
-        },
-        { id: "available", label: "Available", pred: (p) => !p.installed }
-      ]);
+      const searched = pythonPacks.filter((p) =>
+        matchesQuery(p.name + " " + p.description)
+      );
+      const filtered = applyFilter(searched, "install", (p) =>
+        Boolean(p.installed)
+      );
       rows = filtered.map((pack) => {
         const inst = pack.installed;
         const hasUpdate = Boolean(inst?.hasUpdate);
@@ -524,9 +498,9 @@ export function usePackageManager(params: {
 
     const notice =
       isSoftware && !rtAvailable
-        ? t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
+        ? i18n.t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
         : cat === "python" && !pyAvailable
-          ? t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
+          ? i18n.t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
           : null;
 
     const consoleModel = isSoftware
@@ -560,18 +534,10 @@ export function usePackageManager(params: {
       isSoftware,
       isThirdParty,
       categories,
-      title: TITLE_KEYS[cat]
-        ? t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
-        : (TITLES[cat] ?? "Packages"),
-      subtitle: (() => {
-        const key = SUBTITLE_KEYS[isSoftware ? "software" : cat];
-        const fallback = isSoftware
-          ? SUBTITLES.software
-          : (SUBTITLES[cat] ?? "");
-        return key ? t(key, { defaultValue: fallback }) : fallback;
-      })(),
+      title: TITLES[cat],
+      subtitle: SUBTITLES[cat],
       count: baseCount,
-      chips: notice ? [] : chips,
+      filters: notice ? [] : filters,
       rows,
       installLocation,
       onChangeLocation: () => void selectInstallLocation(),
@@ -582,7 +548,6 @@ export function usePackageManager(params: {
       bulkUpdate
     };
   }, [
-    tab,
     cat,
     q,
     filter,
@@ -605,12 +570,13 @@ export function usePackageManager(params: {
     setBuiltinEnabled,
     rtInstall,
     rtUninstall,
+    rtUpdate,
     pyInstall,
     pyUpdate,
     pyUpdateAll,
     pyUninstall,
     selectInstallLocation,
     rtClear,
-    pyClear, t
+    pyClear
   ]);
 }

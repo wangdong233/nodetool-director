@@ -1,3 +1,5 @@
+import { context, trace } from "@opentelemetry/api";
+import { tracedProviderLoop, tracedToolCall, beginProviderRound, providerRoundContext, tracedProviderLlm } from "./loop-tracing.js";
 import OpenAI, { toFile } from "openai";
 // `sharp` is loaded lazily at the call site. Importing it at module scope
 // pulls its native binding into anything that re-exports this provider —
@@ -9,7 +11,8 @@ import {
   BaseProvider,
   budgetStopItem,
   resolveTurnBudget,
-  splitToolResultImages
+  splitToolResultImages,
+  type ProviderCapability
 } from "./base-provider.js";
 import { openAIContextExceeded } from "./context-exceeded.js";
 import { hashSystemPrompt } from "./provider-session.js";
@@ -426,6 +429,25 @@ export class OpenAIProvider extends BaseProvider {
    */
   protected servesOpenAICatalog(): boolean {
     return this.provider === PROVIDER_IDS.OPENAI;
+  }
+
+  /**
+   * OpenAI's own media and embedding operations. A subclass serves them only
+   * through {@link servesOpenAICatalog}; one with its own catalog declares its
+   * own list.
+   */
+  protected override declaredCapabilities(): readonly ProviderCapability[] {
+    if (!this.servesOpenAICatalog()) return [];
+    return [
+      "text_to_image",
+      "image_to_image",
+      "inpainting",
+      "text_to_video",
+      "image_to_video",
+      "text_to_speech",
+      "automatic_speech_recognition",
+      "generate_embedding"
+    ];
   }
 
   async getAvailableLanguageModels(): Promise<LanguageModel[]> {
@@ -1339,17 +1361,18 @@ export class OpenAIProvider extends BaseProvider {
   // Responses API path (used for OpenAI models matched by isOpenAIResponsesModel)
   // ---------------------------------------------------------------------------
 
-  /** Tool shapes for the Responses API: native web_search / image_generation. */
+  /** Responses uses native equivalents by default, caller dispatch when restricted. */
   private formatResponsesTools(
-    tools: ProviderTool[]
+    tools: ProviderTool[],
+    providedToolsOnly = false
   ): Array<Record<string, unknown>> {
     const formatted: Array<Record<string, unknown>> = [];
     for (const tool of tools) {
-      if (tool.name === WEB_SEARCH_TOOL_NAME) {
+      if (!providedToolsOnly && tool.name === WEB_SEARCH_TOOL_NAME) {
         formatted.push(RESPONSE_WEB_SEARCH_TOOL);
         continue;
       }
-      if (tool.name === IMAGE_GENERATION_TOOL_NAME) {
+      if (!providedToolsOnly && tool.name === IMAGE_GENERATION_TOOL_NAME) {
         formatted.push(RESPONSE_IMAGE_GENERATION_TOOL);
         continue;
       }
@@ -1450,19 +1473,22 @@ export class OpenAIProvider extends BaseProvider {
       executeTool?: (toolCall: ToolCall) => Promise<string | MessageContent[]>;
       maxIterations?: number;
       sequentialTools?: boolean;
+      providedToolsOnly?: boolean;
       turnBudget?: TurnBudget | RunBudget;
       resolveMedia?: (messages: Message[]) => Promise<Message[]>;
     }
   ): AsyncGenerator<ProviderStreamItem> {
-    if (!this.usesResponsesApi(args.model)) {
-      yield* super.generateLoop(args);
-      return;
-    }
+    if (!this.usesResponsesApi(args.model)) { return yield* super.generateLoop(args); }
+    return yield* tracedProviderLoop(this.provider, args.model, () => this.generateResponsesLoop(args));
+  }
+
+  private async *generateResponsesLoop(args: Parameters<OpenAIProvider["generateLoop"]>[0]): AsyncGenerator<ProviderStreamItem> {
     const maxIterations = args.maxIterations ?? 25;
     const {
       executeTool,
       maxIterations: _omitMaxIterations,
       sequentialTools,
+      providedToolsOnly,
       turnBudget: budgetArg,
       resolveMedia,
       ...turnArgs
@@ -1485,6 +1511,7 @@ export class OpenAIProvider extends BaseProvider {
           args: turnArgs,
           resolveMedia,
           executeTool,
+          providedToolsOnly,
           sequentialTools: sequentialTools === true,
           maxIterations,
           firstMessages,
@@ -1512,6 +1539,7 @@ export class OpenAIProvider extends BaseProvider {
       args: turnArgs,
       resolveMedia,
       executeTool,
+      providedToolsOnly,
       sequentialTools: sequentialTools === true,
       maxIterations,
       firstMessages: freshMessages,
@@ -1533,6 +1561,7 @@ export class OpenAIProvider extends BaseProvider {
       stream: boolean;
       store: boolean;
       previousResponseId?: string | null;
+      providedToolsOnly?: boolean;
     }
   ): Promise<Record<string, unknown>> {
     const request: Record<string, unknown> = {
@@ -1549,12 +1578,16 @@ export class OpenAIProvider extends BaseProvider {
     if (args.temperature != null) request.temperature = args.temperature;
     if (args.topP != null) request.top_p = args.topP;
 
-    const tools = this.formatResponsesTools(args.tools ?? []);
+    const tools = this.formatResponsesTools(
+      args.tools ?? [],
+      config.providedToolsOnly
+    );
     if (tools.length > 0) {
       request.tools = tools;
-      const hostedToolChoice = args.toolChoice
-        ? RESPONSE_HOSTED_TOOL_CHOICES[args.toolChoice]
-        : undefined;
+      const hostedToolChoice =
+        !config.providedToolsOnly && args.toolChoice
+          ? RESPONSE_HOSTED_TOOL_CHOICES[args.toolChoice]
+          : undefined;
       request.tool_choice = hostedToolChoice
         ? { type: hostedToolChoice }
         : (responseToolChoice(args.toolChoice) ?? "auto");
@@ -1581,7 +1614,18 @@ export class OpenAIProvider extends BaseProvider {
     yield* streamResponsesEvents(stream, {
       model: args.model,
       buildToolCall: this.buildToolCall.bind(this),
-      onUsage: (model, usage) => this.trackUsage(model, usage),
+      onUsage: (model, usage) => {
+        const cost = this.trackUsage(model, usage);
+        const span = trace.getActiveSpan();
+        span?.setAttributes({
+          "gen_ai.usage.input_tokens": usage.inputTokens ?? 0,
+          "gen_ai.usage.output_tokens": usage.outputTokens ?? 0,
+          "gen_ai.usage.total_tokens": (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0),
+        });
+        if (usage.cachedTokens !== undefined) { span?.setAttribute("gen_ai.usage.cached_input_tokens", usage.cachedTokens); }
+        if (this.unpricedReason === null) { span?.setAttribute("gen_ai.usage.cost_usd", cost); }
+        return cost;
+      },
       onResponseId
     });
   }
@@ -1601,6 +1645,7 @@ export class OpenAIProvider extends BaseProvider {
     resolveMedia?: (messages: Message[]) => Promise<Message[]>;
     executeTool?: (toolCall: ToolCall) => Promise<string | MessageContent[]>;
     sequentialTools: boolean;
+    providedToolsOnly?: boolean;
     maxIterations: number;
     firstMessages: Message[];
     firstPreviousResponseId: string | null;
@@ -1652,6 +1697,7 @@ export class OpenAIProvider extends BaseProvider {
           return;
         }
       }
+      beginProviderRound(this.provider, config.args.model);
       const costBeforeTurn = config.turnBudget ? this.getTotalCost() : 0;
 
       // The reservation covers exactly one turn, so it has to be reconciled
@@ -1663,14 +1709,11 @@ export class OpenAIProvider extends BaseProvider {
           input,
           stream: true,
           store: true,
-          previousResponseId
+          previousResponseId,
+          providedToolsOnly: config.providedToolsOnly
         });
-        yield* this.collectResponsesTurn(
-          config.args,
-          request,
-          config.systemHash,
-          state
-        );
+        const llm = context.with(providerRoundContext(), () => tracedProviderLlm(this.provider, config.args.model, transcript, () => this.collectResponsesTurn(config.args, request, config.systemHash, state)));
+        yield* llm;
       } finally {
         if (config.turnBudget && reservation) {
           config.turnBudget.commit(
@@ -1714,8 +1757,8 @@ export class OpenAIProvider extends BaseProvider {
         // results and leave a dangling tool_use (rejected by the API next turn).
         try {
           const tool = toolMap.get(tc.name);
-          if (tool?.execute) return await tool.execute(tc.args ?? {}, tc.id);
-          if (config.executeTool) return await config.executeTool(tc);
+          if (tool?.execute) { const execute = tool.execute; return await tracedToolCall(tc, () => execute(tc.args ?? {}, tc.id)); }
+          if (config.executeTool) { const execute = config.executeTool; return await tracedToolCall(tc, () => execute(tc)); }
           return `Tool "${tc.name}" is not available`;
         } catch (err) {
           return `Error executing tool "${tc.name}": ${

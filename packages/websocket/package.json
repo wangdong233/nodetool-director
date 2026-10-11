@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/websocket",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "type": "module",
   "engines": {
     "node": ">=22.0.0"
@@ -44,7 +44,8 @@
     "@nodetool-ai/elevenlabs-nodes": "*",
     "@nodetool-ai/execution": "*",
     "@nodetool-ai/fal-nodes": "*",
-    "@nodetool-ai/godot-templates": "*",
+    "@nodetool-ai/game-runtime": "*",
+    "@nodetool-ai/game-renderer": "*",
     "@nodetool-ai/huggingface": "*",
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/higgsfield-nodes": "*",
@@ -69,12 +70,14 @@
     "@nodetool-ai/transformers-js-nodes": "*",
     "@nodetool-ai/transformers-js-provider": "*",
     "@nodetool-ai/vectorstore": "*",
+    "@opentelemetry/api": "^1.9.0",
     "@trpc/server": "^11.17.0",
     "fastify": "^5.12.1",
     "fflate": "^0.8.2",
     "msgpackr": "^1.11.2",
     "sharp": "^0.35.3",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "@nodetool-ai/whisper-cpp": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -105,6 +108,18 @@
       "types": "./dist/lib/document-model-interfaces.d.ts",
       "import": "./dist/lib/document-model-interfaces.js",
       "default": "./dist/lib/document-model-interfaces.js"
+    },
+    "./mcp-client-config": {
+      "nodetool-dev": "./src/mcp-client-config.ts",
+      "types": "./dist/mcp-client-config.d.ts",
+      "import": "./dist/mcp-client-config.js",
+      "default": "./dist/mcp-client-config.js"
+    },
+    "./error-traces": {
+      "nodetool-dev": "./src/error-traces.ts",
+      "types": "./dist/error-traces.d.ts",
+      "import": "./dist/error-traces.js",
+      "default": "./dist/error-traces.js"
     }
   },
   "license": "MIT",

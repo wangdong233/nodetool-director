@@ -114,6 +114,22 @@ export function isPublicAppDeploymentRequest(
 }
 
 /**
+ * The read behind a workflow's public share link. The token in the path is
+ * the credential: an unguessable 24-byte secret the owner minted and can
+ * revoke. Only a GET of exactly one segment qualifies, and the prefix sits
+ * outside `/api/workflows/` so it can never widen onto the caller's library.
+ */
+export function isPublicSharedWorkflowRequest(
+  pathname: string,
+  method: string
+): boolean {
+  const prefix = "/api/shared-workflows/";
+  if (method !== "GET" || !pathname.startsWith(prefix)) return false;
+  const token = pathname.slice(prefix.length);
+  return token.length > 0 && !token.includes("/");
+}
+
+/**
  * The fal callback authenticates itself with the provider's Ed25519
  * signature. Only POSTs to the exact callback shape are exempt; neighbouring
  * provider routes and arbitrary path suffixes remain behind session auth.
@@ -173,8 +189,41 @@ export function isPublicAuthExemptRoute(
     pathname.startsWith("/api/integrations/") ||
     isPublicWorkflowMetadataRequest(pathname, method) ||
     isPublicAppDeploymentRequest(pathname, method) ||
+    isPublicSharedWorkflowRequest(pathname, method) ||
     isPublicFalWebhookRequest(pathname, method) ||
     isPublicAtlasCloudWebhookRequest(pathname, method) ||
     isPublicMcpOauthAsRequest(pathname)
+  );
+}
+
+/**
+ * The path the router will match for `url`. find-my-way runs `decodeURI` on
+ * the path before choosing a route, so `/%61pi/workflows` reaches the
+ * `/api/workflows` handler. Every auth decision must test this decoded form,
+ * never the raw `req.url`. Returns null for malformed escapes, which the
+ * router refuses anyway.
+ */
+export function routedPathname(url: string): string | null {
+  const raw = url.split("?")[0] ?? "/";
+  try {
+    return decodeURI(raw);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * GETs the bundled frontend serves without auth: anything outside the API,
+ * WebSocket, OpenAI-compatible, tRPC and MCP prefixes. `GET /mcp` is the MCP
+ * SSE stream, so it stays behind auth to bind the session's user. A path that
+ * does not decode is never treated as a static asset.
+ */
+export function isStaticAppRequest(
+  pathname: string | null,
+  method: string
+): boolean {
+  if (pathname === null || method !== "GET") return false;
+  return !["/api", "/ws", "/v1", "/trpc", "/mcp"].some((prefix) =>
+    pathname.startsWith(prefix)
   );
 }

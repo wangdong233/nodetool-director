@@ -7,6 +7,8 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "studio:marketing": "remotion studio src/marketing/index.tsx",
+    "studio:heroflow": "remotion studio src/heroflow/index.tsx",
+    "still:heroflow": "bash scripts/still-heroflow.sh",
     "render:marketing": "tsx scripts/render-marketing.ts",
     "render": "remotion render src/index.ts WorkflowDemo out/workflow-demo.mp4",
     "render:tutorials": "npm run render:tutorial:first && npm run render:tutorial:connect && npm run render:tutorial:list && npm run render:tutorial:ask && npm run render:tutorial:combine && npm run render:tutorial:summarize && npm run render:tutorial:describe",
@@ -63,16 +65,22 @@
     "render:hero": "remotion render src/index.ts Hero-Project out/hero-project.mp4",
     "render:hero:vertical": "remotion render src/index.ts Hero-Project-Vertical out/hero-project-vertical.mp4",
     "encode:hero": "node scripts/encode-hero.mjs",
-    "render:surfaces": "remotion render src/index.ts Surface-storyboard out/surface-storyboard.mp4 && remotion render src/index.ts Surface-script out/surface-script.mp4 && remotion render src/index.ts Surface-timeline out/surface-timeline.mp4 && remotion render src/index.ts Surface-sketch out/surface-sketch.mp4 && npm run render:3d",
+    "render:surfaces": "bash scripts/render-surfaces.sh",
     "render:3d": "remotion render src/index.ts Surface-3d out/surface-3d.mp4 --gl=angle",
     "build:3d-scene": "tsx scripts/build-3d-cast-scene.ts",
     "render:tab-chaos": "remotion render src/index.ts Tab-Chaos out/tab-chaos.mp4",
+    "studio:vibe": "remotion studio src/vibe/index.tsx",
+    "vibe:track": "tsx scripts/vibe-track.ts",
+    "render:vibe": "remotion render src/vibe/index.tsx VibeRace out/vibe-race.mp4 --concurrency=8 --crf=18",
     "still:promo": "remotion still src/index.ts Promo-Master out/promo-frame.jpg --frame=300",
     "typecheck": "node ../scripts/run-tsc.mjs --noEmit",
     "render:tutorials:all": "tsx scripts/render-tutorials.ts",
     "still:tutorials:all": "tsx scripts/render-tutorials.ts --stills-only",
     "inspect:tutorials": "tsx scripts/render-tutorials.ts --inspect",
-    "test": "tsx --test src/__tests__/*.test.ts"
+    "test": "tsx --test src/__tests__/*.test.ts",
+    "render:heroflow": "remotion render src/heroflow/index.tsx HeroFlow out/heroflow.mp4",
+    "studio:nodeshero": "remotion studio src/nodeshero/index.tsx",
+    "render:nodeshero": "remotion render src/nodeshero/index.tsx NodesHero out/nodes-hero.mp4 --concurrency=4 --crf=16"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.481",

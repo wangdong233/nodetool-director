@@ -1,3 +1,5 @@
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   memo,
   useCallback,
@@ -15,6 +17,7 @@ import {
   FlexRow,
   LoadingSpinner
 } from "../ui_primitives";
+import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { BASE_URL } from "../../stores/BASE_URL";
 import type { Asset } from "../../stores/ApiTypes";
 import { useSaveAudioToAsset } from "../../hooks/audio/useSaveAudioToAsset";
@@ -22,7 +25,6 @@ import WaveformView, { type Selection } from "./WaveformView";
 import AudioEditorToolbar from "./AudioEditorToolbar";
 import { useEditHistory } from "./useEditHistory";
 import { createPlayheadStore, type PlayheadStore } from "./playheadStore";
-import { i18n } from "../../i18n";
 import {
   applyGain,
   audioBufferToSample,
@@ -36,11 +38,11 @@ import {
   silenceRange,
   type AudioSample
 } from "./audioSample";
-import { useTranslation } from "react-i18next";
 
 interface AudioSampleEditorProps {
   asset: Asset;
   onClose: () => void;
+  active?: boolean;
 }
 
 const MIN_ZOOM = 1;
@@ -103,10 +105,16 @@ const PlaybackClock = memo(function PlaybackClock({
  * playhead line and the clock subscribe, and this component doesn't re-render
  * per frame.
  */
-const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
+const AudioSampleEditor = ({
+  asset,
+  onClose,
+  active = true
+}: AudioSampleEditorProps) => {
   const { t } = useTranslation();
   const history = useEditHistory<AudioSample>();
+  const resetHistory = history.reset;
   const sample = history.present;
+  const [savedSample, setSavedSample] = useState<AudioSample | null>(null);
   const sampleRef = useRef<AudioSample | null>(null);
   sampleRef.current = sample;
 
@@ -247,6 +255,29 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
     else play();
   }, [isPlaying, pause, play]);
 
+  useEffect(() => {
+    if (active) {
+      return;
+    }
+    pause();
+    if (audioCtxRef.current) {
+      void audioCtxRef.current.suspend();
+    }
+  }, [active, loading, pause]);
+
+  useEffect(() => {
+    useDocumentDraftStore
+      .getState()
+      .setDirty(`audio:${asset.id}`, sample !== null && sample !== savedSample);
+  }, [asset.id, sample, savedSample]);
+
+  useEffect(
+    () => () => {
+      useDocumentDraftStore.getState().setDirty(`audio:${asset.id}`, false);
+    },
+    [asset.id]
+  );
+
   // Load + decode the asset once per identity. get_url changes after our own
   // save must not reload and wipe in-progress edits.
   useEffect(() => {
@@ -268,7 +299,9 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
         const arrayBuffer = await response.arrayBuffer();
         const decoded = await getCtx().decodeAudioData(arrayBuffer);
         if (cancelled) return;
-        history.reset(audioBufferToSample(decoded));
+        const initial = audioBufferToSample(decoded);
+        resetHistory(initial);
+        setSavedSample(initial);
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
@@ -279,7 +312,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
     return () => {
       cancelled = true;
     };
-  }, [asset.id]);
+  }, [asset.id, getCtx, resetHistory]);
 
   // Stop playback and re-clamp selection/playhead whenever the sample changes
   // (edit, undo, or redo).
@@ -388,8 +421,10 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
   const handleQuieten = useCallback(() => handleGain(0.7), [handleGain]);
   const handleToggleLoop = useCallback(() => setLoop((v) => !v), []);
 
-  const handleSave = useCallback(() => {
-    if (sampleRef.current) void save(sampleRef.current);
+  const handleSave = useCallback(async () => {
+    const savingSample = sampleRef.current;
+    if (savingSample && (await save(savingSample)))
+      setSavedSample(savingSample);
   }, [save]);
 
   const zoomIn = useCallback(
@@ -416,8 +451,8 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
         <EmptyState
           variant="error"
           title={t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
-          description={error ?? t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
-          actionText={t("ui2:attrs.done", { defaultValue: "Done" })}
+          description={error ?? i18n.t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
+          actionText="Done"
           onAction={onClose}
         />
       </FlexColumn>
@@ -461,7 +496,10 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
         onDone={onClose}
       />
 
-      <Box ref={setWaveArea} sx={{ flex: 1, minHeight: 0, position: "relative" }}>
+      <Box
+        ref={setWaveArea}
+        sx={{ flex: 1, minHeight: 0, position: "relative" }}
+      >
         <WaveformView
           sample={sample}
           pixelsPerSecond={pixelsPerSecond}
@@ -487,7 +525,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
             ? `Selection ${formatTime(selection.start)} – ${formatTime(
                 selection.end
               )} (${formatTime(selection.end - selection.start)})`
-            : t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
+            : i18n.t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
         </Caption>
         <PlaybackClock playhead={playhead} duration={duration} />
       </FlexRow>

@@ -17,7 +17,13 @@ import {
   vi
 } from "vitest";
 
+import { PYTHON_NODE_PACKS } from "@nodetool-ai/protocol/python-packs";
+
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+
+vi.mock("@nodetool-ai/protocol", async () =>
+  import("@nodetool-ai/protocol/python-packs")
+);
 
 vi.mock("@nodetool-ai/node-sdk", () => ({
   fetchAvailablePackages: vi.fn(async () => []),
@@ -138,31 +144,32 @@ describe("package list", () => {
     expect(stdout.join("\n")).toContain("nodetool-base");
   });
 
-  it("calls fetchAvailablePackages with --available", async () => {
-    const sdk = await import("@nodetool-ai/node-sdk");
-    (sdk.fetchAvailablePackages as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValue([
-        { name: "foo", repo_id: "org/foo", description: "desc" }
-      ]);
-    const { stdout } = await runCommand(["list", "--available"]);
-    expect(sdk.fetchAvailablePackages).toHaveBeenCalled();
-    expect(stdout.join("\n")).toContain("foo");
+  it("prints the shipped Python pack catalog with --available", async () => {
+    const { stdout, stderr, exitCode } = await runCommand(["list", "--available"]);
+    expect(exitCode).toBeNull();
+    expect(stderr).toEqual([]);
+    expect(PYTHON_NODE_PACKS.length).toBeGreaterThan(0);
+    for (const pack of PYTHON_NODE_PACKS) {
+      expect(stdout.join("\n")).toContain(pack.name);
+      expect(stdout.join("\n")).toContain(pack.repo_id);
+      expect(stdout.join("\n")).toContain(pack.description);
+    }
   });
 
-  it("prints '(no packages available)' when registry is empty", async () => {
+  it("does not fetch the registry or scan installed packs with --available", async () => {
     const sdk = await import("@nodetool-ai/node-sdk");
-    (sdk.fetchAvailablePackages as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValue([]);
-    const { stdout } = await runCommand(["list", "--available"]);
-    expect(stdout.join("\n")).toContain("(no packages available)");
+    const { stderr, exitCode } = await runCommand(["list", "--available"]);
+    expect(exitCode).toBeNull();
+    expect(stderr).toEqual([]);
+    expect(sdk.fetchAvailablePackages).not.toHaveBeenCalled();
+    expect(sdk.loadPythonPackageMetadata).not.toHaveBeenCalled();
   });
 
-  it("--json forwards to asJson", async () => {
-    const sdk = await import("@nodetool-ai/node-sdk");
-    (sdk.fetchAvailablePackages as unknown as ReturnType<typeof vi.fn>)
-      .mockResolvedValue([{ name: "a", repo_id: "org/a" }]);
-    const { stdout } = await runCommand(["list", "--available", "--json"]);
-    expect(stdout.join("\n")).toContain('"name": "a"');
+  it("prints the complete shipped catalog with --available --json", async () => {
+    const { stdout, stderr, exitCode } = await runCommand(["list", "--available", "--json"]);
+    expect(exitCode).toBeNull();
+    expect(stderr).toEqual([]);
+    expect(JSON.parse(stdout.join("\n"))).toEqual(PYTHON_NODE_PACKS);
   });
 });
 
@@ -175,6 +182,7 @@ describe("package docs", () => {
       const { stderr, exitCode } = await runCommand(["docs"]);
       expect(exitCode).toBe(1);
       expect(stderr.join("\n")).toContain("package_metadata");
+      expect(stderr.join("\n")).toContain("python -m nodetool.package_tools scan");
     } finally {
       process.chdir(cwd);
     }
@@ -311,12 +319,14 @@ describe("package init", () => {
       );
       expect(pkg.name).toBe("nodetool-foo");
       expect(pkg.description).toBe("A test package");
+      // The pack loader skips any package.json without this field.
+      expect(pkg.nodetool).toEqual({ apiVersion: 1, register: "register" });
 
       const src = fs.readFileSync(
         path.join(tmp, "src", "index.ts"),
         "utf8"
       );
-      expect(src).toContain("registerNodes");
+      expect(src).toContain("export function register(");
       expect(src).toContain("NodeRegistry");
     } finally {
       process.chdir(cwd);

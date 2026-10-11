@@ -184,9 +184,9 @@ row stays in the database for the UI and for `nodetool.threads.*`, and the web
 renders the record as a collapsed "Earlier conversation summarized" card the
 user can open.
 
-Two triggers: the estimated prompt crossing
-`NODETOOL_CHAT_COMPACTION_TOKENS`, and the provider reporting that the prompt
-did not fit, which compacts and retries the turn once. A provider that holds the
+Two triggers: the prompt reaching 90% of the model's input window (or
+`NODETOOL_CHAT_COMPACTION_TOKENS` when set), and the provider reporting that
+the prompt did not fit, which compacts and retries the turn once. A provider that holds the
 transcript itself skips the first — shortening what NodeTool sends does not
 shorten what that provider already has. A summarizer call that fails leaves the
 thread whole and lets the turn run, since the alternative to an imperfect
@@ -256,7 +256,7 @@ lazy implementation table disagree.
 | `compositions` | `list_compositions`, `get_composition`, `save_composition`, `delete_composition` — group clips with parameters stored as JSON assets; `edit_timeline`'s `insert_composition` op instantiates one |
 | `sketches` | `list_sketches`, `create_sketch`, `get_sketch`, `list_sketch_versions`, `get_sketch_version`, `create_sketch_version`, `restore_sketch_version`, `delete_sketch_version`, `edit_sketch`, `validate_sketch`, `delete_sketch` |
 | `model3d` | `list_model3ds`, `create_model3d`, `get_model3d`, `edit_model3d`, `validate_model3d`, `render_model3d` |
-| `storyboards` | `list_storyboards`, `create_storyboard`, `get_storyboard`, `render_storyboard_stills`, `render_storyboard_clips`, `revise_storyboard_clip`, `assemble_storyboard_timeline`, `edit_storyboard`, `extract_script_from_storyboard`, `delete_storyboard` |
+| `storyboards` | `list_storyboards`, `create_storyboard`, `get_storyboard`, `render_storyboard_stills`, `render_storyboard_clips`, `revise_storyboard_clip`, `assemble_storyboard_timeline`, `edit_storyboard`, `extract_script_from_storyboard`, `delete_storyboard`, `get_storyboard_one_take`, `update_storyboard_one_take` |
 | `scripts` | `list_scripts`, `create_script`, `get_script`, `voice_script_lines`, `assemble_script_timeline`, `edit_script`, `derive_storyboard_from_script`, `delete_script` |
 | `entities` | `list_entities`, `get_entity`, `apply_entities`, `create_entity`, `update_entity`, `delete_entity` |
 | `memory` | `memory_save`, `memory_list`, `memory_search`, `memory_update`, `memory_delete` — durable notes scoped to the **user**, not the thread. A memory saved in one conversation is readable from every later one; `memory_search` is a keyword match over title and content — every word must appear. The turn's prompt block carries this thread's memories in full plus a count of the ones held elsewhere. |
@@ -283,10 +283,12 @@ read-class capability goes straight to its implementation, then the mode and
 category decide (`decidePermission`), then the session allow-set, then the
 approval round trip. A capability declares its `category` (`read`, `write`,
 `execute`, `external`) in its spec; a `Tool` reaches the same ladder through
-`gateTools`, which builds a one-call `CapabilityRun` over a capability view of
-the tool and classifies it with `capabilityCategoryFor`, which reads the
-registered spec's category first and the hand-written map only for the few
-Tool classes without a spec.
+[`gateLegacyTools`](../packages/agents/src/capabilities/legacy-tools.ts), which
+caches one invocation run per belt and context. It adapts only legacy
+implementations with `capabilityFromTool`. Native compatibility wrappers retain
+their specs and implementations. Chat, MCP, and headless evals use their owned
+`CapabilityRun` directly, and provider declarations are generated from specs.
+
 
 The gate is per run, not per tool. A host publishes one
 `PermissionGateOptions` on the context under `PERMISSION_GATE_CONTEXT_KEY`, and
@@ -392,25 +394,12 @@ A CodeAct action (`execute_code`) and the `CodeNode` workflow node both run user
 | Max `fetch` calls | 20 |
 | Max response body | 1 MB |
 
-The sandbox exposes a curated surface: vanilla JavaScript plus bridge globals (`fetch`, `workspace`, `getSecret`, `nodetool.secrets.*`, `sleep`, `crypto`, `console`, `media`, `image`/`audio`/`video`). Third-party libraries are not globals — each is a **sandbox package** the body imports (`import yaml from "@nodetool-ai/sandbox-yaml"`). NodeTool ships thirty-eight of them in `packages/sandbox-packs/`. See [javascript-sandbox.md](javascript-sandbox.md) for the full global table and the pack list.
-
-### Tool Registry
-
-Register custom tools so they can be resolved by name:
-
-```ts
-import { registerTool, resolveTool, getAllTools } from "@nodetool-ai/agents";
-
-registerTool(new MyCustomTool());
-const tool = resolveTool("my_custom_tool");
-const allTools = getAllTools(); // returns all registered tools
-```
+The sandbox exposes a curated surface: vanilla JavaScript plus bridge globals (`fetch`, `workspace`, `getSecret`, `nodetool.secrets.*`, `sleep`, `crypto`, `console`, `media`, `image`/`audio`/`video`). Third-party libraries are not globals — each is a **sandbox package** the body imports (`import yaml from "@nodetool-ai/sandbox-yaml"`). NodeTool ships them in `packages/sandbox-packs/`. See [javascript-sandbox.md](javascript-sandbox.md) for the full global table and the pack list.
 
 ### Builtin Tools in Tool-Agent Nodes (`runAgentLoop`)
 
-There is a **separate** registry for tools that workflow tool-agent nodes
-expose via `runAgentLoop` (in `@nodetool-ai/llm-nodes`) — distinct from the
-`@nodetool-ai/agents` `registerTool`/`resolveTool` registry above. Builtin
+Tools that workflow tool-agent nodes expose via `runAgentLoop` (in
+`@nodetool-ai/llm-nodes`) live in their own registry. Builtin
 node tools are registered into it at module load via
 `registerBuiltinAgentToolClasses` or, for lazily-built sets,
 `registerBuiltinAgentToolFactory` (which is what

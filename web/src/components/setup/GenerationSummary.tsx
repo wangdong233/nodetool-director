@@ -1,12 +1,13 @@
-import React from "react";
 import { formatUsd } from "@nodetool-ai/model-pricing";
+import { isModelSelected } from "@nodetool-ai/protocol";
 import {
   Caption,
   FlexColumn,
   FlexRow,
   GAP,
   Label,
-  Text
+  Text,
+  Tooltip
 } from "../ui_primitives";
 import { generationEstimate, type GenerationModel } from "./generationEstimate";
 import { i18n } from "../../i18n";
@@ -17,6 +18,8 @@ export interface GenerationSummaryProps {
   model: GenerationModel | null;
   brief: string;
   maxOutputTokens: number;
+  /** Input the brief does not show, such as attached images. */
+  extraInputTokens?: number;
   /** Imported attributed text or a preset plan needs no model call. */
   noModelCall?: boolean;
   /** Keep a secondary action's estimate compact beside its own controls. */
@@ -34,20 +37,24 @@ export interface GenerationEstimateLineProps extends GenerationSummaryProps {
 
 /**
  * The run's estimate as one line for the setup footer: model, cost, wait.
- * What the run produces and the token assumptions stay one hover away, so the
- * footer holds the numbers and nothing else.
+ * What the run produces and the token assumptions sit in a tooltip, so the
+ * footer holds the numbers and nothing else. The line takes focus and opens on
+ * a tap, so the details reach keyboard and touch as well as a mouse.
  */
 export function GenerationEstimateLine({
   result,
-  model,
+  model: rawModel,
   brief,
   maxOutputTokens,
+  extraInputTokens,
   noModelCall,
   hideModel = false
 }: GenerationEstimateLineProps) {
+  // The "empty" sentinel is no choice, whatever default id it carries.
+  const model = isModelSelected(rawModel) ? rawModel : null;
   const estimate = noModelCall
     ? null
-    : generationEstimate(model, brief, maxOutputTokens);
+    : generationEstimate(model, brief, maxOutputTokens, extraInputTokens);
   const parts = [
     hideModel || noModelCall
       ? null
@@ -66,33 +73,44 @@ export function GenerationEstimateLine({
       ? ` About ${estimate.inputTokens.toLocaleString()} input and 1,000–${maxOutputTokens.toLocaleString()} output tokens. Actual usage may cost more.`
       : "";
   return (
-    <Text
-      size="small"
-      color="secondary"
-      role="region"
-      aria-label="Before you generate"
+    <Tooltip
       title={`${result}.${assumptions}`}
-      sx={{ whiteSpace: "nowrap" }}
+      describeChild
+      enterTouchDelay={0}
+      leaveTouchDelay={6000}
     >
-      {parts.join(" · ")}
-    </Text>
+      <Text
+        size="small"
+        color="secondary"
+        component="span"
+        role="group"
+        aria-label="Before you generate"
+        tabIndex={0}
+        sx={{ whiteSpace: "nowrap", cursor: "help" }}
+      >
+        {parts.join(" · ")}
+      </Text>
+    </Tooltip>
   );
 }
 
 export default function GenerationSummary({
   result,
   next,
-  model,
+  model: rawModel,
   brief,
   maxOutputTokens,
+  extraInputTokens,
   noModelCall,
   compact = false,
   concise = false,
   hideTokenEstimate = false
 }: GenerationSummaryProps) {
+  // The "empty" sentinel is no choice, whatever default id it carries.
+  const model = isModelSelected(rawModel) ? rawModel : null;
   const estimate = noModelCall
     ? null
-    : generationEstimate(model, brief, maxOutputTokens);
+    : generationEstimate(model, brief, maxOutputTokens, extraInputTokens);
   const cost = noModelCall
     ? "$0, no model call"
     : estimate

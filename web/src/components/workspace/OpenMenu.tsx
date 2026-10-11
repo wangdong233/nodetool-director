@@ -9,7 +9,8 @@ import {
   FlexRow,
   Caption,
   Divider,
-  LoadingSpinner
+  LoadingSpinner,
+  SPACING
 } from "../ui_primitives";
 import { useExampleStoryboards } from "../../hooks/storyboard/useStoryboards";
 import {
@@ -28,9 +29,16 @@ interface OpenMenuProps {
 
 type MenuView = "root" | NewDocumentSubmenu;
 
+/** The menu's column width, and the popover's room around it, in px. */
+const MENU_WIDTH = 320;
+const MENU_MAX_WIDTH = 340;
+
 /** A section header inside the menu: quiet, uppercase-adjacent, padded. */
 const MenuSectionLabel = ({ children }: { children: string }) => (
-  <Caption color="muted" sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+  <Caption
+    color="muted"
+    sx={{ px: SPACING.md, pt: SPACING.sm, pb: SPACING.micro }}
+  >
     {children}
   </Caption>
 );
@@ -71,13 +79,13 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       anchorEl={anchorEl}
       onClose={close}
       placement="bottom-left"
-      maxWidth={340}
+      maxWidth={MENU_MAX_WIDTH}
       maxHeight="70vh"
     >
       <FlexColumn
         sx={{
-          width: 320,
-          py: 0.5,
+          width: MENU_WIDTH,
+          py: SPACING.micro,
           // One icon size for every row: 16px beats the default MUI small
           // (20px), which crowded the label at this menu's density.
           "& .MuiSvgIcon-root": { fontSize: 16 }
@@ -85,27 +93,30 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       >
         {view === "root" && (
           <>
-            <MenuSectionLabel>{t("ui2:attrs.guidedFlows", { defaultValue: "Guided flows" })}</MenuSectionLabel>
+            <MenuSectionLabel>Guided flows</MenuSectionLabel>
+            {/* The item being started says so, as the New Project cards do,
+                so the disabled menu does not read as a dead click. */}
             {starters.map((starter) => (
               <MenuItemPrimitive
                 key={starter.id}
-                label={t(`editor:ui.menuFlowTitle.${starter.id}`, { defaultValue: starter.title })}
-                icon={starter.icon}
+                label={starter.title}
+                icon={
+                  starting === starter.id ? (
+                    <LoadingSpinner size="small" />
+                  ) : (
+                    starter.icon
+                  )
+                }
                 secondary={
-                  // descriptionKey is already fully qualified
-                  // ("editor:ui.…") — prefixing it again misses the key and
-                  // silently falls back to the raw English description.
-                  starter.descriptionKey
-                    ? t(starter.descriptionKey, { defaultValue: starter.description })
-                    : starter.description
+                  starting === starter.id ? "Creating…" : starter.description
                 }
                 onClick={() => void starter.start()}
                 disabled={busy}
               />
             ))}
 
-            <Divider sx={{ my: 1 }} />
-            <MenuSectionLabel>{t("ui2:attrs.blankDocuments", { defaultValue: "Blank documents" })}</MenuSectionLabel>
+            <Divider sx={{ my: SPACING.xs }} />
+            <MenuSectionLabel>Blank documents</MenuSectionLabel>
             {entries.map((entry) => (
               <MenuItemPrimitive
                 key={entry.key}
@@ -158,13 +169,13 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
               dividerAfter
             />
             {examplesLoading && (
-              <FlexRow justify="center" sx={{ py: 2 }}>
+              <FlexRow justify="center" sx={{ py: SPACING.md }}>
                 <LoadingSpinner />
               </FlexRow>
             )}
             {!examplesLoading && exampleStoryboards.length === 0 && (
-              <Caption color="secondary" sx={{ px: 2, py: 1.5 }}>
-                {t("editor:ui.noExampleStoryboardsAreInstalled")}
+              <Caption color="secondary" sx={{ px: SPACING.md, py: SPACING.sm }}>
+                No example storyboards are available.
               </Caption>
             )}
             {exampleStoryboards.map((example) => (

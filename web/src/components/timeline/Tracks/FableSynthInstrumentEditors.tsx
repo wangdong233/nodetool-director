@@ -25,11 +25,12 @@ import {
   Label,
   SPACING
 } from "../../ui_primitives";
+import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
 import { useTranslation } from "react-i18next";
 
-type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" }>;
+type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
 type Accent = "a" | "b" | "f" | "n";
 
@@ -116,6 +117,8 @@ const Knob: React.FC<KnobProps> = ({
 }) => {
   const { t } = useTranslation();
   const drag = useRef<{ y: number; norm: number } | null>(null);
+  // A drag is one undo entry, however many pointermoves it takes.
+  const gesture = useBatchedGesture(onChange);
   const norm = Math.min(1, Math.max(0, valueToNorm(def, value)));
   const degrees = -135 + 270 * norm;
   const from = def.min < 0 ? -135 + 270 * valueToNorm(def, 0) : -135;
@@ -153,6 +156,7 @@ const Knob: React.FC<KnobProps> = ({
             event.currentTarget.focus();
             event.currentTarget.setPointerCapture(event.pointerId);
             drag.current = { y: event.clientY, norm };
+            gesture.begin();
           }}
           onPointerMove={(event) => {
             if (!drag.current) return;
@@ -166,19 +170,22 @@ const Knob: React.FC<KnobProps> = ({
               )
             );
             drag.current = { y: event.clientY, norm: next };
-            onChange(normToValue(def, next));
+            gesture.schedule(normToValue(def, next));
           }}
           onPointerUp={(event) => {
             drag.current = null;
+            gesture.commit();
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
             }
           }}
           onLostPointerCapture={() => {
             drag.current = null;
+            gesture.commit();
           }}
           onPointerCancel={() => {
             drag.current = null;
+            gesture.commit();
           }}
           onDoubleClick={() => onChange(def.def)}
         />

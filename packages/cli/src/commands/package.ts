@@ -4,13 +4,13 @@ import type { Command } from "commander";
 import { confirm, input } from "@inquirer/prompts";
 import {
   loadPythonPackageMetadata,
-  fetchAvailablePackages,
   generatePackageOverviewMarkdown,
   generateAllNodeDocs,
   generateAllWorkflowDocs,
   type NodeMetadata,
   type WorkflowFile
 } from "@nodetool-ai/node-sdk";
+import { PYTHON_NODE_PACKS } from "@nodetool-ai/protocol";
 import { asJson, findWorkspaceRoots, printTable } from "./package-helpers.js";
 
 interface ListOptions {
@@ -48,25 +48,20 @@ export function registerPackageCommands(program: Command): void {
   pkg
     .command("list")
     .description("List installed packages (or available with --available)")
-    .option("-a, --available", "Show available packages from the registry")
+    .option("-a, --available", "Show the Python node packs the desktop app offers")
     .option("--json", "Output as JSON")
     .action(async (opts: ListOptions) => {
       try {
         if (opts.available) {
-          const packages = await fetchAvailablePackages();
           if (opts.json) {
-            asJson(packages);
-            return;
-          }
-          if (packages.length === 0) {
-            console.log("(no packages available)");
+            asJson(PYTHON_NODE_PACKS);
             return;
           }
           printTable(
-            packages.map((p) => ({
+            PYTHON_NODE_PACKS.map((p) => ({
               name: p.name,
               repo_id: p.repo_id,
-              description: p.description ?? ""
+              description: p.description
             }))
           );
           return;
@@ -151,6 +146,10 @@ export function registerPackageCommands(program: Command): void {
               import: "./dist/index.js",
               types: "./dist/index.d.ts"
             }
+          },
+          nodetool: {
+            apiVersion: 1,
+            register: "register"
           }
         };
         fs.writeFileSync(
@@ -180,7 +179,7 @@ export function registerPackageCommands(program: Command): void {
           path.join(cwd, "src", "index.ts"),
           `import type { NodeRegistry } from "@nodetool-ai/node-sdk";\n` +
             `\n` +
-            `export function registerNodes(_registry: NodeRegistry): void {\n` +
+            `export function register(_registry: NodeRegistry): void {\n` +
             `  // register your nodes here\n` +
             `}\n`
         );
@@ -214,7 +213,7 @@ export function registerPackageCommands(program: Command): void {
         const metadataDir = path.join(cwd, "nodetool", "package_metadata");
         if (!fs.existsSync(metadataDir)) {
           throw new Error(
-            "No nodetool/package_metadata/ found. Run 'nodetool package scan' first."
+            "No nodetool/package_metadata/ found. Run 'python -m nodetool.package_tools scan --package-dir . --write' first."
           );
         }
         const loaded = loadPythonPackageMetadata({ roots: [cwd] });

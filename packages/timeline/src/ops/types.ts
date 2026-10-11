@@ -2,18 +2,18 @@
  * The document an op reads and writes, and everything an op needs that a pure
  * function cannot know.
  *
- * Three hosts drive the same `ui_timeline_*` surface — the headless eval
- * bridge, the browser store, the mobile document — and each used to carry its
- * own copy of the op semantics. They diverged: `set_clip_params` silently
- * dropped timing in the browser, `insert_composition` existed headlessly only.
- * The semantics live here now (I11); a host holds state and I/O, nothing else.
+ * The server bridge and browser store share the op semantics. Hosts supply
+ * document state and I/O through this boundary (I11).
  */
 
 import type {
+  TimelineSequence,
+  TimelineSetup,
   MediaTrack,
   TimelineClip,
   TimelineMarker,
-  TimelineTrack
+  TimelineTrack,
+  TimelineTempo
 } from "../types.js";
 import type { TimelineComposition } from "../composition.js";
 import type { Model3DBakeSequence } from "../model3dBake.js";
@@ -25,12 +25,20 @@ import type {
 
 /** The document shape every host already holds, plus its editor cursor. */
 export interface TimelineOpState {
+  tempo?: TimelineTempo;
+  trackFolders?: TimelineSequence["trackFolders"];
+  setup?: TimelineSetup | null;
+  transcript?: TimelineSequence["transcript"];
+  scriptEnabled?: boolean;
+  templateId?: string | null;
+  camera2d?: TimelineSequence["camera2d"];
   fps: number;
   width: number;
   height: number;
   tracks: TimelineTrack[];
   clips: TimelineClip[];
   markers: TimelineMarker[];
+  storyboardMaterializations?: Array<{ boardId: string; elementKeys: string[]; stage?: "layout" | "finished" }>;
   /**
    * Subject/object tracks (P0 AI Video, Phase 2). Optional so a host built
    * before they existed — every literal `TimelineOpState` in this package's
@@ -104,11 +112,26 @@ export type TimelineOpIdKind =
   | "clip"
   | "anim"
   | "marker"
-  | "version";
+  | "version"
+  | "note"
+  | "beat"
+  | "link";
 
 /** Everything an op needs that the document cannot answer. */
 export interface TimelineOpContext {
   newId(kind: TimelineOpIdKind): string;
+  followLinks?: boolean;
+  allowUnknownMediaDuration?: boolean;
+  sequence?: Pick<TimelineSequence, "id" | "projectId" | "name">;
+  retargetFormat?(
+    sequence: TimelineSequence
+  ): Promise<{ sequenceId: string; name?: string }>;
+  generateFromBeats?(
+    state: TimelineOpState,
+    op: Extract<import("./op.js").TimelineOp, { op: "generate_from_beats" }>
+  ): Promise<TimelineOpOutcome>;
+  /** New MIDI track voice. Hosts may keep their existing preset defaults. */
+  defaultMidiInstrument?: TimelineTrack["instrument"];
   /** Timestamp for a baked animation. Defaults to `new Date().toISOString()`. */
   now?(): string;
   /** Asset lookup for `add_media_clip`. Absent means this surface has none. */
@@ -128,7 +151,7 @@ export interface TimelineOpContext {
   /**
    * The host's SVG path parser (`parseSvgPath` from `./scene`). Passed in
    * rather than imported: the parser lives under `src/render`, which this
-   * module stays clear of so mobile can compile it from source (AS2).
+   * module stays clear of to avoid loading the renderer in edit hosts (AS2).
    */
   parseSvgPath?(d: string): { ok: boolean; error?: string };
 }
@@ -150,6 +173,7 @@ export interface TimelineOpOutcome {
 
 /** The animation input `animate_clip` takes, before it is built. */
 export interface TimelineAnimationInput {
+  enabled?: boolean;
   role: ClipAnimation["role"];
   preset: string;
   durationMs?: number;

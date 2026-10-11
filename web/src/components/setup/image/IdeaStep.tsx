@@ -29,7 +29,9 @@ import {
 import { useSketchStore } from "../../sketch/state/useSketchStore";
 import { useEntities } from "../../../serverState/useEntities";
 import { ExampleBriefs } from "../ExampleBriefs";
+import { GalleryFrame } from "../MediaGallery";
 import { AlternativesColumn } from "../AlternativesColumn";
+import ReportBugButton from "../../support/ReportBugButton";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import type { UploadFirstLayerResult } from "../../../hooks/sketch/useUploadFirstLayer";
 import { readEntityIds, readReferences } from "./setupContext";
@@ -79,6 +81,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   const setup = useSketchStore((state) => state.document.setup);
   const setSetup = useSketchStore((state) => state.setSetup);
   const fileInput = useRef<HTMLInputElement>(null);
+  const briefField = useRef<HTMLElement | null>(null);
   const { data: entities } = useEntities();
 
   // What the composer was holding when the Image card was clicked (F4). It is
@@ -164,10 +167,23 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           hideLabel
           placeholder="One sentence is enough."
           onChange={handleChange}
+          inputRef={briefField}
         />
 
         {upload.error ? (
-          <AlertBanner severity="error" onClose={upload.clearError}>
+          <AlertBanner
+            severity="error"
+            onClose={upload.clearError}
+            action={
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Image upload failed",
+                  errorText: upload.error
+                }}
+              />
+            }
+          >
             {upload.error}
           </AlertBanner>
         ) : null}
@@ -190,14 +206,21 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     gap={GAP.tight}
                     sx={{ width: REFERENCE_THUMBNAIL }}
                   >
-                    <ResponsiveImage
+                    <GalleryFrame
                       locator={reference.uri}
-                      preferThumbnail
-                      alt={reference.name}
-                      aspectRatio="1/1"
-                      fit="cover"
-                      borderRadius={BORDER_RADIUS.sm}
-                    />
+                      kind="image"
+                      caption={reference.name}
+                      sx={{ width: "100%" }}
+                    >
+                      <ResponsiveImage
+                        locator={reference.uri}
+                        preferThumbnail
+                        alt={reference.name}
+                        aspectRatio="1/1"
+                        fit="cover"
+                        borderRadius={BORDER_RADIUS.sm}
+                      />
+                    </GalleryFrame>
                     <Caption color="secondary">{reference.name}</Caption>
                   </FlexColumn>
                 ))}
@@ -226,6 +249,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           )}
           brief={brief}
           onSelect={(value) => setSetup({ brief: value })}
+          briefRef={briefField}
         />
       </FlexColumn>
 

@@ -14,6 +14,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
+import { useNotificationStore } from "../../../stores/NotificationStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
 import { useWorkflow } from "../../../serverState/useWorkflow";
 import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
@@ -45,6 +46,7 @@ import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import StopRoundedIcon from "@mui/icons-material/StopRounded";
 import { GeneratedClipTopBar } from "./GeneratedClipTopBar";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
+import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
 import { useTranslation } from "react-i18next";
@@ -99,6 +101,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const setParamOverride = useTimelineStore((s) => s.setParamOverride);
+    const [inputsOpen, setInputsOpen] = usePersistedFold("generated-inputs", true);
 
     const workflowId = clip?.workflowId ?? null;
     const { data: workflow, isLoading, isError } = useWorkflow(workflowId);
@@ -163,8 +166,17 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
       useGenerateClip(clipId);
     const handleGenerateClick = useCallback(() => {
       const action = isActive ? cancelClipGeneration() : generateClip();
-      // Errors surface via the clip's status badge / generation store.
-      action.catch(() => undefined);
+      action.catch((err: unknown) => {
+        useNotificationStore.getState().addNotification({
+          type: "error",
+          content: `Clip generation failed: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+          alert: true,
+          dedupeKey: "timeline-clip-generate-failed",
+          replaceExisting: true
+        });
+      });
     }, [isActive, cancelClipGeneration, generateClip]);
 
     if (!clip) {
@@ -195,7 +207,8 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                   icon={<TuneOutlinedIcon />}
                 />
               }
-              defaultOpen
+              open={inputsOpen}
+              onToggle={setInputsOpen}
             >
               {isLoading && <LoadingSpinner size="small" />}
               {isError && (

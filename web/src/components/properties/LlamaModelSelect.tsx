@@ -1,3 +1,5 @@
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { useModelProviderSetup } from "../../hooks/useModelProviderSetup";
 import React, { useState, useCallback, useMemo, useRef, memo } from "react";
 import isEqual from "../../utils/isEqual";
@@ -14,12 +16,10 @@ import {
 } from "../ui_primitives";
 import CheckIcon from "@mui/icons-material/Check";
 import { useOllamaModels } from "../../hooks/useOllamaModels";
-import { isElectron } from "../../lib/env";
 import type { LlamaModelValue } from "../../stores/ApiTypes";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import { EditorMenu, EditorMenuItem } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;
@@ -121,7 +121,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
         ) : ollamaError ? (
           <div style={{ padding: getSpacingPx(SPACING.md), maxWidth: 300 }}>
             <Text size="small" color="error" sx={{ mb: 1 }}>
-              {t("editor:ui.couldNotLoadOllamaModels")}
+              Could not load Ollama models
             </Text>
             <Caption
               color="secondary"
@@ -129,27 +129,24 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             >
               {isString((ollamaError as { detail?: unknown })?.detail)
                 ? (ollamaError as { detail?: string }).detail
-                : t("editor:ui.pleaseCheckThatOllamaIsRunning", { defaultValue: "Please check that Ollama is running" })}
+                : i18n.t("editor:ui.pleaseCheckThatOllamaIsRunning", { defaultValue: "Please check that Ollama is running" })}
             </Caption>
-            {isElectron ? (
-              <Caption
-                color="warning"
-                sx={{ display: "block", mt: 1 }}
-              >
-                Ollama should be running automatically. Please try restarting
-                the application.
-              </Caption>
-            ) : (
-              <Caption
-                component="a"
-                href="https://ollama.com/download"
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ color: "primary.main", textDecoration: "underline" }}
-              >
-                {t("editor:ui.downloadOllama")}
-              </Caption>
-            )}
+            <Caption
+              color="secondary"
+              sx={{ display: "block", mt: 1 }}
+            >
+              Ollama is a separate app. Install it from ollama.com and start
+              it.
+            </Caption>
+            <Caption
+              component="a"
+              href="https://ollama.com/download"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ color: "primary.main", textDecoration: "underline" }}
+            >
+              Download Ollama →
+            </Caption>
           </div>
         ) : sortedModels.length === 0 ? (
           <EditorMenuItem disabled>

@@ -49,7 +49,7 @@ jest.mock("../../../stores/timeline/TimelineStore", () => ({
     selector(storeState)
 }));
 
-const mockSave = jest.fn().mockResolvedValue(undefined);
+const mockSave = jest.fn().mockResolvedValue(true);
 jest.mock("../../../hooks/timeline/useTimelineProjectSettings", () => ({
   useTimelineProjectSettings: () => ({ save: mockSave, isSaving: false })
 }));
@@ -112,6 +112,58 @@ describe("ProjectSettingsDialog", () => {
       })
     );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it("stays open when the canvas save fails", async () => {
+    mockSave.mockResolvedValueOnce(false);
+    const onClose = jest.fn();
+    renderDialog(onClose);
+
+    fireEvent.change(fpsInput(), { target: { value: "60" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => expect(mockSave).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("keeps the typed draft when a failed save rolls the store back", async () => {
+    // The hook applies the canvas optimistically and restores it on failure.
+    mockSave.mockImplementationOnce(async (next: { fps: number }) => {
+      storeState = { ...storeState, fps: next.fps };
+      return false;
+    });
+    const view = renderDialog();
+
+    fireEvent.change(fpsInput(), { target: { value: "60" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(mockSave).toHaveBeenCalled());
+    const rerender = () =>
+      view.rerender(
+        <ThemeProvider theme={mockTheme}>
+          <ProjectSettingsDialog open onClose={jest.fn()} />
+        </ThemeProvider>
+      );
+    rerender();
+    storeState = { ...storeState, fps: 30 };
+    rerender();
+
+    expect(fpsInput().value).toBe("60");
+  });
+
+  it("re-seeds the draft when the dialog opens again", () => {
+    const view = renderDialog();
+    fireEvent.change(fpsInput(), { target: { value: "60" } });
+    const rerender = (open: boolean) =>
+      view.rerender(
+        <ThemeProvider theme={mockTheme}>
+          <ProjectSettingsDialog open={open} onClose={jest.fn()} />
+        </ThemeProvider>
+      );
+    rerender(false);
+    storeState = { ...storeState, fps: 25 };
+    rerender(true);
+    expect(fpsInput().value).toBe("25");
   });
 
   it("keeps Apply disabled for an out-of-range dimension", () => {

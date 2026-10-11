@@ -8,7 +8,7 @@
  * and Python bridge — so it is exercised end-to-end rather than unit-tested.
  */
 import { getDefaultAssetsPath } from "@nodetool-ai/config";
-import { getSecret } from "@nodetool-ai/models";
+import { getSecret, Project, Workflow } from "@nodetool-ai/models";
 import {
   ExecutionSession,
   isExecutionPreflightError
@@ -19,15 +19,28 @@ import { FileStorageAdapter } from "@nodetool-ai/storage";
 import { summarizeInterventions } from "@nodetool-ai/execution/debug";
 import { createGraphNodeTypeResolver } from "@nodetool-ai/node-sdk";
 import { buildFullRegistry } from "../node-registry.js";
+import { checkoutPackageAssetsDir } from "../package-assets.js";
 import {
   createSupervisorHandle,
   recordSupervisorCost,
   streamInterventionLines,
   type SupervisorRunConfig
 } from "../supervisor.js";
+import { isRecord } from "../predicates.js";
 import { collectExecutionSummary } from "./collector.js";
 import { readTraceSummary } from "./trace.js";
 import type { DebugGraph, ServerRunReport } from "./types.js";
+
+/** An output_update carrying a streamed audio chunk's samples. */
+const isAudioChunkOutputUpdate = (message: ProcessingMessage): boolean => {
+  if (message.type !== "output_update") return false;
+  const value = (message as { value?: unknown }).value;
+  return (
+    isRecord(value) &&
+    value.type === "chunk" &&
+    value.content_type === "audio"
+  );
+};
 
 export interface ServerRunInput {
   graph: DebugGraph;
@@ -40,6 +53,7 @@ export interface ServerRunInput {
   supervisor?: SupervisorRunConfig;
   /** Sink for the inline `⛨` lines. Defaults to stderr. */
   onInterventionLine?: (line: string) => void;
+  context?: ProcessingContext;
 }
 
 export interface ServerRunOutcome {
@@ -48,11 +62,28 @@ export interface ServerRunOutcome {
   rawMessages: ProcessingMessage[];
 }
 
+/**
+ * The project a server run of this workflow uses: the stored workflow's
+ * project, else the user's Personal project, where uploads land. Without it
+ * project-scoped capabilities such as `get_asset` reject every asset.
+ */
+async function resolveRunProjectId(workflowId: string | null): Promise<string> {
+  const workflow = workflowId ? await Workflow.find("1", workflowId) : null;
+  return workflow?.project_id ?? (await Project.ensurePersonal("1")).id;
+}
+
 export async function runOnServer(
   input: ServerRunInput
 ): Promise<ServerRunOutcome> {
   const { graph, workflowId, params } = input;
   const startedAt = Date.now();
+
+  // The server points in-process runs at the shipped `package://` assets the
+  // same way, so a shipped example's default inputs load here too.
+  if (!process.env["NODETOOL_PACKAGE_ASSETS_DIR"]) {
+    const packageAssets = checkoutPackageAssetsDir();
+    if (packageAssets) process.env["NODETOOL_PACKAGE_ASSETS_DIR"] = packageAssets;
+  }
 
   const registry = buildFullRegistry();
   const jobId = `debug-${Date.now()}`;
@@ -62,17 +93,19 @@ export async function runOnServer(
   const { resolveWorkflowWorkspace } = await import("@nodetool-ai/websocket");
   const workspace = await resolveWorkflowWorkspace(workflowId ?? null, "1");
 
-  const context = new ProcessingContext({
+  const contextInit = {
     jobId,
     workflowId,
     userId: "1",
+    projectId: await resolveRunProjectId(workflowId),
     secretResolver: getSecret,
     storage: new FileStorageAdapter(getDefaultAssetsPath()),
     workspace,
     // The debug bundle crosses a JSON boundary. Store generated media so raw
     // RGBA frames and image collections remain encoded, compact references.
-    assetOutputMode: "storage_url"
-  });
+    assetOutputMode: "storage_url" as const
+  };
+  const context = input.context ? input.context.copy({ jobId, workflowId, workspace }) : new ProcessingContext(contextInit);
 
   // ExecutionSession owns editor-only-node pruning (Comment/Group/Reroute —
   // the web editor prunes them at serialize time; without this every
@@ -113,6 +146,16 @@ export async function runOnServer(
     sessionOptions.supervisor = supervisor.handle;
     sessionOptions.captureMessages = true;
   }
+  // A live host relays everything emitted on the run's context. That is a
+  // superset of RunResult.messages: a node can emit on its own, and an Agent
+  // node's tool calls (what a mini app's Agent Activity widget shows) only
+  // ever travel that way. The realtime-audio firehose stays out, as it does
+  // from the runner's own retention.
+  const relayed: ProcessingMessage[] = [];
+  const detachRelay = context.addMessageListener((message) => {
+    if (!isAudioChunkOutputUpdate(message)) relayed.push(message);
+  });
+
   // A run this runtime cannot honour (unknown model, unregistered provider,
   // missing credential) is refused by `create()` before the kernel starts.
   // The harness's job is to report why a run did not happen, so the refusal
@@ -121,6 +164,7 @@ export async function runOnServer(
   try {
     session = await ExecutionSession.create(sessionOptions);
   } catch (err) {
+    detachRelay();
     if (!isExecutionPreflightError(err)) throw err;
     supervisor?.handle.close();
     const summary = collectExecutionSummary([]);
@@ -155,7 +199,8 @@ export async function runOnServer(
   supervisor?.handle.close();
   const timedOut = session.cancelReason === "timeout";
 
-  const messages = result.messages ?? [];
+  detachRelay();
+  const messages = relayed.length > 0 ? relayed : (result.messages ?? []);
   const summary = collectExecutionSummary(messages);
   // The runner's RunResult status is authoritative; fall back to the message
   // stream's view if it's missing.

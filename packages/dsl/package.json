@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Type-safe TypeScript DSL for defining NodeTool workflows",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -37,6 +37,7 @@
     "@nodetool-ai/base-nodes": "*",
     "@nodetool-ai/config": "*",
     "@nodetool-ai/elevenlabs-nodes": "*",
+    "@nodetool-ai/execution": "*",
     "@nodetool-ai/huggingface-nodes": "*",
     "@nodetool-ai/kernel": "*",
     "@nodetool-ai/mediagen-nodes": "*",
@@ -46,7 +47,8 @@
     "@nodetool-ai/reve-nodes": "*",
     "@nodetool-ai/runtime": "*",
     "@nodetool-ai/storage": "*",
-    "@nodetool-ai/transformers-js-nodes": "*"
+    "@nodetool-ai/transformers-js-nodes": "*",
+    "@nodetool-ai/whisper-cpp": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

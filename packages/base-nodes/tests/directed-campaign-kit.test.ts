@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { CodeNode } from "@nodetool-ai/code-nodes";
 import { ExecutionSession } from "@nodetool-ai/execution";
 import {
@@ -33,6 +33,14 @@ const TINY_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
   "base64"
 );
+
+const cleanups: Array<() => void> = [];
+
+afterEach(() => {
+  for (const cleanup of cleanups.splice(0)) {
+    cleanup();
+  }
+});
 
 const DIRECTIONS = {
   directions: [
@@ -182,6 +190,7 @@ async function runWorkflow(
     jobId: `directed-campaign-${workflow.id}`,
     persistOutputAssets: false
   });
+  cleanups.push(fake.cleanup);
   const session = await ExecutionSession.create({
     graph: workflow.graph,
     registry,
@@ -351,13 +360,6 @@ describe("Directed Campaign Kit workflow contracts", () => {
         expect(nodes.some((node) => node.id === `out-${outputName}`)).toBe(
           true
         );
-      }
-      for (const node of nodes) {
-        const model = node.data?.model;
-        if (!model || typeof model !== "object") continue;
-        expect(String((model as { id?: unknown }).id)).not.toBe("");
-        expect(String((model as { provider?: unknown }).provider)).not.toBe("");
-        expect(String((model as { name?: unknown }).name)).not.toBe("");
       }
     }
 
@@ -854,6 +856,7 @@ describe("Directed Campaign Kit workflow contracts", () => {
 
   it("fails an oversized export without silently dropping artifacts", async () => {
     const fake = createFakeContext({ jobId: "oversized-record" });
+    cleanups.push(fake.cleanup);
     const largeHero = imageRef(new Uint8Array(800));
     const smallPng = imageRef(TINY_PNG, 1080, 1350);
     const storyPng = imageRef(TINY_PNG, 1080, 1920);

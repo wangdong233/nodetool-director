@@ -17,6 +17,8 @@
  * back to step 1 and start blank (F16).
  */
 
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo } from "react";
 import {
   countScriptWords,
@@ -46,7 +48,6 @@ import {
 import { readScriptSource } from "../../../lib/script/importedScript";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
-import { useTranslation } from "react-i18next";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
@@ -67,18 +68,31 @@ export interface ReviewStepProps {
   scriptId: string;
   /** Reruns the writer with the edited script as context. */
   onRewrite: () => void;
+  /**
+   * True while `Rewrite` runs. The lines are read-only meanwhile: the
+   * writer's answer replaces them, so an edit made now would be lost.
+   */
   rewriting?: boolean;
+  /** Why the last write or rewrite failed, shown under the script. */
+  error?: string | null;
   /** Finishes setup on the text alone: stage `done`, no voices, no audio. */
   onOpenEditor: () => void;
+  /** A view-mode tab: the script shows but cannot be changed. */
+  readOnly?: boolean;
 }
 
 const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   scriptId,
   onRewrite,
   rewriting = false,
-  onOpenEditor
+  error,
+  onOpenEditor,
+  readOnly = false
 }) => {
   const { t } = useTranslation();
+  // Nothing on the step may change the script: not while a rewrite replaces
+  // the lines, and not in a view-mode tab.
+  const locked = rewriting || readOnly;
   const script = useScriptStore((state) => state.scripts[scriptId]);
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
@@ -129,11 +143,16 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     [scriptId]
   );
 
+  // The empty value is a named choice, so a line nobody says reads as
+  // unassigned rather than as a blank box (F7).
   const speakerOptions = useMemo(
-    () => (script?.cast ?? []).map((speaker) => ({
-      value: speaker.id,
-      label: speaker.name
-    })),
+    () => [
+      { value: "", label: "No speaker" },
+      ...(script?.cast ?? []).map((speaker) => ({
+        value: speaker.id,
+        label: speaker.name
+      }))
+    ],
     [script?.cast]
   );
 
@@ -141,24 +160,26 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () =>
       (script?.sections ?? []).map((section) => ({
         id: section.id,
-        header: section.title ?? t("storyboard:attrs.script", { defaultValue: "Script" }),
+        header: section.title ?? i18n.t("storyboard:attrs.script", { defaultValue: "Script" }),
         rows: section.lines.flatMap((line) => [
           {
             id: `${line.id}-speaker`,
-            label: t("editor:ui.speaker", { defaultValue: "Speaker" }),
+            label: i18n.t("editor:ui.speaker", { defaultValue: "Speaker" }),
             hideLabel: true,
             compact: true,
             value: line.speakerId ?? "",
             options: speakerOptions,
+            readOnly: locked,
             onChange: (value: string) => setLineSpeaker(line.id, value)
           },
           {
             id: line.id,
-            label: t("editor:ui.scriptLine", { defaultValue: "Line" }),
+            label: "Line",
             hideLabel: true,
-            placeholder: t("editor:ui.scriptLine", { defaultValue: "Line" }),
+            placeholder: "Line",
             value: line.text,
             multiline: true,
+            readOnly: locked,
             onChange: (value: string) => setLineText(line.id, value)
           },
           ...(line.direction === undefined
@@ -166,7 +187,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             : [
                 {
                   id: `${line.id}-direction`,
-                  label: t("editor:ui.direction", { defaultValue: "Direction" }),
+                  label: i18n.t("editor:ui.direction", { defaultValue: "Direction" }),
                   value: line.direction,
                   readOnly: true,
                   onChange: () => undefined
@@ -180,7 +201,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             : [
                 {
                   id: `${line.id}-target`,
-                  label: t("editor:ui.targetLength", { defaultValue: "Target length" }),
+                  label: i18n.t("editor:ui.targetLength", { defaultValue: "Target length" }),
                   value: `${(line.targetDurationMs / 1000).toFixed(1)}s`,
                   readOnly: true,
                   onChange: () => undefined
@@ -188,7 +209,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               ])
         ])
       })),
-    [script?.sections, setLineSpeaker, setLineText, speakerOptions, t]
+    [locked, script?.sections, setLineSpeaker, setLineText, speakerOptions]
   );
 
   const emptyLineIds = useMemo(
@@ -215,34 +236,50 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     [script?.sections]
   );
 
+  // A rewrite sends the script as it stands along with the brief, so the
+  // estimate prices both.
+  const estimatedInput = useMemo(
+    () =>
+      [
+        setup?.brief ?? "",
+        ...(script?.sections ?? []).flatMap((section) =>
+          section.lines.map((line) => line.text)
+        )
+      ].join("\n"),
+    [script?.sections, setup?.brief]
+  );
+
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{t("storyboard:attrs.readItThrough", { defaultValue: "Read it through" })}</Text>
+        <Text size="big" component="h2">
+          Read it through
+        </Text>
         <Caption color="secondary" component="p">
-          {t("storyboard:attrs.countWordsAboutLengthSpokenAtAPaceRead", { defaultValue: "{{count}} words · about {{length}} spoken at a {{pace}} read", count: words, length: spokenLength(estimateSpokenSeconds(words, pace)), pace })}
+          {`${words} words · about ${spokenLength(estimateSpokenSeconds(words, pace))} spoken at a ${pace} read`}
         </Caption>
       </FlexColumn>
 
       {/* The model and the rewrite belong together: picking a different
           writer is only useful next to the button that runs it. */}
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <Label>{t("storyboard:attrs.writeWith", { defaultValue: "Write with" })}</Label>
+        <Label>Write with</Label>
         <Box sx={{ width: MODEL_PICKER_WIDTH }}>
           <LanguageModelSelect
             value={writerModel?.id ?? ""}
             provider={writerModel?.provider}
             placeholder={t("storyboard:attrs.selectWriterModel", { defaultValue: "Select writer model" })}
+            disabled={readOnly}
             onChange={setWriterModel}
           />
         </Box>
         <EditorButton
           variant="outlined"
           size="small"
-          disabled={rewriting}
+          disabled={locked}
           onClick={onRewrite}
         >
-          {rewriting ? t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
+          {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : i18n.t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
         </EditorButton>
       </FlexRow>
 
@@ -252,11 +289,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         result={`Rewrite ${words} words, keeping the lines it keeps`}
         next={
           source
-            ? t("storyboard:attrs.thisReplacesYourImportedWordsWithTheModelsYourOwnTextIsDropped", { defaultValue: "This replaces your imported words with the model's. Your own text is dropped." })
-            : t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })
+            ? i18n.t("storyboard:attrs.thisReplacesYourImportedWordsWithTheModelsYourOwnTextIsDropped", { defaultValue: "This replaces your imported words with the model's. Your own text is dropped." })
+            : i18n.t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })
         }
         model={writerModel}
-        brief={setup?.brief ?? ""}
+        brief={estimatedInput}
         maxOutputTokens={REWRITE_MAX_TOKENS}
       />
 
@@ -264,13 +301,19 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           the control that produces one. It used to say "add a line" with
           nothing on the screen that could (F20). */}
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <EditorButton variant="outlined" size="small" onClick={addLine}>
-          {t("editor:ui.addALine", { defaultValue: "Add a line" })}
+        <EditorButton
+          variant="outlined"
+          size="small"
+          onClick={addLine}
+          disabled={locked}
+        >
+          Add a line
         </EditorButton>
         {emptyLineIds.length > 0 ? (
           <EditorButton
             variant="text"
             size="small"
+            disabled={locked}
             onClick={() => emptyLineIds.forEach(removeLine)}
           >
             {`Remove ${emptyLineIds.length} empty ${emptyLineIds.length === 1 ? "line" : "lines"}`}
@@ -280,10 +323,23 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
 
       <PlanReview sections={sections} />
 
+      {error ? (
+        <Text size="small" color="error" role="alert">
+          {error}
+        </Text>
+      ) : null}
+
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <EditorButton variant="text" size="small" onClick={onOpenEditor}>{t("storyboard:attrs.openTheEditorWithoutVoicing", { defaultValue: "Open the editor without voicing" })}</EditorButton>
+        <EditorButton
+          variant="text"
+          size="small"
+          disabled={readOnly}
+          onClick={onOpenEditor}
+        >
+          Open the editor without voicing
+        </EditorButton>
         <Caption color="secondary">
-          {t("editor:ui.finishHereWithTheTextYouCanVoiceItInTheEditorLater")}
+          Finish here with the text. You can voice it in the editor later.
         </Caption>
       </FlexRow>
     </FlexColumn>

@@ -7,6 +7,7 @@ import {
   SPACING,
   SPACING_PX,
   FONT_SIZE_SANS,
+  FONT_WEIGHT,
   Z_INDEX
 } from "../../ui_primitives";
 import { CHAT_COLUMN_MAX_WIDTH } from "../types/chat.types";
@@ -110,6 +111,12 @@ export const createStyles = (theme: Theme) => ({
       fontWeight: 500
     },
 
+    // Editing a sent message opens the full column, so the text has room.
+    ".chat-message.user.editing": {
+      width: "100%",
+      maxWidth: "100%"
+    },
+
     // User message content gets the colored background. A soft primary tint
     // separates the user's voice from the surface — `background.paper` was
     // nearly invisible against the default background.
@@ -178,12 +185,28 @@ export const createStyles = (theme: Theme) => ({
       pointerEvents: "none",
       transition: MOTION.opacity,
       fontSize: theme.fontSizeSmaller,
-      color: theme.vars.palette.text.disabled
+      color: theme.vars.palette.text.disabled,
+      // A long model id gives way before the buttons push the row past the
+      // column and pan the conversation on a phone.
+      minWidth: 0,
+      maxWidth: "100%",
+      "& > *": {
+        flexShrink: 0
+      }
     },
 
-    ".chat-message:hover .message-actions": {
-      opacity: 1,
-      pointerEvents: "auto"
+    // Hover reveals the row on older turns. The latest reply keeps it, a
+    // keyboard user reaches it by focus, and a touch screen has no hover.
+    ".chat-message:hover .message-actions, .chat-message:focus-within .message-actions, .chat-message.latest-reply .message-actions":
+      {
+        opacity: 1,
+        pointerEvents: "auto"
+      },
+    "@media (hover: none)": {
+      ".message-actions": {
+        opacity: 1,
+        pointerEvents: "auto"
+      }
     },
 
     // User message: actions on the right
@@ -202,11 +225,15 @@ export const createStyles = (theme: Theme) => ({
       whiteSpace: "nowrap"
     },
 
-    ".message-model": {
+    ".message-actions > .message-model": {
       fontSize: theme.fontSizeSmaller,
       color: theme.vars.palette.text.disabled,
       whiteSpace: "nowrap",
-      fontFamily: theme.fontFamily2
+      fontFamily: theme.fontFamily2,
+      flexShrink: 1,
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis"
     },
 
     ".error-message": {
@@ -269,7 +296,8 @@ export const createStyles = (theme: Theme) => ({
     },
 
     // Status chrome ("Thinking…", elapsed time) shares the assistant
-    // message's left edge and the label type style (13px / 500).
+    // message's left edge and the 13px label size, like every other piece of
+    // thread chrome. Only prose runs at the 15px body size.
     ".chat-status-row": {
       padding: theme.spacing(1, 4),
       minHeight: theme.spacing(6)
@@ -282,7 +310,9 @@ export const createStyles = (theme: Theme) => ({
     },
 
     ".chat-status-elapsed": {
-      ...TYPOGRAPHY.sans.caption,
+      ...TYPOGRAPHY.sans.label,
+      fontWeight: FONT_WEIGHT.normal,
+      color: theme.vars.palette.text.disabled,
       marginLeft: "auto",
       fontVariantNumeric: "tabular-nums"
     },
@@ -451,13 +481,19 @@ export const createStyles = (theme: Theme) => ({
     // The thing the row acted on: a URL, a path, a query. Mono so it reads
     // apart from the prose that names the action.
     ".tool-row-detail": {
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.code,
       color: theme.vars.palette.text.disabled,
       whiteSpace: "nowrap",
       overflow: "hidden",
       textOverflow: "ellipsis",
       minWidth: 0
+    },
+
+    // On a narrow column the argument gives way before the verb does:
+    // "Searched James Webb…", never "Sear… James Webb…".
+    ".tool-row-label:has(+ .tool-row-detail)": {
+      flexShrink: 0,
+      maxWidth: "60%"
     },
 
     ".tool-row-gap": {
@@ -466,8 +502,7 @@ export const createStyles = (theme: Theme) => ({
     },
 
     ".tool-row-duration": {
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.code,
       color: theme.vars.palette.text.disabled,
       fontVariantNumeric: "tabular-nums",
       whiteSpace: "nowrap",

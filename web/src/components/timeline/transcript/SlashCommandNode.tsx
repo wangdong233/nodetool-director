@@ -27,10 +27,9 @@ import {
 } from "../../../stores/timeline/TimelineInstance";
 import type { TimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import type { TimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
-import { FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../../ui_primitives";
+import { FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../../ui_primitives";
 import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
-
 // ── Commands ──────────────────────────────────────────────────────────────────
 
 interface SlashCommand {
@@ -110,7 +109,7 @@ const Host = styled("span")(({ theme }) => ({
     borderRadius: BORDER_RADIUS.lg,
     border: `1px solid ${theme.vars.palette.divider}`,
     background: theme.vars.palette.background.paper,
-    boxShadow: theme.vars.shadows?.[6] ?? "0 6px 24px rgba(0,0,0,0.4)"
+    boxShadow: SHADOW(theme).lg
   },
   "& .slash-item": {
     display: "flex",

@@ -240,6 +240,38 @@ describe("flushStoryboardSave", () => {
     rendered.unmount();
   });
 
+  it("hydrates one_take as oneTake and autosaves it back", async () => {
+    const oneTake = { prompt: "One take." };
+    getQuery.mockResolvedValue({
+      id: "board-1",
+      name: "Saved board",
+      document: { ...emptyDocument, one_take: oneTake },
+      timelineId: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "rev-1"
+    });
+    const rendered = await mountLoaded();
+
+    expect(useStoryboardStore.getState().boards["board-1"]?.oneTake).toEqual(
+      oneTake
+    );
+    act(() =>
+      useStoryboardStore
+        .getState()
+        .setOneTake("board-1", { prompt: "One continuous take." })
+    );
+
+    await flushStoryboardSave("board-1");
+    expect(updateMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        document: expect.objectContaining({
+          one_take: { prompt: "One continuous take." }
+        })
+      })
+    );
+    rendered.unmount();
+  });
+
   it("resolves ok with a null revision when no saver is registered", async () => {
     await expect(flushStoryboardSave("unknown-board")).resolves.toEqual({
       ok: true,
@@ -998,5 +1030,126 @@ describe("useStoryboardServerSync — notices that arrive during an in-flight sa
     expect(shotsNow()[0]?.action).toBe("One — draft!");
 
     rendered.unmount();
+  });
+});
+
+it("retries an initial load after a transient failure", async () => {
+  const response = await getQuery();
+  getQuery.mockClear();
+  getQuery.mockRejectedValueOnce(new Error("Offline")).mockResolvedValue(response);
+  const rendered = renderHook(({ retry }) => useStoryboardServerSync("board-1", retry), { initialProps: { retry: 0 } });
+  await waitFor(() => expect(rendered.result.current).toBe("error"));
+  rendered.rerender({ retry: 1 });
+  await waitFor(() => expect(rendered.result.current).toBe("ready"));
+  expect(getQuery).toHaveBeenCalledTimes(2);
+  expect(useStoryboardStore.getState().boards["board-1"].title).toBe("Saved board");
+});
+
+it("does not mark a failed initial load ready because a previous revision is cached", async () => {
+  useStoryboardStore.getState().ensureBoard("board-1");
+  useStoryboardStore.getState().setServerRevision("board-1", "old-revision");
+  getQuery.mockRejectedValue(new Error("Offline"));
+  const rendered = renderHook(() => useStoryboardServerSync("board-1"));
+  await waitFor(() => expect(rendered.result.current).toBe("error"));
+  rendered.unmount();
+  expect(updateMutate).not.toHaveBeenCalled();
+});
+
+describe("useStoryboardServerSync — a board another writer keeps changing", () => {
+  const shot = { type: "shot", id: "s1", index: 0, action: "One", status: "planned" };
+  const response = (action: string, updatedAt: string): Record<string, unknown> => ({
+    id: "board-1",
+    name: "Saved board",
+    document: { ...emptyDocument, shots: [{ ...shot, action }] },
+    timelineId: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt
+  });
+  const conflict = (): Error =>
+    new Error("Storyboard was modified since last read (optimistic concurrency conflict)");
+
+  beforeEach(() => {
+    useConflictStore.setState({ byKey: {} });
+    getQuery.mockResolvedValue(response("One", "rev-1"));
+  });
+
+  it("lands the teardown save after a CAS conflict instead of retrying the stale revision", async () => {
+    const rendered = await mountLoaded();
+    act(() =>
+      useStoryboardStore.getState().setBrief("board-1", "Edited before close")
+    );
+    getQuery.mockResolvedValue(response("One", "rev-5"));
+    updateMutate
+      .mockRejectedValueOnce(conflict())
+      .mockResolvedValueOnce(response("One", "rev-6"));
+
+    await act(async () => {
+      rendered.unmount();
+    });
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(2));
+    expect(updateMutate.mock.calls.map(([input]) => input.baseUpdatedAt)).toEqual([
+      "rev-1",
+      "rev-5"
+    ]);
+    expect(updateMutate.mock.calls[1]?.[0].document.brief).toBe("Edited before close");
+  });
+
+  it("does not save a selection change", async () => {
+    jest.useFakeTimers();
+    try {
+      const rendered = renderHook(() => useStoryboardServerSync("board-1"));
+      await act(async () => {
+        await jest.runOnlyPendingTimersAsync();
+      });
+      expect(useStoryboardStore.getState().serverRevisions["board-1"]).toBe("rev-1");
+
+      act(() => useStoryboardStore.getState().selectShot("board-1", "s1"));
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2_000);
+      });
+      rendered.unmount();
+      await act(async () => {
+        await jest.runOnlyPendingTimersAsync();
+      });
+
+      expect(updateMutate).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("never writes from a read-only view, and follows external writes", async () => {
+    const rendered = renderHook(() =>
+      useStoryboardServerSync("board-1", 0, { readOnly: true })
+    );
+    await waitFor(() =>
+      expect(useStoryboardStore.getState().serverRevisions["board-1"]).toBe("rev-1")
+    );
+
+    act(() => useStoryboardStore.getState().selectShot("board-1", "s1"));
+    getQuery.mockResolvedValue(response("One — rendered", "rev-2"));
+    await act(async () => {
+      handleDocumentResourceChange("storyboard", {
+        event: "updated",
+        id: "board-1",
+        updatedAt: "rev-2"
+      });
+    });
+    await waitFor(() =>
+      expect(useStoryboardStore.getState().boards["board-1"]?.shots[0]?.action).toBe(
+        "One — rendered"
+      )
+    );
+    expect(useStoryboardStore.getState().boards["board-1"]?.activeShotId).toBe("s1");
+
+    await act(async () => {
+      rendered.unmount();
+    });
+    await expect(flushStoryboardSave("board-1")).resolves.toEqual({
+      ok: true,
+      updatedAt: null
+    });
+    expect(updateMutate).not.toHaveBeenCalled();
   });
 });

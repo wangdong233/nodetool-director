@@ -1,5 +1,6 @@
 import {
   getCondaEnvPath,
+  setCondaEnvPath,
   getPythonPath,
   getUVPath,
   getProcessEnv,
@@ -9,8 +10,11 @@ import {
   PID_FILE_PATH,
   webPath,
 } from '../config';
-import { readSettings } from '../settings';
+import { readSettings, updateSetting } from '../settings';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 import { app } from 'electron';
 
 // Mock dependencies
@@ -64,6 +68,16 @@ describe('Config', () => {
   });
 
   describe('getCondaEnvPath', () => {
+    it('returns a location set after the path was first read', () => {
+      mockReadSettings.mockReturnValue({ CONDA_ENV: '/old/env' });
+      expect(getCondaEnvPath()).toBe('/old/env');
+
+      setCondaEnvPath('/picked/nodetool-env');
+
+      expect(jest.mocked(updateSetting)).toHaveBeenCalledWith('CONDA_ENV', '/picked/nodetool-env');
+      expect(getCondaEnvPath()).toBe('/picked/nodetool-env');
+    });
+
     it('should return path from settings when available', () => {
       const customPath = '/custom/conda/path';
       mockReadSettings.mockReturnValue({ CONDA_ENV: customPath });
@@ -316,8 +330,7 @@ describe('Config', () => {
       // Verify UV cache environment variables are set
       expect(result.UV_CACHE_DIR).toBeDefined();
       expect(result.UV_CACHE_DIR).toContain('uv-cache');
-      expect(result.XDG_CACHE_HOME).toBeDefined();
-      expect(result.XDG_CACHE_HOME).toContain('cache');
+      expect(result.XDG_CACHE_HOME).toBeUndefined();
     });
 
     it('should return process environment with conda paths on Unix', () => {
@@ -337,8 +350,59 @@ describe('Config', () => {
       // Verify UV cache environment variables are set
       expect(result.UV_CACHE_DIR).toBeDefined();
       expect(result.UV_CACHE_DIR).toContain('uv-cache');
-      expect(result.XDG_CACHE_HOME).toBeDefined();
-      expect(result.XDG_CACHE_HOME).toContain('cache');
+      expect(result.XDG_CACHE_HOME).toBeUndefined();
+    });
+
+    it('places HF_HOME where huggingface_hub would, honouring XDG_CACHE_HOME', () => {
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+      expect(getProcessEnv().HF_HOME).toBe(path.join('/home/user', '.cache', 'huggingface'));
+
+      const xdg = fs.mkdtempSync(path.join(os.tmpdir(), 'nt-xdg-'));
+      process.env.XDG_CACHE_HOME = xdg;
+      const withXdg = getProcessEnv();
+      expect(withXdg.HF_HOME).toBe(path.join(xdg, 'huggingface'));
+      // The user's XDG_CACHE_HOME passes through unchanged.
+      expect(withXdg.XDG_CACHE_HOME).toBe(xdg);
+
+      process.env.HF_HOME = path.join(xdg, 'explicit-hf');
+      expect(getProcessEnv().HF_HOME).toBe(path.join(xdg, 'explicit-hf'));
+      fs.rmSync(xdg, { recursive: true, force: true });
+    });
+
+    it('keeps the ~/.cache model caches when only they hold data (Flatpak XDG_CACHE_HOME)', () => {
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+      const home = fs.mkdtempSync(path.join(os.tmpdir(), 'nt-home-'));
+      const xdg = path.join(home, '.var', 'app', 'ai.nodetool.NodeTool', 'cache');
+      fs.mkdirSync(path.join(home, '.cache', 'huggingface', 'hub', 'models--a--b'), { recursive: true });
+      fs.mkdirSync(path.join(home, '.cache', 'llama.cpp'), { recursive: true });
+      fs.writeFileSync(path.join(home, '.cache', 'llama.cpp', 'model.gguf'), '');
+      process.env.HOME = home;
+      process.env.XDG_CACHE_HOME = xdg;
+
+      const legacy = getProcessEnv();
+      expect(legacy.HF_HOME).toBe(path.join(home, '.cache', 'huggingface'));
+      expect(legacy.LLAMA_CACHE).toBe(path.join(home, '.cache', 'llama.cpp'));
+
+      // Once the XDG caches hold data, they win.
+      fs.mkdirSync(path.join(xdg, 'huggingface', 'hub', 'models--c--d'), { recursive: true });
+      fs.mkdirSync(path.join(xdg, 'llama.cpp'), { recursive: true });
+      fs.writeFileSync(path.join(xdg, 'llama.cpp', 'other.gguf'), '');
+      const current = getProcessEnv();
+      expect(current.HF_HOME).toBe(path.join(xdg, 'huggingface'));
+      expect(current.LLAMA_CACHE).toBe(path.join(xdg, 'llama.cpp'));
+
+      // A user's LLAMA_CACHE is left alone.
+      process.env.LLAMA_CACHE = '/models/gguf';
+      expect(getProcessEnv().LLAMA_CACHE).toBe('/models/gguf');
+      fs.rmSync(home, { recursive: true, force: true });
+    });
+
+    it('does not set LLAMA_CACHE without XDG_CACHE_HOME or off Linux', () => {
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+      expect(getProcessEnv().LLAMA_CACHE).toBeUndefined();
+      Object.defineProperty(process, 'platform', { value: 'darwin' });
+      process.env.XDG_CACHE_HOME = '/tmp/xdg';
+      expect(getProcessEnv().LLAMA_CACHE).toBeUndefined();
     });
 
     it('should handle missing PATH environment variable', () => {
@@ -386,6 +450,92 @@ describe('Config', () => {
       expect(result.HOME).toEqual(expect.any(String));
       expect(result.HOME.length).toBeGreaterThan(0);
     });
+
+    it('puts the bundled runtime directory first on PATH when packaged', () => {
+      // npm lifecycle scripts run `sh -c node …`; a Finder-launched macOS app
+      // has no node on PATH — nodetool-ai/nodetool#6090.
+      const resources = fs.mkdtempSync(path.join(os.tmpdir(), 'nt-res-'));
+      const runtimeDir = path.join(resources, 'backend', 'runtime');
+      fs.mkdirSync(runtimeDir, { recursive: true });
+      fs.writeFileSync(path.join(runtimeDir, 'node'), '#!/bin/sh\n', { mode: 0o755 });
+      Object.defineProperty(process, 'platform', { value: 'linux' });
+      const originalPackaged = app.isPackaged;
+      const originalResources = (process as any).resourcesPath;
+      (app as any).isPackaged = true;
+      (process as any).resourcesPath = resources;
+      try {
+        const result = getProcessEnv();
+        expect((result.PATH ?? '').split(path.delimiter)[0]).toBe(runtimeDir);
+      } finally {
+        (app as any).isPackaged = originalPackaged;
+        (process as any).resourcesPath = originalResources;
+        fs.rmSync(resources, { recursive: true, force: true });
+      }
+    });
+
+    it('lets lifecycle scripts run node and nested npm commands with the bundled runtime', () => {
+      // Only node was on PATH, so an install script that reached
+      // `npm run build` failed with exit 127 — nodetool-ai/nodetool#6090.
+      if (process.platform === 'win32') return;
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), "nt npm '"));
+      const runtimeDir = path.join(root, 'resources', 'backend', 'runtime');
+      fs.mkdirSync(runtimeDir, { recursive: true });
+      fs.symlinkSync(process.execPath, path.join(runtimeDir, 'node'));
+      const npmPackage = path.join(
+        path.dirname(path.dirname(process.execPath)),
+        'lib',
+        'node_modules',
+        'npm'
+      );
+      fs.symlinkSync(npmPackage, path.join(runtimeDir, 'npm'));
+      const project = path.join(root, 'project');
+      fs.mkdirSync(project);
+      fs.writeFileSync(
+        path.join(project, 'package.json'),
+        JSON.stringify({
+          name: 'lifecycle-fixture',
+          version: '1.0.0',
+          scripts: {
+            postinstall: 'node --version && npm run smoke-child',
+            'smoke-child': "node -e \"require('fs').writeFileSync('child-ran', 'ok')\""
+          }
+        })
+      );
+      const userData = path.join(root, 'userData');
+      const originalPackaged = app.isPackaged;
+      const originalResources = (process as any).resourcesPath;
+      const getPath = jest.mocked(app.getPath);
+      const originalGetPath = getPath.getMockImplementation();
+      (app as any).isPackaged = true;
+      (process as any).resourcesPath = path.join(root, 'resources');
+      getPath.mockImplementation((name: string) =>
+        name === 'userData' ? userData : `/mock/${name}`
+      );
+      // The launchd PATH of a Finder-launched app: a shell, no node or npm.
+      process.env.PATH = '/usr/bin:/bin';
+      try {
+        const env = getProcessEnv();
+        const install = spawnSync(
+          path.join(runtimeDir, 'node'),
+          [path.join(runtimeDir, 'npm', 'bin', 'npm-cli.js'), 'install', '--offline', '--no-audit', '--no-fund'],
+          {
+            cwd: project,
+            env: { ...env, npm_config_cache: path.join(root, 'npm-cache') },
+            encoding: 'utf8'
+          }
+        );
+        expect({ status: install.status, stderr: install.stderr }).toEqual({
+          status: 0,
+          stderr: expect.any(String)
+        });
+        expect(fs.readFileSync(path.join(project, 'child-ran'), 'utf8')).toBe('ok');
+      } finally {
+        (app as any).isPackaged = originalPackaged;
+        (process as any).resourcesPath = originalResources;
+        getPath.mockImplementation(originalGetPath);
+        fs.rmSync(root, { recursive: true, force: true });
+      }
+    }, 60000);
 
     it('should set UV_CACHE_DIR to a writable location inside userData', () => {
       const result = getProcessEnv();

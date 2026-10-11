@@ -210,7 +210,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
     label: "Slot Fill",
     labelKey: "slotFill",
     description:
-      "A generated asset accepted for a game slot: the grid, frame ranges and loop flags the Godot writer reads.",
+      "A generated asset accepted for a native game slot: its grid, frame ranges, and loop flags.",
     color: colour("spatial"),
     textColor: "var(--palette-action-active)",
     name: "",
@@ -460,6 +460,18 @@ const NODETOOL_DATA_TYPES: DataType[] = [
     labelKey: "asrModel",
     description:
       "Reference to an automatic speech recognition model for transcribing audio.",
+    color: colour("reference"),
+    textColor: "var(--palette-action-active)",
+    name: "",
+    slug: "",
+    namespace: "",
+    icon: "model"
+  },
+  {
+    value: "rerank_model",
+    label: "Rerank Model",
+    description:
+      "Reference to a reranking model that scores documents against a query.",
     color: colour("reference"),
     textColor: "var(--palette-action-active)",
     name: "",

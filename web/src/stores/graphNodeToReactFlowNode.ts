@@ -110,7 +110,7 @@ export function graphNodeToReactFlowNode(
       const props: Record<string, unknown> = isRecord(raw) ? raw : {};
       const meta = useMetadataStore.getState().getMetadata(node.type);
       if (meta?.properties) {
-        return applyDefaultModels(props, meta.properties);
+        return applyDefaultModels(props, meta.properties, node.type);
       }
       return props;
     })(),
@@ -133,6 +133,12 @@ export function graphNodeToReactFlowNode(
   // compare against `data.dynamic_inputs` don't see a spurious change.
   if (node.dynamic_inputs && Object.keys(node.dynamic_inputs).length > 0) {
     data.dynamic_inputs = normalizeDynamicSlots(node.dynamic_inputs);
+  }
+  if (
+    node.dynamic_output_correlation &&
+    Object.keys(node.dynamic_output_correlation).length > 0
+  ) {
+    data.dynamic_output_correlation = node.dynamic_output_correlation;
   }
   if (expandedHeightPxForData != null) {
     data.expandedHeightPx = expandedHeightPxForData;

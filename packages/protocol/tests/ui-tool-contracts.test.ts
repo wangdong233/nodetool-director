@@ -57,6 +57,22 @@ describe("timeline tool contracts", () => {
 });
 
 describe("uiToolParams", () => {
+  it("rejects effect parameters the named effect cannot use", () => {
+    const params = uiToolParams(contracts.ui_timeline_set_effects);
+    expect(() => params.parse({
+      target: "background",
+      effects: [{ type: "blur", amount: 80 }]
+    })).toThrow(/blur.*amount.*radius/);
+    expect(() => params.parse({
+      target: "background",
+      effects: [{ type: "blur", raduis: 80 }]
+    })).toThrow(/raduis/);
+    expect(params.parse({
+      target: "background",
+      effects: [{ type: "blur", radius: 80 }]
+    })).toMatchObject({ effects: [{ type: "blur", radius: 80 }] });
+  });
+
   it("validates the shared Smart Reframe arguments", () => {
     expect(
       uiToolParams(contracts.ui_timeline_retarget_format).parse({
@@ -154,5 +170,38 @@ describe("uiToolParams", () => {
     }) as Record<string, unknown>;
     expect(parsed.startMs).toBe(100);
     expect(parsed.fontSizePx).toBe(48);
+  });
+});
+
+describe("timeline clip timing and ranges", () => {
+  const rejects = (name: keyof typeof contracts, args: Record<string, unknown>) =>
+    expect(uiToolParams(contracts[name]).safeParse(args).success).toBe(false);
+
+  it("refuses negative starts and non-positive durations when placing clips", () => {
+    rejects("ui_timeline_add_text_clip", { text: "Hi", startMs: -1 });
+    rejects("ui_timeline_add_text_clip", { text: "Hi", durationMs: 0 });
+    rejects("ui_timeline_add_media_clip", { asset: "a", durationMs: -5 });
+    rejects("ui_timeline_add_shape_clip", { startMs: -10 });
+    rejects("ui_timeline_add_model3d_clip", { assetId: "a", durationMs: 0 });
+    rejects("ui_timeline_generate_clip", {
+      kind: "text-to-video",
+      prompt: "x",
+      startMs: -1
+    });
+    rejects("ui_timeline_add_group", { name: "G", startMs: 0, durationMs: 0 });
+    rejects("ui_timeline_add_group", { name: "G", startMs: -1, durationMs: 10 });
+  });
+
+  it("holds set_clip_params opacity and speed to their documented ranges", () => {
+    rejects("ui_timeline_set_clip_params", { target: "c", opacity: 1.5 });
+    rejects("ui_timeline_set_clip_params", { target: "c", speedMultiplier: 0 });
+    rejects("ui_timeline_set_clip_params", { target: "c", speedMultiplier: 9 });
+    expect(
+      uiToolParams(contracts.ui_timeline_set_clip_params).safeParse({
+        target: "c",
+        opacity: 0.5,
+        speedMultiplier: 2
+      }).success
+    ).toBe(true);
   });
 });

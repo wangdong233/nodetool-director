@@ -216,6 +216,32 @@ describe("headless workflow document tools", () => {
     edges: []
   };
 
+  it("returns a saved graph revision and rejects an edit based on an older read", async () => {
+    const workflow = await Workflow.create<Workflow>({
+      user_id: USER, name: "Revisions", graph
+    });
+    const readTool = capTool("ui_get_graph");
+    const writeTool = capTool("ui_set_node_title");
+    const read = await readTool.process(ctx, { workflow_id: workflow.id }) as Record<string, unknown>;
+    expect(read.source).toBe("server");
+    expect(read.document_revision).toMatch(/^graph:[a-f0-9]{64}$/);
+    const first = await writeTool.process(ctx, {
+      workflow_id: workflow.id.slice(0, 12), node_id: "n1", title: "First",
+      based_on_revision: read.document_revision
+    }) as Record<string, unknown>;
+    expect(first.ok).toBe(true);
+    expect(first.document_revision).not.toBe(read.document_revision);
+    const after = await readTool.process(ctx, { workflow_id: workflow.id }) as Record<string, unknown>;
+    expect(after.document_revision).toBe(first.document_revision);
+    const stale = await writeTool.process(ctx, {
+      workflow_id: workflow.id, node_id: "n1", title: "Stale",
+      based_on_revision: read.document_revision
+    }) as Record<string, unknown>;
+    expect(stale.error).toBe("document_revision_conflict");
+    expect(stale.document_revision).toBe(first.document_revision);
+    expect((await Workflow.get<Workflow>(workflow.id))?.graph.nodes[0].ui_properties).toMatchObject({ title: "First" });
+  });
+
   it("allows a public viewer to read but not mutate the graph", async () => {
     const workflow = (await Workflow.create<Workflow>({
       user_id: "owner",
@@ -377,10 +403,10 @@ describe("create_workflow", () => {
     });
   });
 
-  // A graph whose model properties are left at the default saves fine and
-  // then every Agent node dies on "Select a model" at run time — after the
-  // upstream half of the graph executed. Nothing stamps models in later.
-  describe("unset model preflight", () => {
+  // A graph whose model properties are left at the default is a draft: it
+  // saves, and the result names every unpicked model. The run preflight is
+  // what refuses it, before any node executes.
+  describe("unset model warning", () => {
     const modelRegistry = {
       has: (type: string) => type === "nodetool.agents.Agent",
       getMetadata: () => undefined,
@@ -409,17 +435,20 @@ describe("create_workflow", () => {
       edges
     });
 
-    it("refuses a workflow whose agent node has no model selected", async () => {
+    it("saves a workflow whose agent node has no model selected, with a warning", async () => {
       const result = (await checked.process(ctx, {
         name: "WF",
         graph: graphWithAgent()
-      })) as { error: string; issues: Array<{ code: string; node_id: string }> };
+      })) as {
+        id: string;
+        warning: string;
+        issues: Array<{ code: string; node_id: string }>;
+      };
 
-      expect(result.error).toContain("unselected");
+      expect(result.warning).toContain("unselected");
       expect(result.issues[0]?.code).toBe("unset_model");
       expect(result.issues[0]?.node_id).toBe("a1");
-      const [saved] = await Workflow.paginate(USER, {});
-      expect(saved).toHaveLength(0);
+      expect(await Workflow.find(USER, result.id)).not.toBeNull();
     });
 
     it("allows a model property fed by an edge", async () => {
@@ -436,6 +465,7 @@ describe("create_workflow", () => {
         ])
       })) as Record<string, unknown>;
       expect(result.id).toEqual(expect.any(String));
+      expect(result.warning).toBeUndefined();
       expect(await Workflow.find(USER, String(result.id))).not.toBeNull();
     });
 
@@ -502,12 +532,10 @@ describe("create_workflow", () => {
       const result = (await bagChecked.process(ctx, {
         name: "WF",
         graph: graphWithAgent()
-      })) as { error: string; issues: Array<{ code: string }> };
+      })) as { warning: string; issues: Array<{ code: string }> };
 
-      expect(result.error).toContain("unselected");
+      expect(result.warning).toContain("unselected");
       expect(result.issues[0]?.code).toBe("unset_model");
-      const [saved] = await Workflow.paginate(USER, {});
-      expect(saved).toHaveLength(0);
     });
   });
 
@@ -848,6 +876,35 @@ describe("run_workflow", () => {
     expect(result.workflow_id).toBe(saved.id);
     expect(result.job_id).toEqual(expect.any(String));
     expect(await Job.find(USER, String(result.job_id))).not.toBeNull();
+  });
+
+  // A malformed selection must not fall back to running, and billing, the
+  // whole workflow.
+  it.each([
+    ["a string", { node_ids: "n1" }],
+    ["an empty list", { node_ids: [] }],
+    ["a non-boolean reuse_results", { node_ids: ["n1"], reuse_results: "no" }]
+  ])("refuses node_ids given as %s before running anything", async (_label, args) => {
+    const saved = await saveWorkflow({ graph: { nodes: [], edges: [] } });
+    const tool = capTool("run_workflow", { nodeRegistry: stubRegistry });
+    const result = (await tool.process(ctx, {
+      workflow_id: saved.id,
+      ...args
+    })) as Record<string, unknown>;
+    expect(String(result.error)).toMatch(/node_ids|reuse_results/);
+    const [jobs] = await Job.paginate(USER, { workflowId: saved.id });
+    expect(jobs).toHaveLength(0);
+  });
+
+  it("passes node_ids to the service, which names an unknown id", async () => {
+    const saved = await saveWorkflow({ graph: { nodes: [], edges: [] } });
+    const tool = capTool("run_workflow", { nodeRegistry: stubRegistry });
+    const result = (await tool.process(ctx, {
+      workflow_id: saved.id,
+      node_ids: ["missing-node"]
+    })) as Record<string, unknown>;
+    expect(result.status).toBe(400);
+    expect(String(result.error)).toContain("missing-node");
   });
 });
 

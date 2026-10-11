@@ -17,9 +17,15 @@ const RAD = Math.PI / 180;
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-/** Quaternion `[x, y, z, w]` to Euler degrees in XYZ order. */
+/**
+ * Quaternion `[x, y, z, w]` to Euler degrees in XYZ order. The quaternion is
+ * normalized first: glTF requires unit rotations, but files from other tools
+ * do not always have them, and the extraction below is only valid for one.
+ */
 export function quaternionToEulerDegrees(q: Quat): Vec3 {
-  const [x, y, z, w] = q;
+  const length = Math.hypot(q[0], q[1], q[2], q[3]);
+  const n = length > 0 && Number.isFinite(length) ? length : 1;
+  const [x, y, z, w] = [q[0] / n, q[1] / n, q[2] / n, length > 0 ? q[3] / n : 1];
   // Rotation-matrix elements needed for the XYZ extraction.
   const m11 = 1 - 2 * (y * y + z * z);
   const m12 = 2 * (x * y - z * w);
@@ -69,6 +75,34 @@ export interface Trs {
   scale: Vec3;
 }
 
+const cross = (a: readonly number[], b: readonly number[]): number[] => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0]
+];
+
+/**
+ * The rotation part of `m` as three unit columns, flattened. A zero-scale
+ * axis leaves its column empty, so it is rebuilt from the other two; with two
+ * or more empty columns the rotation is unknowable and becomes the identity.
+ */
+function rotationColumns(m: readonly number[], scale: Vec3): number[] {
+  const columns = [0, 1, 2].map((axis) =>
+    [0, 1, 2].map((row) =>
+      scale[axis] === 0 ? 0 : (m[axis * 4 + row] ?? 0) / scale[axis]
+    )
+  );
+  const empty = [0, 1, 2].filter((axis) => scale[axis] === 0);
+  if (empty.length >= 2) {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  }
+  if (empty.length === 1) {
+    const axis = empty[0];
+    columns[axis] = cross(columns[(axis + 1) % 3], columns[(axis + 2) % 3]);
+  }
+  return columns.flat();
+}
+
 /** Decompose a column-major glTF 4x4 matrix into translation/rotation/scale. */
 export function decomposeMatrix(m: readonly number[]): Trs {
   const translation: Vec3 = [m[12] ?? 0, m[13] ?? 0, m[14] ?? 0];
@@ -82,17 +116,7 @@ export function decomposeMatrix(m: readonly number[]): Trs {
     (m[8] ?? 0) * ((m[1] ?? 0) * (m[6] ?? 0) - (m[2] ?? 0) * (m[5] ?? 0));
   const scale: Vec3 = [det < 0 ? -sx : sx, sy, sz];
 
-  const r = [
-    (m[0] ?? 0) / (scale[0] || 1),
-    (m[1] ?? 0) / (scale[0] || 1),
-    (m[2] ?? 0) / (scale[0] || 1),
-    (m[4] ?? 0) / (scale[1] || 1),
-    (m[5] ?? 0) / (scale[1] || 1),
-    (m[6] ?? 0) / (scale[1] || 1),
-    (m[8] ?? 0) / (scale[2] || 1),
-    (m[9] ?? 0) / (scale[2] || 1),
-    (m[10] ?? 0) / (scale[2] || 1)
-  ];
+  const r = rotationColumns(m, scale);
   const trace = r[0] + r[4] + r[8];
   let rotation: Quat;
   if (trace > 0) {
@@ -129,6 +153,54 @@ export function decomposeMatrix(m: readonly number[]): Trs {
     ];
   }
   return { translation, rotation, scale };
+}
+
+/** A column-major 4x4 matrix from translation, unit quaternion and scale. */
+export function composeMatrix(t: Vec3, q: Quat, s: Vec3): number[] {
+  const length = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+  const [x, y, z, w] = [q[0] / length, q[1] / length, q[2] / length, q[3] / length];
+  const x2 = x + x;
+  const y2 = y + y;
+  const z2 = z + z;
+  const xx = x * x2;
+  const xy = x * y2;
+  const xz = x * z2;
+  const yy = y * y2;
+  const yz = y * z2;
+  const zz = z * z2;
+  const wx = w * x2;
+  const wy = w * y2;
+  const wz = w * z2;
+  return [
+    (1 - (yy + zz)) * s[0], (xy + wz) * s[0], (xz - wy) * s[0], 0,
+    (xy - wz) * s[1], (1 - (xx + zz)) * s[1], (yz + wx) * s[1], 0,
+    (xz + wy) * s[2], (yz - wx) * s[2], (1 - (xx + yy)) * s[2], 0,
+    t[0], t[1], t[2], 1
+  ];
+}
+
+/** `a * b` for column-major 4x4 matrices. */
+export function multiplyMatrices(a: readonly number[], b: readonly number[]): number[] {
+  const out = new Array<number>(16).fill(0);
+  for (let col = 0; col < 4; col += 1) {
+    for (let row = 0; row < 4; row += 1) {
+      let sum = 0;
+      for (let k = 0; k < 4; k += 1) {
+        sum += a[k * 4 + row] * b[col * 4 + k];
+      }
+      out[col * 4 + row] = sum;
+    }
+  }
+  return out;
+}
+
+/** Apply a column-major 4x4 matrix to a point. */
+export function transformPoint(m: readonly number[], p: Vec3): Vec3 {
+  return [
+    m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
+    m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13],
+    m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]
+  ];
 }
 
 const srgbToLinear = (channel: number): number =>

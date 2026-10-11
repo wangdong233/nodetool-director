@@ -1,5 +1,8 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it, expect, vi } from "vitest";
 import { NodeRegistry } from "@nodetool-ai/node-sdk";
+import { supportsPlatform } from "@nodetool-ai/protocol";
 import { BaseProvider, ProcessingContext } from "@nodetool-ai/runtime";
 import {
   registerBaseNodes,
@@ -70,6 +73,16 @@ describe("base node registration", () => {
     expect(registry.has("nodetool.triggers.FileWatchTrigger")).toBe(true);
     expect(registry.has("nodetool.image.TextToImage")).toBe(true);
     expect(registry.has("nodetool.video.Resize")).toBe(true);
+  });
+
+  it("preserves Preview browser eligibility alongside its custom output metadata", () => {
+    const registry = new NodeRegistry();
+    registerBaseNodes(registry);
+    const metadata = registry.getMetadata(PreviewNode.nodeType);
+    expect(metadata?.effect).toBe("read");
+    expect(supportsPlatform(metadata?.platforms, "browser")).toBe(true);
+    expect(metadata?.outputs).toEqual([{ name: "output", type: { type: "any", type_args: [] } }]);
+    expect(metadata?.inline_fields).toEqual(["value", "name"]);
   });
 });
 
@@ -274,7 +287,7 @@ describe("input/output nodes", () => {
   });
 
   it("document save/load nodes work", async () => {
-    const file = `/tmp/nodetool-doc-${Date.now()}.json`;
+    const file = join(tmpdir(), `nodetool-doc-${Date.now()}.json`);
     const save = new SaveDocumentFileNode();
     save.assign({
       document: {
@@ -512,14 +525,14 @@ describe("text nodes", () => {
   });
 
   it("filesystem text save/load and embedding fallback", async () => {
-    const savePath = `/tmp/nodetool-save-text-${Date.now()}.txt`;
+    const savePath = join(tmpdir(), `nodetool-save-text-${Date.now()}.txt`);
     const _st = new SaveTextNode();
     _st.assign({ text: "hello", name: savePath });
     await expect(_st.process()).resolves.toEqual({
       output: { uri: savePath, data: "hello" }
     });
 
-    const saveDir = `/tmp/nodetool-save-text-dir-${Date.now()}`;
+    const saveDir = join(tmpdir(), `nodetool-save-text-dir-${Date.now()}`);
     const _sf = new SaveTextFileNode();
     _sf.assign({ text: "abc", folder: saveDir, name: "x.txt" });
     await expect(_sf.process()).resolves.toEqual({

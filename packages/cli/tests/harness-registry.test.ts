@@ -6,7 +6,7 @@
  * build, not just a CLI run someone has to remember to make.
  */
 import { describe, it, expect } from "vitest";
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
@@ -103,13 +103,16 @@ describe("harness registry", () => {
 
     expect(harness?.selfcheck).toEqual({
       command: "npm run test --workspace=demo",
-      cost: "cheap"
+      cost: "cheap",
+      suiteOnly: true
     });
     expect(surface?.harnesses).toEqual(["tutorial-rendering"]);
     expect(surface?.paths).toEqual([
       "demo/src/",
       "demo/scripts/render-tutorials.ts",
-      "demo/scripts/render-marketing.ts"
+      "demo/scripts/render-marketing.ts",
+      "demo/scripts/encode-hero.mjs",
+      "demo/scripts/vibe-track.ts"
     ]);
 
     const plan = planGate([
@@ -132,6 +135,7 @@ describe("harness registry", () => {
       harnessId: "tutorial-rendering",
       command: "npm run test --workspace=demo",
       cost: "cheap",
+      suiteOnly: true,
       surfaces: ["tutorial-rendering"]
     });
   });
@@ -413,6 +417,7 @@ describe("harness gate", () => {
       harnessId: "serein-timeline-repro",
       command: "npm run test --workspace=packages/agents -- timeline-serein-gaps-frames",
       cost: "cheap",
+      suiteOnly: false,
       surfaces: ["serein-timeline-repro"]
     });
   });
@@ -739,8 +744,8 @@ describe("capability mapping gate", () => {
 
       const head = readFileSync(join(repo, TABLE_PATH), "utf8");
       const at = (ref: string): string => git("show", `${ref}:${TABLE_PATH}`);
-      const runGit = (command: string): string =>
-        execSync(command, { cwd: repo, encoding: "utf8" });
+      const runGit = (args: readonly string[]): string =>
+        git(...args);
 
       expect(
         planCapabilityMappingGate(at("main"), head).violations
@@ -752,6 +757,15 @@ describe("capability mapping gate", () => {
     } finally {
       rmSync(repo, { recursive: true, force: true });
     }
+  });
+
+  it("passes the ref to git as one argument, never through a shell", () => {
+    const calls: (readonly string[])[] = [];
+    resolveGateBaseRef("main;touch pwned", (args) => {
+      calls.push(args);
+      return "abc123\n";
+    });
+    expect(calls).toEqual([["merge-base", "main;touch pwned", "HEAD"]]);
   });
 
   it("falls back to the ref when there is no merge base", () => {

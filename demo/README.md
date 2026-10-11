@@ -288,9 +288,66 @@ The promo's casts live with the other synthetic casts —
 `web/src/demo/timeline/promoTimelineCast.ts` (invariants guarded by
 `web/src/demo/__tests__/promoCasts.test.ts`).
 
+## Landing page hero (`demo/src/heroflow/`)
+
+The homepage hero follows one project, "Under the Bed", from a typed brief
+to the finished 15-second film: prompt, beat sheet, entities, storyboard
+stills and clips, then the timeline. The surfaces are look-alike components
+of the product UI, not captures. Each surface is a function of its state, and
+`clock.ts` derives every state from the frame. `HeroFlow.tsx` renders the
+surfaces once, hidden, measures the elements tagged with `data-hf`, and
+moves flying copies between those boxes for each hand-off. A layout change
+in a surface moves its hand-off with it.
+
+The footage is the shipped `under-the-bed` storyboard example. The clips
+under `public/casts/heroflow/bed/` are cut from its film at the real cut
+points, which `data.ts` records.
+
+```bash
+cd demo
+npm run studio:heroflow -- --no-open   # the reel and one still per design frame
+npm run still:heroflow                 # design frames → out/heroflow/
+npm run render:heroflow                # → out/heroflow.mp4
+npm run encode:hero -- --only hero-flow
+```
+
+The encode writes `hero-flow.{mp4,webm}` and the posters into
+`marketing/public/`. The README GIF, `marketing/public/hero-flow-readme.gif`,
+comes from the same master at 720 px and 8 fps.
+
+The "Seven editors" tabs play six-second loops from `editors/`, one per
+editor, on the same project. Each loop is one action on look-alike
+surfaces: approve and animate shots, re-voice a changed line, trim and
+ripple the opening, regenerate a prompt-bound layer, block and render a
+set, and play a level.
+
+```bash
+npm run render:surfaces                # → out/surfaces/surface-<id>.mp4
+npm run encode:hero -- --only surface-storyboard   # one tab; omit --only for all
+```
+
+## Node-based workflows hero (`demo/src/nodeshero/`)
+
+The `/node-based-workflows` page plays a 22-second muted loop of one
+workflow: seven real registry nodes are wired, a video output is refused by a
+text input, five "Under the Bed" shots run through For Each, Text To Image,
+Image To Video, Collect, and Concatenate Video, and the image model is
+swapped. It is a pure motion composition with no cast or store, so it renders
+with more than one worker. `graph.ts` holds the nodes, wires, and the clock.
+The stills and clips come from `public/casts/heroflow/bed/`.
+
+```bash
+npm run studio:nodeshero -- --no-open
+npm run render:nodeshero                 # → out/nodes-hero.mp4
+npm run encode:hero -- --only hero-nodes # → marketing/public/hero-nodes.*
+```
+
+Node titles, type ids, and model names in `graph.ts` must stay registry
+entries. When one is renamed, update it here and on the page.
+
 ## Published marketing demos (`demo/src/marketing/`)
 
-The homepage serves the projector campaign hero, the conversation demo, and the editor loops from
+The homepage serves the conversation demo from
 `marketing/public/`. Their finishing compositions live in
 [`src/marketing/`](src/marketing/catalog.ts). The accepted footage is pinned
 under `public/casts/marketing/` so repeated renders never process their own
@@ -324,9 +381,7 @@ A silent 44 s loop of one project going from a sentence to a finished cut —
 the same story the landing page tells below the fold, so the reel and the
 section under it are the same session rather than two pitches. This older
 SCRAPHEART composition is retained for cast development. It is not the
-projector campaign currently published on the homepage. Its `encode:hero`
-command overwrites the same public hero filenames, so use `render:marketing`
-for the current campaign.
+hero published on the homepage, which comes from `demo/src/heroflow/`.
 
 ```bash
 cd demo
@@ -374,6 +429,24 @@ Two things the reel needed that the harness did not have:
   six rendered clips captured as a board of six stills, and the render pass
   read as nothing happening. `DocDemoPlayer`'s `mediaTimeMs`
   (`web/src/demo/videoPlayhead.ts`) seeks them per frame.
+
+## Vibe Race (`demo/src/vibe/`)
+
+A 36-second, 60 fps motion-graphics cut: an agent session generates the
+sprites, backdrops, music, and sound effects of the Kindle platformer, then
+builds the level. The art, music, sound effects, and the gameplay capture are
+the game's real files, copied into `public/vibe/`.
+
+```bash
+cd demo
+npm run vibe:track     # synthesize public/vibe/track.wav and the music spectrum
+npm run studio:vibe    # preview
+npm run render:vibe    # → out/vibe-race.mp4
+```
+
+`src/vibe/theme.ts` sets one grid for picture and sound: 180 BPM at 60 fps is
+20 frames per beat. Change a section start there, then run `vibe:track` again
+so the soundtrack follows.
 
 ## Adding a demo
 

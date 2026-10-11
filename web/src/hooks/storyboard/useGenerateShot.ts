@@ -21,6 +21,7 @@
  */
 
 import { useCallback } from "react";
+import { assertProductionGenerationAllowed } from "@nodetool-ai/protocol";
 import type {
   BoardRenderContext,
   Entity,
@@ -61,6 +62,7 @@ import {
   subscribeDirectShotJob,
   unsubscribeShotJob,
   useStoryboardGenerationStore,
+  type OneTakeCompletion,
   type ShotGenerationOperation,
   type ShotJobKind
 } from "../../stores/storyboard/StoryboardGenerationStore";
@@ -113,6 +115,40 @@ const entityTokenSuffix = (entities: Entity[]): string =>
 const hasReferenceImage = (entities: Entity[]): boolean =>
   entities.some((e) => (e.reference_images?.length ?? 0) > 0);
 
+/** The model-backed changes a shot's current still can go through. */
+export type StillVariantMode = "image_edit" | "inpaint" | "upscale" | "outpaint";
+
+export interface StillVariantRequest {
+  mode: StillVariantMode;
+  model: ShotModelRef;
+  /** The still the change starts from. */
+  sourceAssetId: string;
+  /** What to change; upscale and outpaint fall back to a generic hint. */
+  prompt?: string;
+  /** The painted area, for `inpaint`. */
+  maskAssetId?: string;
+  /** The new frame, for `outpaint`. */
+  aspectRatio?: string;
+  /** Source pixels to add on each side, for `outpaint`. */
+  padding?: { left: number; right: number; top: number; bottom: number };
+  /** Magnification, for `upscale`. */
+  scale?: number;
+}
+
+/** The catalog task each change is remembered under in the model picker. */
+const STILL_VARIANT_TASKS: Record<StillVariantMode, string> = {
+  image_edit: "image_to_image",
+  inpaint: "inpainting",
+  upscale: "upscale",
+  outpaint: "outpaint"
+};
+
+/** What a single clip render may set beyond its model. */
+export interface ClipRenderOptions {
+  /** Output resolution, e.g. "720p". Defaults to {@link CLIP_RESOLUTION}. */
+  resolution?: string;
+}
+
 interface UseGenerateShotResult {
   generateKeyframe: (
     boardId: string,
@@ -124,13 +160,30 @@ interface UseGenerateShotResult {
     boardId: string,
     shot: Shot,
     model?: ShotModelRef,
-    batchId?: string
+    batchId?: string,
+    options?: ClipRenderOptions
   ) => Promise<void>;
   generateRevisedClip: (
     boardId: string,
     shot: Shot,
     instruction: string,
     model?: ShotModelRef
+  ) => Promise<void>;
+  generateStillVariant: (
+    boardId: string,
+    shot: Shot,
+    request: StillVariantRequest
+  ) => Promise<void>;
+  /**
+   * Send a prepared one-take `generate_media` request as `shot`'s clip job.
+   * On completion the clip becomes the shot's clip and `oneTake` covers the
+   * rest of the board with windows of it.
+   */
+  startOneTakeClip: (
+    boardId: string,
+    shot: Shot,
+    data: Record<string, unknown>,
+    oneTake: OneTakeCompletion
   ) => Promise<void>;
   retryFailedRequest: (requestId: string, batchId?: string) => Promise<void>;
 }
@@ -188,7 +241,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
       mediaEdit?: MediaEditRequest,
       production?: CompiledProductionCandidate,
       batchId?: string,
-      acceptedShotStatusOverride?: Shot["status"]
+      acceptedShotStatusOverride?: Shot["status"],
+      oneTake?: OneTakeCompletion
     ): Promise<void> => {
       // Single-flight per shot: skip when a job is active or a start is
       // already in the pre-registration window.
@@ -212,7 +266,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
           ...(board && { render: { shot, board } }),
           ...(mediaEdit && { mediaEdit }),
           ...(acceptedShotStatus && { acceptedShotStatus }),
-          ...(production && { production })
+          ...(production && { production }),
+          ...(oneTake && { oneTake })
         };
         registerJob(
           shot.id,
@@ -239,7 +294,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
             kind,
             mediaEdit,
             acceptedShotStatus,
-            production
+            production,
+            oneTake
           });
           await globalWebSocketManager.send({
             command: "generate_media",
@@ -292,6 +348,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
       modelOverride?: ShotModelRef,
       batchId?: string
     ): Promise<void> => {
+      assertProductionGenerationAllowed(shot.production, "text_to_image");
       const board = useStoryboardStore.getState().getBoard(boardId);
       const model = modelOverride ?? shot.still_model ?? board?.imageModel;
       const style = board?.style ?? "";
@@ -303,7 +360,10 @@ export const useGenerateShot = (): UseGenerateShotResult => {
       // text and routes the reference images into the provider call.
       // Otherwise season descriptors client-side only.
       const stillModel = model?.id
-        ? imageModels.find((candidate) => candidate.id === model.id)
+        ? imageModels.find(
+            (candidate) =>
+              candidate.id === model.id && candidate.provider === model.provider
+          )
         : undefined;
       const useEditModel =
         hasReferenceImage(entities) &&
@@ -357,8 +417,10 @@ export const useGenerateShot = (): UseGenerateShotResult => {
       boardId: string,
       shot: Shot,
       modelOverride?: ShotModelRef,
-      batchId?: string
+      batchId?: string,
+      options?: ClipRenderOptions
     ): Promise<void> => {
+      assertProductionGenerationAllowed(shot.production, "text_to_video");
       if (isShotBusy(shot.id)) {
         return;
       }
@@ -472,7 +534,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
         mode: "video",
         prompt: `${productionCandidates[0]?.snapshot.prompt ?? prompt}${entityTokenSuffix(entities)}`,
         aspect_ratio: aspectRatio,
-        resolution: CLIP_RESOLUTION,
+        resolution: options?.resolution ?? CLIP_RESOLUTION,
         variations: 1
       };
       if (productionRoute === "reference_to_video") {
@@ -536,6 +598,7 @@ export const useGenerateShot = (): UseGenerateShotResult => {
       instruction: string,
       modelOverride?: ShotModelRef
     ): Promise<void> => {
+      assertProductionGenerationAllowed(shot.production, "video_to_video");
       // Check before building the edit snapshot or running any preflight. An
       // agent call can reach this path while an ordinary render is already
       // active; its failure must not replace that render's job or pending row.
@@ -673,6 +736,91 @@ export const useGenerateShot = (): UseGenerateShotResult => {
     [startDirectGeneration, recordStartFailure, videoModels]
   );
 
+  /**
+   * Render a change of the shot's current still: an edit (optionally inside a
+   * mask), an upscale, or a reframe. It runs as the shot's keyframe job, so
+   * the card and the queue show it like any render, and the result lands as a
+   * take beside the current still rather than replacing it.
+   */
+  const generateStillVariant = useCallback(
+    async (
+      boardId: string,
+      shot: Shot,
+      request: StillVariantRequest
+    ): Promise<void> => {
+      assertProductionGenerationAllowed(shot.production, "image_to_image");
+      const board = useStoryboardStore.getState().getBoard(boardId);
+      const data: Record<string, unknown> = {
+        mode: request.mode,
+        provider: request.model.provider,
+        model: request.model.id,
+        prompt: request.prompt?.trim() ?? "",
+        source_asset_id: request.sourceAssetId,
+        variations: 1
+      };
+      if (request.mode === "image_edit" || request.mode === "inpaint") {
+        data.resolution = STILL_RESOLUTION;
+        data.aspect_ratio = board?.aspectRatio ?? "16:9";
+      }
+      if (request.maskAssetId) {
+        data.mask_asset_id = request.maskAssetId;
+      }
+      if (request.aspectRatio) {
+        data.aspect_ratio = request.aspectRatio;
+      }
+      if (request.padding) {
+        data.padding = request.padding;
+      }
+      if (request.scale) {
+        data.scale = request.scale;
+      }
+      useLastModelStore
+        .getState()
+        .rememberForTask("image", STILL_VARIANT_TASKS[request.mode], {
+          provider: request.model.provider,
+          model: request.model.id
+        });
+      await startDirectGeneration(
+        boardId,
+        shot,
+        "keyframe",
+        data,
+        renderContext(board, shot)
+      );
+    },
+    [startDirectGeneration, renderContext]
+  );
+
+  const startOneTakeClip = useCallback(
+    async (
+      boardId: string,
+      shot: Shot,
+      data: Record<string, unknown>,
+      oneTake: OneTakeCompletion
+    ): Promise<void> => {
+      if (isShotBusy(shot.id)) {
+        throw new Error(
+          "The first shot is already rendering. Wait for it to finish."
+        );
+      }
+      // No render record: the clip is compiled from the whole board, not from
+      // this shot's prompt, so a later edit to the shot does not make it stale.
+      await startDirectGeneration(
+        boardId,
+        shot,
+        "clip",
+        data,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        oneTake
+      );
+    },
+    [startDirectGeneration]
+  );
+
   const retryFailedRequest = useCallback(
     async (requestId: string, batchId?: string): Promise<void> => {
       const record =
@@ -685,6 +833,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
         (candidate) => candidate.id === record.shotId
       );
       if (!shot) {
+        // Nothing left to retry: settle the record so it stops being offered.
+        useStoryboardGenerationStore.getState().markRequestRetried(requestId);
         throw new Error("The shot for this failed render no longer exists.");
       }
       const operation = record.operation;
@@ -738,7 +888,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
         operation.mediaEdit,
         production,
         retryBatchId,
-        operation.acceptedShotStatus
+        operation.acceptedShotStatus,
+        operation.oneTake
       );
       useStoryboardGenerationStore.getState().markRequestRetried(requestId);
     },
@@ -749,6 +900,8 @@ export const useGenerateShot = (): UseGenerateShotResult => {
     generateKeyframe,
     generateClip,
     generateRevisedClip,
+    generateStillVariant,
+    startOneTakeClip,
     retryFailedRequest
   };
 };

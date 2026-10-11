@@ -15,8 +15,7 @@
  */
 
 import React, { memo, useCallback } from "react";
-import { css } from "@emotion/react";
-import { useTheme, type Theme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import ClosedCaptionOutlinedIcon from "@mui/icons-material/ClosedCaptionOutlined";
 
 import type { CaptionStyle, TimelineClip } from "@nodetool-ai/timeline";
@@ -25,27 +24,18 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import {
   CollapsibleSection,
   FlexColumn,
-  SPACING,
-  TextInput,
-  getSpacingPx
+  BatchedColorInput
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
 import {
   InspectorDivider,
   InspectorPillInput,
   InspectorRow,
-  InspectorSectionTitle
+  InspectorSectionTitle,
+  sectionContentStyles
 } from "./InspectorPrimitives";
 import { FontPicker } from "./FontPicker";
 import { useTranslation } from "react-i18next";
-
-const sectionContentStyles = (theme: Theme) =>
-  css({
-    display: "flex",
-    flexDirection: "column",
-    gap: getSpacingPx(SPACING.micro),
-    padding: theme.spacing(SPACING.micro, SPACING.none, SPACING.md)
-  });
 
 /** The colours `drawCaption` falls back to, so the swatches show what renders. */
 const DEFAULT_COLOR = "#FFFFFF";
@@ -178,26 +168,23 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 value={asPercent(style?.fontSizeFrac)}
                 unit="%"
                 placeholder="5"
+                allowEmpty
                 onCommit={(raw) => handleFraction("fontSizeFrac", raw)}
                 ariaLabel={t("timeline:attrs.captionSizeAsAPercentageOfFrameHeight", { defaultValue: "Caption size as a percentage of frame height" })}
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.color", { defaultValue: "Color" })}>
-              <TextInput
-                type="color"
+              <BatchedColorInput
                 value={style?.color ?? DEFAULT_COLOR}
-                onChange={(event) => setField("color", event.target.value)}
-                inputProps={{ "aria-label": t("timeline:attrs.captionColor", { defaultValue: "Caption color" }) }}
+                onChange={(color) => setField("color", color)}
+                ariaLabel={t("timeline:attrs.captionColor", { defaultValue: "Caption color" })}
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.spoken", { defaultValue: "Spoken" })}>
-              <TextInput
-                type="color"
+              <BatchedColorInput
                 value={style?.activeColor ?? DEFAULT_ACTIVE_COLOR}
-                onChange={(event) =>
-                  setField("activeColor", event.target.value)
-                }
-                inputProps={{ "aria-label": t("timeline:attrs.captionSpokenwordColor", { defaultValue: "Caption spoken-word color" }) }}
+                onChange={(color) => setField("activeColor", color)}
+                ariaLabel={t("timeline:attrs.captionSpokenwordColor", { defaultValue: "Caption spoken-word color" })}
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.bottom", { defaultValue: "Bottom" })}>
@@ -205,6 +192,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 value={asPercent(style?.bottomMarginFrac)}
                 unit="%"
                 placeholder="12"
+                allowEmpty
                 onCommit={(raw) => handleFraction("bottomMarginFrac", raw)}
                 ariaLabel={t("timeline:attrs.captionDistanceFromTheFrameBottom", { defaultValue: "Caption distance from the frame bottom" })}
               />
@@ -214,23 +202,19 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 value={outline ? String(outline.widthPx) : ""}
                 unit="px"
                 placeholder="auto"
+                allowEmpty
                 onCommit={handleOutlineWidth}
                 ariaLabel={t("timeline:attrs.captionOutlineWidth", { defaultValue: "Caption outline width" })}
               />
             </InspectorRow>
             {outline && (
               <InspectorRow label={t("timeline:attrs.outlineColor", { defaultValue: "Outline color" })}>
-                <TextInput
-                  type="color"
+                <BatchedColorInput
                   value={outline.color}
-                  onChange={(event) =>
-                    setField("outline", {
-                      color: event.target.value,
-                      widthPx: outline.widthPx
-                    })
+                  onChange={(color) =>
+                    setField("outline", { color, widthPx: outline.widthPx })
                   }
-                  inputProps={{ "aria-label": t("timeline:attrs.captionOutlineColor", { defaultValue: "Caption outline color" }) }}
-                />
+                  ariaLabel={t("timeline:attrs.captionOutlineColor", { defaultValue: "Caption outline color" })}                />
               </InspectorRow>
             )}
             <InspectorRow label={t("timeline:attrs.scrim", { defaultValue: "Scrim" })}>
@@ -238,6 +222,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
                 value={scrim ? String(scrim.paddingPx) : ""}
                 unit="px"
                 placeholder="none"
+                allowEmpty
                 onCommit={handleScrimPadding}
                 ariaLabel={t("timeline:attrs.captionScrimPadding", { defaultValue: "Caption scrim padding" })}
               />
@@ -245,17 +230,12 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
             {scrim && (
               <>
                 <InspectorRow label={t("timeline:attrs.scrimColor", { defaultValue: "Scrim color" })}>
-                  <TextInput
-                    type="color"
+                  <BatchedColorInput
                     value={scrim.color}
-                    onChange={(event) =>
-                      setField("background", {
-                        ...scrim,
-                        color: event.target.value
-                      })
+                    onChange={(color) =>
+                      setField("background", { ...scrim, color })
                     }
-                    inputProps={{ "aria-label": t("timeline:attrs.captionScrimColor", { defaultValue: "Caption scrim color" }) }}
-                  />
+                    ariaLabel={t("timeline:attrs.captionScrimColor", { defaultValue: "Caption scrim color" })}                  />
                 </InspectorRow>
                 <InspectorRow label={t("timeline:attrs.scrimRadius", { defaultValue: "Scrim radius" })}>
                   <InspectorPillInput

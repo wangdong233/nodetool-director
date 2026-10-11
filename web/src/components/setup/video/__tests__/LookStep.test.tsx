@@ -42,6 +42,67 @@ jest.mock("../../modelSamples", () => ({
   useModelSamples: () => ({})
 }));
 
+// The fallback pickers are the shared model selects, whose dialogs are backed
+// by tRPC. Each stub offers one pick of a BYOK model.
+jest.mock("../../../properties/VideoModelSelect", () => {
+  const react = jest.requireActual("react");
+  return {
+    __esModule: true,
+    default: ({
+      value,
+      onChange
+    }: {
+      value: string;
+      onChange: (value: unknown) => void;
+    }) =>
+      react.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () =>
+            onChange({
+              type: "video_model",
+              id: "kling-v2",
+              provider: "fal_ai",
+              name: "Kling v2"
+            })
+        },
+        `Video model select: ${value || "none"}`
+      )
+  };
+});
+jest.mock("../../../properties/TTSModelSelect", () => {
+  const react = jest.requireActual("react");
+  return {
+    __esModule: true,
+    default: ({
+      value,
+      onChange
+    }: {
+      value: string | { selected_voice: string };
+      onChange: (value: unknown) => void;
+    }) =>
+      react.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => onChange(mockTtsPick)
+        },
+        `TTS model select: ${typeof value === "object" ? value.selected_voice : "none"}`
+      )
+  };
+});
+
+const DEFAULT_TTS_PICK = {
+  type: "tts_model",
+  id: "eleven_multilingual_v2",
+  provider: "elevenlabs",
+  name: "Multilingual v2",
+  voices: ["rachel", "adam"],
+  selected_voice: "adam"
+};
+let mockTtsPick: Record<string, unknown> = DEFAULT_TTS_PICK;
+
 interface CatalogState {
   models: Array<{
     id: string;
@@ -67,12 +128,12 @@ jest.mock("../../../../hooks/useModelsByProvider", () => ({
 const CLIP_MODEL = STUDIO_CLIP_MODELS[0];
 const VOICE = STUDIO_VOICES[0];
 
-const seedPlan = () =>
+const seedPlan = (voiceover = "A boat sets sail.") =>
   useTimelineStore.getState().setSetup({
     stage: "look",
     brief: "a paper boat",
     format: "ad-15",
-    beats: [{ id: "b1", prompt: "the kerb", duration_ms: 3000 }]
+    beats: [{ id: "b1", prompt: "the kerb", duration_ms: 3000, voiceover }]
   });
 
 const renderBody = (voiceOn = true) =>
@@ -93,6 +154,7 @@ beforeEach(() => {
   useLastModelStore.setState({ byKind: {} });
   useProviderOnboardingStore.getState().dismiss();
   mockEstimate = null;
+  mockTtsPick = DEFAULT_TTS_PICK;
   videoCatalog = {
     models: [{ id: CLIP_MODEL.id, provider: "nodetool" }],
     providers: ["nodetool"],
@@ -221,6 +283,18 @@ describe("useLookStep — the gate before the paid button", () => {
     );
   });
 
+  it("asks for no voice when no beat has a line to read", () => {
+    seedPlan("");
+    useLastModelStore.setState({
+      byKind: { video: { provider: "nodetool", model: CLIP_MODEL.id } }
+    });
+    const { result } = renderHook(() =>
+      useLookStep({ voiceOn: true, musicOn: false })
+    );
+    expect(result.current.canAdvance).toBe(true);
+    expect(result.current.blockedReason).toBeUndefined();
+  });
+
   it("releases the button once a voice the providers offer is picked (F11)", () => {
     seedPlan();
     useLastModelStore.setState({
@@ -328,7 +402,7 @@ describe("useLookStep — the gate before the paid button", () => {
     );
   });
 
-  it("judges no tile while the catalog is still loading (F14)", () => {
+  it("holds Generate while the video model list loads (V1)", () => {
     seedPlan();
     videoCatalog = {
       models: [],
@@ -337,10 +411,52 @@ describe("useLookStep — the gate before the paid button", () => {
       error: null
     };
     useLastModelStore.setState({
-      byKind: { video: { provider: "nodetool", model: CLIP_MODEL.id } }
+      byKind: { video: { provider: "nodetool", model: "retired/model" } }
     });
     const { result } = renderHook(() =>
       useLookStep({ voiceOn: false, musicOn: false })
+    );
+    expect(result.current.canAdvance).toBe(false);
+    expect(result.current.blockedReason).toBe(
+      "Checking that your providers still offer that video model"
+    );
+  });
+
+  it("holds Generate while the voice list loads (V1)", () => {
+    seedPlan();
+    voiceCatalog = {
+      models: [],
+      providers: ["nodetool"],
+      isLoading: true,
+      error: null
+    };
+    useLastModelStore.setState({
+      byKind: {
+        video: { provider: "nodetool", model: CLIP_MODEL.id },
+        audio: { provider: "nodetool", model: "retired-tts", voice: "gone" }
+      }
+    });
+    const { result } = renderHook(() =>
+      useLookStep({ voiceOn: true, musicOn: false })
+    );
+    expect(result.current.canAdvance).toBe(false);
+    expect(result.current.blockedReason).toBe(
+      "Checking that your providers still offer that voice"
+    );
+  });
+
+  it("keeps Generate live when the model lists failed (V1)", () => {
+    seedPlan();
+    videoCatalog = { ...videoCatalog, error: new Error("offline") };
+    voiceCatalog = { ...voiceCatalog, error: new Error("offline") };
+    useLastModelStore.setState({
+      byKind: {
+        video: { provider: "nodetool", model: "retired/model" },
+        audio: { provider: "nodetool", model: "retired-tts", voice: "gone" }
+      }
+    });
+    const { result } = renderHook(() =>
+      useLookStep({ voiceOn: true, musicOn: false })
     );
     expect(result.current.canAdvance).toBe(true);
   });
@@ -366,6 +482,31 @@ describe("LookStep body", () => {
     renderBody(false);
     expect(
       screen.getByRole("button", { name: "Try again" })
+    ).toBeInTheDocument();
+    // Every error surface reaches the bug-report dialog (V4).
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
+  });
+
+  it("names the remembered models a failed list could not check (V1)", () => {
+    seedPlan();
+    videoCatalog = { ...videoCatalog, error: new Error("offline") };
+    voiceCatalog = { ...voiceCatalog, error: new Error("offline") };
+    useLastModelStore.setState({
+      byKind: {
+        video: { provider: "nodetool", model: CLIP_MODEL.id },
+        audio: { provider: "elevenlabs", model: "tts-1", voice: "adam" }
+      }
+    });
+    renderBody(true);
+    expect(
+      screen.getByText(
+        `Could not check that your providers still offer ${CLIP_MODEL.label}. Generate will try it anyway.`
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Could not check that your providers still offer adam. Generate will try it anyway."
+      )
     ).toBeInTheDocument();
   });
 
@@ -400,6 +541,15 @@ describe("LookStep body", () => {
     expect(
       screen.getByText(/Pick a voice, or switch Voiceover off/)
     ).toBeInTheDocument();
+  });
+
+  it("says there is nothing to read instead of asking for a voice", () => {
+    seedPlan("");
+    renderBody(true);
+    expect(
+      screen.getByText("No beat has a line to read. Add one in the review.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Pick a voice/)).toBeNull();
   });
 
   it("says what an unavailable bed means, not what is curated (F30)", () => {
@@ -471,8 +621,21 @@ describe("LookStep on an install without the curated catalog", () => {
     byokVideo();
     renderBody(false);
     expect(
-      screen.getByRole("combobox", { name: /Video model/ })
+      screen.getByRole("button", { name: "Video model select: none" })
     ).toBeInTheDocument();
+  });
+
+  it("stores a video model picked from the shared select", async () => {
+    const user = userEvent.setup();
+    seedPlan();
+    byokVideo();
+    renderBody(false);
+    await user.click(
+      screen.getByRole("button", { name: "Video model select: none" })
+    );
+    expect(
+      useTimelineStore.getState().setup?.generation_settings
+    ).toMatchObject({ video: { provider: "fal_ai", model: "kling-v2" } });
   });
 
   it("does not blame the providers when one reports voices", () => {
@@ -484,8 +647,51 @@ describe("LookStep on an install without the curated catalog", () => {
       screen.queryByText(/providers offer no voice/)
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("combobox", { name: /Voice/ })
+      screen.getByRole("button", { name: /^TTS model select/ })
     ).toBeInTheDocument();
+  });
+
+  it("stores a voice picked from the shared TTS select", async () => {
+    const user = userEvent.setup();
+    seedPlan();
+    byokVideo();
+    byokVoice();
+    renderBody(true);
+    await user.click(screen.getByRole("button", { name: /^TTS model select/ }));
+    expect(
+      useTimelineStore.getState().setup?.generation_settings
+    ).toMatchObject({
+      voice: {
+        provider: "elevenlabs",
+        model: "eleven_multilingual_v2",
+        voice: "adam"
+      }
+    });
+  });
+
+  it("says a TTS model with no preset voices cannot be used, and keeps the draft (V12)", async () => {
+    const user = userEvent.setup();
+    seedPlan();
+    byokVideo();
+    byokVoice();
+    mockTtsPick = {
+      type: "tts_model",
+      id: "clone-only",
+      provider: "elevenlabs",
+      name: "Clone only",
+      voices: [],
+      selected_voice: ""
+    };
+    renderBody(true);
+    await user.click(screen.getByRole("button", { name: /^TTS model select/ }));
+    expect(
+      screen.getByText("This model has no preset voices. Pick another model.")
+    ).toBeInTheDocument();
+    const settings = useTimelineStore.getState().setup?.generation_settings as
+      | { voice?: unknown }
+      | undefined;
+    expect(settings?.voice).toBeUndefined();
+    expect(useLastModelStore.getState().byKind.audio).toBeUndefined();
   });
 
   it("still says so when nothing at all reports a video model", () => {
@@ -500,5 +706,44 @@ describe("LookStep on an install without the curated catalog", () => {
     expect(
       screen.getByText(/providers offer no video model/)
     ).toBeInTheDocument();
+  });
+});
+
+describe("LookStep after a Generate that failed past the shell (V11)", () => {
+  it("shows why the clips did not start", () => {
+    seedPlan();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <LookStep
+          voiceOn={false}
+          musicOn={false}
+          onVoiceChange={jest.fn()}
+          onMusicChange={jest.fn()}
+          musicAvailable={false}
+          error="Could not save the prepared video. No generation requests were submitted."
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByText("Your clips did not start")).toBeInTheDocument();
+    expect(
+      screen.getByText(/No generation requests were submitted/)
+    ).toBeInTheDocument();
+  });
+
+  it("offers Report beside the failure (V4)", () => {
+    seedPlan();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <LookStep
+          voiceOn={false}
+          musicOn={false}
+          onVoiceChange={jest.fn()}
+          onMusicChange={jest.fn()}
+          musicAvailable={false}
+          error="Could not save the prepared video."
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
   });
 });

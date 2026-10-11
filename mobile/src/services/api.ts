@@ -5,7 +5,6 @@ import type {
   ApplicationResponse
 } from "@nodetool-ai/protocol/api-schemas/applications.js";
 import type { Workflow as AppWorkflow } from "../types/ApiTypes";
-import type { JsScriptRunOutcome } from "../documents/jsScriptTypes";
 import { useAuthStore } from "../stores/AuthStore";
 import { createMobileTRPCClient } from "../trpc/client";
 import {
@@ -14,9 +13,9 @@ import {
   saveApiHost as saveSharedApiHost,
   setCachedApiHost
 } from "./apiHost";
-import { isNonEmptyString } from "../utils/typePredicates";
+import { DEFAULT_FETCH_TIMEOUT_MS, fetchWithTimeout } from "./fetchWithTimeout";
 
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = DEFAULT_FETCH_TIMEOUT_MS;
 const UPLOAD_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 2;
 
@@ -29,21 +28,6 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.body = body;
-  }
-}
-
-/** `fetch` with an abort-based timeout so requests can't hang forever on a flaky network. */
-async function fetchWithTimeout(
-  url: string,
-  init: RequestInit,
-  timeoutMs: number
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
   }
 }
 
@@ -68,18 +52,6 @@ export type {
 // These shapes match the tRPC output schemas exactly and replace the openapi-
 // generated equivalents that were removed from the REST API.
 
-export interface SecretResponse {
-  id?: string;
-  user_id?: string;
-  key: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-  is_configured: boolean;
-  is_unreadable?: boolean;
-  value?: string;
-}
-
 export interface CollectionResponse {
   name: string;
   count: number;
@@ -94,22 +66,6 @@ export interface Thread {
   created_at: string | null;
   updated_at: string | null;
   etag?: string | null;
-}
-
-export interface WorkflowGraphInput {
-  nodes: Array<{
-    id: string;
-    type: string;
-    [key: string]: unknown;
-  }>;
-  edges: Array<{
-    source: string;
-    sourceHandle: string;
-    target: string;
-    targetHandle: string;
-    id?: string | null;
-    [key: string]: unknown;
-  }>;
 }
 
 // The tRPC `workflowResponse` shape is looser than `Workflow` (nullable/optional
@@ -187,6 +143,7 @@ class ApiService {
     const maxAttempts = retriable ? MAX_RETRIES + 1 : 1;
 
     let lastError: unknown;
+    let refreshed = false;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await fetchWithTimeout(
@@ -202,11 +159,22 @@ class ApiService {
       } catch (error) {
         lastError = error;
         const status = error instanceof ApiError ? error.status : undefined;
-        // An expired/invalid session won't recover by retrying — drop it and
-        // route back to login.
-        if (status === 401 || status === 403) {
-          useAuthStore.getState().handleSessionExpired();
-          throw error;
+        // A 401 usually means the access token lapsed. Refresh it once and
+        // resend; `refreshSession` signs out when the refresh itself fails.
+        // The server rejected the request before acting on it, so resending
+        // is safe for any method. A 403 is a permission error on this one
+        // resource, not a dead session, so it fails like any other 4xx.
+        if (status === 401) {
+          if (refreshed || !(await useAuthStore.getState().refreshSession())) {
+            throw error;
+          }
+          refreshed = true;
+          const token = useAuthStore.getState().session?.access_token;
+          if (token) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
+          attempt--;
+          continue;
         }
         // Retry network errors / aborts (no status) and 5xx; never other 4xx.
         const transient = status === undefined || status >= 500;
@@ -247,23 +215,6 @@ class ApiService {
     setCachedApiHost(host);
   }
 
-  async getWorkflows(limit: number = 100) {
-    const trpc = createMobileTRPCClient();
-    const result = await trpc.workflows.list.query({ limit });
-    return {
-      ...result,
-      workflows: result.workflows.map((workflow) => normalizeWorkflow(workflow))
-    };
-  }
-
-  async getNodeMetadata() {
-    // `fields` defaults to "summary" server-side, which omits properties and
-    // outputs. The chain editor needs both, so ask for the full records.
-    return this.request<components["schemas"]["NodeMetadata"][]>(
-      "/api/nodes/metadata?fields=full"
-    );
-  }
-
   /**
    * Applications — mini apps as their own resource.
    *
@@ -295,92 +246,6 @@ class ApiService {
     return this.request<ApplicationReleaseResponse | null>(
       `/api/applications/${encodeURIComponent(id)}/released-document`
     );
-  }
-
-  /**
-   * Execute a saved JS script in the server's QuickJS sandbox —
-   * `POST /api/js-scripts/:id/run`, the one non-tRPC door onto a script, shared
-   * with the web run console and the CLI harness. Nothing runs on the phone,
-   * and the endpoint runs the *saved* document, so callers save first.
-   *
-   * The timeout leaves room for the document's own ceiling
-   * (`JS_SCRIPT_MAX_TIMEOUT_SECONDS`, 120s) plus the round trip; the 30s
-   * default would abort a long run the server was still honoring.
-   */
-  async runJsScript(
-    scriptId: string,
-    inputs: Record<string, unknown>,
-    inputStreams?: Record<string, unknown[]>
-  ): Promise<JsScriptRunOutcome> {
-    try {
-      return await this.request<JsScriptRunOutcome>(
-        `/api/js-scripts/${encodeURIComponent(scriptId)}/run`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(
-            inputStreams ? { inputs, input_streams: inputStreams } : { inputs }
-          )
-        },
-        130_000
-      );
-    } catch (error) {
-      if (!(error instanceof ApiError)) {
-        throw error;
-      }
-      // The endpoint answers failures as `{detail}`; `ApiError.message` is the
-      // raw body. Unwrap it so the user (and the agent) reads the reason
-      // instead of a JSON blob.
-      let detail: unknown;
-      try {
-        detail = (JSON.parse(error.message) as { detail?: unknown }).detail;
-      } catch {
-        // Not JSON — fall through to the status message below.
-      }
-      throw new Error(
-        isNonEmptyString(detail)
-          ? detail
-          : `The script run failed (HTTP ${error.status}).`
-      );
-    }
-  }
-
-  async saveWorkflow(workflow: {
-    id: string;
-    name: string;
-    description: string;
-    graph: WorkflowGraphInput;
-    access?: string;
-  }) {
-    const trpc = createMobileTRPCClient();
-    const update: Parameters<typeof trpc.workflows.update.mutate>[0] = {
-      id: workflow.id,
-      name: workflow.name,
-      description: workflow.description,
-      graph: workflow.graph
-    };
-    if (workflow.access) {
-      update.access = workflow.access;
-    }
-    return trpc.workflows.update.mutate(update);
-  }
-
-  async createWorkflow(workflow: {
-    name: string;
-    description: string;
-    graph: WorkflowGraphInput;
-    access?: string;
-  }) {
-    const trpc = createMobileTRPCClient();
-    const create: Parameters<typeof trpc.workflows.create.mutate>[0] = {
-      name: workflow.name,
-      description: workflow.description,
-      graph: workflow.graph
-    };
-    if (workflow.access) {
-      create.access = workflow.access;
-    }
-    return trpc.workflows.create.mutate(create);
   }
 
   async uploadAsset(params: {

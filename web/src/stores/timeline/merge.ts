@@ -15,7 +15,11 @@
  */
 import type { DocumentOp } from "@nodetool-ai/protocol";
 import { timelineCamera2d } from "@nodetool-ai/protocol/api-schemas/timeline.js";
-import type { TimelineSequence } from "@nodetool-ai/timeline";
+import type {
+  TimelineSequence,
+  TimelineSetup,
+  TimelineTempo
+} from "@nodetool-ai/timeline";
 import type {
   DocumentMergeAdapter,
   MergeConflict,
@@ -26,6 +30,7 @@ import { mergeByUnits, structuralEqual } from "../documentMerge";
 /** The slice of the store's document state the engine merges. */
 export interface TimelineMergeDoc {
   tracks: unknown[];
+  trackFolders: unknown[];
   clips: unknown[];
   markers: unknown[];
   mediaTracks: unknown[];
@@ -34,7 +39,12 @@ export interface TimelineMergeDoc {
   fps: number;
   width: number;
   height: number;
+  storyboardMaterializations?: TimelineSequence["storyboardMaterializations"];
   camera2d?: TimelineSequence["camera2d"];
+  /** Document tempo; a scalar, so an agent's rescale lands with its clips. */
+  tempo?: TimelineTempo;
+  /** Guided-setup state; null when the sequence never went through the flow. */
+  setup?: TimelineSetup | null;
 }
 
 interface ClipLike {
@@ -63,6 +73,7 @@ const collectionOf = <T>(
 
 type TimelineUnitKind =
   | "track"
+  | "trackFolder"
   | "clip"
   | "marker"
   | "mediaTrack"
@@ -70,6 +81,7 @@ type TimelineUnitKind =
 
 const ALL_UNIT_KINDS: readonly TimelineUnitKind[] = [
   "track",
+  "trackFolder",
   "clip",
   "marker",
   "mediaTrack",
@@ -159,6 +171,7 @@ export const timelineUnitsTouchedByOp = (
 export const timelineMergeAdapter: DocumentMergeAdapter<TimelineMergeDoc> = {
   collections: [
     collectionOf("track", "tracks", (t) => (t as { id: string }).id),
+    collectionOf("trackFolder", "trackFolders", (f) => (f as { id: string }).id),
     collectionOf(
       "clip",
       "clips",
@@ -171,9 +184,24 @@ export const timelineMergeAdapter: DocumentMergeAdapter<TimelineMergeDoc> = {
   ],
   scalars: [
     {
+      name: "storyboardMaterializations",
+      read: (doc) => doc.storyboardMaterializations,
+      write: (doc, value) => ({ ...doc, storyboardMaterializations: value as TimelineSequence["storyboardMaterializations"] })
+    },
+    {
       name: "camera2d",
       read: (doc) => doc.camera2d ?? null,
       write: (doc, value) => ({ ...doc, camera2d: value == null ? null : timelineCamera2d.parse(value) })
+    },
+    {
+      name: "tempo",
+      read: (doc) => doc.tempo,
+      write: (doc, v) => ({ ...doc, tempo: v as TimelineTempo | undefined })
+    },
+    {
+      name: "setup",
+      read: (doc) => doc.setup ?? null,
+      write: (doc, v) => ({ ...doc, setup: (v ?? null) as TimelineSetup | null })
     },
     {
       name: "fps",

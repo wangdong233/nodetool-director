@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   DBModel,
   ModelObserver,
   ModelChangeEvent,
   createTimeOrderedUuid,
-  computeEtag
+  computeEtag,
+  nextUpdatedAtAfter
 } from "../src/base-model.js";
 import { initTestDb } from "../src/db.js";
 import { Job } from "../src/job.js";
@@ -85,8 +86,24 @@ describe("DBModel", () => {
       ModelObserver.subscribe((_, evt) => events.push(evt), "Job");
 
       await Job.create<Job>({ user_id: "u1", workflow_id: "w1" });
-      // create calls save (UPDATED) + then CREATED
-      expect(events).toContain(ModelChangeEvent.CREATED);
+      expect(events).toEqual([ModelChangeEvent.CREATED]);
+    });
+
+    it("emits one committed event per create, update, and delete with the same resource", async () => {
+      const events: Array<{ event: ModelChangeEvent; id: string | number; row: Record<string, unknown> }> = [];
+      ModelObserver.subscribe((instance, event) => events.push({
+        event, id: instance.partitionValue(), row: instance.toRow()
+      }));
+      const job = await Job.create<Job>({ user_id: "u1", workflow_id: "w1" });
+      await job.update({ error: "failed" });
+      await job.delete();
+      expect(events.map(({ event }) => event)).toEqual([
+        ModelChangeEvent.CREATED, ModelChangeEvent.UPDATED, ModelChangeEvent.DELETED
+      ]);
+      expect(events.map(({ id }) => id)).toEqual([job.id, job.id, job.id]);
+      expect(events[0].row).toMatchObject({ id: job.id, user_id: "u1" });
+      expect(events[1].row.error).toBe("failed");
+      expect(await Job.get<Job>(job.id)).toBeNull();
     });
 
     it("notifies on delete", async () => {
@@ -171,6 +188,10 @@ describe("DBModel", () => {
       expect(computeEtag(data)).toBe(computeEtag(data));
     });
 
+    it("computeEtag uses a 128-bit SHA-256 prefix with sorted keys", () => {
+      expect(computeEtag({ b: "hello", a: 1 })).toBe("d84ab9f85753473707229d00b92623f0");
+    });
+
     it("computeEtag changes when data changes", () => {
       const a = computeEtag({ x: 1 });
       const b = computeEtag({ x: 2 });
@@ -184,7 +205,7 @@ describe("DBModel", () => {
       });
       const etag = job.getEtag();
       expect(typeof etag).toBe("string");
-      expect(etag.length).toBe(32); // MD5 hex
+      expect(etag).toMatch(/^[0-9a-f]{32}$/);
     });
   });
 
@@ -228,5 +249,33 @@ describe("DBModel", () => {
       });
       expect(model.toRow()).toEqual({ id: "row-1", name: "legacy" });
     });
+  });
+});
+
+describe("nextUpdatedAtAfter", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns the current time when it is after the previous timestamp", () => {
+    vi.useFakeTimers({ now: new Date("2026-01-01T00:00:10.000Z") });
+    expect(nextUpdatedAtAfter("2026-01-01T00:00:00.000Z")).toBe(
+      "2026-01-01T00:00:10.000Z"
+    );
+  });
+
+  it("advances one millisecond past a previous timestamp that is not behind the clock", () => {
+    vi.useFakeTimers({ now: new Date("2026-01-01T00:00:00.000Z") });
+    expect(nextUpdatedAtAfter("2026-01-01T00:00:00.000Z")).toBe(
+      "2026-01-01T00:00:00.001Z"
+    );
+    expect(nextUpdatedAtAfter("2026-01-01T00:01:00.000Z")).toBe(
+      "2026-01-01T00:01:00.001Z"
+    );
+  });
+
+  it("falls back to the clock when the previous timestamp is unparseable", () => {
+    vi.useFakeTimers({ now: new Date("2026-01-01T00:00:00.000Z") });
+    expect(nextUpdatedAtAfter("not-a-date")).toBe("2026-01-01T00:00:00.000Z");
   });
 });

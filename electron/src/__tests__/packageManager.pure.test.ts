@@ -1,45 +1,13 @@
 import {
-  getPackageDescription,
+  getRuntimePackageStatuses,
   needsTorchPlatformDetection,
-  isRegistryWheelPackage,
   validateRepoId,
-  selectRegistryWheelUrl,
 } from "../packageManager";
-
-describe("getPackageDescription", () => {
-  it("returns override for known repo_id", () => {
-    const desc = getPackageDescription({
-      repo_id: "nodetool-ai/nodetool-core",
-      description: "original",
-    });
-    expect(desc).toContain("Essential NodeTool");
-  });
-
-  it("is case-insensitive for repo_id overrides", () => {
-    const desc = getPackageDescription({
-      repo_id: "Nodetool-AI/Nodetool-Core",
-      description: "original",
-    });
-    expect(desc).toContain("Essential NodeTool");
-  });
-
-  it("returns trimmed description when no override", () => {
-    expect(
-      getPackageDescription({ repo_id: "some/pkg", description: "  hello  " })
-    ).toBe("hello");
-  });
-
-  it("returns empty string for missing description", () => {
-    expect(
-      getPackageDescription({ repo_id: "some/pkg", description: undefined })
-    ).toBe("");
-  });
-});
+import { runtimeRegistry } from "../runtime/packages/registry";
 
 describe("needsTorchPlatformDetection", () => {
   it("returns true for known torch-dependent packages", () => {
     expect(needsTorchPlatformDetection("nodetool-huggingface")).toBe(true);
-    expect(needsTorchPlatformDetection("nunchaku")).toBe(true);
   });
 
   it("returns false for other packages", () => {
@@ -48,16 +16,6 @@ describe("needsTorchPlatformDetection", () => {
 
   it("normalises dashes/underscores", () => {
     expect(needsTorchPlatformDetection("nodetool_huggingface")).toBe(true);
-  });
-});
-
-describe("isRegistryWheelPackage", () => {
-  it("returns true for nunchaku", () => {
-    expect(isRegistryWheelPackage("nunchaku")).toBe(true);
-  });
-
-  it("returns false for arbitrary packages", () => {
-    expect(isRegistryWheelPackage("nodetool-huggingface")).toBe(false);
   });
 });
 
@@ -90,49 +48,27 @@ describe("validateRepoId", () => {
   });
 });
 
-describe("selectRegistryWheelUrl", () => {
-  const baseOptions = {
-    packageName: "nunchaku",
-    pythonTag: "cp311",
-    platformTag: "linux_x86_64",
-    torchTag: "torch2.5",
-    cudaTag: null,
-  };
+describe("getRuntimePackageStatuses", () => {
+  afterEach(() => jest.restoreAllMocks());
 
-  const urls = [
-    "https://example.com/nunchaku-0.2.1-cp311-cp311-linux_x86_64-torch2.5.whl",
-    "https://example.com/nunchaku-0.3.0-cp311-cp311-linux_x86_64-torch2.5.whl",
-    "https://example.com/nunchaku-0.3.0-cp310-cp310-linux_x86_64-torch2.5.whl",
-    "https://example.com/otherpkg-1.0.0-cp311-cp311-linux_x86_64-torch2.5.whl",
-  ];
-
-  it("selects the latest matching version", () => {
-    const result = selectRegistryWheelUrl(urls, baseOptions);
-    expect(result).toContain("nunchaku-0.3.0");
-    expect(result).toContain("cp311-cp311");
-  });
-
-  it("returns null when no urls match", () => {
-    const result = selectRegistryWheelUrl(urls, {
-      ...baseOptions,
-      platformTag: "win_amd64",
+  it("passes an npm package's installed and pinned versions to the renderer", async () => {
+    jest.spyOn(runtimeRegistry, "statuses").mockResolvedValue([
+      {
+        id: "claude-agent-sdk",
+        installed: true,
+        installedVersion: "0.3.190",
+        latestVersion: "0.3.283",
+        updateAvailable: true,
+      },
+    ]);
+    const [status] = await getRuntimePackageStatuses();
+    expect(status).toMatchObject({
+      id: "claude-agent-sdk",
+      name: "Claude Agent SDK",
+      installed: true,
+      installedVersion: "0.3.190",
+      latestVersion: "0.3.283",
+      updateAvailable: true,
     });
-    expect(result).toBeNull();
-  });
-
-  it("returns null for empty url list", () => {
-    expect(selectRegistryWheelUrl([], baseOptions)).toBeNull();
-  });
-
-  it("prefers CUDA-tagged wheels when cudaTag is set", () => {
-    const cudaUrls = [
-      "https://example.com/nunchaku-0.3.0-cp311-cp311-linux_x86_64-cu12.4torch2.5.whl",
-      "https://example.com/nunchaku-0.3.0-cp311-cp311-linux_x86_64-torch2.5.whl",
-    ];
-    const result = selectRegistryWheelUrl(cudaUrls, {
-      ...baseOptions,
-      cudaTag: "cu12.4",
-    });
-    expect(result).toContain("cu12.4");
   });
 });

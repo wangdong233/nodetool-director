@@ -1,5 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from "react";
+import { parseChoiceCardOptions, type ChoiceCardOption } from "@nodetool-ai/app-runtime";
+export type { ChoiceCardOption } from "@nodetool-ai/app-runtime";
 import { keyframes } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 import type { SystemStyleObject } from "@mui/system";
@@ -148,25 +150,52 @@ const useBinding = (props: WidgetCommon, mode: WidgetBindingMode) =>
 const asItems = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : value == null ? [] : [value];
 
-const MediaPlaceholder: React.FC<{ height: number; text: string }> = ({
-  height,
-  text
-}) => (
-  <FlexColumn
-    align="center"
-    justify="center"
-    fullWidth
-    sx={{
-      height,
-      border: "1px dashed",
-      borderColor: "divider",
-      borderRadius: BORDER_RADIUS.md,
-      color: "text.secondary"
-    }}
-  >
-    <Caption color="secondary">{text}</Caption>
-  </FlexColumn>
-);
+/** Height of an empty media slot in a running app, before anything was made. */
+const IDLE_PLACEHOLDER_PX = 96;
+
+const placeholderPulse = keyframes`
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+`;
+
+/**
+ * An empty media slot. The builder canvas keeps the author's full height so the
+ * layout can be judged. A running app shows a short dashed strip until the
+ * operation that fills it starts, then the full-height frame pulses so the
+ * page does not jump when the result lands.
+ */
+const MediaPlaceholder: React.FC<{
+  height: number;
+  text: string;
+  designMode?: boolean;
+  producing?: boolean;
+}> = ({ height, text, designMode, producing }) => {
+  const full = designMode || producing;
+  return (
+    <FlexColumn
+      align="center"
+      justify="center"
+      fullWidth
+      role={producing ? "status" : undefined}
+      sx={{
+        height: full ? height : Math.min(height, IDLE_PLACEHOLDER_PX),
+        border: "1px dashed",
+        borderColor: "divider",
+        borderRadius: BORDER_RADIUS.md,
+        bgcolor: producing ? "action.hover" : "transparent",
+        color: "text.secondary",
+        transition: `height ${MOTION.normal}, ${MOTION.background}`,
+        ...(producing && {
+          borderStyle: "solid",
+          animation: `${placeholderPulse} ${MOTION.pulse} infinite`,
+          ...reducedMotion({ animation: "none" })
+        })
+      }}
+    >
+      <Caption color="secondary">{producing ? "Generating…" : text}</Caption>
+    </FlexColumn>
+  );
+};
 
 const MediaDownloadButton: React.FC<{
   src: string;
@@ -225,17 +254,31 @@ const ImageItem: React.FC<{
   src: string;
   fit?: string;
   height: number;
+  /** A CSS aspect ratio such as "9 / 16". It replaces the fixed height. */
+  aspectRatio?: string;
+  caption?: string;
+  /** A fixed width in px, for a frame beside other content. */
+  width?: number;
   download?: boolean;
   filename?: string;
-}> = React.memo(({ src, fit, height, download = true, filename }) => (
-  <FlexColumn gap={SPACING.xs} align="flex-start" fullWidth>
+}> = React.memo(({ src, fit, height, aspectRatio, caption, width, download = true, filename }) => (
+  <FlexColumn gap={SPACING.xs} align="flex-start" fullWidth={!width} sx={width ? { width } : undefined}>
     <ResponsiveImage
       locator={src}
-      alt=""
+      alt={caption ?? ""}
       fit={fit === "cover" ? "cover" : "contain"}
       borderRadius={BORDER_RADIUS.md}
-      sx={{ height }}
+      sx={
+        aspectRatio
+          ? { width: "100%", height: "auto", aspectRatio, border: "1px solid", borderColor: "divider" }
+          : { height }
+      }
     />
+    {caption ? (
+      <Caption color="secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
+        {caption}
+      </Caption>
+    ) : null}
     {download ? (
       <MediaDownloadButton
         src={src}
@@ -331,6 +374,8 @@ export const HeadingWidget: React.FC<
   WidgetCommon & {
     text?: string;
     level?: string;
+    /** A muted line directly under the heading, such as a step introduction. */
+    subtitle?: string;
   }
 > = (props) => {
   const { value } = useBinding(props, "read");
@@ -338,21 +383,40 @@ export const HeadingWidget: React.FC<
     props.formattedValue ?? (value != null ? str(value) : (props.text ?? ""));
   const level = props.level ?? "1";
   const size = level === "1" ? "giant" : "big";
-  return (
+  const heading = (
     <Text size={size} weight={600}>
       {text}
     </Text>
   );
+  if (!props.subtitle) return heading;
+  return (
+    <FlexColumn gap={SPACING.xs} fullWidth>
+      {heading}
+      <Text color="secondary" sx={{ maxWidth: "62ch" }}>
+        {props.subtitle}
+      </Text>
+    </FlexColumn>
+  );
 };
 
-export const TextWidget: React.FC<WidgetCommon & { text?: string }> = (
+/** "muted" is secondary body text, such as a step introduction. "hint" is the
+ * small secondary line under a field. */
+type TextTone = "default" | "muted" | "hint";
+
+export const TextWidget: React.FC<WidgetCommon & { text?: string; tone?: TextTone }> = (
   props
 ) => {
   const { value } = useBinding(props, "read");
   const text =
     props.formattedValue ?? (value != null ? str(value) : (props.text ?? ""));
+  const tone = props.tone ?? "default";
   return (
-    <Text data-focus-id={`app-widget-${props.id}`} size="normal" sx={{ whiteSpace: "pre-wrap" }}>
+    <Text
+      data-focus-id={`app-widget-${props.id}`}
+      size={tone === "hint" ? "small" : "normal"}
+      color={tone === "default" ? undefined : "secondary"}
+      sx={{ whiteSpace: "pre-wrap", ...(tone === "muted" && { maxWidth: "62ch" }) }}
+    >
       {text}
     </Text>
   );
@@ -386,9 +450,14 @@ export const ImageWidget: React.FC<
     placeholder?: string;
     download?: boolean;
     filename?: string;
+    aspectRatio?: string;
+    caption?: string;
+    width?: number;
   }
 > = (props) => {
-  const { value } = useBinding(props, "read");
+  const { value, designMode, producing } = useBinding(props, "read");
+  const aspectRatio = props.aspectRatio || undefined;
+  const width = isNumber(props.width) && props.width > 0 ? props.width : undefined;
   const sources = React.useMemo(
     () =>
       asItems(value)
@@ -401,7 +470,9 @@ export const ImageWidget: React.FC<
     return (
       <MediaPlaceholder
         height={height}
-        text={tAttr(props.placeholder ?? "No image")}
+        text={props.placeholder ?? "No image"}
+        designMode={designMode}
+        producing={producing}
       />
     );
   }
@@ -411,6 +482,9 @@ export const ImageWidget: React.FC<
         src={sources[0]}
         fit={props.fit}
         height={height}
+        aspectRatio={aspectRatio}
+        caption={props.caption || undefined}
+        width={width}
         download={props.download !== false}
         filename={mediaFilename(props.filename, "image", 0, sources.length)}
       />
@@ -431,6 +505,7 @@ export const ImageWidget: React.FC<
           src={src}
           fit={props.fit}
           height={height}
+          aspectRatio={aspectRatio}
           download={props.download !== false}
           filename={mediaFilename(
             props.filename,
@@ -451,7 +526,7 @@ export const AudioWidget: React.FC<
     filename?: string;
   }
 > = (props) => {
-  const { value } = useBinding(props, "read");
+  const { value, designMode, producing } = useBinding(props, "read");
   const sources = React.useMemo(
     () =>
       asItems(value)
@@ -463,7 +538,9 @@ export const AudioWidget: React.FC<
     return (
       <MediaPlaceholder
         height={56}
-        text={tAttr(props.placeholder ?? "No audio yet")}
+        text={props.placeholder ?? "No audio yet"}
+        designMode={designMode}
+        producing={producing}
       />
     );
   }
@@ -494,7 +571,7 @@ export const VideoWidget: React.FC<
     filename?: string;
   }
 > = (props) => {
-  const { value } = useBinding(props, "read");
+  const { value, designMode, producing } = useBinding(props, "read");
   const sources = React.useMemo(
     () =>
       asItems(value)
@@ -507,7 +584,9 @@ export const VideoWidget: React.FC<
     return (
       <MediaPlaceholder
         height={height}
-        text={tAttr(props.placeholder ?? "No video yet")}
+        text={props.placeholder ?? "No video yet"}
+        designMode={designMode}
+        producing={producing}
       />
     );
   }
@@ -742,14 +821,20 @@ export const TableWidget: React.FC<
 export const ProgressWidget: React.FC<WidgetCommon & { label?: string }> = (
   props
 ) => {
-  const { value, runnerState, progress, activity, designMode } = useBinding(
-    props,
-    "read"
-  );
+  const {
+    value,
+    runnerState,
+    progress,
+    boundToRunProgress,
+    activity,
+    designMode
+  } = useBinding(props, "read");
   const isRunning = runnerState === "running";
   // A widget bound to a numeric output shows that; otherwise the run's own
-  // progress, which the runtime reports as a 0..1 fraction.
-  const bound = numOr(value, progress != null ? progress * 100 : NaN);
+  // progress, which the runtime reports as a 0..1 fraction. An `exec#progress`
+  // binding reads that same fraction, so it is scaled too.
+  const runPercent = progress != null ? progress * 100 : NaN;
+  const bound = boundToRunProgress ? runPercent : numOr(value, runPercent);
   const hasValue = Number.isFinite(bound);
   // Progress belongs to a run in flight: show it only while the run is active,
   // and let it disappear the moment the run finishes. A widget bound to a
@@ -1030,6 +1115,8 @@ export const TextInputWidget: React.FC<
   WidgetCommon & {
     label?: string;
     placeholder?: string;
+    /** A short guide under the field. */
+    hint?: string;
     multiline?: boolean;
   }
 > = (props) => {
@@ -1039,6 +1126,8 @@ export const TextInputWidget: React.FC<
       data-focus-id={`app-widget-${props.id}`}
       label={tAttr(props.label ?? "")}
       placeholder={props.placeholder ?? ""}
+      helperText={props.hint || undefined}
+      slotProps={{ formHelperText: { sx: { mx: 0 } } }}
       value={str(value)}
       multiline={Boolean(props.multiline)}
       minRows={props.multiline ? 3 : undefined}
@@ -1198,6 +1287,349 @@ export const RadioGroupWidget: React.FC<
   );
 };
 
+export const ChoiceCardsWidget: React.FC<
+  WidgetCommon & {
+    label?: string;
+    options?: ChoiceCardOption[];
+    optionsBinding?: string;
+    columns?: number;
+    disabled?: boolean;
+  }
+> = (props) => {
+  const { value, setValue, emit } = useBinding(props, "write");
+  const selected = str(value);
+  const { value: boundOptions } = useBinding({ id: `${props.id}-options`, binding: props.optionsBinding }, "read");
+  const options = parseChoiceCardOptions(props.optionsBinding ? boundOptions : props.options);
+  return (
+    <FlexColumn gap={SPACING.sm} fullWidth>
+      {props.label ? <Label>{props.label}</Label> : null}
+      <Box
+        role="radiogroup"
+        aria-label={props.label || "Choices"}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr)",
+            sm:
+              "repeat(" +
+              Math.max(1, Math.floor(numOr(props.columns, 2))) +
+              ", minmax(0, 1fr))"
+          },
+          gap: SPACING.sm
+        }}
+      >
+        {options.map((option) => {
+          const active = selected === option.value;
+          const disabled = props.disabled || option.disabled;
+          return (
+            <Card
+              key={option.value}
+              variant="outlined"
+              padding="none"
+              // Card spreads an object sx, so these colors are CSS variables, not a theme callback.
+              sx={{
+                p: SPACING.lg,
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                borderColor: active ? "primary.main" : "divider",
+                bgcolor: active ? "rgba(var(--palette-primary-mainChannel) / 0.12)" : "action.hover",
+                transition: MOTION.border,
+                "&:hover": disabled || active ? {} : { borderColor: "rgba(var(--palette-primary-mainChannel) / 0.5)" },
+                "&:focus-within": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+              }}
+            >
+              <Box
+                role="radio"
+                aria-label={option.title || option.value}
+                aria-checked={active}
+                aria-disabled={disabled || undefined}
+                tabIndex={disabled ? -1 : 0}
+                onClick={() => {
+                  if (!props.disabled && !option.disabled) {
+                    setValue(option.value);
+                    emit("change");
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    !props.disabled &&
+                    !option.disabled &&
+                    (event.key === "Enter" || event.key === " ")
+                  ) {
+                    event.preventDefault();
+                    setValue(option.value);
+                    emit("change");
+                  }
+                }}
+                sx={{ width: "100%", outline: "none" }}
+              >
+                <FlexColumn gap={SPACING.xs} fullWidth>
+                  {option.image ? (
+                    <ResponsiveImage
+                      locator={option.image}
+                      alt=""
+                      borderRadius={BORDER_RADIUS.sm}
+                      sx={{
+                        width: "100%",
+                        aspectRatio: "16 / 9",
+                        objectFit: "cover"
+                      }}
+                    />
+                  ) : null}
+                  <Text weight={600}>{option.title || option.value}</Text>
+                  {option.description ? (
+                    <Text size="small" color="secondary">{option.description}</Text>
+                  ) : null}
+                </FlexColumn>
+              </Box>
+            </Card>
+          );
+        })}
+      </Box>
+    </FlexColumn>
+  );
+};
+
+export interface StepperStep {
+  value: string;
+  title: string;
+  description?: string;
+  disabled?: boolean;
+  completed?: boolean;
+}
+
+/** Marker diameter, and the connector's thickness between two markers. */
+const STEP_MARKER_PX = SPACING_PX.xxl;
+const STEP_CONNECTOR_PX = SPACING_PX.micro;
+/** Width one titled step needs, which decides when the rail drops titles. */
+const STEP_MIN_WIDTH_PX = 150;
+
+type StepState = "done" | "current" | "upcoming";
+
+const StepMarker: React.FC<{ state: StepState; index: number }> = ({
+  state,
+  index
+}) => (
+  <Box
+    aria-hidden
+    sx={{
+      width: STEP_MARKER_PX,
+      height: STEP_MARKER_PX,
+      flexShrink: 0,
+      display: "grid",
+      placeItems: "center",
+      borderRadius: BORDER_RADIUS.circle,
+      border: "1px solid",
+      borderColor: state === "upcoming" ? "divider" : "primary.main",
+      bgcolor: state === "current" ? "primary.main" : "transparent",
+      color:
+        state === "current"
+          ? "primary.contrastText"
+          : state === "done"
+            ? "primary.main"
+            : "text.secondary",
+      fontSize: "var(--fontSizeSmall)",
+      fontWeight: 600,
+      lineHeight: 1,
+      transition: `${MOTION.background}, ${MOTION.border}`
+    }}
+  >
+    {state === "done" ? "✓" : index + 1}
+  </Box>
+);
+
+/**
+ * A numbered progress rail: done steps carry a check and a filled connector,
+ * the current step a solid marker. Every reachable step is a button, so the
+ * rail is also the way back to an earlier step. When the titles would not fit
+ * on one line, only the current step keeps its title.
+ */
+export const StepperWidget: React.FC<
+  WidgetCommon & {
+    label?: string;
+    steps?: StepperStep[];
+    allowBack?: boolean;
+    disabled?: boolean;
+  }
+> = (props) => {
+  const { value, setValue, emit } = useBinding(props, "write");
+  const steps = props.steps ?? [];
+  const current = steps.findIndex((step) => step.value === str(value));
+  const firstStep = steps[0]?.value;
+  React.useEffect(() => {
+    if (value == null && firstStep !== undefined && !props.disabled) setValue(firstStep);
+  }, [props.disabled, setValue, firstStep, value]);
+  const blocked = (index: number): boolean =>
+    Boolean(
+      props.disabled ||
+        steps[index]?.disabled ||
+        (index < current && props.allowBack === false)
+    );
+  const choose = (index: number) => {
+    const step = steps[index];
+    if (!step || blocked(index) || index === current) return;
+    setValue(step.value);
+    emit("change");
+  };
+  const currentStep = steps[current];
+  return (
+    <FlexColumn
+      component="nav"
+      aria-label={props.label || "Steps"}
+      gap={SPACING.sm}
+      fullWidth
+      sx={{ containerType: "inline-size" }}
+    >
+      {props.label ? <Label>{props.label}</Label> : null}
+      <Box
+        component="ol"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: `${SPACING_PX.sm}px`,
+          listStyle: "none",
+          m: 0,
+          p: 0,
+          width: "100%"
+        }}
+      >
+        {steps.map((step, index) => {
+          // A step before the current one is done unless the author says otherwise.
+          const state: StepState =
+            index === current
+              ? "current"
+              : (step.completed ?? index < current)
+                ? "done"
+                : "upcoming";
+          const title = step.title || step.value;
+          return (
+            <React.Fragment key={step.value}>
+              {index > 0 ? (
+                <Box
+                  component="li"
+                  aria-hidden
+                  sx={{
+                    flex: "1 1 0",
+                    minWidth: SPACING_PX.lg,
+                    height: STEP_CONNECTOR_PX,
+                    borderRadius: BORDER_RADIUS.pill,
+                    bgcolor: index <= current ? "primary.main" : "divider",
+                    transition: MOTION.background
+                  }}
+                />
+              ) : null}
+              <Box component="li" sx={{ flex: "0 0 auto", minWidth: 0 }}>
+                <Box
+                  component="button"
+                  type="button"
+                  disabled={blocked(index)}
+                  aria-current={index === current ? "step" : undefined}
+                  aria-label={`Step ${index + 1} of ${steps.length}: ${title}${state === "done" ? ", done" : ""}`}
+                  onClick={() => choose(index)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: `${SPACING_PX.sm}px`,
+                    p: SPACING.xs,
+                    m: 0,
+                    border: 0,
+                    borderRadius: BORDER_RADIUS.pill,
+                    bgcolor: "transparent",
+                    color: state === "upcoming" ? "text.secondary" : "text.primary",
+                    font: "inherit",
+                    cursor: index === current ? "default" : "pointer",
+                    transition: MOTION.background,
+                    "&:hover:not(:disabled)": {
+                      bgcolor: index === current ? "transparent" : "action.hover"
+                    },
+                    "&:focus-visible": {
+                      outline: "2px solid",
+                      outlineColor: "primary.main",
+                      outlineOffset: 2
+                    },
+                    "&:disabled": { cursor: "default", opacity: index === current ? 1 : 0.5 },
+                    // When the titles would not fit on one line, only the
+                    // current step keeps its title.
+                    [`@container (max-width: ${steps.length * STEP_MIN_WIDTH_PX}px)`]: {
+                      "& .step-title": { display: index === current ? "inline" : "none" }
+                    }
+                  }}
+                >
+                  <StepMarker state={state} index={index} />
+                  <Text
+                    component="span"
+                    className="step-title"
+                    size="small"
+                    weight={index === current ? 600 : 500}
+                    color="inherit"
+                    sx={{ whiteSpace: "nowrap" }}
+                  >
+                    {title}
+                  </Text>
+                </Box>
+              </Box>
+            </React.Fragment>
+          );
+        })}
+      </Box>
+      {currentStep?.description ? (
+        <Caption color="secondary">{currentStep.description}</Caption>
+      ) : null}
+    </FlexColumn>
+  );
+};
+
+export const ApprovalWidget: React.FC<
+  WidgetCommon & {
+    label?: string;
+    description?: string;
+    approveLabel?: string;
+    rejectLabel?: string;
+    disabled?: boolean;
+  }
+> = (props) => {
+  const { value, setValue, emit } = useBinding(props, "write");
+  const choose = (next: "approved" | "rejected") => {
+    if (props.disabled) return;
+    setValue(next);
+    emit("change");
+  };
+  return (
+    <Card
+      variant="outlined"
+      padding="none"
+      sx={{ p: SPACING.lg, width: "100%" }}
+    >
+      <FlexColumn gap={SPACING.md} fullWidth>
+        {props.label ? <Text component="h3" size="big" sx={{ color: "text.primary", m: 0 }}>{props.label}</Text> : null}
+        {props.description ? (
+          <Text size="normal" color="secondary" sx={{ maxWidth: "70ch" }}>{props.description}</Text>
+        ) : null}
+        <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
+          <EditorButton
+            aria-pressed={value === "approved"}
+            variant={value === "approved" ? "outlined" : "contained"}
+            size="medium"
+            disabled={props.disabled}
+            onClick={() => choose("approved")}
+          >
+            {props.approveLabel || "Approve"}
+          </EditorButton>
+          <EditorButton
+            aria-pressed={value === "rejected"}
+            variant="text"
+            size="medium"
+            disabled={props.disabled}
+            onClick={() => choose("rejected")}
+          >
+            {props.rejectLabel || "Needs changes"}
+          </EditorButton>
+        </FlexRow>
+      </FlexColumn>
+    </Card>
+  );
+};
+
 /**
  * Writes the checked options as an array, so it binds to a list-typed input
  * rather than to a scalar one.
@@ -1307,6 +1739,10 @@ export const ButtonWidget: React.FC<
     label?: string;
     variant?: string;
     color?: string;
+    /** False sizes the button to its label, as Back and Next do. */
+    fullWidth?: boolean;
+    /** Where a natural-width button sits in its row. */
+    align?: "start" | "end";
   }
 > = (props) => {
   const { emit, designMode, runnerState } = useBinding(props, "none");
@@ -1318,7 +1754,8 @@ export const ButtonWidget: React.FC<
   // A mixed-action button stays disabled while busy when any click event runs
   // the operation. Cancel-only and non-run buttons remain operable.
   const showRunning = isRunning && runsOnClick && !designMode;
-  return (
+  const fullWidth = props.fullWidth !== false;
+  const button = (
     <EditorButton
       data-focus-id={`app-widget-${props.id}`}
       variant={
@@ -1327,7 +1764,7 @@ export const ButtonWidget: React.FC<
       color={(props.color as "primary" | "secondary" | "warning") ?? "primary"}
       density="normal"
       size="medium"
-      fullWidth
+      fullWidth={fullWidth}
       disabled={Boolean(props.disabled) || showRunning}
       onClick={() => emit("click")}
       sx={{
@@ -1335,6 +1772,8 @@ export const ButtonWidget: React.FC<
         fontWeight: 600,
         height: "auto",
         py: SPACING.sm,
+        // A step-navigation button is compact, like the stepper above it.
+        ...(!fullWidth && { px: SPACING.lg, py: SPACING.xs, fontSize: "var(--fontSizeSmall)" }),
         position: "relative",
         overflow: "hidden",
         // Keep the run state vivid rather than dimmed-out while it works.
@@ -1357,36 +1796,101 @@ export const ButtonWidget: React.FC<
       {showRunning ? <RunningLabel /> : tAttr(props.label ?? "Button")}
     </EditorButton>
   );
+  if (fullWidth) return button;
+  return (
+    <FlexRow fullWidth justify={props.align === "end" ? "flex-end" : "flex-start"}>
+      {button}
+    </FlexRow>
+  );
 };
 
 // ── Layout widgets ──────────────────────────────────────────────────────────
 
+/**
+ * "panel" is the default framed section. "card" is a small raised card for one
+ * item, such as an image and its caption. "plain" draws no frame, for a row of
+ * cards or a group of fields.
+ */
+type ContainerVariant = "panel" | "card" | "plain";
+
+/** Lays the slot's children in a grid of at most `columns` per row. Each
+ * column stays at least 120px wide, so a narrow app wraps to fewer columns. */
+const gridStack = (columns: number): React.CSSProperties => ({
+  display: "grid",
+  gridTemplateColumns: `repeat(auto-fit, minmax(max(120px, calc((100% - ${(columns - 1) * SPACING_PX.lg}px) / ${columns})), 1fr))`,
+  gap: `${SPACING_PX.lg}px`,
+  width: "100%",
+  minWidth: 0
+});
+
 export const ContainerWidget: React.FC<{
+  /** Puck's component id; the conditional wrapper passes it through. */
+  id?: string;
   title?: string;
+  variant?: ContainerVariant;
+  columns?: number;
   content?: SlotComponent;
-}> = ({ title, content: Content }) => (
-  <Card
-    variant="outlined"
-    padding="none"
-    sx={{ width: "100%", p: SPACING.xl, borderRadius: BORDER_RADIUS.md }}
-  >
-    {title ? (
-      <SectionHeader
-        title={title}
-        size="small"
-        uppercase
-        sx={{ mb: SPACING.lg }}
-      />
-    ) : null}
-    {Content ? <Content style={slotStack} /> : null}
-  </Card>
-);
+}> = ({ title, variant = "panel", columns, content: Content }) => {
+  const count = Math.max(1, Math.floor(numOr(columns, 1)));
+  const slot = Content ? (
+    <Content style={count > 1 ? gridStack(count) : variant === "card" ? { ...slotStack, gap: `${SPACING_PX.md}px` } : slotStack} />
+  ) : null;
+  if (variant === "plain") {
+    return (
+      <FlexColumn gap={SPACING.md} fullWidth sx={{ minWidth: 0 }}>
+        {title ? <Text size="small" color="secondary">{title}</Text> : null}
+        {slot}
+      </FlexColumn>
+    );
+  }
+  if (variant === "card") {
+    return (
+      <Card
+        variant="outlined"
+        padding="none"
+        sx={{ width: "100%", p: SPACING.lg, borderRadius: BORDER_RADIUS.md, bgcolor: "action.hover" }}
+      >
+        <FlexColumn gap={SPACING.md} fullWidth>
+          {title ? <Text size="small" color="secondary">{title}</Text> : null}
+          {slot}
+        </FlexColumn>
+      </Card>
+    );
+  }
+  return (
+    <Card
+      variant="outlined"
+      padding="none"
+      sx={{ width: "100%", p: SPACING.xl, borderRadius: BORDER_RADIUS.md }}
+    >
+      {title ? (
+        <SectionHeader
+          title={title}
+          size="small"
+          uppercase
+          sx={{ mb: SPACING.lg }}
+        />
+      ) : null}
+      {slot}
+    </Card>
+  );
+};
+
+/**
+ * "equal" splits the width in half. "main-aside" gives the left slot the free
+ * width and sizes the right slot to its content, as fields beside their
+ * example frames.
+ */
+type ColumnsLayout = "equal" | "main-aside";
 
 export const ColumnsWidget: React.FC<{
+  /** Puck's component id; the conditional wrapper passes it through. */
+  id?: string;
   gap?: number;
+  layout?: ColumnsLayout;
   left?: SlotComponent;
   right?: SlotComponent;
-}> = ({ gap, left: Left, right: Right }) => (
+}> = ({ gap, layout = "equal", left: Left, right: Right }) => (
   // Container query, not an MUI breakpoint: viewport breakpoints read the
   // window, so the narrow editor canvas would still lay out two columns and
   // overflow. Querying the app root container keeps the editor preview and
@@ -1395,15 +1899,24 @@ export const ColumnsWidget: React.FC<{
     sx={{
       display: "grid",
       gridTemplateColumns: "1fr",
+      alignItems: "start",
       "@container (min-width: 700px)": {
-        gridTemplateColumns: "1fr 1fr"
+        gridTemplateColumns: layout === "main-aside" ? "minmax(0, 1fr) auto" : "1fr 1fr"
       },
       gap: `${numOr(gap, SPACING_PX.xl)}px`,
       width: "100%"
     }}
   >
     {Left ? <Left style={slotStack} /> : null}
-    {Right ? <Right style={slotStack} /> : null}
+    {Right ? (
+      <Right
+        style={
+          layout === "main-aside"
+            ? { display: "flex", flexDirection: "row", flexWrap: "wrap", gap: `${SPACING_PX.md}px`, minWidth: 0 }
+            : slotStack
+        }
+      />
+    ) : null}
   </Box>
 );
 
@@ -1477,6 +1990,8 @@ export const TabsWidget: React.FC<{
 };
 
 export const AccordionWidget: React.FC<{
+  /** Puck's component id; the conditional wrapper passes it through. */
+  id?: string;
   title?: string;
   defaultOpen?: boolean;
   content?: SlotComponent;

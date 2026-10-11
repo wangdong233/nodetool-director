@@ -1,16 +1,21 @@
 import React from "react";
 import { Download } from "lucide-react";
 import { SmartDownloadButton } from "../SmartDownloadButton";
+import CommunitySection from "../../components/CommunitySection";
 import FaqBlock from "../../components/FaqBlock";
 import HeroDemoPlayer from "../../components/HeroDemoPlayer";
 import MarketingClosingAction from "../../components/MarketingClosingAction";
 import MarketingFacts, {
   type MarketingFact,
 } from "../../components/MarketingFacts";
-import MarketingHero from "../../components/MarketingHero";
 import MarketingPageShell from "../../components/MarketingPageShell";
+import ModelSupportSection from "../../components/ModelSupportSection";
 import ProductImage from "../../components/ProductImage";
+import RecipeShowcase from "../../components/RecipeShowcase";
+import StudioHero from "../../components/StudioHero";
+import StoryboardTeaser from "../../components/storyboards/StoryboardTeaser";
 import SurfaceShowcase from "../../components/SurfaceShowcase";
+import TimelineShowcase from "../../components/TimelineShowcase";
 import { EDITIONS } from "../../data/editions";
 
 const ownershipFacts: MarketingFact[] = [
@@ -25,7 +30,7 @@ const ownershipFacts: MarketingFact[] = [
       "Use supported language and image models through Ollama, MLX, llama.cpp, vLLM, or LM Studio. Local capability depends on the model and your hardware.",
   },
   {
-    term: "Remote providers",
+    term: "Online AI providers",
     description:
       "Connect your own provider accounts when a hosted model fits the job. Those requests need a network connection and are handled under the provider's terms.",
   },
@@ -54,7 +59,7 @@ const setupFacts: MarketingFact[] = [
 ];
 
 const primaryButtonClass =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition-colors hover:bg-blue-500 focus-ring";
+  "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition-colors hover:bg-blue-500 focus-ring sm:w-auto";
 
 function StudioPrimaryAction() {
   return (
@@ -69,28 +74,9 @@ function StudioPrimaryAction() {
 export default function StudioPage() {
   return (
     <MarketingPageShell>
-      <MarketingHero
-        eyebrow={EDITIONS.studio.eyebrow}
-        title="Make the work. Keep the project."
-        body="Create images, video, audio, and text with agents that work in NodeTool's editors. Revise the storyboard, script, layers, and timeline yourself, and keep the project for the next job."
-        primaryAction={<StudioPrimaryAction />}
-        secondaryAction={{
-          href: "#editable-project",
-          label: "See an editable project",
-        }}
-        trustLine="Free and open source · AGPL-3.0 · macOS, Windows, Linux"
-        recommendation={EDITIONS.studio.recommendation}
+      <StudioHero
         headingId="studio-hero-title"
-        media={
-          <ProductImage
-            src="/surface-timeline-poster.webp"
-            alt="NodeTool timeline editor with video and audio tracks"
-            width={1600}
-            height={900}
-            priority
-            caption="The timeline is part of the saved project. Clips, audio, and timing remain open for revision."
-          />
-        }
+        primaryAction={<StudioPrimaryAction />}
       />
 
       <section
@@ -110,9 +96,9 @@ export default function StudioPage() {
               A brief becomes a project you can reopen.
             </h2>
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-300">
-              The agent can draft the board and assemble a cut. The result is
-              still a NodeTool project, so the next change can happen in an
-              editor or through another agent action.
+              The agent can draft the storyboard and edit the clips into a
+              video. The result is a NodeTool project, so you can make the next
+              change yourself in an editor or ask the agent to make it.
             </p>
           </header>
           <div className="mx-auto max-w-5xl">
@@ -127,10 +113,14 @@ export default function StudioPage() {
       </section>
 
       <SurfaceShowcase
-        surfaceIds={["storyboard", "script", "timeline"]}
         heading="Direct the details."
-        intro="Open the same project in the editor that fits the change. Revise a shot, another line reading, or the timing of the cut without starting over."
+        intro="Open the same project in the editor that fits the change. Revise a shot, a line reading, a layer, or the timing of the cut without starting over."
       />
+
+      {/* Finished films whose editable timelines open in Studio */}
+      <TimelineShowcase />
+
+      <RecipeShowcase compact />
 
       <section
         id="ownership"
@@ -149,7 +139,7 @@ export default function StudioPage() {
           </div>
           <div className="lg:col-span-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-300">
-              Local-first, with a clear boundary
+              Runs on your computer
             </p>
             <h2
               id="studio-ownership-title"
@@ -158,8 +148,8 @@ export default function StudioPage() {
               Your files. Your models. Your keys.
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-300">
-              Studio keeps the project on your machine. Network use depends on
-              the models and services you choose for each run.
+              Studio keeps the project on your computer. It only goes online
+              when you use an online AI provider or service.
             </p>
             <div className="mt-8">
               <MarketingFacts items={ownershipFacts} />
@@ -167,6 +157,8 @@ export default function StudioPage() {
           </div>
         </div>
       </section>
+
+      <ModelSupportSection />
 
       <section
         id="studio-setup"
@@ -185,8 +177,8 @@ export default function StudioPage() {
               Start with the setup you have.
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-300">
-              Local inference is a choice, not an eligibility requirement for
-              the desktop edition.
+              You do not need a powerful computer. Running AI models on your own
+              machine is optional.
             </p>
           </header>
           <div className="lg:col-span-7">
@@ -202,10 +194,18 @@ export default function StudioPage() {
         />
       </section>
 
+      <StoryboardTeaser
+        slugs={["duel-in-the-wheat", "movement-in-gold", "fox-in-snow", "cold-brew-pour"]}
+        heading="Storyboards that become films."
+        body="Plan the shots in Studio, then render the film. These examples ship with NodeTool."
+      />
+
+      <CommunitySection />
+
       <MarketingClosingAction
         headingId="studio-closing-title"
         title="Start your next project in Studio."
-        body="Download the production edition for macOS, Windows, or Linux. The app and source are available under AGPL-3.0."
+        body="Download the free desktop app for macOS, Windows, or Linux. The app and its source code are open under AGPL-3.0."
         primaryAction={<StudioPrimaryAction />}
         secondaryAction={{ href: "/cloud", label: "Try Cloud (alpha)" }}
       />

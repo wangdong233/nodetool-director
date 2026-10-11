@@ -1,6 +1,7 @@
 /**
- * The voices step: a dropdown-selected voice plays the speaker's own first
- * line, each speaker selects independently, and samples stay explicit calls.
+ * The voices step: a voice picked through the shared TTS model select plays
+ * the speaker's own first line, each speaker selects independently, and
+ * samples stay explicit calls.
  */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -59,6 +60,59 @@ import { resetVoiceSamples } from "../../../../hooks/script/useVoiceSamples";
 import { useScriptStore } from "../../../../stores/script/ScriptStore";
 import { VoicesStep } from "../VoicesStep";
 
+// The shared select opens a model dialog backed by tRPC. The stub offers one
+// button per (model, voice) pick, named by the voice label the step passes.
+jest.mock("../../../properties/TTSModelSelect", () => {
+  const react = jest.requireActual("react");
+  const picks = [
+    ["Eleven v3", "elevenlabs", "eleven_v3", "rachel"],
+    ["Adam", "elevenlabs", "eleven_v3", "adam"],
+    ["GPT-4o mini TTS", "openai", "gpt-4o-mini-tts", "alloy"],
+    // A model that publishes no preset voices hands back an empty voice.
+    ["Custom TTS", "fal", "custom-tts", ""]
+  ];
+  return {
+    __esModule: true,
+    default: ({
+      value,
+      onChange,
+      voiceLabel
+    }: {
+      value: string | { selected_voice: string };
+      onChange: (value: unknown) => void;
+      voiceLabel: string;
+    }) =>
+      react.createElement(
+        "div",
+        null,
+        react.createElement(
+          "span",
+          null,
+          `${voiceLabel}: ${typeof value === "object" ? value.selected_voice : "none"}`
+        ),
+        ...picks.map(([label, provider, id, voice]) =>
+          react.createElement(
+            "button",
+            {
+              key: label,
+              type: "button",
+              onClick: () =>
+                onChange({
+                  type: "tts_model",
+                  id,
+                  provider,
+                  name: label,
+                  voices: voice === "" ? [] : [voice],
+                  selected_voice: voice
+                })
+            },
+            `${label} for ${voiceLabel}`
+          )
+        )
+      )
+  };
+});
+
 const SCRIPT_ID = "s-voices";
 const HOST_LINE = "Welcome back to the show.";
 const GUEST_LINE = "Glad to be here.";
@@ -115,20 +169,12 @@ afterEach(() => {
 });
 
 describe("VoicesStep", () => {
-  it("gives every speaker a TTS model and voice dropdown", () => {
+  it("gives every speaker the shared TTS model select", () => {
     renderStep();
-    expect(
-      screen.getByRole("combobox", { name: "TTS model for Host" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("combobox", { name: "Voice for Host" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("combobox", { name: "TTS model for Guest" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("combobox", { name: "Voice for Guest" })
-    ).toBeInTheDocument();
+    expect(screen.getByText("TTS model for Host")).toBeInTheDocument();
+    expect(screen.getByText("Voice for Host: none")).toBeInTheDocument();
+    expect(screen.getByText("TTS model for Guest")).toBeInTheDocument();
+    expect(screen.getByText("Voice for Guest: none")).toBeInTheDocument();
   });
 
   it("plays the speaker's own first line in the selected voice, once", async () => {
@@ -136,10 +182,7 @@ describe("VoicesStep", () => {
     renderStep();
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Host" })
-    );
-    await user.click(
-      screen.getByRole("option", { name: "Eleven v3 (elevenlabs)" })
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
     );
     await user.click(
       screen.getByRole("button", { name: "Hear Rachel for Host" })
@@ -164,10 +207,7 @@ describe("VoicesStep", () => {
     renderStep();
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Guest" })
-    );
-    await user.click(
-      screen.getByRole("option", { name: "Eleven v3 (elevenlabs)" })
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Guest" })
     );
     await user.click(
       screen.getByRole("button", { name: "Hear Rachel for Guest" })
@@ -181,13 +221,11 @@ describe("VoicesStep", () => {
     renderStep();
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Guest" })
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Guest" })
     );
     await user.click(
-      screen.getByRole("option", { name: "Eleven v3 (elevenlabs)" })
+      screen.getByRole("button", { name: "Adam for Voice for Guest" })
     );
-    await user.click(screen.getByRole("combobox", { name: "Voice for Guest" }));
-    await user.click(screen.getByRole("option", { name: "Adam" }));
 
     expect(setSpeakerVoice).toHaveBeenCalledTimes(2);
     expect(setSpeakerVoice).toHaveBeenCalledWith("spk_guest", {
@@ -197,15 +235,12 @@ describe("VoicesStep", () => {
     });
   });
 
-  it("changes the model before offering that model's voices", async () => {
+  it("binds the model's voice and shows it as the selection", async () => {
     const user = userEvent.setup();
     renderStep();
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Host" })
-    );
-    await user.click(
-      screen.getByRole("option", { name: "GPT-4o mini TTS (openai)" })
+      screen.getByRole("button", { name: "GPT-4o mini TTS for Voice for Host" })
     );
 
     expect(setSpeakerVoice).toHaveBeenCalledWith("spk_host", {
@@ -213,9 +248,7 @@ describe("VoicesStep", () => {
       model: "gpt-4o-mini-tts",
       voice: "alloy"
     });
-    expect(
-      screen.getByRole("combobox", { name: "Voice for Host" })
-    ).toHaveTextContent("Alloy");
+    expect(screen.getByText("Voice for Host: alloy")).toBeInTheDocument();
   });
 
   it("writes the pace every speaker is read at, and sends it (F12)", async () => {
@@ -230,10 +263,7 @@ describe("VoicesStep", () => {
     );
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Host" })
-    );
-    await user.click(
-      screen.getByRole("option", { name: "Eleven v3 (elevenlabs)" })
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
     );
     await user.click(
       screen.getByRole("button", { name: "Hear Rachel for Host" })
@@ -249,10 +279,7 @@ describe("VoicesStep", () => {
     renderStep();
 
     await user.click(
-      screen.getByRole("combobox", { name: "TTS model for Host" })
-    );
-    await user.click(
-      screen.getByRole("option", { name: "Eleven v3 (elevenlabs)" })
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
     );
     await user.click(
       screen.getByRole("button", { name: "Hear Rachel for Host" })
@@ -262,6 +289,112 @@ describe("VoicesStep", () => {
     // appears without asking for the sample again.
     expect(await screen.findByLabelText("Rachel sample")).toBeInTheDocument();
     expect(rpcRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("plays a cached sample again on every Hear (F10)", async () => {
+    const user = userEvent.setup();
+    renderStep();
+
+    await user.click(
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
+    );
+    const hear = screen.getByRole("button", { name: "Hear Rachel for Host" });
+    await user.click(hear);
+    const first = (await screen.findByLabelText(
+      "Rachel sample"
+    )) as HTMLAudioElement;
+    expect(first.autoplay).toBe(true);
+
+    await user.click(hear);
+
+    const again = screen.getByLabelText("Rachel sample") as HTMLAudioElement;
+    expect(again).not.toBe(first);
+    expect(again.autoplay).toBe(true);
+    expect(rpcRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("says when a picked model has no preset voices (F9)", async () => {
+    const user = userEvent.setup();
+    renderStep();
+
+    await user.click(
+      screen.getByRole("button", { name: "Custom TTS for Voice for Host" })
+    );
+
+    expect(setSpeakerVoice).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("This model has no preset voices. Pick another model.")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
+    );
+    expect(
+      screen.queryByText("This model has no preset voices. Pick another model.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("changes nothing and pays for no sample in a view-mode tab (F14)", () => {
+    useScriptStore.getState().updateSpeaker(SCRIPT_ID, "spk_host", {
+      voice: { provider: "elevenlabs", model: "eleven_v3", voice: "rachel" }
+    });
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <VoicesStep scriptId={SCRIPT_ID} readOnly />
+      </ThemeProvider>
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /for Voice for Host/ })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Voice: Rachel")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Pace" })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+    const hear = screen.getByRole("button", { name: "Hear Rachel for Host" });
+    expect(hear).toBeDisabled();
+    expect(rpcRequest).not.toHaveBeenCalled();
+  });
+
+  it("still plays a sample already made in a view-mode tab (F14)", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <ThemeProvider theme={mockTheme}>
+        <VoicesStep scriptId={SCRIPT_ID} />
+      </ThemeProvider>
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Eleven v3 for Voice for Host" })
+    );
+    await user.click(screen.getByRole("button", { name: "Hear Rachel for Host" }));
+    await screen.findByLabelText("Rachel sample");
+    unmount();
+
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <VoicesStep scriptId={SCRIPT_ID} readOnly />
+      </ThemeProvider>
+    );
+    const hear = screen.getByRole("button", { name: "Hear Rachel for Host" });
+    expect(hear).toBeEnabled();
+    await user.click(hear);
+    expect(
+      (screen.getByLabelText("Rachel sample") as HTMLAudioElement).autoplay
+    ).toBe(true);
+    expect(rpcRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a bound voice the list does not carry playable", () => {
+    useScriptStore.getState().updateSpeaker(SCRIPT_ID, "spk_host", {
+      voice: { provider: "kokoro", model: "kokoro-82m", voice: "af_heart" }
+    });
+    renderStep();
+
+    expect(screen.getByText("Voice for Host: af_heart")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Hear af_heart for Host" })
+    ).toBeEnabled();
   });
 
   it("says an audition is a speech call before one is pressed (F23)", () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   creativeContext,
   type CreativeContext,
@@ -18,11 +18,13 @@ import {
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
 import { useTranslation } from "react-i18next";
-
+import { GalleryFrame } from "../MediaGallery";
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
   readonly onChange: (value: CreativeContext) => void;
   readonly onValidationChange?: (reason: string | undefined) => void;
+  /** Blocks every edit and commit. The section still opens and closes. */
+  readonly readOnly?: boolean;
 }
 
 const TEXT_FIELDS = [
@@ -37,7 +39,12 @@ interface ContextTextProps {
   readonly label: string;
   readonly value: string;
   readonly onCommit: (value: string) => void;
+  /** Checks each keystroke, so an invalid draft blocks the step before commit. */
+  readonly onDraft: (value: string) => void;
+  /** The field shows the stored value again, so its old draft no longer counts. */
+  readonly onMountFromStored: () => void;
   readonly multiline?: boolean;
+  readonly readOnly: boolean;
 }
 
 // Remount on an external value change. While typing, keep spaces and blank lines.
@@ -45,24 +52,71 @@ const ContextText = ({
   label,
   value,
   onCommit,
-  multiline
+  onDraft,
+  onMountFromStored,
+  multiline,
+  readOnly
 }: ContextTextProps) => {
   const [draft, setDraft] = useState(value);
+  const onMountRef = useRef(onMountFromStored);
+  useEffect(() => {
+    onMountRef.current();
+  }, []);
+  // Cmd+Enter advances the step without moving focus, so the field unmounts
+  // without a blur. Commit what was typed on the way out.
+  const pendingRef = useRef({ draft, value, onCommit });
+  pendingRef.current = { draft, value, onCommit };
+  useEffect(
+    () => () => {
+      const pending = pendingRef.current;
+      if (pending.draft !== pending.value) {
+        pending.onCommit(pending.draft);
+      }
+    },
+    []
+  );
   return (
     <TextInput
       label={label}
       value={draft}
       multiline={multiline}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => onCommit(draft)}
+      inputProps={{ readOnly }}
+      onChange={(event) => {
+        if (readOnly) {
+          return;
+        }
+        setDraft(event.target.value);
+        onDraft(event.target.value);
+      }}
+      onBlur={() => {
+        if (!readOnly) {
+          onCommit(draft);
+        }
+      }}
     />
   );
 };
 
+const textPatch = (
+  key: (typeof TEXT_FIELDS)[number][0],
+  text: string
+): Partial<CreativeContext> => ({ [key]: text.trim() || undefined });
+
+const claimsPatch = (
+  key: "approved_claims" | "prohibited_claims",
+  text: string
+): Partial<CreativeContext> => ({
+  [key]: text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+});
+
 export default function CreativeContextFields({
   value,
   onChange,
-  onValidationChange
+  onValidationChange,
+  readOnly = false
 }: CreativeContextFieldsProps) {
   const { t } = useTranslation();
   const [pickerKind, setPickerKind] = useState<ProductionReferenceKind | null>(
@@ -77,17 +131,45 @@ export default function CreativeContextFields({
     onValidationChange?.(error);
     return () => onValidationChange?.(undefined);
   }, [error, onValidationChange]);
-  const update = (patch: Partial<CreativeContext>): void => {
+  const clearInvalid = (fields: readonly string[]): void =>
+    setInvalidFields((current) =>
+      current.some((field) => fields.includes(field))
+        ? current.filter((field) => !fields.includes(field))
+        : current
+    );
+  const validate = (patch: Partial<CreativeContext>) => {
     const parsed = creativeContext.safeParse({ ...value, ...patch });
     const fields = Object.keys(patch);
     if (!parsed.success) {
-      setInvalidFields((current) => [...new Set([...current, ...fields])]);
+      setInvalidFields((current) =>
+        fields.every((field) => current.includes(field))
+          ? current
+          : [...new Set([...current, ...fields])]
+      );
+      return null;
+    }
+    clearInvalid(fields);
+    return parsed.data;
+  };
+  const update = (patch: Partial<CreativeContext>): void => {
+    if (readOnly) {
       return;
     }
-    setInvalidFields((current) =>
-      current.filter((field) => !fields.includes(field))
+    const parsed = validate(patch);
+    if (parsed === null) {
+      return;
+    }
+    // A blank field left on a board with no context says nothing. Writing it
+    // would create an empty context, which counts as production context and
+    // holds generation until the plan is reviewed again.
+    const blank = Object.values(patch).every(
+      (entry) =>
+        entry === undefined || (Array.isArray(entry) && entry.length === 0)
     );
-    onChange(parsed.data);
+    if (value === undefined && blank) {
+      return;
+    }
+    onChange(parsed);
   };
   return (
     <CollapsibleSection
@@ -106,27 +188,26 @@ export default function CreativeContextFields({
             label={t(labelKey, { defaultValue: label })}
             value={value?.[key] ?? ""}
             multiline={key === "product_description"}
-            onCommit={(text) => update({ [key]: text.trim() || undefined })}
+            readOnly={readOnly}
+            onCommit={(text) => update(textPatch(key, text))}
+            onDraft={(text) => validate(textPatch(key, text))}
+            onMountFromStored={() => clearInvalid([key])}
           />
         ))}
         {(["approved_claims", "prohibited_claims"] as const).map((key) => (
           <ContextText
             key={`${key}:${value?.[key]?.join("\n") ?? ""}`}
             multiline
+            readOnly={readOnly}
             label={
               key === "approved_claims"
                 ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" })
                 : t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })
             }
             value={value?.[key]?.join("\n") ?? ""}
-            onCommit={(text) =>
-              update({
-                [key]: text
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter(Boolean)
-              })
-            }
+            onCommit={(text) => update(claimsPatch(key, text))}
+            onDraft={(text) => validate(claimsPatch(key, text))}
+            onMountFromStored={() => clearInvalid([key])}
           />
         ))}
         <FlexRow gap={GAP.normal} wrap>
@@ -134,7 +215,9 @@ export default function CreativeContextFields({
             <EditorButton
               key={kind}
               onClick={() => setPickerKind(kind)}
-              disabled={(value?.reference_bindings?.length ?? 0) >= 32}
+              disabled={
+                readOnly || (value?.reference_bindings?.length ?? 0) >= 32
+              }
             >
               Add {kind} reference
             </EditorButton>
@@ -145,21 +228,31 @@ export default function CreativeContextFields({
             key={`${reference.kind}:${reference.asset_id}:${index}`}
             gap={GAP.tight}
           >
-            <ResponsiveImage
+            <GalleryFrame
               locator={`asset://${reference.asset_id}`}
-              alt={`${reference.kind} reference`}
-              fit="contain"
-              aspectRatio="1/1"
-              showErrorFallback
-              sx={{ maxWidth: SETUP_FIELD_WIDTH }}
-            />
+              kind="image"
+              caption={`${reference.kind} reference`}
+              sx={{ width: "100%", maxWidth: SETUP_FIELD_WIDTH }}
+            >
+              <ResponsiveImage
+                locator={`asset://${reference.asset_id}`}
+                alt={`${reference.kind} reference`}
+                fit="contain"
+                aspectRatio="1/1"
+                showErrorFallback
+              />
+            </GalleryFrame>
             <SelectField
               label={`Reference ${index + 1} role`}
               value={reference.kind}
+              disabled={readOnly}
               options={["product", "character", "location", "style"].map(
                 (kind) => ({ value: kind, label: kind })
               )}
               onChange={(kind) => {
+                if (readOnly) {
+                  return;
+                }
                 const parsed = creativeContext.parse({
                   ...value,
                   reference_bindings: value.reference_bindings?.map(
@@ -171,6 +264,7 @@ export default function CreativeContextFields({
               }}
             />
             <EditorButton
+              disabled={readOnly}
               onClick={() =>
                 update({
                   reference_bindings: value.reference_bindings?.filter(
@@ -191,7 +285,7 @@ export default function CreativeContextFields({
             {error}
           </Caption>
         ) : null}
-        {pickerKind ? (
+        {pickerKind && !readOnly ? (
           <EntityAssetPickerDialog
             open
             title={`Choose ${pickerKind} reference`}

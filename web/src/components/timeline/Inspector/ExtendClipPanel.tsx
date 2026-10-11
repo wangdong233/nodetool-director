@@ -1,3 +1,5 @@
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useMemo, useState } from "react";
 import MoreTimeOutlinedIcon from "@mui/icons-material/MoreTimeOutlined";
 import { captureExtensionSource } from "@nodetool-ai/timeline";
@@ -12,27 +14,31 @@ import { isElectron, isLocalhost } from "../../../lib/env";
 import {
   Caption,
   CollapsibleSection,
+  Divider,
   EditorButton,
   EmptyState,
   FlexColumn,
+  FlexRow,
+  Label,
   LoadingSpinner,
   SelectField,
   SPACING,
   TextInput,
   VideoPlayer
 } from "../../ui_primitives";
-import { InspectorSectionTitle } from "./InspectorPrimitives";
-import { useTranslation } from "react-i18next";
+import { INSPECTOR_FORM_SX, InspectorSectionTitle } from "./InspectorPrimitives";
+import { usePersistedFold } from "./usePersistedFold";
 
-const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string; labelKey: string }> =
+const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string }> =
   [
-    { value: "keep-cut", label: "Keep cut and retain handles", labelKey: "timeline:attrs.keepCutAndRetainHandles" },
-    { value: "available-space", label: "Extend into available space", labelKey: "timeline:attrs.extendIntoAvailableSpace" },
-    { value: "ripple", label: "Extend and ripple later clips", labelKey: "timeline:attrs.extendAndRippleLaterClips" }
+    { value: "keep-cut", label: "Keep cut and retain handles" },
+    { value: "available-space", label: "Extend into available space" },
+    { value: "ripple", label: "Extend and ripple later clips" }
   ];
 
 const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   const { t } = useTranslation();
+  const [open, setOpen] = usePersistedFold("extend", true);
   const clip = useTimelineStore((state) =>
     state.clips.find((item) => item.id === clipId)
   );
@@ -77,10 +83,10 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   const directionOptions = [
     ...(!hasDirectionTasks ||
     model?.supported_tasks?.includes("extend_video_start")
-      ? [{ value: "start" as const, label: t("timeline:attrs.start", { defaultValue: "Start" }) }]
+      ? [{ value: "start" as const, label: "Start" }]
       : []),
     ...(!hasDirectionTasks || model?.supported_tasks?.includes("extend_video_end")
-      ? [{ value: "end" as const, label: t("timeline:attrs.end", { defaultValue: "End" }) }]
+      ? [{ value: "end" as const, label: "End" }]
       : [])
   ];
   const selectedDirection = directionOptions.some(
@@ -88,6 +94,12 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   )
     ? direction
     : directionOptions[0]?.value ?? "end";
+  // A model that lists durations accepts nothing else, so offer only those.
+  const durationChoices = model?.durations?.length ? model.durations : null;
+  const selectedDuration =
+    durationChoices && !durationChoices.includes(Number(duration))
+      ? String(durationChoices[0])
+      : duration;
   const pending = jobs.some((job) => job.status === "running");
   const eligibility = clip ? captureExtensionSource(clip) : null;
 
@@ -103,7 +115,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
       await start({
         clipId,
         direction: selectedDirection,
-        addedSourceDurationMs: Number(duration) * 1000,
+        addedSourceDurationMs: Number(selectedDuration) * 1000,
         prompt: intent,
         model: {
           id: model.id,
@@ -134,9 +146,10 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
       title={
         <InspectorSectionTitle title={t("timeline:attrs.extend", { defaultValue: "Extend" })} icon={<MoreTimeOutlinedIcon />} />
       }
-      defaultOpen
+      open={open}
+      onToggle={setOpen}
     >
-      <FlexColumn gap={SPACING.md} sx={{ p: SPACING.md }}>
+      <FlexColumn sx={INSPECTOR_FORM_SX}>
         {!eligibility?.ok ? (
           <Caption color="secondary">{eligibility?.error}</Caption>
         ) : (
@@ -150,14 +163,15 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 title={t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
                 description={
                   modelError
-                    ? t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
-                    : t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
+                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
+                    : i18n.t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
                 }
               />
             ) : (
               <>
                 <SelectField
                   label={t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
+                  size="small"
                   value={`${model.provider}:${model.id}`}
                   options={modelsForTask.map((item) => ({
                     value: `${item.provider}:${item.id}`,
@@ -166,42 +180,68 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   onChange={setModelKey}
                   disabled={pending}
                 />
-                <SelectField
-                  label={t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
-                  value={selectedDirection}
-                  options={directionOptions}
-                  onChange={(value) =>
-                    setDirection(value === "start" ? "start" : "end")
-                  }
-                  disabled={pending}
-                />
-                <TextInput
-                  label={t("timeline:attrs.addedSourceSeconds", { defaultValue: "Added source seconds" })}
-                  type="number"
-                  value={duration}
-                  onChange={(event) => setDuration(event.target.value)}
-                  disabled={pending}
-                  inputProps={{ min: 0, step: 1 }}
-                  compact
-                  fullWidth
-                />
+                <FlexRow gap={SPACING.sm} align="flex-end" fullWidth>
+                  <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
+                    <SelectField
+                      label={t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
+                      size="small"
+                      value={selectedDirection}
+                      options={directionOptions}
+                      onChange={(value) =>
+                        setDirection(value === "start" ? "start" : "end")
+                      }
+                      disabled={pending}
+                    />
+                  </FlexColumn>
+                  <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
+                    {durationChoices ? (
+                      <SelectField
+                        label="Source seconds to add"
+                        size="small"
+                        value={selectedDuration}
+                        options={durationChoices.map((seconds) => ({
+                          value: String(seconds),
+                          label: `${seconds} s`
+                        }))}
+                        onChange={setDuration}
+                        disabled={pending}
+                      />
+                    ) : (
+                      <TextInput
+                        label="Source seconds to add"
+                        type="number"
+                        value={duration}
+                        onChange={(event) => setDuration(event.target.value)}
+                        disabled={pending}
+                        inputProps={{ min: 0, step: 1 }}
+                        compact
+                        fullWidth
+                      />
+                    )}
+                  </FlexColumn>
+                </FlexRow>
                 <TextInput
                   label={t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
                   value={intent}
                   onChange={(event) => setIntent(event.target.value)}
+                  placeholder="e.g. The camera keeps rising"
                   disabled={pending}
                   multiline
-                  minRows={2}
+                  minRows={3}
+                  maxRows={8}
                   compact
                   fullWidth
                 />
                 <EditorButton
+                  fullWidth
+                  variant="contained"
+                  startIcon={<MoreTimeOutlinedIcon />}
                   onClick={submit}
                   disabled={
                     pending ||
                     !intent.trim() ||
                     !sequenceId ||
-                    !(Number(duration) > 0)
+                    !(Number(selectedDuration) > 0)
                   }
                 >
                   {pending ? "Extending…" : "Generate extension"}
@@ -217,21 +257,28 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
           const accepted = take?.id === clip.activeTakeId;
           return (
             <FlexColumn key={job.request.requestId} gap={SPACING.sm}>
+              <Divider />
               {take ? (
                 <>
-                  <Caption>
-                    {job.request.direction === "start" ? t("timeline:attrs.start", { defaultValue: "Start" }) : t("ui2:attrs.end", { defaultValue: "End" })}{" "}
-                    {t("timeline:attrs.extensionSeconds", { defaultValue: "extension, {{n}}s", n: job.request.addedSourceDurationMs / 1000 })}
-                    {accepted ? t("timeline:attrs.inUseSuffix", { defaultValue: " · In use" }) : t("timeline:attrs.candidateSuffix", { defaultValue: " · Candidate" })}
-                  </Caption>
+                  <FlexRow justify="space-between" align="center" fullWidth>
+                    <Label>
+                      {job.request.direction === "start" ? "Start" : "End"}{" "}
+                      extension, {job.request.addedSourceDurationMs / 1000}s
+                    </Label>
+                    <Caption color={accepted ? "primary" : "secondary"}>
+                      {accepted ? "In use" : "Candidate"}
+                    </Caption>
+                  </FlexRow>
                   <EditorButton
+                    fullWidth
+                    variant="outlined"
                     onClick={() =>
                       setPreview(preview === take.assetId ? null : take.assetId)
                     }
                   >
                     {preview === take.assetId
-                      ? t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
-                      : t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
+                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
+                      : i18n.t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
                   </EditorButton>
                   {preview === take.assetId && (
                     <VideoPlayer
@@ -239,25 +286,38 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                       label={t("timeline:attrs.extensionCandidate", { defaultValue: "Extension candidate" })}
                     />
                   )}
+                  <Caption color="secondary">Apply to the cut</Caption>
                   {TIMING_OPTIONS.map((option) => (
                     <EditorButton
                       key={option.value}
+                      fullWidth
+                      variant="outlined"
                       disabled={accepted}
                       onClick={() =>
                         handleApplyCandidate(job.request, option.value)
                       }
                     >
-                      {t(option.labelKey, { defaultValue: option.label })}
+                      {option.label}
                     </EditorButton>
                   ))}
                 </>
               ) : job.status !== "running" ? (
                 <>
                   {job.error && <Caption color="error">{job.error}</Caption>}
-                  <EditorButton onClick={() => recover(job.request)}>{t("timeline:attrs.recoverExtension", { defaultValue: "Recover extension" })}</EditorButton>
+                  <EditorButton
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => recover(job.request)}
+                  >
+                    Recover extension
+                  </EditorButton>
                 </>
               ) : (
-                <Caption color="secondary">{t("timeline:attrs.extensionGenerationIsRunning", { defaultValue: "Extension generation is running." })}</Caption>
+                <LoadingSpinner
+                  variant="dots"
+                  size="small"
+                  text="Generating extension…"
+                />
               )}
             </FlexColumn>
           );

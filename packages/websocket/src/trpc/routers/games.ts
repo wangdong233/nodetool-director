@@ -1,77 +1,843 @@
-/**
- * `games` router — what the Game creation flow reads before it spends anything
- * (game-prd § 6.1, § 5.6).
- *
- *   templates    (query)    — GameTemplateSummary[] (the shipped manifests)
- *   stylePresets (mutation) — GameStylePresetEntity[] (seeds, then lists)
- *
- * `templates` is the browser's door to the same manifests the
- * `list_game_templates` capability serves an agent: the design step reads slot
- * counts and pixel sizes off them, and the graph builder is a pure function of
- * one. Read-only, no side effect.
- *
- * `stylePresets` is a mutation because it writes on first call — the look step
- * applies a style by entity id, so the row has to exist before the graph can
- * reference it. Idempotent, so the step can call it every time it opens.
- */
-
+import { createHash, randomUUID } from "node:crypto";
+import { join } from "node:path";
 import { z } from "zod";
-import { listTemplates } from "@nodetool-ai/godot-templates";
-import { gameSlotSpec, GAME_STYLE_PRESETS } from "@nodetool-ai/protocol";
-import { seedStylePresets } from "../../lib/style-presets.js";
+import sharp from "sharp";
+import { createLogger, getManagedWorkspaceDir, managedWorkspaceKey, workspaceStorageKind } from "@nodetool-ai/config";
+import { AmbiguousGameIdError, InvalidGameDocumentError, MissingGameDraftSourceError, Asset, Game, Project, Workspace } from "@nodetool-ai/models";
+import { exampleGameSummary, anyGameAssetBinding, gameAssetBinding, gameAssetBinding3D, gameAssetSiblingRebinds, gamePreparedCollider3D, gameModelImportSettings3D, parseGameDocument, anyGameDocument as gameDocument, installExampleGameInput, stagedGameCandidateRecord, stagedGameCandidateRecordPath, type AnyGameDocument as GameDocument } from "@nodetool-ai/protocol";
+import { createTopDownRoomGame, createNative3DGame, anyGameDocumentOp as gameDocumentOp, GameOpError, decodePreparedGameCollider3D, trackGameAuthoringEdits, validateAnyGame } from "@nodetool-ai/game-runtime";
+import { normalizeGameModel3D, prepareGameModelBinding3D } from "@nodetool-ai/game-renderer/preparation3d";
+import { contextSecretAvailability, createCapabilityRun, gateFromContext } from "@nodetool-ai/agents";
+import { gameAuthoringCandidate, gameAuthoringProgram, gameAuthoringConflict } from "@nodetool-ai/protocol";
+import { PERMISSION_GATE_CONTEXT_KEY, ProcessingContext, headlessGate } from "@nodetool-ai/runtime";
+import type { Workspace as RunWorkspace } from "@nodetool-ai/runtime";
+import { getAssetAdapter } from "../../lib/storage.js";
+import { getAssetStorageKey, retrieveAssetBytes } from "../../lib/asset-paths.js";
+import { getExampleGameBundle, installExampleGameAssets, listExampleGames } from "../../lib/example-games.js";
+import { workspaceFromRow } from "../../lib/workflow-workspace.js";
+import { loadConfiguredProviders } from "../../configured-providers.js";
+import { createRuntimeContext } from "../../session/model-interfaces.js";
+import { ApiErrorCode } from "../../error-codes.js";
 import { router } from "../index.js";
 import { protectedProcedure } from "../middleware.js";
+import { throwApiError } from "../error-formatter.js";
+import { boundedGameDraftHistory, MAX_GAME_DRAFT_OPS } from "./gameDraftHistory.js";
 
-/** One shipped template, as the design step needs it. */
-const gameTemplateSummary = z.object({
-  /** Manifest template id: `platformer`, `topdown`, `shmup`. */
+const log = createLogger("nodetool.games");
+
+const gameProcedure = protectedProcedure.use(async ({ next }) => {
+  const result = await next();
+  if (!result.ok && result.error.cause instanceof MissingGameDraftSourceError) {
+    throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, result.error.cause.message, "PRECONDITION_FAILED");
+  }
+  return result;
+});
+
+const idInput = z.object({ id: z.string() });
+const gameInfo = z.object({
   id: z.string(),
-  /** Godot minor the template targets, e.g. `4.3`. */
-  godot: z.string(),
-  /**
-   * Every asset slot the template declares, verbatim from its manifest. Typed
-   * with the manifest's own schema, not `unknown`: the browser rebuilds a
-   * `GameAssetManifest` out of one of these rows, so the slot shape has to
-   * survive the wire type.
-   */
-  slots: z.array(gameSlotSpec),
-  /** Project-relative files the agent edits after export. */
-  hooks: z.array(z.string())
+  projectId: z.string(),
+  workspaceId: z.string(),
+  name: z.string(),
+  revision: z.string(),
+  draftUpdatedAt: z.string(),
+  draftBaseRevision: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+const gameWithDocument = z.object({ game: gameInfo, document: gameDocument });
+const authoringPreview = z.object({
+  candidate: gameAuthoringCandidate,
+  document: gameDocument,
+  conflicts: z.array(gameAuthoringConflict),
+  affected_entities: z.array(z.string()),
+  changed_dependencies: z.array(z.string()),
+  restart_required: z.boolean()
+});
+const assetBrowserInfo = z.object({
+  dimension: z.enum(["2d", "3d"]),
+  draft_updated_at: z.string(),
+  candidate_workspace_id: z.string(),
+  candidates: z.array(z.object({
+    digest: z.string(), extension: z.string(), media_kind: z.enum(["image", "audio", "font", "model", "collider"]), path: z.string(),
+    size: z.number(), modified_at: z.string(), bound_slots: z.array(z.string()), slot: z.string().optional(), prompt: z.string().optional(),
+    source: z.string().optional(), recorded: z.boolean()
+  })),
+  slot_requests: z.record(z.string(), z.object({ kind: z.string(), prompt: z.string().optional(),
+    preparation: z.record(z.string(), z.unknown()).optional(), source: z.string() }))
+});
+const assetFrame = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
+const generatedAssetResult = z.object({
+  error: z.string().optional(),
+  binding: anyGameAssetBinding.optional(),
+  frames: z.array(assetFrame).optional(),
+  tiles: z.array(z.object({ mask: z.number().int(), frame: assetFrame })).optional()
+}).loose();
+const stagedCandidateBinding = z.object({ error: z.string().optional(), binding: anyGameAssetBinding.optional() }).loose();
+const generatedAsset = gameWithDocument.extend({ stagedDigest: z.string().nullable(), installed: z.boolean() });
+const gameRevisionInfo = z.object({ revision: z.string(), modifiedAt: z.number(), current: z.boolean(), message: z.string().nullable() });
+
+function info(game: Game): z.infer<typeof gameInfo> {
+  return {
+    id: game.id,
+    projectId: game.project_id,
+    workspaceId: game.workspace_id,
+    name: game.name,
+    revision: game.current_revision,
+    draftUpdatedAt: game.draft_updated_at,
+    draftBaseRevision: game.draft_base_revision,
+    createdAt: game.created_at,
+    updatedAt: game.updated_at
+  };
+}
+
+function newRevision(): string {
+  return randomUUID().replace(/-/g, "");
+}
+
+function authoringRun(userId: string) {
+  const context = new ProcessingContext({ jobId: `game-authoring-${randomUUID()}`, userId });
+  context.set(PERMISSION_GATE_CONTEXT_KEY, headlessGate("game.authoring"));
+  return createCapabilityRun({ context, gate: gateFromContext(context, "game.authoring") });
+}
+
+/** A run that can reach the user's configured media providers, for editor-initiated asset generation. */
+async function assetGenerationRun(userId: string, game: Game, workspace: RunWorkspace) {
+  const context = createRuntimeContext({ jobId: `game-asset-${randomUUID()}`, userId, projectId: game.project_id, workspace });
+  context.set(PERMISSION_GATE_CONTEXT_KEY, headlessGate("game.assets"));
+  return createCapabilityRun({ context, gate: gateFromContext(context, "game.assets"), projectId: game.project_id,
+    availableSecrets: contextSecretAvailability(context), providers: await loadConfiguredProviders(userId) });
+}
+
+function checkAuthoringResult(result: unknown): void {
+  if (result !== null && typeof result === "object" && "error" in result && typeof result.error === "string") {
+    if ("code" in result && result.code === "game_draft_source_unavailable") {
+      throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, result.error, "PRECONDITION_FAILED");
+    }
+    const code = /stale|concurrent|changed since/i.test(result.error)
+      ? ApiErrorCode.ALREADY_EXISTS : ApiErrorCode.INVALID_INPUT;
+    throwApiError(code, result.error);
+  }
+}
+
+function sourcePath(game: Game, revision: string): string {
+  return `${game.source_root}/revisions/${revision}/game.json`;
+}
+
+async function ownedGame(userId: string, id: string): Promise<Game> {
+  let game: Game | null;
+  try {
+    game = await Game.findOwned(userId, id);
+  } catch (error) {
+    if (error instanceof AmbiguousGameIdError) {
+      throwApiError(ApiErrorCode.INVALID_INPUT, error.message);
+    }
+    throw error;
+  }
+  if (!game || !(await Project.findOwned(userId, game.project_id))) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Game not found");
+  }
+  return game;
+}
+
+async function gameWorkspace(userId: string, game: Game): Promise<RunWorkspace> {
+  const row = await Workspace.find(userId, game.workspace_id);
+  if (!row || row.project_id !== game.project_id) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Game workspace not found");
+  }
+  const workspace = workspaceFromRow(row);
+  if (!workspace) {
+    throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, "Workspace storage is unavailable");
+  }
+  return workspace;
+}
+
+/** Maps the installed 2D binding to the frame and tile bindings written with it. */
+type SiblingBindings = (installed: z.infer<typeof gameAssetBinding>) => Record<string, z.infer<typeof gameAssetBinding>>;
+const CONCURRENT_DRAFT_EDIT = "Game draft was modified concurrently";
+
+async function persistGameAsset(
+  userId: string, game: Game, workspace: RunWorkspace, draftUpdatedAt: string,
+  slot: string, binding: z.infer<typeof anyGameAssetBinding>, bytes: Uint8Array,
+  extension: string, contentType: string, siblingBindings?: SiblingBindings
+): Promise<z.infer<typeof gameWithDocument>> {
+  await workspace.write(`${game.source_root}/assets/${binding.digest}.${extension}`, bytes, contentType);
+  const installed = await Asset.create({
+    user_id: userId, project_id: game.project_id, parent_id: userId,
+    name: `${slot}.${extension}`, content_type: contentType, size: bytes.byteLength,
+    metadata: { game_source_asset_id: binding.mediaKind === "model" ? binding.sourceAssetId ?? binding.assetId : binding.assetId,
+      game_digest: binding.digest }
+  });
+  if (!(installed instanceof Asset)) { throwApiError(ApiErrorCode.INTERNAL_ERROR, "Asset creation failed"); }
+  const storage = getAssetAdapter();
+  let uri: string | null = null;
+  try {
+    uri = await storage.store(getAssetStorageKey(userId, installed.id, contentType), bytes, contentType);
+    const op = gameDocumentOp.parse({ op: "bind_asset", slot, binding: { ...binding, assetId: installed.id } });
+    const parent = siblingBindings ? gameAssetBinding.safeParse({ ...binding, assetId: installed.id }) : null;
+    const siblings = siblingBindings && parent?.success
+      ? Object.entries(siblingBindings(parent.data)).map(([sibling, siblingBinding]) =>
+        gameDocumentOp.parse({ op: "bind_asset", slot: sibling, binding: siblingBinding })) : [];
+    const saved = await Game.updateDraft(userId, game.id, draftUpdatedAt, [op, ...siblings], workspace, { actor: "user" });
+    if (!saved) { throwApiError(ApiErrorCode.ALREADY_EXISTS, CONCURRENT_DRAFT_EDIT); }
+    return { game: info(saved.game), document: saved.document };
+  } catch (error) {
+    if (uri) { await storage.delete(uri); }
+    await installed.delete();
+    throw error;
+  }
+}
+
+async function projectWorkspace(userId: string, projectId: string): Promise<Workspace> {
+  const rows = await Workspace.listByProject(userId, projectId);
+  const existing = rows.find((row) => row.isAccessible() && (process.env["NODETOOL_ENV"] !== "production" || row.isManaged()));
+  if (existing) return existing;
+  const defaultRow = await Workspace.ensureDefault(userId);
+  const managed = defaultRow.isManaged() ? defaultRow : new Workspace({
+    user_id: userId,
+    name: "Managed workspace",
+    path: workspaceStorageKind() === "cloud"
+      ? managedWorkspaceKey(userId)
+      : getManagedWorkspaceDir(userId),
+    is_default: false
+  });
+  const root = workspaceFromRow(managed);
+  if (!root) {
+    throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, "Managed workspace is unavailable");
+  }
+  const segment = createHash("sha256").update(projectId).digest("hex");
+  await root.mkdir(`projects/${segment}`);
+  return (await Workspace.create({
+    user_id: userId,
+    project_id: projectId,
+    name: "Game workspace",
+    path: managed.isVirtual()
+      ? `${managed.path}/projects/${segment}`
+      : join(managed.path, "projects", segment),
+    is_default: false
+  })) as Workspace;
+}
+
+function validatedDocument(value: unknown, id: string, revision: string): GameDocument {
+  const parsed = parseGameDocument(value);
+  if (!parsed.ok) { throwApiError(ApiErrorCode.INVALID_INPUT, parsed.diagnostics.map((issue) => `${issue.code} ${issue.path.join(".")}: ${issue.message}`).join("; ")); }
+  const source = parsed.document;
+  const result = validateAnyGame({ ...source, id, revision });
+  if (!result.valid || !result.document) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, result.diagnostics.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; "));
+  }
+  return result.document;
+}
+
+async function readRevision(workspace: RunWorkspace, game: Game, revision: string): Promise<GameDocument> {
+  if (!/^[a-f0-9]{32}$/.test(revision)) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Invalid game revision");
+  }
+  const source = await workspace.readText(sourcePath(game, revision));
+  if (source === null) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Game revision not found");
+  }
+  const document = gameDocument.parse(JSON.parse(source));
+  if (document.id !== game.id || document.revision !== revision) {
+    throwApiError(ApiErrorCode.INTERNAL_ERROR, "Game revision is corrupt");
+  }
+  return document;
+}
+
+async function writeRevision(workspace: RunWorkspace, game: Game, document: GameDocument): Promise<void> {
+  await workspace.write(sourcePath(game, document.revision), JSON.stringify(document), "application/json");
+}
+
+async function publishDocument(userId: string, game: Game, baseRevision: string, value?: unknown, message?: string,
+  restoreAuthoring = false, expectedDraftUpdatedAt?: string, expectedDigest?: string): Promise<{ game: z.infer<typeof gameInfo>; document: GameDocument }> {
+  if (baseRevision !== game.current_revision) {
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game was modified concurrently");
+  }
+  const workspace = await gameWorkspace(userId, game);
+  const draft = await Game.readDraft(userId, game.id, workspace);
+  if (!draft) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Game draft not found");
+  }
+  if ((value !== undefined || restoreAuthoring) && !expectedDraftUpdatedAt) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "A draft token is required for publish and restore");
+  }
+  if (expectedDraftUpdatedAt !== undefined && expectedDraftUpdatedAt !== draft.game.draft_updated_at) {
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+  }
+  const candidate = validatedDocument(value ?? draft.document, game.id, draft.game.current_revision);
+  const digest = createHash("sha256").update(JSON.stringify(candidate)).digest("hex");
+  if (expectedDigest !== undefined && digest !== expectedDigest) {
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "The validated game document changed before publish");
+  }
+  const revision = newRevision();
+  let document = { ...candidate, revision };
+  if (!restoreAuthoring && value !== undefined && JSON.stringify(document.authoring) !== JSON.stringify(draft.document.authoring)) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Retained construction must be changed through preview and apply");
+  }
+  if (!restoreAuthoring && draft.document.authoring) {
+    document = trackGameAuthoringEdits(draft.document, document);
+  }
+  if ((document.schemaVersion === 3) !== (draft.document.schemaVersion === 3)) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "A game cannot change dimension");
+  }
+  await writeRevision(workspace, game, document);
+  const updated = await Game.publish(userId, game.id, baseRevision, revision, draft.game.draft_updated_at, workspace, message);
+  if (!updated) {
+    try {
+      await workspace.delete(sourcePath(game, revision));
+    } catch (error) {
+      log.error("Losing game publication revision cleanup failed", { gameId: game.id, revision, error: String(error) });
+    }
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game was modified concurrently");
+  }
+  try {
+    if (draft.game.draft_version_id) {
+      await workspace.delete(`${game.source_root}/drafts/${draft.game.draft_version_id}.json`);
+    }
+    await workspace.write(`${game.source_root}/draft.json`, JSON.stringify(document), "application/json");
+    await Game.pruneRevisionFiles(userId, game.id, workspace);
+  } catch (error) {
+    log.error("Game post-publish cleanup failed", { gameId: game.id, error: String(error) });
+  }
+  return { game: info(updated), document };
+}
+
+async function createGame(
+  userId: string,
+  projectId: string,
+  name: string,
+  source?: GameDocument,
+  dimension: "2d" | "3d" = "2d"
+): Promise<{ game: z.infer<typeof gameInfo>; document: GameDocument }> {
+  if (!(await Project.findOwned(userId, projectId))) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Project not found");
+  }
+  const workspaceRow = await projectWorkspace(userId, projectId);
+  const workspace = workspaceFromRow(workspaceRow);
+  if (!workspace) {
+    throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, "Workspace storage is unavailable");
+  }
+  const id = randomUUID().replace(/-/g, "");
+  const revision = newRevision();
+  const document = validatedDocument(source ?? (dimension === "3d" ? createNative3DGame(id) : createTopDownRoomGame(id)), id, revision);
+  if (document.authoring) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Attach retained construction through preview and apply after creating the game");
+  }
+  const candidate = new Game({
+    id,
+    user_id: userId,
+    project_id: projectId,
+    workspace_id: workspaceRow.id,
+    name,
+    current_revision: revision
+  });
+  await writeRevision(workspace, candidate, document);
+  const game = await Game.insertNew({
+    id,
+    userId,
+    projectId,
+    workspaceId: workspaceRow.id,
+    name,
+    revision
+  });
+  if (!game) throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game already exists");
+  return { game: info(game), document };
+}
+
+const installCandidateInput = idInput.extend({
+  baseRevision: z.string().optional(),
+  baseUpdatedAt: z.string().optional(),
+  slot: z.string().min(1),
+  candidateWorkspaceId: z.string().optional(),
+  binding: anyGameAssetBinding
 });
 
-/** One seeded game preset, as the look step needs it: an id to apply, art to show. */
-const gameStylePresetEntity = z.object({
-  /** The library entity id the graph's inline style entity is built from. */
-  entityId: z.string(),
-  presetId: z.string(),
-  name: z.string(),
-  descriptor: z.string(),
-  /** `package://` path of the tile art. */
-  thumbnail: z.string()
-});
+interface InstallCandidateOptions {
+  /** Move the slot's existing frame and tile bindings onto the new bytes. */
+  readonly replaceInPlace?: boolean;
+  /** Frame or tile rectangles a sheet or tileset preparation produced. They replace `replaceInPlace`. */
+  readonly frames?: readonly z.infer<typeof assetFrame>[];
+  readonly tiles?: readonly { readonly mask: number; readonly frame: z.infer<typeof assetFrame> }[];
+}
+
+function siblingBindingsFor(slot: string, assets: Record<string, z.infer<typeof gameAssetBinding>>,
+  options: InstallCandidateOptions): SiblingBindings | undefined {
+  const { frames, tiles } = options;
+  if (frames?.length) {
+    return (installed) => Object.fromEntries(frames.map((frame, index) => [`${slot}.frame.${index}`, { ...installed, frame }]));
+  }
+  if (tiles?.length) {
+    return (installed) => Object.fromEntries(tiles.map((tile) => [`${slot}.tile.${tile.mask}`, { ...installed, frame: tile.frame }]));
+  }
+  if (!options.replaceInPlace) { return undefined; }
+  return (installed) => Object.fromEntries(gameAssetSiblingRebinds(assets, slot, installed).ops.map((op) => [op.slot, op.binding]));
+}
+
+/** Install a staged candidate's bytes into the draft, with the sibling bindings `options` names. */
+async function installCandidateBinding(userId: string, input: z.infer<typeof installCandidateInput>,
+  options: InstallCandidateOptions = {}): Promise<z.infer<typeof gameWithDocument>> {
+  const ctx = { userId };
+  const game = await ownedGame(ctx.userId, input.id);
+  const workspace = await gameWorkspace(ctx.userId, game);
+  const candidateRow = input.candidateWorkspaceId
+    ? await Workspace.find(ctx.userId, input.candidateWorkspaceId)
+    : null;
+  if (input.candidateWorkspaceId && (!candidateRow || candidateRow.project_id !== game.project_id)) {
+    throwApiError(ApiErrorCode.NOT_FOUND, "Candidate workspace not found");
+  }
+  const candidateWorkspace = candidateRow ? workspaceFromRow(candidateRow) : workspace;
+  if (!candidateWorkspace) {
+    throwApiError(ApiErrorCode.SERVICE_UNAVAILABLE, "Candidate workspace storage is unavailable");
+  }
+  const digest = input.binding.digest;
+  if (!/^[a-f0-9]{64}$/.test(digest)) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Invalid candidate digest");
+  }
+  if (input.binding.mediaKind === "font" && !input.binding.fontFormat) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Font binding needs a TrueType or OpenType format");
+  }
+  if (input.binding.mediaKind === "hdri") {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "HDRI candidates cannot be installed until HDRI preparation verifies their bytes and dimensions");
+  }
+  const formats = input.binding.mediaKind === "model"
+    ? [["glb", "model/gltf-binary"]]
+    : input.binding.mediaKind === "collider"
+      ? [["json", "application/json"]]
+      : input.binding.mediaKind === "audio"
+    ? [["wav", "audio/wav"], ["mp3", "audio/mpeg"], ["ogg", "audio/ogg"]]
+    : input.binding.mediaKind === "font"
+      ? [[input.binding.fontFormat, `font/${input.binding.fontFormat}`]]
+      : [["png", "image/png"], ["jpg", "image/jpeg"], ["webp", "image/webp"]];
+  let candidate: { extension: string; contentType: string; bytes: Uint8Array } | null = null;
+  for (const [extension, contentType] of formats) {
+    if (!extension || !contentType) continue;
+    const path = `${game.source_root}/assets/${digest}.${extension}`;
+    const bytes = await candidateWorkspace.read(path);
+    if (bytes) {
+      candidate = { extension, contentType, bytes };
+      break;
+    }
+  }
+  if (!candidate || createHash("sha256").update(candidate.bytes).digest("hex") !== digest) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Candidate asset is missing or changed");
+  }
+  const { extension, contentType, bytes } = candidate;
+  let binding = input.binding;
+  if (binding.mediaKind === "model") {
+    const prepared = await prepareGameModelBinding3D(bytes, { assetId: binding.assetId, expectedDigest: digest });
+    if (!prepared.ok) { throwApiError(ApiErrorCode.INVALID_INPUT, prepared.diagnostics.map((issue) => issue.message).join("; ")); }
+    const sourceAsset = binding.sourceAssetId ? await Asset.find(ctx.userId, binding.sourceAssetId) : null;
+    if (binding.sourceAssetId && !sourceAsset) { throwApiError(ApiErrorCode.INVALID_INPUT, "Model source asset is not owned"); }
+    const canonical = { ...prepared.binding, required: binding.required };
+    if (binding.provenance) { canonical.provenance = binding.provenance; }
+    if (binding.importSettings) { canonical.importSettings = binding.importSettings; }
+    if (binding.sourceDigest) { canonical.sourceDigest = binding.sourceDigest; }
+    if (sourceAsset) { canonical.sourceAssetId = sourceAsset.id; }
+    binding = canonical;
+  } else if (binding.mediaKind === "collider") {
+    let geometry: unknown;
+    try { geometry = JSON.parse(new TextDecoder().decode(bytes)); }
+    catch { throwApiError(ApiErrorCode.INVALID_INPUT, "Prepared collider is not valid JSON"); }
+    const parsed = gamePreparedCollider3D.safeParse(geometry);
+    if (!parsed.success || binding.shape === "triangleMesh" && !parsed.data.indices?.length) {
+      throwApiError(ApiErrorCode.INVALID_INPUT, "Prepared collider has invalid vertices or triangle indices");
+    }
+    const { vertices, indices } = parsed.data;
+    const minimum = { x: Infinity, y: Infinity, z: Infinity };
+    const maximum = { x: -Infinity, y: -Infinity, z: -Infinity };
+    for (let index = 0; index < vertices.length; index += 3) {
+      minimum.x = Math.min(minimum.x, vertices[index]); maximum.x = Math.max(maximum.x, vertices[index]);
+      minimum.y = Math.min(minimum.y, vertices[index + 1]); maximum.y = Math.max(maximum.y, vertices[index + 1]);
+      minimum.z = Math.min(minimum.z, vertices[index + 2]); maximum.z = Math.max(maximum.z, vertices[index + 2]);
+    }
+    binding = { ...binding, preparationVersion: "1", bounds: { min: minimum, max: maximum }, vertices: vertices.length / 3, triangles: (indices?.length ?? 0) / 3 };
+    try { await decodePreparedGameCollider3D(bytes, gameAssetBinding3D.options[1].parse(binding)); }
+    catch (error) { throwApiError(ApiErrorCode.INVALID_INPUT, error instanceof Error ? error.message : "Prepared collider is invalid"); }
+  }
+  if (input.baseRevision && game.current_revision !== input.baseRevision) {
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game was modified concurrently");
+  }
+  const draft = await Game.readDraft(ctx.userId, game.id, workspace);
+  if (!draft) throwApiError(ApiErrorCode.NOT_FOUND, "Game draft not found");
+  if (input.baseUpdatedAt && draft.game.draft_updated_at !== input.baseUpdatedAt) {
+    throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+  }
+  const targetBinding = draft.document.schemaVersion === 3 ? gameAssetBinding3D.safeParse(binding) :
+    gameAssetBinding.safeParse(binding);
+  if (!targetBinding.success || draft.document.schemaVersion !== 3 && (binding.mediaKind === "model" || binding.mediaKind === "collider")) {
+    throwApiError(ApiErrorCode.INVALID_INPUT, "Asset binding does not match the game dimension");
+  }
+  return persistGameAsset(ctx.userId, game, workspace, draft.game.draft_updated_at, input.slot,
+    targetBinding.data, bytes, extension, contentType,
+    draft.document.schemaVersion !== 3 ? siblingBindingsFor(input.slot, draft.document.assets, options) : undefined);
+}
+
+/**
+ * Install into whichever draft is current when the bytes are ready. An editor
+ * session saves while a generation runs, so a slot binding must not depend on
+ * the draft token the request started from. The write itself stays a
+ * compare-and-swap, retried when a save lands between the read and the write.
+ */
+async function installOnLatestDraft(userId: string, input: Omit<z.infer<typeof installCandidateInput>, "baseUpdatedAt">,
+  options: InstallCandidateOptions): Promise<z.infer<typeof gameWithDocument>> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await installCandidateBinding(userId, input, options);
+    } catch (error) {
+      if (attempt >= 3 || !(error instanceof Error) || error.message !== CONCURRENT_DRAFT_EDIT) { throw error; }
+    }
+  }
+}
 
 export const gamesRouter = router({
-  templates: protectedProcedure
-    .output(z.array(gameTemplateSummary))
-    .query(() =>
-      listTemplates().map((template) => ({
-        id: template.id,
-        godot: template.manifest.godot,
-        slots: template.manifest.slots,
-        hooks: template.manifest.hooks
-      }))
+  list: gameProcedure
+    .input(z.object({ projectId: z.string() }))
+    .output(z.array(gameInfo))
+    .query(async ({ ctx, input }) => {
+      if (!(await Project.findOwned(ctx.userId, input.projectId))) {
+        throwApiError(ApiErrorCode.NOT_FOUND, "Project not found");
+      }
+      return (await Game.listByProject(ctx.userId, input.projectId)).map(info);
+    }),
+
+  create: gameProcedure
+    .input(z.object({ projectId: z.string(), name: z.string().min(1).max(200), dimension: z.enum(["2d", "3d"]).optional(), document: gameDocument.optional() }))
+    .output(gameWithDocument)
+    .mutation(({ ctx, input }) => {
+      if (input.dimension && input.document && ((input.document.schemaVersion === 3) !== (input.dimension === "3d"))) {
+        throwApiError(ApiErrorCode.INVALID_INPUT, "Requested dimension does not match the supplied game document");
+      }
+      return createGame(ctx.userId, input.projectId, input.name, input.document, input.dimension);
+    }),
+
+  examples: gameProcedure
+    .output(z.array(exampleGameSummary))
+    .query(({ ctx }) => listExampleGames(ctx.apiOptions)),
+
+  example: gameProcedure
+    .input(z.object({ slug: z.string().min(1) }))
+    .output(z.object({ name: z.string(), document: gameDocument }))
+    .query(({ ctx, input }) => {
+      const bundle = getExampleGameBundle(ctx.apiOptions, input.slug);
+      if (!bundle) {
+        throwApiError(ApiErrorCode.NOT_FOUND, "Example game not found");
+      }
+      return { name: bundle.name, document: bundle.document };
+    }),
+
+  installExample: gameProcedure
+    .input(installExampleGameInput)
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      // The Examples page targets the personal project, which exists only
+      // once something has been saved to it.
+      if (input.projectId === `personal:${ctx.userId}`) await Project.ensurePersonal(ctx.userId);
+      if (!(await Project.findOwned(ctx.userId, input.projectId))) {
+        throwApiError(ApiErrorCode.NOT_FOUND, "Project not found");
+      }
+      const installed = await installExampleGameAssets(ctx.userId, input.projectId, ctx.apiOptions, input.slug);
+      try {
+        return await createGame(ctx.userId, input.projectId, input.name ?? installed.bundle.name, installed.document);
+      } catch (error) {
+        await installed.rollback();
+        throw error;
+      }
+    }),
+
+  get: gameProcedure
+    .input(idInput.extend({ revision: z.string().optional() }))
+    .output(gameWithDocument)
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      return { game: info(game), document: await readRevision(workspace, game, input.revision ?? game.current_revision) };
+    }),
+
+  getDraft: gameProcedure
+    .input(idInput)
+    .output(gameWithDocument)
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const draft = await Game.readDraft(ctx.userId, game.id, await gameWorkspace(ctx.userId, game));
+      if (!draft) throwApiError(ApiErrorCode.NOT_FOUND, "Game draft not found");
+      return { game: info(draft.game), document: draft.document };
+    }),
+
+  saveDraft: gameProcedure
+    .input(idInput.extend({ baseUpdatedAt: z.string(), ops: z.array(gameDocumentOp).min(1).max(MAX_GAME_DRAFT_OPS) }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      try {
+        const saved = await Game.updateDraft(
+          ctx.userId, game.id, input.baseUpdatedAt, input.ops,
+          await gameWorkspace(ctx.userId, game), { actor: "user" }
+        );
+        if (!saved) throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+        return { game: info(saved.game), document: saved.document };
+      } catch (error) {
+        if (error instanceof GameOpError) {
+          throwApiError(ApiErrorCode.INVALID_INPUT, `Op ${error.opIndex}: ${error.path}: ${error.message}`);
+        }
+        if (error instanceof InvalidGameDocumentError) { throwApiError(ApiErrorCode.INVALID_INPUT, error.message); }
+        throw error;
+      }
+    }),
+
+  saveDraftDocument: gameProcedure
+    .input(idInput.extend({ baseUpdatedAt: z.string(), document: gameDocument }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      try {
+        const saved = await Game.saveDraftDocument(ctx.userId, game.id, input.baseUpdatedAt, input.document,
+          await gameWorkspace(ctx.userId, game));
+        if (!saved) throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+        return { game: info(saved.game), document: saved.document };
+      } catch (error) {
+        if (error instanceof InvalidGameDocumentError) { throwApiError(ApiErrorCode.INVALID_INPUT, error.message); }
+        throw error;
+      }
+    }),
+
+  previewAuthoring: gameProcedure
+    .input(idInput.extend({ program: gameAuthoringProgram.optional() }).strict())
+    .output(authoringPreview)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const args: { game_id: string; program?: z.infer<typeof gameAuthoringProgram> } = { game_id: game.id };
+      if (input.program) { args.program = input.program; }
+      const result = await authoringRun(ctx.userId).invoke("preview_native_game_authoring", args);
+      checkAuthoringResult(result);
+      return authoringPreview.parse(result);
+    }),
+
+  applyAuthoring: gameProcedure
+    .input(idInput.extend({ candidate: gameAuthoringCandidate }).strict())
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const result = await authoringRun(ctx.userId).invoke("apply_native_game_authoring", {
+        game_id: game.id, candidate: input.candidate
+      });
+      checkAuthoringResult(result);
+      const draft = await Game.readDraft(ctx.userId, game.id, await gameWorkspace(ctx.userId, game));
+      if (!draft) { throwApiError(ApiErrorCode.NOT_FOUND, "Game draft not found"); }
+      return { game: info(draft.game), document: draft.document };
+    }),
+
+  draftChanges: gameProcedure
+    .input(idInput)
+    .output(z.array(z.object({
+      id: z.string(), actor: z.enum(["agent", "user"]), threadId: z.string().nullable(),
+      messageId: z.string().nullable(), summary: z.string(), beforeUpdatedAt: z.string(),
+      beforeDigest: z.string(), createdAt: z.string(), ops: z.array(gameDocumentOp),
+      affectedEntityIds: z.array(z.string())
+    })))
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      return boundedGameDraftHistory((await Game.listDraftChanges(ctx.userId, game.id)).map(({ gameId: _gameId, ...change }) => change));
+    }),
+
+  draftBeforeChange: gameProcedure
+    .input(idInput.extend({ changeId: z.string() }))
+    .output(gameDocument)
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const document = await Game.readDraftBeforeChange(
+        ctx.userId, game.id, input.changeId, await gameWorkspace(ctx.userId, game)
+      );
+      if (!document) throwApiError(ApiErrorCode.NOT_FOUND, "Game draft change not found");
+      return document;
+    }),
+
+  revisions: gameProcedure
+    .input(idInput)
+    .output(z.array(gameRevisionInfo))
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      const messages = await Game.listRevisionMessages(ctx.userId, game.id);
+      const entries = await workspace.list(`${game.source_root}/revisions`, { recursive: true });
+      const revisions = entries.flatMap((entry) => {
+        const match = /^([a-f0-9]{32})\/game\.json$/.exec(entry.path.slice(`${game.source_root}/revisions/`.length));
+        return match ? [{ revision: match[1], modifiedAt: entry.modifiedAt, current: match[1] === game.current_revision,
+          message: messages.get(match[1]) ?? null }] : [];
+      });
+      return revisions.sort((a, b) => b.modifiedAt - a.modifiedAt);
+    }),
+
+  publish: gameProcedure
+    .input(idInput.extend({ baseRevision: z.string(), baseUpdatedAt: z.string().optional(), expectedDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(), document: gameDocument.optional(), message: z.string().trim().max(500).optional() }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) =>
+      publishDocument(ctx.userId, await ownedGame(ctx.userId, input.id), input.baseRevision, input.document, input.message, false, input.baseUpdatedAt, input.expectedDigest)
     ),
 
-  stylePresets: protectedProcedure
-    .output(z.array(gameStylePresetEntity))
-    .mutation(async ({ ctx }) => {
-      const assets = await seedStylePresets(ctx.userId, GAME_STYLE_PRESETS);
-      return GAME_STYLE_PRESETS.map((preset, index) => ({
-        entityId: assets[index].id,
-        presetId: preset.id,
-        name: preset.name,
-        descriptor: preset.descriptor,
-        thumbnail: preset.thumbnail
+  restore: gameProcedure
+    .input(idInput.extend({ baseRevision: z.string(), baseUpdatedAt: z.string(), revision: z.string() }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      const oldDocument = await readRevision(workspace, game, input.revision);
+      return publishDocument(ctx.userId, game, input.baseRevision, oldDocument, undefined, true, input.baseUpdatedAt);
+    }),
+
+  restoreDraft: gameProcedure
+    .input(idInput.extend({ baseUpdatedAt: z.string(), revision: z.string() }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      try {
+        const document = await readRevision(workspace, game, input.revision);
+        const restored = await Game.replaceDraft(ctx.userId, game.id, input.baseUpdatedAt, document, workspace);
+        if (!restored) throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+        return { game: info(restored.game), document: restored.document };
+      } catch (error) {
+        if (error instanceof InvalidGameDocumentError || error instanceof z.ZodError) {
+          throwApiError(ApiErrorCode.INVALID_INPUT, error.message);
+        }
+        throw error;
+      }
+    }),
+
+  installAsset: gameProcedure
+    .input(idInput.extend({ baseRevision: z.string().optional(), baseUpdatedAt: z.string().optional(), slot: z.string().min(1),
+      assetId: z.string(), expectedDigest: z.string().optional(), importSettings: gameModelImportSettings3D.partial().optional(),
+      dependencyAssetIds: z.record(z.string(), z.string()).refine((value) => Object.keys(value).length <= 320, "Too many model dependencies").optional() }))
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      const draft = await Game.readDraft(ctx.userId, game.id, workspace);
+      if (!draft) { throwApiError(ApiErrorCode.NOT_FOUND, "Game draft not found"); }
+      if (input.baseRevision && game.current_revision !== input.baseRevision) {
+        throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game was modified concurrently");
+      }
+      if (input.baseUpdatedAt && draft.game.draft_updated_at !== input.baseUpdatedAt) {
+        throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently");
+      }
+      const is3D = draft.document.schemaVersion === 3;
+      const asset = await Asset.find(ctx.userId, input.assetId);
+      if (!asset || (is3D ? !["model/gltf-binary", "model/gltf+json"].includes(asset.content_type) : !asset.content_type.startsWith("image/"))) {
+        throwApiError(ApiErrorCode.NOT_FOUND, is3D ? "Model asset not found" : "Image asset not found");
+      }
+      if (is3D && asset.size !== null && asset.size > 64 * 1024 * 1024) {
+        throwApiError(ApiErrorCode.INVALID_INPUT, "Model source exceeds import byte budget");
+      }
+      const bytes = await retrieveAssetBytes(getAssetAdapter(), ctx.userId, asset.id, asset.content_type);
+      if (!bytes) { throwApiError(ApiErrorCode.NOT_FOUND, is3D ? "Model bytes not found" : "Image bytes not found"); }
+      const digest = createHash("sha256").update(bytes).digest("hex");
+      if (input.expectedDigest && digest !== input.expectedDigest) {
+        throwApiError(ApiErrorCode.INVALID_INPUT, is3D ? "Model content digest changed" : "Image content digest changed");
+      }
+      if (draft.document.schemaVersion === 3) {
+        const normalized = await normalizeGameModel3D(bytes, {
+          assetId: asset.id, sourceAssetId: asset.id, importSettings: input.importSettings,
+          provenance: asset.workflow_id ?? undefined,
+          resolveDependency: async (uri) => {
+            const dependencyId = input.dependencyAssetIds && Object.hasOwn(input.dependencyAssetIds, uri)
+              ? input.dependencyAssetIds[uri] : undefined;
+            if (!dependencyId) { return null; }
+            const dependency = await Asset.find(ctx.userId, dependencyId);
+            if (!dependency) { throwApiError(ApiErrorCode.NOT_FOUND, "Model dependency asset not found"); }
+            if (dependency.size !== null && dependency.size > 64 * 1024 * 1024) {
+              throwApiError(ApiErrorCode.INVALID_INPUT, "Model dependency exceeds import byte budget");
+            }
+            return retrieveAssetBytes(getAssetAdapter(), ctx.userId, dependency.id, dependency.content_type);
+          }
+        });
+        if (!normalized.ok) { throwApiError(ApiErrorCode.INVALID_INPUT, normalized.diagnostics.map((issue) => issue.message).join("; ")); }
+        return persistGameAsset(ctx.userId, game, workspace, draft.game.draft_updated_at, input.slot,
+          normalized.binding, normalized.bytes, "glb", "model/gltf-binary");
+      }
+      const metadata = await sharp(bytes).metadata();
+      if (!metadata.width || !metadata.height) { throwApiError(ApiErrorCode.INVALID_INPUT, "Image dimensions are unavailable"); }
+      const saved = await Game.updateDraft(ctx.userId, game.id, draft.game.draft_updated_at, [{
+        op: "bind_asset", slot: input.slot,
+        binding: {
+          assetId: asset.id, digest, width: metadata.width, height: metadata.height,
+          pivot: draft.document.assets[input.slot]?.pivot ?? { x: 0.5, y: 0.5 },
+          sampling: draft.document.assets[input.slot]?.sampling ?? "nearest",
+          provenance: asset.workflow_id ?? undefined
+        }
+      }], workspace, { actor: "user" });
+      if (!saved) { throwApiError(ApiErrorCode.ALREADY_EXISTS, "Game draft was modified concurrently"); }
+      return { game: info(saved.game), document: saved.document };
+    }),
+
+  installCandidate: gameProcedure
+    .input(installCandidateInput)
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => installCandidateBinding(ctx.userId, input)),
+
+  /** Staged candidates and per-slot generation requests for the asset browser. The catalog itself is computed client-side from the draft. */
+  assetBrowser: gameProcedure
+    .input(idInput)
+    .output(assetBrowserInfo)
+    .query(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const result = await authoringRun(ctx.userId).invoke("browse_native_game_assets", { game_id: game.id });
+      checkAuthoringResult(result);
+      return assetBrowserInfo.parse(result);
+    }),
+
+  /**
+   * Generate an asset for one slot through `generate_game_asset`, record the
+   * prompt beside the staged bytes, and bind it in place on the draft that is
+   * current when the bytes are ready. The editor keeps saving while a
+   * generation runs, so the request carries no draft token: a sheet's frame
+   * bindings, or the slot's existing frame and tile bindings, are written in
+   * the same compare-and-swap as the slot, as the user who asked. A
+   * provider and model pin the generator; without them the capability picks one.
+   */
+  generateAsset: gameProcedure
+    .input(idInput.extend({
+      slot: z.string().min(1),
+      kind: z.enum(["image", "audio", "music"]),
+      prompt: z.string().trim().min(1).max(4000),
+      preparation: z.record(z.string(), z.unknown()).optional(),
+      provider: z.string().min(1).optional(),
+      model: z.string().min(1).optional()
+    }).strict().refine((value) => (value.provider === undefined) === (value.model === undefined), "Pass provider and model together"))
+    .output(generatedAsset)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const workspace = await gameWorkspace(ctx.userId, game);
+      const args: Record<string, unknown> = { game_id: game.id, slot: input.slot, kind: input.kind, prompt: input.prompt, install: false };
+      if (input.preparation) { args["preparation"] = input.preparation; }
+      if (input.provider && input.model) { args["provider"] = input.provider; args["model"] = input.model; }
+      const run = await assetGenerationRun(ctx.userId, game, workspace);
+      const result = generatedAssetResult.safeParse(await run.invoke("generate_game_asset", args));
+      if (!result.success) { throwApiError(ApiErrorCode.INTERNAL_ERROR, "Asset generation returned an invalid result"); }
+      checkAuthoringResult(result.data);
+      const { binding, frames, tiles } = result.data;
+      if (!binding) { throwApiError(ApiErrorCode.INTERNAL_ERROR, "Asset generation did not stage an asset"); }
+      await workspace.write(stagedGameCandidateRecordPath(game.source_root, binding.digest), JSON.stringify(stagedGameCandidateRecord.parse({
+        version: 1, digest: binding.digest, slot: input.slot, prompt: input.prompt, source: "generate", stagedAt: new Date().toISOString(), binding
+      })), "application/json");
+      const installed = await installOnLatestDraft(ctx.userId, { id: game.id, slot: input.slot, binding },
+        { replaceInPlace: true, frames, tiles });
+      return { ...installed, stagedDigest: binding.digest, installed: true };
+    }),
+
+  /** Bind a staged candidate to a slot on the current draft. A 2D slot's frame and tile bindings move onto the new bytes. */
+  installStagedCandidate: gameProcedure
+    .input(idInput.extend({
+      slot: z.string().min(1),
+      digest: z.string().regex(/^[a-f0-9]{64}$/)
+    }).strict())
+    .output(gameWithDocument)
+    .mutation(async ({ ctx, input }) => {
+      const game = await ownedGame(ctx.userId, input.id);
+      const picked = stagedCandidateBinding.safeParse(await authoringRun(ctx.userId).invoke("browse_native_game_assets", {
+        game_id: game.id, digest: input.digest, slot: input.slot
       }));
+      if (!picked.success) { throwApiError(ApiErrorCode.INTERNAL_ERROR, "Candidate lookup returned an invalid result"); }
+      checkAuthoringResult(picked.data);
+      if (!picked.data.binding) { throwApiError(ApiErrorCode.NOT_FOUND, "Staged candidate not found"); }
+      return installOnLatestDraft(ctx.userId, { id: game.id, slot: input.slot, binding: picked.data.binding }, { replaceInPlace: true });
     })
 });

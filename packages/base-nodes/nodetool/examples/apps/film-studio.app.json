@@ -14,152 +14,66 @@
           "props": {
             "id": "title",
             "text": "🎬 Film Studio",
-            "level": "1"
-          }
-        },
-        {
-          "type": "Text",
-          "props": {
-            "id": "tagline",
-            "text": "Brief → direction → storyboard → cut → key art."
+            "level": "1",
+            "subtitle": "Brief → direction → storyboard → cut → key art."
           }
         },
         {
           "type": "Text",
           "props": {
             "id": "app-note",
-            "text": "💸 This app generates video and music. Run it once, deliberately."
+            "text": "💸 This app generates video and music. Run it once, deliberately.",
+            "tone": "hint"
           }
         },
         {
-          "type": "Columns",
+          "type": "Stepper",
           "props": {
-            "id": "cols-the-film",
-            "gap": 24,
-            "left": [
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
               {
-                "type": "Container",
+                "value": "shoot",
+                "title": "Shoot"
+              },
+              {
+                "value": "rough-cut",
+                "title": "Rough cut"
+              },
+              {
+                "value": "key-art",
+                "title": "Key art"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-shoot",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "shoot"
+            },
+            "content": [
+              {
+                "type": "Heading",
                 "props": {
-                  "id": "panel-the-film",
-                  "title": "The film",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-director-model",
-                        "binding": "op:produce/prop:director#model",
-                        "label": "Produce model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-production-data-model",
-                        "binding": "op:produce/prop:production_data#model",
-                        "label": "Produce model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-style-frame-model",
-                        "binding": "op:produce/prop:style_frame#model",
-                        "label": "Produce model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-shot-list-model",
-                        "binding": "op:produce/prop:shot_list#model",
-                        "label": "Produce model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-keyframe-model",
-                        "binding": "op:produce/prop:keyframe#model",
-                        "label": "Produce model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-animate-model",
-                        "binding": "op:produce/prop:animate#model",
-                        "label": "Produce model",
-                        "modelKind": "video_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-narration-tts-model",
-                        "binding": "op:produce/prop:narration_tts#model",
-                        "label": "Produce model",
-                        "modelKind": "tts_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-produce-music-model",
-                        "binding": "op:produce/prop:music#model",
-                        "label": "Produce model",
-                        "modelKind": "music_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-cut-director-model",
-                        "binding": "op:cut/prop:director#model",
-                        "label": "Rough cut model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-cut-keyframe-model",
-                        "binding": "op:cut/prop:keyframe#model",
-                        "label": "Rough cut model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-cut-animate-model",
-                        "binding": "op:cut/prop:animate#model",
-                        "label": "Rough cut model",
-                        "modelKind": "video_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "Text",
-                      "props": {
-                        "id": "note",
-                        "text": "💸 Each run of Produce or Rough cut incurs video and music generation charges."
-                      }
-                    },
+                  "id": "heading-shoot",
+                  "text": "Shoot",
+                  "level": "2",
+                  "subtitle": "Write the film in one line and pick a look. One run directs, storyboards, shoots and scores it."
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-shoot",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "TextInput",
                       "props": {
@@ -191,6 +105,96 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-shoot",
+                        "title": "Models (8)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-director-model",
+                              "binding": "op:produce/prop:director#model",
+                              "label": "Director model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-production-data-model",
+                              "binding": "op:produce/prop:production_data#model",
+                              "label": "Extract production data model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-style-frame-model",
+                              "binding": "op:produce/prop:style_frame#model",
+                              "label": "Master style frame model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-shot-list-model",
+                              "binding": "op:produce/prop:shot_list#model",
+                              "label": "Stream the shots model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-keyframe-model",
+                              "binding": "op:produce/prop:keyframe#model",
+                              "label": "Storyboard keyframes model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-animate-model",
+                              "binding": "op:produce/prop:animate#model",
+                              "label": "Animate each shot model",
+                              "modelKind": "video_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-narration-tts-model",
+                              "binding": "op:produce/prop:narration_tts#model",
+                              "label": "Narration model",
+                              "modelKind": "tts_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-produce-music-model",
+                              "binding": "op:produce/prop:music#model",
+                              "label": "Score model",
+                              "modelKind": "music_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-produce",
@@ -211,40 +215,9 @@
                           "op": "notEmpty"
                         }
                       }
-                    },
-                    {
-                      "type": "Button",
-                      "props": {
-                        "id": "btn-cut",
-                        "label": "Give me the rough cut",
-                        "variant": "contained",
-                        "color": "primary",
-                        "events": [
-                          {
-                            "trigger": "click",
-                            "kind": "run",
-                            "operationId": "cut",
-                            "key": "",
-                            "value": ""
-                          }
-                        ],
-                        "disabledWhen": {
-                          "binding": "op:cut/exec#running",
-                          "op": "notEmpty"
-                        }
-                      }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-the-film-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -317,7 +290,138 @@
                         "height": 320,
                         "placeholder": "Your video appears here"
                       }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-shoot"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-shoot",
+                  "gap": 16,
+                  "left": [],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-shoot",
+                        "label": "Next: Rough cut",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "rough-cut"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-rough-cut",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "rough-cut"
+            },
+            "content": [
+              {
+                "type": "Heading",
+                "props": {
+                  "id": "heading-rough-cut",
+                  "text": "Rough cut",
+                  "level": "2",
+                  "subtitle": "Cut the same brief into a timeline you can keep editing. This run generates video again."
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-rough-cut",
+                  "gap": 24,
+                  "left": [
+                    {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-rough-cut",
+                        "title": "Models (3)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-cut-director-model",
+                              "binding": "op:cut/prop:director#model",
+                              "label": "Director model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-cut-keyframe-model",
+                              "binding": "op:cut/prop:keyframe#model",
+                              "label": "Storyboard keyframes model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-cut-animate-model",
+                              "binding": "op:cut/prop:animate#model",
+                              "label": "Animate each shot model",
+                              "modelKind": "video_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
                     },
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "btn-cut",
+                        "label": "Give me the rough cut",
+                        "variant": "contained",
+                        "color": "primary",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "run",
+                            "operationId": "cut",
+                            "key": "",
+                            "value": ""
+                          }
+                        ],
+                        "disabledWhen": {
+                          "binding": "op:cut/exec#running",
+                          "op": "notEmpty"
+                        }
+                      }
+                    }
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -359,52 +463,88 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-rough-cut"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-rough-cut",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-rough-cut",
+                        "label": "Back: Shoot",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "shoot"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-rough-cut",
+                        "label": "Next: Key art",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "key-art"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "type": "Columns",
+          "type": "Container",
           "props": {
-            "id": "cols-key-art",
-            "gap": 24,
-            "left": [
+            "id": "step-key-art",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "key-art"
+            },
+            "content": [
               {
-                "type": "Container",
+                "type": "Heading",
                 "props": {
-                  "id": "panel-key-art",
-                  "title": "Key art",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-poster-prompt-list-generator-model",
-                        "binding": "op:poster/prop:prompt_list_generator#model",
-                        "label": "Poster model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-poster-0276f606-d899-4487-be65-4615564507cc-model",
-                        "binding": "op:poster/prop:0276f606-d899-4487-be65-4615564507cc#model",
-                        "label": "Poster model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-poster-04757c8a-dad6-48f3-a45f-459f54e26b7b-model",
-                        "binding": "op:poster/prop:04757c8a-dad6-48f3-a45f-459f54e26b7b#model",
-                        "label": "Poster model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-key-art",
+                  "text": "Key art",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-key-art",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "TextInput",
                       "props": {
@@ -454,6 +594,46 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-key-art",
+                        "title": "Models (3)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-poster-prompt-list-generator-model",
+                              "binding": "op:poster/prop:prompt_list_generator#model",
+                              "label": "Generate poster concepts model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-poster-0276f606-d899-4487-be65-4615564507cc-model",
+                              "binding": "op:poster/prop:0276f606-d899-4487-be65-4615564507cc#model",
+                              "label": "Render posters model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-poster-04757c8a-dad6-48f3-a45f-459f54e26b7b-model",
+                              "binding": "op:poster/prop:04757c8a-dad6-48f3-a45f-459f54e26b7b#model",
+                              "label": "Art-direction brief → fields model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-poster",
@@ -475,17 +655,8 @@
                         }
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-key-art-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -527,6 +698,39 @@
                       }
                     }
                   ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-key-art"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-key-art",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-key-art",
+                        "label": "Back: Rough cut",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "rough-cut"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": []
                 }
               }
             ]
@@ -584,6 +788,17 @@
     ],
     "resources": [],
     "variables": [
+      {
+        "id": "step",
+        "name": "Step",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "shoot",
+        "scope": "instance",
+        "persist": false
+      },
       {
         "id": "brief",
         "name": "Brief",
@@ -930,16 +1145,16 @@
             "id": "comment_main",
             "type": "nodetool.workflows.base_node.Comment",
             "data": {
-              "comment": "# 🎬 Script to Screen\n\nThe full production spine in one graph:\n\n**1. Direction** — a Director agent turns your brief into a direction document: characters with fixed descriptors, a style bible, a numbered shot list, narration, and music direction.\n**2. Storyboard** — a style frame anchors every keyframe (image-to-image), so characters and grade stay consistent. Keyframes cost cents; check them before the video spend.\n**3. Shoot** — each keyframe is animated with its shot's motion direction.\n**4. Post** — clips are cut together, then narration and music are mixed in.\n\n**Cost control:** bypass the Animate node (right-click → Bypass) to iterate on direction and storyboard cheaply. Re-enable it when the stills look right."
+              "comment": "# 🎬 Script to Screen\n\nTurns a short brief into a narrated, scored short film, with a storyboard you can check before spending on video.\n\n**How it works:** \"Brief\", \"Visual style\" and \"Shot count\" (5) fill \"Build director brief\", and the Director agent writes the direction document. \"Extract production data\" pulls out narration, a music prompt and a style frame prompt for \"Master style frame\". \"Build shot-list prompt\" drives \"Stream the shots\", which emits one line per shot. Each shot becomes a keyframe in \"Storyboard keyframes (anchored to style frame)\", an image edit of the style frame at strength 0.82, collected into the storyboard output. \"Animate each shot (the expensive step)\" makes 4 s clips at 720p, joined by \"Cut the shots together\". \"Narration\" and \"Score\" (30 s) are mixed in at volumes 1 and 0.3. Pick language models on the Director agent, \"Extract production data\" and \"Stream the shots\". Media steps use your default model for each type, or the one you pick on the node.\n\n**Try this:** Bypass \"Animate each shot (the expensive step)\" (right-click, Bypass), set \"Shot count\" to 3, and run to review a cheap three-frame storyboard before any video spend."
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": -260
+                "x": 0,
+                "y": 0
               },
               "zIndex": 0,
-              "width": 520,
-              "height": 260,
+              "width": 560,
+              "height": 464,
               "selectable": true,
               "bypassed": false
             },
@@ -955,8 +1170,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": 60
+                "x": 0,
+                "y": 1365
               },
               "zIndex": 0,
               "width": 280,
@@ -976,8 +1191,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": 320
+                "x": 0,
+                "y": 1140
               },
               "zIndex": 0,
               "width": 280,
@@ -997,8 +1212,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": 580
+                "x": 0,
+                "y": 1590
               },
               "zIndex": 0,
               "width": 280,
@@ -1017,8 +1232,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 400,
-                "y": 60
+                "x": 380,
+                "y": 1173
               },
               "zIndex": 0,
               "width": 320,
@@ -1040,9 +1255,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1051,8 +1266,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 770,
-                "y": 100
+                "x": 800,
+                "y": 1197
               },
               "zIndex": 0,
               "width": 330,
@@ -1072,8 +1287,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1160,
-                "y": -60
+                "x": 1230,
+                "y": 1310
               },
               "title": "📋 Direction document",
               "selectable": true
@@ -1087,9 +1302,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1100,8 +1315,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1160,
-                "y": 140
+                "x": 1230,
+                "y": 914
               },
               "zIndex": 0,
               "width": 300,
@@ -1135,9 +1350,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/flux/schnell",
-                "name": "FLUX.1 Schnell",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1147,8 +1362,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1540,
-                "y": 480
+                "x": 1650,
+                "y": 544
               },
               "zIndex": 0,
               "width": 300,
@@ -1168,8 +1383,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1160,
-                "y": 520
+                "x": 1230,
+                "y": 1510
               },
               "zIndex": 0,
               "width": 320,
@@ -1190,9 +1405,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1200,8 +1415,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1540,
-                "y": 100
+                "x": 1650,
+                "y": 1612
               },
               "zIndex": 0,
               "width": 300,
@@ -1221,8 +1436,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1900,
-                "y": 100
+                "x": 2050,
+                "y": 1085
               },
               "zIndex": 0,
               "width": 320,
@@ -1243,9 +1458,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/nano-banana/edit",
-                "name": "Nano Banana",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1256,8 +1471,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2280,
-                "y": 300
+                "x": 2470,
+                "y": 919
               },
               "zIndex": 0,
               "width": 320,
@@ -1276,8 +1491,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 2660,
-                "y": 80
+                "x": 2890,
+                "y": 1034
               },
               "zIndex": 0,
               "width": 160,
@@ -1296,8 +1511,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2880,
-                "y": 80
+                "x": 3320,
+                "y": 1012
               },
               "title": "🖼️ Storyboard — approve before video spend",
               "selectable": true
@@ -1313,8 +1528,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2280,
-                "y": 700
+                "x": 2050,
+                "y": 1511
               },
               "zIndex": 0,
               "width": 320,
@@ -1334,9 +1549,9 @@
             "data": {
               "model": {
                 "type": "video_model",
-                "provider": "gemini",
-                "id": "veo-3.1-generate-preview",
-                "name": "Veo 3.1 Preview",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1348,8 +1563,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2660,
-                "y": 420
+                "x": 2890,
+                "y": 1236
               },
               "zIndex": 0,
               "width": 330,
@@ -1367,8 +1582,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 3050,
-                "y": 460
+                "x": 3320,
+                "y": 1314
               },
               "zIndex": 0,
               "width": 160,
@@ -1385,8 +1600,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 3270,
-                "y": 420
+                "x": 3700,
+                "y": 1223
               },
               "zIndex": 0,
               "width": 300,
@@ -1406,26 +1621,19 @@
             "data": {
               "model": {
                 "type": "tts_model",
-                "provider": "openai",
-                "id": "tts-1",
-                "name": "TTS 1",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
-                "voices": [
-                  "alloy",
-                  "echo",
-                  "fable",
-                  "onyx",
-                  "nova",
-                  "shimmer"
-                ],
-                "selected_voice": "onyx"
+                "voices": [],
+                "selected_voice": ""
               },
               "speed": 1
             },
             "ui_properties": {
               "position": {
-                "x": 3270,
-                "y": 720
+                "x": 1650,
+                "y": 1296
               },
               "zIndex": 0,
               "width": 300,
@@ -1443,9 +1651,9 @@
             "data": {
               "model": {
                 "type": "music_model",
-                "provider": "replicate",
-                "id": "meta/musicgen",
-                "name": "MusicGen",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null
               },
               "lyrics": "",
@@ -1453,8 +1661,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 3650,
-                "y": 900
+                "x": 1650,
+                "y": 960
               },
               "zIndex": 0,
               "width": 300,
@@ -1475,8 +1683,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 3650,
-                "y": 480
+                "x": 4100,
+                "y": 1204
               },
               "zIndex": 0,
               "width": 280,
@@ -1497,8 +1705,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 4000,
-                "y": 540
+                "x": 4480,
+                "y": 1082
               },
               "zIndex": 0,
               "width": 280,
@@ -1518,8 +1726,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 4350,
-                "y": 560
+                "x": 4860,
+                "y": 1135
               },
               "title": "🎬 Final film",
               "selectable": true
@@ -1644,16 +1852,16 @@
             "id": "comment_main",
             "type": "nodetool.workflows.base_node.Comment",
             "data": {
-              "comment": "# 🎬 Directed Film to Timeline\n\nA brief becomes an editable rough cut in one graph:\n\n**1. Direct** — the Director agent turns your brief into a typed screenplay (shots with action, camera, and a shared style bible).\n**2. Fan out** — Screenplay Shots streams one composed prompt per shot.\n**3. Storyboard** — each prompt renders a keyframe still.\n**4. Shoot** — each keyframe is animated into a clip.\n**5. Assemble** — clips are collected, appended to a timeline sequence, and rendered to a single video.\n\nThe rendered timeline is a real editable sequence — reopen it in the timeline editor to trim, reorder, or add audio."
+              "comment": "# 🎬 Directed Film to Timeline\n\nTurns a one-line brief into an editable rough cut. Use it to see a whole short film take shape before you refine individual shots.\n\n**How it works:** \"Brief\" feeds the \"Director\", which writes a screenplay of 5 shots in a 16:9 style bible. \"Fan out one prompt per shot\" emits one shot prompt at a time. Each prompt renders a keyframe in \"Storyboard keyframes\" (2K) and the same prompt drives \"Animate each shot\" (4 seconds at 720p). \"Collect the clips\" gathers the clips, \"Assemble into a timeline\" appends them to a sequence named \"Directed Film\", and \"Render the rough cut\" produces the video. Pick a language model on the \"Director\". Each model step uses your default model for its type, or the one you pick on the node. The keyframe and video steps are paid, and the video step costs the most.\n\n**Try this:** Set \"shot_count\" on the \"Director\" to 3. The rough cut drops to three clips and the run costs less. Reopen the rendered timeline in the timeline editor to trim or reorder shots."
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": -240
+                "x": 0,
+                "y": 0
               },
               "zIndex": 0,
               "width": 560,
-              "height": 240,
+              "height": 403,
               "selectable": true,
               "bypassed": false
             },
@@ -1669,8 +1877,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 40,
-                "y": 100
+                "x": 0,
+                "y": 578
               },
               "zIndex": 0,
               "width": 280,
@@ -1687,9 +1895,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1701,8 +1909,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 400,
-                "y": 80
+                "x": 380,
+                "y": 483
               },
               "zIndex": 0,
               "width": 320,
@@ -1720,8 +1928,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 780,
-                "y": 120
+                "x": 800,
+                "y": 543
               },
               "zIndex": 0,
               "width": 280,
@@ -1739,9 +1947,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/flux/schnell",
-                "name": "FLUX.1 Schnell",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1752,8 +1960,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1120,
-                "y": 80
+                "x": 1180,
+                "y": 483
               },
               "zIndex": 0,
               "width": 320,
@@ -1771,9 +1979,9 @@
             "data": {
               "model": {
                 "type": "video_model",
-                "provider": "gemini",
-                "id": "veo-3.1-generate-preview",
-                "name": "Veo 3.1 Preview",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -1786,8 +1994,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1500,
-                "y": 120
+                "x": 1600,
+                "y": 523
               },
               "zIndex": 0,
               "width": 330,
@@ -1805,8 +2013,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 1890,
-                "y": 160
+                "x": 2030,
+                "y": 564
               },
               "zIndex": 0,
               "width": 160,
@@ -1832,8 +2040,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2110,
-                "y": 120
+                "x": 2290,
+                "y": 533
               },
               "zIndex": 0,
               "width": 300,
@@ -1858,8 +2066,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2470,
-                "y": 140
+                "x": 2690,
+                "y": 543
               },
               "zIndex": 0,
               "width": 300,
@@ -1879,8 +2087,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2830,
-                "y": 180
+                "x": 3090,
+                "y": 591
               },
               "title": "🎬 Rough cut",
               "selectable": true
@@ -2203,12 +2411,12 @@
             },
             "ui_properties": {
               "position": {
-                "x": 38,
-                "y": -194
+                "x": 0,
+                "y": 0
               },
               "zIndex": 0,
-              "width": 460,
-              "height": 180,
+              "width": 560,
+              "height": 266,
               "selectable": true,
               "bypassed": false
             },
@@ -2223,8 +2431,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 619,
-                "y": 123
+                "x": 380,
+                "y": 346
               },
               "zIndex": 0,
               "width": 361,
@@ -2250,8 +2458,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 279,
-                "y": 50
+                "x": 0,
+                "y": 696
               },
               "zIndex": 0,
               "width": 280,
@@ -2272,8 +2480,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 279,
-                "y": 330
+                "x": 0,
+                "y": 921
               },
               "zIndex": 0,
               "width": 280,
@@ -2294,8 +2502,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 279,
-                "y": 610
+                "x": 0,
+                "y": 471
               },
               "zIndex": 0,
               "width": 280,
@@ -2312,9 +2520,9 @@
             "data": {
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -2323,8 +2531,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1662,
-                "y": 237
+                "x": 1603,
+                "y": 790
               },
               "zIndex": 0,
               "width": 456,
@@ -2342,9 +2550,9 @@
             "data": {
               "model": {
                 "type": "image_model",
-                "provider": "fal_ai",
-                "id": "fal-ai/flux/schnell",
-                "name": "FLUX.1 Schnell",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -2355,8 +2563,8 @@
             "ui_properties": {
               "selected": true,
               "position": {
-                "x": 2608,
-                "y": 187
+                "x": 2669,
+                "y": 634
               },
               "zIndex": 0,
               "width": 509,
@@ -2377,8 +2585,8 @@
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 2148,
-                "y": 169
+                "x": 2159,
+                "y": 679
               },
               "zIndex": 0,
               "width": 410,
@@ -2400,13 +2608,13 @@
             "id": "923fb0f1-8bd4-406a-ba73-9ec3137c20cd",
             "type": "nodetool.text.Prompt",
             "data": {
-              "prompt": "You are pitching poster concepts for the film \"{{ title }}\" ({{ genre }}).\n\nPositioning: {{ positioning }}\nAudience insight: {{ audience_insight }}\n\nGenerate distinct theatrical poster concepts. Each concept is ONE self-contained line describing a single striking image: the hero subject, the setting, the framing, and the mood. Vary the ideas across the set — different angles, symbols, and emotional beats — while staying true to the genre and positioning. One concept per line, no numbering and no commentary."
+              "prompt": "You are pitching poster concepts for the film \"{{ title }}\" ({{ genre }}).\n\nPositioning: {{ positioning }}\nAudience insight: {{ audience_insight }}\n\nGenerate exactly 4 distinct theatrical poster concepts. Each concept is ONE self-contained line describing a single striking image: the hero subject, the setting, the framing, and the mood. Vary the ideas across the set — different angles, symbols, and emotional beats — while staying true to the genre and positioning. One concept per line, no numbering and no commentary."
             },
             "ui_properties": {
               "selected": false,
               "position": {
-                "x": 1352,
-                "y": 304
+                "x": 1223,
+                "y": 682
               },
               "zIndex": 0,
               "width": 280,
@@ -2429,9 +2637,9 @@
               "system_prompt": "You are a film key-art director turning a creative brief into structured fields.\n\nGoal\n- Read <INSTRUCTIONS> (the art-direction brief) and any <CONTEXT>, then produce a single JSON object matching <JSON_SCHEMA> exactly.\n\nOutput format (MANDATORY)\n- Output exactly ONE fenced code block labeled json containing ONLY the JSON object:\n\n  ```json\n  { ...single JSON object matching <JSON_SCHEMA>... }\n  ```\n- No prose before or after the block.\n\nGeneration rules\n- Fill every field with concrete, vivid, production-ready detail — no placeholders, no hedging.\n- Keep all fields internally consistent with the film's genre and visual style.\n- Honor every constraint in <JSON_SCHEMA> (types, enums, formats).\n\nValidation\n- Ensure the final JSON validates against <JSON_SCHEMA> exactly.",
               "model": {
                 "type": "language_model",
-                "provider": "openai",
-                "id": "gpt-5-mini",
-                "name": "GPT-5 mini",
+                "provider": "",
+                "id": "",
+                "name": "",
                 "path": null,
                 "supported_tasks": []
               },
@@ -2442,8 +2650,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1010,
-                "y": 299
+                "x": 841,
+                "y": 767
               },
               "zIndex": 0,
               "width": 282,
@@ -2481,8 +2689,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 1231,
-                "y": 641
+                "x": 380,
+                "y": 1075
               },
               "zIndex": 0,
               "width": 280,
@@ -2498,8 +2706,8 @@
             "data": {},
             "ui_properties": {
               "position": {
-                "x": 1210,
-                "y": 591
+                "x": 380,
+                "y": 1005
               },
               "zIndex": 0,
               "width": 280,
@@ -2517,8 +2725,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 3200,
-                "y": 187
+                "x": 3278,
+                "y": 854
               },
               "zIndex": 0,
               "width": 320,

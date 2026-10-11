@@ -25,6 +25,7 @@ The `packages/` directory contains the TypeScript backend — a set of npm works
 | `@nodetool-ai/base-nodes` | Compatibility shell re-exporting the domain node packages (`core-nodes`, `text-nodes`, `llm-nodes`, `data-nodes`, `document-nodes`, `image-nodes`, `audio-nodes`, `video-nodes`, `integration-nodes`, `code-nodes`, `automation-nodes`) as `ALL_BASE_NODES` |
 | `@nodetool-ai/fal-nodes` | FAL AI integration nodes |
 | `@nodetool-ai/fal-codegen` | Code generator for FAL AI node definitions |
+| `@nodetool-ai/mutator` | `nodetool-mutator`, mutation testing for TypeScript ([README](mutator/README.md)) |
 | `@nodetool-ai/replicate-nodes` | Replicate integration nodes |
 | `@nodetool-ai/elevenlabs-nodes` | ElevenLabs TTS integration nodes |
 | `@nodetool-ai/minimax-nodes` | MiniMax TTS, music, image, and video nodes |
@@ -35,7 +36,9 @@ The `packages/` directory contains the TypeScript backend — a set of npm works
 | `@nodetool-ai/deploy` | Cloud deployment utilities |
 | `@nodetool-ai/dsl` | Workflow DSL for programmatic workflow creation |
 | `@nodetool-ai/storyboard` | Storyboard derivations — `recastStoryboard`, `planShotRenders`, and the one render path under `io/` |
-| `@nodetool-ai/game-nodes` | Godot template nodes — read a template's asset slots, prompt one, export the filled project |
+| `@nodetool-ai/game-nodes` | Native game asset nodes — read template slots, prompt and check assets, stage candidates |
+| `@nodetool-ai/game-runtime` | Deterministic built-in game simulation, validation, and sample |
+| `@nodetool-ai/game-renderer` | Native 2D and 3D rendering, headless capture, and standalone web export |
 | `@nodetool-ai/app-runtime` | Mini-app document, bindings, instance state, and the streaming fold — dependency-free, shared by web, mobile, and `app debug` ([README](app-runtime/README.md)) |
 
 ## Package Overlays
@@ -51,13 +54,14 @@ first, then the overlay for the package you are touching.
 - [`blender-nodes`](blender-nodes/AGENTS.md) — headless Blender render and mesh preparation
 - [`data-nodes`](data-nodes/AGENTS.md) — dataframes, filtering, feeds & charts
 - [`fal-codegen`](fal-codegen/AGENTS.md) — FAL manifest generator
-- [`game-nodes`](game-nodes/AGENTS.md) — Godot templates, slot prompts, project export
+- [`game-nodes`](game-nodes/AGENTS.md) — native templates, slot prompts, asset staging
 - [`fal-nodes`](fal-nodes/AGENTS.md) — FAL node factory
 - [`image-nodes`](image-nodes/AGENTS.md) — image processing & shaders
 - [`kie-codegen`](kie-codegen/AGENTS.md) — KIE config & manifest generator
 - [`kie-nodes`](kie-nodes/AGENTS.md) — KIE node factory
 - [`llm-nodes`](llm-nodes/AGENTS.md) — LLM, image, TTS & agent nodes
 - [`models`](models/AGENTS.md) — persistence layer, tables, migrations
+- [`mutator`](mutator/AGENTS.md) — mutation testing tool
 - [`node-sdk`](node-sdk/AGENTS.md) — `BaseNode`, `NodeRegistry`, type system
 - [`replicate-nodes`](replicate-nodes/AGENTS.md) — Replicate node factory
 - [`runtime`](runtime/AGENTS.md) — `ProcessingContext` & LLM providers
@@ -398,10 +402,11 @@ pinned by tests. Update them in the same change, or CI fails:
 1. Search the package's tests for the node list it exports, such as
    `OPENAI_NODES` in `llm-nodes/tests/openai.test.ts`. Tests pin these
    lists with `toHaveLength`, so a new node changes the expected count.
-2. Run `npm run build:packages`, then regenerate both DSL copies:
+2. Run `npm run build:packages`, then regenerate every DSL copy:
    `npm run codegen:dsl` for `packages/dsl`, then `npm run build:sandbox-dsl`
-   for the sandbox guest pack. `codegen:dsl:check` and
-   `build:sandbox-dsl:check` gate each copy in CI.
+   and `npm run build:sandbox-flow` for the sandbox guest packs.
+   `codegen:dsl:check`, `build:sandbox-dsl:check` and
+   `build:sandbox-flow:check` gate each copy in CI.
 3. Run `npm run generate:node-docs`. Commit the pages for the nodes you
    changed and their namespace index. Leave regenerated pages for untouched
    nodes out of the change.

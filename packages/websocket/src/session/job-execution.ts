@@ -1,3 +1,6 @@
+import { ROOT_CONTEXT, propagation, trace, isSpanContextValid } from "@opentelemetry/api";
+import { getRegisteredRunTrace } from "@nodetool-ai/models";
+import { ensureRunTraceTelemetry, openAppRunTrace, registerWorkflowRunTrace } from "@nodetool-ai/execution";
 /**
  * Everything between "run_job arrived" and "terminal status persisted": the
  * admission gates, the concurrency queue, run start-up, the message stream,
@@ -9,7 +12,9 @@
  * {@link JobExecutionDeps}.
  */
 import { randomUUID } from "node:crypto";
+import { operationTarget, parseInputStateKey } from "@nodetool-ai/app-runtime";
 import { ApiErrorCode } from "../error-codes.js";
+import { captureError } from "../error-traces.js";
 import { admitSpend, releaseSpend, reserveSpend } from "../credit-gate.js";
 import { JobConcurrencyQueue } from "../job-queue.js";
 import {
@@ -42,13 +47,24 @@ import {
 } from "../job-run-registry.js";
 import {
   Application,
+  AppRunError,
+  claimAppRun,
+  ensureDefaultAppInstance,
+  findAppRunByInvocation,
+  getAppInstance,
+  getAppRun,
   Asset,
   Job,
   listApplicationVersions,
   invocationIdInUse,
   releasedApplicationRelease,
   releasedApplicationVersion,
+  reconcileAppRunCost,
   reserveInvocation,
+  reserveAppRun,
+  setAppRunInputs,
+  settleAppRun,
+  updateAppRunEstimate,
   settleInvocation,
   Workflow
 } from "@nodetool-ai/models";
@@ -63,6 +79,7 @@ import { extractPricingParams } from "@nodetool-ai/node-sdk/pricing-params";
 import { getModelUnitPrice } from "@nodetool-ai/model-pricing";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import { applicationReleaseResponse } from "@nodetool-ai/protocol/api-schemas/applications.js";
+import { appRunSnapshot } from "@nodetool-ai/protocol/api-schemas/app-runs.js";
 import type {
   GraphData,
   HydratedGraphData,
@@ -74,6 +91,7 @@ import { confineRunRequest, isRunRefusal } from "../lib/app-session-scope.js";
 import { releaseBlockedReason } from "../lib/app-deployment-service.js";
 import { autoSaveAssets, primaryTextOutputName } from "./asset-autosave.js";
 import { createRuntimeContext } from "./model-interfaces.js";
+import { createAppRunFold } from "./app-run-fold.js";
 import { formatSanitizedError, sanitizeLargeText } from "./sanitize.js";
 import { createLogger } from "@nodetool-ai/config";
 import type { ClientSession } from "./client-session.js";
@@ -84,6 +102,7 @@ const TERMINAL_JOB_STATUSES = ["completed", "failed", "cancelled", "error"];
 
 export interface RunJobRequest {
   job_id?: string;
+  traceparent?: string;
   workflow_id?: string;
   /** Allow this run to start even if its workflow already has a run in flight. */
   concurrent?: boolean;
@@ -122,6 +141,8 @@ export interface RunJobRequest {
    * and settles the ledger row when the run finishes.
    */
   application_id?: string | null;
+  app_run_id?: string;
+  instance_id?: string;
   /** Released version the run executes against; absent for a draft run. */
   application_version?: number | null;
   /**
@@ -166,13 +187,6 @@ export function resolveRunJobExecutionOptions(
   };
 }
 
-export function resolveRunJobUserId(
-  requestUserId: string | undefined,
-  connectionUserId: string
-): string {
-  return requestUserId?.trim() || connectionUserId;
-}
-
 export interface ActiveJob {
   jobId: string;
   workflowId: string | null;
@@ -214,6 +228,8 @@ export interface ActiveJob {
   selfReportedCostNodeIds?: Set<string>;
   /** Mini app this run belongs to, when one started it. Drives budget settlement. */
   applicationId?: string | null;
+  appRunFold?: ReturnType<typeof createAppRunFold>;
+  finishAppTrace?: (status: "completed" | "failed" | "cancelled", error?: string | null, costUsd?: number | null) => Promise<void>;
 }
 
 export function createRelayActivityWaiter(
@@ -623,7 +639,22 @@ export class JobExecutionManager {
     persistJob: boolean
   ): Promise<void> {
     const errorMessage = err instanceof Error ? err.message : String(err);
+    const appRun = await findAppRunByInvocation(
+      this.session.requireUserId(),
+      jobId
+    );
+    if (appRun) {
+      await settleAppRun(this.session.requireUserId(), appRun.id, {
+        status: "failed",
+        error: errorMessage
+      });
+    }
     this.session.logError("beforeRunJob failed", err);
+    captureError(err, {
+      source: "job",
+      userId: this.session.userId,
+      context: { job_id: jobId, workflow_id: workflowId ?? "" }
+    });
     await this.session.send({
       type: "job_update",
       status: "failed",
@@ -880,6 +911,9 @@ export class JobExecutionManager {
    * telemetry, which is the same ledger.
    */
   private async admitApplicationRun(req: RunJobRequest): Promise<boolean> {
+    if (req.app_run_id || this.session.appSession) {
+      return this.admitDurableAppRun(req);
+    }
     const applicationId = req.application_id;
     if (!applicationId) return true;
     const jobId = req.job_id ?? randomUUID();
@@ -1031,6 +1065,207 @@ export class JobExecutionManager {
     return true;
   }
 
+  private async admitDurableAppRun(req: RunJobRequest): Promise<boolean> {
+    const userId = this.session.requireUserId();
+    const jobId = req.job_id ?? randomUUID();
+    req.job_id = jobId;
+    let claimedRunId: string | null = null;
+    try {
+      if (this.session.appSession && req.application_id) {
+        const release = await releasedApplicationRelease(
+          req.application_id,
+          userId
+        );
+        if (!release) {
+          throw new Error("Application release not found");
+        }
+        const instance = await ensureDefaultAppInstance({
+          userId,
+          applicationId: req.application_id,
+          sourceId: `public:${req.application_id}:${release.version}`,
+          version: release.version,
+          name: "Visitor runs",
+          snapshot: appRunSnapshot.parse({
+            document: release.document,
+            workflow_graphs: Object.fromEntries(
+              release.workflows.flatMap((item) =>
+                item.graph ? [[item.workflowId, item.graph]] : []
+              )
+            ),
+            script_documents: {}
+          })
+        });
+        const decision = await reserveAppRun({
+          userId,
+          instanceId: instance.id,
+          invocationId: jobId,
+          operationId: req.operation_id ?? "",
+          origin: "public",
+          estimatedUsd: this.estimateRunCost(req),
+          requireFiniteBudget: true
+        });
+        if (!decision.allowed) {
+          return this.refuseRun(
+            req,
+            jobId,
+            ApiErrorCode.BUDGET_EXCEEDED,
+            decision.reason
+          );
+        }
+        req.app_run_id = decision.run.id;
+        req.instance_id = instance.id;
+      }
+      const run = req.app_run_id
+        ? await getAppRun(userId, req.app_run_id)
+        : null;
+      const instance = req.instance_id
+        ? await getAppInstance(userId, req.instance_id)
+        : null;
+      if (
+        !run ||
+        !instance ||
+        run.instance_id !== instance.id ||
+        run.invocation_id !== jobId
+      ) {
+        return this.refuseRun(
+          req,
+          jobId,
+          ApiErrorCode.NOT_FOUND,
+          "App run not found"
+        );
+      }
+      if (run.status !== "running") {
+        return this.refuseRun(
+          req,
+          jobId,
+          ApiErrorCode.ALREADY_EXISTS,
+          "App run has already finished"
+        );
+      }
+      const operation = instance.snapshot.document.operations.find(
+        (item) => item.id === run.operation_id
+      );
+      if (
+        !operation ||
+        operationTarget(operation).kind !== "workflow" ||
+        (req.operation_id && req.operation_id !== run.operation_id)
+      ) {
+        return this.refuseRun(
+          req,
+          jobId,
+          ApiErrorCode.INVALID_INPUT,
+          "Operation does not match this run"
+        );
+      }
+      const target = operationTarget(operation);
+      if (
+        target.kind !== "workflow" ||
+        !target.workflowId ||
+        (req.workflow_id && req.workflow_id !== target.workflowId)
+      ) {
+        return this.refuseRun(
+          req,
+          jobId,
+          ApiErrorCode.INVALID_INPUT,
+          "Workflow does not match this run"
+        );
+      }
+      if (run.origin !== "public") {
+        const frozen = run.snapshot?.workflow_graphs[target.workflowId];
+        if (!frozen) {
+          return this.refuseRun(
+            req,
+            jobId,
+            ApiErrorCode.INVALID_INPUT,
+            "Run has no frozen workflow"
+          );
+        }
+        const overlays = new Map<string, Record<string, unknown>>();
+        const inputs = instance.variables["__app_inputs"];
+        for (const [key, value] of Object.entries(
+          isRecord(inputs) ? inputs : {}
+        )) {
+          const binding = parseInputStateKey(key);
+          if (!binding?.property || binding.operationId !== run.operation_id) {
+            continue;
+          }
+          const properties = overlays.get(binding.nodeId) ?? {};
+          properties[binding.property] = value;
+          overlays.set(binding.nodeId, properties);
+        }
+        req.graph = {
+          ...frozen,
+          nodes: frozen.nodes.map((node) => {
+            const overlay = overlays.get(node.id);
+            if (!overlay) {
+              return node;
+            }
+            const properties = isRecord(node.properties)
+              ? node.properties
+              : isRecord(node.data)
+                ? node.data
+                : {};
+            return { ...node, properties: { ...properties, ...overlay } };
+          })
+        };
+        await updateAppRunEstimate(userId, run.id, this.estimateRunCost(req));
+      }
+      if (!(await claimAppRun(userId, run.id, getInstanceId()))) {
+        return this.refuseRun(
+          req,
+          jobId,
+          ApiErrorCode.ALREADY_EXISTS,
+          "App run execution already started"
+        );
+      }
+      claimedRunId = run.id;
+      await setAppRunInputs(userId, run.id, req.params ?? {});
+      req.app_run_id = run.id;
+      req.instance_id = instance.id;
+      req.user_id = userId;
+      req.workflow_id = target.workflowId;
+      req.application_id = run.application_id;
+      req.application_version = run.version;
+      req.operation_id = run.operation_id;
+      return true;
+    } catch (error) {
+      if (claimedRunId) {
+        try {
+          await settleAppRun(userId, claimedRunId, {
+            status: "failed",
+            actualUsd: 0,
+            knownLlmUsd: 0,
+            error:
+              error instanceof Error
+                ? error.message
+                : "App run admission failed"
+          });
+        } catch (settlementError) {
+          if (
+            !(settlementError instanceof AppRunError) ||
+            settlementError.code !== "not_found"
+          ) {
+            this.session.logError(
+              "app run admission settlement failed",
+              settlementError
+            );
+          }
+        }
+      }
+      this.session.logError("app run admission failed", error);
+      const code =
+        error instanceof AppRunError && error.code === "budget_exceeded"
+          ? ApiErrorCode.BUDGET_EXCEEDED
+          : ApiErrorCode.INVALID_INPUT;
+      return this.refuseRun(
+        req,
+        jobId,
+        code,
+        error instanceof Error ? error.message : "App run admission failed"
+      );
+    }
+  }
+
   /**
    * Gate a run on the user's credit balance — but only the part of the run
    * that spends through NodeTool's managed provider. A graph with no
@@ -1153,7 +1388,15 @@ export class JobExecutionManager {
     if (!req) return;
     req._accepted_at_ms ??= performance.now();
     if (!(await this.admitApplicationRun(req))) return;
-    if (!(await this.admitCreditRun(req))) return;
+    if (!(await this.admitCreditRun(req))) {
+      if (req.app_run_id) {
+        await settleAppRun(this.session.requireUserId(), req.app_run_id, {
+          status: "failed",
+          error: "Run refused by spending limit"
+        });
+      }
+      return;
+    }
     const max = await this.deps.getMaxConcurrentJobs();
     const perWorkflowMax = await this.perWorkflowLimitFor(req);
     // Queue the run when over the global cap, or when this workflow already has
@@ -1193,7 +1436,7 @@ export class JobExecutionManager {
           await Job.create({
             id: jobId,
             workflow_id: req.workflow_id ?? "",
-            user_id: resolveRunJobUserId(req.user_id, this.session.requireUserId()),
+            user_id: this.session.requireUserId(),
             status: "queued",
             name: req.job_name ?? "",
             params: req.params ?? {},
@@ -1303,6 +1546,17 @@ export class JobExecutionManager {
     };
     try {
       await this.startJobInner(req, releaseSlot);
+    } catch (error) {
+      if (req.app_run_id) {
+        await this.emitBeforeRunFailure(
+          req.job_id ?? "",
+          req.workflow_id ?? null,
+          error,
+          true
+        );
+        return;
+      }
+      throw error;
     } finally {
       // Safety net: if startJobInner returned/threw without registering, the
       // slot is freed so it doesn't leak and permanently shrink the cap.
@@ -1314,10 +1568,10 @@ export class JobExecutionManager {
     req: RunJobRequest,
     releaseSlot: () => void
   ): Promise<void> {
-    const userId = resolveRunJobUserId(
-      req.user_id,
-      this.session.requireUserId()
-    );
+    // The connection's authenticated user. The request's `user_id` is
+    // client-written, so it cannot choose whose secrets, workflows, and
+    // assets the run uses.
+    const userId = this.session.requireUserId();
     const workflowId = req.workflow_id ?? null;
     const jobId = req.job_id ?? randomUUID();
     let projectId = req.project_id ?? null;
@@ -1389,11 +1643,23 @@ export class JobExecutionManager {
       ? await this.session.workspaceResolver(workflowId ?? null, userId)
       : null;
 
+    const appRun = req.app_run_id
+      ? await getAppRun(userId, req.app_run_id)
+      : null;
     const context = createRuntimeContext({
       jobId,
       workflowId,
       projectId,
       userId,
+      ...(appRun && {
+        appRunContext: {
+          userId,
+          appRunId: appRun.id,
+          instanceId: appRun.instance_id,
+          traceId: appRun.trace_id,
+          origin: appRun.origin
+        }
+      }),
       workspace,
       assetOutputMode: this.session.mode === "text" ? "data_uri" : "temp_url",
       persistOutputAssets: executionOptions.assetPersistence === "auto"
@@ -1430,8 +1696,26 @@ export class JobExecutionManager {
     if (executionOptions.persistence === "job") {
       try {
         const existing = await Job.get(jobId);
+        if (existing && existing.user_id !== userId) {
+          // The client chose this job_id. Another user's row under it must
+          // not be flipped to running or written with this run's results.
+          releaseSlot();
+          this.drainQueue();
+          this.session.sendDetached({
+            type: "job_update",
+            status: "failed",
+            job_id: jobId,
+            workflow_id: workflowId,
+            error: "Job id already in use",
+            error_code: ApiErrorCode.ALREADY_EXISTS
+          });
+          return;
+        }
         if (existing) {
           if (existing.status === "cancelled") {
+            if (appRun) {
+              await settleAppRun(userId, appRun.id, { status: "cancelled" });
+            }
             log.info("Skipping start of cancelled job", { jobId });
             // Nothing was registered in activeJobs yet — free the reserved
             // slot and promote any queued run, matching every other slot
@@ -1527,10 +1811,25 @@ export class JobExecutionManager {
     // uses: a bare throw reaches handleCommand as a generic `invalid_command`
     // the UI never associates with the job, so the run appears to spin
     // forever instead of failing with the reason.
+    let finishAppTrace: ActiveJob["finishAppTrace"];
+    try {
+      await ensureRunTraceTelemetry();
+      const incomingParent = req.traceparent ? trace.getSpanContext(propagation.extract(ROOT_CONTEXT, { traceparent: req.traceparent })) : undefined;
+      const acceptedParent = incomingParent && isSpanContextValid(incomingParent) && !this.session.appSession && appRun && incomingParent.traceId === appRun.trace_id && await getRegisteredRunTrace(userId, incomingParent.traceId, appRun.id) ? incomingParent : undefined;
+      finishAppTrace = appRun ? await openAppRunTrace(context, appRun, acceptedParent) : undefined;
+      if (executionOptions.persistence === "job") {
+        await registerWorkflowRunTrace(context, { jobId, workflowId: workflowId ?? null, inlineGraph: Boolean(req.graph), origin: this.session.appSession ? "public" : "ui" });
+      }
+    } catch (error) {
+      await finishAppTrace?.("failed", error instanceof Error ? error.message : String(error));
+      await this.emitBeforeRunFailure(jobId, workflowId, error, executionOptions.persistence === "job");
+      return;
+    }
     let session: ExecutionSession;
     try {
       session = await ExecutionSession.create(sessionOptions);
     } catch (err) {
+      await finishAppTrace?.("failed", err instanceof Error ? err.message : String(err));
       if (!isExecutionPreflightError(err)) throw err;
       await this.emitBeforeRunFailure(
         jobId,
@@ -1560,18 +1859,14 @@ export class JobExecutionManager {
         persistenceMs,
         kernelStartedAt: performance.now()
       },
-      applicationId: req.application_id ?? null
+      applicationId: req.application_id ?? null,
+      ...(appRun && { appRunFold: createAppRunFold(appRun) }),
+      ...(finishAppTrace && { finishAppTrace })
     };
     // Decouple the run from this socket: from here on every frame carrying
     // this job_id is stamped with `job_seq` and buffered, so a client that
     // drops mid-run can `reconnect_job` from a fresh connection and replay
     // the tail — including the terminal job_update.
-    //
-    // Keyed on the connection's identity, not `userId`: every lookup
-    // (`reconnect_job`, `cancel_job`, the slot counts) reads
-    // `this.session.requireUserId()`, and a run opened under an explicit differing
-    // `req.user_id` would be unreachable — no replay, and a cancel that
-    // reports the job as not found.
     const runSession = jobRunRegistry.open(
       this.session.requireUserId(),
       jobId,
@@ -1671,6 +1966,10 @@ export class JobExecutionManager {
       // the client UI spinning, and the app ledger holding the estimate.
       const message = error instanceof Error ? error.message : String(error);
       this.session.logError("job message streaming failed", error);
+      // The run is reported failed below, so stop the kernel too: otherwise
+      // it keeps executing (and spending) with nobody reading its output,
+      // and cancel_job can no longer reach it once the session finishes.
+      active.session?.cancel();
       active.finished = true;
       active.status = "failed";
       active.error = message;
@@ -1730,6 +2029,16 @@ export class JobExecutionManager {
             }
           } else if (active.status === "failed") {
             job.markFailed(active.error ?? "Unknown error");
+            // The run's error is a string by now. A stack built here would
+            // point at this method, not at the failure, so none is sent.
+            captureError(active.error ?? "Unknown error", {
+              source: "job",
+              userId: job.user_id,
+              context: {
+                job_id: active.jobId,
+                workflow_id: active.workflowId ?? ""
+              }
+            });
           } else if (active.status === "cancelled") {
             job.markCancelled();
           }
@@ -1752,6 +2061,38 @@ export class JobExecutionManager {
    * the estimate standing rather than handing the spend back. Never throws.
    */
   private async settleApplicationInvocation(active: ActiveJob): Promise<void> {
+    await active.finishAppTrace?.(active.status === "failed" ? "failed" : active.status === "cancelled" ? "cancelled" : "completed", active.error, this.runMeasuredCost(active));
+    const identity = active.context.appRunContext;
+    if (identity) {
+      try {
+        const settlement: Parameters<typeof settleAppRun>[2] = {
+          status:
+            active.status === "failed"
+              ? "failed"
+              : active.status === "cancelled"
+                ? "cancelled"
+                : "completed",
+          error: active.context.runTraceContext?.policy.contentSuppressed && active.error ? "Execution failed" : active.error ?? null,
+          actualUsd: this.runMeasuredCost(active),
+          outputs: active.appRunFold?.outputs() ?? {},
+          documents: active.context.getAppRunDocuments(),
+          contentSuppressed: active.context.runTraceContext?.policy.contentSuppressed,
+          secretValues: [...active.context.getResolvedSecretValues()]
+        };
+        const llmCost = active.context.getAppRunLlmCost();
+        if (llmCost !== null) {
+          settlement.knownLlmUsd = llmCost;
+        }
+        await settleAppRun(identity.userId, identity.appRunId, settlement);
+        await reconcileAppRunCost(identity.userId, identity.appRunId);
+        return;
+      } catch (error) {
+        if (!(error instanceof AppRunError) || error.code !== "not_found") {
+          this.session.logError("app run settlement failed", error);
+        }
+      }
+      return;
+    }
     if (!active.applicationId) return;
     try {
       await settleInvocation(
@@ -2074,17 +2415,24 @@ export class JobExecutionManager {
         const status =
           outbound.type === "job_update" ? String(outbound.status ?? "") : "";
         const suppressProvisionalCompletion =
-          active.requireTerminalResult &&
-          status === "completed" &&
-          outbound.result === undefined;
+          (Boolean(active.context.appRunContext) &&
+            TERMINAL_JOB_STATUSES.includes(status)) ||
+          (active.requireTerminalResult &&
+            status === "completed" &&
+            outbound.result === undefined);
         if (!suppressProvisionalCompletion) {
           if (outbound.type === "job_update") {
             if (status === "running") {
               runningSeen = true;
             } else if (TERMINAL_JOB_STATUSES.includes(status)) {
+              if (active.context.appRunContext) {
+                await executionSettled;
+                await this.settleApplicationInvocation(active);
+              }
               await ensureRunningFrame();
             }
           }
+          active.appRunFold?.fold(outbound);
           await this.session.send(outbound);
         }
         if (outbound.type === "job_update" && !suppressProvisionalCompletion) {
@@ -2107,6 +2455,21 @@ export class JobExecutionManager {
     if (Object.keys(finalOutputs).length > 0) {
       finalOutputs = await this.normalizeFinalOutputs(active, finalOutputs);
     }
+    if (active.appRunFold) {
+      for (const [key, values] of Object.entries(finalOutputs)) {
+        const nodeId = this.resolveOutputNodeForKey(active, key)?.id ?? key;
+        for (const [index, value] of values.entries()) {
+          active.appRunFold.fold({
+            type: "output_update",
+            job_id: active.jobId,
+            node_id: nodeId,
+            value,
+            disposition: index === 0 ? "replace" : "append",
+            done: true
+          });
+        }
+      }
+    }
 
     if (
       active.executionOptions.eventDetail !== "terminal" &&
@@ -2117,6 +2480,9 @@ export class JobExecutionManager {
     }
 
     const relayCompletedAt = performance.now();
+    if (active.context.appRunContext) {
+      await this.settleApplicationInvocation(active);
+    }
 
     if (
       !terminalSeen ||
@@ -2215,7 +2581,7 @@ export class JobExecutionManager {
       // nor settled below.
       const row = (await Job.get(jobId)) as Job | null;
       const job =
-        row && row.user_id === (this.session.requireUserId()) ? row : null;
+        row && row.user_id === this.session.requireUserId() ? row : null;
       const settled =
         job != null &&
         (job.status === "completed" ||
@@ -2302,6 +2668,11 @@ export class JobExecutionManager {
     // and tell the client it's cancelled before it ever starts.
     const queued = this.jobQueue.remove(jobId);
     if (queued) {
+      if (queued.app_run_id) {
+        await settleAppRun(this.session.requireUserId(), queued.app_run_id, {
+          status: "cancelled"
+        });
+      }
       releaseSpend(this.session.requireUserId(), jobId);
       const cancelledWorkflowId = queued.workflow_id ?? workflowId ?? null;
       // Mark the persisted queued row cancelled so it leaves the queue in
@@ -2313,11 +2684,7 @@ export class JobExecutionManager {
         ).persistence === "job"
       ) {
         try {
-          const job = await Job.get(jobId);
-          if (job) {
-            job.markCancelled();
-            await job.save();
-          }
+          await Job.markCancelledIfActive(jobId, this.session.requireUserId());
         } catch (err) {
           this.session.logError("cancel persistence failed", err);
         }
@@ -2343,15 +2710,14 @@ export class JobExecutionManager {
       // session's hooks and persist the row here — the owning runner's own
       // terminal bookkeeping still runs, and its `job_update` reaches this
       // client over the session it just adopted.
-      const registered = jobRunRegistry.get(this.session.requireUserId(), jobId);
+      const registered = jobRunRegistry.get(
+        this.session.requireUserId(),
+        jobId
+      );
       if (registered && registered.status === "running") {
         registered.cancel();
         try {
-          const job = await Job.get(jobId);
-          if (job && job.status !== "cancelled") {
-            job.markCancelled();
-            await job.save();
-          }
+          await Job.markCancelledIfActive(jobId, this.session.requireUserId());
         } catch (err) {
           this.session.logError("cancel persistence failed", err);
         }
@@ -2407,11 +2773,7 @@ export class JobExecutionManager {
         DEFAULT_RUN_JOB_EXECUTION_OPTIONS.persistence) === "job"
     ) {
       try {
-        const job = await Job.get(jobId);
-        if (job && job.status !== "cancelled") {
-          job.markCancelled();
-          await job.save();
-        }
+        await Job.markCancelledIfActive(jobId, this.session.requireUserId());
       } catch (err) {
         this.session.logError("cancel persistence failed", err);
       }
@@ -2609,11 +2971,16 @@ export class JobExecutionManager {
       const queuedId = queued.job_id;
       if (!queuedId) continue;
       try {
-        const job = await Job.get(queuedId);
-        if (job) {
-          job.markCancelled();
-          await job.save();
+        if (queued.app_run_id) {
+          await settleAppRun(this.session.requireUserId(), queued.app_run_id, {
+            status: "cancelled"
+          });
         }
+        releaseSpend(this.session.requireUserId(), queuedId);
+        await Job.markCancelledIfActive(
+          queuedId,
+          this.session.requireUserId()
+        );
       } catch (err) {
         this.session.logError("disconnect queue cancellation failed", err);
       }
@@ -2621,11 +2988,19 @@ export class JobExecutionManager {
 
     for (const dequeuedId of this.dequeuedJobs) {
       try {
-        const job = await Job.get(dequeuedId);
-        if (job) {
-          job.markCancelled();
-          await job.save();
+        const run = await findAppRunByInvocation(
+          this.session.requireUserId(),
+          dequeuedId
+        );
+        if (run) {
+          await settleAppRun(this.session.requireUserId(), run.id, {
+            status: "cancelled"
+          });
         }
+        await Job.markCancelledIfActive(
+          dequeuedId,
+          this.session.requireUserId()
+        );
       } catch (err) {
         this.session.logError(
           "disconnect dequeued-job cancellation failed",

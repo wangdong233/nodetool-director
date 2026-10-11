@@ -20,7 +20,11 @@ jest.mock("../../../lib/websocket/GlobalWebSocketManager", () => ({
 // The hook resolves board entities through React Query; the tests below seed
 // these arrays per scenario.
 const mockEntities: unknown[] = [];
-const mockImageModels: Array<{ id: string; supported_tasks?: string[] }> = [];
+const mockImageModels: Array<{
+  id: string;
+  provider: string;
+  supported_tasks?: string[];
+}> = [];
 const mockVideoModels: Array<{
   id: string;
   provider: string;
@@ -55,6 +59,7 @@ import {
   settleCancelledShotJob
 } from "../../../stores/storyboard/StoryboardGenerationStore";
 import {
+  productionRequirement,
   clipPrompt,
   directClipPrompt,
   keyframePrompt
@@ -387,7 +392,11 @@ describe("keyframe prompt composition", () => {
     shotToRender: Shot,
     supportedTasks: string[]
   ): Promise<Record<string, unknown>> => {
-    mockImageModels.push({ id: "model-1", supported_tasks: supportedTasks });
+    mockImageModels.push({
+      id: "model-1",
+      provider: "prov",
+      supported_tasks: supportedTasks
+    });
     const store = useStoryboardStore.getState();
     store.setImageModel(BOARD, stillModel);
     store.setEntityIds(BOARD, ["ent-1"]);
@@ -415,6 +424,20 @@ describe("keyframe prompt composition", () => {
       variations: 1
     });
     expect(String(data.prompt)).not.toContain("Consistency references");
+  });
+
+  it("uses the selected provider when model IDs share different edit capabilities", async () => {
+    mockImageModels.push({
+      id: "model-1",
+      provider: "other",
+      supported_tasks: ["image_to_image"]
+    });
+    const data = await frameWithModel(
+      { ...shot, id: "shot-provider", entity_ids: ["ent-1"] },
+      []
+    );
+    expect(String(data.prompt)).toContain("Consistency references");
+    expect(String(data.prompt)).not.toContain("entity://ent-1");
   });
 
   it("sends every keyframe param when the model cannot edit", async () => {
@@ -1286,5 +1309,141 @@ describe("render record context", () => {
       useStoryboardGenerationStore.getState().shotJobs[revisable.id]
         ?.renderInputs
     ).toBeUndefined();
+  });
+});
+
+describe("protected direct browser generation", () => {
+  it("rejects protected product stills before sending the RPC", async () => {
+    const protectedShot: Shot = { ...shot, production: productionRequirement.parse({ protected_inputs: [{ id: "product", kind: "product", asset_id: "original-product" }] }) };
+    const { result } = renderHook(() => useGenerateShot());
+    await expect(result.current.generateKeyframe(BOARD, protectedShot)).rejects.toThrow("protected source fidelity");
+    expect(send).not.toHaveBeenCalled();
+  });
+  it("rejects still-motion video generation and revision before sending the RPC", async () => {
+    const protectedShot: Shot = { ...shot, production: productionRequirement.parse({ media_strategy: "still_motion_graphics" }) };
+    const { result } = renderHook(() => useGenerateShot());
+    await expect(result.current.generateClip(BOARD, protectedShot)).rejects.toThrow("forbids video");
+    await expect(result.current.generateRevisedClip(BOARD, protectedShot, "animate")).rejects.toThrow("forbids video");
+    expect(send).not.toHaveBeenCalled();
+  });
+});
+
+describe("still variants", () => {
+  const still: Shot = {
+    ...shot,
+    id: "shot-variant",
+    keyframe: { type: "image", asset_id: "still-1", uri: "asset://still-1" }
+  };
+  const model = { id: "variant-model", provider: "fal_ai", name: "Variant" };
+
+  beforeEach(() => {
+    useStoryboardStore.getState().upsertShot(BOARD, still);
+    useStoryboardGenerationStore.getState().clear(still.id);
+  });
+
+  /** The last `generate_media` envelope the hook sent. */
+  const lastSent = (): { request_id: string; data: Record<string, unknown> } => {
+    const call = send.mock.calls.at(-1);
+    if (!call) {
+      throw new Error("Nothing was sent.");
+    }
+    return call[0] as { request_id: string; data: Record<string, unknown> };
+  };
+  const sentData = (): Record<string, unknown> => lastSent().data;
+
+  it("sends an inpaint with the source, the mask and the board's frame", async () => {
+    const { result } = renderHook(() => useGenerateShot());
+    await act(async () => {
+      await result.current.generateStillVariant(BOARD, still, {
+        mode: "inpaint",
+        model,
+        sourceAssetId: "still-1",
+        maskAssetId: "mask-1",
+        prompt: " a red scarf "
+      });
+    });
+
+    expect(sentData()).toMatchObject({
+      mode: "inpaint",
+      provider: "fal_ai",
+      model: "variant-model",
+      prompt: "a red scarf",
+      source_asset_id: "still-1",
+      mask_asset_id: "mask-1",
+      aspect_ratio: "16:9",
+      variations: 1
+    });
+    expect(
+      useStoryboardGenerationStore.getState().shotJobs[still.id]?.kind
+    ).toBe("keyframe");
+  });
+
+  it("sends an upscale with its scale and no prompt", async () => {
+    const { result } = renderHook(() => useGenerateShot());
+    await act(async () => {
+      await result.current.generateStillVariant(BOARD, still, {
+        mode: "upscale",
+        model,
+        sourceAssetId: "still-1",
+        scale: 4
+      });
+    });
+
+    const data = sentData();
+    expect(data).toMatchObject({ mode: "upscale", scale: 4, prompt: "" });
+    expect(data).not.toHaveProperty("resolution");
+  });
+
+  it("sends a reframe with its padding and target aspect", async () => {
+    const padding = { left: 0, right: 0, top: 120, bottom: 120 };
+    const { result } = renderHook(() => useGenerateShot());
+    await act(async () => {
+      await result.current.generateStillVariant(BOARD, still, {
+        mode: "outpaint",
+        model,
+        sourceAssetId: "still-1",
+        aspectRatio: "9:16",
+        padding
+      });
+    });
+
+    expect(sentData()).toMatchObject({
+      mode: "outpaint",
+      aspect_ratio: "9:16",
+      padding
+    });
+  });
+
+  it("lands the result beside the current still, not over it", async () => {
+    const { result } = renderHook(() => useGenerateShot());
+    await act(async () => {
+      await result.current.generateStillVariant(BOARD, still, {
+        mode: "upscale",
+        model,
+        sourceAssetId: "still-1",
+        scale: 2
+      });
+    });
+    const requestId = lastSent().request_id;
+    act(() => {
+      __handleShotJobMessageForTests(
+        requestId,
+        { shotId: still.id, boardId: BOARD, kind: "keyframe" },
+        {
+          type: "rpc_response",
+          request_id: requestId,
+          result: { asset_ids: ["upscaled-1"] }
+        } as never
+      );
+    });
+
+    const settled = useStoryboardStore
+      .getState()
+      .getBoard(BOARD)
+      ?.shots.find((item) => item.id === still.id);
+    expect(settled?.keyframe?.asset_id).toBe("still-1");
+    expect(
+      settled?.keyframe_versions?.some((v) => v.asset_id === "upscaled-1")
+    ).toBe(true);
   });
 });

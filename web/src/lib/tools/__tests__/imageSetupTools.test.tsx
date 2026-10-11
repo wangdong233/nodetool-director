@@ -38,6 +38,7 @@ jest.mock("../../websocket/rpcRequest", () => ({
 import { FrontendToolRegistry, type FrontendToolState } from "../frontendTools";
 import "../builtin/sketch";
 import { useSketchAgentBridge } from "../../../hooks/sketch/useSketchAgentBridge";
+import { briefInputSignature } from "../../../hooks/sketch/useRefineBrief";
 import { useSketchStore } from "../../../components/sketch/state/useSketchStore";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { createDefaultDocument } from "../../../components/sketch/types";
@@ -59,7 +60,11 @@ const call = async (name: string, args: Record<string, unknown>) => {
 const mountBridge = () => {
   act(() => {
     useSketchStore.getState().setDocument(createDefaultDocument(512, 512));
-    useSketchSessionStore.setState({ bindings: {}, documentId: DOC } as never);
+    useSketchSessionStore.setState({
+      bindings: {},
+      documentId: DOC,
+      hydratedDocumentId: DOC
+    } as never);
   });
   return renderHook(() => useSketchAgentBridge(DOC));
 };
@@ -104,8 +109,8 @@ describe("ui_sketch_set_setup", () => {
     });
     expect(useSketchStore.getState().document.setup?.variations).toBe(2);
     expect(useSketchStore.getState().document.canvas).toMatchObject({
-      width: 683,
-      height: 1024
+      width: 1024,
+      height: 1536
     });
   });
 
@@ -151,13 +156,48 @@ describe("ui_sketch_refine_brief (criterion 3, headless)", () => {
     expect(useSketchStore.getState().document.layers).toHaveLength(
       layersBefore
     );
-    expect(
-      Object.keys(useSketchSessionStore.getState().bindings)
-    ).toHaveLength(0);
+    expect(Object.keys(useSketchSessionStore.getState().bindings)).toHaveLength(
+      0
+    );
     expect(sendMock).not.toHaveBeenCalled();
     const setup = useSketchStore.getState().document.setup;
     expect(setup?.stage).toBe("review");
     expect(setup?.refined?.subject).toBe("a ceramic pour-over dripper");
+  });
+
+  it("reads the attached references, as the flow's Refine does", async () => {
+    mountBridge();
+    act(() => {
+      useSketchStore.getState().setSetup({
+        brief: "a pour-over dripper",
+        use_case: "product",
+        stage: "useCase",
+        references: [
+          { uri: "asset://ref-1", name: "Dripper", type: "image/png" }
+        ]
+      });
+    });
+
+    await call("ui_sketch_refine_brief", { sketch_id: DOC });
+
+    expect(JSON.stringify(rpcRequest.mock.calls[0])).toContain(
+      "asset://ref-1"
+    );
+  });
+
+  it("records what the brief was refined from, so the use case step does not pay for it again", async () => {
+    mountBridge();
+    await call("ui_sketch_set_setup", {
+      sketch_id: DOC,
+      brief: "a pour-over dripper",
+      use_case: "product",
+      stage: "useCase"
+    });
+
+    await call("ui_sketch_refine_brief", { sketch_id: DOC });
+
+    const setup = useSketchStore.getState().document.setup;
+    expect(setup?.refined_from).toBe(briefInputSignature(setup));
   });
 });
 

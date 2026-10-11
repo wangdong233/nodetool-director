@@ -10,6 +10,7 @@ import nodePath from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
 import { Application, ModelObserver, Workflow, initTestDb } from "@nodetool-ai/models";
+import { parseApplicationBundle } from "@nodetool-ai/app-runtime";
 
 import applicationsRoutes from "../src/routes/applications.js";
 import type { HttpApiOptions } from "../src/http-api.js";
@@ -63,7 +64,7 @@ describe("example apps", () => {
     ModelObserver.clear();
   });
 
-  it("lists every shipped bundle with the workflows it installs", async () => {
+  it("lists every shipped bundle with resolvable executable operations", async () => {
     const response = await server.inject({ url: "/api/applications/examples" });
     expect(response.statusCode).toBe(200);
     const apps = response.json() as ExampleSummary[];
@@ -72,7 +73,20 @@ describe("example apps", () => {
     for (const app of apps) {
       expect(app.name).not.toBe("");
       expect(app.operationCount).toBeGreaterThan(0);
-      expect(app.workflows.length).toBeGreaterThan(0);
+      const response = await server.inject({ url: `/api/applications/examples/${app.slug}` });
+      expect(response.statusCode).toBe(200);
+      const bundle = parseApplicationBundle(response.json());
+      expect(bundle).not.toBeNull();
+      if (!bundle) { throw new Error(`Invalid shipped bundle: ${app.slug}`); }
+      const workflowKeys = bundle.workflows.map(workflow => workflow.key);
+      const scriptKeys = (bundle.scripts ?? []).map(script => script.key);
+      for (const operation of bundle.app.operations) {
+        if (operation.target?.kind === "script") {
+          expect(scriptKeys).toContain(operation.target.scriptId);
+        } else {
+          expect(workflowKeys).toContain(operation.workflowId);
+        }
+      }
     }
     const photo = apps.find((a) => a.slug === "photo-studio");
     expect(photo?.name).toBe("Photo Studio");
@@ -81,6 +95,12 @@ describe("example apps", () => {
     // example workflow thumbnails are.
     expect(photo?.thumbnailUrl).toMatch(
       /^\/api\/workflows\/examples\/thumbnails\/Image%20Enhance\.jpg\?v=[0-9a-f]{8}$/
+    );
+    // The JPG named after the slug wins over the bound workflow's art.
+    const offerWall = apps.find((a) => a.slug === "ad-kinetic-offer-wall");
+    expect(offerWall?.workflows).toEqual(["Plan or refresh Storyboard", "Build editable cut", "Suggest Kinetic offer wall ad options"]);
+    expect(offerWall?.thumbnailUrl).toMatch(
+      /^\/api\/workflows\/examples\/thumbnails\/ad-kinetic-offer-wall\.jpg\?v=[0-9a-f]{8}$/
     );
   });
 

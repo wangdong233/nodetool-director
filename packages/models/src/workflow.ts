@@ -10,12 +10,15 @@ import {
   ModelChangeEvent,
   ModelChangeMeta,
   ModelObserver,
-  createTimeOrderedUuid
+  createTimeOrderedUuid,
+  nextUpdatedAtAfter
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
+import { eraseRunTraceParentForModelDeletion } from "./run-trace.js";
 import { workflows } from "./schema/workflows.js";
 import { WorkflowCollaborator } from "./workflow-collaborator.js";
 import { WorkflowShare } from "./workflow-share.js";
+import { TriggerRegistration } from "./trigger-registration.js";
 import type { WorkflowRunMode } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
 export type AccessLevel = "private" | "public";
@@ -39,15 +42,6 @@ function ensureSqlCondition(condition: SQL<unknown> | undefined): SQL<unknown> {
     throw new Error("Expected SQL condition");
   }
   return condition;
-}
-
-function nextUpdatedAtAfter(previous: string): string {
-  const now = new Date();
-  const previousMs = Date.parse(previous);
-  if (Number.isFinite(previousMs) && now.getTime() <= previousMs) {
-    return new Date(previousMs + 1).toISOString();
-  }
-  return now.toISOString();
 }
 
 export type WorkflowUpdateFields = Partial<{
@@ -94,6 +88,12 @@ export class Workflow extends DBModel {
   declare access: AccessLevel;
   declare created_at: string;
   declare updated_at: string;
+
+  override async delete(): Promise<void> {
+    await eraseRunTraceParentForModelDeletion({ kind: "workflow", id: this.id });
+    await super.delete();
+    await eraseRunTraceParentForModelDeletion({ kind: "workflow", id: this.id });
+  }
 
   constructor(data: Record<string, unknown>) {
     super(data);
@@ -179,7 +179,7 @@ export class Workflow extends DBModel {
     fields: WorkflowUpdateFields,
     meta?: ModelChangeMeta
   ): Promise<Workflow | null> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .update(workflows)
       .set({
@@ -234,7 +234,7 @@ export class Workflow extends DBModel {
     const wf = await Workflow.get<Workflow>(workflowId);
     if (!wf) return null;
     if (wf.user_id === userId || wf.access === "public") return wf;
-    const grant = await WorkflowCollaborator.findFor(workflowId, userId);
+    const grant = await WorkflowCollaborator.findFor(wf.id, userId);
     if (grant) return wf;
     return null;
   }
@@ -272,8 +272,12 @@ export class Workflow extends DBModel {
     const wf = await Workflow.get<Workflow>(id);
     if (!wf || wf.user_id !== userId) return false;
     await wf.delete();
-    await WorkflowCollaborator.removeAllForWorkflow(id);
-    await WorkflowShare.removeAllForWorkflow(id);
+    // `id` may be a 12-character prefix; the dependent rows key on the full id.
+    await WorkflowCollaborator.removeAllForWorkflow(wf.id);
+    await WorkflowShare.removeAllForWorkflow(wf.id);
+    // No foreign key ties registrations to the workflow, so a deleted
+    // workflow's webhook kept accepting events and its file watch kept firing.
+    await TriggerRegistration.deleteByWorkflow(wf.id);
     return true;
   }
 
@@ -289,7 +293,7 @@ export class Workflow extends DBModel {
     } = {}
   ): Promise<[Workflow[], string]> {
     const { limit = 50, access, runMode, tag, projectId, startKey } = opts;
-    const db = getDb();
+    const db = getPortableDb();
 
     const conditions = [eq(workflows.user_id, userId)];
     if (projectId !== undefined) {
@@ -360,7 +364,7 @@ export class Workflow extends DBModel {
     opts: { limit?: number; projectId?: string; startKey?: string } = {}
   ): Promise<[WorkflowSummary[], string]> {
     const { limit = 50, projectId, startKey } = opts;
-    const db = getDb();
+    const db = getPortableDb();
     const conditions = [eq(workflows.user_id, userId)];
     if (projectId !== undefined) {
       conditions.push(eq(workflows.project_id, projectId));
@@ -425,7 +429,7 @@ export class Workflow extends DBModel {
     workflowIds: readonly string[]
   ): Promise<Map<string, Workflow>> {
     if (workflowIds.length === 0) return new Map();
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(workflows)
@@ -442,7 +446,7 @@ export class Workflow extends DBModel {
     opts: { limit?: number; startKey?: string } = {}
   ): Promise<[Workflow[], string]> {
     const { limit = 50, startKey } = opts;
-    const db = getDb();
+    const db = getPortableDb();
     const conditions = [eq(workflows.access, "public")];
     if (startKey) {
       const cursor = await Workflow.get<Workflow>(startKey);
@@ -471,7 +475,7 @@ export class Workflow extends DBModel {
     opts: { limit?: number; projectId?: string; startKey?: string } = {}
   ): Promise<[Workflow[], string]> {
     const { limit = 50, projectId, startKey } = opts;
-    const db = getDb();
+    const db = getPortableDb();
     const conditions = [
       eq(workflows.user_id, userId),
       eq(workflows.run_mode, "tool")
@@ -535,7 +539,7 @@ export class Workflow extends DBModel {
     userId: string,
     toolName: string
   ): Promise<Workflow | null> {
-    const db = getDb();
+    const db = getPortableDb();
     const [row] = await db
       .select()
       .from(workflows)

@@ -21,23 +21,34 @@ marketing site builds, packaging side-channels (AUR, Flatpak, EAS), and
 one-off maintenance triggers — is **none/maintenance**: useful, but not
 part of the release gate and not held to the Ring 0 flake budget.
 
-`user-journeys.yml`'s browser suite runs on pull requests, nightly, and manual
-dispatch. It is a required check and has no retry or `continue-on-error` escape
-hatch. The same workflow's **`reliability-ring1`** job runs on every push to
-`main` and remains the merge-to-main gate described below.
+The only required status check on pull requests is `Quality Gate (npm run
+check) / quality` from `test.yml`. It reports on every pull request and merge
+queue entry, and it counts a leg skipped by the diff plan as a pass. Do not mark
+any other check required. The other pull-request workflows filter by path or
+skip `merge_group`, so a required check from one of them never reports on a
+diff outside its paths and blocks the merge.
+
+The browser suites in `user-journeys.yml`, `page-load-smoke.yml`, and
+`e2e-runner.yml` run on pushes to `main`, nightly or on dispatch, and on a pull
+request only when it carries the `browser-suites` label. On pull requests they
+are advisory and have no retry or `continue-on-error` escape hatch. Add the
+label to a PR that changes those suites or the flows they drive. The same workflow's **`reliability-ring1`**
+job runs on every push to `main` and remains the merge-to-main gate described
+below.
 
 | Workflow | Purpose | Ring | Required today? |
 |---|---|---|---|
-| `test.yml` | Full quality gate (typecheck, lint, tests) via `quality-checks.yml`; skipped for prose-only and marketing-only diffs | 0 | Required |
-| `quality-checks.yml` | Reusable gate: deps/lint static legs, one shared build, eight `built` legs (typecheck+parity+examples, four `test-packages-*` shards of the backend suite, test-app, bundle+ring0, app-build), and a path-gated `docker` leg that builds the image, boots it, and loads the app in a browser | 0 | Required (infra called by `test.yml`) |
-| `page-load-smoke.yml` | Playwright: every route loads against a seeded backend | 0 | Required |
-| `e2e-runner.yml` | Browser-driven e2e_runner suite against the real backend stack | 1 | Required (also gates PRs today, ahead of the ring split) |
+| `test.yml` | Quality gate (typecheck, lint, tests) via `quality-checks.yml`, scoped to the legs the diff reaches; skipped for prose-only and marketing-only diffs. A push to `main` cancels the run of the push before it and diffs against the last `main` commit whose Test run passed. A nightly run and `merge_group` events are also wired | 0 | Required |
+| `quality-checks.yml` | Reusable gate: deps/lint static legs plus the TypeScript 6 build when manifests change, one shared build, and `built` legs chosen per diff (typecheck+parity+examples, four `test-packages-*` shards of the backend suite, three web Jest shards or one related-tests leg, electron+mobile, bundle, harness gate). The shipped-workflow integration tests and the workflow-runner browser E2E run here too, so their failures fail the required check. The `docker` leg builds the image, boots it, and loads the app in a browser when a diff changes the image's own files, and nightly. The nodes shard installs Blender, and so runs the Blender render suites, only when a diff touches `packages/blender-nodes/` and nightly | 0 | Required (infra called by `test.yml`) |
+| `page-load-smoke.yml` | Playwright: every route loads against a seeded backend | 0 | Advisory on PRs with the `browser-suites` label |
+| `e2e-runner.yml` | Browser-driven e2e_runner suite against the real backend stack | 1 | Advisory on PRs with the `browser-suites` label |
 | `docker.yml` | Build and push the GHCR image (main, `preview/**`, tags) | 1 | Required |
-| `fly-deploy.yml` | Deploy the GHCR image to Fly.io, gated on `docker.yml` + `user-journeys.yml`'s `reliability-ring1` both succeeding for the same commit | 1 | Required |
+| `fly-deploy.yml` | **Deploy to Docker**: release the GHCR image to the production host over restricted SSH, gated on Docker + User Journeys succeeding for the same commit | 1 | Required |
 | `web-deploy.yml` | Build the web app and deploy to Cloudflare Pages | 1 | Required |
-| `user-journeys.yml` | `journeys`: Playwright journey suite on pull requests, nightly, and dispatch (build a graph and run it, chat, mini app, library). `reliability-ring1` (on push to `main`, schedule, dispatch): full `reliability/journeys/*` suite on kernel+ws-server with `--diff`, plus one packaged-backend journey — gates `fly-deploy.yml` | 1 | Required |
+| `user-journeys.yml` | `journeys`: Playwright journey suite on push to `main`, nightly, dispatch, and pull requests with the `browser-suites` label (build a graph and run it, chat, mini app, library). `reliability-ring1` (on push to `main`, schedule, dispatch): full `reliability/journeys/*` suite on kernel+ws-server with `--diff`, plus one packaged-backend journey — gates `fly-deploy.yml` | 1 | `reliability-ring1` gates deploy; `journeys` advisory on labeled PRs |
 | `release.yaml` | Cross-platform signed release artifacts, packed-tree smoke, a packed-backend reliability journey per OS, updater assets | 2 | Required |
 | `example-smoke-debug.yml` | Nightly + manual real-provider smoke via `nodetool debug` | 2 | Nightly (spend-capped), also dispatch-only |
+| `codeql.yml` | CodeQL advanced setup: TypeScript and workflow files on pull requests, all three languages nightly on `main`. Replaces GitHub default setup, which must stay off | none/maintenance | Advisory |
 | `abstraction-improver.yaml` | Scheduled agent flattens single-implementation interfaces, forwarding wrappers, re-export-only barrels | none/maintenance | Advisory (`continue-on-error`) |
 | `abstraction-police.yaml` | Scheduled agent fixes layering violations found by `check:*` plus the import greps no script covers | none/maintenance | Advisory (`continue-on-error`) |
 | `anti-slop-ratchet.yaml` | Daily agent drives anti-slop (rule, tree) pairs to zero, regenerates the enforced overrides, and proves the new ratchet can fail. Every fourth run takes a large pair instead of a nearly-done tree — this is where the app trees' `as any` and missing return types are worked, since `type-safety.yaml` folded into it | none/maintenance | Advisory |
@@ -56,7 +67,7 @@ hatch. The same workflow's **`reliability-ring1`** job runs on every push to
 | `duplicate-unifier.yaml` | Scheduled agent merges duplicated implementations found by a sliding-window hash | none/maintenance | Advisory (`continue-on-error`) |
 | `eas-build.yml` | Cloud-build the Expo app in `mobile/` on EAS | none/maintenance | Manual / tag-gated |
 | `flaky-test-fixer.yaml` | Daily agent root-causes flakes from CI re-run history and randomized repeat runs | none/maintenance | Advisory (`continue-on-error`) |
-| `flatpak-ci.yml` | Build the Flatpak desktop package | none/maintenance | Required for its own job |
+| `flatpak-ci.yml` | Build the Flatpak desktop package once a day and on dispatch | none/maintenance | Required for its own job |
 | `genspend-pricing.yml` | Nightly GenSpend price sync; opens a PR when a price moved | none/maintenance | Advisory |
 | `internal-only-shipper.yaml` | Scheduled agent ships or deletes features gated to dev/internal builds | none/maintenance | Advisory (`continue-on-error`) |
 | `issue-triage.yml` | Labels new issues, flags duplicates, requests repro details | none/maintenance | n/a (read-only) |
@@ -65,7 +76,8 @@ hatch. The same workflow's **`reliability-ring1`** job runs on every push to
 | `logic-simplifier.yaml` | Scheduled agent simplifies the logic in one branch-dense function | none/maintenance | Advisory (`continue-on-error`) |
 | `marketing-ci.yml` | Typecheck/lint/build/Playwright smoke for the marketing site; deploys to Cloudflare Workers on push to main | none/maintenance | Required for `marketing/**` |
 | `model-watch.yml` | Weekly scan for new/changed provider models, files issues | none/maintenance | n/a |
-| `mutation-testing.yaml` | Weekly Stryker mutation-testing report | none/maintenance | Advisory |
+| `mutation-changed.yml` | `nodetool-mutator` on the functions a PR adds or rewrites in the mutation-tested packages; lists survivors | none/maintenance | Advisory |
+| `mutation-testing.yaml` | Weekly, differential `nodetool-mutator` report over the mutation-tested packages | none/maintenance | Advisory |
 | `opencode.yml` | Interactive assistant on `/oc` comments | none/maintenance | Advisory |
 | `performance-optimization.yaml` | Scheduled agent fixes React perf issues (memo, selectors) | none/maintenance | Advisory (`continue-on-error`) |
 | `publish.yaml` | Publish npm packages on a `v*` tag | none/maintenance | Required for its own job |
@@ -80,8 +92,6 @@ hatch. The same workflow's **`reliability-ring1`** job runs on every push to
 | `ui-primitives-compliance.yaml` | Scheduled agent migrates raw MUI imports to `ui_primitives/`, fixes hardcoded design tokens | none/maintenance | Advisory (`continue-on-error`) |
 | `useless-test-pruner.yaml` | Scheduled agent deletes or strengthens tests proven unable to fail under mutation | none/maintenance | Advisory (`continue-on-error`) |
 | `workflow-example-validation.yaml` | Weekly `nodetool validate` + repair of shipped example workflows | none/maintenance | Advisory (`continue-on-error`) |
-
-51 workflow files, 10 in the three rings (3 Ring 0, 5 Ring 1, 2 Ring 2), 41 none/maintenance.
 
 F2 wires this table into the actual gates:
 
@@ -104,16 +114,17 @@ F2 wires this table into the actual gates:
   nightly schedule, and on dispatch, and is never `continue-on-error` — a
   failure fails the workflow run outright. `fly-deploy.yml` now
   workflow_run-triggers on both `docker.yml` and `user-journeys.yml`
-  completing, and its new `gate` job polls the GitHub API for both
-  workflows' conclusion on the triggering commit before `deploy` runs —
-  whichever of the two finishes second is the run that actually reaches
-  `deploy` (the other is superseded by `fly-deploy`'s existing
-  `cancel-in-progress` concurrency group). Because that gate reads a
-  per-commit conclusion, `user-journeys.yml` does not cancel superseded runs
-  on `main` — a run cancelled by the next merge would read as "Ring 1 failed"
-  and block the release. And when the gate does see a red or cancelled
-  upstream for a commit `main` has already moved past, it skips the deploy
-  instead of failing: that commit's image is not what anyone is releasing.
+  completing. Its `gate` job reads both workflows' conclusion on the
+  triggering commit once and never waits: when one has not finished, it
+  exits without deploying, and that workflow's own completion runs the gate
+  again. Releases run serially with `cancel-in-progress: false`, so a later
+  event cannot interrupt a draining replica. The host rechecks the release
+  gates. Because the gate reads a per-commit conclusion,
+  `user-journeys.yml` does not cancel superseded runs on `main` — a run
+  cancelled by the next merge would read as "Ring 1 failed" and block the
+  release. And when the gate sees a commit `main` has already moved past, it
+  skips the deploy instead of failing: that commit's image is not what anyone
+  is releasing.
 - **Ring 2**: `release.yaml` gained a per-OS "Reliability Ring 2
   packed-backend journey" step right after each OS's existing smoke-boot
   step, running linear-text-pipeline against that OS's packed backend
@@ -135,15 +146,62 @@ job counts as a pass for a required check, so the check still lands.
 
 The prose set is `docs/**`, the Markdown at the repo root, `AGENTS.md` and
 `CLAUDE.md` anywhere, and the Markdown under `.github/`. Markdown that code
-reads at run time is deliberately outside it — a sandbox pack's `SKILL.md` or a
-package `README.md` runs the full gate.
+reads at run time is deliberately outside it — a shipped skill's `SKILL.md`
+under `packages/system-skills/` selects the agents suites, and a package
+`README.md` runs the full gate.
 
 It fails safe in both directions: the filter step is `continue-on-error` and
 its output falls back to "there is code here", and the legs skip only on an
 explicit "prose only", so a `changes` job that never reported runs everything.
 
-Prose still gets its own checks: `docs-lint.yml` on any `**/*.md`, and
+Prose still gets its own checks: `docs-lint.yml` on any `**/*.md` (link check
+and `check-agents-docs.mjs`), and
 `docs-ci.yml` (site build plus link check) on `docs/**`.
+
+## Legs chosen per diff
+
+`test.yml`'s `changes` job runs [`scripts/ci-plan.mjs`](../../scripts/ci-plan.mjs)
+`plan` over the diff and passes the JSON it prints to `quality-checks.yml`.
+That workflow's own `changes` job filters its leg list by the plan and hands
+the result to the `static` and `built` matrices, so a leg the diff cannot
+reach never takes a runner. GitHub cannot drop a static matrix entry by
+expression, which is why the leg list lives in that job as data.
+
+The planner reuses `buildPlan` from `scripts/test-affected.mjs`, the mapping
+`npm run test:affected` applies locally. Its rules are pinned by
+`scripts/__tests__/ci-plan.test.mjs`:
+
+- A changed file outside every workspace that is not documentation, or a
+  change to the gate itself (`test.yml`, `quality-checks.yml`,
+  `.github/actions/`, the two planner scripts), runs every leg.
+- Each `test-packages-*` shard runs when the diff affects a package in its
+  slice, and applies Turbo's `--affected` inside it when the plan's
+  `turbo_affected` is true. Turbo attributes a file outside every workspace
+  directory to the root, which no package depends on, so for such a diff
+  `--affected` would select no task and the shard would pass without testing
+  anything. That covers every full plan and the directories a workspace owns
+  from outside (`EXTRA_WORKSPACE_PATHS` in `packages/cli/src/affected/affected.ts`:
+  `reliability/journeys`, `packages/system-skills`, `packages/sandbox-packs`).
+  The shard then runs its whole slice, and turbo's task hashes decide what
+  reruns. Each owner lists its directory in its `test` inputs in `turbo.json`.
+- Web runs three `--shard`ed Jest legs when a package it depends on changed,
+  one `--findRelatedTests` leg when only files under `web/src` changed (test
+  setup and `__mocks__` excepted), and nothing otherwise. Electron and mobile
+  share one leg that runs the step `buildPlan` chose for each.
+- Integration tests run when the diff reaches `base-nodes`, the
+  workflow-runner browser suite when it reaches `workflow-runner`, and the
+  TypeScript 6 build when a manifest, tsconfig, lockfile or `.nvmrc` changes.
+- The `docker` leg runs when the image's own files change, never on push.
+
+The base commit is the PR base, the merge group base, or the commit before a
+push. Pushes to `main` therefore test only their own diff, and they are never
+cancelled by the next push, because a cancelled run would leave its commit
+untested. The nightly scheduled run has no base and runs every leg in full,
+including the docker smoke test, the TypeScript 6 build and `harness gate
+--all`. An empty plan, from a planner that failed, also runs every leg.
+
+The web shards restore a Jest transform cache (`.jest-cache`) and save it only
+off pull requests, so PR commits do not evict the dependency and build caches.
 
 ## marketing/ is scoped out of the gate
 
@@ -155,7 +213,7 @@ Only one of the three is actually separable, and the gate now reflects that.
 `quality-checks.yml` takes it as the `shared` input. It is false only for a
 diff confined to `marketing/**` (plus that workflow's own file), and then every
 leg inside the gate skips — the same mechanism, and the same fail-safe reading,
-as `docs-only`. `integration` and `workflow-runner-e2e` skip with it. Before
+as `docs-only`. `integration` and `workflow-runner-e2e`, which also live in the gate, skip with it. Before
 this, a one-line marketing copy change built ~55 backend packages, typechecked
 three apps, ran every suite, built the container image and drove two browser
 E2E jobs.
@@ -210,8 +268,8 @@ with entries older than two weeks dropped. The per-SHA `turbo-*` cache the
 `build` job saves holds build tasks only (restore-only legs never save), so
 before this a test task was a cache miss on every commit. With the test archive
 layered on top, a package whose inputs and dependency builds are unchanged
-replays its last pass. On PRs `--affected` prunes first, so this mostly pays on
-push to `main`, where nothing else prunes. The archive is kept apart from
+replays its last pass. `--affected` prunes first, so this mostly pays in the
+nightly full run. The archive is kept apart from
 `.turbo/cache` itself because that directory also holds the ~650 MB of restored
 build outputs, and four shards saving it per commit would evict the
 node_modules and build caches from the repository's 10 GB.

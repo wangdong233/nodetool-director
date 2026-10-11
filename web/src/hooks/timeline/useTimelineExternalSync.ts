@@ -8,7 +8,8 @@
  * `updated_at` and, when the writer attached them, the ops it was made with.
  * `documentSync` compares the token against what this editor last saved with.
  * A clean editor takes the server copy (refetch + reload the store, which
- * also re-baselines autosave); a dirty one merges the external change per
+ * also re-baselines autosave, with undo history rebased rather than cleared);
+ * a dirty one merges the external change per
  * merge unit — draft wins, refused values land in the conflict banner, and
  * no undo entry is recorded for work the user did not make (ADR 0001).
  */
@@ -25,19 +26,21 @@ import {
 } from "../../stores/timeline/TimelineStore";
 import {
   mergeTimelineDocuments,
-  timelineConflictKey,
-  type TimelineMergeDoc
+  timelineConflictKey
 } from "../../stores/timeline/merge";
 import { useConflictStore } from "../../stores/ConflictStore";
 import { trpc, trpcClient } from "../../trpc/client";
 import type { DocumentOp } from "@nodetool-ai/protocol";
 import { isTimelineDocumentDirty } from "./useTimelineAutosave";
-import { applyTimelineSequenceToStore } from "./useLoadTimelineIntoStore";
+import { adoptExternalTimelineSequence } from "./useLoadTimelineIntoStore";
 import {
   applyAcceptedTimelineConflict,
   listableTimelineConflicts,
   rebaseTimelineSnapshots,
-  timelineTypedDocumentOf
+  timelineMergeDocumentOf,
+  timelineMergeDocumentOfSequence,
+  timelineTypedDocumentOf,
+  withHistoryPaused
 } from "./timelineExternalMerge";
 
 export function useTimelineExternalSync(sequenceId: string | null): void {
@@ -54,8 +57,17 @@ export function useTimelineExternalSync(sequenceId: string | null): void {
       // in flight — loading this one over it would be the clobber the whole
       // mechanism exists to avoid.
       if (store.getState().sequenceId !== sequenceId) return;
+      // Fetches settle out of order. A copy that is not newer than the token
+      // this editor already holds would replace newer work with older work.
+      const held = store.getState().baseUpdatedAt;
+      if (
+        isOlderUpdatedAt(sequence.updatedAt, held) ||
+        sequence.updatedAt === held
+      ) {
+        return;
+      }
       utils.timeline.get.setData({ id: sequenceId }, sequence);
-      applyTimelineSequenceToStore(store, sequence);
+      adoptExternalTimelineSequence(store, sequence);
     };
     return registerDocumentSync("timelinesequence", sequenceId, {
       localRevision: () => {
@@ -116,34 +128,11 @@ export function useTimelineExternalSync(sequenceId: string | null): void {
             return;
           }
 
-          const draft: TimelineMergeDoc = {
-            tracks: before.tracks,
-            clips: before.clips,
-            markers: before.markers,
-            mediaTracks: before.mediaTracks,
-            transcript: before.transcript,
-            scriptEnabled: before.scriptEnabled,
-            fps: before.fps,
-            width: before.width,
-            height: before.height,
-            camera2d: before.camera2d ?? null
-          };
-          const serverDoc: TimelineMergeDoc = {
-            tracks: sequence.tracks ?? [],
-            clips: sequence.clips ?? [],
-            markers: sequence.markers ?? [],
-            mediaTracks: sequence.mediaTracks ?? [],
-            transcript: sequence.transcript ?? [],
-            scriptEnabled: sequence.scriptEnabled ?? false,
-            fps: sequence.fps,
-            width: sequence.width,
-            height: sequence.height,
-            camera2d: sequence.camera2d ?? null
-          };
+          const draft = timelineMergeDocumentOf(before);
           // The document as this editor last read or wrote it; without one
           // (a merge racing the initial load) the draft stands in as base.
-          const base: TimelineMergeDoc = before.syncedDocument ?? draft;
-
+          const base = before.syncedDocument ?? draft;
+          const serverDoc = timelineMergeDocumentOfSequence(sequence, base);
           const { doc, conflicts, nextBase } = mergeTimelineDocuments(
             base,
             draft,
@@ -153,31 +142,16 @@ export function useTimelineExternalSync(sequenceId: string | null): void {
 
           // No history entry: merged external work never enters the undo
           // stack (ADR 0001). Reflow happens inside the action.
-          const temporal = timelineTemporalOf(store);
-          temporal.pause();
-          try {
+          withHistoryPaused(store, () => {
             store.getState().applyExternalMerge(timelineTypedDocumentOf(doc));
-          } finally {
-            temporal.resume();
-          }
+          });
 
           // External values adopted by the merge must also be reflected in
           // both undo directions. Otherwise undo restores a checkpoint from
           // before the agent write and removes the agent's clips or tracks.
           // Conflicted units are unchanged in `doc`, so their old checkpoint
           // values remain available for the user's later accept/discard choice.
-          const beforeDoc: TimelineMergeDoc = {
-            tracks: before.tracks,
-            clips: before.clips,
-            markers: before.markers,
-            mediaTracks: before.mediaTracks,
-            transcript: before.transcript,
-            scriptEnabled: before.scriptEnabled,
-            fps: before.fps,
-            width: before.width,
-            height: before.height,
-            camera2d: before.camera2d ?? null
-          };
+          const beforeDoc = draft;
           const rebasedTemporal = timelineTemporalOf(store);
           store.temporal.setState({
             pastStates: rebaseTimelineSnapshots(

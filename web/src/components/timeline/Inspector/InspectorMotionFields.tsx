@@ -14,7 +14,7 @@
 import React, { memo, useCallback, useState } from "react";
 import { parseEasing, type ShapeFill } from "@nodetool-ai/timeline";
 
-import { Caption, FlexColumn, SPACING, TextInput } from "../../ui_primitives";
+import { Caption, FlexColumn, SPACING, TextInput, BatchedColorInput } from "../../ui_primitives";
 import { useTranslation } from "react-i18next";
 import {
   InspectorPillInput,
@@ -61,6 +61,8 @@ export const TextCommitField: React.FC<TextCommitFieldProps> = memo(
         onBlur={() => {
           setFocused(false);
           if (draft !== value) onCommit(draft);
+          // Show what the store kept: a rejected draft must not stay on screen.
+          setDraft(value);
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -122,6 +124,7 @@ export const EasingField: React.FC<EasingFieldProps> = memo(
           <InspectorPillInput
             value={value ?? ""}
             placeholder="linear"
+            allowEmpty
             minWidth={140}
             onCommit={handleCommit}
             ariaLabel={ariaLabel}
@@ -217,13 +220,10 @@ export const FillFields: React.FC<FillFieldsProps> = memo(
         </InspectorRow>
         {fill?.type === "solid" && (
           <InspectorRow label={t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
-            <TextInput
-              type="color"
+            <BatchedColorInput
               value={fill.color}
-              onChange={(event) =>
-                onChange({ type: "solid", color: event.target.value })
-              }
-              inputProps={{ "aria-label": `${labelPrefix} color` }}
+              onChange={(color) => onChange({ type: "solid", color })}
+              ariaLabel={`${labelPrefix} color`}
             />
           </InspectorRow>
         )}

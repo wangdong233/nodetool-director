@@ -77,6 +77,8 @@ vi.mock("@nodetool-ai/chat", () => ({
 }));
 
 vi.mock("@nodetool-ai/agents", async () => ({
+  mergeSystemSkills: () => [],
+  formatSkillCatalogForPrompt: () => "",
   // The permission ladder is the real one: the session's gate is built from
   // it, and a second copy of the classification map is the thing A2 exists to
   // prevent.
@@ -86,7 +88,8 @@ vi.mock("@nodetool-ai/agents", async () => ({
   ...(await import("../../runtime/src/permission-gate.js")),
   EXECUTE_CODE_TOOL_NAME: "execute_code",
   PERMISSION_GATE_CONTEXT_KEY: "nodetool_permission_gate",
-  gateTools: (tools: unknown[]) => tools,
+  capabilityRunForLegacyTool: () => undefined,
+  gateLegacyTools: (tools: unknown[]) => tools,
   Tool: class {
     name = "";
     description = "";
@@ -163,16 +166,33 @@ vi.mock("@nodetool-ai/agents", async () => ({
   })
 }));
 
+// The belt is the server's: builtins plus the platform tools. The platform
+// half pulls in the websocket package, so the suite answers with the builtins.
+vi.mock("../src/agent-toolbelt.js", async () => {
+  const agents = await import("@nodetool-ai/agents");
+  return { buildCliToolbelt: () => agents.getBuiltinTools() };
+});
+
+let _mockChatSpy = vi.fn();
 let _mockCancelJobSpy = vi.fn();
 let _mockGetStatusSpy = vi.fn();
 let _mockStopSpy = vi.fn();
+/** What the next WebSocket chat turn streams; null keeps the default reply. */
+let _nextChatEvents: Array<{ type: string; content?: string; message?: string }> | null = null;
 
 vi.mock("../src/websocket-client.js", () => ({
   WebSocketChatClient: class {
     constructor(_url: string) {}
     async connect() {}
     disconnect() {}
-    async *chat(): AsyncGenerator<{ type: string; content?: string }> {
+    async *chat(
+      ...args: unknown[]
+    ): AsyncGenerator<{ type: string; content?: string }> {
+      _mockChatSpy(...args);
+      if (_nextChatEvents) {
+        yield* _nextChatEvents;
+        return;
+      }
       yield { type: "chunk", content: "ws-response" };
       yield { type: "done" };
     }
@@ -243,7 +263,7 @@ describe("runStdinMode — empty / whitespace input", () => {
         model: "gpt-4o",
         workspaceDir: "/tmp"
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toBe(0);
   });
 });
 
@@ -467,6 +487,56 @@ describe("runStdinMode — WebSocket chat", () => {
       wsUrl: "ws://test"
     });
     expect(stdoutLines.some((s) => s.includes("ws-response"))).toBe(true);
+  });
+
+  it("resolves 0 when every turn is answered", async () => {
+    _nextLines = ["Hello WS"];
+    const code = await runStdinMode({
+      provider: "openai",
+      model: "gpt-4o",
+      workspaceDir: "/tmp",
+      wsUrl: "ws://test"
+    });
+    expect(code).toBe(0);
+  });
+
+  // A server-side failure (bad key, dropped socket) used to print `Error:` and
+  // still exit 0, so a script could not tell it from an answer.
+  it("resolves 1 when the server reports an error for a turn", async () => {
+    _nextLines = ["Hello WS"];
+    _nextChatEvents = [{ type: "error", message: "provider rejected the key" }];
+    try {
+      const code = await runStdinMode({
+        provider: "openai",
+        model: "gpt-4o",
+        workspaceDir: "/tmp",
+        wsUrl: "ws://test"
+      });
+      expect(code).toBe(1);
+      expect(stderrLines.join("")).toContain("provider rejected the key");
+    } finally {
+      _nextChatEvents = null;
+    }
+  });
+
+  it("sends --permission-mode to the server, which holds the gate", async () => {
+    _mockChatSpy = vi.fn();
+    _nextLines = ["Hello WS"];
+    await runStdinMode({
+      provider: "openai",
+      model: "gpt-4o",
+      workspaceDir: "/tmp",
+      wsUrl: "ws://test",
+      permissionMode: "auto"
+    });
+    expect(_mockChatSpy).toHaveBeenCalledWith(
+      "Hello WS",
+      expect.any(String),
+      "gpt-4o",
+      "openai",
+      undefined,
+      { permissionMode: "auto" }
+    );
   });
 });
 

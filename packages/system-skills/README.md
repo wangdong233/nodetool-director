@@ -24,6 +24,44 @@ directory, and a file beside `SKILL.md` — the last two are mistakes the loader
 would otherwise absorb in silence, leaving the skill out of the catalog with no
 error anywhere.
 
+## What the prompt carries
+
+Every turn carries a catalog of the user's own skills and of the shipped
+skills whose frontmatter says `featured: true`. The others are named by count
+and found with `list_skills({query})`, which matches a query word by word. The
+catalog is rendered by `formatSkillCatalogForPrompt` in
+`packages/agents/src/skill-prompt.ts`. Feature the entry point of each
+surface and the motion craft skills beside `motion-graphics`, because a
+timeline piece needs them before the first call. The model guides are reached
+through `find_model`, and the brief shapes and `api-*` references through the
+skills and prompt lines that point at them.
+
+## The object-model references
+
+One `api-*` skill for each area of the `nodetool` object model that code
+actions call. The prompt lists each namespace as a line of signatures and
+names its skill; the skill holds every option, return shape and example.
+`NAMESPACE_DOCS` in `packages/agents/src/codeact/nodetool-api.ts` maps a
+namespace to its skill.
+
+| Skill | Namespaces |
+| :--- | :--- |
+| `api-workflows` | `workflows`, `jobs`, `nodes` |
+| `api-models` | `models` |
+| `api-media` | `media`, `generations` |
+| `api-assets` | `assets`, `documents` |
+| `api-web` | `web`, `email` |
+| `api-memory` | `memory`, `shared`, `threads` |
+| `api-agents` | `agents` |
+| `api-settings` | `settings`, `secrets` |
+| `api-collections` | `collections` |
+| `api-apps` | `apps` |
+| `api-timelines` | `timelines` |
+| `api-sketches` | `sketches` |
+| `api-scripts` | `scripts` |
+| `api-storyboards` | `storyboards` |
+| `api-games` | `games` |
+
 ## The surfaces
 
 One skill per NodeTool document kind, for the agent inside the product and the
@@ -47,17 +85,21 @@ one working on this repository alike.
 | `nodetool-troubleshooter` | A failing run, routed to the surface it belongs to, and stuck generations |
 | `nodetool-skill-author` | Writing a user skill row or a shipped one |
 | `storyboard-core` | Storyboards, entity casting, rendering, timeline assembly — the contract the job skills quote |
-| `godot-game` | A playable Godot game or a complete asset pack |
+| `native-game` | Built-in games, generated asset installation, and playtests |
+| `game-direction` | Game feel, teaching beats, layered art, and completion evidence |
 
 The job skills that sit on `storyboard-core`, each one a brief shape rather
 than a tool contract: `ugc-video`, `product-commercial`, `script-video`,
-`short-film`, `video-clone`, `launch-kit`, `video-workflow`.
+`short-film`, `video-clone`, `launch-kit`, `video-workflow`, `motion-ad`.
+`motion-ad` is the one that renders nothing by default: its board holds the
+real product images as stills and its motion is built on the timeline.
 
 ## The craft and the model lines
 
 | Skill | Answers |
 | :--- | :--- |
-| `motion-graphics` | The timeline tool contract: roles, presets, transitions, groups, masks, mattes, effects, validate and preview |
+| `motion-graphics` | The build loop, choosing between the code pack and edit ops, and the review pass |
+| `timeline-edit-ops` | The `edit_timeline` op contract: roles, presets, transitions, groups, masks, mattes, effects, validate and preview |
 | `motion-curves` | Custom animations — curves by hand, or a JS body baked in the sandbox |
 | `motion-principles` | Durations, easing, stagger, weight, anticipation — the numbers before the call |
 | `motion-direction` | The motion language a whole piece obeys, and the audit against it |

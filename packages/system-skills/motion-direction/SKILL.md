@@ -1,6 +1,7 @@
 ---
 name: motion-direction
 description: Set the motion language for a piece before anything is animated — one easing family, one timing unit, one transition family, one stagger rhythm — and audit a timeline against it. Use when starting a title pass or a whole cut, when animation feels busy, cheap or inconsistent across shots, or when turning a brand or brief into motion rules an agent can follow. Not for individual clip mechanics — that is motion-graphics.
+featured: true
 ---
 
 # Motion Direction → the rules everything else obeys
@@ -32,12 +33,85 @@ tool calls.
 | Stagger rhythm | One `offsetMs` and one `from` | 80ms, `from: "start"` |
 | Motion intensity | The travel, scale and overshoot budget | `distance` ≤ 0.15, `overshoot` ≤ 1.05 |
 | Hold discipline | Minimum stillness between moves | ≥ 400ms with nothing animating |
-| Type family | One bundled font | `Inter` for UI, `Bebas Neue` for a title card |
+| Type family and weights | One bundled family and a weight for each text tier | `Inter` 800 for the hero, 400 for support |
 | Space and focus | One camera path and a depth plan, if the piece needs 2.5D | Hero at `depthPx: 0`, background farther away |
 | Shutter and texture | Which layers blur, echo, or step | Hero blur on the impact, background held |
 
 Two easings maximum: one for entrances and landings, one for exits. A third has
 to justify itself.
+
+## Match depth to the brief
+
+For a showcase, hero, launch, or "best" piece, plan each scene with a background
+bed, midground, foreground, and a grain or grade finish. Group each scene. Use
+path shapes, masks, repeaters, style tracks, animation links, and effects where
+they give the composition depth. Read the full document with `get_timeline` and
+use `set_timeline_document` for fields `edit_timeline` cannot write, including
+`styleTracks` and `repeater`.
+
+Study a shipped reference before building. Call `list_example_timelines` to
+choose a slug, then `get_example_timeline` to read its stats, scene catalog and
+first scene excerpt. Use `scene_id` to choose another scene and `clip_offset` /
+`clip_limit` to page through its layers. The CodeAct forms are
+`nodetool.timelines.examples.list()` and
+`nodetool.timelines.examples.get("kite", {clip_limit: 12})`. No library install
+or repository filesystem is needed. Kite, Prism, Voltra and Tidewater show
+different ways to group scenes and combine keyframed layers. Cadence shows a
+vertical data story built from the chart helpers and a reusable component.
+
+Build with the craft methods, not hand-keyframed fades. `video({palette,
+fonts, ...})` from `@nodetool-ai/sandbox-timeline` gives every scene
+`s.backdrop()`, `s.glow()`, `s.flash()`, `s.kicker()`, `s.pill()`,
+`s.streaks()` and `s.finish()` — the vocabulary the shipped examples build
+scenes from. A slam, a rise or a grow is `el.enter()`/`el.animate()` with the
+right `from`/props (`title.enter({from: {scale: 1.35, blur: 26, opacity: 0}})`
+is a slam), a count-up is `el.count()`, a draw-on is `el.draw()`. The depth
+plan below maps directly onto the API — reach for one of these before a bare
+`animate()` custom curve:
+
+| Plane | Built with |
+|---|---|
+| Background bed | `s.backdrop()`, `s.streaks()`, a low-amplitude `el.loop()` |
+| Midground | supporting elements, laid out in a container (`frame-composition`'s `s.stack`/`s.row`) |
+| Hero | the one element with the boldest `el.enter()`/`el.animate()`, on the beat |
+| Finish | `s.finish()` inside each scene, or `v.adjust()` for a whole-video grade after `v.series()` |
+
+Plan every showcase scene across all four before writing the hero's
+animation. Read the pack documentation
+(`nodetool.packs.docs("@nodetool-ai/sandbox-timeline")`) for every method's
+signature. Budget for a generated still or music bed in a showcase unless the
+user sets a cost limit.
+
+After saving a showcase, call
+`validate_timeline` with `{"timeline_id":"<id>","tier":"showcase"}`, or
+`nodetool.timelines.validate(id, {tier: "showcase"})`. Address its warnings
+about scene groups, custom keyframes, finish, camera and concurrent visual
+layers. These checks inspect document structure. Preview the result to judge
+composition and readability. Standard validation remains appropriate for
+ordinary edits and intentionally minimal pieces.
+
+## Typography
+
+Choose the family and weights in the motion-language spec before building text
+clips. NodeTool ships `Inter`, `Space Grotesk`, `Bebas Neue`, `Playfair Display`,
+`Lora`, and `JetBrains Mono`. Use one family across a piece and make the hero
+visibly heavier than support, such as Inter 800 against 400. `Bebas Neue` ships
+only at 400, so use size and spacing for contrast if you choose it.
+
+On a 1920×1080 frame, start a hero title at 96–160 `fontSizePx`, support at
+42–64, and a short kicker at 28–36. Keep large display tracking tight
+(`letterSpacingPx` −2 to 1); open an uppercase kicker to 2–5px. Check the
+actual words at the target frame size and adjust for fit and legibility.
+
+For an existing text clip, `edit_timeline` can set the type as a
+`set_clip_params` patch:
+
+```json
+{"timeline_id":"<id>","ops":[{"op":"set_clip_params","target":"Hero title","textStyle":{"fontFamily":"Inter","fontWeight":800,"letterSpacingPx":-1,"fontSizePx":128}}]}
+```
+
+`timeline-edit-ops` owns the full op contract. `frame-composition` handles
+placement and safe areas for each aspect ratio.
 
 ## Tone and energy
 
@@ -86,9 +160,11 @@ picture it darkens and the text it carries. For a camera move, set clip
 can keyframe position and depth while `focusDepthPx` and `aperturePx` decide
 which plane softens. Keep one plane legible while the others move.
 
-Use `layout` relations for elements whose spacing should survive a text or
-shape change: a `row` or `stack` holds ordered child IDs, a `relative` clip
-follows a target box, and `fitText` sizes a plate from live text. Use
+Use `layout` (a flex container on a group clip, its real children via
+`parentId`) for elements whose spacing should survive a text or shape
+change: `flexDirection: "row" | "column"` with `gap` keeps siblings apart,
+and a plate sized from live text is a `flexItem: {position: "absolute",
+inset: 0}` sibling in a padded container. Use
 `animationLinks` when one clip should follow another's authored position,
 scale, rotation, or opacity. Linked followers share one motion decision;
 they do not chain through a second link.
@@ -162,3 +238,12 @@ every clip against the spec. A miss is a direction defect, not a preference.
 Then look: `preview_timeline_frame` over the midpoints of the moves you just
 audited. An audit that only read the document has checked the spec, not the
 picture.
+
+## Required example comparison
+
+Run the review pass `motion-graphics` owns (its `## Review pass`) once, not
+twice per piece — contact sheet, per-scene checklist, example comparison,
+`tier: "showcase"` validation, and a real revision. Judge what comes back
+against this page's spec too: does the busiest scene still respect Motion
+hierarchy, does Restraint survive under the example's density, is the chosen
+Motion personality still legible once the gaps are closed.

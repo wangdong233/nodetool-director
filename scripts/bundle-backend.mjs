@@ -16,12 +16,15 @@
  *   <out>/server.mjs          — single bundled ESM entry point
  *   <out>/server.mjs.map      — source map
  *   <out>/_modules/           — external packages staged for the target
+ *   <out>/optional-node/      — optional runtime packages, nested npm tree
+ *                               (server profile only)
  *   <out>/package.json        — { "type": "module" }
  *   <out>/js-sandbox-worker/worker-entry.js
  *                             — QuickJS sandbox worker thread entry
  *   <out>/db-migrate.mjs      — bundled migration runner (--with-migrate only)
  */
 
+import { spawnSync } from "child_process";
 import esbuild from "esbuild";
 import fs from "fs";
 import fsp from "fs/promises";
@@ -108,6 +111,7 @@ const REQUIRED_EXTERNAL_PACKAGES = [
   "@mediabunny/server",
   "node-av",
   "webgpu",
+  "esbuild",
 ];
 
 // Staged into _modules/ on every profile.
@@ -140,10 +144,8 @@ const COMMON_EXTERNAL_PACKAGES = [
   "msgpackr-extract",
   "@msgpackr-extract/*",
   "bufferutil",
-  "utf-8-validate",
 
   // Large optional packages (dynamic await import())
-  "pdfjs-dist",
   "@napi-rs/canvas",
   "chart.js",
   // The sandbox uses Mediabunny in browsers and on Node. Keep both packages
@@ -154,18 +156,17 @@ const COMMON_EXTERNAL_PACKAGES = [
   "node-av",
   // Modules that source code lazy-imports but whose own top-level imports
   // would be hoisted into server.mjs if inlined, defeating the lazy intent.
-  // pdf-parse hoisted `pdfjs-dist/legacy/build/pdf.mjs` and crashed on
-  // `new DOMMatrix()` at backend startup. Same trap waits for any package
-  // that side-effects at module init.
-  "office-text-extractor",
-  "pdf-parse",
-  "@llamaindex/liteparse",
+  // Same trap waits for any package that side-effects at module init.
   "@hyzyla/pdfium",
-  "tesseract.js",
   // Emscripten package with a package-relative .wasm asset. Keeping it external
   // preserves import.meta.url so emscripten-module.wasm resolves next to the
   // package's own JS instead of next to backend/server.mjs.
   "@jitl/quickjs-ng-wasmfile-release-sync",
+  // The sandbox compiler bundles npm modules for the QuickJS guest with
+  // esbuild's JS API, which refuses to run once inlined (it locates its
+  // native binary relative to its own lib/main.js). Staging it keeps that
+  // layout and brings the @esbuild/<platform> binary along.
+  "esbuild",
 
   // Cloud/optional services (dynamic import via variable + webpackIgnore)
   "@supabase/supabase-js",
@@ -179,6 +180,7 @@ const COMMON_EXTERNAL_PACKAGES = [
   "@opentelemetry/resources",
   "@opentelemetry/sdk-trace-base",
   "@opentelemetry/exporter-trace-otlp-proto",
+  "@opentelemetry/instrumentation-undici",
   "@opentelemetry/semantic-conventions",
 
   // MCP SDK (deep-path imports like /server/mcp.js)
@@ -199,10 +201,35 @@ const DESKTOP_ONLY_EXTERNAL_PACKAGES = [
   // packages/runtime/src/providers/oauth/secure-credential-store.ts) are lazy
   // try/catch imports, and headless deployments run without a keychain.
   "keytar",
-  // Server: dev-only in the workspace (reached via @playwright/test); the
-  // Docker image ships no browser automation runtime.
-  "playwright",
-  "playwright-core",
+];
+
+// Optional runtime packages (electron/src/runtime/packages/definitions.ts).
+// The backend loads each through `importOptionalModule`, which esbuild cannot
+// see, and the desktop app installs it from the Package Manager the first time
+// a run needs it, so the desktop profile ships none of them. The Docker image
+// has no Package Manager, so the server profile installs them into
+// `optional-node/`, a nested npm tree the backend reaches through
+// NODETOOL_OPTIONAL_NODE_MODULES, as the desktop app's own install does.
+// Staging them in the flat `_modules/` instead lets their old transitive
+// versions (tslib 1, readable-stream 2) shadow the newer ones other staged
+// packages need.
+const SERVER_OPTIONAL_PACKAGES = [
+  // pdf-js
+  "@llamaindex/liteparse",
+  "pdf-parse",
+  "pdf-lib",
+  // office-documents
+  "exceljs",
+  "docx",
+  "mammoth",
+  "pptxgenjs",
+  "office-text-extractor",
+  "epub2",
+  // tesseract-ocr
+  "tesseract.js",
+  // email-imap
+  "imapflow",
+  "mailparser",
 ];
 
 const EXTERNAL_PACKAGES =
@@ -219,6 +246,16 @@ const ESBUILD_ONLY_EXTERNAL_PACKAGES = [
   // unzipper requires this only inside its optional S3 source adapter but
   // does not declare it. Keep the optional branch unresolved unless used.
   "@aws-sdk/client-s3",
+  // 3D game capture (packages/game-renderer/src/node3d.ts). The desktop app
+  // installs it through the Package Manager, and the Docker image ships no
+  // browser automation runtime.
+  "playwright",
+  "playwright-core",
+  // Optional runtime packages, installed on demand (see above). pdf-parse
+  // must never be inlined: it hoisted `pdfjs-dist/legacy/build/pdf.mjs` into
+  // server.mjs, which crashed on `new DOMMatrix()` at backend startup.
+  ...SERVER_OPTIONAL_PACKAGES,
+  "pdfjs-dist",
 ];
 const esbuildOnlyExternalSet = new Set(ESBUILD_ONLY_EXTERNAL_PACKAGES);
 
@@ -513,6 +550,33 @@ async function stageSystemSkills(sourceDirRel) {
   return staged;
 }
 
+/**
+ * Every `{"kind": "js", "npm": …}` module a shipped sandbox pack declares.
+ *
+ * The directory repeats SHIPPED_SANDBOX_PACKS_SOURCE_DIR
+ * (`packages/config/src/package-asset-registry.ts`), which is imported only
+ * after the external packages are copied.
+ */
+function listShippedSandboxPackNpmModules() {
+  const sourceDir = path.join(ROOT_DIR, "packages", "sandbox-packs");
+  const modules = [];
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const packRoot = path.join(sourceDir, entry.name);
+    const manifestPath = path.join(packRoot, "package.json");
+    if (!fs.existsSync(manifestPath)) continue;
+    const pkgJson = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    const declared = pkgJson.nodetool?.sandboxModules;
+    if (!Array.isArray(declared)) continue;
+    for (const module of declared) {
+      if (module?.kind === "js" && typeof module.npm === "string") {
+        modules.push({ npmName: module.npm, packRoot, pack: pkgJson.name });
+      }
+    }
+  }
+  return modules;
+}
+
 async function stageShippedSandboxPacks(sourceDirRel) {
   console.log("\nStaging the sandbox packs NodeTool ships...");
   const sourceDir = path.join(ROOT_DIR, sourceDirRel);
@@ -598,6 +662,18 @@ async function copyExternalPackages() {
         queue.push({ name: pkgName, resolveFrom: ROOT_DIR });
         queued.add(pkgName);
       }
+    }
+  }
+
+  // The npm libraries the shipped guest packs compile. Nothing in server.mjs
+  // imports them, so esbuild never sees them. The sandbox compiler resolves
+  // each one from the staged pack under `_sandbox/`, which walks up to
+  // backend/node_modules once afterPack promotes `_modules/`.
+  const packNpmModules = listShippedSandboxPackNpmModules();
+  for (const { npmName, packRoot } of packNpmModules) {
+    if (!queued.has(npmName)) {
+      queue.push({ name: npmName, resolveFrom: packRoot });
+      queued.add(npmName);
     }
   }
 
@@ -694,6 +770,17 @@ async function copyExternalPackages() {
     throw new Error(
       `Required external packages not found: ${missingRequired.join(", ")}. ` +
       `Run 'npm install' in the workspace root first.`
+    );
+  }
+  const missingPackModules = packNpmModules.filter(
+    ({ npmName }) => !copiedPackages.has(npmName)
+  );
+  if (missingPackModules.length > 0) {
+    throw new Error(
+      `npm module(s) for shipped sandbox packs not found: ` +
+      `${missingPackModules.map((m) => `${m.npmName} (${m.pack})`).join(", ")}. ` +
+      `Declare each one as a devDependency of @nodetool-ai/sandbox-compiler ` +
+      `and run 'npm install'.`
     );
   }
 
@@ -851,7 +938,8 @@ async function pruneTargetedPackages(modulesDir) {
  * load-native.cjs). Delete the prebuilds that can't load on the bundle
  * target. Guard: never delete anything unless a prebuild matching
  * TARGET_PLATFORM/TARGET_ARCH is confirmed present, so a wrong
- * NODETOOL_BUNDLE_PLATFORM leaves the package untouched. On linux both -gnu
+ * NODETOOL_BUNDLE_PLATFORM leaves the package untouched. On darwin every
+ * darwin prebuild is kept for after-pack.cjs to trim. On linux both -gnu
  * and -musl variants of the target arch are kept, and unknown-token files
  * (e.g. a local node-web-audio-api.build-release.node) are never touched.
  * Returns bytes reclaimed.
@@ -879,6 +967,10 @@ async function pruneWebAudioPrebuilds(modulesDir) {
     if (!KNOWN_PLATFORMS.has(platform)) continue; // local builds etc. — keep
     if (platform === TARGET_PLATFORM && arch === TARGET_ARCH) {
       targetMatched = true;
+    } else if (platform === "darwin" && TARGET_PLATFORM === "darwin") {
+      // One macOS bundle feeds both the arm64 and x64 apps. after-pack.cjs
+      // removes the other arch's prebuild from each app.
+      continue;
     } else {
       removable.push(file);
     }
@@ -975,6 +1067,60 @@ async function buildSandboxWorkerBundle() {
   console.log("  Wrote js-sandbox-worker/worker-entry.js");
 }
 
+/**
+ * Install the optional runtime packages into `<out>/optional-node` for the
+ * server profile, at the versions the workspace resolved. npm lays them out
+ * nested, so each keeps the transitive versions it was published against.
+ */
+async function installServerOptionalPackages() {
+  const root = path.join(BUNDLE_DIR, "optional-node");
+  const dependencies = {};
+  for (const name of SERVER_OPTIONAL_PACKAGES) {
+    const pkgRoot = resolvePackageRoot(name);
+    if (!pkgRoot) {
+      throw new Error(
+        `Optional runtime package ${name} is not installed in the workspace. ` +
+          `Run 'npm install' in the workspace root first.`
+      );
+    }
+    dependencies[name] = await packageVersion(pkgRoot);
+  }
+  await fsp.mkdir(root, { recursive: true });
+  await fsp.writeFile(
+    path.join(root, "package.json"),
+    JSON.stringify({ private: true, type: "module", dependencies }, null, 2) +
+      "\n"
+  );
+  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+  const install = spawnSync(
+    npm,
+    [
+      "install",
+      "--omit=dev",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--no-package-lock",
+    ],
+    { cwd: root, stdio: "inherit", shell: process.platform === "win32" }
+  );
+  if (install.status !== 0) {
+    throw new Error(
+      `npm install of the optional runtime packages failed (exit ${install.status})`
+    );
+  }
+  const missing = Object.keys(dependencies).filter(
+    (name) =>
+      !fs.existsSync(path.join(root, "node_modules", name, "package.json"))
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `Optional runtime packages missing after install: ${missing.join(", ")}`
+    );
+  }
+  return Object.keys(dependencies).length;
+}
+
 async function main() {
   console.log(
     `Building hybrid backend bundle with esbuild (profile: ${PROFILE})...\n`
@@ -1030,6 +1176,12 @@ async function main() {
   // --- Copy external packages ---
   console.log("\nCopying external packages to staged backend modules...");
   const copiedCount = await copyExternalPackages();
+
+  if (PROFILE === "server") {
+    console.log("\nInstalling optional runtime packages into optional-node/...");
+    const installed = await installServerOptionalPackages();
+    console.log(`  Installed ${installed} optional runtime packages`);
+  }
 
   // Drop prebuilt binaries for other platforms/arches from packages that ship
   // all of them in one package.
@@ -1312,9 +1464,24 @@ async function main() {
     await copyDir(exampleTimelinesSrc, exampleTimelinesDest);
   }
 
+  const exampleGamesSrc = path.join(BASE_NODES_NODETOOL_DIR, "examples", "games");
+  const exampleGamesDest = path.join(BUNDLE_DIR, "examples", "games");
+  if (fs.existsSync(exampleGamesSrc)) {
+    await fsp.mkdir(path.dirname(exampleGamesDest), { recursive: true });
+    await copyDir(exampleGamesSrc, exampleGamesDest);
+  }
+
   if (fs.existsSync(assetsSrc)) {
     await fsp.mkdir(path.dirname(assetsDest), { recursive: true });
-    await copyDir(assetsSrc, assetsDest);
+    // Storyboard films play from media.nodetool.ai, so the app does not ship them.
+    await fsp.cp(assetsSrc, assetsDest, {
+      recursive: true,
+      force: true,
+      preserveTimestamps: true,
+      filter: (source) =>
+        path.basename(source) !== "node_modules" &&
+        !/[\\/]storyboards[\\/][^\\/]+[\\/][^\\/]+\.mp4$/i.test(source),
+    });
     const assetCount = (await fsp.readdir(assetsDest)).filter((f) =>
       /\.(jpg|jpeg|png|gif|webp)$/i.test(f)
     ).length;

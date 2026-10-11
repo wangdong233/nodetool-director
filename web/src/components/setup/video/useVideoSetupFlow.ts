@@ -9,11 +9,24 @@
  * before this flow existed (D3, criterion 2).
  */
 
-import { createElement, useCallback, useMemo, useState } from "react";
+import { i18n } from "../../../i18n";
+import {
+  createElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
+import { clampShotCount } from "@nodetool-ai/protocol";
 import type { TimelineSetupStage } from "@nodetool-ai/timeline";
 
-import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import {
+  useTimelineStore,
+  useTimelineStoreApi
+} from "../../../stores/timeline/TimelineStore";
+import {
+  directedPlanBrief,
   usePlanBeats,
   videoPlanFingerprint,
   type PlanBeatsContext
@@ -24,7 +37,7 @@ import type {
   SetupStep
 } from "../types";
 import type { VideoSetupContext, VideoSetupReference } from "./setupContext";
-import { useVideoSetupContext } from "./setupContext";
+import { readVideoSetupContext, useVideoSetupContext } from "./setupContext";
 
 export type { VideoSetupContext, VideoSetupReference } from "./setupContext";
 import { FormatStep } from "./FormatStep";
@@ -35,7 +48,6 @@ import { ReviewStep } from "./ReviewStep";
 import { videoFormatById } from "./formats";
 import { toLanguageModelValue, useDirectorModel } from "./directorModel";
 import {
-  productionAuthoringBlocker,
   productionGenerationBlocker,
   productionReviewFingerprint,
   REVIEW_REQUIRED,
@@ -141,14 +153,20 @@ const FLOW_LABELS = { title: "Video", titleKey: "home:entry.video.title" } as co
  * whether the plan on the document still answers the current inputs (F15).
  */
 export interface VideoSetupFlowOptions {
-  /** Runs after the last step writes stage `done` — the host opens the cut. */
-  onFinish?: () => void;
+  /**
+   * Runs after the last step writes stage `done` — the host opens the cut. The
+   * step stays pending until it settles, so a host can save first.
+   */
+  onFinish?: () => void | Promise<void>;
   /**
    * Hands the brief to the script flow (E3); its `Send to timeline` returns.
    * A host that cannot open a script passes nothing, and the card is offered
    * disabled rather than enabled with nothing behind it (F5).
    */
-  onStartFromScript?: (brief: string) => void;
+  onStartFromScript?: (
+    brief: string,
+    creativeContext?: VideoSetupContext["creativeContext"]
+  ) => void;
 }
 
 export const useVideoSetupFlow = ({
@@ -159,6 +177,11 @@ export const useVideoSetupFlow = ({
   const stage = useVideoSetupStage();
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();
+  const [importingMedia, setImportingMedia] = useState(false);
+  // A Generate that failed after the host had replaced the shell with its
+  // wait. The shell that comes back never saw the failure, so Look keeps it.
+  const [generateError, setGenerateError] = useState<string>();
+  const store = useTimelineStoreApi();
   const setSetup = useTimelineStore((state) => state.setSetup);
   const brief = useTimelineStore((state) => state.setup?.brief ?? "");
   const formatId = useTimelineStore((state) => state.setup?.format);
@@ -171,7 +194,12 @@ export const useVideoSetupFlow = ({
   const clips = useTimelineStore((state) => state.clips);
   const beats = useTimelineStore((state) => state.setup?.beats);
   const updateBeat = useTimelineStore((state) => state.updateBeat);
-  const { plan, cancel: cancelPlan, planning } = usePlanBeats();
+  const {
+    plan,
+    cancel: cancelPlan,
+    planning,
+    error: planError
+  } = usePlanBeats();
   // The beats are drafted by whichever model the format step picked, so the
   // estimate, the block and the run all read the one field it writes.
   const director = useDirectorModel();
@@ -213,10 +241,11 @@ export const useVideoSetupFlow = ({
   );
   // The persisted fingerprint is the source of truth after reload. A missing
   // value is treated as current for legacy plans, preserving their old flow.
+  // The model is left out: switching it changes who drafts, not what the plan
+  // answers, so it must not force a paid re-plan.
   const inputsKey = videoPlanFingerprint({
     brief,
     formatId,
-    modelId: director.model?.id ?? "",
     context: planContext
   });
   const hasPlan = (beats?.length ?? 0) > 0;
@@ -271,18 +300,64 @@ export const useVideoSetupFlow = ({
   );
 
   const onStageChange = useCallback(
-    (next: TimelineSetupStage) => setSetup({ stage: next }),
+    (next: TimelineSetupStage) => {
+      setGenerateError(undefined);
+      setSetup({ stage: next });
+    },
     [setSetup]
   );
 
-  const finish = useCallback(() => {
-    setSetup({ stage: "done" });
-    onFinish?.();
-  }, [onFinish, setSetup]);
+  // Jobs may already be away when this runs, so it never throws: a rejection
+  // would put a paid retry on the button.
+  const handOver = useCallback(async () => {
+    try {
+      await onFinish?.();
+    } catch {
+      // The host owns opening the cut. The document already reads `done`.
+    }
+  }, [onFinish]);
 
+  // Whether a step of this flow wrote `done` and owns the hand-off.
+  const handingOverRef = useRef(false);
+  // Whether this flow showed a step. An empty store reads `done` before the
+  // document loads, and a document loaded as `done` is the host's to finish.
+  const sawStepRef = useRef(false);
+  // The agent can write `done` while the flow is up (`ui_timeline_set_setup`,
+  // `ui_timeline_generate_from_beats`). No step answers for it, so the host
+  // would wait forever. Once any clips are away, this hands over instead.
+  const clipsAway = useTimelineStore((state) => {
+    const prepared = state.setup?.prepared_generation;
+    return prepared === undefined || prepared.status === "submitted";
+  });
+  useEffect(() => {
+    if (stage !== "done") {
+      sawStepRef.current = true;
+      handingOverRef.current = false;
+      return;
+    }
+    if (!sawStepRef.current || handingOverRef.current || !clipsAway) {
+      return;
+    }
+    handingOverRef.current = true;
+    void handOver();
+  }, [clipsAway, handOver, stage]);
+
+  const finish = useCallback(async () => {
+    handingOverRef.current = true;
+    setSetup({ stage: "done" });
+    await handOver();
+  }, [handOver, setSetup]);
+
+  // The creative context typed on step 1 goes too: the host discards this
+  // draft, and the script carries the same fields. Read at click time, so a
+  // field committed by the blur the click caused is included.
   const startFromScript = useCallback(
-    () => onStartFromScript?.(brief),
-    [brief, onStartFromScript]
+    () =>
+      onStartFromScript?.(
+        brief,
+        readVideoSetupContext(store.getState().setup).creativeContext
+      ),
+    [brief, onStartFromScript, store]
   );
 
   const runPlan = useCallback(
@@ -291,22 +366,73 @@ export const useVideoSetupFlow = ({
       // creator's edits shape the rewrite instead of being discarded (F15).
       // Nothing else is passed: `plan` reads its own context off the sequence —
       // the composer's references and entities, and any clips the creator
-      // dropped on step 1 (F4, F10, PRD § 8.1).
-      await plan({ replan: hasPlan, signal: operation?.signal });
+      // dropped on step 1 (F4, F10, PRD § 8.1). A plan that was not written
+      // returns false, so the shell stays on this step instead of advancing
+      // to an empty review.
+      return plan({ replan: hasPlan, signal: operation?.signal });
     },
     [hasPlan, plan]
   );
 
+  // The planner keeps one error for every run. The review shows it only for
+  // its own Re-plan, and only until the creator leaves the review: a failed
+  // format-step plan, or a Re-plan that failed before Back, is not this
+  // visit's news.
+  const [replanErrorStage, setReplanErrorStage] =
+    useState<TimelineSetupStage | null>(null);
+  if (replanErrorStage !== null && replanErrorStage !== stage) {
+    setReplanErrorStage(null);
+  }
+
   const replan = useCallback(() => {
     // The review's own `Re-plan` runs outside the shell's primary button, so a
-    // refusal has no button to land on; the step keeps the plan it had and the
-    // hook's error is what the creator sees next.
+    // refusal has no button to land on. The step keeps the plan it had and
+    // the review shows the hook's error.
+    setReplanErrorStage("review");
     void runPlan().catch(() => undefined);
   }, [runPlan]);
+  const reviewPlanError = replanErrorStage === "review" ? planError : null;
 
   // Nothing generated is worth carrying into the paid step: an empty beat
   // renders an empty prompt, and a beat with no length renders nothing at all
   // (F20).
+  // A plan over dropped media writes one beat per placed clip, so the cost
+  // line counts what `planBeats` will ask for rather than the template's.
+  const placedClips = planContext.clips?.length ?? 0;
+  const draftBeatCount =
+    placedClips > 0
+      ? clampShotCount(placedClips)
+      : videoFormatById(formatId)?.beatCount;
+  const draftResult =
+    draftBeatCount === undefined
+      ? "Draft the beats"
+      : `Draft ${draftBeatCount} beat${draftBeatCount === 1 ? "" : "s"}${
+          placedClips > 0 ? ", one per clip" : ""
+        }`;
+
+  // The estimate prices what the Director is sent, not only the brief: the
+  // context lines and, on a re-plan, the edited plan go with it.
+  const plannedBrief = directedPlanBrief({
+    brief,
+    context: planContext,
+    previous: hasPlan ? beats : undefined
+  });
+
+  const reviewBlocker = productionGenerationBlocker(beats ?? [], false);
+
+  // The review's Re-plan is the same paid run as the format step's button,
+  // so it carries the same model, price and wait beside it.
+  const replanGeneration = useMemo(
+    () => ({
+      result: draftResult,
+      next: "Your edited plan guides the new beats, which replace these.",
+      model: director.model ? toLanguageModelValue(director.model) : null,
+      brief: plannedBrief,
+      maxOutputTokens: 8192
+    }),
+    [director.model, draftResult, plannedBrief]
+  );
+
   const emptyBeats = (beats ?? []).filter(
     (beat) => beat.prompt.trim().length === 0 || !(beat.duration_ms > 0)
   ).length;
@@ -315,18 +441,26 @@ export const useVideoSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: t("storyboard:attrs.continue", { defaultValue: "Continue" }),
-        canAdvance: brief.trim().length > 0 && !contextError,
-        blockedReason:
-          contextError ?? t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }),
-        render: () =>
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
+        primaryLabel: i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" }),
+        // An upload still running would land after the stage moved, and the
+        // plan would be drafted without that media, so Continue waits for it.
+        canAdvance:
+          brief.trim().length > 0 && !contextError && !importingMedia,
+        blockedReason: importingMedia
+          ? "Uploading your media"
+          : (contextError ?? i18n.t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" })),
+        // Change flow discards this draft, so it waits for the upload too.
+        holdNavigation: importingMedia,
+        render: (context) =>
           createElement(IdeaStep, {
+            readOnly: context?.readOnly ?? false,
             // The blank escape hatch and the last step land in the same place:
             // stage `done` and the timeline (PRD § 8.1).
-            onStartBlank: finish,
+            onStartBlank: () => void finish(),
             onStartFromScript: onStartFromScript ? startFromScript : undefined,
-            onValidationChange: setContextError
+            onValidationChange: setContextError,
+            onImportingChange: setImportingMedia
           })
       },
       {
@@ -340,28 +474,35 @@ export const useVideoSetupFlow = ({
         primaryLabel: planIsCurrent
           ? t("storyboard:attrs.continueToTheBeats", { defaultValue: "Continue to the beats" })
           : hasPlan
-            ? t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" })
-            : t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
+            ? i18n.t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" })
+            : i18n.t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
+        // A reopened draft carries the model it last used, which the
+        // providers may have dropped since, so the plan waits for the list.
         canAdvance:
-          videoFormatById(formatId) !== null && director.model !== null,
+          videoFormatById(formatId) !== null &&
+          director.model !== null &&
+          !director.loading,
         blockedReason:
           videoFormatById(formatId) === null
-            ? t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" })
-            : t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
+            ? i18n.t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" })
+            : director.loading
+              ? "Loading the models that can draft the beats"
+              : director.error
+                ? "The model list could not be read"
+                : director.noProvider
+                  ? "No provider offers a language model"
+                  : i18n.t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
         generation: planIsCurrent
           ? undefined
           : {
-              result: t("storyboard:attrs.draftCountBeats", {
-                defaultValue: "Draft {{count}} beats",
-                count: videoFormatById(formatId)?.beatCount ?? "the"
-              }),
+              result: draftResult,
               next: hasPlan
-                ? t("storyboard:attrs.theBriefOrTemplateChangedYourEditedPlanWillGuideTheNewBeats", { defaultValue: "The brief or template changed. Your edited plan will guide the new beats." })
-                : t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
+                ? "Your inputs changed since this plan was drafted. Your edited plan will guide the new beats."
+                : i18n.t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
               model: director.model
                 ? toLanguageModelValue(director.model)
                 : null,
-              brief,
+              brief: plannedBrief,
               maxOutputTokens: 8192,
               concise: true,
               hideTokenEstimate: true
@@ -369,7 +510,10 @@ export const useVideoSetupFlow = ({
         footerControls: (context) =>
           createElement(DirectorModelPicker, { readOnly: context.readOnly }),
         pending: planning,
-        pendingLabel: t("storyboard:attrs.planningTheBeats", { defaultValue: "Planning the beats" }),
+        pendingLabel: i18n.t("storyboard:attrs.planningTheBeats", { defaultValue: "Planning the beats" }),
+        // The wait can be the agent's plan, which no button of this step
+        // started, so Cancel stops whichever run holds the sequence.
+        onCancel: cancelPlan,
         render: () => createElement(FormatStep),
         // The Director runs here and writes text only — no clip, no job (D4,
         // criterion 3). A refused run leaves the creator on the format step
@@ -378,16 +522,15 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "review",
-        label: t("timeline:attrs.beats", { defaultValue: "Beats" }),
-        primaryLabel: t("storyboard:attrs.continueToLook", { defaultValue: "Continue to look" }),
+        label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
+        primaryLabel: i18n.t("storyboard:attrs.continueToLook", { defaultValue: "Continue to look" }),
+        // The look step's own check, so Continue is never offered toward a
+        // Generate that refuses the plan (on-camera speech, invalid takes).
         canAdvance:
-          hasPlan &&
-          emptyBeats === 0 &&
-          !reviewError &&
-          !productionAuthoringBlocker(beats ?? []),
+          hasPlan && emptyBeats === 0 && !reviewError && !reviewBlocker,
         blockedReason:
           reviewError ??
-          productionAuthoringBlocker(beats ?? []) ??
+          reviewBlocker ??
           (hasPlan
             ? t("storyboard:attrs.fillInTheBeatsEveryBeatNeedsADescriptionAndALength", {
                 defaultValue: "Fill in {{count}} beat{{plural}}: every beat needs a description and a length",
@@ -405,7 +548,9 @@ export const useVideoSetupFlow = ({
           createElement(ReviewStep, {
             onReplan: replan,
             replanPending: planning,
-            onValidationChange: setReviewError
+            error: reviewPlanError,
+            onValidationChange: setReviewError,
+            generation: replanGeneration
           }),
         onAdvance: () => {
           setSetup({ production_review_fingerprint: reviewKey });
@@ -413,18 +558,25 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "look",
-        label: t("editor:ui.look", { defaultValue: "Look" }),
-        primaryLabel: t("storyboard:attrs.generateYourVideo", { defaultValue: "Generate your video" }),
-        canAdvance: !productionBlocker && look.canAdvance,
-        blockedReason: productionBlocker ?? look.blockedReason,
-        primaryDetail: look.primaryDetail,
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
+        primaryLabel: i18n.t("storyboard:attrs.generateYourVideo", { defaultValue: "Generate your video" }),
+        // The agent can re-plan while Look is up. Generate would render
+        // beats that are about to be replaced.
+        canAdvance: !productionBlocker && !planning && look.canAdvance,
+        blockedReason:
+          productionBlocker ??
+          (planning ? "The beats are being planned" : look.blockedReason),        primaryDetail: look.primaryDetail,
+        // The placeholders are written before the first await, so a Cancel
+        // could never leave the draft unchanged.
+        cancelable: false,
         render: () =>
           createElement(LookStep, {
             voiceOn,
             musicOn,
             onVoiceChange: handleVoice,
             onMusicChange: handleMusic,
-            musicAvailable: look.musicAvailable
+            musicAvailable: look.musicAvailable,
+            error: generateError
           }),
         // `generate` writes the terminal stage itself, before it enqueues
         // anything (D3); the host opens the timeline once the jobs are away.
@@ -432,36 +584,69 @@ export const useVideoSetupFlow = ({
           if (productionBlocker) {
             throw new Error(productionBlocker);
           }
-          await look.generate(operation?.signal);
-          onFinish?.();
+          setGenerateError(undefined);
+          handingOverRef.current = true;
+          // `generate` writes `done` before its last save, and the host then
+          // replaces the shell with its wait. A failure after that returns
+          // to Look in a shell that never saw it, so the step shows it.
+          let leftShell = false;
+          const unsubscribe = store.subscribe((state) => {
+            if (state.setup?.stage === "done") {
+              leftShell = true;
+            }
+          });
+          try {
+            await look.generate(operation?.signal);
+          } catch (cause) {
+            handingOverRef.current = false;
+            if (leftShell) {
+              setGenerateError(
+                cause instanceof Error ? cause.message : String(cause)
+              );
+            }
+            throw cause;
+          } finally {
+            unsubscribe();
+          }
+          await handOver();
         }
       }
     ],
     [
       brief,
-      beats,
       cancelPlan,
+      director.error,
+      director.loading,
       director.model,
+      director.noProvider,
       contextError,
+      draftResult,
       emptyBeats,
       finish,
       formatId,
+      generateError,
+      handOver,
       handleMusic,
       handleVoice,
       hasPlan,
+      importingMedia,
       look,
       musicOn,
-      onFinish,
       onStartFromScript,
       planIsCurrent,
+      plannedBrief,
       planning,
       productionBlocker,
+      reviewBlocker,
       reviewKey,
       reviewError,
+      reviewPlanError,
+      replanGeneration,
       setSetup,
       replan,
       runPlan,
       startFromScript,
+      store,
       voiceOn
     ]
   );

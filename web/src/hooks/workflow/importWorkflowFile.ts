@@ -9,6 +9,11 @@
 
 import { graph as graphSchema } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
+import type { WorkflowManagerState } from "../../stores/WorkflowManagerStore";
+import { graphEdgeToReactFlowEdge } from "../../stores/graphEdgeToReactFlowEdge";
+import { graphNodeToReactFlowNode } from "../../stores/graphNodeToReactFlowNode";
+import { queueWorkflowSave } from "./useWorkflowSetup";
+
 export interface ImportedWorkflowGraph {
   nodes: unknown[];
   edges: unknown[];
@@ -48,4 +53,56 @@ export async function readWorkflowFile(
     );
   }
   return { nodes: result.data.nodes, edges: result.data.edges };
+}
+
+/**
+ * Put an imported graph on an open workflow and save it.
+ *
+ * The setup flow's stage write that follows saves the canvas, not the row, so
+ * the graph has to reach the canvas too or that save writes it back empty.
+ */
+export async function importWorkflowGraph(
+  state: Pick<
+    WorkflowManagerState,
+    "getWorkflow" | "updateWorkflow" | "getNodeStore" | "saveWorkflow"
+  >,
+  workflowId: string,
+  imported: ImportedWorkflowGraph
+): Promise<void> {
+  const workflow = state.getWorkflow(workflowId);
+  if (!workflow) {
+    throw new Error(`Workflow ${workflowId} is not open.`);
+  }
+  const graph = imported as NonNullable<typeof workflow.graph>;
+  const next = { ...workflow, graph };
+  state.updateWorkflow(next);
+  const nodeStore = state.getNodeStore(workflowId)?.getState();
+  const canvasBefore = nodeStore
+    ? { nodes: nodeStore.nodes, edges: nodeStore.edges }
+    : null;
+  if (nodeStore) {
+    nodeStore.setNodes(
+      graph.nodes.map((node) => graphNodeToReactFlowNode(next, node))
+    );
+    nodeStore.setEdges(graph.edges.map(graphEdgeToReactFlowEdge));
+  }
+  try {
+    // Behind any setup save on the wire, which carries the same
+    // `expected_updated_at` and would refuse this one.
+    await queueWorkflowSave(state, workflowId);
+  } catch (cause) {
+    // The creator stays on the idea step. A graph left in memory would ride
+    // along with the next stage save, and the build would place the plan
+    // beside nodes they were told did not import.
+    const current = state.getWorkflow(workflowId);
+    if (current) {
+      const restored = { ...current, graph: workflow.graph };
+      state.updateWorkflow(restored);
+    }
+    if (nodeStore && canvasBefore) {
+      nodeStore.setNodes(canvasBefore.nodes);
+      nodeStore.setEdges(canvasBefore.edges);
+    }
+    throw cause;
+  }
 }

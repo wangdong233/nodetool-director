@@ -12,14 +12,14 @@
  * bridge factory (`@nodetool-ai/agents`). Tests supply their own and load
  * neither.
  */
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
 import type {
   SketchDebugReport,
   SketchInteractionRecord,
   SketchValidation
 } from "@nodetool-ai/execution/sketch-debug";
 import type { SketchInteractionStep } from "./interactions.js";
+import { runInteractionSteps } from "../interaction-script.js";
+import { writeDebugBundle } from "../debug-bundle.js";
 import {
   resolveSketchTarget,
   type ResolvedSketchTarget,
@@ -131,16 +131,6 @@ async function loadBridgeFactory(): Promise<CreateSketchBridge> {
     createSketchToolBridge(
       initial as Parameters<typeof createSketchToolBridge>[0]
     ) as SketchBridge;
-}
-
-function defaultOutDir(ref: string): string {
-  const slug =
-    ref
-      .replace(/[^a-zA-Z0-9_-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "sketch";
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return resolve(`nodetool-debug/sketch-${slug}-${stamp}`);
 }
 
 /** Load a sketch and validate it — no bridge, no bundle. */
@@ -270,41 +260,9 @@ export async function runSketchDebug(
       bridgeInit.height = resolved.document.canvas.height;
     }
     const bridge = createBridge(bridgeInit);
-    const byName = new Map(bridge.tools.map((t) => [t.name, t]));
-
-    for (const step of steps) {
-      const tool = byName.get(step.tool);
-      if (!tool) {
-        const known = [...byName.keys()].sort().join(", ");
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error: `No sketch tool named "${step.tool}". Available: ${known}.`
-        });
-        deps.onLog?.(`✗ ${step.tool}: unknown tool`);
-        continue;
-      }
-      try {
-        const result = await tool.execute(step.input);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: true,
-          result
-        });
-        deps.onLog?.(`✓ ${step.tool}`);
-      } catch (e) {
-        const error = e instanceof Error ? e.message : String(e);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error
-        });
-        deps.onLog?.(`✗ ${step.tool}: ${error}`);
-      }
-    }
+    interactions.push(
+      ...(await runInteractionSteps(steps, bridge.tools, "sketch", deps.onLog))
+    );
     snapshot = bridge.finalState();
   }
 
@@ -326,25 +284,14 @@ export async function runSketchDebug(
   }
   const report = await core.buildSketchDebugReport(reportInput);
 
-  const bundleDir = options.outDir
-    ? resolve(options.outDir)
-    : defaultOutDir(ref);
-  await mkdir(bundleDir, { recursive: true });
-  await writeFile(
-    join(bundleDir, "sketch.json"),
-    JSON.stringify(resolved.raw, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.json"),
-    JSON.stringify(report, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.md"),
-    core.renderSketchReportMarkdown(report),
-    "utf8"
-  );
+  const bundleDir = await writeDebugBundle({
+    kind: "sketch",
+    ref,
+    outDir: options.outDir,
+    raw: resolved.raw,
+    report,
+    reportMarkdown: core.renderSketchReportMarkdown(report),
+  });
 
   return { report, bundleDir };
 }

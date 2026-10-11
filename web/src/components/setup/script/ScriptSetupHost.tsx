@@ -15,10 +15,14 @@ import {
   useScriptStore,
   useScriptSetup
 } from "../../../stores/script/ScriptStore";
-import { useScriptServerSync } from "../../../hooks/script/useScriptServerSync";
+import {
+  flushScriptSync,
+  useScriptServerSync
+} from "../../../hooks/script/useScriptServerSync";
 import { useScriptAgentBridge } from "../../../hooks/script/useScriptAgentBridge";
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
+import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import { useScriptSetupFlow } from "./useScriptSetupFlow";
 import { i18n } from "../../../i18n";
 
@@ -49,7 +53,14 @@ const ScriptSetupHost = ({
 
   const loadState = useScriptServerSync(scriptId);
   useScriptAgentBridge(scriptId);
-  const config = useScriptSetupFlow({ scriptId, onFinish });
+  // The surface opened next loads the script from the server, and this
+  // host's teardown save races that load. Saving first means the server
+  // already holds stage `done` and the voicing record when the tab opens.
+  const finishAfterSave = useCallback(async () => {
+    await flushScriptSync(scriptId);
+    onFinish();
+  }, [onFinish, scriptId]);
+  const config = useScriptSetupFlow({ scriptId, onFinish: finishAfterSave });
   const setup = useScriptSetup(scriptId);
   const brief = setup?.brief ?? "";
 
@@ -57,6 +68,7 @@ const ScriptSetupHost = ({
     () => onChangeFlow?.(brief),
     [brief, onChangeFlow]
   );
+  useFinishIfLoadedDone(loadState === "ready", config.stage, onFinish);
 
   // The store seeds an empty script on mount, and an empty script's stage
   // reads `done` — rendering before the server copy lands would show no flow.

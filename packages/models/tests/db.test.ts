@@ -5,13 +5,19 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   closeDb,
-  getDb,
+  getPortableDb,
   getRawDb,
   initDb,
   initTestDb,
   migrateSqliteDb,
-  pingDb
+  pingDb,
+  resolvePostgresClientOptions
 } from "../src/db.js";
+
+import {
+  MigrationRunner,
+  SQLiteMigrationAdapter
+} from "../src/migrations/index.js";
 
 describe("db", () => {
   let tempDir: string | null = null;
@@ -30,7 +36,7 @@ describe("db", () => {
   });
 
   it("throws when database accessors are used before initialization", () => {
-    expect(() => getDb()).toThrow(/not initialized/i);
+    expect(() => getPortableDb()).toThrow(/not initialized/i);
     expect(() => getRawDb()).toThrow(/not initialized/i);
   });
 
@@ -39,7 +45,7 @@ describe("db", () => {
     const dbPath = join(tempDir, "models.sqlite");
 
     const db = initDb(dbPath);
-    expect(db).toBe(getDb());
+    expect(db).toBe(getPortableDb());
     expect(getRawDb().pragma("journal_mode", { simple: true })).toBe("wal");
     expect(initDb(dbPath)).toBe(db);
   });
@@ -169,7 +175,7 @@ describe("db", () => {
     const applied = await migrateSqliteDb(dbPath);
 
     expect(applied.length).toBeGreaterThan(0);
-    expect(() => getDb()).toThrow(/not initialized/i);
+    expect(() => getPortableDb()).toThrow(/not initialized/i);
 
     const sqlite = new Database(dbPath);
     try {
@@ -184,6 +190,130 @@ describe("db", () => {
     }
   });
 
+  it("runs both startup orders without skipping historical migrations", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "nodetool-startup-orders-"));
+    for (const migrateFirst of [false, true]) {
+      const path = join(tempDir, `${migrateFirst}.sqlite`);
+      if (migrateFirst) {
+        await migrateSqliteDb(path);
+      }
+      initDb(path);
+      const count = getRawDb()
+        .prepare("SELECT COUNT(*) AS count FROM _nodetool_migrations")
+        .get() as { count: number };
+      if (!migrateFirst) {
+        // Opening synchronously cannot pretend historical data transformations ran.
+        expect(count.count).toBe(1);
+      }
+      await closeDb();
+      const pending = await migrateSqliteDb(path);
+      expect(pending.length > 0).toBe(!migrateFirst);
+      initDb(path);
+      const exec = vi.spyOn(getRawDb(), "exec");
+      await closeDb();
+      exec.mockRestore();
+      expect(await migrateSqliteDb(path)).toEqual([]);
+    }
+  });
+
+  it("records the compatibility migration once and preserves existing rows", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "nodetool-legacy-once-"));
+    const path = join(tempDir, "legacy.sqlite");
+    const legacy = new Database(path);
+    legacy.exec(`CREATE TABLE nodetool_workflows (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL,
+      graph TEXT NOT NULL, access TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    ); INSERT INTO nodetool_workflows VALUES ('existing', 'owner', 'name', '{"nodes":[],"edges":[]}', 'private', 'old', 'old')`);
+    legacy.close();
+    initDb(path);
+    expect(
+      getRawDb()
+        .prepare(
+          "SELECT name, receive_clipboard FROM nodetool_workflows WHERE id = 'existing'"
+        )
+        .get()
+    ).toEqual({ name: "name", receive_clipboard: null });
+    const applied = getRawDb()
+      .prepare(
+        "SELECT applied_at FROM _nodetool_migrations WHERE version = '20261001_000000'"
+      )
+      .get();
+    await closeDb();
+    initDb(path);
+    expect(
+      getRawDb()
+        .prepare(
+          "SELECT applied_at FROM _nodetool_migrations WHERE version = '20261001_000000'"
+        )
+        .get()
+    ).toEqual(applied);
+    await closeDb();
+    await migrateSqliteDb(path);
+    initDb(path);
+    expect(
+      getRawDb()
+        .prepare("SELECT name FROM nodetool_workflows WHERE id = 'existing'")
+        .get()
+    ).toEqual({ name: "name" });
+  });
+
+  it.each(["20260103_000001", "20260829_000004", "20260927_000001", "20261004_000000"])(
+    "upgrades a tracked database at historical level %s",
+    // Replays durable file-backed migrations before testing the upgrade.
+    { timeout: 30_000 },
+    async (version) => {
+      tempDir = mkdtempSync(join(tmpdir(), "nodetool-historical-level-"));
+      const path = join(tempDir, "tracked.sqlite");
+      const historical = new Database(path);
+      try {
+        await new MigrationRunner(
+          new SQLiteMigrationAdapter(historical)
+        ).migrate({ target: version });
+        historical
+          .prepare(
+            `INSERT INTO nodetool_workflows (id, user_id, name, graph, access, created_at, updated_at)
+          VALUES ('kept', 'owner', 'historical row', '{"nodes":[],"edges":[]}', 'private', 'old', 'old')`
+          )
+          .run();
+      } finally {
+        historical.close();
+      }
+      await migrateSqliteDb(path);
+      initDb(path);
+      expect(
+        getRawDb()
+          .prepare("SELECT name FROM nodetool_workflows WHERE id = 'kept'")
+          .get()
+      ).toEqual({ name: "historical row" });
+      expect(
+        getRawDb()
+          .prepare(
+            "SELECT version FROM _nodetool_migrations ORDER BY version DESC LIMIT 1"
+          )
+          .get()
+      ).toEqual({ version: "20261006_000000" });
+      expect(
+        getRawDb()
+          .prepare("SELECT name FROM pragma_table_info('nodetool_jobs') WHERE name = 'has_run_trace'")
+          .get()
+      ).toEqual({ name: "has_run_trace" });
+      expect(await migrateSqliteDb(path)).toEqual([]);
+    }
+  );
+
+  it("does not expose a connection after compatibility migration failure", () => {
+    tempDir = mkdtempSync(join(tmpdir(), "nodetool-failed-baseline-"));
+    const path = join(tempDir, "invalid.sqlite");
+    const invalid = new Database(path);
+    invalid.exec(
+      "CREATE TABLE application_deployments (id TEXT, token TEXT); INSERT INTO application_deployments VALUES ('a', 'same'), ('b', 'same')"
+    );
+    invalid.close();
+    expect(() => initDb(path)).toThrow();
+    expect(() => getPortableDb()).toThrow(/not initialized/i);
+    expect(() => getRawDb()).toThrow(/not initialized/i);
+  });
+
   it("closeDb resets both the drizzle and raw database handles", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "nodetool-models-db-"));
     const dbPath = join(tempDir, "close.sqlite");
@@ -191,7 +321,7 @@ describe("db", () => {
     initDb(dbPath);
     await closeDb();
 
-    expect(() => getDb()).toThrow(/not initialized/i);
+    expect(() => getPortableDb()).toThrow(/not initialized/i);
     expect(() => getRawDb()).toThrow(/not initialized/i);
   });
 
@@ -222,12 +352,46 @@ describe("db", () => {
 
     try {
       await expect(closeDb()).resolves.toBeUndefined();
-      expect(() => getDb()).toThrow(/not initialized/i);
+      expect(() => getPortableDb()).toThrow(/not initialized/i);
       expect(() => getRawDb()).toThrow(/not initialized/i);
     } finally {
       (rawDb as Database.Database & { close: () => void }).close =
         originalClose;
       originalClose();
     }
+  });
+});
+
+describe("resolvePostgresClientOptions", () => {
+  const sessionUrl =
+    "postgresql://u:p@aws-0-eu-central-1.pooler.supabase.com:5432/postgres";
+  const transactionUrl =
+    "postgresql://u:p@aws-0-eu-central-1.pooler.supabase.com:6543/postgres";
+
+  it("keeps the default pool and prepared statements on a session pooler", () => {
+    expect(resolvePostgresClientOptions(sessionUrl, {})).toMatchObject({
+      max: 10,
+      prepare: true
+    });
+  });
+
+  it("caps the pool at DATABASE_POOL_MAX", () => {
+    expect(
+      resolvePostgresClientOptions(sessionUrl, { DATABASE_POOL_MAX: " 4 " }).max
+    ).toBe(4);
+  });
+
+  it("rejects a DATABASE_POOL_MAX that is not a positive integer", () => {
+    for (const value of ["0", "-2", "3.5", "many"]) {
+      expect(() =>
+        resolvePostgresClientOptions(sessionUrl, { DATABASE_POOL_MAX: value })
+      ).toThrow(/DATABASE_POOL_MAX/);
+    }
+  });
+
+  it("disables prepared statements on the transaction pooler port", () => {
+    expect(resolvePostgresClientOptions(transactionUrl, {}).prepare).toBe(
+      false
+    );
   });
 });

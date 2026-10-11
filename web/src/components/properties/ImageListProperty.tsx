@@ -6,9 +6,12 @@ import PropertyLabel from "../node/PropertyLabel";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { listDropzoneStyles } from "./shared/listDropzoneStyles";
 import { Tooltip, CloseButton, MOTION, SPACING, BORDER_RADIUS, Z_INDEX, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
+import { useNotificationStore } from "../../stores/NotificationStore";
+import { settleUploads } from "./shared/settleUploads";
 import ImageDimensions from "../node/ImageDimensions";
 import { isElectron } from "../../utils/browser";
 import {
@@ -18,6 +21,9 @@ import {
 } from "../../lib/dragdrop";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useUpstreamValue } from "../../hooks/nodes/useNodeIO";
+import { useAppendsStaticInput } from "../../hooks/nodes/useAppendsStaticInput";
+import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
+import { useOptionalNodes } from "../../contexts/NodeContext";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListImageThumb } from "./PropertyListThumb";
 import { i18n } from "../../i18n";
@@ -63,6 +69,10 @@ const styles = (theme: Theme) =>
         }
       }
     },
+    ".image-item.is-upstream": {
+      borderStyle: "dashed",
+      borderColor: theme.vars.palette.primary.main
+    },
     ".image-content": {
       position: "absolute",
       top: 0,
@@ -82,8 +92,8 @@ const styles = (theme: Theme) =>
     },
     ".remove-button": {
       position: "absolute",
-      top: "2px",
-      right: "2px",
+      top: getSpacingPx(SPACING.micro),
+      right: getSpacingPx(SPACING.micro),
       opacity: 0,
       transition: `opacity ${MOTION.normal}`,
       backgroundColor: theme.vars.palette.c_scrim,
@@ -100,47 +110,14 @@ const styles = (theme: Theme) =>
     ".remove-button .MuiSvgIcon-root": {
       fontSize: "var(--fontSizeNormal)"
     },
-    ".dropzone": {
-      position: "relative",
-      minHeight: "80px",
-      width: "100%",
-      border: "0",
-      maxWidth: "none",
-      textAlign: "center",
-      transition: MOTION.all,
-      outline: `1px dashed ${theme.vars.palette.grey[600]}`,
-      margin: `${theme.spacing(SPACING.sm)} 0`,
-      backgroundColor: theme.vars.palette.c_scrim_soft,
-      borderRadius: BORDER_RADIUS.md,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      "&:hover": {
-        outline: `1px dashed ${theme.vars.palette.grey[400]}`,
-        backgroundColor: theme.vars.palette.c_scrim_soft
-      },
-      "&.drag-over": {
-        backgroundColor: theme.vars.palette.grey[600],
-        outline: `2px dashed ${theme.vars.palette.grey[100]}`,
-        outlineOffset: "-2px"
-      }
-    },
-    ".dropzone p": {
-      textAlign: "center",
-      fontFamily: theme.fontFamily2,
-      textTransform: "uppercase",
-      letterSpacing: "1px",
-      fontSize: "var(--fontSizeSmaller)",
-      color: theme.vars.palette.grey[500],
-      margin: getSpacingPx(SPACING.xl),
-      lineHeight: "1.1em"
-    },
+    ...listDropzoneStyles(theme),
     ".image-dimensions": {
       opacity: 0,
       transition: `opacity ${MOTION.normal}`
     }
   });
+
+const EMPTY_IMAGES: ImageItem[] = [];
 
 // Helper to flatten potentially nested arrays of items (handles constants + lists)
 const flattenImageItems = (items: unknown): ImageItem[] => {
@@ -187,11 +164,29 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
     [upstreamValue]
   );
 
+  // A node that appends its static images keeps them editable while
+  // connected, and shows the connected images ahead of them.
+  const appendsStatic = useAppendsStaticInput(
+    props.nodeType,
+    props.property.name
+  );
+  const isConnectedSelector = useIsConnectedSelector(
+    props.nodeId,
+    props.property.name
+  );
+  const hasEdge = useOptionalNodes(isConnectedSelector, false);
+  const leadingUpstreamImages =
+    appendsStatic && hasEdge ? upstreamImages : EMPTY_IMAGES;
+
   // Convert value to array of ImageItem, flattening nested arrays
   const images: ImageItem[] = useMemo(
     () => flattenImageItems(props.value),
     [props.value]
   );
+  // Read at upload completion: the list may have changed while files uploaded.
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [imageDimensions, setImageDimensions] = useState<Record<string, { width: number; height: number }>>({});
@@ -200,15 +195,17 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
 
   const handleAddImages = useCallback(
     (newImages: ImageItem[]) => {
-      const updatedImages = [...images, ...newImages];
+      const updatedImages = [...imagesRef.current, ...newImages];
+      imagesRef.current = updatedImages;
       props.onChange(updatedImages);
     },
-    [images, props]
+    [props]
   );
 
   const handleRemoveImage = useCallback(
     (index: number) => {
       const updatedImages = images.filter((_, i) => i !== index);
+      imagesRef.current = updatedImages;
       // Clean up dimensions and refs for removed image
       const removedImageUri = images[index]?.uri;
       if (removedImageUri) {
@@ -330,13 +327,13 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
       );
 
       try {
-        const newImages = await Promise.all(uploadPromises);
+        const newImages = await settleUploads(uploadPromises, "images", addNotification);
         handleAddImages(newImages);
       } catch (error) {
         console.error("Failed to upload images:", error);
       }
     },
-    [uploadAsset, handleAddImages, filteredAssets, globalSearchResults, selectedAssets]
+    [uploadAsset, addNotification, handleAddImages, filteredAssets, globalSearchResults, selectedAssets]
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -392,13 +389,13 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
           });
         });
 
-        const newImages = await Promise.all(uploadPromises);
+        const newImages = await settleUploads(uploadPromises, "images", addNotification);
         handleAddImages(newImages);
       }
     } catch (error) {
       console.error("Error opening file picker:", error);
     }
-  }, [uploadAsset, handleAddImages]);
+  }, [uploadAsset, addNotification, handleAddImages]);
 
   // Handle files from browser file input
   const handleBrowserFilePicker = useCallback(() => {
@@ -434,7 +431,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
     );
 
     try {
-      const newImages = await Promise.all(uploadPromises);
+      const newImages = await settleUploads(uploadPromises, "images", addNotification);
       handleAddImages(newImages);
     } catch (error) {
       console.error("Failed to upload images:", error);
@@ -444,7 +441,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [uploadAsset, handleAddImages]);
+  }, [uploadAsset, addNotification, handleAddImages]);
 
   // Handle dropzone click - use native dialog in Electron, file input in browser
   const handleDropzoneClick = useCallback(() => {
@@ -455,7 +452,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
     }
   }, [handleNativeFilePicker, handleBrowserFilePicker]);
 
-  if (props.isConnected) {
+  if (props.isConnected && !appendsStatic) {
     return (
       <div className="image-list-property" css={cssStyles}>
         <PropertyLabel
@@ -514,8 +511,23 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
       />
 
       {/* Image Grid */}
-      {images.length > 0 && (
+      {(images.length > 0 || leadingUpstreamImages.length > 0) && (
         <div className="image-grid">
+          {leadingUpstreamImages.map((image, index) => (
+            <Tooltip
+              key={`upstream-${index}-${image.uri}`}
+              title="From the connected input"
+            >
+              <div className="image-item is-upstream">
+                <div className="image-content">
+                  <ListImageThumb
+                    item={image}
+                    alt={`Connected item ${index + 1}`}
+                  />
+                </div>
+              </div>
+            </Tooltip>
+          ))}
           {images.map((image, index) => (
             <div key={image.uri} className="image-item">
               <div className="image-content">

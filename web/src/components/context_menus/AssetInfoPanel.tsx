@@ -1,10 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import HistoryIcon from "@mui/icons-material/History";
 import {
   Text,
   Box,
   CopyButton,
+  EditorButton,
   FlexRow,
   BORDER_RADIUS,
   SPACING,
@@ -24,7 +27,8 @@ import { useAppLanguage } from "../../i18n";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useTranslation } from "react-i18next";
-
+import { useOpenAssetWorkflow } from "../../hooks/useOpenAssetWorkflow";
+import { useJobSnapshot } from "../../serverState/useJobSnapshot";
 /** Metadata keys rendered by their own section, not by the raw dump. */
 const RENDERED_METADATA_KEYS = new Set(["prompt", "generation"]);
 
@@ -81,6 +85,8 @@ const styles = (theme: Theme) =>
 
 interface AssetInfoPanelProps {
   asset: Asset;
+  /** Called after an action opened a workflow tab, so the host can close. */
+  onOpenWorkflow?: () => void;
 }
 
 /** Render one setting value; arrays join, so no `[object Object]` reaches the UI. */
@@ -107,13 +113,33 @@ function settingLabel(key: string) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
+  asset,
+  onOpenWorkflow
+}) => {  const theme = useTheme();
   // Subscribe so formatContentType/date reads re-render on language change.
   useAppLanguage();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
+  const { openWorkflow, openSnapshot } = useOpenAssetWorkflow();
+  // Older and headless runs may have no job row or no stored graph; the
+  // "as it was" action only shows when there is a graph to open.
+  const { data: snapshot } = useJobSnapshot(asset.job_id);
+  const runGraphSnapshot = snapshot?.graph ? snapshot : null;
+
+  const handleOpenWorkflow = useCallback(() => {
+    openWorkflow(asset);
+    onOpenWorkflow?.();
+  }, [asset, onOpenWorkflow, openWorkflow]);
+
+  const handleOpenSnapshot = useCallback(() => {
+    if (!runGraphSnapshot) {
+      return;
+    }
+    void openSnapshot(asset, runGraphSnapshot);
+    onOpenWorkflow?.();
+  }, [asset, onOpenWorkflow, openSnapshot, runGraphSnapshot]);
 
   const folderName = useMemo(() => {
     if (!asset.parent_id) {
@@ -171,11 +197,34 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
       )}
       <InfoRow label={t("editor:asset.info.created", { defaultValue: "Created" })} value={formatDateTime(asset.created_at)} />
 
-      {(folderName || workflowName) && (
+      {(folderName || workflowName || runGraphSnapshot) && (
         <div className="info-section">
           {folderName && <InfoRow label={t("editor:asset.info.folder", { defaultValue: "Folder" })} value={folderName} />}
           {workflowName && <InfoRow label={t("editor:asset.info.workflow", { defaultValue: "Workflow" })} value={workflowName} />}
-        </div>
+          {(asset.workflow_id || runGraphSnapshot) && (
+            <FlexRow gap={SPACING.xs} wrap sx={{ pt: SPACING.xs }}>
+              {asset.workflow_id && (
+                <EditorButton
+                  variant="outlined"
+                  startIcon={<AccountTreeIcon fontSize="small" />}
+                  onClick={handleOpenWorkflow}
+                  title="Open the saved workflow and show the node that made this asset"
+                >
+                  Open workflow
+                </EditorButton>
+              )}
+              {runGraphSnapshot && (
+                <EditorButton
+                  variant="outlined"
+                  startIcon={<HistoryIcon fontSize="small" />}
+                  onClick={handleOpenSnapshot}
+                  title="Open the graph and inputs this asset was made with as a new unsaved workflow"
+                >
+                  Open as it was when made
+                </EditorButton>
+              )}
+            </FlexRow>
+          )}        </div>
       )}
 
       {prompt && (

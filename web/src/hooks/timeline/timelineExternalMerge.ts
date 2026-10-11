@@ -7,9 +7,10 @@ import type {
 } from "@nodetool-ai/timeline";
 import { timelineCamera2d } from "@nodetool-ai/protocol/api-schemas/timeline.js";
 
-import type {
-  TimelinePartializedState,
-  TimelineStoreState
+import {
+  timelineTemporalOf,
+  type TimelinePartializedState,
+  type TimelineStoreState
 } from "../../stores/timeline/TimelineStore";
 import {
   rebaseDocumentSnapshots,
@@ -24,6 +25,7 @@ import { reflowGenerated } from "../../stores/timeline/transcriptOps";
 export type TimelineTypedDocument = Pick<
   TimelineStoreState,
   | "tracks"
+  | "trackFolders"
   | "clips"
   | "markers"
   | "mediaTracks"
@@ -32,12 +34,94 @@ export type TimelineTypedDocument = Pick<
   | "fps"
   | "width"
   | "height"
+  | "storyboardMaterializations"
   | "camera2d"
+  | "tempo"
+  | "setup"
 >;
 
 export const timelineTypedDocumentOf = (
   document: TimelineMergeDoc
 ): TimelineTypedDocument => document as unknown as TimelineTypedDocument;
+
+/** The merge-engine view of a store state or document snapshot. */
+export const timelineMergeDocumentOf = (
+  state: TimelineMergeDoc
+): TimelineMergeDoc => ({
+  tracks: state.tracks,
+  trackFolders: state.trackFolders,
+  clips: state.clips,
+  markers: state.markers,
+  mediaTracks: state.mediaTracks,
+  transcript: state.transcript,
+  scriptEnabled: state.scriptEnabled,
+  fps: state.fps,
+  width: state.width,
+  height: state.height,
+  storyboardMaterializations: state.storyboardMaterializations,
+  camera2d: state.camera2d ?? null,
+  tempo: state.tempo,
+  setup: state.setup ?? null
+});
+
+/**
+ * The merge-engine view of a fetched sequence. A field the wire copy omits
+ * (tempo on a sequence that never stored one) falls back to `base`, so an
+ * omission never reads as an external clear.
+ */
+export const timelineMergeDocumentOfSequence = (
+  sequence: {
+    tracks?: unknown[];
+    trackFolders?: unknown[];
+    clips?: unknown[];
+    markers?: unknown[];
+    mediaTracks?: unknown[];
+    transcript?: unknown[];
+    scriptEnabled?: boolean;
+    fps: number;
+    width: number;
+    height: number;
+    storyboardMaterializations?: TimelineMergeDoc["storyboardMaterializations"];
+    camera2d?: TimelineMergeDoc["camera2d"];
+    tempo?: TimelineMergeDoc["tempo"];
+    setup?: TimelineMergeDoc["setup"];
+  },
+  base: TimelineMergeDoc
+): TimelineMergeDoc => ({
+  tracks: sequence.tracks ?? [],
+  trackFolders: sequence.trackFolders ?? [],
+  clips: sequence.clips ?? [],
+  markers: sequence.markers ?? [],
+  mediaTracks: sequence.mediaTracks ?? [],
+  transcript: sequence.transcript ?? [],
+  scriptEnabled: sequence.scriptEnabled ?? false,
+  fps: sequence.fps,
+  width: sequence.width,
+  height: sequence.height,
+  storyboardMaterializations: sequence.storyboardMaterializations,
+  camera2d: sequence.camera2d ?? null,
+  tempo: sequence.tempo ?? base.tempo,
+  setup: sequence.setup ?? null
+});
+
+/**
+ * Run `apply` with undo recording paused, then restore the state it found. A
+ * merge that lands mid-gesture must not turn tracking back on under the
+ * gesture's open history batch.
+ */
+export function withHistoryPaused(
+  store: Parameters<typeof timelineTemporalOf>[0],
+  apply: () => void
+): void {
+  const temporal = timelineTemporalOf(store);
+  const wasTracking = temporal.isTracking;
+  temporal.pause();
+  try {
+    apply();
+  } finally {
+    if (wasTracking) temporal.resume();
+  }
+}
 
 export const listableTimelineConflicts = (
   conflicts: MergeConflict[]
@@ -78,6 +162,12 @@ export function applyAcceptedTimelineConflict(
     });
     return;
   }
+  if (conflict.unit.kind === "trackFolder" && conflict.external != null) {
+    state.applyExternalMerge({
+      trackFolders: replaceById(state.trackFolders, conflict.external as TimelineStoreState["trackFolders"][number])
+    });
+    return;
+  }
   if (conflict.unit.kind === "marker" && conflict.external != null) {
     state.applyExternalMerge({
       markers: replaceById(state.markers, conflict.external as TimelineMarker)
@@ -103,8 +193,24 @@ export function applyAcceptedTimelineConflict(
     return;
   }
   if (conflict.unit.kind === "field") {
+    if (conflict.unit.id === "storyboardMaterializations") {
+      state.applyExternalMerge({ storyboardMaterializations: conflict.external as TimelineStoreState["storyboardMaterializations"] });
+      return;
+    }
     if (conflict.unit.id === "camera2d") {
       state.setCamera2D(conflict.external == null ? null : timelineCamera2d.parse(conflict.external));
+      return;
+    }
+    if (conflict.unit.id === "tempo") {
+      state.applyExternalMerge({
+        tempo: conflict.external as TimelineStoreState["tempo"]
+      });
+      return;
+    }
+    if (conflict.unit.id === "setup") {
+      state.applyExternalMerge({
+        setup: (conflict.external ?? null) as TimelineStoreState["setup"]
+      });
       return;
     }
     if (conflict.unit.id === "scriptEnabled") {
@@ -129,6 +235,8 @@ export function applyAcceptedTimelineConflict(
       }
     } else if (conflict.unit.kind === "track") {
       state.removeTrack(conflict.unit.id);
+    } else if (conflict.unit.kind === "trackFolder") {
+      state.removeTrackFolder(conflict.unit.id);
     } else if (conflict.unit.kind === "marker") {
       state.applyExternalMerge({
         markers: state.markers.filter(
@@ -159,6 +267,7 @@ export function rebaseTimelineSnapshots(
   const rebased = rebaseDocumentSnapshots(
     snapshots.map((snapshot) => ({
       tracks: snapshot.tracks,
+      trackFolders: snapshot.trackFolders,
       clips: snapshot.clips,
       markers: snapshot.markers,
       mediaTracks: snapshot.mediaTracks,
@@ -167,7 +276,10 @@ export function rebaseTimelineSnapshots(
       fps: before.fps,
       width: before.width,
       height: before.height,
-      camera2d: snapshot.camera2d ?? null
+      storyboardMaterializations: snapshot.storyboardMaterializations,
+      camera2d: snapshot.camera2d ?? null,
+      tempo: snapshot.tempo,
+      setup: snapshot.setup ?? null
     })),
     before,
     after,
@@ -184,12 +296,16 @@ export function rebaseTimelineSnapshots(
     return {
       ...snapshot,
       tracks: typedNext.tracks,
+      trackFolders: typedNext.trackFolders,
       clips: reflowed.clips,
       markers: typedNext.markers,
       mediaTracks: typedNext.mediaTracks,
       transcript: typedNext.transcript,
       scriptEnabled: typedNext.scriptEnabled,
+      storyboardMaterializations: typedNext.storyboardMaterializations,
       camera2d: typedNext.camera2d ?? null,
+      tempo: typedNext.tempo,
+      setup: typedNext.setup ?? null,
       durationMs: reflowed.durationMs
     } satisfies TimelinePartializedState;
   });

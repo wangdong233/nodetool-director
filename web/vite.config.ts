@@ -169,8 +169,8 @@ function stubServerTelemetryPlugin(): Plugin {
 // Third-party CSS can smuggle one in (e.g. @measured/puck imports Inter from
 // rsms.me). Chrome treats a failed @import as a failure of the whole
 // stylesheet, so when the CDN is blocked/unreachable the chunk's <link> errors,
-// Vite fires `vite:preloadError`, and preloadErrorReload.ts reloads the page —
-// every affected click becomes a page reload. Fonts are already self-hosted
+// Vite fires `vite:preloadError`, and staleDeployPrompt.ts treats every
+// affected click as a possible stale deploy. Fonts are already self-hosted
 // (@fontsource imports in ThemeNodetool), so remote font CSS is redundant;
 // drop it at build time.
 function stripExternalCssImportsPlugin(): Plugin {
@@ -323,6 +323,11 @@ export default defineConfig(async ({ mode }) => {
         "monaco-editor",
         "@monaco-editor/react",
         "@monaco-editor/loader",
+        // yoga-layout has a top-level await. In the same pre-bundle batch it
+        // changes the chunk split so that the Prism grammars in
+        // `@lexical/code` run before Prism core, and every page fails with
+        // "Prism is not defined". The browser loads it as plain ESM.
+        "yoga-layout",
       ],
       rolldownOptions: {
         plugins: [stubNodeBuiltinsEsbuildPlugin()]

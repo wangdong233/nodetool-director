@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import React, {
   memo,
@@ -28,10 +29,9 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
-import { useTranslation } from "react-i18next";
 import AssetListView from "./AssetListView";
 import { EmptyState, LoadingSpinner, getSpacingPx, SPACING } from "../ui_primitives";
-import { i18n } from "../../i18n";
+
 const styles = (theme: Theme) =>
   css({
     "&": {
@@ -96,6 +96,7 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
     (state) => state.settings.assetItemSize
   );
   const workflowFilter = useAssetGridStore((state) => state.workflowFilter);
+  const favoritesOnly = useAssetGridStore((state) => state.favoritesOnly);
 
   // Base asset list (without dividers)
   const assets = useMemo(() => {
@@ -376,7 +377,7 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
             variant="error"
             title={t("editor:ui.couldNotLoadAssets", { defaultValue: "Could not load assets" })}
             description={error.message || "An error occurred. Please try again."}
-            actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
+            actionText="Retry"
             onAction={refetchAssets}
             size="small"
           />
@@ -384,14 +385,18 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
           <EmptyState
             variant="no-data"
             title={
-              workflowFilter
-                ? t("editor:ui.noOutputsFromThisWorkflowYet", { defaultValue: "No outputs from this workflow yet" })
-                : t("editor:ui.thisFolderIsEmpty", { defaultValue: "This folder is empty" })
+              favoritesOnly
+                ? "No favorites yet"
+                : workflowFilter
+                  ? "No outputs from this workflow yet"
+                  : "This folder is empty"
             }
             description={
-              workflowFilter
-                ? t("editor:ui.runTheWorkflowToGenerateAssetsOrDropFilesHereToAddInputs", { defaultValue: "Run the workflow to generate assets, or drop files here to add inputs." })
-                : t("editor:ui.dropFilesHereOrUseTheUploadButtonToAddAssets", { defaultValue: "Drop files here or use the upload button to add assets" })
+              favoritesOnly
+                ? "Star an asset to find it here from any folder."
+                : workflowFilter
+                  ? "Run the workflow to generate assets, or drop files here to add inputs."
+                  : "Drop files here or use the upload button to add assets"
             }
             size="small"
           />

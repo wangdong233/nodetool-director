@@ -101,8 +101,8 @@ modules:
       - cp include/node/common.gypi /app/common.gypi
     sources:
       - type: archive
-        url: https://nodejs.org/dist/v22.22.1/node-v22.22.1-linux-x64.tar.xz
-        sha256: 9a6bc82f9b491279147219f6a18add1e18424dce90d41d2a5fcd69d4924ba3aa
+        url: https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.xz
+        sha256: 55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742
         strip-components: 1
         only-arches:
           - x86_64
@@ -139,22 +139,20 @@ modules:
       # Build web frontend
       - npm run build --workspace=web
 
-      # Build electron renderer + main/preload bundles via vite
-      - npm run vite:build --workspace=electron
+      # Package the app the way the release workflow does. The app needs the
+      # Electron binary and the backend bundle (resources/backend/server.mjs
+      # plus its staged modules and the Node runtime afterPack fetches), and
+      # electron-builder's linux-unpacked directory is the only layout that
+      # carries all of them.
+      - cd electron && npm run vite:build
+      - cd electron && npm run prepare-backend
+      - cd electron && npm run prepare-mcpb
+      - cd electron && npm run prepare-chrome-extension
+      - cd electron && npx electron-builder --config electron-builder.json --linux dir --x64 --publish never
 
-      # Create application directory
       - mkdir -p /app/nodetool
+      - cp -a electron/dist/linux-unpacked/. /app/nodetool/
 
-      # Copy built application. Use the hoisted root node_modules — with npm
-      # workspaces most runtime dependencies live there, not in
-      # electron/node_modules.
-      - cp -r electron/dist-electron /app/nodetool/
-      - cp -r web/dist /app/nodetool/dist-web
-      - cp -r electron/assets /app/nodetool/
-      - cp -r electron/resources /app/nodetool/
-      - cp -rL node_modules /app/nodetool/node_modules
-      - cp electron/package.json /app/nodetool/
-      
       # Install wrapper script
       - install -Dm755 electron/flatpak-wrapper.sh /app/bin/nodetool
       

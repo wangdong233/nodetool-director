@@ -61,7 +61,7 @@ Guidelines](docs/BRAND.md).
 - **[Harness-First Engineering](docs/HARNESS_FIRST.md)** — The doctrine: every surface headlessly drivable, the registry, `nodetool harness audit`
 - **[Agent Harnesses & Tooling](#agent-harnesses--tooling)** — Validate, debug, run, single-node, browser, deploy, trace (the tools that close the build→verify loop)
 - **[Harness Reference](docs/harnesses.md)** — Every harness and agent tool surface in full: flags, what it simulates, the design behind it. CLI flags: [docs/cli.md](docs/cli.md)
-- **[Production Deploy (Fly)](docs/fly-production-deploy.md)** — How `main` reaches api.nodetool.ai: the trigger chain, the rolling drain, and how to read a failed rollout
+- **[Production Deploy (Docker)](docs/docker-production-deploy.md)** — How `main` reaches api.nodetool.ai: the release gates, restricted SSH, and rolling drain
 - **[Dev Environment](docs/dev-environment.md)** — Sandboxed/proxied `npm install`, WebGPU without a Vulkan driver
 - **[TypeScript Backend](packages/AGENTS.md)** — TypeScript backend packages (`packages/`), and the index of the per-package overlays
 - **[Agent System](packages/agents/AGENTS.md)** — Planning, execution, parallelism, skills, tuning
@@ -75,6 +75,7 @@ Guidelines](docs/BRAND.md).
 - **[Scripts](scripts/AGENTS.md)** — Build and release scripts
 - **[Marketing site](marketing/AGENTS.md)** — Recipe pages, production media, generated catalog data, and media verification
 - **[Workflow Runner Example](examples/workflow_runner/AGENTS.md)** — Embeddable workflow-runner example app
+- **[Error Tracing](docs/error-tracing.md)** — Redacted error traces in the deployment database: capture points, redaction, agent tools, Supabase RLS and opt-in sync
 - **[URL Egress Inventory](docs/url-egress-inventory.md)** — Every surface that fetches a caller-provided URL, the one address table, and the SSRF policy each surface applies
 - **[Writing Style](docs/WRITING_STYLE.md)** — Anti-slop prose rules and the forbidden-expressions list for all docs and Markdown
 - **[Brand & Verbal Guidelines](docs/BRAND.md)** — Positioning, voice, messaging pillars, and product lexicon for anything user-facing
@@ -96,9 +97,8 @@ Use these sections for the detailed rules summarized below.
 
 ## Repository Skills
 
-Skills live in `.agents/skills/` (the tracked tree). The `.claude` symlink
-exposes the same files through `.claude/skills/`; `.agents/skills/` is the
-path Codex scans directly; a skill that must be
+Skills live in `.agents/skills/`, which is the path Codex scans. The `.claude`
+symlink exposes the same files to Claude Code; a skill that must be
 typed rather than invoked on its own says so once for each agent, in
 `disable-model-invocation` and in `agents/openai.yaml`. Use a skill when
 requested or when its description and invocation policy match the task. Read the selected `SKILL.md`, then only
@@ -109,7 +109,7 @@ Two kinds sit in that directory. An **engineering skill** is a real directory
 and directs work on this repository. A **NodeTool skill** teaches a product
 surface, so it ships to every install as a system skill: the document lives in
 [`packages/system-skills/<name>/`](packages/system-skills/README.md) and
-`.claude/skills/<name>` is a symlink to it. Edit the shipped copy, never a
+`.agents/skills/<name>` is a symlink to it. Edit the shipped copy, never a
 second one, and keep it to a single `SKILL.md` — `load_skill` returns one
 document and nothing else in the directory reaches the product.
 `npm run check:agents-docs` enforces both.
@@ -122,6 +122,7 @@ document and nothing else in the directory reaches the product.
 | Remove unnecessary code or prose from a requested change | [unslop](.claude/skills/unslop/SKILL.md) |
 | Develop behavior test-first | [tdd](.claude/skills/tdd/SKILL.md) |
 | Write or repair web and workflow Playwright tests | [e2e-testing](.claude/skills/yts806379-everything-claude-code-e2e-testing/SKILL.md) |
+| Run blind first-time-user QA through the browser (typed only) | [agentic-qa](.claude/skills/agentic-qa/SKILL.md) |
 | Map source structure before reading selected code | [ast-grep-outline](.claude/skills/ast-grep-outline/SKILL.md) |
 | Design module interfaces and test boundaries | [codebase-design](.claude/skills/codebase-design/SKILL.md) |
 | Turn an agreed discussion into a spec or dependent tickets | [to-spec](.claude/skills/to-spec/SKILL.md), [to-tickets](.claude/skills/to-tickets/SKILL.md) |
@@ -141,7 +142,7 @@ document and nothing else in the directory reaches the product.
 | Build a browser automation agent | [nodetool-browser-agent](.claude/skills/nodetool-browser-agent/SKILL.md) |
 | Integrate over REST, tRPC, WebSocket, MCP or the chat API | [nodetool-api-reference](.claude/skills/nodetool-api-reference/SKILL.md) |
 | Deploy or operate a server or worker | [nodetool-deployment](.claude/skills/nodetool-deployment/SKILL.md) |
-| Build a playable Godot game or an asset pack | [godot-game](.claude/skills/godot-game/SKILL.md) |
+| Build a playable native game or an asset pack | [native-game](.claude/skills/native-game/SKILL.md) |
 
 The full shipped set, including the model-line prompting guides and the motion
 craft skills, is in
@@ -257,9 +258,18 @@ npm install             # Install workspace dependencies
 npm run build:packages  # Build backend packages in dependency order
 ```
 
+In a fresh agent container (Claude Code on the web, Codex, or another
+sandboxed or proxied checkout), run [`scripts/setup-agent-env.sh`](scripts/setup-agent-env.sh) instead of
+`npm install`. It installs dependencies with the flags that survive a proxy,
+links workspaces missing from a cached tree, and creates `.env` with a
+`SECRETS_MASTER_KEY`. In a new git worktree it clones `node_modules/` and
+`dist/` from the main checkout with copy-on-write (APFS, btrfs, XFS) and
+installs only when the file system cannot clone. It is idempotent, so run it
+at the start of every session. Then run `npm run build:packages`.
+
 `./start.sh` performs setup and starts the API on port 7777 (`full`, `web`,
 `check`, `doctor` modes). Python 3.11+ with conda is optional for Python nodes.
-Claude Code web setup and slash commands are in [.claude/README.md](.claude/README.md).
+Slash commands are in [.claude/README.md](.claude/README.md).
 
 - On missing-module/type-definition failures in untouched files, install
   dependencies first, then rerun checks before investigating further. A
@@ -289,6 +299,12 @@ Claude Code web setup and slash commands are in [.claude/README.md](.claude/READ
 - Node packages using decorators and loading from `dist/` (`base-nodes`,
   `node-sdk`, `fal-nodes`, `replicate-nodes`, `elevenlabs-nodes`) need
   `npm run build:packages` after edits and before `npm run dev`.
+- Give a new worktree its dependencies with `scripts/setup-agent-env.sh`,
+  which clones every `node_modules/` and `dist/` from the main checkout
+  instead of running `npm install`. Rebuild with `npm run build:packages`. After a
+  dependency change, check the package's placement with `npm explain` and
+  run `npm run fix:lockfile-libc`. See
+  [worktrees with cloned dependencies](docs/dev-environment.md#worktrees-with-cloned-dependencies-macos).
 
 ## Build, Lint & Test Commands
 
@@ -328,7 +344,9 @@ For documentation-only changes, check affected links and run
 `test:affected` selects from commits since the merge-base with `origin/main`
 plus working-tree changes. Backend tests run through Turbo with dependency
 builds. App-only changes select related Jest tests. Changes to app dependencies
-select the app's whole suite. Unmapped non-documentation changes select all
+select the app's whole suite. A file outside every workspace selects the checks
+that `PATH_CHECKS` lists for it, such as `validate:examples` for an example
+generator. Any other non-documentation file outside every workspace selects all
 suites. Use `-- --base <ref>` to change the base or pass file paths to inspect
 selection. If you change `buildPlan` in `scripts/test-affected.mjs`, update
 `scripts/__tests__/test-affected.test.mjs`.
@@ -361,10 +379,11 @@ verification requirements.
 
 ### Deployment & Packaging
 
-- Production ships a self-contained GHCR image to Fly.io. Backend, `web/dist`,
+- Production ships a self-contained GHCR image to the Docker host. Backend, `web/dist`,
   and workflow examples deploy together through `.github/workflows/docker.yml`,
-  `fly-deploy.yml`, and `scripts/fly-rolling-deploy.sh`. Follow the
-  [production deploy guide](docs/fly-production-deploy.md). Self-hosting uses
+  `fly-deploy.yml` (named **Deploy to Docker**), and the adjacent
+  `nodetool-deploy/rolling-deploy.sh`. Follow the
+  [production deploy guide](docs/docker-production-deploy.md). Self-hosting uses
   `docker-compose.yml` or `packages/deploy`, not the retired `deploy.sh`. See
   [deployment commands](docs/cli.md#nodetool-deploy).
 - `node scripts/docker-smoke.mjs http://localhost:7777` checks a running image's
@@ -429,9 +448,11 @@ from `packages/agents/src/tools/mcp-tools.ts` over shell commands.
 | [Build and verify a mini app](docs/harnesses.md#nodetool-app-build-mini-app-build-harness) | `nodetool app build "<prompt>" -p <provider> -m <model>` / `debug_app` |
 | [Execute a workflow](docs/harnesses.md#nodetool-run-dsl-workflows) | `nodetool run <file>` / `run_workflow` / `start_background_job` |
 | [Inspect changed workspaces](docs/harnesses.md#nodetool-affected-changed-file--workspace-mapping) | `nodetool affected` |
+| [Find complex, under-tested functions](docs/harnesses.md#npm-run-crap-crap-scores-for-typescript) | `npm run crap -- --changed --run-coverage` |
 | [Check capability coverage](docs/harnesses.md#nodetool-harness-registry-coverage-audit-and-the-gate) | `nodetool harness capabilities` / `npm run capabilities:check` |
 | [Probe provider contracts](docs/harnesses.md#npm-run-probeproviders-provider-contract-probes) | `npm run probe:providers` |
 | [Measure agent task completion](docs/harnesses.md#nodetool-jtbd-jobs-to-be-done--the-optimization-loop) | `nodetool jtbd run` / `jtbd optimize` |
+| [Find mutants the tests miss](docs/harnesses.md#npm-run-mutate-mutation-testing-for-typescript) | `npm run mutate -- --base origin/main packages/<name>/src` |
 | [Run shipped resource fixtures](docs/harnesses.md#graph-resource-fixtures) | `npm run fixtures:graph-resources` |
 | [Inspect generation status, cost, and assets](docs/harnesses.md#nodetool-generations) | `nodetool generations list\|get\|await\|cancel\|reconcile\|sweep` |
 
@@ -441,7 +462,7 @@ Other task references:
 |---|---|
 | Graph authoring, jobs, assets | [Workflows](docs/harnesses.md#nodetool-workflows), [jobs](docs/harnesses.md#nodetool-jobs), [assets](docs/harnesses.md#nodetool-assets) |
 | Scripts and storyboards | [Script/storyboard link design](docs/script-storyboard-link/design.md), [script voicing](docs/harnesses.md#script-voicing-tools-no-workflow-no-browser), [storyboard rendering](docs/harnesses.md#storyboard-render-tools-no-workflow-no-browser) |
-| 3D scenes and games | [3D tools](docs/harnesses.md#3d-scene-tools-no-editor-no-browser), [Godot pipeline](docs/harnesses.md#godot-game-pipeline-templates-slot-nodes-project-export), [game flow](docs/harnesses.md#game-flow-guided-build-design-graph-export) |
+| 3D scenes and games | [3D tools](docs/harnesses.md#3d-scene-tools-no-editor-no-browser), [native game pipeline](docs/harnesses.md#native-game-pipeline-templates-staging-playtest-web-build), [game flow](docs/harnesses.md#game-flow-guided-design-and-asset-graph) |
 | Entities and media | [Entity library](docs/harnesses.md#entity-library-tools-no-browser), [media analysis](docs/harnesses.md#media-analysis-tools-no-model-no-ffmpeg), [timeline previews](docs/harnesses.md#nodetool-timeline-validate--debug-timeline-harness) |
 | Chat and remote deployment | [Chat](docs/harnesses.md#nodetool-chat), [deployment and workers](docs/cli.md#deployment-and-workers) |
 
@@ -476,7 +497,8 @@ Follow [Security](docs/DEVELOPMENT_STANDARDS.md#16-security) and
   checking the initial URL does not validate redirects. Maintain the
   [URL Egress Inventory](docs/url-egress-inventory.md). Its audit is
   `packages/runtime/tests/url-egress-audit.test.ts`.
-- Code scanning uses GitHub default setup. `.github/codeql/*.yml` does not
-  configure it. Dismiss false positives in the Security UI and test the premise
-  that makes them false, as in `packages/models/tests/access-token.test.ts`.
-  Custom exclusions require advanced setup with an explicit `config-file:`.
+- Code scanning uses advanced setup in `.github/workflows/codeql.yml`.
+  Default setup must stay off, or GitHub rejects its uploads. Dismiss false
+  positives in the Security UI and test the premise that makes them false, as
+  in `packages/models/tests/access-token.test.ts`. Custom exclusions need an
+  explicit `config-file:` in that workflow.

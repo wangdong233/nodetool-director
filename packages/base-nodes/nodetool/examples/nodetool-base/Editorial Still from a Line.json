@@ -5,7 +5,7 @@
   "updated_at": "2026-06-21T16:55:51.256Z",
   "name": "Editorial Still from a Line",
   "tool_name": null,
-  "description": "One line of subject text becomes a finished editorial photograph. A Template node holds the house look so the caller only supplies the subject. Billed per image, but FLUX.2 [klein] at six steps is among the cheapest ways to get a usable frame.",
+  "description": "One line of subject text becomes a finished editorial photograph. A Template node holds the house look so the caller only supplies the subject. Billed per image.",
   "tags": [
     "image",
     "example"
@@ -14,6 +14,25 @@
   "thumbnail_url": null,
   "graph": {
     "nodes": [
+      {
+        "id": "intro-comment",
+        "type": "nodetool.workflows.base_node.Comment",
+        "data": {
+          "comment": "# Editorial Still from a Line\n\nTurns one line of subject text into an editorial photograph. A Template node holds the house look, so the caller only supplies the subject.\n\n**How it works:** \"Subject\" feeds \"Prompt\", which wraps it in fixed directions for natural light, shallow depth of field and no text or logos. \"Render\" generates a 16:9 image from that prompt, with a negative prompt against watermarks, and \"Image\" shows it. Pick a model on \"Render\" before running.\n\n**Try this:** Replace the \"Subject\" text with your own scene, or edit the style sentence in \"Prompt\" to change the look of every image this workflow makes."
+        },
+        "ui_properties": {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zIndex": 0,
+          "width": 560,
+          "selectable": true,
+          "height": 286
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
       {
         "id": "in",
         "type": "nodetool.input.StringInput",
@@ -25,7 +44,7 @@
         "ui_properties": {
           "position": {
             "x": 0,
-            "y": 180
+            "y": 366
           },
           "zIndex": 0,
           "width": 280,
@@ -43,8 +62,8 @@
         },
         "ui_properties": {
           "position": {
-            "x": 340,
-            "y": 180
+            "x": 380,
+            "y": 385
           },
           "zIndex": 0,
           "width": 320,
@@ -60,9 +79,9 @@
         "data": {
           "model": {
             "type": "image_model",
-            "provider": "fal_ai",
-            "id": "fal-ai/flux-2/klein/9b",
-            "name": "FLUX.2 [klein] 9B",
+            "provider": "",
+            "id": "",
+            "name": "",
             "path": null,
             "supported_tasks": []
           },
@@ -72,8 +91,8 @@
         },
         "ui_properties": {
           "position": {
-            "x": 720,
-            "y": 180
+            "x": 800,
+            "y": 366
           },
           "zIndex": 0,
           "width": 280,
@@ -91,8 +110,8 @@
         },
         "ui_properties": {
           "position": {
-            "x": 1080,
-            "y": 200
+            "x": 1180,
+            "y": 379
           },
           "zIndex": 0,
           "width": 240,

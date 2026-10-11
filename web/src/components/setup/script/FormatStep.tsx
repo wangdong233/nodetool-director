@@ -7,7 +7,7 @@
  * writer left to run.
  */
 
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Box,
@@ -50,7 +50,7 @@ const LENGTH_CARD_WIDTH = 96;
 /** What the field holds while it is being typed, and what it means. */
 const customSecondsError = (draft: string): string | null => {
   const value = Number(draft.trim());
-  if (draft.trim() === "" || !Number.isFinite(value)) {
+  if (draft.trim() === "" || !Number.isInteger(value)) {
     return i18n.t("storyboard:attrs.enterAWholeNumberOfSecondsMinMax", { defaultValue: "Enter a whole number of seconds, {{min}}–{{max}}.", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS });
   }
   if (value < MIN_CUSTOM_SECONDS || value > MAX_CUSTOM_SECONDS) {
@@ -61,6 +61,9 @@ const customSecondsError = (draft: string): string | null => {
 
 export interface FormatStepProps {
   scriptId: string;
+  onValidationChange?: (error: string | null) => void;
+  /** A view-mode tab: the choices show but cannot be changed. */
+  readOnly?: boolean;
 }
 
 /** The writer model, for the shell's footer beside the estimate it prices. */
@@ -79,17 +82,24 @@ export const WriterModelFooterField: React.FC<{
         provider={writerModel?.provider}
         placeholder="Writer model"
         disabled={readOnly}
-        onChange={(value) =>
+        onChange={(value) => {
+          if (readOnly) {
+            return;
+          }
           setSetup(scriptId, {
             writer_model: { id: value.id, provider: value.provider }
-          })
-        }
+          });
+        }}
       />
     </SetupFooterField>
   );
 };
 
-const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
+const FormatStepInternal: React.FC<FormatStepProps> = ({
+  scriptId,
+  onValidationChange,
+  readOnly = false
+}) => {
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const seconds = setup?.length_seconds ?? DEFAULT_LENGTH_SECONDS;
@@ -98,27 +108,46 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
   );
   // The field holds what was typed, not what the document holds: rounding and
   // clamping mid-keystroke rewrote "90" to "9" the moment the 9 was typed, and
-  // clearing the field put the old number back (F21). It is read on blur.
+  // clearing the field put the old number back (F21). Commit on blur or submit.
   const [customDraft, setCustomDraft] = useState(() => String(seconds));
 
   const selectFormat = useCallback(
-    (id: string) => setSetup(scriptId, { format: id }),
-    [scriptId, setSetup]
+    (id: string) => {
+      if (!readOnly) {
+        setSetup(scriptId, { format: id });
+      }
+    },
+    [readOnly, scriptId, setSetup]
+  );
+
+  const formatCards = useMemo(
+    () =>
+      readOnly
+        ? FORMAT_CARDS.map((card) => ({ ...card, disabled: true }))
+        : FORMAT_CARDS,
+    [readOnly]
   );
 
   const startCustom = useCallback(() => {
+    if (readOnly) {
+      return;
+    }
     setCustom(true);
     setCustomDraft(String(seconds));
-  }, [seconds]);
+  }, [readOnly, seconds]);
 
   // The four options the row offers, `Custom` among them rather than beside
   // them: picking any one unpicks the rest.
   const lengthOptions = useMemo(
     () => [
-      ...LENGTH_CHOICES.map((choice) => ({ id: choice.id, label: choice.label })),
-      { id: CUSTOM_LENGTH_ID, label: "Custom" }
+      ...LENGTH_CHOICES.map((choice) => ({
+        id: choice.id,
+        label: choice.label,
+        disabled: readOnly
+      })),
+      { id: CUSTOM_LENGTH_ID, label: "Custom", disabled: readOnly }
     ],
-    []
+    [readOnly]
   );
 
   const selectedLengthId = custom
@@ -127,6 +156,9 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
 
   const selectLengthOption = useCallback(
     (id: string) => {
+      if (readOnly) {
+        return;
+      }
       if (id === CUSTOM_LENGTH_ID) {
         startCustom();
         return;
@@ -138,7 +170,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
       setCustom(false);
       setSetup(scriptId, { length_seconds: choice.seconds });
     },
-    [scriptId, setSetup, startCustom]
+    [readOnly, scriptId, setSetup, startCustom]
   );
 
   const radioProps = useRovingRadioGroup(
@@ -157,13 +189,30 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
   // Confirmed on blur, and only when it means something: an unreadable draft
   // leaves the document's length alone and says why under the field.
   const commitCustom = useCallback(() => {
-    if (customSecondsError(customDraft) !== null) {
+    if (readOnly || customSecondsError(customDraft) !== null) {
       return;
     }
-    setSetup(scriptId, { length_seconds: Math.round(Number(customDraft)) });
-  }, [customDraft, scriptId, setSetup]);
+    setSetup(scriptId, { length_seconds: Number(customDraft) });
+  }, [customDraft, readOnly, scriptId, setSetup]);
 
   const customError = custom ? customSecondsError(customDraft) : null;
+
+  useEffect(() => {
+    onValidationChange?.(customError);
+  }, [customError, onValidationChange]);
+
+  useEffect(() => () => onValidationChange?.(null), [onValidationChange]);
+
+  const handleCustomKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      if (customError) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      commitCustom();
+    }
+  };
 
   return (
     <FlexColumn gap={GAP.spacious}>
@@ -178,7 +227,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
 
       <OptionCardGrid
         label="Format"
-        options={FORMAT_CARDS}
+        options={formatCards}
         selectedId={setup?.format ?? null}
         onSelect={selectFormat}
       />
@@ -199,6 +248,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
                 <Box key={option.id} sx={{ width: LENGTH_CARD_WIDTH }}>
                   <SetupCardButton
                     {...radio}
+                    disabled={readOnly}
                     onSelect={() => selectLengthOption(option.id)}
                   >
                     <Text size="normal" component="span">
@@ -223,6 +273,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
                   }
                 }}
                 placeholder="Custom"
+                disabled={readOnly}
                 error={customError !== null}
                 helperText={
                   customError ??
@@ -230,6 +281,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({ scriptId }) => {
                 }
                 onChange={handleCustom}
                 onBlur={commitCustom}
+                onKeyDown={handleCustomKeyDown}
               />
             </Box>
           ) : null}

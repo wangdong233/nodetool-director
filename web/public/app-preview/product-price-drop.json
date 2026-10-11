@@ -1,0 +1,2779 @@
+{
+  "slug": "product-price-drop",
+  "name": "Product Price Drop",
+  "description": "Build a layered six-second vertical ad using your exact product, logo, prices and copy. No generated video.",
+  "tagline": "Exact product, editable prices, deterministic motion.",
+  "note": null,
+  "featured": true,
+  "image": null,
+  "app": {
+    "schemaVersion": 5,
+    "ui": {
+      "root": {
+        "props": {
+          "title": "Product Price Drop"
+        }
+      },
+      "content": [
+        {
+          "type": "Stepper",
+          "props": {
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
+              {
+                "value": "inputs",
+                "title": "Inputs"
+              },
+              {
+                "value": "review",
+                "title": "Plan and review"
+              },
+              {
+                "value": "build",
+                "title": "Build"
+              },
+              {
+                "value": "result",
+                "title": "Editable result"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "ModelSelect",
+          "props": {
+            "id": "finishModel",
+            "label": "Finishing model",
+            "binding": "var:finishModel",
+            "modelKind": "language_model",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "id": "finishModel-help",
+            "text": "The selected language model lays out every frame and finishes the editable cut. Pick one that reads images. No generated video.",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "ModelSelect",
+          "props": {
+            "id": "imageModel",
+            "label": "Image model",
+            "binding": "var:imageModel",
+            "modelKind": "image_model",
+            "events": [],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "id": "imageModel-help",
+            "text": "Optional. Paints backgrounds and decoration while the agent lays out the frames. Without one, the agent decorates with shapes.",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Heading",
+          "props": {
+            "id": "group-brand",
+            "text": "Product and brand",
+            "level": "h2",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "ImageInput",
+          "props": {
+            "id": "productImage",
+            "label": "Product image",
+            "binding": "var:productImage",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "ImageInput",
+          "props": {
+            "id": "logo",
+            "label": "Logo",
+            "binding": "var:logo",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "ColorInput",
+          "props": {
+            "id": "brandColor",
+            "label": "Brand color",
+            "binding": "var:brandColor",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Heading",
+          "props": {
+            "id": "group-copy",
+            "text": "Exact copy",
+            "level": "h2",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "TextInput",
+          "props": {
+            "id": "headline",
+            "label": "Headline",
+            "binding": "var:headline",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "TextInput",
+          "props": {
+            "id": "oldPrice",
+            "label": "Old price",
+            "binding": "var:oldPrice",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "TextInput",
+          "props": {
+            "id": "newPrice",
+            "label": "New price",
+            "binding": "var:newPrice",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "TextInput",
+          "props": {
+            "id": "cta",
+            "label": "Call to action",
+            "binding": "var:cta",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "ChoiceCards",
+          "props": {
+            "id": "direction",
+            "label": "Creative direction",
+            "binding": "var:direction",
+            "events": [
+              {
+                "trigger": "change",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              }
+            ],
+            "options": [
+              {
+                "value": "Bold editorial rhythm",
+                "title": "Bold editorial"
+              },
+              {
+                "value": "Quiet premium composition",
+                "title": "Quiet premium"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "id": "plan",
+            "label": "Plan or refresh Storyboard",
+            "disabledWhen": {
+              "binding": "op:plan/exec#running",
+              "op": "notEmpty"
+            },
+            "events": [
+              {
+                "trigger": "click",
+                "kind": "run",
+                "operationId": "plan"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "id": "plan-error",
+            "binding": "op:plan/exec#error",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "AgentActivity",
+          "props": {
+            "id": "plan-activity",
+            "binding": "op:plan/exec#transcript",
+            "label": "Layout agent",
+            "height": 280,
+            "placeholder": "The agent's layout edits and frame reviews appear here.",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "inputs"
+            }
+          }
+        },
+        {
+          "type": "Storyboard",
+          "props": {
+            "id": "output-storyboardId",
+            "binding": "var:storyboardId",
+            "label": "Storyboard",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "StoryboardPreview",
+          "props": {
+            "id": "output-storyboardId-preview",
+            "binding": "var:storyboardId",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "layout-review",
+            "variant": "plain",
+            "content": [
+              {
+                "type": "Alert",
+                "props": {
+                  "id": "layout-needs-review",
+                  "severity": "warning",
+                  "title": "The layout needs a look",
+                  "text": "Edit the cut or plan again. You can still approve it.",
+                  "visibleWhen": {
+                    "binding": "var:layoutFindings",
+                    "op": "notEmpty"
+                  }
+                }
+              },
+              {
+                "type": "List",
+                "props": {
+                  "id": "layout-findings",
+                  "binding": "var:layoutFindings",
+                  "visibleWhen": {
+                    "binding": "var:layoutFindings",
+                    "op": "notEmpty"
+                  }
+                }
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "Timeline",
+          "props": {
+            "id": "output-designPreview",
+            "binding": "var:designPreview",
+            "label": "Composed design preview",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "id": "finish",
+            "label": "Build editable cut",
+            "disabledWhen": {
+              "binding": "op:finish/exec#running",
+              "op": "notEmpty"
+            },
+            "events": [
+              {
+                "trigger": "click",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "approved"
+              },
+              {
+                "trigger": "click",
+                "kind": "setVariable",
+                "key": "var:step",
+                "value": "build"
+              },
+              {
+                "trigger": "click",
+                "kind": "run",
+                "operationId": "finish"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "id": "request-changes",
+            "label": "Request changes",
+            "variant": "outlined",
+            "events": [
+              {
+                "trigger": "click",
+                "kind": "setVariable",
+                "key": "var:approval",
+                "value": "pending"
+              },
+              {
+                "trigger": "click",
+                "kind": "setVariable",
+                "key": "var:step",
+                "value": "inputs"
+              }
+            ],
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "review"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "id": "finish-error",
+            "binding": "op:finish/exec#error",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "build"
+            }
+          }
+        },
+        {
+          "type": "AgentActivity",
+          "props": {
+            "id": "finish-activity",
+            "binding": "op:finish/exec#transcript",
+            "label": "Build editable cut: agent activity",
+            "height": 360,
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "build"
+            }
+          }
+        },
+        {
+          "type": "Timeline",
+          "props": {
+            "id": "output-timeline",
+            "binding": "var:timeline",
+            "label": "Editable result",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "result"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "id": "finish-status",
+            "binding": "var:finishStatus",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "result"
+            }
+          }
+        }
+      ]
+    },
+    "operations": [
+      {
+        "id": "plan",
+        "name": "Plan or refresh Storyboard",
+        "workflowId": "plan",
+        "workflowVersion": 1,
+        "inputs": {
+          "in-recipe": {
+            "from": "constant",
+            "value": {
+              "schemaVersion": 1,
+              "slug": "product-price-drop",
+              "inputs": [
+                {
+                  "id": "productImage",
+                  "label": "Product image",
+                  "kind": "image",
+                  "required": true
+                },
+                {
+                  "id": "logo",
+                  "label": "Logo",
+                  "kind": "image",
+                  "required": true
+                },
+                {
+                  "id": "headline",
+                  "label": "Headline",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "oldPrice",
+                  "label": "Old price",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "newPrice",
+                  "label": "New price",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "cta",
+                  "label": "Call to action",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "brandColor",
+                  "label": "Brand color",
+                  "kind": "color",
+                  "required": true
+                },
+                {
+                  "id": "direction",
+                  "label": "Creative direction",
+                  "kind": "text",
+                  "required": false,
+                  "choices": [
+                    {
+                      "value": "Bold editorial rhythm",
+                      "title": "Bold editorial"
+                    },
+                    {
+                      "value": "Quiet premium composition",
+                      "title": "Quiet premium"
+                    }
+                  ]
+                }
+              ],
+              "operations": [
+                {
+                  "id": "plan",
+                  "bindingId": "plan",
+                  "intent": "plan_storyboard",
+                  "version": 1
+                },
+                {
+                  "id": "finish",
+                  "bindingId": "finish",
+                  "intent": "finish_storyboard",
+                  "version": 1,
+                  "strategy": "agentic",
+                  "model": {
+                    "provider": "openai",
+                    "id": "gpt-5.4-mini"
+                  }
+                }
+              ],
+              "outputs": [
+                {
+                  "id": "storyboardId",
+                  "kind": "storyboard",
+                  "label": "Storyboard"
+                },
+                {
+                  "id": "designPreview",
+                  "kind": "timeline",
+                  "label": "Composed design preview"
+                },
+                {
+                  "id": "timeline",
+                  "kind": "timeline",
+                  "label": "Editable result"
+                }
+              ],
+              "defaults": {
+                "direction": "Bold editorial rhythm",
+                "step": "inputs"
+              },
+              "creativeStrategy": {
+                "objective": "Present the original product and exact price drop",
+                "direction": "One confident visual rhythm across the cut",
+                "shots": [
+                  {
+                    "id": "Hook",
+                    "title": "Present the original product and exact price drop",
+                    "durationSeconds": 3,
+                    "elements": [
+                      {
+                        "id": "background",
+                        "kind": "shape",
+                        "role": "decorative",
+                        "inputId": "brandColor"
+                      },
+                      {
+                        "id": "productImage",
+                        "kind": "asset",
+                        "role": "product",
+                        "inputId": "productImage"
+                      },
+                      {
+                        "id": "headline",
+                        "kind": "text",
+                        "role": "headline",
+                        "inputId": "headline"
+                      },
+                      {
+                        "id": "oldPrice",
+                        "kind": "text",
+                        "role": "price",
+                        "inputId": "oldPrice",
+                        "direction": "superseded price"
+                      },
+                      {
+                        "id": "newPrice",
+                        "kind": "text",
+                        "role": "price",
+                        "inputId": "newPrice",
+                        "direction": "current price"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "CTA",
+                    "title": "Keep the original product and logo beside the exact CTA",
+                    "durationSeconds": 3,
+                    "elements": [
+                      {
+                        "id": "background",
+                        "kind": "shape",
+                        "role": "decorative",
+                        "inputId": "brandColor"
+                      },
+                      {
+                        "id": "productImage",
+                        "kind": "asset",
+                        "role": "product",
+                        "inputId": "productImage"
+                      },
+                      {
+                        "id": "logo",
+                        "kind": "asset",
+                        "role": "logo",
+                        "inputId": "logo"
+                      },
+                      {
+                        "id": "cta",
+                        "kind": "text",
+                        "role": "cta",
+                        "inputId": "cta"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "preservationRules": [
+                {
+                  "inputId": "productImage",
+                  "policy": "exact_asset",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "logo",
+                  "policy": "exact_asset",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "headline",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "oldPrice",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "newPrice",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "cta",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "brandColor",
+                  "policy": "exact_color",
+                  "allowedTransformations": [
+                    "opacity",
+                    "composite"
+                  ]
+                }
+              ],
+              "mediaPolicy": {
+                "defaultStrategy": "still_motion_graphics",
+                "allowGeneratedVideo": false
+              },
+              "presentation": {
+                "groups": [
+                  {
+                    "id": "brand",
+                    "title": "Product and brand",
+                    "inputIds": [
+                      "productImage",
+                      "logo",
+                      "brandColor"
+                    ]
+                  },
+                  {
+                    "id": "copy",
+                    "title": "Exact copy",
+                    "inputIds": [
+                      "headline",
+                      "oldPrice",
+                      "newPrice",
+                      "cta"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "in-productImage": {
+            "from": "variable",
+            "variableId": "productImage"
+          },
+          "in-logo": {
+            "from": "variable",
+            "variableId": "logo"
+          },
+          "in-headline": {
+            "from": "variable",
+            "variableId": "headline"
+          },
+          "in-oldPrice": {
+            "from": "variable",
+            "variableId": "oldPrice"
+          },
+          "in-newPrice": {
+            "from": "variable",
+            "variableId": "newPrice"
+          },
+          "in-cta": {
+            "from": "variable",
+            "variableId": "cta"
+          },
+          "in-brandColor": {
+            "from": "variable",
+            "variableId": "brandColor"
+          },
+          "in-direction": {
+            "from": "variable",
+            "variableId": "direction"
+          },
+          "in-storyboardId": {
+            "from": "variable",
+            "variableId": "storyboardId"
+          },
+          "in-storyboardRevision": {
+            "from": "variable",
+            "variableId": "storyboardRevision"
+          },
+          "in-plannedFingerprint": {
+            "from": "variable",
+            "variableId": "plannedFingerprint"
+          },
+          "in-finishModel": {
+            "from": "variable",
+            "variableId": "finishModel"
+          },
+          "in-imageModel": {
+            "from": "variable",
+            "variableId": "imageModel"
+          }
+        },
+        "outputs": {
+          "out-storyboardId": {
+            "to": "variable",
+            "variableId": "storyboardId"
+          },
+          "out-storyboardRevision": {
+            "to": "variable",
+            "variableId": "storyboardRevision"
+          },
+          "out-timelineId": {
+            "to": "variable",
+            "variableId": "timelineId"
+          },
+          "out-timelineRevision": {
+            "to": "variable",
+            "variableId": "timelineRevision"
+          },
+          "out-linkedScriptFingerprint": {
+            "to": "variable",
+            "variableId": "linkedScriptFingerprint"
+          },
+          "out-plannedFingerprint": {
+            "to": "variable",
+            "variableId": "plannedFingerprint"
+          },
+          "out-approval": {
+            "to": "variable",
+            "variableId": "approval"
+          },
+          "out-planPreview": {
+            "to": "variable",
+            "variableId": "planPreview"
+          },
+          "out-designPreview": {
+            "to": "variable",
+            "variableId": "designPreview"
+          },
+          "out-layoutFindings": {
+            "to": "variable",
+            "variableId": "layoutFindings"
+          },
+          "out-step": {
+            "to": "variable",
+            "variableId": "step"
+          }
+        },
+        "policy": "queue"
+      },
+      {
+        "id": "finish",
+        "name": "Build editable cut",
+        "workflowId": "finish",
+        "workflowVersion": 1,
+        "inputs": {
+          "in-recipe": {
+            "from": "constant",
+            "value": {
+              "schemaVersion": 1,
+              "slug": "product-price-drop",
+              "inputs": [
+                {
+                  "id": "productImage",
+                  "label": "Product image",
+                  "kind": "image",
+                  "required": true
+                },
+                {
+                  "id": "logo",
+                  "label": "Logo",
+                  "kind": "image",
+                  "required": true
+                },
+                {
+                  "id": "headline",
+                  "label": "Headline",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "oldPrice",
+                  "label": "Old price",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "newPrice",
+                  "label": "New price",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "cta",
+                  "label": "Call to action",
+                  "kind": "text",
+                  "required": true
+                },
+                {
+                  "id": "brandColor",
+                  "label": "Brand color",
+                  "kind": "color",
+                  "required": true
+                },
+                {
+                  "id": "direction",
+                  "label": "Creative direction",
+                  "kind": "text",
+                  "required": false,
+                  "choices": [
+                    {
+                      "value": "Bold editorial rhythm",
+                      "title": "Bold editorial"
+                    },
+                    {
+                      "value": "Quiet premium composition",
+                      "title": "Quiet premium"
+                    }
+                  ]
+                }
+              ],
+              "operations": [
+                {
+                  "id": "plan",
+                  "bindingId": "plan",
+                  "intent": "plan_storyboard",
+                  "version": 1
+                },
+                {
+                  "id": "finish",
+                  "bindingId": "finish",
+                  "intent": "finish_storyboard",
+                  "version": 1,
+                  "strategy": "agentic",
+                  "model": {
+                    "provider": "openai",
+                    "id": "gpt-5.4-mini"
+                  }
+                }
+              ],
+              "outputs": [
+                {
+                  "id": "storyboardId",
+                  "kind": "storyboard",
+                  "label": "Storyboard"
+                },
+                {
+                  "id": "designPreview",
+                  "kind": "timeline",
+                  "label": "Composed design preview"
+                },
+                {
+                  "id": "timeline",
+                  "kind": "timeline",
+                  "label": "Editable result"
+                }
+              ],
+              "defaults": {
+                "direction": "Bold editorial rhythm",
+                "step": "inputs"
+              },
+              "creativeStrategy": {
+                "objective": "Present the original product and exact price drop",
+                "direction": "One confident visual rhythm across the cut",
+                "shots": [
+                  {
+                    "id": "Hook",
+                    "title": "Present the original product and exact price drop",
+                    "durationSeconds": 3,
+                    "elements": [
+                      {
+                        "id": "background",
+                        "kind": "shape",
+                        "role": "decorative",
+                        "inputId": "brandColor"
+                      },
+                      {
+                        "id": "productImage",
+                        "kind": "asset",
+                        "role": "product",
+                        "inputId": "productImage"
+                      },
+                      {
+                        "id": "headline",
+                        "kind": "text",
+                        "role": "headline",
+                        "inputId": "headline"
+                      },
+                      {
+                        "id": "oldPrice",
+                        "kind": "text",
+                        "role": "price",
+                        "inputId": "oldPrice",
+                        "direction": "superseded price"
+                      },
+                      {
+                        "id": "newPrice",
+                        "kind": "text",
+                        "role": "price",
+                        "inputId": "newPrice",
+                        "direction": "current price"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "CTA",
+                    "title": "Keep the original product and logo beside the exact CTA",
+                    "durationSeconds": 3,
+                    "elements": [
+                      {
+                        "id": "background",
+                        "kind": "shape",
+                        "role": "decorative",
+                        "inputId": "brandColor"
+                      },
+                      {
+                        "id": "productImage",
+                        "kind": "asset",
+                        "role": "product",
+                        "inputId": "productImage"
+                      },
+                      {
+                        "id": "logo",
+                        "kind": "asset",
+                        "role": "logo",
+                        "inputId": "logo"
+                      },
+                      {
+                        "id": "cta",
+                        "kind": "text",
+                        "role": "cta",
+                        "inputId": "cta"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "preservationRules": [
+                {
+                  "inputId": "productImage",
+                  "policy": "exact_asset",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "logo",
+                  "policy": "exact_asset",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "headline",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "oldPrice",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "newPrice",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "cta",
+                  "policy": "exact_text",
+                  "allowedTransformations": [
+                    "position",
+                    "scale",
+                    "opacity",
+                    "composite"
+                  ]
+                },
+                {
+                  "inputId": "brandColor",
+                  "policy": "exact_color",
+                  "allowedTransformations": [
+                    "opacity",
+                    "composite"
+                  ]
+                }
+              ],
+              "mediaPolicy": {
+                "defaultStrategy": "still_motion_graphics",
+                "allowGeneratedVideo": false
+              },
+              "presentation": {
+                "groups": [
+                  {
+                    "id": "brand",
+                    "title": "Product and brand",
+                    "inputIds": [
+                      "productImage",
+                      "logo",
+                      "brandColor"
+                    ]
+                  },
+                  {
+                    "id": "copy",
+                    "title": "Exact copy",
+                    "inputIds": [
+                      "headline",
+                      "oldPrice",
+                      "newPrice",
+                      "cta"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "in-recipeOperationId": {
+            "from": "constant",
+            "value": "finish"
+          },
+          "in-productImage": {
+            "from": "variable",
+            "variableId": "productImage"
+          },
+          "in-logo": {
+            "from": "variable",
+            "variableId": "logo"
+          },
+          "in-headline": {
+            "from": "variable",
+            "variableId": "headline"
+          },
+          "in-oldPrice": {
+            "from": "variable",
+            "variableId": "oldPrice"
+          },
+          "in-newPrice": {
+            "from": "variable",
+            "variableId": "newPrice"
+          },
+          "in-cta": {
+            "from": "variable",
+            "variableId": "cta"
+          },
+          "in-brandColor": {
+            "from": "variable",
+            "variableId": "brandColor"
+          },
+          "in-direction": {
+            "from": "variable",
+            "variableId": "direction"
+          },
+          "in-storyboardId": {
+            "from": "variable",
+            "variableId": "storyboardId"
+          },
+          "in-storyboardRevision": {
+            "from": "variable",
+            "variableId": "storyboardRevision"
+          },
+          "in-linkedScriptFingerprint": {
+            "from": "variable",
+            "variableId": "linkedScriptFingerprint"
+          },
+          "in-timelineId": {
+            "from": "variable",
+            "variableId": "timelineId"
+          },
+          "in-timelineRevision": {
+            "from": "variable",
+            "variableId": "timelineRevision"
+          },
+          "in-approval": {
+            "from": "variable",
+            "variableId": "approval"
+          },
+          "in-plannedFingerprint": {
+            "from": "variable",
+            "variableId": "plannedFingerprint"
+          },
+          "in-finishStrategy": {
+            "from": "constant",
+            "value": "agentic"
+          },
+          "in-finishModel": {
+            "from": "variable",
+            "variableId": "finishModel"
+          }
+        },
+        "outputs": {
+          "out-approval": {
+            "to": "variable",
+            "variableId": "approval"
+          },
+          "out-finishStatus": {
+            "to": "variable",
+            "variableId": "finishStatus"
+          },
+          "out-timelineId": {
+            "to": "variable",
+            "variableId": "timelineId"
+          },
+          "out-timelineRevision": {
+            "to": "variable",
+            "variableId": "timelineRevision"
+          },
+          "out-storyboardRevision": {
+            "to": "variable",
+            "variableId": "storyboardRevision"
+          },
+          "out-timeline": {
+            "to": "variable",
+            "variableId": "timeline"
+          },
+          "out-validation": {
+            "to": "variable",
+            "variableId": "validation"
+          },
+          "out-reviews": {
+            "to": "variable",
+            "variableId": "reviews"
+          },
+          "out-step": {
+            "to": "variable",
+            "variableId": "step"
+          }
+        },
+        "policy": "queue"
+      }
+    ],
+    "resources": [],
+    "variables": [
+      {
+        "id": "productImage",
+        "name": "Product image",
+        "type": {
+          "type": "image",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "logo",
+        "name": "Logo",
+        "type": {
+          "type": "image",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "headline",
+        "name": "Headline",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "oldPrice",
+        "name": "Old price",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "newPrice",
+        "name": "New price",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "cta",
+        "name": "Call to action",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "brandColor",
+        "name": "Brand color",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "direction",
+        "name": "Creative direction",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "default": "Bold editorial rhythm",
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "storyboardId",
+        "name": "storyboardId",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "storyboardRevision",
+        "name": "storyboardRevision",
+        "type": {
+          "type": "int",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "plannedFingerprint",
+        "name": "plannedFingerprint",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "timelineId",
+        "name": "timelineId",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "timelineRevision",
+        "name": "timelineRevision",
+        "type": {
+          "type": "int",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "linkedScriptFingerprint",
+        "name": "linkedScriptFingerprint",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "approval",
+        "name": "approval",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "planPreview",
+        "name": "planPreview",
+        "type": {
+          "type": "dict",
+          "optional": false
+        },
+        "scope": "instance",
+        "persist": false
+      },
+      {
+        "id": "designPreview",
+        "name": "designPreview",
+        "type": {
+          "type": "timeline",
+          "optional": false
+        },
+        "scope": "instance",
+        "persist": false
+      },
+      {
+        "id": "layoutFindings",
+        "name": "layoutFindings",
+        "type": {
+          "type": "list[str]",
+          "optional": false
+        },
+        "scope": "instance",
+        "persist": false
+      },
+      {
+        "id": "step",
+        "name": "step",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "default": "inputs",
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "finishStatus",
+        "name": "finishStatus",
+        "type": {
+          "type": "str",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "timeline",
+        "name": "timeline",
+        "type": {
+          "type": "timeline",
+          "optional": false
+        },
+        "scope": "user",
+        "persist": true
+      },
+      {
+        "id": "validation",
+        "name": "validation",
+        "type": {
+          "type": "list[dict]",
+          "optional": false
+        },
+        "scope": "instance",
+        "persist": false
+      },
+      {
+        "id": "reviews",
+        "name": "reviews",
+        "type": {
+          "type": "list[dict]",
+          "optional": false
+        },
+        "scope": "instance",
+        "persist": false
+      },
+      {
+        "id": "finishModel",
+        "name": "Finishing model",
+        "type": {
+          "type": "dict"
+        },
+        "scope": "user",
+        "persist": true,
+        "default": {
+          "type": "language_model",
+          "provider": "",
+          "id": "",
+          "name": ""
+        }
+      },
+      {
+        "id": "imageModel",
+        "name": "Image model",
+        "type": {
+          "type": "dict"
+        },
+        "scope": "user",
+        "persist": true,
+        "default": {
+          "type": "image_model",
+          "provider": "",
+          "id": "",
+          "name": ""
+        }
+      }
+    ],
+    "recipe": {
+      "schemaVersion": 1,
+      "slug": "product-price-drop",
+      "inputs": [
+        {
+          "id": "productImage",
+          "label": "Product image",
+          "kind": "image",
+          "required": true
+        },
+        {
+          "id": "logo",
+          "label": "Logo",
+          "kind": "image",
+          "required": true
+        },
+        {
+          "id": "headline",
+          "label": "Headline",
+          "kind": "text",
+          "required": true
+        },
+        {
+          "id": "oldPrice",
+          "label": "Old price",
+          "kind": "text",
+          "required": true
+        },
+        {
+          "id": "newPrice",
+          "label": "New price",
+          "kind": "text",
+          "required": true
+        },
+        {
+          "id": "cta",
+          "label": "Call to action",
+          "kind": "text",
+          "required": true
+        },
+        {
+          "id": "brandColor",
+          "label": "Brand color",
+          "kind": "color",
+          "required": true
+        },
+        {
+          "id": "direction",
+          "label": "Creative direction",
+          "kind": "text",
+          "required": false,
+          "choices": [
+            {
+              "value": "Bold editorial rhythm",
+              "title": "Bold editorial"
+            },
+            {
+              "value": "Quiet premium composition",
+              "title": "Quiet premium"
+            }
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "plan",
+          "bindingId": "plan",
+          "intent": "plan_storyboard",
+          "version": 1
+        },
+        {
+          "id": "finish",
+          "bindingId": "finish",
+          "intent": "finish_storyboard",
+          "version": 1,
+          "strategy": "agentic",
+          "model": {
+            "provider": "openai",
+            "id": "gpt-5.4-mini"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "storyboardId",
+          "kind": "storyboard",
+          "label": "Storyboard"
+        },
+        {
+          "id": "designPreview",
+          "kind": "timeline",
+          "label": "Composed design preview"
+        },
+        {
+          "id": "timeline",
+          "kind": "timeline",
+          "label": "Editable result"
+        }
+      ],
+      "defaults": {
+        "direction": "Bold editorial rhythm",
+        "step": "inputs"
+      },
+      "creativeStrategy": {
+        "objective": "Present the original product and exact price drop",
+        "direction": "One confident visual rhythm across the cut",
+        "shots": [
+          {
+            "id": "Hook",
+            "title": "Present the original product and exact price drop",
+            "durationSeconds": 3,
+            "elements": [
+              {
+                "id": "background",
+                "kind": "shape",
+                "role": "decorative",
+                "inputId": "brandColor"
+              },
+              {
+                "id": "productImage",
+                "kind": "asset",
+                "role": "product",
+                "inputId": "productImage"
+              },
+              {
+                "id": "headline",
+                "kind": "text",
+                "role": "headline",
+                "inputId": "headline"
+              },
+              {
+                "id": "oldPrice",
+                "kind": "text",
+                "role": "price",
+                "inputId": "oldPrice",
+                "direction": "superseded price"
+              },
+              {
+                "id": "newPrice",
+                "kind": "text",
+                "role": "price",
+                "inputId": "newPrice",
+                "direction": "current price"
+              }
+            ]
+          },
+          {
+            "id": "CTA",
+            "title": "Keep the original product and logo beside the exact CTA",
+            "durationSeconds": 3,
+            "elements": [
+              {
+                "id": "background",
+                "kind": "shape",
+                "role": "decorative",
+                "inputId": "brandColor"
+              },
+              {
+                "id": "productImage",
+                "kind": "asset",
+                "role": "product",
+                "inputId": "productImage"
+              },
+              {
+                "id": "logo",
+                "kind": "asset",
+                "role": "logo",
+                "inputId": "logo"
+              },
+              {
+                "id": "cta",
+                "kind": "text",
+                "role": "cta",
+                "inputId": "cta"
+              }
+            ]
+          }
+        ]
+      },
+      "preservationRules": [
+        {
+          "inputId": "productImage",
+          "policy": "exact_asset",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "logo",
+          "policy": "exact_asset",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "headline",
+          "policy": "exact_text",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "oldPrice",
+          "policy": "exact_text",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "newPrice",
+          "policy": "exact_text",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "cta",
+          "policy": "exact_text",
+          "allowedTransformations": [
+            "position",
+            "scale",
+            "opacity",
+            "composite"
+          ]
+        },
+        {
+          "inputId": "brandColor",
+          "policy": "exact_color",
+          "allowedTransformations": [
+            "opacity",
+            "composite"
+          ]
+        }
+      ],
+      "mediaPolicy": {
+        "defaultStrategy": "still_motion_graphics",
+        "allowGeneratedVideo": false
+      },
+      "presentation": {
+        "groups": [
+          {
+            "id": "brand",
+            "title": "Product and brand",
+            "inputIds": [
+              "productImage",
+              "logo",
+              "brandColor"
+            ]
+          },
+          {
+            "id": "copy",
+            "title": "Exact copy",
+            "inputIds": [
+              "headline",
+              "oldPrice",
+              "newPrice",
+              "cta"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "workflows": [
+    {
+      "key": "plan",
+      "name": "Plan or refresh Storyboard",
+      "graph": {
+        "nodes": [
+          {
+            "id": "in-recipe",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "recipe",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-productImage",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "productImage",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-logo",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "logo",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-headline",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "headline",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-oldPrice",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "oldPrice",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-newPrice",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "newPrice",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-cta",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "cta",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-brandColor",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "brandColor",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-direction",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "direction",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-storyboardId",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "storyboardId",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-storyboardRevision",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "storyboardRevision",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-plannedFingerprint",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "plannedFingerprint",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-finishModel",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "finishModel",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-imageModel",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "imageModel",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-storyboardId",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "storyboardId"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-storyboardRevision",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "storyboardRevision"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-timelineId",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "timelineId"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-timelineRevision",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "timelineRevision"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-linkedScriptFingerprint",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "linkedScriptFingerprint"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-plannedFingerprint",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "plannedFingerprint"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-approval",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "approval"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-planPreview",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "planPreview"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-designPreview",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "designPreview"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-layoutFindings",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "layoutFindings"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-step",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "step"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          }
+        ],
+        "edges": []
+      }
+    },
+    {
+      "key": "finish",
+      "name": "Build editable cut",
+      "graph": {
+        "nodes": [
+          {
+            "id": "in-recipe",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "recipe",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-recipeOperationId",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "recipeOperationId",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-productImage",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "productImage",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-logo",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "logo",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-headline",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "headline",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-oldPrice",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "oldPrice",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-newPrice",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "newPrice",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-cta",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "cta",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-brandColor",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "brandColor",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-direction",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "direction",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-finishStrategy",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "finishStrategy",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-finishModel",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "finishModel",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-storyboardId",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "storyboardId",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-storyboardRevision",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "storyboardRevision",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-linkedScriptFingerprint",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "linkedScriptFingerprint",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-timelineId",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "timelineId",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-timelineRevision",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "timelineRevision",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-approval",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "approval",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "in-plannedFingerprint",
+            "type": "nodetool.input.ValueInput",
+            "data": {
+              "name": "plannedFingerprint",
+              "value": null,
+              "description": ""
+            },
+            "ui_properties": {
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-approval",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "approval"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-finishStatus",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "finishStatus"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-timelineId",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "timelineId"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-timelineRevision",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "timelineRevision"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-storyboardRevision",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "storyboardRevision"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-timeline",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "timeline"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-validation",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "validation"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-reviews",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "reviews"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          },
+          {
+            "id": "out-step",
+            "type": "nodetool.output.Output",
+            "data": {
+              "name": "step"
+            },
+            "ui_properties": {
+              "position": {
+                "x": 820,
+                "y": 0
+              }
+            },
+            "dynamic_properties": {},
+            "dynamic_outputs": {}
+          }
+        ],
+        "edges": []
+      }
+    }
+  ],
+  "scripts": [],
+  "values": {
+    "var:direction": "Bold editorial rhythm",
+    "var:step": "inputs",
+    "var:finishModel": {
+      "type": "language_model",
+      "provider": "",
+      "id": "",
+      "name": ""
+    },
+    "var:imageModel": {
+      "type": "image_model",
+      "provider": "",
+      "id": "",
+      "name": ""
+    }
+  }
+}

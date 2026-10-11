@@ -7,12 +7,10 @@
  * model selects.
  *
  * Providers: the property components need a theme and TanStack Query (both app
- * globals). AudioProperty additionally resolves its node via NodeContext, so
- * the surface mounting this widget must provide the workflow's node store
- * (PuckAppEditor and the mini-app pages do); without one the audio kind
- * degrades to a hint instead of crashing.
+ * globals). They read the graph's node store when one is mounted and work
+ * without it, so a running app needs no graph editor around it.
  */
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import {
   Box,
@@ -36,7 +34,6 @@ import type {
   HuggingFaceModelValueInput,
   MusicModelValue
 } from "../../../stores/ApiTypes";
-import { NodeContext } from "../../../contexts/NodeContext";
 import { AppEvent } from "../types";
 import {
   useAppRuntimeContext,
@@ -56,6 +53,10 @@ import type {
   ImageModelTask,
   VideoModelTask
 } from "../../../hooks/useModelsByProvider";
+import {
+  IMAGE_TASK_BY_NODE_TYPE,
+  VIDEO_TASK_BY_NODE_TYPE
+} from "../../../hooks/modelTaskMatching";
 
 interface WorkflowInputWidgetProps {
   id: string;
@@ -111,6 +112,7 @@ const ModelSelect: React.FC<{
         <ImageModelSelect
           onChange={onChange}
           value={modelId}
+          provider={modelValue?.provider}
           task={input.task as ImageModelTask | ImageModelTask[] | undefined}
         />
       );
@@ -119,13 +121,20 @@ const ModelSelect: React.FC<{
         <VideoModelSelect
           onChange={onChange}
           value={modelId}
+          provider={modelValue?.provider}
           task={input.task as VideoModelTask | VideoModelTask[] | undefined}
         />
       );
     case "tts_model":
       return <TTSModelSelect onChange={onChange} value={modelId} />;
     case "asr_model":
-      return <ASRModelSelect onChange={onChange} value={modelId} />;
+      return (
+        <ASRModelSelect
+          onChange={onChange}
+          value={modelId}
+          provider={modelValue?.provider}
+        />
+      );
     case "music_model":
       return (
         <MusicModelSelect
@@ -146,7 +155,13 @@ const ModelSelect: React.FC<{
         />
       );
     default:
-      return <EmbeddingModelSelect onChange={onChange} value={modelId} />;
+      return (
+        <EmbeddingModelSelect
+          onChange={onChange}
+          value={modelId}
+          provider={modelValue?.provider}
+        />
+      );
   }
 };
 
@@ -161,7 +176,6 @@ export const WorkflowInputControl: React.FC<{
   value: unknown;
   onValue: (value: unknown) => void;
 }> = ({ input, value, onValue }) => {
-  const nodeStore = useContext(NodeContext);
   const property = useMemo(() => createPropertyForInput(input), [input]);
   const Component = useMemo(
     () =>
@@ -229,12 +243,6 @@ export const WorkflowInputControl: React.FC<{
         />
         <ModelSelect input={input} value={resolved} onChange={handleChange} />
       </FlexColumn>
-    );
-  }
-
-  if (input.kind === "audio" && !nodeStore) {
-    return (
-      <Placeholder text={`Audio input "${input.name}" needs the workflow's node store — open the app from the app builder or mini-app page.`} />
     );
   }
 
@@ -367,6 +375,21 @@ export const ModelSelectWidget: React.FC<ModelSelectWidgetProps> = (props) => {
     events: props.events
   });
 
+  // A widget bound to a node's model property offers only the models that
+  // node can run: a LipSync node's picker lists lip-sync models.
+  const { getNodeType } = useAppRuntimeContext();
+  const boundRef = useBindingRef(props.binding, "write");
+  const boundNodeType =
+    boundRef?.kind === "nodeProperty"
+      ? getNodeType(boundRef.nodeId, boundRef.operationId || undefined)
+      : undefined;
+  const task = useMemo<WorkflowModelTask | undefined>(() => {
+    if (props.task || !boundNodeType) return props.task;
+    if (kind === "image_model") return IMAGE_TASK_BY_NODE_TYPE[boundNodeType];
+    if (kind === "video_model") return VIDEO_TASK_BY_NODE_TYPE[boundNodeType];
+    return undefined;
+  }, [boundNodeType, kind, props.task]);
+
   const input = useMemo<WorkflowInputIO>(
     () => ({
       nodeId: props.id,
@@ -374,9 +397,9 @@ export const ModelSelectWidget: React.FC<ModelSelectWidgetProps> = (props) => {
       name: props.label || "Model",
       label: props.label || tAttr("Model"),
       kind,
-      task: props.task
+      task
     }),
-    [kind, props.id, props.label, props.task]
+    [kind, props.id, props.label, task]
   );
 
   return (

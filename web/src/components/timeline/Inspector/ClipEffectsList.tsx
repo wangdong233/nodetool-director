@@ -40,7 +40,6 @@ import {
   Caption,
   Checkbox,
   CollapsibleSection,
-  CONTROL,
   DeleteButton,
   EmptyState,
   FlexColumn,
@@ -50,7 +49,7 @@ import {
   SearchInput,
   TruncatedText,
   TYPOGRAPHY,
-  TextInput,
+  BatchedColorInput,
   ToolbarIconButton
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
@@ -60,8 +59,10 @@ import {
   InspectorRow,
   InspectorSectionTitle,
   InspectorSliderRow,
-  InspectorToggleRow
+  InspectorToggleRow,
+  INSPECTOR_ROW_BUTTON_SX
 } from "./InspectorPrimitives";
+import { parseFiniteNumber } from "./InspectorPrimitives.helpers";
 import { ToneCurveEditor } from "./ToneCurveEditor";
 import { useTranslation } from "react-i18next";
 
@@ -182,6 +183,10 @@ function makeEffect(type: AddableEffectType): ClipEffect {
 
 const SCRUB_PX = { step: 1 };
 const SCRUB_UNIT = { step: 0.01 };
+// Gamma is a divisor (out = in ^ (1 / gamma)), so it stays above 0. Gain
+// multiplies, and a negative gain renders the same black as 0.
+const SCRUB_GAMMA = { step: 0.01, min: 0.01 };
+const SCRUB_GAIN = { step: 0.01, min: 0 };
 
 interface EffectFieldsProps {
   effect: ClipEffect;
@@ -217,7 +222,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
               unit="px"
               scrub={SCRUB_PX}
               onCommit={(raw) =>
-                commitNumber(raw, (radius) => onPatch({ radius }))
+                commitNumber(raw, (radius) => onPatch({ radius }), 0)
               }
               ariaLabel={`${name} radius`}
             />
@@ -232,11 +237,9 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(intensity) => onPatch({ intensity })}
           />
           <InspectorRow label={t("timeline:attrs.color", { defaultValue: "Color" })}>
-            <TextInput
-              type="color"
-              value={effect.color ?? "#ffffff"}
-              onChange={(event) => onPatch({ color: event.target.value })}
-              inputProps={{ "aria-label": `${name} color` }}
+            <BatchedColorInput              value={effect.color ?? "#ffffff"}
+              onChange={(color) => onPatch({ color })}
+              ariaLabel={`${name} color`}
             />
           </InspectorRow>
         </>
@@ -273,16 +276,14 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
               value={String(effect.blur)}
               unit="px"
               scrub={SCRUB_PX}
-              onCommit={(raw) => commitNumber(raw, (blur) => onPatch({ blur }))}
+              onCommit={(raw) => commitNumber(raw, (blur) => onPatch({ blur }), 0)}
               ariaLabel={`${name} blur`}
             />
           </InspectorRow>
           <InspectorRow label={t("timeline:attrs.color", { defaultValue: "Color" })}>
-            <TextInput
-              type="color"
-              value={effect.color}
-              onChange={(event) => onPatch({ color: event.target.value })}
-              inputProps={{ "aria-label": `${name} color` }}
+            <BatchedColorInput              value={effect.color}
+              onChange={(color) => onPatch({ color })}
+              ariaLabel={`${name} color`}
             />
           </InspectorRow>
           <InspectorSliderRow
@@ -293,6 +294,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             value={effect.opacity ?? 1}
             display={(effect.opacity ?? 1).toFixed(2)}
             onChange={(opacity) => onPatch({ opacity })}
+            resetValue={1}
           />
         </>
       );
@@ -345,13 +347,14 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
             onChange={(size) => onPatch({ size })}
           />
           <InspectorSliderRow
-            label={t("timeline:attrs.colour", { defaultValue: "Colour" })}
+            label={t("timeline:attrs.colour", { defaultValue: "Color" })}
             min={0}
             max={1}
             step={0.01}
             value={effect.colorAmount ?? 0}
             display={(effect.colorAmount ?? 0).toFixed(2)}
             onChange={(colorAmount) => onPatch({ colorAmount })}
+            origin={0}
           />
           <InspectorToggleRow
             label={t("timeline:attrs.animate", { defaultValue: "Animate" })}
@@ -380,7 +383,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
               unit="px"
               scrub={SCRUB_PX}
               onCommit={(raw) =>
-                commitNumber(raw, (radius) => onPatch({ radius }))
+                commitNumber(raw, (radius) => onPatch({ radius }), 0)
               }
               ariaLabel={`${name} radius`}
             />
@@ -393,11 +396,9 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
       return (
         <>
           <InspectorRow label={t("timeline:attrs.keyColor", { defaultValue: "Key color" })}>
-            <TextInput
-              type="color"
-              value={effect.color}
-              onChange={(event) => onPatch({ color: event.target.value })}
-              inputProps={{ "aria-label": `${name} color` }}
+            <BatchedColorInput              value={effect.color}
+              onChange={(color) => onPatch({ color })}
+              ariaLabel={`${name} color`}
             />
           </InspectorRow>
           <InspectorSliderRow
@@ -467,9 +468,9 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
           <InspectorRow label={t("timeline:attrs.gamma", { defaultValue: "Gamma" })}>
             <InspectorPillInput
               value={effect.gamma.toFixed(2)}
-              scrub={SCRUB_UNIT}
+              scrub={SCRUB_GAMMA}
               onCommit={(raw) =>
-                commitNumber(raw, (gamma) => onPatch({ gamma }))
+                commitNumber(raw, (gamma) => onPatch({ gamma }), 0, true)
               }
               ariaLabel={`${name} gamma`}
             />
@@ -497,10 +498,11 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
     }
 
     if (isClipLiftGammaGainEffect(effect)) {
+      // Lift is an offset and may go negative.
       const triples = [
-        { key: "lift", label: "Lift", labelKey: "lift", value: effect.lift },
-        { key: "gamma", label: "Gamma", value: effect.gamma },
-        { key: "gain", label: "Gain", labelKey: "gain", value: effect.gain }
+        { key: "lift", label: "Lift", labelKey: "lift", value: effect.lift, scrub: SCRUB_UNIT, min: undefined, exclusiveMin: false },
+        { key: "gamma", label: "Gamma", labelKey: "gamma", value: effect.gamma, scrub: SCRUB_GAMMA, min: 0, exclusiveMin: true },
+        { key: "gain", label: "Gain", labelKey: "gain", value: effect.gain, scrub: SCRUB_GAIN, min: 0, exclusiveMin: false }
       ] as const;
       const channelNames = ["R", "G", "B"] as const;
       return (
@@ -512,15 +514,20 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(
                   key={channel}
                   value={triple.value[index].toFixed(2)}
                   minWidth={52}
-                  scrub={SCRUB_UNIT}
+                  scrub={triple.scrub}
                   onCommit={(raw) =>
-                    commitNumber(raw, (next) => {
-                      const updated: [number, number, number] = [
-                        ...triple.value
-                      ];
-                      updated[index] = next;
-                      onPatch({ [triple.key]: updated });
-                    })
+                    commitNumber(
+                      raw,
+                      (next) => {
+                        const updated: [number, number, number] = [
+                          ...triple.value
+                        ];
+                        updated[index] = next;
+                        onPatch({ [triple.key]: updated });
+                      },
+                      triple.min,
+                      triple.exclusiveMin
+                    )
                   }
                   ariaLabel={`${name} ${triple.label.toLowerCase()} ${channel}`}
                 />
@@ -554,7 +561,6 @@ const ROW_SX = {
   borderTop: (theme: Theme) => `1px solid ${theme.vars.palette.divider}`,
   pt: SPACING.md
 };
-const DELETE_SX = { width: CONTROL.height.sm, height: CONTROL.height.sm };
 const EFFECT_DRAG_TYPE = "application/x-nodetool-clip-effect";
 
 interface EffectRowProps {
@@ -674,7 +680,7 @@ const EffectRow: React.FC<EffectRowProps> = memo(
             tooltip={`Remove ${name} effect`}
             ariaLabel={`Remove ${name} effect`}
             iconVariant="clear"
-            sx={DELETE_SX}
+            sx={INSPECTOR_ROW_BUTTON_SX}
           />
         </FlexRow>
         {expanded && <EffectFields effect={effect} onPatch={patch} />}
@@ -861,6 +867,11 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
                 </FlexColumn>
               </FlexColumn>
             </Popover>
+            {listed.length === 0 && (
+              <Caption color="muted">
+                Add a blur, glow, shadow, vignette, chroma key or grade.
+              </Caption>
+            )}
             {listed.map((effect, index) => (
               <EffectRow
                 key={effect.id}
@@ -882,10 +893,17 @@ export const ClipEffectsList: React.FC<ClipEffectsListProps> = memo(
   }
 );
 
-/** Commit a numeric field, ignoring anything that does not parse. */
-function commitNumber(raw: string, apply: (value: number) => void): void {
-  const value = Number(raw);
-  if (Number.isFinite(value)) apply(value);
+/** Commit a numeric field, ignoring blank, non-numeric or out-of-range input. */
+function commitNumber(
+  raw: string,
+  apply: (value: number) => void,
+  min?: number,
+  exclusiveMin = false
+): void {
+  const value = parseFiniteNumber(raw);
+  if (value === null) return;
+  if (min !== undefined && (exclusiveMin ? value <= min : value < min)) return;
+  apply(value);
 }
 
 ClipEffectsList.displayName = "ClipEffectsList";

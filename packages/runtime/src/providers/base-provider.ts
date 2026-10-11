@@ -1,3 +1,5 @@
+import { stringifyTraceContent } from "../run-trace-serialization.js";
+import { tracedProviderLoop, tracedToolCall, beginProviderRound, providerRoundContext, traceContentAllowed, messageTraceContent, traceTextContent } from "./loop-tracing.js";
 import type {
   ASRModel,
   EmbeddingModel,
@@ -31,6 +33,10 @@ import type {
   TextToSpeechParams,
   RelightImageParams,
   RemoveBackgroundParams,
+  EstimateDepthParams,
+  RerankModel,
+  RerankParams,
+  RerankResult,
   SegmentImageParams,
   ImageSegmentationMask,
   StreamingAudioChunk,
@@ -76,6 +82,8 @@ import {
   peekLastUsage,
   peekLastRequest,
   createUsageSlot,
+  withSpan,
+  withSpanGen,
   type LlmUsage
 } from "../tracing-helpers.js";
 import type {
@@ -106,7 +114,7 @@ import {
   videoFrameFallbackEnabled
 } from "./video-frame-fallback.js";
 import type { Span } from "@opentelemetry/api";
-import { SpanStatusCode } from "@opentelemetry/api";
+import { SpanStatusCode, context, trace } from "@opentelemetry/api";
 import { createLogger, getDefaultAssetsPath } from "@nodetool-ai/config";
 
 const log = createLogger("nodetool.runtime.provider");
@@ -216,6 +224,7 @@ export type ProviderCapability =
   | "relight_image"
   | "segment_image"
   | "vectorize_image"
+  | "estimate_depth"
   | "text_to_video"
   | "image_to_video"
   | "reference_to_video"
@@ -231,143 +240,12 @@ export type ProviderCapability =
   | "video_to_audio"
   | "automatic_speech_recognition"
   | "generate_embedding"
+  | "rerank"
   | "text_to_3d"
   | "image_to_3d"
   | "list_generations"
   | "get_generation"
   | "track_object";
-
-/**
- * Derive a provider's capability set by checking which optional `getAvailable*`
- * methods it overrides on its prototype. Every provider can always generate
- * messages; image/video/TTS/ASR/embedding are advertised only when the concrete
- * class overrides the matching base method.
- *
- * Shared by `packages/websocket/src/models-api.ts` (REST leftover) and the
- * `models` tRPC router so both report identical capabilities for the same
- * provider instance.
- */
-export function providerCapabilities(
-  instance: BaseProvider
-): ProviderCapability[] {
-  const capabilities: ProviderCapability[] = [
-    "generate_message",
-    "generate_messages"
-  ];
-  if (
-    instance.getAvailableImageModels !==
-    BaseProvider.prototype.getAvailableImageModels
-  ) {
-    capabilities.push("text_to_image", "image_to_image");
-  }
-  if (
-    instance.getAvailableVideoModels !==
-    BaseProvider.prototype.getAvailableVideoModels
-  ) {
-    capabilities.push("text_to_video", "image_to_video");
-  }
-  if (
-    instance.referenceToVideo !== BaseProvider.prototype.referenceToVideo
-  ) {
-    capabilities.push("reference_to_video");
-  }
-  // The remaining task types don't have their own model-discovery method —
-  // they reuse Image/VideoModel (advertised via each model's `supportedTasks`).
-  // Advertise the provider-level capability when the concrete class overrides
-  // the matching task method.
-  if (instance.inpaint !== BaseProvider.prototype.inpaint) {
-    capabilities.push("inpainting");
-  }
-  if (instance.outpaintImage !== BaseProvider.prototype.outpaintImage) {
-    capabilities.push("outpaint_image");
-  }
-  if (instance.upscaleImage !== BaseProvider.prototype.upscaleImage) {
-    capabilities.push("upscale_image");
-  }
-  if (instance.removeBackground !== BaseProvider.prototype.removeBackground) {
-    capabilities.push("remove_background");
-  }
-  if (instance.relightImage !== BaseProvider.prototype.relightImage) {
-    capabilities.push("relight_image");
-  }
-  if (instance.segmentImage !== BaseProvider.prototype.segmentImage) {
-    capabilities.push("segment_image");
-  }
-  if (instance.vectorizeImage !== BaseProvider.prototype.vectorizeImage) {
-    capabilities.push("vectorize_image");
-  }
-  if (instance.videoToVideo !== BaseProvider.prototype.videoToVideo) {
-    capabilities.push("video_to_video");
-  }
-  if (instance.videoToAudio !== BaseProvider.prototype.videoToAudio) {
-    capabilities.push("video_to_audio");
-  }
-  if (instance.trackObject !== BaseProvider.prototype.trackObject) {
-    capabilities.push("track_object");
-  }
-  if (instance.extendVideo !== BaseProvider.prototype.extendVideo) {
-    capabilities.push("extend_video");
-  }
-  if (instance.upscaleVideo !== BaseProvider.prototype.upscaleVideo) {
-    capabilities.push("upscale_video");
-  }
-  if (instance.interpolateVideo !== BaseProvider.prototype.interpolateVideo) {
-    capabilities.push("interpolate_video");
-  }
-  if (instance.outpaintVideo !== BaseProvider.prototype.outpaintVideo) {
-    capabilities.push("outpaint_video");
-  }
-  if (instance.lipSync !== BaseProvider.prototype.lipSync) {
-    capabilities.push("lip_sync");
-  }
-  if (
-    instance.getAvailableTTSModels !==
-    BaseProvider.prototype.getAvailableTTSModels
-  ) {
-    capabilities.push("text_to_speech");
-  }
-  if (
-    instance.getAvailableMusicModels !==
-    BaseProvider.prototype.getAvailableMusicModels
-  ) {
-    capabilities.push("text_to_music");
-  }
-  if (
-    instance.getAvailableAudioToAudioModels !==
-    BaseProvider.prototype.getAvailableAudioToAudioModels
-  ) {
-    capabilities.push("audio_to_audio");
-  }
-  if (
-    instance.getAvailableASRModels !==
-    BaseProvider.prototype.getAvailableASRModels
-  ) {
-    capabilities.push("automatic_speech_recognition");
-  }
-  if (
-    instance.getAvailableEmbeddingModels !==
-    BaseProvider.prototype.getAvailableEmbeddingModels
-  ) {
-    capabilities.push("generate_embedding");
-  }
-  if (
-    instance.getAvailable3DModels !==
-    BaseProvider.prototype.getAvailable3DModels
-  ) {
-    // Providers that expose 3D models are assumed to support both task types;
-    // individual `textTo3D` / `imageTo3D` calls will throw if not implemented.
-    capabilities.push("text_to_3d", "image_to_3d");
-  }
-  // The provider's own record of what it ran, exposed only by providers with
-  // a history API behind it (see provider-generations.ts).
-  if (instance.listGenerations !== BaseProvider.prototype.listGenerations) {
-    capabilities.push("list_generations");
-  }
-  if (instance.getGeneration !== BaseProvider.prototype.getGeneration) {
-    capabilities.push("get_generation");
-  }
-  return capabilities;
-}
 
 /**
  * What one attached medium costs a vision/audio model, per block. These are
@@ -468,6 +346,7 @@ export abstract class BaseProvider {
     cachedTokens: 0
   };
   private _unpricedReason: string | null = null;
+  private _lastCallTokens: number | null = null;
   private _emitMessage: ((msg: unknown) => void) | null = null;
 
   /**
@@ -510,6 +389,42 @@ export abstract class BaseProvider {
 
   protected emitMessage(msg: unknown): void {
     if (this._emitMessage) this._emitMessage(msg);
+  }
+
+  /**
+   * Report one non-chat provider call (image, video, speech, ASR, embedding…)
+   * as an `llm_call` so the trace shows every provider call, not only chat.
+   * Carries no token counts: those modalities bill per unit, not per token.
+   * @internal
+   */
+  recordModalityCall(input: {
+    operation: string;
+    args: unknown[];
+    startedAt: number;
+    error?: unknown;
+  }): void {
+    if (!this._emitMessage) return;
+    const prompt = input.args
+      .map((arg) =>
+        isObjectLike(arg) ? (arg as { prompt?: unknown }).prompt : undefined
+      )
+      .find(isString);
+    this.emitMessage({
+      type: "llm_call",
+      node_id: "",
+      provider: this.provider,
+      operation: input.operation,
+      model: extractModelId(input.args),
+      messages: prompt ? [{ role: "user", content: prompt }] : [],
+      response: null,
+      tool_calls: null,
+      tokens_input: null,
+      tokens_output: null,
+      cost: null,
+      duration_ms: Date.now() - input.startedAt,
+      error: input.error === undefined ? null : String(input.error),
+      timestamp: new Date(input.startedAt).toISOString()
+    });
   }
 
   /**
@@ -585,14 +500,33 @@ export abstract class BaseProvider {
           // images onto the source list, before the concrete provider runs.
           const args = applyEntityReferences(name, rawArgs);
           const startedAt = Date.now();
+          const call = (): Promise<ModalityResult> => original.apply(this, args);
           try {
-            return await original.apply(this, args);
+            // A nested call (a batch helper delegating to its singular method)
+            // stays inside the outer call's span.
+            const result = alreadyActive
+              ? await call()
+              : await withSpan(`provider.${name}`, modalitySpanAttributes(this.provider, name, args), async (span) => {
+                const value = await call();
+                if (span) { applyUsageAttributes(span, peekLastUsage()); }
+                return value;
+              });
+            if (!alreadyActive) {
+              this.recordModalityCall({ operation: name, args, startedAt });
+            }
+            return result;
           } catch (err) {
             annotateProviderError(err, {
               provider: this.provider,
               model: extractModelId(args)
             });
             if (!alreadyActive) {
+              this.recordModalityCall({
+                operation: name,
+                args,
+                startedAt,
+                error: err
+              });
               const failureArgs =
                 name === "referenceToVideo"
                   ? [referenceVideoDiagnostics(args)]
@@ -619,7 +553,9 @@ export abstract class BaseProvider {
       }
       const original = fn as (...args: unknown[]) => AsyncGenerator<unknown>;
       Reflect.set(this, name, (...args: unknown[]): AsyncGenerator<unknown> =>
-        wrapModalityGenerator(this, original, args, name)
+        withSpanGen(`provider.${name}`, modalitySpanAttributes(this.provider, name, args), () =>
+          wrapModalityGenerator(this, original, args, name)
+        )
       );
     }
   }
@@ -721,33 +657,26 @@ export abstract class BaseProvider {
   }
 
   /**
-   * Explicit capability declaration. Returns `null` by default, in which case
-   * {@link getCapabilities} derives capabilities by reflecting on which
-   * optional methods the concrete class overrides. Providers may override this
-   * to declare their capabilities directly — an alternative to method
-   * reflection when methods are wrapped, bound, or composed via mixins.
+   * The operations beyond chat that this provider implements. Each concrete
+   * provider lists its own; the base implements none. A capability belongs
+   * here only when the matching method has a working implementation.
    */
-  protected declaredCapabilities(): ProviderCapability[] | null {
-    return null;
+  protected declaredCapabilities(): readonly ProviderCapability[] {
+    return [];
   }
 
   /**
-   * The capabilities this provider exposes. Prefers an explicit declaration
-   * from {@link declaredCapabilities}; otherwise falls back to reflecting over
-   * overridden methods via {@link providerCapabilities}. Callers should use
-   * this instead of calling `providerCapabilities()` directly so explicit
-   * declarations are honored.
+   * The capabilities this provider exposes: chat generation, which every
+   * provider has, plus its {@link declaredCapabilities}.
    */
   getCapabilities(): ProviderCapability[] {
-    const declared = this.declaredCapabilities();
-    if (declared) {
-      // Message generation is always available; ensure it is present.
-      const set = new Set<ProviderCapability>(declared);
-      set.add("generate_message");
-      set.add("generate_messages");
-      return [...set];
-    }
-    return providerCapabilities(this);
+    return [
+      ...new Set<ProviderCapability>([
+        "generate_message",
+        "generate_messages",
+        ...this.declaredCapabilities()
+      ])
+    ];
   }
 
   /**
@@ -796,6 +725,15 @@ export abstract class BaseProvider {
     return true;
   }
 
+  /**
+   * The input window, in tokens, this provider's own API reports for `model`,
+   * or null when it has no such endpoint. Callers go through
+   * `resolveContextWindow`, which falls back to models.dev.
+   */
+  async getContextWindow(_model: string): Promise<number | null> {
+    return null;
+  }
+
   trackUsage(model: string, usage: UsageInfo): number {
     // Accounting must never break a generation that already ran (and was
     // already billed by the provider): keep the token counts and record the
@@ -817,6 +755,9 @@ export abstract class BaseProvider {
     this._usageTotals.inputTokens += usage.inputTokens ?? 0;
     this._usageTotals.outputTokens += usage.outputTokens ?? 0;
     this._usageTotals.cachedTokens += usage.cachedTokens ?? 0;
+    if (usage.inputTokens !== undefined) {
+      this._lastCallTokens = usage.inputTokens + (usage.outputTokens ?? 0);
+    }
     const tracked: LlmUsage = {
       inputTokens: usage.inputTokens ?? 0,
       outputTokens: usage.outputTokens ?? 0,
@@ -852,6 +793,17 @@ export abstract class BaseProvider {
     return this._cost;
   }
 
+  /**
+   * Input (cache reads and writes included) plus output tokens of the most
+   * recent tracked call, as the provider reported them. The prompt of the next
+   * call on the same transcript is at least this large, and unlike a local
+   * estimate it counts the tool definitions and system prompt too. Null until
+   * a call reports usage.
+   */
+  get lastCallTokens(): number | null {
+    return this._lastCallTokens;
+  }
+
   /** Running token counts across every call tracked on this instance. */
   get usageTotals(): ProviderUsageTotals {
     return { ...this._usageTotals };
@@ -881,6 +833,7 @@ export abstract class BaseProvider {
     this._cost = 0;
     this._unpricedReason = null;
     this._usageTotals = { inputTokens: 0, outputTokens: 0, cachedTokens: 0 };
+    this._lastCallTokens = null;
   }
 
   async getAvailableLanguageModels(): Promise<LanguageModel[]> {
@@ -924,6 +877,11 @@ export abstract class BaseProvider {
   }
 
   async getAvailableEmbeddingModels(): Promise<EmbeddingModel[]> {
+    return [];
+  }
+
+  /** Reranking models exposed by this provider. */
+  async getAvailableRerankModels(): Promise<RerankModel[]> {
     return [];
   }
 
@@ -1029,12 +987,12 @@ export abstract class BaseProvider {
             const content =
               isString(result.content)
                 ? result.content
-                : JSON.stringify(result.content);
+                : stringifyTraceContent(result.content);
             span.setAttributes({
               "llm.response.role": result.role,
-              "llm.response.content": content.slice(0, 2000),
               "llm.response.tool_calls_count": result.toolCalls?.length ?? 0
             });
+            if (traceContentAllowed()) { span.setAttribute("llm.response.content", traceTextContent(content)); }
             span.setStatus({ code: SpanStatusCode.OK });
             return result;
           } catch (err) {
@@ -1131,6 +1089,10 @@ export abstract class BaseProvider {
     },
     streaming: boolean
   ): void {
+    if (traceContentAllowed()) {
+      span.setAttribute("llm.request.messages", messageTraceContent(args.messages.filter((message): message is Message => typeof message === "object" && message !== null && "role" in message)));
+      span.setAttribute("llm.tool.names", stringifyTraceContent((args.tools ?? []).map((tool) => typeof tool === "object" && tool !== null && "name" in tool ? tool.name : null)));
+    }
     span.setAttributes({
       "llm.provider": this.provider,
       "llm.model": args.model,
@@ -1327,6 +1289,12 @@ export abstract class BaseProvider {
        */
       sequentialTools?: boolean;
       /**
+       * Restrict this loop to the supplied tools. Defaults to false, retaining
+       * provider-specific tool defaults. Overrides must not add implicit native
+       * tools or skill tools outside the supplied set when true.
+       */
+      providedToolsOnly?: boolean;
+      /**
        * Spend admission, consulted before every model turn. A refusal ends the
        * loop without making the call.
        *
@@ -1392,11 +1360,16 @@ export abstract class BaseProvider {
       resolveMedia?: (messages: Message[]) => Promise<Message[]>;
     }
   ): AsyncGenerator<ProviderStreamItem> {
+    return yield* tracedProviderLoop(this.provider, args.model, () => BaseProvider.prototype.generateBaseLoop.call(this, args));
+  }
+
+  private async *generateBaseLoop(args: Parameters<BaseProvider["generateLoop"]>[0]): AsyncGenerator<ProviderStreamItem> {
     const maxIterations = args.maxIterations ?? 25;
     const {
       executeTool,
       maxIterations: _omitMax,
       sequentialTools,
+      providedToolsOnly: _omitProvidedToolsOnly,
       turnBudget: budgetArg,
       workspaceDir: _omitWorkspaceDir,
       skills: _omitSkills,
@@ -1435,11 +1408,8 @@ export abstract class BaseProvider {
     let toolCallSeq = 0;
     const onToolCall = executeTool
       ? async (name: string, toolArgs: Record<string, unknown>) => {
-          const result = await executeTool({
-            id: `call_${++toolCallSeq}`,
-            name,
-            args: toolArgs
-          });
+          const call = { id: `call_${++toolCallSeq}`, name, args: toolArgs };
+          const result = await tracedToolCall(call, () => executeTool(call));
           if (isProviderToolErrorResult(result)) {
             return toolResultToText(result.content);
           }
@@ -1464,6 +1434,7 @@ export abstract class BaseProvider {
           return;
         }
       }
+      beginProviderRound(this.provider, args.model);
       const costBeforeTurn = turnBudget ? this.getTotalCost() : 0;
       let assistantText = "";
       let finalizedAssistant: Message | undefined;
@@ -1592,8 +1563,8 @@ export abstract class BaseProvider {
       const runTool = async (tc: ToolCall): Promise<ProviderToolResult> => {
         const tool = toolMap.get(tc.name);
         try {
-          if (tool?.execute) return await tool.execute(tc.args ?? {}, tc.id);
-          if (executeTool) return await executeTool(tc);
+          if (tool?.execute) { const execute = tool.execute; return await tracedToolCall(tc, () => execute(tc.args ?? {}, tc.id)); }
+          if (executeTool) return await tracedToolCall(tc, () => executeTool(tc));
           return `Tool "${tc.name}" is not available`;
         } catch (err) {
           // A throwing tool must not destroy the whole assistant turn: turn the
@@ -1690,21 +1661,31 @@ export abstract class BaseProvider {
     args: Parameters<this["generateMessages"]>[0],
     tracer: ReturnType<typeof getTracer> & object
   ): AsyncGenerator<ProviderStreamItem> {
-    const span = tracer.startSpan(`llm.stream ${this.provider}/${args.model}`);
+    const span = tracer.startSpan(`llm.stream ${this.provider}/${args.model}`, {}, providerRoundContext());
     this.applyLlmRequestAttributes(span, args, true);
     let chunkCount = 0;
+    let response = "";
+    const stream = this.generateMessages(args);
+    const active = trace.setSpan(providerRoundContext(), span);
+    let exhausted = false;
     try {
-      for await (const item of this.generateMessages(args)) {
+      while (true) {
+        const next = await context.with(active, () => stream.next());
+        if (next.done) { exhausted = true; break; }
+        const item = next.value;
+        if (traceContentAllowed() && "content" in item && typeof item.content === "string" && !("thinking" in item && item.thinking) && (!("content_type" in item) || item.content_type === "text")) { response = traceTextContent(response + item.content); }
         chunkCount++;
         yield item;
       }
-      span.setAttributes({ "llm.response.chunk_count": chunkCount });
+      span.setAttribute("llm.response.chunk_count", chunkCount);
+      if (traceContentAllowed()) { span.setAttribute("llm.response.content", response); }
       span.setStatus({ code: SpanStatusCode.OK });
     } catch (err) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: String(err) });
       span.recordException(err as Error);
       throw err;
     } finally {
+      if (!exhausted) { await context.with(active, () => stream.return(undefined)); }
       applyUsageAttributes(span, peekLastUsage());
       span.end();
     }
@@ -1823,6 +1804,17 @@ export abstract class BaseProvider {
     _params: RemoveBackgroundParams
   ): Promise<Uint8Array> {
     throw new Error(`${this.provider} does not support removeBackground`);
+  }
+
+  /**
+   * Estimate per-pixel depth. Returns a grayscale PNG at the input's size,
+   * where brighter pixels are nearer to the camera.
+   */
+  async estimateDepth(
+    _image: Uint8Array,
+    _params: EstimateDepthParams
+  ): Promise<Uint8Array> {
+    throw new Error(`${this.provider} does not support estimateDepth`);
   }
 
   /**
@@ -2041,6 +2033,11 @@ export abstract class BaseProvider {
     throw new Error(`${this.provider} does not support generateEmbedding`);
   }
 
+  /** Score each document against the query, most relevant first. */
+  async rerank(_params: RerankParams): Promise<RerankResult[]> {
+    throw new Error(`${this.provider} does not support rerank`);
+  }
+
   /**
    * Whether `error` is this provider refusing the request because it exceeds
    * the model's context window. Default `false`: a provider whose signal has
@@ -2246,6 +2243,7 @@ const MODALITY_PROMISE_METHODS = [
   "outpaintImage",
   "upscaleImage",
   "removeBackground",
+  "estimateDepth",
   "relightImage",
   "vectorizeImage",
   "segmentImage",
@@ -2265,7 +2263,8 @@ const MODALITY_PROMISE_METHODS = [
   "lipSync",
   "textTo3D",
   "imageTo3D",
-  "generateEmbedding"
+  "generateEmbedding",
+  "rerank"
 ] as const;
 
 /** Async-generator non-chat modality methods wrapped with failure logging. */
@@ -2305,6 +2304,7 @@ async function* wrapModalityGenerator(
   const startedAt = Date.now();
   const source = original.apply(provider, args);
   let exhausted = false;
+  let failure: unknown;
   try {
     while (true) {
       const result = await runInSlot(() => source.next());
@@ -2315,6 +2315,7 @@ async function* wrapModalityGenerator(
       yield result.value;
     }
   } catch (err) {
+    failure = err;
     annotateProviderError(err, {
       provider: provider.provider,
       model: extractModelId(args)
@@ -2339,7 +2340,22 @@ async function* wrapModalityGenerator(
           } as IteratorResult<unknown>)
       ).catch(() => {});
     }
+    provider.recordModalityCall({
+      operation: operationName,
+      args,
+      startedAt,
+      error: failure
+    });
   }
+}
+
+/** Metadata for a non-chat modality span. The prompt and media stay out of it. */
+function modalitySpanAttributes(provider: string, operation: string, args: unknown[]): Record<string, string> {
+  return {
+    "gen_ai.system": provider,
+    "gen_ai.operation.name": operation,
+    "gen_ai.request.model": extractModelId(args)
+  };
 }
 
 /** Attach gen_ai usage attributes to a span (no-op if usage is null). */

@@ -11,7 +11,8 @@ import {
   FlexRow,
   Text,
   TextInput,
-  BORDER_RADIUS
+  BORDER_RADIUS,
+  TYPOGRAPHY
 } from "../../ui_primitives";
 import useSecretsStore from "../../../stores/SecretsStore";
 import { i18n } from "../../../i18n";
@@ -40,8 +41,7 @@ const styles = (theme: Theme) =>
       borderBottom: `1px solid ${theme.vars.palette.divider}`
     },
     ".secret-request-key": {
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.code,
       color: theme.vars.palette.text.secondary,
       whiteSpace: "nowrap",
       marginLeft: "auto"
@@ -61,7 +61,10 @@ const styles = (theme: Theme) =>
       flexDirection: "column",
       gap: theme.spacing(1.5),
       padding: theme.spacing(1.5, 2),
-      borderTop: `1px solid ${theme.vars.palette.divider}`
+      borderTop: `1px solid ${theme.vars.palette.divider}`,
+      button: {
+        ...TYPOGRAPHY.sans.label
+      }
     }
   });
 

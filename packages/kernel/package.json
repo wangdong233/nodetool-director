@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Workflow kernel: Graph model, NodeInbox, and Actor runtime",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,8 @@
     "build": "node ../../scripts/build-typescript-workspace.mjs",
     "test": "node ../../scripts/run-vitest.mjs run",
     "test:watch": "node ../../scripts/run-vitest.mjs",
-    "test:mutation": "stryker run",
+    "test:mutation": "node ../mutator/dist/cli.js --root ../.. src",
+    "test:mutation:stryker": "stryker run",
     "lint": "node ../../scripts/run-tsc.mjs --noEmit"
   },
   "dependencies": {

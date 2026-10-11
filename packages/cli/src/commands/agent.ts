@@ -21,23 +21,19 @@ import chalk from "chalk";
 
 import type { BaseProvider, Message } from "@nodetool-ai/runtime";
 import { RUN_BUDGET_CONTEXT_KEY } from "@nodetool-ai/runtime";
-import {
-  getBuiltinTools,
-  getAllMcpTools,
-  PERMISSION_GATE_CONTEXT_KEY,
-  type Tool
-} from "@nodetool-ai/agents";
+import { PERMISSION_GATE_CONTEXT_KEY } from "@nodetool-ai/agents";
 import { processChat } from "@nodetool-ai/chat";
 import { initDb } from "@nodetool-ai/models";
 import { getDefaultDbPath, configureLogging } from "@nodetool-ai/config";
 import { type ProcessingMessage } from "@nodetool-ai/protocol";
 import { createProvider, buildConfiguredProviders } from "../providers.js";
 import { buildFullRegistry } from "../node-registry.js";
-import { mcpToolHostDeps } from "@nodetool-ai/websocket";
+import { buildCliToolbelt } from "../agent-toolbelt.js";
 import {
   applySystemPrompt,
   buildCliAgentBelt,
-  createCliCodeActTurn
+  createCliCodeActTurn,
+  loadCliSkillCatalog
 } from "../chat-codeact.js";
 import { createChatContext } from "../chat-context.js";
 import {
@@ -58,6 +54,7 @@ import {
   type TraceSpanLite
 } from "../diagnose.js";
 import { isRecord, isString } from "../predicates.js";
+import { parseNumericOption } from "../numeric-options.js";
 
 const PROVIDER_ALIASES: Record<string, string> = {
   google: "gemini",
@@ -75,35 +72,6 @@ function expandTilde(p: string): string {
     return path.join(process.env["HOME"] ?? "", p.slice(1));
   }
   return p;
-}
-
-// ---------------------------------------------------------------------------
-// Toolbelt
-// ---------------------------------------------------------------------------
-
-/**
- * The default toolbelt, keyed by name. This is the same belt every
- * model-facing surface assembles: `getBuiltinTools()` plus the platform tools
- * (workflows, nodes, jobs, assets, apps, models, media).
- *
- * The platform tools run in-process (no HTTP fallback), so this host injects
- * what they need: the full TS node registry, and the server's host deps
- * (example catalog, DSL exporter, package assets, and the lazy Python-aware
- * run environment — the bridge starts only when a run needs it).
- */
-function buildToolMap(
-  providers: Record<string, BaseProvider>
-): Map<string, Tool> {
-  const map = new Map<string, Tool>();
-  for (const tool of getBuiltinTools()) map.set(tool.name, tool);
-  for (const tool of getAllMcpTools({
-    providers,
-    registry: buildFullRegistry(),
-    ...mcpToolHostDeps()
-  })) {
-    map.set(tool.name, tool);
-  }
-  return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -258,6 +226,16 @@ export async function runAgentCommand(opts: RunOptions): Promise<number> {
     throw new Error("No model specified. Use --model <id>.");
   }
 
+  // `Number("ten")` is NaN, and a NaN round limit runs no rounds at all: the
+  // run then failed as if the model had answered nothing.
+  const maxIterations =
+    opts.maxIterations === undefined
+      ? undefined
+      : parseNumericOption(opts.maxIterations, "--max-iterations", {
+          integer: true,
+          min: 1
+        });
+
   const objective = opts.objective ?? (await readObjectiveFromStdin());
   if (!objective) {
     throw new Error(
@@ -334,7 +312,7 @@ export async function runAgentCommand(opts: RunOptions): Promise<number> {
   // configuration — the thing YAML configs were removed for — and an agent
   // run that behaves differently from the last one is not reproducible.
   const belt = buildCliAgentBelt({
-    baseTools: [...buildToolMap(configuredProviders).values()],
+    baseTools: buildCliToolbelt(configuredProviders, buildFullRegistry()),
     provider,
     model: modelId,
     forwardMessage: emit,
@@ -358,6 +336,7 @@ export async function runAgentCommand(opts: RunOptions): Promise<number> {
   const turn = createCliCodeActTurn({
     tools: belt,
     context,
+    skillCatalog: await loadCliSkillCatalog(context.userId),
     // Calls the sandbox makes have no provider tool-call id of their own.
     onToolCall: ({ name, args }) => {
       emit({ type: "tool_call_update", name, args });
@@ -376,8 +355,7 @@ export async function runAgentCommand(opts: RunOptions): Promise<number> {
       context,
       tools: turn.tools,
       turnBudget: budget,
-      maxIterations:
-        opts.maxIterations === undefined ? undefined : Number(opts.maxIterations),
+      maxIterations,
       callbacks: {
         onChunk: (content) => {
           emit({ type: "chunk", content, done: false });

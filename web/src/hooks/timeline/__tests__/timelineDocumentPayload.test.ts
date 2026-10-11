@@ -4,6 +4,7 @@ import { buildTimelineDocumentPayload } from "../timelineDocumentPayload";
 describe("buildTimelineDocumentPayload", () => {
   const baseState = {
     tracks: [{ id: "t1", name: "Track 1", type: "video" as const, clips: [] }],
+    trackFolders: [{ id: "folder-1", name: "Scene" }],
     clips: { c1: { id: "c1", trackId: "t1", startTime: 0, endTime: 5 } },
     markers: [{ id: "m1", time: 2, label: "Intro" }],
     mediaTracks: [{ id: "subject-1" }],
@@ -25,7 +26,9 @@ describe("buildTimelineDocumentPayload", () => {
       "mediaTracks",
       "scriptEnabled",
       "setup",
+      "storyboardMaterializations",
       "tempo",
+      "trackFolders",
       "tracks",
       "transcript"
     ]);
@@ -42,6 +45,17 @@ describe("buildTimelineDocumentPayload", () => {
   it("preserves the tracks array by reference", () => {
     const payload = buildTimelineDocumentPayload(baseState as never);
     expect(payload.tracks).toBe(baseState.tracks);
+  });
+
+  it("carries storyboard ownership through saves", () => {
+    const storyboardMaterializations = [{ boardId: "board-1", elementKeys: ["shot-1/product"] }];
+    expect(buildTimelineDocumentPayload({ ...baseState, storyboardMaterializations } as never).storyboardMaterializations)
+      .toBe(storyboardMaterializations);
+  });
+
+  it("preserves track folders by reference", () => {
+    const payload = buildTimelineDocumentPayload(baseState as never);
+    expect(payload.trackFolders).toBe(baseState.trackFolders);
   });
 
   it("preserves the clips object by reference", () => {

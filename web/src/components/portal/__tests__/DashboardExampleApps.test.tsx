@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
@@ -43,8 +43,8 @@ const APPS = [
     thumbnailUrl: "/api/workflows/examples/thumbnails/Edit.jpg?v=1"
   },
   {
-    slug: "product-reshoot",
-    name: "Product Reshoot",
+    slug: "sku-factory",
+    name: "SKU Factory",
     description: "New setting, new light, or a clean cutout.",
     workflows: ["Backdrop", "Relight", "Cut out"],
     operationCount: 3,
@@ -81,8 +81,8 @@ describe("DashboardExampleApps", () => {
     expect(within(card).getByText("1 workflow")).toBeInTheDocument();
     expect(within(card).queryByText(/unknown/i)).not.toBeInTheDocument();
 
-    const reshoot = screen.getByRole("button", { name: /product reshoot/i });
-    expect(within(reshoot).getByText("3 workflows")).toBeInTheDocument();
+    const skuFactory = screen.getByRole("button", { name: /sku factory/i });
+    expect(within(skuFactory).getByText("3 workflows")).toBeInTheDocument();
     expect(screen.getByText("2 apps")).toBeInTheDocument();
   });
 
@@ -104,45 +104,6 @@ describe("DashboardExampleApps", () => {
     expect(onBrowseAll).toHaveBeenCalledTimes(1);
   });
 
-  it("installs an app on click and opens it", async () => {
-    const user = userEvent.setup();
-    installExampleApp.mockResolvedValue({ id: "app-1", name: "Vary Image" });
-    renderApps();
-
-    await user.click(await screen.findByRole("button", { name: /vary image/i }));
-
-    await waitFor(() => expect(openTab).toHaveBeenCalledTimes(1));
-    expect(installExampleApp).toHaveBeenCalledWith("vary-image", "proj-1");
-    expect(openTab).toHaveBeenCalledWith({
-      type: "application",
-      ref: "app-1",
-      mode: "view",
-      title: "Vary Image",
-      projectId: "proj-1"
-    });
-    expect(addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "success" })
-    );
-  });
-
-  it("reports a failed install without opening anything", async () => {
-    const user = userEvent.setup();
-    installExampleApp.mockRejectedValue(new Error("No FAL key"));
-    renderApps();
-
-    await user.click(await screen.findByRole("button", { name: /vary image/i }));
-
-    await waitFor(() =>
-      expect(addNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: "error",
-          content: expect.stringContaining("No FAL key")
-        })
-      )
-    );
-    expect(openTab).not.toHaveBeenCalled();
-  });
-
   it("offers a retry when the list cannot load", async () => {
     listExampleApps.mockRejectedValueOnce(new Error("offline"));
     const user = userEvent.setup();
@@ -152,4 +113,19 @@ describe("DashboardExampleApps", () => {
 
     expect(await screen.findByRole("button", { name: /vary image/i })).toBeInTheDocument();
   });
+});
+
+it("opens a used app in its own tab without installing it", async () => {
+  listExampleApps.mockResolvedValue(APPS);
+  renderApps();
+  await userEvent.click(await screen.findByRole("button", { name: /vary image/i }));
+
+  expect(openTab).toHaveBeenCalledWith({
+    type: "example-app",
+    ref: "vary-image",
+    mode: "view",
+    title: "Vary Image"
+  });
+  expect(installExampleApp).not.toHaveBeenCalled();
+  expect(screen.getByText("Start from an app")).toBeInTheDocument();
 });

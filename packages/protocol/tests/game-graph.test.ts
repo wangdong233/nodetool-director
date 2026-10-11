@@ -16,6 +16,7 @@ import {
   GAME_SOUND_EFFECT_NODE_TYPE,
   GAME_SPRITESHEET_NODE_TYPE,
   GAME_TEXT_TO_IMAGE_NODE_TYPE,
+  GAME_IMAGE_TO_IMAGE_NODE_TYPE,
   GAME_TEXT_TO_MUSIC_NODE_TYPE,
   GAME_TILESET_NODE_TYPE,
   GAME_CHECKER_NODE_TYPES,
@@ -39,7 +40,7 @@ const manifestOf = (template: string) =>
       readFileSync(
         fileURLToPath(
           new URL(
-            `../../godot-templates/templates/${template}/manifest.json`,
+            `../fixtures/game-assets/${template}.manifest.json`,
             import.meta.url
           )
         ),
@@ -57,6 +58,17 @@ const SHAPES: Record<string, PlanNodeShape> = {
       { name: "prompt", type: "str" },
       { name: "model", type: "image_model" },
       { name: "negative_prompt", type: "str" },
+      { name: "entities", type: "list[dict]" },
+      { name: "aspect_ratio", type: "str" },
+      { name: "resolution", type: "str" }
+    ],
+    outputs: [{ name: "output", type: "image" }]
+  },
+  [GAME_IMAGE_TO_IMAGE_NODE_TYPE]: {
+    inputs: [
+      { name: "image", type: "list[image]" },
+      { name: "prompt", type: "str" },
+      { name: "model", type: "image_model" },
       { name: "entities", type: "list[dict]" },
       { name: "aspect_ratio", type: "str" },
       { name: "resolution", type: "str" }
@@ -158,15 +170,13 @@ const SHAPES: Record<string, PlanNodeShape> = {
   [GAME_EXPORT_NODE_TYPE]: {
     inputs: [
       { name: "template", type: "str" },
-      { name: "name", type: "str" },
       { name: "fills", type: "list[union[image,audio]]" },
-      { name: "directory", type: "str" },
-      { name: "verify", type: "bool" }
+      { name: "game_id", type: "str" }
     ],
     outputs: [
       { name: "output", type: "dict" },
-      { name: "directory", type: "str" },
-      { name: "archive", type: "str" }
+      { name: "bindings", type: "dict" },
+      { name: "paths", type: "list[str]" }
     ]
   },
   [PLAN_OUTPUT_NODE_TYPE]: {
@@ -221,6 +231,7 @@ const lookupWithout =
 const lookup = lookupWithout();
 
 const choices = (over: Partial<GameGraphChoices> = {}): GameGraphChoices => ({
+  gameId: "a".repeat(32),
   imageModel: { type: "image_model", provider: "fal_ai", id: "fal-ai/flux/schnell" },
   sfxNodeType: SFX_NODE_TYPE,
   musicModel: { type: "music_model", provider: "replicate", id: "meta/musicgen" },
@@ -245,6 +256,29 @@ const typesOf = (placement: WorkflowPlacement, slotId: string): string[] =>
     .map((node) => node.type);
 
 describe("gameGraphPlacement", () => {
+  it("sends one selected style image to every visual generation request", () => {
+    const placement = gameGraphPlacement(platformer, design,
+      choices({ style: { name: "16-bit console", descriptor: "pixel art", referenceAssetId: "style-image" } }), lookup);
+    expect(placement.issues).toEqual([]);
+    const generators = placement.nodes.filter((node) => node.type === GAME_IMAGE_TO_IMAGE_NODE_TYPE);
+    expect(generators.length).toBeGreaterThan(0);
+    for (const generator of generators) {
+      expect(generator.properties["entities"]).toEqual(expect.arrayContaining([
+        expect.objectContaining({ reference_images: [{ type: "image", asset_id: "style-image" }] })
+      ]));
+    }
+    expect(placement.nodes.find((node) => node.type === GAME_EXPORT_NODE_TYPE)?.properties["reference_asset_id"])
+      .toBe("style-image");
+  });
+
+  it("rejects a selected model that cannot accept the style reference", () => {
+    const placement = gameGraphPlacement(platformer, design, choices({
+      style: { name: "Style", descriptor: "pixel art", referenceAssetId: "style-image" },
+      imageModel: { type: "image_model", provider: "fake", id: "text-only", supported_tasks: ["text_to_image"] }
+    }), lookup);
+    expect(placement.issues.join(" ")).toContain("needs an image-to-image model");
+    expect(placement.nodes.some((node) => node.type === GAME_IMAGE_TO_IMAGE_NODE_TYPE)).toBe(false);
+  });
   it("repairs scrolling backgrounds but leaves title artwork untouched", () => {
     const placement = gameGraphPlacement(manifestOf("shmup"), chipDesign("shmup"), choices(), lookup);
     const checkers = placement.nodes.filter((node) => node.type === GAME_SEAMLESS_IMAGE_NODE_TYPE);
@@ -373,7 +407,7 @@ describe("gameGraphPlacement", () => {
     ]);
   });
 
-  it("feeds the export node's fills list from every checker's stamped output", () => {
+  it("feeds the staging node's fills list from every checker's stamped output", () => {
     const placement = gameGraphPlacement(platformer, design, choices(), lookup);
     const exportNode = placement.nodes.find(
       (node) => node.type === GAME_EXPORT_NODE_TYPE
@@ -381,9 +415,7 @@ describe("gameGraphPlacement", () => {
     expect(exportNode.dynamicProperties).toBeUndefined();
     expect(exportNode.properties).toMatchObject({
       template: "platformer",
-      name: "Ember Run",
-      directory: "games/ember-run",
-      verify: true
+      game_id: "a".repeat(32)
     });
 
     // One edge per slot, all onto the one list input the kernel folds.

@@ -1,11 +1,14 @@
+import ReportBugButton from "../support/ReportBugButton";
 import type { DocumentLoadState } from "../../stores/documentSync";
-import { EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { EmptyState, FlexColumn, LoadingSpinner, EditorButton } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;
   /** The document type, lowercase, as it reads mid-sentence: "storyboard". */
   label: string;
+  onRetry?: () => void;
+  onClose?: () => void;
+  closeLabel?: string;
 }
 
 /**
@@ -17,7 +20,7 @@ interface DocumentLoadStatusProps {
  * straight away shows an empty document — indistinguishable from a document
  * that really is empty. This shows the load instead.
  */
-const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => {
+const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Close tab" }: DocumentLoadStatusProps) => {
   const { t } = useTranslation();
   return (
   <FlexColumn
@@ -41,11 +44,20 @@ const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => {
           defaultValue: "Could not load this {{label}}",
           label
         })}
-        description={t("ui2:attrs.loadFailedRetry", {
-          defaultValue:
-            "The server did not answer. Close the tab and open it again to retry."
-        })}
+        description={onRetry
+          ? t("ui2:attrs.loadFailedUnavailable", {
+              defaultValue: "The document could not be loaded. It may be unavailable or you may need to reconnect."
+            })
+          : t("ui2:attrs.loadFailedRetry", {
+              defaultValue: "The document could not be loaded. Close the tab and open it again to retry."
+            })}
+        actionText={onRetry ? t("common:action.retry", { defaultValue: "Retry" }) : undefined}
+        onAction={onRetry}
       />
+    )}
+    {state === "error" && <ReportBugButton context={{ source: "panel-crash", summary: `Could not load this ${label}` }} />}
+    {state === "error" && onClose && (
+      <EditorButton onClick={onClose}>{closeLabel}</EditorButton>
     )}
   </FlexColumn>
 )

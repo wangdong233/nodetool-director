@@ -51,10 +51,10 @@
  * the never-reject/abort-guard conventions every bridge follows.
  */
 
-import { loadQuickJs } from "@sebastianwessel/quickjs";
 import {
   SANDBOX_CAPABILITY_DISPATCH_GLOBAL,
   SANDBOX_WASM_DISPATCH_GLOBAL,
+  type RuntimePackageId,
   type SandboxModuleResolution
 } from "@nodetool-ai/protocol";
 
@@ -147,10 +147,11 @@ import * as quickJsVariantModule from "@jitl/quickjs-ng-wasmfile-release-sync";
 // `QuickJSSyncVariant` this reads.
 const quickJsVariant = (
   quickJsVariantModule as unknown as {
-    default: Parameters<typeof loadQuickJs>[0];
+    default: Parameters<typeof loadSandboxEngine>[0];
   }
 ).default;
 import { importNodeBuiltin } from "@nodetool-ai/config";
+import { loadSandboxEngine } from "./js-sandbox-worker/engine.js";
 import type { AssetRef } from "@nodetool-ai/protocol";
 import type { ProcessingContext, Workspace } from "@nodetool-ai/runtime";
 
@@ -459,12 +460,12 @@ export function resolveSandboxLimits(
 // Engine bootstrap — one WASM module shared by every invocation.
 // ---------------------------------------------------------------------------
 
-let enginePromise: ReturnType<typeof loadQuickJs> | null = null;
+let enginePromise: ReturnType<typeof loadSandboxEngine> | null = null;
 
-function getEngine(): ReturnType<typeof loadQuickJs> {
+function getEngine(): ReturnType<typeof loadSandboxEngine> {
   registerTypedArraySerializers();
   if (!enginePromise) {
-    enginePromise = loadQuickJs(quickJsVariant);
+    enginePromise = loadSandboxEngine(quickJsVariant);
   }
   return enginePromise;
 }
@@ -505,10 +506,9 @@ export function describeEngineFailure(error: unknown): string {
   if (/gc_obj_list|Assertion failed|\bAborted\(/.test(message)) {
     return (
       "The JavaScript sandbox runtime aborted while cleaning up, so this " +
-      "action produced no result. It is usually triggered by moving a large " +
-      "amount of binary data across the sandbox boundary in one run. Retry " +
-      "with smaller pieces — process one image at a time, or hand large " +
-      "payloads between steps as assets instead of as bytes."
+      "action has no usable result. Host operations may already have completed. " +
+      "This is an internal sandbox cleanup failure. Inspect the execution " +
+      "before retrying any operation that writes data."
     );
   }
   if (/out of memory/i.test(message)) {
@@ -2738,6 +2738,8 @@ export interface RunSandboxOptions {
    * lookup leaves the process.
    */
   resolveHost?: HostResolver;
+  /** Pure guest construction only. Host bridges and host-backed module mounts are refused. */
+  hermetic?: boolean;
 }
 
 export interface RunSandboxResult {
@@ -2758,6 +2760,12 @@ export interface RunSandboxResult {
    * the values went there instead.
    */
   emitted?: SandboxEmittedValue[];
+  /**
+   * On a failed run, the optional package a host module could not load. The
+   * guest sees only the message, so the caller rethrows with this to let the
+   * editor offer the install.
+   */
+  missingRuntimePackage?: RuntimePackageId;
 }
 
 const IDENTIFIER_RE = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
@@ -2869,6 +2877,20 @@ function noteWorkerFallback(reason: string): void {
 export async function runInSandbox(
   options: RunSandboxOptions
 ): Promise<RunSandboxResult> {
+  let missingRuntimePackage: RuntimePackageId | undefined;
+  const result = await executeInSandbox(options, (runtimePackage) => {
+    missingRuntimePackage ??= runtimePackage;
+  });
+  // A guest that caught the failure and finished anyway did not need it.
+  return !result.success && missingRuntimePackage !== undefined
+    ? { ...result, missingRuntimePackage }
+    : result;
+}
+
+async function executeInSandbox(
+  options: RunSandboxOptions,
+  onMissingRuntimePackage: (runtimePackage: RuntimePackageId) => void
+): Promise<RunSandboxResult> {
   const {
     code,
     context,
@@ -2889,6 +2911,10 @@ export async function runInSandbox(
     promoteMedia,
     resolveHost
   } = options;
+  if (options.hermetic && (capabilities || (globals && Object.keys(globals).length) ||
+    modules?.modules.some((module) => module.kind !== "js"))) {
+    return { success: false, error: "Hermetic execution accepts only guest JavaScript modules and literal program inputs", logs: [] };
+  }
   const resolvedLimits = resolveSandboxLimits(limits);
   // A streaming run needs a clock whether or not the caller brought one: the
   // time it spends parked on upstream is not its own execution.
@@ -2911,13 +2937,15 @@ export async function runInSandbox(
   const wasmOptions: Parameters<typeof createSandboxWasmDispatcher>[1] = {};
   if (wasmPool !== undefined) wasmOptions.pool = wasmPool;
   if (signal !== undefined) wasmOptions.signal = signal;
-  const hostOptions: Parameters<typeof createSandboxHostDispatcher>[1] = {};
+  const hostOptions: Parameters<typeof createSandboxHostDispatcher>[1] = {
+    onMissingRuntimePackage
+  };
   if (signal !== undefined) hostOptions.signal = signal;
   try {
-    wasm = modules
+    wasm = modules && !options.hermetic
       ? createSandboxWasmDispatcher(modules.modules, wasmOptions)
       : undefined;
-    hostModules = modules
+    hostModules = modules && !options.hermetic
       ? createSandboxHostDispatcher(modules.modules, hostOptions)
       : undefined;
   } catch (error) {
@@ -2938,17 +2966,37 @@ export async function runInSandbox(
   if (activeClock !== undefined) streams.clock = activeClock;
 
   const { sandbox, getLogs, getOutputs, getEmitted } = buildSandbox(
-    context,
+    options.hermetic ? undefined : context,
     signal,
     resolvedLimits,
-    onProgress,
-    onLog,
-    onEmit,
-    streams,
-    resolveMediaRef,
-    promoteMedia,
-    resolveHost
+    options.hermetic ? undefined : onProgress,
+    options.hermetic ? undefined : onLog,
+    options.hermetic ? undefined : onEmit,
+    options.hermetic ? {} : streams,
+    options.hermetic ? undefined : resolveMediaRef,
+    options.hermetic ? undefined : promoteMedia,
+    options.hermetic ? undefined : resolveHost
   );
+  if (options.hermetic) {
+    // Deny host bridge functions before either interpreter receives them.
+    // Only console collection survives. Native guest arithmetic is not a bridge.
+    const refuse = (path: string): unknown => async () => {
+      throw new Error(`${path} is unavailable during hermetic construction`);
+    };
+    const restrict = (value: unknown, path: string): unknown => {
+      if (typeof value === "function") { return refuse(path); }
+      if (value && typeof value === "object") {
+        return Object.fromEntries(Object.entries(value).map(([key, member]) => [key, restrict(member, `${path}.${key}`)]));
+      }
+      return value;
+    };
+    const hostBindings: Record<string, unknown> = sandbox;
+    for (const name of EXPOSED_BRIDGE_NAMES) {
+      if (name !== "console") { hostBindings[name] = restrict(hostBindings[name], name); }
+    }
+    hostBindings[SANDBOX_INPUT_TAKE_BINDING] = refuse("stream");
+    hostBindings[SANDBOX_STREAM_OPEN_BINDING] = () => false;
+  }
 
   // User-supplied globals (dynamic inputs from CodeNode etc.) layer on top of
   // the core surface, but must not clobber the bridge functions themselves.
@@ -2961,9 +3009,29 @@ export async function runInSandbox(
     }
   }
   // Identify object-typed globals whose contents should be synced back to the
-  // host after the guest runs. Primitives are passed by value and need no sync.
+  // host after the guest runs. Primitives are passed by value and need no
+  // sync. A global holding a function anywhere inside it — a hermetic bake's
+  // `{ nodetool: { timelines: { edit() {...} } } }` stub — is excluded even
+  // though it is object-typed: nothing reads a synced-back copy of a stub
+  // (CodeNode's `state` object is the only real consumer, and it never holds
+  // functions), and extracting the guest's current value asks the engine to
+  // marshal a live function back out on every successful run, on top of the
+  // one it already crossed in as. That is reach the sync-back exists to
+  // avoid, not a capability it needs.
+  const objectGlobalHasFunction = (
+    value: unknown,
+    seen = new Set<unknown>()
+  ): boolean => {
+    if (typeof value === "function") return true;
+    if (value === null || typeof value !== "object") return false;
+    if (seen.has(value)) return false;
+    seen.add(value);
+    return Object.values(value as Record<string, unknown>).some((entry) =>
+      objectGlobalHasFunction(entry, seen)
+    );
+  };
   const syncTargetNames = Object.entries(userGlobals)
-    .filter(([, v]) => isObjectLike(v))
+    .filter(([, v]) => isObjectLike(v) && !objectGlobalHasFunction(v))
     .map(([k]) => k);
 
   // Write the extracted object-global snapshots back into the caller's own

@@ -8,12 +8,13 @@
  * encode and the file extension — MP4, WebM, or a zip of PNGs.
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTimelineStoreApi } from "../../stores/timeline/TimelineStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
+import { packageClipMediaUrl } from "../../components/timeline/packageClipMedia";
 import {
   renderTimeline,
   type BrowserExportFormat,
@@ -70,13 +71,17 @@ function sanitizeFilename(name: string): string {
 }
 
 function downloadBlob(
-  bytes: Uint8Array,
+  bytes: Uint8Array | Blob,
   mimeType: string,
   filename: string
 ): void {
-  // `bytes` is always backed by a plain ArrayBuffer from the muxer; the cast
-  // satisfies the BlobPart typing under the current TS lib.
-  const blob = new Blob([bytes as BlobPart], { type: mimeType });
+  // Muxer bytes are backed by a plain ArrayBuffer (the cast satisfies the
+  // BlobPart typing under the current TS lib). A PNG-sequence zip already is a
+  // Blob and is passed through without another copy.
+  const blob =
+    bytes instanceof Blob
+      ? bytes
+      : new Blob([bytes as BlobPart], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -117,6 +122,14 @@ export function useTimelineExport(): UseTimelineExportResult {
     abortRef.current?.abort();
   }, []);
 
+  // Closing the editor must not leave a render running against a dead view.
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+    },
+    []
+  );
+
   const clearError = useCallback(() => setError(null), []);
 
   // Shared render core: renders the sequence to MP4 bytes and hands them to a
@@ -125,7 +138,7 @@ export function useTimelineExport(): UseTimelineExportResult {
   const runExport = useCallback(
     async (
       sink: (
-        bytes: Uint8Array,
+        bytes: Uint8Array | Blob,
         mimeType: string,
         name: string,
         extension: string
@@ -143,6 +156,10 @@ export function useTimelineExport(): UseTimelineExportResult {
       const resolveUrl = async (
         assetId: string
       ): Promise<string | undefined> => {
+        const packageUrl = packageClipMediaUrl(assetId);
+        if (packageUrl) {
+          return packageUrl;
+        }
         try {
           const asset = await getAsset(assetId);
           return getAssetUrl(asset) ?? undefined;
@@ -177,7 +194,12 @@ export function useTimelineExport(): UseTimelineExportResult {
           (max, clip) => Math.max(max, clipEndMs(clip)),
           0
         );
-        const exportDurationMs = Math.max(state.durationMs, clipsDurationMs);
+        // The export ends where the content ends, as the preview's scrubber
+        // does. The stored `durationMs` is only set on load, so after the
+        // sequence shrinks it would append black and silence. It is kept only
+        // for an empty sequence.
+        const exportDurationMs =
+          state.clips.length > 0 ? clipsDurationMs : state.durationMs;
         if (exportDurationMs <= 0) {
           throw new Error("Add a clip before exporting.");
         }

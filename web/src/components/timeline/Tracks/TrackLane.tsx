@@ -48,10 +48,19 @@ import {
   visibleClipIdsByTrack
 } from "../../../stores/timeline/clipLookup";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
+import { runAsOneUndoEntry } from "../../../stores/timeline/useTimelineHistoryBatch";
 import { useTimelinePlaybackStore } from "../../../stores/timeline/TimelinePlaybackStore";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import { Clip } from "./Clip";
-import { ContextMenu, WarningBanner, MOTION, MenuItemPrimitive, Z_INDEX } from "../../ui_primitives";
+import {
+  ContextMenu,
+  WarningBanner,
+  MOTION,
+  MenuItemPrimitive,
+  SPACING,
+  getSpacingPx,
+  Z_INDEX
+} from "../../ui_primitives";
 import { AddClipMenu } from "../AddClipMenu";
 import { deserializeDragData } from "../../../lib/dragdrop";
 import type { Asset } from "../../../stores/ApiTypes";
@@ -73,6 +82,8 @@ const DEFAULT_TRACK_HEIGHT_PX = 64;
 const NO_CLIP_IDS: string[] = [];
 /** Duration (ms) the mismatch warning banner remains visible. */
 const WARNING_DISMISS_MS = 3000;
+/** A touch that travels further than this is a swipe, not a tap-to-seek. */
+const TAP_SLOP_PX = 8;
 
 const laneStyles = (
   theme: Theme,
@@ -80,7 +91,9 @@ const laneStyles = (
   visible: boolean,
   isRubberBanding: boolean,
   isDragOver: boolean,
-  isDragReject: boolean
+  isDragReject: boolean,
+  locked: boolean,
+  muted: boolean
 ) =>
   css({
     position: "relative",
@@ -88,6 +101,10 @@ const laneStyles = (
     height: heightPx,
     flexShrink: 0,
     backgroundColor: theme.vars.palette.background.default,
+    // A locked lane reads as read-only through a faint diagonal hatch.
+    backgroundImage: locked
+      ? `repeating-linear-gradient(135deg, ${theme.vars.palette.c_overlay} 0 ${getSpacingPx(SPACING.xs)}, transparent ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)})`
+      : undefined,
     opacity: visible ? 1 : 0.55,
     borderBottom: `1px solid ${
       isDragReject
@@ -104,19 +121,32 @@ const laneStyles = (
     outlineOffset: "-2px",
     overflow: "hidden",
     cursor: isRubberBanding ? "crosshair" : "default",
-    transition: `opacity ${MOTION.fast}`
+    transition: `opacity ${MOTION.fast}`,
+    // Clips on a muted sound track recede so the mute is visible in the lane.
+    ...(muted
+      ? { "& [data-timeline-clip-id]": { opacity: 0.5 } }
+      : null),
+    // Keyboard focus ring; a drag-over outline above takes precedence.
+    ...(isDragOver || isDragReject
+      ? null
+      : {
+          "&:focus-visible": {
+            outline: `2px solid ${theme.vars.palette.primary.main}`,
+            outlineOffset: -2
+          }
+        })
   });
 
 interface TrackLaneProps {
   track: TimelineTrack;
   virtualizeClips?: boolean;
+  collapsedFolderIds?: ReadonlySet<string>;
 }
 
 const CLIP_OVERSCAN_PX = 320;
 
-export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
+export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false, collapsedFolderIds }) => {  const theme = useTheme();
   const timelineStore = useTimelineStoreApi();
   const msPerPx = useTimelineUIStore((s) => s.msPerPx);
   const verticalZoom = useTimelineUIStore((s) => s.verticalZoom);
@@ -220,6 +250,14 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
    *  move during a captured rubber-band gesture, so pointermove reuses this
    *  instead of calling getBoundingClientRect() (forces layout) per move. */
   const rbContainerRectRef = useRef<DOMRect | null>(null);
+  /** A touch on empty lane that may still be a tap. It seeks on release only
+   *  if it neither travelled (a swipe scrolls) nor was cancelled or held into
+   *  the lane menu. */
+  const touchTapRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
   /** True while this lane owns a band gesture — drives the lane cursor only,
    *  the band rect itself lives in the UI store so the overlay can draw it
    *  across lanes. */
@@ -287,11 +325,16 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       if (!isAssetDrag(e)) {
         return;
       }
+      if (track.locked) {
+        // Locked lane: no drop affordance (no preventDefault).
+        e.dataTransfer.dropEffect = "none";
+        return;
+      }
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
       setIsDragOver(true);
     },
-    [isAssetDrag]
+    [isAssetDrag, track.locked]
   );
 
   const handleAssetDragLeave = useCallback(
@@ -318,6 +361,11 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       e.preventDefault();
       e.stopPropagation();
 
+      if (track.locked) {
+        showWarning("This track is locked.", true);
+        return;
+      }
+
       const dragData = deserializeDragData(e.dataTransfer);
       if (!dragData) {
         return;
@@ -339,7 +387,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         return;
       }
 
-      const mediaType = assetMediaType(asset.content_type);
+      const mediaType = assetMediaType(asset.content_type, asset.name);
       if (!mediaType) {
         showWarning(`Cannot import "${asset.name}": unsupported media type.`);
         return;
@@ -369,14 +417,19 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       if (mediaType === "video" && track.type === "video") {
         void importVideoWithAudio(asset, track.id, startMs, dropMode);
       } else {
-        const newId = addImportedClip(asset, track.id, startMs);
-        resolveDropInStore(new Set([newId]), dropMode);
+        // Add and drop resolution are one undo entry.
+        runAsOneUndoEntry(timelineStore, () => {
+          const newId = addImportedClip(asset, track.id, startMs);
+          resolveDropInStore(new Set([newId]), dropMode);
+        });
       }
     },
     [
       isAssetDrag,
       track.type,
       track.id,
+      track.locked,
+      timelineStore,
       msPerPx,
       addImportedClip,
       resolveDropInStore,
@@ -409,7 +462,8 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
           return;
         }
         // The hold became a menu, not a band — drop the gesture pointerdown
-        // started so releasing doesn't re-select.
+        // started so releasing doesn't re-select or seek.
+        touchTapRef.current = null;
         isRubberBandingRef.current = false;
         setIsRubberBanding(false);
         setRubberBand(null);
@@ -432,12 +486,15 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       // Touch: a drag across empty lane means "scroll the timeline", so the
       // gesture is left to the scroller. Rubber-band marquee needs a second
       // pointer to hold a modifier and has no equivalent on a phone; only the
-      // seek and the long-press menu below apply. (Capturing the pointer here
-      // would also suppress the native scroll outright.)
+      // seek (on a tap's release) and the long-press menu below apply.
+      // (Capturing the pointer here would also suppress the native scroll.)
       if (e.pointerType === "touch") {
         laneLongPress.start(e);
-        const touchRect = e.currentTarget.getBoundingClientRect();
-        seek(Math.round((e.clientX - touchRect.left) * msPerPx));
+        touchTapRef.current = {
+          pointerId: e.pointerId,
+          x: e.clientX,
+          y: e.clientY
+        };
         return;
       }
 
@@ -480,7 +537,9 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
           document.tracks,
           document.scriptEnabled,
           useTimelineUIStore.getState().expandedFxTrackId,
-          useTimelineUIStore.getState().verticalZoom
+          useTimelineUIStore.getState().verticalZoom,
+          document.trackFolders,
+          collapsedFolderIds
         );
         rows.forEach((row) => {
           if (row.kind === "track") {
@@ -574,6 +633,14 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
   const handleLanePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       laneLongPress.move(e);
+      const tap = touchTapRef.current;
+      if (
+        tap &&
+        tap.pointerId === e.pointerId &&
+        Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > TAP_SLOP_PX
+      ) {
+        touchTapRef.current = null;
+      }
       if (!isRubberBandingRef.current || e.buttons !== 1) {
         return;
       }
@@ -606,8 +673,9 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
     [laneLongPress, msPerPx, applyRubberBandSelection, setRubberBand]
   );
 
-  const handleLanePointerUp = useCallback(() => {
+  const endLaneGesture = useCallback(() => {
     laneLongPress.cancel();
+    touchTapRef.current = null;
     isRubberBandingRef.current = false;
     rbBaseSelectionRef.current = null;
     rbLastAppliedRef.current = null;
@@ -617,6 +685,22 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
     setIsRubberBanding(false);
     setRubberBand(null);
   }, [laneLongPress, setRubberBand]);
+
+  const handleLanePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const tap = touchTapRef.current;
+      if (
+        tap &&
+        tap.pointerId === e.pointerId &&
+        Math.hypot(e.clientX - tap.x, e.clientY - tap.y) <= TAP_SLOP_PX
+      ) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        seek(Math.max(0, Math.round((e.clientX - rect.left) * msPerPx)));
+      }
+      endLaneGesture();
+    },
+    [endLaneGesture, msPerPx, seek]
+  );
 
   const handleLaneContextMenu = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -700,6 +784,8 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
     setAddClipAnchorEl(null);
   }, []);
 
+  const isMutedSoundTrack =
+    (track.type === "audio" || track.type === "midi") && !!track.muted;
   const laneCss = useMemo(
     () =>
       laneStyles(
@@ -708,9 +794,20 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         track.visible,
         isRubberBanding,
         isDragOver,
-        isDragReject
+        isDragReject,
+        track.locked,
+        isMutedSoundTrack
       ),
-    [theme, heightPx, track.visible, isRubberBanding, isDragOver, isDragReject]
+    [
+      theme,
+      heightPx,
+      track.visible,
+      isRubberBanding,
+      isDragOver,
+      isDragReject,
+      track.locked,
+      isMutedSoundTrack
+    ]
   );
 
   return (
@@ -723,7 +820,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       onPointerDown={handleLanePointerDown}
       onPointerMove={handleLanePointerMove}
       onPointerUp={handleLanePointerUp}
-      onPointerCancel={handleLanePointerUp}
+      onPointerCancel={endLaneGesture}
       onDragOver={handleAssetDragOver}
       onDragLeave={handleAssetDragLeave}
       onDrop={handleAssetDrop}

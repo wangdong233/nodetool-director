@@ -50,7 +50,8 @@ const CollectionHeader = () => {
       >
         <FlexColumn gap={1} sx={{ p: 2, maxWidth: 400 }}>
           <Caption color="secondary">
-            {t("ui2:attrs.collectionsAreUsedToStoreAndSearchDocuments", { defaultValue: "Collections are used to store and search documents. Following file formats are supported:" })}
+            Collections store documents for semantic search. Drop text files
+            here to index them:
           </Caption>
           <ul
             style={{
@@ -59,10 +60,13 @@ const CollectionHeader = () => {
               listStyle: "disc"
             }}
           >
-            <li>{t("ui2:attrs.pdfsPowerPointWordExcel", { defaultValue: "PDFs, PowerPoint, Word, Excel" })}</li>
-            <li>{t("ui2:attrs.textFilesMarkdownHTML", { defaultValue: "Text files, Markdown, HTML" })}</li>
-            <li>{t("ui2:attrs.imagesTextExtractionWithOCR", { defaultValue: "Images (text extraction with OCR)" })}</li>
+            <li>Plain text and Markdown</li>
+            <li>HTML, CSV, and JSON</li>
           </ul>
+          <Caption color="secondary">
+            To index PDFs, Office files, or images, extract their text with a
+            workflow first.
+          </Caption>
         </FlexColumn>
       </Popover>
     </Box>

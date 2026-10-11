@@ -8,14 +8,15 @@
  */
 
 import {
+  ensureRunTraceTelemetry,
   startGenerationReconcileWorker,
   sweepInterruptedGenerations
 } from "@nodetool-ai/execution";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { createServer as createHttpServer } from "node:http";
+import { flushCompileCache } from "node:module";
 import crypto from "node:crypto";
 import {
   createLogger,
@@ -25,6 +26,7 @@ import {
   loadEnvironment
 } from "@nodetool-ai/config";
 import { registerTransformersJsProvider } from "@nodetool-ai/transformers-js-provider";
+import { registerWhisperCppProviders } from "@nodetool-ai/whisper-cpp";
 import { setCodeNodeAgentsModule } from "@nodetool-ai/base-nodes";
 import * as agentsModule from "@nodetool-ai/agents";
 import {
@@ -33,7 +35,15 @@ import {
 } from "./node-registry-setup.js";
 import { corsOriginDelegate } from "./cors.js";
 import { zipExtensionDist } from "./lib/extension-dist.js";
-import { isPublicAuthExemptRoute } from "./lib/public-routes.js";
+import {
+  isPublicAuthExemptRoute,
+  isStaticAppRequest,
+  routedPathname
+} from "./lib/public-routes.js";
+import {
+  matchesServerAuthToken,
+  resolveServerAuthToken
+} from "./lib/server-auth-token.js";
 import {
   isWebSocketUpgrade,
   denyUnauthorized,
@@ -51,8 +61,8 @@ import {
   parseTrustedLocalNetworks,
   isTrustedLocalAddress
 } from "./lib/localhost-trust.js";
+import { registerHttpTracing } from "./lib/http-tracing.js";
 import {
-  initTelemetry,
   shutdownTelemetry,
   createPythonBridge,
   WebsocketPythonBridge,
@@ -72,6 +82,7 @@ import {
 } from "@nodetool-ai/compute";
 import {
   getSecret,
+  getRegisteredRunTrace,
   AccessToken,
   getWorkerProfile,
   initDb,
@@ -82,15 +93,21 @@ import {
   migrateSqliteDb,
   runSeeds
 } from "@nodetool-ai/models";
+import {
+  applyTransformersJsCacheSetting,
+  resolveWorkerSettingsEnv
+} from "./worker-settings-env.js";
 import { isMcpHttpEnabled, MCP_ENABLE_FLAG } from "./lib/mcp-mount.js";
 import {
   authenticateMcpAccessToken,
   mcpBearerChallenge
 } from "./oauth/gate.js";
 import { registerPythonProviders, relayWorkerDownload } from "./models-api.js";
+import { createProviderRegistrar } from "./python-bridge-gate.js";
 import { syncCustomProviderRegistry } from "./custom-providers.js";
-import { runAutomaticStorageCleanup } from "./storage-retention.js";
+import { runScheduledStorageCleanup } from "./storage-retention.js";
 import { createGenerationRecoveryWorker } from "./generation-recovery.js";
+import { sweepInterruptedJobs } from "./interrupted-jobs.js";
 
 /** User id the auth middleware assigns in local (no-account) mode. */
 const LOCAL_USER_ID = "1";
@@ -113,7 +130,8 @@ import {
   DelegatedTokenProvider,
   isDelegatedToken,
   AppSessionTokenProvider,
-  isAppSessionToken
+  isAppSessionToken,
+  FileUserManager
 } from "@nodetool-ai/auth";
 import {
   fastifyTRPCPlugin,
@@ -174,7 +192,10 @@ import {
 import filesRoutes from "./routes/files.js";
 import collectionsRoutes from "./routes/collections.js";
 import applicationsRoutes from "./routes/applications.js";
+import appRunsRoutes from "./routes/app-runs.js";
+import runSpansRoutes from "./routes/run-spans.js";
 import publicAppRoutes from "./routes/public-apps.js";
+import publicSharedWorkflowRoutes from "./routes/public-shared-workflows.js";
 import { appDeploymentsEnabled } from "./lib/app-deployment-service.js";
 import accountRoutes from "./routes/account.js";
 import jsScriptsRoutes from "./routes/js-scripts.js";
@@ -195,8 +216,14 @@ import kieWebhookRoute from "./routes/kie-webhook.js";
 import falWebhookRoute from "./routes/fal-webhook.js";
 import atlasCloudWebhookRoute from "./routes/atlascloud-webhook.js";
 import { createIntegrationRoutes } from "./routes/integrations.js";
-import { isNonEmptyString, isString } from "./lib/wire-values.js";
-import { logTrpcRequestError } from "./trpc/error-logging.js";
+import { isString } from "./lib/wire-values.js";
+import {
+  logTrpcRequestError,
+  traceTrpcRequestError
+} from "./trpc/error-logging.js";
+import { captureError, startErrorTraceMaintenance } from "./error-traces.js";
+import { detectPipMetadataRoots } from "./lib/python-metadata-roots.js";
+import { getSetting } from "./settings-registry.js";
 
 /** The Node `process` as Electron extends it. `type` is absent elsewhere. */
 type ElectronProcess = typeof process & { readonly type?: string };
@@ -236,15 +263,20 @@ const log = createLogger("nodetool.websocket.server");
 // made by the process launcher before this point).
 configureLogging();
 
-await initTelemetry();
+// The Python interpreter scan runs while telemetry starts and the database
+// opens and migrates. The node registry below is the first reader.
+const pipMetadataRoots = detectPipMetadataRoots();
+
+await ensureRunTraceTelemetry();
 const startupT0 = performance.now();
 /**
- * When this process started. A generation row still `running` from before
- * this moment belongs to a process that is gone, and the sweep closes it
- * (docs/media-generation-tracking-design.md § 6.3).
+ * When this process started. A generation or job row still in flight from
+ * before this moment belongs to a process that is gone, and the startup sweeps
+ * close it (docs/media-generation-tracking-design.md § 6.3).
  */
 const PROCESS_STARTED_AT = new Date().toISOString();
 let stopGenerationReconcileWorker: (() => void) | null = null;
+let stopErrorTraceMaintenance: (() => void) | null = null;
 function startupMs(): string {
   return `${(performance.now() - startupT0).toFixed(0)}ms`;
 }
@@ -281,10 +313,7 @@ async function notifyPythonBridgeResourceChanges(
     resource: { id: "nodes", etag: String(Date.now()) }
   });
 
-  const registered = await registerPythonProviders(pythonBridge);
-  if (registered.length > 0) {
-    log.info(`Registered Python providers: ${registered.join(", ")}`);
-  }
+  const registered = await registerPythonProvidersOnce();
 
   const discoveredProviders = await pythonBridge.listProviders();
   const registeredProviders = new Set(registered);
@@ -357,6 +386,19 @@ try {
   // global resolver.
   await initMasterKey();
 
+  // Transformers.js fixes its cache directory on first import, which happens
+  // after this point, so a directory saved in Settings must be applied now.
+  try {
+    const tjsCacheDir = await applyTransformersJsCacheSetting(LOCAL_USER_ID);
+    if (tjsCacheDir) {
+      log.info("Transformers.js cache directory from Settings", { path: tjsCacheDir });
+    }
+  } catch (err) {
+    log.warn("Could not read TRANSFORMERS_JS_CACHE_DIR from Settings", {
+      error: err instanceof Error ? err.message : String(err)
+    });
+  }
+
   // Bookkeeping for media generations: close the rows a restart orphaned, and
   // keep refining estimates into billed amounts while the server runs.
   void sweepInterruptedGenerations(PROCESS_STARTED_AT).catch((err: unknown) => {
@@ -364,12 +406,20 @@ try {
       error: err instanceof Error ? err.message : String(err)
     });
   });
+  void sweepInterruptedJobs(PROCESS_STARTED_AT, {
+    sharedDatabase: Boolean(postgresDatabaseUrl)
+  }).catch((err: unknown) => {
+    log.warn("Interrupted-job sweep failed", {
+      error: err instanceof Error ? err.message : String(err)
+    });
+  });
   stopGenerationReconcileWorker = startGenerationReconcileWorker({
     resolveSecret: (key, userId) => getSecret(key, userId)
   });
+  stopErrorTraceMaintenance = startErrorTraceMaintenance();
 
   const runHistoryCleanup = (): void => {
-    void runAutomaticStorageCleanup(LOCAL_USER_ID)
+    void runScheduledStorageCleanup(LOCAL_USER_ID)
       .then((result) => {
         if (result && result.total > 0) {
           log.info("Cleaned retained workflow and run history", result);
@@ -443,73 +493,7 @@ try {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Python pip metadata root detection
-// ---------------------------------------------------------------------------
-
-function detectPipMetadataRoots(): string[] {
-  const script = `
-import json, pathlib, subprocess, sys
-roots = set()
-try:
-    # Discover all nodetool-* packages
-    list_proc = subprocess.run(
-        [sys.executable, "-m", "pip", "list", "--format=json"],
-        capture_output=True, text=True, check=False,
-    )
-    pkg_names = [
-        p["name"] for p in json.loads(list_proc.stdout or "[]")
-        if p["name"].startswith("nodetool-")
-    ] or ["nodetool-core", "nodetool-base"]
-    proc = subprocess.run(
-        [sys.executable, "-m", "pip", "show", "-f"] + pkg_names,
-        capture_output=True, text=True, check=False,
-    )
-    output = proc.stdout or ""
-except Exception:
-    output = ""
-location = None
-in_files = False
-for raw in output.splitlines():
-    line = raw.rstrip("\\n")
-    if line.startswith("Name: "):
-        location = None; in_files = False; continue
-    if line.startswith("Location: "):
-        location = line.split(":", 1)[1].strip(); continue
-    if line.startswith("Editable project location: "):
-        editable = line.split(":", 1)[1].strip()
-        if editable: roots.add(editable)
-        continue
-    if line.startswith("Files:"): in_files = True; continue
-    if line.startswith("---"):
-        location = None; in_files = False; continue
-    if not in_files or not location or not line.startswith("  "): continue
-    rel = line.strip().replace("\\\\", "/")
-    if "package_metadata" not in rel: continue
-    abs_path = (pathlib.Path(location) / rel).resolve()
-    metadata_dir = abs_path if abs_path.is_dir() else abs_path.parent
-    roots.add(str(metadata_dir))
-print(json.dumps(sorted(roots)))
-`;
-  for (const python of ["python3", "python"]) {
-    const proc = spawnSync(python, ["-c", script], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"]
-    });
-    if (proc.status !== 0 || !proc.stdout) continue;
-    try {
-      const roots = JSON.parse(proc.stdout.trim()) as string[];
-      if (Array.isArray(roots)) {
-        return roots.filter((p) => isNonEmptyString(p) && existsSync(p));
-      }
-    } catch {
-      // try next python executable
-    }
-  }
-  return [];
-}
-
-const metadataRoots = detectPipMetadataRoots();
+const metadataRoots = await pipMetadataRoots;
 
 // Also scan local TS node packages that have nodetool/package_metadata
 const localPackagesDir = resolve(
@@ -563,6 +547,7 @@ log.info(`Node registry ready [${startupMs()}]`);
 setCodeNodeAgentsModule(agentsModule);
 if (process.env["NODETOOL_ENV"] !== "production") {
   registerTransformersJsProvider();
+  registerWhisperCppProviders();
 }
 
 // ---------------------------------------------------------------------------
@@ -572,7 +557,8 @@ if (process.env["NODETOOL_ENV"] !== "production") {
 const localBridge = createPythonBridge({
   workerArgs: process.env["NODETOOL_WORKER_NAMESPACES"]
     ? ["--namespaces", process.env["NODETOOL_WORKER_NAMESPACES"]]
-    : []
+    : [],
+  workerEnv: () => resolveWorkerSettingsEnv(LOCAL_USER_ID)
 });
 
 // The ONE stable bridge reference handed to every consumer. It delegates to the
@@ -582,6 +568,19 @@ const localBridge = createPythonBridge({
 // stable and re-emits its target's events, consumers never re-read it and
 // listeners are wired exactly once.
 const pythonBridge = new SwappableBridge(localBridge);
+/**
+ * Python-only providers (`huggingface-local`) exist only once the worker has
+ * listed them. A run that selects one must wait for this, not just for the
+ * connection: registration follows the connect, and a run that arrives in
+ * between is refused for an unknown provider.
+ */
+const registerPythonProvidersOnce = createProviderRegistrar(async () => {
+  const registered = await registerPythonProviders(pythonBridge);
+  if (registered.length > 0) {
+    log.info(`Registered Python providers: ${registered.join(", ")}`);
+  }
+  return registered;
+});
 
 let pythonBridgeReady = false;
 
@@ -820,6 +819,8 @@ const app: FastifyInstance = (
   Fastify as (...args: unknown[]) => FastifyInstance
 )(httpsOptions ? { https: httpsOptions, ...serverOptions } : serverOptions);
 
+// First hook, so every later hook and handler runs inside the request span.
+
 // ---------------------------------------------------------------------------
 // Request ID correlation
 // ---------------------------------------------------------------------------
@@ -829,6 +830,23 @@ app.addHook("onRequest", async (request) => {
     { reqId: request.id, method: request.method, url: request.url },
     "incoming request"
   );
+});
+
+// A REST handler that throws a 5xx leaves a redacted trace. 4xx errors are
+// the caller's mistake and are not traced.
+app.addHook("onError", async (request, _reply, error) => {
+  const status = error.statusCode ?? 500;
+  if (status < 500) return;
+  captureError(error, {
+    source: "http",
+    userId: request.userId ?? null,
+    context: {
+      route: request.routeOptions.url ?? request.url.split("?")[0],
+      method: request.method,
+      http_status: status,
+      request_id: request.id
+    }
+  });
 });
 
 app.addHook("onSend", async (request, reply) => {
@@ -939,6 +957,23 @@ const trustLocalNetworks = enforceAuth
   ? []
   : parseTrustedLocalNetworks(process.env["NODETOOL_TRUST_LOCAL_NETWORKS"]);
 
+// The bearer token `nodetool deploy` starts a container with. Local mode only,
+// like the trusted networks above: Supabase mode needs a real login.
+const serverAuthToken = enforceAuth
+  ? null
+  : resolveServerAuthToken(process.env["SERVER_AUTH_TOKEN"]);
+
+// API users created with `nodetool deploy users-add` (the tRPC users router)
+// live in USERS_FILE. Local mode only, for the same reason as the token above.
+const apiUsers = enforceAuth ? null : new FileUserManager();
+
+if (enforceAuth && process.env["SERVER_AUTH_TOKEN"]) {
+  log.warn(
+    "SERVER_AUTH_TOKEN is set while auth is enforced (Supabase mode); it is " +
+      "ignored. Clients must sign in."
+  );
+}
+
 if (enforceAuth && process.env["NODETOOL_TRUST_LOCAL_NETWORKS"]) {
   log.warn(
     "NODETOOL_TRUST_LOCAL_NETWORKS is set while auth is enforced (Supabase " +
@@ -1009,27 +1044,19 @@ app.addHook("onRequest", async (req, reply) => {
   if (req.method === "OPTIONS") return;
 
   // Public routes — no auth required (still rate-limited globally above).
-  const pathname = req.url.split("?")[0];
+  // Match the decoded path the router uses, or `/%61pi/...` skips auth.
+  const pathname = routedPathname(req.url);
   if (
-    isPublicAuthExemptRoute(pathname, req.method) ||
-    (isSdkV1DiscoveryRequest(pathname, req.method) &&
-      !isSdkV1AuthenticationRequired(process.env, enforceAuth))
+    pathname !== null &&
+    (isPublicAuthExemptRoute(pathname, req.method) ||
+      (isSdkV1DiscoveryRequest(pathname, req.method) &&
+        !isSdkV1AuthenticationRequired(process.env, enforceAuth)))
   ) {
     return;
   }
 
-  // Static frontend assets don't require auth (served by fastifyStatic)
-  // `GET /mcp` is the MCP SSE stream, not a static asset — it must go through
-  // auth so the mount can bind the session's user.
-  if (
-    hasStaticApp &&
-    req.method === "GET" &&
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/ws") &&
-    !pathname.startsWith("/v1") &&
-    !pathname.startsWith("/trpc") &&
-    !pathname.startsWith("/mcp")
-  ) {
+  // Static frontend assets don't require auth (served by fastifyStatic).
+  if (hasStaticApp && isStaticAppRequest(pathname, req.method)) {
     return;
   }
 
@@ -1114,9 +1141,8 @@ app.addHook("onRequest", async (req, reply) => {
   // application it may act on, and its whole point is that it reaches nothing
   // else — so the confinement is applied right here, at the door, rather than
   // trusted to every handler downstream. `/ws` is the only path it opens: the
-  // run transport, and exactly that path — `/ws/download` and `/ws/extension`
-  // are model downloads and the browser-extension bridge, neither of which a
-  // visitor to somebody's app has any business opening. The public app routes
+  // run transport, and exactly that path — `/ws/download` is model downloads,
+  // which a visitor to somebody's app has no business opening. The public app routes
   // need no token at all (they are auth-exempt above), and every other path —
   // tRPC, the REST library, assets, settings — is refused, because the
   // owner's account is not what the visitor was given a link to.
@@ -1162,7 +1188,7 @@ app.addHook("onRequest", async (req, reply) => {
   // /mcp gets a WWW-Authenticate challenge on every unauthenticated/invalid
   // denial below it — but only when the OAuth flow can actually complete
   // (see mcpBearerChallenge). Every other path is unaffected.
-  const challenge = pathname.startsWith("/mcp")
+  const challenge = pathname?.startsWith("/mcp")
     ? mcpBearerChallenge()
     : undefined;
 
@@ -1186,12 +1212,33 @@ app.addHook("onRequest", async (req, reply) => {
     return;
   }
 
+  if (matchesServerAuthToken(token, serverAuthToken)) {
+    req.userId = "1";
+    req.authToken = token;
+    return;
+  }
+
+  const apiUser =
+    token && apiUsers ? await apiUsers.verifyToken(token) : null;
+  if (apiUser) {
+    req.userId = apiUser.id;
+    req.authToken = token;
+    return;
+  }
+
   denyUnauthorized(
     req,
     reply,
     { error: "Remote access requires authentication" },
     challenge
   );
+});
+
+registerHttpTracing(app, {
+  async authorizeTraceParent(request, parent) {
+    if (!request.userId || request.appSession) { return false; }
+    return Boolean(await getRegisteredRunTrace(request.userId, parent.traceId));
+  }
 });
 
 // Multi-instance only: a handshake asking to resume a run that another machine
@@ -1493,11 +1540,17 @@ await app.register(fastifyTRPCPlugin, {
     // flag the server rejects POST-to-query with 405, leaving panels empty.
     allowMethodOverride: true,
     maxBatchSize: TRPC_MAX_BATCH_SIZE,
-    onError({ path, error, req }) {
+    onError({ path, error, req, ctx }) {
       logTrpcRequestError(log, {
         path,
         error,
         requestId: req.id
+      });
+      traceTrpcRequestError({
+        path,
+        error,
+        requestId: req.id,
+        userId: ctx?.userId
       });
     }
   } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"]
@@ -1512,7 +1565,10 @@ await app.register(websocketPlugin, {
   workerManager,
   getPythonBridgeReady,
   ensurePythonBridge: async () => {
-    if (getPythonBridgeReady()) return;
+    if (getPythonBridgeReady()) {
+      await registerPythonProvidersOnce();
+      return;
+    }
     log.info(`Lazily starting Python bridge [${startupMs()}]`);
     try {
       await pythonBridge.ensureConnected();
@@ -1557,6 +1613,8 @@ await app.register(websocketPlugin, {
         );
       });
     logPythonBridgeDiagnostics("connected");
+    // The run that asked for the bridge may select a Python-only provider.
+    await registerPythonProvidersOnce();
     notifyPythonBridgeResourceChanges(app, pythonBridge).catch((err) => {
       log.warn(
         "Failed to notify Python bridge resource changes",
@@ -1601,8 +1659,11 @@ initWorkspaceStorage();
 initWorkspaceChangeEvents();
 await app.register(filesRoutes, routeOpts);
 await app.register(collectionsRoutes, routeOpts);
-await app.register(applicationsRoutes, routeOpts);
+await app.register(appRunsRoutes);
+await app.register(runSpansRoutes);
+  await app.register(applicationsRoutes, routeOpts);
 await app.register(publicAppRoutes, { appSessionSigningKey });
+await app.register(publicSharedWorkflowRoutes);
 await app.register(jsScriptsRoutes, routeOpts);
 await app.register(timelineAnimationRoutes, routeOpts);
 await app.register(timelineAudioBakeRoutes, routeOpts);
@@ -1824,6 +1885,10 @@ app.listen({ port, host }, (err) => {
   log.info(
     `WebSocket endpoint: ${tlsEnabled ? "wss" : "ws"}://${host}:${port}/ws`
   );
+  // When the launcher sets NODE_COMPILE_CACHE, Node writes the V8 code cache
+  // only on a clean exit. Writing it once startup has compiled the server keeps
+  // it for the next start even when this process is killed. No-op otherwise.
+  flushCompileCache();
 });
 
 // ---------------------------------------------------------------------------
@@ -1947,6 +2012,7 @@ async function shutdown(signal: string): Promise<void> {
   clearInterval(generationRecoveryTimer);
   stopJobCancelPoller();
   stopGenerationReconcileWorker?.();
+  stopErrorTraceMaintenance?.();
   try {
     await triggerServices.stop();
   } catch (err) {
@@ -1982,8 +2048,16 @@ if (process.platform === "win32") {
   process.on("SIGBREAK", () => void shutdown("SIGBREAK"));
 }
 
-// Start Python bridge eagerly if a worker is available.
-if (pythonBridge.isAvailable()) {
+// Start the Python bridge eagerly if a worker is available, unless the user
+// chose to start it on first use. Runs that need it start it through
+// `ensurePythonBridge` either way.
+const pythonOnDemand =
+  (await getSetting("NODETOOL_PYTHON_ON_DEMAND")) === "true";
+if (pythonBridge.isAvailable() && pythonOnDemand) {
+  log.info(
+    "Python bridge starts on first use (NODETOOL_PYTHON_ON_DEMAND=true)"
+  );
+} else if (pythonBridge.isAvailable()) {
   log.info(`Starting Python bridge eagerly [${startupMs()}]`);
   pythonBridge
     .ensureConnected()

@@ -88,7 +88,9 @@ export const applicationsRouter = router({
   list: protectedProcedure
     .input(listInput)
     .output(z.array(applicationListItem))
-    .query(({ ctx, input }) => listApplications(ctx.userId, input.projectId)),
+    .query(({ ctx, input }) =>
+      listApplications(ctx.userId, input.projectId, input.workflowId)
+    ),
 
   get: protectedProcedure
     .input(idInput)
@@ -111,10 +113,16 @@ export const applicationsRouter = router({
     .mutation(({ ctx, input }) => deleteApplication(ctx.userId, input.id)),
 
   publish: protectedProcedure
-    .input(idInput)
+    .input(idInput.extend({ baseUpdatedAt: z.string().optional() }))
     .output(applicationVersionResponse)
     .mutation(async ({ ctx, input }) => {
       const app = await loadOwned(ctx.userId, input.id);
+      if (input.baseUpdatedAt && app.updated_at !== input.baseUpdatedAt) {
+        throwApiError(
+          ApiErrorCode.ALREADY_EXISTS,
+          "Application changed after saving. Review the latest draft before publishing."
+        );
+      }
       // A live public link follows the current release. Validate the exact
       // draft before promotion so a publish cannot replace a working link
       // with a release the public session cannot execute.
@@ -158,7 +166,9 @@ export const applicationsRouter = router({
   releasedDocument: protectedProcedure
     .input(idInput)
     .output(applicationReleaseResponse.nullable())
-    .query(({ ctx, input }) => releasedApplicationDocument(ctx.userId, input.id)),
+    .query(({ ctx, input }) =>
+      releasedApplicationDocument(ctx.userId, input.id)
+    ),
 
   /**
    * The app's hidden-URL deployment, or null when it has none. Only the owner
@@ -169,9 +179,7 @@ export const applicationsRouter = router({
   deployment: protectedProcedure
     .input(idInput)
     .output(applicationDeployment.nullable())
-    .query(({ ctx, input }) =>
-      getApplicationDeployment(ctx.userId, input.id)
-    ),
+    .query(({ ctx, input }) => getApplicationDeployment(ctx.userId, input.id)),
 
   deploy: protectedProcedure
     .input(idInput)

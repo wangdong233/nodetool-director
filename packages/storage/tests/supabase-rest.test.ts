@@ -250,3 +250,103 @@ describe("createSignedUploadUrl", () => {
     expect(error?.message).toMatch(/missing token/);
   });
 });
+
+describe("info", () => {
+  it("HEADs the object key and reads size, type, and modification time", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(null, {
+        status: 200,
+        headers: {
+          "content-length": "298578",
+          "content-type": "image/jpeg",
+          "last-modified": "Mon, 05 Oct 2026 21:49:27 GMT"
+        }
+      })
+    );
+    const { data, error } = await client()
+      .storage.from("assets")
+      .info("user-1/abc.jpg");
+
+    expect(error).toBeNull();
+    expect(data).toEqual({
+      size: 298578,
+      contentType: "image/jpeg",
+      modifiedAt: Date.parse("Mon, 05 Oct 2026 21:49:27 GMT")
+    });
+    const { url, init } = lastRequest();
+    expect(url).toBe(
+      "https://xyz.supabase.co/storage/v1/object/assets/user-1/abc.jpg"
+    );
+    expect(init.method).toBe("HEAD");
+    expect(init.headers).toMatchObject({ Authorization: "Bearer service-key" });
+  });
+
+  it("returns no data when the object is missing", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 400 }));
+    const { data, error } = await client()
+      .storage.from("assets")
+      .info("user-1/missing.jpg");
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+  });
+});
+
+describe("transient failures", () => {
+  const tooManyConnections = () =>
+    jsonResponse(
+      {
+        statusCode: "500",
+        error: "internal",
+        message: "Too many connections issued to the database"
+      },
+      500
+    );
+  const retrying = (maxAttempts?: number) =>
+    createSupabaseStorageClient("https://xyz.supabase.co", "service-key", {
+      maxAttempts,
+      sleep: async () => {}
+    });
+
+  it("retries an upload the Storage service refused for an exhausted pool", async () => {
+    fetchMock
+      .mockResolvedValueOnce(tooManyConnections())
+      .mockResolvedValueOnce(tooManyConnections())
+      .mockResolvedValueOnce(jsonResponse({}));
+    const { error } = await retrying()
+      .storage.from("assets")
+      .upload("assets/a.bin", new Uint8Array([1, 2]), { upsert: true });
+    expect(error).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries a thrown network error on the upload-sign call", async () => {
+    fetchMock
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce(
+        jsonResponse({ url: "/object/upload/sign/assets/a.bin?token=tok" })
+      );
+    const { data, error } = await retrying()
+      .storage.from("assets")
+      .createSignedUploadUrl("a.bin");
+    expect(error).toBeNull();
+    expect(data?.token).toBe("tok");
+  });
+
+  it("reports the last error once the attempts run out", async () => {
+    fetchMock.mockImplementation(async () => tooManyConnections());
+    const { error } = await retrying(3)
+      .storage.from("assets")
+      .upload("assets/a.bin", new Uint8Array([1]), { upsert: true });
+    expect(error?.message).toBe("Too many connections issued to the database");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not retry a client error", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: "denied" }, 403));
+    const { error } = await retrying()
+      .storage.from("assets")
+      .upload("assets/a.bin", new Uint8Array([1]), { upsert: true });
+    expect(error?.message).toBe("denied");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

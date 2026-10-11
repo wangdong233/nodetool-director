@@ -16,9 +16,6 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import {
   IpcChannels,
   IpcEvents,
-  LocalhostProxyWsCloseRequest,
-  LocalhostProxyWsOpenRequest,
-  LocalhostProxyWsSendRequest,
   MenuEventData,
   PythonPackages,
   Workflow,
@@ -26,7 +23,6 @@ import {
   SystemDirectory,
   DialogOpenFileRequest,
   DialogOpenFolderRequest,
-  LocalhostProxyRequest,
   RuntimePackageId,
 } from "./types.d";
 import { isString } from "./typePredicates";
@@ -340,6 +336,10 @@ const api = {
     uninstallRuntime: (packageId: RuntimePackageId) =>
       ipcRenderer.invoke(IpcChannels.RUNTIME_PACKAGE_UNINSTALL, { packageId }),
 
+    /** Reinstall a runtime package at the version this build pins */
+    updateRuntime: (packageId: RuntimePackageId) =>
+      ipcRenderer.invoke(IpcChannels.RUNTIME_PACKAGE_UPDATE, { packageId }),
+
     /** Get current conda install location */
     getInstallLocation: () =>
       ipcRenderer.invoke(IpcChannels.RUNTIME_GET_INSTALL_LOCATION),
@@ -558,13 +558,11 @@ const api = {
     install: (
       location: string,
       packages: PythonPackages,
-      modelBackend?: "ollama" | "llama_cpp" | "none",
       installLlamaCpp?: boolean,
     ) =>
       ipcRenderer.invoke(IpcChannels.INSTALL_TO_LOCATION, {
         location: validatePath(location),
         packages,
-        modelBackend,
         installLlamaCpp,
       }),
 
@@ -630,40 +628,8 @@ const api = {
         options,
       }),
 
-    /** Move a file to the OS trash */
-    trashItem: (path: string) =>
-      ipcRenderer.invoke(IpcChannels.SHELL_TRASH_ITEM, validatePath(path)),
-
     /** Play the system beep sound */
     beep: () => ipcRenderer.invoke(IpcChannels.SHELL_BEEP),
-
-    /** Create or update a Windows shortcut (Windows only) */
-    writeShortcutLink: (
-      shortcutPath: string,
-      operation?: "create" | "update" | "replace",
-      options?: {
-        target: string;
-        cwd?: string;
-        args?: string;
-        description?: string;
-        icon?: string;
-        iconIndex?: number;
-        appUserModelId?: string;
-        toastActivatorClsid?: string;
-      },
-    ) =>
-      ipcRenderer.invoke(IpcChannels.SHELL_WRITE_SHORTCUT_LINK, {
-        shortcutPath: validatePath(shortcutPath),
-        operation,
-        options,
-      }),
-
-    /** Read a Windows shortcut (Windows only) */
-    readShortcutLink: (shortcutPath: string) =>
-      ipcRenderer.invoke(
-        IpcChannels.SHELL_READ_SHORTCUT_LINK,
-        validatePath(shortcutPath),
-      ),
   },
 
   // ============================================================================
@@ -672,21 +638,6 @@ const api = {
   mcp: {
     /** Install the bundled NodeTool `.mcpb` into Claude Desktop. */
     installBundle: () => ipcRenderer.invoke(IpcChannels.MCP_INSTALL_BUNDLE),
-  },
-
-  // ============================================================================
-  // localhostProxy: Generic localhost-only HTTP requests via main process
-  // ============================================================================
-  localhostProxy: {
-    request: (request: LocalhostProxyRequest) =>
-      ipcRenderer.invoke(IpcChannels.LOCALHOST_PROXY_REQUEST, request),
-    wsOpen: (request: LocalhostProxyWsOpenRequest) =>
-      ipcRenderer.invoke(IpcChannels.LOCALHOST_PROXY_WS_OPEN, request),
-    wsSend: (request: LocalhostProxyWsSendRequest) =>
-      ipcRenderer.invoke(IpcChannels.LOCALHOST_PROXY_WS_SEND, request),
-    wsClose: (request: LocalhostProxyWsCloseRequest) =>
-      ipcRenderer.invoke(IpcChannels.LOCALHOST_PROXY_WS_CLOSE, request),
-    onWsEvent: createEventSubscription(IpcChannels.LOCALHOST_PROXY_WS_EVENT),
   },
 
   // ============================================================================

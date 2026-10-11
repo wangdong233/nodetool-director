@@ -11,8 +11,8 @@ import "./cryptoUUIDPolyfill";
 // boot path highlights code. Every consumer — CodeBlock, CodeHighlightPlugin,
 // JSONRenderer, ToolCallRenderer — imports Prism and the grammars it needs
 // itself, and all of them are behind a lazy chunk.
-// Auto-reload when a lazy chunk 404s after a deploy (stale-asset recovery).
-import "./lib/preloadErrorReload";
+// Offer a reload when a new deploy replaced this tab's assets.
+import "./lib/staleDeployPrompt";
 
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -71,8 +71,17 @@ const SearchProviderSetupDialog = React.lazy(
 const ProviderOnboardingDialog = React.lazy(
   () => import("./components/provider_onboarding/ProviderOnboardingDialog")
 );
+const ProviderSignInDialog = React.lazy(
+  () => import("./components/provider_onboarding/ProviderSignInDialog")
+);
+const InstallRuntimePackageDialog = React.lazy(
+  () => import("./components/packages/InstallRuntimePackageDialog")
+);
 import FirstRunProviderSignIn from "./components/provider_onboarding/FirstRunProviderSignIn";
+import HelpDialogHost from "./components/content/Help/HelpDialogHost";
 import BugReportDialogHost from "./components/support/BugReportDialogHost";
+import CommandMenuHost from "./components/menus/CommandMenuHost";
+import StaleDeployDialog from "./components/dialogs/StaleDeployDialog";
 import ReportBugButton from "./components/support/ReportBugButton";
 import { installConsoleCapture } from "./utils/consoleCapture";
 
@@ -84,6 +93,9 @@ import { SkipLinks } from "./components/ui_primitives";
 // Lazy-loaded route components for code splitting
 const AcceptSharePage = React.lazy(
   () => import("./components/workflows/AcceptSharePage")
+);
+const PublicWorkflowPage = React.lazy(
+  () => import("./components/workflows/PublicWorkflowPage")
 );
 const IntegrationLinkPage = React.lazy(
   () => import("./components/settings/IntegrationLinkPage")
@@ -106,14 +118,14 @@ const AssetExplorer = React.lazy(
 const CollectionsExplorer = React.lazy(
   () => import("./components/collections/CollectionsExplorer")
 );
-const ExamplesPage = React.lazy(
-  () => import("./components/portal/ExamplesPage")
-);
 const TutorialsPage = React.lazy(
   () => import("./components/tutorials/TutorialsPage")
 );
 const ChainEditorPage = React.lazy(
   () => import("./components/chain_editor/ChainEditorPage")
+);
+const GamePlayerPage = React.lazy(
+  () => import("./components/game/GamePlayerPage")
 );
 const CostsDashboard = React.lazy(
   () => import("./components/costs/CostsDashboard")
@@ -121,8 +133,8 @@ const CostsDashboard = React.lazy(
 const ComponentPreview = React.lazy(
   () => import("./components/preview/ComponentPreview")
 );
-const TimelineEditor = React.lazy(
-  () => import("./components/timeline/TimelineEditor")
+const TimelineRoute = React.lazy(
+  () => import("./components/timeline/TimelineRoute")
 );
 const SketchEditorPage = React.lazy(
   () => import("./components/sketch/SketchEditorPage")
@@ -278,6 +290,17 @@ function getRoutes() {
       )
     },
     {
+      // A workflow behind a public share link. Outside `ProtectedRoute` for
+      // the same reason as `/a/:token`: whoever has the link may look without
+      // an account. Copying it into an account asks for sign-in on the page.
+      path: "/view/:token",
+      element: (
+        <React.Suspense fallback={<LoadingSpinner />}>
+          <PublicWorkflowPage />
+        </React.Suspense>
+      )
+    },
+    {
       path: "/share/:token",
       element: (
         <ProtectedRoute>
@@ -328,14 +351,6 @@ function getRoutes() {
       element: (
         <ProtectedRoute>
           <CollectionsExplorer />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: "examples",
-      element: (
-        <ProtectedRoute>
-          <ExamplesPage />
         </ProtectedRoute>
       )
     },
@@ -427,7 +442,7 @@ function getRoutes() {
           >
             <SkipLinks />
             <React.Suspense fallback={<LoadingSpinner />}>
-              <TimelineEditor />
+              <TimelineRoute />
             </React.Suspense>
           </div>
         </ProtectedRoute>
@@ -481,6 +496,16 @@ function getRoutes() {
         </ProtectedRoute>
       )
     })),
+    {
+      path: "/game/:gameId",
+      element: (
+        <ProtectedRoute>
+          <React.Suspense fallback={<LoadingSpinner />}>
+            <GamePlayerPage />
+          </React.Suspense>
+        </ProtectedRoute>
+      )
+    },
     {
       // New tabbed-document workspace (in progress). Lives alongside the
       // existing routes; will become the default once all document types
@@ -605,9 +630,12 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
   // A deployed app's public page has no account and never will, so the
   // logged-out branch below would leave it without node metadata — which the
   // runtime needs to decide what a widget renders and what can run in the
-  // browser. `/api/nodes/metadata` carries no per-user data and is served
-  // without auth, so this route loads it like any signed-in page does.
-  const isPublicAppRoute = window.location.pathname.startsWith("/a/");
+  // browser. A public workflow link needs it to draw the graph's nodes.
+  // `/api/nodes/metadata` carries no per-user data and is served without
+  // auth, so these routes load it like any signed-in page does.
+  const isPublicLinkRoute = ["/a/", "/view/"].some((prefix) =>
+    window.location.pathname.startsWith(prefix)
+  );
 
   useEffect(() => {
     // Register frontend tools after initial render
@@ -634,7 +662,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
     // When auth is enforced, wait until the user is logged in before fetching
     // metadata. When logged out, skip metadata so the router can render and
     // redirect to /login.
-    if (isAuthRequired() && authState !== "logged_in" && !isPublicAppRoute) {
+    if (isAuthRequired() && authState !== "logged_in" && !isPublicLinkRoute) {
       if (authState === "logged_out" || authState === "error") {
         setStatus("logged_out");
       }
@@ -652,7 +680,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
         );
         setStatus("error");
       });
-  }, [authState, configLoaded, isPublicAppRoute]);
+  }, [authState, configLoaded, isPublicLinkRoute]);
 
   const { language } = useAppLanguage(); // re-render on language change: theme + i18n renders (R5-2)
 
@@ -776,12 +804,17 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                       <RunWarningDialog />
                       <SearchProviderSetupDialog />
                       <ProviderOnboardingDialog />
+                      <ProviderSignInDialog />
+                      <InstallRuntimePackageDialog />
                       <FirstRunProviderSignIn />
+                      <CommandMenuHost />
                     </>
                   )}
                   {/* Outside the router gate: a boot failure is exactly when
                       someone needs to report a bug. */}
                   <BugReportDialogHost />
+                  <HelpDialogHost />
+                  <StaleDeployDialog />
                 </KeyboardProvider>
               </WorkflowManagerProvider>
             </MenuProvider>

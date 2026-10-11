@@ -1,5 +1,7 @@
 import {
   bindingKeys,
+  formatActionShortcut,
+  withActionShortcut,
   resolveTimelineAction,
   TIMELINE_KEYMAPS,
   TIMELINE_KEYBOARD_PRESETS,
@@ -18,7 +20,9 @@ const ev = (key: string, mods: Partial<KeyEventLike> = {}): KeyEventLike => ({
 describe("resolveTimelineAction", () => {
   it("resolves the NodeTool layout", () => {
     expect(resolveTimelineAction(ev("s"), "nodetool")).toBe("splitAtPlayhead");
-    expect(resolveTimelineAction(ev("k", { ctrlKey: true }), "nodetool")).toBe("cutAllTracks");
+    expect(
+      resolveTimelineAction(ev("K", { ctrlKey: true, shiftKey: true }), "nodetool")
+    ).toBe("cutAllTracks");
     expect(resolveTimelineAction(ev("Delete", { shiftKey: true }), "nodetool")).toBe(
       "rippleDeleteSelected"
     );
@@ -30,9 +34,9 @@ describe("resolveTimelineAction", () => {
 
   it("resolves the Premiere layout", () => {
     expect(resolveTimelineAction(ev("s"), "premiere")).toBe("toggleSnap");
-    expect(resolveTimelineAction(ev("k", { metaKey: true }), "premiere")).toBe(
-      "splitAtPlayhead"
-    );
+    expect(
+      resolveTimelineAction(ev("k", { metaKey: true, altKey: true }), "premiere")
+    ).toBe("splitAtPlayhead");
     expect(resolveTimelineAction(ev("\\"), "premiere")).toBe("zoomFit");
     expect(resolveTimelineAction(ev("d", { ctrlKey: true }), "premiere")).toBe(
       "applyDefaultTransition"
@@ -66,6 +70,13 @@ describe("resolveTimelineAction", () => {
     expect(resolveTimelineAction(ev("q"), "nodetool")).toBeNull();
   });
 
+  it("leaves Ctrl/Cmd+K to the command menu in every preset", () => {
+    for (const preset of TIMELINE_KEYBOARD_PRESETS) {
+      expect(resolveTimelineAction(ev("k", { ctrlKey: true }), preset)).toBeNull();
+      expect(resolveTimelineAction(ev("k", { metaKey: true }), preset)).toBeNull();
+    }
+  });
+
   it("binds every action in every preset", () => {
     const actions = Object.keys(TIMELINE_KEYMAPS.nodetool);
     for (const preset of TIMELINE_KEYBOARD_PRESETS) {
@@ -97,5 +108,56 @@ describe("bindingKeys", () => {
       "←"
     ]);
     expect(bindingKeys({ key: "z", shift: true })).toEqual(["Shift", "Z"]);
+  });
+});
+
+describe("physical-key matching (macOS and US layouts)", () => {
+  it("fires Option+T as fades even though the key is a dagger", () => {
+    expect(
+      resolveTimelineAction(ev("†", { altKey: true, code: "KeyT" }), "nodetool")
+    ).toBe("applyFades");
+  });
+
+  it("fires Option+K and Option+Shift+K as keyframe actions", () => {
+    expect(
+      resolveTimelineAction(ev("˚", { altKey: true, code: "KeyK" }), "nodetool")
+    ).toBe("addKeyframe");
+    expect(
+      resolveTimelineAction(
+        ev("", { altKey: true, shiftKey: true, code: "KeyK" }),
+        "nodetool"
+      )
+    ).toBe("nextKeyframe");
+  });
+
+  it("fires Final Cut Shift+, and Option+, from their physical key", () => {
+    expect(
+      resolveTimelineAction(ev("<", { shiftKey: true, code: "Comma" }), "fcp")
+    ).toBe("nudgeLeftLarge");
+    expect(
+      resolveTimelineAction(ev("≤", { altKey: true, code: "Comma" }), "fcp")
+    ).toBe("trimEditLeft");
+    expect(resolveTimelineAction(ev(",", { code: "Comma" }), "fcp")).toBe("nudgeLeft");
+  });
+
+  it("still matches on key when the event has no code", () => {
+    expect(resolveTimelineAction(ev("t", { altKey: true }), "nodetool")).toBe(
+      "applyFades"
+    );
+  });
+});
+
+describe("formatActionShortcut", () => {
+  it("names the key the preset binds, so tooltips match the keymap", () => {
+    expect(formatActionShortcut("nodetool", "stepFrameBack")).toBe("Alt+←");
+    expect(formatActionShortcut("premiere", "stepFrameBack")).toBe("←");
+    expect(formatActionShortcut("fcp", "selectTool")).toBe("A");
+    expect(formatActionShortcut("premiere", "toggleSnap")).toBe("S");
+  });
+
+  it("appends the shortcut to a label only when the action is bound", () => {
+    expect(withActionShortcut("Next clip boundary", "nodetool", "nextCut")).toBe(
+      "Next clip boundary (↓)"
+    );
   });
 });

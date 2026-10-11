@@ -199,7 +199,7 @@ describe("ApplicationAppBuilder", () => {
       id: "app-1",
       baseUpdatedAt: "2026-07-11T10:00:00.000Z",
       document: {
-        schemaVersion: 4,
+        schemaVersion: 3,
         ui: EDITED.ui,
         operations: application.document.operations,
         resources: [],
@@ -311,6 +311,13 @@ describe("ApplicationAppBuilder", () => {
     await waitFor(() =>
       expect(onAgentWorkflowIdChange).toHaveBeenCalledWith("wf-1")
     );
+  });
+
+  it.each([null, { schemaVersion: 2 }])("does not turn invalid Recipe metadata %s into an empty editable App", (recipe) => {
+    state.application = { ...application, document: { ...application.document, recipe } as unknown as AppDocument };
+    renderBuilder();
+    expect(screen.getByText("Could not load app")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
   });
 
   it("opens on a canvas even before a workflow is bound", () => {
@@ -927,3 +934,31 @@ async function act_merge(notice: unknown): Promise<void> {
     await Promise.resolve();
   });
 }
+
+it("keeps one save pending when the Save action is dispatched twice", async () => {
+  let resolveSave: (value: typeof application) => void = () => {};
+  mutateAsync.mockImplementation(() => new Promise((resolve) => { resolveSave = resolve; }));
+  renderBuilder();
+  const save = screen.getByRole("button", { name: "Save" });
+  await userEvent.click(save);
+  await userEvent.click(save);
+  expect(mutateAsync).toHaveBeenCalledTimes(1);
+  await act(async () => { resolveSave(application); });
+});
+
+it("keeps edits made during a save dirty after the earlier draft is persisted", async () => {
+  const { stub } = await import("../../../test-utils/doubles");
+  const { useDocumentDraftStore } = await import("../../../stores/DocumentDraftStore");
+  let live: AppDocument = { ...application.document, schemaVersion: 4 };
+  const handler = stub<import("../puck/puckAgentBridge").PuckAgentHandler>({ document: () => live });
+  setPuckAgentHandler("app-1", handler);
+  let resolveSave: (value: typeof application) => void = () => {};
+  mutateAsync.mockImplementation(() => new Promise((resolve) => { resolveSave = resolve; }));
+  renderBuilder();
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  live = { ...live, ui: { ...live.ui, root: { props: { title: "Newer edit" } } } };
+  await act(async () => { resolveSave(application); });
+  expect(useDocumentDraftStore.getState().dirtyTabs["application:app-1"]).toBe(true);
+  expect(useDocumentDraftStore.getState().savingTabs["application:app-1"]).toBe(false);
+  setPuckAgentHandler("app-1", null);
+});

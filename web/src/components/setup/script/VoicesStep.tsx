@@ -1,10 +1,10 @@
 /**
  * Step 3 of the script flow — the voices (PRD § 9.3).
  *
- * One row of TTS model and voice dropdowns per speaker in the cast. The voice
- * can be heard after it is chosen: pressing `Hear this voice` reads that
- * speaker's own first line, so the choice is made on the words the creator
- * wrote rather than on a stock sample. Each sample is one TTS call, made when
+ * One shared TTS model picker, with its voice dropdown, per speaker in the
+ * cast. The voice can be heard after it is chosen: pressing `Hear this voice`
+ * reads that speaker's own first line, so the choice is made on the words the
+ * creator wrote rather than on a stock sample. Each sample is one TTS call, made when
  * it is asked for and kept for the session (`useVoiceSamples`).
  *
  * Picking a voice binds it through the same handler
@@ -18,7 +18,8 @@
  * rather than pretending the button applies it (F12).
  */
 
-import React, { memo, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import React, { memo, useCallback, useMemo, useState } from "react";
 import type { ScriptPace } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import { formatUsd } from "@nodetool-ai/model-pricing";
@@ -30,10 +31,12 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  FormField,
   GAP,
   SelectField,
   Text
 } from "../../ui_primitives";
+import TTSModelSelect from "../../properties/TTSModelSelect";
 import { getScriptAgentHandler } from "../../../components/script/scriptAgentBridge";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import {
@@ -46,12 +49,12 @@ import {
   paceSpeed,
   providerAppliesPace
 } from "../../../hooks/script/scriptPace";
+import type { TTSModelValue } from "../../../stores/ApiTypes";
 import { getModelUnitPrice } from "../../../utils/modelUnitPricing";
 import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
-import { useTranslation } from "react-i18next";
 
 /** The languages the flow offers to write and read in. */
 const LANGUAGES = [
@@ -67,30 +70,10 @@ const LANGUAGES = [
   "Hindi"
 ];
 
-/** zh display names; the stored value stays the English name the writer reads. */
-const LANGUAGE_LABEL_KEYS: Record<string, string> = {
-  English: "storyboard:attrs.langEnglish",
-  Spanish: "storyboard:attrs.langSpanish",
-  French: "storyboard:attrs.langFrench",
-  German: "storyboard:attrs.langGerman",
-  Portuguese: "storyboard:attrs.langPortuguese",
-  Italian: "storyboard:attrs.langItalian",
-  Japanese: "storyboard:attrs.langJapanese",
-  Korean: "storyboard:attrs.langKorean",
-  Mandarin: "storyboard:attrs.langMandarin",
-  Hindi: "storyboard:attrs.langHindi"
-};
-
-const PACE_LABEL_KEYS: Record<ScriptPace, string> = {
-  slow: "storyboard:attrs.paceSlow",
-  normal: "storyboard:attrs.paceNormal",
-  fast: "storyboard:attrs.paceFast"
-};
-
-const PACES: ReadonlyArray<{ value: ScriptPace; label: string; labelKey: string }> = [
-  { value: "slow", label: "Slow", labelKey: PACE_LABEL_KEYS.slow },
-  { value: "normal", label: "Normal", labelKey: PACE_LABEL_KEYS.normal },
-  { value: "fast", label: "Fast", labelKey: PACE_LABEL_KEYS.fast }
+const PACES: ReadonlyArray<{ value: ScriptPace; label: string }> = [
+  { value: "slow", label: "Slow" },
+  { value: "normal", label: "Normal" },
+  { value: "fast", label: "Fast" }
 ];
 
 /** The line a speaker's samples read: the first thing they say. */
@@ -143,37 +126,6 @@ const auditionCost = (
     : `about ${formatUsd(low)}–${formatUsd(high)} each`;
 };
 
-interface SetupVoiceModel {
-  id: string;
-  label: string;
-  provider: string;
-  model: string;
-  voices: readonly SetupVoice[];
-}
-
-const voiceModelId = (voice: Pick<SetupVoice, "provider" | "model">): string =>
-  `${voice.provider}:${voice.model}`;
-
-const groupVoiceModels = (voices: readonly SetupVoice[]): SetupVoiceModel[] => {
-  const grouped = new Map<string, SetupVoiceModel>();
-  for (const voice of voices) {
-    const id = voiceModelId(voice);
-    const current = grouped.get(id);
-    if (current) {
-      current.voices = [...current.voices, voice];
-      continue;
-    }
-    grouped.set(id, {
-      id,
-      label: `${voice.modelLabel} (${voice.provider})`,
-      provider: voice.provider,
-      model: voice.model,
-      voices: [voice]
-    });
-  }
-  return [...grouped.values()];
-};
-
 interface SpeakerVoiceRowProps {
   scriptId: string;
   speaker: ScriptSpeaker;
@@ -181,6 +133,7 @@ interface SpeakerVoiceRowProps {
   voices: readonly SetupVoice[];
   pace: ScriptPace;
   speed: number | undefined;
+  readOnly: boolean;
 }
 
 const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
@@ -189,67 +142,73 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
   line,
   voices,
   pace,
-  speed
+  speed,
+  readOnly
 }) => {
   const { t } = useTranslation();
   const { sampleFor, play, spokenText } = useVoiceSamples(speed);
-  const models = useMemo(() => groupVoiceModels(voices), [voices]);
-  const selectedVoice = voices.find(
-    (voice) =>
-      speaker.voice?.model === voice.model &&
-      speaker.voice.voice === voice.voice &&
-      speaker.voice.provider === voice.provider
-  );
-  const selectedModel = models.find(
-    (model) =>
-      speaker.voice?.model === model.model &&
-      speaker.voice.provider === model.provider
-  );
-  const modelOptions = useMemo(
-    () => [
-      { value: "", label: t("storyboard:attrs.chooseAModel", { defaultValue: "Choose a model" }) },
-      ...models.map((model) => ({ value: model.id, label: model.label }))
-    ],
-    [t, models]
-  );
-  const voiceOptions = useMemo(
-    () => [
-      { value: "", label: t("storyboard:attrs.chooseAVoice", { defaultValue: "Choose a voice" }) },
-      ...(selectedModel?.voices.map((voice) => ({
-        value: voice.id,
-        label: voice.label
-      })) ?? [])
-    ],
-    [t, selectedModel]
-  );
-
-  const bindVoice = useCallback(
-    (voice: SetupVoice) => {
-      getScriptAgentHandler(scriptId).setSpeakerVoice(speaker.id, {
-        provider: voice.provider,
-        model: voice.model,
-        voice: voice.voice
-      });
-    },
-    [scriptId, speaker.id]
+  // Each press of `Hear` remounts the player with autoplay, so a sample that
+  // is already cached plays again instead of the press doing nothing.
+  const [playRequest, setPlayRequest] = useState(0);
+  // A model with no preset voices hands back no voice to bind.
+  const [noPresetVoice, setNoPresetVoice] = useState(false);
+  const bound = speaker.voice;
+  // A bound voice the list does not carry (still loading, or a provider that
+  // dropped it) is still the speaker's voice, so it stays playable.
+  const selectedVoice = useMemo<SetupVoice | undefined>(() => {
+    if (!bound?.voice) {
+      return undefined;
+    }
+    return (
+      voices.find(
+        (voice) =>
+          voice.model === bound.model &&
+          voice.voice === bound.voice &&
+          voice.provider === bound.provider
+      ) ?? {
+        id: `${bound.provider}:${bound.model}:${bound.voice}`,
+        label: bound.voice,
+        modelLabel: bound.model,
+        provider: bound.provider,
+        model: bound.model,
+        voice: bound.voice
+      }
+    );
+  }, [bound, voices]);
+  // The TTS select reads the voice off `selected_voice`, so the binding is
+  // rebuilt as its value.
+  const modelValue = useMemo<TTSModelValue | "">(
+    () =>
+      bound
+        ? {
+            type: "tts_model",
+            id: bound.model,
+            provider: bound.provider as TTSModelValue["provider"],
+            name: "",
+            voices: [],
+            selected_voice: bound.voice
+          }
+        : "",
+    [bound]
   );
 
   const selectModel = useCallback(
-    (id: string) => {
-      const picked = models.find((model) => model.id === id)?.voices[0];
-      if (!picked) return;
-      bindVoice(picked);
+    (value: TTSModelValue) => {
+      if (readOnly) {
+        return;
+      }
+      if (!value.selected_voice) {
+        setNoPresetVoice(true);
+        return;
+      }
+      setNoPresetVoice(false);
+      getScriptAgentHandler(scriptId).setSpeakerVoice(speaker.id, {
+        provider: value.provider,
+        model: value.id,
+        voice: value.selected_voice
+      });
     },
-    [bindVoice, models]
-  );
-
-  const selectVoice = useCallback(
-    (id: string) => {
-      const picked = selectedModel?.voices.find((voice) => voice.id === id);
-      if (!picked) return;
-      bindVoice(picked);
-    },
-    [bindVoice, selectedModel]
+    [readOnly, scriptId, speaker.id]
   );
 
   const spoken = spokenText(line);
@@ -264,9 +223,8 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
     selectedVoice &&
     speed !== undefined &&
     !providerAppliesPace(selectedVoice.provider)
-      ? t("storyboard:attrs.thisProviderReadsAtItsOwnPaceNotPace", { defaultValue: "This provider reads at its own pace, not {{pace}}.", pace: t(PACE_LABEL_KEYS[pace], { defaultValue: pace }) })
+      ? `This provider reads at its own pace, not ${pace}.`
       : null;
-  const sampleCostNote = `${t("storyboard:attrs.eachSampleIsOneSpeechCallOfCountCharacters", { defaultValue: "Each sample is one speech call of {{count}} characters", count: spoken.length })}${cost === null ? "" : ` · ${cost}`}.`;
   const sampleErrorContext = useMemo<BugReportContext | null>(
     () =>
       sample?.error
@@ -289,52 +247,68 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
         </Text>
         <Caption color="secondary" component="p">
           {hasLine
-            ? t("storyboard:attrs.samplesReadText", { defaultValue: "Samples read: “{{text}}”", text: spoken })
-            : t("storyboard:attrs.thisSpeakerHasNoLinesYetSoThereIsNothingToSample", { defaultValue: "This speaker has no lines yet, so there is nothing to sample." })}
+            ? `Samples read: “${spoken}”`
+            : "This speaker has no lines yet, so there is nothing to sample."}
         </Caption>
         {/* Every audition is a speech call, so the step says so before one is
             pressed rather than after it is billed (F23). */}
         {hasLine ? (
           <Caption color="secondary" component="p">
-            {sampleCostNote}
+            {`Each sample is one speech call of ${spoken.length} characters${cost === null ? "" : ` · ${cost}`}.`}
           </Caption>
         ) : null}
       </FlexColumn>
       <FlexRow gap={GAP.comfortable} wrap align="flex-end">
-        <SelectField
-          label={t("storyboard:attrs.ttsModelForName", { defaultValue: "TTS model for {{name}}", name: speaker.name })}
-          value={selectedModel?.id ?? ""}
-          options={modelOptions}
-          onChange={selectModel}
-        />
-        <SelectField
-          label={t("storyboard:attrs.voiceForName", { defaultValue: "Voice for {{name}}", name: speaker.name })}
-          value={selectedVoice?.id ?? ""}
-          options={voiceOptions}
-          onChange={selectVoice}
-          disabled={!selectedModel}
-        />
+        {readOnly ? (
+          <Text size="normal">
+            {selectedVoice
+              ? `Voice: ${selectedVoice.label}`
+              : "No voice chosen"}
+          </Text>
+        ) : (
+          <FormField label={`TTS model for ${speaker.name}`}>
+            <TTSModelSelect
+              value={modelValue}
+              onChange={selectModel}
+              voiceLabel={`Voice for ${speaker.name}`}
+            />
+          </FormField>
+        )}
         {hasLine ? (
           <EditorButton
             variant="outlined"
-            disabled={!selectedVoice || sample?.pending}
+            // A view-mode tab replays a sample already made but pays for
+            // no new one.
+            disabled={
+              !selectedVoice ||
+              sample?.pending ||
+              (readOnly && !sample?.assetId)
+            }
             aria-label={
               selectedVoice
-                ? t("storyboard:attrs.hearVoiceForSpeaker", { defaultValue: "Hear {{voice}} for {{name}}", voice: selectedVoice.label, name: speaker.name })
-                : t("storyboard:attrs.hearVoiceForName", { defaultValue: "Hear voice for {{name}}", name: speaker.name })
+                ? `Hear ${selectedVoice.label} for ${speaker.name}`
+                : `Hear voice for ${speaker.name}`
             }
             onClick={() => {
-              if (selectedVoice) void play(selectedVoice, line);
+              if (selectedVoice) {
+                play(selectedVoice, line);
+                setPlayRequest((count) => count + 1);
+              }
             }}
           >
             {sample?.pending
-              ? t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" })
+              ? "Generating sample"
               : selectedVoice
-                ? t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: selectedVoice.label })
-                : t("storyboard:attrs.hearVoice", { defaultValue: "Hear voice" })}
+                ? `Hear ${selectedVoice.label}`
+                : "Hear voice"}
           </EditorButton>
         ) : null}
       </FlexRow>
+      {noPresetVoice ? (
+        <Caption color="secondary" role="status">
+          This model has no preset voices. Pick another model.
+        </Caption>
+      ) : null}
       {sample?.error && sampleErrorContext ? (
         <AlertBanner
           severity="error"
@@ -350,26 +324,35 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
       ) : null}
       {sample?.assetId ? (
         <AudioPlayback
+          key={playRequest}
           locator={`asset://${sample.assetId}`}
-          label={t("storyboard:attrs.nameSample", { defaultValue: "{{name}} sample", name: selectedVoice?.label ?? t("storyboard:attrs.voice", { defaultValue: "Voice" }) })}
+          label={`${selectedVoice?.label ?? "Voice"} sample`}
+          autoPlay={playRequest > 0}
         />
       ) : null}
-      <EditorButton
-        variant="text"
-        size="small"
-        onClick={() => openProviderOnboarding()}
-      >
-        {t("storyboard:attrs.addAVoiceProvider", { defaultValue: "Add a voice provider" })}
-      </EditorButton>
+      {readOnly ? null : (
+        <EditorButton
+          variant="text"
+          size="small"
+          onClick={() => openProviderOnboarding()}
+        >
+          Add a voice provider
+        </EditorButton>
+      )}
     </FlexColumn>
   );
 };
 
 export interface VoicesStepProps {
   scriptId: string;
+  /** A view-mode tab: the voices show and existing samples play, nothing changes. */
+  readOnly?: boolean;
 }
 
-const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
+const VoicesStepInternal: React.FC<VoicesStepProps> = ({
+  scriptId,
+  readOnly = false
+}) => {
   const { t } = useTranslation();
   const script = useScriptStore((state) => state.scripts[scriptId]);
   const setup = useScriptSetup(scriptId);
@@ -393,9 +376,11 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{t("storyboard:attrs.chooseTheVoices", { defaultValue: "Choose the voices" })}</Text>
+        <Text size="big" component="h2">
+          Choose the voices
+        </Text>
         <Text size="normal" color="secondary">
-          {t("editor:ui.hearEachOneReadYourOwnWordsBeforeYouPickIt", { defaultValue: "Hear each one read your own words before you pick it." })}
+          Hear each one read your own words before you pick it.
         </Text>
       </FlexColumn>
 
@@ -408,13 +393,15 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
           <SelectField
             label={t("storyboard:attrs.language", { defaultValue: "Language" })}
             value={language}
-            options={LANGUAGES.map((name) => ({ value: name, label: t(LANGUAGE_LABEL_KEYS[name] ?? "", { defaultValue: name }) }))}
+            options={LANGUAGES.map((name) => ({ value: name, label: name }))}
+            disabled={readOnly}
             onChange={setLanguage}
           />
           <SelectField
-            label={t("editor:ui.pace", { defaultValue: "Pace" })}
+            label="Pace"
             value={pace}
-            options={PACES.map(({ value, label, labelKey }) => ({ value, label: t(labelKey, { defaultValue: label }) }))}
+            options={PACES}
+            disabled={readOnly}
             onChange={setPace}
           />
         </FlexRow>
@@ -422,7 +409,9 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
             all, and language belongs to the writer, not to the speech call
             this step's button makes (F12). */}
         <Caption color="secondary" component="p">
-          {t("storyboard:attrs.paceIsSentWithEverySampleAndEveryTake", { defaultValue: "Pace is sent with every sample and every take. Language is what the script is written in: change it, then rewrite on the Format step to apply it." })}
+          Pace is sent with every sample and every take. Language is what the
+          script is written in: change it, then rewrite on the Format step to
+          apply it.
         </Caption>
       </FlexColumn>
 
@@ -434,17 +423,21 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
       ) : null}
 
       {loading && voices.length === 0 ? (
-        <Caption color="secondary" component="p">{t("storyboard:attrs.lookingUpTheVoicesYourProvidersOffer", { defaultValue: "Looking up the voices your providers offer…" })}</Caption>
+        <Caption color="secondary" component="p">
+          Looking up the voices your providers offer…
+        </Caption>
       ) : null}
 
       {error ? (
         <AlertBanner
           severity="error"
           action={
-            <EditorButton variant="text" size="small" onClick={retry}>{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
+            <EditorButton variant="text" size="small" onClick={retry}>
+              Try again
+            </EditorButton>
           }
         >
-          {t("storyboard:attrs.theVoiceListCouldNotBeLoadedReason", { defaultValue: "The voice list could not be loaded. {{error}}", error })}
+          {`The voice list could not be loaded. ${error}`}
         </AlertBanner>
       ) : null}
 
@@ -456,9 +449,13 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
               variant="text"
               size="small"
               onClick={() => openProviderOnboarding()}
-            >{t("storyboard:attrs.connectAProvider", { defaultValue: "Connect a provider" })}</EditorButton>
+            >
+              Connect a provider
+            </EditorButton>
           }
-        >{t("storyboard:attrs.noConnectedProviderOffersAVoiceYet", { defaultValue: "No connected provider offers a voice yet." })}</AlertBanner>
+        >
+          No connected provider offers a voice yet.
+        </AlertBanner>
       ) : null}
 
       {cast.map((speaker) => (
@@ -470,6 +467,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({ scriptId }) => {
           voices={voices}
           pace={pace}
           speed={speed}
+          readOnly={readOnly}
         />
       ))}
     </FlexColumn>

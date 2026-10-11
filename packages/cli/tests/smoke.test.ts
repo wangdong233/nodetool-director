@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@nodetool-ai/whisper-cpp", () => ({
+  registerWhisperCppProviders: vi.fn()
+}));
+
+vi.mock("@nodetool-ai/transformers-js-provider", () => ({
+  registerTransformersJsProvider: vi.fn()
+}));
+
 describe("cli settings and provider helpers", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -34,6 +42,9 @@ describe("cli settings and provider helpers", () => {
       "DASHSCOPE_API_KEY",
       "TOGETHER_API_KEY",
       "OPENROUTER_API_KEY",
+      "REQUESTY_API_KEY",
+      "OPPER_API_KEY",
+      "API_ROUTE_API_KEY",
       "HF_TOKEN",
       "REPLICATE_API_TOKEN",
       "KIE_API_KEY",

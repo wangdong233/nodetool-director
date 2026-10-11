@@ -8,6 +8,9 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, renderHook } from "@testing-library/react";
 
+const storyboardQueryMock = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+jest.mock("../../../trpc/client", () => ({ trpcClient: { storyboards: { get: { query: (...args: unknown[]) => storyboardQueryMock(...args) } } } }));
+
 const sendMock = jest.fn(async (_frame?: unknown) => {});
 jest.mock("../../../lib/websocket/GlobalWebSocketManager", () => ({
   globalWebSocketManager: {
@@ -160,6 +163,51 @@ describe("useTimelineDirectGenJob request payloads", () => {
     });
   });
 
+  it("text-to-video: sends picked images as references and entities as mentions", async () => {
+    addClip({
+      id: "clip-refs",
+      mediaType: "video",
+      bindingKind: "text-to-video",
+      prompt: "Open on [Image 1].",
+      referenceImageIds: ["asset-a", "asset-b"],
+      referenceEntityIds: ["entity-mara"]
+    });
+    await startClip("clip-refs");
+    expect(sentData()).toMatchObject({
+      mode: "video",
+      capability: "reference_to_video",
+      reference_images: [
+        { type: "image", asset_id: "asset-a" },
+        { type: "image", asset_id: "asset-b" }
+      ],
+      prompt: "Open on [Image 1].\n\nCast: entity://entity-mara."
+    });
+  });
+
+  it("text-to-video: stays text-to-video with entities alone", async () => {
+    addClip({
+      id: "clip-cast",
+      mediaType: "video",
+      bindingKind: "text-to-video",
+      referenceEntityIds: ["entity-a", "entity-b"]
+    });
+    await startClip("clip-cast");
+    const data = sentData();
+    expect(data.capability).toBeUndefined();
+    expect(data.reference_images).toBeUndefined();
+    expect(data.prompt).toBe(
+      "a cat on a roof\n\nCast: entity://entity-a, entity://entity-b."
+    );
+  });
+
+  it("rejects a protected imported source before submitting image-to-image", async () => {
+    addClip({ id: "protected", mediaType: "image", sourceType: "imported", currentAssetId: "original", storyboardBoardId: "board", storyboardShotId: "shot" });
+    addClip({ id: "edit", bindingKind: "image-to-image", sourceClipId: "protected" });
+    storyboardQueryMock.mockResolvedValue({ document: { shots: [{ id: "shot", production: { media_strategy: "still_motion_graphics", protected_inputs: [{ id: "product", kind: "product", asset_id: "original", allowed_transformations: [] }] } }] } });
+    await expect(startClip("edit")).rejects.toThrow("protected source fidelity");
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
   it("image-to-image: adds the source clip's asset id", async () => {
     addClip({
       id: "clip-src",
@@ -180,6 +228,44 @@ describe("useTimelineDirectGenJob request payloads", () => {
       strength: 0.65,
       num_inference_steps: 30
     });
+  });
+
+  it("image-to-video: sends the source image and a duration covering the clip", async () => {
+    doc.setState({ sequenceId: "seq-1" });
+    addClip({
+      id: "clip-image",
+      mediaType: "image",
+      sourceType: "imported",
+      currentAssetId: "asset-image"
+    });
+    addClip({
+      id: "clip-i2v",
+      bindingKind: "image-to-video",
+      sourceClipId: "clip-image",
+      durationMs: 4200
+    });
+    await startClip("clip-i2v");
+    expect(sentData()).toMatchObject({
+      mode: "video",
+      source_asset_id: "asset-image",
+      timeline_context: expect.objectContaining({
+        source_clip_id: "clip-image",
+        target_clip_id: "clip-i2v"
+      }),
+      aspect_ratio: "16:9",
+      resolution: "1080p",
+      duration: 5
+    });
+  });
+
+  it("image-to-video: fails without sending when the source image is missing", async () => {
+    addClip({
+      id: "clip-i2v-orphan",
+      bindingKind: "image-to-video",
+      sourceClipId: "gone"
+    });
+    await expect(startClip("clip-i2v-orphan")).resolves.toBeNull();
+    expect(sendMock).not.toHaveBeenCalled();
   });
 
   it("text-to-video: derives whole-second duration from the clip length", async () => {

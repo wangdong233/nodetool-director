@@ -11,6 +11,11 @@ jest.mock("../../../stores/SettingsStore", () => ({
   useSettingsStore: jest.fn()
 }));
 
+const mockSetAssetFavorite = jest.fn();
+jest.mock("../../../serverState/useAssetFavorite", () => ({
+  useSetAssetFavorite: () => mockSetAssetFavorite
+}));
+
 // Mock the asset actions hook to isolate UI behavior
 jest.mock("../useAssetActions", () => ({
   useAssetActions: () => ({
@@ -72,6 +77,29 @@ describe("AssetItem", () => {
     // Filetype chip may be hidden depending on settings; skip asserting it
   });
 
+  it("stars the asset from its tile without selecting it", () => {
+    const onSelect = jest.fn();
+    renderWithTheme(
+      <AssetItem asset={baseImageAsset} onSelect={onSelect} showDeleteButton={false} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Add to favorites" }));
+    expect(mockSetAssetFavorite).toHaveBeenCalledWith(["a1"], true);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("unstars a favorite asset", () => {
+    renderWithTheme(
+      <AssetItem
+        asset={{ ...baseImageAsset, favorite: true }}
+        showDeleteButton={false}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove from favorites" })
+    );
+    expect(mockSetAssetFavorite).toHaveBeenCalledWith(["a1"], false);
+  });
+
   it("calls onSelect on click", () => {
     const onSelect = jest.fn();
     renderWithTheme(
@@ -114,6 +142,28 @@ describe("AssetItem", () => {
     expect(onDoubleClick).not.toHaveBeenCalled();
     fireEvent.doubleClick(screen.getAllByLabelText(baseImageAsset.id)[0]);
     expect(onDoubleClick).toHaveBeenCalledWith(baseImageAsset);
+  });
+
+  it("marks an in-place asset whose file is missing as media offline", () => {
+    const { rerender } = renderWithTheme(
+      <AssetItem
+        asset={{ ...baseImageAsset, offline: false }}
+        showDeleteButton={false}
+      />
+    );
+    expect(screen.queryByTestId("asset-media-offline")).not.toBeInTheDocument();
+
+    rerender(
+      <ThemeProvider theme={mockTheme}>
+        <AssetItem
+          asset={{ ...baseImageAsset, offline: true }}
+          showDeleteButton={false}
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByTestId("asset-media-offline")).toHaveTextContent(
+      "Media offline"
+    );
   });
 
   it("paints an SVG from get_url, not a raster thumb", () => {

@@ -14,8 +14,33 @@ export const REVIEW_REQUIRED =
 export const REVIEW_REQUIRED_KEY =
   "storyboard:attrs.productionContextChangedReturnToThePlan";
 
-export function productionReviewFingerprint(context: unknown): string {
-  return deterministicFingerprint(context);
+/** Drop one field from every object in a list, leaving anything else as is. */
+const withoutField = (items: unknown, field: string): unknown =>
+  Array.isArray(items)
+    ? items.map((item: unknown) => {
+        if (typeof item !== "object" || item === null || !(field in item)) {
+          return item;
+        }
+        const rest: Record<string, unknown> = { ...item };
+        delete rest[field];
+        return rest;
+      })
+    : items;
+
+/**
+ * What the creator reviewed, as one comparable string. Steps after the review
+ * write a shot's `entity_ids` (entity and style picks) and a beat's `clip_id`
+ * (Generate links each beat to its clip before the jobs start). Neither changes
+ * the reviewed production, so neither may send the creator back to review.
+ */
+export function productionReviewFingerprint(
+  context: Readonly<Record<string, unknown>>
+): string {
+  return deterministicFingerprint({
+    ...context,
+    shots: withoutField(context.shots, "entity_ids"),
+    beats: withoutField(context.beats, "clip_id")
+  });
 }
 
 export function reviewFingerprintOf(value: unknown): string | undefined {
@@ -99,7 +124,7 @@ export function productionFields({
   // read-only field of its own, which read as a filled-in value and put the
   // explanation a row below the select it explains.
   const bindingHint = !canBind
-    ? i18n.t("timeline:attrs.addVoiceoverOrDialogueBeforeChoosingASpeechMode", { defaultValue: "Add voiceover or dialogue before choosing a speech mode." })
+    ? i18n.t("timeline:attrs.addALineBeforeChoosingASpeechMode", { defaultValue: "Add a line before choosing a speech mode." })
     : binding?.script_line_id
       ? i18n.t("timeline:attrs.boundToAScriptLineEditTheWordsAndTheVoiceInScript", { defaultValue: "Bound to a Script line. Edit the words and the voice in Script." })
       : binding?.audio_asset_id
@@ -107,15 +132,13 @@ export function productionFields({
         : binding?.text
           ? i18n.t("storyboard:attrs.usesLocalSpeechProductionVoiceAndAudioResolutionAreUnavailableInThisSetup", { defaultValue: "Uses local speech. Production voice and audio resolution are unavailable in this setup." })
           : undefined;
-  const availabilityHint =
-    i18n.t("timeline:attrs.onCameraSpeechIsUnavailableInThisGuidedFlowChooseOffCameraOrNone", { defaultValue: "On-camera speech is unavailable in this guided flow. Choose Off-camera or None." });
-  const speechHint = [bindingHint, availabilityHint]
-    .filter((part): part is string => part !== undefined)
-    .join(" ");
-  // The enums are short values on a narrow column, so they pack into one row
-  // of properties rather than four full-width controls down the card.
-  return [
-    {
+  // The on-camera option names its own unavailability, so the hint only says
+  // what the speech is bound to.
+  const speechHint = bindingHint;
+  // Every production setting is optional and most shots keep the defaults, so
+  // they sit behind the block's "More options" toggle. The enums are short
+  // values, so they pack into one row of properties once it is open.
+  const fields: PlanReviewField[] = [    {
       id: `${id}:purpose`,
       label: i18n.t("timeline:attrs.editorialPurpose", { defaultValue: "Editorial purpose" }),
       compact: true,
@@ -228,6 +251,7 @@ export function productionFields({
         })
     }
   ];
+  return fields.map((field) => ({ ...field, advanced: true }));
 }
 
 export function productionAuthoringBlocker(

@@ -10,8 +10,12 @@
  * now: inside the implementation, with the same failure envelope.
  */
 
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { Buffer } from "node:buffer";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import { InMemoryStorageAdapter } from "@nodetool-ai/storage";
 import { Asset, Project, initTestDb } from "@nodetool-ai/models";
@@ -249,6 +253,45 @@ describe("assets capabilities against the database", () => {
     expect(searched.assets.map((a) => a.asset_id)).toContain(asset.id);
   });
 
+  it("moves an asset under a folder named by its short id", async () => {
+    const folder = (await Asset.create({
+      user_id: USER,
+      name: "Folder",
+      content_type: "folder"
+    })) as Asset;
+    const asset = (await Asset.create({
+      user_id: USER,
+      name: "cover.png",
+      content_type: "image/png"
+    })) as Asset;
+
+    const ctx = makeContext();
+    const result = (await asTool("update_asset", ctx).process(ctx, {
+      asset_id: asset.id,
+      parent_id: folder.id.slice(0, 12)
+    })) as Record<string, unknown>;
+    expect(result.error).toBeUndefined();
+    const stored = await Asset.find(USER, asset.id);
+    expect(stored?.parent_id).toBe(folder.id);
+  });
+
+  it("refuses to update a shipped system asset", async () => {
+    const preset = (await Asset.create({
+      user_id: USER,
+      name: "Preset",
+      content_type: "image/png",
+      metadata: { nodetool_entity: { system: true } }
+    })) as Asset;
+
+    const ctx = makeContext();
+    const result = (await asTool("update_asset", ctx).process(ctx, {
+      asset_id: preset.id,
+      name: "renamed.png"
+    })) as Record<string, unknown>;
+    expect(result.error).toContain("cannot be changed");
+    expect((await Asset.find(USER, preset.id))?.name).toBe("Preset");
+  });
+
   it("routes package assets to the injected lister", async () => {
     const ctx = makeContext();
     const lister = vi.fn(async () => [{ name: "shipped.png" }]);
@@ -459,6 +502,67 @@ describe("assets capabilities against the database", () => {
     })) as Record<string, unknown>;
     expect(missing.success).toBe(false);
     expect(String(missing.error)).toContain("Source not found");
+  });
+});
+
+describe("asset references never read the host disk", () => {
+  // A remote MCP session and a cloud chat run these capabilities on the
+  // server. A host path in `source` or `name` must not become a file read.
+  let dir: string;
+  let secretPath: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "nodetool-asset-disk-"));
+    secretPath = join(dir, "server-secret.txt");
+    writeFileSync(secretPath, "SERVER_SECRET=do-not-leak");
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("save_asset refuses an absolute host path as source", async () => {
+    const ctx = makeContext();
+    const saved = (await asTool("save_asset", ctx).process(ctx, {
+      name: "stolen.txt",
+      source: secretPath
+    })) as Record<string, unknown>;
+    expect(saved.success).toBe(false);
+    expect(String(saved.error)).toContain("Source not found");
+  });
+
+  it("save_asset refuses a file:// URI dressed with the project marker", async () => {
+    const ctx = makeContext();
+    const saved = (await asTool("save_asset", ctx).process(ctx, {
+      name: "stolen.txt",
+      source: `${pathToFileURL(secretPath).href}#projects/default/`
+    })) as Record<string, unknown>;
+    expect(saved.success).toBe(false);
+  });
+
+  it("read_asset refuses a file:// URI dressed with the project marker", async () => {
+    const ctx = makeContext();
+    const read = (await asTool("read_asset", ctx).process(ctx, {
+      name: `${pathToFileURL(secretPath).href}#projects/default/`
+    })) as Record<string, unknown>;
+    expect(read.success).toBe(false);
+    expect(JSON.stringify(read)).not.toContain("do-not-leak");
+  });
+
+  it("does not take a project marker in the query as ownership of another key", async () => {
+    // Storage adapters key off the path and drop the query, so the marker
+    // there must not skip the ownership check for someone else's object.
+    const foreign = new TextEncoder().encode("other user's bytes");
+    const storage = {
+      store: async (key: string) => `memory://${key}`,
+      retrieve: async (uri: string) =>
+        uri.split("?")[0] === "/api/storage/other-user/abc.png" ? foreign : null
+    };
+    const ctx = makeContext({ storage });
+    const read = (await asTool("read_asset", ctx).process(ctx, {
+      name: "/api/storage/other-user/abc.png?projects/default/"
+    })) as Record<string, unknown>;
+    expect(read.success).toBe(false);
   });
 });
 

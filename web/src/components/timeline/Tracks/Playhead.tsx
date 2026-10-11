@@ -21,6 +21,7 @@
  * imperative path.
  */
 
+import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -40,8 +41,15 @@ import {
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { formatTimecode } from "../Inspector/InspectorPrimitives.helpers";
-import { MOTION, Z_INDEX, SPACING, getSpacingPx } from "../../ui_primitives";
-import { useTranslation } from "react-i18next";
+import {
+  FONT_SIZE_MONO,
+  FONT_WEIGHT,
+  MOTION,
+  TYPOGRAPHY,
+  Z_INDEX,
+  SPACING,
+  getSpacingPx
+} from "../../ui_primitives";
 
 const LINE_WIDTH_PX = 1.5;
 const HIT_AREA_WIDTH_PX = 16;
@@ -100,10 +108,9 @@ const pillStyles = (theme: Theme, dragging: boolean, hovered: boolean) =>
     borderRadius: PILL_HEIGHT_PX / 2,
     backgroundColor: theme.vars.palette.secondary.main,
     color: theme.vars.palette.secondary.contrastText,
-    fontFamily:
-      "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-    fontSize: theme.fontSizeSmaller,
-    fontWeight: 600,
+    fontFamily: TYPOGRAPHY.mono.caption.fontFamily,
+    fontSize: FONT_SIZE_MONO.caption,
+    fontWeight: FONT_WEIGHT.semibold,
     letterSpacing: "0",
     whiteSpace: "nowrap",
     boxShadow:
@@ -119,11 +126,13 @@ interface PlayheadProps {
   trackAreaOffsetPx?: number;
   /** Total height the playhead line should span (track area height). */
   heightPx: number;
+  /** Content end (last clip end or project duration). Defaults to the store's durationMs. */
+  endMs?: number;
 }
 
 export const Playhead: React.FC<PlayheadProps> = memo(
-  ({ trackAreaOffsetPx = 0, heightPx }) => {
-    const { t } = useTranslation();
+  ({ trackAreaOffsetPx = 0, heightPx, endMs }) => {
+  const { t } = useTranslation();
     const theme = useTheme();
 
     // Geometry inputs that DO change reactively (zoom/scroll). We keep them in
@@ -136,7 +145,8 @@ export const Playhead: React.FC<PlayheadProps> = memo(
       (s) => s.setCurrentTimeMs
     );
     const fps = useTimelineStore((s) => s.fps);
-    const durationMs = useTimelineStore((s) => s.durationMs);
+    const storeDurationMs = useTimelineStore((s) => s.durationMs);
+    const durationMs = Math.max(storeDurationMs, endMs ?? 0);
 
     const playbackStoreApi = useTimelinePlaybackStoreApi();
 

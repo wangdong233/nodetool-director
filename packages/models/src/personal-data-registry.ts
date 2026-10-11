@@ -386,6 +386,34 @@ export const PERSONAL_DATA_REGISTRY: readonly PersonalDataEntry[] = [
       "Facts the agent retained about the person across sessions. Exactly the profile Art. 17 exists for."
   },
   {
+    table: "nodetool_run_spans", schemaExport: "runSpans", disposition: "delete",
+    reach: { kind: "direct", column: "user_id" }, exported: true,
+    justification: "Owner-scoped execution spans with separately pruned prompts, responses, tool payloads, and logs. Exported to the owner and erased with the account."
+  },
+  {
+    table: "nodetool_run_traces", schemaExport: "runTraces", disposition: "delete",
+    reach: { kind: "direct", column: "user_id" }, exported: true,
+    justification: "The owner's registered app runs, workflow jobs, and chat turns. Contains execution metadata and content availability, and is erased with the account."
+  },
+  {
+    table: "nodetool_error_traces",
+    schemaExport: "errorTraces",
+    disposition: "delete",
+    reach: { kind: "direct", column: "user_id" },
+    exported: true,
+    justification:
+      "Redacted error traces from the person's own runs and requests. They are diagnostics about the person's activity with no lawful basis to outlive the account, and the 30-day retention sweep removes them anyway."
+  },
+  {
+    table: "nodetool_bug_reports",
+    schemaExport: "bugReports",
+    disposition: "delete",
+    reach: { kind: "direct", column: "user_id" },
+    exported: true,
+    justification:
+      "Bug reports the person wrote and the data they chose to attach. Their own words about their own activity, with no reason to outlive the account. The attached zip sits under their storage prefix and goes with the object sweep."
+  },
+  {
     table: "nodetool_settings",
     schemaExport: "appSettings",
     disposition: "delete",
@@ -411,6 +439,33 @@ export const PERSONAL_DATA_REGISTRY: readonly PersonalDataEntry[] = [
     exported: true,
     justification:
       "The person's project folders — the container the documents, scripts and storyboards below hang off. Deleted after them, so nothing is orphaned."
+  },
+  {
+    table: "games",
+    schemaExport: "games",
+    disposition: "delete",
+    reach: { kind: "direct", column: "user_id" },
+    exported: true,
+    justification:
+      "Game records name the person's authored source and current revision. Delete the row on erasure and include it in their data export."
+  },
+  {
+    table: "game_draft_changes",
+    schemaExport: "gameDraftChanges",
+    disposition: "delete",
+    reach: { kind: "indirect", column: "game_id", parent: "games" },
+    exported: true,
+    justification:
+      "Draft change operations and chat provenance belong to the game author. Erase and export them through the owned game."
+  },
+  {
+    table: "game_revision_messages",
+    schemaExport: "gameRevisionMessages",
+    disposition: "delete",
+    reach: { kind: "indirect", column: "game_id", parent: "games" },
+    exported: true,
+    justification:
+      "Published revision messages are authored game content. Erase and export them through the owned game."
   },
   {
     table: "skills",
@@ -490,6 +545,11 @@ export const PERSONAL_DATA_REGISTRY: readonly PersonalDataEntry[] = [
       "Revision history of those timelines. Deleted explicitly for the same reason as the other version tables: the cascade is not guaranteed on a SQLite connection."
   },
 
+  {
+    table:"app_instances",schemaExport:"appInstances",disposition:"delete",
+    reach:{kind:"direct",column:"user_id"},exported:true,
+    justification:"Owner working copies of mini apps with immutable execution snapshots and variable state. Erased with the account and exported to the owner."
+  },
   // ── Published applications ─────────────────────────────────────────
 
   {

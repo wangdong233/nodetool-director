@@ -15,7 +15,10 @@
  */
 
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { open, readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
+
+import { createCanvas, loadImage } from "@napi-rs/canvas";
 
 import {
   MissingBinaryError,
@@ -68,6 +71,25 @@ export async function probeVideoSize(filePath: string): Promise<RawSize | null> 
   const match = /^(\d+)x(\d+)/.exec(stdout.trim());
   if (!match) return null;
   return { width: Number(match[1]), height: Number(match[2]) };
+}
+
+/** Native source rate used only for verified frame-grid caching. */
+export async function probeVideoFrameRate(filePath: string): Promise<number> {
+  const { stdout } = await execFfprobe([
+    "-v",
+    "error",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "stream=avg_frame_rate",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    filePath
+  ]);
+  const [numerator, denominator = "1"] = stdout.trim().split("/");
+  const rate = Number(numerator) / Number(denominator);
+  // An unknown grid disables caching; exact timestamp seeks still work.
+  return Number.isFinite(rate) && rate > 0 ? rate : 1;
 }
 
 function spawnFfmpeg(args: string[]): ChildProcessWithoutNullStreams {
@@ -133,6 +155,55 @@ export async function decodeImageRgba(
   return { rgba: rgba.subarray(0, expected), ...size };
 }
 
+/** Whether `filePath` holds SVG markup. Stored assets often have no extension. */
+async function isSvgFile(filePath: string): Promise<boolean> {
+  const handle = await open(filePath, "r");
+  try {
+    const head = Buffer.alloc(4096);
+    const { bytesRead } = await handle.read(head, 0, head.length, 0);
+    const text = head.subarray(0, bytesRead).toString("utf8").replace(/^\uFEFF/, "");
+    return text.trimStart().startsWith("<") && /<svg[\s>]/i.test(text);
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
+ * Rasterize an SVG with Skia. Many ffmpeg builds (Homebrew's default among
+ * them) have no SVG decoder, and a logo is the usual SVG on a timeline. The
+ * intrinsic size plays the role a raster's pixel size does in {@link fitWithin}.
+ */
+async function rasterizeSvg(filePath: string, canvas: RawSize): Promise<RawImage> {
+  let image: Awaited<ReturnType<typeof loadImage>>;
+  try {
+    image = await loadImage(await readFile(filePath));
+  } catch (error) {
+    throw new Error(`Could not rasterize SVG ${filePath}: ${(error as Error).message}`);
+  }
+  if (!(image.width > 0 && image.height > 0)) {
+    throw new Error(`Could not rasterize SVG ${filePath}: it has no size`);
+  }
+  const size = fitWithin({ width: image.width, height: image.height }, canvas);
+  const surface = createCanvas(size.width, size.height);
+  const context = surface.getContext("2d");
+  context.drawImage(image, 0, 0, size.width, size.height);
+  const { data } = context.getImageData(0, 0, size.width, size.height);
+  return { rgba: new Uint8Array(data.buffer, data.byteOffset, data.byteLength), ...size };
+}
+
+/**
+ * Decode a still fitted inside `canvas`, or `null` when ffprobe finds no
+ * picture in it.
+ */
+export async function decodeStillRgba(
+  filePath: string,
+  canvas: RawSize
+): Promise<RawImage | null> {
+  if (await isSvgFile(filePath)) return rasterizeSvg(filePath, canvas);
+  const size = await probeVideoSize(filePath);
+  return size ? decodeImageRgba(filePath, fitWithin(size, canvas)) : null;
+}
+
 /**
  * A clip's frames, decoded on demand in timeline order.
  *
@@ -160,6 +231,7 @@ interface VideoFrameStreamOptions {
   startSec: number;
   /** Playback rate: >1 consumes the source faster than the timeline. */
   speed: number;
+  nativeSampling?: boolean;
 }
 
 /**
@@ -173,7 +245,7 @@ export function openVideoFrameStream(
   const { filePath, size, fps, startSec, speed } = opts;
   const filters = [
     speed !== 1 ? `setpts=PTS/${speed}` : null,
-    `fps=${fps}`,
+    opts.nativeSampling ? null : `fps=${fps}`,
     `scale=${size.width}:${size.height}`,
     "format=rgba"
   ].filter((f): f is string => f !== null);
@@ -186,6 +258,7 @@ export function openVideoFrameStream(
     filePath,
     "-vf",
     filters.join(","),
+    ...(opts.nativeSampling ? ["-fps_mode", "passthrough"] : []),
     "-f",
     "rawvideo",
     "-pix_fmt",
@@ -237,22 +310,79 @@ export function openVideoFrameStream(
  * The forward-only stream above is enough while a clip consumes its source at a
  * constant rate: decoded frame *k* is the frame the timeline wants at clip
  * frame *k*. A time remap breaks that — the source position is a curve, and a
- * reverse curve walks it backwards — so this holds one forward-only decode and
- * reopens it whenever the asked-for source time is behind where the decode has
- * reached. Correct, and slow in exactly the case that earns it: a descending
- * curve reopens ffmpeg once per frame.
+ * reverse curve walks it backwards. A bounded window retains decoded frames
+ * for descending requests and reopens the forward-only decode when a request
+ * falls outside that window.
  */
 export interface SourceFrameStream extends RawSize {
   /** The frame at absolute source time `sec`, or `null` past the media's end. */
   frameAtSourceSec(sec: number): Promise<Uint8Array | null>;
-  /** Backwards seeks served so far, i.e. how many decodes were reopened. */
+  /** Number of decoder reopens. */
   readonly reopens: number;
+  /** Decoded bytes currently retained for reverse reads. */
+  readonly reverseWindowBytes: number;
   close(): void;
 }
 
 /**
+ * How long the grid probe may run. A miss falls back to a fresh seek per
+ * frame, so the budget must hold on a loaded machine: a 1s budget expired on
+ * CI for a 60-frame clip and turned every reverse read into a reopen.
+ */
+const GRID_PROBE_TIMEOUT_MS = 10_000;
+
+/** Only a verified regular source grid can be indexed inside a decode window. */
+async function hasRegularFrameGrid(filePath: string, fps: number, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return false;
+  const stdout = await new Promise<string | null>((resolve) => {
+    const child = spawn("ffprobe", [
+      "-v", "error", "-select_streams", "v:0",
+      "-show_entries", "packet=pts_time", "-of", "csv=p=0", filePath
+    ], { stdio: ["ignore", "pipe", "ignore"] });
+    const chunks: Buffer[] = [];
+    let bytes = 0;
+    let settled = false;
+    const finish = (value: string | null): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(deadline);
+      signal.removeEventListener("abort", cancel);
+      resolve(value);
+    };
+    const cancel = (): void => {
+      child.kill("SIGKILL");
+      finish(null);
+    };
+    const deadline = setTimeout(cancel, GRID_PROBE_TIMEOUT_MS);
+    signal.addEventListener("abort", cancel, { once: true });
+    child.stdout.on("data", (chunk: Buffer) => {
+      bytes += chunk.length;
+      if (bytes > 8 * 1024 * 1024) {
+        cancel();
+      } else {
+        chunks.push(chunk);
+      }
+    });
+    child.on("error", () => finish(null));
+    child.on("close", (code) => finish(code === 0 ? Buffer.concat(chunks).toString("utf8") : null));
+    if (signal.aborted) cancel();
+  });
+  if (stdout === null) return false;
+  const times = stdout.trim().split(/\r?\n/).map(Number);
+  if (times.length < 2 || times.some((time) => !Number.isFinite(time))) return false;
+  times.sort((left, right) => left - right);
+  for (const [index, time] of times.entries()) {
+    const expected = index / fps;
+    const millisecondGrid = Math.round(expected * 1000) / 1000;
+    if (Math.min(Math.abs(time - expected), Math.abs(time - millisecondGrid)) > 0.000002) return false;
+  }
+  return true;
+}
+
+/**
  * Open a source-time-addressed decode of `filePath`, sampling the source on a
- * `1/fps` grid starting at `startSec`.
+ * `1/fps` grid when it matches a verified regular source grid. Other requests
+ * use a fresh FFmpeg seek to retain its timestamp and timebase behavior.
  *
  * The underlying decode always runs at the source's own rate (`speed: 1`): the
  * remap curve, not `setpts`, decides which source instant a timeline frame
@@ -263,17 +393,56 @@ export function openSourceFrameStream(opts: {
   size: RawSize;
   fps: number;
   startSec: number;
+  /** Preserve native frames instead of resampling onto the requested grid. */
+  nativeSampling?: boolean;
+  /** Maximum decoded bytes retained in one reverse window. */
+  maxWindowBytes?: number;
+  /** Maximum source-time span retained in one reverse window. */
+  maxWindowMs?: number;
 }): SourceFrameStream {
   const { filePath, size, fps } = opts;
-  let originSec = Math.max(0, opts.startSec);
+  const frameBytes = size.width * size.height * 4;
+  const byteLimit = opts.maxWindowBytes ?? 128 * 1024 * 1024;
+  const durationLimitMs = opts.maxWindowMs ?? 2000;
+  // One frame is the minimum useful window, even when its dimensions alone
+  // exceed the configured byte limit.
+  const windowFrames = Math.max(1, Math.min(
+    Math.floor(byteLimit / frameBytes),
+    Math.floor((durationLimitMs * fps) / 1000) + 1
+  ));
+  let originFrame = 0;
+  let decodedIndex = -1;
   let reopens = 0;
-  let stream = openVideoFrameStream({
+  let reverseWindow: Uint8Array[] = [];
+  let closed = false;
+  let stream: VideoFrameStream | null = null;
+  let mode: "window" | "seek" | null = null;
+  let lastSeekTarget: number | null = null;
+  let lastFrame: Uint8Array | null = null;
+  const probeController = new AbortController();
+  const regularGrid = hasRegularFrameGrid(
     filePath,
-    size,
     fps,
-    startSec: originSec,
-    speed: 1
-  });
+    probeController.signal
+  );
+
+  const openAt = (sec: number): VideoFrameStream =>
+    openVideoFrameStream({
+      filePath,
+      size,
+      fps,
+      startSec: sec,
+      speed: 1,
+      nativeSampling: opts.nativeSampling
+    });
+  const replaceStream = (sec: number): VideoFrameStream => {
+    if (stream) {
+      stream.close();
+      reopens += 1;
+    }
+    stream = openAt(sec);
+    return stream;
+  };
 
   return {
     width: size.width,
@@ -281,28 +450,88 @@ export function openSourceFrameStream(opts: {
     get reopens(): number {
       return reopens;
     },
+    get reverseWindowBytes(): number {
+      return reverseWindow.length * frameBytes;
+    },
     async frameAtSourceSec(sec: number): Promise<Uint8Array | null> {
+      if (closed) return null;
       const target = Math.max(0, sec);
-      let index = Math.round((target - originSec) * fps);
-      if (index < 0) {
-        // Behind the decode. ffmpeg streams forward only, so the only way back
-        // is a new process seeked to the frame we now want.
-        stream.close();
-        originSec = target;
-        stream = openVideoFrameStream({
-          filePath,
-          size,
-          fps,
-          startSec: originSec,
-          speed: 1
-        });
-        reopens += 1;
-        index = 0;
+      const regular = await regularGrid;
+      if (closed) return null;
+      const position = target * fps;
+      const targetFrame = Math.round(position);
+      const aligned = Math.abs(position - targetFrame) <= 1e-7;
+      if (!regular || !aligned) {
+        // A source-grid index cannot identify a fractional fresh seek or an
+        // unknown/different-rate frame grid. Use FFmpeg's exact seek instead.
+        let active = stream;
+        if (mode !== "seek" || lastSeekTarget !== target || !active) {
+          active = replaceStream(target);
+          mode = "seek";
+          lastSeekTarget = target;
+          reverseWindow = [];
+          decodedIndex = -1;
+        }
+        let frame = await active.frameAt(0);
+        if (!frame && target > 0) {
+          // A fresh seek beyond EOF has no frame to hold. Decode to the end
+          // instead of reusing whichever earlier frame the caller requested.
+          active = replaceStream(0);
+          frame = await active.frameAt(Number.MAX_SAFE_INTEGER);
+        }
+        if (closed) return null;
+        if (frame) lastFrame = frame;
+        return frame ?? lastFrame;
       }
-      return stream.frameAt(index);
+      if (mode !== "window" || !stream) {
+        replaceStream(targetFrame / fps);
+        mode = "window";
+        originFrame = targetFrame;
+        decodedIndex = -1;
+        reverseWindow = [];
+        lastSeekTarget = null;
+      }
+      let index = targetFrame - originFrame;
+      if (index >= 0 && index < reverseWindow.length) {
+        const frame = reverseWindow[index] ?? null;
+        if (frame) lastFrame = frame;
+        return frame;
+      }
+      if (index < 0 || index < decodedIndex) {
+        // Decode a bounded window ending at the requested source instant.
+        // Later descending requests read its retained frames without seeking.
+        const count = Math.min(windowFrames, targetFrame + 1);
+        reverseWindow = [];
+        if (closed) return null;
+        originFrame = targetFrame - (count - 1);
+        decodedIndex = -1;
+        stream = replaceStream(originFrame / fps);
+        for (let i = 0; i < count; i++) {
+          const frame = await stream.frameAt(i);
+          if (closed || !frame) return null;
+          reverseWindow.push(frame);
+          decodedIndex = i;
+        }
+        index = targetFrame - originFrame;
+      }
+      if (index < reverseWindow.length) {
+        const frame = reverseWindow[index] ?? null;
+        if (frame) lastFrame = frame;
+        return frame;
+      }
+      reverseWindow = [];
+      const active = stream;
+      if (!active) return null;
+      const frame = await active.frameAt(index);
+      decodedIndex = Math.max(decodedIndex, index);
+      if (frame) lastFrame = frame;
+      return frame;
     },
     close(): void {
-      stream.close();
+      closed = true;
+      reverseWindow = [];
+      probeController.abort();
+      stream?.close();
     }
   };
 }
@@ -509,11 +738,26 @@ export function openFrameEncoder(opts: {
   child.stdout.resume();
 
   let failure: Error | null = null;
+  const pendingDrains = new Set<(error: Error) => void>();
+  const fail = (error: Error): void => {
+    if (failure) return;
+    failure = error;
+    for (const reject of pendingDrains) reject(error);
+    pendingDrains.clear();
+  };
   child.on("error", (error: NodeJS.ErrnoException) => {
-    failure = error.code === "ENOENT" ? new MissingBinaryError("ffmpeg") : error;
+    fail(error.code === "ENOENT" ? new MissingBinaryError("ffmpeg") : error);
   });
+  child.stdin.on("error", fail);
   const closed = new Promise<number | null>((resolve) =>
-    child.on("close", (code) => resolve(code))
+    child.on("close", (code) => {
+      if (code !== 0) {
+        fail(new Error(`ffmpeg failed to encode the timeline: ${stderr()}`));
+      } else if (pendingDrains.size > 0) {
+        fail(new Error("ffmpeg closed before the frame write drained"));
+      }
+      resolve(code);
+    })
   );
 
   return {
@@ -521,8 +765,22 @@ export function openFrameEncoder(opts: {
       if (failure) throw failure;
       const ok = child.stdin.write(Buffer.from(rgba.buffer, rgba.byteOffset, rgba.byteLength));
       if (!ok) {
-        await new Promise<void>((resolve) => child.stdin.once("drain", resolve));
+        await new Promise<void>((resolve, reject) => {
+          const rejectPending = (error: Error): void => {
+            child.stdin.off("drain", onDrain);
+            pendingDrains.delete(rejectPending);
+            reject(error);
+          };
+          const onDrain = (): void => {
+            pendingDrains.delete(rejectPending);
+            resolve();
+          };
+          pendingDrains.add(rejectPending);
+          child.stdin.once("drain", onDrain);
+          if (failure) rejectPending(failure);
+        });
       }
+      if (failure) throw failure;
     },
     async finish(): Promise<void> {
       if (failure) throw failure;
@@ -534,6 +792,7 @@ export function openFrameEncoder(opts: {
       }
     },
     abort(): void {
+      fail(new Error("ffmpeg encoding aborted"));
       child.stdin.destroy();
       child.kill("SIGKILL");
     }

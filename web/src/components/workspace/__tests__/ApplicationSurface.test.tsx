@@ -1,5 +1,7 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createEmptyDocument } from "@nodetool-ai/app-runtime";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
@@ -28,15 +30,48 @@ jest.mock("../../../hooks/useApplications", () => ({
 
 const openTab = jest.fn();
 const setTitle = jest.fn();
+const resolveApplicationInstance = jest.fn();
+const setApplicationRunSelection = jest.fn();
+let tabs: Array<{
+  type: string;
+  ref: string;
+  instanceId?: string;
+  title: string;
+  projectId?: string;
+}> = [];
+const releaseQuery = jest.fn();
+const defaultInstance = jest.fn();
+jest.mock("../../../trpc/client", () => ({
+  trpcClient: {
+    applications: {
+      releasedDocument: { query: (...args: unknown[]) => releaseQuery(...args) }
+    }
+  }
+}));
+jest.mock("../../appbuilder/runtime/appInstanceApi", () => ({
+  defaultAppInstance: (...args: unknown[]) => defaultInstance(...args)
+}));
 jest.mock("../../../stores/WorkspaceTabsStore", () => ({
-  tabId: (type: string, ref: string) => `${type}:${ref}`,
+  tabId: (type: string, ref: string, instanceId?: string) =>
+    instanceId ? `${type}:${ref}:instance:${instanceId}` : `${type}:${ref}`,
   useWorkspaceTabsStore: <T,>(
     selector: (s: {
       openTab: jest.Mock;
       setTitle: jest.Mock;
       activeTabId: string;
+      tabs: typeof tabs;
+      resolveApplicationInstance: jest.Mock;
+      setApplicationRunSelection: jest.Mock;
     }) => T
-  ) => selector({ openTab, setTitle, activeTabId: "application:app-1" })
+  ) =>
+    selector({
+      openTab,
+      setTitle,
+      tabs,
+      resolveApplicationInstance,
+      setApplicationRunSelection,
+      activeTabId: "application:app-1"
+    })
 }));
 
 const linkedProps = jest.fn();
@@ -66,11 +101,19 @@ jest.mock("../../appbuilder/ApplicationAppBuilder", () => ({
   }
 }));
 
+const runMounted = jest.fn();
 jest.mock("../../appbuilder/ApplicationRunView", () => ({
   __esModule: true,
-  default: ({ applicationId }: { applicationId: string }) => (
-    <div data-testid="app-run">{applicationId}</div>
-  )
+  default: function RunView(props: {
+    applicationId: string;
+    instanceId?: string;
+    previewDraft?: boolean;
+  }) {
+    React.useEffect(() => {
+      runMounted(props);
+    }, [props.applicationId, props.instanceId, props.previewDraft]);
+    return <div data-testid="app-run">{props.applicationId}</div>;
+  }
 }));
 
 jest.mock("../../appbuilder/AppBuilderAgentPanel", () => ({
@@ -97,18 +140,49 @@ jest.mock("../../applications/ApplicationGovernancePanel", () => ({
 
 import ApplicationSurface from "../ApplicationSurface";
 
-const renderSurface = (mode?: "edit" | "view") =>
+const renderSurface = (mode: "edit" | "view" = "edit") =>
   render(
     <ThemeProvider theme={mockTheme}>
-      <ApplicationSurface refId="app-1" mode={mode} />
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+        }
+      >
+        <ApplicationSurface refId="app-1" mode={mode} />
+      </QueryClientProvider>
     </ThemeProvider>
   );
 
 const originalMatchMedia = window.matchMedia;
+const originalResizeObserver = global.ResizeObserver;
+let surfaceWidth = 1200;
 
 beforeEach(() => {
   jest.clearAllMocks();
   state.error = null;
+  tabs = [];
+  releaseQuery.mockResolvedValue(null);
+  defaultInstance.mockResolvedValue({
+    id: "default-instance",
+    name: "Default"
+  });
+  surfaceWidth = 1200;
+  global.ResizeObserver = class {
+    constructor(private callback: ResizeObserverCallback) {}
+    observe(target: Element) {
+      this.callback(
+        [
+          stub<ResizeObserverEntry>({
+            target,
+            contentRect: stub<DOMRectReadOnly>({ width: surfaceWidth })
+          })
+        ],
+        this
+      );
+    }
+    unobserve() {}
+    disconnect() {}
+  };
   // Wide viewport: the assistant docks on the right of every view.
   window.matchMedia = jest.fn((query: string) =>
     stub<MediaQueryList>({
@@ -126,9 +200,99 @@ beforeEach(() => {
 
 afterEach(() => {
   window.matchMedia = originalMatchMedia;
+  global.ResizeObserver = originalResizeObserver;
 });
 
 describe("ApplicationSurface", () => {
+  it("focuses the mounted working instance instead of mounting a second released writer in its editor", async () => {
+    tabs = [
+      {
+        type: "application",
+        ref: "app-1",
+        instanceId: "existing-instance",
+        title: "Spring sale",
+        projectId: "project"
+      }
+    ];
+    const client = new QueryClient();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <QueryClientProvider client={client}>
+          <ApplicationSurface
+            refId="app-1"
+            instanceId="existing-instance"
+            mode="view"
+          />
+          <ApplicationSurface refId="app-1" mode="edit" />
+        </QueryClientProvider>
+      </ThemeProvider>
+    );
+    expect(runMounted).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+    expect(openTab).toHaveBeenCalledWith({
+      type: "application",
+      ref: "app-1",
+      instanceId: "existing-instance",
+      title: "Spring sale",
+      projectId: "project",
+      mode: "view"
+    });
+    expect(runMounted).toHaveBeenCalledTimes(1);
+    expect(defaultInstance).not.toHaveBeenCalled();
+    expect(screen.getByTestId("app-builder")).toBeInTheDocument();
+  });
+
+  it("resolves the default snapshot without a persistent editor runtime when no working tab exists", async () => {
+    releaseQuery.mockResolvedValue({
+      version: 2,
+      document: createEmptyDocument()
+    });
+    renderSurface();
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(openTab).toHaveBeenCalledWith(
+        expect.objectContaining({
+          instanceId: "default-instance",
+          mode: "view"
+        })
+      )
+    );
+    expect(defaultInstance).toHaveBeenCalledWith(
+      expect.objectContaining({
+        application_id: "app-1",
+        source_id: "application:app-1",
+        version: 2
+      })
+    );
+    expect(runMounted).not.toHaveBeenCalled();
+    expect(screen.getByTestId("app-builder")).toBeInTheDocument();
+  });
+
+  it("keeps draft preview separate when returning to the working instance", async () => {
+    tabs = [
+      {
+        type: "application",
+        ref: "app-1",
+        instanceId: "existing-instance",
+        title: "Spring sale"
+      }
+    ];
+    renderSurface();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Preview draft" })
+    );
+    expect(runMounted).toHaveBeenCalledWith(
+      expect.objectContaining({ previewDraft: true })
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+    expect(openTab).toHaveBeenCalledWith(
+      expect.objectContaining({ instanceId: "existing-instance" })
+    );
+    expect(
+      runMounted.mock.calls.every(([props]) => props.previewDraft === true)
+    ).toBe(true);
+    expect(defaultInstance).not.toHaveBeenCalled();
+  });
   it("opens an app on its builder canvas", () => {
     renderSurface();
 
@@ -143,6 +307,9 @@ describe("ApplicationSurface", () => {
 
     expect(screen.queryByText("Translates things")).not.toBeInTheDocument();
     expect(screen.queryByTestId("linked-workflows")).not.toBeInTheDocument();
+    expect(screen.getByTestId("app-run")).toBeInTheDocument();
+    expect(screen.queryByTestId("app-builder")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("app-assistant")).not.toBeInTheDocument();
   });
 
   it("switches to publish and budget controls", async () => {
@@ -171,7 +338,7 @@ describe("ApplicationSurface", () => {
     const user = userEvent.setup();
     renderSurface();
 
-    await user.click(screen.getByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Preview draft" }));
     expect(screen.getByTestId("application-design-layer")).toHaveAttribute(
       "inert"
     );
@@ -187,9 +354,9 @@ describe("ApplicationSurface", () => {
     expect(screen.getByTestId("application-run-layer")).toHaveAttribute(
       "inert"
     );
-    expect(screen.getByTestId("application-settings-layer")).not.toHaveAttribute(
-      "inert"
-    );
+    expect(
+      screen.getByTestId("application-settings-layer")
+    ).not.toHaveAttribute("inert");
   });
 
   it("mounts the run layer when preview opens directly from design", async () => {
@@ -211,7 +378,7 @@ describe("ApplicationSurface", () => {
     expect(screen.getByTestId("assistant-side-dock")).toBeInTheDocument();
     expect(screen.getByTestId("app-assistant")).toHaveTextContent("app-1:wf-1");
 
-    await user.click(screen.getByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Preview draft" }));
     expect(screen.getByTestId("app-run")).toHaveTextContent("app-1");
     expect(screen.getByTestId("assistant-side-dock")).toBeInTheDocument();
     expect(screen.getByTestId("app-assistant")).toHaveTextContent("app-1:wf-1");
@@ -226,7 +393,7 @@ describe("ApplicationSurface", () => {
     const user = userEvent.setup();
     renderSurface();
 
-    await user.click(screen.getByRole("button", { name: "Run" }));
+    await user.click(screen.getByRole("button", { name: "Preview draft" }));
     expect(screen.getByTestId("application-design-layer")).toHaveAttribute(
       "aria-hidden",
       "true"
@@ -246,16 +413,17 @@ describe("ApplicationSurface", () => {
     expect(screen.getByTestId("application-run-layer")).toHaveAttribute(
       "inert"
     );
-    expect(screen.getByTestId("application-settings-layer")).not.toHaveAttribute(
-      "inert"
-    );
+    expect(
+      screen.getByTestId("application-settings-layer")
+    ).not.toHaveAttribute("inert");
   });
 
   it("restores focus to the assistant button after closing its narrow overlay", async () => {
     const user = userEvent.setup();
+    surfaceWidth = 700;
     window.matchMedia = jest.fn((query: string) =>
       stub<MediaQueryList>({
-        matches: query === "(max-width: 637.98px)",
+        matches: false,
         media: query,
         onchange: null,
         addListener: jest.fn(),
@@ -269,7 +437,9 @@ describe("ApplicationSurface", () => {
 
     const openButton = screen.getByRole("button", { name: "Ask Agent" });
     await user.click(openButton);
-    expect(screen.getByRole("dialog", { name: "App builder assistant" })).toHaveFocus();
+    expect(
+      screen.getByRole("dialog", { name: "App builder assistant" })
+    ).toHaveFocus();
 
     await user.click(screen.getByRole("button", { name: "Close agent" }));
     expect(screen.getByRole("button", { name: "Ask Agent" })).toHaveFocus();

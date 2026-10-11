@@ -4,7 +4,11 @@ title: "Local Inference (LM Studio, llama.cpp, vLLM): Add Models"
 description: "How to run local OpenAI-compatible inference servers with NodeTool — URL config, model discovery, and provider code paths."
 ---
 
-NodeTool ships three providers that talk to a local OpenAI-compatible HTTP server: **LM Studio**, **llama.cpp** (`llama_cpp`), and **vLLM**. All three follow the same pattern: point NodeTool at the server's base URL, load a model in the server, and the model appears in the UI automatically via a `/v1/models` fetch.
+NodeTool ships three providers that talk to a local OpenAI-compatible HTTP server (a fourth, `node_llama_cpp`, runs in-process and is covered below): **LM Studio**, **llama.cpp** (`llama_cpp`), and **vLLM**. All three follow the same pattern: point NodeTool at the server's base URL, load a model in the server, and the model appears in the UI automatically via a `/v1/models` fetch.
+
+For local speech recognition, `whisper_cpp` runs GGML models in the backend
+and `whisper_cpp_server` calls a user-run whisper-server. See
+[provider configuration](../../providers.md) for their settings.
 
 > **Audience:** coding agents and contributors adding local models to NodeTool, or changing these providers' code.
 
@@ -13,7 +17,7 @@ NodeTool ships three providers that talk to a local OpenAI-compatible HTTP serve
 ## TL;DR
 
 1. Start the local server and load a model.
-2. Set the server's base URL (env var or Settings → API Keys).
+2. Set the server's base URL (env var or Settings → Integrations → Local Model Servers).
 3. Models appear in NodeTool automatically — no code change needed.
 
 The only time you touch code is when you are changing provider behavior (URL resolution, message normalization, tool-call handling) — see [Provider-level changes](#provider-level-changes-dev-path).
@@ -70,21 +74,27 @@ if (!_cloudProfile) {
     PROVIDER_IDS.LMSTUDIO,
     LMStudioProvider,
     {},
-    { LMSTUDIO_API_URL: LMSTUDIO_DEFAULT_URL, LMSTUDIO_API_KEY: "lm-studio" }
+    { LMSTUDIO_API_URL: LMSTUDIO_DEFAULT_URL, LMSTUDIO_API_KEY: "lm-studio" },
+    { access: "local_service", displayName: "LM Studio" }
   );
-  registerBuiltinProvider(PROVIDER_IDS.LLAMA_CPP, LlamaProvider, {
-    LLAMA_CPP_URL: ""
-  });
+  registerBuiltinProvider(
+    PROVIDER_IDS.LLAMA_CPP,
+    LlamaProvider,
+    { LLAMA_CPP_URL: "" },
+    {},
+    { access: "local_service", displayName: "llama.cpp server" }
+  );
   registerBuiltinProvider(
     PROVIDER_IDS.VLLM,
     VLLMProvider,
     { VLLM_BASE_URL: "" },
-    { VLLM_API_KEY: "sk-no-key-required" }
+    { VLLM_API_KEY: "sk-no-key-required" },
+    { access: "local_service", displayName: "vLLM" }
   );
 }
 ```
 
-The fourth argument is `optionalKwargs` — settings re-resolved from the secret store on every `getProvider()` call without blocking `isProviderConfigured()`. That is why LM Studio works by default (the URL has a fallback); llama.cpp and vLLM are unavailable until their URL is set.
+The third argument is the required kwargs. An empty value for a required key (`LLAMA_CPP_URL`, `VLLM_BASE_URL`) keeps the provider unavailable until the user sets it. The fourth argument is `optionalKwargs`, settings re-resolved from the secret store and then the environment on every `getProvider()` call without blocking `isProviderConfigured()`. That is why LM Studio works by default (the URL has a fallback). The fifth argument sets the provider's access kind and display name.
 
 ---
 
@@ -101,14 +111,14 @@ LM Studio's OpenAI-compatible server starts when you enable it in LM Studio → 
 To use a different port:
 
 ```bash
-# In your shell environment, or via Settings → API Keys
+# In your shell environment, or via Settings → Integrations → Local Model Servers
 export LMSTUDIO_API_URL=http://127.0.0.1:8080
 ```
 
 Or in the chat CLI:
 
 ```bash
-npm run dev:chat -- --agent --provider lmstudio --model <model-id>
+npm run dev:chat -- --provider lmstudio --model <model-id>
 ```
 
 Tool calls are always reported as supported (`hasToolSupport` returns `true`); whether a specific model actually handles them depends on the model.
@@ -133,6 +143,10 @@ export LLAMA_CPP_URL=http://127.0.0.1:8080
 `llama-server` constrains generation with a grammar built from the tool schemas, so tool calling is native for any model it serves. `LlamaProvider` returns `true` from `hasToolSupport` and does no prompt-level emulation.
 
 `LlamaProvider` extends `OpenAICompatProvider`, which supplies the chat path, sampling parameters, usage tracking, and message normalization — the same code LM Studio and vLLM ride. The provider itself only handles URL resolution, model listing, and context-length error detection.
+
+### llama.cpp in-process (`node_llama_cpp`)
+
+`NodeLlamaCppProvider` (`node-llama-cpp-provider.ts`) runs GGUF models inside the NodeTool process through the optional `node-llama-cpp` native binding. It needs no server and no secret. It lists GGUF files from the models directory, and from the Hugging Face hub cache. The directory comes from `NODE_LLAMA_CPP_MODELS_DIR` and defaults to the shared llama.cpp cache (`~/.cache/llama.cpp`, `~/Library/Caches/llama.cpp` on macOS, `%LOCALAPPDATA%\llama.cpp` on Windows). `NODE_LLAMA_CPP_GPU_BACKEND` accepts `auto`, `metal`, `cuda`, `vulkan`, or `cpu`. It also serves embeddings and reports tool support as `true`.
 
 ### vLLM
 
@@ -193,19 +207,14 @@ npm run dev:nodetool -- node run nodetool.agents.Agent \
   --props '{"prompt": "What is 2+2?", "model": {"type": "language_model", "provider": "llama_cpp", "id": "your-model-id"}}' 
 
 # Or use the chat CLI
-npm run dev:chat -- --agent --provider llama_cpp --model your-model-id
+npm run dev:chat -- --provider llama_cpp --model your-model-id
 
-# 4. Run all checks
-npm run check
+# 4. Run the repository checks
+npm run test:affected
+npm run dev:nodetool -- harness gate --base origin/main
 ```
 
 For LM Studio and vLLM, substitute the provider name (`lmstudio`, `vllm`) and the corresponding env var.
-
----
-
-## How past commits did it
-
-**`566441b4`** ("refactor: dedupe constants to single canonical definitions") introduced `packages/runtime/src/providers/defaults.ts`, consolidating `LMSTUDIO_DEFAULT_URL` (`http://127.0.0.1:1234`) and `OLLAMA_DEFAULT_URL` from scattered literals across `runtime`, `websocket`, and `cli`. It also wired `LMSTUDIO_API_URL` resolution through the provider constructor so Settings → API Keys changes take effect without a restart. Files changed: `defaults.ts` (new), `lmstudio-provider.ts`, `index.ts`, `websocket/src/models-api.ts`, `websocket/src/openai-api.ts`, `cli/src/providers.ts`.
 
 ---
 
@@ -214,7 +223,9 @@ For LM Studio and vLLM, substitute the provider name (`lmstudio`, `vllm`) and th
 PRs are welcome at <https://github.com/nodetool-ai/nodetool>. Before pushing:
 
 ```bash
-npm run check   # typecheck + lint + test
+npm run test:affected
+npm run typecheck
+npm run lint
 ```
 
 Join the discussion on [Discord](https://discord.gg/WmQTWZRcYE).

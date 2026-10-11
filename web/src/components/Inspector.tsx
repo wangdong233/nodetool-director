@@ -18,6 +18,7 @@ import {
   Caption,
   CloseButton,
   CopyButton,
+  EYEBROW,
   MOTION,
   BORDER_RADIUS,
   SPACING,
@@ -275,11 +276,7 @@ const styles = (theme: Theme) =>
         opacity: 1
       },
     ".property-required-badge": {
-      fontFamily: theme.fontFamily1,
-      fontSize: "var(--fontSizeSmaller)",
-      fontWeight: 600,
-      letterSpacing: "0.08em",
-      textTransform: "uppercase",
+      ...EYEBROW,
       color: theme.vars.palette.text.disabled,
       padding: `0 ${getSpacingPx(SPACING.xs)}`,
       userSelect: "none"
@@ -351,11 +348,7 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing(2)
     },
     ".io-section-title": {
-      fontFamily: theme.fontFamily1,
-      fontSize: "var(--fontSizeSmaller)",
-      fontWeight: 600,
-      letterSpacing: "0.08em",
-      textTransform: "uppercase",
+      ...EYEBROW,
       color: theme.vars.palette.text.secondary,
       marginBottom: theme.spacing(1)
     },
@@ -746,7 +739,23 @@ const Inspector: React.FC = () => {
   }, [metadata, visibleProperties.length]);
 
   if (selectedNodes.length === 0) {
-    return null;
+    return (
+      <Box className="inspector" css={inspectorStyles}>
+        <div className="inspector-head">
+          <div className="inspector-head-text">
+            <div className="inspector-title">No node selected</div>
+          </div>
+          <div className="inspector-head-close">
+            <CloseButton
+              onClick={handleInspectorClose}
+              tooltip="Close inspector"
+              buttonSize="small"
+              nodrag={false}
+            />
+          </div>
+        </div>
+      </Box>
+    );
   }
 
   if (isMultiSelect) {

@@ -2,8 +2,11 @@ import {
   OpenAICompatProvider,
   type OpenAICompatProviderOptions
 } from "./openai-compat-provider.js";
-import { trimTrailingSlashes } from "./openai-compat/index.js";
+import { localServerRoot } from "./openai-compat/index.js";
 import type { LanguageModel } from "./types.js";
+
+/** Cap on the model-list probe so an unreachable host can't stall the model menu. */
+const MODEL_LIST_TIMEOUT_MS = 5_000;
 
 interface LlamaProviderOptions extends OpenAICompatProviderOptions {
   baseURL?: string;
@@ -25,9 +28,20 @@ export class LlamaProvider extends OpenAICompatProvider {
 
   readonly baseUrl: string;
   private readonly _llamaFetch: typeof fetch;
+  /** Bearer token for a llama-server started with `--api-key`. */
+  private readonly _llamaApiKey: string | undefined;
+  /**
+   * The server's context size from LLAMA_CPP_CONTEXT_LENGTH. llama-server
+   * fixes it at launch (`-c`), and its OpenAI API does not report it.
+   */
+  readonly contextLength: number | null;
 
   constructor(
-    secrets: { LLAMA_CPP_URL?: string },
+    secrets: {
+      LLAMA_CPP_URL?: string;
+      LLAMA_API_KEY?: string;
+      LLAMA_CPP_CONTEXT_LENGTH?: string;
+    },
     options: LlamaProviderOptions = {}
   ) {
     const raw =
@@ -35,13 +49,14 @@ export class LlamaProvider extends OpenAICompatProvider {
     if (!raw || !String(raw).trim()) {
       throw new Error("LLAMA_CPP_URL is required");
     }
-    const baseURL = trimTrailingSlashes(String(raw));
+    const baseURL = localServerRoot(String(raw));
     const fetchFn = options.fetchFn ?? globalThis.fetch.bind(globalThis);
+    const llamaApiKey = secrets.LLAMA_API_KEY?.trim() || undefined;
 
     super(
       {
         providerId: "llama_cpp",
-        apiKey: "sk-no-key-required",
+        apiKey: llamaApiKey ?? "sk-no-key-required",
         baseURL: `${baseURL}/v1`
       },
       { ...options, fetchFn }
@@ -49,10 +64,21 @@ export class LlamaProvider extends OpenAICompatProvider {
 
     this.baseUrl = baseURL;
     this._llamaFetch = fetchFn;
+    this._llamaApiKey = llamaApiKey;
+    const contextLength = Number(
+      (secrets.LLAMA_CPP_CONTEXT_LENGTH || process.env.LLAMA_CPP_CONTEXT_LENGTH || "").trim()
+    );
+    this.contextLength =
+      Number.isInteger(contextLength) && contextLength > 0 ? contextLength : null;
   }
 
-  override getContainerEnv() {
-    return {};
+  /** The configured server context size; null leaves it to models.dev. */
+  override async getContextWindow(_model: string): Promise<number | null> {
+    return this.contextLength;
+  }
+
+  override getContainerEnv(): Record<string, string> {
+    return this._llamaApiKey ? { LLAMA_API_KEY: this._llamaApiKey } : {};
   }
 
   /**
@@ -66,7 +92,13 @@ export class LlamaProvider extends OpenAICompatProvider {
 
   override async getAvailableLanguageModels(): Promise<LanguageModel[]> {
     try {
-      const response = await this._llamaFetch(`${this.baseUrl}/v1/models`);
+      const init: RequestInit = {
+        signal: AbortSignal.timeout(MODEL_LIST_TIMEOUT_MS)
+      };
+      if (this._llamaApiKey) {
+        init.headers = { Authorization: `Bearer ${this._llamaApiKey}` };
+      }
+      const response = await this._llamaFetch(`${this.baseUrl}/v1/models`, init);
       if (!response.ok) return [];
       // llama-server answers with `data`; some builds and proxies use `models`.
       const payload = (await response.json()) as {

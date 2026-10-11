@@ -87,6 +87,16 @@ describe("widget catalog", () => {
     });
   });
 
+  it("declares the recipe UX primitives as serializable catalog widgets", () => {
+    for (const type of ["ChoiceCards", "Stepper", "Approval"]) {
+      expect(widgetMode(type)).toBe("write");
+      expect(WIDGET_CATALOG[type].trigger).toBe("change");
+      expect(widgetFields(type)).toHaveProperty("events", "array");
+    }
+    expect(widgetFields("Stepper")).toHaveProperty("steps", "array");
+    expect(widgetFields("ChoiceCards")).toHaveProperty("options", "array");
+  });
+
   it("reports no extra bindings for a widget that binds once", () => {
     expect(widgetBindingProps("Text")).toEqual([]);
     expect(widgetBindingProps("Bogus")).toEqual([]);
@@ -228,6 +238,7 @@ describe("widgetFields", () => {
     expect(widgetFields("Heading")).toEqual({
       text: "text",
       level: "select",
+      subtitle: "textarea",
       binding: "custom",
       visibleWhen: "custom",
       disabledWhen: "custom",
@@ -243,10 +254,14 @@ describe("widgetFields", () => {
   });
 
   it("gives layout widgets their own fields only", () => {
+    // A layout widget may declare visibleWhen itself, but never inherits
+    // disabledWhen or format.
     expect(widgetFields("Columns")).toEqual({
       gap: "number",
+      layout: "select",
       left: "slot",
-      right: "slot"
+      right: "slot",
+      visibleWhen: "custom"
     });
     expect(widgetFields("Divider")).toEqual({});
   });

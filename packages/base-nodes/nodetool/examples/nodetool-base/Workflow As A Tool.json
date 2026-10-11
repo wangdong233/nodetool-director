@@ -5,7 +5,7 @@
   "updated_at": "2026-07-17T09:00:00.000Z",
   "name": "Workflow As A Tool",
   "tool_name": null,
-  "description": "Composition demo: an orchestrator agent delegates to two specialist sub-agents wired in as callable tools via control edges — Research (Gemini) gathers the facts, Copy Editor (Claude) polishes the draft, and the manager (GPT-5 mini) decides when to call each. Shows how a self-contained unit of work becomes a tool another agent can invoke, all inside one graph.",
+  "description": "Composition demo: an orchestrator agent delegates to two specialist sub-agents wired in as callable tools via control edges — Research gathers the facts, Copy Editor polishes the draft, and the manager decides when to call each. Shows how a self-contained unit of work becomes a tool another agent can invoke, all inside one graph.",
   "tags": [
     "agents",
     "composition",
@@ -21,17 +21,17 @@
         "parent_id": null,
         "type": "nodetool.workflows.base_node.Comment",
         "data": {
-          "comment": "# 🧩 Workflow As A Tool\n\nThe **orchestrator** (center) is an agent that owns the goal but does none of the specialist work itself. Two other agents are wired to it with **control edges** — the dashed connections into their `__control__` port — which turns each one into a *callable tool*. The orchestrator invokes them by name, passing a task string, and reads back their result.\n\n**Why this shape:** each specialist is a small, self-contained workflow with its own model and system prompt. Exposing it as a tool lets you compose capabilities instead of hard-wiring a fixed pipeline — the manager decides *whether* and *in what order* to call research and editing.\n\n**Cross-workflow version:** a workflow saved with `run_mode: \"tool\"` and a `tool_name` can be called from a *different* graph by adding its name to an agent's Tools list. That needs two saved workflows, so this single-file example uses control edges to show the same idea in one place.\n\n**Try this:** change the topic, or edit the orchestrator's system prompt to call only one specialist."
+          "comment": "# 🧩 Workflow As A Tool\n\nShows how one agent can call other agents as tools inside a single graph. Use this shape when a manager should decide whether and in what order specialists run, instead of a fixed pipeline.\n\n**How it works:** \"Topic\" fills \"Objective\", which asks for a 250 to 350 word explainer and tells the orchestrator to research, draft, then edit. \"Orchestrator\" receives it as its prompt. Control edges from its __control__ port into \"Tool: Research\" and \"Tool: Copy Editor\" turn those agents into tools it calls by name with a task string. The research agent returns a bulleted fact brief. The copy editor returns a tightened draft. The orchestrator's text goes to \"Final article\". Each agent uses your default language model, or the one you pick on the node.\n\n**Try this:** Change \"Topic\", or edit the orchestrator's system prompt to call only research_specialist and compare the unedited result."
         },
         "ui_properties": {
           "selected": false,
           "position": {
-            "x": 40,
-            "y": -260
+            "x": 0,
+            "y": 0
           },
           "zIndex": 0,
-          "width": 520,
-          "height": 300,
+          "width": 560,
+          "height": 430,
           "selectable": true
         },
         "dynamic_properties": {},
@@ -50,8 +50,8 @@
           "selected": false,
           "title": "1️⃣ Topic",
           "position": {
-            "x": 40,
-            "y": 120
+            "x": 0,
+            "y": 782
           },
           "zIndex": 0,
           "width": 280,
@@ -71,8 +71,8 @@
           "selected": false,
           "title": "2️⃣ Objective",
           "position": {
-            "x": 40,
-            "y": 320
+            "x": 380,
+            "y": 590
           },
           "zIndex": 0,
           "width": 280,
@@ -90,9 +90,9 @@
         "data": {
           "model": {
             "type": "language_model",
-            "provider": "openai",
-            "id": "gpt-5-mini",
-            "name": "GPT-5 mini",
+            "provider": "",
+            "id": "",
+            "name": "",
             "path": null,
             "supported_tasks": []
           },
@@ -105,8 +105,8 @@
           "selected": false,
           "title": "3️⃣ Orchestrator",
           "position": {
-            "x": 440,
-            "y": 200
+            "x": 760,
+            "y": 762
           },
           "zIndex": 0,
           "width": 300,
@@ -122,9 +122,9 @@
         "data": {
           "model": {
             "type": "language_model",
-            "provider": "gemini",
-            "id": "gemini-3.5-flash",
-            "name": "Gemini 3.5 Flash",
+            "provider": "",
+            "id": "",
+            "name": "",
             "path": null,
             "supported_tasks": []
           },
@@ -135,10 +135,10 @@
         },
         "ui_properties": {
           "selected": false,
-          "title": "🔧 Tool: Research (Gemini)",
+          "title": "🔧 Tool: Research",
           "position": {
-            "x": 840,
-            "y": 40
+            "x": 1160,
+            "y": 510
           },
           "zIndex": 0,
           "width": 300,
@@ -154,9 +154,9 @@
         "data": {
           "model": {
             "type": "language_model",
-            "provider": "anthropic",
-            "id": "claude-sonnet-5",
-            "name": "Claude Sonnet 5",
+            "provider": "",
+            "id": "",
+            "name": "",
             "path": null,
             "supported_tasks": []
           },
@@ -167,10 +167,10 @@
         },
         "ui_properties": {
           "selected": false,
-          "title": "🔧 Tool: Copy Editor (Claude)",
+          "title": "🔧 Tool: Copy Editor",
           "position": {
-            "x": 840,
-            "y": 400
+            "x": 1160,
+            "y": 773
           },
           "zIndex": 0,
           "width": 300,
@@ -190,8 +190,8 @@
           "selected": false,
           "title": "4️⃣ Final article",
           "position": {
-            "x": 1240,
-            "y": 200
+            "x": 1160,
+            "y": 1036
           },
           "zIndex": 0,
           "width": 280,

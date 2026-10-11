@@ -23,7 +23,7 @@ const urlFromNotificationResponse = (
   urlFromNotificationData(response?.notification.request.content.data);
 
 /**
- * Deep-link configuration for the root stack.
+ * Deep-link configuration for the root stack and the tabs inside it.
  *
  * Paths are stable public surface — a `nodetool://job/<id>` URL is what the
  * job-finished notification puts in its payload, so renaming one breaks
@@ -39,31 +39,31 @@ export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [Linking.createURL('/'), 'nodetool://'],
 
   config: {
+    // A link straight to a pushed screen (a job, a document) still lands
+    // with the tabs underneath it, so Back has somewhere to go.
+    initialRouteName: 'Main',
     screens: {
       Login: 'login',
-      WorkflowsList: '',
-      GraphEditor: 'workflow/:workflowId?',
-      Chat: 'chat/:threadId?',
+      Main: {
+        path: '',
+        screens: {
+          // The home tab. `apps` still resolves so links shared before Apps
+          // became home keep working.
+          Apps: { path: '', alias: ['apps'] },
+          Chat: 'chat/:threadId?',
+          Documents: 'documents',
+          Jobs: 'jobs',
+          Assets: 'assets',
+        },
+      },
       Threads: 'threads',
-      Documents: 'documents',
-      Apps: 'apps',
       App: 'app/:applicationId',
-      // Specific document kinds first — `document/:kind/:id` would otherwise
-      // swallow all of them.
       StoryboardEditor: 'document/storyboard/:id',
-      ScriptEditor: 'document/script/:id',
-      JsScriptEditor: 'document/jsscript/:id',
       TimelineViewer: 'document/timeline/:id',
       SketchViewer: 'document/sketch/:id',
-      DocumentViewer: 'document/:kind/:id',
-      Assets: 'assets',
       AssetViewer: 'asset/:assetId',
-      Jobs: 'jobs',
-      Triggers: 'triggers',
       JobDetail: 'job/:jobId',
-      Collections: 'collections',
       Settings: 'settings',
-      Secrets: 'settings/secrets',
       LanguageModelSelection: 'settings/models',
     },
   },

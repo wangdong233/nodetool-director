@@ -18,13 +18,15 @@
  * Selecting a card opens the selection footer under the grid and scrolls it
  * into view; the arrow keys walk the selection along the grid.
  *
- * `Edit` on a card opens {@link ShotEditPanel} as a full-width row of the grid
- * placed immediately after that card, so the editor sits directly underneath
- * the shot it edits rather than over the board.
+ * `Edit` on a card opens {@link ShotEditPanel} in an overlay that covers the
+ * board. The board stays mounted underneath, inert, so closing the editor
+ * returns to the same scroll position.
  */
 
+import { useTranslation } from "react-i18next";
 import React, {
   memo,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -35,22 +37,30 @@ import {
   shotRenderMode,
   requiredVideoTasksForShots
 } from "@nodetool-ai/protocol";
-import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
+import type {
+  SceneClipDirection,
+  Shot,
+  ShotModelRef
+} from "@nodetool-ai/protocol";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import SlideshowIcon from "@mui/icons-material/Slideshow";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
-import { ASPECT_OPTIONS, aspectOptionLabel } from "./aspectOptions";
+import { ASPECT_OPTIONS } from "./aspectOptions";
 import {
   CLIP_TASK_LABELS,
   STILL_MODEL_TASKS,
   clipTaskForShot,
   imageValue,
   modelFieldSx,
-  videoValue,
-  type ClipModelTask
+  videoValue
 } from "./shotRenderModels";
 import RenderCostSummary from "./RenderCostSummary";
-import { i18n } from "../../i18n";
 
 import {
   Box,
@@ -75,10 +85,12 @@ import {
   Skeleton,
   Text,
   TextInput,
+  ToolbarIconButton,
   Tooltip,
   UndoRedoButtons,
   BORDER_RADIUS,
-  SPACING
+  SPACING,
+  Z_INDEX
 } from "../ui_primitives";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import {
@@ -106,6 +118,7 @@ import { boardRenderContext } from "../../lib/storyboard/boardRenderContext";
 import { exportStoryboardZip } from "../../utils/storyboardZip";
 import { flushStoryboardSave } from "../../hooks/storyboard/storyboardSaveRegistry";
 import { useTimeline } from "../../hooks/useTimelineSequence";
+import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import {
   useRenderBatchCostEstimate,
   type RenderBatchCostEstimate
@@ -118,11 +131,22 @@ import BoardStaleBanner from "./BoardStaleBanner";
 import BoardStyleDialog from "./BoardStyleDialog";
 import EntityStillModelWarning from "./EntityStillModelWarning";
 import SceneHeader from "./SceneHeader";
+import SceneClipControls from "./SceneClipControls";
+import {
+  newSceneClipShotIds,
+  sceneClipParts,
+  sceneClipsInGroup
+} from "./sceneClips";
 import ScriptLinkControl from "./ScriptLinkControl";
 import ShotCard from "./ShotCard";
 import { shotWorkflowMedia } from "./shotWorkflowMedia";
 import BoardActionsMenu from "./BoardActionsMenu";
+import BoardCardSizeSlider from "./BoardCardSizeSlider";
+import StoryboardSlideshow from "./StoryboardSlideshow";
+import { useStoryboardViewStore } from "../../stores/storyboard/StoryboardViewStore";
 import ShotEditPanel from "./ShotEditPanel";
+import OneTakePanel from "./OneTakePanel";
+const SceneClipDialog = React.lazy(() => import("./SceneClipDialog"));
 import ShotInsertPoint, { SHOT_INSERT_POINT_CLASS } from "./ShotInsertPoint";
 import ShotInspector from "./ShotInspector";
 import StoryboardEntitiesField from "./StoryboardEntitiesField";
@@ -149,12 +173,20 @@ interface StoryboardBoardProps {
   directError?: string | null;
   /** Wired by the parent to the timeline handoff. */
   onAssemble?: () => void;
+  /**
+   * Opens the linked timeline. Absent: the board opens it as a workspace tab.
+   */
+  onOpenTimeline?: (timelineId: string) => void;
   /** True while assembly is in flight. */
   assembling?: boolean;
   /** Error from the last assembly, shown under the header fields. */
   assembleError?: string | null;
   /** Queue request whose unaccepted take should be opened in the shot editor. */
   reviewRequest?: StoryboardReviewRequest | null;
+  /** Whether the parent shows the board assistant beside the board. */
+  assistantOpen?: boolean;
+  /** Shows or hides the assistant. The toolbar offers no toggle without it. */
+  onToggleAssistant?: () => void;
 }
 
 export interface StoryboardReviewRequest {
@@ -167,14 +199,6 @@ const SHOT_COUNT_OPTIONS = [3, 4, 5, 6, 8, 10, 12].map((n) => ({
   label: `${n} shots`
 }));
 
-// zh keys for the clip-task picker labels; English defaults come from
-// CLIP_TASK_LABELS in ./shotRenderModels.
-const CLIP_TASK_LABEL_KEYS: Record<ClipModelTask, string> = {
-  image_to_video: "storyboard:attrs.animateStills",
-  text_to_video: "storyboard:attrs.generateFromPrompts",
-  reference_to_video: "storyboard:attrs.useEntityReferences"
-};
-
 const FORM_STACK_BELOW = 860;
 
 const settingsRailSx = {
@@ -185,33 +209,33 @@ const settingsRailSx = {
   }
 } as const;
 
-/** Let cards follow the width of their scene, including narrow split views. */
-const shotGridSx = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 36ch), 1fr))",
-  gap: SPACING.xl,
-  alignItems: "start"
-} as const;
-
-const sceneSx = {
-  ...shotGridSx,
-  minWidth: 0
-} as const;
-
 /**
- * The editor's row: the full width of the grid, directly under the card whose
- * shot it edits. The panel inside it spans the row the same way, so a narrow
- * viewport that drops the grid to one column needs no second rule.
+ * Let cards follow the width of their scene, including narrow split views.
+ * `cardSize` is the card's minimum width in `ch`, set by the toolbar's size
+ * slider.
  */
-const editRowSx = {
-  gridColumn: "1 / -1",
-  minWidth: 0
+const shotGridSx = (cardSize: number) =>
+  ({
+    display: "grid",
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${cardSize}ch), 1fr))`,
+    gap: SPACING.xl,
+    alignItems: "start"
+  }) as const;
+
+/** The editor's overlay: the board's whole area, above the board. */
+const editOverlaySx = {
+  position: "absolute",
+  inset: 0,
+  zIndex: Z_INDEX.overlay,
+  bgcolor: "background.default"
 } as const;
 
 /**
  * One card's cell. It hosts the trailing insert point, which is revealed by
  * hover or by a keyboard focus landing anywhere inside the cell.
  */
+const NO_SCENE_CLIPS: readonly SceneClipDirection[] = [];
+
 const shotSlotSx = {
   position: "relative",
   [`&:hover .${SHOT_INSERT_POINT_CLASS}`]: { opacity: 1 },
@@ -251,6 +275,8 @@ interface RenderBatchButtonProps {
   disabled: boolean;
   highlighted: boolean;
   onClick: () => void;
+  /** Shares a row with its sibling on a phone instead of sizing to its label. */
+  fullWidth?: boolean;
 }
 
 const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
@@ -258,7 +284,8 @@ const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
   estimate,
   disabled,
   highlighted,
-  onClick
+  onClick,
+  fullWidth
 }) => {
   const { requestCount, cost, pricedRequestCount, reasons, notes } = estimate;
   const priced = pricedRequestCount > 0 && cost > 0;
@@ -299,13 +326,17 @@ const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
       }
     >
       {/* A disabled button swallows pointer events, so the tooltip needs a host. */}
-      <FlexRow component="span">
+      <FlexRow
+        component="span"
+        sx={fullWidth ? { flex: 1, minWidth: 0 } : undefined}
+      >
         <EditorButton
           variant={highlighted ? "contained" : "outlined"}
           color="primary"
           aria-current={highlighted ? "step" : undefined}
           onClick={onClick}
           disabled={disabled}
+          fullWidth={fullWidth}
         >
           {`${label}${requestCount > 0 ? ` (${requestCount})` : ""}${
             priced ? ` · ~${formatUsd(cost)}` : ""
@@ -323,10 +354,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   directing,
   directError,
   onAssemble,
+  onOpenTimeline,
   assembling,
   assembleError,
-  reviewRequest
+  reviewRequest,
+  assistantOpen = false,
+  onToggleAssistant
 }) => {
+  const { t } = useTranslation();
   const {
     title,
     brief,
@@ -347,6 +382,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   useStoryboardShotFocus(boardId);
 
   const inStudio = useInStudio();
+  const theme = useTheme();
+  const compactToolbar = useMediaQuery(theme.breakpoints.down("sm"));
   const setTitle = useStoryboardStore((state) => state.setTitle);
   const setBrief = useStoryboardStore((state) => state.setBrief);
   const setStyle = useStoryboardStore((state) => state.setStyle);
@@ -371,6 +408,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   const [confirmRedirect, setConfirmRedirect] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const togglePreview = useCallback(() => setPreviewOpen((open) => !open), []);
+  const cardSize = useStoryboardViewStore((state) => state.cardSize);
+  // The shot the slideshow opens on: null opens it on the selection (or the
+  // first shot); undefined keeps it closed.
+  const [slideshowStart, setSlideshowStart] = useState<
+    string | null | undefined
+  >(undefined);
+  const openSlideshow = useCallback(() => setSlideshowStart(null), []);
+  const closeSlideshow = useCallback(() => setSlideshowStart(undefined), []);
   const [downloading, setDownloading] = useState(false);
   const [downloadFallbackError, setDownloadFallbackError] = useState<
     string | null
@@ -392,8 +437,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   const { models: videoModels } = useVideoModelsByProvider();
 
   // Which shot's editor is open, and which cell it opened on. The board holds
-  // this rather than the card, because the panel is a row of this grid: a card
-  // cannot place a surface outside its own cell.
+  // this rather than the card, because the overlay covers the whole board.
   const [editing, setEditing] = useState<{
     shotId: string;
     focus: "fields" | "dialogue";
@@ -426,20 +470,31 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
     (shotId: string) => handleEditShot(shotId, "fields"),
     [handleEditShot]
   );
-  const handledReviewRequest = useRef<string | null>(null);
+  // Keyed on the request object, not its id: asking to review the same take
+  // twice (after closing the editor) is two requests.
+  const handledReviewRequest = useRef<typeof reviewRequest>(null);
   useEffect(() => {
     if (
       readOnly ||
       !reviewRequest ||
-      handledReviewRequest.current === reviewRequest.requestId
+      handledReviewRequest.current === reviewRequest
     ) {
       return;
     }
-    handledReviewRequest.current = reviewRequest.requestId;
+    handledReviewRequest.current = reviewRequest;
     handleEditShot(reviewRequest.shotId, "fields");
   }, [handleEditShot, readOnly, reviewRequest]);
   const closeEditing = useCallback(() => setEditing(null), []);
-  // Stepping from the panel moves it under the shot it steps to; the focus goes
+  // The edited shot can leave the board (deleted, undone, re-directed). With
+  // no panel mounted, nothing would answer a leave request, and every other
+  // Edit button and Download ZIP would wait on it.
+  useEffect(() => {
+    if (editing && !shots.some((s) => s.id === editing.shotId)) {
+      setEditing(null);
+      setLeaveRequest(null);
+    }
+  }, [editing, shots]);
+  // Stepping from the panel moves it to the shot it steps to; the focus goes
   // back to the fields, since the dialogue cell was this shot's request.
   const handleEditingShotChange = useCallback(
     (shotId: string) => {
@@ -454,6 +509,57 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   const scenes = screenplay?.scenes;
   const sceneGroups = useMemo(() => sceneOrder(shots, scenes), [shots, scenes]);
   const captions = useMemo(() => captionsByShotId(sceneGroups), [sceneGroups]);
+  const sceneClips =
+    useStoryboardStore((state) => state.boards[boardId]?.sceneClips) ??
+    NO_SCENE_CLIPS;
+  const sceneClipTags = useMemo(() => {
+    const tags = new Map<string, string>();
+    for (const [shotId, part] of sceneClipParts(shots, sceneClips)) {
+      tags.set(shotId, `Clip ${part.position}/${part.count} \u00B7 ${part.window}`);
+    }
+    return tags;
+  }, [shots, sceneClips]);
+  const sceneClipsByGroup = useMemo(
+    () =>
+      new Map(
+        sceneGroups.map((group) => [
+          group.sceneId,
+          sceneClipsInGroup(group.shots, sceneClips)
+        ])
+      ),
+    [sceneGroups, sceneClips]
+  );
+  const [sceneClipDialog, setSceneClipDialog] = useState<{
+    sceneShots: Shot[];
+    clip: SceneClipDirection;
+    saved: boolean;
+  } | null>(null);
+  const openSceneClip = useCallback(
+    (sceneId: string | null, clip: SceneClipDirection | null) => {
+      const group = sceneGroups.find((g) => g.sceneId === sceneId);
+      if (!group) {
+        return;
+      }
+      setSceneClipDialog(
+        clip
+          ? { sceneShots: group.shots, clip, saved: true }
+          : {
+              sceneShots: group.shots,
+              clip: {
+                id: crypto.randomUUID(),
+                prompt: "",
+                shot_ids: newSceneClipShotIds(
+                  group.shots,
+                  sceneClipsByGroup.get(sceneId) ?? NO_SCENE_CLIPS
+                )
+              },
+              saved: false
+            }
+      );
+    },
+    [sceneGroups, sceneClipsByGroup]
+  );
+  const closeSceneClip = useCallback(() => setSceneClipDialog(null), []);
 
   const hasShots = shots.length > 0;
   const boardWorkflowMedia = useMemo(
@@ -469,34 +575,21 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
     []
   );
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
-  const openSettings = useCallback(() => setSettingsOpen(true), []);
   const settingsPanelId = `storyboard-board-settings-${boardId}`;
+  const [oneTakeOpen, setOneTakeOpen] = useState(false);
+  const toggleOneTake = useCallback(() => setOneTakeOpen((open) => !open), []);
+  const closeOneTake = useCallback(() => setOneTakeOpen(false), []);
+  const oneTakePanelId = `storyboard-one-take-${boardId}`;
 
   const gridRef = useRef<HTMLDivElement>(null);
-  const editPanelRef = useRef<HTMLDivElement>(null);
 
-  // The editor opens under the card, which on a tall card is partly below the
-  // fold; bring it into view on open and whenever it moves to another shot.
-  useEffect(() => {
-    if (!editing) {
-      return;
-    }
-    // `scrollIntoView` is absent under jsdom, so the call is guarded.
-    editPanelRef.current?.scrollIntoView?.({
-      block: "nearest",
-      behavior: "smooth"
-    });
-  }, [editing]);
-
-  // Clicking the selected card deselects it (the card's aria-pressed
-  // contract); the store's selectShot stays idempotent for programmatic
-  // callers.
+  // Clicking a card selects it and presents the board from that shot.
   const handleSelectShot = useCallback(
     (shotId: string) => {
-      const next = shotId === activeShotId ? null : shotId;
-      selectShot(boardId, next);
+      selectShot(boardId, shotId);
+      setSlideshowStart(shotId);
     },
-    [selectShot, boardId, activeShotId]
+    [selectShot, boardId]
   );
   const clearSelection = useCallback(
     () => selectShot(boardId, null),
@@ -514,7 +607,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
       const target = event.target as HTMLElement;
       if (
         !gridRef.current?.contains(target) ||
-        target.closest("input, textarea, [contenteditable=true]") ||
+        target.closest(
+          "input, textarea, select, [contenteditable=true], [role=combobox], [role=listbox], [role=slider]"
+        ) ||
         // The editor is a row of this grid, so its keys arrive here too. It owns
         // them: Escape closes it, and nothing in it should move the selection.
         target.closest(".shot-edit-panel")
@@ -558,6 +653,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   }, []);
   const handleDragEnter = useCallback(
     (shotId: string) => {
+      if (!draggingId) {
+        return;
+      }
       setDropTargetId(shotId === draggingId ? null : shotId);
     },
     [draggingId]
@@ -636,6 +734,22 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
     }
     onAssemble?.();
   }, [timelineId, onAssemble]);
+  const handleOpenTimeline = useCallback(() => {
+    if (!timelineId) {
+      return;
+    }
+    if (onOpenTimeline) {
+      onOpenTimeline(timelineId);
+      return;
+    }
+    useWorkspaceTabsStore.getState().openTab({
+      type: "timeline",
+      ref: timelineId,
+      mode: "edit",
+      title: linkedTimeline.data?.name,
+      projectId: linkedTimeline.data?.projectId
+    });
+  }, [timelineId, onOpenTimeline, linkedTimeline.data]);
   const handleConfirmAssemble = useCallback(() => {
     setAssembleConfirmOpen(false);
     onAssemble?.();
@@ -671,6 +785,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             shotRenderMode(s) === "direct" ||
             shotRenderMode(s) === "reference") &&
           !s.clip &&
+          // A shot another shot's clip already covers has nothing to render.
+          !s.covered_by &&
           s.status !== "keyframe_generating" &&
           s.status !== "clip_generating"
       ),
@@ -895,6 +1011,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
     "clip",
     clipModelForShot
   );
+  // The stills batch is half the spend: those shots need clips next. Priced
+  // with each shot's remembered clip model, so the dialog can show the whole
+  // job before the first half of it starts.
+  const followUpClipsCost = useRenderBatchCostEstimate(
+    boardId,
+    pendingStills,
+    "clip"
+  );
 
   const downloadZip = useCallback(
     async (flush: boolean) => {
@@ -913,10 +1037,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           type: "error",
           alert: true,
           dismissable: true,
-          content: i18n.t("storyboard:attrs.storyboardDownloadFailed", {
-            defaultValue: "Storyboard download failed. {{error}}",
-            error: error instanceof Error ? error.message : String(error)
-          })
+          content: `Storyboard download failed. ${
+            error instanceof Error ? error.message : String(error)
+          }`
         });
       } finally {
         setDownloading(false);
@@ -959,438 +1082,604 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
     [leaveRequest, selectShot, boardId, downloadZip]
   );
 
+  const undoRedo = (
+    <UndoRedoButtons
+      canUndo={canUndo}
+      canRedo={canRedo}
+      onUndo={onUndo}
+      onRedo={onRedo}
+      undoTooltip="Undo (⌘Z)"
+      redoTooltip="Redo (⌘⇧Z)"
+    />
+  );
+  const downloadingStatus = downloading && (
+    <FlexRow align="center" gap={SPACING.xs} role="status">
+      <LoadingSpinner size={16} />
+      <Caption color="secondary">Preparing ZIP…</Caption>
+    </FlexRow>
+  );
+  const actionsMenu = (
+    <BoardActionsMenu
+      onChangeStyle={openStyle}
+      onDownloadZip={handleDownloadZip}
+      downloading={downloading}
+      hasShots={hasShots}
+      workflowMedia={boardWorkflowMedia}
+    />
+  );
+  const renderStillsButton = (
+    <RenderBatchButton
+      label="Render stills"
+      estimate={stillsCost}
+      disabled={pendingStills.length === 0 || !!directing}
+      highlighted={stillStepActive}
+      onClick={openStillRenderDialog}
+      fullWidth={compactToolbar}
+    />
+  );
+  const renderClipsButton = (
+    <RenderBatchButton
+      label="Render clips"
+      estimate={clipsCost}
+      disabled={pendingClips.length === 0 || !!directing}
+      highlighted={clipStepActive}
+      onClick={openClipRenderDialog}
+      fullWidth={compactToolbar}
+    />
+  );
+
   return (
-    <ScrollArea
-      fullHeight
-      thin
-      className="storyboard-board"
-      data-focus-id="storyboard-board"
-    >
-      <FlexColumn
-        gap={SPACING.lg}
-        sx={{
-          p: SPACING.xl,
-          "@media (max-width: 600px)": {
-            p: SPACING.md,
-            gap: SPACING.md
-          }
-        }}
+    <Box sx={{ position: "relative", height: "100%", minHeight: 0 }}>
+      <ScrollArea
+        fullHeight
+        thin
+        className="storyboard-board"
+        data-focus-id="storyboard-board"
+        inert={editing ? true : undefined}
       >
-        <FlexRow align="center" gap={SPACING.lg} wrap>
-          <Text size="big">{title || "Untitled film"}</Text>
-          <BoardGenreChip boardId={boardId} genre={genre} readOnly={readOnly} />
-          <BoardLineageChip boardId={boardId} />
-          <Caption color="secondary">{summary}</Caption>
-          <Box sx={{ flex: 1 }} />
-          {!readOnly && (
-            <FlexRow align="center" gap={SPACING.md} wrap>
-              <UndoRedoButtons
-                canUndo={canUndo}
-                canRedo={canRedo}
-                onUndo={onUndo}
-                onRedo={onRedo}
-                undoTooltip="Undo (⌘Z)"
-                redoTooltip="Redo (⌘⇧Z)"
-              />
-              <EditorButton
-                variant="outlined"
-                startIcon={<AddIcon fontSize="small" />}
-                onClick={handleAddShot}
-                disabled={directing}
-              >
-                Add shot
-              </EditorButton>
-              <EditorButton
-                variant="outlined"
-                onClick={togglePreview}
-                disabled={!hasPlayableShot}
-              >
-                {previewOpen ? i18n.t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : i18n.t("storyboard:attrs.preview", { defaultValue: "Preview" })}
-              </EditorButton>
-              <EditorButton
-                variant={settingsVisible ? "contained" : "outlined"}
-                startIcon={<TuneIcon fontSize="small" />}
-                onClick={toggleSettings}
-                aria-expanded={settingsVisible}
-                aria-controls={settingsPanelId}
-              >
-                Board settings
-              </EditorButton>
-              {downloading && (
-                <FlexRow align="center" gap={SPACING.xs} role="status">
-                  <LoadingSpinner size={16} />
-                  <Caption color="secondary">Preparing ZIP…</Caption>
+        <FlexColumn
+          gap={SPACING.lg}
+          sx={{
+            p: SPACING.xl,
+            "@media (max-width: 600px)": {
+              p: SPACING.md,
+              gap: SPACING.md
+            }
+          }}
+        >
+          <FlexRow align="center" gap={SPACING.lg} wrap>
+            <Text size="big">{title || "Untitled film"}</Text>
+            <BoardGenreChip
+              boardId={boardId}
+              genre={genre}
+              readOnly={readOnly}
+            />
+            <BoardLineageChip boardId={boardId} />
+            <Caption color="secondary">{summary}</Caption>
+            {!compactToolbar && (
+              <>
+                <Box sx={{ flex: 1 }} />
+                {hasShots && (
+                  <FlexRow align="center" gap={SPACING.md}>
+                    <BoardCardSizeSlider />
+                    <EditorButton variant="outlined" onClick={openSlideshow}>
+                      Slideshow
+                    </EditorButton>
+                  </FlexRow>
+                )}
+                {!readOnly && (
+                  <FlexRow align="center" gap={SPACING.md} wrap>
+                    {undoRedo}
+                    <EditorButton
+                      variant="outlined"
+                      startIcon={<AddIcon fontSize="small" />}
+                      onClick={handleAddShot}
+                      disabled={directing}
+                    >
+                      Add shot
+                    </EditorButton>
+                    <EditorButton
+                      variant="outlined"
+                      onClick={togglePreview}
+                      disabled={!hasPlayableShot}
+                    >
+                      {previewOpen ? "Hide preview" : "Preview"}
+                    </EditorButton>
+                    <EditorButton
+                      variant={settingsVisible ? "contained" : "outlined"}
+                      startIcon={<TuneIcon fontSize="small" />}
+                      onClick={toggleSettings}
+                      aria-expanded={settingsVisible}
+                      aria-controls={settingsPanelId}
+                    >
+                      Board settings
+                    </EditorButton>
+                    <EditorButton
+                      variant={oneTakeOpen ? "contained" : "outlined"}
+                      startIcon={<MovieOutlinedIcon fontSize="small" />}
+                      onClick={toggleOneTake}
+                      aria-expanded={oneTakeOpen}
+                      aria-controls={oneTakePanelId}
+                    >
+                      One take
+                    </EditorButton>
+                    {onToggleAssistant && (
+                      <EditorButton
+                        variant={assistantOpen ? "contained" : "outlined"}
+                        startIcon={<AutoAwesomeIcon fontSize="small" />}
+                        onClick={onToggleAssistant}
+                        aria-pressed={assistantOpen}
+                      >
+                        Assistant
+                      </EditorButton>
+                    )}
+                    {downloadingStatus}
+                    {actionsMenu}
+                    {renderStillsButton}
+                    {renderClipsButton}
+                  </FlexRow>
+                )}
+              </>
+            )}
+          </FlexRow>
+
+          {/* A phone has no room for a row of labelled buttons: the board's
+              tools become one row of icons, and the two render buttons, which
+              spend money, keep their labels and share the row under it. The
+              card size slider is left out, since one column fills the width
+              at any size. */}
+          {compactToolbar && (hasShots || !readOnly) && (
+            <FlexColumn gap={SPACING.sm}>
+              <FlexRow align="center" gap={SPACING.xs} wrap>
+                {!readOnly && undoRedo}
+                {!readOnly && (
+                  <ToolbarIconButton
+                    icon={<AddIcon />}
+                    tooltip="Add shot"
+                    onClick={handleAddShot}
+                    disabled={directing}
+                  />
+                )}
+                {hasShots && (
+                  <ToolbarIconButton
+                    icon={<SlideshowIcon />}
+                    tooltip="Slideshow"
+                    onClick={openSlideshow}
+                  />
+                )}
+                {!readOnly && (
+                  <ToolbarIconButton
+                    icon={<PlayCircleOutlineIcon />}
+                    tooltip={previewOpen ? "Hide preview" : "Preview"}
+                    onClick={togglePreview}
+                    disabled={!hasPlayableShot}
+                    active={previewOpen}
+                    aria-pressed={previewOpen}
+                  />
+                )}
+                {!readOnly && (
+                  <ToolbarIconButton
+                    icon={<TuneIcon />}
+                    tooltip="Board settings"
+                    onClick={toggleSettings}
+                    active={settingsVisible}
+                    aria-expanded={settingsVisible}
+                    aria-controls={settingsPanelId}
+                  />
+                )}
+                {!readOnly && (
+                  <ToolbarIconButton
+                    icon={<MovieOutlinedIcon />}
+                    tooltip="One take"
+                    onClick={toggleOneTake}
+                    active={oneTakeOpen}
+                    aria-expanded={oneTakeOpen}
+                    aria-controls={oneTakePanelId}
+                  />
+                )}
+                {!readOnly && actionsMenu}
+                {!readOnly && downloadingStatus}
+              </FlexRow>
+              {!readOnly && (
+                <FlexRow gap={SPACING.sm}>
+                  {renderStillsButton}
+                  {renderClipsButton}
                 </FlexRow>
               )}
-              <BoardActionsMenu
-                onChangeStyle={openStyle}
-                onDownloadZip={handleDownloadZip}
-                downloading={downloading}
-                hasShots={hasShots}
-                workflowMedia={boardWorkflowMedia}
-              />
-              <RenderBatchButton
-                label="Render stills"
-                estimate={stillsCost}
-                disabled={pendingStills.length === 0 || !!directing}
-                highlighted={stillStepActive}
-                onClick={openStillRenderDialog}
-              />
-              <RenderBatchButton
-                label="Render clips"
-                estimate={clipsCost}
-                disabled={pendingClips.length === 0 || !!directing}
-                highlighted={clipStepActive}
-                onClick={openClipRenderDialog}
-              />
-            </FlexRow>
+            </FlexColumn>
           )}
-        </FlexRow>
 
-        {/* The board's own state, under the toolbar and above the settings
-            form: what is stale and what failed. Both render null when they
-            have nothing to say, so neither reserves space (PRD § 7.4). */}
-        {!readOnly && (
-          <FlexColumn gap={SPACING.md}>
-            <BoardStaleBanner boardId={boardId} disabled={!!directing} />
-            <BoardRetryFailed boardId={boardId} disabled={!!directing} />
-          </FlexColumn>
-        )}
+          {/* The board's own state, under the toolbar and above the settings
+              form: what is stale and what failed. Both render null when they
+              have nothing to say, so neither reserves space (PRD § 7.4). */}
+          {!readOnly && (
+            <FlexColumn gap={SPACING.md}>
+              <BoardStaleBanner boardId={boardId} disabled={!!directing} />
+              <BoardRetryFailed boardId={boardId} disabled={!!directing} />
+            </FlexColumn>
+          )}
 
-        {!readOnly && (
-          <Collapse in={settingsVisible} timeout="auto" unmountOnExit>
-            <Panel
-              id={settingsPanelId}
-              padding={SPACING.xl}
-              sx={{ maxWidth: "1100px" }}
-            >
-              <FlexColumn gap={SPACING.xl}>
-                <SectionHeader
-                  title="Board settings"
-                  size="small"
-                  action={
-                    <CloseButton
-                      tooltip="Close board settings"
-                      onClick={closeSettings}
-                    />
-                  }
-                />
-                <FormGrid stackBelow={FORM_STACK_BELOW}>
-                  <FormSection label="Screenplay">
-                    <FormField label="Title">
-                      <TextInput
-                        value={title}
-                        placeholder="Untitled film"
-                        onChange={(e) => setTitle(boardId, e.target.value)}
+          {!readOnly && (
+            <Collapse in={settingsVisible} timeout="auto" unmountOnExit>
+              <Panel
+                id={settingsPanelId}
+                padding={SPACING.xl}
+                sx={{ width: "100%" }}
+              >
+                <FlexColumn gap={SPACING.xl}>
+                  <SectionHeader
+                    title="Board settings"
+                    size="medium"
+                    action={
+                      <CloseButton
+                        tooltip="Close board settings"
+                        onClick={closeSettings}
                       />
-                    </FormField>
-                    <FormField label="Brief">
-                      <TextInput
-                        value={brief}
-                        placeholder="Your film in one or two sentences"
-                        onChange={(e) => setBrief(boardId, e.target.value)}
-                        multiline
-                        rows={3}
-                      />
-                    </FormField>
-                    <FormField label="Style">
-                      <TextInput
-                        value={style}
-                        placeholder="Palette, light, lens, texture"
-                        onChange={(e) => setStyle(boardId, e.target.value)}
-                      />
-                    </FormField>
-                    <FormField label="Entities">
-                      <StoryboardEntitiesField
-                        boardId={boardId}
-                        entityIds={entityIds}
-                      />
-                    </FormField>
-                  </FormSection>
-
-                  <FormSection label="Direction" sx={settingsRailSx}>
-                    {/* The Studio shell pins the director model — a beginner
-                        picks what the film looks like, not which LLM writes it. */}
-                    {!inStudio && (
-                      <FormField label="Screenplay model" sx={modelFieldSx}>
-                        <LanguageModelSelect
-                          value={directorModel?.id ?? ""}
-                          onChange={(value) => setDirectorModel(boardId, value)}
+                    }
+                  />
+                  <FormGrid stackBelow={FORM_STACK_BELOW}>
+                    <FormSection label="Screenplay">
+                      <FormField label="Title">
+                        <TextInput
+                          value={title}
+                          placeholder="Untitled film"
+                          onChange={(e) => setTitle(boardId, e.target.value)}
                         />
                       </FormField>
-                    )}
-                    <FormField label="Aspect ratio">
-                      <SelectField
-                        label="Aspect ratio"
-                        value={aspectRatio}
-                        onChange={(value) => setAspectRatio(boardId, value)}
-                        options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
-                      />
-                    </FormField>
-                    <FormField label="Shots">
-                      <SelectField
-                        label="Shots"
-                        value={shotCount}
-                        onChange={(value) => setShotCount(Number(value))}
-                        options={SHOT_COUNT_OPTIONS}
-                      />
-                    </FormField>
-                  </FormSection>
-                </FormGrid>
+                      <FormField label="Brief">
+                        <TextInput
+                          value={brief}
+                          placeholder="Your film in one or two sentences"
+                          onChange={(e) => setBrief(boardId, e.target.value)}
+                          multiline
+                          rows={3}
+                        />
+                      </FormField>
+                      <FormField label="Style">
+                        <TextInput
+                          value={style}
+                          placeholder="Palette, light, lens, texture"
+                          onChange={(e) => setStyle(boardId, e.target.value)}
+                        />
+                      </FormField>
+                      <FormField label="Entities">
+                        <StoryboardEntitiesField
+                          boardId={boardId}
+                          entityIds={entityIds}
+                          readOnly={readOnly}
+                        />
+                      </FormField>
+                    </FormSection>
 
-                <Divider />
+                    <FormSection label="Direction" sx={settingsRailSx}>
+                      {/* The Studio shell pins the director model — a beginner
+                          picks what the film looks like, not which LLM writes it. */}
+                      {!inStudio && (
+                        <FormField label="Screenplay model" sx={modelFieldSx}>
+                          <LanguageModelSelect
+                            value={directorModel?.id ?? ""}
+                            onChange={(value) =>
+                              setDirectorModel(boardId, value)
+                            }
+                          />
+                        </FormField>
+                      )}
+                      <FormField label="Aspect ratio">
+                        <SelectField
+                          label="Aspect ratio"
+                          value={aspectRatio}
+                          onChange={(value) => setAspectRatio(boardId, value)}
+                          options={ASPECT_OPTIONS}
+                        />
+                      </FormField>
+                      <FormField label="Shots">
+                        <SelectField
+                          label="Shots"
+                          value={shotCount}
+                          onChange={(value) => setShotCount(Number(value))}
+                          options={SHOT_COUNT_OPTIONS}
+                        />
+                      </FormField>
+                    </FormSection>
+                  </FormGrid>
 
-                <FlexRow
-                  gap={SPACING.md}
-                  align="center"
-                  justify="space-between"
-                  wrap
-                >
-                  <Caption
-                    color={directError || assembleError ? "error" : "secondary"}
+                  <Divider />
+
+                  <FlexRow
+                    gap={SPACING.md}
+                    align="center"
+                    justify="space-between"
+                    wrap
                   >
-                    {directError ??
-                      assembleError ??
-                      (hasShots
-                        ? i18n.t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." })
-                        : i18n.t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", { defaultValue: "Direct writes the screenplay and seeds your shots." }))}
-                  </Caption>
-                  <EditorButton
-                    variant="contained"
-                    color="primary"
-                    onClick={handleDirect}
-                    disabled={!onDirect || directing}
-                  >
-                    {directing
-                      ? "Directing…"
-                      : hasShots
-                        ? "Re-direct"
-                        : "Direct"}
-                  </EditorButton>
-                </FlexRow>
-              </FlexColumn>
-            </Panel>
-          </Collapse>
-        )}
+                    <Caption
+                      color={
+                        directError || assembleError ? "error" : "secondary"
+                      }
+                    >
+                      {directError ??
+                        assembleError ??
+                        (hasShots
+                          ? "Re-directing rewrites the screenplay and replaces every shot."
+                          : "Direct writes the screenplay and seeds your shots.")}
+                    </Caption>
+                    <EditorButton
+                      variant="contained"
+                      color="primary"
+                      onClick={handleDirect}
+                      disabled={!onDirect || directing}
+                    >
+                      {directing
+                        ? "Directing…"
+                        : hasShots
+                          ? "Re-direct"
+                          : "Direct"}
+                    </EditorButton>
+                  </FlexRow>
+                </FlexColumn>
+              </Panel>
+            </Collapse>
+          )}
 
-        <Dialog
-          open={renderDialog === "stills"}
-          onClose={() => setRenderDialog(null)}
-          title="Render stills"
-          onConfirm={handleGenerateAllStills}
-          confirmText={`Render stills${
-            stillsCost.pricedRequestCount > 0 && stillsCost.cost > 0
-              ? ` · ~${formatUsd(stillsCost.cost)}`
-              : ""
-          }`}
-          confirmDisabled={!stillSelection}
-        >
-          <FlexColumn gap={SPACING.md}>
-            <Caption color="secondary">
-              Pick the model for this batch. The choice is remembered on every
-              shot for one-click regeneration.
-            </Caption>
-            <FormField label="Still model" sx={modelFieldSx}>
-              <ImageModelSelect
-                value={stillSelection?.id ?? ""}
-                task={STILL_MODEL_TASKS}
-                onChange={setStillSelection}
+          {!readOnly && (
+            <Collapse in={oneTakeOpen} timeout="auto" unmountOnExit>
+              <OneTakePanel
+                boardId={boardId}
+                id={oneTakePanelId}
+                onClose={closeOneTake}
               />
-              {entityIds.length > 0 && (
-                <EntityStillModelWarning modelId={stillSelection?.id} />
-              )}
-            </FormField>
-            <RenderCostSummary estimate={stillsCost} />
-          </FlexColumn>
-        </Dialog>
+            </Collapse>
+          )}
 
-        <Dialog
-          open={renderDialog === "clips"}
-          onClose={() => setRenderDialog(null)}
-          title="Render clips"
-          onConfirm={handleGenerateAllClips}
-          confirmText={`Render clips${
-            clipsCost.pricedRequestCount > 0 && clipsCost.cost > 0
-              ? ` · ~${formatUsd(clipsCost.cost)}`
-              : ""
-          }`}
-          confirmDisabled={clipModelTasks.some((task) => !clipSelections[task])}
-        >
-          <FlexColumn gap={SPACING.md}>
-            <Caption color="secondary">
-              Pick a model for each kind of clip in this batch. Each shot keeps
-              its choice for fast re-renders.
-            </Caption>
-            {clipModelTasks.map((task) => (
-              <FormField
-                key={task}
-                label={i18n.t(CLIP_TASK_LABEL_KEYS[task], { defaultValue: CLIP_TASK_LABELS[task] })}
-                sx={modelFieldSx}
-              >
-                <VideoModelSelect
-                  value={clipSelections[task]?.id ?? ""}
-                  task={task}
-                  onChange={(value) =>
-                    setClipSelections((current) => ({
-                      ...current,
-                      [task]: value
-                    }))
-                  }
-                />
-              </FormField>
-            ))}
-            <RenderCostSummary estimate={clipsCost} />
-          </FlexColumn>
-        </Dialog>
-
-        <Dialog
-          open={confirmRedirect}
-          onClose={() => setConfirmRedirect(false)}
-          title="Re-direct this storyboard?"
-          onConfirm={handleConfirmRedirect}
-          confirmText={i18n.t("editor:ui.reDirect", { defaultValue: "Re-direct" })}
-          destructive
-        >
-          <FlexColumn gap={SPACING.xs}>
-            <Text>
-              {`Directing writes a new screenplay and replaces all ${shots.length} current shot${shots.length === 1 ? "" : "s"}.`}
-            </Text>
-            <Caption color="secondary">
-              Generated stills and clips stay in your asset library, but the
-              shots on this board are rebuilt from scratch.
-            </Caption>
-          </FlexColumn>
-        </Dialog>
-
-        <Dialog
-          open={assembleConfirmOpen}
-          onClose={() => setAssembleConfirmOpen(false)}
-          title="Rebuild linked timeline?"
-          onConfirm={handleConfirmAssemble}
-          confirmText={i18n.t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
-          destructive
-        >
-          <FlexColumn gap={SPACING.xs}>
-            <Text>
-              {replacedClipCount === null
-                ? i18n.t("storyboard:attrs.thisReplacesEveryClipOwnedByThisStoryboardAndItsLinkedScriptIncludingTrimsAndEditsMadeToThoseClips", { defaultValue: "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips." })
-                : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
-            </Text>
-            <Caption color="secondary">
-              Tracks and clips added outside this storyboard are preserved.
-              {skippedAssemblyCount > 0
-                ? ` ${skippedAssemblyCount} shot${skippedAssemblyCount === 1 ? "" : "s"} without an accepted clip will be skipped.`
-                : ""}
-            </Caption>
-          </FlexColumn>
-        </Dialog>
-
-        <Dialog
-          open={downloadFallbackError !== null}
-          onClose={() => setDownloadFallbackError(null)}
-          title="Latest changes could not be saved"
-          actions={
-            <FlexRow gap={SPACING.sm} align="center">
-              <EditorButton onClick={() => setDownloadFallbackError(null)}>
-                Cancel
-              </EditorButton>
-              <EditorButton
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setDownloadFallbackError(null);
-                  void downloadZip(false);
-                }}
-              >
-                Download last saved version
-              </EditorButton>
-            </FlexRow>
-          }
-        >
-          <FlexColumn gap={SPACING.xs}>
-            <Text>
-              Downloading now would use the older version currently stored on
-              the server.
-            </Text>
-            <Caption color="error">{downloadFallbackError}</Caption>
-          </FlexColumn>
-        </Dialog>
-
-        {previewOpen && (
-          <React.Suspense
-            fallback={<LoadingSpinner size="small" text="Loading preview" />}
+          <Dialog
+            open={renderDialog === "stills"}
+            onClose={() => setRenderDialog(null)}
+            title="Render stills"
+            onConfirm={handleGenerateAllStills}
+            confirmText={`Render stills${
+              stillsCost.pricedRequestCount > 0 && stillsCost.cost > 0
+                ? ` · ~${formatUsd(stillsCost.cost)}`
+                : ""
+            }`}
+            confirmDisabled={!stillSelection}
           >
-            <LazyStoryboardPreview boardId={boardId} />
-          </React.Suspense>
-        )}
-
-        {directing ? (
-          <FlexColumn gap={SPACING.md}>
-            <Caption color="primary">
-              The director is writing your screenplay.
-            </Caption>
-            <Box sx={shotGridSx}>
-              {Array.from({ length: shotCount }).map((_, i) => (
-                <Card key={i} variant="outlined" padding="none">
-                  <Skeleton
-                    variant="rectangular"
-                    animation="wave"
-                    sx={{
-                      width: "100%",
-                      aspectRatio: "16 / 9",
-                      height: "auto",
-                      borderRadius: BORDER_RADIUS.lg
-                    }}
+            <FlexColumn gap={SPACING.md}>
+              <Caption color="secondary">
+                Pick the model for this batch. The choice is remembered on every
+                shot for one-click regeneration.
+              </Caption>
+              <FormField label="Still model" sx={modelFieldSx}>
+                <ImageModelSelect
+                  value={stillSelection?.id ?? ""}
+                  provider={stillSelection?.provider}
+                  task={STILL_MODEL_TASKS}
+                  onChange={setStillSelection}
+                />
+                {entityIds.length > 0 && (
+                  <EntityStillModelWarning
+                    modelId={stillSelection?.id}
+                    provider={stillSelection?.provider}
                   />
-                </Card>
-              ))}
-            </Box>
-          </FlexColumn>
-        ) : shots.length === 0 ? (
-          <EmptyState
-            variant="empty"
-            title="No shots yet"
-            description={
-              readOnly
-                ? i18n.t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." })
-                : i18n.t("storyboard:attrs.writeABriefAndPressDirectToGenerateAScreenplayOfShots", { defaultValue: "Write a brief and press Direct to generate a screenplay of shots." })
-            }
-          />
-        ) : (
-          <FlexRow
-            ref={gridRef}
-            role="group"
-            aria-label="Shots"
-            onKeyDown={handleGridKeyDown}
-            align="flex-start"
-            wrap
-            gap={SPACING.xl}
-            sx={{ minWidth: 0 }}
+                )}
+              </FormField>
+              <RenderCostSummary estimate={stillsCost} />
+              {followUpClipsCost.pricedRequestCount > 0 &&
+                followUpClipsCost.cost > 0 && (
+                  <Caption color="secondary">
+                    {`Rendering clips for these shots afterwards adds about ${formatUsd(followUpClipsCost.cost)}, so stills and clips together come to about ${formatUsd(stillsCost.cost + followUpClipsCost.cost)}.`}
+                  </Caption>
+                )}
+            </FlexColumn>
+          </Dialog>
+
+          <Dialog
+            open={renderDialog === "clips"}
+            onClose={() => setRenderDialog(null)}
+            title="Render clips"
+            onConfirm={handleGenerateAllClips}
+            confirmText={`Render clips${
+              clipsCost.pricedRequestCount > 0 && clipsCost.cost > 0
+                ? ` · ~${formatUsd(clipsCost.cost)}`
+                : ""
+            }`}
+            confirmDisabled={clipModelTasks.some(
+              (task) => !clipSelections[task]
+            )}
           >
-            {sceneGroups.map((group, sceneIndex) => (
-              // A legacy board has one group with no scene record; it gets the
-              // implicit header, and no `Scene` is written to get it.
-              <Box
-                key={group.sceneId ?? "unscened"}
-                role="group"
-                aria-label={`Scene ${sceneIndex + 1}`}
-                sx={{
-                  ...sceneSx,
-                  flex: group.shots.length > 1 ? "1 1 100%" : "1 1 36ch",
-                  maxWidth: group.shots.length === 1 ? "80ch" : undefined
-                }}
-              >
-                <SceneHeader
-                  number={sceneIndex + 1}
-                  slugline={group.scene?.slugline || undefined}
-                />
-                {group.shots.map((shot) => (
-                  <React.Fragment key={shot.id}>
-                    <Box sx={shotSlotSx}>
+            <FlexColumn gap={SPACING.md}>
+              <Caption color="secondary">
+                Pick a model for each kind of clip in this batch. Each shot
+                keeps its choice for fast re-renders.
+              </Caption>
+              {clipModelTasks.map((task) => (
+                <FormField
+                  key={task}
+                  label={CLIP_TASK_LABELS[task]}
+                  sx={modelFieldSx}
+                >
+                  <VideoModelSelect
+                    value={clipSelections[task]?.id ?? ""}
+                    provider={clipSelections[task]?.provider}
+                    task={task}
+                    onChange={(value) =>
+                      setClipSelections((current) => ({
+                        ...current,
+                        [task]: value
+                      }))
+                    }
+                  />
+                </FormField>
+              ))}
+              <RenderCostSummary estimate={clipsCost} />
+            </FlexColumn>
+          </Dialog>
+
+          <Dialog
+            open={confirmRedirect}
+            onClose={() => setConfirmRedirect(false)}
+            title="Re-direct this storyboard?"
+            onConfirm={handleConfirmRedirect}
+            confirmText={t("editor:ui.reDirect", { defaultValue: "Re-direct" })}
+            destructive
+          >
+            <FlexColumn gap={SPACING.xs}>
+              <Text>
+                {`Directing writes a new screenplay and replaces all ${shots.length} current shot${shots.length === 1 ? "" : "s"}.`}
+              </Text>
+              <Caption color="secondary">
+                Generated stills and clips stay in your asset library, but the
+                shots on this board are rebuilt from scratch.
+              </Caption>
+            </FlexColumn>
+          </Dialog>
+
+          <Dialog
+            open={assembleConfirmOpen}
+            onClose={() => setAssembleConfirmOpen(false)}
+            title="Rebuild linked timeline?"
+            onConfirm={handleConfirmAssemble}
+            confirmText={t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
+            destructive
+          >
+            <FlexColumn gap={SPACING.xs}>
+              <Text>
+                {replacedClipCount === null
+                  ? "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
+                  : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
+              </Text>
+              <Caption color="secondary">
+                Tracks and clips added outside this storyboard are preserved.
+                {skippedAssemblyCount > 0
+                  ? ` ${skippedAssemblyCount} shot${skippedAssemblyCount === 1 ? "" : "s"} without a still or clip will be skipped.`
+                  : ""}
+              </Caption>
+            </FlexColumn>
+          </Dialog>
+
+          <Dialog
+            open={downloadFallbackError !== null}
+            onClose={() => setDownloadFallbackError(null)}
+            title="Latest changes could not be saved"
+            actions={
+              <FlexRow gap={SPACING.sm} align="center">
+                <EditorButton onClick={() => setDownloadFallbackError(null)}>
+                  Cancel
+                </EditorButton>
+                <EditorButton
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    setDownloadFallbackError(null);
+                    void downloadZip(false);
+                  }}
+                >
+                  Download last saved version
+                </EditorButton>
+              </FlexRow>
+            }
+          >
+            <FlexColumn gap={SPACING.xs}>
+              <Text>
+                Downloading now would use the older version currently stored on
+                the server.
+              </Text>
+              <Caption color="error">{downloadFallbackError}</Caption>
+            </FlexColumn>
+          </Dialog>
+
+          {previewOpen && (
+            <React.Suspense
+              fallback={<LoadingSpinner size="small" text="Loading preview" />}
+            >
+              <LazyStoryboardPreview boardId={boardId} />
+            </React.Suspense>
+          )}
+
+          {directing ? (
+            <FlexColumn gap={SPACING.md}>
+              <Caption color="primary">
+                The director is writing your screenplay.
+              </Caption>
+              <Box sx={shotGridSx(cardSize)}>
+                {Array.from({ length: shotCount }).map((_, i) => (
+                  <Card key={i} variant="outlined" padding="none">
+                    <Skeleton
+                      variant="rectangular"
+                      animation="wave"
+                      sx={{
+                        width: "100%",
+                        aspectRatio: "16 / 9",
+                        height: "auto",
+                        borderRadius: BORDER_RADIUS.lg
+                      }}
+                    />
+                  </Card>
+                ))}
+              </Box>
+            </FlexColumn>
+          ) : shots.length === 0 ? (
+            <EmptyState
+              variant="empty"
+              title="No shots yet"
+              description={
+                readOnly
+                  ? "This storyboard has no shots."
+                  : "Write a brief and press Direct to generate a screenplay of shots."
+              }
+            />
+          ) : (
+            <FlexRow
+              ref={gridRef}
+              role="group"
+              aria-label="Shots"
+              onKeyDown={handleGridKeyDown}
+              align="flex-start"
+              wrap
+              gap={SPACING.xl}
+              sx={{ minWidth: 0 }}
+            >
+              {sceneGroups.map((group, sceneIndex) => (
+                // A legacy board has one group with no scene record; it gets the
+                // implicit header, and no `Scene` is written to get it.
+                <Box
+                  key={group.sceneId ?? "unscened"}
+                  role="group"
+                  aria-label={`Scene ${sceneIndex + 1}`}
+                  sx={{
+                    ...shotGridSx(cardSize),
+                    minWidth: 0,
+                    flex:
+                      group.shots.length > 1 ? "1 1 100%" : `1 1 ${cardSize}ch`,
+                    maxWidth:
+                      group.shots.length === 1
+                        ? `${Math.max(80, cardSize)}ch`
+                        : undefined
+                  }}
+                >
+                  <SceneHeader
+                    number={sceneIndex + 1}
+                    slugline={group.scene?.slugline || undefined}
+                    actions={
+                      readOnly || directing ? undefined : (
+                        <SceneClipControls
+                          sceneId={group.sceneId}
+                          sceneShots={group.shots}
+                          boardShots={shots}
+                          clips={
+                            sceneClipsByGroup.get(group.sceneId) ??
+                            NO_SCENE_CLIPS
+                          }
+                          onOpen={openSceneClip}
+                        />
+                      )
+                    }
+                  />
+                  {group.shots.map((shot) => (
+                    <Box key={shot.id} sx={shotSlotSx}>
                       <ShotCard
                         boardId={boardId}
                         shot={shot}
                         caption={captions.get(shot.id)}
+                        sceneClipTag={sceneClipTags.get(shot.id)}
                         renderContext={renderContext}
                         selected={shot.id === activeShotId}
                         onSelect={handleSelectShot}
@@ -1411,85 +1700,112 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                         />
                       )}
                     </Box>
-                    {/* Directly under the card: a full-width row of this same
-                        grid, so the shot stays on screen while it is edited. */}
-                    {editing?.shotId === shot.id && (
-                      <Box ref={editPanelRef} sx={editRowSx}>
-                        <ShotEditPanel
-                          boardId={boardId}
-                          shotId={shot.id}
-                          focusDialogue={editing.focus === "dialogue"}
-                          readOnly={readOnly}
-                          onClose={closeEditing}
-                          onShotChange={handleEditingShotChange}
-                          onOpenBoardSettings={openSettings}
-                          leaveRequest={leaveRequest}
-                          onLeaveRequestComplete={handleLeaveRequestComplete}
-                        />
-                      </Box>
-                    )}
-                  </React.Fragment>
-                ))}
-              </Box>
-            ))}
-          </FlexRow>
-        )}
-
-        {/* What comes after the board (PRD § 7.4). Both actions already exist
-            — the script link control and the timeline handoff — and are shown
-            here rather than in the spend toolbar, because neither renders. */}
-        {!readOnly && (
-          <FlexColumn gap={SPACING.xs}>
-            <FlexRow align="flex-start" gap={SPACING.md} wrap>
-              <ScriptLinkControl boardId={boardId} disabled={directing} />
-              <EditorButton
-                variant="contained"
-                color="primary"
-                onClick={handleAssembleClick}
-                disabled={!onAssemble || assembling || !hasRenderedShot}
-              >
-                {assembling
-                  ? i18n.t("editor:ui.assembling")
-                  : timelineId
-                    ? i18n.t("editor:ui.rebuildLinkedTimeline")
-                    : i18n.t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
-              </EditorButton>
+                  ))}
+                </Box>
+              ))}
             </FlexRow>
-            {!hasRenderedShot && (
-              <Caption color="secondary">
-                {hasUnselectedClip
-                  ? "Set a clip take as current to create a timeline."
-                  : "Render a clip to create a timeline."}
-              </Caption>
-            )}
-            {assembleError && (
-              <Caption role="alert" color="error">
-                {assembleError}
-              </Caption>
-            )}
-          </FlexColumn>
-        )}
+          )}
 
-        <BoardStyleDialog
-          boardId={boardId}
-          open={styleOpen}
-          onClose={closeStyle}
-        />
+          {/* What comes after the board (PRD § 7.4). Both actions already exist
+              — the script link control and the timeline handoff — and are shown
+              here rather than in the spend toolbar, because neither renders. */}
+          {!readOnly && (
+            <FlexColumn gap={SPACING.xs}>
+              <FlexRow align="flex-start" gap={SPACING.md} wrap>
+                <ScriptLinkControl boardId={boardId} disabled={directing} />
+                <EditorButton
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAssembleClick}
+                  disabled={!onAssemble || assembling || !hasRenderedShot}
+                >
+                  {assembling
+                    ? "Assembling…"
+                    : timelineId
+                      ? "Rebuild linked timeline…"
+                      : "Create timeline"}
+                </EditorButton>
+                {timelineId && (
+                  <EditorButton
+                    variant="outlined"
+                    startIcon={<MovieOutlinedIcon />}
+                    onClick={handleOpenTimeline}
+                  >
+                    Open timeline
+                  </EditorButton>
+                )}
+              </FlexRow>
+              {!hasRenderedShot && (
+                <Caption color="secondary">
+                  {hasUnselectedClip
+                    ? "Set a clip take as current to create a timeline."
+                    : "Generate a still or render a clip to create a timeline."}
+                </Caption>
+              )}
+              {assembleError && (
+                <Caption role="alert" color="error">
+                  {assembleError}
+                </Caption>
+              )}
+            </FlexColumn>
+          )}
 
-        {activeShot && (
-          <Box>
-            <ShotInspector
-              key={activeShot.id}
+          {slideshowStart !== undefined && (
+            <StoryboardSlideshow
               boardId={boardId}
-              shot={activeShot}
-              readOnly={readOnly}
-              onClose={clearSelection}
-              onEdit={readOnly ? undefined : handleEditShotFields}
+              startShotId={slideshowStart ?? activeShotId}
+              onClose={closeSlideshow}
+              onEditShot={readOnly ? undefined : handleEditShotFields}
             />
-          </Box>
-        )}
-      </FlexColumn>
-    </ScrollArea>
+          )}
+
+          <BoardStyleDialog
+            boardId={boardId}
+            open={styleOpen}
+            onClose={closeStyle}
+          />
+
+          {sceneClipDialog && (
+            <Suspense fallback={null}>
+              <SceneClipDialog
+                boardId={boardId}
+                sceneShots={sceneClipDialog.sceneShots}
+                clip={sceneClipDialog.clip}
+                saved={sceneClipDialog.saved}
+                onClose={closeSceneClip}
+              />
+            </Suspense>
+          )}
+
+          {activeShot && (
+            <Box>
+              <ShotInspector
+                key={activeShot.id}
+                boardId={boardId}
+                shot={activeShot}
+                readOnly={readOnly}
+                onClose={clearSelection}
+                onEdit={readOnly ? undefined : handleEditShotFields}
+              />
+            </Box>
+          )}
+        </FlexColumn>
+      </ScrollArea>
+      {editing && (
+        <Box sx={editOverlaySx}>
+          <ShotEditPanel
+            boardId={boardId}
+            shotId={editing.shotId}
+            focusDialogue={editing.focus === "dialogue"}
+            readOnly={readOnly}
+            onClose={closeEditing}
+            onShotChange={handleEditingShotChange}
+            leaveRequest={leaveRequest}
+            onLeaveRequestComplete={handleLeaveRequestComplete}
+          />
+        </Box>
+      )}
+    </Box>
   );
 };
 

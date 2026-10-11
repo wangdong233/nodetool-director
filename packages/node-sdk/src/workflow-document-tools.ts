@@ -1,5 +1,9 @@
 import type { Graph } from "@nodetool-ai/protocol/api-schemas/workflows.js";
-import { wouldCreateLoopUnsafeCycle } from "@nodetool-ai/protocol";
+import {
+  isDynamicSchemaNodeType,
+  wouldCreateLoopUnsafeCycle,
+  WORKFLOW_REVISION_TOOL_NAMES
+} from "@nodetool-ai/protocol";
 import {
   inferredCodeInputNames,
   inferredCodeOutputNames
@@ -12,16 +16,7 @@ import {
   valueIncompatibleWithType
 } from "./type-compat.js";
 
-export const WORKFLOW_DOCUMENT_TOOL_NAMES = [
-  "ui_get_graph",
-  "ui_add_node",
-  "ui_connect_nodes",
-  "ui_update_node_data",
-  "ui_delete_node",
-  "ui_delete_edge",
-  "ui_move_node",
-  "ui_set_node_title"
-] as const;
+export const WORKFLOW_DOCUMENT_TOOL_NAMES = WORKFLOW_REVISION_TOOL_NAMES;
 
 export type WorkflowDocumentToolName =
   (typeof WORKFLOW_DOCUMENT_TOOL_NAMES)[number];
@@ -36,6 +31,7 @@ interface WorkflowNodeMetadata {
     required?: boolean;
   }>;
   outputs: Array<{ name: string; type: TypeMeta }>;
+  supports_dynamic_inputs?: boolean;
 }
 
 export interface WorkflowDocumentToolOptions {
@@ -179,6 +175,50 @@ function inputType(
   return undefined;
 }
 
+/**
+ * A node that accepts user-named inputs (Concat, Prompt, Images To List…) gets
+ * the missing slot declared by the connection, as a drop on the node body does
+ * in the editor. Code nodes infer their ports from the body, and schema-driven
+ * nodes take theirs from the provider schema, so neither gets one invented.
+ */
+function canDeclareDynamicInput(
+  node: GraphNode,
+  metadata: WorkflowNodeMetadata,
+  handle: string
+): boolean {
+  const type = String(node.type ?? "");
+  const dynamicOutputs = isRecord(node.dynamic_outputs)
+    ? node.dynamic_outputs
+    : {};
+  return (
+    metadata.supports_dynamic_inputs === true &&
+    handle.trim() !== "" &&
+    !isJsCodeNodeType(type) &&
+    !isDynamicSchemaNodeType(type) &&
+    !(handle in dynamicOutputs)
+  );
+}
+
+/**
+ * Declare dynamic input `handle`, typed after the output wired into it. An
+ * `any` source leaves the slot an untyped legacy slot.
+ */
+function declareDynamicInput(
+  node: GraphNode,
+  handle: string,
+  sourceType: TypeMeta
+): void {
+  const dynamicProperties = isRecord(node.dynamic_properties)
+    ? node.dynamic_properties
+    : {};
+  node.dynamic_properties = { ...dynamicProperties, [handle]: "" };
+  if (typeMetaToString(sourceType) === "any") return;
+  const dynamicInputs = isRecord(node.dynamic_inputs)
+    ? node.dynamic_inputs
+    : {};
+  node.dynamic_inputs = { ...dynamicInputs, [handle]: { type: sourceType } };
+}
+
 /** Stamp inferred Code-node slots onto the node without replacing existing ones. */
 function applyInferredCodeHandles(node: GraphNode): void {
   if (!isJsCodeNodeType(String(node.type ?? ""))) return;
@@ -208,26 +248,29 @@ function projectGraph(
     workflow_id: workflowId,
     nodes: graph.nodes.map((node) => {
       const ui = nodeUi(node);
-      type DataFields = {
-        properties: ReturnType<typeof nodeData>;
-        dynamic_properties: unknown;
-        dynamic_inputs: unknown;
-        dynamic_outputs: unknown;
-        title?: string;
-      };
-      const data: DataFields = {
+      const data: Record<string, unknown> = {
         properties: nodeData(node),
         dynamic_properties: node.dynamic_properties ?? {},
         dynamic_inputs: node.dynamic_inputs ?? {},
-        dynamic_outputs: node.dynamic_outputs ?? {}
+        dynamic_outputs: node.dynamic_outputs ?? {},
+        collapsed: ui.collapsed === true,
+        bypassed: ui.bypassed === true
       };
-      if (isString(ui.title)) {
-        data.title = ui.title;
+      for (const field of UI_NODE_DATA_FIELDS) {
+        if (ui[field] !== undefined) {
+          data[field] = ui[field];
+        }
       }
+      if (ui.setup_step_id !== undefined) {
+        data.setupStepId = ui.setup_step_id;
+      }
+      const position = isRecord(ui.position) && isNumber(ui.position.x) && isNumber(ui.position.y)
+        ? { x: ui.position.x, y: ui.position.y } : { x: 0, y: 0 };
       return {
         id: node.id,
         type: node.type,
-        position: normalizePosition(ui.position, 0),
+        parentId: node.parent_id || undefined,
+        position,
         data
       };
     }),
@@ -332,7 +375,15 @@ export function applyWorkflowDocumentTool(
       throw new Error(`Target node has no metadata: ${targetNode.type}`);
     }
     const sourceType = outputType(sourceNode, sourceMetadata, sourceHandle);
-    const targetType = inputType(targetNode, targetMetadata, targetHandle);
+    const declaredTargetType = inputType(
+      targetNode,
+      targetMetadata,
+      targetHandle
+    );
+    const declaresInput =
+      !declaredTargetType &&
+      canDeclareDynamicInput(targetNode, targetMetadata, targetHandle);
+    const targetType = declaredTargetType ?? (declaresInput ? ANY_TYPE : undefined);
     if (!sourceType) {
       const available = sourceMetadata.outputs.map((slot) => slot.name);
       throw new Error(
@@ -396,6 +447,14 @@ export function applyWorkflowDocumentTool(
       target: targetId,
       targetHandle
     });
+    if (declaresInput) {
+      declareDynamicInput(targetNode, targetHandle, sourceType);
+      return {
+        graph,
+        result: { ok: true, edge_id: edgeId, declared_input: targetHandle },
+        changed: true
+      };
+    }
     return { graph, result: { ok: true, edge_id: edgeId }, changed: true };
   }
 

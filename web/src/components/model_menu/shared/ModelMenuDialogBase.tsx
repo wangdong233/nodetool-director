@@ -50,6 +50,7 @@ import {
 import useModelFiltersStore from "../../../stores/ModelFiltersStore";
 import {
   applyAdvancedModelFilters,
+  modelDownloadTarget,
   ModelSelectorModel
 } from "../../../utils/modelNormalization";
 import {
@@ -303,6 +304,24 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     [startDownload, downloadScope]
   );
 
+  // A listed model whose files are missing downloads them in place; the model
+  // list refreshes when the download completes and the row turns selectable.
+  const handleModelDownload = useCallback(
+    (model: TModel) => {
+      const target = modelDownloadTarget(model);
+      if (!target) return;
+      startDownload(
+        target.repoId,
+        target.modelType ?? model.type ?? "",
+        target.path,
+        target.allowPatterns,
+        target.ignorePatterns,
+        downloadScope
+      );
+    },
+    [startDownload, downloadScope]
+  );
+
   // Recommended models that can be downloaded, folded into the main list under
   // an "Available to download" section. Skip ones already selectable (present in
   // the provider list once on disk) and any non-downloadable cloud entries.
@@ -320,7 +339,9 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     return recommendedModels
       .filter((m) => isHfModel(m) || m.type === "llama_model")
       .filter(
-        (m) => !selectableIds.has((m.repo_id || m.id || "").toLowerCase())
+        (m) =>
+          !selectableIds.has((m.repo_id || m.id || "").toLowerCase()) &&
+          !selectableIds.has(m.id.toLowerCase())
       )
       .filter((m) => {
         if (!q) return true;
@@ -591,6 +612,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           downloadModels={downloadModels}
           onDownloadSelect={handleSelectRecommended}
           onDownloadStart={handleStartDownload}
+          onModelDownload={handleModelDownload}
           modelType={modelType}
           downloadTargetLabel={downloadTargetLabel}
         />

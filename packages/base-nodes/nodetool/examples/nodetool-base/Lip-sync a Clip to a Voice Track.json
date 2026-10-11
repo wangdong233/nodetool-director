@@ -1,0 +1,313 @@
+{
+  "id": "",
+  "access": "private",
+  "created_at": "2026-06-21T16:03:52.969Z",
+  "updated_at": "2026-06-21T16:55:51.256Z",
+  "name": "Lip-sync a Clip to a Voice Track",
+  "tool_name": null,
+  "description": "Sync your presenter clip to a voice track you already have. The audio is levelled and its edges are softened first. Lip-sync is billed per second of footage.",
+  "tags": [
+    "video",
+    "audio",
+    "example"
+  ],
+  "thumbnail": "Lip-sync a Clip to a Voice Track.jpg",
+  "thumbnail_url": null,
+  "graph": {
+    "nodes": [
+      {
+        "id": "comment-1",
+        "type": "nodetool.workflows.base_node.Comment",
+        "data": {
+          "comment": "# Lip-sync a Clip to a Voice Track\n\nSyncs your presenter clip to a voice track you already have. Use it to re-voice footage without reshooting.\n\n**How it works:** \"Voice track\" passes through \"Even out volume\" (Normalize), then \"Soften the start\" with a 0.01 second fade-in and \"Soften the ending\" with a 0.03 second fade-out. \"Lip-sync to the voice track\" matches the mouth movement in \"Presenter clip\" to that audio, and \"Re-voiced clip\" shows the result. The audio steps run locally. Lip-sync is a paid step billed per second of footage.\n\n**Try this:** Set \"duration\" on \"Soften the ending\" to 0.3. The voice fades out more gently at the end of the clip."
+        },
+        "ui_properties": {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zIndex": 0,
+          "width": 560,
+          "selectable": true,
+          "height": 341
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "in-clip",
+        "type": "nodetool.input.VideoInput",
+        "data": {
+          "name": "presenter_clip",
+          "value": {
+            "type": "video",
+            "uri": "package://nodetool-base/recipe-inputs/presenter.mp4"
+          },
+          "description": "Footage of a person speaking to camera"
+        },
+        "ui_properties": {
+          "position": {
+            "x": 0,
+            "y": 421
+          },
+          "zIndex": 0,
+          "width": 280,
+          "selectable": true,
+          "title": "1  Presenter clip"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "in-voice",
+        "type": "nodetool.input.AudioInput",
+        "data": {
+          "name": "voice_track",
+          "value": {
+            "type": "audio",
+            "uri": "package://nodetool-base/recipe-inputs/voice.wav"
+          },
+          "description": "The speech the presenter should say"
+        },
+        "ui_properties": {
+          "position": {
+            "x": 0,
+            "y": 787
+          },
+          "zIndex": 0,
+          "width": 280,
+          "selectable": true,
+          "title": "2  Voice track"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "level",
+        "type": "nodetool.audio.Normalize",
+        "data": {},
+        "ui_properties": {
+          "position": {
+            "x": 380,
+            "y": 802
+          },
+          "width": 300,
+          "title": "Even out volume"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "fade-in",
+        "type": "nodetool.audio.FadeIn",
+        "data": {
+          "duration": 0.01
+        },
+        "ui_properties": {
+          "position": {
+            "x": 780,
+            "y": 726
+          },
+          "width": 300,
+          "title": "Soften the start"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "fade-out",
+        "type": "nodetool.audio.FadeOut",
+        "data": {
+          "duration": 0.03
+        },
+        "ui_properties": {
+          "position": {
+            "x": 1180,
+            "y": 659
+          },
+          "width": 300,
+          "title": "Soften the ending"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "sync",
+        "type": "nodetool.video.LipSync",
+        "data": {
+          "model": {
+            "type": "video_model",
+            "provider": "",
+            "id": "",
+            "name": "",
+            "path": null,
+            "supported_tasks": []
+          }
+        },
+        "ui_properties": {
+          "position": {
+            "x": 1580,
+            "y": 569
+          },
+          "zIndex": 0,
+          "width": 280,
+          "selectable": true,
+          "title": "3  Lip-sync to the voice track"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
+        "id": "output-clip",
+        "type": "nodetool.output.Output",
+        "data": {
+          "name": "revoiced_clip"
+        },
+        "ui_properties": {
+          "position": {
+            "x": 1960,
+            "y": 588
+          },
+          "zIndex": 0,
+          "width": 240,
+          "selectable": true,
+          "title": "4  Re-voiced clip"
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e2",
+        "source": "in-clip",
+        "sourceHandle": "output",
+        "target": "sync",
+        "targetHandle": "video"
+      },
+      {
+        "id": "e4",
+        "source": "sync",
+        "sourceHandle": "output",
+        "target": "output-clip",
+        "targetHandle": "value"
+      },
+      {
+        "id": "voice-level-audio",
+        "source": "in-voice",
+        "sourceHandle": "output",
+        "target": "level",
+        "targetHandle": "audio"
+      },
+      {
+        "id": "level-fade-in-audio",
+        "source": "level",
+        "sourceHandle": "output",
+        "target": "fade-in",
+        "targetHandle": "audio"
+      },
+      {
+        "id": "fade-in-fade-out-audio",
+        "source": "fade-in",
+        "sourceHandle": "output",
+        "target": "fade-out",
+        "targetHandle": "audio"
+      },
+      {
+        "id": "e3",
+        "source": "fade-out",
+        "sourceHandle": "output",
+        "target": "sync",
+        "targetHandle": "audio"
+      }
+    ]
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "presenter_clip": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "const": "video"
+          }
+        },
+        "required": [
+          "uri",
+          "type"
+        ],
+        "label": "",
+        "default": {
+          "type": "video",
+          "uri": "package://nodetool-base/recipe-inputs/presenter.mp4"
+        }
+      },
+      "voice_track": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "const": "audio"
+          }
+        },
+        "required": [
+          "uri",
+          "type"
+        ],
+        "label": "",
+        "default": {
+          "type": "audio",
+          "uri": "package://nodetool-base/recipe-inputs/voice.wav"
+        }
+      }
+    },
+    "required": [
+      "presenter_clip",
+      "voice_track"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "revoiced_clip": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "const": "video"
+          }
+        },
+        "required": [
+          "uri",
+          "type"
+        ],
+        "label": ""
+      }
+    },
+    "required": [
+      "revoiced_clip"
+    ]
+  },
+  "settings": {},
+  "package_name": "nodetool-base",
+  "path": null,
+  "run_mode": "workflow",
+  "workspace_id": null,
+  "required_providers": null,
+  "required_models": null,
+  "html_app": null,
+  "etag": "e31acfae86ee104dbf9df243c9ba6084"
+}

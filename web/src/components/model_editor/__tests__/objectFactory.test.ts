@@ -14,6 +14,12 @@ describe("createPrimitive", () => {
     expect(mesh.material).toBeInstanceOf(THREE.MeshStandardMaterial);
   });
 
+  it("builds a cone the cone geometry fields can edit", () => {
+    const cone = createPrimitive("cone") as THREE.Mesh;
+    expect(cone.geometry).toBeInstanceOf(THREE.ConeGeometry);
+    expect(cone.geometry.type).toBe("ConeGeometry");
+  });
+
   it("orients the plane to lie flat", () => {
     const plane = createPrimitive("plane");
     expect(plane.rotation.x).toBeCloseTo(-Math.PI / 2);
@@ -24,6 +30,20 @@ describe("createPrimitive", () => {
       THREE.DirectionalLight
     );
     expect(createPrimitive("pointLight")).toBeInstanceOf(THREE.PointLight);
+  });
+
+  it("aims a directional light with a child target the glTF export keeps", () => {
+    const light = createPrimitive("directionalLight") as THREE.DirectionalLight;
+    expect(light.target.parent).toBe(light);
+    expect(light.target.position.toArray()).toEqual([0, 0, -1]);
+
+    light.updateMatrixWorld(true);
+    const direction = light.target
+      .getWorldPosition(new THREE.Vector3())
+      .sub(light.getWorldPosition(new THREE.Vector3()))
+      .normalize();
+    const towardOrigin = light.position.clone().negate().normalize();
+    expect(direction.distanceTo(towardOrigin)).toBeLessThan(1e-6);
   });
 
   it("has a human label for every primitive kind", () => {

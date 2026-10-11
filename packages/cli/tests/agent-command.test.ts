@@ -14,12 +14,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@nodetool-ai/config", async () => {
   const stub = await import("./__stubs__/nodetool.js");
+  const { safeProcessEnv } = await import("../../config/src/node-import.js");
+  const { redactTraceText } = await import("../../config/src/trace-redaction.js");
   const noop = () => {};
   const log = { debug: noop, info: noop, warn: noop, error: noop };
   return {
     ...stub,
     createLogger: () => log,
     configureLogging: noop,
+    safeProcessEnv,
+    redactTraceText,
     getNodeBuiltinSync: () => undefined
   };
 });
@@ -108,7 +112,7 @@ class NamedTool extends StubTool {
 const sessionBelts: string[][] = [];
 /** Code bodies the scripted `execute_code` action ran. */
 const actionsRun: string[] = [];
-/** Every `gateTools` call: the names wrapped, and the gate they were given. */
+/** Every `gateLegacyTools` call: the names wrapped, and the gate they were given. */
 const gatedWith: Array<{ names: string[]; gate: unknown }> = [];
 /** Every gate a capability run was built over. */
 const runGates: unknown[] = [];
@@ -125,6 +129,8 @@ vi.mock("@nodetool-ai/agents", async () => {
     truncateToolResult: (value: string) => value,
     getBuiltinTools: () => [new NamedTool("read_file")],
     getAllMcpTools: () => [new NamedTool("list_workflows")],
+    getApifyTools: () => [],
+    getSerpApiTools: () => [],
     BackgroundSubtaskRegistry: class {},
     // The real classification map, headless gate and context key: the CLI's
     // gate is supposed to be the shared one, not a second table.
@@ -133,7 +139,8 @@ vi.mock("@nodetool-ai/agents", async () => {
   // module goes last so the stubbed re-export cannot shadow it.
   ...(await import("../../runtime/src/permission-gate.js")),
     PERMISSION_GATE_CONTEXT_KEY: "nodetool_permission_gate",
-    gateTools: (tools: NamedTool[], gate: unknown) => {
+    capabilityRunForLegacyTool: () => undefined,
+  gateLegacyTools: (tools: NamedTool[], gate: unknown) => {
       gatedWith.push({ names: tools.map((t) => t.name), gate });
       return tools;
     },
@@ -152,6 +159,8 @@ vi.mock("@nodetool-ai/agents", async () => {
       if (typeof run === "function") run({});
       return new NamedTool(name);
     },
+    mergeSystemSkills: () => [],
+    formatSkillCatalogForPrompt: () => "",
     createChatCodeActSession: (options: { tools: Array<{ name: string }> }) => {
       sessionBelts.push(options.tools.map((t) => t.name));
       return {
@@ -321,20 +330,15 @@ describe("nodetool agent run", () => {
     });
 
     expect(code).toBe(1);
-    expect(
-      events.some(
-        (e) =>
-          (e as { type?: string }).type === "error" &&
-          String((e as { message?: string }).message).includes(
-            "provider exploded"
-          )
-      )
-    ).toBe(true);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: "error",
+      message: expect.stringContaining("provider exploded")
+    }));
   });
 });
 
 describe("the gate a CLI run belts through", () => {
-  it("wraps the platform belt and execute_plan in one shared gate", async () => {
+  it("routes the whole CLI belt through one shared gate", async () => {
     const provider = new ScriptedProvider([textScript("Ready.")]);
 
     const { code } = await runWithCapture(provider, {
@@ -358,10 +362,10 @@ describe("the gate a CLI run belts through", () => {
     expect(runGates.length).toBeGreaterThan(0);
     for (const runGate of runGates) expect(runGate).toBe(gate);
 
-    // Spawning a child loop is not itself an action: those stay ungated, and
-    // the child acts through the gated belt above.
-    expect(beltNames).not.toContain("run_subtask");
-    expect(beltNames).not.toContain("create_plan");
+    // Read-class delegation and planning use the same invocation seam.
+    // Their categories, tested in agents, keep them free of approval prompts.
+    expect(beltNames).toContain("run_subtask");
+    expect(beltNames).toContain("create_plan");
   });
 
   it("names the headless refusal once, in the event stream", async () => {
@@ -426,5 +430,17 @@ describe("the budget a CLI run holds", () => {
     expect(String((errors[0] as { message: string }).message)).toContain(
       "run deadline of 0ms reached"
     );
+  });
+
+  it("refuses a --max-iterations that is not a positive integer before any model call", async () => {
+    const provider = new ScriptedProvider([textScript("never reached")]);
+
+    await expect(
+      runWithCapture(provider, {
+        objective: "list my workflows",
+        maxIterations: "ten"
+      })
+    ).rejects.toThrow(/--max-iterations must be an integer/);
+    expect(provider.callLog).toHaveLength(0);
   });
 });

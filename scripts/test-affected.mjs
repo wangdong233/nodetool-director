@@ -14,8 +14,10 @@
  *     that app's own files changed, and the app's whole suite when a package it
  *     depends on changed — jest's dependency graph stops at the workspace root,
  *     so a change inside `node_modules/@nodetool-ai/*` is invisible to it;
- *   - everything, when a changed file belongs to no workspace and is not
- *     documentation (root configs, `scripts/`, the lockfile).
+ *   - the checks `PATH_CHECKS` names for a file outside every workspace that
+ *     has known coverage (the example generators, the backend bundle scripts);
+ *   - everything, when any other changed file belongs to no workspace and is
+ *     not documentation (root configs, other `scripts/`, the lockfile).
  *
  * Flags: `--base <ref>` (default: merge-base with origin/main, plus the working
  * tree), `--all` (skip selection), `--dry-run` (print the plan), `--gate`
@@ -49,9 +51,116 @@ export const APPS = {
  */
 export const MOBILE_DEPS = ["@nodetool-ai/protocol", "@nodetool-ai/app-runtime"];
 
-/** Changed files that cannot change the outcome of a test run. */
+/**
+ * Changed files that cannot change the outcome of a test run. A shipped
+ * skill's SKILL.md is product content that the agents suites read, not prose.
+ */
 export const DOC_ONLY =
-  /(^|\/)[^/]+\.mdx?$|^docs\/|^\.github\/|^\.claude\/|^\.vscode\/|^LICENSE$|^\.gitignore$/;
+  /^(?!packages\/system-skills\/)(?:(?:.*\/)?[^/]+\.mdx?$|docs\/|\.github\/|\.claude\/|\.vscode\/|LICENSE$|\.gitignore$)/;
+
+const VALIDATE_EXAMPLES = {
+  label: "validate-examples",
+  command: "node",
+  args: ["scripts/validate-examples.mjs"]
+};
+
+function websocketTest(name) {
+  return {
+    label: `websocket: tests/${name}.test.ts`,
+    command: "npm",
+    args: ["run", "test", "--workspace=packages/websocket", "--", `tests/${name}.test.ts`]
+  };
+}
+
+/**
+ * Files outside every workspace whose coverage is known, and the checks that
+ * cover them. A changed file collects the steps of every entry it matches.
+ * The example generators write bundles into `packages/base-nodes`, so a change
+ * to a generator alone is checked by what reads those bundles. The marketing
+ * site is a separate npm project that `marketing-ci.yml` tests, and no root
+ * suite reads its files.
+ */
+export const PATH_CHECKS = [
+  {
+    path: /^(?:scripts\/__tests__\/browser-tracing-stub\.test\.mjs|web\/vite-node-stubs\/tracing-stub\.js)$/,
+    steps: [{ label: "browser tracing shim", command: "node", args: ["scripts/run-vitest.mjs", "run", "--config", "vitest.config.ts", "scripts/__tests__/browser-tracing-stub.test.mjs"] }]
+  },
+  {
+    path: /^scripts\/(example-timelines\/|render-example-timeline\.mjs$)/,
+    steps: [VALIDATE_EXAMPLES, websocketTest("example-timelines")]
+  },
+  {
+    path: /^scripts\/(example-storyboards\/|build-example-storyboards\.mjs$)/,
+    steps: [
+      {
+        label: "build-example-storyboards --check",
+        command: "node",
+        args: ["scripts/build-example-storyboards.mjs", "--check"]
+      },
+      VALIDATE_EXAMPLES,
+      websocketTest("example-storyboards")
+    ]
+  },
+  { path: /^scripts\/validate-examples\.mjs$/, steps: [VALIDATE_EXAMPLES] },
+  {
+    // The `desktop-backend` surface in the harness registry runs the same smoke.
+    path: /^scripts\/(bundle-backend|verify-backend-bundle)\.mjs$/,
+    steps: [{ label: "backend:smoke", command: "npm", args: ["run", "backend:smoke"] }]
+  },
+  {
+    path: /^scripts\/verify-backend-bundle\.mjs$/,
+    steps: [
+      {
+        label: "electron: verifyBackendBundle.test.ts",
+        command: "npm",
+        args: [...APPS.electron.slice(1), "src/__tests__/verifyBackendBundle.test.ts"]
+      }
+    ]
+  },
+  { path: /^marketing\//, steps: [] },
+  {
+    // The rankings sync, its matcher and the naming helper the GenSpend sync
+    // shares. The matcher is covered in model-pricing, and the route listing
+    // against the real providers in runtime.
+    path: /^scripts\/(sync-model-rankings\.mjs$|rankings\/|genspend\/)/,
+    steps: [
+      {
+        label: "model-pricing: tests",
+        command: "npm",
+        args: ["run", "test", "--workspace=packages/model-pricing"]
+      },
+      {
+        label: "runtime: tests/providers/rankings-route-universe.test.ts",
+        command: "npm",
+        args: [
+          "run",
+          "test",
+          "--workspace=packages/runtime",
+          "--",
+          "tests/providers/rankings-route-universe.test.ts"
+        ]
+      }
+    ]
+  },
+  {
+    // Drives `nodetool agent run` + `timeline score` against a real model —
+    // too expensive to run here. Only its event-parsing unit is covered.
+    path: /^scripts\/motion-craft-eval\.mjs$/,
+    steps: [
+      {
+        label: "motion-craft-eval: parseTimelineRunEvents",
+        command: "node",
+        args: [
+          "scripts/run-vitest.mjs",
+          "run",
+          "--config",
+          "vitest.config.ts",
+          "scripts/__tests__/motion-craft-eval.test.mjs"
+        ]
+      }
+    ]
+  }
+];
 
 function abbreviate(names, limit) {
   const head = names.slice(0, limit).join(", ");
@@ -89,7 +198,14 @@ export function fullPlan() {
  */
 export function buildPlan(files, packages, computeAffected) {
   const result = computeAffected(files, packages);
-  const globalFiles = result.unmatched.filter((f) => !DOC_ONLY.test(f));
+  const pathSteps = new Map();
+  const globalFiles = [];
+  for (const file of result.unmatched) {
+    if (DOC_ONLY.test(file)) continue;
+    const checks = PATH_CHECKS.filter((c) => c.path.test(file));
+    if (checks.length === 0) globalFiles.push(file);
+    for (const step of checks.flatMap((c) => c.steps)) pathSteps.set(step.label, step);
+  }
   if (globalFiles.length > 0) return { steps: fullPlan(), globalFiles };
 
   const byName = new Map(packages.map((p) => [p.name, p]));
@@ -139,6 +255,7 @@ export function buildPlan(files, packages, computeAffected) {
       });
     }
   }
+  steps.push(...pathSteps.values());
   return { steps, globalFiles: [] };
 }
 
@@ -189,7 +306,7 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function readPackages(extraWorkspacePaths) {
+export function readPackages(extraWorkspacePaths) {
   // Workspaces come from the root package.json, not a scan of packages/ —
   // reliability/harness is a workspace too.
   const rootPkg = readJson(join(repoRoot, "package.json"));

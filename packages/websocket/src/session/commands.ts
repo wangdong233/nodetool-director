@@ -1,3 +1,4 @@
+import { context, ROOT_CONTEXT } from "@opentelemetry/api";
 import { createLogger } from "@nodetool-ai/config";
 import {
   invocationBelongsToApplication,
@@ -13,6 +14,7 @@ import {
   type ChatTurnExecutionHooks,
   type ChatTurnSession
 } from "../chat-turn-registry.js";
+import { cancelGenerationForUser } from "@nodetool-ai/agents";
 import { isDraining } from "../drain.js";
 import { isAppSessionCommandAllowed } from "../lib/app-session-scope.js";
 import {
@@ -29,7 +31,7 @@ import type { HttpApiOptions } from "../http-api.js";
 import type { JobRunExecutionHooks } from "../job-run-registry.js";
 import type { ChatTurnHandler } from "./chat-turn.js";
 import type { ClientSession } from "./client-session.js";
-import type { MessageContent } from "@nodetool-ai/runtime";
+import { withSpan, type MessageContent } from "@nodetool-ai/runtime";
 import type {
   DirectInferenceHandler,
   DirectMediaSourceContext,
@@ -39,6 +41,7 @@ import type { RunJobRequest } from "./job-execution.js";
 
 const log = createLogger("nodetool.websocket.runner");
 const referenceMediaDataSchema = generateMediaDataSchema.pick({
+  timeline_context: true,
   capability: true,
   reference_asset_ids: true,
   entity_ids: true,
@@ -193,7 +196,27 @@ type CommandHandler = (
  * reachable from here.
  */
 export class CommandRouter {
+  /**
+   * `generate_media` calls still running on this connection, by request id.
+   * `cancel_generation` aborts through this map, which is why the command
+   * cannot block the receive loop.
+   */
+  private readonly mediaGenerations = new Map<string, AbortController>();
+  /** Detached RPCs that have not answered yet. */
+  private readonly detached = new Set<Promise<void>>();
+
   constructor(private readonly deps: CommandRouterDeps) {}
+
+  /**
+   * Resolves once every detached RPC this connection started has sent its
+   * reply. The receive loop waits on it before the connection is torn down,
+   * which keeps the teardown timing a blocking `generate_media` had.
+   */
+  async settled(): Promise<void> {
+    while (this.detached.size > 0) {
+      await Promise.allSettled([...this.detached]);
+    }
+  }
 
   /**
    * Answer one command. Returns the legacy reply frame the caller sends, or
@@ -260,7 +283,14 @@ export class CommandRouter {
 
     const handler = this.handlers[command];
     if (!handler) return { error: "Unknown command" };
-    return handler({ command, data, jobId, workflowId, requestId });
+    const run = () => handler({ command, data, jobId, workflowId, requestId });
+    // `stream_input` carries one frame of a streamed input, so a span per frame is noise.
+    if (command === "stream_input") return run();
+    // Like an HTTP request span, a command span starts its own trace. A run it
+    // starts registers its own root (see `withRunTrace`).
+    return context.with(ROOT_CONTEXT, () =>
+      withSpan("ws.command", { "rpc.system": "websocket", "rpc.method": command }, run)
+    );
   }
 
   /**
@@ -831,6 +861,8 @@ export class CommandRouter {
         | "image"
         | "image_edit"
         | "inpaint"
+        | "upscale"
+        | "outpaint"
         | "video"
         | "video_edit"
         | "video_extend"
@@ -840,7 +872,11 @@ export class CommandRouter {
           ? "image_edit"
           : rawMode === "inpaint"
             ? "inpaint"
-            : rawMode === "video"
+            : rawMode === "upscale"
+              ? "upscale"
+              : rawMode === "outpaint"
+                ? "outpaint"
+                : rawMode === "video"
               ? "video"
               : rawMode === "video_edit"
                 ? "video_edit"
@@ -877,6 +913,16 @@ export class CommandRouter {
         ? (data.num_inference_steps as number)
         : undefined;
       const seed = isNumber(data.seed) ? (data.seed as number) : undefined;
+      const scale = isNumber(data.scale) ? (data.scale as number) : undefined;
+      const rawPadding = isRecord(data.padding) ? data.padding : undefined;
+      const padding = rawPadding
+        ? {
+            left: isNumber(rawPadding.left) ? rawPadding.left : undefined,
+            right: isNumber(rawPadding.right) ? rawPadding.right : undefined,
+            top: isNumber(rawPadding.top) ? rawPadding.top : undefined,
+            bottom: isNumber(rawPadding.bottom) ? rawPadding.bottom : undefined
+          }
+        : undefined;
       const durationSeconds = isNumber(data.duration)
         ? (data.duration as number)
         : undefined;
@@ -925,7 +971,14 @@ export class CommandRouter {
           sourceTakeId: rawSourceContext.source_take_id
         };
       }
-      return this.runRpc(command, requestId, () => {
+      if (!isNonEmptyString(requestId)) {
+        return { error: "request_id is required for RPC commands" };
+      }
+      // A render takes minutes. Awaiting it here would hold the receive loop,
+      // so a `cancel_generation` for it would only be read after it finished.
+      const controller = new AbortController();
+      this.mediaGenerations.set(requestId, controller);
+      const task: Promise<void> = this.runRpc(command, requestId, () => {
         const references = referenceMediaDataSchema.parse(data);
         return inference.runDirectMediaGeneration({
           mode,
@@ -941,6 +994,8 @@ export class CommandRouter {
           strength,
           numInferenceSteps,
           seed,
+          scale,
+          padding,
           durationSeconds,
           extensionMode:
             data.extension_mode === "start" || data.extension_mode === "end"
@@ -960,8 +1015,63 @@ export class CommandRouter {
           useReferenceVideoAudio: references.use_reference_video_audio,
           projectId,
           sourceContext,
-          requestId
+          timelineContext: references.timeline_context ? {
+            sequenceId: references.timeline_context.sequence_id,
+            sourceClipId: references.timeline_context.source_clip_id,
+            targetClipId: references.timeline_context.target_clip_id
+          } : undefined,
+          requestId,
+          signal: controller.signal
         });
+      })
+        .then(() => undefined)
+        .catch((err: unknown) => {
+          this.deps.session.logError("generate_media reply failed", err);
+        })
+        .finally(() => {
+          if (this.mediaGenerations.get(requestId) === controller) {
+            this.mediaGenerations.delete(requestId);
+          }
+          this.detached.delete(task);
+        });
+      this.detached.add(task);
+      return null;
+    },
+
+    /**
+     * Stop `generate_media` requests by the request ids the client sent them
+     * with. A call still running on this connection is aborted. Every
+     * generation row those ids opened is cancelled the way the
+     * `cancel_generation` capability cancels one, which also reaches a call
+     * started on a connection that has since gone. Without this, a Cancel
+     * followed by Generate paid for both renders.
+     */
+    cancel_generation: async ({ command, data, requestId }) => {
+      const userId = this.deps.session.requireUserId();
+      const ids = Array.isArray(data.request_ids)
+        ? [...new Set(data.request_ids.filter(isNonEmptyString))]
+        : [];
+      return this.runRpc(command, requestId, async () => {
+        const aborted: string[] = [];
+        for (const id of ids) {
+          const controller = this.mediaGenerations.get(id);
+          if (controller) {
+            controller.abort(new Error("Generation cancelled"));
+            this.mediaGenerations.delete(id);
+            aborted.push(id);
+          }
+        }
+        const rows = await Prediction.byRequestIds(userId, ids);
+        const generations = [];
+        for (const row of rows) {
+          const outcome = await cancelGenerationForUser(row.id, userId);
+          generations.push({
+            request_id: row.request_id,
+            generation_id: row.id,
+            status: outcome.status
+          });
+        }
+        return { aborted, generations };
       });
     },
 

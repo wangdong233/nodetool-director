@@ -24,13 +24,16 @@ interface TTSModelSelectProps {
   value: string | TTSModelValue; // Can be string (legacy) or TTSModelValue object
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
+  /** Names the voice control; a form with several of these tells them apart. */
+  voiceLabel?: string;
 }
 
 const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
   onChange,
   value,
   recommendedModels,
-  modelPacks
+  modelPacks,
+  voiceLabel = "Voice"
 }) => {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -60,10 +63,10 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
       return null;
     }
     // Prefer (provider, id) match — same model id can exist across providers.
-    const exact = modelProvider
-      ? models.find((m) => m.id === modelId && m.provider === modelProvider)
-      : null;
-    return exact ?? models.find((m) => m.id === modelId) ?? null;
+    return models.find(
+      (m) =>
+        m.id === modelId && (!modelProvider || m.provider === modelProvider)
+    ) ?? null;
   }, [models, modelId, modelProvider]);
 
   // Voices come from the live model list when available, otherwise fall back
@@ -176,7 +179,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_speech"
-        label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+        label={voiceLabel}
         options={STUDIO_VOICES}
         value={selectedVoice}
         onChange={onChange}
@@ -202,7 +205,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
           value={selectedVoice || availableVoices[0] || ""}
           onChange={handleVoiceChange}
           placeholder={t("editor:ui.selectVoice", { defaultValue: "Select voice" })}
-          label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+          label={voiceLabel}
         />
       )}
 
