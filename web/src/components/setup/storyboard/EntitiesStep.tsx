@@ -293,7 +293,6 @@ export const EntitiesStep = ({
   };
 
   const suggestFromStory = async (): Promise<void> => {
-  const { t } = useTranslation();
     if (readOnly) {
       return;
     }

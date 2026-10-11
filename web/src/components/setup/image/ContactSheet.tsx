@@ -94,7 +94,6 @@ export const downloadVariation = async (
   assetId: string,
   label: string
 ): Promise<void> => {
-  const { t } = useTranslation();
   const url = await resolveMediaUri(`asset://${assetId}`);
   if (!url) {
     throw new Error("Its file could not be found.");

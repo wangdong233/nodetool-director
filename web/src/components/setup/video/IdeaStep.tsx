@@ -240,10 +240,14 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) => example.logline.trim())
+        .map((example) =>
+          t(`catalog:storyboardExamples.${example.slug}.logline`, {
+            defaultValue: example.logline.trim()
+          })
+        )
         .filter((logline) => logline.length > 0)
         .slice(0, INSPIRATION_COUNT),
-    [examples]
+    [examples, t]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(

@@ -218,7 +218,6 @@ const SectionLine = memo(function SectionLine({
 
   const handleGapDragOver = useCallback(
     (e: DragEvent<HTMLElement>) => {
-  const { t } = useTranslation();
       if (!dragActive) return;
       e.preventDefault();
       onDropTarget(line.id);
@@ -854,7 +853,6 @@ const ScriptDocumentPane = ({
   }, [assemble, scriptId]);
 
   const onExportSubtitles = useCallback(() => {
-  const { t } = useTranslation();
     const script = useScriptStore.getState().getScript(scriptId);
     if (!script) return;
     const result = exportScriptSubtitles(script, { format: "srt" });

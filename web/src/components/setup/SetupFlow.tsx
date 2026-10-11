@@ -332,7 +332,6 @@ export function SetupFlow<Stage extends string>({
   }, [locked, stage]);
 
   const handlePrimary = useCallback(async () => {
-  const { t } = useTranslation();
     if (!step || readOnly) {
       return;
     }
@@ -352,7 +351,6 @@ export function SetupFlow<Stage extends string>({
     setBusy(true);
     setAdvancing(true);
     const run = (async () => {
-  const { t } = useTranslation();
       try {
         const context: SetupOperationContext = { signal: controller.signal };
         const shouldAdvance = await step.onAdvance?.(context);
@@ -482,7 +480,6 @@ export function SetupFlow<Stage extends string>({
   // before the shell decides whether the step may advance.
   const handleShortcut = useCallback(
     (event: React.KeyboardEvent) => {
-  const { t } = useTranslation();
       if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
         return;
       }
@@ -613,7 +610,6 @@ export function SetupFlow<Stage extends string>({
             }}
           >
             {entries.map((entry, index) => {
-  const { t } = useTranslation();
               // The marker moves inside a merged entry: once the plan arrives,
               // the creator is on the review, and the stepper says so.
               const onSubstep =
