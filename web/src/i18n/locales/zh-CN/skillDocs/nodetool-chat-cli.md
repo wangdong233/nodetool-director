@@ -46,8 +46,8 @@ nodetool chat -u ws://localhost:7777/ws
 
 服务商: `anthropic`、`claude_agent_sdk`、`openai`、`codex`、`gemini`、`xai`、
 `groq`、`mistral`、`deepseek`、`moonshot`、`minimax`、`cerebras`、`alibaba`、`gmi`、
-`together`、`openrouter`、`huggingface`、`replicate`、`kie`、`aki`、`ollama`、
-`lmstudio`、`mlx`。任何其他已注册的服务商 id(如 `vllm`)显式传入同样有效。
+`together`、`openrouter`、`requesty`、`opper`、`api_route`、`huggingface`、`replicate`、
+`kie`、`aki`、`ollama`、`lmstudio`、`mlx`。任何其他已注册的服务商 id(如 `vllm`)显式传入同样有效。
 
 ## 斜杠命令(以 `/` 开头)
 

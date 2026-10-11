@@ -21,10 +21,12 @@
 Authorization: Bearer <TOKEN>
 ```
 
-令牌来源取决于鉴权服务商:
-- `static`: `SERVER_AUTH_TOKEN` 环境变量
-- `supabase`: Supabase JWT
-- `local` / `none`: 无需鉴权
+服务器按 Supabase 凭据决定模式:
+- Supabase 模式(`SUPABASE_URL` 与 `SUPABASE_KEY` 同时设置):发送 Supabase JWT。
+  除公开端点外都需要它。
+- 本地模式(默认):回环请求无需令牌,以用户 `"1"` 运行。其他来源得到 `401`。
+
+服务器不接受 `SERVER_AUTH_TOKEN` 作为 bearer 令牌。
 
 # REST 端点
 

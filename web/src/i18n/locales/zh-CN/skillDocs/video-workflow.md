@@ -26,6 +26,9 @@
 | `nodetool.creative.ShotBatch` | 一次性把剧本摊平成待生成规格。输出:`shots`(list[dict]),含提示词、时序与关键帧。 |
 | `nodetool.creative.ShotChain` | 顺序动画一组规格,每镜首帧取自上一片段的末帧。输出:`videos`。需要 `ffmpeg` 运行时。 |
 | `nodetool.creative.ApplyEntities` | 用实体描述语给提示词做实体生效,与分镜渲染路径同一条规则。 |
+| `nodetool.storyboard.CreateStoryboard` | 以 `Director` 的 `screenplay` 加 `name`、`cast` 与两个模型 → 一个新的可写 `storyboard`。简报优先路径: Director → CreateStoryboard → RenderStills。重跑会返回它建的那块板。 |
+| `nodetool.storyboard.RecastStoryboard` | `storyboard`、`cast`、`replaces`、`reuse_existing` → 副本、`invalidated`、`kept`。提示词没动的每一帧都保留。 |
+| `nodetool.storyboard.RenderStills` / `RenderClips` | 渲染派生板中已过期的镜头。`only_stale`、`max_shots`、`require_keyframe` 是花销闸门。 |
 | `nodetool.image.TextToImage` | 提示词 → 图像。 |
 | `nodetool.video.ImageToVideo` / `nodetool.video.TextToVideo` | 静帧 → 片段,或提示词 → 片段。 |
 
