@@ -94,7 +94,8 @@
     "secondAgo_one": "1 sec ago",
     "secondAgo_other": "{{count}} sec ago",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "builtIn": "Built in"
   },
   "list": {
     "searchPlaceholder": "Search {{plural}}...",

@@ -86,7 +86,13 @@ describe("SkillListPanel", () => {
     renderPanel();
     expect(screen.getByText("motion-graphics")).toBeInTheDocument();
     expect(screen.getByText("my-notes")).toBeInTheDocument();
-    expect(screen.getAllByText("Built in")).toHaveLength(1);
+    // "Built in" now appears twice: the row marker for the shipped skill, and
+    // the date-group header the undated (updatedAt: "") skill sorts under —
+    // the same label, where it used to render a "NaN 秒前" section header.
+    const builtIn = screen.getAllByText("Built in");
+    expect(builtIn).toHaveLength(2);
+    expect(builtIn[0].className).toContain("date-header");
+    expect(builtIn[1].className).not.toContain("date-header");
   });
 
   it("opens a shipped skill to read and the user's own to edit", async () => {

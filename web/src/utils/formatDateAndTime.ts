@@ -95,6 +95,11 @@ export function secondsToHMS(seconds: number): string {
 // (e.g. "yearAgo") is passed whole so the source carries it as a literal —
 // i18next's count plural then picks _one/_other per locale (zh: one form).
 function agoLabel(count: number, leaf: string): string {
+  // A NaN count (invalid date reached this far) renders as "" rather than
+  // "NaN 秒前" — callers treat an empty label as "no relative time to show".
+  if (Number.isNaN(count)) {
+    return "";
+  }
   return i18n.t(`common:relTime.${leaf}`, { count });
 }
 

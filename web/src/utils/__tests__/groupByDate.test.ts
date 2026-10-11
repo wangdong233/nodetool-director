@@ -103,6 +103,19 @@ describe('groupByDate', () => {
       // Invalid dates will create an Invalid Date object
       expect(result).toBeDefined();
     });
+
+    it('groups unparseable dates under the Built in label, not NaN', () => {
+      // System skills ship `updatedAt: ""` — Date.parse("") is NaN, which
+      // used to fall through to the relative branches and render "NaN 秒前".
+      expect(groupByDate('', mockNow)).toBe('Built in');
+      expect(groupByDate('invalid-date', mockNow)).toBe('Built in');
+      expect(groupByDate(new Date(NaN), mockNow)).toBe('Built in');
+    });
+
+    it('gives every invalid date the same stable group key', () => {
+      // One contiguous "Built in" section, not interleaved headers.
+      expect(groupByDate('', mockNow)).toBe(groupByDate('invalid-date', mockNow));
+    });
   });
 
   describe('with default now parameter', () => {
