@@ -270,12 +270,12 @@ const AssetItemContextMenu = () => {
         {hasSelectedAssets && (
           <ContextMenuItem
             onClick={toggleFavorite}
-            label={allFavorite ? "Remove from Favorites" : "Add to Favorites"}
+            label={allFavorite ? t("editor:ui.removeFromFavorites") : t("editor:ui.addToFavorites")}
             IconComponent={allFavorite ? <StarBorderIcon /> : <StarIcon />}
             tooltip={
               allFavorite
-                ? "Unstar the selected assets"
-                : "Star the selected assets to find them under Favorites"
+                ? t("editor:ui.unstarTheSelectedAssets")
+                : t("editor:ui.starTheSelectedAssetsToFindThemUnderFavorites")
             }
           />
         )}

@@ -5,7 +5,7 @@
 | 场所 | 是什么 | 用什么触达 |
 |---|---|---|
 | **Code 节点** | 工作流图里的一个函数体 | `validate_code`、`run_code`、`test_code` |
-| **JS 脚本文档** | 有名字、有版本、声明了端口/密钥/超时并保存了测试的脚本 | `list_js_scripts`、`get_js_script`、`save_js_script`、`validate_js_script`、`run_js_script`、`test_js_script` |
+| **JS 脚本文档** | 有名字、有版本、声明了端口/密钥/超时并保存了测试的脚本 | `list_js_scripts`、`get_js_script`、`save_js_script`、`edit_js_script`、`validate_js_script`、`run_js_script`、`test_js_script` |
 | **原生流** | 客座代码把节点当异步函数调用,不建图 | `import "@nodetool-ai/sandbox-nodetool/flow"` |
 
 逻辑属于某一张图时选 Code 节点。同一段逻辑要多处调用、要自带测试、要版本历史时选脚本文档。控制流写起来比接线更顺手时,选原生流。
@@ -65,6 +65,27 @@ compile` 可以为未随产品发布的依赖构建一个包。
 `image.*`、`audio.*` 与 `video.*` 变换返回 `sandbox://media/<id>` 句柄,不是字节。
 链式调用,然后在运行结束前 `<type>.toAsset(handle)`。句柄活不到下一次运行。
 
+## 从代码跑一个智能体
+
+当工作不止一次模型调用——先查、再动手、读结果、再纠正——用 `run_agent`:
+
+```js
+import { run_agent } from "@nodetool-ai/sandbox-nodetool/agents";
+
+const answer = await run_agent({
+  prompt: "Read storyboard " + inputs.storyboardId + " and list its shot titles.",
+  model: inputs.model,                // {provider, id} from a model selector
+  tools: ["get_storyboard"],          // capability wire names, nothing else
+  output_schema: { type: "object", properties: { titles: { type: "array", items: { type: "string" } } } }
+});
+await output("titles", answer.result.titles);
+```
+
+不传 `output_schema` 时,`answer.text` 是智能体的最终消息。智能体运行时会持续
+上报它的文字与工具调用。小程序把它们显示在绑定 `op:<id>/exec#transcript` 的
+Agent Activity 控件里。单次提示、不用工具的场景,`generate_text` 仍是正确的
+调用。
+
 ## 从代码调用节点
 
 ```js
@@ -83,6 +104,31 @@ await output("joined", r.output);
 要在编辑器里打开、要验证、要在服务器上运行的程序,仍然要建图。那件事用
 `nodetool-workflow-builder`。
 
+## 从代码搭时间线
+
+```js
+import { video } from "@nodetool-ai/sandbox-timeline";
+
+const v = video({ width: 1920, height: 1080, fps: 30 });
+const title = v.scene("title", 3, (s) => {
+  const t = s.text("Hello", { size: 120, weight: 600, color: "#ffffff" });
+  t.enter({ from: { opacity: 0 }, at: 0, dur: 0.5 });
+});
+v.series([title]);
+const saved = await v.save(nodetool.timelines, { name: "Hello" });
+await output("timeline_id", saved.timeline_id);
+```
+
+这个包在几秒内写完整条动效剪辑,各场景局部声明,最后用一次
+`set_timeline_document` 保存,而不是每个片段一条 `edit_timeline` op。把
+函数体里的 `nodetool.timelines` 传给 `v.save`:模块看不到传送带。对描述符
+调 `get_sandbox_package_docs` 可得完整的创作 API。
+
+把搭建脚本本身存成 JS 脚本文档,它会自动关联它产出的时间线:第一次
+`v.save(nodetool.timelines, {name})` 不带 `timeline_id` 会创建时间线并把
+脚本关联到它;之后每次运行同一脚本都是原地更新那条时间线,而不是再建
+一条。修改用 `edit_js_script` 的字符串替换 op(见下),不要重发整个函数体。
+
 ## 主循环
 
 1. **写或读函数体。** 已保存的脚本用 `get_js_script`。
@@ -96,7 +142,11 @@ await output("joined", r.output);
    `input_streams`),可选 `expect` —— 按句柄的最终值,做结构化比较,未命名输出忽略
    —— 以及 `expected_streamed`,完整的按序 emit 列表。两者都不带的用例,函数体无错
    跑完即通过。
-5. **保存。** `save_js_script` 先验证,更新走 CAS。
+5. **保存。** `save_js_script` 先验证,更新走 CAS。小修改用
+   `edit_js_script(js_script_id, ops)` 更省:每个 op 是 `{old, new}`,
+   `old` 必须在当前代码里恰好匹配一次——像代码编辑器的查找/替换,
+   零匹配或歧义匹配都会被点名拒绝。它对结果做与 `save_js_script`
+   相同的验证。
 
 脚本文档与其他文档共用同一套版本家族:
 `list_js_script_versions`、`get_js_script_version`、`create_js_script_version`、

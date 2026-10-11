@@ -755,7 +755,7 @@ it("holds every pick and paid action in view mode", async () => {
   );
 
   const pick = await screen.findByRole("checkbox", {
-    name: "Mara · character"
+    name: "Mara · Character"
   });
   expect(pick).toBeDisabled();
   expect(screen.getByRole("button", { name: "Find entities" })).toBeDisabled();
@@ -806,7 +806,7 @@ it("says the library failed to load rather than that it is empty", async () => {
 
   await user.click(screen.getByRole("button", { name: "Try again" }));
   expect(
-    await screen.findByRole("checkbox", { name: "Mara · character" })
+    await screen.findByRole("checkbox", { name: "Mara · Character" })
   ).toBeInTheDocument();
 });
 

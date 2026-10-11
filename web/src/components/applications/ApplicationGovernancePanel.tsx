@@ -352,7 +352,7 @@ const DeploySection = memo(function DeploySection({
                 {`Could not create the link: ${deploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
                   summary: i18n.t("editor:ui.publicLinkCreationFailed", { defaultValue: "Public link creation failed" }),
@@ -371,7 +371,7 @@ const DeploySection = memo(function DeploySection({
                 {`Could not withdraw the link: ${undeploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
                   summary: i18n.t("editor:ui.publicLinkWithdrawalFailed", { defaultValue: "Public link withdrawal failed" }),
@@ -419,7 +419,7 @@ const InvocationsSection = memo(function InvocationsSection({
       {invocations.length === 0 ? (
         <EmptyState
           title={t("editor:ui.noInvocationsYet", { defaultValue: "No invocations yet" })}
-          description="Runs of the released app show up here with their cost."
+          description={t("editor:ui.runsOfTheReleasedAppShowUpHereWithTheirCost")}
         />
       ) : (
         <FlexColumn gap={SPACING.sm} fullWidth>
@@ -574,7 +574,7 @@ const ApplicationGovernancePanel = ({
         ) : sortedVersions.length === 0 ? (
           <EmptyState
             title={t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
-            description="Publish the app to cut its first version."
+            description={t("editor:ui.publishTheAppToCutItsFirstVersion")}
           />
         ) : (
           <FlexColumn gap={SPACING.md} fullWidth>

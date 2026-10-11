@@ -370,7 +370,7 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleCreateNode(APP_NODE_TYPE)}
-          label="Add App"
+          label={t("editor:ui.addApp")}
           tooltip={"Run a mini app as a node"}
         />
       </ContextMenu>

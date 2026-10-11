@@ -8,6 +8,7 @@ import {
   disposeAppRuntimeStore
 } from "./runtime/appRuntimeStore";
 import { loadAppInstance } from "./runtime/appInstanceApi";
+import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { useAppRuntimeContext } from "./runtime/AppRuntimeContext";
 import { getAppSessionToken } from "../../lib/appSession";
 import {
@@ -83,12 +84,12 @@ export default function AppInstanceManager({
     try {
       await flushInstance?.();
       const selected = choices.find((item) => item.id === id);
-      navigate(id, selected?.name ?? "App instance");
+      navigate(id, selected?.name ?? tAttr("App instance"));
     } catch (failure) {
       setError(
         failure instanceof Error
           ? failure.message
-          : "Could not switch instances."
+          : tAttr("Could not switch instances.")
       );
     } finally {
       setBusy(false);
@@ -163,7 +164,7 @@ export default function AppInstanceManager({
     <FlexColumn gap={SPACING.sm} padding={SPACING.lg}>
       <FlexRow gap={SPACING.sm} align="center" sx={{ flexWrap: "wrap" }}>
         <SelectField
-          label="App instance"
+          label={tAttr("App instance")}
           value={instance.id}
           disabled={busy}
           options={[
@@ -176,8 +177,10 @@ export default function AppInstanceManager({
         />
         <Caption>
           {instance.version === null
-            ? "Draft working copy"
-            : `Pinned version ${instance.version}`}
+            ? tAttr("Draft working copy")
+            : tAttrTpl("pinnedVersion", "Pinned version {{version}}", {
+                version: instance.version
+              })}
         </Caption>
         <EditorButton
           variant="outlined"
@@ -185,7 +188,7 @@ export default function AppInstanceManager({
           disabled={busy}
           onClick={() => show("new")}
         >
-          New instance
+          {tAttr("New instance")}
         </EditorButton>
         <EditorButton
           variant="outlined"
@@ -209,7 +212,7 @@ export default function AppInstanceManager({
           disabled={busy}
           onClick={() => show("delete")}
         >
-          Delete instance
+          {tAttr("Delete instance")}
         </EditorButton>
         {latestVersion !== undefined &&
         latestVersion > (instance.version ?? 0) ? (
@@ -219,7 +222,9 @@ export default function AppInstanceManager({
             disabled={busy}
             onClick={() => show("advance")}
           >
-            Advance to version {latestVersion}
+            {tAttrTpl("advanceToVersion", "Advance to version {{version}}", {
+              version: latestVersion
+            })}
           </EditorButton>
         ) : null}
         {pageIndex > 0 ? (
@@ -228,7 +233,7 @@ export default function AppInstanceManager({
             color="inherit"
             onClick={() => setPageIndex((index) => index - 1)}
           >
-            Newer instances
+            {tAttr("Newer instances")}
           </EditorButton>
         ) : null}
         {list.hasNextPage || list.data?.pages[pageIndex + 1] ? (
@@ -238,7 +243,7 @@ export default function AppInstanceManager({
             disabled={list.isFetchingNextPage}
             onClick={() => void older()}
           >
-            Older instances
+            {tAttr("Older instances")}
           </EditorButton>
         ) : null}
       </FlexRow>
@@ -267,24 +272,24 @@ export default function AppInstanceManager({
         }}
         title={
           action === "advance"
-            ? "Advance instance version"
+            ? tAttr("Advance instance version")
             : action === "delete"
-              ? "Delete instance"
+              ? tAttr("Delete instance")
               : action === "duplicate"
-                ? "Duplicate instance"
+                ? tAttr("Duplicate instance")
                 : action === "rename"
-                  ? "Rename instance"
-                  : "New instance"
+                  ? tAttr("Rename instance")
+                  : tAttr("New instance")
         }
         onConfirm={() => void confirm()}
-        confirmText={action === "delete" ? "Delete" : "Save"}
+        confirmText={action === "delete" ? tAttr("Delete") : tAttr("Save")}
         isLoading={busy}
         confirmDisabled={named && !name.trim()}
         destructive={action === "delete"}
       >
         {named ? (
           <TextInput
-            label="Instance name"
+            label={tAttr("Instance name")}
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoFocus
@@ -292,8 +297,12 @@ export default function AppInstanceManager({
         ) : (
           <Caption>
             {action === "delete"
-              ? "This removes the instance, its history and associations. Generated media remains in your library. Running work is not cancelled."
-              : "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement."}
+              ? tAttr(
+                  "This removes the instance, its history and associations. Generated media remains in your library. Running work is not cancelled."
+                )
+              : tAttr(
+                  "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement."
+                )}
           </Caption>
         )}
         {error ? <AlertBanner severity="error">{error}</AlertBanner> : null}

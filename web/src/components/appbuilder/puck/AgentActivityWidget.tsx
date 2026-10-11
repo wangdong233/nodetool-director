@@ -46,6 +46,7 @@ import { useRunLogs, useRunLiveUpdates } from "../../../serverState/useRuns";
 import { replayAppRunActivity } from "../../../serverState/appRunActivity";
 import { useRunInspection } from "../../../hooks/useRunInspection";
 import { AskRunAgentButton } from "../../runs/AskRunAgentButton";
+import { tAttr } from "../i18nAttrs";
 import ReportBugButton from "../../support/ReportBugButton";
 
 interface AgentActivityWidgetProps {
@@ -254,7 +255,7 @@ const ToolRow: React.FC<{ entry: ToolEntry; connected: boolean; runId?: string; 
           </Collapse>
         ) : null}
         {runId && spanId ? <FlexRow gap={SPACING.xs}>
-          <EditorButton onClick={() => openRunInspection({ runId, spanId })}>View trace</EditorButton>
+          <EditorButton onClick={() => openRunInspection({ runId, spanId })}>{tAttr("View trace")}</EditorButton>
           <AskRunAgentButton runId={runId} spanId={spanId} />
         </FlexRow> : null}
       </Box>
@@ -269,15 +270,15 @@ export function StoredRunActivity({ runId }: { runId: string }): React.ReactElem
   const unavailable = pages.some((page) => page.content_state !== "available");
   const activity = logs.error || unavailable ? [] : replayAppRunActivity(pages.flatMap((page) => page.logs));
   return <FlexColumn gap={SPACING.sm}>
-    <Text weight={600}>Recorded activity</Text>
+    <Text weight={600}>{tAttr("Recorded activity")}</Text>
     {logs.isLoading ? <LoadingSpinner text="Loading activity" /> : null}
     {logs.error ? <AlertBanner severity="error" action={<ReportBugButton context={{ source: "operation-failure", summary: "Historical activity could not load", errorText: logs.error.message }} />}>{logs.error.message}</AlertBanner> : null}
     {unavailable ? <Caption>Activity content {pages[0]?.content_state}.</Caption> : null}
     {activity.map(({ key, entry, spanId }, index) => entry.kind === "tool"
       ? <ToolRow key={key} entry={entry} runId={runId} spanId={spanId} connected={activity[index + 1]?.entry.kind === "tool"} />
       : <MarkdownBlock key={key} text={entry.text} />)}
-    {pages.some((page) => page.limited || page.truncated) ? <Caption>Activity recording was limited.</Caption> : null}
-    {logs.hasNextPage && !unavailable ? <EditorButton disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>Load more activity</EditorButton> : null}
+    {pages.some((page) => page.limited || page.truncated) ? <Caption>{tAttr("Activity recording was limited.")}</Caption> : null}
+    {logs.hasNextPage && !unavailable ? <EditorButton disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>{tAttr("Load more activity")}</EditorButton> : null}
   </FlexColumn>;
 }
 
@@ -326,12 +327,12 @@ export const AgentActivityWidget: React.FC<AgentActivityWidgetProps> = (
       <FlexRow gap={SPACING.sm} align="center" fullWidth>
         {props.label ? <Label>{props.label}</Label> : null}
         {running ? <StatusPill tone="rendering">Working</StatusPill> : null}
-        {runId ? <EditorButton onClick={() => openRunInspection({ runId })}>View trace</EditorButton> : null}
+        {runId ? <EditorButton onClick={() => openRunInspection({ runId })}>{tAttr("View trace")}</EditorButton> : null}
         {runId ? <AskRunAgentButton runId={runId} /> : null}
       </FlexRow>
       {historyLoading || logs.isLoading ? <LoadingSpinner text="Loading activity" /> : null}
-      {historyLimited ? <Caption>Recorded activity is outside the recent runs loaded.</Caption> : null}
-      {expired ? <Caption>Activity content expired.</Caption> : excluded ? <Caption>Activity content is unavailable for this run.</Caption> : null}
+      {historyLimited ? <Caption>{tAttr("Recorded activity is outside the recent runs loaded.")}</Caption> : null}
+      {expired ? <Caption>{tAttr("Activity content expired.")}</Caption> : excluded ? <Caption>{tAttr("Activity content is unavailable for this run.")}</Caption> : null}
       {readError ? <AlertBanner severity="error" action={<ReportBugButton context={{ source: "operation-failure", summary: "Run activity could not load", errorText: readError.message }} />}>{readError.message}</AlertBanner> : null}
       {runId && !logs.isLoading && !useLive && !expired && !excluded && !readError && shown.length === 0
         ? <Caption>{props.placeholder ?? "No agent activity recorded."}</Caption> : null}
@@ -354,10 +355,10 @@ export const AgentActivityWidget: React.FC<AgentActivityWidgetProps> = (
           )}
         </FlexColumn>
       </ScrollArea>
-      {pages.some((page) => page.truncated || page.limited) ? <Caption>Activity recording was limited.</Caption> : null}
-      {traceIncomplete ? <Caption>Some browser activity could not be recorded.</Caption> : null}
-      {!traceIncomplete && pages.some((page) => page.incomplete) ? <Caption>Activity recording is incomplete.</Caption> : null}
-      {logs.hasNextPage && !expired && !excluded ? <EditorButton disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>Load more activity</EditorButton> : null}
+      {pages.some((page) => page.truncated || page.limited) ? <Caption>{tAttr("Activity recording was limited.")}</Caption> : null}
+      {traceIncomplete ? <Caption>{tAttr("Some browser activity could not be recorded.")}</Caption> : null}
+      {!traceIncomplete && pages.some((page) => page.incomplete) ? <Caption>{tAttr("Activity recording is incomplete.")}</Caption> : null}
+      {logs.hasNextPage && !expired && !excluded ? <EditorButton disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>{tAttr("Load more activity")}</EditorButton> : null}
     </FlexColumn>
   );
 };

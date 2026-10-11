@@ -24,6 +24,7 @@ import {
 import { AskRunAgentButton } from "../runs/AskRunAgentButton";
 import ReportBugButton from "../support/ReportBugButton";
 import { StoredRunActivity } from "./puck/AgentActivityWidget";
+import { tAttr } from "./i18nAttrs";
 
 interface AppRunHistoryProps {
   instanceId: string;
@@ -47,7 +48,7 @@ function ReadOnlyValue({ value }: { value: unknown }): React.ReactElement {
         return (
           <ResponsiveImage
             locator={locator}
-            alt="Historical output"
+            alt={tAttr("Historical output")}
             fit="contain"
           />
         );
@@ -57,7 +58,7 @@ function ReadOnlyValue({ value }: { value: unknown }): React.ReactElement {
       }
       return <AudioPlayback locator={locator} />;
     }
-    return <Caption>Media reference unavailable.</Caption>;
+    return <Caption>{tAttr("Media reference unavailable.")}</Caption>;
   }
   return (
     <Text
@@ -114,7 +115,7 @@ export default function AppRunHistory({
   const error = history.error ?? detail.error;
   return (
     <FlexColumn gap={SPACING.md} padding={SPACING.lg}>
-      <Text weight={600}>Run history</Text>
+      <Text weight={600}>{tAttr("Run history")}</Text>
       {error ? (
         <AlertBanner
           severity="error"
@@ -148,14 +149,14 @@ export default function AppRunHistory({
                 {record.app?.cost_state === "settled"
                   ? `$${record.app.actual_usd?.toFixed(4)}`
                   : record.app?.cost_state === "unsettled"
-                    ? "Cost pending"
-                    : "Cost unavailable"}
+                    ? tAttr("Cost pending")
+                    : tAttr("Cost unavailable")}
               </Caption>
               {record.app?.result_reference ? (
                 <ResponsiveImage
                   locator={`asset://${record.app.result_reference.asset_id}`}
                   preferThumbnail
-                  alt="Run result thumbnail"
+                  alt={tAttr("Run result thumbnail")}
                 />
               ) : null}
             </FlexRow>
@@ -163,7 +164,7 @@ export default function AppRunHistory({
         </FlexColumn>
       </ScrollArea>
       {!history.isLoading && !records.length ? (
-        <Caption>No runs recorded for this instance.</Caption>
+        <Caption>{tAttr("No runs recorded for this instance.")}</Caption>
       ) : null}
       <FlexRow gap={SPACING.sm}>
         {pageIndex > 0 ? (
@@ -181,11 +182,11 @@ export default function AppRunHistory({
         ) : null}
       </FlexRow>
       {selectedRunId ? (
-        <FlexColumn gap={SPACING.md} role="region" aria-label="Historical run">
+        <FlexColumn gap={SPACING.md} role="region" aria-label={tAttr("Historical run")}>
           <FlexRow gap={SPACING.sm}>
-            <Text weight={600}>Historical result (read-only)</Text>
+            <Text weight={600}>{tAttr("Historical result (read-only)")}</Text>
             <EditorButton onClick={() => onSelect(null)}>
-              Close history selection
+              {tAttr("Close history selection")}
             </EditorButton>
           </FlexRow>
           {candidate && !run ? (
@@ -240,8 +241,8 @@ export default function AppRunHistory({
                       {!Object.keys(run.app?.[field] ?? {}).length ? (
                         <Caption>
                           {run.app?.content_limited
-                            ? "Content exceeds the read limit."
-                            : "No values recorded."}
+                            ? tAttr("Content exceeds the read limit.")
+                            : tAttr("No values recorded.")}
                         </Caption>
                       ) : null}
                     </FlexColumn>
@@ -249,10 +250,10 @@ export default function AppRunHistory({
                 </>
               )}
               {run.app?.content_limited || summary?.truncated ? (
-                <Caption>Some recorded content was limited.</Caption>
+                <Caption>{tAttr("Some recorded content was limited.")}</Caption>
               ) : null}
               {summary?.incomplete ? (
-                <Caption>Recording is incomplete.</Caption>
+                <Caption>{tAttr("Recording is incomplete.")}</Caption>
               ) : null}
               {summary?.documents.map((document) => {
                 const type = documentType(document.kind);

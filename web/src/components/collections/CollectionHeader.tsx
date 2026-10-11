@@ -50,8 +50,7 @@ const CollectionHeader = () => {
       >
         <FlexColumn gap={1} sx={{ p: 2, maxWidth: 400 }}>
           <Caption color="secondary">
-            Collections store documents for semantic search. Drop text files
-            here to index them:
+            {t("editor:ui.collectionsStoreDocumentsForSemanticSearchDropTextFilesHereToIndexThem")}
           </Caption>
           <ul
             style={{
@@ -60,12 +59,11 @@ const CollectionHeader = () => {
               listStyle: "disc"
             }}
           >
-            <li>Plain text and Markdown</li>
-            <li>HTML, CSV, and JSON</li>
+            <li>{t("editor:ui.plainTextAndMarkdown")}</li>
+            <li>{t("editor:ui.htmlCsvAndJson")}</li>
           </ul>
           <Caption color="secondary">
-            To index PDFs, Office files, or images, extract their text with a
-            workflow first.
+            {t("editor:ui.toIndexPdfsOfficeFilesOrImagesExtractTheirTextWithAWorkflowFirst")}
           </Caption>
         </FlexColumn>
       </Popover>

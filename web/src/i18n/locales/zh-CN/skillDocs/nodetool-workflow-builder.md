@@ -85,9 +85,9 @@ NodeTool 持有多种文档类型,其中大多数并不是图。当用户明确�
 
 ### 库命名空间(`lib.*`)
 
-`lib.pdf`(把页面栅格化为图像)、`lib.http`(网络请求)、`lib.sqlite`(数据库路径)、`lib.browser`(截图)、`lib.os`(文件系统)、`lib.svg`(矢量图形)、`lib.charts`(图表)
+`lib.pdf`(把页面栅格化为图像)、`lib.sqlite`(数据库路径)、`lib.browser`(截图)、`lib.svg`(矢量图形)、`lib.charts`(图表)
 
-> **注意:** `lib.json`、`lib.math`、`lib.uuid`、`nodetool.boolean`、`nodetool.dictionary`、`nodetool.numbers` 以及全部 `skills.*` 节点已移除——JSON/数学/uuid 逻辑改用**Code 节点**(`nodetool.code.Code`)及其内建代码片段库。(`lib.http` 与 `nodetool.list` 的 `Range`、`RepeatEach`、`RepeatValue`、`Tile` 仍在;日期时间现在是 `lib.datetime`。)
+> **注意:** `lib.http`、`lib.os`、`lib.datetime`、`lib.json`、`lib.math`、`lib.uuid`、`nodetool.boolean`、`nodetool.dictionary`、`nodetool.list`、`nodetool.numbers`、`nodetool.text.Chunk` 以及全部 `skills.*` 节点已移除。改用**Code 节点**(`nodetool.code.Code`)及其代码片段库。它的沙箱为网络请求提供 `fetch`,为文件提供 `workspace.*`,为日期逻辑提供 `@nodetool-ai/sandbox-dates`(date-fns)。重复执行由 `nodetool.control.RepeatCount` 与 `nodetool.control.RepeatValue` 覆盖。
 
 ### 外部服务命名空间
 
@@ -137,7 +137,7 @@ NodeTool 持有多种文档类型,其中大多数并不是图。当用户明确�
 ### 模式 4: RAG(检索增强生成)
 **形态**: ChatInput → vector.HybridSearch + FormatText → Agent → Output
 **适用于**: 面向文档的问答、需要特定来源支撑的事实准确性。
-**建索引流**: nodetool.code.Code(`workspace.list`) → LoadDocumentFile → nodetool.text.Chunk → vector.IndexTextChunk
+**建索引流**: nodetool.code.Code(`workspace.list`) → LoadDocumentFile → nodetool.code.Code("Chunk Text" 片段) → vector.IndexTextChunk
 **查询流**: ChatInput → vector.HybridSearch → FormatText → Agent → Output
 **注意**: RAG 节点统一在 `vector.*` 这一个命名空间下(如 `vector.QueryText`、`vector.HybridSearch`、`vector.IndexTextChunk`);不存在 `vector.chroma.*`/`vector.faiss.*`。
 

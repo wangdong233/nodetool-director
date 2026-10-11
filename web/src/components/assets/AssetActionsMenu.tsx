@@ -166,7 +166,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
     TYPE_FILTERS.find((f) => f.key === typeFilter)?.label ?? "All";
   const modelFilterLabel = modelFilter
     ? (modelOptions.find((m) => m.id === modelFilter)?.label ?? modelFilter)
-    : "Any model";
+    : t("editor:ui.anyModel");
   // Offer the model filter only when the view holds generated assets, or a
   // model is already picked and has to stay clearable.
   const showModelFilter = modelOptions.length > 0 || modelFilter !== null;
@@ -239,7 +239,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {/* Filter: generating model */}
         {showModelFilter && (
           <ToolbarIconButton
-            tooltip="Filter by model"
+            tooltip={t("editor:ui.filterByModel")}
             onClick={(e) => setModelFilterAnchor(e.currentTarget)}
             tooltipPlacement="top"
             nodrag={false}
@@ -269,7 +269,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {/* Filter: starred assets from every folder */}
         <ToolbarIconButton
           icon={favoritesOnly ? <StarIcon /> : <StarBorderIcon />}
-          tooltip={favoritesOnly ? "Show all assets" : "Show favorites"}
+          tooltip={favoritesOnly ? t("editor:ui.showAllAssets") : t("editor:ui.showFavorites")}
           onClick={() => setFavoritesOnly(!favoritesOnly)}
           tooltipPlacement="top"
           nodrag={false}
@@ -344,7 +344,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         paperSx={{ py: SPACING.micro, minWidth: 160 }}
       >
         <MenuItemPrimitive
-          label="Any model"
+          label={t("editor:ui.anyModel")}
           icon={<FilterAltOffIcon />}
           selected={modelFilter === null}
           onClick={() => {

@@ -589,8 +589,8 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
     return (
       <EmptyState
         variant="error"
-        title="Could not load app"
-        description={error?.message ?? (application && !document ? "The Application document is invalid or uses an unsupported version." : "The app may have been deleted.")}
+        title={tAttr("Could not load app")}
+        description={error?.message ?? (application && !document ? tAttr("The Application document is invalid or uses an unsupported version.") : tAttr("The app may have been deleted."))}
       />
     );
   }

@@ -4,6 +4,7 @@ import { getGameDraftStore } from "../../stores/game/GameDraftStore";
 import { saveBlobAsFile } from "../../utils/downloadResponse";
 import { EditorButton, EmptyState, FlexColumn, LoadingSpinner, SPACING, Text } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { useTranslation } from "react-i18next";
 import GameRevisions from "./panels/revisions/GameRevisions";
 
 interface GameDraftRecoveryProps {
@@ -17,6 +18,7 @@ export function isMissingDraft(error: unknown): boolean {
 }
 
 export default function GameDraftRecovery({ refId }: GameDraftRecoveryProps): ReactElement {
+  const { t } = useTranslation();
   const published = trpc.games.get.useQuery({ id: refId }, { staleTime: 15_000 });
   const revisions = trpc.games.revisions.useQuery({ id: refId }, { staleTime: 15_000 });
   const queries = trpc.useUtils();
@@ -58,9 +60,9 @@ export default function GameDraftRecovery({ refId }: GameDraftRecoveryProps): Re
       await queries.games.draftChanges.invalidate({ id: refId }, undefined, { throwOnError: true });
     } catch (failure) {
       if (committed) {
-        setRestoreError("Draft restored, but the editor could not refresh. Reload the game to continue.");
+        setRestoreError(t("editor:ui.draftRestoredButTheEditorCouldNotRefreshReloadTheGameToContinue"));
       } else {
-        setRestoreError(failure instanceof Error ? failure.message : "Could not restore the selected revision.");
+        setRestoreError(failure instanceof Error ? failure.message : t("editor:ui.couldNotRestoreTheSelectedRevision"));
         try {
           const currentPublished = await trpcClient.games.get.query({ id: refId });
           try {
@@ -74,7 +76,7 @@ export default function GameDraftRecovery({ refId }: GameDraftRecoveryProps): Re
           }
         } catch {
           setRecoveryState("refresh-failed");
-          setRestoreError("Could not refresh the draft after the failed restore. Reload the game before trying again.");
+          setRestoreError(t("editor:ui.couldNotRefreshTheDraftAfterTheFailedRestoreReloadTheGameBeforeTryingAgain"));
         }
       }
     } finally {
@@ -83,15 +85,15 @@ export default function GameDraftRecovery({ refId }: GameDraftRecoveryProps): Re
   }
 
   return <FlexColumn gap={SPACING.sm}>
-    <EmptyState variant="error" title="Draft source unavailable"
-      description="Choose a published revision to replace the unavailable draft. This cannot recover unpublished edits from the missing source." />
+    <EmptyState variant="error" title={t("editor:ui.draftSourceUnavailable")}
+      description={t("editor:ui.chooseAPublishedRevisionToReplaceTheUnavailableDraftThisCannotRecoverUnpublishedEditsFromTheMissingSource")} />
     {localCopy && <>
-      <Text>Export the local draft before restoring. The export includes your edits and undo history. Keep this tab open until the download finishes.</Text>
-      <EditorButton onClick={exportLocalCopy}>Export local draft</EditorButton>
+      <Text>{t("editor:ui.exportTheLocalDraftBeforeRestoringTheExportIncludesYourEditsAndUndoHistoryKeepThisTabOpenUntilTheDownloadFinishes")}</Text>
+      <EditorButton onClick={exportLocalCopy}>{t("editor:ui.exportLocalDraft")}</EditorButton>
     </>}
-    {published.isPending || revisions.isPending ? <LoadingSpinner text="Loading published revisions" /> :
+    {published.isPending || revisions.isPending ? <LoadingSpinner text={t("editor:ui.loadingPublishedRevisions")} /> :
       <GameRevisions revisions={revisions.data ?? []} busy={restoring || recoveryState !== "ready" || !published.data || needsExport} onRestore={restore} />}
-    {error && <EmptyState variant="error" title={recoveryState === "restored" ? "Draft restored" : "Could not restore draft"} description={error} />}
+    {error && <EmptyState variant="error" title={recoveryState === "restored" ? t("editor:ui.draftRestored") : t("editor:ui.couldNotRestoreDraft")} description={error} />}
     <ReportBugButton context={{ source: "panel-crash", summary: "Game draft source is unavailable",
       errorText: error ?? "Game draft source is unavailable", nodeDetail: `Game: ${refId}` }} />
   </FlexColumn>;

@@ -92,7 +92,7 @@
 | `op:<opId>/in:<nodeId>` | 小程序某个工作流的一个输入 |
 | `op:<opId>/out:<nodeId>` | 小程序某个工作流的一个输出 |
 | `op:<opId>/prop:<nodeId>#<prop>` | 由控件驱动的节点设置 |
-| `op:<opId>/exec#<field>` | 运行状态: `running`、`progress`、`error`、`activity` |
+| `op:<opId>/exec#<field>` | 运行状态: `running`、`progress`、`error`、`activity`、`transcript`(智能体的文字与工具调用,供 Agent Activity 控件用) |
 | `var:<variableId>` | 小程序记住的一个值 |
 | `view:<componentId>#<prop>` | 归单个控件所有的状态,永不保存 |
 
@@ -125,10 +125,10 @@
 
 ### 控件
 
-**展示用:** Heading、Text、Markdown(流式正文的首选)、Image、Audio、Video、Sketch、Timeline、JSON、Table、Output、Progress、Gallery、Image Compare。
+**展示用:** Heading、Text、Markdown(流式正文的首选)、Image、Audio、Video、Sketch、Timeline、Storyboard、Storyboard Preview、JSON、Table、Output、Progress、Agent Activity(智能体的文字与工具调用,实时)、Gallery、Image Compare。
 
-Sketch 与 Timeline 收文档引用,`{type: "sketch", id}` 或
-`{type: "timeline", id}`,正是产出它们的节点所发射的形态。把它绑到 Image 或 Video 上什么也不显示: 引用不是媒体 URL。
+Sketch、Timeline 与两个分镜控件收文档引用,例如
+`{type: "sketch", id}`,正是产出它们的节点所发射的形态。Storyboard 显示镜头卡。Storyboard Preview 把整块板作为一条成片播放,片段按镜头顺序衔接,没有片段的镜头用静帧。把引用绑到 Image 或 Video 上什么也不显示: 引用不是媒体 URL。
 
 **收输入:** Workflow Form、Workflow Input、Text Input、Number Input、Slider、Switch、Select、Image Input、Sketch Pad、Audio Input、Audio Recorder、Video Input、Camera Capture、Document Input、Color Input、Resource Picker、Resource Gallery、Storyboard Scenes。
 
@@ -137,6 +137,14 @@ Workflow Form 按图顺序渲染某个操作的全部输入,所以后加的 Inpu
 **聊天:** Chat Thread(`binding` 是对话本体,`streamBinding` 是当前运行正在抵达的回复)、Chat Composer、Model Select。线程把落定的回复折叠进对话变量——只有当 `binding` 是变量且 `streamBinding` 是输出时才会发生。
 
 **按钮与布局:** Button、Panel、Columns(`left` 与 `right` 两个槽位)、Divider。
+
+Panel、Columns 与 Accordion 收 `visibleWhen`,一个条件就能显示或隐藏一整组控件,
+比如 Guided Steps 流程里的一步。Panel 的 `variant` 可取 `panel`、`card`(放单个条目
+的小浮起卡片)或 `plain`(无框),`columns` 把子元素铺成网格。Columns 的 `layout:
+"main-aside"` 让左侧槽位吃掉剩余宽度,右侧槽位按内容自适应。Button 设 `fullWidth:
+false` 时贴合标签宽度,`align: "end"` 把它放到右侧。Heading 收 `subtitle`,Text 收
+`tone`(`muted` 或 `hint`),Text Input 收 `hint`,Image 收 `aspectRatio`、`width` 与
+`caption`。
 
 ### 文档形状
 

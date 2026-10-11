@@ -743,12 +743,12 @@ const Inspector: React.FC = () => {
       <Box className="inspector" css={inspectorStyles}>
         <div className="inspector-head">
           <div className="inspector-head-text">
-            <div className="inspector-title">No node selected</div>
+            <div className="inspector-title">{t("editor:ui.noNodeSelected")}</div>
           </div>
           <div className="inspector-head-close">
             <CloseButton
               onClick={handleInspectorClose}
-              tooltip="Close inspector"
+              tooltip={t("editor:inspector.close", { defaultValue: "Close inspector" })}
               buttonSize="small"
               nodrag={false}
             />

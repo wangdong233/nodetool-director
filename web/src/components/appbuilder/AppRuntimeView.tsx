@@ -87,12 +87,12 @@ function RuntimeErrorActions({
     <FlexRow gap={SPACING.xs}>
       {runId ? (
         <EditorButton onClick={() => openRunInspection({ runId, spanId })}>
-          View trace
+          {tAttr("View trace")}
         </EditorButton>
       ) : null}
       {runId ? <AskRunAgentButton runId={runId} spanId={spanId} /> : null}
       <ReportBugButton
-        label="Report failure"
+        label={tAttr("Report failure")}
         context={{
           source: "operation-failure",
           summary: `${name || operationId} operation failed`,
@@ -147,11 +147,11 @@ function RuntimeOperationRunLink({
     <FlexRow gap={SPACING.xs}>
       <Caption>{name}</Caption>
       <EditorButton onClick={() => openRunInspection({ runId })}>
-        View trace
+        {tAttr("View trace")}
       </EditorButton>
       <AskRunAgentButton runId={runId} />
       {traceIncomplete ? (
-        <Caption>Some browser activity could not be recorded.</Caption>
+        <Caption>{tAttr("Some browser activity could not be recorded.")}</Caption>
       ) : null}
     </FlexRow>
   );

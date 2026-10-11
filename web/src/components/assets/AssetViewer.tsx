@@ -960,7 +960,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset?.workflow_id && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<AccountTreeIcon />}
-              tooltip="Open the workflow that made this"
+              tooltip={t("editor:ui.openTheWorkflowThatMadeThis")}
               onClick={handleOpenWorkflow}
               className="button open-workflow"
               nodrag={false}

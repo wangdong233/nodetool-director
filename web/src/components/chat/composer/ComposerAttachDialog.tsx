@@ -18,6 +18,7 @@ import {
 import { trpc } from "../../../trpc/client";
 import { MentionAssetTile } from "../../node_types/editing/promptComposer/MentionAssetTile";
 import { useAssetMentionSearch } from "../../node_types/editing/promptComposer/useAssetMentionSearch";
+import { useTranslation } from "react-i18next";
 import EntityPicker from "../../entities/EntityPicker";
 import { TYPE_COLOR, TYPE_GLYPH } from "../../workspace/tabTypeIdentity";
 import {
@@ -83,6 +84,7 @@ const AssetsTab: React.FC<{
   query: string;
   onSelect: (asset: Asset) => void;
 }> = ({ query, onSelect }) => {
+  const { t } = useTranslation();
   const { displayedAssets, hasMoreSaved, loadMoreSaved, handleRename } =
     useAssetMentionSearch(query, "saved");
 
@@ -100,9 +102,9 @@ const AssetsTab: React.FC<{
     return (
       <EmptyState
         variant={query ? "no-results" : "empty"}
-        title={query ? "No assets match" : "No assets yet"}
+        title={query ? t("editor:ui.noAssetsMatchPlain") : t("editor:ui.noAssetsYet", { defaultValue: "No assets yet" })}
         description={
-          query ? "Try another name." : "Upload a file or generate one first."
+          query ? t("editor:ui.tryAnotherName") : t("editor:ui.uploadAFileOrGenerateOneFirst")
         }
         size="small"
       />
@@ -129,6 +131,7 @@ const DocumentsTab: React.FC<{
   query: string;
   onSelect: (document: AttachedDocument) => void;
 }> = ({ query, onSelect }) => {
+  const { t } = useTranslation();
   const activeProjectId = useWorkspaceTabsStore((s) => s.activeProjectId);
   const personalProjectId = useWorkspaceTabsStore((s) => s.personalProjectId);
   const projectId =
@@ -151,10 +154,10 @@ const DocumentsTab: React.FC<{
   }, [data, query]);
 
   if (!projectId) {
-    return <Caption color="muted">No project selected.</Caption>;
+    return <Caption color="muted">{t("editor:ui.noProjectSelectedDot")}</Caption>;
   }
   if (isLoading) {
-    return <LoadingSpinner size="small" text="Loading documents" />;
+    return <LoadingSpinner size="small" text={t("editor:ui.loadingDocuments")} />;
   }
   if (error) {
     return <Caption color="error">{error.message}</Caption>;
@@ -163,11 +166,11 @@ const DocumentsTab: React.FC<{
     return (
       <EmptyState
         variant={query ? "no-results" : "empty"}
-        title={query ? "No documents match" : "No documents yet"}
+        title={query ? t("editor:ui.noDocumentsMatch") : t("editor:ui.noDocumentsYet")}
         description={
           query
-            ? "Try another name."
-            : "Workflows, sketches, timelines, and other documents in this project show up here."
+            ? t("editor:ui.tryAnotherName")
+            : t("editor:ui.workflowsSketchesTimelinesAndOtherDocumentsInThisProjectShowUpHere")
         }
         size="small"
       />
@@ -222,23 +225,26 @@ const DocumentsTab: React.FC<{
 
 const UploadTab: React.FC<{ onUpload: (files: File[]) => void }> = ({
   onUpload
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <Box sx={{ height: PANEL_HEIGHT }}>
     <CheckerDropzone message="Drop files here" onDrop={onUpload}>
       <FlexColumn align="center" gap={SPACING.sm}>
         <Caption color="secondary">
-          Drop files here, or choose them. Uploads go to the asset library.
+          {t("editor:ui.dropFilesHereOrChooseThemUploadsGoToTheAssetLibrary")}
         </Caption>
         <UploadButton
           onFileSelect={onUpload}
-          label="Choose files"
-          tooltip="Choose files to upload"
+          label={t("editor:ui.chooseFiles")}
+          tooltip={t("editor:ui.chooseFilesToUpload")}
           multiple
         />
       </FlexColumn>
     </CheckerDropzone>
   </Box>
-);
+  );
+};
 
 export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
   open,
@@ -248,6 +254,7 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
   onSelectDocument,
   onUploadFiles
 }) => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<AttachTab>("assets");
   const [query, setQuery] = useState("");
 
@@ -291,7 +298,7 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Add to message"
+      title={t("editor:ui.addToMessage")}
       maxWidth="sm"
       fullWidth
       disableRestoreFocus
@@ -301,7 +308,7 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
           tabs={TABS}
           value={tab}
           onChange={handleTabChange}
-          aria-label="What to add"
+          aria-label={t("editor:ui.whatToAdd")}
           size="small"
         />
         {(tab === "assets" || tab === "documents") && (

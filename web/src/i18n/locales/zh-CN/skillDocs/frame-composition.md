@@ -1,7 +1,7 @@
 # 画面构图 → 时间线上的调度
 
-东西坐在哪、画面有多深、镜头怎么在里面移动。`motion-graphics` 承载
-工具契约;本技能决定你传给它的坐标。
+东西坐在哪、画面有多深、镜头怎么在里面移动。`motion-graphics` 是搭建
+循环;`timeline-edit-ops` 承载操作契约。本技能决定你传给它们的坐标。
 
 ## 四套坐标空间,混用就是最常见的 bug
 
@@ -15,10 +15,71 @@
 | `anchorX` / `anchorY` | 0..1 | 缩放或旋转的支点 |
 | `textStyle.fontSizePx` | 序列像素 | 对着 `get_timeline` 的 `height`,不是预览宽度 |
 | `transform.depthPx`、`camera2d.position/depthPx/focalLengthPx` | 序列像素 | 透视;片段深度还决定同轨内的层叠顺序 |
-| `layout.gapPx`、`fitText.paddingXPx/paddingYPx` | 序列像素 | 对着渲染出的文字或形状盒子量 |
+| `layout.gap`、`layout.padding` | 序列像素 | Flex 容器间距,对着子元素渲染出的盒子量 |
 
 算任何东西之前,先从 `get_timeline` 读 `width`、`height` 与 `fps`。按
 1920×1080 编写、存进 1080×1920 序列的布局,错的不只一个裁切。
+
+## 文字交给容器摆放
+
+改用 `@nodetool-ai/sandbox-timeline` 搭建(什么时候该写代码见
+`motion-graphics`)?**容器决定子元素坐在哪——你几乎从不为文字写
+`x`/`y`。** `s.stack(children, o)` 与 `s.row(children, o)` 会建一个真正的
+Yoga flex 容器,并把 `children` 重新挂为它的真实子元素——可以随意嵌套,
+`stack` 组成的 `row`、内嵌 `row` 的 `stack` 都能正确解析。文字子元素会
+回流到 Yoga 给它的任何宽度,而不是猜一个行长。
+
+容器自身在画面里的落点由 `o.at`(默认画面中心)加 `o.anchor`(默认
+`"center"`)决定:`anchor` 指容器*计算出的*盒子上哪个点落在 `at`——名字
+`"left"` 就是把盒子的左边缘放到 `at.x`,不需要量兄弟元素的宽度。具名锚点:
+`"top-left"`、`"top"`、`"top-right"`、`"left"`、`"center"`、`"right"`、
+`"bottom-left"`、`"bottom"`、`"bottom-right"`,也可以直接传 `{x, y}` 分数。
+`o.align`(交叉轴,默认 `"start"`)与 `o.justify`(主轴,不设)就是 Yoga
+的 `alignItems`/`justifyContent`。子元素自己的弹性尺寸写在它自己那次调用
+的 `o.flexItem` 上(`grow`、`width`、`alignSelf`……);`rect`/`ellipse`
+(或任何片段)上的 `absolute: true` 会把它拿出流,并拉伸到恰好填满其 flex
+父容器的盒子——一块底板贴在卡片文字后面,零像素算术。
+
+只有装饰(一枚散落的记号、一个背景形状)或与阅读顺序无关的刻意自由摆放,
+才去写显式 `x`/`y`。观众要读的一切——标题、眉题、说明、一排数据——都进
+容器。
+
+**标题块**——眉题、标题、副题,按同一节奏纵向排:
+
+```js
+// fragment
+const kicker = s.kicker("LAUNCHING TODAY");
+const title = s.text("Round-ups", { size: 120, weight: 700 });
+const sub = s.text("on every card", { size: 40 });
+s.stack([kicker, title, sub], { gap: 20 });
+```
+
+**组合标**——标识旁放标准字,一行:
+
+```js
+// fragment
+const mark = s.image(logoAssetId);
+const wordmark = s.text("Northwind", { size: 64, weight: 700 });
+s.row([mark, wordmark], { gap: 16, align: "center" });
+```
+
+**卡片**——一块绝对定位的底板上,一个带内边距的纵列:
+
+```js
+// fragment
+const plate = s.rect(1, 1, "#0c2a21", { r: 24, absolute: true });
+const heading = s.text("Plan Pro", { size: 48, weight: 700 });
+const price = s.text("$12/mo", { size: 32 });
+s.stack([plate, heading, price], { gap: 8, padding: 24 });
+```
+
+**列表 / 网格**——一行排满宽度后自动折成网格:
+
+```js
+// fragment
+const chips = ["Round-ups", "Instant transfers", "No fees"].map((t) => s.pill(t));
+s.row(chips, { gap: 12, wrap: true });
+```
 
 ## 网格
 
@@ -30,7 +91,8 @@ column  = (1720 − 11×24) / 12 = 121.3px
 ```
 
 一切间距取 8 的倍数。正文文案的 `fontSizePx` 落在画面高度的 2.5–4%;
-低于 2.5%,`validate_timeline` 报 `text_illegible`。
+低于 2.5%,`validate_timeline` 报 `text_illegible`。往网格上放文字之前,
+先从 `motion-direction` § Typography 选定字体族、字重与标题比例。
 
 ## 一个视觉焦点
 
@@ -113,7 +175,7 @@ column  = (1720 − 11×24) / 12 = 121.3px
 `camera2d`、`layout`、`repeater`、`motionBlur` 和其他新的文档字段。
 用 `get_timeline` 读完整文档,改相关字段,再用 `set_timeline_document`
 写回完整文档。轨道、片段、标记、速度、设置、媒体轨、模板标识和其余
-字段都要留在写入里。工具契约归 `motion-graphics` 承载。
+字段都要留在写入里。操作契约归 `timeline-edit-ops` 承载。
 
 `kenBurns` 是 `fullClip`:它无视 `durationMs` 与 `delayMs`,贯穿整条片段。
 要把一次推近对到更短的时窗,改写成 `custom` 的 `scale` 曲线。
@@ -156,12 +218,18 @@ column  = (1720 − 11×24) / 12 = 121.3px
 上方,主体从底部 UI 区拉上来,`fontSizePx` 提高约 20%。把 16:9 的布局
 裁成 9:16,切掉的是外侧几列里的东西——通常正是 logo 和行动号召。
 
-用 `layout: {kind: "row" | "stack", children: [clip ids], gapPx}` 把
-一组的间距绑在成员上。标签或底板要跟着另一条片段走,用片段的
-`layout: {kind: "relative", targetClipId, side, gapPx}`。文字后面的
-形状,`fitText: {paddingXPx, paddingYPx}` 按文字当前的盒子(含动画中
-的字号)给形状定尺寸。这些关系省去每次改文字都重算像素。16:9 文档做
-9:16 仍要单独排一遍版,并在那个尺寸下核对安全区。
+写代码搭建时,重排通常只是上面容器的一次选项改动——把 `s.row` 换成
+`s.stack`(或改它的 `align`/`justify`),或挪一个新的 `at`/`anchor`——
+而不是重建每个子元素的 `x`/`y`。
+
+在 op 路径上,编组片段上的 `layout: {display: "flex", flexDirection:
+"row" | "column", gap}` 让它的真实子元素(它们的 `parentId` 指名编组)
+按普通 CSS flexbox 排布——`justifyContent`/`alignItems` 负责定位,
+`padding` 给容器留内边距。文字后面的形状,在装着这段文字、带内边距的
+flex 纵列里给形状设 `flexItem: {position: "absolute", inset: 0}`:
+形状的盒子随文字带边距的盒子改变尺寸——含动画中的字号——零手动像素
+算术。这些关系省去每次改文字都重算像素。16:9 文档做 9:16 仍要单独排
+一遍版,并在那个尺寸下核对安全区。
 
 ## 检查画面,不是文档
 
