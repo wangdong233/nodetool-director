@@ -670,7 +670,6 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
   }, [currentIndex, assetsToUse.length, handleChangeAsset]);
 
   const navigation = useMemo(() => {
-  const { t } = useTranslation();
     if (currentIndex === null) {
       return null;
     }
@@ -961,7 +960,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset?.workflow_id && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<AccountTreeIcon />}
-              tooltip="Open the workflow that made this"
+              tooltip={t("editor:ui.openTheWorkflowThatMadeThis")}
               onClick={handleOpenWorkflow}
               className="button open-workflow"
               nodrag={false}

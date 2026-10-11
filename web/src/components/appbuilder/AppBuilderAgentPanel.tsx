@@ -181,8 +181,10 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
       }}
     >
       <ChatPanelHeader
-        title="App Builder Agent"
-        description="Build the app layout and bind widgets to workflow inputs and outputs."
+        title={tAttr("App Builder Agent")}
+        description={tAttr(
+          "Build the app layout and bind widgets to workflow inputs and outputs."
+        )}
         onNewChat={handleNewChat}
         onSelectThread={selectThread}
         threadId={threadId}

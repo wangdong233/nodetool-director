@@ -12,6 +12,7 @@
 |---|---|
 | 有人出镜的手机拍摄:UGC 广告、证言、喜剧、一日记录、vlog | `/ugc-video` |
 | 产品片:产品照、主视觉、品牌短片,有无艺人皆可 | `/product-commercial` |
+| 真实截图与产品照做的静音动效广告,不用生成素材 | `/motion-ad` |
 | 复刻拿到手的既有广告或片段 | `/video-clone` |
 | 旁白驱动画面:解说片、无人出镜视频、旁白作品 | `/script-video` |
 | 带对白、配乐与片名的叙事:短片、预告片、单场戏 | `/short-film` |
@@ -48,9 +49,10 @@
 两个族里的每个工具都要显式的 `storyboard_id`。没有"作用于当前打开的那
 个"这种回退。
 
-优先无头。用户正看着板一点点填上时、或需要 `set_screenplay` 时才动
-`ui_storyboard_*`——板级的 `title`、`logline`、`style_bible`、`narration`
-与 `music_prompt` 住在剧本上,无头侧没有工具能写它们。用
+优先无头。用户正看着板一点点填上时、或需要为 `title`、`logline`、
+`style_bible` 调 `set_screenplay` 时才动 `ui_storyboard_*`。无头侧的
+`edit_storyboard` → `set_board` 会写入剧本级的 `narration` 与 `music_prompt`,
+同时保留剧本上的其他字段。用
 `ui_open_document {type: "storyboard", id}` 在两族之间搭桥。
 
 ## 循环
@@ -223,6 +225,8 @@ slug。
 | `assemble_storyboard_timeline` | `storyboard_id`、`name?`、`fps?`(默认 30) |
 | `extract_script_from_storyboard` | `storyboard_id`、`name?`、`relink?` |
 | `delete_storyboard` | `storyboard_id` |
+| `get_storyboard_one_take` | `storyboard_id` → `prompt`(创作者写的)、`compiled`(来自板上的 REFS、STEPS、AUDIO)、`full_prompt`、带 `[Image N]` 的参考图(镜头静帧,按镜头顺序)、镜头窗口、时长、`settings`(存下来的 `duration_seconds`、`aspect_ratio`、`resolution`、`model`)、`effective`(经板级回退后的生效值)、警告 |
+| `update_storyboard_one_take` | `storyboard_id`、`prompt?`、`duration_seconds?`、`aspect_ratio?`、`resolution?`、`model?` `{provider, id, name?}`(传 null 清除)、`shots?` `[{shot_id, end_state?, sound?}]`、`expected_revision?` |
 
 渲染上限:**每次调用 24 镜**,`concurrency` 默认 3、最大 8。
 
@@ -238,10 +242,11 @@ slug。
 `{"op": "add_shot", ...}` · `update_shot {target, ...}` · `remove_shot {target}` ·
 `reorder_shot {target, index}` · `set_board {...}`
 
-镜头字段(新增与更新通用):`action`、`slug`、`camera`、`motion`、`dialogue`、
+镜头字段(新增与更新通用):`action`、`slug`、`camera`、`motion`、`graphics`、`dialogue`、
 `narration`、`notes`、`duration_seconds`、`duration_source`(`audio`\|`manual`)、
-`render_mode`(`keyframe`\|`direct`)、`entity_ids`、`location_id`、`covered_by`、
-`index`。
+`render_mode`(`keyframe`\|`direct`\|`reference`)、`entity_ids`、`location_id`、`covered_by`、
+`index`。`graphics` 是语义化的设计意图(`mode`、`direction`,以及 `elements` 里
+确切的文字/素材),不是 Timeline 关键帧;`update_shot` 传 `null` 即清除。
 
 `camera` 即 `{framing?, lens?, angle?, movement?}`。
 
@@ -249,18 +254,19 @@ slug。
 另一镜片段上的一扇窗。见下面"镜头合并"一节。`null` 撤销。
 
 板字段(仅 `set_board`):`brief`、`style`、`aspect_ratio`、`entity_ids`、
-`image_model`、`video_model`。两个模型字段收 `find_model` 返回的模型
-**对象**,或 null。
+`image_model`、`video_model`、`narration`、`music_prompt`。两个模型字段收
+`find_model` 返回的模型**对象**,或 null。`narration` 与 `music_prompt` 收
+字符串并写入剧本。空字符串清除该方向。
 
 **编辑操作设不了 `keyframe`、`clip` 或 `status`。** 它们归渲染工具;传了会
 报错并点名正确的工具。唯一的例外是 `covered_by`:覆盖是一张未经渲染就
 到位的画面,所以设置它会把镜头标为 `rendered`,清除它则把镜头放回
 `keyframe_ready`/`planned`。
 
-**编辑操作在板级设不了 `title`、`logline`、`style_bible`、`narration` 或
-`music_prompt`。** 它们住在剧本上,只有 `ui_storyboard_set_screenplay` 写得
-动。单*镜*的 `narration` 是普通镜头字段,无头侧照常用。板级旁白与音乐
-重要,因为 `assemble_storyboard_timeline` 会把它们变成草稿音频片段。
+**编辑操作在板级设不了 `title`、`logline` 或 `style_bible`。** 这些字段
+用 `ui_storyboard_set_screenplay`。单*镜*的 `narration` 仍是镜头字段。板级
+旁白与音乐是剧本上的独立字段:`assemble_storyboard_timeline` 在未关联的
+板上把它们变成草稿音频片段。
 
 #### 镜头合并
 
@@ -289,8 +295,9 @@ slug。
 
 ### 分镜——浏览器(`ui_storyboard_*`)
 
-板必须作为工作区标签页打开;它的 id 来自 `ui_context` 系统块。没开 →
-`ui_open_document {type: "storyboard", id, focus?}`。Target = 镜头 id、
+板必须作为工作区标签页打开;它的 id 来自 `ui_context` 系统块。没打开 →
+`edit_storyboard` 照样编辑已保存的板;用 `ui_open_document {type: "storyboard", id}`
+把它展示给用户。Target = 镜头 id、
 字符串形式的序号,或 `"selected"`。**这里不解析 slug。**
 
 | 工具 | 参数 |
@@ -543,7 +550,7 @@ LOOP
    {asset_id, kind, name, descriptor}. There is no create-from-text.
    Each entity: one name, one kind, one canonical descriptor sentence.
 3. edit_storyboard set_board {entity_ids, image_model, video_model,
-   brief, style, aspect_ratio}. Models come from find_model — there is no
+   brief, style, aspect_ratio, narration, music_prompt}. Models come from find_model — there is no
    default and an unset model fails the render.
 4. Direct with edit_storyboard add_shot, one op per shot. Give every shot a
    slug (1a, 2a, ...). Fields: action, slug, camera {framing, lens, angle,

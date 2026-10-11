@@ -2,6 +2,7 @@
 import React, { memo } from "react";
 import { useStaleDeployStore } from "../../stores/StaleDeployStore";
 import { Dialog, Text } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 import { reloadIntoNewDeploy } from "../../lib/staleDeployPrompt";
 
 /**
@@ -10,6 +11,7 @@ import { reloadIntoNewDeploy } from "../../lib/staleDeployPrompt";
  * exactly what fails to load. Driven by {@link useStaleDeployStore}.
  */
 const StaleDeployDialog: React.FC = () => {
+  const { t } = useTranslation();
   const open = useStaleDeployStore((s) => s.open);
   const reason = useStaleDeployStore((s) => s.reason);
   const dismiss = useStaleDeployStore((s) => s.dismiss);
@@ -18,17 +20,17 @@ const StaleDeployDialog: React.FC = () => {
     <Dialog
       open={open}
       onClose={dismiss}
-      title="A new version of NodeTool is available"
+      title={t("editor:ui.aNewVersionOfNodetoolIsAvailable")}
       onConfirm={reloadIntoNewDeploy}
       onCancel={dismiss}
-      confirmText="Reload now"
-      cancelText="Later"
+      confirmText={t("editor:ui.reloadNow")}
+      cancelText={t("editor:ui.later")}
       content={
         <Text>
           {reason === "chunk-error"
-            ? "Part of the app could not load because NodeTool was updated. Reload to continue."
-            : "Reload to switch to the new version."}{" "}
-          If you have unsaved changes, your browser asks before reloading.
+            ? t("editor:ui.partOfTheAppCouldNotLoadBecauseNodetoolWasUpdatedReloadToContinue")
+            : t("editor:ui.reloadToSwitchToTheNewVersion")}{" "}
+          {t("editor:ui.ifYouHaveUnsavedChangesYourBrowserAsksBeforeReloading")}
         </Text>
       }
     />

@@ -3,8 +3,39 @@
 一个标识一个想法。勾画、拼合或擦除——绝不三样全上。整段演绎控制在
 800–2500ms,收在干净的标识上,并保持定格。
 
-`motion-graphics` 承载操作契约。`motion-direction` 决定这条片头标属于哪种
-性格;标识通常是一部作品里唯一允许过冲的地方。
+`motion-graphics` 是搭建循环;`timeline-edit-ops` 承载操作契约。
+`motion-direction` 决定这条片头标属于哪种性格;标识通常是一部作品里
+唯一允许过冲的地方。
+
+## 同样三种套路,写成代码
+
+**描边勾画**——一个 path 元素配 `el.draw()`,即
+`enter({from: {trimEnd: 0}})`:
+
+```js
+// fragment
+const mark = s.path([["M", -40, 30], ["L", 0, -30], ["L", 40, 30]], { stroke: "#111111" });
+mark.draw({ dur: 1.1, ease: "cubic-bezier(0.65,0,0.35,1)" });
+```
+
+**字标错峰**——`el.enter()` 上的 `by` 与 `staggerMs`,短标识按字符:
+
+```js
+// fragment
+const wordmark = s.text("Northwind", { size: 64, weight: 700 });
+wordmark.enter({ from: { scale: 0.9, opacity: 0 }, dur: 0.38, by: "character", staggerMs: 45 });
+```
+
+**组合横排**——标识旁放字标,一个 flex 容器(`frame-composition` 完整
+讲容器词汇):
+
+```js
+// fragment
+s.row([mark, wordmark], { gap: 16, align: "center" });
+```
+
+标识与字标要像一个整体出场,就先显现容器;要保持组合间距又想要逐件
+搭建,就对容器自己的子元素过一遍 `s.stagger()`。
 
 ## 选一种技法
 
@@ -82,9 +113,11 @@
 
 跟随者要与标识对齐,就在它的片段上存 `animationLinks`,让它读标识的
 位置、缩放、旋转或透明度。链接跟随源写好的动画,且不会再链向其他
-链接。字标的位置要跟着标识变化的盒子走,用
-`layout: {kind: "relative", targetClipId: "<mark-id>", side: "right"}`;
-`fitText` 可以按字标给背板定尺寸。这些都是文档字段,先用
+链接。把标识与字标放进一条 flex 横排(编组片段上设
+`layout: {display: "flex", flexDirection: "row", gap, alignItems: "center"}`,
+两者都经 `parentId` 作为它的真实子片段),字标的位置就跟着标识变化的
+盒子走;背板是排在字标后面的第三个子片段,`flexItem:
+{position: "absolute", inset: 0}`。这些都是文档字段,先用
 `get_timeline` 读、再用 `set_timeline_document` 写完整文档。
 `set_clip_params` 拒绝 `repeater`、`animationLinks` 和 `layout`。
 

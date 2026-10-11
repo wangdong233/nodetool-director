@@ -13,7 +13,6 @@ import {
 import Select from "../inputs/Select";
 import { useTranslation } from "react-i18next";
 
-  const { t } = useTranslation();
 interface VideoRecorderViewProps extends VideoRecorderProps {
   /**
    * Render nothing when the machine reports no camera. A drop zone offers the
@@ -26,7 +25,9 @@ interface VideoRecorderViewProps extends VideoRecorderProps {
 const VideoRecorder = ({
   hideWhenUnavailable = false,
   ...props
-}: VideoRecorderViewProps) => {  const theme = useTheme();
+}: VideoRecorderViewProps) => {
+  const { t } = useTranslation();
+  const theme = useTheme();
   const {
     error,
     videoRef,

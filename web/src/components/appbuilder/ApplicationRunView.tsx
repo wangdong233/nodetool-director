@@ -7,7 +7,7 @@
  * nothing about what runs here until the next publish. With nothing released
  * the draft runs instead, which is what makes an unpublished app testable.
  */
-import { tAttr } from "./i18nAttrs";
+import { tAttr, tAttrTpl } from "./i18nAttrs";
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Data } from "@puckeditor/core";
@@ -149,8 +149,8 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
       : null;
   if (failedQuery) {
     const title = applicationQuery.isError
-      ? "Could not load app"
-      : "Could not load released app";
+      ? tAttr("Could not load app")
+      : tAttr("Could not load released app");
     return (
       <AlertBanner
         severity="error"
@@ -199,10 +199,10 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
     return (
       <EmptyState
         variant="error"
-        title="Workflow unavailable"
+        title={tAttr("Workflow unavailable")}
         description={
           <>
-            This app runs workflow {hostWorkflowId}, which could not be loaded.
+            {tAttrTpl("thisAppRunsWorkflowWhichCouldNotBeLoaded", "This app runs workflow {{id}}, which could not be loaded.", { id: hostWorkflowId })}
             <ReportBugButton
               context={{
                 source: "notification",
@@ -212,7 +212,7 @@ const ApplicationRunView: React.FC<ApplicationRunViewProps> = ({
             />
           </>
         }
-        actionText="Retry"
+        actionText={tAttr("Retry")}
         onAction={() => void hostQuery.refetch()}
       />
     );

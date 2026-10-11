@@ -386,17 +386,17 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
             variant="no-data"
             title={
               favoritesOnly
-                ? "No favorites yet"
+                ? t("editor:ui.noFavoritesYet")
                 : workflowFilter
-                  ? "No outputs from this workflow yet"
-                  : "This folder is empty"
+                  ? t("editor:ui.noOutputsFromThisWorkflowYet")
+                  : t("editor:ui.thisFolderIsEmpty")
             }
             description={
               favoritesOnly
-                ? "Star an asset to find it here from any folder."
+                ? t("editor:ui.starAnAssetToFindItHereFromAnyFolder")
                 : workflowFilter
-                  ? "Run the workflow to generate assets, or drop files here to add inputs."
-                  : "Drop files here or use the upload button to add assets"
+                  ? t("editor:ui.runTheWorkflowToGenerateAssetsOrDropFilesHereToAddInputs")
+                  : t("editor:ui.dropFilesHereOrUseTheUploadButtonToAddAssets")
             }
             size="small"
           />

@@ -209,7 +209,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
                   variant="outlined"
                   startIcon={<AccountTreeIcon fontSize="small" />}
                   onClick={handleOpenWorkflow}
-                  title="Open the saved workflow and show the node that made this asset"
+                  title={t("editor:ui.openTheSavedWorkflowAndShowTheNodeThatMadeThisAsset")}
                 >
                   Open workflow
                 </EditorButton>
@@ -219,7 +219,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
                   variant="outlined"
                   startIcon={<HistoryIcon fontSize="small" />}
                   onClick={handleOpenSnapshot}
-                  title="Open the graph and inputs this asset was made with as a new unsaved workflow"
+                  title={t("editor:ui.openTheGraphAndInputsThisAssetWasMadeWithAsANewUnsavedWorkflow")}
                 >
                   Open as it was when made
                 </EditorButton>

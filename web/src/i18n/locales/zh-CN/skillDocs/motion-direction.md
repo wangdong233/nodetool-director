@@ -23,11 +23,74 @@
 | 错峰节奏 | 一个 `offsetMs` 和一个 `from` | 80ms,`from: "start"` |
 | 运动强度 | 行程、缩放与过冲的预算 | `distance` ≤ 0.15,`overshoot` ≤ 1.05 |
 | 驻留纪律 | 移动之间的最短静置 | ≥ 400ms 什么都不动 |
-| 字体族 | 一种内置字体 | UI 用 `Inter`,标题卡用 `Bebas Neue` |
+| 字体族与字重 | 一种内置字体族,每个文字层级一个字重 | 主角 `Inter` 800,辅助 400 |
 | 空间与对焦 | 一条运镜路径和深度规划(若片子需要 2.5D) | 主角 `depthPx: 0`,背景更远 |
 | 快门与质感 | 哪些层模糊、拖影或步进 | 冲击点上主角模糊,背景保持 |
 
 缓动至多两种:入场与落定一种,出场一种。第三种必须自证理由。
+
+## 深度要配得上 brief
+
+showcase、hero、发布或"要最好的"活儿,每个场景都要按背景床、中景、前景、
+颗粒或调色收尾来规划。每个场景单独编组。路径形状、遮罩、repeater、样式轨、
+动画链接与效果,只要能加深构图就用。用 `get_timeline` 读完整文档,对
+`edit_timeline` 写不了的字段(`styleTracks`、`repeater` 在内)用
+`set_timeline_document`。
+
+动手之前先研究一条出厂参考。调 `list_example_timelines` 选一个 slug,再调
+`get_example_timeline` 读它的统计、场景目录与首场节选。用 `scene_id` 换场景,
+用 `clip_offset` / `clip_limit` 翻它的图层。CodeAct 形态是
+`nodetool.timelines.examples.list()` 与
+`nodetool.timelines.examples.get("kite", {clip_limit: 12})`。不需要装库,也不
+需要仓库文件系统。Kite、Prism、Voltra 与 Tidewater 展示了场景编组与关键帧
+图层组合的不同做法。Cadence 展示了一条用图表助手与可复用组件搭出的竖屏数据
+故事。
+
+用工艺方法搭,不要手搓关键帧淡入淡出。`@nodetool-ai/sandbox-timeline` 的
+`video({palette, fonts, ...})` 给每个场景配了 `s.backdrop()`、`s.glow()`、
+`s.flash()`、`s.kicker()`、`s.pill()`、`s.streaks()` 与 `s.finish()`——出厂
+示例正是用这套词汇搭场景的。砸落、升起或生长就是配好 `from`/props 的
+`el.enter()`/`el.animate()`(`title.enter({from: {scale: 1.35, blur: 26,
+opacity: 0}})` 就是一次砸落),数字滚动是 `el.count()`,描画显现是
+`el.draw()`。下面的深度规划与 API 一一对应——先够这些,再考虑裸的
+`animate()` 自定义曲线:
+
+| 平面 | 用什么搭 |
+|---|---|
+| 背景床 | `s.backdrop()`、`s.streaks()`、低幅度的 `el.loop()` |
+| 中景 | 辅助元素,放进容器排布(`frame-composition` 的 `s.stack`/`s.row`) |
+| 主角 | 唯一一个 `el.enter()`/`el.animate()` 最重、踩在节拍上的元素 |
+| 收尾 | 每个场景里的 `s.finish()`,或 `v.series()` 之后整片调色的 `v.adjust()` |
+
+写主角动画之前,把每个 showcase 场景按这四层都规划好。每个方法的签名读包
+文档(`nodetool.packs.docs("@nodetool-ai/sandbox-timeline")`)。除非用户设了
+成本上限,showcase 里要给生成静帧或音乐床留预算。
+
+保存 showcase 之后,调 `validate_timeline` 传
+`{"timeline_id":"<id>","tier":"showcase"}`,或
+`nodetool.timelines.validate(id, {tier: "showcase"})`。处理它对场景编组、
+自定义关键帧、收尾、运镜与并发视觉图层的警告。这些检查只看文档结构。构图
+与可读性要预览成品来判断。普通编辑与刻意极简的片子仍用标准校验。
+
+## 字体排印
+
+搭文字片段之前,先在运动语言规格里定好字体族与字重。NodeTool 内置
+`Inter`、`Space Grotesk`、`Bebas Neue`、`Playfair Display`、`Lora` 与
+`JetBrains Mono`。一部作品用一个族,主角要明显重于辅助,比如 Inter 800 配
+400。`Bebas Neue` 只有 400 一档,选它就用字号与字距做对比。
+
+1920×1080 的画面上,主角标题从 96–160 `fontSizePx` 起步,辅助 42–64,短
+眉题 28–36。大号展示字保持收紧的字距(`letterSpacingPx` −2 到 1);全大写
+眉题放开到 2–5px。在目标画面尺寸下核对实际词句,按贴合与可读性调整。
+
+已有的文字片段,`edit_timeline` 可以用一条 `set_clip_params` 补丁设置字体:
+
+```json
+{"timeline_id":"<id>","ops":[{"op":"set_clip_params","target":"Hero title","textStyle":{"fontFamily":"Inter","fontWeight":800,"letterSpacingPx":-1,"fontSizePx":128}}]}
+```
+
+完整操作契约归 `timeline-edit-ops`。各宽高比下的摆放与安全区归
+`frame-composition`。
 
 ## 调性与能量
 
@@ -75,9 +138,11 @@
 位置与深度做关键帧,`focusDepthPx` 与 `aperturePx` 决定哪一层被柔化。
 让一个平面保持清晰可读,其余的动。
 
-间距要在文字或形状改动后活下来的元素,用 `layout` 关系:`row` 或
-`stack` 持有序的子 ID,`relative` 片段跟随一个目标盒,`fitText` 按
-活文字给底板定尺寸。一条片段要跟随另一条片段写好的位置、缩放、旋转
+间距要在文字或形状改动后活下来的元素,用 `layout`(编组片段上的一个
+flex 容器,真实子元素经 `parentId` 指名):`flexDirection: "row" |
+"column"` 配 `gap` 隔开兄弟元素,按活文字定尺寸的底板则是带内边距
+容器里一个 `flexItem: {position: "absolute", inset: 0}` 的兄弟元素。
+一条片段要跟随另一条片段写好的位置、缩放、旋转
 或透明度时,用 `animationLinks`。链接的跟随者共用一个运动决定;它们
 不能再链向第二个链接。
 
@@ -142,3 +207,10 @@
 
 然后看:对刚审计过的那些移动的中点跑 `preview_timeline_frame`。只读
 文档的审计,查过的是规格,不是画面。
+
+## 必做的示例对照
+
+`motion-graphics` 拥有的评审轮次(它的 `## Review pass`)每条片子跑一次,
+不要跑两遍——接触印样、逐场景清单、示例对照、`tier: "showcase"` 校验,以及
+一次真实的修改。返回的结果也要对照本页规格来判:最忙的场景还守不守运动层级,
+示例的密度之下克制是否还在,收拢间距之后选定的运动性格是否仍然可辨。

@@ -1,8 +1,22 @@
 # 动效原则 → 调用之前先定数字
 
-`motion-graphics` 讲怎么把一条动画写进片段。本篇讲怎么决定写什么。
-这里每个数字用的都是 `animate_clip` 收的单位:毫秒、归一化的 0..1
-距离、一条缓动字符串。
+`timeline-edit-ops` 讲怎么用 `edit_timeline` 把一条动画写进片段。本篇讲
+怎么决定写什么。这里每个数字用的都是 `animate_clip` 收的单位:毫秒、
+归一化的 0..1 距离、一条缓动字符串。
+
+## 同样的数字,写成代码
+
+改用 `@nodetool-ai/sandbox-timeline` 来搭(`motion-graphics` 负责选表面)?
+下面每个数字照旧适用——只有单位会变。`durationMs` 变成以秒计的 `dur`
+(除以 1000:400ms 就是 `dur: 0.4`)。归一化的 0..1 距离变成以帧自身
+`width`/`height` 为基准的实际像素(1920 宽的帧上 0.3 就是 `from` 里的
+`offsetX: 576`)。缓动字符串完全相同——`ease: "outExpo"` 或原始曲线——
+每个角色的含义也不变:`el.enter()` 即 `in`,`el.exit()` 即 `out`,
+`el.animate()` 覆盖 `emphasis` 与一般关键帧,`el.loop()` 即 `loop`。
+`el.count()`、`el.draw()`、`el.scramble()`、`el.typewriter()`、`el.expr()`
+与 `el.morph()` 在下面的 op 里没有对应物;它们分别是指示器、`trimEnd`
+描画显现、乱码揭示、整片段打字机入场、手写关键帧函数,以及路径轮廓
+morph 的捷径。
 
 ## 挑数字之前先定三件事
 
@@ -129,6 +143,7 @@
 `staggerCount` 和 `sampleCount`:
 
 ```js
+// fragment
 const n = inputs.sampleCount;
 const h = 0.06 * inputs.canvasHeight;
 const samples = [];

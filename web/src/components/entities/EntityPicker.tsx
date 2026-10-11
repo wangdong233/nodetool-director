@@ -14,6 +14,7 @@ import type { Entity, EntityKind } from "@nodetool-ai/protocol";
 import { useEntities } from "../../serverState/useEntities";
 import ImageRefPreview from "../node/ImageRefPreview";
 import { filterEntities } from "./filterEntities";
+import { useTranslation } from "react-i18next";
 import { ENTITY_KIND_ICON, getEntityKindChipSx } from "./entityKind";
 import {
   AutoGrid,
@@ -41,6 +42,15 @@ const KIND_FILTERS: { value: KindFilter; label: string }[] = [
   { value: "style", label: "Styles" },
   { value: "prop", label: "Props" }
 ];
+
+/** Dictionary keys for the kind filter labels (All has no kind word). */
+const KIND_FILTER_LABEL_KEYS: Partial<Record<KindFilter, string>> = {
+  all: "storyboard:attrs.all",
+  character: "storyboard:attrs.characters",
+  location: "storyboard:attrs.locations",
+  style: "storyboard:attrs.styles",
+  prop: "storyboard:attrs.props"
+};
 
 export interface EntityPickerProps {
   /** Called with the entity a card was clicked for. */
@@ -132,6 +142,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
   height = 360,
   autoFocus = false
 }) => {
+  const { t } = useTranslation();
   const { data, isLoading } = useEntities();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
@@ -150,8 +161,8 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
       <SearchInput
         value={query}
         onChange={setQuery}
-        placeholder="Search entities by name, kind, or tag"
-        ariaLabel="Search entities"
+        placeholder={t("editor:ui.searchEntitiesByNameKindOrTag")}
+        ariaLabel={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
         size="small"
         autoFocus={autoFocus}
         fullWidth
@@ -161,7 +172,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
         exclusive
         segmented
         size="small"
-        aria-label="Entity kind"
+        aria-label={t("editor:ui.entityKind")}
         onChange={(_, value: KindFilter | null) => {
           if (value) {
             setKind(value);
@@ -170,25 +181,29 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
       >
         {KIND_FILTERS.map((filter) => (
           <ToggleOption key={filter.value} value={filter.value}>
-            {filter.label}
+            {KIND_FILTER_LABEL_KEYS[filter.value] !== undefined
+              ? t(KIND_FILTER_LABEL_KEYS[filter.value] as string, {
+                  defaultValue: filter.label
+                })
+              : filter.label}
           </ToggleOption>
         ))}
       </ToggleGroup>
       <Box sx={{ height, overflowY: "auto" }}>
         {!library && isLoading ? (
-          <LoadingSpinner size="small" text="Loading entities" />
+          <LoadingSpinner size="small" text={t("editor:ui.loadingEntities")} />
         ) : libraryEmpty ? (
           <EmptyState
             variant="empty"
-            title="No entities yet"
-            description="Characters, locations, styles, and props you create show up here."
+            title={t("editor:ui.noEntitiesYet")}
+            description={t("editor:ui.charactersLocationsStylesAndPropsYouCreateShowUpHere")}
             size="small"
           />
         ) : visible.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="No entities match"
-            description="Try another name, kind, or tag."
+            title={t("editor:ui.noEntitiesMatchPlain")}
+            description={t("editor:ui.tryAnotherNameKindOrTag")}
             size="small"
           />
         ) : (

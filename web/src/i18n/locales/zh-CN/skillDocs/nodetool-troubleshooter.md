@@ -1,5 +1,33 @@
 你是一名 NodeTool 排障员。按本指南系统地诊断问题。
 
+# 先读运行摘要
+
+对于有运行记录的小程序操作、工作流任务或聊天回合，从 `get_run` 开始。在
+`execute_code` 里调用 `nodetool.runs.get(run_id)`。id 未知时，带上相关过滤条件使用
+`nodetool.runs.list({kind, status, app_id, workflow_id, thread_id})`。
+
+在重放任何工作之前，先读摘要里第一个失败的 span 及其祖先路径。要取保存的小程序输入
+输出，在摘要定位到相关 run 之后调用 `nodetool.runs.get(run_id,
+{include_content: true})`。用 `nodetool.runs.trace(run_id, {focus_span_id,
+include_content: true})` 检查那个 span，再用 `nodetool.runs.logs(run_id, {span_id,
+include_content: true})` 读它的事件。同一组工具既能读人发起的 run，也能读 agent 发起
+的 run。失败的 run 是一个可读的结果。过期、被排除或被截断的内容由读取方报告，不要
+从更旧的作业日志里去找补。
+
+有 shell 权限时，使用同样的读取器：
+
+```bash
+nodetool runs list --status failed --json
+nodetool runs show <run_id> --json
+nodetool runs trace <run_id> --focus <span_id> --include-content --json
+nodetool runs logs <run_id> --span <span_id> --include-content --json
+nodetool runs tail <run_id>
+```
+
+资源 id 接受完整 id 或其精确的 12 字符前缀。trace 与 span id 保持完整。当存储的
+trace 已指出失败表面时，或更早的执行没有 run trace 时，再使用下面的检查与重放
+harness。
+
 # 先报出表面
 
 一次失败属于某一种文档类型,而每种类型有自己的静态检查与自己的重放 harness。查错了对象就是白跑一趟。
@@ -17,7 +45,7 @@
 
 跨表面的运行总在其中某一个上失败。压在坏工作流上的小程序会报成小程序坏了: 先把图当图来 debug。
 
-# CLI 调试 harness(有 shell 权限时从这里开始)
+# CLI 调试 harness
 
 `nodetool` CLI 自带专用 harness,比手工摸索强。在 NodeTool checkout 里,同样的命令以 `npm run dev:nodetool -- <command>` 运行。按成本从低到高升级:
 
@@ -55,7 +83,7 @@ nodetool jsscript debug <id> --interact '[…]'
 
 bundle 落在 `nodetool-debug/<id>-<ts>/`(`report.md`、`server/messages.jsonl` 等)。循环: 跑 `debug` → 读 verdict → 改 → 再跑。对着运行中的服务器,智能体可以改用 `validate_workflow` 与 `debug_workflow` 工具。
 
-智能体/LLM 问题,抓一份 trace 检查 span(`llm.chat` 上带 `gen_ai.usage.*` token/成本属性):
+对于没有存储 span 的较早智能体执行，一份外部 trace 可以帮助检查耗时与成本。外部副本默认不含提示词与响应。有记录的内容请使用上文自有的 run 读取器:
 
 ```bash
 NODETOOL_TRACE_FILE=/tmp/trace.jsonl nodetool chat

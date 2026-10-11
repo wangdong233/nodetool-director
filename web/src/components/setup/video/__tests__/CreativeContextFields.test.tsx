@@ -136,7 +136,7 @@ describe("CreativeContextFields", () => {
     fireEvent.change(name, { target: { value: "Steel hull" } });
     fireEvent.blur(name);
     expect(name).toHaveValue("Paper boat");
-    for (const kind of ["product", "character", "style"]) {
+    for (const kind of ["Product", "Character", "Style"]) {
       expect(
         screen.getByRole("button", { name: `Add ${kind} reference` })
       ).toBeDisabled();

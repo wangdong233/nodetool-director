@@ -82,7 +82,7 @@ const LegacyAppRedirect = () => {
           variant="error"
           title={t("editor:ui.appNotFound", { defaultValue: "App not found" })}
           description={t("editor:ui.noAppIsBuiltOnThisWorkflowOpenTheAppsPanelToCreateOne", { defaultValue: "No app is built on this workflow. Open the Apps panel to create one." })}
-          actionText="Back to workspace"
+          actionText={t("editor:ui.backToWorkspace")}
           onAction={() => navigate("/workspace", { replace: true })}        />
       </FlexColumn>
     );

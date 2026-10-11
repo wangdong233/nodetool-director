@@ -135,6 +135,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
 
 /** A 3D model is a `.glb`/`.gltf` asset; `model3d://<id>` names the asset. */
 const Model3DPreview: React.FC<{ id: string }> = ({ id }) => {
+  const { t } = useTranslation();
   const { url, pending } = useResolvedMedia(assetLocator(id));
 
   if (url) {
@@ -145,9 +146,9 @@ const Model3DPreview: React.FC<{ id: string }> = ({ id }) => {
     );
   }
   if (pending) {
-    return <LoadingSpinner size="small" text="Loading 3D model" />;
+    return <LoadingSpinner size="small" text={t("editor:ui.loading3dModel")} />;
   }
-  return <Caption color="secondary">Could not load this 3D model.</Caption>;
+  return <Caption color="secondary">{t("editor:ui.couldNotLoadThis3dModel")}</Caption>;
 };
 
 /** The saved game's player; it loads the draft and waits for Play. */

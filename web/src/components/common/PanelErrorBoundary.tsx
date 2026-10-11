@@ -33,8 +33,8 @@ function PanelFailure({ panel, error, run }: PanelFailureProps): React.ReactElem
   const { openRunInspection } = useRunInspection();
   return <FlexColumn align="center" justify="center" gap={SPACING.sm}
     sx={{ padding: SPACING.lg, minHeight: 200, bgcolor: "error.dark", color: "error.contrastText" }}>
-    <Text size="small" component="div">{panel} failed to render.</Text>
-    {run ? <EditorButton onClick={() => openRunInspection({ runId: run.app_run_id, spanId: run.span_id })}>View trace</EditorButton> : null}
+    <Text size="small" component="div">{t("editor:ui.panelFailedToRender", { panel })}</Text>
+    {run ? <EditorButton onClick={() => openRunInspection({ runId: run.app_run_id, spanId: run.span_id })}>{t("editor:ui.viewTrace")}</EditorButton> : null}
     <ReportBugButton variant="outlined" label={t("common:action.reportBug", { defaultValue: "Report a bug" })} context={{ source: "panel-crash",
       summary: `${panel} failed to render`, errorText: error?.message, stackTrace: error?.stack }} />
   </FlexColumn>;

@@ -9,6 +9,7 @@ import {
 import { Text, FlexRow, AlertBanner, Surface, TextInput, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpacingPx } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
 import { getMousePosition } from "../../utils/MousePosition";
+import { useTranslation } from "react-i18next";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
@@ -24,6 +25,7 @@ const clampToViewport = (desired: number, size: number, viewport: number) => {
 };
 
 const AssetCreateFolderConfirmation: React.FC = () => {
+  const { t } = useTranslation();
   const setDialogOpen = useAssetGridStore(
     (state) => state.setCreateFolderDialogOpen
   );
@@ -262,8 +264,8 @@ const AssetCreateFolderConfirmation: React.FC = () => {
           }}
         >
           {hasSelectedAssets
-            ? "Move selected to new folder"
-            : "Create new folder"}
+            ? t("editor:ui.moveSelectedToNewFolder")
+            : t("editor:ui.createNewFolder")}
         </Text>
 
         <div style={{ padding: `0 ${getSpacingPx(SPACING.md)}` }}>
@@ -321,7 +323,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
               fontWeight: FONT_WEIGHT.semibold
             }}
           >
-            {hasSelectedAssets ? "Move to New Folder" : "Create Folder"}
+            {hasSelectedAssets ? t("editor:ui.moveToNewFolder") : t("editor:ui.createFolder")}
           </EditorButton>
         </FlexRow>
 
