@@ -9,7 +9,7 @@
  * // Simple toggle button
  * <StateIconButton
  *   icon={<PlayIcon />}
- *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })}
+ *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })
  *   onClick={handleRun}
  * />
  *
@@ -17,7 +17,7 @@
  * // With loading state
  * <StateIconButton
  *   icon={<SaveIcon />}
- *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })
  *   onClick={handleSave}
  *   isLoading={isSaving}
  * />
@@ -33,6 +33,7 @@
  * />
  */
 
+import { i18n } from "../../i18n";
 import React, { memo, forwardRef, useCallback } from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";

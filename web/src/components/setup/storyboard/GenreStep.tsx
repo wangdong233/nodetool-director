@@ -44,6 +44,11 @@ export interface GenreStepProps {
    * so the step's button continues to it instead of writing it again (F15).
    */
   upToDate?: boolean;
+  /**
+   * A script kept as written: its words are held and it has no shot count to
+   * pick, so only the genre can ask for a new camera pass.
+   */
+  cameraPass?: boolean;
 }
 
 /**
@@ -52,6 +57,20 @@ export interface GenreStepProps {
  * scene need.
  */
 const SHOT_COUNTS = [3, 4, 6, 8, 10, 12];
+
+/**
+ * The picker's counts, plus the board's own when it is not one of them: a
+ * rewrite keeps the length the screenplay has, and a select that cannot show
+ * its value shows nothing (F15).
+ */
+const shotOptions = (current: number) =>
+  (SHOT_COUNTS.includes(current)
+    ? SHOT_COUNTS
+    : [...SHOT_COUNTS, current].sort((a, b) => a - b)
+  ).map((count) => ({
+    value: String(count),
+    label: `${count} shot${count === 1 ? "" : "s"}`
+  }));
 
 // The card carries its line before it is picked, the way every other option
 // grid in the flow does: fourteen one-word titles say far less about the
@@ -109,6 +128,11 @@ export interface GenreFooterControlsProps {
   /** How many shots the Director is asked for. */
   shotCount: number;
   onShotCountChange: (shots: number) => void;
+  /**
+   * Hides the shot count: a script kept as written is directed shot for shot,
+   * so there is no length to pick (F13).
+   */
+  hideShotCount?: boolean;
 }
 
 /** The shot count and the screenplay model, for the shell's footer. */
@@ -116,22 +140,23 @@ export const GenreFooterControls: React.FC<GenreFooterControlsProps> = ({
   boardId,
   readOnly = false,
   shotCount,
-  onShotCountChange
+  onShotCountChange,
+  hideShotCount = false
 }) => {
   const { t } = useTranslation();
   const inStudio = useInStudio();
   // The option labels carry a plural, so they resolve here at render time —
   // a module constant would freeze the English snapshot (F-32).
-  const shotOptions = useMemo(
+  const options = useMemo(
     () =>
-      SHOT_COUNTS.map((count) => ({
-        value: String(count),
+      shotOptions(shotCount).map((option) => ({
+        value: option.value,
         label: t("storyboard:attrs.shotsCount", {
           defaultValue: "{{count}} shots",
-          count
+          count: Number(option.value)
         })
       })),
-    [t]
+    [shotCount, t]
   );
   const handleShotCount = useCallback(
     (value: string) => {
@@ -143,15 +168,17 @@ export const GenreFooterControls: React.FC<GenreFooterControlsProps> = ({
   );
   return (
     <>
-      <SelectField
-        label="Shots"
-        hideLabel
-        size="small"
-        value={String(shotCount)}
-        options={shotOptions}
-        onChange={handleShotCount}
-        disabled={readOnly}
-      />
+      {!hideShotCount && (
+        <SelectField
+          label="Shots"
+          hideLabel
+          size="small"
+          value={String(shotCount)}
+          options={options}
+          onChange={handleShotCount}
+          disabled={readOnly}
+        />
+      )}
       {!inStudio && (
         <ScreenplayModelField boardId={boardId} readOnly={readOnly} />
       )}
@@ -163,7 +190,8 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
   boardId,
   readOnly = false,
   directing = false,
-  upToDate = false
+  upToDate = false,
+  cameraPass = false
 }) => {
   const { t } = useTranslation();
   const genre = useStoryboardStore(
@@ -222,8 +250,9 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
           one the board holds already answers these choices (F15). */}
       {!directing && upToDate ? (
         <Text size="small" color="secondary">
-          Your screenplay already follows these choices. Change the genre, the
-          brief or the shot count to write a new one.
+          {cameraPass
+            ? "Your script is already directed for these choices. Change the genre to direct it again."
+            : "Your screenplay already follows these choices. Change the genre, the brief or the shot count to write a new one."}
         </Text>
       ) : null}
     </FlexColumn>

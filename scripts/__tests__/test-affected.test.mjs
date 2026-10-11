@@ -30,6 +30,11 @@ const plan = (files) => buildPlan(files, PACKAGES, computeAffected);
 const labels = (files) => plan(files).steps.map((s) => s.label);
 
 describe("buildPlan", () => {
+  it("selects the browser tracing shim regression for its standalone test", () => {
+    const { steps, globalFiles } = plan(["scripts/__tests__/browser-tracing-stub.test.mjs"]);
+    expect(globalFiles).toEqual([]);
+    expect(steps).toEqual([{ label: "browser tracing shim", command: "node", args: ["scripts/run-vitest.mjs", "run", "--config", "vitest.config.ts", "scripts/__tests__/browser-tracing-stub.test.mjs"] }]);
+  });
   it("runs a changed package and its dependents, and no app it does not reach", () => {
     const { steps } = plan(["packages/kernel/src/runner.ts"]);
     expect(steps).toHaveLength(2);
@@ -85,10 +90,124 @@ describe("buildPlan", () => {
     ]);
   });
 
+  it("runs the example checks, not everything, for an example timeline script", () => {
+    const { steps, globalFiles } = plan(["scripts/example-timelines/voltra.mjs"]);
+    expect(globalFiles).toEqual([]);
+    expect(steps.map((s) => [s.command, ...s.args])).toEqual([
+      ["node", "scripts/validate-examples.mjs"],
+      [
+        "npm",
+        "run",
+        "test",
+        "--workspace=packages/websocket",
+        "--",
+        "tests/example-timelines.test.ts"
+      ]
+    ]);
+    expect(labels(["scripts/render-example-timeline.mjs"])).toEqual(
+      labels(["scripts/example-timelines/kite.mjs"])
+    );
+  });
+
+  it("runs the storyboard drift check for the storyboard generator", () => {
+    const steps = plan(["scripts/example-storyboards/boards.mjs"]).steps;
+    expect(steps.map((s) => s.args.join(" "))).toEqual([
+      "scripts/build-example-storyboards.mjs --check",
+      "scripts/validate-examples.mjs",
+      "run test --workspace=packages/websocket -- tests/example-storyboards.test.ts"
+    ]);
+    expect(labels(["scripts/build-example-storyboards.mjs"])).toEqual(
+      steps.map((s) => s.label)
+    );
+  });
+
+  it("runs validate-examples alone when only it changed", () => {
+    expect(labels(["scripts/validate-examples.mjs"])).toEqual(["validate-examples"]);
+  });
+
+  it("runs the backend bundle smoke for the bundle scripts", () => {
+    expect(labels(["scripts/bundle-backend.mjs"])).toEqual(["backend:smoke"]);
+    const steps = plan(["scripts/verify-backend-bundle.mjs"]).steps;
+    expect(steps.map((s) => [s.command, ...s.args])).toEqual([
+      ["npm", "run", "backend:smoke"],
+      ["npm", "test", "--workspace=electron", "--", "src/__tests__/verifyBackendBundle.test.ts"]
+    ]);
+  });
+
+  it("runs each check once and still runs the owning workspaces", () => {
+    expect(
+      labels([
+        "scripts/example-timelines/kite.mjs",
+        "scripts/validate-examples.mjs",
+        "packages/deploy/src/index.ts"
+      ])
+    ).toEqual([
+      "packages (1): @nodetool-ai/deploy",
+      "validate-examples",
+      "websocket: tests/example-timelines.test.ts"
+    ]);
+  });
+
+  it("still runs everything when an unmapped file rides along", () => {
+    const { steps, globalFiles } = plan([
+      "scripts/example-timelines/kite.mjs",
+      "turbo.json"
+    ]);
+    expect(globalFiles).toEqual(["turbo.json"]);
+    expect(steps.map((s) => s.label)).toEqual(["packages", "web", "electron", "mobile"]);
+  });
+
+  it("runs nothing from the root for the marketing site, which has its own CI", () => {
+    const { steps, globalFiles } = plan(["marketing/src/app/page.tsx"]);
+    expect(globalFiles).toEqual([]);
+    expect(steps).toEqual([]);
+  });
+
   it("runs nothing for documentation", () => {
     const { steps, globalFiles } = plan(["docs/DESIGN.md", "AGENTS.md", ".github/x.yml"]);
     expect(globalFiles).toEqual([]);
     expect(steps).toEqual([]);
+  });
+
+  it("runs the sync's own suites for the model-rankings scripts, not every suite", () => {
+    const expected = [
+      ["npm", "run", "test", "--workspace=packages/model-pricing"],
+      [
+        "npm",
+        "run",
+        "test",
+        "--workspace=packages/runtime",
+        "--",
+        "tests/providers/rankings-route-universe.test.ts"
+      ]
+    ];
+    for (const file of [
+      "scripts/sync-model-rankings.mjs",
+      "scripts/rankings/match.mjs",
+      "scripts/rankings/model-keys.mjs",
+      "scripts/rankings/routes.mjs",
+      "scripts/rankings/aliases.json",
+      "scripts/genspend/normalize.mjs"
+    ]) {
+      const { steps, globalFiles } = plan([file]);
+      expect(globalFiles, file).toEqual([]);
+      expect(steps.map((s) => [s.command, ...s.args]), file).toEqual(expected);
+    }
+  });
+
+  it("runs only the event-parsing unit for the motion-craft eval script, not a live model", () => {
+    const { steps, globalFiles } = plan(["scripts/motion-craft-eval.mjs"]);
+    expect(globalFiles).toEqual([]);
+    expect(steps.map((s) => [s.command, ...s.args])).toEqual([
+      [
+        "node",
+        "scripts/run-vitest.mjs",
+        "run",
+        "--config",
+        "vitest.config.ts",
+        "scripts/__tests__/motion-craft-eval.test.mjs"
+      ]
+    ]);
   });
 });
 
@@ -112,7 +231,13 @@ describe("DOC_ONLY", () => {
     for (const doc of ["AGENTS.md", "docs/a/b.md", ".github/workflows/x.yml", "LICENSE"]) {
       expect(DOC_ONLY.test(doc), doc).toBe(true);
     }
-    for (const code of ["package.json", "scripts/build.mjs", "turbo.json", "web/src/a.ts"]) {
+    for (const code of [
+      "package.json",
+      "scripts/build.mjs",
+      "turbo.json",
+      "web/src/a.ts",
+      "packages/system-skills/api-agents/SKILL.md"
+    ]) {
       expect(DOC_ONLY.test(code), code).toBe(false);
     }
   });

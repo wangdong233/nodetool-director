@@ -1005,6 +1005,20 @@ describe("ProcessingContext.resolveAssetBytes", () => {
     expect(Uint8Array.from(bytes ?? [])).toEqual(new Uint8Array([3, 1, 4]));
   });
 
+  it("never resolves a short id to the asset's preview proxy", async () => {
+    // A render reads the original. The proxy and its manifest sit next to it
+    // (`<id>_proxy.mp4`, `<id>_proxy.json`) and also start with the short id.
+    const full = "0192a7f3c4e5b6d7a8f9e0c1b2d3e4f5";
+    const storage = new InMemoryStorageAdapter();
+    await storage.store(`user-7/${full}_proxy.json`, new Uint8Array([8]), "application/json");
+    await storage.store(`user-7/${full}_proxy.mp4`, new Uint8Array([9]), "video/mp4");
+    await storage.store(`user-7/${full}.mp4`, new Uint8Array([3, 1, 4]), "video/mp4");
+    const ctx = new ProcessingContext({ jobId: "j1", userId: "user-7", storage });
+
+    const { bytes } = await ctx.resolveAssetBytes(`asset://${full.slice(0, 12)}`);
+    expect(Uint8Array.from(bytes ?? [])).toEqual(new Uint8Array([3, 1, 4]));
+  });
+
   it("resolves the owner-prefixed key by exact lookup, without listing", async () => {
     // Regression: assets are written under `<userId>/<id>.<ext>`, but only the
     // flat and `assets/` candidates were probed. Every reference missed all
@@ -1467,6 +1481,46 @@ describe("ProcessingContext – asset helper methods", () => {
     }
   });
 
+  it("resolveMessageMediaUris dereferences a /api/storage/ image whose key holds a named owner id", async () => {
+    const root = await mkdtemp(join(tmpdir(), "nodetool-resolve-named-owner-"));
+    try {
+      const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+      const key =
+        "projects/personal:281c2a59-2dc5-40c9-8924-01170fa2b9d3/assets/view-84dbae59-521a-4c4c-adee-f1585a4f1fb9.png";
+      const ctx = new ProcessingContext({
+        jobId: "j1",
+        userId: "u1",
+        workspaceDir: root,
+        fetchFn: async (input: string | URL | Request) =>
+          String(input).endsWith(`/api/storage/${encodeURIComponent(key)}`)
+            ? new Response(pngBytes, {
+                status: 200,
+                headers: { "content-type": "image/png" }
+              })
+            : new Response("not found", { status: 404 })
+      });
+
+      const resolved = await ctx.resolveMessageMediaUris([
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image: { uri: `/api/storage/${key}`, mimeType: "image/png" }
+            }
+          ]
+        }
+      ]);
+
+      const parts = resolved[0].content as Array<Record<string, any>>;
+      expect(parts[0].image.uri).toBe(
+        `data:image/png;base64,${Buffer.from(pngBytes).toString("base64")}`
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("resolveMessageMediaUris resolves an asset:// image through assetStorage when storage holds the temp store", async () => {
     // The server points `storage` at the temp store and assets live elsewhere.
     // Before `assetStorage` existed the reference could only be chased over
@@ -1529,7 +1583,7 @@ describe("ProcessingContext – asset helper methods", () => {
       { type: "text", text: "recreate this image" },
       {
         type: "text",
-        text: "[attached image could not be loaded: asset://missing.png]"
+        text: "[attached image could not be shown: asset://missing.png]"
       }
     ]);
   });

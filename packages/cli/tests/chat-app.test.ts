@@ -15,6 +15,7 @@ const run = vi.hoisted(() => ({
   approval: false,
   subagent: false,
   decision: "",
+  onApprovalRequested: undefined as (() => void) | undefined,
   gate: undefined as PermissionGateOptions | undefined,
   forward: undefined as ((message: ProcessingMessage) => void) | undefined
 }));
@@ -23,10 +24,7 @@ vi.mock("@nodetool-ai/runtime", () => ({
   RUN_BUDGET_CONTEXT_KEY: "budget",
   estimatePromptTokens: (messages: unknown[]) => messages.length * 10
 }));
-vi.mock("@nodetool-ai/agents", () => ({
-  getBuiltinTools: () => [],
-  getAllMcpTools: () => []
-}));
+vi.mock("../src/agent-toolbelt.js", () => ({ buildCliToolbelt: () => [] }));
 vi.mock("../src/bash-tool.js", () => ({
   BashTool: class {
     readonly name = "bash";
@@ -78,6 +76,7 @@ vi.mock("../src/chat-codeact.js", () => ({
     return [];
   },
   createCliCodeActTurn: () => ({ tools: [], systemPrompt: "catalog" }),
+  loadCliSkillCatalog: async () => "",
   applySystemPrompt: () => {}
 }));
 vi.mock("@nodetool-ai/chat", () => ({
@@ -102,12 +101,14 @@ vi.mock("@nodetool-ai/chat", () => ({
   }) => {
     run.calls++;
     if (run.approval && run.gate?.requestApproval) {
-      run.decision = await run.gate.requestApproval({
+      const decision = run.gate.requestApproval({
         toolName: "write_file",
         category: "write",
         message: "Write the requested file",
         args: { path: "output.txt" }
       });
+      run.onApprovalRequested?.();
+      run.decision = await decision;
     }
     options.callbacks.onChunk("A partial answer");
     const subagentCall = run.subagent
@@ -155,6 +156,7 @@ afterEach(async () => {
   run.approval = false;
   run.subagent = false;
   run.decision = "";
+  run.onApprovalRequested = undefined;
   run.gate = undefined;
   run.forward = undefined;
 });
@@ -276,6 +278,20 @@ describe("fullscreen chat", () => {
     await waitForUi(() =>
       expect(terminal.frame()).toContain("A partial answer")
     );
+  });
+  it("takes an approval key pressed before the prompt re-renders", async () => {
+    run.approval = true;
+    const terminal = await start();
+    // The key arrives in the same tick the approval is requested, before Ink
+    // has re-rendered and re-registered its input handler, as a keystroke can
+    // on a loaded machine.
+    run.onApprovalRequested = () => terminal.stdin.write("y");
+    terminal.stdin.write("write a file");
+    await waitForUi(() => expect(terminal.frame()).toContain("write a file"));
+    terminal.stdin.write("\r");
+    await waitForUi(() => expect(run.decision).toBe("allow"));
+    await waitForUi(() => expect(run.finish).toBeDefined());
+    run.finish?.();
   });
   it("holds the turn lock through cancellation cleanup and keeps partial output", async () => {
     const terminal = await start();

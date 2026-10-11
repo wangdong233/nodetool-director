@@ -24,6 +24,7 @@ import {
 interface VideoModelSelectProps {
   onChange: (value: VideoModelValue) => void;
   value: string;
+  provider?: string;
   task?: VideoModelTask | VideoModelTask[];
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
@@ -32,6 +33,7 @@ interface VideoModelSelectProps {
 const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
   onChange,
   value,
+  provider,
   task,
   recommendedModels,
   modelPacks
@@ -50,8 +52,10 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
     if (!models || !value) {
       return null;
     }
-    return models.find((m) => m.id === value);
-  }, [models, value]);
+    return models.find(
+      (m) => m.id === value && (!provider || m.provider === provider)
+    );
+  }, [models, value, provider]);
 
   if (inStudio) {
     return (

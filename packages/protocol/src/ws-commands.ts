@@ -21,6 +21,7 @@
  */
 
 import { z } from "zod";
+import { storedRunTraceUpdateSchema } from "./run-trace.js";
 
 // ---------------------------------------------------------------------------
 // Command envelope
@@ -100,6 +101,9 @@ export const runJobDataSchema = z
       .optional(),
     settings: z.record(z.string(), z.unknown()).optional(),
     application_id: z.string().nullable().optional(),
+    app_run_id: z.string().optional(),
+    traceparent: z.string().optional(),
+    instance_id: z.string().optional(),
     application_version: z.number().nullable().optional(),
     operation_id: z.string().nullable().optional()
   })
@@ -190,6 +194,8 @@ export const generateMediaDataSchema = z
     /**
      * "image" = text-to-image; "image_edit" = image-to-image;
      * "inpaint" = image-to-image confined to `mask_asset_id`;
+     * "upscale" = enlarge `source_asset_id` by `scale`;
+     * "outpaint" = extend `source_asset_id` by `padding` or to `aspect_ratio`;
      * "video" = text-to-video; "audio" = text-to-speech.
      */
     mode: z
@@ -197,6 +203,8 @@ export const generateMediaDataSchema = z
         "image",
         "image_edit",
         "inpaint",
+        "upscale",
+        "outpaint",
         "video",
         "video_edit",
         "video_extend",
@@ -230,8 +238,16 @@ export const generateMediaDataSchema = z
       )
       .optional(),
     use_reference_video_audio: z.boolean().optional(),
-    /** Required for "image_edit" and "inpaint". Bytes are loaded server-side. */
+    /**
+     * Required for "image_edit", "inpaint", "upscale" and "outpaint". Bytes
+     * are loaded server-side.
+     */
     source_asset_id: z.string().optional(),
+    timeline_context: z.object({
+      sequence_id: z.string().min(1),
+      source_clip_id: z.string().min(1).optional(),
+      target_clip_id: z.string().min(1).optional()
+    }).optional(),
     source_context: z
       .object({
         sequence_id: z.string(),
@@ -247,6 +263,17 @@ export const generateMediaDataSchema = z
       .optional(),
     /** The region to repaint, for "inpaint". */
     mask_asset_id: z.string().optional(),
+    /** Magnification for "upscale", e.g. 2 or 4. */
+    scale: z.number().optional(),
+    /** Source pixels to add on each side, for "outpaint". */
+    padding: z
+      .object({
+        left: z.number().optional(),
+        right: z.number().optional(),
+        top: z.number().optional(),
+        bottom: z.number().optional()
+      })
+      .optional(),
     width: z.number().optional(),
     height: z.number().optional(),
     aspect_ratio: z.string().optional(),
@@ -584,6 +611,11 @@ export const documentOpOutSchema = z
   })
   .passthrough();
 
+export const runTraceMessageOutSchema = storedRunTraceUpdateSchema.extend({
+  type: z.literal("run_trace"),
+  resnapshot_required: z.boolean().optional()
+});
+
 export const resourceChangeMessageOutSchema = z
   .object({
     type: z.literal("resource_change"),
@@ -688,6 +720,7 @@ export const outboundControlMessageSchemas = {
   rpc_response: rpcResponseMessageOutSchema,
   system_stats: systemStatsMessageOutSchema,
   resource_change: resourceChangeMessageOutSchema,
+  run_trace: runTraceMessageOutSchema,
   renderer_registered: rendererRegisteredMessageOutSchema,
   renderer_tool_call: rendererToolCallMessageOutSchema,
   chat_resumed: chatResumedMessageOutSchema,

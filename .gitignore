@@ -70,6 +70,9 @@ docs.chromadb
 *.lcov
 playwright-report/
 test-results/
+# Agentic QA run records (screenshots, logs). Kept out of test-results/,
+# which every Playwright run deletes.
+web/agentic-qa-runs/
 .last-run.json
 
 # Generated E2E workflow suite (built by web/tests/e2e-runner/prepareSuite.ts)
@@ -124,4 +127,11 @@ nodetool-debug/
 
 # Dev-server / build logs
 *.log
+<<<<<<< HEAD
 .devteam/
+=======
+
+# nodetool-mutator snapshots and worker overlays
+/.metrics/
+/target/
+>>>>>>> main

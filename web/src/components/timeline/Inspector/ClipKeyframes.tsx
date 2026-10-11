@@ -38,34 +38,26 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
-import { useTranslation } from "react-i18next";
 
 /**
- * Keyframe channel labels, resolved through the catalog at render time. The
- * unit/step metadata is unit-system data and stays literal.
+ * Rotation is stored in radians (`animation/types.ts`) and shown in degrees,
+ * as the Transform section does. Every other property is shown as stored.
  */
-const PROPERTY_LABELS: Record<
-  KeyframeProperty,
-  { labelKey: string; label: string; unit?: string; step: number }
-> = {
-  opacity: { labelKey: "opacity", label: "Opacity", step: 0.05 },
-  scale: { labelKey: "scale", label: "Scale", unit: "×", step: 0.05 },
-  offsetX: { labelKey: "positionX", label: "Position X", unit: "px", step: 1 },
-  offsetY: { labelKey: "positionY", label: "Position Y", unit: "px", step: 1 },
-  rotation: { labelKey: "rotation", label: "Rotation", unit: "°", step: 1 },
-  cameraAzimuth: { labelKey: "cameraAzimuth", label: "Camera Azimuth", unit: "°", step: 1 },
-  cameraElevation: { labelKey: "cameraElevation", label: "Camera Elevation", unit: "°", step: 1 },
-  cameraZoom: { labelKey: "cameraZoom", label: "Camera Zoom", unit: "×", step: 0.05 },
-  cameraFov: { labelKey: "cameraFov", label: "Camera FOV", unit: "°", step: 1 }
+const DISPLAY_SCALE: Partial<Record<KeyframeProperty, number>> = {
+  rotation: 180 / Math.PI
 };
 
-const channelLabel = (
-  t: (key: string, opts?: Record<string, unknown>) => string,
-  property: KeyframeProperty
-): string =>
-  t(`timeline:keyframeChannels.${PROPERTY_LABELS[property].labelKey}`, {
-    defaultValue: PROPERTY_LABELS[property].label
-  });
+const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number }> = {
+  opacity: { label: "Opacity", step: 0.05 },
+  scale: { label: "Scale", unit: "×", step: 0.05 },
+  offsetX: { label: "Position X", unit: "px", step: 1 },
+  offsetY: { label: "Position Y", unit: "px", step: 1 },
+  rotation: { label: "Rotation", unit: "°", step: 1 },
+  cameraAzimuth: { label: "Camera azimuth", unit: "°", step: 1 },
+  cameraElevation: { label: "Camera elevation", unit: "°", step: 1 },
+  cameraZoom: { label: "Camera zoom", unit: "×", step: 0.05 },
+  cameraFov: { label: "Camera FOV", unit: "°", step: 1 }
+};
 
 interface ClipKeyframesProps {
   clip: TimelineClip;
@@ -75,31 +67,43 @@ const KeyframeRow: React.FC<{
   clip: TimelineClip;
   property: KeyframeProperty;
   atMs: number;
-}> = memo(({ clip, property, atMs }) => {
-  const { t } = useTranslation();
+  /** False while the playhead is outside the clip: nothing is written then. */
+  inside: boolean;
+}> = memo(({ clip, property, atMs, inside }) => {
   const setClipKeyframe = useTimelineStore((s) => s.setClipKeyframe);
   const removeClipKeyframe = useTimelineStore((s) => s.removeClipKeyframe);
   const keyframeProperty = useTimelineUIStore((s) => s.keyframeProperty);
   const setKeyframeProperty = useTimelineUIStore((s) => s.setKeyframeProperty);
   const meta = PROPERTY_LABELS[property];
+  const displayScale = DISPLAY_SCALE[property] ?? 1;
   const value = keyframeValueAt(clip, property, atMs);
   const keyed = hasKeyframeAt(clip, property, atMs);
   const armed = keyframeProperty === property;
 
   const toggle = useCallback(() => {
+    if (!inside) return;
     if (keyed) removeClipKeyframe(clip.id, property, atMs);
     else setClipKeyframe(clip.id, property, atMs, value);
     setKeyframeProperty(property);
-  }, [keyed, removeClipKeyframe, setClipKeyframe, setKeyframeProperty, clip.id, property, atMs, value]);
+  }, [inside, keyed, removeClipKeyframe, setClipKeyframe, setKeyframeProperty, clip.id, property, atMs, value]);
 
   const commit = useCallback(
     (raw: string) => {
+      if (!inside) return;
       const next = Number.parseFloat(raw);
-      if (!Number.isFinite(next)) return;
-      setClipKeyframe(clip.id, property, atMs, next);
+      if (!Number.isFinite(next) || raw.trim() === "") return;
+      setClipKeyframe(clip.id, property, atMs, next / displayScale);
       setKeyframeProperty(property);
     },
-    [setClipKeyframe, setKeyframeProperty, clip.id, property, atMs]
+    [
+      inside,
+      setClipKeyframe,
+      setKeyframeProperty,
+      clip.id,
+      property,
+      atMs,
+      displayScale
+    ]
   );
 
   return (
@@ -110,28 +114,26 @@ const KeyframeRow: React.FC<{
             size="small"
             onClick={toggle}
             isActive={keyed}
+            disabled={!inside}
             icon={<DiamondOutlinedIcon fontSize="inherit" />}
             activeIcon={<DiamondIcon fontSize="inherit" />}
             tooltip={
               keyed
-                ? t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
-                : `${t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${armed ? t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
+                ? "Remove keyframe at playhead"
+                : `Add keyframe at playhead${armed ? " (Alt+K)" : ""}`
             }
-            aria-label={
-                keyed
-                  ? t("timeline:attrs.removeKeyframeForChannel", { defaultValue: "Remove {{channel}} keyframe", channel: channelLabel(t, property) })
-                  : t("timeline:attrs.addKeyframeForChannel", { defaultValue: "Add {{channel}} keyframe", channel: channelLabel(t, property) })
-              }
+            ariaLabel={`${keyed ? "Remove" : "Add"} ${meta.label} keyframe`}
           />
-          <span>{channelLabel(t, property)}</span>
+          <span>{meta.label}</span>
         </FlexRow>
       }
     >
       <InspectorPillInput
-        value={String(Math.round(value * 100) / 100)}
+        value={String(Math.round(value * displayScale * 100) / 100)}
         onCommit={commit}
         unit={meta.unit}
-        ariaLabel={t("timeline:attrs.channelAtPlayhead", { defaultValue: "{{channel}} at playhead", channel: channelLabel(t, property) })}
+        ariaLabel={`${meta.label} at playhead`}
+        disabled={!inside}
         scrub={{ step: meta.step }}
       />
     </InspectorRow>
@@ -140,7 +142,6 @@ const KeyframeRow: React.FC<{
 KeyframeRow.displayName = "KeyframeRow";
 
 export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
-  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("keyframes");
   const currentTimeMs = useTimelinePlaybackStore((s) => s.currentTimeMs);
   const atMs = Math.max(
@@ -167,11 +168,17 @@ export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
         <FlexColumn gap={SPACING.sm} sx={{ py: SPACING.xs }}>
           {!inside && (
             <Caption sx={{ opacity: 0.7 }}>
-              {t("editor:ui.moveThePlayheadOverTheClipToSetKeyframes")}
+              Move the playhead over the clip to set keyframes.
             </Caption>
           )}
           {keyframePropertiesFor(clip).map((property) => (
-            <KeyframeRow key={property} clip={clip} property={property} atMs={atMs} />
+            <KeyframeRow
+              key={property}
+              clip={clip}
+              property={property}
+              atMs={atMs}
+              inside={inside}
+            />
           ))}
         </FlexColumn>
       </CollapsibleSection>

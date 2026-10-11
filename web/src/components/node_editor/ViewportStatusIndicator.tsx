@@ -1,3 +1,5 @@
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import {
@@ -25,7 +27,6 @@ import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
-import { useTranslation } from "react-i18next";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -36,6 +37,18 @@ interface ViewportStatusIndicatorProps {
 const ZOOM_PRESETS = [0.25, 0.5, 0.75, 1, 1.5, 2] as const;
 type ZoomPreset = (typeof ZOOM_PRESETS)[number];
 
+const findZoomPreset = (zoom: number): ZoomPreset | null =>
+  ZOOM_PRESETS.find((preset) => Math.abs(preset - zoom) < 0.01) ?? null;
+
+/**
+ * The zoom readout is the only part of the indicator that changes on every
+ * zoom step, so it holds the per-step store subscription on its own.
+ */
+const ZoomPercentage = memo(function ZoomPercentage() {
+  const zoomPercentage = useStore((s) => Math.round(s.transform[2] * 100));
+  return <>{zoomPercentage}%</>;
+});
+
 const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
   visible = true,
   showPortLabels = false,
@@ -43,12 +56,11 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const zoom = useStore((s) => s.transform[2]);
-  const { zoomTo, fitView, getNodes } = useReactFlow();
+  const currentPreset = useStore((s) => findZoomPreset(s.transform[2]));
+  const { zoomTo, fitView, getNodes, getZoom } = useReactFlow();
   const [zoomMenuAnchor, setZoomMenuAnchor] = useState<HTMLElement | null>(
     null
   );
-  const zoomPercentage = useMemo(() => Math.round(zoom * 100), [zoom]);
 
   const handleFitView = useCallback(() => {
     fitView({ padding: 0.2, duration: 200 });
@@ -64,12 +76,12 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
   }, [fitView, getNodes]);
 
   const handleZoomIn = useCallback(() => {
-    zoomTo(Math.min(zoom * 1.2, 5), { duration: 100 });
-  }, [zoomTo, zoom]);
+    zoomTo(Math.min(getZoom() * 1.2, 5), { duration: 100 });
+  }, [zoomTo, getZoom]);
 
   const handleZoomOut = useCallback(() => {
-    zoomTo(Math.max(zoom / 1.2, 0.1), { duration: 100 });
-  }, [zoomTo, zoom]);
+    zoomTo(Math.max(getZoom() / 1.2, 0.1), { duration: 100 });
+  }, [zoomTo, getZoom]);
 
   const handlePresetZoom = useCallback(
     (presetZoom: ZoomPreset) => {
@@ -98,17 +110,6 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
     setZoomMenuAnchor(null);
   }, []);
 
-  const isZoomPreset = useCallback(
-    (value: number): value is ZoomPreset =>
-      ZOOM_PRESETS.some((preset) => Math.abs(preset - value) < 0.01),
-    []
-  );
-
-  const currentPreset = useMemo(
-    () => (isZoomPreset(zoom) ? zoom : null),
-    [zoom, isZoomPreset]
-  );
-
   const zoomButtonSx = useMemo(
     () => ({
       padding: getSpacingPx(SPACING.micro),
@@ -126,10 +127,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
       background: "none",
       border: "none",
       cursor: "pointer",
-      fontFamily: "JetBrains Mono, monospace",
+      fontFamily: "var(--fontFamily2)",
       fontSize: "var(--fontSizeSmall)",
       fontWeight: 500,
-      color: currentPreset
+      color: currentPreset !== null
         ? theme.palette.primary.main
         : theme.vars.palette.text.secondary,
       minWidth: "48px",
@@ -191,8 +192,8 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
           title={
             <Box>
               <Box>{getShortcutTooltip("resetZoom")}</Box>
-              <Box sx={{ mt: 0.5, fontSize: "var(--fontSizeSmaller)", opacity: 0.8 }}>
-                {t("editor:ui.clickForZoomPresets")}
+              <Box sx={{ mt: SPACING.micro, fontSize: "var(--fontSizeSmaller)", opacity: 0.8 }}>
+                Click for zoom presets
               </Box>
             </Box>
           }
@@ -203,7 +204,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
             onClick={handleOpenZoomMenu}
             sx={zoomLabelSx}
           >
-            {zoomPercentage}%
+            <ZoomPercentage />
           </Text>
         </Tooltip>
 
@@ -227,16 +228,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          // getShortcutTooltip returns a ReactElement — interpolating it into
-          // a template literal rendered "[object Object]". Compose nodes
-          // instead, and name the button explicitly now the tooltip is not a
-          // plain string.
-          tooltip={
-            <>
-              {t("editor:ui.fitAll", { defaultValue: "Fit all" })} · {getShortcutTooltip("fitView", undefined, "combo")}
-            </>
-          }
-          ariaLabel={t("editor:ui.fitAll", { defaultValue: "Fit all" })}
+          tooltip={getShortcutTooltip("fitView")}
           tooltipPlacement="top"
           onClick={handleFitView}
           size="small"
@@ -255,10 +247,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         {onTogglePortLabels ? (
           <ToolbarIconButton
             icon={<LabelOutlinedIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-            tooltip={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
+            tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
-            ariaLabel={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
+            ariaLabel={showPortLabels ? "Hide port labels" : "Show port labels"}
             aria-pressed={showPortLabels}
             size="small"
             sx={zoomButtonSx}
@@ -282,7 +274,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
               key={preset}
               onClick={handlePresetClick}
               data-preset={preset.toString()}
-              selected={Math.abs(zoom - preset) < 0.01}
+              selected={preset === currentPreset}
               sx={{
                 py: SPACING.micro,
                 px: SPACING.md,
@@ -298,7 +290,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
                 primary={`${Math.round(preset * 100)}%`}
                 primaryTypographyProps={{
                   fontSize: "var(--fontSizeSmall)",
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily: "var(--fontFamily2)",
                   textAlign: "center"
                 }}
               />

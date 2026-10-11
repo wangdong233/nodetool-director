@@ -19,9 +19,11 @@ type NavItem = { name: string; href: string; external?: boolean };
 const NAV: NavItem[] = [
   { name: "Studio", href: "/studio" },
   { name: EDITIONS.cloud.navLabel, href: "/cloud" },
+  { name: "Nodes", href: "/node-based-workflows" },
   { name: "Agents", href: "/agents" },
   { name: "Developers", href: "/developers" },
   { name: "Marketing", href: "/marketing" },
+  { name: "Game dev", href: "/gamedev" },
   { name: "Pricing", href: "/pricing" },
   { name: "Blog", href: "/blog" },
   { name: "Docs", href: "https://docs.nodetool.ai", external: true },
@@ -156,7 +158,7 @@ export default function SiteHeader() {
                           ? () => track("Open Docs")
                           : undefined
                       }
-                      className={`px-3 py-1.5 text-sm font-medium rounded-full lift focus-ring ${
+                      className={`whitespace-nowrap px-3 py-1.5 text-sm font-medium rounded-full lift focus-ring ${
                         active
                           ? "bg-blue-600/25 text-blue-200 border border-blue-500/40"
                           : "text-slate-300 hover:text-blue-200 hover:bg-slate-800/60"

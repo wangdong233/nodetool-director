@@ -8,6 +8,7 @@
  * states outright and this component enforces by having no apply path at all.
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo } from "react";
 import type { WorkflowSetupRunMode } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 import { i18n } from "../../../i18n";
@@ -22,11 +23,7 @@ import {
   StatusPill,
   Text
 } from "../../ui_primitives";
-import type {
-  BuildFromPlanResult,
-  WorkflowBuildStatus
-} from "../../../hooks/workflow/useBuildFromPlan";
-import { useTranslation } from "react-i18next";
+import type { BuildFromPlanResult } from "../../../hooks/workflow/useBuildFromPlan";
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
@@ -69,6 +66,13 @@ export interface WorkflowLandingChecklistProps {
 export const buildFailureMessage = (
   result: BuildFromPlanResult
 ): string | null => {
+  if (result.validationError !== undefined) {
+    return [
+      `Validation could not run: ${result.validationError}`,
+      "",
+      "Repair: check that the editor reached the workflow, then run the graph check again. Propose any graph change and wait for me before applying it."
+    ].join("\n");
+  }
   if (result.validationErrors.length > 0) {
     return [
       "The graph I just built does not validate:",
@@ -87,7 +91,9 @@ export const buildFailureMessage = (
   }
   if (result.testRun.error !== null) {
     return [
-      `The test run did not start: ${result.testRun.error}`,
+      result.testRun.started
+        ? `The test run failed: ${result.testRun.error}`
+        : `The test run did not start: ${result.testRun.error}`,
       "",
       "Repair: check the named provider, worker, or runtime, then retry the sample run. Propose any graph change and wait for me before applying it."
     ].join("\n");
@@ -123,19 +129,109 @@ const outputDetail = (output: unknown): string => {
   return `Output: ${String(output)}`;
 };
 
-const statusTone = (
-  status: WorkflowBuildStatus
-): "done" | "rendering" | "failed" | "neutral" => {
-  switch (status) {
+type LineTone = "done" | "rendering" | "failed" | "neutral";
+
+interface LineState {
+  tone: LineTone;
+  /** The pill's word. */
+  pill: string;
+  detail: string;
+}
+
+/** The `Validated` line, read from where the build got to. */
+const validationLine = (result: BuildFromPlanResult): LineState => {
+  if (result.status === "built") {
+    return { tone: "rendering", pill: "checking", detail: "Checking…" };
+  }
+  if (result.validationError !== undefined) {
+    return { tone: "failed", pill: "failed", detail: "Validation could not run" };
+  }
+  if (result.validationPending) {
+    return {
+      tone: "neutral",
+      pill: "unknown",
+      detail:
+        result.status === "unrecorded"
+          ? "The check's result was not recorded"
+          : "Not checked"
+    };
+  }
+  if (result.validationErrors.length > 0) {
+    const count = result.validationErrors.length;
+    return {
+      tone: "failed",
+      pill: "failed",
+      detail: `${count} error${count === 1 ? "" : "s"}`
+    };
+  }
+  if (result.issues.length > 0) {
+    return {
+      tone: "failed",
+      pill: "failed",
+      detail: "Validates, but part of the plan is unwired"
+    };
+  }
+  return { tone: "done", pill: "validated", detail: "No problems found" };
+};
+
+/** The `Test run` line. Why a run did not start matters as much as that it did not. */
+const testRunLine = (result: BuildFromPlanResult): LineState => {
+  switch (result.status) {
+    case "completed-with-output":
+      return {
+        tone: "done",
+        pill: "completed",
+        detail: outputDetail(result.output ?? result.testRun.output)
+      };
     case "running":
-      return "rendering";
-    case "failed":
-      return "failed";
+      return {
+        tone: "rendering",
+        pill: "running",
+        detail: "Running with your sample inputs"
+      };
     case "built":
     case "validated":
-    case "completed-with-output":
-      return "done";
+      return { tone: "neutral", pill: "waiting", detail: "Not run yet" };
+    case "canceled":
+      return { tone: "neutral", pill: "canceled", detail: "Test run canceled" };
+    case "unrecorded":
+      return {
+        tone: "neutral",
+        pill: "unknown",
+        detail: "The test run's result was not recorded"
+      };
+    case "failed":
+      break;
   }
+  if (result.testRun.started) {
+    return {
+      tone: "failed",
+      pill: "failed",
+      detail: result.testRun.error
+        ? `Run failed: ${result.testRun.error}`
+        : "Run failed"
+    };
+  }
+  if (result.validationError !== undefined) {
+    return { tone: "neutral", pill: "skipped", detail: "Not run yet" };
+  }
+  if (result.testRun.error !== null) {
+    return {
+      tone: "failed",
+      pill: "failed",
+      detail: `Did not start: ${result.testRun.error}`
+    };
+  }
+  return {
+    tone: "neutral",
+    pill: "skipped",
+    detail:
+      result.validationErrors.length > 0
+        ? "Not started, the graph did not validate"
+        : result.issues.length > 0
+          ? "Not started, part of the plan is unwired"
+          : "Not started, the build stopped first"
+  };
 };
 
 const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
@@ -146,56 +242,22 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
   onAskAgent
 }) => {
   const { t } = useTranslation();
-  const validated = result.validationErrors.length === 0;
-  const wired = result.issues.length === 0;
   const failure = buildFailureMessage(result);
   const next = NEXT_STEP[runMode];
 
   return (
     <FlexColumn gap={GAP.normal}>
       <Line
-        status="built"
-        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        tone="done"
+        pill="built"
+        label="Graph built"
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
-      <Line
-        status={validated && wired ? "validated" : "failed"}
-        label={t("storyboard:attrs.validated", { defaultValue: "Validated" })}
-        detail={
-          validated
-            ? wired
-              ? t("storyboard:attrs.noProblemsFound", { defaultValue: "No problems found" })
-              : t("storyboard:attrs.validatesButPartOfThePlanIsUnwired", { defaultValue: "Validates, but part of the plan is unwired" })
-            : `${result.validationErrors.length} error${
-                result.validationErrors.length === 1 ? "" : "s"
-              }`
-        }
-      />
-      {/* Why a run did not start matters more than that it did not: the
-          creator was told on the setup step that building would run it once,
-          so a missing run is a promise this screen has to account for (F1, F8). */}
-      <Line
-        status={
-          result.testRun.error !== null
-            ? "failed"
-            : result.status === "completed-with-output"
-              ? "completed-with-output"
-              : result.status === "running"
-                ? "running"
-                : result.status
-        }
-        label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
-        detail={
-          result.status === "completed-with-output"
-            ? outputDetail(result.output ?? result.testRun.output)
-            : result.status === "running"
-              ? t("storyboard:attrs.runningWithYourSampleInputs", { defaultValue: "Running with your sample inputs" })
-              : (result.testRun.error ??
-                (validated
-                  ? t("storyboard:attrs.notStartedPartOfThePlanIsUnwired", { defaultValue: "Not started — part of the plan is unwired" })
-                  : t("storyboard:attrs.notStartedTheGraphDidNotValidate", { defaultValue: "Not started — the graph did not validate" })))
-        }
-      />
+      <Line label="Validated" {...validationLine(result)} />
+      {/* The creator was told on the setup step that building would run it
+          once, so a missing run is a promise this screen has to account for
+          (F1, F8). */}
+      <Line label="Test run" {...testRunLine(result)} />
 
       {failure === null ? (
         <FlexRow gap={GAP.normal} align="center">
@@ -218,22 +280,24 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
             </EditorButton>
           }
         >
-          <Caption component="span">{failure.split("\n")[0]}</Caption>
+          {/* The summary paragraph only: the repair instructions after the
+              blank line are addressed to the agent, not the creator. */}
+          <Caption component="span" sx={{ whiteSpace: "pre-line" }}>
+            {failure.split("\n\n")[0]}
+          </Caption>
         </AlertBanner>
       )}
     </FlexColumn>
   );
 };
 
-interface LineProps {
-  status: WorkflowBuildStatus;
+interface LineProps extends LineState {
   label: string;
-  detail: string;
 }
 
-const Line: React.FC<LineProps> = ({ status, label, detail }) => (
+const Line: React.FC<LineProps> = ({ tone, pill, label, detail }) => (
   <FlexRow gap={GAP.normal} align="center">
-    <StatusPill tone={statusTone(status)}>{status}</StatusPill>
+    <StatusPill tone={tone}>{pill}</StatusPill>
     <Text size="small" component="span">
       {label}
     </Text>

@@ -1,3 +1,4 @@
+import { finishStoryboard, layoutStoryboard, previewStoryboardDesign } from "./finish-storyboard.js";
 /**
  * The `storyboards` capability module.
  *
@@ -16,8 +17,11 @@
  * Design: docs/tool-class-retirement-design.md § "Migration".
  */
 
+import { z } from "zod";
+import { SpanStatusCode } from "@opentelemetry/api";
 import {
   mp4DurationSeconds,
+  withSpan,
   type GenerationRequest,
   type ProcessingContext
 } from "@nodetool-ai/runtime";
@@ -33,15 +37,29 @@ import type {
   Scene,
   Screenplay,
   ScriptLinkDocument,
+  OneTakeDirection,
   Shot,
+  ShotModelRef,
   ShotCoverage,
   VideoRef
 } from "@nodetool-ai/protocol";
-import type { StoryboardSetupStage } from "@nodetool-ai/protocol/api-schemas/storyboards.js";
+import {
+  storyboardMotionDesign,
+  storyboardShotGraphics,
+  type StoryboardSetupStage
+} from "@nodetool-ai/protocol/api-schemas/storyboards.js";
+import {
+  assertProductionGenerationAllowed,
+  compileOneTake,
+  isFullResourceId,
+  isShortResourceId,
+  productionRequirement
+} from "@nodetool-ai/protocol";
 import type { ScriptAssemblyInput } from "@nodetool-ai/timeline";
 import type {
   RenderShotsOptions,
   ShotRenderOutcome,
+  ShotRenderPlan,
   ShotRenderPlanOptions,
   StoryboardRenderHost
 } from "@nodetool-ai/storyboard";
@@ -62,9 +80,12 @@ import {
   editStoryboardSpec,
   directStoryboardSpec,
   extractScriptFromStoryboardSpec,
-  deleteStoryboardSpec
+  deleteStoryboardSpec,
+  getStoryboardOneTakeSpec,
+  updateStoryboardOneTakeSpec
 } from "./storyboards.specs.js";
-import { clampConcurrency, mapWithConcurrency } from "./concurrency.js";
+import { measureStoryboardSources } from "./storyboard-measured-sources.js";
+import { clampConcurrency } from "./concurrency.js";
 import {
   isNonBlankString,
   isNumber,
@@ -464,7 +485,8 @@ const listStoryboards: CapabilityExport = {
           with_keyframe: doc.shots.filter((s) => !!s.keyframe).length,
           with_clip: doc.shots.filter((s) => !!s.clip).length,
           timeline_id: row.timeline_id ?? undefined,
-          updated_at: row.updated_at
+          updated_at: row.updated_at,
+    revision: row.revision
         };
       })
     };
@@ -484,7 +506,8 @@ function createdBoardSummary(row: Storyboard) {
     name: row.name,
     project_id: row.project_id,
     shots: doc.shots.length,
-    updated_at: row.updated_at
+    updated_at: row.updated_at,
+    revision: row.revision
   };
 }
 
@@ -554,6 +577,7 @@ const getStoryboard: CapabilityExport = {
     const drifted = new Set(link.drifted_shot_ids);
     return {
       id: row.id,
+      revision: row.revision,
       name: row.name,
       brief: doc.brief,
       style: doc.style,
@@ -564,6 +588,7 @@ const getStoryboard: CapabilityExport = {
       timeline_id: row.timeline_id ?? undefined,
       narration: doc.screenplay?.narration ?? undefined,
       music_prompt: doc.screenplay?.music_prompt ?? undefined,
+      motion_design: doc.screenplay?.motion_design ?? null,
       script_id: link.script_id,
       script_link: link,
       shots: [...doc.shots]
@@ -575,6 +600,10 @@ const getStoryboard: CapabilityExport = {
           action: shot.action,
           camera: shot.camera,
           motion: shot.motion,
+          end_state: shot.end_state,
+          sound: shot.sound,
+          graphics: shot.graphics,
+          production: shot.production,
           duration_seconds: shot.duration_seconds,
           status: shot.status,
           has_keyframe: !!shot.keyframe,
@@ -696,6 +725,77 @@ async function filterStale(
   };
 }
 
+function modelOverrides(params: Record<string, unknown>): ShotRenderPlanOptions {
+  const options: ShotRenderPlanOptions = {};
+  if (isNonBlankString(params["provider"])) {
+    options.provider = params["provider"];
+  }
+  if (isNonBlankString(params["model"])) {
+    options.model = params["model"];
+  }
+  return options;
+}
+
+function missingPlanModel(plan: ShotRenderPlan): ToolError | undefined {
+  if (plan.model.provider && plan.model.model) {
+    return undefined;
+  }
+  return {
+    error: `No ${plan.kind === "keyframe" ? "still" : "clip"} model is set for shot ${plan.shotId}. Pass provider + model (use find_model), or set one on the shot or board.`
+  };
+}
+
+async function clipModelError(
+  context: ProcessingContext,
+  plans: ShotRenderPlan[]
+): Promise<ToolError | undefined> {
+  const groups = new Map<string, ShotRenderPlan[]>();
+  for (const plan of plans) {
+    const error = missingPlanModel(plan);
+    if (error) {
+      return error;
+    }
+    if (plan.preflightError) {
+      continue;
+    }
+    const key = JSON.stringify([plan.model.provider, plan.model.model]);
+    const group = groups.get(key) ?? [];
+    group.push(plan);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    const model = group[0].model;
+    let supportedTasks = model.supportedTasks;
+    try {
+      const provider = await context.getProvider(model.provider);
+      const models = await provider.getAvailableVideoModels();
+      supportedTasks =
+        models.find((entry) => entry.id === model.model)?.supportedTasks ??
+        supportedTasks;
+    } catch {
+      // Legacy providers can lack discovery, so their persisted task declarations apply.
+    }
+    const unsupported = group.find((plan) => {
+      const task = plan.mode === "direct" ? "text_to_video" : plan.mode === "reference" ? "reference_to_video" : "image_to_video";
+      return supportedTasks?.length && !supportedTasks.includes(task);
+    });
+    if (unsupported) {
+      const task = unsupported.mode === "direct" ? "text_to_video" : unsupported.mode === "reference" ? "reference_to_video" : "image_to_video";
+      return {
+        error: `The selected clip model ${model.provider}/${model.model} does not support ${task}; choose a model that supports the selected shot mode.`
+      };
+    }
+  }
+  return undefined;
+}
+
+function uniformModel(plans: ShotRenderPlan[]): Partial<ModelChoice> {
+  const model = plans[0]?.model;
+  return model && plans.every((plan) => plan.model.provider === model.provider && plan.model.model === model.model)
+    ? { provider: model.provider, model: model.model }
+    : {};
+}
+
 const renderStoryboardStills: CapabilityExport = {
   spec: renderStoryboardStillsSpec,
   impl: async (run, params) => {
@@ -703,14 +803,6 @@ const renderStoryboardStills: CapabilityExport = {
     const board = await loadBoard(run, params["storyboard_id"]);
     if (isError(board)) return board;
     const { row, doc } = board;
-
-    const model = resolveModel(
-      params,
-      doc.imageModel,
-      "still",
-      "text_to_image"
-    );
-    if (isError(model)) return model;
 
     const { shotRenderMode } = await import("@nodetool-ai/protocol");
     // A direct shot renders its clip from the prompt, so it needs no still.
@@ -720,7 +812,7 @@ const renderStoryboardStills: CapabilityExport = {
       doc.shots,
       params["targets"],
       (s) =>
-        !s.keyframe &&
+        (params["stale_only"] === true ? !!s.keyframe : !s.keyframe) &&
         shotRenderMode(s) !== "direct" &&
         !shotHasPicture(s, doc.shots)
     );
@@ -746,6 +838,10 @@ const renderStoryboardStills: CapabilityExport = {
             : "No shot needs a still: each already has one, or renders its clip directly."
       };
     }
+    const protectedStill = chosen.find((shot) => shot.production?.protected_inputs?.some((input) => input.asset_id));
+    if (protectedStill) {
+      return { error: `Shot ${protectedStill.id} protects source assets; the current still renderer cannot prove source fidelity. Use those assets directly in Timeline materialization or a policy-aware finishing path.` };
+    }
     if (chosen.length > MAX_SHOTS_PER_CALL) {
       return {
         error: `${chosen.length} shots selected, over the ${MAX_SHOTS_PER_CALL}-shot per-call limit. Pass targets in batches.`
@@ -758,10 +854,7 @@ const renderStoryboardStills: CapabilityExport = {
     // says: `style` and `model` can be overridden per call. Recording the
     // override is the point — a version rendered against something other than
     // the board's settings reads stale against the board, correctly.
-    const planOptions: ShotRenderPlanOptions = {
-      provider: model.provider,
-      model: model.model
-    };
+    const planOptions = modelOverrides(params);
     if (isString(params["style"])) {
       planOptions.style = params["style"];
     }
@@ -772,20 +865,40 @@ const renderStoryboardStills: CapabilityExport = {
       chosen.map((shot) => shot.id),
       planOptions
     );
-    const outcomes = await renderShots(
-      renderHost(context),
-      { id: row.id },
-      plans,
-      {
-        concurrency: clampConcurrency(params["concurrency"])
+    const { imageModelSupportsTask } = await import("@nodetool-ai/runtime");
+    for (const plan of plans) {
+      const modelError = missingPlanModel(plan);
+      if (modelError) {
+        return modelError;
       }
-    );
+      plan.stillModelTakesImages = await imageModelSupportsTask(
+        context,
+        plan.model,
+        "image_to_image",
+        plan.model.supportedTasks
+      );
+    }
+    const outcomes = await withSpan("render", {
+      "document.id": row.id,
+      "render.kind": "keyframe",
+      "render.shot_count": plans.length
+    }, async (span) => {
+      const rendered = await renderShots(
+        renderHost(context),
+        { id: row.id },
+        plans,
+        { concurrency: clampConcurrency(params["concurrency"]) }
+      );
+      if (rendered.some((outcome) => !outcome.ok)) {
+        span?.setStatus({ code: SpanStatusCode.ERROR });
+      }
+      return rendered;
+    });
     const results = outcomes.map((outcome) => outcomeRow(outcome, false));
 
     return {
       storyboard_id: row.id,
-      provider: model.provider,
-      model: model.model,
+      ...uniformModel(plans),
       rendered: results.filter((r) => r.ok).length,
       failed: results.filter((r) => !r.ok).length,
       skipped,
@@ -811,56 +924,37 @@ const renderStoryboardClips: CapabilityExport = {
     ) {
       return { error: 'mode must be "keyframe", "direct", or "reference".' };
     }
-    // The call's override wins over the shot's own setting, for this call only.
-    const { shotRenderMode } = await import("@nodetool-ai/protocol");
-    const modeOf = (shot: Shot): "keyframe" | "direct" | "reference" =>
-      override === "keyframe" ||
-      override === "direct" ||
-      override === "reference"
-        ? override
-        : shotRenderMode(shot);
-
-    const selected = selectShots(
+    const candidates = selectShots(
       doc.shots,
       params["targets"],
-      (s) =>
-        !shotHasPicture(s, doc.shots) &&
-        (modeOf(s) === "direct" || modeOf(s) === "reference" || !!s.keyframe)
+      (shot) =>
+        (params["stale_only"] === true ? !!shot.clip : !shotHasPicture(shot, doc.shots)) &&
+        !shot.covered_by?.shot_id
     );
-    if (isError(selected)) return selected;
-    const requiredCapabilities = new Set(
-      selected.map((shot) =>
-        modeOf(shot) === "direct"
-          ? "text_to_video"
-          : modeOf(shot) === "reference"
-            ? "reference_to_video"
-            : "image_to_video"
-      )
-    );
-    const capability = requiredCapabilities.has("reference_to_video")
-      ? "reference_to_video"
-      : requiredCapabilities.has("image_to_video")
-        ? "image_to_video"
-        : "text_to_video";
-    const model = resolveModel(params, doc.videoModel, "clip", capability);
-    if (isError(model)) return model;
-    const declaredTasks = doc.videoModel?.supported_tasks;
-    if (
-      Array.isArray(declaredTasks) &&
-      declaredTasks.length > 0 &&
-      model.model === doc.videoModel?.id &&
-      model.provider === doc.videoModel?.provider
-    ) {
-      const unsupported = [...requiredCapabilities].find(
-        (task) => !declaredTasks.includes(task)
-      );
-      if (unsupported) {
-        return {
-          error: `The selected clip model does not support ${unsupported}; choose a model that supports every selected shot mode.`
-        };
-      }
+    if (isError(candidates)) {
+      return candidates;
     }
     const entities = await loadBoardEntities(context, doc);
+    const { planShotRenders, renderShots } =
+      await import("@nodetool-ai/storyboard");
+    const readinessOptions = modelOverrides(params);
+    if (override !== undefined) {
+      readinessOptions.mode = override;
+    }
+    const ready = new Set(
+      planShotRenders(
+        doc,
+        entities,
+        "clip",
+        candidates.map((shot) => shot.id),
+        readinessOptions
+      )
+        .filter((plan) => plan.mode !== "keyframe" || !!plan.sourceKeyframe)
+        .map((plan) => plan.shotId)
+    );
+    const selected = params["targets"] === undefined || params["targets"] === null
+      ? candidates.filter((shot) => ready.has(shot.id))
+      : candidates;
     const fresh = await filterStale(selected, params, doc, entities, "clip");
     const skipped = fresh.skipped;
     const chosen = fresh.shots;
@@ -875,6 +969,10 @@ const renderStoryboardClips: CapabilityExport = {
             : 'No shot is ready for a clip. A keyframe-mode shot needs a still first (render_storyboard_stills), or set its render_mode to "direct" — or pass mode: "direct" here — to render straight from the prompt. Name shots explicitly with `targets` to override the selection.'
       };
     }
+    const forbiddenClip = chosen.find((shot) => shot.production?.media_strategy === "still_motion_graphics");
+    if (forbiddenClip) {
+      return { error: `Shot ${forbiddenClip.id} is still_motion_graphics; video generation is forbidden. Materialize its still/assets as Timeline layers instead.` };
+    }
     if (chosen.length > MAX_SHOTS_PER_CALL) {
       return {
         error: `${chosen.length} shots selected, over the ${MAX_SHOTS_PER_CALL}-shot per-call limit. Pass targets in batches.`
@@ -882,8 +980,6 @@ const renderStoryboardClips: CapabilityExport = {
     }
 
     const { scriptLinesById } = await import("@nodetool-ai/timeline");
-    const { planShotRenders, renderShots } =
-      await import("@nodetool-ai/storyboard");
     // A linked board times its shots from the words they cover, so a clip is
     // rendered long enough to hold its voiceover (design §2.3). A shot pinned
     // to `manual`, an unvoiced line, or an unlinked board keeps
@@ -895,8 +991,7 @@ const renderStoryboardClips: CapabilityExport = {
     // As in the stills path: the record says what this call rendered with, so
     // a per-call model or style override reads stale against the board.
     const planOptions: ShotRenderPlanOptions = {
-      provider: model.provider,
-      model: model.model,
+      ...modelOverrides(params),
       style: isString(params["style"]) ? params["style"] : doc.style || "",
       scriptLines: scriptLinesById(scriptDoc?.sections ?? [])
     };
@@ -910,24 +1005,37 @@ const renderStoryboardClips: CapabilityExport = {
       chosen.map((shot) => shot.id),
       planOptions
     );
+    const modelError = await clipModelError(context, plans);
+    if (modelError) {
+      return modelError;
+    }
     const renderOptions: RenderShotsOptions = {
       concurrency: clampConcurrency(params["concurrency"])
     };
     if (isString(params["resolution"])) {
       renderOptions.resolution = params["resolution"];
     }
-    const outcomes = await renderShots(
-      renderHost(context),
-      { id: row.id },
-      plans,
-      renderOptions
-    );
+    const outcomes = await withSpan("render", {
+      "document.id": row.id,
+      "render.kind": "clip",
+      "render.shot_count": plans.length
+    }, async (span) => {
+      const rendered = await renderShots(
+        renderHost(context),
+        { id: row.id },
+        plans,
+        renderOptions
+      );
+      if (rendered.some((outcome) => !outcome.ok)) {
+        span?.setStatus({ code: SpanStatusCode.ERROR });
+      }
+      return rendered;
+    });
     const results = outcomes.map((outcome) => outcomeRow(outcome, true));
 
     return {
       storyboard_id: row.id,
-      provider: model.provider,
-      model: model.model,
+      ...uniformModel(plans),
       rendered: results.filter((r) => r.ok).length,
       failed: results.filter((r) => !r.ok).length,
       skipped,
@@ -953,6 +1061,14 @@ const reviseStoryboardClip: CapabilityExport = {
         error: `No shot matches "${String(params["target"])}". Call get_storyboard to list shot ids.`
       };
     }
+    if (shot.production?.media_strategy === "still_motion_graphics") {
+      return { error: `Shot ${shot.id} is still_motion_graphics; video revision is forbidden.` };
+    }
+    try {
+      assertProductionGenerationAllowed(shot.production, "video_to_video");
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) };
+    }
     if (!shot.clip) {
       return {
         error: "Shot has no clip to revise. Run render_storyboard_clips first."
@@ -975,6 +1091,11 @@ const reviseStoryboardClip: CapabilityExport = {
           error: "The shot's clip could not be read back from storage."
         };
       }
+      const current = await loadBoard(run, row.id);
+      if (isError(current)) return current;
+      const currentShot = current.doc.shots.find((value) => value.id === shot.id);
+      if (!currentShot) return { error: `Shot ${shot.id} no longer exists.` };
+      assertProductionGenerationAllowed(currentShot.production, "video_to_video");
       const saved = await renderMedia(
         context,
         {
@@ -1033,6 +1154,7 @@ const assembleStoryboardTimeline: CapabilityExport = {
       buildLinkedTimeline,
       buildStoryboardTimeline,
       foreignTimelineParts,
+      assertStoryboardReassemblyAllowed,
       frameSizeForAspect
     } = await import("@nodetool-ai/timeline");
 
@@ -1051,35 +1173,7 @@ const assembleStoryboardTimeline: CapabilityExport = {
       );
     }
 
-    const { loadMediaRefBytes, probeVideoDurationSeconds } =
-      await import("@nodetool-ai/runtime");
-    const { applyMeasuredShotClipDurations } =
-      await import("@nodetool-ai/timeline");
-    const signal = context.signal ?? new AbortController().signal;
-    const measurements = await mapWithConcurrency(
-      doc.shots,
-      clampConcurrency(undefined),
-      async (shot) => {
-        const clip = shot.clip;
-        const assetId = clip?.asset_id;
-        if (shot.status !== "rendered" || !assetId) return null;
-        try {
-          const bytes = await loadMediaRefBytes(clip, context);
-          const seconds = bytes?.length
-            ? await probeVideoDurationSeconds(bytes, signal)
-            : null;
-          return seconds === null ? null : ([assetId, seconds] as const);
-        } catch (error) {
-          if (signal.aborted) throw error;
-          return null;
-        }
-      }
-    );
-    const durations = new Map<string, number>();
-    for (const measurement of measurements) {
-      if (measurement) durations.set(...measurement);
-    }
-    const measuredShots = applyMeasuredShotClipDurations(doc.shots, durations);
+    const measuredShots = await measureStoryboardSources(doc.shots, context);
 
     const assembled = script
       ? buildLinkedTimeline({
@@ -1129,10 +1223,10 @@ const assembleStoryboardTimeline: CapabilityExport = {
           `Re-render those shots at the length their lines need.`
       );
     }
-    if (assembled.clips.length === 0) {
+    if (assembled.durationMs === 0) {
       return {
         error:
-          "No shot has a rendered clip, so there is nothing to assemble. Run render_storyboard_stills, then render_storyboard_clips.",
+          "No shot has an allowed still, video, or graphics source. Add graphics intent or use render_storyboard_stills / render_storyboard_clips where allowed by the shot production policy.",
         skipped_shot_ids: assembled.skippedShotIds,
         skipped_line_ids: skippedLineIds
       };
@@ -1214,6 +1308,7 @@ const assembleStoryboardTimeline: CapabilityExport = {
       }
 
       const previous = current.toDocument();
+      assertStoryboardReassemblyAllowed(previous, row.id);
       const foreign = foreignTimelineParts(
         previous,
         (clip) =>
@@ -1224,7 +1319,7 @@ const assembleStoryboardTimeline: CapabilityExport = {
       const clips = [...assembled.clips, ...foreign.clips];
       const durationMs = clips.reduce(
         (end, clip) => Math.max(end, clip.startMs + clip.durationMs),
-        0
+        assembled.durationMs
       );
 
       const nextDocument = {
@@ -1410,6 +1505,15 @@ function docScenes(doc: StoryboardDocument): Scene[] {
   return doc.screenplay?.scenes ?? [];
 }
 
+/**
+ * A fresh id for a screenplay, scene or shot. A clock and a count are not
+ * enough: ops in one batch run within the same millisecond, and a count
+ * repeats after a remove or when two counts coincide.
+ */
+function newDocId(prefix: string): string {
+  return `${prefix}_${crypto.randomUUID().replaceAll("-", "").slice(0, 16)}`;
+}
+
 /** Write scenes back, materializing a minimal screenplay when there is none. */
 function setDocScenes(doc: StoryboardDocument, scenes: Scene[]): void {
   if (doc.screenplay) {
@@ -1419,7 +1523,7 @@ function setDocScenes(doc: StoryboardDocument, scenes: Scene[]): void {
   if (scenes.length === 0) return;
   doc.screenplay = {
     type: "screenplay",
-    id: `sp_${Date.now().toString(36)}`,
+    id: newDocId("sp"),
     title: "",
     shots: [],
     scenes
@@ -1490,7 +1594,7 @@ function materializeLegacyScene(doc: StoryboardDocument): string | null {
   if (!doc.shots.some((shot) => !shot.scene_id)) return null;
   const scene: Scene = {
     type: "scene",
-    id: `scene_${Date.now().toString(36)}_${doc.shots.length}`,
+    id: newDocId("scene"),
     slugline: ""
   };
   doc.shots = doc.shots.map((shot) =>
@@ -1557,6 +1661,10 @@ const SHOT_EDIT_FIELDS = new Set([
   "slug",
   "camera",
   "motion",
+  "end_state",
+  "sound",
+  "graphics",
+  "production",
   "dialogue",
   "narration",
   "notes",
@@ -1616,8 +1724,17 @@ const BOARD_EDIT_FIELDS = new Set([
   "aspect_ratio",
   "entity_ids",
   "image_model",
-  "video_model"
+  "video_model",
+  "narration",
+  "music_prompt",
+  "motion_design"
 ]);
+
+const screenplayDirection = z.object({
+  narration: z.string().optional(),
+  music_prompt: z.string().optional(),
+  motion_design: storyboardMotionDesign.nullable().optional()
+});
 
 /**
  * The board-level twin of {@link assertKnownShotFields}.
@@ -1713,6 +1830,45 @@ function applyShotFields(
   if (args["camera"] !== undefined)
     next.camera = args["camera"] as Shot["camera"];
   if (args["motion"] !== undefined) next.motion = String(args["motion"]);
+  for (const field of ["end_state", "sound"] as const) {
+    const value = args[field];
+    if (value === undefined) continue;
+    if (value === null || String(value).trim() === "") {
+      delete next[field];
+    } else {
+      next[field] = String(value);
+    }
+  }
+  if (args["graphics"] !== undefined) {
+    if (args["graphics"] === null) {
+      delete next.graphics;
+    } else {
+      const parsed = storyboardShotGraphics.safeParse(args["graphics"]);
+      if (!parsed.success) {
+        throw new Error(
+          `graphics must be a valid Storyboard graphics object: ${parsed.error.issues
+            .map((issue) => issue.path.join(".") || issue.message)
+            .join(", ")}.`
+        );
+      }
+      next.graphics = parsed.data;
+    }
+  }
+  if (args["production"] !== undefined) {
+    if (args["production"] === null) {
+      delete next.production;
+    } else {
+      const parsed = productionRequirement.safeParse(args["production"]);
+      if (!parsed.success) {
+        throw new Error(
+          `production must be a valid production requirement: ${parsed.error.issues
+            .map((issue) => issue.path.join(".") || issue.message)
+            .join(", ")}.`
+        );
+      }
+      next.production = parsed.data;
+    }
+  }
   if (args["dialogue"] !== undefined) next.dialogue = String(args["dialogue"]);
   if (args["narration"] !== undefined)
     next.narration = String(args["narration"]);
@@ -1798,7 +1954,7 @@ function applyBoardOp(
       const shot = applyShotFields(
         {
           type: "shot",
-          id: `shot_${doc.shots.length + 1}_${Date.now().toString(36)}`,
+          id: newDocId("shot"),
           index: doc.shots.length,
           action: "",
           status: "planned"
@@ -1935,7 +2091,7 @@ function applyBoardOp(
       const at = ordered.findIndex((s) => s.id === shot.id);
       const copy: Shot = {
         ...shot,
-        id: `shot_${doc.shots.length + 1}_${Date.now().toString(36)}`,
+        id: newDocId("shot"),
         // The copy covers no script line, so the link fields go with the
         // original and an ERT read off a line is now the user's own.
         duration_source: "manual"
@@ -1994,7 +2150,7 @@ function applyBoardOp(
       materializeLegacyScene(doc);
       const scene: Scene = {
         type: "scene",
-        id: `scene_${Date.now().toString(36)}_${docScenes(doc).length}`,
+        id: newDocId("scene"),
         slugline: optionalString(args["slugline"]) ?? ""
       };
       const groups = sceneGroups(doc.shots);
@@ -2014,7 +2170,7 @@ function applyBoardOp(
           : groups.slice(0, after + 1).reduce((n, g) => n + g.shots.length, 0);
       // A scene with no shot has no position, so it would neither render nor
       // survive the next operation: it opens holding one blank shot.
-      const shotId = `shot_${doc.shots.length + 1}_${Date.now().toString(36)}`;
+      const shotId = newDocId("shot");
       ordered.splice(at, 0, blankShot(shotId, scene.id));
       setDocScenes(doc, [...docScenes(doc), scene]);
       applyStructural(doc, ordered);
@@ -2184,6 +2340,18 @@ function applyBoardOp(
 
     case "set_board": {
       assertKnownBoardFields(args);
+      const direction = screenplayDirection.safeParse(args);
+      if (!direction.success) {
+        throw new Error(
+          "set_board has invalid screenplay direction: " +
+            direction.error.issues
+              .map(
+                (issue) =>
+                  `${issue.path.join(".") || "direction"}: ${issue.message}`
+              )
+              .join("; ")
+        );
+      }
       if (args["brief"] !== undefined) doc.brief = String(args["brief"]);
       if (args["style"] !== undefined) doc.style = String(args["style"]);
       if (args["aspect_ratio"] !== undefined) {
@@ -2219,13 +2387,47 @@ function applyBoardOp(
         }
         doc.videoModel = videoModel;
       }
+      if (
+        args["narration"] !== undefined ||
+        args["music_prompt"] !== undefined ||
+        args["motion_design"] !== undefined
+      ) {
+        const needsScreenplay =
+          args["narration"] !== undefined ||
+          args["music_prompt"] !== undefined ||
+          direction.data.motion_design !== null;
+        if (needsScreenplay) {
+          doc.screenplay = doc.screenplay ?? {
+            type: "screenplay",
+            id: newDocId("sp"),
+            title: "",
+            shots: []
+          };
+        }
+        if (doc.screenplay && direction.data.narration !== undefined) {
+          doc.screenplay.narration = direction.data.narration;
+        }
+        if (doc.screenplay && direction.data.music_prompt !== undefined) {
+          doc.screenplay.music_prompt = direction.data.music_prompt;
+        }
+        if (doc.screenplay && direction.data.motion_design !== undefined) {
+          if (direction.data.motion_design === null) {
+            delete doc.screenplay.motion_design;
+          } else {
+            doc.screenplay.motion_design = direction.data.motion_design;
+          }
+        }
+      }
       return {
         brief: doc.brief,
         style: doc.style,
         aspect_ratio: doc.aspectRatio,
         entity_ids: doc.entityIds,
         image_model: doc.imageModel,
-        video_model: doc.videoModel
+        video_model: doc.videoModel,
+        narration: doc.screenplay?.narration,
+        music_prompt: doc.screenplay?.music_prompt,
+        motion_design: doc.screenplay?.motion_design
       };
     }
   }
@@ -2256,6 +2458,43 @@ async function loadStyleEntities(
   return [...cast, ...extra];
 }
 
+/** Resolve source refs before any edit writes. Guest IDs stay short, stored refs stay canonical. */
+async function resolveStoryboardEditSources(run: CapabilityRun, ops: readonly ParsedBoardOp[]): Promise<ParsedBoardOp[]> {
+  const { Asset } = await import("@nodetool-ai/models");
+  const canonical = new Map<string, string>();
+  const resolve = async (id: string): Promise<string> => {
+    if (!isFullResourceId(id) && !isShortResourceId(id)) { return id; }
+    const cached = canonical.get(id);
+    if (cached) { return cached; }
+    const asset = run.context.userId ? await Asset.find(run.context.userId, id) : null;
+    if (!asset) { throw new Error(`Source asset or entity ${id} is unavailable.`); }
+    canonical.set(id, asset.id);
+    return asset.id;
+  };
+  const resolved = structuredClone(ops) as ParsedBoardOp[];
+  for (const {args} of resolved) {
+    const references: Record<string, unknown>[] = [args];
+    const graphics = args["graphics"];
+    if (isRecord(graphics) && Array.isArray(graphics["elements"])) {
+      references.push(...graphics["elements"].filter(isRecord));
+    }
+    const production = args["production"];
+    if (isRecord(production) && Array.isArray(production["protected_inputs"])) {
+      references.push(...production["protected_inputs"].filter(isRecord));
+    }
+    for (const reference of references) {
+      for (const field of ["asset_id", "entity_id", "location_id"]) {
+        const id = reference[field];
+        if (isString(id)) { reference[field] = await resolve(id); }
+      }
+    }
+    if (Array.isArray(args["entity_ids"])) {
+      args["entity_ids"] = await Promise.all(args["entity_ids"].map(async (id) => isString(id) ? resolve(id) : id));
+    }
+  }
+  return resolved;
+}
+
 const editStoryboard: CapabilityExport = {
   spec: editStoryboardSpec,
   impl: async (run, params) => {
@@ -2268,14 +2507,20 @@ const editStoryboard: CapabilityExport = {
       const board = await loadBoard(run, params["storyboard_id"]);
       if (isError(board)) return board;
       const { row, doc } = board;
+      if (params["expected_revision"] !== undefined && params["expected_revision"] !== row.revision) {
+        return { error: "Storyboard revision conflict. Refresh the board before editing." };
+      }
 
       // A failing op is recorded and the script continues: stopping at the
       // first error hides every problem behind it.
       const records: BoardOpRecord[] = [];
-      const entities = await loadStyleEntities(run, doc, ops);
+      let sourceOps: ParsedBoardOp[];
+      try { sourceOps = await resolveStoryboardEditSources(run, ops); }
+      catch (error) { return {error: error instanceof Error ? error.message : String(error)}; }
+      const entities = await loadStyleEntities(run, doc, sourceOps);
       const resolvedOps: { tool: string; input: Record<string, unknown> }[] =
         [];
-      for (const parsed of ops) {
+      for (const parsed of sourceOps) {
         try {
           const result = applyBoardOp(doc, parsed, entities) as
             | Record<string, unknown>
@@ -2320,6 +2565,9 @@ const editStoryboard: CapabilityExport = {
         }
       }
 
+      if (doc.screenplay) {
+        doc.screenplay.shots = doc.shots;
+      }
       const saved = await Storyboard.updateFieldsIfUnchanged(
         row.id,
         row.updated_at,
@@ -2336,6 +2584,7 @@ const editStoryboard: CapabilityExport = {
       return {
         storyboard_id: row.id,
         updated_at: saved.updated_at,
+        revision: saved.revision,
         applied: records.length - failed.length,
         failed: failed.length,
         ops: records,
@@ -2487,6 +2736,8 @@ const directStoryboard: CapabilityExport = {
           ...held,
           ...shot,
           index,
+          graphics: held.graphics,
+          production: held.production,
           keyframe: held.keyframe,
           keyframe_versions: held.keyframe_versions,
           clip: held.clip,
@@ -2495,7 +2746,11 @@ const directStoryboard: CapabilityExport = {
           status: held.status
         };
       });
-      next.screenplay = screenplay;
+      const previousMotionDesign = next.screenplay?.motion_design;
+      next.screenplay = { ...screenplay, shots: next.shots };
+      if (previousMotionDesign !== undefined) {
+        next.screenplay.motion_design = previousMotionDesign;
+      }
       next.style = screenplay.style_bible ?? next.style;
       next.aspectRatio = screenplay.aspect_ratio ?? next.aspectRatio;
       if (screenplay.genre) next.genre = screenplay.genre;
@@ -2509,6 +2764,7 @@ const directStoryboard: CapabilityExport = {
       return {
         storyboard_id: current.row.id,
         updated_at: saved.updated_at,
+        revision: saved.revision,
         title: screenplay.title,
         genre: next.genre,
         redirected: params["redirect"] === true,
@@ -2726,7 +2982,273 @@ const deleteStoryboard: CapabilityExport = {
       : { error: `Storyboard ${id} was not found, or it is not yours.` };
   }
 };
+// ---------------------------------------------------------------------------
+// get_storyboard_one_take / update_storyboard_one_take
+// ---------------------------------------------------------------------------
+
+/** Above this the providers that take one continuous clip refuse or truncate. */
+const ONE_TAKE_MAX_SECONDS = 30;
+/** The most reference images a one-take provider accepts. */
+const ONE_TAKE_MAX_IMAGES = 9;
+
+/** The document's `one_take`, which the models-layer type does not name yet. */
+type OneTakeDoc = StoryboardDocument & { one_take?: OneTakeDirection };
+
+const oneTakeUpdateInput = z.object({
+  prompt: z.string().optional(),
+  duration_seconds: z.number().positive().nullable().optional(),
+  aspect_ratio: z.string().trim().min(1).nullable().optional(),
+  resolution: z.string().trim().min(1).nullable().optional(),
+  model: z
+    .object({
+      provider: z.string().trim().min(1),
+      id: z.string().trim().min(1),
+      name: z.string().optional()
+    })
+    .nullable()
+    .optional(),
+  shots: z
+    .array(
+      z.object({
+        shot_id: z.string().trim().min(1),
+        end_state: z.string().nullable().optional(),
+        sound: z.string().nullable().optional()
+      })
+    )
+    .optional()
+});
+
+/** The one-take render settings a call may set; null clears one. */
+const ONE_TAKE_SETTINGS = [
+  "duration_seconds",
+  "aspect_ratio",
+  "resolution",
+  "model"
+] as const;
+
+/** The board's `videoModel` as a model ref, or null when it names none. */
+function boardVideoModel(value: unknown): ShotModelRef | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const id = record["id"];
+  const provider = record["provider"];
+  if (typeof id !== "string" || id === "" || typeof provider !== "string" || provider === "") {
+    return null;
+  }
+  const model: ShotModelRef = {
+    id,
+    provider: provider as ShotModelRef["provider"]
+  };
+  const name = record["name"];
+  if (typeof name === "string") {
+    model.name = name;
+  }
+  return model;
+}
+
+/** The shape both one-take capabilities return. */
+function oneTakeSummary(row: Storyboard, doc: OneTakeDoc) {
+  const compiled = compileOneTake({
+    shots: doc.shots,
+    oneTake: doc.one_take
+  });
+  const direction = doc.one_take;
+  const settings = {
+    duration_seconds: direction?.duration_seconds ?? null,
+    aspect_ratio: direction?.aspect_ratio ?? null,
+    resolution: direction?.resolution ?? null,
+    model: direction?.model ?? null
+  };
+  const effective = {
+    duration_seconds: compiled.duration_seconds,
+    shot_total_seconds: compiled.shot_total_seconds,
+    aspect_ratio: settings.aspect_ratio ?? doc.aspectRatio ?? null,
+    resolution: settings.resolution,
+    model: settings.model ?? boardVideoModel(doc.videoModel)
+  };
+  const warnings: string[] = [];
+  if (!effective.model) {
+    warnings.push(
+      "No video model is chosen: set `model` here or the board's video model."
+    );
+  }
+  if (compiled.duration_seconds > ONE_TAKE_MAX_SECONDS) {
+    warnings.push(
+      `The take runs ${compiled.duration_seconds}s, over the ${ONE_TAKE_MAX_SECONDS}s one-take limit.`
+    );
+  }
+  if (compiled.references.length > ONE_TAKE_MAX_IMAGES) {
+    warnings.push(
+      `${compiled.references.length} reference images; one-take models accept at most ${ONE_TAKE_MAX_IMAGES}.`
+    );
+  }
+  const byId = new Map(doc.shots.map((shot) => [shot.id, shot]));
+  const withoutStill = compiled.steps
+    .map((step) => byId.get(step.shot_id))
+    .filter((shot): shot is Shot => !!shot && !shot.keyframe?.asset_id);
+  if (withoutStill.length > 0) {
+    warnings.push(
+      `Shots without a still send no image: ${withoutStill
+        .map((shot) => shot.slug?.trim() || shot.id)
+        .join(", ")}.`
+    );
+  }
+  return {
+    storyboard_id: row.id,
+    revision: row.revision,
+    updated_at: row.updated_at,
+    stored: doc.one_take !== undefined,
+    prompt: doc.one_take?.prompt ?? "",
+    compiled: compiled.compiled,
+    full_prompt: compiled.prompt,
+    references: compiled.references.map((reference, index) => ({
+      image_number: index + 1,
+      marker: `[Image ${index + 1}]`,
+      ...reference
+    })),
+    steps: compiled.steps.map((step) => {
+      const shot = byId.get(step.shot_id);
+      return {
+        shot_id: step.shot_id,
+        index: shot?.index,
+        slug: shot?.slug,
+        start_seconds: step.start_seconds,
+        end_seconds: step.end_seconds,
+        end_state: shot?.end_state ?? null,
+        sound: shot?.sound ?? null
+      };
+    }),
+    duration_seconds: compiled.duration_seconds,
+    settings,
+    effective,
+    warnings
+  };
+}
+
+const getStoryboardOneTake: CapabilityExport = {
+  spec: getStoryboardOneTakeSpec,
+  impl: async (run, params) => {
+    const board = await loadBoard(run, params["storyboard_id"]);
+    if (isError(board)) return board;
+    return oneTakeSummary(board.row, board.doc);
+  }
+};
+
+const updateStoryboardOneTake: CapabilityExport = {
+  spec: updateStoryboardOneTakeSpec,
+  impl: async (run, params) => {
+    const parsed = oneTakeUpdateInput.safeParse({
+      prompt: params["prompt"],
+      duration_seconds: params["duration_seconds"],
+      aspect_ratio: params["aspect_ratio"],
+      resolution: params["resolution"],
+      model: params["model"],
+      shots: params["shots"]
+    });
+    if (!parsed.success) {
+      return {
+        error: parsed.error.issues
+          .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
+          .join("; ")
+      };
+    }
+    const { prompt, shots: shotPatches } = parsed.data;
+    const settingsGiven = ONE_TAKE_SETTINGS.filter(
+      (key) => parsed.data[key] !== undefined
+    );
+    if (prompt === undefined && settingsGiven.length === 0 && !shotPatches) {
+      return {
+        error:
+          "Pass prompt, duration_seconds, aspect_ratio, resolution, model or shots to update."
+      };
+    }
+
+    const { Storyboard } = await import("@nodetool-ai/models");
+
+    for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+      const board = await loadBoard(run, params["storyboard_id"]);
+      if (isError(board)) return board;
+      const { row } = board;
+      const doc: OneTakeDoc = board.doc;
+      if (
+        params["expected_revision"] !== undefined &&
+        params["expected_revision"] !== row.revision
+      ) {
+        return {
+          error: "Storyboard revision conflict. Refresh the board before editing."
+        };
+      }
+
+      const ops: { tool: string; input: Record<string, unknown> }[] = [];
+      if (prompt !== undefined || settingsGiven.length > 0) {
+        const next: OneTakeDirection = {
+          ...doc.one_take,
+          prompt: prompt ?? doc.one_take?.prompt ?? ""
+        };
+        const { duration_seconds, aspect_ratio, resolution, model } = parsed.data;
+        if (duration_seconds !== undefined) next.duration_seconds = duration_seconds;
+        if (aspect_ratio !== undefined) next.aspect_ratio = aspect_ratio;
+        if (resolution !== undefined) next.resolution = resolution;
+        if (model !== undefined) {
+          next.model = model && {
+            ...model,
+            provider: model.provider as ShotModelRef["provider"]
+          };
+        }
+        // A null clears the setting: store it absent, not null.
+        for (const key of ONE_TAKE_SETTINGS) {
+          if (next[key] === null) delete next[key];
+        }
+        doc.one_take = next;
+        // Field-level, the way set_board is: an open editor takes the
+        // direction whole.
+        ops.push({ tool: "set_board", input: { one_take: doc.one_take } });
+      }
+
+      for (const patch of shotPatches ?? []) {
+        const shot = findShot(doc.shots, patch.shot_id);
+        if (!shot) {
+          return {
+            error: `No shot matches "${patch.shot_id}". Call get_storyboard for shot ids.`
+          };
+        }
+        const next: Shot = { ...shot };
+        for (const field of ["end_state", "sound"] as const) {
+          const value = patch[field];
+          if (value === undefined) continue;
+          if (value === null || value.trim() === "") {
+            delete next[field];
+          } else {
+            next[field] = value;
+          }
+        }
+        doc.shots = doc.shots.map((s) => (s.id === shot.id ? next : s));
+        ops.push({
+          tool: "update_shot",
+          input: { id: shot.id, target: shot.id }
+        });
+      }
+
+      if (doc.screenplay) doc.screenplay.shots = doc.shots;
+      const saved = await Storyboard.updateFieldsIfUnchanged(
+        row.id,
+        row.updated_at,
+        { document: JSON.stringify(doc) },
+        { ops }
+      );
+      if (!saved) continue;
+      return oneTakeSummary(saved, doc);
+    }
+    return {
+      error: `Storyboard ${String(params["storyboard_id"])} is being modified concurrently; nothing was saved. Retry the call.`
+    };
+  }
+};
+
 export const STORYBOARD_CAPABILITIES: readonly CapabilityExport[] = [
+  finishStoryboard,
+  layoutStoryboard,
+  previewStoryboardDesign,
   listStoryboards,
   createStoryboard,
   getStoryboard,
@@ -2737,7 +3259,9 @@ export const STORYBOARD_CAPABILITIES: readonly CapabilityExport[] = [
   editStoryboard,
   directStoryboard,
   extractScriptFromStoryboard,
-  deleteStoryboard
+  deleteStoryboard,
+  getStoryboardOneTake,
+  updateStoryboardOneTake
 ];
 
 export const module: CapabilityModule = {
@@ -2746,6 +3270,9 @@ export const module: CapabilityModule = {
 };
 
 export {
+  finishStoryboard,
+  layoutStoryboard,
+  previewStoryboardDesign,
   listStoryboards,
   createStoryboard,
   getStoryboard,
@@ -2756,5 +3283,7 @@ export {
   editStoryboard,
   directStoryboard,
   extractScriptFromStoryboard,
-  deleteStoryboard
+  deleteStoryboard,
+  getStoryboardOneTake,
+  updateStoryboardOneTake
 };

@@ -27,7 +27,7 @@ import {
 } from "../../stores/storyboard/StoryboardStore";
 import {
   useWorkspaceTabsStore,
-  creationProjectId
+  LOOSE_PROJECT_ID
 } from "../../stores/WorkspaceTabsStore";
 import { buildTimelineDocument } from "../../components/storyboard/assembleTimeline";
 import { invalidateTimelineGetQuery } from "../../stores/storyboard/timelineSync";
@@ -37,6 +37,7 @@ import {
   mergeIntoSequence,
   stampBoardProvenance
 } from "../../lib/assembledSequenceMerge";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { assetLocator } from "../../utils/mediaRef";
 import { probeMediaDurationMs } from "../../utils/probeMediaDuration";
@@ -50,6 +51,7 @@ export interface AssembleResult {
   skippedLineIds: string[];
   /** True when an existing linked sequence was rewritten rather than created. */
   reassembled: boolean;
+  warnings: string[];
 }
 
 interface UseAssembleTimelineResult {
@@ -69,7 +71,9 @@ async function boardWithMeasuredClipDurations(
       const url = await resolveMediaUri(clip.uri || assetLocator(assetId));
       if (!url) return null;
       const durationMs = await probeMediaDurationMs(url, "video");
-      return durationMs === null ? null : ([assetId, durationMs / 1000] as const);
+      return durationMs === null
+        ? null
+        : ([assetId, durationMs / 1000] as const);
     })
   );
   const durations = new Map<string, number>();
@@ -93,22 +97,51 @@ export const useAssembleTimeline = (): UseAssembleTimelineResult => {
       setError(null);
       setAssembling(true);
       try {
+        const ownerTab = useWorkspaceTabsStore
+          .getState()
+          .tabs.find((tab) => tab.type === "storyboard" && tab.ref === boardId);
+        const projectId =
+          ownerTab?.projectId ??
+          (await trpcClient.storyboards.get.query({ id: boardId })).projectId;
         const measuredBoard = await boardWithMeasuredClipDurations(board);
         const scriptId = linkedScriptId(measuredBoard);
         // A linked script that cannot be read leaves the board assembling the
         // way an unlinked one does — a deleted script must not break assemble.
         const script = scriptId ? await loadLinkedScript(scriptId) : null;
-        const doc = buildTimelineDocument(measuredBoard, script);
-        // The video clips only: a shot also contributes its audio twin, and a
-        // jointly assembled cut stamps the shot keys onto voiceover clips too.
-        const shotClips = doc.clips.filter(
-          (clip) => clip.storyboardShotId && clip.mediaType === "video"
-        );
-        if (shotClips.length === 0) {
-          throw new Error(
-            "No rendered shots to assemble — generate and render clips first."
+        const warnings: string[] = [];
+        if (scriptId && !script) {
+          warnings.push(
+            `Script ${scriptId} is linked but could not be loaded, so the board was assembled on its own.`
           );
         }
+        const doc = buildTimelineDocument(measuredBoard, script);
+        // Picture clips only: still-first shots are first-class assembly
+        // sources, while rendered video shots may also contribute audio twins.
+        const shotClips = doc.clips.filter(
+          (clip) => clip.storyboardShotId && (clip.mediaType === "video" || clip.mediaType === "image")
+        );
+        if (doc.durationMs === 0) {
+          throw new Error(
+            "No storyboard picture to assemble — add a persisted keyframe or rendered clip first."
+          );
+        }
+        if (doc.skippedShotIds.length > 0) {
+          warnings.push(
+            `${doc.skippedShotIds.length} shots had no persisted still or clip and were skipped.`
+          );
+        }
+        if (doc.skippedLineIds.length > 0) {
+          warnings.push(
+            `${doc.skippedLineIds.length} script lines had no voiced take and were skipped.`
+          );
+        }
+        const notifyWarnings = (): void => {
+          for (const content of warnings) {
+            useNotificationStore
+              .getState()
+              .addNotification({ type: "warning", content, timeout: 0 });
+          }
+        };
         const name = board.title.trim() || "Storyboard cut";
         // The cut's frame follows the board's aspect ratio, so a 9:16 board
         // does not land in a 16:9 sequence.
@@ -124,7 +157,8 @@ export const useAssembleTimeline = (): UseAssembleTimelineResult => {
             { tracks: doc.tracks, clips },
             {
               tracks: sequence.tracks as TimelineTrack[],
-              clips: sequence.clips as TimelineClip[]
+              clips: sequence.clips as TimelineClip[],
+              storyboardMaterializations: sequence.storyboardMaterializations
             },
             { boardId, scriptId: doc.linked ? scriptId : null }
           );
@@ -133,21 +167,27 @@ export const useAssembleTimeline = (): UseAssembleTimelineResult => {
             baseUpdatedAt: sequence.updatedAt,
             width,
             height,
+            durationMs: merged.clips.reduce(
+              (end, clip) => Math.max(end, clip.startMs + clip.durationMs),
+              doc.durationMs
+            ),
             document: { ...merged, markers: sequence.markers ?? [] }
           });
           invalidateTimelineGetQuery(existingId);
-          useWorkspaceTabsStore.getState().openTab({
+          useWorkspaceTabsStore.getState().openForegroundTab({
             type: "timeline",
             ref: existingId,
             mode: "edit",
             title: name,
-            projectId: sequence.projectId
+            projectId: sequence.projectId ?? LOOSE_PROJECT_ID
           });
+          notifyWarnings();
           return {
             sequenceId: existingId,
             clipCount: shotClips.length,
             skippedShotIds: doc.skippedShotIds,
             skippedLineIds: doc.skippedLineIds,
+            warnings,
             reassembled: true
           };
         }
@@ -157,26 +197,29 @@ export const useAssembleTimeline = (): UseAssembleTimelineResult => {
           name,
           width,
           height,
-          projectId: creationProjectId()
+          projectId
         });
         await trpcClient.timeline.update.mutate({
           id: sequence.id,
+          durationMs: doc.durationMs,
           document: { tracks: doc.tracks, clips, markers: [] }
         });
         invalidateTimelineGetQuery(sequence.id);
         useStoryboardStore.getState().setTimelineLink(boardId, sequence.id);
-        useWorkspaceTabsStore.getState().openTab({
+        useWorkspaceTabsStore.getState().openForegroundTab({
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
           title: name,
-          projectId: sequence.projectId
+          projectId: sequence.projectId ?? LOOSE_PROJECT_ID
         });
+        notifyWarnings();
         return {
           sequenceId: sequence.id,
           clipCount: shotClips.length,
           skippedShotIds: doc.skippedShotIds,
           skippedLineIds: doc.skippedLineIds,
+          warnings,
           reassembled: false
         };
       } catch (err) {

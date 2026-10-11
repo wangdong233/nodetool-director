@@ -757,13 +757,24 @@ function buildSnapshot(
 ): SketchPersistenceSnapshot {
   const sketchState = editorStore.getState();
   return {
-    document: sketchState.document,
+    // Tool settings live in their own slice. The copy inside the document is
+    // only the value it was loaded with.
+    document: { ...sketchState.document, toolSettings: sketchState.toolSettings },
     activeTool: sketchState.activeTool ?? DEFAULT_SKETCH_ACTIVE_TOOL,
     zoom: sketchState.zoom,
     pan: sketchState.pan,
     history: stripHistoryCanvasSnapshots(sketchState.history),
     historyIndex: sketchState.historyIndex
   };
+}
+
+/**
+ * Whether a save failed on the server's optimistic-concurrency check.
+ * `sketch.update` reports "modified since last read (optimistic concurrency
+ * conflict)" and `sketch.patch` reports "modified concurrently".
+ */
+export function isSketchCasConflictMessage(message: string): boolean {
+  return /modified since last read|modified concurrently/i.test(message);
 }
 
 async function saveSnapshot(
@@ -893,7 +904,7 @@ export async function renameSketchDocument(
     await persist();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (!message.toLowerCase().includes("concurrent")) {
+    if (!isSketchCasConflictMessage(message)) {
       throw error;
     }
     await persist();
@@ -911,6 +922,10 @@ export function useStandaloneSketchDocument(
   // mutations only flip this flag — the expensive serialize/hash runs once
   // inside the debounced save (`saveSnapshot`), never on the mutation path.
   const pendingDirtyRef = useRef(false);
+  // Saves still waiting for the server. Kept outside the sync controller,
+  // which is rebuilt whenever the cached response changes, so a save started
+  // by an earlier controller still counts.
+  const savesInFlightRef = useRef(new Set<Promise<unknown>>());
   // Keep the latest trpc utils available to the autosave callback. Reassign
   // on every render so the closure inside `saveSnapshot` sees the current
   // utils object even though it lives outside any React effect.
@@ -962,12 +977,8 @@ export function useStandaloneSketchDocument(
     }
 
     let alive = true;
-    const holdAutosaveRef = { current: false };
     let controller: DocumentSyncController;
     const schedule = (): void => controller.markDirty();
-    const flush = (): void => {
-      if (!holdAutosaveRef.current) void controller.flush();
-    };
 
     // Writes from outside this browser (agent doc-ops, CLI, another tab) come
     // in as `resource_change`. A clean editor re-hydrates from the server copy
@@ -1075,10 +1086,7 @@ export function useStandaloneSketchDocument(
         const replaced = conflicts.some(
           (conflict) => conflict.reason === "replaced"
         );
-        if (replaced) {
-          holdAutosaveRef.current = true;
-        } else {
-          holdAutosaveRef.current = false;
+        if (!replaced) {
           pendingDirtyRef.current = true;
           schedule();
         }
@@ -1095,12 +1103,10 @@ export function useStandaloneSketchDocument(
           listed,
           {
             onAccept: (unitId) => {
-              holdAutosaveRef.current = false;
               acceptConflict(unitId, fresh, listed);
             },
             onDiscard: () => {
               if (replaced) {
-                holdAutosaveRef.current = false;
                 pendingDirtyRef.current = true;
                 schedule();
               }
@@ -1175,12 +1181,22 @@ export function useStandaloneSketchDocument(
       isDirty: () =>
         pendingDirtyRef.current ||
         controller.isSaving() ||
+        savesInFlightRef.current.size > 0 ||
         sessionStore.getState().hasConflict,
       reload: () => {
         sessionStore.getState().clearHydrated();
         void utilsRef.current.sketch.get.invalidate({ id: response.id });
       },
-      merge: mergeExternal
+      merge: async (notice) => {
+        // A save's own change notice can arrive before its response. Wait
+        // for the saves, then skip the notice if it was one of them.
+        await Promise.allSettled([...savesInFlightRef.current]);
+        if (!alive) return;
+        if (notice.updatedAt && notice.updatedAt === sessionStore.getState().baseUpdatedAt) {
+          return;
+        }
+        await mergeExternal(notice);
+      }
     });
 
     controller = createDocumentSyncController<SketchPersistenceSnapshot>({
@@ -1191,7 +1207,8 @@ export function useStandaloneSketchDocument(
       save: async (_draft, revision) => {
         pendingDirtyRef.current = false;
         const current = sessionStore.getState();
-        const saved = await saveSnapshot(
+        let saved: Awaited<ReturnType<typeof saveSnapshot>>;
+        const pending = saveSnapshot(
           instance,
           current.documentId as string,
           current.name,
@@ -1199,13 +1216,24 @@ export function useStandaloneSketchDocument(
           (response) =>
             utilsRef.current.sketch.get.setData({ id: response.id }, response)
         );
+        savesInFlightRef.current.add(pending);
+        try {
+          saved = await pending;
+        } catch (error) {
+          // The edits were not persisted: keep them dirty so the retry and
+          // the unmount flush still save, and an external change merges
+          // instead of reloading over them.
+          pendingDirtyRef.current = true;
+          throw error;
+        } finally {
+          savesInFlightRef.current.delete(pending);
+        }
         return { updatedAt: saved.updatedAt };
       },
       recoverCasConflict: async () => {
         await mergeExternal({});
       },
-      isCasConflict: (error) =>
-        String(error).toLowerCase().includes("concurrent"),
+      isCasConflict: (error) => isSketchCasConflictMessage(String(error)),
       onStatus: (status) => {
         if (status === "error") {
           sessionStore.getState().markSaveFailed(false);

@@ -12,7 +12,6 @@ import { getAssetUrl } from "../utils/assetHelpers";
 import { probeMediaDurationMs } from "../utils/probeMediaDuration";
 import { globalWebSocketManager } from "./websocket/GlobalWebSocketManager";
 import { watchGeneration } from "./websocket/generationWatch";
-import { lookupGenerations } from "./websocket/lookupGenerations";
 import { randomRequestId } from "./websocket/rpcRequest";
 import { i18n } from "../i18n";
 
@@ -178,26 +177,6 @@ export async function submitTimelineExtension(
         finish(null, error instanceof Error ? error.message : String(error))
       );
   });
-  return attachTimelineExtension(timeline, request, assetId);
-}
-
-export async function recoverTimelineExtension(
-  timeline: TimelineHandle,
-  request: ExtensionRequest
-): Promise<string | null> {
-  const outcome = (await lookupGenerations([request.requestId])).get(
-    request.requestId
-  );
-  if (!outcome || outcome.status !== "completed") {
-    if (outcome?.error) {
-      throw new Error(outcome.error);
-    }
-    return null;
-  }
-  const assetId = outcome.assetIds[0];
-  if (!assetId) {
-    throw new Error("The completed extension has no stored video asset.");
-  }
   return attachTimelineExtension(timeline, request, assetId);
 }
 

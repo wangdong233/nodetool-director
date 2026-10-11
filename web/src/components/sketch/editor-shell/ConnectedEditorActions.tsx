@@ -1,23 +1,28 @@
+import { i18n } from "../../../i18n";
 /**
  * ConnectedEditorActions — the trailing action cluster of the tool bar.
  *
  * A Generate button that opens the text-to-image form, a visible assistant
- * toggle, and an overflow menu for fit / hide panels plus any document
- * actions the host surface contributes via `menuItems`.
+ * toggle, and an overflow menu for fit / hide panels, the rulers / guides /
+ * snap view toggles, plus any document actions the host surface contributes
+ * via `menuItems`.
  *
  * Editor-shell convention: narrow store selectors only; the fit computation
  * reads and writes through getState() so the cluster gains no subscriptions on
  * the document or viewport.
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useRef, useState } from "react";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FitScreenIcon from "@mui/icons-material/FitScreen";
 import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import ViewSidebarOutlinedIcon from "@mui/icons-material/ViewSidebarOutlined";
+import CheckIcon from "@mui/icons-material/Check";
 
 import {
+  Caption,
   Divider,
   EditorButton,
   EditorMenu,
@@ -33,7 +38,41 @@ import { useSketchStore, SKETCH_ZOOM_MIN, SKETCH_ZOOM_MAX } from "../state";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useSketchCanvasRefStore } from "../../../stores/sketch/SketchCanvasRefStore";
 import { ConnectedGeneratePopover } from "./ConnectedGeneratePopover";
-import { useTranslation } from "react-i18next";
+import { displayCombo } from "../shortcuts";
+import type { SketchActionId } from "../shortcuts";
+
+interface ViewToggleItemProps
+  extends Omit<React.ComponentProps<typeof EditorMenuItem>, "onClick"> {
+  label: string;
+  checked: boolean;
+  actionId: SketchActionId;
+  onClick: () => void;
+  testId: string;
+}
+
+/** A checkable View-menu entry with its keyboard shortcut on the right. */
+const ViewToggleItem: React.FC<ViewToggleItemProps> = ({
+  label,
+  checked,
+  actionId,
+  onClick,
+  testId,
+  ...menuItemProps
+}) => (
+  <EditorMenuItem
+    {...menuItemProps}
+    onClick={onClick}
+    role="menuitemcheckbox"
+    aria-checked={checked}
+    data-testid={testId}
+  >
+    <ListItemIcon>
+      {checked ? <CheckIcon fontSize="small" /> : null}
+    </ListItemIcon>
+    <ListItemText>{label}</ListItemText>
+    <Caption sx={{ ml: 2, opacity: 0.7 }}>{displayCombo(actionId)}</Caption>
+  </EditorMenuItem>
+);
 
 export interface ConnectedEditorActionsProps {
   /** Compact buttons rendered inline before the menu (e.g. the asset tab's
@@ -79,6 +118,10 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
   const assistantPanelOpen = useSketchStore((s) => s.assistantPanelOpen);
   const toggleAssistantPanel = useSketchStore((s) => s.toggleAssistantPanel);
   const togglePanelsHidden = useSketchStore((s) => s.togglePanelsHidden);
+  const rulersVisible = useSketchStore((s) => s.rulersVisible);
+  const guidesVisible = useSketchStore((s) => s.guidesVisible);
+  const snapEnabled = useSketchStore((s) => s.snapEnabled);
+  const hasGuides = useSketchStore((s) => (s.document.guides?.length ?? 0) > 0);
 
   const documentId = useSketchSessionStore((s) => s.documentId);
   const fitViewToScreen = useSketchCanvasRefStore((s) => s.fitViewToScreen);
@@ -158,11 +201,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </>
       )}
 
-      <Tooltip title={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}>
+      <Tooltip title={assistantPanelOpen ? i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : i18n.t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}>
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
+          aria-label={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >
@@ -174,7 +217,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}
+          aria-label="Editor actions"
           aria-haspopup="menu"
           data-testid="sketch-editor-menu"
         >
@@ -205,6 +248,49 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
             <ViewSidebarOutlinedIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>{t("ui2:attrs.hidePanels", { defaultValue: "Hide panels" })}</ListItemText>
+        </EditorMenuItem>
+
+        <Divider key="view-divider" />
+        <ViewToggleItem
+          label="Rulers"
+          checked={rulersVisible}
+          actionId="toggle-rulers"
+          onClick={() => {
+            closeMenu();
+            useSketchStore.getState().toggleRulersVisible();
+          }}
+          testId="sketch-toggle-rulers"
+        />
+        <ViewToggleItem
+          label="Guides"
+          checked={guidesVisible}
+          actionId="toggle-guides"
+          onClick={() => {
+            closeMenu();
+            useSketchStore.getState().toggleGuidesVisible();
+          }}
+          testId="sketch-toggle-guides"
+        />
+        <ViewToggleItem
+          label="Snap"
+          checked={snapEnabled}
+          actionId="toggle-snap"
+          onClick={() => {
+            closeMenu();
+            useSketchStore.getState().toggleSnapEnabled();
+          }}
+          testId="sketch-toggle-snap"
+        />
+        <EditorMenuItem
+          onClick={() => {
+            closeMenu();
+            useSketchStore.getState().clearGuides();
+          }}
+          disabled={!hasGuides}
+          data-testid="sketch-clear-guides"
+        >
+          <ListItemIcon />
+          <ListItemText>Clear guides</ListItemText>
         </EditorMenuItem>
 
         {menuItems ? <Divider key="host-divider" /> : null}

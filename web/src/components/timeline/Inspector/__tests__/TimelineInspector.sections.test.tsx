@@ -13,6 +13,7 @@ import { makeTrack, makeClip } from "@nodetool-ai/timeline";
 import type { ClipColorEffect } from "@nodetool-ai/timeline";
 
 import mockTheme from "../../../../__mocks__/themeMock";
+import { SPACING } from "../../../ui_primitives";
 import { TimelineInspector } from "../TimelineInspector";
 import { TimelineProvider } from "../../../../stores/timeline/TimelineInstance";
 import { useTimelineStore } from "../../../../stores/timeline/TimelineStore";
@@ -109,6 +110,25 @@ beforeEach(() => {
 });
 
 describe("TimelineInspector section headers", () => {
+  it("nests media and timing fields under their section headers", async () => {
+    const user = userEvent.setup();
+    renderInspector();
+    seedTextClip();
+
+    const media = screen.getByRole("button", { name: /^media$/i });
+    await user.click(media);
+    const mediaBody = media.parentElement?.querySelector(".MuiCollapse-wrapperInner > div");
+    expect(mediaBody).toBeTruthy();
+    expect(getComputedStyle(mediaBody!).paddingLeft).toBe(mockTheme.spacing(SPACING.xxxl));
+
+    const timing = screen.getByRole("button", { name: /^timing$/i });
+    await user.click(timing);
+    const timingBody = timing.parentElement?.querySelector(".MuiCollapse-wrapperInner > div");
+    expect(timingBody).toBeTruthy();
+    expect(getComputedStyle(timingBody!).paddingLeft).toBe(mockTheme.spacing(SPACING.xxxl));
+    expect(getComputedStyle(screen.getByText("Hidden").parentElement!).display).toBe("flex");
+  });
+
   it("toggles the color effect via the header checkbox without unfolding the section", async () => {
     const user = userEvent.setup();
     renderInspector();
@@ -172,6 +192,22 @@ describe("TimelineInspector section headers", () => {
       useTimelineStore.getState().clips.find((item) => item.id === clip.id)
         ?.textStyle?.text
     ).toBe("Updated title");
+  });
+
+  it("turns the text strikethrough on and off", async () => {
+    const user = userEvent.setup();
+    renderInspector();
+    const clip = seedTextClip();
+    const strikethrough = () =>
+      useTimelineStore.getState().clips.find((item) => item.id === clip.id)
+        ?.textStyle?.strikethrough;
+
+    await user.click(screen.getByRole("button", { name: /^text$/i }));
+    const toggle = screen.getByRole("switch", { name: /strikethrough/i });
+    await user.click(toggle);
+    expect(strikethrough()).toBe(true);
+    await user.click(toggle);
+    expect(strikethrough()).toBeUndefined();
   });
 
   it("adds an in animation with the selected preset defaults", async () => {

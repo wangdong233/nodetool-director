@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import React, {
   Fragment,
@@ -27,11 +28,15 @@ import { trpc, trpcClient } from "../../trpc/client";
 import { getActiveSketchInstance } from "../../stores/sketch/SketchInstance";
 import { renameSketchDocument } from "../../stores/sketch/SketchSessionStore";
 import { readSketchDocumentId } from "../../hooks/sketch/ensureSketchDocumentForAsset";
-import { tabCanRename } from "./tabRename";
+import { tabCanRename, renameStrategy } from "./tabRename";
+import { renameTitledDocument } from "./renameTitledDocument";
+import { useWorkspaceDocumentClose } from "../../hooks/useWorkspaceDocumentClose";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { useUpdateApplication } from "../../hooks/useApplications";
 import { TOOLBAR_WIDTH } from "../../config/constants";
 import {
   BORDER_RADIUS,
+  CONTROL,
   ContextMenu,
   InlineEditableText,
   MenuItemPrimitive,
@@ -49,7 +54,6 @@ import { ActivityIndicator } from "../timeline/ActivityIndicator";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
-import { i18n, useAppLanguage } from "../../i18n";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
@@ -68,7 +72,9 @@ const SUPPORTS_BOTH_MODES = {
   audio: true,
   "workspace-file": true,
   chat: false,
-  application: false,
+  application: true,
+  "example-app": false,
+  game: true,
   page: false,
   "project-list": false,
   project: false,
@@ -360,12 +366,19 @@ const styles = (theme: Theme) =>
         }
       },
       "& .new-tab": {
+        justifyContent: "center",
+        minWidth: CONTROL.height.xl,
         padding: `0 ${getSpacingPx(SPACING.md)}`
       },
+      // The project name yields width to the document selector, which is
+      // the control a phone user reaches for most.
       "& .home-button": {
-        padding: `0 ${getSpacingPx(SPACING.md)}`
+        padding: `0 ${getSpacingPx(SPACING.md)}`,
+        maxWidth: "30vw"
       },
-      "& .new-tab .new-tab-label": { display: "none" },
+      "& .new-tab .new-tab-label, & .new-tab .new-tab-caret": {
+        display: "none"
+      },
       "& .mode-toggle": {
         padding: `0 ${getSpacingPx(SPACING.sm)}`
       }
@@ -373,26 +386,30 @@ const styles = (theme: Theme) =>
   });
 
 const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
+  const { t } = useTranslation();
   const theme = useTheme();
   const tabBarStyles = useMemo(() => styles(theme), [theme]);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const tabs = useWorkspaceTabsStore((state) => state.tabs);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
   const setActiveTab = useWorkspaceTabsStore((state) => state.setActiveTab);
-  const closeTab = useWorkspaceTabsStore((state) => state.closeTab);
-  const closeOthers = useWorkspaceTabsStore((state) => state.closeOthers);
+  const {
+    closeDocument: handleClose,
+    closeOtherDocuments: handleCloseOthers,
+    closeAllDocuments: handleCloseAll
+  } = useWorkspaceDocumentClose();
   const setMode = useWorkspaceTabsStore((state) => state.setMode);
   const setTitle = useWorkspaceTabsStore((state) => state.setTitle);
   const moveTab = useWorkspaceTabsStore((state) => state.moveTab);
   const updateApplication = useUpdateApplication();
   const trpcUtils = trpc.useUtils();
+  const addNotification = useNotificationStore(
+    (state) => state.addNotification
+  );
   const headerActions = useWorkspaceHeaderActions()?.actions;
   const openHome = useOpenNewProjectTab();
   const { data: projects } = useProjects();
 
-  const removeWorkflow = useWorkflowManager((state) => state.removeWorkflow);
   const workflowManagerStore = useWorkflowManagerStore();
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
   const updateWorkflow = useWorkflowManager((state) => state.updateWorkflow);
@@ -404,11 +421,13 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
   const activeProject = projects?.find(
     (project) => project.id === activeProjectId
   );
-  const homeTitle = activeProject?.name ?? (activeProjectId ? "Project" : "Home");
+  const homeTitle =
+    activeProject?.name ?? (activeProjectId ? "Project" : "Home");
   const visibleTabs = useMemo(
     () =>
       tabs.filter(
-        (tab) => tab.type !== "project-new" && isTabInScope(tab, activeProjectId)
+        (tab) =>
+          tab.type !== "project-new" && isTabInScope(tab, activeProjectId)
       ),
     [activeProjectId, tabs]
   );
@@ -449,7 +468,9 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
     let manager = workflowManagerStore.getState();
     for (let targetIdx = 0; targetIdx < tabOrder.length; targetIdx++) {
       const wantId = tabOrder[targetIdx];
-      const currentIdx = manager.openWorkflows.findIndex((wf) => wf.id === wantId);
+      const currentIdx = manager.openWorkflows.findIndex(
+        (wf) => wf.id === wantId
+      );
       if (currentIdx !== targetIdx && currentIdx !== -1) {
         manager.reorderWorkflows(currentIdx, targetIdx);
         manager = workflowManagerStore.getState();
@@ -477,15 +498,12 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
     []
   );
 
-  const handleDragLeave = useCallback(
-    (event: DragEvent<HTMLDivElement>) => {
-      const related = event.relatedTarget as Node | null;
-      if (!related || !event.currentTarget.contains(related)) {
-        setDropTarget(null);
-      }
-    },
-    []
-  );
+  const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+    const related = event.relatedTarget as Node | null;
+    if (!related || !event.currentTarget.contains(related)) {
+      setDropTarget(null);
+    }
+  }, []);
 
   const handleDrop = useCallback(
     (event: DragEvent<HTMLDivElement>, targetTab: WorkspaceTab) => {
@@ -532,9 +550,12 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         return;
       }
 
+      const strategy = renameStrategy(tab.type);
+      if (strategy === null) return;
+
       // Workflows carry their name in the workflow store; the tab title is
       // synced from there by WorkspaceShell, so update + save the workflow.
-      if (tab.type === "workflow") {
+      if (strategy === "workflow") {
         const workflow = getWorkflow(tab.ref);
         if (!workflow || workflow.name === trimmed) {
           return;
@@ -543,8 +564,13 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         updateWorkflow(updatedWorkflow);
         try {
           await saveWorkflow(updatedWorkflow);
-        } catch {
+        } catch (error) {
           updateWorkflow(workflow);
+          addNotification({
+            type: "error",
+            alert: true,
+            content: `Failed to rename workflow: ${error instanceof Error ? error.message : "Unknown error"}`
+          });
         }
         return;
       }
@@ -555,7 +581,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       const previousTitle = tab.title;
       setTitle(tab.ref, tab.type, trimmed);
       try {
-        switch (tab.type) {
+        switch (strategy) {
           case "sketch":
             await renameSketchDocument(getActiveSketchInstance(), trimmed);
             break;
@@ -584,10 +610,18 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               name: trimmed
             });
             break;
-          case "model3d":
-          case "svg":
-          case "text":
-            await useAssetStore.getState().update({ id: tab.ref, name: trimmed });
+          case "asset":
+            await useAssetStore
+              .getState()
+              .update({ id: tab.ref, name: trimmed });
+            break;
+          case "storyboard":
+            await renameTitledDocument(strategy, tab.ref, trimmed);
+            void trpcUtils.storyboards.list.invalidate();
+            break;
+          case "script":
+            await renameTitledDocument(strategy, tab.ref, trimmed);
+            void trpcUtils.scripts.list.invalidate();
             break;
           case "jsscript": {
             const store = useJsScriptStore.getState();
@@ -604,7 +638,9 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
           case "skill": {
             const currentSkill = trpcUtils.skills.get.getData({ id: tab.ref });
             if (!currentSkill) {
-              throw new Error("Skill must finish loading before it can be renamed");
+              throw new Error(
+                "Skill must finish loading before it can be renamed"
+              );
             }
             const updated = await trpcClient.skills.update.mutate({
               id: tab.ref,
@@ -634,11 +670,18 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
             void trpcUtils.projects.list.invalidate();
             void trpcUtils.projects.summaries.invalidate();
             break;
-          default:
-            break;
+          default: {
+            const unhandled: never = strategy;
+            throw new Error(`Unsupported rename strategy: ${unhandled}`);
+          }
         }
-      } catch {
+      } catch (error) {
         setTitle(tab.ref, tab.type, previousTitle);
+        addNotification({
+          type: "error",
+          alert: true,
+          content: `Failed to rename document: ${error instanceof Error ? error.message : "Unknown error"}`
+        });
       }
     },
     [
@@ -650,44 +693,12 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       trpcUtils.skills.get,
       trpcUtils.skills.list,
       trpcUtils.projects.list,
-      trpcUtils.projects.summaries
+      trpcUtils.projects.summaries,
+      trpcUtils.storyboards.list,
+      trpcUtils.scripts.list,
+      addNotification
     ]
   );
-
-  const handleClose = useCallback(
-    (tab: WorkspaceTab) => {
-      closeTab(tab.id);
-      if (tab.type === "workflow") {
-        removeWorkflow(tab.ref);
-      }
-    },
-    [closeTab, removeWorkflow]
-  );
-
-  const handleCloseOthers = useCallback(
-    (keepTab: WorkspaceTab) => {
-      const toClose = useWorkspaceTabsStore
-        .getState()
-        .tabs.filter((tab) => tab.id !== keepTab.id);
-      for (const tab of toClose) {
-        if (tab.type === "workflow") {
-          removeWorkflow(tab.ref);
-        }
-      }
-      closeOthers(keepTab.id);
-    },
-    [closeOthers, removeWorkflow]
-  );
-
-  const handleCloseAll = useCallback(() => {
-    const snapshot = [...useWorkspaceTabsStore.getState().tabs];
-    for (const tab of snapshot) {
-      if (tab.type === "workflow") {
-        removeWorkflow(tab.ref);
-      }
-      closeTab(tab.id);
-    }
-  }, [closeTab, removeWorkflow]);
 
   const handleBeginRename = useCallback(
     (tab: WorkspaceTab) => {
@@ -702,7 +713,11 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
   const commitHomeRename = useCallback(
     async (newName: string) => {
       setEditingHome(false);
-      if (!activeProjectId || !activeProject || newName === activeProject.name) {
+      if (
+        !activeProjectId ||
+        !activeProject ||
+        newName === activeProject.name
+      ) {
         return;
       }
       setHomeTitleOverride({ projectId: activeProjectId, name: newName });
@@ -728,7 +743,10 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       activeProject,
       activeProjectId,
       trpcUtils.projects.list,
-      trpcUtils.projects.summaries
+      trpcUtils.projects.summaries,
+      trpcUtils.storyboards.list,
+      trpcUtils.scripts.list,
+      addNotification
     ]
   );
 
@@ -793,7 +811,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         ref={newTabButtonRef}
         type="button"
         className="new-tab"
-        aria-label={i18n.t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
+        aria-label={t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((v) => !v)}
@@ -801,7 +819,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         <span className="new-tab-plus" aria-hidden>
           +
         </span>
-        <span className="new-tab-label">{i18n.t("nav:tabs.new", { defaultValue: "New" })}</span>
+        <span className="new-tab-label">New</span>
         <span className="new-tab-caret" aria-hidden>
           ▾
         </span>
@@ -860,7 +878,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "view"}
               onClick={() => setMode(activeTab.id, "view")}
             >
-              {i18n.t("editor:ui.view", { defaultValue: "View" })}
+              View
             </button>
             <button
               type="button"
@@ -868,7 +886,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "edit"}
               onClick={() => setMode(activeTab.id, "edit")}
             >
-              {i18n.t("editor:ui.edit", { defaultValue: "Edit" })}
+              Edit
             </button>
           </div>
         )}

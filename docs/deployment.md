@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "Deployment Guide"
-description: "Self-host the NodeTool server with Docker, and rent GPU workers (RunPod, Vast) for graphs that need a GPU."
+description: "Self-host the NodeTool server with Docker, and rent GPU workers (RunPod, Vast, Verda) for graphs that need a GPU."
 ---
 
 NodeTool has two orthogonal deployment concerns. Don't conflate them:
@@ -18,8 +18,8 @@ NodeTool has two orthogonal deployment concerns. Don't conflate them:
 | Direction | humans/UI connect in | a NodeTool instance connects out |
 | Lifetime | long-lived, always-on | ephemeral — spin up, attach, tear down |
 | Identity | a URL handed to people | a `{wsUrl, token}` an instance adopts |
-| Cost | flat | **bills by the minute — teardown matters** |
-| How | `nodetool deploy …` (Docker) | `nodetool worker …` (RunPod, Vast) |
+| Cost | flat | **bills while it exists, so teardown matters** |
+| How | `nodetool deploy …` (Docker) | `nodetool worker …` (RunPod, Vast, Verda) |
 
 For a walkthrough across desktop, public, private, and Docker/Podman self-hosting,
 see the [End-to-End Deployment Guide](deployment-e2e-guide.md).
@@ -31,11 +31,11 @@ see the [End-to-End Deployment Guide](deployment-e2e-guide.md).
 | I want to... | Go to |
 |--------------|-------|
 | **Run the NodeTool server on my own machine/host** | [Self-Hosted Deployment](self-hosted-deployment.md) |
-| **Understand how nodetool.fly.dev itself is deployed** | [Production Deploy (Fly)](fly-production-deploy.md) |
-| **Rent a GPU to run Python nodes (RunPod / Vast)** | [Worker Deployment](worker-deployment.md) |
+| **Understand how api.nodetool.ai itself is deployed** | [Production Deploy (Docker)](docker-production-deploy.md) |
+| **Rent a GPU to run Python nodes (RunPod / Vast / Verda)** | [Worker Deployment](worker-deployment.md) |
 | **Tune GPU/memory/volumes for the server container** | [Docker Resource Management](docker-resource-management.md) |
 | **Use Supabase for auth/storage** | [Supabase Deployment Integration](supabase-deployment.md) |
-| **Set up TLS/HTTPS** | [Self-Hosted Deployment](self-hosted-deployment.md) |
+| **Set up TLS/HTTPS** | [Serving the Web UI and TLS](configuration.md#serving-the-web-ui-and-tls) |
 | **Connect Claude Code or another MCP client to a deployed server** | [MCP on a Production Server](mcp-production.md) |
 
 ---
@@ -60,15 +60,19 @@ For a managed flow (remote hosts over SSH, image transfer, workflow sync), the
    nodetool deploy init
    nodetool deploy add my-server --type docker
    ```
-   This scaffolds `deployment.yaml` using the schema in `@nodetool-ai/deploy`
-   (`deployment-config.ts`). The single target `type` is `docker`; the entry
-   specifies the container image, persistent paths, and environment variables
-   (under `container.environment`).
+   `deploy init` creates `deployment.yaml` in the NodeTool config directory
+   (`~/.config/nodetool/` on Linux, `~/Library/Application Support/nodetool/` on
+   macOS, `%APPDATA%\nodetool` on Windows). `deploy add` prompts for the host,
+   SSH user and key (remote hosts only), image name and tag, container name, and
+   port. The single target `type` is `docker`. Add `container.environment`,
+   `container.gpu`, or `paths` afterwards with `nodetool deploy edit`, which
+   opens the file in `$EDITOR`.
 3. **Review & plan** (no remote mutation):
    ```bash
    nodetool deploy list
    nodetool deploy show my-server
-   nodetool deploy plan my-server
+   nodetool deploy plan my-server        # prints the plan as JSON
+   nodetool deploy apply my-server --dry-run
    ```
 4. **Apply & monitor**:
    ```bash
@@ -78,8 +82,11 @@ For a managed flow (remote hosts over SSH, image transfer, workflow sync), the
    nodetool deploy destroy my-server
    ```
 
-See [Self-Hosted Deployment](self-hosted-deployment.md) for the full server
-walkthrough, and [Supabase Deployment Integration](supabase-deployment.md) to add
+`deploy apply` does not pull images. A local host needs the image already
+present. For a remote host, apply pushes the image from your local Docker daemon
+only when the remote has no copy. See
+[Self-Hosted Deployment](self-hosted-deployment.md) for the full server
+walkthrough, `deploy workflows` and `deploy users-*` commands, and [Supabase Deployment Integration](supabase-deployment.md) to add
 hosted auth and storage.
 
 > **Heads up:** NodeTool used to ship server-deploy targets for RunPod
@@ -89,7 +96,7 @@ hosted auth and storage.
 
 ---
 
-## Worker: rent a GPU (RunPod, Vast)
+## Worker: rent a GPU (RunPod, Vast, Verda)
 
 When a graph needs a GPU you don't have, provision a remote worker, attach to it,
 run your Python nodes there, and tear it down:
@@ -101,13 +108,15 @@ nodetool worker profile add hf-a40 --target runpod \
   --gpu "NVIDIA A40" --idle-timeout 15
 nodetool worker create --profile hf-a40 --attach
 nodetool worker list          # what's live, and what it's costing
-nodetool worker stop --all    # tear everything down
+nodetool worker stop --all    # pause every live worker
 ```
 
-GPU workers bill by the minute, so the worker subsystem ships a **cost guard**:
-real teardown on every stop, idle auto-stop, a hard TTL, and orphan reconcile.
-See [Worker Deployment](worker-deployment.md) for profiles, attaching from the UI
-or CLI, supported targets, and the cost guard in full.
+GPU workers bill while they exist, so the worker subsystem ships a **cost
+guard**: idle auto-pause, a hard TTL that destroys the worker, and orphan
+reconcile. `worker stop` pauses a worker and keeps its volume, which still bills
+a little. To destroy a worker and its volume, use **Terminate** in the Workers
+panel. See [Worker Deployment](worker-deployment.md) for profiles, attaching
+from the UI or CLI, supported targets, and the cost guard in full.
 
 ---
 
@@ -120,24 +129,39 @@ or CLI, supported targets, and the cost guard in full.
 - `enabled` – whether the deployment is active
 - `host` – Docker host (IP/hostname, or `localhost`)
 - `ssh` – SSH connection details for remote hosts (omit for local)
-- `paths` – workspace and HF cache paths
-- `persistent_paths` – persistent storage paths inside the container
+- `paths` – host directories for the workspace (default `~/nodetool_data/workspace`, mounted at `/workspace`) and the HF cache (default `~/nodetool_data/hf-cache`, mounted at `/hf-cache`, read-only unless `persistent_paths` is set)
+- `persistent_paths` – optional container paths for the users file, database, vector store (`vectorstore_db_path`), HF home, assets, and logs. Setting it changes the injected environment, see below
 - `image` – container image name/tag/registry
-- `container` – name, port, GPU, and `environment` (env vars injected into the container)
-- `server_auth_token` – auto-generated bearer token for admin/sync calls
+- `container` – `name`, `port`, `gpu` (device ids such as `0` or `0,1`, passed as `--gpus "device=…"`), and `environment` (env vars injected into the container)
+- `server_auth_token` – auto-generated bearer token for admin/sync calls. The server accepts it in Local mode (see [Authentication](authentication.md#authentication-modes))
 - `state` – deployment state tracked by the deployer
 
-Environment variables live under `container.environment`. Secrets such as
-`SECRETS_MASTER_KEY` are auto-generated into `container.environment` when missing.
+The container is named `nodetool-<container.name>` and runs with
+`--restart unless-stopped`. The server listens on `7777` inside the container
+and the deployer publishes it on host port `container.port`. A `container.port`
+of `7777` is published as `8000`. The deployer also sets `PORT`,
+`NODETOOL_API_URL`, `DB_PATH` (`/workspace/nodetool.db`), `VECTORSTORE_DB_PATH`
+(`/workspace/vectorstore.db`), `ASSET_FOLDER` (`/workspace/assets`),
+`HF_HUB_CACHE` (`/hf-cache`), and `SERVER_AUTH_TOKEN` in the container, on top
+of `container.environment`. With `persistent_paths` set, the first three and
+`HF_HOME` come from it instead.
+
+Environment variables live under `container.environment`. When a deployment is
+loaded, `deploy` generates `SECRETS_MASTER_KEY` in `container.environment` and a
+`server_auth_token` if they are missing, and saves them to `deployment.yaml`.
+Keep that file private.
 
 ---
 
 ## Monitoring & health checks
 
 ```bash
-# Health endpoint (no auth required)
-curl http://your-server:7777/health
-# Expected: {"status": "ok", ...} (or "degraded" when a service is unhealthy)
+# Health endpoint (no auth required). Use the published host port: 17777 for
+# the bundled Compose file, container.port (default 8000) for `deploy apply`.
+curl http://your-server:17777/health
+# 200: {"status": "ok", "services": {...}, ...}
+# 503: status "degraded" (database check failed) or "draining" (shutting down)
+curl http://your-server:17777/ready    # liveness only, always 200
 
 nodetool deploy status <name>
 nodetool deploy logs <name> --follow
@@ -145,7 +169,7 @@ nodetool deploy logs <name> --follow
 
 | Indicator | What to watch | Action |
 |-----------|---------------|--------|
-| **Health endpoint** | Should return 200 | Restart service if unhealthy |
+| **Health endpoint** | Should return 200. `/api/health` returns the version and uptime | Restart service if unhealthy |
 | **Memory usage** | Models consume significant RAM/VRAM | Scale up or use smaller models |
 | **Disk space** | Model cache and assets grow over time | Periodic cleanup or larger volumes |
 | **Response time** | First request after cold start is slow (model loading) | Warm up via health check |
@@ -157,26 +181,29 @@ nodetool deploy logs <name> --follow
 | Problem | Likely cause | Fix |
 |---------|--------------|-----|
 | Container exits immediately | Missing env vars or invalid config | Check `nodetool deploy logs <name>` |
-| Health check fails | Service still starting (model loading) | Increase timeout; large models need 60–120s |
+| `deploy apply` fails its health check | The server did not answer `/health` after 10 probes, 2 seconds apart | Read `nodetool deploy logs <name>`, fix the cause, and run `apply` again |
 | 503 Service Unavailable | Overloaded or out of memory | Scale up resources or reduce concurrency |
 | Port already in use | Another service on the same port | Change `container.port` in deployment.yaml |
 | "Image not found" | Docker image not present | `docker pull ghcr.io/nodetool-ai/nodetool:latest` |
 | Permission denied on volumes | Container user lacks access | Fix host directory permissions |
 
-For more, see the [Troubleshooting Guide](troubleshooting.md#issue-deployment-fails-or-service-wont-start).
+For more, see the [Troubleshooting Guide](troubleshooting.md#a-deployment-fails-or-the-service-wont-start).
 
 ---
 
 ## Upgrading
 
 ```bash
-docker pull ghcr.io/nodetool-ai/nodetool:latest
+docker pull ghcr.io/nodetool-ai/nodetool:latest   # on the Docker host
 nodetool deploy apply <name>
 nodetool deploy status <name>
 ```
 
-Workflows, assets, and settings are preserved across upgrades when using
-persistent volumes.
+`apply` stops and removes the existing container, then starts a new one from the
+image the host holds. It never pulls. For a remote host, pull on that host or
+change `image.tag`, because an image already on the remote is not replaced.
+Workflows, assets, and settings are preserved because `/workspace` is a host
+directory.
 
 ---
 

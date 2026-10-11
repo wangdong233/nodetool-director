@@ -113,6 +113,11 @@ const DictTable: React.FC<DictTableProps> = ({
 
       if (field === "key") {
         oldKey = oldValue;
+        // Renaming onto another existing key would silently drop an entry.
+        if (currentKey !== oldKey && Object.hasOwn(data, currentKey)) {
+          cell.restoreOldValue();
+          return;
+        }
       } else {
         oldKey = currentKey;
       }

@@ -6,7 +6,7 @@ import type {
   OutputCorrelation,
   Platform
 } from "@nodetool-ai/protocol";
-import type { NodeExecutor } from "@nodetool-ai/kernel";
+import type { DerivedDynamicSlots, NodeExecutor } from "@nodetool-ai/kernel";
 import type {
   ProcessingContext,
   StreamingInputs,
@@ -161,6 +161,13 @@ export type NodeClass = {
   resolveStreamingInput?: (node: {
     properties?: Record<string, unknown>;
   }) => boolean;
+  /**
+   * Dynamic slots derived from the node's own properties. See
+   * `BaseNode.resolveDynamicSlots`.
+   */
+  resolveDynamicSlots?: (node: {
+    properties?: Record<string, unknown>;
+  }) => DerivedDynamicSlots | undefined;
   isTrigger: boolean;
   alwaysEmitOutputUpdates?: boolean;
   inputMode?: InputMode;
@@ -177,6 +184,8 @@ export type NodeClass = {
   autoSaveAsset: boolean;
   /** Opt-in: re-running with identical inputs is safe. See `BaseNode.retrySafe`. */
   retrySafe: boolean;
+  /** List properties that keep their static items when connected. See `BaseNode.appendStaticInputs`. */
+  appendStaticInputs?: readonly string[];
   cacheTtl?: number | "forever";
   effect?: NodeEffect;
   primaryOutput?: string;
@@ -320,6 +329,22 @@ export abstract class BaseNode {
     | ((node: { properties?: Record<string, unknown> }) => boolean)
     | undefined = undefined;
   /**
+   * Derive dynamic input and output slots from a node's saved properties.
+   * Unset on nodes whose slots are declared only by the editor or the author;
+   * declared where the slots follow from a property, as on the Comfy runners,
+   * whose Save nodes in `workflow` become output slots.
+   *
+   * Both hydration paths merge the result under the slots saved on the node
+   * (`hydrateGraphNodeFlags`, and `Graph.loadFromDict` via the resolver's
+   * `resolveInstanceSlots`), so a graph built over the API, where nothing
+   * declared the slots, can still wire them.
+   */
+  static readonly resolveDynamicSlots:
+    | ((node: {
+        properties?: Record<string, unknown>;
+      }) => DerivedDynamicSlots | undefined)
+    | undefined = undefined;
+  /**
    * Marks a trigger node. Triggers compile to `trigger_registrations` on
    * workflow activation, and when a run starts because of a delivered event
    * (`RunJobRequest.trigger_event` targeting this node) the kernel calls
@@ -366,6 +391,14 @@ export abstract class BaseNode {
    * for a node that declares this. See docs/workflow-supervisor-design.md §5.3.
    */
   static readonly retrySafe: boolean = false;
+  /**
+   * List properties whose static items are kept when an edge feeds the same
+   * handle. The node receives the connected items followed by its own static
+   * items, instead of the edge value replacing them. Used by the list
+   * constants, so a connected Image List adds its own images to the incoming
+   * ones.
+   */
+  static readonly appendStaticInputs: readonly string[] = [];
   /**
    * Per-type cache lifetime for partial runs ("Run Node", "Run from here", "Run
    * selected"). Only consulted for Computed nodes (Constants are always live;
@@ -774,6 +807,8 @@ export abstract class BaseNode {
       // chunk sees the new value on its next chunk.
       applyProperties: (properties: Record<string, unknown>) =>
         this.assign(properties),
+      appendStaticInputs: (this.constructor as typeof BaseNode)
+        .appendStaticInputs,
       preProcess: () => this.preProcess(),
       finalize: () => this.finalize(),
       initialize: () => this.initialize(),

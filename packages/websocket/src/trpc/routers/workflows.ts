@@ -85,6 +85,7 @@ import {
   sharingOkOutput,
   sharingAcceptInput,
   sharingAcceptOutput,
+  sharingPublicTokenInput,
   shareItem,
   collaboratorItem,
   sharedWithMeInput,
@@ -94,6 +95,7 @@ import {
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 import { isString } from "../../lib/wire-values.js";
 import { getStorageRetentionSettings } from "../../storage-retention.js";
+import { loadPublicShareWorkflow } from "../../lib/public-workflow-share.js";
 
 const log = createLogger("nodetool.websocket.trpc.workflows");
 
@@ -551,7 +553,8 @@ export const workflowsRouter = router({
             version: null,
             message: "Autosave skipped (rate limited)",
             skipped: true,
-            updated_at: workflow.updated_at ?? null
+            updated_at: workflow.updated_at ?? null,
+            etag: workflow.getEtag()
           };
         }
       }
@@ -560,8 +563,8 @@ export const workflowsRouter = router({
         graph: input.graph
       };
       if (input.name !== undefined) fields.name = input.name;
-      if (input.description !== undefined)
-        fields.description = input.description;
+      // `description` and `save_type` describe the version row this autosave
+      // creates (e.g. "Before execution" on a checkpoint), never the workflow.
       // Only the owner can change visibility; editors keep it as-is.
       if (
         role === "owner" &&
@@ -582,6 +585,8 @@ export const workflowsRouter = router({
       await syncTriggerRegistrations(savedWorkflow);
       recordAutosave(input.id, Date.now());
 
+      const saveType =
+        input.save_type === "checkpoint" ? "checkpoint" : "autosave";
       let version: {
         id: string;
         version: number;
@@ -597,16 +602,16 @@ export const workflowsRouter = router({
           user_id: ctx.userId,
           graph: input.graph,
           version: nextVer,
-          save_type: "autosave",
+          save_type: saveType,
           name: savedWorkflow.name,
-          description: savedWorkflow.description
+          description: input.description ?? savedWorkflow.description
         });
         await wv.save();
         version = {
           id: wv.id,
           version: wv.version,
           workflow_id: wv.workflow_id,
-          save_type: wv.save_type ?? "autosave",
+          save_type: wv.save_type ?? saveType,
           created_at: (wv.created_at as string | undefined) ?? null
         };
         await WorkflowVersion.pruneOldAutosaves(input.id, maxVersions);
@@ -618,7 +623,8 @@ export const workflowsRouter = router({
         version,
         message: "Autosaved successfully",
         skipped: false,
-        updated_at: savedWorkflow.updated_at ?? null
+        updated_at: savedWorkflow.updated_at ?? null,
+        etag: savedWorkflow.getEtag()
       };
     }),
 
@@ -759,9 +765,22 @@ export const workflowsRouter = router({
         );
         if (!version)
           throwApiError(ApiErrorCode.NOT_FOUND, "Version not found");
-        workflow.graph = version.graph;
-        await workflow.save();
-        return toWorkflowResponse(workflow);
+        // Same write path as autosave: a whole-row save would overwrite a
+        // concurrent edit, and the restored graph's trigger nodes must be
+        // armed or disarmed like any other graph change.
+        const restored = await Workflow.updateFieldsIfUnchanged(
+          input.id,
+          workflow.updated_at,
+          { graph: version.graph }
+        );
+        if (!restored) {
+          throwApiError(
+            ApiErrorCode.ALREADY_EXISTS,
+            "Workflow was modified since last read (optimistic concurrency conflict)"
+          );
+        }
+        await syncTriggerRegistrations(restored);
+        return toWorkflowResponse(restored);
       }),
 
     // DELETE /api/workflows/:id/versions/:versionId
@@ -884,7 +903,8 @@ export const workflowsRouter = router({
       .output(sharingAcceptOutput)
       .mutation(async ({ ctx, input }) => {
         const share = await WorkflowShare.findByToken(input.token);
-        if (!share || share.isRevoked) {
+        // A public link grants nothing; see lib/public-workflow-share.ts.
+        if (!share || share.isRevoked || share.role === "public") {
           throwApiError(
             ApiErrorCode.NOT_FOUND,
             "Share link is invalid or revoked"
@@ -906,6 +926,28 @@ export const workflowsRouter = router({
           });
         }
         return { workflow: toWorkflowResponse(workflow), role: share.role };
+      }),
+
+    // Copy a publicly linked workflow into the caller's own workflows as a
+    // new private row. The source stays untouched and grants nothing. The
+    // read side is the unauthenticated GET /api/shared-workflows/:token.
+    duplicatePublic: protectedProcedure
+      .input(sharingPublicTokenInput)
+      .output(workflowResponse)
+      .mutation(async ({ ctx, input }) => {
+        const source = await loadPublicShareWorkflow(input.token);
+        const copy = await runWorkflowService(() =>
+          createWorkflow(ctx.userId, {
+            name: source.name,
+            description: source.description,
+            tags: source.tags,
+            access: "private",
+            graph: safeGraph(source.id, source.graph),
+            settings: source.settings,
+            run_mode: source.run_mode
+          })
+        );
+        return toWorkflowResponse(copy);
       }),
 
     // Workflows shared with the caller, with their role on each.

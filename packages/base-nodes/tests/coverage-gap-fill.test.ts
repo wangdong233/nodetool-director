@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { parseWavBytes, toBytes, type WavData } from "@nodetool-ai/audio-nodes";
 import { tmpdir } from "node:os";
-import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import {
   // lib-audio-dsp
@@ -159,8 +159,18 @@ async function collectGen(
 }
 
 function tmpDir(): string {
-  return mkdtempSync(join(tmpdir(), "nt-test-"));
+  const dir = mkdtempSync(join(tmpdir(), "nt-test-"));
+  tempDirs.push(dir);
+  return dir;
 }
+
+const tempDirs: string[] = [];
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 // ============================================================================
 // lib-audio-dsp.ts gaps
@@ -1205,7 +1215,9 @@ describe("lib-audio-dsp round 2", () => {
   it("Gain with invalid audio data throws", async () => {
     const __n209 = new GainNode_();
     __n209.assign({ audio: { uri: "", data: 12345 }, gain_db: 0 });
-    await expect(__n209.process()).rejects.toThrow("Invalid audio data");
+    await expect(__n209.process()).rejects.toThrow(
+      "Could not load audio: the connected reference is empty (0 bytes)."
+    );
   });
 
   it("Gain with invalid WAV (not RIFF) throws", async () => {
@@ -1478,7 +1490,9 @@ describe("lib-pedalboard-extra round 2", () => {
       audio: { uri: "", data: 12345 },
       drive: 0.5
     });
-    await expect(__n227.process()).rejects.toThrow("Invalid audio data");
+    await expect(__n227.process()).rejects.toThrow(
+      "Could not load audio: the connected reference is empty (0 bytes)."
+    );
   });
 });
 

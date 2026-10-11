@@ -1,5 +1,107 @@
 [
   {
+    "slug": "product-price-drop",
+    "name": "Product Price Drop",
+    "featured": true,
+    "workflows": 2
+  },
+  {
+    "slug": "ad-kinetic-offer-wall",
+    "name": "Kinetic offer wall",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-product-cutout-shuffle",
+    "name": "Product cutout shuffle",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-one-hub-three-product-benefits",
+    "name": "One hub, three product benefits",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-benefit-led-dashboard-punch-in",
+    "name": "Benefit-led dashboard punch-in",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-fast-footage-plus-kinetic-captions",
+    "name": "Fast footage plus kinetic captions",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-editorial-image-panels",
+    "name": "Editorial image panels",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-binary-choice-participation-card",
+    "name": "Binary-choice participation card",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-desktop-chaos-to-one-clean-result",
+    "name": "Desktop chaos to one clean result",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-headline-plus-inset-motion-module",
+    "name": "Headline plus inset motion module",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-integration-puzzle-that-snaps-together",
+    "name": "Integration puzzle that snaps together",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-hero-artwork-becomes-a-type-stage",
+    "name": "Hero artwork becomes a type stage",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-fixed-glyph-changing-world",
+    "name": "Fixed glyph, changing world",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-calm-breathing-shape-loop",
+    "name": "Calm breathing-shape loop",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-macro-feature-proof",
+    "name": "Macro feature proof",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-result-seen-through-the-product",
+    "name": "Result seen through the product",
+    "featured": false,
+    "workflows": 3
+  },
+  {
+    "slug": "ad-a-capability-journey-on-connected-paths",
+    "name": "A capability sequence on connected paths",
+    "featured": false,
+    "workflows": 3
+  },
+  {
     "slug": "photo-studio",
     "name": "Photo Studio",
     "emoji": "📸",
@@ -18,7 +120,7 @@
     "name": "Brand & Social",
     "emoji": "🎨",
     "featured": true,
-    "workflows": 2
+    "workflows": 3
   },
   {
     "slug": "product-launch-kit",
@@ -47,62 +149,6 @@
     "emoji": "🪄",
     "featured": true,
     "workflows": 1
-  },
-  {
-    "slug": "product-reshoot",
-    "name": "Product Reshoot",
-    "emoji": "📦",
-    "featured": true,
-    "workflows": 3
-  },
-  {
-    "slug": "product-shot-video",
-    "name": "Product Shot Video",
-    "emoji": "🎥",
-    "featured": true,
-    "workflows": 2
-  },
-  {
-    "slug": "multi-shot-video",
-    "name": "Multi-Shot Video",
-    "emoji": "🎬",
-    "featured": true,
-    "workflows": 1
-  },
-  {
-    "slug": "scene-builder",
-    "name": "Scene Builder",
-    "emoji": "🎞️",
-    "featured": true,
-    "workflows": 2
-  },
-  {
-    "slug": "video-restyle",
-    "name": "Video Restyle",
-    "emoji": "🎨",
-    "featured": false,
-    "workflows": 1
-  },
-  {
-    "slug": "ai-spokesperson",
-    "name": "AI Spokesperson",
-    "emoji": "🗣️",
-    "featured": false,
-    "workflows": 1
-  },
-  {
-    "slug": "upscale-image",
-    "name": "Upscale Image",
-    "emoji": "🔍",
-    "featured": false,
-    "workflows": 2
-  },
-  {
-    "slug": "vertical-cut",
-    "name": "Vertical Cut",
-    "emoji": "📱",
-    "featured": false,
-    "workflows": 2
   },
   {
     "slug": "ad-maker",

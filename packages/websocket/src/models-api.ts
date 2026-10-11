@@ -6,7 +6,10 @@ import {
 } from "@nodetool-ai/runtime";
 import type { ModelDownloadUpdate, PythonBridge } from "@nodetool-ai/runtime";
 import type { WorkerManager } from "@nodetool-ai/compute";
-import { resolveWorkerHfToken } from "@nodetool-ai/huggingface";
+import {
+  ALWAYS_IGNORE_PATTERNS,
+  resolveWorkerHfToken
+} from "@nodetool-ai/huggingface";
 import type { UnifiedModel } from "@nodetool-ai/protocol";
 import {
   modelRankings,
@@ -123,6 +126,34 @@ export function mergeRankedRecommendations(
   }
 
   return merged;
+}
+
+/**
+ * Every ranked route as a `<provider>:<model_id>` key, best model first.
+ *
+ * A model scores by its highest Artificial Analysis `score` across the tasks
+ * it is ranked for. Routes of one canonical model stay together in artifact order,
+ * so the menu shows every provider that serves a strong model. Ties order by
+ * canonical id, which keeps an unchanged artifact producing an unchanged list.
+ * An empty artifact returns `[]`.
+ */
+export function rankedModelKeys(
+  artifact: ModelRankingsArtifact = modelRankings
+): string[] {
+  const byCanonical = new Map<string, { best: number; keys: string[] }>();
+  for (const [key, entry] of Object.entries(artifact.models ?? {})) {
+    if (!entry?.canonical) continue;
+    const best = Math.max(
+      ...Object.values(entry.tasks ?? {}).map((rank) => rank.score),
+      Number.NEGATIVE_INFINITY
+    );
+    const group = byCanonical.get(entry.canonical) ?? { best, keys: [] };
+    group.keys.push(key);
+    byCanonical.set(entry.canonical, group);
+  }
+  return [...byCanonical.entries()]
+    .sort(([a, x], [b, y]) => y.best - x.best || a.localeCompare(b))
+    .flatMap(([, group]) => group.keys);
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +288,11 @@ export async function relayWorkerDownload(
           repo_id: repoId,
           path: msg.path ?? null,
           allow_patterns: msg.allow_patterns ?? null,
-          ignore_patterns: msg.ignore_patterns ?? null,
+          // A whole-repo worker download skips the framework exports a
+          // server-side download skips, so both fetch the same files.
+          ignore_patterns: msg.path
+            ? (msg.ignore_patterns ?? null)
+            : [...(msg.ignore_patterns ?? []), ...ALWAYS_IGNORE_PATTERNS],
           model_type: msg.model_type ?? null,
           token
         },

@@ -53,6 +53,8 @@ interface AssistantChatPanelProps {
   docsLabel?: string;
   composerPlaceholder?: string;
   requireToolSupport?: boolean;
+  onThreadId?: (threadId: string | null) => void;
+  focusMessage?: { threadId: string; messageId: string; requestId: number } | null;
 }
 
 /**
@@ -71,13 +73,16 @@ const AssistantChatPanel = ({
   docsTopic,
   docsLabel,
   composerPlaceholder,
-  requireToolSupport = true
+  requireToolSupport = true,
+  onThreadId,
+  focusMessage
 }: AssistantChatPanelProps) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const hideModelPicker = useInStudio();
 
   const connect = useGlobalChatStore((state) => state.connect);
+  const loadMessages = useGlobalChatStore((state) => state.loadMessages);
   const {
     threadId,
     messages,
@@ -91,6 +96,33 @@ const AssistantChatPanel = ({
   // This panel's conversation keeps its own model, independent of the chat
   // tabs and the other assistant panels.
   const { model, setModel } = useThreadModel(threadId);
+
+  useEffect(() => { onThreadId?.(threadId); }, [onThreadId, threadId]);
+
+  useEffect(() => {
+    if (!focusMessage?.threadId) return;
+    const targetThread = focusMessage.threadId;
+    const targetMessage = focusMessage.messageId;
+    let cancelled = false;
+    selectThread(targetThread);
+    const loadUntilFound = async () => {
+      const seenCursors = new Set<string>();
+      let state = useGlobalChatStore.getState();
+      if (!state.messageCache[targetThread]?.some((message) => message.id === targetMessage)) {
+        await loadMessages(targetThread);
+        state = useGlobalChatStore.getState();
+      }
+      while (!cancelled && !state.messageCache[targetThread]?.some((message) => message.id === targetMessage)) {
+        const cursor = state.messageCursors[targetThread];
+        if (!cursor || seenCursors.has(cursor)) break;
+        seenCursors.add(cursor);
+        await loadMessages(targetThread, cursor);
+        state = useGlobalChatStore.getState();
+      }
+    };
+    void loadUntilFound().catch((error) => console.error("Failed to load chat message:", error));
+    return () => { cancelled = true; };
+  }, [focusMessage?.threadId, focusMessage?.messageId, focusMessage?.requestId, loadMessages, selectThread]);
 
   useEffect(() => {
     connect().catch((err) => {
@@ -128,7 +160,7 @@ const AssistantChatPanel = ({
         sx={{ textAlign: "center" }}
       >
         <WelcomeIcon fontSize="large" sx={{ mb: 1.5, opacity: 0.5 }} />
-        <Text size="normal" weight={600} sx={{ mb: 1 }}>
+        <Text size="big" sx={{ mb: 1 }}>
           {welcomeTitle}
         </Text>
         <Text size="small" color="secondary" sx={{ maxWidth: 280 }}>
@@ -166,6 +198,7 @@ const AssistantChatPanel = ({
           hideModePicker
           noMessagesPlaceholder={welcomePlaceholder}
           threadId={threadId}
+          focusMessage={threadId === focusMessage?.threadId ? focusMessage : null}
           currentPlanningUpdate={runtime.planningUpdate}
           currentTaskUpdate={runtime.taskUpdate}
           currentLogUpdate={runtime.logUpdate}

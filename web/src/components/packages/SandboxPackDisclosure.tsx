@@ -17,10 +17,10 @@ import {
   FlexRow,
   Text,
   BORDER_RADIUS,
+  SPACING,
   TYPOGRAPHY
 } from "../ui_primitives";
 import { trpc } from "../../lib/trpc";
-import { useTranslation } from "react-i18next";
 
 /** What installing and importing a sandbox pack means, in the design's words. */
 export const SANDBOX_PACK_CONSENT_TEXT =
@@ -34,7 +34,6 @@ interface SandboxModuleEntry {
 }
 
 const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
-  const { t } = useTranslation();
   const [showDocs, setShowDocs] = useState(false);
 
   const modulesQuery = useQuery({
@@ -68,11 +67,11 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
   if (modules.length === 0) return null;
 
   return (
-    <FlexColumn gap={0.75}>
+    <FlexColumn gap={SPACING.xs}>
       <Text size="small" color="secondary">
         {SANDBOX_PACK_CONSENT_TEXT}
       </Text>
-      <FlexColumn gap={0.25}>
+      <FlexColumn gap={SPACING.micro}>
         {modules.map((module) => (
           <Text key={module.specifier} size="small" family="secondary">
             {module.specifier}
@@ -85,12 +84,12 @@ const SandboxPackDisclosure = ({ packName }: { packName: string }) => {
           density="compact"
           onClick={() => setShowDocs((current) => !current)}
         >
-          {showDocs ? t("editor:ui.hideDocumentation", { defaultValue: "Hide documentation" }) : t("editor:ui.viewDocumentation", { defaultValue: "View documentation" })}
+          {showDocs ? "Hide documentation" : "View documentation"}
         </EditorButton>
       </FlexRow>
       {showDocs && docsQuery.data === null && (
         <Text size="small" color="secondary">
-          {t("editor:ui.thisPackagePublishesNoDocumentation")}
+          This package publishes no documentation.
         </Text>
       )}
       {showDocs && docsQuery.data && (

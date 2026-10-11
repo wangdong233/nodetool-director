@@ -11,7 +11,8 @@
 import { and, eq } from "drizzle-orm";
 import { readEntityMarker } from "@nodetool-ai/protocol";
 import { Asset } from "./asset.js";
-import { getDb } from "./db.js";
+import { Game } from "./game.js";
+import { getPortableDb } from "./db.js";
 import { applications } from "./schema/applications.js";
 import { assets } from "./schema/assets.js";
 import { imageDocuments } from "./schema/image-documents.js";
@@ -127,7 +128,7 @@ export async function hasProjectDocumentDependents(
   type: ProjectMemberType,
   id: string
 ): Promise<boolean> {
-  const db = getDb();
+  const db = getPortableDb();
   const [boardRows, scriptRows, timelineRows, sketchRows, appRows, jsRows] =
     await Promise.all([
       db
@@ -199,7 +200,10 @@ export async function reassignProjectDocuments(
   fromProjectId: string,
   toProjectId: string
 ): Promise<number> {
-  const db = getDb();
+  if ((await Game.listByProject(userId, fromProjectId)).length > 0) {
+    throw new Error("Moving games requires moving their workspace source");
+  }
+  const db = getPortableDb();
   let moved = 0;
   for (const table of DOCUMENT_TABLES) {
     // Only the id comes back: a moved document would otherwise ship its whole
@@ -225,7 +229,7 @@ export async function moveDocumentToProject(
   documentId: string,
   projectId: string
 ): Promise<boolean> {
-  const db = getDb();
+  const db = getPortableDb();
   const fields = { project_id: projectId };
   switch (type) {
     case "entity": {
@@ -300,6 +304,9 @@ export async function moveDocumentToProject(
         .where(and(eq(jsScripts.id, documentId), eq(jsScripts.user_id, userId)))
         .returning({ id: jsScripts.id });
       return rows.length > 0;
+    }
+    case "game": {
+      return false;
     }
     default: {
       const exhaustive: never = type;

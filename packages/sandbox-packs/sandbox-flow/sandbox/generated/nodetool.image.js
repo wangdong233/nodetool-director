@@ -6,6 +6,9 @@ function paste(inputs) {
 function scale(inputs) {
   return callNode("nodetool.image.Scale", inputs);
 }
+function resizeImage(inputs) {
+  return callNode("nodetool.image.ResizeImage", inputs);
+}
 function resize(inputs) {
   return callNode("nodetool.image.Resize", inputs);
 }
@@ -78,6 +81,9 @@ function upscale(inputs) {
 function removeBackground(inputs) {
   return callNode("nodetool.image.RemoveBackground", inputs);
 }
+function estimateDepth(inputs) {
+  return callNode("nodetool.image.EstimateDepth", inputs);
+}
 function relight(inputs) {
   return callNode("nodetool.image.Relight", inputs);
 }
@@ -94,6 +100,7 @@ export {
   channels,
   compositor,
   crop,
+  estimateDepth,
   fit,
   getMetadata,
   imageToImage,
@@ -107,6 +114,7 @@ export {
   relight,
   removeBackground,
   resize,
+  resizeImage,
   rotateAndFlip,
   saveImage,
   saveImageFile,

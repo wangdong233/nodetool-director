@@ -3,10 +3,12 @@ import { protectedProcedure } from "../middleware.js";
 import { TRPCError } from "@trpc/server";
 import type { Context } from "../context.js";
 import type { PythonBridge } from "@nodetool-ai/runtime";
-import { createLogger } from "@nodetool-ai/config";
+import { createLogger, getHfHubCacheDir } from "@nodetool-ai/config";
+import { discoverASRModels, discoverVadModels } from "@nodetool-ai/whisper-cpp";
 import {
   getProvider,
   getRegisteredProvider,
+  imageModelTasks,
   isProviderConfigured,
   listRegisteredProviderIds,
   RECOMMENDED_MODELS,
@@ -30,7 +32,8 @@ import {
   searchCachedHfModels,
   getModelsByHfType,
   filterModelsByHfType,
-  deleteCachedHfModel
+  deleteCachedHfModel,
+  isLlamaCppModelCached as isFlatLlamaCppModelCached
 } from "@nodetool-ai/huggingface";
 import {
   getTransformersJsCacheDir,
@@ -41,10 +44,10 @@ import {
 } from "@nodetool-ai/transformers-js-nodes";
 import type { UnifiedModel } from "@nodetool-ai/protocol";
 import { MODEL_SEARCH_KINDS } from "@nodetool-ai/protocol";
+import { rankedModelKeys } from "../../models-api.js";
 import { access, readdir } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
-import { homedir } from "node:os";
-import { basename, join, resolve, sep } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { z } from "zod";
 import { isString } from "../../lib/wire-values.js";
 import {
@@ -57,7 +60,9 @@ const modelArtifactRefSchema = z.object({
   source: z.literal("huggingface"),
   repo_id: z.string(),
   revision: z.string().nullish(),
-  path: z.string().nullish()
+  path: z.string().nullish(),
+  allow_patterns: z.array(z.string()).nullish(),
+  model_type: z.string().nullish()
 });
 
 const modelAdapterInfoSchema = z.object({
@@ -329,10 +334,7 @@ function isDownloadedFromFiles(
 }
 
 function getHfCacheRoot(): string {
-  const cacheEnv = process.env.HUGGINGFACE_HUB_CACHE ?? process.env.HF_HOME;
-  return cacheEnv
-    ? join(cacheEnv, "hub")
-    : join(homedir(), ".cache", "huggingface", "hub");
+  return getHfHubCacheDir();
 }
 
 function repoToCacheDir(repoId: string): string {
@@ -418,6 +420,9 @@ async function listRepoCachedFiles(repoId: string): Promise<string[]> {
   return [...collected];
 }
 
+/** A GGUF is downloaded when it is in the HF hub cache (the `llama_cpp_model`
+ * download path) or in llama.cpp's flat cache (the `llama_cpp` download path,
+ * which writes `{org}_{repo}_{file}` to {@link getLlamaCppCacheDir}). */
 async function isLlamaCppModelCached(
   repoId: string,
   filePath: string
@@ -425,28 +430,7 @@ async function isLlamaCppModelCached(
   if (await repoFileInCache(repoId, filePath)) {
     return true;
   }
-
-  const cacheRoot =
-    process.env.LLAMA_CPP_CACHE_DIR ??
-    join(homedir(), "Library", "Caches", "llama.cpp", "hf");
-  const repoDir = join(cacheRoot, repoToCacheDir(repoId), "snapshots");
-  if (!(await pathExists(repoDir))) return false;
-
-  const snapshots = await readdir(repoDir, { withFileTypes: true });
-  for (const snapshot of snapshots) {
-    if (!snapshot.isDirectory()) continue;
-    const snapshotDir = join(repoDir, snapshot.name);
-    const full = safeJoinWithin(snapshotDir, filePath);
-    if (full && (await pathExists(full))) {
-      return true;
-    }
-    // basename() strips any traversal segments, so this join stays contained.
-    if (await pathExists(join(snapshotDir, basename(filePath)))) {
-      return true;
-    }
-  }
-
-  return false;
+  return isFlatLlamaCppModelCached(repoId, filePath);
 }
 
 type ProviderInstance = Awaited<ReturnType<typeof getProvider>>;
@@ -616,11 +600,44 @@ async function serverAllowsModel(
   return true;
 }
 
+async function withWhisperDownloadStatus<T extends UnifiedModel>(
+  models: T[],
+  userId: string
+): Promise<T[]> {
+  const modelsDir = await secretResolverFor(userId)("WHISPER_CPP_MODELS_DIR");
+  const whisperFiles = new Map(
+    (
+      await Promise.all([
+        discoverASRModels(modelsDir),
+        discoverVadModels(modelsDir)
+      ])
+    )
+      .flat()
+      .map((model) => [model.id.split(/[\\/]/).at(-1), model.id] as const)
+  );
+  return Promise.all(
+    models.map(async (model) =>
+      model.provider === "whisper_cpp" && model.repo_id && model.path
+        ? {
+            ...model,
+            id: whisperFiles.get(model.path) ?? model.id,
+            downloaded:
+              whisperFiles.has(model.path) ||
+              (await repoFileInCache(model.repo_id, model.path))
+          }
+        : model
+    )
+  );
+}
+
 async function getRecommendedModels(
   checkServers: boolean,
   userId: string
 ): Promise<UnifiedModel[]> {
-  const models = [...RECOMMENDED_MODELS];
+  const models = await withWhisperDownloadStatus(
+    [...RECOMMENDED_MODELS],
+    userId
+  );
   if (!checkServers) return models;
   const servers = await getServerAvailability(userId);
   const filtered: UnifiedModel[] = [];
@@ -797,6 +814,8 @@ function toUnifiedModel(
         repoId: string;
         revision?: string;
         path?: string;
+        allowPatterns?: string[];
+        modelType?: string;
       };
     };
     supportedTasks?: string[];
@@ -814,7 +833,11 @@ function toUnifiedModel(
     provider: model.provider,
     repo_id: null,
     path: null,
-    downloaded: model.provider === "ollama" || model.provider === "llama_cpp",
+    downloaded:
+      model.provider === "ollama" ||
+      model.provider === "llama_cpp" ||
+      model.provider === "whisper_cpp" ||
+      model.provider === "whisper_cpp_server",
     tags: [model.provider],
     voices: model.voices ?? null,
     capabilities: model.capabilities ?? null,
@@ -831,12 +854,17 @@ function toUnifiedModel(
                 source: model.adapter.artifactRef.source,
                 repo_id: model.adapter.artifactRef.repoId,
                 revision: model.adapter.artifactRef.revision ?? null,
-                path: model.adapter.artifactRef.path ?? null
+                path: model.adapter.artifactRef.path ?? null,
+                allow_patterns: model.adapter.artifactRef.allowPatterns ?? null,
+                model_type: model.adapter.artifactRef.modelType ?? null
               }
             : null
         }
       : null,
-    supported_tasks: model.supportedTasks ?? null,
+    supported_tasks:
+      (type === "image_model"
+        ? imageModelTasks(model)
+        : model.supportedTasks) ?? null,
     durations: model.durations ?? null,
     resolutions: model.resolutions ?? null,
     aspect_ratios: model.aspectRatios ?? null,
@@ -890,6 +918,22 @@ async function resolveProviderModelExecution(
   } catch {
     // A failed cache scan means local adapters remain download-required.
   }
+  if (
+    models.some((model) =>
+      model.adapter?.artifact_ref?.model_type?.startsWith("tjs.")
+    )
+  ) {
+    try {
+      const cached = await scanTransformersJsCache(getTransformersJsCacheDir());
+      cachedModels.push(
+        ...cached.map((c) =>
+          tjsRefToUnified({ repo_id: c.repo_id }, "tjs.cached", true, c.size_bytes)
+        )
+      );
+    } catch {
+      // Transformers.js adapters remain download-required.
+    }
+  }
   return resolveModelExecutionAvailability(
     [...models, ...cachedModels],
     providerExecutionMap(configuredProviderIds)
@@ -899,7 +943,7 @@ async function resolveProviderModelExecution(
 export async function getAllModels(userId: string): Promise<UnifiedModel[]> {
   const all: UnifiedModel[] = [];
 
-  all.push(...RECOMMENDED_MODELS);
+  all.push(...(await getRecommendedModels(false, userId)));
 
   const availableIds = await getAvailableProviderIds(userId);
   const providerModelsPromises = availableIds.map(async (providerId) => {
@@ -1138,7 +1182,10 @@ function curatedForKind(kind: ModelSearchKind): UnifiedModel[] {
     kind !== "speech_to_text" &&
     kind !== "text_to_music";
   return RECOMMENDED_MODELS.filter(
-    (r) => r.modality === modality && (!taskRequired || r.task === kind)
+    (r) =>
+      r.modality === modality &&
+      r.type !== "hf.whisper_cpp_vad" &&
+      (!taskRequired || r.task === kind)
   );
 }
 
@@ -1193,6 +1240,14 @@ export const modelsRouter = router({
       return getRecommendedModels(input.check_servers ?? false, ctx.userId);
     }),
 
+  /**
+   * Every ranked route as a `<provider>:<model_id>` key, best model first.
+   * The model menu orders an empty query with it.
+   */
+  rankedKeys: protectedProcedure
+    .output(z.array(z.string()))
+    .query(() => rankedModelKeys()),
+
   recommendedImageTextToImage: protectedProcedure
     .output(modelsListOutput)
     .query(() => selectRecommended("image", "text_to_image")),
@@ -1205,9 +1260,14 @@ export const modelsRouter = router({
     .output(modelsListOutput)
     .query(() => selectRecommended("language", "embedding")),
 
-  recommendedAsr: protectedProcedure
-    .output(modelsListOutput)
-    .query(() => selectRecommended("asr")),
+  recommendedAsr: protectedProcedure.output(modelsListOutput).query(({ ctx }) =>
+    withWhisperDownloadStatus(
+      selectRecommended("asr").filter(
+        (model) => model.type !== "hf.whisper_cpp_vad"
+      ),
+      ctx.userId
+    )
+  ),
 
   recommendedTts: protectedProcedure
     .output(modelsListOutput)
@@ -1554,8 +1614,8 @@ export const modelsRouter = router({
   imageByProvider: protectedProcedure
     .input(providerInput)
     .output(modelsListOutput)
-    .query(async ({ ctx, input }) =>
-      safeProviderCall(
+    .query(async ({ ctx, input }) => {
+      const models = await safeProviderCall(
         "imageByProvider",
         { provider: input.provider, userId: ctx.userId },
         async () => {
@@ -1568,8 +1628,34 @@ export const modelsRouter = router({
           return models.map((m) => toUnifiedModel(m, "image_model"));
         },
         []
-      )
-    ),
+      );
+      // Only a local model has files to download. Remote catalogs keep the
+      // execution state that toUnifiedModel gave them.
+      return models.some((model) => model.adapter)
+        ? resolveProviderModelExecution(models, [input.provider])
+        : models;
+    }),
+
+  rerankByProvider: protectedProcedure
+    .input(providerInput)
+    .output(modelsListOutput)
+    .query(async ({ ctx, input }) => {
+      const models = await safeProviderCall(
+        "rerankByProvider",
+        { provider: input.provider, userId: ctx.userId },
+        async () => {
+          const instance = await instantiateProvider(
+            input.provider as ProviderId,
+            ctx.userId
+          );
+          if (!instance) return [];
+          const models = await instance.getAvailableRerankModels();
+          return models.map((m) => toUnifiedModel(m, "rerank_model"));
+        },
+        []
+      );
+      return resolveProviderModelExecution(models, [input.provider]);
+    }),
 
   tts: protectedProcedure.output(modelsListOutput).query(async ({ ctx }) => {
     const availableIds = await getAvailableProviderIds(ctx.userId);
@@ -1716,14 +1802,14 @@ export const modelsRouter = router({
         )
       )
     );
-    return results.flat();
+    return resolveProviderModelExecution(results.flat(), availableIds);
   }),
 
   asrByProvider: protectedProcedure
     .input(providerInput)
     .output(modelsListOutput)
-    .query(async ({ ctx, input }) =>
-      safeProviderCall(
+    .query(async ({ ctx, input }) => {
+      const models = await safeProviderCall(
         "asrByProvider",
         { provider: input.provider, userId: ctx.userId },
         async () => {
@@ -1736,8 +1822,9 @@ export const modelsRouter = router({
           return models.map((m) => toUnifiedModel(m, "asr_model"));
         },
         []
-      )
-    ),
+      );
+      return resolveProviderModelExecution(models, [input.provider]);
+    }),
 
   video: protectedProcedure.output(modelsListOutput).query(async ({ ctx }) => {
     const availableIds = await getAvailableProviderIds(ctx.userId);
@@ -1782,8 +1869,8 @@ export const modelsRouter = router({
   embeddingByProvider: protectedProcedure
     .input(providerInput)
     .output(modelsListOutput)
-    .query(async ({ ctx, input }) =>
-      safeProviderCall(
+    .query(async ({ ctx, input }) => {
+      const models = await safeProviderCall(
         "embeddingByProvider",
         { provider: input.provider, userId: ctx.userId },
         async () => {
@@ -1796,8 +1883,9 @@ export const modelsRouter = router({
           return models.map((m) => toUnifiedModel(m, "embedding_model"));
         },
         []
-      )
-    ),
+      );
+      return resolveProviderModelExecution(models, [input.provider]);
+    }),
 
   /**
    * Fast batch cache status check for multiple models.

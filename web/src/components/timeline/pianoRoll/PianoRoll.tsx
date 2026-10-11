@@ -44,7 +44,6 @@ import {
   removeNotes,
   resizeNotes,
   resolveTempo,
-  snapTick,
   ticksToMs
 } from "@nodetool-ai/timeline";
 import type {
@@ -77,6 +76,7 @@ import {
   hitTestNote,
   pitchName,
   initialTopPitch,
+  snapTickToGrid,
   tickToX,
   xToTick,
   yToPitch,
@@ -256,6 +256,13 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
       [gridDivision, tempo]
     );
 
+    // Where the drawn grid sits in clip-content ticks: it is anchored at
+    // `tempo.offsetMs` on the timeline, not at tick 0 of the clip's notes.
+    const gridPhaseTick = useMemo(
+      () => timelineMsToTick(tempo.offsetMs),
+      [timelineMsToTick, tempo.offsetMs]
+    );
+
     // ── Measurement ───────────────────────────────────────────────────────
     useEffect(() => {
       const el = gridWrapRef.current;
@@ -358,9 +365,22 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
     /** The tick a pointer means, snapped unless the caller bypasses the grid. */
     const snapOrNot = useCallback(
       (tick: number, bypass: boolean) =>
-        bypass || !snapEnabled ? Math.round(tick) : snapTick(tick, gridStepTicks),
-      [gridStepTicks, snapEnabled]
+        bypass || !snapEnabled
+          ? Math.round(tick)
+          : snapTickToGrid(tick, gridStepTicks, gridPhaseTick),
+      [gridPhaseTick, gridStepTicks, snapEnabled]
     );
+
+    /**
+     * The clip's notes as the store holds them now. `notesRef` only catches up
+     * on the next render, so a field that commits on blur (the note inspector)
+     * can have written after the last render and before a gesture starts.
+     */
+    const latestNotes = useCallback((): ReadonlyArray<MidiNote> => {
+      const stored = findClipById(docApi.getState().clips, clipId)?.notes ?? [];
+      notesRef.current = stored;
+      return stored;
+    }, [clipId, docApi]);
 
     // ── Pointer gestures ──────────────────────────────────────────────────
     const localPoint = useCallback(
@@ -374,10 +394,12 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
     const handlePointerDown = useCallback(
       (e: React.PointerEvent<HTMLDivElement>) => {
         if (e.button !== 0) return;
+        // Focusing first blurs any inspector field, which commits its edit.
         rootRef.current?.focus();
+        const gestureNotes = latestNotes();
         const { x, y } = localPoint(e);
         const geo = geometryRef.current;
-        const hit = hitTestNote(notesRef.current, x, y, geo);
+        const hit = hitTestNote(gestureNotes, x, y, geo);
         const pointerTick = xToTick(x, geo);
         const pointerPitch = yToPitch(y, geo);
 
@@ -408,7 +430,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
           dragRef.current = {
             kind: edge === "end" ? "resize" : "move",
             ids,
-            baseline: [...notesRef.current],
+            baseline: [...gestureNotes],
             anchorTick:
               edge === "end"
                 ? hit.note.startTick + hit.note.durationTick
@@ -442,7 +464,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
           }
         }
       },
-      [history, localPoint]
+      [history, latestNotes, localPoint]
     );
 
     const handlePointerMove = useCallback(
@@ -540,7 +562,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
           }
           const rawTick = xToTick(x, geo);
           const startTick = snapEnabled && !e.metaKey && !e.ctrlKey
-            ? Math.floor(rawTick / gridStepTicks) * gridStepTicks
+            ? snapTickToGrid(rawTick, gridStepTicks, gridPhaseTick, "floor")
             : Math.round(rawTick);
           const created = addNote(notesRef.current, {
             pitch,
@@ -563,6 +585,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
       [
         audition,
         clipId,
+        gridPhaseTick,
         gridStepTicks,
         history,
         handlePointerMove,
@@ -600,9 +623,10 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
 
     // ── Velocity lane ─────────────────────────────────────────────────────
     const handleVelocityStart = useCallback(() => {
-      velocityBaseline.current = notesRef.current;
+      rootRef.current?.focus();
+      velocityBaseline.current = latestNotes();
       history.begin();
-    }, [history]);
+    }, [history, latestNotes]);
     const changeRelativeVelocity = useCallback((baseline: readonly MidiNote[], ids: ReadonlySet<string>, delta: number) => {
       const selected = baseline.filter(note => ids.has(note.id));
       const min = selected.reduce((value, note) => Math.min(value, note.velocity), 127);
@@ -739,7 +763,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
         if (!ctrl && !e.altKey && e.key.toLowerCase() === "q") {
           handled();
           setClipNotes(clipId, current.map(note => selectedIdsRef.current.has(note.id)
-            ? { ...note, startTick: snapTick(note.startTick, gridStepTicks) }
+            ? { ...note, startTick: snapTickToGrid(note.startTick, gridStepTicks, gridPhaseTick) }
             : note));
           return;
         }
@@ -811,7 +835,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
           if (first) audition(first.pitch, first.velocity);
         }
       },
-      [audition, clipId, docApi, gridStepTicks, onClose, playbackApi, setClipNotes, snapEnabled, timelineMsToTick]
+      [audition, clipId, docApi, gridPhaseTick, gridStepTicks, onClose, playbackApi, setClipNotes, snapEnabled, timelineMsToTick]
     );
 
     const selectedNotes = notes.filter(note => selectedIds.has(note.id));
@@ -866,18 +890,19 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
           <FlexColumn gap={SPACING.sm}>
             {[
               "⌘C / ⌘X / ⌘V — Copy / cut / paste at the playhead",
-              "⌘R — Repeat selection immediately after its end",
+              "⌘R / ⌘D — Repeat selection immediately after its end",
               "Q — Quantize note starts to the Note grid",
-              "⌥↑ / ⌥↓ — Transpose one semitone",
-              "⇧⌥↑ / ⇧⌥↓ — Transpose one octave",
-              "⌃⌥← / ⌃⌥→ — Nudge by the Note grid",
-              "⇧← / ⇧→ — Shorten / lengthen by the Note grid",
+              "↑ / ↓ — Transpose one semitone",
+              "⇧↑ / ⇧↓ — Transpose one octave",
+              "← / → — Nudge by the Note grid",
+              "⌥← / ⌥→ — Nudge one tick",
+              "⇧← / ⇧→ — Shorten / lengthen by the Note grid (⇧⌥ for one tick)",
               "⌘T — Split selected notes at the playhead",
               "⌘A — Select all notes · Delete — Delete selection",
               "⌘Z / ⇧⌘Z — Undo / redo",
               "Shift-click — Toggle selection · Drag empty space — Select notes",
               "Option-drag — Duplicate selection · ⌘/Ctrl-drag — Bypass snapping",
-              "Ctrl substitutes for ⌘ on Windows. Existing arrow and ⌘D shortcuts also work."
+              "Ctrl substitutes for ⌘ on Windows."
             ].map(shortcut => <Caption key={shortcut}>{shortcut}</Caption>)}
           </FlexColumn>
         </Dialog>

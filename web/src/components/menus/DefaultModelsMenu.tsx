@@ -13,7 +13,25 @@ import { useTranslation } from "react-i18next";
 
 const dm = (key: string, fallback: string) =>
   i18n.t(`settings:defModels.${key}`, { defaultValue: fallback });
+import type { ImageModelValue } from "../../stores/ApiTypes";
+import { IMAGE_TASK_DEFAULTS } from "../../utils/applyDefaultModels";
 
+interface TaskModelSelectProps {
+  onChange: (value: ImageModelValue) => void;
+  value: string;
+}
+
+const UpscaleModelSelect = React.memo(function UpscaleModelSelect(
+  props: TaskModelSelectProps
+) {
+  return <ImageModelSelect {...props} task="upscale" />;
+});
+
+const RemoveBackgroundModelSelect = React.memo(
+  function RemoveBackgroundModelSelect(props: TaskModelSelectProps) {
+    return <ImageModelSelect {...props} task="remove_background" />;
+  }
+);
 const MODEL_TYPE_CONFIG = [
   {
     type: "language_model",
@@ -22,6 +40,20 @@ const MODEL_TYPE_CONFIG = [
     Select: LanguageModelSelect
   },
   { type: "image_model", label: "Image Model", labelKey: "mImage", Select: ImageModelSelect },
+  {
+    type: IMAGE_TASK_DEFAULTS["nodetool.image.Upscale"],
+    label: "Upscale Model",
+    labelKey: "mUpscale",
+    Select: UpscaleModelSelect,
+    hint: "Fills Upscale nodes. Falls back to the image model when unset."
+  },
+  {
+    type: IMAGE_TASK_DEFAULTS["nodetool.image.RemoveBackground"],
+    label: "Remove Background Model",
+    labelKey: "mRemoveBackground",
+    Select: RemoveBackgroundModelSelect,
+    hint: "Fills Remove Background nodes. Falls back to the image model when unset."
+  },
   {
     type: "embedding_model",
     label: "Embedding Model",

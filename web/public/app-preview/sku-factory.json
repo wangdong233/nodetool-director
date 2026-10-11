@@ -19,75 +19,61 @@
           "props": {
             "id": "title",
             "text": "🏷️ SKU Factory",
-            "level": "1"
-          }
-        },
-        {
-          "type": "Text",
-          "props": {
-            "id": "tagline",
-            "text": "One packshot in, the whole channel set out."
+            "level": "1",
+            "subtitle": "One packshot in, the whole channel set out."
           }
         },
         {
           "type": "Text",
           "props": {
             "id": "app-note",
-            "text": "Image and listing steps use configured models. The turntable is metered per second of video."
+            "text": "Image and listing steps use configured models. The turntable is metered per second of video.",
+            "tone": "hint"
           }
         },
         {
-          "type": "Columns",
+          "type": "Stepper",
           "props": {
-            "id": "cols-the-still-set",
-            "gap": 24,
-            "left": [
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
               {
-                "type": "Container",
+                "value": "the-still-set",
+                "title": "The still set"
+              },
+              {
+                "value": "motion-and-print",
+                "title": "Motion and print"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-the-still-set",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "the-still-set"
+            },
+            "content": [
+              {
+                "type": "Heading",
                 "props": {
-                  "id": "panel-the-still-set",
-                  "title": "The still set",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-backdrop-bg-model",
-                        "binding": "op:backdrop/prop:bg#model",
-                        "label": "Studio scene model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-backdrop-comp-model",
-                        "binding": "op:backdrop/prop:comp#model",
-                        "label": "Studio scene model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-relight-rl-model",
-                        "binding": "op:relight/prop:rl#model",
-                        "label": "Seasonal relight model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-listing-ag-model",
-                        "binding": "op:listing/prop:ag#model",
-                        "label": "Listing model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-the-still-set",
+                  "text": "The still set",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-the-still-set",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "ModelSelect",
                       "props": {
@@ -152,6 +138,56 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-the-still-set",
+                        "title": "Models (4)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-backdrop-bg-model",
+                              "binding": "op:backdrop/prop:bg#model",
+                              "label": "Cut out model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-backdrop-comp-model",
+                              "binding": "op:backdrop/prop:comp#model",
+                              "label": "Place on backdrop model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-relight-rl-model",
+                              "binding": "op:relight/prop:rl#model",
+                              "label": "Relight model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-listing-ag-model",
+                              "binding": "op:listing/prop:ag#model",
+                              "label": "Copywriter model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-cutout-backdrop-relight-listing",
@@ -190,17 +226,8 @@
                         ]
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-the-still-set-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -281,42 +308,70 @@
                     }
                   ]
                 }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-the-still-set"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-the-still-set",
+                  "gap": 16,
+                  "left": [],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-the-still-set",
+                        "label": "Next: Motion and print",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "motion-and-print"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }
         },
         {
-          "type": "Columns",
+          "type": "Container",
           "props": {
-            "id": "cols-motion-and-print",
-            "gap": 24,
-            "left": [
+            "id": "step-motion-and-print",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "motion-and-print"
+            },
+            "content": [
               {
-                "type": "Container",
+                "type": "Heading",
                 "props": {
-                  "id": "panel-motion-and-print",
-                  "title": "Motion and print",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-turntable-v-model",
-                        "binding": "op:turntable/prop:v#model",
-                        "label": "Turntable model",
-                        "modelKind": "video_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-print-up-model",
-                        "binding": "op:print/prop:up#model",
-                        "label": "Print master model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-motion-and-print",
+                  "text": "Motion and print",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-motion-and-print",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "Text",
                       "props": {
@@ -340,10 +395,40 @@
                         "id": "slider-turntable-v-duration",
                         "binding": "op:turntable/prop:v#duration",
                         "label": "Seconds",
-                        "min": 4,
-                        "max": 8,
+                        "min": 6,
+                        "max": 10,
                         "step": 2,
                         "events": []
+                      }
+                    },
+                    {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-motion-and-print",
+                        "title": "Models (2)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-turntable-v-model",
+                              "binding": "op:turntable/prop:v#model",
+                              "label": "Animate model",
+                              "modelKind": "video_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-print-up-model",
+                              "binding": "op:print/prop:up#model",
+                              "label": "Upscale 4x model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -394,17 +479,8 @@
                         ]
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-motion-and-print-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -457,6 +533,39 @@
                       }
                     }
                   ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-motion-and-print"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-motion-and-print",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-motion-and-print",
+                        "label": "Back: The still set",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "the-still-set"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": []
                 }
               }
             ]
@@ -549,6 +658,17 @@
     "resources": [],
     "variables": [
       {
+        "id": "step",
+        "name": "Step",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "the-still-set",
+        "scope": "instance",
+        "persist": false
+      },
+      {
         "id": "packshot",
         "name": "The packshot",
         "type": {
@@ -580,7 +700,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 366
               },
               "zIndex": 0,
               "width": 300,
@@ -598,8 +718,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1650,
-                "y": 120
+                "x": 2000,
+                "y": 468
               },
               "zIndex": 0,
               "width": 300,
@@ -621,8 +741,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 330,
-                "y": 460
+                "x": 0,
+                "y": 590
               },
               "width": 300,
               "title": "Edge softness"
@@ -653,7 +773,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 366
               },
               "zIndex": 0,
               "width": 300,
@@ -671,8 +791,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1650,
-                "y": 120
+                "x": 2000,
+                "y": 468
               },
               "zIndex": 0,
               "width": 300,
@@ -694,8 +814,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 330,
-                "y": 460
+                "x": 0,
+                "y": 590
               },
               "width": 300,
               "title": "Edge softness"
@@ -717,13 +837,16 @@
             "type": "nodetool.input.ImageInput",
             "data": {
               "name": "photo",
-              "value": null,
+              "value": {
+                "type": "image",
+                "uri": "package://nodetool-base/recipe-inputs/coffee.jpg"
+              },
               "description": "The photo to work on"
             },
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 351
               },
               "zIndex": 0,
               "width": 300,
@@ -741,8 +864,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 660,
-                "y": 120
+                "x": 800,
+                "y": 359
               },
               "zIndex": 0,
               "width": 300,
@@ -766,13 +889,16 @@
             "type": "nodetool.input.ImageInput",
             "data": {
               "name": "photo",
-              "value": null,
+              "value": {
+                "type": "image",
+                "uri": "package://nodetool-base/recipe-inputs/coffee.jpg"
+              },
               "description": "The packshot"
             },
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 351
               },
               "zIndex": 0,
               "width": 300,
@@ -790,8 +916,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 660,
-                "y": 120
+                "x": 800,
+                "y": 359
               },
               "zIndex": 0,
               "width": 300,
@@ -824,7 +950,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 366
               },
               "zIndex": 0,
               "width": 300,
@@ -842,8 +968,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1320,
-                "y": 120
+                "x": 1600,
+                "y": 507
               },
               "zIndex": 0,
               "width": 300,
@@ -865,8 +991,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 330,
-                "y": 440
+                "x": 0,
+                "y": 590
               },
               "width": 300,
               "title": "Sharpness"
@@ -888,13 +1014,16 @@
             "type": "nodetool.input.ImageInput",
             "data": {
               "name": "photo",
-              "value": null,
+              "value": {
+                "type": "image",
+                "uri": "package://nodetool-base/recipe-inputs/coffee.jpg"
+              },
               "description": "The product photo"
             },
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 120
+                "y": 370
               },
               "zIndex": 0,
               "width": 300,
@@ -912,8 +1041,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 660,
-                "y": 120
+                "x": 800,
+                "y": 378
               },
               "zIndex": 0,
               "width": 300,
@@ -940,10 +1069,11 @@
       "$demo": "image"
     },
     "op:listing/out:out": "**Aurora Trail Runner — Recycled Knit, 240g**\n\nA trail shoe built around wet rock. The knit upper drains instead of holding water, and the outsole lugs bite at an angle rather than flat.",
-    "op:turntable/prop:v#duration": 4,
+    "op:turntable/prop:v#duration": 6,
     "op:print/prop:up#scale": 4,
     "op:turntable/out:out": {
       "$demo": "video"
-    }
+    },
+    "var:step": "the-still-set"
   }
 }

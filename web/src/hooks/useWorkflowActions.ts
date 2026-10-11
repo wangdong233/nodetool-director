@@ -7,6 +7,7 @@ import {
   examplePackageName,
   exampleSeedRef
 } from "../utils/exampleWorkflow";
+import { openPageTab } from "../components/workspace/openPageTab";
 import {
   creationProjectId,
   useWorkspaceTabsStore
@@ -71,7 +72,7 @@ export const useWorkflowActions = (): WorkflowActions => {
         openTab({
           type: "workflow",
           ref: newWorkflow.id,
-          mode: "view",
+          mode: "edit",
           title: newWorkflow.name || example.name,
           projectId
         });
@@ -79,6 +80,9 @@ export const useWorkflowActions = (): WorkflowActions => {
         useOnboardingStore.getState().markStep("keep-creating");
       } catch (error) {
         console.error("Error copying example:", error);
+      } finally {
+        // The Examples page is a workspace tab that stays mounted after the
+        // new workflow tab opens, so the row must leave its loading state.
         setLoadingExampleId(null);
       }
     },
@@ -86,8 +90,8 @@ export const useWorkflowActions = (): WorkflowActions => {
   );
 
   const handleViewAllTemplates = useCallback(() => {
-    navigate("/examples");
-  }, [navigate]);
+    openPageTab("examples");
+  }, []);
 
   return {
     loadingExampleId,

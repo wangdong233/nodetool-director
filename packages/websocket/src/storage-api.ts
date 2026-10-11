@@ -12,7 +12,8 @@ import {
   callerOwnsStorageKey,
   canReadStorageKey
 } from "./lib/storage-access.js";
-import { isString } from "./lib/wire-values.js";
+import { streamedResponse } from "./lib/bridge.js";
+import { lookupExternalAssetPath } from "./lib/external-asset-lookup.js";
 
 // ── MIME types ────────────────────────────────────────────────────
 
@@ -207,31 +208,6 @@ export function parseRangeHeader(
   return { start, end };
 }
 
-// ── Node.js ReadableStream wrapper around fs.createReadStream ─────
-
-export function nodeStreamToWebStream(
-  filePath: string,
-  options?: { start?: number; end?: number }
-): ReadableStream<Uint8Array> {
-  const nodeStream = createReadStream(filePath, options);
-  return new ReadableStream<Uint8Array>({
-    start(controller) {
-      nodeStream.on("data", (chunk) => {
-        if (isString(chunk)) {
-          controller.enqueue(Buffer.from(chunk));
-        } else {
-          controller.enqueue(chunk);
-        }
-      });
-      nodeStream.on("end", () => controller.close());
-      nodeStream.on("error", (err) => controller.error(err));
-    },
-    cancel() {
-      nodeStream.destroy();
-    }
-  });
-}
-
 // ── Per-store handler ─────────────────────────────────────────────
 
 async function handleStorageRequest(
@@ -311,6 +287,22 @@ async function handleStorageRequest(
     }
   }
 
+  // An external asset keeps its bytes at the path its row records, outside
+  // the storage root. Ownership was settled above; the MIME type follows the
+  // key, since the original file's extension need not match it. A missing or
+  // changed file resolves to nothing and answers 404: the asset is offline
+  // until relinked, and a changed file is never served under its URL.
+  let mimeSource = filePath;
+  let isExternal = false;
+  if (!(await pathExists(filePath))) {
+    const external = await lookupExternalAssetPath(key).catch(() => null);
+    if (external) {
+      filePath = external;
+      mimeSource = key;
+      isExternal = true;
+    }
+  }
+
   // HEAD
   if (request.method === "HEAD") {
     let fileStat: Awaited<ReturnType<typeof stat>>;
@@ -319,7 +311,7 @@ async function handleStorageRequest(
     } catch {
       return new Response(null, { status: 404, headers: cors });
     }
-    const headType = getMimeType(filePath);
+    const headType = getMimeType(mimeSource);
     return new Response(null, {
       status: 200,
       headers: {
@@ -347,10 +339,15 @@ async function handleStorageRequest(
   const mtime = fileStat.mtime;
   const lastModified = mtime.toUTCString();
   const fileSize = fileStat.size;
-  const contentType = getMimeType(filePath);
+  const contentType = getMimeType(mimeSource);
 
   // If-Modified-Since check
-  const ifModifiedSince = request.headers.get("If-Modified-Since");
+  // Skipped for an external file: a relink keeps the URL but can point it at
+  // a file with an older mtime, which this check would answer with the
+  // previous file's cached bytes.
+  const ifModifiedSince = isExternal
+    ? null
+    : request.headers.get("If-Modified-Since");
   if (ifModifiedSince) {
     const ifModifiedSinceDate = new Date(ifModifiedSince);
     if (
@@ -380,8 +377,7 @@ async function handleStorageRequest(
   if (range) {
     const { start, end } = range;
     const chunkSize = end - start + 1;
-    const body = nodeStreamToWebStream(filePath, { start, end });
-    return new Response(body, {
+    return streamedResponse(createReadStream(filePath, { start, end }), {
       status: 206,
       headers: {
         ...cors,
@@ -396,8 +392,7 @@ async function handleStorageRequest(
   }
 
   // Full file
-  const body = nodeStreamToWebStream(filePath);
-  return new Response(body, {
+  return streamedResponse(createReadStream(filePath), {
     status: 200,
     headers: {
       ...cors,

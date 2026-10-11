@@ -12,6 +12,7 @@
 
 import React, { memo, useEffect, useRef, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import type { SxProps, Theme } from "@mui/material/styles";
 
 import {
@@ -109,6 +110,12 @@ export interface PlanReviewField {
    * value, and the guidance ends up a row away from the control it explains.
    */
   hint?: string;
+  /**
+   * A setting most plans leave at its default. Advanced fields sit behind one
+   * "More options" toggle per block, so the block opens on its words and its
+   * length rather than on a wall of selects.
+   */
+  advanced?: boolean;
 }
 
 /**
@@ -220,11 +227,13 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
     holder.current?.querySelector<HTMLElement>("input, textarea")?.focus();
   }, [expanded]);
 
-  // What the last commit sent, so tabbing through an untouched review does not
-  // write a value nobody edited.
+  // The value the field held when it took focus (or at its last commit), so
+  // tabbing through an untouched review does not write a value nobody edited.
+  // It is read on focus, not kept from mount: a rewrite or Restore can change
+  // the row underneath, and typing the earlier value back must still save.
   const committed = useRef(row.value);
-  const commit = (value: string): void => {
-    if (row.onCommit === undefined || value === committed.current) {
+  const commit = (value: string, before: string): void => {
+    if (row.onCommit === undefined || value === before) {
       return;
     }
     committed.current = value;
@@ -232,6 +241,11 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
   };
 
   if (row.addLabel && !row.value && !expanded) {
+    // A held field has nothing to add: opening it shows an empty box that
+    // takes no typing.
+    if (row.readOnly) {
+      return null;
+    }
     return (
       <EditorButton
         variant="text"
@@ -255,8 +269,9 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
       options={row.options}
       disabled={row.readOnly}
       onChange={(value) => {
+        const before = row.value;
         row.onChange(value);
-        commit(value);
+        commit(value, before);
       }}
     />
   ) : (
@@ -269,7 +284,10 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
       multiline={row.multiline}
       placeholder={row.placeholder}
       onChange={(event) => row.onChange(event.target.value)}
-      onBlur={(event) => commit(event.target.value)}
+      onFocus={() => {
+        committed.current = row.value;
+      }}
+      onBlur={(event) => commit(event.target.value, committed.current)}
       onKeyDown={(event) => {
         // Enter is a line break in a body field, so only a single-line field
         // commits on it. Plain Enter stays local. The shell's advertised
@@ -279,7 +297,7 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
           return;
         }
         event.preventDefault();
-        commit((event.target as HTMLInputElement).value);
+        commit((event.target as HTMLInputElement).value, committed.current);
         if (!(event.metaKey || event.ctrlKey)) {
           event.stopPropagation();
         }
@@ -327,8 +345,29 @@ const fieldSx = (row: PlanReviewField, packed: boolean): SxProps<Theme> => {
   return box;
 };
 
-/** A run of rows, packed into lines. Used by a section and by its groups. */
-const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
+/**
+ * What a collapsed set of advanced fields holds, so a value the creator chose
+ * is never hidden without a trace: a select away from its first option, or a
+ * text field with text in it.
+ */
+export const advancedSummary = (rows: readonly PlanReviewField[]): string =>
+  rows
+    .flatMap((row) => {
+      if (row.options) {
+        if (row.value === (row.options[0]?.value ?? "")) {
+          return [];
+        }
+        const label =
+          row.options.find((option) => option.value === row.value)?.label ??
+          row.value;
+        return [`${row.label}: ${label}`];
+      }
+      return row.value.trim() ? [row.label] : [];
+    })
+    .join(" · ");
+
+/** Packs rows into lines, without the advanced split. */
+const PackedLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
   rows
 }) => (
   <FlexColumn gap={GAP.compact}>
@@ -352,6 +391,45 @@ const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
     })}
   </FlexColumn>
 );
+
+/**
+ * A run of rows, packed into lines. Used by a section and by its groups.
+ * Advanced rows stay behind a toggle until the creator asks for them.
+ */
+const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
+  rows
+}) => {
+  const [open, setOpen] = useState(false);
+  const basic = rows.filter((row) => !row.advanced);
+  const advanced = rows.filter((row) => row.advanced);
+  if (advanced.length === 0) {
+    return <PackedLines rows={rows} />;
+  }
+  const summary = open ? "" : advancedSummary(advanced);
+  return (
+    <FlexColumn gap={GAP.compact}>
+      {basic.length > 0 ? <PackedLines rows={basic} /> : null}
+      <FlexRow gap={GAP.normal} align="center" wrap>
+        <EditorButton
+          variant="text"
+          size="small"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          endIcon={
+            <ExpandMoreIcon
+              fontSize="small"
+              sx={{ transform: open ? "rotate(180deg)" : "none" }}
+            />
+          }
+        >
+          {open ? "Fewer options" : "More options"}
+        </EditorButton>
+        {summary ? <Caption color="muted">{summary}</Caption> : null}
+      </FlexRow>
+      {open ? <PackedLines rows={advanced} /> : null}
+    </FlexColumn>
+  );
+};
 
 /** One bounded, compact shot inside its scene. */
 const PlanReviewBlock: React.FC<{ group: PlanReviewGroup }> = ({ group }) => (

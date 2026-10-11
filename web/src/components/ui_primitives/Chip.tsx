@@ -5,6 +5,7 @@
  * Wraps MUI Chip with consistent styling and semantic variants.
  */
 
+import { i18n } from "../../i18n";
 import React from "react";
 import { Chip as MuiChip, ChipProps as MuiChipProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

@@ -28,7 +28,7 @@ import { PlanReview, type PlanReviewSection } from "../PlanReview";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import BriefModelSelect from "./BriefModelSelect";
 import { useTranslation } from "react-i18next";
-
+import ReportBugButton from "../../support/ReportBugButton";
 /** The counts the flow offers (PRD § 10.2). */
 export const VARIATION_COUNTS: readonly number[] = [1, 2, 4];
 
@@ -134,11 +134,22 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           severity="error"
           role="alert"
           action={
-            <EditorButton
-              variant="text"
-              onClick={onReRefine}
-              disabled={refining}
-            >{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
+            <FlexRow gap={GAP.tight} align="center">
+              <EditorButton
+                variant="text"
+                onClick={onReRefine}
+                disabled={refining}
+              >
+                Try again
+              </EditorButton>
+              <ReportBugButton
+                context={{
+                  source: "provider-call",
+                  summary: "Image brief refinement failed",
+                  errorText: error
+                }}
+              />
+            </FlexRow>
           }
         >
           {error}

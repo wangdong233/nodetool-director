@@ -39,7 +39,7 @@ import {
   rasterizeSvg,
   safeFetch
 } from "@nodetool-ai/runtime";
-import { mimeForPath } from "../sandbox-media-ref.js";
+import { filesystemPathForUri, mimeForPath } from "../sandbox-media-ref.js";
 import { MIME_TO_EXT } from "../tools/asset-persist.js";
 import { userIdOf } from "../tools/mcp-tool-support.js";
 import type {
@@ -172,10 +172,37 @@ const requiresStoredAssetOwnership = (value: string): boolean =>
   value.startsWith("/api/storage/") ||
   /^(?:memory|file|s3|supabase):\/\//.test(value);
 
+/**
+ * Whether a reference names a key under the run's own project. Only the path
+ * counts: a query or fragment is not part of the key a storage adapter reads,
+ * so `<another user's key>?projects/<pid>/` must not pass. A `..` segment
+ * could climb out of the project, so it never passes either.
+ */
 const isRunProjectStorageReference = (
   run: Parameters<CapabilityImpl>[0],
   value: string
-): boolean => value.includes(`projects/${resolveProjectId(run, {})}/`);
+): boolean => {
+  const path = value.split(/[?#]/)[0] ?? "";
+  if (path.split(/[\\/]/).some((segment) => segment === "..")) return false;
+  return path.includes(`projects/${resolveProjectId(run, {})}/`);
+};
+
+/**
+ * Bytes for an agent-supplied reference, without ever reading the host disk.
+ * `loadMediaRefBytes` falls back to reading `file://` URIs and absolute paths
+ * directly, which on a remote MCP session or a cloud chat is any file the
+ * server process can open. A filesystem-shaped reference is answered by the
+ * storage adapter alone, which confines it to the storage root.
+ */
+async function loadReferenceBytes(
+  context: ProcessingContext,
+  ref: { uri: string; asset_id?: string }
+): Promise<Uint8Array | null> {
+  if (filesystemPathForUri(ref.uri) !== null) {
+    return (await context.storage?.retrieve(ref.uri)) ?? null;
+  }
+  return loadMediaRefBytes(ref, context);
+}
 
 /** What `read_asset` answers with when it found the bytes. */
 interface ReadAssetResult {
@@ -306,7 +333,7 @@ async function readSourceBytes(
   }
   let bytes: Uint8Array | null = null;
   try {
-    bytes = await loadMediaRefBytes({ uri: source }, context);
+    bytes = await loadReferenceBytes(context, { uri: source });
   } catch {
     // Reported below as not found; the message names the forms that work.
   }
@@ -546,7 +573,7 @@ const readAsset: CapabilityExport = {
           ) {
             throw new Error(`Asset ${assetId} was not found`);
           }
-          data = await loadMediaRefBytes(ref, context);
+          data = await loadReferenceBytes(context, ref);
           if (data) matchedUri = name;
         } catch {
           // A context without an asset resolver or storage cannot answer this
@@ -1069,6 +1096,9 @@ const updateAsset: CapabilityExport = {
     const assetId = String(params["asset_id"]);
     const asset = await findRunAsset(run, assetId);
     if (!asset) return { error: `Asset ${assetId} was not found.` };
+    const { Asset } = await import("@nodetool-ai/models");
+    const refusal = Asset.systemEntityRefusal(asset);
+    if (refusal) return { error: refusal };
 
     let touched = false;
     if (isString(params["name"]) && params["name"]) {
@@ -1076,20 +1106,15 @@ const updateAsset: CapabilityExport = {
       touched = true;
     }
     if (isString(params["parent_id"]) && params["parent_id"]) {
-      if (
-        params["parent_id"] !== userId &&
-        !(await findRunAsset(run, params["parent_id"]))
-      ) {
-        return { error: "Parent folder not found" };
+      let parentId = params["parent_id"];
+      if (parentId !== userId) {
+        const parent = await findRunAsset(run, parentId);
+        if (!parent) return { error: "Parent folder not found" };
+        parentId = parent.id;
       }
-      const { Asset } = await import("@nodetool-ai/models");
-      const problem = await Asset.validateParent(
-        userId,
-        asset,
-        params["parent_id"]
-      );
+      const problem = await Asset.validateParent(userId, asset, parentId);
       if (problem) return { error: problem };
-      asset.parent_id = params["parent_id"];
+      asset.parent_id = parentId;
       touched = true;
     }
     if (!touched) {

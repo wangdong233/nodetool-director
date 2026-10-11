@@ -18,10 +18,21 @@ import AudiotrackOutlinedIcon from "@mui/icons-material/AudiotrackOutlined";
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
+import CreateNewFolderOutlinedIcon from "@mui/icons-material/CreateNewFolderOutlined";
 
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
-import { Popover, MenuItemPrimitive, MOTION, BORDER_RADIUS } from "../../ui_primitives";
+import {
+  Popover,
+  MenuItemPrimitive,
+  MOTION,
+  BORDER_RADIUS,
+  CONTROL,
+  FONT_SIZE_SANS,
+  FONT_WEIGHT,
+  SPACING,
+  getSpacingPx
+} from "../../ui_primitives";
 import { useTranslation } from "react-i18next";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
@@ -29,16 +40,16 @@ const buttonStyles = (theme: Theme, compact: boolean) =>
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    height: compact ? 28 : 24,
-    minWidth: compact ? 28 : undefined,
+    gap: getSpacingPx(SPACING.sm),
+    height: compact ? CONTROL.height.sm : CONTROL.height.xs,
+    minWidth: compact ? CONTROL.height.sm : undefined,
     padding: compact ? 0 : theme.spacing(0, 3, 0, 2),
     background: "transparent",
     border: "1px solid transparent",
     color: theme.vars.palette.text.secondary,
     cursor: "pointer",
-    fontSize: theme.fontSizeSmall,
-    fontWeight: 500,
+    fontSize: FONT_SIZE_SANS.label,
+    fontWeight: FONT_WEIGHT.medium,
     letterSpacing: "0.01em",
     fontFamily: theme.typography.fontFamily,
     borderRadius: BORDER_RADIUS.md,
@@ -47,6 +58,10 @@ const buttonStyles = (theme: Theme, compact: boolean) =>
       backgroundColor: theme.vars.palette.action.hover,
       color: theme.vars.palette.text.primary,
       borderColor: theme.vars.palette.divider
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${theme.vars.palette.primary.main}`,
+      outlineOffset: 2
     },
     "& svg": {
       fontSize: compact ? 18 : 14
@@ -101,6 +116,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
   const { t } = useTranslation();
   const theme = useTheme();
   const addTrack = useTimelineStore((s) => s.addTrack);
+  const addTrackFolder = useTimelineStore((s) => s.addTrackFolder);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleOpen = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -151,6 +167,14 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
             onClick={() => handleSelect(opt.type)}
           />
         ))}
+        <MenuItemPrimitive
+          label="New track folder"
+          icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
+          onClick={() => {
+            addTrackFolder();
+            setAnchorEl(null);
+          }}
+        />
       </Popover>
     </>
   );

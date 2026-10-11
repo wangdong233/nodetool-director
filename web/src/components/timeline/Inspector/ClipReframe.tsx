@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useState } from "react";
 import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
+import { useShallow } from "zustand/react/shallow";
 
 import {
   clipSourceMsAt,
@@ -44,8 +45,10 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
   const storedClip = useTimelineStore((state) =>
     state.clips.find((candidate) => candidate.id === clip.id)
   );
-  const clipMediaTracks = useTimelineStore((state) =>
-    state.mediaTracks.filter((track) => track.clipId === clip.id)
+  const clipMediaTracks = useTimelineStore(
+    useShallow((state) =>
+      state.mediaTracks.filter((track) => track.clipId === clip.id)
+    )
   );
   const setSubject = useTimelineStore((state) => state.setClipReframeSubject);
   const addKeyframe = useTimelineStore((state) => state.addClipReframeKeyframe);
@@ -64,6 +67,9 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
   const [focusX, setFocusX] = useState(0.5);
   const [focusY, setFocusY] = useState(0.5);
   const [zoom, setZoom] = useState(1);
+  const playheadInClip =
+    currentTimeMs >= activeClip.startMs &&
+    currentTimeMs <= activeClip.startMs + activeClip.durationMs;
 
   const subjectValue =
     reframe?.mode === "track" && reframe.trackId
@@ -89,6 +95,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
   );
 
   const handleAddKeyframe = useCallback(() => {
+    if (!playheadInClip) return;
     addKeyframe(
       clip.id,
       clipSourceMsAt(activeClip, currentTimeMs),
@@ -96,7 +103,16 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
       focusY,
       zoom
     );
-  }, [activeClip, addKeyframe, clip.id, currentTimeMs, focusX, focusY, zoom]);
+  }, [
+    activeClip,
+    addKeyframe,
+    clip.id,
+    currentTimeMs,
+    focusX,
+    focusY,
+    playheadInClip,
+    zoom
+  ]);
 
   const handleClear = useCallback(
     () => clearReframe(clip.id),
@@ -109,7 +125,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title={t("timeline:attrs.smartReframe", { defaultValue: "Smart Reframe" })}
+            title={t("timeline:attrs.smartReframe", { defaultValue: "Smart reframe" })}
             icon={<CenterFocusStrongOutlinedIcon />}
           />
         }
@@ -152,6 +168,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             max={1}
             step={0.01}
             onChange={setFocusX}
+            origin={0.5}
           />
           <InspectorSliderRow
             label={t("timeline:attrs.focusY", { defaultValue: "Focus Y" })}
@@ -161,6 +178,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             max={1}
             step={0.01}
             onChange={setFocusY}
+            origin={0.5}
           />
           <InspectorSliderRow
             label={t("editor:ui.zoom", { defaultValue: "Zoom" })}
@@ -170,12 +188,21 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             max={4}
             step={0.01}
             onChange={setZoom}
+            origin={1}
           />
           <EditorButton
             fullWidth
             variant="contained"
             onClick={handleAddKeyframe}
-          >{t("timeline:attrs.addFramingKeyframe", { defaultValue: "Add framing keyframe" })}</EditorButton>
+            disabled={!playheadInClip}
+          >
+            {t("timeline:attrs.addFramingKeyframe", { defaultValue: "Add framing keyframe" })}
+          </EditorButton>
+          {!playheadInClip && (
+            <Caption color="muted">
+              {t("timeline:attrs.moveThePlayheadOverThisClipToAddAFramingKeyframe", { defaultValue: "Move the playhead over this clip to add a framing keyframe." })}
+            </Caption>
+          )}
           {reframe && (
             <EditorButton
               fullWidth
@@ -190,5 +217,8 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
   );
 };
 
-export const ClipReframe = memo(ClipReframeInternal);
+// Keyed by clip so the focus and zoom draft start fresh on each clip.
+export const ClipReframe = memo(({ clip }: ClipReframeProps) => (
+  <ClipReframeInternal key={clip.id} clip={clip} />
+));
 ClipReframe.displayName = "ClipReframe";

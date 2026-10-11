@@ -25,7 +25,11 @@ export {
   assetKeyOwner
 } from "./storage-keys.js";
 export { InMemoryStorageAdapter } from "./memory-storage-adapter.js";
-export { FileStorageAdapter } from "./file-storage-adapter.js";
+export {
+  FileStorageAdapter,
+  type ExternalPathLookup,
+  type FileStorageAdapterOptions
+} from "./file-storage-adapter.js";
 export {
   S3StorageAdapter,
   type S3StorageAdapterOptions
@@ -72,7 +76,4 @@ export { createAssetUrlBuilder } from "./url-builder.js";
 
 // Caches
 export { MemoryUriCache } from "./memory-uri-cache.js";
-export {
-  MemoryNodeCache,
-  type AbstractNodeCache
-} from "./memory-node-cache.js";
+export { MemoryNodeCache } from "./memory-node-cache.js";

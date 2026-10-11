@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Check,
   Download,
-  Zap,
   Shield,
   TrendingUp,
   Mail,
@@ -21,31 +20,48 @@ import {
 import CommunitySection from "../../components/CommunitySection";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
+import AdLibraryOverview from "../../components/AdLibraryOverview";
+import StoryboardTeaser from "../../components/storyboards/StoryboardTeaser";
 import RecipeShowcase from "../../components/RecipeShowcase";
+import TimelineShowcase from "../../components/TimelineShowcase";
 import { SmartDownloadButton } from "../SmartDownloadButton";
+import { adRecipes } from "../../data/adLibrary";
 
-const marketingBenefits = [
+const campaignFormats = [
   {
-    title: "Output at campaign volume",
-    description:
-      "Build one workflow and run it for every product, market, or audience. What matters at that scale is the cost of each asset, not the polish of a single hero shot.",
-    icon: TrendingUp,
+    src: "/marketing-why/campaign-16x9.webp",
+    width: 1280,
+    height: 720,
+    label: "16:9",
+    alt: "The campaign hero in 16:9: the tumbler on a blue plinth in water at sunset",
+    ratio: 16 / 9,
   },
   {
-    title: "Model freedom",
-    description:
-      "Route each asset through Flux, Veo, Kling, Seedance, Suno, or ElevenLabs on your own provider keys at list price — or run open weights locally. No credit packs, no per-seat markup.",
-    icon: Zap,
+    src: "/marketing-why/campaign-1x1.webp",
+    width: 800,
+    height: 800,
+    label: "1:1",
+    alt: "The same campaign as a square social post",
+    ratio: 1,
   },
   {
-    title: "Brand constraints, built into the workflow",
-    description:
-      "Encode your palette, tone, references, and product shots into the workflow once, so every generation starts from the same brand constraints instead of a fresh brief.",
-    icon: Palette,
+    src: "/marketing-why/campaign-9x16.webp",
+    width: 560,
+    height: 996,
+    label: "9:16",
+    alt: "The same campaign as a vertical story",
+    ratio: 9 / 16,
   },
 ];
 
-const upcomingWorkflows = [
+const campaignModels = ["Flux", "Veo", "Kling", "Seedance", "Suno", "ElevenLabs"];
+
+const moreWorkflows: {
+  title: string;
+  description: string;
+  icon: typeof Calendar;
+  href?: string;
+}[] = [
   {
     title: "Social Media Calendar Filler",
     description:
@@ -57,18 +73,21 @@ const upcomingWorkflows = [
     description:
       "Generate a consistent set of logos, color variants, and marketing assets from one brand brief.",
     icon: Palette,
+    href: "/templates/brand-asset-generator",
   },
   {
     title: "Cold Outreach Co-Pilot",
     description:
       "Research a list of prospects and draft personalized outreach at volume, while it still reads as though a person wrote it.",
     icon: Mail,
+    href: "/templates/cold-outreach-co-pilot",
   },
   {
     title: "Hook & Thumbnail Factory",
     description:
       "Generate video hooks and thumbnail ideas in batches from a title and description, then test them against each other.",
     icon: Youtube,
+    href: "/templates/hook-and-thumbnail-factory",
   },
 ];
 
@@ -138,13 +157,9 @@ export default function MarketingSegmentPage() {
                 </h1>
 
                 <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
-                  Put generative models into your creative and production
-                  pipeline, from the first idea through to delivery. Pitch the
-                  brief to an agent and it builds the workflow that turns out
-                  product videos, ad creative, social calendars, and brand
-                  assets. Teams move faster, pitch more ambitious work, and
-                  spend less doing it, because every model runs on your own
-                  keys at the provider&apos;s published price.
+                  Go from a product brief to finished ads in every format.
+                  Describe the campaign, and the AI agent builds a workflow you
+                  can run again for every product, market, and screen size.
                 </p>
 
                 {/* Two countable credibility chips beside the CTA
@@ -152,11 +167,11 @@ export default function MarketingSegmentPage() {
                 <div className="flex flex-wrap items-center justify-center gap-3 mb-12 text-sm">
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400" />
-                    Shipped workflows you import and run
+                    {adRecipes.length} example ads you can open and edit
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-slate-300">
                     <Check className="h-4 w-4 text-emerald-400" />
-                    Every major model, on your own keys
+                    Flux, Veo, Kling, and Seedance on your keys
                   </span>
                 </div>
 
@@ -166,11 +181,11 @@ export default function MarketingSegmentPage() {
                     classNameOverride="group relative inline-flex items-center gap-2.5 px-9 py-4 rounded-full bg-amber-500 text-white font-semibold transition-all shadow-[0_10px_30px_-10px_rgba(245,158,11,0.6)] hover:bg-amber-400 hover:shadow-[0_14px_40px_-10px_rgba(245,158,11,0.75)]"
                   />
                   <a
-                    href="#product-video"
+                    href="#example-timelines"
                     className="inline-flex items-center gap-2.5 px-9 py-4 rounded-full border border-white/15 bg-[#0a0a14]/70 backdrop-blur-sm text-white font-semibold hover:bg-white/5 hover:border-white/25 transition-all"
                   >
                     <Play className="w-5 h-5" />
-                    Try now
+                    Watch examples
                   </a>
                 </div>
 
@@ -179,19 +194,19 @@ export default function MarketingSegmentPage() {
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10">
                       <TrendingUp className="w-4 h-4 text-amber-300" />
                     </span>
-                    Built for volume
+                    One brief for every product and market
                   </li>
                   <li className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
                       <Shield className="w-4 h-4 text-emerald-300" />
                     </span>
-                    Your keys, no markup
+                    Pay AI providers directly, with no markup
                   </li>
                   <li className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10">
                       <ImageIcon className="w-4 h-4 text-cyan-300" />
                     </span>
-                    Every format, one canvas
+                    16:9, 1:1, and 9:16 from one run
                   </li>
                 </ul>
               </motion.div>
@@ -199,57 +214,134 @@ export default function MarketingSegmentPage() {
           </div>
         </section>
 
-        {/* Why marketing teams choose NodeTool */}
-        <section className="py-20 relative">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <motion.div
-              initial={false}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16 max-w-3xl mx-auto"
-            >
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                Why marketing teams{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-emerald-400">
-                  choose NodeTool
-                </span>
-              </h2>
-              <p className="text-lg text-slate-400 leading-relaxed">
-                Automation tools compete on integrations and speed. Creative
-                tools compete on the polish of a single asset. Campaigns need
-                both: a workflow that runs at volume and still looks on-brand
-                every time. The agent orchestrates the production; you keep
-                the process on screen, edit any step, and rerun it for the
-                next product or market.
-              </p>
-            </motion.div>
+        {/* Short social ads first: the format an ad team runs most. */}
+        <AdLibraryOverview compact />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {marketingBenefits.map((benefit, index) => (
-                <motion.div
-                  key={benefit.title}
-                  initial={false}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="rounded-2xl border border-white/10 bg-[#0a0a14]/70 backdrop-blur-sm p-8"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
-                    <benefit.icon className="w-6 h-6 text-amber-400" />
+        <StoryboardTeaser
+          slugs={["cold-brew-pour", "movement-in-gold", "silent-arrival", "dew-drop-serum"]}
+          heading="Plan the spot before you render it."
+          body="Four commercials with their storyboards. Watch the film, then read the shot list."
+        />
+
+        <TimelineShowcase />
+
+        {/* Why marketing teams choose NodeTool: one campaign, shown rather
+            than described. The images are one run of the directed campaign
+            kit recipe and one run of the SKU visual factory. */}
+        <section aria-labelledby="why-marketing-title" className="relative py-24">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <h2
+                id="why-marketing-title"
+                className="max-w-2xl text-balance text-3xl font-semibold tracking-tight text-white md:text-5xl"
+              >
+                Built for campaigns, not one-off shots.
+              </h2>
+              <p className="max-w-sm text-lg leading-relaxed text-slate-400">
+                One workflow. Every format and market. Always on brand.
+              </p>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-12">
+              {/* One brief, every format */}
+              {/* Each format keeps its real aspect ratio. Flex-grow in
+                  proportion to the ratio gives each row one height. On
+                  phones 16:9 takes its own row. */}
+              <figure className="m-0 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a14] lg:col-span-12">
+                <div className="flex flex-wrap gap-2 p-2 sm:flex-nowrap">
+                  {campaignFormats.map((format, index) => (
+                    <div
+                      key={format.label}
+                      className={`relative min-w-0 overflow-hidden rounded-2xl ${
+                        index === 0 ? "basis-full sm:basis-0" : "basis-0"
+                      }`}
+                      style={{ flexGrow: format.ratio, aspectRatio: format.ratio }}
+                    >
+                      <Image
+                        src={format.src}
+                        alt={format.alt}
+                        width={format.width}
+                        height={format.height}
+                        sizes="(min-width: 1280px) 640px, 50vw"
+                        className="no-desaturate absolute inset-0 h-full w-full object-cover"
+                      />
+                      <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 font-jetbrains text-[11px] font-medium text-white backdrop-blur">
+                        {format.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <figcaption className="flex items-center gap-4 border-t border-white/5 px-6 py-5">
+                  <Image
+                    src="/marketing-why/campaign-reference.webp"
+                    alt="The product photo the campaign started from"
+                    width={400}
+                    height={600}
+                    className="no-desaturate h-14 w-auto rounded-lg border border-white/10 bg-white"
+                  />
+                  <div>
+                    <p className="text-lg font-semibold text-white">
+                      One product photo. Every format.
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      Rerun it for the next product or market.
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-slate-400 leading-relaxed text-[0.95rem]">
-                    {benefit.description}
-                  </p>
-                </motion.div>
-              ))}
+                </figcaption>
+              </figure>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:col-span-12">
+                {/* Any model, your keys */}
+                <div className="flex flex-col justify-between gap-8 rounded-3xl border border-white/10 bg-[#0a0a14] p-7">
+                  <ul
+                    className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-3xl font-semibold tracking-tight text-slate-300 md:text-4xl xl:text-5xl"
+                    aria-label="Models"
+                  >
+                    {campaignModels.map((model) => (
+                      <li key={model}>{model}</li>
+                    ))}
+                    <li className="text-base font-medium tracking-normal text-slate-500">
+                      and more
+                    </li>
+                  </ul>
+                  <div>
+                    <p className="text-lg font-semibold text-white">
+                      Any model. Your keys.
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      List price. No credits, no seat markup.
+                    </p>
+                  </div>
+                </div>
+
+                {/* On brand, every run */}
+                <figure className="m-0 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a14]">
+                  <Image
+                    src="/marketing-why/looks.webp"
+                    alt="One cup shot three ways: studio white, warm spotlight, and a dark green set"
+                    width={1200}
+                    height={394}
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="no-desaturate h-auto w-full"
+                  />
+                  <figcaption className="p-7">
+                    <p className="text-lg font-semibold text-white">
+                      On brand, every run.
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Your palette, tone, and product locked into the workflow.
+                    </p>
+                  </figcaption>
+                </figure>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Product Video Generator — lead use case */}
+        <RecipeShowcase />
+
+        {/* Product Video Generator: the workflow available today, next to the
+            ones on the way */}
         <section id="product-video" className="relative scroll-mt-28 py-20">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -320,9 +412,7 @@ export default function MarketingSegmentPage() {
           </div>
         </section>
 
-        <RecipeShowcase />
-
-        {/* More marketing workflows on the way */}
+        {/* More marketing workflows */}
         <section className="py-20 relative">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -332,17 +422,17 @@ export default function MarketingSegmentPage() {
               className="text-center mb-12 max-w-2xl mx-auto"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                More marketing workflows on the way
+                More marketing workflows
               </h2>
               <p className="text-lg text-slate-400 leading-relaxed">
-                The Product Video Generator is available today. These are next,
-                and they follow the same pattern: a brief goes in, a campaign
-                comes out.
+                Three of these ship as templates today, and the Social Media
+                Calendar Filler is next. They follow the same pattern as the
+                Product Video Generator: a brief goes in, a campaign comes out.
               </p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {upcomingWorkflows.map((wf, index) => (
+              {moreWorkflows.map((wf, index) => (
                 <motion.div
                   key={wf.title}
                   initial={false}
@@ -356,7 +446,21 @@ export default function MarketingSegmentPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-white mb-1.5">
-                      {wf.title}
+                      {wf.href ? (
+                        <a
+                          href={wf.href}
+                          className="hover:text-emerald-300 focus-ring rounded"
+                        >
+                          {wf.title}
+                        </a>
+                      ) : (
+                        <>
+                          {wf.title}{" "}
+                          <span className="text-xs font-medium text-slate-400">
+                            (coming next)
+                          </span>
+                        </>
+                      )}
                     </h3>
                     <p className="text-sm text-slate-400 leading-relaxed">
                       {wf.description}

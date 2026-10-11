@@ -49,7 +49,10 @@ export interface SetupStep<Stage extends string> {
   label: string;
   /** Primary button label. It names the outcome: "Generate your storyboard". */
   primaryLabel: string;
-  /** The step body. */
+  /**
+   * The step body. The shell disables its fieldset while the step is pending,
+   * and `readOnly` is true then too.
+   */
   render: (context?: SetupStepRenderContext) => ReactNode;
   /** False disables the primary button — nothing chosen yet. */
   canAdvance?: boolean;
@@ -72,8 +75,18 @@ export interface SetupStep<Stage extends string> {
   /**
    * Cancels the operation represented by `pending`. The shell moves to its
    * terminal canceled state immediately, even if this cleanup is asynchronous.
+   * Without it, Cancel is offered only while the shell awaits `onAdvance`,
+   * since that is the one run the shell can abort. After canceling a run the
+   * shell did not start, the primary button returns to the step instead of
+   * retrying, unless the step reports `canceled` itself.
    */
   onCancel?: () => void | Promise<void>;
+  /**
+   * False hides Cancel while the shell awaits `onAdvance`: the action writes
+   * something it cannot take back, so stopping the wait would report a draft
+   * left unchanged when it was not.
+   */
+  cancelable?: boolean;
   /**
    * Keep this operation alive when its own document stage deliberately
    * replaces the setup shell. The document owns the remaining work from that
@@ -112,6 +125,11 @@ export interface SetupStep<Stage extends string> {
    * also true while the step's run is pending.
    */
   footerControls?: (context: SetupStepRenderContext) => ReactNode;
+  /**
+   * Keeps Back and Change flow off while the step body stays usable: a run the
+   * step owns (an example copy, a re-plan) would land after the creator left.
+   */
+  holdNavigation?: boolean;
   /** Optional way to leave a non-required step without making a selection. */
   skipLabel?: string;
   onSkip?: () => void | Promise<void>;

@@ -1,18 +1,13 @@
 /** @jsxImportSource @emotion/react */
+import { useAppLanguage } from "../../i18n";
 import { css } from "@emotion/react";
 import { alpha, type Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
 import { memo, useCallback, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n, useAppLanguage } from "../../i18n";
-import {
-  creationProjectId,
-  useWorkspaceTabsStore
-} from "../../stores/WorkspaceTabsStore";
+import { useQuery } from "@tanstack/react-query";
+import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { BASE_URL } from "../../stores/BASE_URL";
 import {
-  installExampleApp,
   listExampleApps,
   type ExampleAppSummary
 } from "../../utils/exampleApps";
@@ -37,7 +32,7 @@ const styles = (theme: Theme, compact: boolean) =>
     paddingTop: compact ? 0 : getSpacingPx(SPACING.xxl),
     ".sec-title h2": compact ? { fontSize: "var(--fontSizeNormal)" } : {},
     ".apps-lede": {
-      margin: `0 0 ${getSpacingPx(SPACING.sm)}`,
+      margin: `0 0 ${getSpacingPx(compact ? SPACING.sm : SPACING.xl)}`,
       fontSize: "var(--fontSizeSmall)",
       color: theme.vars.palette.text.secondary
     },
@@ -45,9 +40,9 @@ const styles = (theme: Theme, compact: boolean) =>
       display: "grid",
       gridTemplateColumns: compact
         ? "repeat(auto-fill, minmax(min(100%, 190px), 1fr))"
-        : "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: getSpacingPx(compact ? GAP.comfortable : SPACING.md),
-      paddingBottom: getSpacingPx(SPACING.sm)
+        : "repeat(auto-fill, minmax(min(100%, 300px), 1fr))",
+      gap: getSpacingPx(compact ? GAP.comfortable : SPACING.xl),
+      paddingBottom: getSpacingPx(compact ? SPACING.sm : SPACING.xxl)
     },
     ".app-card": {
       display: "flex",
@@ -66,8 +61,7 @@ const styles = (theme: Theme, compact: boolean) =>
       "&:hover": {
         borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
         background: theme.vars.palette.action.hover
-      },
-      "&.installing": { cursor: "wait", pointerEvents: "none" }
+      }
     },
     ".app-thumb": {
       position: "relative",
@@ -88,8 +82,8 @@ const styles = (theme: Theme, compact: boolean) =>
     ".app-body": {
       display: "flex",
       flexDirection: "column",
-      gap: getSpacingPx(SPACING.xs),
-      padding: getSpacingPx(SPACING.md),
+      gap: getSpacingPx(compact ? SPACING.xs : SPACING.sm),
+      padding: getSpacingPx(compact ? SPACING.md : SPACING.lg),
       ...(compact && {
         position: "absolute",
         left: 0,
@@ -151,14 +145,12 @@ const thumbSrc = (url: string | null): string | null => {
 
 interface ExampleAppCardProps {
   app: ExampleAppSummary;
-  installing: boolean;
-  onInstall: (app: ExampleAppSummary) => void;
+  onUse: (app: ExampleAppSummary) => void;
 }
 
 const ExampleAppCard = memo(function ExampleAppCard({
   app,
-  installing,
-  onInstall
+  onUse
 }: ExampleAppCardProps) {
   const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
@@ -170,15 +162,12 @@ const ExampleAppCard = memo(function ExampleAppCard({
   return (
     <button
       type="button"
-      className={installing ? "app-card installing" : "app-card"}
-      title={t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: localName })}
-      aria-busy={installing}
-      onClick={() => onInstall(app)}
+      className="app-card"
+      title={`Use ${app.name}`}
+      onClick={() => onUse(app)}
     >
       <span className="app-thumb" aria-hidden>
-        {installing ? (
-          <LoadingSpinner size="medium" />
-        ) : src && !thumbFailed ? (
+        {src && !thumbFailed ? (
           <img
             src={src}
             alt=""
@@ -219,8 +208,8 @@ interface DashboardExampleAppsProps {
 }
 
 /**
- * The shipped example apps. Clicking one installs it (the app plus the
- * workflows it binds) and opens it.
+ * The shipped example apps. A card opens the app in its own tab, where the
+ * user can make an editable copy.
  */
 const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   compact = false,
@@ -229,10 +218,16 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
-  const queryClient = useQueryClient();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
-  const addNotification = useNotificationStore(
-    (state) => state.addNotification
+  const handleUse = useCallback(
+    (app: ExampleAppSummary) =>
+      openTab({
+        type: "example-app",
+        ref: app.slug,
+        mode: "view",
+        title: app.name
+      }),
+    [openTab]
   );
 
   // Subscribe so catalog reads re-render on language change.
@@ -243,64 +238,29 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
     staleTime: Infinity
   });
 
-  const install = useMutation({
-    mutationFn: async (app: ExampleAppSummary) => {
-      const projectId = creationProjectId();
-      return { projectId, created: await installExampleApp(app.slug, projectId) };
-    },
-    onSuccess: async ({ projectId, created }) => {
-      await queryClient.invalidateQueries({ queryKey: ["applications"] });
-      await queryClient.invalidateQueries({ queryKey: ["workflows"] });
-      openTab({
-        type: "application",
-        ref: created.id,
-        mode: "view",
-        title: created.name,
-        projectId
-      });
-      addNotification({
-        type: "success",
-        alert: true,
-        content: t("home:apps.added", { defaultValue: "Added \"{{name}}\" to your apps", name: created.name })
-      });
-    },
-    onError: (error: unknown, app) => {
-      addNotification({
-        type: "error",
-        alert: true,
-        content: t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name }), error: error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
-      });
-    }
-  });
-
-  const handleInstall = useCallback(
-    (app: ExampleAppSummary) => {
-      if (install.isPending) return;
-      install.mutate(app);
-    },
-    [install]
-  );
-
   const apps = data ?? [];
-  const installingSlug = install.isPending ? install.variables?.slug : null;
-  const countLabel = t(
-    apps.length === 1 ? "home:apps.countOne" : "home:apps.countMany",
-    { defaultValue: `${apps.length} app${apps.length === 1 ? "" : "s"}`, count: String(apps.length) }
-  );
+  const countLabel = `${apps.length} app${apps.length === 1 ? "" : "s"}`;
   const visibleApps = compact ? apps.slice(0, 4) : apps;
 
   return (
-    <section css={styles(theme, compact)} aria-labelledby="dashboard-example-apps-title">
+    <section
+      css={styles(theme, compact)}
+      aria-labelledby="dashboard-example-apps-title"
+    >
       <div css={compact ? css({ maxWidth: "none", padding: 0 }) : sectionWrap}>
         <SectionHeader title={t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
           {compact && onBrowseAll && apps.length > visibleApps.length && (
-            <EditorButton variant="text" density="compact" onClick={onBrowseAll}>
-              {t("home:apps.seeAll", { defaultValue: "See all apps" })}
+            <EditorButton
+              variant="text"
+              density="compact"
+              onClick={onBrowseAll}
+            >
+              See all apps
             </EditorButton>
           )}
         </SectionHeader>
         <p className="apps-lede">
-          {t("home:apps.lede", { defaultValue: "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them." })}
+          Open an app to use it, or edit a copy to customize its workflows.
         </p>
         {isLoading ? (
           <div className="apps-loading">
@@ -330,8 +290,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
               <ExampleAppCard
                 key={app.slug}
                 app={app}
-                installing={installingSlug === app.slug}
-                onInstall={handleInstall}
+                onUse={handleUse}
               />
             ))}
           </div>

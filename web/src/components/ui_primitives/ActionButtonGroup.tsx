@@ -28,6 +28,7 @@
  * </ActionButtonGroup>
  */
 
+import { i18n } from "../../i18n";
 import React, { forwardRef, memo } from "react";
 import { Box } from "@mui/material";
 import { useTheme, SxProps, Theme } from "@mui/material/styles";

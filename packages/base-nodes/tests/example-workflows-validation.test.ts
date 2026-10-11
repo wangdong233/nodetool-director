@@ -193,6 +193,58 @@ describe("example workflow inventory", () => {
   });
 });
 
+// CommentNode renders only `comment`, as a Markdown string or a saved Lexical
+// state. A `headline` field is never shown, and a list of strings renders an
+// empty note.
+function isRenderableComment(comment: unknown): boolean {
+  if (typeof comment === "string") return comment.trim().length > 0;
+  return (
+    typeof comment === "object" &&
+    comment !== null &&
+    !Array.isArray(comment) &&
+    "root" in comment
+  );
+}
+
+// A preset model strands every user without that provider's key. The editor
+// fills an empty model when the graph loads (web/src/utils/applyDefaultModels.ts).
+// `llama_model` is exempt: it names a local Ollama model by `repo_id`, and no
+// user default exists for it.
+function presetModelFields(data: WorkflowFile["data"]): string[] {
+  const preset: string[] = [];
+  for (const node of data.graph.nodes) {
+    const props = (node.data ?? {}) as Record<string, unknown>;
+    for (const [name, value] of Object.entries(props)) {
+      if (typeof value !== "object" || value === null) continue;
+      const ref = value as Record<string, unknown>;
+      const type = String(ref.type ?? "");
+      if (!type.endsWith("_model") || type === "llama_model") continue;
+      const provider = String(ref.provider ?? "");
+      if (String(ref.id ?? "") !== "" || (provider !== "" && provider !== "empty")) {
+        preset.push(`${node.id}.${name} = ${provider}/${String(ref.id ?? "")}`);
+      }
+    }
+  }
+  return preset;
+}
+
+describe.each(baseWorkflows)("example $fileName", ({ data }) => {
+  it("ships every model empty", () => {
+    expect(presetModelFields(data)).toEqual([]);
+  });
+
+  it("has an intro comment the canvas can render", () => {
+    const comments = data.graph.nodes.filter(
+      (node) => node.type === "nodetool.workflows.base_node.Comment"
+    );
+    expect(comments.length).toBeGreaterThan(0);
+    for (const comment of comments) {
+      const props = comment.data as Record<string, unknown> | undefined;
+      expect(isRenderableComment(props?.comment)).toBe(true);
+    }
+  });
+});
+
 describe.each(workflows)("workflow $fileName", ({ data, fileName }) => {
   const nodes = data.graph?.nodes ?? [];
   const edges = data.graph?.edges ?? [];

@@ -1,6 +1,7 @@
 ---
 name: nodetool-workflow-builder
 description: "Create or edit NodeTool workflow graphs, connections, and properties using UI, headless tools, or requested workflow files."
+featured: true
 ---
 
 # Build NodeTool workflows
@@ -114,9 +115,9 @@ When using `ui_add_node` or `ui_graph`, the `data` object supports:
 
 ### Library Namespaces (`lib.*`)
 
-`lib.pdf` (rasterize pages to images), `lib.http` (web requests), `lib.sqlite` (database path), `lib.browser` (screenshots), `lib.os` (file system), `lib.svg` (vector graphics), `lib.charts` (charts)
+`lib.pdf` (rasterize pages to images), `lib.sqlite` (database path), `lib.browser` (screenshots), `lib.svg` (vector graphics), `lib.charts` (charts)
 
-> **Note:** `lib.json`, `lib.math`, `lib.uuid`, `nodetool.boolean`, `nodetool.dictionary`, `nodetool.numbers`, and all `skills.*` nodes have been removed — use the **Code node** (`nodetool.code.Code`) with its built-in snippet library for JSON/math/uuid logic. (`lib.http` and `nodetool.list` — `Range`, `RepeatEach`, `RepeatValue`, `Tile` — still exist; date/time is now `lib.datetime`.)
+> **Note:** `lib.http`, `lib.os`, `lib.datetime`, `lib.json`, `lib.math`, `lib.uuid`, `nodetool.boolean`, `nodetool.dictionary`, `nodetool.list`, `nodetool.numbers`, `nodetool.text.Chunk`, and all `skills.*` nodes have been removed. Use the **Code node** (`nodetool.code.Code`) and its snippet library instead. Its sandbox provides `fetch` for web requests, `workspace.*` for files, and `@nodetool-ai/sandbox-dates` (date-fns) for date logic. `nodetool.control.RepeatCount` and `nodetool.control.RepeatValue` cover repetition.
 
 ### External Service Namespaces
 
@@ -166,7 +167,7 @@ Edges enforce type compatibility. Use `any` type for flexible connections.
 ### Pattern 4: RAG (Retrieval-Augmented Generation)
 **Shape**: ChatInput → vector.HybridSearch + FormatText → Agent → Output
 **Use for**: Question-answering over documents, factual accuracy from specific sources.
-**Index flow**: nodetool.code.Code (`workspace.list`) → LoadDocumentFile → nodetool.text.Chunk → vector.IndexTextChunk
+**Index flow**: nodetool.code.Code (`workspace.list`) → LoadDocumentFile → nodetool.code.Code ("Chunk Text" snippet) → vector.IndexTextChunk
 **Query flow**: ChatInput → vector.HybridSearch → FormatText → Agent → Output
 **Note**: RAG nodes are the single `vector.*` namespace (e.g. `vector.QueryText`, `vector.HybridSearch`, `vector.IndexTextChunk`); there is no `vector.chroma.*`/`vector.faiss.*`.
 

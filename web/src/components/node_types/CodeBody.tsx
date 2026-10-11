@@ -34,7 +34,7 @@ import {
   SPACING,
   ToolbarIconButton
 } from "../ui_primitives";
-import { editorClassNames, cn } from "../editor_ui";
+import { EditorActivationCover, editorClassNames, cn } from "../editor_ui";
 import HandleColumn from "../node/HandleColumn";
 import { NodeInputs } from "../node/NodeInputs";
 import { NodeOutputs } from "../node/NodeOutputs";
@@ -49,8 +49,10 @@ import {
   useMonacoEditor,
   type MonacoEditorOptions
 } from "../../hooks/editor/useMonacoEditor";
+import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivation";
 import { useBespokePropertyWriter } from "../../hooks/nodes/useBespokePropertyWriter";
 import { useDynamicProperty } from "../../hooks/nodes/useDynamicProperty";
+import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { useNodes } from "../../contexts/NodeContext";
 import { deriveCodeIOUpdates } from "../../utils/codeOutputInference";
 import {
@@ -113,6 +115,11 @@ const styles = (theme: Theme) =>
       padding: theme.spacing(SPACING.micro),
       minHeight: 0
     },
+    // Inputs sit inside this body's own padding as well as the node's, so the
+    // handle steps back past both to center on the node edge.
+    "&.code-body .node-inputs .react-flow__handle-left": {
+      left: `calc(-6px - var(--node-body-padding, 0px) - ${theme.spacing(SPACING.micro)})`
+    },
     ".code-toolbar": {
       flex: "0 0 auto",
       display: "flex",
@@ -157,7 +164,7 @@ const styles = (theme: Theme) =>
     },
     ".editor-placeholder": {
       padding: theme.spacing(SPACING.xs),
-      fontFamily: "monospace",
+      fontFamily: "var(--fontFamily2)",
       whiteSpace: "pre-wrap",
       overflow: "hidden",
       alignItems: "flex-start",
@@ -256,6 +263,8 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
     loadMonacoIfNeeded,
     monacoOnMount
   } = useMonacoEditor();
+  const activation = useCodeEditorActivation();
+  const { attachEditor } = activation;
 
   // Monaco measures its container when the editor instance is created. Inside a
   // ReactFlow node the body starts at zero size during the first layout passes,
@@ -317,9 +326,13 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
     }
   }, [id]);
 
+  // Typing between focus and blur undoes as one step.
+  const { begin: beginUndoGroup, end: endUndoGroup } = useUndoGroup();
+
   const handleEditorMount = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
       monacoOnMount(editor);
+      attachEditor(editor);
       editorRef.current = editor;
       // Lay out against the current container size immediately — the gate
       // guarantees the area is measured by the time we mount.
@@ -327,8 +340,12 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
       if (el) {
         editor.layout({ width: el.clientWidth, height: el.clientHeight });
       }
-      const focus = editor.onDidFocusEditorText(() => setIsFocused(true));
+      const focus = editor.onDidFocusEditorText(() => {
+        setIsFocused(true);
+        beginUndoGroup();
+      });
       const blur = editor.onDidBlurEditorText(() => {
+        endUndoGroup();
         setIsFocused(false);
         completeRef.current();
       });
@@ -340,7 +357,7 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
         }
       });
     },
-    [monacoOnMount]
+    [monacoOnMount, attachEditor, beginUndoGroup, endUndoGroup]
   );
 
   const toggleExpand = useCallback(() => {
@@ -445,12 +462,13 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
           ref={editorAreaRef}
           className={cn(
             "editor-area",
-            editorClassNames.nodrag,
+            activation.isActive && editorClassNames.nodrag,
             isFocused && editorClassNames.nowheel
           )}
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
         >
+          {activation.editor && !activation.isActive && (
+            <EditorActivationCover onActivate={activation.activateAt} />
+          )}
           {MonacoEditor && hasSize ? (
             <MonacoEditor
               value={value}

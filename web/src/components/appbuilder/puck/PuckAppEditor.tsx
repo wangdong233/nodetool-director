@@ -24,6 +24,7 @@ import { i18n } from "../../../i18n";
 import PuckAgentBinder from "./PuckAgentBinder";
 import {
   APP_SCHEMA_VERSION,
+  BASE_APP_SCHEMA_VERSION,
   EMPTY_DOC_META,
   type AppDocMeta,
   type ApplicationDocument
@@ -42,6 +43,7 @@ interface PuckAppEditorProps {
   data: Data;
   onPublish: (data: Data) => void;
   onChange?: (data: Data) => void;
+  saving?: boolean;
   /** Omitted when the builder is embedded and there is nowhere to go back to. */
   onClose?: () => void;
   /**
@@ -65,7 +67,7 @@ interface PuckAppEditorProps {
  * Replaces Puck's built-in "Publish" button with a "Save" button that reads
  * the current editor data via Puck's store and forwards it to onPublish.
  */
-const SaveButton: React.FC<{ onSave: (data: Data) => void }> = ({ onSave }) => {
+const SaveButton: React.FC<{ onSave: (data: Data) => void; saving?: boolean }> = ({ onSave, saving }) => {
   const getPuck = useGetPuck();
   const handleClick = useCallback(() => {
     const { appState } = getPuck();
@@ -78,8 +80,9 @@ const SaveButton: React.FC<{ onSave: (data: Data) => void }> = ({ onSave }) => {
       color="primary"
       startIcon={<SaveIcon sx={{ fontSize: 16 }} />}
       onClick={handleClick}
+      disabled={saving}
     >
-      {tAttr("Save")}
+      {saving ? "Saving…" : "Save"}
     </EditorButton>
   );
 };
@@ -187,6 +190,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
   data,
   onPublish,
   onChange,
+  saving,
   onClose,
   meta = EMPTY_DOC_META,
   onMetaChange,
@@ -229,11 +233,12 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
   // unbound in the builder.
   const designDocument = useMemo<ApplicationDocument>(
     () => ({
-      schemaVersion: APP_SCHEMA_VERSION,
+      schemaVersion: meta.recipe ? APP_SCHEMA_VERSION : BASE_APP_SCHEMA_VERSION,
       ui: data as ApplicationDocument["ui"],
       operations: meta.operations,
       resources: meta.resources,
-      variables: meta.variables
+      variables: meta.variables,
+      recipe: meta.recipe
     }),
     [data, meta]
   );
@@ -245,8 +250,8 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
     document: designDocument,
     workflowOverrides: operationWorkflows
   });
-  // Property components resolved by WorkflowInputWidget (AudioProperty) read
-  // the workflow's node store via NodeContext — same wrap as the runtime view.
+  // The builder sits next to the graph, so its preview controls read the
+  // workflow's live node store. They also work without one.
   const nodeStore = useWorkflowManager((s) => s.nodeStores[workflow.id]);
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("fit");
 
@@ -305,7 +310,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
               {tAttr("Back")}
             </EditorButton>
           )}
-          <SaveButton onSave={onPublish} />
+          <SaveButton onSave={onPublish} saving={saving} />
         </>
       )
     }),
@@ -313,6 +318,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
       applicationId,
       onClose,
       onPublish,
+      saving,
       workflow,
       previewWidth,
       meta,

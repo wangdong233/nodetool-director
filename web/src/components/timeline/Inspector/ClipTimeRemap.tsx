@@ -14,7 +14,12 @@
 import React, { memo, useCallback, useRef, useState } from "react";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import SpeedOutlinedIcon from "@mui/icons-material/SpeedOutlined";
-import { parseEasing, type ClipTimeRemap, type TimelineClip } from "@nodetool-ai/timeline";
+import {
+  parseEasing,
+  sourceRate,
+  type ClipTimeRemap,
+  type TimelineClip
+} from "@nodetool-ai/timeline";
 
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import {
@@ -34,7 +39,7 @@ import {
   InspectorRow,
   InspectorSectionTitle
 } from "./InspectorPrimitives";
-import { keyframeRowKeys } from "./InspectorPrimitives.helpers";
+import { parseFiniteNumber } from "./InspectorPrimitives.helpers";
 import { useTranslation } from "react-i18next";
 import {
   EASING_HINT,
@@ -51,7 +56,10 @@ function defaultKeyframes(clip: TimelineClip): RemapKeyframe[] {
   const inPoint = clip.inPointMs ?? 0;
   return [
     { t: 0, sourceMs: inPoint },
-    { t: 1, sourceMs: inPoint + clip.durationMs }
+    {
+      t: 1,
+      sourceMs: clip.outPointMs ?? inPoint + clip.durationMs * sourceRate(clip)
+    }
   ];
 }
 
@@ -61,22 +69,44 @@ interface ClipTimeRemapProps {
   clip: TimelineClip;
 }
 
-export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
+const TimeRemapEditor: React.FC<ClipTimeRemapProps> = memo(
   ({ clip }) => {
     const { t } = useTranslation();
     const [open, setOpen] = usePersistedFold("timeRemap");
     const patchClip = useTimelineStore((s) => s.patchClip);
+    const trackLocked = useTimelineStore(
+      (s) => s.tracks.find((track) => track.id === clip.trackId)?.locked ?? false
+    );
+    const locked = !!clip.locked || trackLocked;
     const [duplicate, setDuplicate] = useState(false);
 
     const clipRef = useRef(clip);
     clipRef.current = clip;
+    const lockedRef = useRef(locked);
+    lockedRef.current = locked;
 
     const keyframes = clip.timeRemap?.keyframes;
 
+    // Row identity that survives the sort a `t` edit triggers, so a scrubbed
+    // row keeps its DOM node (and pointer capture) while it passes its neighbour.
+    const rowIdsRef = useRef<string[]>([]);
+    const nextRowIdRef = useRef(0);
+    const newRowId = () => `kf-${nextRowIdRef.current++}`;
+    const count = keyframes?.length ?? 0;
+    if (rowIdsRef.current.length !== count) {
+      rowIdsRef.current = Array.from({ length: count }, newRowId);
+    }
+
+    /** Write `next`; `ids` names its rows in the same order. */
     const setKeyframes = useCallback(
-      (next: RemapKeyframe[]) => {
+      (next: RemapKeyframe[], ids: string[]) => {
+        if (lockedRef.current) return;
+        const order = next
+          .map((frame, i) => ({ frame, id: ids[i] }))
+          .sort((a, b) => byTime(a.frame, b.frame));
+        rowIdsRef.current = order.map((o) => o.id);
         patchClip(clipRef.current.id, {
-          timeRemap: { keyframes: [...next].sort(byTime) }
+          timeRemap: { keyframes: order.map((o) => o.frame) }
         });
       },
       [patchClip]
@@ -84,6 +114,7 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
 
     const handleEnabled = useCallback(
       (next: boolean) => {
+        if (lockedRef.current) return;
         setDuplicate(false);
         patchClip(clipRef.current.id, {
           timeRemap: next
@@ -113,7 +144,8 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
         }
         setDuplicate(false);
         setKeyframes(
-          current.map((frame, i) => (i === index ? { ...frame, ...patch } : frame))
+          current.map((frame, i) => (i === index ? { ...frame, ...patch } : frame)),
+          rowIdsRef.current
         );
       },
       [setKeyframes]
@@ -129,7 +161,10 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
         ? (previous + (last?.t ?? 1)) / 2
         : candidate;
       if (taken.has(nextT)) return;
-      setKeyframes([...current, { t: nextT, sourceMs: last?.sourceMs ?? 0 }]);
+      setKeyframes(
+        [...current, { t: nextT, sourceMs: last?.sourceMs ?? 0 }],
+        [...rowIdsRef.current, `kf-${nextRowIdRef.current++}`]
+      );
     }, [setKeyframes]);
 
     const removeKeyframe = useCallback(
@@ -138,7 +173,8 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
         setKeyframes(
           (clipRef.current.timeRemap?.keyframes ?? []).filter(
             (_, i) => i !== index
-          )
+          ),
+          rowIdsRef.current.filter((_, i) => i !== index)
         );
       },
       [setKeyframes]
@@ -154,6 +190,7 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
               icon={<SpeedOutlinedIcon />}
               checked={keyframes !== undefined}
               onCheckedChange={handleEnabled}
+              checkboxDisabled={locked}
             />
           }
           open={open}
@@ -168,7 +205,7 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
               </Caption>
             ) : (
               <>
-                {keyframeRowKeys(keyframes.map((k) => k.t)).map((rowKey, index) => {
+                {rowIdsRef.current.map((rowKey, index) => {
                   const keyframe = keyframes[index];
                   const name = `Time remap keyframe ${index + 1}`;
                   const easingUnparseable =
@@ -183,12 +220,13 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                           minWidth={52}
                           scrub={SCRUB_T}
                           onCommit={(raw) => {
-                            const parsed = Number(raw);
-                            if (!Number.isFinite(parsed)) return;
+                            const tf = parseFiniteNumber(raw);
+                            if (tf === null) return;
                             patchKeyframe(index, {
-                              t: Math.min(1, Math.max(0, parsed))
+                              t: Math.min(1, Math.max(0, tf))
                             });
                           }}
+                          disabled={locked}
                           ariaLabel={`${name} time`}
                         />
                         <InspectorPillInput
@@ -197,15 +235,19 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                           minWidth={72}
                           scrub={SCRUB_SOURCE}
                           onCommit={(raw) => {
-                            const sourceMs = Number(raw);
-                            if (!Number.isFinite(sourceMs)) return;
-                            patchKeyframe(index, { sourceMs });
+                            const sourceMs = parseFiniteNumber(raw);
+                            if (sourceMs === null) return;
+                            patchKeyframe(index, {
+                              sourceMs: Math.max(0, sourceMs)
+                            });
                           }}
+                          disabled={locked}
                           ariaLabel={`${name} source time`}
                         />
                         <InspectorPillInput
                           value={keyframe.easing ?? ""}
                           placeholder="linear"
+                          allowEmpty
                           minWidth={96}
                           onCommit={(raw) => {
                             const easing = raw.trim();
@@ -213,10 +255,12 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                               easing: easing === "" ? undefined : easing
                             });
                           }}
+                          disabled={locked}
                           ariaLabel={`${name} easing`}
                         />
                         <DeleteButton
                           onClick={() => removeKeyframe(index)}
+                          disabled={locked}
                           tooltip={`Remove ${name.toLowerCase()}`}
                           ariaLabel={`Remove ${name.toLowerCase()}`}
                           iconVariant="clear"
@@ -252,8 +296,17 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
                     variant="outlined"
                     startIcon={<AddOutlinedIcon />}
                     onClick={addKeyframe}
-                  >{t("timeline:attrs.addKeyframe", { defaultValue: "Add keyframe" })}</Button>
-                  <Button size="small" variant="text" onClick={handleClear}>{t("timeline:attrs.clear", { defaultValue: "Clear" })}</Button>
+                  >
+                    {t("timeline:attrs.addKeyframe", { defaultValue: "Add keyframe" })}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={handleClear}
+                    disabled={locked}
+                  >
+                    {t("timeline:attrs.clear", { defaultValue: "Clear" })}
+                  </Button>
                 </FlexRow>
               </>
             )}
@@ -264,6 +317,12 @@ export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
   }
 );
 
+TimeRemapEditor.displayName = "TimeRemapEditor";
+
+// Keyed by clip so the duplicate warning and row ids never carry over.
+export const ClipTimeRemapSection: React.FC<ClipTimeRemapProps> = memo(
+  ({ clip }) => <TimeRemapEditor key={clip.id} clip={clip} />
+);
 ClipTimeRemapSection.displayName = "ClipTimeRemapSection";
 
 interface ClipCompositionProps {

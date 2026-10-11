@@ -1,3 +1,5 @@
+import { getTracer } from "../telemetry.js";
+import { tracedProviderLoop, tracedToolCall, beginProviderRound, providerRoundContext, traceContentAllowed, messageTraceContent, traceTextContent } from "./loop-tracing.js";
 /**
  * ClaudeAgentProvider — Claude reached through the official
  * `@anthropic-ai/claude-agent-sdk` instead of an API key.
@@ -45,12 +47,19 @@ import type {
   SDKUserMessage
 } from "@anthropic-ai/claude-agent-sdk";
 import { z, type ZodTypeAny } from "zod";
+import type {
+  ImageBlockParam,
+  TextBlockParam
+} from "@anthropic-ai/sdk/resources/messages";
 import {
   BaseProvider,
   budgetStopItem,
   resolveTurnBudget
 } from "./base-provider.js";
-import { sdkNativeReplacements } from "./core-tools.js";
+import {
+  SDK_NATIVE_TOOL_REPLACEMENTS,
+  sdkNativeReplacements
+} from "./core-tools.js";
 import {
   isProviderMessageEvent,
   isProviderSessionUpdate,
@@ -108,6 +117,9 @@ const SDK_BUILTIN_TOOLS = [
   "TodoWrite"
 ];
 
+/** The built-ins a tool-using turn keeps even when it offered no counterpart. */
+const SDK_WEB_TOOLS = ["WebSearch", "WebFetch"];
+
 /**
  * Env vars a nested Claude subscription session leaks into its children. The
  * SDK spawns the bundled CLI as a subprocess; left in place these would make it
@@ -119,12 +131,11 @@ const NESTED_SESSION_ENV =
 
 /**
  * The subset of the SDK `query` signature this provider depends on. We only
- * ever pass a string prompt and consume the result as an async iterable, so the
- * real `query` (which also accepts an async-iterable prompt and returns the
- * richer `Query`) is assignable to this. Injectable for tests.
+ * pass a string for text-only turns or a structured user message for images,
+ * and consume the result as an async iterable. Injectable for tests.
  */
 export type ClaudeQueryFn = (params: {
-  prompt: string;
+  prompt: string | AsyncIterable<SDKUserMessage>;
   options?: Options;
 }) => AsyncIterable<SDKMessage>;
 
@@ -137,6 +148,13 @@ export type ClaudeCreateMcpServerFn = (opts: {
 
 /** MCP server name under which NodeTool's tools are exposed to the SDK. */
 const TOOL_SERVER_NAME = "nodetool_tools";
+/**
+ * Turns a structured-output call may take. The SDK validates the answer
+ * against the schema and, when it does not match, hands the model the errors
+ * and asks again — each retry is a turn. With one turn, the first answer that
+ * misses the schema fails the call as `error_max_turns`.
+ */
+const STRUCTURED_OUTPUT_MAX_TURNS = 3;
 const TOOL_PREFIX = `mcp__${TOOL_SERVER_NAME}__`;
 /**
  * The member expression the retired guest toolbelt was called through:
@@ -165,9 +183,18 @@ interface TurnConfig {
   /**
    * Whether the caller offered tools at all. Distinct from `mcp`, which is null
    * both on the tool-free path and when every offered tool was replaced by an
-   * SDK built-in. Only the first case may disable the built-ins.
+   * SDK built-in. Built-ins are disabled on the tool-free path or when
+   * the caller explicitly sets `providedToolsOnly`.
    */
   toolsOffered: boolean;
+  /** Restrict availability to the supplied MCP tools, with no SDK built-ins. */
+  providedToolsOnly?: boolean;
+  /**
+   * The SDK built-ins the turn may use, passed as `tools`. Every other
+   * built-in stays out of the prompt, where its schema would be re-read on
+   * every request of the loop.
+   */
+  builtinTools: string[];
   /**
    * Session working directory. Set to the run's workspace so the SDK's
    * path-scoped built-ins (`Read`/`Write`/`Edit`/`Glob`/`Grep`) resolve where
@@ -181,6 +208,9 @@ interface TurnConfig {
    * needs the agent loop to be usable. Null / absent otherwise.
    */
   skillsPlugin?: { dir: string; names: string[] } | null;
+  /** SDK structured output replaces the forced result tool on single turns. */
+  outputFormat?: Options["outputFormat"];
+  resultToolName?: string;
 }
 
 interface ClaudeAgentProviderOptions {
@@ -308,7 +338,9 @@ export class ClaudeAgentProvider extends BaseProvider {
   override async *generateLoop(
     args: Parameters<ClaudeAgentProvider["generateMessages"]>[0] & {
       executeTool?: (toolCall: ToolCall) => Promise<string | MessageContent[]>;
+      resolveMedia?: (messages: Message[]) => Promise<Message[]>;
       maxIterations?: number;
+      providedToolsOnly?: boolean;
       turnBudget?: TurnBudget | RunBudget;
       workspaceDir?: string;
       /**
@@ -321,6 +353,10 @@ export class ClaudeAgentProvider extends BaseProvider {
       skills?: ProviderSkill[];
     }
   ): AsyncGenerator<ProviderStreamItem> {
+    return yield* tracedProviderLoop(this.provider, args.model, () => this.generateSdkLoop(args));
+  }
+
+  private async *generateSdkLoop(args: Parameters<ClaudeAgentProvider["generateLoop"]>[0]): AsyncGenerator<ProviderStreamItem> {
     // The SDK owns the loop, so honoring the budget is this override's job:
     // reserve before the first turn, and again after every assistant turn that
     // requested tools — that is the point where the SDK will make another call.
@@ -342,20 +378,19 @@ export class ClaudeAgentProvider extends BaseProvider {
       }
       reservations.push(first);
     }
-    // Drop every NodeTool tool the SDK ships a built-in for. Those built-ins
-    // are live under bypassPermissions, so keeping the MCP copy would give one
-    // capability two surfaces and make the model pick between them.
+    // Normally prefer native equivalents to duplicate MCP surfaces. A caller
+    // restricting the loop keeps its own dispatch instead.
     const offered = args.tools ?? [];
-    const replaced = sdkNativeReplacements(
-      offered.map((t) => t.name),
-      args.workspaceDir
-    );
+    const replaced = args.providedToolsOnly
+      ? new Set<string>()
+      : sdkNativeReplacements(offered.map((t) => t.name), args.workspaceDir);
     const tools = offered.filter((t) => !replaced.has(t.name));
     if (replaced.size > 0) {
       log.debug("Using SDK built-ins in place of NodeTool tools", {
         replaced: [...replaced]
       });
     }
+    beginProviderRound(this.provider, args.model);
     const executeTool = args.executeTool;
     // A tool dispatches either through its own `execute` or the harness
     // `executeTool`; build the MCP server when at least one route exists.
@@ -382,21 +417,23 @@ export class ClaudeAgentProvider extends BaseProvider {
       // (view_image) are returned as real image blocks the SDK hands to Claude —
       // no flattening to text on the agent-SDK path.
       const defs = tools.map((t) =>
-        toolDefinition(t, async (name, toolArgs) => {
-          const toolCallId = `call_${name}_${Date.now()}`;
-          const result = t.execute
-            ? await t.execute(toolArgs, toolCallId)
-            : executeTool
-              ? await executeTool({
-                  id: toolCallId,
-                  name,
-                  args: toolArgs
-                })
-              : `Tool "${name}" is not available`;
-          // A terminal tool ends the SDK loop after its result is delivered.
-          if (t.terminal) abortController.abort();
-          return result;
-        })
+        toolDefinition(
+          t,
+          async (name, toolArgs) => {
+            // The SDK runs parallel calls of one tool in the same millisecond,
+            // so a clock alone would hand them one id.
+            const toolCallId = `call_${name}_${crypto.randomUUID()}`;
+            const result = t.execute
+              ? await tracedToolCall({ id: toolCallId, name, args: toolArgs }, () => { const execute = t.execute; if (!execute) { throw new Error("Tool dispatch was removed"); } return execute(toolArgs, toolCallId); })
+              : executeTool
+                ? await tracedToolCall({ id: toolCallId, name, args: toolArgs }, () => executeTool({ id: toolCallId, name, args: toolArgs }))
+                : `Tool "${name}" is not available`;
+            // A terminal tool ends the SDK loop after its result is delivered.
+            if (t.terminal) abortController.abort();
+            return result;
+          },
+          args.resolveMedia
+        )
       );
       const server = createServer({
         name: TOOL_SERVER_NAME,
@@ -412,7 +449,7 @@ export class ClaudeAgentProvider extends BaseProvider {
     // native skill loader discovers. Best-effort: a disk failure drops skills
     // for the turn, it does not sink it. Cleaned up in the `finally` below.
     let skillsPlugin: { dir: string; names: string[] } | null = null;
-    if ((args.skills?.length ?? 0) > 0) {
+    if (!args.providedToolsOnly && (args.skills?.length ?? 0) > 0) {
       try {
         skillsPlugin = await materializeSkillsPlugin(args.skills ?? []);
       } catch (err) {
@@ -438,6 +475,10 @@ export class ClaudeAgentProvider extends BaseProvider {
             offered.length > 0 ? (args.maxIterations ?? DEFAULT_TOOL_TURNS) : 1,
           mcp,
           toolsOffered: offered.length > 0,
+          providedToolsOnly: args.providedToolsOnly,
+          builtinTools: args.providedToolsOnly
+            ? []
+            : turnBuiltins(replaced, offered.length > 0, skillsPlugin !== null),
           cwd: args.workspaceDir,
           skillsPlugin
         }
@@ -525,12 +566,25 @@ export class ClaudeAgentProvider extends BaseProvider {
     signal?: AbortSignal;
   }): AsyncGenerator<ProviderStreamItem> {
     // Single-turn, tool-free primitive. The agent loop lives in generateLoop.
-    yield* this.runWithSession(args, {
+    const resultTool =
+      args.tools?.length === 1 &&
+      args.toolChoice === args.tools[0].name
+        ? args.tools[0]
+        : undefined;
+    const resultSchema = resultTool?.inputSchema;
+    const config: TurnConfig = {
       emitMessages: false,
-      maxTurns: args.maxTurns ?? 1,
+      maxTurns:
+        args.maxTurns ?? (resultTool ? STRUCTURED_OUTPUT_MAX_TURNS : 1),
       mcp: null,
-      toolsOffered: false
-    });
+      toolsOffered: false,
+      builtinTools: []
+    };
+    if (resultTool && resultSchema) {
+      config.outputFormat = { type: "json_schema", schema: resultSchema };
+      config.resultToolName = resultTool.name;
+    }
+    yield* this.runWithSession(args, config);
   }
 
   /**
@@ -621,14 +675,12 @@ export class ClaudeAgentProvider extends BaseProvider {
 
   /** Drive one SDK `query` turn and translate its messages into stream items. */
   private async *runTurn(
-    args: {
-      model: string;
-      messages: Message[];
-      maxTurns?: number;
-      signal?: AbortSignal;
-    },
+    args: Pick<
+      Parameters<BaseProvider["generateMessages"]>[0],
+      "model" | "messages" | "maxTurns" | "signal" | "thinking" | "effort"
+    >,
     plan: {
-      prompt: string;
+      prompt: PromptContent;
       resume: string | undefined;
       systemPrompt: string;
       systemHash: string;
@@ -668,8 +720,8 @@ export class ClaudeAgentProvider extends BaseProvider {
       // Do NOT load repo .claude / CLAUDE.md / skills.
       settingSources: [],
       // Run without asking for permissions: never prompt AND never deny. This
-      // lets the SDK agent use its built-in tools (WebSearch/WebFetch/Bash/…)
-      // alongside NodeTool's MCP tools. bypassPermissions requires the explicit
+      // lets the SDK agent use the built-ins `tools` keeps alongside
+      // NodeTool's MCP tools. bypassPermissions requires the explicit
       // safety flag below.
       permissionMode: "bypassPermissions",
       allowDangerouslySkipPermissions: true,
@@ -688,15 +740,38 @@ export class ClaudeAgentProvider extends BaseProvider {
       // deferred, and NodeTool defers none — it registers its handful of tools
       // in-process — so the search always comes back empty. A model that fell
       // back to it after a mis-named tool call got nothing and stalled the turn.
-      disallowedTools: plan.config.toolsOffered
-        ? ["ToolSearch"]
-        : [...SDK_BUILTIN_TOOLS, "ToolSearch"],
+      // Supplied-only loops also disable Skill and keep all supplied dispatch
+      // inside the caller's MCP boundary.
+      disallowedTools: plan.config.providedToolsOnly
+        ? [...SDK_BUILTIN_TOOLS, "Skill", "ToolSearch"]
+        : plan.config.toolsOffered
+          ? ["ToolSearch"]
+          : [...SDK_BUILTIN_TOOLS, "ToolSearch"],
+      tools: plan.config.builtinTools,
+      // Only the in-process NodeTool server. Without this the child also loads
+      // the account's claude.ai connectors and the user's MCP servers, and
+      // their tool schemas grow every request of the loop.
+      strictMcpConfig: true,
+      // Hide the skills bundled with the SDK. The plugin below names its own.
+      skills: [],
       includePartialMessages: true,
       // Setting env REPLACES the child env, so spread process.env minus the
       // nested-session leakage. Preserves PATH/HOME/ANTHROPIC_BASE_URL/proxies.
       env: buildChildEnv(),
       abortController
     };
+    if (args.effort !== undefined) {
+      options.effort = args.effort;
+    }
+    if (args.thinking) {
+      options.thinking =
+        args.thinking.type === "manual"
+          ? { type: "enabled", budgetTokens: args.thinking.budgetTokens }
+          : { type: args.thinking.type };
+    }
+    if (plan.config.outputFormat) {
+      options.outputFormat = plan.config.outputFormat;
+    }
     // Anchor the path-scoped built-ins to the run's workspace, which is where
     // the NodeTool tools they replace were contained.
     if (plan.config.cwd) {
@@ -746,11 +821,31 @@ export class ClaudeAgentProvider extends BaseProvider {
       resume: Boolean(plan.resume)
     });
 
+    const tracer = getTracer();
+    const startLlm = () => {
+      const span = tracer?.startSpan(`llm.stream ${this.provider}/${args.model}`, {}, providerRoundContext());
+      span?.setAttributes({ "llm.provider": this.provider, "llm.model": args.model, "llm.request.stream": true });
+      if (traceContentAllowed()) { span?.setAttribute("llm.request.messages", messageTraceContent(args.messages)); }
+      return span;
+    };
+    let llmSpan = startLlm();
+    let llmResponse = "";
+    let observedTurn = false;
+    const closeLlm = () => {
+      if (traceContentAllowed()) { llmSpan?.setAttribute("llm.response.content", llmResponse); }
+      llmSpan?.end();
+      llmSpan = undefined;
+      llmResponse = "";
+    };
     let resolvedModel = args.model;
     // When partial deltas stream, we render from them and skip the final
     // assistant message to avoid duplication; if a build omits partials we fall
     // back to the final message's content blocks.
     let streamedFromPartials = false;
+    // The CLI answers a refused login with a synthetic assistant message, then
+    // a "success" result flagged `is_error`. Hold its text back from the stream
+    // and fail the call with it instead.
+    let authFailure: string | null = null;
 
     // The SDK splits one API assistant turn into one frame per content block —
     // thinking, then text, then each tool_use. Emitting a message per frame
@@ -781,7 +876,7 @@ export class ClaudeAgentProvider extends BaseProvider {
     };
 
     try {
-      for await (const msg of queryFn({ prompt: plan.prompt, options })) {
+      for await (const msg of queryFn({ prompt: sdkPrompt(plan.prompt), options })) {
         if (msg.type === "system" && msg.subtype === "init") {
           // Capture the session and surface it immediately so a streaming
           // consumer can persist it onto the assistant message it creates.
@@ -801,12 +896,18 @@ export class ClaudeAgentProvider extends BaseProvider {
         }
 
         if (msg.type === "stream_event") {
+          if (msg.event.type === "message_start") {
+            if (observedTurn) { closeLlm(); beginProviderRound(this.provider, args.model); llmSpan = startLlm(); }
+            observedTurn = true;
+          }
+          if (msg.event.type === "message_stop") { closeLlm(); }
           const captured = capturedModelFromPartial(msg);
           if (captured) resolvedModel = captured;
           const delta = partialDelta(msg);
           if (delta?.text != null) {
             streamedFromPartials = true;
             plan.emitted.content = true;
+            if (traceContentAllowed()) { llmResponse = traceTextContent(llmResponse + delta.text); }
             yield { type: "chunk", content: delta.text, done: false };
           } else if (delta?.thinking != null) {
             streamedFromPartials = true;
@@ -822,12 +923,20 @@ export class ClaudeAgentProvider extends BaseProvider {
         }
 
         if (msg.type === "assistant") {
+          if (msg.error === "authentication_failed") {
+            authFailure = finalBlocks(msg)
+              .filter((block) => !block.thinking)
+              .map((block) => block.content)
+              .join("");
+            continue;
+          }
           const m = msg.message;
           if (m && isNonEmptyString(m.model)) resolvedModel = m.model;
           // Fallback only: no partials arrived, so render text/thinking from the
           // final content blocks — kept strictly separate, never merged.
           if (!streamedFromPartials) {
             for (const block of finalBlocks(msg)) {
+              if (!block.thinking && traceContentAllowed()) { llmResponse = traceTextContent(llmResponse + block.content); }
               plan.emitted.content = true;
               yield block.thinking
                 ? {
@@ -884,9 +993,24 @@ export class ClaudeAgentProvider extends BaseProvider {
           // Bill every terminal result, not just the successful ones: an
           // errored/max-turns run still consumed (and was charged for) tokens.
           this.trackResultUsage(msg, resolvedModel);
+          if (authFailure !== null && msg.is_error) {
+            throw claudeAuthError(authFailure);
+          }
           if (msg.subtype === "success") {
             const flushed = flushPending();
             if (flushed) yield flushed;
+            const structured = msg.structured_output;
+            if (
+              plan.config.resultToolName &&
+              isObjectLike(structured) &&
+              !Array.isArray(structured)
+            ) {
+              yield {
+                id: `result_${msg.uuid}`,
+                name: plan.config.resultToolName,
+                args: structured
+              };
+            }
             yield { type: "chunk", content: "", done: true };
           } else {
             throw resultError(msg);
@@ -904,6 +1028,7 @@ export class ClaudeAgentProvider extends BaseProvider {
       if (args.signal?.aborted) return;
       throw err instanceof Error ? err : new Error(String(err));
     } finally {
+      closeLlm();
       // Terminate the SDK query on every exit path. On normal completion the
       // query has already finished and this is a no-op; on an early `break`
       // (consumer cancelled) or a throw it is the only thing that stops the
@@ -998,7 +1123,30 @@ function buildChildEnv() {
       continue;
     env[key] = value;
   }
+  // The claude.ai connectors come from the account login, not from settings.
+  // This turns them off in the child.
+  env.ENABLE_CLAUDEAI_MCP_SERVERS = "false";
   return env;
+}
+
+/**
+ * The built-ins one loop turn keeps: those that replace an offered NodeTool
+ * tool, the web pair when the caller offered any tool, and `Skill` when a
+ * skills plugin is loaded.
+ */
+function turnBuiltins(
+  replaced: ReadonlySet<string>,
+  toolsOffered: boolean,
+  hasSkillsPlugin: boolean
+): string[] {
+  const builtins = new Set<string>();
+  for (const name of replaced) {
+    const builtin = SDK_NATIVE_TOOL_REPLACEMENTS.get(name);
+    if (builtin) builtins.add(builtin);
+  }
+  if (toolsOffered) for (const name of SDK_WEB_TOOLS) builtins.add(name);
+  if (hasSkillsPlugin) builtins.add("Skill");
+  return [...builtins];
 }
 
 /**
@@ -1192,7 +1340,8 @@ function toolDefinition(
   run: (
     name: string,
     args: Record<string, unknown>
-  ) => Promise<string | MessageContent[]>
+  ) => Promise<string | MessageContent[]>,
+  resolveMedia?: (messages: Message[]) => Promise<Message[]>
 ): SdkMcpToolDefinition {
   return {
     name: tool.name,
@@ -1200,7 +1349,18 @@ function toolDefinition(
     inputSchema: jsonSchemaToZodShape(tool.inputSchema) as never,
     handler: async (toolArgs: Record<string, unknown>) => {
       const result = await run(tool.name, toolArgs ?? {});
-      return { content: toolResultToMcpContent(result) };
+      const resolved =
+        Array.isArray(result) &&
+        result.some((part) => part.type === "image_url") &&
+        resolveMedia
+          ? await resolveMedia([{ role: "user", content: result }])
+          : null;
+      const content = resolved?.[0]?.content;
+      return {
+        content: toolResultToMcpContent(
+          Array.isArray(content) ? content : result
+        )
+      };
     }
   };
 }
@@ -1212,7 +1372,7 @@ type McpContentBlock =
 /**
  * Decode a NodeTool image content part into an MCP image block (raw base64 +
  * mimeType). Returns null for a remote URL we cannot inline — MCP image content
- * is base64-only, so the caller degrades it to a text reference.
+ * is base64-only, so the caller reports that the image could not be shown.
  */
 function toMcpImageBlock(image: {
   uri?: string;
@@ -1247,7 +1407,7 @@ function toMcpImageBlock(image: {
 /**
  * Convert a tool result into MCP content blocks. Text passes through; image
  * parts become MCP image blocks (the SDK forwards them to Claude as real
- * images). A remote-URL image that can't be inlined degrades to a text note.
+ * images). An image that can't be inlined becomes a failure note.
  */
 export function toolResultToMcpContent(
   result: string | MessageContent[]
@@ -1262,8 +1422,13 @@ export function toolResultToMcpContent(
     } else if (part.type === "image_url") {
       const img = toMcpImageBlock(part.image);
       if (img) blocks.push(img);
-      else if (isString(part.image.uri)) {
-        blocks.push({ type: "text", text: `[image at ${part.image.uri}]` });
+      else {
+        blocks.push({
+          type: "text",
+          text: isString(part.image.uri)
+            ? `[image could not be shown: ${part.image.uri}]`
+            : "[image could not be shown]"
+        });
       }
     }
   }
@@ -1328,6 +1493,17 @@ function jsonPropToZod(prop: Record<string, unknown>): ZodTypeAny {
   return desc ? zt.describe(desc) : zt;
 }
 
+/**
+ * A refused Claude login, carrying status 401 so the provider layer classifies
+ * it as a credential failure and the UI offers to sign in again.
+ */
+function claudeAuthError(detail: string): Error {
+  const message = detail.trim() || "The Claude login was refused";
+  return Object.assign(new Error(`Claude sign-in failed (401): ${message}`), {
+    status: 401
+  });
+}
+
 /** Build a descriptive Error from a non-success `result` message. */
 function resultError(
   msg: Extract<SDKResultMessage, { subtype: string }>
@@ -1376,10 +1552,15 @@ function extractSystemPrompt(messages: Message[]): string {
  * replayed (re-feeding them would present the model its own prior answer as
  * user input).
  */
-function buildResumeDelta(messages: Message[], checkpoint: number): string {
-  return messages
-    .slice(checkpoint)
-    .filter((m) => m.role === "user")
+function buildResumeDelta(messages: Message[], checkpoint: number): PromptContent {
+  const delta = messages.slice(checkpoint).filter((m) => m.role === "user");
+  if (hasImages(delta)) {
+    return delta.flatMap((message, index) => [
+      ...(index ? [{type: "text", text: "\n\n"} satisfies TextBlockParam] : []),
+      ...promptBlocks(message.content)
+    ]);
+  }
+  return delta
     .map((m) => textOf(m.content))
     .filter(Boolean)
     .join("\n\n");
@@ -1391,19 +1572,37 @@ function buildResumeDelta(messages: Message[], checkpoint: number): string {
  * edited/branched conversation) we prime context ONCE with a single delimited
  * user message instead of rebuilding a `Human:/Assistant:` transcript — the SDK
  * cannot import external assistant turns, so this is deliberate context priming,
- * not a faithful reconstruction. Only final assistant TEXT is included
- * (thinking is stripped by {@link textOf}).
+ * not a faithful reconstruction. Text and inline images are retained, while
+ * thinking is stripped.
  */
-function buildFreshPrompt(messages: Message[]): string {
+function buildFreshPrompt(messages: Message[]): PromptContent {
   const convo = messages.filter((m) => m.role !== "system");
   if (convo.length === 0) return "";
   if (convo.length === 1 && convo[0].role === "user") {
-    return textOf(convo[0].content);
+    return hasImages(convo) ? promptBlocks(convo[0].content) : textOf(convo[0].content);
   }
 
   const last = convo[convo.length - 1];
   const newTurn = last.role === "user" ? textOf(last.content) : "";
   const prior = last.role === "user" ? convo.slice(0, -1) : convo;
+  if (hasImages(convo)) {
+    const blocks: PromptBlock[] = [];
+    if (prior.length) {
+      blocks.push({type: "text", text: "<conversation_so_far>\n"});
+      for (const message of prior) {
+        blocks.push(
+          {type: "text", text: `${message.role === "assistant" ? "Assistant" : "User"}: `},
+          ...promptBlocks(message.content),
+          {type: "text", text: "\n\n"}
+        );
+      }
+      blocks.push({type: "text", text: "</conversation_so_far>\n\n"});
+    }
+    if (last.role === "user") {
+      blocks.push(...promptBlocks(last.content));
+    }
+    return blocks;
+  }
   const transcript = prior
     .map((m) => {
       const text = textOf(m.content);
@@ -1417,4 +1616,51 @@ function buildFreshPrompt(messages: Message[]): string {
     ? `<conversation_so_far>\n${transcript}\n</conversation_so_far>`
     : "";
   return [primed, newTurn].filter(Boolean).join("\n\n");
+}
+
+type PromptBlock = TextBlockParam | ImageBlockParam;
+type PromptContent = string | PromptBlock[];
+
+function hasImages(messages: readonly Message[]): boolean {
+  return messages.some(
+    (message) => Array.isArray(message.content) &&
+      message.content.some((part) => part.type === "image_url")
+  );
+}
+
+/** Images must already be inline. This boundary never fetches caller URLs. */
+function promptBlocks(content: Message["content"]): PromptBlock[] {
+  if (isString(content)) {
+    return [{type: "text", text: content}];
+  }
+  const blocks: PromptBlock[] = [];
+  for (const part of content ?? []) {
+    if (part.type === "text") {
+      blocks.push({type: "text", text: part.text});
+    } else if (part.type === "image_url") {
+      const image = toMcpImageBlock(part.image);
+      if (!image) {
+        throw new Error("Claude Agent image messages require inline image data. Resolve the media reference before dispatch.");
+      }
+      const mime = image.mimeType;
+      if (mime !== "image/png" && mime !== "image/jpeg" && mime !== "image/gif" && mime !== "image/webp") {
+        throw new Error(`Claude Agent image messages do not support ${mime}. Convert the image before dispatch.`);
+      }
+      blocks.push({type: "image", source: {type: "base64", media_type: mime, data: image.data}});
+    }
+  }
+  return blocks;
+}
+
+function sdkPrompt(content: PromptContent): string | AsyncIterable<SDKUserMessage> {
+  if (isString(content)) {
+    return content;
+  }
+  return (async function* () {
+    yield {
+      type: "user",
+      parent_tool_use_id: null,
+      message: {role: "user", content}
+    } satisfies SDKUserMessage;
+  })();
 }

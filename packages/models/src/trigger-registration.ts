@@ -3,8 +3,13 @@
  */
 
 import { eq, and, asc } from "drizzle-orm";
-import { DBModel, createTimeOrderedUuid } from "./base-model.js";
-import { getDb } from "./db.js";
+import {
+  DBModel,
+  ModelChangeEvent,
+  ModelObserver,
+  createTimeOrderedUuid
+} from "./base-model.js";
+import { getPortableDb } from "./db.js";
 import { triggerRegistrations } from "./schema/trigger-registrations.js";
 
 export class TriggerRegistration extends DBModel {
@@ -56,7 +61,7 @@ export class TriggerRegistration extends DBModel {
   // ── Static queries ───────────────────────────────────────────────
 
   static async findEnabledByKind(kind: string): Promise<TriggerRegistration[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(triggerRegistrations)
@@ -75,7 +80,7 @@ export class TriggerRegistration extends DBModel {
   static async findByWorkflow(
     workflowId: string
   ): Promise<TriggerRegistration[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(triggerRegistrations)
@@ -86,8 +91,49 @@ export class TriggerRegistration extends DBModel {
     );
   }
 
+  /**
+   * Write only `fields`, and only to a row that still exists. `save()` upserts
+   * the whole object, so a writer holding an old copy re-arms a stopped
+   * trigger, resets its counters, or recreates a deleted row. Returns the
+   * updated row, or `null` when it is gone.
+   */
+  static async updateColumns(
+    id: string,
+    fields: Partial<
+      Pick<
+        TriggerRegistration,
+        | "enabled"
+        | "cursor"
+        | "last_fired_at"
+        | "last_error"
+        | "disabled_reason"
+        | "consecutive_failures"
+        | "run_count"
+      >
+    >
+  ): Promise<TriggerRegistration | null> {
+    const db = getPortableDb();
+    const [row] = await db
+      .update(triggerRegistrations)
+      .set({ ...fields, updated_at: new Date().toISOString() })
+      .where(eq(triggerRegistrations.id, id))
+      .returning();
+    if (!row) return null;
+    const updated = new TriggerRegistration(row);
+    ModelObserver.notify(updated, ModelChangeEvent.UPDATED);
+    return updated;
+  }
+
+  /** Disarm every trigger of a workflow that no longer exists. */
+  static async deleteByWorkflow(workflowId: string): Promise<void> {
+    const db = getPortableDb();
+    await db
+      .delete(triggerRegistrations)
+      .where(eq(triggerRegistrations.workflow_id, workflowId));
+  }
+
   static async findByUser(userId: string): Promise<TriggerRegistration[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(triggerRegistrations)

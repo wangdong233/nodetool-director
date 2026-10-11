@@ -27,12 +27,15 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import { EditorActivationCover, cn } from "../editor_ui";
 import {
   useMonacoEditor,
   type MonacoEditorOptions
 } from "../../hooks/editor/useMonacoEditor";
+import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivation";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
+import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
@@ -99,6 +102,9 @@ const CodeProperty = ({
     loadMonacoIfNeeded,
     monacoOnMount
   } = useMonacoEditor();
+  // On the canvas the editor stays covered until clicked; see the hook.
+  const activation = useCodeEditorActivation();
+  const { attachEditor } = activation;
 
   // The inspector is an editing surface — a selected code node is about to be
   // edited, so fetch the bundle instead of waiting for a hover.
@@ -120,11 +126,19 @@ const CodeProperty = ({
     completeRef.current = onChangeComplete;
   }, [onChangeComplete]);
 
+  // Typing between focus and blur undoes as one step.
+  const { begin: beginUndoGroup, end: endUndoGroup } = useUndoGroup();
+
   const handleEditorMount = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
       monacoOnMount(editor);
-      const focus = editor.onDidFocusEditorText(() => setIsFocused(true));
+      attachEditor(editor);
+      const focus = editor.onDidFocusEditorText(() => {
+        setIsFocused(true);
+        beginUndoGroup();
+      });
       const blur = editor.onDidBlurEditorText(() => {
+        endUndoGroup();
         setIsFocused(false);
         completeRef.current?.();
       });
@@ -133,7 +147,7 @@ const CodeProperty = ({
         blur.dispose();
       });
     },
-    [monacoOnMount]
+    [monacoOnMount, attachEditor, beginUndoGroup, endUndoGroup]
   );
 
   const toggleExpand = useCallback(() => {
@@ -216,6 +230,7 @@ const CodeProperty = ({
           fontSize: "var(--fontSizeSmall)"
         },
         ".editor-wrapper": {
+          position: "relative",
           height: isInspector ? "320px" : "160px",
           overflow: "hidden",
           backgroundColor: "var(--palette-grey-600)",
@@ -286,10 +301,15 @@ const CodeProperty = ({
           </div>
         ) : null}
         <div
-          className={`editor-wrapper nodrag ${isFocused ? "nowheel" : ""}`}
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
+          className={cn(
+            "editor-wrapper",
+            (isInspector || activation.isActive) && "nodrag",
+            isFocused && "nowheel"
+          )}
         >
+          {!isInspector && activation.editor && !activation.isActive && (
+            <EditorActivationCover onActivate={activation.activateAt} />
+          )}
           {MonacoEditor ? (
             <MonacoEditor
               value={code}

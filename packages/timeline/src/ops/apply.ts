@@ -9,9 +9,11 @@
  * Everything a pure function cannot know — minting an id, reading an asset,
  * baking a JS animation body, loading a composition, parsing SVG path data —
  * arrives on {@link TimelineOpContext}. This module imports nothing from
- * `src/render` or `@nodetool-ai/gpu`, so mobile compiles it from source (AS2).
+ * `src/render` or `@nodetool-ai/gpu`, so editing needs no renderer (AS2).
  */
 
+import { isShortResourceId } from "@nodetool-ai/protocol";
+import type { MidiNoteParams } from "@nodetool-ai/protocol/api-schemas/timeline-tool-params.js";
 import {
   buildEffect,
   buildMask,
@@ -19,8 +21,11 @@ import {
   buildTransition,
   resolveDeleteTrackArgs,
   resolveMoveTrackArgs,
-  resolveShapeArg
+  resolveShapeArg,
+  textStyleParams
 } from "@nodetool-ai/protocol/api-schemas/timeline-tool-params.js";
+import { staggerClipAnimations } from "../animation/beat.js";
+import type { PropertyCurve } from "../animation/compile.js";
 import {
   ANIMATION_PRESETS,
   buildBakedAnimation,
@@ -30,6 +35,16 @@ import {
   resolveCustomMask,
   typewriterTiming
 } from "../animation/index.js";
+import type {
+  AnimationRole,
+  ClipAnimation,
+  CustomClipAnimation
+} from "../animation/types.js";
+import {
+  model3dStyleWithPatch,
+  shapeStyleWithDefaults,
+  textStyleWithDefaults
+} from "../authoredStyles.js";
 import {
   beatCountToCover,
   buildBeatGrid,
@@ -38,26 +53,55 @@ import {
   type SnapBoundaryMode
 } from "../beats.js";
 import { instantiateComposition } from "../composition.js";
+import { isCropUsable } from "../crop.js";
 import {
   DEFAULT_MEDIA_CLIP_DURATION_MS,
   DEFAULT_MODEL3D_CLIP_DURATION_MS,
   DEFAULT_MODEL3D_CLIP_NAME,
+  DEFAULT_TEXT_CLIP_COLOR,
   DEFAULT_TEXT_CLIP_DURATION_MS,
+  clipFitsTrack,
   makeClip,
   makeClipVersion,
   makeTrack,
   mediaTypeForContentType,
   trackTypeForMediaType
 } from "../defaults.js";
+import { assertAuthorableFontFamily } from "../fonts/catalog.js";
 import { selectGeneratedMatteVersion } from "../generatedMatte.js";
+import {
+  groupDescendantIds,
+  isGroupClip,
+  moveUnitIds,
+  trimGroup,
+  ungroup
+} from "../group.js";
+import {
+  isMediaTrackStale,
+  splitClipMediaTracks,
+  resliceTracksForTrimmedClip
+} from "../mediaTrack.js";
+import { quantizeNotes, scaleVelocity, transposeNotes } from "../midi/edit.js";
+import { DEFAULT_MIDI_INSTRUMENT } from "../midi/instrument.js";
+import { createMidiNote, sortNotes, validateNotes } from "../midi/notes.js";
+import {
+  findInstrumentPreset,
+  MIDI_INSTRUMENT_PRESETS
+} from "../midi/presets.js";
+import {
+  DEFAULT_TEMPO,
+  rescaleClipsForTempo,
+  resolveTempo
+} from "../midi/tempo.js";
+import { msToTicks } from "../midi/ticks.js";
 import { computeModel3DBakeHash } from "../model3dBake.js";
 import {
-  model3dStyleWithPatch,
-  shapeStyleWithDefaults,
-  textStyleWithDefaults
-} from "../authoredStyles.js";
-import { isGroupClip, moveGroup, trimGroup, ungroup } from "../group.js";
-import { isCropUsable } from "../crop.js";
+  addReframeKeyframe,
+  clearReframe,
+  mediaTrackCanDriveReframe
+} from "../reframe.js";
+import { adaptSequenceFormat } from "../retarget.js";
+import { sourceRate } from "../sourceRate.js";
 import { splitClip } from "../splitClip.js";
 import {
   activeTakeIdOf,
@@ -66,35 +110,31 @@ import {
   selectTake
 } from "../takes.js";
 import { moveTrackOrder, type TrackDestination } from "../trackOrder.js";
-import { trimClip } from "../trimClip.js";
 import {
   applyTransitionAtCutCandidate,
+  transitionGrowthMs,
+  transitionGrowthUnit,
+  transitionLengthAtCut,
   planTransitionAtCut
 } from "../transitionAtCut.js";
-import {
-  resliceTracksForSplitClip,
-  resliceTracksForTrimmedClip
-} from "../mediaTrack.js";
+import { retimeCaption, trimClip } from "../trimClip.js";
+import { retimeClipSpeed } from "../clipSpeed.js";
 import type {
-  MediaTrack,
   ClipTransform,
+  MediaTrack,
+  MidiInstrument,
   TimelineClip,
   TimelineMarker,
+  TimelineSequence,
   TimelineTrack,
   TrackBinding
 } from "../types.js";
-import type { PropertyCurve } from "../animation/compile.js";
-import type {
-  AnimationRole,
-  ClipAnimation,
-  CustomClipAnimation
-} from "../animation/types.js";
+import type { ClipTransformPatch, TimelineOp } from "./op.js";
 import {
   serializeClip,
   serializeMediaTrack,
   serializeTrack
 } from "./serialize.js";
-import type { ClipTransformPatch, TimelineOp } from "./op.js";
 import type {
   TimelineAnimationInput,
   TimelineOpContext,
@@ -125,16 +165,83 @@ export function resolveClipTarget(
       );
     }
     const clip = state.clips.find((c) => c.id === selected[0]);
-    if (!clip) throw new Error("Selected clip no longer exists.");
+    if (!clip) {
+      throw new Error("Selected clip no longer exists.");
+    }
     return clip;
   }
   const byId = state.clips.find((c) => c.id === target);
-  if (byId) return byId;
+  if (byId) {
+    return byId;
+  }
+  const prefix = resolveShortId(state.clips, target, "clip");
+  if (prefix) {
+    return prefix;
+  }
   const lower = target.toLowerCase();
   const byName = state.clips.find((c) => c.name.toLowerCase() === lower);
-  if (byName) return byName;
+  if (byName) {
+    return byName;
+  }
   throw new Error(
     `No clip found matching "${target}". ${listUnits(state.clips, "clip")}`
+  );
+}
+
+function resolveShortId<T extends { id: string }>(
+  units: readonly T[],
+  target: string,
+  kind: string
+): T | undefined {
+  if (!isShortResourceId(target)) {
+    return undefined;
+  }
+  const matches = units.filter((unit) => unit.id.startsWith(target));
+  if (matches.length > 1) {
+    throw new Error(
+      `Prefix "${target}" matches more than one ${kind}; use a full id.`
+    );
+  }
+  return matches[0];
+}
+
+/** A unit by exact id, or by an exact unique 12-character prefix of one. */
+function findByIdOrShortId<T extends { id: string }>(
+  units: readonly T[],
+  target: string,
+  kind: string
+): T | undefined {
+  return (
+    units.find((unit) => unit.id === target) ??
+    resolveShortId(units, target, kind)
+  );
+}
+
+/**
+ * The beat one `target` names: an exact id, an exact unique 12-character id
+ * prefix, or a 1-based position written as digits only. Anything else is
+ * refused, so a hex id that happens to start with a digit is never read as a
+ * position. Exported because the browser bridge resolves the same names.
+ */
+export function resolveBeatTarget<T extends { id: string }>(
+  beats: readonly T[],
+  target: string
+): T {
+  const byId = findByIdOrShortId(beats, target, "beat");
+  if (byId) {
+    return byId;
+  }
+  const byPosition = /^\d+$/.test(target)
+    ? beats[Number.parseInt(target, 10) - 1]
+    : undefined;
+  if (byPosition) {
+    return byPosition;
+  }
+  throw new Error(
+    `No beat matches "${target}". Use a beat id or its 1-based position. ` +
+      (beats.length
+        ? `This plan has ${beats.length} beats.`
+        : "This sequence has no beat plan yet; run ui_timeline_plan_beats first.")
   );
 }
 
@@ -146,7 +253,9 @@ function listUnits(
   units: readonly { id: string; name: string }[],
   kind: string
 ): string {
-  if (units.length === 0) return `The timeline has no ${kind}s yet.`;
+  if (units.length === 0) {
+    return `The timeline has no ${kind}s yet.`;
+  }
   const shown = units
     .slice(0, MAX_LISTED_UNITS)
     .map((u) => `${u.id} ("${u.name}")`)
@@ -226,7 +335,9 @@ class OpScope {
   ) {}
 
   touch(...ids: string[]): void {
-    for (const id of ids) this.changed.add(id);
+    for (const id of ids) {
+      this.changed.add(id);
+    }
   }
 
   get tracks(): TimelineTrack[] {
@@ -269,20 +380,74 @@ class OpScope {
       name: name ?? `${capitalize(type)} ${index + 1}`,
       index
     });
+    if (type === "midi") {
+      track.instrument = structuredClone(
+        this.ctx.defaultMidiInstrument ?? DEFAULT_MIDI_INSTRUMENT
+      );
+      this.state.tempo ??= structuredClone(DEFAULT_TEMPO);
+    }
     this.tracks.push(track);
     return track;
   }
 
-  findOrCreateTrack(type: TimelineTrack["type"]): TimelineTrack {
-    return this.tracks.find((t) => t.type === type) ?? this.addTrack(type);
+  /** The first unlocked track of `type`, or a new one: a lock refuses writes. */
+  findOrCreateTrack(type: TimelineTrack["type"], name?: string): TimelineTrack {
+    return (
+      this.tracks.find((t) => t.type === type && !t.locked) ??
+      this.addTrack(type, name)
+    );
+  }
+
+  /**
+   * Refuse an edit that writes to a locked clip, a clip on a locked track, or
+   * a locked destination track. Every op that changes a clip or places one
+   * asks here, so the lock means the same thing on every path.
+   */
+  assertWritable(
+    clips: readonly TimelineClip[],
+    destinationTrackId?: string
+  ): void {
+    const tracks = new Map(this.tracks.map((track) => [track.id, track]));
+    for (const clip of clips) {
+      if (clip.locked || tracks.get(clip.trackId)?.locked) {
+        throw new Error(
+          `Clip "${clip.name}" or its track is locked. Unlock it before editing.`
+        );
+      }
+    }
+    if (destinationTrackId !== undefined) {
+      const track = tracks.get(destinationTrackId);
+      if (track?.locked) {
+        throw new Error(
+          `Track "${track.name}" is locked. Unlock it or choose another track.`
+        );
+      }
+    }
   }
 
   resolveTrack(idOrName: string): TimelineTrack {
     const byId = this.tracks.find((t) => t.id === idOrName);
-    if (byId) return byId;
+    if (byId) {
+      return byId;
+    }
+    if (isShortResourceId(idOrName)) {
+      const matches = this.tracks.filter((track) =>
+        track.id.startsWith(idOrName)
+      );
+      if (matches.length === 1 && matches[0]) {
+        return matches[0];
+      }
+      if (matches.length > 1) {
+        throw new Error(
+          `Short track id "${idOrName}" matches more than one track; use the full id or name.`
+        );
+      }
+    }
     const lower = idOrName.toLowerCase();
     const byName = this.tracks.find((t) => t.name.toLowerCase() === lower);
-    if (byName) return byName;
+    if (byName) {
+      return byName;
+    }
     throw new Error(
       `No track found matching "${idOrName}". ${this.validUnits(this.tracks, "track")}`
     );
@@ -294,15 +459,142 @@ class OpScope {
       .reduce((m, c) => Math.max(m, c.startMs + c.durationMs), 0);
   }
 
+  resolveMidiTrack(target: string): TimelineTrack {
+    const track = this.resolveTrack(target);
+    if (track.type !== "midi") {
+      throw new Error(
+        `Track "${track.name}" is a ${track.type} track — notes are played by a midi track's instrument. ${this.validUnits(
+          this.tracks.filter((t) => t.type === "midi"),
+          "midi track"
+        )}`
+      );
+    }
+    return track;
+  }
+
+  resolveMidiClip(target: string): TimelineClip {
+    const clip = this.resolveClip(target);
+    if (clip.mediaType !== "midi") {
+      throw new Error(
+        `Clip "${clip.name}" is a ${clip.mediaType} clip — only a midi clip carries notes. Place one with add_midi_clip.`
+      );
+    }
+    return clip;
+  }
+
+  buildNotes(input: readonly MidiNoteParams[] | undefined, name: string) {
+    const reserved = new Set(
+      (input ?? []).flatMap((note) => (note.id ? [note.id] : []))
+    );
+    const mintNote = (): string => {
+      let id = this.ctx.newId("note");
+      while (reserved.has(id)) {
+        id = this.ctx.newId("note");
+      }
+      reserved.add(id);
+      return id;
+    };
+    const notes = (input ?? []).map((n) =>
+      createMidiNote({
+        id: n.id ?? mintNote(),
+        pitch: n.pitch,
+        velocity: n.velocity,
+        startTick: n.start_tick,
+        durationTick: n.duration_tick
+      })
+    );
+    const problems = validateNotes(notes);
+    if (problems.length) {
+      throw new Error(
+        `Clip "${name}" was not given its notes — ${problems.length} problem(s): ` +
+          problems
+            .map((p) => (p.noteId ? `${p.noteId}: ${p.message}` : p.message))
+            .join(" ")
+      );
+    }
+    return sortNotes(notes);
+  }
+
   resolveClip(target: string): TimelineClip {
     return resolveClipTarget(this.state, target);
+  }
+
+  editTargets(clip: TimelineClip): TimelineClip[] {
+    // A group's children and, when links are followed, every partner of the
+    // clip or of a child: the whole unit the editor would move.
+    const unit = moveUnitIds(this.clips, [clip.id], {
+      followLinks: this.ctx.followLinks !== false
+    });
+    const targets = this.clips.filter((candidate) => unit.has(candidate.id));
+    this.assertWritable(targets);
+    return targets;
+  }
+
+  assertPictureTrack(track: TimelineTrack): void {
+    if (track.type !== "video" && track.type !== "overlay") {
+      throw new Error(
+        `Authored clips require a video or overlay track; "${track.name}" is ${track.type}.`
+      );
+    }
   }
 
   /** Swap an engine-returned clip into `clips`, keeping the array's order. */
   replaceClip(clip: TimelineClip, next: TimelineClip): TimelineClip {
     const index = this.clips.findIndex((c) => c.id === clip.id);
-    if (index >= 0) this.clips[index] = next;
+    if (index >= 0) {
+      this.clips[index] = next;
+    }
     return next;
+  }
+
+  /**
+   * How far a clip's source reaches, for capping a trim that grows it: the
+   * asset's own duration when the host knows it. An imported audio or video
+   * clip whose length nobody knows may not grow past its current out-point,
+   * the rule the editor's keyboard trim applies. Undefined means no cap — a
+   * picture with no running time, or a generated clip a regeneration can
+   * lengthen.
+   */
+  async sourceLimitMs(clip: TimelineClip): Promise<number | undefined> {
+    if (clip.mediaType !== "audio" && clip.mediaType !== "video") {
+      return undefined;
+    }
+    if (!clip.currentAssetId) {
+      return undefined;
+    }
+    const known = await this.knownSourceMs(clip);
+    if (known !== undefined) {
+      return known;
+    }
+    if (clip.sourceType !== "imported") {
+      return undefined;
+    }
+    return (
+      clip.outPointMs ??
+      (clip.inPointMs ?? 0) + clip.durationMs * sourceRate(clip)
+    );
+  }
+
+  /**
+   * The length of a clip's audio or video asset when the host knows it.
+   * Undefined for anything else, including an asset it cannot read.
+   */
+  async knownSourceMs(clip: TimelineClip): Promise<number | undefined> {
+    if (clip.mediaType !== "audio" && clip.mediaType !== "video") {
+      return undefined;
+    }
+    const assetId = clip.currentAssetId;
+    if (!assetId) {
+      return undefined;
+    }
+    let known: number | undefined;
+    try {
+      known = (await this.ctx.resolveAsset?.(assetId))?.durationMs;
+    } catch {
+      // An unreadable asset is an unknown length.
+      known = undefined;
+    }
+    return known !== undefined && known > 0 ? known : undefined;
   }
 
   /**
@@ -312,8 +604,120 @@ class OpScope {
    */
   applyTrim(
     clip: TimelineClip,
-    patch: { durationMs?: number; inPointMs?: number; outPointMs?: number }
+    patch: { durationMs?: number; inPointMs?: number; outPointMs?: number },
+    maxSourceMs?: number
   ): TimelineClip {
+    if (
+      patch.durationMs === undefined &&
+      patch.inPointMs === undefined &&
+      patch.outPointMs === undefined
+    ) {
+      return clip;
+    }
+    if (patch.inPointMs !== undefined && patch.inPointMs < 0) {
+      throw new Error("inPointMs cannot be negative.");
+    }
+    const prospective =
+      patch.durationMs !== undefined && !isGroupClip(clip)
+        ? trimSourceBounded(
+            clip,
+            patch.durationMs - clip.durationMs,
+            maxSourceMs
+          )
+        : clip;
+    const sourceIn = patch.inPointMs ?? prospective.inPointMs ?? 0;
+    const sourceOut = patch.outPointMs ?? prospective.outPointMs;
+    if (sourceOut !== undefined && sourceOut <= sourceIn) {
+      throw new Error("outPointMs must be greater than inPointMs.");
+    }
+    if (
+      maxSourceMs !== undefined &&
+      patch.outPointMs !== undefined &&
+      patch.outPointMs > maxSourceMs
+    ) {
+      throw new Error(
+        `outPointMs ${patch.outPointMs} is past the end of the source (${maxSourceMs}ms).`
+      );
+    }
+    if (
+      isGroupClip(clip) &&
+      (patch.inPointMs !== undefined || patch.outPointMs !== undefined)
+    ) {
+      throw new Error(
+        "Groups carry no source media; trim their duration instead."
+      );
+    }
+    const targets = this.editTargets(clip);
+    // An in-point alone is a slip: the window keeps its length and moves
+    // through the source, so the out-point moves with it — and a linked
+    // partner slips by the same timeline amount, or picture and sound part.
+    if (
+      patch.inPointMs !== undefined &&
+      patch.durationMs === undefined &&
+      patch.outPointMs === undefined
+    ) {
+      const slipMs =
+        (patch.inPointMs - (clip.inPointMs ?? 0)) / sourceRate(clip);
+      const slipped = targets.map((target) => {
+        const inPointMs =
+          target.id === clip.id
+            ? patch.inPointMs!
+            : (target.inPointMs ?? 0) + slipMs * sourceRate(target);
+        if (inPointMs < 0) {
+          throw new Error(
+            `Linked clip "${target.name}" has no source before its in-point to slip into.`
+          );
+        }
+        return { target, inPointMs };
+      });
+      for (const { target, inPointMs } of slipped) {
+        target.inPointMs = inPointMs;
+        target.outPointMs = inPointMs + target.durationMs * sourceRate(target);
+        // Words are timed on the clip's clock; the media moved under it.
+        if (target.caption) {
+          target.caption = retimeCaption(target.caption, -slipMs);
+        }
+        this.mediaTracks = resliceTracksForTrimmedClip(this.mediaTracks, target);
+        this.touch(target.id);
+      }
+      return clip;
+    }
+    if (
+      targets.length > 1 &&
+      patch.durationMs !== undefined &&
+      !isGroupClip(clip)
+    ) {
+      const delta = patch.durationMs - clip.durationMs;
+      const trimmedTargets = targets.map((target) => {
+        if (target.durationMs + delta <= 0) {
+          throw new Error(
+            "Linked trim would remove a clip. Shorten the trim or unlink it first."
+          );
+        }
+        const trimmed =
+          target.id === clip.id
+            ? trimSourceBounded(target, delta, maxSourceMs)
+            : trimClip(target, "end", delta);
+        if (target.id === clip.id) {
+          if (patch.inPointMs !== undefined) {
+            trimmed.inPointMs = patch.inPointMs;
+          }
+          if (patch.outPointMs !== undefined) {
+            trimmed.outPointMs = patch.outPointMs;
+          }
+        }
+        return { target, trimmed };
+      });
+      for (const { target, trimmed } of trimmedTargets) {
+        this.replaceClip(target, trimmed);
+        this.mediaTracks = resliceTracksForTrimmedClip(
+          this.mediaTracks,
+          trimmed
+        );
+        this.touch(trimmed.id);
+      }
+      return this.resolveClip(clip.id);
+    }
     // A group carries what it holds (D4): shortening one pulls its children
     // inside the window that leaves, rather than leaving them hanging past an
     // edge nothing draws.
@@ -325,9 +729,14 @@ class OpScope {
         patch.durationMs - clip.durationMs
       );
       const next = this.clips.find((c) => c.id === clip.id)!;
-      this.touch(
-        ...this.clips.filter((c) => c.parentId === clip.id).map((c) => c.id)
-      );
+      for (const target of targets) {
+        const trimmed = this.resolveClip(target.id);
+        this.mediaTracks = resliceTracksForTrimmedClip(
+          this.mediaTracks,
+          trimmed
+        );
+        this.touch(trimmed.id);
+      }
       this.touch(next.id);
       return next;
     }
@@ -342,11 +751,15 @@ class OpScope {
       }
       next = this.replaceClip(
         clip,
-        trimClip(clip, "end", patch.durationMs - clip.durationMs)
+        trimSourceBounded(clip, patch.durationMs - clip.durationMs, maxSourceMs)
       );
     }
-    if (patch.inPointMs !== undefined) next.inPointMs = patch.inPointMs;
-    if (patch.outPointMs !== undefined) next.outPointMs = patch.outPointMs;
+    if (patch.inPointMs !== undefined) {
+      next.inPointMs = patch.inPointMs;
+    }
+    if (patch.outPointMs !== undefined) {
+      next.outPointMs = patch.outPointMs;
+    }
     if (
       patch.durationMs !== undefined ||
       patch.inPointMs !== undefined ||
@@ -354,23 +767,36 @@ class OpScope {
     ) {
       this.touch(next.id);
     }
+    this.mediaTracks = resliceTracksForTrimmedClip(this.mediaTracks, next);
     return next;
   }
 
   /**
-   * Trim the start edge: hold the clip's end and move its start to `startMs`.
-   * A group pulls its children with it (D4); anything else goes through the
-   * engine so the source in-point follows the edge.
+   * Move a clip's head by `deltaMs` (positive grows it earlier), for the clip
+   * and every linked partner, keeping each one's end where it was. A group
+   * carries its children with the edge (D4).
    */
-  applyTrimStart(clip: TimelineClip, startMs: number): TimelineClip {
-    const deltaMs = clip.startMs - Math.max(0, startMs);
-    if (deltaMs === 0) return clip;
-    this.touch(clip.id);
+  applyHeadTrim(clip: TimelineClip, deltaMs: number): TimelineClip {
+    const targets = this.editTargets(clip);
     if (isGroupClip(clip)) {
       this.clips = trimGroup(this.clips, clip.id, "start", deltaMs);
-      return this.clips.find((c) => c.id === clip.id)!;
+    } else {
+      // Every partner is trimmed before any is written, so one that runs out
+      // of source leaves the whole group as it was.
+      const trimmed = targets.map((target) => ({
+        target,
+        next: trimClip(target, "start", deltaMs)
+      }));
+      for (const { target, next } of trimmed) {
+        this.replaceClip(target, next);
+      }
     }
-    return this.replaceClip(clip, trimClip(clip, "start", deltaMs));
+    for (const target of targets) {
+      const next = this.resolveClip(target.id);
+      this.mediaTracks = resliceTracksForTrimmedClip(this.mediaTracks, next);
+      this.touch(next.id);
+    }
+    return this.resolveClip(clip.id);
   }
 
   /** The body of `move_clip`, shared with `set_clip_params`. */
@@ -378,38 +804,79 @@ class OpScope {
     clip: TimelineClip,
     patch: { startMs?: number; trackId?: string }
   ): TimelineClip {
+    if (patch.startMs === undefined && patch.trackId === undefined) {
+      return clip;
+    }
+    const targets = this.editTargets(clip);
+    // The destination is checked before anything moves, so a refused track
+    // leaves the clip and its partners where they were.
+    let destination: TimelineTrack | undefined;
+    if (patch.trackId !== undefined) {
+      destination = this.resolveTrack(patch.trackId);
+      this.assertWritable([], destination.id);
+      if (!clipFitsTrack(clip.mediaType, destination.type)) {
+        throw new Error(
+          `Clip "${clip.name}" is a ${clip.mediaType} clip and cannot go on ${destination.type} track "${destination.name}".`
+        );
+      }
+    }
+    if (
+      targets.length > 1 &&
+      patch.startMs !== undefined &&
+      !isGroupClip(clip)
+    ) {
+      const minimum = Math.min(...targets.map((target) => target.startMs));
+      const delta = Math.max(-minimum, patch.startMs - clip.startMs);
+      for (const target of targets) {
+        target.startMs += delta;
+        this.touch(target.id);
+      }
+      if (destination) {
+        clip.trackId = destination.id;
+      }
+      return clip;
+    }
     // Moving a group moves what it holds by the same delta (D4). Children keep
     // their own tracks, so their z-order is untouched (I9) — only the group
     // itself takes a new `trackId`.
-    let moved = clip;
     if (isGroupClip(clip) && patch.startMs !== undefined) {
-      const nextStartMs = Math.max(0, patch.startMs);
-      this.clips = moveGroup(this.clips, clip.id, nextStartMs - clip.startMs);
-      moved = this.clips.find((c) => c.id === clip.id)!;
-      this.touch(
-        ...this.clips.filter((c) => c.parentId === clip.id).map((c) => c.id)
-      );
+      // One delta for the whole unit, clamped by its earliest member, so a
+      // child's J-cut partner keeps its offset at zero.
+      const minimum = Math.min(...targets.map((target) => target.startMs));
+      const delta = Math.max(-minimum, patch.startMs - clip.startMs);
+      for (const target of targets) {
+        target.startMs += delta;
+      }
+      this.touch(...targets.map((target) => target.id));
     } else if (patch.startMs !== undefined) {
       clip.startMs = Math.max(0, patch.startMs);
     }
-    if (patch.trackId !== undefined) {
-      moved.trackId = this.resolveTrack(patch.trackId).id;
+    if (destination) {
+      clip.trackId = destination.id;
     }
     if (patch.startMs !== undefined || patch.trackId !== undefined) {
-      this.touch(moved.id);
+      this.touch(clip.id);
     }
-    return moved;
+    return clip;
   }
 
   /** Resolve a marker by id, or by case-insensitive label. */
   resolveMarker(target: string): TimelineMarker {
     const byId = this.state.markers.find((m) => m.id === target);
-    if (byId) return byId;
+    if (byId) {
+      return byId;
+    }
+    const prefix = resolveShortId(this.state.markers, target, "marker");
+    if (prefix) {
+      return prefix;
+    }
     const lower = target.toLowerCase();
     const byLabel = this.state.markers.find(
       (m) => m.label.toLowerCase() === lower
     );
-    if (byLabel) return byLabel;
+    if (byLabel) {
+      return byLabel;
+    }
     const known = this.state.markers
       .map((m) => `${m.id} ("${m.label}") at ${m.timeMs}ms`)
       .join(", ");
@@ -438,7 +905,9 @@ class OpScope {
     for (const target of targets) {
       try {
         const clip = this.resolveClip(target);
-        if (!resolved.includes(clip)) resolved.push(clip);
+        if (!resolved.includes(clip)) {
+          resolved.push(clip);
+        }
       } catch {
         // Recorded as a skip in the op's own report, with the reason.
         missing.push(target);
@@ -456,9 +925,36 @@ class OpScope {
   }
 }
 
+/**
+ * `trimClip` on the end edge, capped at the source length when one is known.
+ * The refusal names the limit, which the engine's own message does not.
+ */
+function trimSourceBounded(
+  clip: TimelineClip,
+  deltaMs: number,
+  maxSourceMs: number | undefined
+): TimelineClip {
+  try {
+    return trimClip(clip, "end", deltaMs, maxSourceMs);
+  } catch (error) {
+    if (
+      maxSourceMs !== undefined &&
+      error instanceof Error &&
+      error.message.includes("beyond source out-point")
+    ) {
+      throw new Error(
+        `Clip "${clip.name}" cannot be longer than its source: the source ends at ${maxSourceMs}ms.`
+      );
+    }
+    throw error;
+  }
+}
+
 function rejectUnknownClipParams(patch: Record<string, unknown>): void {
   for (const key of Object.keys(patch)) {
-    if (CLIP_PARAM_KEYS.includes(key)) continue;
+    if (CLIP_PARAM_KEYS.includes(key)) {
+      continue;
+    }
     const elsewhere = CLIP_PARAM_ELSEWHERE[key];
     if (elsewhere) {
       throw new Error(
@@ -478,7 +974,9 @@ function rejectUnknownClipParams(patch: Record<string, unknown>): void {
  * animation with neither curves nor code.
  */
 function liftCustom(input: TimelineAnimationInput): TimelineAnimationInput {
-  if (!input.custom) return input;
+  if (!input.custom) {
+    return input;
+  }
   const { custom, ...rest } = input;
   return {
     ...rest,
@@ -497,7 +995,9 @@ function staggerUnitCount(
   clip: TimelineClip,
   stagger: ClipAnimation["stagger"]
 ): number {
-  if (!stagger || clip.mediaType !== "text") return 0;
+  if (!stagger || clip.mediaType !== "text") {
+    return 0;
+  }
   const text = clip.textStyle?.text ?? "";
   return text
     .trim()
@@ -540,14 +1040,16 @@ async function buildCustomAnimation(
   let maskInput: unknown;
   if (hasCurves) {
     const normalized = normalizeCustomCurves(input.curves);
-    if (!normalized.ok) throw new Error(normalized.error);
+    if (!normalized.ok) {
+      throw new Error(normalized.error);
+    }
     curves = normalized.curves;
     maskInput = input.mask;
   } else {
     const bake = scope.ctx.bakeAnimation;
     if (!bake) {
       throw new Error(
-        "This surface cannot run `code`: no animation baker is wired to it. Pass `curves` instead, or bake the body through POST /api/timelines/animations/bake."
+        "This surface cannot run `code`: no animation baker is wired to it. Pass `curves` instead, or use edit_timeline to bake the body."
       );
     }
     const baked = await bake({
@@ -563,24 +1065,33 @@ async function buildCustomAnimation(
       throw new Error(baked.error ?? "The animation body returned no curves.");
     }
     const normalized = normalizeCustomCurves(baked.curves);
-    if (!normalized.ok) throw new Error(normalized.error);
+    if (!normalized.ok) {
+      throw new Error(normalized.error);
+    }
     curves = normalized.curves;
     maskInput = baked.mask ?? input.mask;
   }
 
   const mask = resolveCustomMask(curves, maskInput);
-  if (!mask.ok) throw new Error(mask.error);
+  if (!mask.ok) {
+    throw new Error(mask.error);
+  }
 
   const custom: CustomClipAnimation = {
     curves,
     bakedAt: (scope.ctx.now ?? (() => new Date().toISOString()))()
   };
-  if (hasCode) custom.code = code;
-  if (mask.mask) custom.mask = mask.mask;
+  if (hasCode) {
+    custom.code = code;
+  }
+  if (mask.mask) {
+    custom.mask = mask.mask;
+  }
 
   return {
     id: scope.ctx.newId("anim"),
     role: input.role,
+    enabled: input.enabled,
     preset: CUSTOM_ANIMATION_PRESET_ID,
     durationMs,
     delayMs: input.delayMs,
@@ -611,6 +1122,7 @@ async function runOp(
         durationMs,
         playheadMs: state.playheadMs,
         selectedClipIds: [...state.selectedClipIds],
+        tempo: state.tempo,
         tracks: scope.tracks.map((t) => scope.trackOut(t)),
         clips: scope.clips.map((c) => scope.clipOut(c)),
         mediaTracks: scope.mediaTracks.map(serializeMediaTrack),
@@ -618,86 +1130,19 @@ async function runOp(
       };
     }
 
-    case "add_track": {
-      const track = scope.addTrack(op.type, op.name);
-      return { ok: true, track: scope.trackOut(track) };
-    }
-
-    case "move_track": {
-      const { target, toIndex, before, after } = resolveMoveTrackArgs(op);
-      const track = scope.resolveTrack(target);
-      const destination: TrackDestination = {};
-      if (toIndex !== undefined) destination.toIndex = toIndex;
-      if (before !== undefined)
-        destination.beforeId = scope.resolveTrack(before).id;
-      if (after !== undefined)
-        destination.afterId = scope.resolveTrack(after).id;
-      const orderedIds = moveTrackOrder(scope.tracks, track.id, destination);
-      const byId = new Map(scope.tracks.map((t) => [t.id, t]));
-      // The array order is what `get_state` prints, so keep it and the indices
-      // saying the same thing.
-      scope.tracks.length = 0;
-      orderedIds.forEach((id, i) => {
-        const moved = byId.get(id)!;
-        moved.index = i;
-        scope.tracks.push(moved);
-      });
-      return {
-        ok: true,
-        track: scope.trackOut(track),
-        tracks: scope.tracks.map((t) => scope.trackOut(t))
-      };
-    }
-
-    case "delete_track": {
-      const { target, deleteClips } = resolveDeleteTrackArgs(op);
-      const track = scope.resolveTrack(target);
-      const onIt = scope.clips.filter((c) => c.trackId === track.id);
-      if (onIt.length > 0 && !deleteClips) {
-        throw new Error(
-          `Track "${track.name}" still holds ${onIt.length} clip(s): ` +
-            `${onIt.map((c) => c.id).join(", ")}. Move them first, or pass ` +
-            "deleteClips: true to delete them with the track."
-        );
-      }
-      const removedClipIds = onIt.map((c) => c.id);
-      const kept = scope.clips.filter((c) => c.trackId !== track.id);
-      scope.clips.length = 0;
-      scope.clips.push(...kept);
-      // A parent that went with the track would leave its children pointing at
-      // a clip that no longer exists, which the validator reads as a broken
-      // document rather than a deletion.
-      for (const clip of scope.clips) {
-        if (clip.parentId && removedClipIds.includes(clip.parentId)) {
-          delete clip.parentId;
-          scope.touch(clip.id);
-        }
-      }
-      scope.touch(...removedClipIds);
-      state.selectedClipIds = state.selectedClipIds.filter(
-        (id) => !removedClipIds.includes(id)
-      );
-      const remaining = scope.tracks.filter((t) => t.id !== track.id);
-      scope.tracks.length = 0;
-      // Index is z-order, so the stack has to close over the gap.
-      remaining.forEach((t, i) => {
-        t.index = i;
-        scope.tracks.push(t);
-      });
-      return {
-        ok: true,
-        deleted: { id: track.id, name: track.name, type: track.type },
-        deletedClipIds: removedClipIds,
-        tracks: scope.tracks.map((t) => scope.trackOut(t))
-      };
-    }
+    case "add_track":
+    case "move_track":
+    case "delete_track":
+      return runTrackOp(scope, op);
 
     case "add_text_clip": {
       const track = op.trackId
         ? scope.resolveTrack(op.trackId)
-        : scope.findOrCreateTrack("overlay");
+        : scope.findOrCreateTrack("overlay", "Text");
       // `style` wins over a top-level twin: a caller that sent both meant the
       // bag it named.
+      scope.assertPictureTrack(track);
+      scope.assertWritable([], track.id);
       const s = { ...(op.loose ?? {}), ...(op.style ?? {}) };
       const clip = makeClip({
         id: scope.ctx.newId("clip"),
@@ -710,9 +1155,12 @@ async function runOp(
         status: "generated",
         textStyle: textStyleWithDefaults(op.text, s)
       });
-      if (op.opacity !== undefined) clip.opacity = op.opacity;
-      if (op.transform)
+      if (op.opacity !== undefined) {
+        clip.opacity = op.opacity;
+      }
+      if (op.transform) {
         clip.transform = mergeClipTransform(clip.transform, op.transform);
+      }
       scope.clips.push(clip);
       state.selectedClipIds = [clip.id];
       scope.touch(clip.id);
@@ -732,7 +1180,11 @@ async function runOp(
           `No asset found for "${op.asset}". Pass an asset id or an asset:// URI from list_assets.`
         );
       }
-      const mediaType = mediaTypeForContentType(found.contentType);
+      const mediaType =
+        found.contentType.toLowerCase().startsWith("model/") ||
+        /\.(glb|gltf)$/i.test(found.name)
+          ? "model3d"
+          : mediaTypeForContentType(found.contentType);
       if (!mediaType) {
         throw new Error(
           `Asset "${found.name}" is ${found.contentType}, which is not video, image, or audio and cannot go on a timeline.`
@@ -740,8 +1192,10 @@ async function runOp(
       }
       if (
         mediaType !== "image" &&
+        mediaType !== "model3d" &&
         op.durationMs === undefined &&
-        !found.durationMs
+        !found.durationMs &&
+        !scope.ctx.allowUnknownMediaDuration
       ) {
         throw new Error(
           `Asset "${found.name}" has no known duration. Supply durationMs or import media that can be probed.`
@@ -749,7 +1203,15 @@ async function runOp(
       }
       const track = op.trackId
         ? scope.resolveTrack(op.trackId)
-        : scope.findOrCreateTrack(trackTypeForMediaType(mediaType));
+        : scope.findOrCreateTrack(
+            mediaType === "model3d" ? "video" : trackTypeForMediaType(mediaType)
+          );
+      if (!clipFitsTrack(mediaType, track.type)) {
+        throw new Error(
+          `Asset "${found.name}" is not compatible with ${track.type} track "${track.name}".`
+        );
+      }
+      scope.assertWritable([], track.id);
       const init: Parameters<typeof makeClip>[0] = {
         id: scope.ctx.newId("clip"),
         trackId: track.id,
@@ -762,11 +1224,16 @@ async function runOp(
         status: "generated",
         currentAssetId: found.id
       };
-      if (found.thumbnailAssetId)
+      if (mediaType === "model3d") {
+        init.model3dStyle = model3dStyleWithPatch(undefined, undefined);
+      }
+      if (found.thumbnailAssetId) {
         init.thumbnailAssetId = found.thumbnailAssetId;
+      }
       const clip = makeClip(init);
-      if (op.transform)
+      if (op.transform) {
         clip.transform = mergeClipTransform(clip.transform, op.transform);
+      }
       scope.clips.push(clip);
       state.selectedClipIds = [clip.id];
       scope.touch(clip.id);
@@ -776,7 +1243,9 @@ async function runOp(
     case "add_shape_clip": {
       const track = op.trackId
         ? scope.resolveTrack(op.trackId)
-        : scope.findOrCreateTrack("overlay");
+        : scope.findOrCreateTrack("overlay", "Shapes");
+      scope.assertPictureTrack(track);
+      scope.assertWritable([], track.id);
       const shapeArg = resolveShapeArg(op.shape, op.shapeStyle, op.loose ?? {});
       const clip = makeClip({
         id: scope.ctx.newId("clip"),
@@ -789,9 +1258,12 @@ async function runOp(
         status: "generated",
         shapeStyle: shapeStyleWithDefaults(shapeArg)
       });
-      if (op.opacity !== undefined) clip.opacity = op.opacity;
-      if (op.transform)
+      if (op.opacity !== undefined) {
+        clip.opacity = op.opacity;
+      }
+      if (op.transform) {
         clip.transform = mergeClipTransform(clip.transform, op.transform);
+      }
       scope.clips.push(clip);
       state.selectedClipIds = [clip.id];
       scope.touch(clip.id);
@@ -811,7 +1283,19 @@ async function runOp(
       // track, or one made for it.
       const track = op.trackId
         ? scope.resolveTrack(op.trackId)
-        : scope.findOrCreateTrack("overlay");
+        : scope.findOrCreateTrack("overlay", "3D");
+      scope.assertPictureTrack(track);
+      scope.assertWritable([], track.id);
+      // The id is stored on the clip and read back by every renderer, so a
+      // short or `asset://` form resolves to the asset's full id here. A
+      // 12-character prefix nothing resolves would store a dangling id.
+      const found = await scope.ctx.resolveAsset?.(assetId);
+      if (!found && isShortResourceId(assetId)) {
+        throw new Error(
+          `No asset found for "${assetId}". Pass the glTF's asset id from list_assets.`
+        );
+      }
+      const currentAssetId = found?.id ?? assetId;
       const clip = makeClip({
         id: scope.ctx.newId("clip"),
         trackId: track.id,
@@ -821,11 +1305,12 @@ async function runOp(
         mediaType: "model3d",
         sourceType: "imported",
         status: "generated",
-        currentAssetId: assetId,
+        currentAssetId,
         model3dStyle: model3dStyleWithPatch(undefined, op.style)
       });
-      if (op.transform)
+      if (op.transform) {
         clip.transform = mergeClipTransform(clip.transform, op.transform);
+      }
       scope.clips.push(clip);
       state.selectedClipIds = [clip.id];
       scope.touch(clip.id);
@@ -915,7 +1400,8 @@ async function runOp(
       const targets = (op.children ?? []).map((ref) => scope.resolveClip(ref));
       const track = op.trackId
         ? scope.resolveTrack(op.trackId)
-        : scope.findOrCreateTrack("overlay");
+        : scope.findOrCreateTrack("overlay", "Groups");
+      scope.assertWritable(targets, track.id);
       const group = makeClip({
         id: scope.ctx.newId("clip"),
         trackId: track.id,
@@ -926,8 +1412,9 @@ async function runOp(
         sourceType: "imported",
         status: "generated"
       });
-      if (op.transform)
+      if (op.transform) {
         group.transform = mergeClipTransform(group.transform, op.transform);
+      }
       scope.clips.push(group);
       for (const child of targets) {
         child.parentId = group.id;
@@ -954,11 +1441,13 @@ async function runOp(
         ? scope.resolveTrack(op.trackId)
         : op.kind === "text-to-audio"
           ? scope.findOrCreateTrack("audio")
-          : op.kind === "text-to-video"
-            ? scope.findOrCreateTrack("video")
-            : (scope.tracks.find(
-                (t) => t.type === "video" || t.type === "overlay"
-              ) ?? scope.findOrCreateTrack("video"));
+          : scope.findOrCreateTrack("video");
+      if (!clipFitsTrack(mediaType, track.type)) {
+        throw new Error(
+          `A ${op.kind} clip is ${mediaType} and cannot go on ${track.type} track "${track.name}".`
+        );
+      }
+      scope.assertWritable([], track.id);
 
       const generationStarted = op.autoGenerate !== false;
       const clip = makeClip({
@@ -999,31 +1488,58 @@ async function runOp(
     case "split_clip": {
       const clip = scope.resolveClip(op.target);
       const at = op.atMs ?? state.playheadMs;
-      const [left, right] = splitClip(clip, at);
-      left.id = scope.ctx.newId("clip");
-      right.id = scope.ctx.newId("clip");
-      const idx = scope.clips.findIndex((c) => c.id === clip.id);
-      scope.clips.splice(idx, 1, left, right);
-      state.selectedClipIds = state.selectedClipIds.filter(
-        (id) => id !== clip.id
-      );
-      scope.touch(clip.id, left.id, right.id);
-      scope.mediaTracks = resliceTracksForSplitClip(
-        scope.mediaTracks,
-        clip.id,
-        left,
-        right,
-        () => scope.ctx.newId("track")
-      );
-      return { ok: true, clips: [scope.clipOut(left), scope.clipOut(right)] };
+      if (at <= clip.startMs || at >= clip.startMs + clip.durationMs) {
+        throw new Error(`Split time ${at}ms is outside clip "${clip.name}".`);
+      }
+      const targets = scope
+        .editTargets(clip)
+        .filter(
+          (target) =>
+            at > target.startMs && at < target.startMs + target.durationMs
+        );
+      const leftLink = targets.length > 1 ? scope.ctx.newId("link") : undefined;
+      const rightLink =
+        targets.length > 1 ? scope.ctx.newId("link") : undefined;
+      const halves: TimelineClip[] = [];
+      for (const target of targets) {
+        const [cutLeft, cutRight] = splitClip(target, at);
+        cutLeft.id = scope.ctx.newId("clip");
+        cutRight.id = scope.ctx.newId("clip");
+        if (targets.length > 1) {
+          cutLeft.linkId = leftLink;
+          cutRight.linkId = rightLink;
+        }
+        const split = splitClipMediaTracks(
+          scope.mediaTracks,
+          target.id,
+          cutLeft,
+          cutRight,
+          () => scope.ctx.newId("track")
+        );
+        const { left, right } = split;
+        scope.mediaTracks = split.mediaTracks;
+        const idx = scope.clips.findIndex((c) => c.id === target.id);
+        scope.clips.splice(idx, 1, left, right);
+        state.selectedClipIds = state.selectedClipIds.filter(
+          (id) => id !== target.id
+        );
+        scope.touch(target.id, left.id, right.id);
+        halves.push(left, right);
+      }
+      return { ok: true, clips: halves.map((half) => scope.clipOut(half)) };
     }
 
     case "trim_clip": {
-      const trimmed = scope.applyTrim(scope.resolveClip(op.target), {
-        durationMs: op.durationMs,
-        inPointMs: op.inPointMs,
-        outPointMs: op.outPointMs
-      });
+      const clip = scope.resolveClip(op.target);
+      const trimmed = scope.applyTrim(
+        clip,
+        {
+          durationMs: op.durationMs,
+          inPointMs: op.inPointMs,
+          outPointMs: op.outPointMs
+        },
+        await scope.sourceLimitMs(clip)
+      );
       scope.mediaTracks = resliceTracksForTrimmedClip(
         scope.mediaTracks,
         trimmed
@@ -1041,6 +1557,7 @@ async function runOp(
 
     case "delete_clip": {
       const clip = scope.resolveClip(op.target);
+      scope.editTargets(clip);
       // Deleting a group deletes the parent, not the picture: its children stay
       // where they are and stop inheriting (D4). Leaving them with a `parentId`
       // nothing answers is what the validator calls a dangling parent.
@@ -1052,6 +1569,15 @@ async function runOp(
         : scope.clips;
       const out = scope.clipOut(clip);
       scope.clips = remaining.filter((c) => c.id !== clip.id);
+      if (clip.linkId) {
+        const remainingLinked = scope.clips.filter(
+          (candidate) => candidate.linkId === clip.linkId
+        );
+        if (remainingLinked.length === 1) {
+          delete remainingLinked[0].linkId;
+          scope.touch(remainingLinked[0].id);
+        }
+      }
       state.selectedClipIds = state.selectedClipIds.filter(
         (id) => id !== clip.id
       );
@@ -1061,20 +1587,84 @@ async function runOp(
 
     case "duplicate_clip": {
       const src = scope.resolveClip(op.target);
-      const copy: TimelineClip = {
-        ...src,
-        id: scope.ctx.newId("clip"),
-        startMs: src.startMs + src.durationMs + (op.gapMs ?? 0),
-        versions: [],
-        animations: src.animations?.map((a) => ({
-          ...a,
+      const offsetMs = src.durationMs + (op.gapMs ?? 0);
+      if (!Number.isFinite(offsetMs) || src.startMs + offsetMs < 0) {
+        throw new Error(
+          `gapMs ${op.gapMs} would place the copy of "${src.name}" before zero.`
+        );
+      }
+      // A group's copy carries copies of what it holds, at the same offset, so
+      // the duplicate draws what the original draws.
+      const descendants = isGroupClip(src)
+        ? groupDescendantIds(scope.clips, src.id)
+        : new Set<string>();
+      const sources = [
+        src,
+        ...scope.clips.filter((clip) => descendants.has(clip.id))
+      ];
+      for (const clip of sources) {
+        scope.assertWritable([], clip.trackId);
+      }
+      const freshIds = new Map(
+        sources.map((clip) => [clip.id, scope.ctx.newId("clip")])
+      );
+      // A link whose members are all copied stays a link among the copies,
+      // under a fresh id; a lone half is copied unlinked.
+      const linkCounts = new Map<string, number>();
+      for (const clip of sources) {
+        if (clip.linkId !== undefined && clip.id !== src.id) {
+          linkCounts.set(clip.linkId, (linkCounts.get(clip.linkId) ?? 0) + 1);
+        }
+      }
+      const freshLinks = new Map<string, string>();
+      const copies = sources.map((clip) => {
+        const copy = structuredClone(clip);
+        copy.id = freshIds.get(clip.id)!;
+        copy.startMs += offsetMs;
+        copy.locked = false;
+        if (copy.parentId !== undefined && clip.id !== src.id) {
+          copy.parentId = freshIds.get(copy.parentId) ?? copy.parentId;
+        }
+        const linkId = clip.linkId;
+        if (
+          linkId !== undefined &&
+          clip.id !== src.id &&
+          (linkCounts.get(linkId) ?? 0) >= 2
+        ) {
+          let fresh = freshLinks.get(linkId);
+          if (fresh === undefined) {
+            fresh = scope.ctx.newId("link");
+            freshLinks.set(linkId, fresh);
+          }
+          copy.linkId = fresh;
+        } else {
+          delete copy.linkId;
+        }
+        // A generated clip's copy is a variation to regenerate, so it starts
+        // as a draft. Imported media keeps its asset and draws the same frames.
+        if (clip.sourceType === "generated") {
+          copy.status = "draft";
+          copy.versions = [];
+          delete copy.currentAssetId;
+          delete copy.lastGeneratedHash;
+          delete copy.activeTakeId;
+        }
+        copy.animations = copy.animations?.map((animation) => ({
+          ...animation,
           id: scope.ctx.newId("anim")
-        }))
+        }));
+        return copy;
+      });
+      scope.clips.push(...copies);
+      scope.touch(...copies.map((copy) => copy.id));
+      const result: TimelineOpResult = {
+        ok: true,
+        clip: scope.clipOut(copies[0]!)
       };
-      scope.clips.push(copy);
-      state.selectedClipIds = [copy.id];
-      scope.touch(copy.id);
-      return { ok: true, clip: scope.clipOut(copy) };
+      if (copies.length > 1) {
+        result.children = copies.slice(1).map((copy) => copy.id);
+      }
+      return result;
     }
 
     case "set_clip_params": {
@@ -1084,11 +1674,17 @@ async function runOp(
       // Timing belongs to move_clip and trim_clip, but a caller sending it here
       // means one edit either way — so apply it through the same code rather
       // than dropping it or making them call twice.
-      clip = scope.applyTrim(clip, {
-        durationMs: patch.durationMs,
-        inPointMs: patch.inPointMs,
-        outPointMs: patch.outPointMs
-      });
+      clip = scope.applyTrim(
+        clip,
+        {
+          durationMs: patch.durationMs,
+          inPointMs: patch.inPointMs,
+          outPointMs: patch.outPointMs
+        },
+        patch.durationMs === undefined && patch.outPointMs === undefined
+          ? undefined
+          : await scope.sourceLimitMs(clip)
+      );
       clip = scope.applyMove(clip, {
         startMs: patch.startMs,
         trackId: patch.trackId
@@ -1103,26 +1699,50 @@ async function runOp(
         }
         patch.textStyle = { ...style, fontSizePx: patch.fontSizePx };
       }
-      if (patch.name !== undefined) clip.name = patch.name;
-      if (patch.opacity !== undefined) clip.opacity = patch.opacity;
+      if (patch.name !== undefined) {
+        clip.name = patch.name;
+      }
+      if (patch.opacity !== undefined) {
+        clip.opacity = patch.opacity;
+      }
       if (patch.transform !== undefined) {
         clip.transform = mergeClipTransform(clip.transform, patch.transform);
       }
       if (patch.speedMultiplier !== undefined) {
-        clip.speedMultiplier = patch.speedMultiplier;
+        // The editor's rule: the source window stays, the duration scales, and
+        // linked partners change speed with the clip.
+        const unit = scope.editTargets(clip);
+        scope.clips = retimeClipSpeed(
+          scope.clips,
+          new Set(unit.map((member) => member.id)),
+          patch.speedMultiplier
+        );
+        for (const member of unit) {
+          scope.touch(member.id);
+        }
+        clip = scope.resolveClip(clip.id);
       }
-      if (patch.volumeDb !== undefined) clip.volumeDb = patch.volumeDb;
-      if (patch.fadeInMs !== undefined) clip.fadeInMs = patch.fadeInMs;
-      if (patch.fadeOutMs !== undefined) clip.fadeOutMs = patch.fadeOutMs;
-      if (patch.fadeInShape !== undefined) clip.fadeInShape = patch.fadeInShape;
+      if (patch.volumeDb !== undefined) {
+        clip.volumeDb = patch.volumeDb;
+      }
+      if (patch.fadeInMs !== undefined) {
+        clip.fadeInMs = patch.fadeInMs;
+      }
+      if (patch.fadeOutMs !== undefined) {
+        clip.fadeOutMs = patch.fadeOutMs;
+      }
+      if (patch.fadeInShape !== undefined) {
+        clip.fadeInShape = patch.fadeInShape;
+      }
       if (patch.fadeOutShape !== undefined) {
         clip.fadeOutShape = patch.fadeOutShape;
       }
       if (patch.blendMode !== undefined) {
         clip.blendMode = patch.blendMode as TimelineClip["blendMode"];
       }
-      if (patch.borderRadius !== undefined)
+      if (patch.borderRadius !== undefined) {
         clip.borderRadius = patch.borderRadius;
+      }
       if (patch.crop !== undefined) {
         // Null is how a caller puts the whole source back; leaving the field
         // with all-zero insets would store a crop that means nothing.
@@ -1138,11 +1758,32 @@ async function runOp(
           clip.crop = patch.crop;
         }
       }
-      if (patch.hidden !== undefined) clip.hidden = patch.hidden;
-      if (patch.muted !== undefined) clip.muted = patch.muted;
-      if (patch.locked !== undefined) clip.locked = patch.locked;
-      if (patch.textStyle !== undefined) clip.textStyle = patch.textStyle;
-      if (patch.shapeStyle !== undefined) clip.shapeStyle = patch.shapeStyle;
+      if (patch.hidden !== undefined) {
+        clip.hidden = patch.hidden;
+      }
+      if (patch.muted !== undefined) {
+        clip.muted = patch.muted;
+      }
+      if (patch.locked !== undefined) {
+        clip.locked = patch.locked;
+      }
+      if (patch.textStyle !== undefined) {
+        const parsed = textStyleParams.safeParse({
+          color: DEFAULT_TEXT_CLIP_COLOR,
+          ...clip.textStyle,
+          ...patch.textStyle
+        });
+        if (!parsed.success) {
+          throw new Error(
+            `Clip "${clip.name}" has no text style yet, so this patch still needs ${parsed.error.issues.map((issue) => issue.path.join(".")).join(", ")}.`
+          );
+        }
+        assertAuthorableFontFamily(parsed.data.fontFamily);
+        clip.textStyle = parsed.data;
+      }
+      if (patch.shapeStyle !== undefined) {
+        clip.shapeStyle = shapeStyleWithDefaults(patch.shapeStyle);
+      }
       if (patch.captionStyle !== undefined) {
         // The style rides on the clip's caption, so a clip with no words to
         // draw has nowhere to put it. Say so rather than storing a look nothing
@@ -1158,6 +1799,7 @@ async function runOp(
 
     case "set_parent": {
       const clip = scope.resolveClip(op.target);
+      scope.assertWritable([clip]);
       scope.touch(clip.id);
       if (op.parentId === null) {
         delete clip.parentId;
@@ -1190,6 +1832,7 @@ async function runOp(
 
     case "set_transition": {
       const clip = scope.resolveClip(op.target);
+      scope.assertWritable([clip]);
       if (op.transition === null) {
         delete clip.transitionIn;
       } else {
@@ -1200,18 +1843,51 @@ async function runOp(
     }
 
     case "apply_transition_at_cut": {
-      const planned = planTransitionAtCut(scope.clips, op);
-      if (!planned.ok) throw new Error(planned.error);
+      const outgoing = scope.resolveClip(op.outgoingClipId);
+      const incoming = scope.resolveClip(op.incomingClipId);
+      const planned = planTransitionAtCut(scope.clips, {
+        ...op,
+        outgoingClipId: outgoing.id,
+        incomingClipId: incoming.id
+      });
+      if (!planned.ok) {
+        throw new Error(planned.error);
+      }
+      scope.assertWritable([incoming]);
+      // The outgoing clip grows under the transition with the partners that
+      // end with it, so each is a write the lock refuses. Like the editor, it
+      // is capped at a source length the host knows and free otherwise.
+      const growth = transitionGrowthMs(
+        outgoing,
+        incoming,
+        transitionLengthAtCut(outgoing, incoming, planned.candidate.durationMs)
+      );
+      const unit =
+        growth > 0 ? transitionGrowthUnit(scope.clips, outgoing) : [];
+      scope.assertWritable(unit);
+      const limits = new Map<string, number | undefined>();
+      for (const member of unit) {
+        limits.set(member.id, await scope.knownSourceMs(member));
+      }
       const applied = applyTransitionAtCutCandidate(
         scope.clips,
-        planned.candidate
+        planned.candidate,
+        { sourceDurationMs: (clip) => limits.get(clip.id) }
       );
-      if (!applied.ok) throw new Error(applied.error);
+      if (!applied.ok) {
+        throw new Error(applied.error);
+      }
+      const before = new Map(scope.clips.map((clip) => [clip.id, clip]));
       scope.clips = applied.clips;
-      scope.touch(
-        planned.candidate.outgoingClipId,
-        planned.candidate.incomingClipId
-      );
+      for (const clip of scope.clips) {
+        if (before.get(clip.id) !== clip) {
+          scope.mediaTracks = resliceTracksForTrimmedClip(
+            scope.mediaTracks,
+            clip
+          );
+          scope.touch(clip.id);
+        }
+      }
       return {
         ok: true,
         candidate: planned.candidate,
@@ -1225,6 +1901,9 @@ async function runOp(
       if (op.mask === null) {
         delete clip.mask;
       } else {
+        if (op.mask.kind === "path" && !op.mask.d?.trim()) {
+          throw new Error("A path mask needs `d` with SVG path data.");
+        }
         clip.mask = buildMask(op.mask, scope.ctx.parseSvgPath);
       }
       scope.touch(clip.id);
@@ -1248,7 +1927,9 @@ async function runOp(
         sourceClipId: source.id,
         mode: op.matte.mode
       };
-      if (op.matte.invert !== undefined) matteOut.invert = op.matte.invert;
+      if (op.matte.invert !== undefined) {
+        matteOut.invert = op.matte.invert;
+      }
       clip.matte = matteOut;
       return { ok: true, clip: scope.clipOut(clip) };
     }
@@ -1275,7 +1956,9 @@ async function runOp(
       // The knobs are the user's, so an absent field leaves the stored value
       // alone rather than resetting it to a default the caller did not name.
       const matte = clip.generatedMatte!;
-      if (op.invert !== undefined) matte.invert = op.invert;
+      if (op.invert !== undefined) {
+        matte.invert = op.invert;
+      }
       if (op.strength !== undefined) {
         matte.strength = Math.min(1, Math.max(0, op.strength));
       }
@@ -1287,6 +1970,7 @@ async function runOp(
 
     case "set_time_remap": {
       const clip = scope.resolveClip(op.target);
+      scope.assertWritable([clip]);
       if (op.timeRemap === null) {
         delete clip.timeRemap;
       } else {
@@ -1315,27 +1999,77 @@ async function runOp(
           `"${clip.name}" is not a generated clip — ui_timeline_set_clip_binding only applies to clips created with ui_timeline_generate_clip.`
         );
       }
-      if (op.prompt !== undefined) clip.prompt = op.prompt;
-      if (op.negativePrompt !== undefined)
+      if (op.prompt !== undefined) {
+        clip.prompt = op.prompt;
+      }
+      if (op.negativePrompt !== undefined) {
         clip.negativePrompt = op.negativePrompt;
-      if (op.provider !== undefined) clip.provider = op.provider;
-      if (op.model !== undefined) clip.model = op.model;
-      if (op.voice !== undefined) clip.voice = op.voice;
-      if (op.width !== undefined) clip.width = op.width;
-      if (op.height !== undefined) clip.height = op.height;
-      if (op.aspectRatio !== undefined) clip.aspectRatio = op.aspectRatio;
-      if (op.resolution !== undefined) clip.resolution = op.resolution;
-      if (op.strength !== undefined) clip.strength = op.strength;
+      }
+      if (op.provider !== undefined) {
+        clip.provider = op.provider;
+      }
+      if (op.model !== undefined) {
+        clip.model = op.model;
+      }
+      if (op.voice !== undefined) {
+        clip.voice = op.voice;
+      }
+      if (op.width !== undefined) {
+        clip.width = op.width;
+      }
+      if (op.height !== undefined) {
+        clip.height = op.height;
+      }
+      if (op.aspectRatio !== undefined) {
+        clip.aspectRatio = op.aspectRatio;
+      }
+      if (op.resolution !== undefined) {
+        clip.resolution = op.resolution;
+      }
+      if (op.strength !== undefined) {
+        clip.strength = op.strength;
+      }
       if (op.numInferenceSteps !== undefined) {
         clip.numInferenceSteps = op.numInferenceSteps;
       }
-      if (op.regenerate) clip.status = "queued";
+      if (op.seed !== undefined) {
+        clip.seed = op.seed;
+      }
+      const bindingChanged = Object.keys(op).some(
+        (key) =>
+          key !== "op" &&
+          key !== "target" &&
+          key !== "regenerate" &&
+          op[key as keyof typeof op] !== undefined
+      );
+      if (bindingChanged && (clip.lastGeneratedHash || clip.currentAssetId)) {
+        clip.status = "stale";
+      }
       scope.touch(clip.id);
+      // No op starts a generation job: the browser runs one itself after this
+      // edit lands. Marking the clip queued here would promise a job that no
+      // runner on this surface will ever start.
+      if (op.regenerate) {
+        return {
+          ok: true,
+          clip: scope.clipOut(clip),
+          regenerationStarted: false,
+          note: "The binding was saved, but this surface cannot run generation jobs. Regenerate the clip from the timeline editor."
+        };
+      }
       return { ok: true, clip: scope.clipOut(clip) };
     }
 
     case "animate_clip": {
       const clip = scope.resolveClip(op.target);
+      if (
+        clip.mediaType !== "text" &&
+        op.animations.some((input) => input.stagger !== undefined)
+      ) {
+        throw new Error(
+          `Stagger applies only to text clips; "${clip.name}" is ${clip.mediaType}.`
+        );
+      }
       const built: ClipAnimation[] = [];
       for (const input of op.animations) {
         if (input.preset === CUSTOM_ANIMATION_PRESET_ID) {
@@ -1361,19 +2095,22 @@ async function runOp(
         if (input.preset === "typewriter" && clip.mediaType !== "text") {
           throw new Error('Preset "typewriter" requires a text clip.');
         }
-        const timing = input.preset === "typewriter"
-          ? typewriterTiming(
-              clip.textStyle?.text ?? "",
-              clip.durationMs - (input.delayMs ?? 0),
-              input.durationMs,
-              input.stagger
-            )
-          : null;
+        const timing =
+          input.preset === "typewriter"
+            ? typewriterTiming(
+                clip.textStyle?.text ?? "",
+                clip.durationMs - (input.delayMs ?? 0),
+                input.durationMs,
+                input.stagger
+              )
+            : null;
         built.push({
           id: scope.ctx.newId("anim"),
           role: input.role,
+          enabled: input.enabled,
           preset: input.preset,
-          durationMs: timing?.durationMs ?? input.durationMs ?? preset.defaultDurationMs,
+          durationMs:
+            timing?.durationMs ?? input.durationMs ?? preset.defaultDurationMs,
           delayMs: input.delayMs,
           easing: input.easing,
           params: input.params,
@@ -1454,8 +2191,12 @@ async function runOp(
         timeMs: Math.round(op.timeMs),
         label: op.label ?? ""
       };
-      if (op.color !== undefined) marker.color = op.color;
-      if (op.note !== undefined) marker.note = op.note;
+      if (op.color !== undefined) {
+        marker.color = op.color;
+      }
+      if (op.note !== undefined) {
+        marker.note = op.note;
+      }
       state.markers.push(marker);
       return { ok: true, marker: { ...marker } };
     }
@@ -1509,7 +2250,35 @@ async function runOp(
         op.targets === undefined || op.targets === "all"
           ? undefined
           : op.targets;
-      const { clips: targeted, missing } = scope.resolveSnapTargets(named);
+      const resolved = scope.resolveSnapTargets(named);
+      const missing = resolved.missing;
+      // Each clip is snapped through move/trim, which carry a group's children
+      // and a link's partners. Snapping those as well would move them again,
+      // so one root per group and per link is snapped and the rest follow it.
+      const targetedIds = new Set(resolved.clips.map((clip) => clip.id));
+      const parentOf = new Map(
+        scope.clips.map((clip) => [clip.id, clip.parentId])
+      );
+      const followLinks = scope.ctx.followLinks !== false;
+      const seenLinks = new Set<string>();
+      const targeted = resolved.clips.filter((clip) => {
+        const visited = new Set<string>();
+        let parentId = clip.parentId;
+        while (parentId !== undefined && !visited.has(parentId)) {
+          if (targetedIds.has(parentId)) {
+            return false;
+          }
+          visited.add(parentId);
+          parentId = parentOf.get(parentId);
+        }
+        if (followLinks && clip.linkId !== undefined) {
+          if (seenLinks.has(clip.linkId)) {
+            return false;
+          }
+          seenLinks.add(clip.linkId);
+        }
+        return true;
+      });
 
       const offsetMs = op.offset_ms ?? 0;
       // A tempo grid has to reach the last boundary being snapped, so its
@@ -1533,9 +2302,15 @@ async function runOp(
         mode?: SnapBoundaryMode;
         action?: SnapAction;
       } = {};
-      if (op.tolerance_ms !== undefined) options.toleranceMs = op.tolerance_ms;
-      if (op.mode !== undefined) options.mode = op.mode;
-      if (op.action !== undefined) options.action = op.action;
+      if (op.tolerance_ms !== undefined) {
+        options.toleranceMs = op.tolerance_ms;
+      }
+      if (op.mode !== undefined) {
+        options.mode = op.mode;
+      }
+      if (op.action !== undefined) {
+        options.action = op.action;
+      }
 
       const result = snapClipsToGrid(
         targeted.map((clip) => ({
@@ -1558,11 +2333,19 @@ async function runOp(
             if (entry.after.durationMs === entry.before.durationMs) {
               scope.applyMove(clip, { startMs: entry.after.startMs });
             } else {
+              // A trim moves only the edge that snapped: a snapped start is a
+              // head trim, so the in-point follows it and the out-point stays.
               let trimmed = clip;
-              if (entry.after.startMs !== entry.before.startMs) {
-                trimmed = scope.applyTrimStart(clip, entry.after.startMs);
+              const headDelta = entry.before.startMs - entry.after.startMs;
+              if (headDelta !== 0) {
+                trimmed = scope.applyHeadTrim(trimmed, headDelta);
               }
-              scope.applyTrim(trimmed, { durationMs: entry.after.durationMs });
+              const tailDelta = entry.after.endMs - entry.before.endMs;
+              if (tailDelta !== 0) {
+                scope.applyTrim(trimmed, {
+                  durationMs: trimmed.durationMs + tailDelta
+                });
+              }
             }
           } catch (error) {
             return {
@@ -1602,8 +2385,8 @@ async function runOp(
         toleranceMs: result.toleranceMs,
         mode: result.mode,
         action: result.action,
-        snapped: result.snapped,
-        skipped: result.skipped + missing.length,
+        snapped: reported.filter((entry) => entry.snapped).length,
+        skipped: reported.filter((entry) => !entry.snapped).length,
         clips: reported
       };
     }
@@ -1645,7 +2428,7 @@ async function runOp(
       const mapped = new Map<string, string>();
       for (const name of [...templateTracks].reverse()) {
         const existing = scope.tracks.find(
-          (t) => t.type === "overlay" && t.name === name
+          (t) => t.type === "overlay" && t.name === name && !t.locked
         );
         mapped.set(name, (existing ?? scope.addTrack("overlay", name)).id);
       }
@@ -1656,8 +2439,10 @@ async function runOp(
       const groupTrack = op.trackId
         ? scope.resolveTrack(op.trackId)
         : (scope.tracks.find(
-            (t) => t.type === "overlay" && t.name === composition.name
+            (t) =>
+              t.type === "overlay" && t.name === composition.name && !t.locked
           ) ?? scope.addTrack("overlay", composition.name));
+      scope.assertWritable([], groupTrack.id);
       const [group, ...children] = minted as [TimelineClip, ...TimelineClip[]];
       group.trackId = groupTrack.id;
       for (const [index, child] of children.entries()) {
@@ -1702,6 +2487,7 @@ async function runOp(
 
     case "select_take": {
       const clip = scope.resolveClip(op.target);
+      scope.assertWritable([clip]);
       if (clip.mediaType === "model3d") {
         throw new Error(
           `Clip "${clip.name}" is a 3D clip — its version history includes ` +
@@ -1709,7 +2495,7 @@ async function runOp(
             "selection is not available for model3d clips yet."
         );
       }
-      const version = (clip.versions ?? []).find((v) => v.id === op.takeId);
+      const version = findByIdOrShortId(clip.versions ?? [], op.takeId, "take");
       if (!version) {
         throw new Error(
           `No take "${op.takeId}" on "${clip.name}". ${scope.validUnits(
@@ -1727,7 +2513,7 @@ async function runOp(
             `(status: ${version.status}) — only a successful take can be selected.`
         );
       }
-      const next = selectTake(clip, op.takeId);
+      const next = selectTake(clip, version.id);
       scope.clips = scope.clips.map((c) => (c.id === clip.id ? next : c));
       scope.touch(clip.id);
       return { ok: true, clip: scope.clipOut(next) };
@@ -1735,7 +2521,9 @@ async function runOp(
 
     case "rename_take": {
       const clip = scope.resolveClip(op.target);
-      if (!(clip.versions ?? []).some((v) => v.id === op.takeId)) {
+      scope.assertWritable([clip]);
+      const take = findByIdOrShortId(clip.versions ?? [], op.takeId, "take");
+      if (!take) {
         throw new Error(
           `No take "${op.takeId}" on "${clip.name}". ${scope.validUnits(
             (clip.versions ?? []).map((v) => ({
@@ -1746,7 +2534,7 @@ async function runOp(
           )}`
         );
       }
-      const next = renameTakeOnClip(clip, op.takeId, op.label);
+      const next = renameTakeOnClip(clip, take.id, op.label);
       scope.clips = scope.clips.map((c) => (c.id === clip.id ? next : c));
       scope.touch(clip.id);
       return { ok: true, clip: scope.clipOut(next) };
@@ -1754,7 +2542,12 @@ async function runOp(
 
     case "delete_take": {
       const clip = scope.resolveClip(op.target);
-      const { clip: next, error } = deleteTakeOnClip(clip, op.takeId);
+      scope.assertWritable([clip]);
+      const take = findByIdOrShortId(clip.versions ?? [], op.takeId, "take");
+      const { clip: next, error } = deleteTakeOnClip(
+        clip,
+        take?.id ?? op.takeId
+      );
       if (error) {
         throw new Error(error);
       }
@@ -1788,7 +2581,7 @@ async function runOp(
     }
 
     case "delete_track_object": {
-      const track = scope.mediaTracks.find((t) => t.id === op.trackId);
+      const track = findByIdOrShortId(scope.mediaTracks, op.trackId, "track");
       if (!track) {
         throw new Error(
           `No track "${op.trackId}". ${scope.validUnits(
@@ -1797,10 +2590,12 @@ async function runOp(
           )}`
         );
       }
-      scope.mediaTracks = scope.mediaTracks.filter((t) => t.id !== op.trackId);
+      scope.mediaTracks = scope.mediaTracks.filter((t) => t.id !== track.id);
       const unboundClipIds: string[] = [];
       scope.clips = scope.clips.map((c) => {
-        if (c.trackBinding?.trackId !== op.trackId) return c;
+        if (c.trackBinding?.trackId !== track.id) {
+          return c;
+        }
         unboundClipIds.push(c.id);
         const { trackBinding: _dropped, ...rest } = c;
         return rest;
@@ -1811,7 +2606,7 @@ async function runOp(
 
     case "bind_to_track": {
       const clip = scope.resolveClip(op.target);
-      const track = scope.mediaTracks.find((t) => t.id === op.trackId);
+      const track = findByIdOrShortId(scope.mediaTracks, op.trackId, "track");
       if (!track) {
         throw new Error(
           `No track "${op.trackId}". ${scope.validUnits(
@@ -1829,13 +2624,19 @@ async function runOp(
             "today would be a no-op, so the call is refused instead."
         );
       }
-      const binding: TrackBinding = { trackId: op.trackId, mode: op.mode };
-      if (op.offset !== undefined) binding.offset = op.offset;
-      if (op.scale !== undefined) binding.scale = op.scale;
+      const binding: TrackBinding = { trackId: track.id, mode: op.mode };
+      if (op.offset !== undefined) {
+        binding.offset = op.offset;
+      }
+      if (op.scale !== undefined) {
+        binding.scale = op.scale;
+      }
       if (op.rotationOffset !== undefined) {
         binding.rotationOffset = op.rotationOffset;
       }
-      if (op.smoothing !== undefined) binding.smoothing = op.smoothing;
+      if (op.smoothing !== undefined) {
+        binding.smoothing = op.smoothing;
+      }
       const next: TimelineClip = { ...clip, trackBinding: binding };
       scope.clips = scope.clips.map((c) => (c.id === clip.id ? next : c));
       scope.touch(clip.id);
@@ -1853,6 +2654,373 @@ async function runOp(
       return { ok: true, clip: scope.clipOut(next) };
     }
 
+    case "add_midi_clip": {
+      const track = op.track
+        ? scope.resolveMidiTrack(op.track)
+        : scope.findOrCreateTrack("midi");
+      scope.assertWritable([], track.id);
+      const name = op.name ?? "Phrase";
+      const clip = makeClip({
+        id: scope.ctx.newId("clip"),
+        trackId: track.id,
+        name,
+        startMs: op.start_ms ?? scope.trackEndMs(track.id),
+        durationMs: op.duration_ms,
+        mediaType: "midi",
+        sourceType: "imported",
+        status: "generated",
+        notes: scope.buildNotes(op.notes, name)
+      });
+      scope.clips.push(clip);
+      scope.state.selectedClipIds = [clip.id];
+      scope.touch(clip.id);
+      return { ok: true, clip: scope.clipOut(clip) };
+    }
+    case "set_notes": {
+      const clip = scope.resolveMidiClip(op.clip);
+      scope.assertWritable([clip]);
+      clip.notes = scope.buildNotes(op.notes, clip.name);
+      scope.touch(clip.id);
+      return { ok: true, clip: scope.clipOut(clip) };
+    }
+    case "set_tempo": {
+      const previous = resolveTempo(scope.state);
+      const tempo = {
+        bpm: op.bpm,
+        offsetMs: op.offset_ms ?? previous.offsetMs,
+        timeSignature: {
+          beatsPerBar: op.beats_per_bar ?? previous.timeSignature.beatsPerBar,
+          beatUnit: op.beat_unit ?? previous.timeSignature.beatUnit
+        }
+      };
+      scope.clips = rescaleClipsForTempo(
+        scope.clips,
+        scope.tracks,
+        previous,
+        tempo
+      );
+      scope.state.tempo = tempo;
+      const rescaledClipIds = scope.clips
+        .filter((c) => c.mediaType === "midi")
+        .map((c) => c.id);
+      scope.touch(...rescaledClipIds);
+      return { ok: true, tempo, previousTempo: previous, rescaledClipIds };
+    }
+    case "set_track_instrument": {
+      const track = scope.resolveMidiTrack(op.track);
+      scope.assertWritable([], track.id);
+      let instrument: MidiInstrument;
+      if ("preset" in op.instrument) {
+        const preset = findInstrumentPreset(op.instrument.preset);
+        if (!preset) {
+          throw new Error(
+            `No instrument preset named "${op.instrument.preset}". Valid presets: ${MIDI_INSTRUMENT_PRESETS.map((p) => `${p.id} ("${p.name}")`).join(", ")}.`
+          );
+        }
+        instrument = structuredClone(preset.instrument);
+      } else {
+        instrument = structuredClone(op.instrument);
+      }
+      if (instrument.type === "sampler" && instrument.zones.length) {
+        const resolveAsset = scope.ctx.resolveAsset;
+        if (!resolveAsset) {
+          throw new Error("Sample assets cannot be resolved on this host");
+        }
+        instrument.zones = await Promise.all(
+          instrument.zones.map(async (zone) => {
+            const asset = await resolveAsset(zone.assetId);
+            if (!asset || !asset.contentType.startsWith("audio/")) {
+              throw new Error(`Audio sample unavailable: ${zone.name}`);
+            }
+            return { ...zone, assetId: asset.id };
+          })
+        );
+      }
+      track.instrument = instrument;
+      return { ok: true, track: scope.trackOut(track) };
+    }
+    case "transpose_clip":
+    case "quantize_notes":
+    case "scale_velocity": {
+      const clip = scope.resolveMidiClip(op.clip);
+      scope.assertWritable([clip]);
+      const before = clip.notes ?? [];
+      const notes =
+        op.op === "transpose_clip"
+          ? transposeNotes(before, op.semitones)
+          : op.op === "scale_velocity"
+            ? scaleVelocity(before, op.factor)
+            : quantizeNotes(before, {
+                division: op.division,
+                strength: op.strength,
+                target: op.target,
+                // The grid is anchored at `tempo.offsetMs`, as the editor draws it.
+                phaseTick: msToTicks(
+                  resolveTempo(scope.state).offsetMs -
+                    clip.startMs +
+                    (clip.inPointMs ?? 0),
+                  resolveTempo(scope.state).bpm
+                )
+              });
+      clip.notes = notes;
+      scope.touch(clip.id);
+      const result: TimelineOpResult = {
+        ok: true,
+        clip: scope.clipOut(clip),
+        noteCount: notes.length
+      };
+      if (op.op === "quantize_notes") {
+        result.movedNoteCount = notes.filter(
+          (note, i) =>
+            note.startTick !== before[i]?.startTick ||
+            note.durationTick !== before[i]?.durationTick
+        ).length;
+      }
+      return result;
+    }
+    case "set_reframe_subject": {
+      const clip = scope.resolveClip(op.clip_id);
+      const track = findByIdOrShortId(
+        scope.mediaTracks.filter((t) => t.clipId === clip.id),
+        op.track_id,
+        "track"
+      );
+      if (!track) {
+        throw new Error(
+          `No track "${op.track_id}" belongs to clip "${clip.name}". ${scope.validUnits(
+            scope.mediaTracks.filter((t) => t.clipId === clip.id),
+            "track"
+          )}`
+        );
+      }
+      if (track.status !== "ready") {
+        throw new Error(
+          `Track "${track.name}" is ${track.status}; Smart Reframe can only follow a ready track.`
+        );
+      }
+      if (!mediaTrackCanDriveReframe(track) || isMediaTrackStale(track, clip)) {
+        throw new Error(
+          `Track "${track.name}" has no current analysis for clip "${clip.name}".`
+        );
+      }
+      const previous = clip.reframe ?? {
+        mode: "track"
+      };
+      clip.reframe = {
+        ...previous,
+        mode: "track",
+        trackId: track.id,
+        sourceAssetId: clip.currentAssetId,
+        safeMargin: op.safe_margin ?? previous.safeMargin,
+        smoothing: op.smoothing ?? previous.smoothing
+      };
+      scope.touch(clip.id);
+      return { ok: true, clip: scope.clipOut(clip) };
+    }
+    case "add_reframe_keyframe": {
+      const clip = scope.resolveClip(op.clip_id);
+      clip.reframe ??= { mode: "auto" };
+      const keyframe = {
+        sourceMs: op.source_ms,
+        x: op.x,
+        y: op.y,
+        zoom: op.zoom
+      };
+      clip.reframe = addReframeKeyframe(clip.reframe, keyframe);
+      scope.touch(clip.id);
+      return { ok: true, clip: scope.clipOut(clip), keyframe };
+    }
+    case "clear_reframe": {
+      const clip = scope.resolveClip(op.clip_id);
+      const next = clearReframe(clip);
+      scope.replaceClip(clip, next);
+      scope.touch(clip.id);
+      return { ok: true, clip: scope.clipOut(next) };
+    }
+    case "retarget_format": {
+      // Keys and values may be short ids; the adaptation reads full ones.
+      const trackIdByClipId: Record<string, string> = {};
+      for (const [clipId, trackId] of Object.entries(op.track_ids ?? {})) {
+        const clip = findByIdOrShortId(scope.clips, clipId, "clip");
+        if (!clip) {
+          throw new Error(
+            `track_ids names unknown clip "${clipId}". ${scope.validUnits(scope.clips, "clip")}`
+          );
+        }
+        const track = findByIdOrShortId(
+          scope.mediaTracks.filter((t) => t.clipId === clip.id),
+          trackId,
+          "track"
+        );
+        if (!track) {
+          throw new Error(
+            `Track "${trackId}" does not belong to clip "${clip.name}". ${scope.validUnits(
+              scope.mediaTracks.filter((t) => t.clipId === clip.id),
+              "track"
+            )}`
+          );
+        }
+        if (track.status !== "ready") {
+          throw new Error(
+            `Track "${track.name}" is ${track.status}; a format adaptation can only follow a ready track.`
+          );
+        }
+        trackIdByClipId[clip.id] = track.id;
+      }
+      const now = scope.ctx.now?.() ?? new Date().toISOString();
+      const {
+        selectedClipIds: _selected,
+        playheadMs: _playhead,
+        setup: _setup,
+        ...document
+      } = scope.state;
+      const source: TimelineSequence = {
+        ...document,
+        id: scope.ctx.sequence?.id ?? "seq_eval",
+        projectId: scope.ctx.sequence?.projectId ?? "",
+        name: scope.ctx.sequence?.name ?? "Sequence",
+        durationMs: scope.clips.reduce(
+          (end, c) => Math.max(end, c.startMs + c.durationMs),
+          0
+        ),
+        createdAt: now,
+        updatedAt: now,
+        camera2d: scope.state.camera2d ?? null
+      };
+      if (scope.state.setup) {
+        source.setup = scope.state.setup;
+      }
+      const adapted = adaptSequenceFormat(source, op.aspect_ratio, {
+        strategy: op.strategy,
+        safeMargin: op.safe_margin,
+        trackIdByClipId: op.track_ids ? trackIdByClipId : undefined
+      });
+      const stored = scope.ctx.retargetFormat
+        ? await scope.ctx.retargetFormat(adapted.sequence)
+        : { sequenceId: adapted.sequence.id, name: adapted.sequence.name };
+      return {
+        ok: true,
+        sourceSequenceId: source.id,
+        sequenceId: stored.sequenceId,
+        name: stored.name ?? adapted.sequence.name,
+        width: adapted.sequence.width,
+        height: adapted.sequence.height,
+        strategy: op.strategy,
+        croppedClipIds: adapted.croppedClipIds
+      };
+    }
+    case "stagger_animations": {
+      const clips = op.clip_ids.map((id) => scope.resolveClip(id));
+      const ids = clips.map((c) => c.id);
+      if (new Set(ids).size !== ids.length) {
+        throw new Error("clip_ids must contain distinct clip IDs.");
+      }
+      for (const clip of clips) {
+        if (!clip.animations?.length) {
+          throw new Error(`Clip "${clip.name}" has no animations to stagger.`);
+        }
+      }
+      scope.clips = staggerClipAnimations(scope.clips, ids, op.offset_ms);
+      scope.touch(...ids);
+      return {
+        ok: true,
+        clips: ids.map((id) => scope.clipOut(scope.resolveClip(id)))
+      };
+    }
+    case "set_setup": {
+      const previous = scope.state.setup;
+      scope.state.setup = {
+        ...previous,
+        stage: op.stage ?? previous?.stage ?? "idea",
+        brief: op.brief ?? previous?.brief ?? "",
+        format: op.format ?? previous?.format,
+        voiceover: op.voiceover ?? previous?.voiceover,
+        beats: previous?.beats
+      };
+      return { ok: true, setup: structuredClone(scope.state.setup) };
+    }
+    case "plan_beats": {
+      if (!op.beats?.length) {
+        throw new Error(
+          "This surface has no Director: pass `beats` with the plan you want. Each beat needs a prompt and a durationMs."
+        );
+      }
+      const beats = op.beats.map((beat) => ({
+        id: scope.ctx.newId("beat"),
+        prompt: beat.prompt,
+        duration_ms: Math.max(1, Math.round(beat.durationMs)),
+        transition: beat.transition,
+        voiceover: beat.voiceover,
+        music: beat.music
+      }));
+      const previous = scope.state.setup;
+      scope.state.setup = {
+        ...previous,
+        stage: "review",
+        brief: previous?.brief ?? "",
+        format: previous?.format,
+        voiceover: previous?.voiceover,
+        beats
+      };
+      return {
+        ok: true,
+        beats: structuredClone(beats),
+        clipsCreated: 0,
+        jobsStarted: 0
+      };
+    }
+    case "update_beat":
+    case "remove_beat": {
+      const beats = scope.state.setup?.beats ?? [];
+      const found = resolveBeatTarget(beats, op.beat);
+      const next = { ...found };
+      if (op.op === "update_beat") {
+        if (op.prompt !== undefined) {
+          next.prompt = op.prompt;
+        }
+        if (op.durationMs !== undefined) {
+          next.duration_ms = Math.max(1, Math.round(op.durationMs));
+        }
+        if (op.transition !== undefined) {
+          next.transition = op.transition ?? undefined;
+        }
+        if (op.voiceover !== undefined) {
+          next.voiceover = op.voiceover;
+        }
+        if (op.music !== undefined) {
+          next.music = op.music;
+        }
+      }
+      const previous = scope.state.setup;
+      scope.state.setup = {
+        ...previous,
+        stage: previous?.stage ?? "review",
+        brief: previous?.brief ?? "",
+        format: previous?.format,
+        voiceover: previous?.voiceover,
+        beats:
+          op.op === "remove_beat"
+            ? beats.filter((b) => b.id !== found.id)
+            : beats.map((b) => (b.id === found.id ? next : b))
+      };
+      return op.op === "remove_beat"
+        ? { ok: true, removed: { ...found } }
+        : { ok: true, beat: { ...next } };
+    }
+    case "generate_from_beats": {
+      if (!scope.ctx.generateFromBeats) {
+        throw new Error(
+          "This surface cannot generate from beats: no generation host is wired."
+        );
+      }
+      const outcome = await scope.ctx.generateFromBeats(scope.state, op);
+      if (outcome.error) {
+        throw new Error(outcome.error);
+      }
+      Object.assign(scope.state, outcome.state);
+      scope.touch(...outcome.changedClipIds);
+      return outcome.result;
+    }
     default: {
       const unknown = op as { op: string };
       throw new Error(`Unknown timeline op "${unknown.op}".`);
@@ -1863,12 +3031,18 @@ async function runOp(
 /** Deep copy of the document, so a failed op leaves the caller's state alone. */
 function cloneState(state: TimelineOpState): TimelineOpState {
   return {
+    ...state,
+    tempo: state.tempo,
+    setup: state.setup ? structuredClone(state.setup) : state.setup,
     fps: state.fps,
     width: state.width,
     height: state.height,
     tracks: state.tracks.map((t) => structuredClone(t)),
     clips: state.clips.map((c) => structuredClone(c)),
     markers: state.markers.map((m) => structuredClone(m)),
+    storyboardMaterializations: state.storyboardMaterializations?.map((entry) =>
+      structuredClone(entry)
+    ),
     mediaTracks: (state.mediaTracks ?? []).map((t) => structuredClone(t)),
     playheadMs: state.playheadMs,
     selectedClipIds: [...state.selectedClipIds]
@@ -1894,6 +3068,164 @@ export async function applyTimelineOp(
       result,
       changedClipIds: [...scope.changed]
     };
+  } catch (error) {
+    return {
+      state,
+      result: {},
+      changedClipIds: [],
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+export type TimelineTrackOp = Extract<
+  TimelineOp,
+  { op: "add_track" | "move_track" | "delete_track" }
+>;
+
+function serializeTracks(state: TimelineOpState) {
+  const clipCount = new Map<string, number>();
+  for (const clip of state.clips) {
+    clipCount.set(clip.trackId, (clipCount.get(clip.trackId) ?? 0) + 1);
+  }
+  return state.tracks.map((track) =>
+    serializeTrack(state, track, clipCount.get(track.id) ?? 0)
+  );
+}
+
+function runTrackOp(scope: OpScope, op: TimelineTrackOp): TimelineOpResult {
+  const state = scope.state;
+  switch (op.op) {
+    case "add_track": {
+      const track = scope.addTrack(op.type, op.name);
+      return { ok: true, track: scope.trackOut(track) };
+    }
+
+    case "move_track": {
+      const { target, toIndex, before, after } = resolveMoveTrackArgs(op);
+      const track = scope.resolveTrack(target);
+      const destination: TrackDestination = {};
+      if (toIndex !== undefined) {
+        destination.toIndex = toIndex;
+      }
+      if (before !== undefined) {
+        destination.beforeId = scope.resolveTrack(before).id;
+      }
+      if (after !== undefined) {
+        destination.afterId = scope.resolveTrack(after).id;
+      }
+      const orderedIds = moveTrackOrder(scope.tracks, track.id, destination);
+      const byId = new Map(scope.tracks.map((t) => [t.id, t]));
+      // The array order is what `get_state` prints, so keep it and the indices
+      // saying the same thing.
+      scope.tracks.length = 0;
+      orderedIds.forEach((id, i) => {
+        const moved = byId.get(id);
+        if (!moved) {
+          throw new Error(`Track "${id}" no longer exists.`);
+        }
+        moved.index = i;
+        scope.tracks.push(moved);
+      });
+      return {
+        ok: true,
+        track: scope.trackOut(track),
+        tracks: serializeTracks(scope.state)
+      };
+    }
+
+    case "delete_track": {
+      const { target, deleteClips } = resolveDeleteTrackArgs(op);
+      const track = scope.resolveTrack(target);
+      // The editor's removeTrack refuses a locked track, and a locked clip is
+      // not deleted by deleting the track under it.
+      scope.assertWritable([], track.id);
+      const onIt = scope.clips.filter((c) => c.trackId === track.id);
+      if (deleteClips) {
+        scope.assertWritable(onIt);
+      }
+      if (onIt.length > 0 && !deleteClips) {
+        throw new Error(
+          `Track "${track.name}" still holds ${onIt.length} clip(s): ` +
+            `${onIt.map((c) => c.id).join(", ")}. Move them first, or pass ` +
+            "deleteClips: true to delete them with the track."
+        );
+      }
+      const removedClipIds = onIt.map((c) => c.id);
+      const removed = new Set(removedClipIds);
+      const kept = scope.clips.filter((c) => c.trackId !== track.id);
+      scope.clips.length = 0;
+      scope.clips.push(...kept);
+      // A parent that went with the track would leave its children pointing at
+      // a clip that no longer exists, which the validator reads as a broken
+      // document rather than a deletion.
+      for (const clip of scope.clips) {
+        if (clip.parentId && removed.has(clip.parentId)) {
+          delete clip.parentId;
+          scope.touch(clip.id);
+        }
+      }
+      // A link left with one member is no link, the rule delete_clip applies.
+      const removedLinks = new Set(
+        onIt.flatMap((clip) => (clip.linkId ? [clip.linkId] : []))
+      );
+      for (const linkId of removedLinks) {
+        const remainingLinked = scope.clips.filter((c) => c.linkId === linkId);
+        if (remainingLinked.length === 1) {
+          delete remainingLinked[0]!.linkId;
+          scope.touch(remainingLinked[0]!.id);
+        }
+      }
+      // Subject tracks belong to a clip; they go with it, and a clip bound to
+      // one of them is released the way delete_track_object releases it.
+      const droppedMediaTracks = new Set(
+        scope.mediaTracks.filter((t) => removed.has(t.clipId)).map((t) => t.id)
+      );
+      if (droppedMediaTracks.size > 0) {
+        scope.mediaTracks = scope.mediaTracks.filter(
+          (t) => !droppedMediaTracks.has(t.id)
+        );
+        for (const clip of scope.clips) {
+          if (
+            clip.trackBinding &&
+            droppedMediaTracks.has(clip.trackBinding.trackId)
+          ) {
+            delete clip.trackBinding;
+            scope.touch(clip.id);
+          }
+        }
+      }
+      scope.touch(...removedClipIds);
+      state.selectedClipIds = state.selectedClipIds.filter(
+        (id) => !removed.has(id)
+      );
+      const remaining = scope.tracks.filter((t) => t.id !== track.id);
+      scope.tracks.length = 0;
+      // Index is z-order, so the stack has to close over the gap.
+      remaining.forEach((t, i) => {
+        t.index = i;
+        scope.tracks.push(t);
+      });
+      return {
+        ok: true,
+        deleted: { id: track.id, name: track.name, type: track.type },
+        deletedClipIds: removedClipIds,
+        tracks: serializeTracks(scope.state)
+      };
+    }
+  }
+}
+
+/** Synchronous document edits for hosts whose editor actions are synchronous. */
+export function applyTimelineTrackOp(
+  state: TimelineOpState,
+  op: TimelineTrackOp,
+  ctx: Pick<TimelineOpContext, "newId" | "defaultMidiInstrument">
+): TimelineOpOutcome {
+  const scope = new OpScope(cloneState(state), ctx);
+  try {
+    const result = runTrackOp(scope, op);
+    return { state: scope.state, result, changedClipIds: [...scope.changed] };
   } catch (error) {
     return {
       state,

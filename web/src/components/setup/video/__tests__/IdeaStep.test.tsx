@@ -6,9 +6,10 @@
  * brief keeps the creator here with what landed named (F10, F30).
  */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
+import { makeClip } from "@nodetool-ai/timeline";
 
 import mockTheme from "../../../../__mocks__/themeMock";
 import { useTimelineStore } from "../../../../stores/timeline/TimelineStore";
@@ -30,9 +31,10 @@ jest.mock("../../../../serverState/useEntities", () => ({
 }));
 
 const importFiles = jest.fn();
+let importing = false;
 jest.mock("../../../../hooks/timeline/useSetupMediaImport", () => ({
   __esModule: true,
-  useSetupMediaImport: () => ({ importFiles, importing: false })
+  useSetupMediaImport: () => ({ importFiles, importing })
 }));
 
 const asset = (id: string, name: string): Asset =>
@@ -50,7 +52,7 @@ const renderStep = (onStartFromScript?: () => void) =>
 
 beforeEach(() => {
   importFiles.mockReset();
-  exampleBoards = [];
+  importing = false;
   useTimelineStore.getState().reset();
   useTimelineStore.getState().setSetup({ stage: "idea", brief: "" });
 });
@@ -147,10 +149,44 @@ describe("video IdeaStep", () => {
     ).toHaveAttribute("aria-disabled", "true");
   });
 
+  it("holds Start from a script once media is placed, since the hand-off discards it (V3)", async () => {
+    const start = jest.fn();
+    act(() =>
+      useTimelineStore.getState().addClips([
+        makeClip({ id: "c1", trackId: "t1", startMs: 0, durationMs: 3000 })
+      ])
+    );
+    renderStep(start);
+    const script = screen.getByRole("button", { name: /Start from a script/ });
+    expect(script).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(script);
+    expect(start).not.toHaveBeenCalled();
+    await userEvent.hover(script);
+    expect(
+      await screen.findByText(/would be left behind/)
+    ).toBeInTheDocument();
+  });
+
+  it("holds both ways out of the step while media is uploading", async () => {
+    importing = true;
+    renderStep(jest.fn());
+    const blank = screen.getByRole("button", {
+      name: /Start with a blank timeline/
+    });
+    const script = screen.getByRole("button", { name: /Start from a script/ });
+    expect(blank).toHaveAttribute("aria-disabled", "true");
+    expect(script).toHaveAttribute("aria-disabled", "true");
+    await userEvent.hover(blank);
+    expect(
+      await screen.findByText("Wait for your files to finish uploading")
+    ).toBeInTheDocument();
+  });
+
   it("names what landed and what no track takes (F10)", async () => {
     importFiles.mockResolvedValue({
       placed: [asset("a1", "kerb.png")],
       skipped: [asset("a2", "notes.pdf")],
+      failed: [],
       advanced: false
     });
     renderStep();
@@ -172,7 +208,12 @@ describe("video IdeaStep", () => {
   });
 
   it("imports files dropped on the step, not only picked ones (F30)", async () => {
-    importFiles.mockResolvedValue({ placed: [], skipped: [], advanced: true });
+    importFiles.mockResolvedValue({
+      placed: [],
+      skipped: [],
+      failed: [],
+      advanced: true
+    });
     const { container } = renderStep();
     const surface = container.firstElementChild as HTMLElement;
     const file = new File(["x"], "hull.mp4", { type: "video/mp4" });
@@ -185,6 +226,99 @@ describe("video IdeaStep", () => {
 
     await waitFor(() => expect(importFiles).toHaveBeenCalled());
     expect((importFiles.mock.calls[0][0] as File[])[0].name).toBe("hull.mp4");
+  });
+  const drop = (surface: HTMLElement, files: File[]) =>
+    fireEvent.drop(surface, {
+      dataTransfer: { types: ["Files"], files } as unknown as DataTransfer
+    });
+
+  it("takes no drop while the step is locked, as during Change flow (V10)", async () => {
+    const { container } = render(
+      <ThemeProvider theme={mockTheme}>
+        <IdeaStep onStartBlank={jest.fn()} readOnly />
+      </ThemeProvider>
+    );
+    const surface = container.firstElementChild as HTMLElement;
+    drop(surface, [new File(["x"], "hull.mp4", { type: "video/mp4" })]);
+    await act(async () => undefined);
+    expect(importFiles).not.toHaveBeenCalled();
+  });
+
+  it("names dropped files that are not media instead of dropping them silently", async () => {
+    importFiles.mockResolvedValue({
+      placed: [asset("a1", "hull.png")],
+      skipped: [],
+      failed: [],
+      advanced: false
+    });
+    const { container } = renderStep();
+    drop(container.firstElementChild as HTMLElement, [
+      new File(["x"], "hull.png", { type: "image/png" }),
+      new File(["x"], "notes.pdf", { type: "application/pdf" })
+    ]);
+
+    await waitFor(() =>
+      expect(screen.getByText(/No track takes notes.pdf/)).toBeInTheDocument()
+    );
+    expect((importFiles.mock.calls[0][0] as File[]).map((f) => f.name)).toEqual(
+      ["hull.png"]
+    );
+  });
+
+  it("ignores a second drop while the first is still uploading", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    importFiles.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const { container } = renderStep();
+    const surface = container.firstElementChild as HTMLElement;
+    drop(surface, [new File(["x"], "one.png", { type: "image/png" })]);
+    drop(surface, [new File(["x"], "two.png", { type: "image/png" })]);
+
+    expect(importFiles).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText(/Wait for the current upload to finish/)
+    ).toBeInTheDocument();
+    finish({ placed: [], skipped: [], failed: [], advanced: false });
+  });
+
+  it("lists a file that did not upload beside the ones that did", async () => {
+    importFiles.mockResolvedValue({
+      placed: [asset("a1", "kerb.png")],
+      skipped: [],
+      failed: [{ name: "broken.png", reason: "Upload rejected" }],
+      advanced: false
+    });
+    renderStep();
+    await userEvent.upload(screen.getByLabelText("Drop your media"), [
+      new File(["x"], "kerb.png", { type: "image/png" }),
+      new File(["x"], "broken.png", { type: "image/png" })
+    ]);
+
+    expect(
+      await screen.findByText("broken.png did not upload: Upload rejected")
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Placed 1 file on the timeline/)).toBeInTheDocument();
+    // A failed upload reaches the bug-report dialog (V4).
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
+  });
+
+  it("offers Report when the import failed, not for a drop hint (V4)", async () => {
+    importFiles.mockRejectedValue(new Error("Storage is full"));
+    const { container } = renderStep();
+    drop(container.firstElementChild as HTMLElement, [
+      new File(["x"], "notes.pdf", { type: "application/pdf" })
+    ]);
+    expect(await screen.findByText(/No track takes notes.pdf/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Report" })).toBeNull();
+
+    await userEvent.upload(screen.getByLabelText("Drop your media"), [
+      new File(["x"], "kerb.png", { type: "image/png" })
+    ]);
+    expect(await screen.findByText("Storage is full")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
   });
 });
 

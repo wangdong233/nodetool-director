@@ -1,3 +1,4 @@
+import { createAgentHandlerRegistry } from "../../lib/tools/agentHandlerRegistry";
 /**
  * storyboardAgentBridge
  *
@@ -16,9 +17,12 @@
 
 import type {
   CameraDirection,
+  ProductionRequirement,
   Screenplay,
   ShotDurationSource,
-  ShotStatus
+  ShotGraphics,
+  ShotStatus,
+  StoryboardMotionDesign
 } from "@nodetool-ai/protocol";
 import type {
   StoryboardImportSource,
@@ -33,6 +37,8 @@ export interface StoryboardShotNode {
   action: string;
   camera?: CameraDirection;
   motion?: string;
+  graphics?: ShotGraphics;
+  production?: ProductionRequirement;
   durationSeconds?: number;
   /** Where `durationSeconds` comes from; absent on an unlinked board. */
   durationSource?: ShotDurationSource;
@@ -89,6 +95,8 @@ export interface StoryboardSnapshot {
    * every shot prompt, subject to each shot's own `entity_ids` override.
    */
   entityIds: string[];
+  /** Whole-board transition/continuity direction from the screenplay. */
+  motionDesign?: StoryboardMotionDesign;
   /** True once a screenplay has been loaded onto the board. */
   hasScreenplay: boolean;
   /** Script this board's words come from, or null when it is unlinked. */
@@ -124,6 +132,8 @@ export interface StoryboardAddShotInput {
   slug?: string;
   camera?: CameraDirection;
   motion?: string;
+  graphics?: ShotGraphics;
+  production?: ProductionRequirement;
   durationSeconds?: number;
   /** 0-based insertion index; appended when omitted. */
   index?: number;
@@ -187,6 +197,8 @@ export interface StoryboardUpdateShotPatch {
   slug?: string;
   camera?: CameraDirection;
   motion?: string;
+  graphics?: ShotGraphics | null;
+  production?: ProductionRequirement | null;
   status?: ShotStatus;
   /** Spoken line delivered in-shot. Read-only on a board linked to a script. */
   dialogue?: string;
@@ -321,7 +333,7 @@ export interface StoryboardAgentHandler {
   }>;
 }
 
-const handlers = new Map<string, StoryboardAgentHandler>();
+const handlers = createAgentHandlerRegistry<StoryboardAgentHandler>();
 
 /**
  * Register (or clear, with null) the handler for one board id. Each open
@@ -335,7 +347,7 @@ export function setStoryboardAgentHandler(
   if (next) {
     handlers.set(boardId, next);
   } else {
-    handlers.delete(boardId);
+    handlers.set(boardId, null);
   }
 }
 
@@ -359,8 +371,13 @@ export function getStoryboardAgentHandler(
         (open.length > 0
           ? `Open storyboards: ${open.join(", ")}. `
           : "No storyboards are currently open. ") +
-        'Call ui_open_document with type "storyboard" to open it.'
+        "Not open in the editor. Use edit_storyboard to edit it, or ui_open_document to show it to the user."
     );
   }
   return handler;
 }
+
+export const whenStoryboardAgentReady = (
+  id: string,
+  signal: AbortSignal
+): Promise<boolean> => handlers.whenReady(id, () => true, signal);

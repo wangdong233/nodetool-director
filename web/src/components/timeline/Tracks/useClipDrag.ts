@@ -14,6 +14,10 @@
  * When the pointer nears either edge of the scroll container the lanes
  * auto-scroll, and the move is re-applied with the new scroll offset so the
  * clip keeps following the pointer.
+ *
+ * A drag that ends in pointercancel, or that a second touch turns into a
+ * pinch, is abandoned: the document goes back to where it was at pointerdown
+ * and leaves no undo entry.
  */
 
 import { useCallback, useRef } from "react";
@@ -21,7 +25,10 @@ import type React from "react";
 
 import { clipFitsTrack } from "@nodetool-ai/timeline";
 import type { TimelineClip, TimelineTrack } from "@nodetool-ai/timeline";
-import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
+import {
+  useTimelineStore,
+  useTimelineStoreApi
+} from "../../../stores/timeline/TimelineStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
@@ -116,19 +123,40 @@ export function useClipDrag({
   // on pointerdown, mark() after each mutation (pauses history once the
   // pre-gesture state has actually been checkpointed), end() on pointerup —
   // so one undo step reverts the whole drag.
-  const history = useTimelineHistoryBatch();
+  const history = useTimelineHistoryBatch({ survivesUnmount: true });
+  const storeApi = useTimelineStoreApi();
 
   const dragStartXRef = useRef(0);
   const dragStartMsRef = useRef(0);
   const isDraggingRef = useRef(false);
+  // Live zoom: the gesture is tracked in time units, so a zoom mid-drag must
+  // not reinterpret pixels travelled at the old scale (F22).
+  const msPerPxRef = useRef(msPerPx);
+  msPerPxRef.current = msPerPx;
 
   const handleDragPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (
-        !clip ||
-        interactionLocked ||
-        (e.pointerType === "touch" && !e.isPrimary)
-      ) {
+      if (!clip || (e.pointerType === "touch" && !e.isPrimary)) {
+        return;
+      }
+      if (interactionLocked) {
+        // A locked clip does not drag, but a touch hold still opens its menu,
+        // which is where Unlock lives on a phone.
+        longPress.start(e);
+        const pointerId = e.pointerId;
+        const onMove = (ev: PointerEvent): void => {
+          if (ev.pointerId === pointerId) longPress.move(ev);
+        };
+        const onEnd = (ev: PointerEvent): void => {
+          if (ev.pointerId !== pointerId) return;
+          longPress.cancel();
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onEnd);
+          window.removeEventListener("pointercancel", onEnd);
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onEnd);
+        window.addEventListener("pointercancel", onEnd);
         return;
       }
       // Cut tool: split the clip at the pointer's ms position instead of
@@ -158,6 +186,10 @@ export function useClipDrag({
       dragStartMsRef.current = clip.startMs;
       isDraggingRef.current = false;
       longPress.start(e);
+      // The newest undo entry before the gesture. A newer one at the end is
+      // the pre-drag checkpoint the first effective move recorded.
+      const pastAtStart = storeApi.temporal.getState().pastStates;
+      const lastPastAtStart = pastAtStart[pastAtStart.length - 1];
       history.begin();
 
       // The scroll container, for edge auto-scroll. Its rect and scroll
@@ -167,7 +199,11 @@ export function useClipDrag({
       const scrollArea =
         e.currentTarget.closest<HTMLElement>(SCROLL_AREA_SELECTOR);
       const scrollAreaRect = scrollArea?.getBoundingClientRect() ?? null;
-      const scrollLeftAtStart = scrollArea?.scrollLeft ?? 0;
+      let scrollLeftAtStart = scrollArea?.scrollLeft ?? 0;
+      // Time already travelled before the last zoom change, plus the zoom it
+      // was measured at.
+      let travelledMs = 0;
+      let gestureMsPerPx = msPerPxRef.current;
 
       // Snapshot the snap candidates ONCE at gesture start. Only the dragged
       // clip (and, in a multi-selection, its companions) moves, and those are
@@ -244,6 +280,19 @@ export function useClipDrag({
           return;
         }
 
+        if (msPerPxRef.current !== gestureMsPerPx) {
+          // Zoom changed: bank the time moved at the old scale and re-anchor
+          // the pixel origin at the current pointer and scroll offset.
+          const oldDeltaPx =
+            lastPointer.x -
+            dragStartXRef.current +
+            ((scrollArea?.scrollLeft ?? 0) - scrollLeftAtStart);
+          travelledMs += oldDeltaPx * gestureMsPerPx;
+          dragStartXRef.current = lastPointer.x;
+          scrollLeftAtStart = scrollArea?.scrollLeft ?? 0;
+          gestureMsPerPx = msPerPxRef.current;
+        }
+        const msPerPx = gestureMsPerPx;
         const scrollDeltaPx = (scrollArea?.scrollLeft ?? 0) - scrollLeftAtStart;
         const deltaPx = lastPointer.x - dragStartXRef.current + scrollDeltaPx;
         if (!isDraggingRef.current && Math.hypot(deltaPx, lastPointer.y - dragStartY) < DRAG_THRESHOLD_PX) {
@@ -253,7 +302,7 @@ export function useClipDrag({
 
         const rawStartMs = Math.max(
           0,
-          dragStartMsRef.current + deltaPx * msPerPx
+          dragStartMsRef.current + travelledMs + deltaPx * msPerPx
         );
         const { startMs: targetStartMs, guideMs } =
           lastPointer.altKey || !useTimelineUIStore.getState().snapEnabled
@@ -360,25 +409,39 @@ export function useClipDrag({
         }
       };
 
-      const onUpOrCancel = (ev?: PointerEvent) => {
-        if (ev && ev.pointerId !== pointerId) {
+      // Put the document back to the pre-drag checkpoint and drop that entry.
+      // History is still paused here, so the restore records nothing.
+      const discardMoves = () => {
+        const temporal = storeApi.temporal;
+        const past = temporal.getState().pastStates;
+        const checkpoint = past[past.length - 1];
+        if (!checkpoint || checkpoint === lastPastAtStart) {
           return;
         }
+        storeApi.setState(checkpoint);
+        temporal.setState({ pastStates: past.slice(0, -1) });
+      };
+
+      const finish = (ev: PointerEvent, completed: boolean) => {
         longPress.cancel();
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUpOrCancel);
         window.removeEventListener("pointercancel", onUpOrCancel);
+        window.removeEventListener("pointerdown", onOtherPointerDown);
         if (hitTestRafId !== null) {
           cancelAnimationFrame(hitTestRafId);
           hitTestRafId = null;
         }
         stopAutoScroll();
-        if (isDraggingRef.current && ev?.type === "pointerup") {
+        if (isDraggingRef.current && completed) {
           sampleCrossTrack();
           applyMove();
         }
         clearGestureFeedback(useTimelineUIStore.getState());
-        if (isDraggingRef.current && ev?.type === "pointerup") {
+        if (isDraggingRef.current && !completed) {
+          discardMoves();
+        }
+        if (isDraggingRef.current && completed) {
           // The drop settles inside the gesture's undo entry. Ctrl/Cmd on
           // release forces insert; otherwise the toolbar's drop mode applies.
           const ui = useTimelineUIStore.getState();
@@ -405,9 +468,24 @@ export function useClipDrag({
         }
       };
 
+      function onUpOrCancel(ev: PointerEvent) {
+        if (ev.pointerId !== pointerId) {
+          return;
+        }
+        finish(ev, ev.type === "pointerup");
+      }
+
+      // A second finger makes the gesture a pinch (zoom), not a drag.
+      function onOtherPointerDown(ev: PointerEvent) {
+        if (ev.pointerType === "touch" && ev.pointerId !== pointerId) {
+          finish(ev, false);
+        }
+      }
+
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUpOrCancel);
       window.addEventListener("pointercancel", onUpOrCancel);
+      window.addEventListener("pointerdown", onOtherPointerDown);
     },
     [
       clip,
@@ -420,7 +498,8 @@ export function useClipDrag({
       moveClip,
       moveSelectedClips,
       resolveDrop,
-      history
+      history,
+      storeApi
     ]
   );
 

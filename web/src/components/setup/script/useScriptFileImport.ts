@@ -15,10 +15,11 @@
  * source (F3). A refused file writes nothing.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { restFetch } from "../../../lib/rest-fetch";
 import { useScriptStore } from "../../../stores/script/ScriptStore";
+import { promptForMissingRuntimePackage } from "../../../stores/RuntimePackagePromptStore";
 import {
   importedFromFile,
   importedFromText,
@@ -43,7 +44,10 @@ export const SCRIPT_MAX_BYTES = 25 * 1024 * 1024;
 const endsWith = (file: File, ...extensions: string[]): boolean =>
   extensions.some((extension) => file.name.toLowerCase().endsWith(extension));
 
-/** The route's `{ code, detail }` body, or a status-only fallback. */
+/**
+ * The route's `{ code, detail }` body, or a status-only fallback. A body that
+ * names a missing parser package also opens the install dialog.
+ */
 async function extractionError(response: Response): Promise<string> {
   try {
     const body: unknown = await response.json();
@@ -52,6 +56,9 @@ async function extractionError(response: Response): Promise<string> {
       body !== null &&
       typeof (body as { detail?: unknown }).detail === "string"
     ) {
+      promptForMissingRuntimePackage(
+        (body as { runtime_package?: unknown }).runtime_package
+      );
       return (body as { detail: string }).detail;
     }
   } catch {
@@ -75,9 +82,19 @@ export interface ScriptFileImportResult {
 export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Each import or paste takes the next number. A file read that finishes
+  // after a newer one started, or after a paste, is dropped rather than
+  // overwriting the newer words.
+  const sequence = useRef(0);
 
   const apply = useCallback(
     (imported: ImportedScript) => {
+      // A source with no lines reads back as no source at all, so writing it
+      // would silently drop the one already on the script.
+      if (imported.lines.length === 0) {
+        setError("No lines were found in this file.");
+        return;
+      }
       useScriptStore.getState().setSetup(scriptId, scriptSourcePatch(imported));
     },
     [scriptId]
@@ -95,12 +112,17 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
 
   const importText = useCallback(
     async (file: File): Promise<void> => {
+      const run = ++sequence.current;
+      const current = (): boolean => run === sequence.current;
       setError(null);
       if (tooLarge(file)) return;
       setImporting(true);
       try {
         if (endsWith(file, ".fdx", ".txt")) {
-          apply(importedFromFile(file.name, await file.text()));
+          const content = await file.text();
+          if (current()) {
+            apply(importedFromFile(file.name, content));
+          }
           return;
         }
         const form = new FormData();
@@ -110,10 +132,16 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
           body: form
         });
         if (!response.ok) {
-          setError(await extractionError(response));
+          const reason = await extractionError(response);
+          if (current()) {
+            setError(reason);
+          }
           return;
         }
         const body: unknown = await response.json();
+        if (!current()) {
+          return;
+        }
         const text =
           typeof body === "object" &&
           body !== null &&
@@ -126,9 +154,13 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
         }
         apply(importedFromText(text));
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }));
+        if (current()) {
+          setError(cause instanceof Error ? cause.message : i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }));
+        }
       } finally {
-        setImporting(false);
+        if (current()) {
+          setImporting(false);
+        }
       }
     },
     [apply, tooLarge]
@@ -136,19 +168,28 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
 
   const importSubtitles = useCallback(
     async (file: File): Promise<void> => {
+      const run = ++sequence.current;
+      const current = (): boolean => run === sequence.current;
       setError(null);
       if (tooLarge(file)) return;
       setImporting(true);
       try {
-        apply(importedFromFile(file.name, await file.text()));
+        const content = await file.text();
+        if (current()) {
+          apply(importedFromFile(file.name, content));
+        }
       } catch (cause) {
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : i18n.t("storyboard:attrs.thisSubtitleFileCouldNotBeRead", { defaultValue: "This subtitle file could not be read." })
-        );
+        if (current()) {
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : i18n.t("storyboard:attrs.thisSubtitleFileCouldNotBeRead", { defaultValue: "This subtitle file could not be read." })
+          );
+        }
       } finally {
-        setImporting(false);
+        if (current()) {
+          setImporting(false);
+        }
       }
     },
     [apply, tooLarge]
@@ -156,7 +197,11 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
 
   const pasteText = useCallback(
     (text: string) => {
+      setError(null);
       if (text.trim() === "") return;
+      // The pasted words are the newest: a file still being read is dropped.
+      sequence.current += 1;
+      setImporting(false);
       apply(importedFromText(text));
     },
     [apply]

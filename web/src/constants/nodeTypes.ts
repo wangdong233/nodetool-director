@@ -18,6 +18,7 @@ export const REROUTE_NODE_TYPE = "nodetool.control.Reroute";
 export const COLLECTION_NODE_TYPE = "nodetool.control.Collection";
 export const WORKFLOW_NODE_TYPE = "nodetool.workflows.workflow_node.Workflow";
 export const SUBGRAPH_NODE_TYPE = "nodetool.workflows.subgraph.Subgraph";
+export const APP_NODE_TYPE = "nodetool.workflows.app_node.App";
 
 /**
  * Accent for everything subgraph — the node's header and the tab that opens its
@@ -25,6 +26,9 @@ export const SUBGRAPH_NODE_TYPE = "nodetool.workflows.subgraph.Subgraph";
  * never mistaken for the parent workflow's.
  */
 export const SUBGRAPH_ACCENT_COLOR = "#7C3AED";
+
+/** Accent for the App node, which runs a mini app inside a workflow. */
+export const APP_ACCENT_COLOR = "#DB2777";
 
 // --- Special editor nodes --------------------------------------------------
 export const SKETCH_NODE_TYPE = "nodetool.constant.Sketch";
@@ -53,22 +57,7 @@ export const DYNAMIC_COMFY_NODE_TYPES: ReadonlySet<string> = new Set([
   "lib.comfy.RunWorkflowOnCloud"
 ]);
 
-/**
- * Nodes whose inputs come from a provider schema only. Dropping a connection on
- * one must not create a manual dynamic input: the next schema load would not
- * know about it. Replicate and Comfy are deliberately absent — their loaders
- * merge the existing dynamic properties back in, so a hand-made input survives.
- * `kie.DynamicKie` is the pre-rename id still present in saved workflows.
- */
-const DYNAMIC_SCHEMA_NODE_TYPES: ReadonlySet<string> = new Set([
-  DYNAMIC_FAL_NODE_TYPE,
-  DYNAMIC_KIE_NODE_TYPE,
-  "kie.DynamicKie"
-]);
-
-export const isDynamicSchemaNodeType = (
-  nodeType: string | null | undefined
-): boolean => nodeType != null && DYNAMIC_SCHEMA_NODE_TYPES.has(nodeType);
+export { isDynamicSchemaNodeType } from "@nodetool-ai/protocol";
 
 // --- Image-editing node bodies ---------------------------------------------
 export const BLUR_NODE_TYPE = "nodetool.image.Blur";

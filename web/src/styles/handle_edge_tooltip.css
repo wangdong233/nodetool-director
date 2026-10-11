@@ -2,17 +2,17 @@
 .MuiTooltip-popper {
   background: transparent;
   pointer-events: none !important;
-  z-index: 99990 !important;
+  z-index: var(--z-index-node-tooltip) !important;
   border-radius: 0;
 }
 
 .MuiTooltip-popper .MuiTooltip-tooltip {
-  padding: 0.5em 0.75em;
+  padding: var(--spacing-sm) var(--spacing-md);
   background: var(--palette-grey-900);
   color: var(--palette-grey-100);
   font-size: var(--fontSizeSmall);
   box-shadow: none !important;
-  max-width: 250px;
+  max-width: var(--node-tooltip-max-width);
 }
 
 /* Lower opacity specifically for handle tooltips if they use MUI Tooltip API */
@@ -23,19 +23,19 @@
 
 .MuiTooltip-tooltipPlacementLeft {
   margin-right: var(--spacing-xxxl) !important; /* was 50px */
-  transform: translateX(30px) !important;
+  transform: translateX(var(--node-tooltip-horizontal-offset)) !important;
 }
 
 .MuiTooltip-tooltipPlacementRight {
   margin-left: var(--spacing-xxxl) !important; /* was 40px */
-  transform: translateX(-30px);
+  transform: translateX(calc(var(--node-tooltip-horizontal-offset) * -1));
 }
 .MuiTooltip-tooltipPlacementTop {
-  margin-bottom: 0.5em !important;
-  max-width: 300px !important;
-  margin-left: -0.2em !important;
-  padding: 0.6em 0.75em !important;
-  box-shadow: 2px 2px 6px white !important;
+  margin-bottom: var(--spacing-sm) !important;
+  max-width: var(--node-tooltip-top-max-width) !important;
+  margin-left: calc(var(--spacing-micro) * -1) !important;
+  padding: var(--spacing-md) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .MuiTooltip-tooltipPlacementLeft span {
@@ -54,7 +54,7 @@
   background-color: transparent !important;
 }
 .tooltip-handle span {
-  padding: 0.1em 0.5em;
+  padding: var(--spacing-micro) var(--spacing-sm);
   color: var(--palette-grey-1000);
 }
 
@@ -64,7 +64,7 @@
 }
 
 .react-flow.is-connecting .react-flow__node .react-flow__handle.is-connectable {
-  transform: translate(0, -50%) scale(1.2, 1.1);
+  transform: translate(0, -50%) scale(1.2);
   opacity: 1;
   box-shadow: 0 0 4px 1px color-mix(in srgb, currentColor 40%, transparent);
 }
@@ -81,12 +81,12 @@
   0%, 100% {
     box-shadow:
       0 0 6px 2px currentColor,
-      0 0 12px 4px rgba(255, 255, 255, 0.02);
+      0 0 12px 4px rgba(var(--palette-common-whiteChannel) / 0.02);
   }
   50% {
     box-shadow:
       0 0 8px 3px currentColor,
-      0 0 16px 6px rgba(255, 255, 255, 0.03);
+      0 0 16px 6px rgba(var(--palette-common-whiteChannel) / 0.03);
   }
 }
 
@@ -130,7 +130,7 @@
   stroke-width: 4 !important;
   stroke-opacity: 1;
   filter: saturate(1.3) brightness(1.15)
-    drop-shadow(0 0 3px rgba(255, 255, 255, 0.15));
+    drop-shadow(0 0 3px rgba(var(--palette-common-whiteChannel) / 0.15));
 }
 
 /* edge selected — A4: keep the typed stroke color (set inline by
@@ -254,24 +254,25 @@
 }
 
 /* CONTROL HANDLE - special handle at the top/bottom of controlled nodes */
+/* Same circle as every other handle, centered on the top or bottom edge. */
 .react-flow__node .react-flow__handle.control-handle {
-  width: 14px;
-  height: 8px;
+  width: var(--handle_width);
+  height: var(--handle_height);
   background: var(--palette-warning-main);
-  border: 1px solid var(--palette-warning-dark);
-  z-index: 1000;
+  border: var(--node-handle-border-width) solid var(--c_node_bg);
+  border-radius: var(--rounded-circle);
+  z-index: var(--z-index-node-control-handle);
   left: 50%;
   transform: translateX(-50%);
 }
 
 .react-flow__node .react-flow__handle.control-handle-top {
-  top: -6px;
-  border-radius: var(--rounded-sm) var(--rounded-sm) 0 0;
+  top: calc(var(--handle_height) / -2);
 }
 
 .react-flow__node .react-flow__handle.control-handle-bottom {
-  bottom: -6px;
-  border-radius: 0 0 var(--rounded-sm) var(--rounded-sm);
+  top: auto;
+  bottom: calc(var(--handle_height) / -2);
 }
 
 /* Control handle visibility */
@@ -288,47 +289,40 @@
 /* HANDLE */
 .react-flow__node .react-flow__handle {
   transform: translate(0, -50%) scale(1, 1);
-  transform-origin: right center;
+  transform-origin: center;
   transition: transform var(--motion-fast), width var(--motion-fast),
     height var(--motion-fast), opacity var(--motion-fast),
     background-color var(--motion-fast), box-shadow var(--motion-fast);
   width: var(--handle_width);
   height: var(--handle_height);
   background-color: var(--palette-grey-700);
-  border: 0;
-  z-index: 999;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  /* A type-colored dot in a ring of the node's own background, centered on
+     the node edge. */
+  border: var(--node-handle-border-width) solid var(--c_node_bg);
+  border-radius: var(--rounded-circle);
+  z-index: var(--z-index-node-handle);
+  box-shadow: var(--shadow-sm);
   opacity: 1;
 }
 
 .react-flow__node .react-flow__handle-left {
-  transform-origin: right center;
-  /* -6px (visual overhang) - node-body padding so handle sits on the outer edge */
-  left: calc(-6px - var(--node-body-padding, 0px));
-  top: 5px;
-  border-left: 1px solid var(--palette-grey-700);
-  border-top: 1px solid var(--palette-grey-700);
-  border-bottom: 1px solid var(--palette-grey-700);
-  border-radius: var(--rounded-xs) 0 0 var(--rounded-xs);
+  /* Half the handle (-6px) minus node-body padding centers it on the outer edge */
+  left: calc(var(--handle_width) / -2 - var(--node-body-padding, 0px));
+  top: var(--handle-row-center);
 }
 .react-flow__node .react-flow__handle-right {
-  transform-origin: left center;
-  border-right: 1px solid var(--palette-grey-700);
-  border-top: 1px solid var(--palette-grey-700);
-  border-bottom: 1px solid var(--palette-grey-700);
-  right: calc(-6px - var(--node-body-padding, 0px));
-  top: 5px;
-  border-radius: 0 var(--rounded-xs) var(--rounded-xs) 0;
+  right: calc(var(--handle_width) / -2 - var(--node-body-padding, 0px));
+  top: var(--handle-row-center);
 }
 
 /* handle hover */
 .react-flow__node .react-flow__handle-left:hover {
-  transform: translate(0, -50%) scale(1.75, 1.2);
+  transform: translate(0, -50%) scale(1.3);
   cursor: cell;
   opacity: 0.9;
 }
 .react-flow__node .react-flow__handle-right:hover {
-  transform: translate(0, -50%) scale(1.75, 1.2);
+  transform: translate(0, -50%) scale(1.3);
   cursor: cell;
   opacity: 0.9;
 }
@@ -337,14 +331,14 @@
 .react-flow__node .react-flow__handle-right::after {
   content: "";
   position: absolute;
-  top: -5px;
-  left: -10px;
-  width: 24px; /* width of the invisible snap area of a handle */
+  top: var(--node-handle-snap-offset-y);
+  left: var(--node-handle-snap-offset-x);
+  width: var(--spacing-xxl); /* width of the invisible snap area of a handle */
   height: 200%; /* height of the invisible snap area of a handle */
 }
 .react-flow__node .react-flow__handle-right::after {
   left: unset;
-  right: -10px;
+  right: var(--node-handle-snap-offset-x);
 }
 .react-flow.is-connecting .react-flow__node .react-flow__handle-right::after,
 .react-flow.is-connecting .react-flow__node .react-flow__handle-left::after {
@@ -357,51 +351,34 @@
 
 /* COLLECT HANDLE - list[T] inputs that can accept multiple connections */
 /* Uses a distinctive double-line pattern to signify "collect" behavior */
+/* The standard circle with a hollow center: a ring that takes many edges. */
 .react-flow__node .react-flow__handle-left.collect-handle {
-  /* Wider handle to signify multiple inputs */
-  height: calc(var(--handle_height) * 1.6);
-  border-radius: var(--rounded-sm) 0 0 var(--rounded-sm);
-  /* Double border effect for visual distinction */
-  border-left-width: 3px;
-  border-left-style: double;
-  /* Subtle glow to make it more noticeable */
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.3),
-    inset 1px 0 0 rgba(255, 255, 255, 0.1);
-}
-
-.react-flow__node .react-flow__handle-left.collect-handle:hover {
-  height: calc(var(--handle_height) * 1.8);
-  transform: translate(0, -50%) scale(1.3, 1);
+  background-image: radial-gradient(
+    circle,
+    var(--c_node_bg) 0 var(--node-handle-core-radius),
+    transparent var(--node-handle-core-feather)
+  );
 }
 
 /* Enhance visibility during connection */
 .react-flow.is-connecting
   .react-flow__node
   .react-flow__handle-left.is-connectable {
-  height: calc(var(--handle_height) * 1.5);
-  width: calc(var(--handle_width) * 1.3) !important;
-  transform: translate(-2px, -50%) scale(1.2, 1.1);
+  transform: translate(0, -50%) scale(1.3);
   opacity: 1;
 }
 .react-flow.is-connecting
   .react-flow__node
   .react-flow__handle-right.is-connectable {
-  height: calc(var(--handle_height) * 1.5);
-  width: calc(var(--handle_width) * 1.3) !important;
-  transform: translate(2px, -50%) scale(1.2, 1.1);
+  transform: translate(0, -50%) scale(1.3);
   opacity: 1;
 }
 
 /* STREAMING OUTPUT HANDLE - outputs that stream data continuously */
 /* Uses striped overlay pattern to signify streaming behavior while preserving type color */
+/* The standard circle with stripes over the type color. */
 .react-flow__node .react-flow__handle-right.streaming-handle {
-  /* Wider handle to signify streaming */
-  height: calc(var(--handle_height) * 1.25);
-  border-radius: 0 var(--rounded-sm) var(--rounded-sm) 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Stripe overlay that shows on top of the type color */
@@ -411,10 +388,10 @@
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, 0.35) 3px,
-    rgba(0, 0, 0, 0.35) 5px
+    transparent 0,
+    transparent var(--node-handle-stripe-width),
+    rgba(var(--palette-common-blackChannel) / 0.35) var(--node-handle-stripe-width),
+    rgba(var(--palette-common-blackChannel) / 0.35) var(--node-handle-stripe-period)
   );
   pointer-events: none;
 }
@@ -423,25 +400,24 @@
 .react-flow.is-connecting
   .react-flow__node
   .react-flow__handle-right.streaming-handle.is-connectable {
-  height: calc(var(--handle_height) * 1.8);
-  transform: translate(0, -50%) scale(1.15, 1);
+  transform: translate(0, -50%) scale(1.3);
   opacity: 1;
 }
 
 /* DYNAMIC OUTPUTS */
 .multi-outputs .react-flow__handle-right {
-  top: 6px;
+  top: var(--spacing-sm);
 }
 
 ul.multi-outputs {
   position: relative;
   padding: 0;
-  margin: 0.5em 0 0;
+  margin: var(--spacing-sm) 0 0;
   width: 100%;
 }
 ul.multi-outputs li {
   position: relative;
-  padding: 0 0.75em 0.25em 0;
+  padding: 0 var(--spacing-md) var(--spacing-xs) 0;
   /* color: var(--palette-grey-200); */
   text-transform: capitalize;
   text-align: right;
@@ -470,7 +446,7 @@ ul.multi-outputs li::marker {
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 999;
+  z-index: var(--z-index-node-handle);
   pointer-events: none;
   margin-top: var(--spacing-micro);
 }
@@ -481,18 +457,18 @@ ul.multi-outputs li::marker {
   opacity: 0.9;
   line-height: 1;
   white-space: nowrap;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 4px rgba(var(--palette-common-blackChannel) / 0.8);
 }
 
 .handle-tooltip {
   position: absolute;
   pointer-events: none;
   opacity: 0;
-  z-index: 1001;
+  z-index: var(--z-index-node-handle-tooltip);
   top: 50%;
   white-space: nowrap;
   width: max-content;
-  transform: translateY(calc(-50% + 2px)) scale(0.92);
+  transform: translateY(calc(-50% + var(--spacing-micro))) scale(0.92);
   transform-origin: center right;
   transition:
     opacity var(--motion-slow) ease-out,
@@ -513,7 +489,7 @@ ul.multi-outputs li::marker {
 
 .handle-tooltip.show {
   opacity: 0.9;
-  transform: translateY(calc(-50% + 2px)) scale(1);
+  transform: translateY(calc(-50% + var(--spacing-micro))) scale(1);
 }
 
 /* Connect-time label on compatible handles — surface immediately, no delay. */
@@ -544,20 +520,20 @@ ul.multi-outputs li::marker {
   font-weight: 600;
   border: 0;
   text-shadow: 0 1px 1px var(--palette-background-paper);
-  padding: 0.25em 0.5em;
+  padding: var(--spacing-xs) var(--spacing-sm);
   line-height: 1.2;
 }
 
 .dark .handle-tooltip-name {
   color: currentColor;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 4px rgba(var(--palette-common-blackChannel) / 0.8);
 }
 
 .handle-tooltip-details {
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translate(-50%, calc(-0.2em - 3px));
+  transform: translate(-50%, calc(-0.2em - var(--node-tooltip-reverse-gap)));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -568,9 +544,9 @@ ul.multi-outputs li::marker {
   font-size: var(--fontSizeSmaller);
   font-family: var(--fontFamily2, monospace);
   opacity: 0.8;
-  padding: 0 0.35em;
+  padding: 0 var(--spacing-xs);
   line-height: 1;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 4px rgba(var(--palette-common-blackChannel) / 0.8);
   white-space: nowrap;
 }
 
@@ -578,10 +554,10 @@ ul.multi-outputs li::marker {
   font-size: var(--fontSizeSmall);
   font-style: italic;
   opacity: 0.9;
-  margin-top: 0.4em;
-  padding-top: 0.3em;
-  border-top: 1px solid var(--palette-c_overlay_strong);
-  max-width: 200px;
+  margin-top: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
+  border-top: var(--node-tooltip-divider-width) solid var(--palette-c_overlay_strong);
+  max-width: var(--node-tooltip-doc-max-width);
   text-align: center;
   line-height: 1.3;
   white-space: normal;

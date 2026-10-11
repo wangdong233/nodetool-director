@@ -1,360 +1,172 @@
 /**
  * The Game flow's config: the one place that maps a workflow's
- * `settings.game.stage` onto a step (game-prd § 4, D25).
+ * `settings.game.stage` onto a step.
  *
- * Everything the flow needs is on the workflow plus the shipped manifests, so
- * any host builds the same four steps from a workflow id and resumes where the
- * creator left off (criterion 2). `done` maps to no step: the workflow belongs
- * to the node editor from there on.
+ * Everything the flow needs is on the workflow, so any host — the guided-flow
+ * tab, or a workflow tab reopened after a refresh — builds the same steps from
+ * a workflow id and resumes where the creator left off. `done` maps to no
+ * step: from there the game belongs to the game editor.
  *
- * Two gates carry the phase's criteria:
- *
- * - criterion 4 — `Continue to look` stays disabled while any cast entry is
- *   missing a name or a descriptor, or any slot has an empty prompt, and the
- *   blocked reason names the first one that is missing;
- * - the shell's rule — nothing spends before `Build your game`, which is the
- *   only step whose action places a node or starts a run.
+ * Idea → Design (template, then the review) → Look and build. Nothing is spent
+ * before the last step except the one designer call, and the design it writes
+ * is text the creator can edit. The build draws one image per visual slot.
  */
 
+import { i18n } from "../../../i18n";
 import { createElement, useCallback, useMemo, useState } from "react";
+import { formatUsd } from "@nodetool-ai/model-pricing";
 import {
+  DEFAULT_NATIVE_GAME_TEMPLATE,
+  STILL_RESOLUTION,
   designSourceOf,
-  gameAudioChoice,
-  gameProjectDirectory,
-  type Entity,
-  type GameGraphChoices
+  findNativeGameTemplate,
+  pinnedGameInspirationChip
 } from "@nodetool-ai/protocol";
 import type {
   GameDesign,
   GameSetupStage
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
-import useCanvasChatDockStore from "../../../stores/CanvasChatDockStore";
-import { useEntities } from "../../../serverState/useEntities";
 import {
   useGameSetupDocument,
   useGameSetupStage,
   useGameSetupWriter
 } from "../../../hooks/game/useGameSetup";
 import {
-  hasPinnedDesign,
+  GAME_DESIGNER_MAX_OUTPUT_TOKENS,
   useDesignGame
 } from "../../../hooks/game/useDesignGame";
 import {
+  gameImageSlots,
   useBuildGame,
   type BuildGameResult
 } from "../../../hooks/game/useBuildGame";
-import {
-  templateManifest,
-  useGameTemplates,
-  type GameTemplate
-} from "../../../hooks/game/useGameTemplates";
-import { useGameStylePresets } from "../../../hooks/game/useGameStylePresets";
+import { priceRenderStep } from "../../../hooks/storyboard/shotCostPricing";
+import type { StylePresetEntity } from "../../../serverState/useStylePresets";
 import type { SetupFlowConfig, SetupStep } from "../types";
-import { GameIdeaStep } from "./IdeaStep";
+import { GameIdeaStep, type GameStartAlternative } from "./IdeaStep";
 import { DesignerModelFooterField, GameTemplateStep } from "./TemplateStep";
 import { GameReviewStep } from "./ReviewStep";
-import {
-  GAME_PLACEHOLDER_TILE_ID,
-  GameImageModelFooterField,
-  GameLookStep,
-  gameCostEstimate,
-  gameCostLine,
-  type GameModelRow
-} from "./LookStep";
-import { i18n } from "../../../i18n";
+import { GameLookStep, ImageModelFooterField } from "./LookStep";
 import { useTranslation } from "react-i18next";
+import {
+  NO_GAME_STYLE_ID,
+  describeGameSlot,
+  gameDesignGaps,
+  gameStyleChoice,
+  imageModelTileId,
+  parseImageModelTileId
+} from "./gameSetupModel";
 
 const FLOW_LABELS = { title: "Game" } as const;
 
-/** What a row of model tiles is, before the flow adds the stored selection. */
-export type GameRowAvailability = Omit<
-  GameModelRow,
-  "selectedId" | "onSelect"
->;
-
-/** The design a blank export carries: a title, and nothing to generate. */
-export const blankDesign = (title: string): GameDesign => ({
-  title,
-  premise: "",
-  core_loop: "",
-  player_verbs: [],
-  enemies: [],
-  level: "",
-  win: "",
-  lose: "",
-  cast: [],
-  slot_prompts: []
-});
-
-/**
- * The first thing the design is missing, in reading order, or null when it is
- * complete (criterion 4). The order matches the review's own: cast first, then
- * the slot prompts, so the reason names what the creator will scroll to first.
- */
-export const firstMissingDesignField = (
-  design: GameDesign,
-  slots: readonly { id: string }[]
-): string | null => {
-  for (const member of design.cast) {
-    if (member.name.trim().length === 0) {
-      return i18n.t("storyboard:attrs.aNameForField", { defaultValue: "a name for {{field}}", field: member.slot_id });
-    }
-    if (member.descriptor.trim().length === 0) {
-      return i18n.t("storyboard:attrs.aDescriptorForField", { defaultValue: "a descriptor for {{field}}", field: member.name || member.slot_id });
-    }
-  }
-  for (const slot of slots) {
-    const prompt = design.slot_prompts.find(
-      (entry) => entry.slot_id === slot.id
-    );
-    if ((prompt?.prompt ?? "").trim().length === 0) {
-      return i18n.t("storyboard:attrs.aPromptForField", { defaultValue: "a prompt for {{field}}", field: slot.id });
-    }
-  }
-  return null;
-};
-
 export interface GameSetupFlowOptions {
   workflowId: string;
-  /**
-   * The designer's model until the creator picks one — the first language
-   * model a configured provider offers. Null means no provider offers one, and
-   * the flow falls back to a chip's pinned design.
-   */
+  /** The project the game is created in. */
+  projectId: string;
+  /** The designer until the creator picks one; null when none is offered. */
   defaultDesignerModel: { provider: string; id: string } | null;
-  /** What the configured providers offer for each of the Look step's rows. */
-  imageRow: GameRowAvailability;
-  sfxRow: GameRowAvailability;
-  musicRow: GameRowAvailability;
-  /**
-   * The model property value the build assigns for a row's chosen tile — the
-   * same `ref` shape the node's typed model property takes.
-   */
-  chosenModel: (
-    row: "image" | "music",
-    tileId: string | null
-  ) => Record<string, unknown> | null;
-  /** Opens the existing tutorials entry. */
-  onOpenTutorial: () => void;
-  /** Runs after the flow reaches stage `done` — the host opens the canvas. */
-  onFinish?: (result: BuildGameResult | null) => void;
+  /** The image model until the creator picks one: the saved default. */
+  defaultImageModel: { provider: string; id: string } | null;
+  stylePresets: readonly StylePresetEntity[];
+  stylePresetsLoading: boolean;
+  /** Makes a game without the design and leaves the flow. */
+  onStartAlternative: (kind: GameStartAlternative) => Promise<void>;
+  /** Runs when the build made the game — the host opens it. */
+  onFinish: (result: BuildGameResult) => void;
 }
 
 export interface GameSetupFlowResult extends SetupFlowConfig<GameSetupStage> {
-  /** The build's outcome, for the landing checklist (game-prd § 4.4). */
-  buildResult: BuildGameResult | null;
-  /** The template the flow is on, so a host can name it. */
-  template: GameTemplate | null;
+  building: boolean;
+  cancelBuild: () => void;
 }
 
 export const useGameSetupFlow = ({
   workflowId,
+  projectId,
   defaultDesignerModel,
-  imageRow,
-  sfxRow,
-  musicRow,
-  chosenModel,
-  onOpenTutorial,
+  defaultImageModel,
+  stylePresets,
+  stylePresetsLoading,
+  onStartAlternative,
   onFinish
 }: GameSetupFlowOptions): GameSetupFlowResult => {
   const { t } = useTranslation();
   const stage = useGameSetupStage(workflowId);
-  const setup = useGameSetupDocument(workflowId);
-  const { setGame } = useGameSetupWriter(workflowId);
-  const { data: templates, isLoading: templatesLoading } = useGameTemplates();
-  const { data: presets } = useGameStylePresets();
-  const { data: entities } = useEntities();
-  const {
-    designGame,
-    designing,
-    error: designError,
-    filled
-  } = useDesignGame(workflowId);
-  const { buildGame, building, result: buildResult } = useBuildGame(workflowId);
-  const [exportingBlank, setExportingBlank] = useState(false);
+  const game = useGameSetupDocument(workflowId);
+  const { setGame, setGameQuietly, editGame } = useGameSetupWriter(workflowId);
+  const { designGame, cancelDesign, designing, filled, error: designError } =
+    useDesignGame(workflowId);
+  const { buildGame, cancelBuild, building, progress } =
+    useBuildGame(workflowId);
+  const [startingAlternative, setStartingAlternative] =
+    useState<GameStartAlternative | null>(null);
+  const [alternativeError, setAlternativeError] = useState<string | null>(null);
 
-  const brief = setup?.brief ?? "";
-  const templateId = setup?.template;
-  const design = setup?.design ?? null;
-  const template = useMemo(
-    () => (templates ?? []).find((entry) => entry.id === templateId) ?? null,
-    [templateId, templates]
-  );
-  const slots = useMemo(() => template?.slots ?? [], [template]);
-  // The picked model lives on the workflow, so a reload designs with it.
-  const designerModel = setup?.designer_model ?? defaultDesignerModel;
-  const styleEntityId = setup?.style_entity_id ?? null;
-  const projectName = setup?.project_name ?? design?.title ?? "";
-  const pinned = hasPinnedDesign(brief, templateId);
-
-  // Whether the stored design still answers the brief and template on screen.
-  // It decides what the template step's button does, so a creator who steps
-  // back to read their template does not lose the design by pressing the only
-  // button there.
+  const brief = game?.brief ?? "";
+  const templateId = game?.template ?? DEFAULT_NATIVE_GAME_TEMPLATE;
+  const template = findNativeGameTemplate(templateId);
+  const slots = useMemo(() => template?.manifest.slots ?? [], [template]);
+  const imageSlots = useMemo(() => gameImageSlots(slots), [slots]);
+  const design: GameDesign | null = game?.design ?? null;
+  const designerModel = game?.designer_model ?? defaultDesignerModel;
+  const hasPinnedDesign =
+    pinnedGameInspirationChip(templateId, brief) !== null;
+  // Whether the stored design still answers the brief and template on screen,
+  // so stepping back to read the template does not throw the design away.
   const designIsCurrent =
     design !== null &&
-    templateId !== undefined &&
-    setup?.design_source === designSourceOf(templateId, brief.trim());
+    game?.design_source === designSourceOf(templateId, brief.trim());
 
-  /**
-   * The landing is the node editor's agent panel with the checklist at the top
-   * of it (game-prd § 4.4), and that panel starts collapsed. Opening it is the
-   * counterpart of the host opening the canvas tab: a creator who just spent
-   * money should land on what it produced, not on a closed dock.
-   */
-  const openLandingPanel = useCallback(() => {
-    useCanvasChatDockStore.getState().setConversationCollapsed(false);
-  }, []);
+  const imageModel = parseImageModelTileId(game?.image_model) ?? defaultImageModel;
+  const styleEntityId =
+    game?.style_entity_id ?? stylePresets[0]?.entityId ?? null;
+  const name = game?.project_name ?? design?.title ?? "";
 
   const onStageChange = useCallback(
     (next: GameSetupStage) => {
-      void setGame({ stage: next });
+      setGameQuietly({ stage: next });
     },
-    [setGame]
+    [setGameQuietly]
   );
 
-  /**
-   * `Start with a blank canvas`: the flow's escape hatch, stage `done` with
-   * no template and no build — the canvas opens empty for hand placement,
-   * the way the workflow flow's blank does.
-   */
-  const startBlank = useCallback(() => {
-    void setGame({ stage: "done" });
-    onFinish?.(null);
-  }, [onFinish, setGame]);
-
-  /** The style entity the flow is on, whether shipped or the creator's own. */
-  const styleEntity = useMemo<Entity | null>(
-    () =>
-      styleEntityId === null
-        ? null
-        : ((entities ?? []).find((entity) => entity.id === styleEntityId) ??
-          null),
-    [entities, styleEntityId]
-  );
-
-  /** The style the graph builder pastes into every prompt, verbatim. */
-  const styleChoice = useMemo(() => {
-    const preset = (presets ?? []).find(
-      (entry) => entry.entityId === styleEntityId
-    );
-    if (preset) {
-      return { name: preset.name, descriptor: preset.descriptor };
-    }
-    return styleEntity
-      ? { name: styleEntity.name, descriptor: styleEntity.descriptor }
-      : null;
-  }, [presets, styleEntity, styleEntityId]);
-
-  // The placeholder tile is saved on the document like any other answer, so
-  // both readers of that document — this flow and the headless `build_game` —
-  // turn it back into "nothing to generate" through the same helper.
-  const sfxNodeType = gameAudioChoice(setup?.sfx_node_type);
-  const musicTileId = gameAudioChoice(setup?.music_model);
-
-  /** Everything the graph builder is given beyond the manifest and design. */
-  const buildChoices = useCallback(
-    (name: string): GameGraphChoices => ({
-      imageModel: chosenModel("image", setup?.image_model ?? null) ?? {},
-      sfxNodeType,
-      musicModel: musicTileId === null ? null : chosenModel("music", musicTileId),
-      style: styleChoice,
-      projectName: name,
-      directory: gameProjectDirectory(name),
-      // The node reports what it found; a server with no Godot says so on the
-      // checklist rather than being asked not to look (D28).
-      verify: true
-    }),
-    [chosenModel, musicTileId, setup?.image_model, sfxNodeType, styleChoice]
-  );
-
-  /**
-   * `Export a blank template` (§ 4.1): the same build path with no slots, so
-   * the graph is the export node alone and the project comes out with the
-   * template's placeholder art. Nothing is generated, so the Look step has
-   * nothing to ask and is skipped.
-   */
-  const exportBlank = useCallback(
-    async (id: string) => {
-      const picked = (templates ?? []).find((entry) => entry.id === id);
-      if (!picked) {
-        return;
-      }
-      setExportingBlank(true);
+  const handleAlternative = useCallback(
+    async (kind: GameStartAlternative) => {
+      setAlternativeError(null);
+      setStartingAlternative(kind);
       try {
-        const name = projectName.trim().length > 0 ? projectName : picked.id;
-        await setGame({ template: id, project_name: name });
-        const built = await buildGame({
-          manifest: { ...templateManifest(picked), slots: [] },
-          design: blankDesign(name),
-          choices: {
-            imageModel: {},
-            sfxNodeType: null,
-            musicModel: null,
-            style: null,
-            projectName: name,
-            directory: gameProjectDirectory(name),
-            verify: true
-          }
-        });
-        openLandingPanel();
-        onFinish?.(built);
+        await onStartAlternative(kind);
+      } catch (cause) {
+        setAlternativeError(
+          cause instanceof Error ? cause.message : String(cause)
+        );
       } finally {
-        setExportingBlank(false);
+        setStartingAlternative(null);
       }
     },
-    [buildGame, onFinish, openLandingPanel, projectName, setGame, templates]
+    [onStartAlternative]
   );
 
-  const missingDesignField = useMemo(
-    () => (design === null ? null : firstMissingDesignField(design, slots)),
+  // What the build is about to spend, priced the way the storyboard prices a
+  // still: one image per visual slot on the chosen model.
+  const estimate = useMemo(() => {
+    if (!imageModel || imageSlots.length === 0) {
+      return null;
+    }
+    const step = priceRenderStep(
+      "Image",
+      { id: imageModel.id, provider: imageModel.provider },
+      "image model",
+      STILL_RESOLUTION,
+      undefined,
+      []
+    );
+    return step.cost === null ? null : step.cost * imageSlots.length;
+  }, [imageModel, imageSlots]);
+
+  const designGaps = useMemo(
+    () => (design ? gameDesignGaps(design, slots) : ["a design"]),
     [design, slots]
-  );
-
-  const costEstimate = useMemo(
-    () =>
-      gameCostEstimate(slots, {
-        imageModel: setup?.image_model ?? null,
-        sfxChosen: sfxNodeType !== null,
-        musicModel: musicTileId
-      }),
-    [musicTileId, setup?.image_model, sfxNodeType, slots]
-  );
-
-  const imageChoices = useMemo<GameModelRow>(
-    () => ({
-      ...imageRow,
-      selectedId: setup?.image_model ?? imageRow.tiles[0]?.id ?? null,
-      onSelect: (id: string) => {
-        void setGame({ image_model: id });
-      }
-    }),
-    [imageRow, setGame, setup?.image_model]
-  );
-
-  const sfxChoices = useMemo<GameModelRow>(
-    () => ({
-      ...sfxRow,
-      // The placeholder is the default: an install with no sound-effect node it
-      // can run still builds a game (D27).
-      selectedId: setup?.sfx_node_type ?? GAME_PLACEHOLDER_TILE_ID,
-      onSelect: (id: string) => {
-        void setGame({ sfx_node_type: id });
-      }
-    }),
-    [setGame, setup?.sfx_node_type, sfxRow]
-  );
-
-  const musicChoices = useMemo<GameModelRow>(
-    () => ({
-      ...musicRow,
-      selectedId: setup?.music_model ?? GAME_PLACEHOLDER_TILE_ID,
-      onSelect: (id: string) => {
-        void setGame({ music_model: id });
-      }
-    }),
-    [musicRow, setGame, setup?.music_model]
   );
 
   const steps = useMemo<SetupStep<GameSetupStage>[]>(
@@ -363,57 +175,62 @@ export const useGameSetupFlow = ({
         stage: "idea",
         label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
-        canAdvance: brief.trim().length > 0,
-        blockedReason: "Describe your game",
-        pending: exportingBlank,
-        pendingLabel: "Exporting the template",
-        render: () =>
+        canAdvance: startingAlternative === null && brief.trim().length > 0,
+        // A blank game lands by leaving this flow, so Back and Change flow
+        // wait until it has.
+        holdNavigation: startingAlternative !== null,
+        blockedReason:
+          startingAlternative !== null
+            ? "Creating your game"
+            : "Describe your game",
+        render: (context) =>
           createElement(GameIdeaStep, {
+            workflowId,
             brief,
-            onBriefChange: (next: string) => {
-              void setGame({ brief: next });
+            onBriefChange: (next: string) => editGame({ brief: next }),
+            onStartAlternative: (kind: GameStartAlternative) => {
+              void handleAlternative(kind);
             },
-            templates: templates ?? [],
-            onStartFromTemplate: (id: string) => {
-              void setGame({ template: id, stage: "template" });
-            },
-            onExportBlank: (id: string) => {
-              void exportBlank(id);
-            },
-            exportingBlank,
-            onStartBlank: startBlank,
-            onOpenTutorial
-          })
+            startingAlternative,
+            alternativeError,
+            onDismissAlternativeError: () => setAlternativeError(null),
+            readOnly: context?.readOnly ?? false
+          }),
+        // The template step opens on a template, so the design call always
+        // has a manifest to write against.
+        onAdvance: async () => {
+          if (!game?.template) {
+            await setGame({ template: DEFAULT_NATIVE_GAME_TEMPLATE });
+          }
+        }
       },
       {
-        // Template and review are both step 2, so they collapse into one
-        // stepper entry (PRD § 6.2).
+        // Template and review are both step 2, so they share one stepper
+        // entry.
         stage: "template",
         label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
-        // Coming back to this step with the design it produced still answering
-        // the brief and template on screen, the button continues to that design
-        // instead of throwing it away and calling the model again.
         primaryLabel: designIsCurrent
           ? "Continue to your design"
-          : design !== null
-            ? "Re-design"
+          : design
+            ? "Re-design the game"
             : "Write the design",
         canAdvance:
-          templateId !== undefined &&
-          (designIsCurrent || Boolean(designerModel?.id) || pinned),
+          template !== null &&
+          (designIsCurrent || Boolean(designerModel?.id) || hasPinnedDesign),
         blockedReason:
-          templateId === undefined
+          template === null
             ? "Pick a template"
-            : "Pick a designer model, or start from one of the examples",
+            : "Pick a designer model, or use one of the example ideas",
         generation: designIsCurrent
           ? undefined
           : {
-              result: "Write the design: premise, loop, cast and one prompt per asset slot",
-              next: t("storyboard:attrs.readAndEditEveryLineNextNothingIsGeneratedAndNothingIsPlacedByThisClick", { defaultValue: "Read and edit every line next. Nothing is generated and nothing is placed by this click." }),
+              result:
+                "Write a design: the premise, how it plays, the characters and what each piece of art shows",
+              next: "Review and edit it next. Nothing is drawn until the last step.",
               model: designerModel,
               brief,
-              maxOutputTokens: 4096,
-              noModelCall: !designerModel?.id && pinned
+              maxOutputTokens: GAME_DESIGNER_MAX_OUTPUT_TOKENS,
+              noModelCall: !designerModel?.id && hasPinnedDesign
             },
         primaryDetail: designIsCurrent
           ? "Your design is unchanged — this keeps it."
@@ -423,171 +240,169 @@ export const useGameSetupFlow = ({
         footerControls: (context) =>
           createElement(DesignerModelFooterField, {
             designerModel,
-            onDesignerModelChange: (model: { provider: string; id: string }) => {
-              void setGame({ designer_model: model });
-            },
+            onDesignerModelChange: (model: { provider: string; id: string }) =>
+              setGameQuietly({ designer_model: model }),
             readOnly: context.readOnly
           }),
-        render: () =>
+        render: (context) =>
           createElement(GameTemplateStep, {
-            templates: templates ?? [],
-            loading: templatesLoading,
-            selectedId: templateId ?? null,
-            onSelect: (id: string) => {
-              void setGame({ template: id });
-            }
+            selectedId: template?.id ?? null,
+            onSelect: (id: string) => setGameQuietly({ template: id }),
+            readOnly: context?.readOnly ?? false
           }),
-        // The designer runs here and places nothing (criterion 3). A refused
-        // run leaves the creator on the template with the reason on the button.
         onAdvance: async () => {
           if (designIsCurrent) {
             return;
           }
-          if (!template) {
-            throw new Error(t("storyboard:attrs.pickATemplateBeforeWritingTheDesign", { defaultValue: "Pick a template before writing the design." }));
-          }
           const refusal = await designGame({
             brief,
-            manifest: templateManifest(template),
-            model: designerModel,
-            previous: design
+            template: templateId,
+            model: designerModel
           });
           if (refusal) {
             throw new Error(refusal);
           }
-        }
+        },
+        onCancel: cancelDesign
       },
       {
         stage: "review",
         label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
-        primaryLabel: "Continue to look",
-        // Criterion 4: every cast entry named and described, every slot with a
-        // prompt. The reason names the first one that is missing.
-        canAdvance: design !== null && missingDesignField === null,
-        blockedReason:
-          design === null
-            ? "Write the design first"
-            : `Your design still needs ${missingDesignField ?? "a field"}`,
-        // `Re-design` runs outside the shell's primary button, so the shell has
-        // to read its wait: the creator cannot continue while the design they
-        // are reading is being replaced.
-        pending: designing,
-        pendingLabel: t("storyboard:attrs.reDesigning", { defaultValue: "Re-designing" }),
-        render: () =>
-          createElement(GameReviewStep, {
-            design: design ?? blankDesign(""),
-            slots,
-            onDesignChange: (next: GameDesign) => {
-              void setGame({ design: next });
-            },
-            onRedesign: () => {
-              if (!template) {
-                return;
-              }
-              void designGame({
-                brief,
-                manifest: templateManifest(template),
-                model: designerModel,
-                previous: design
-              });
-            },
-            redesignPending: designing,
-            filled,
-            error: designError
-          })
+        primaryLabel: "Continue to the look",
+        // A re-design answers onto this step, so Back waits for it.
+        holdNavigation: designing,
+        canAdvance: !designing && designGaps.length === 0,
+        blockedReason: designing
+          ? "Re-designing the game"
+          : `Write ${designGaps.join(", ")}`,
+        render: (context) =>
+          design
+            ? createElement(GameReviewStep, {
+                workflowId,
+                design,
+                slots,
+                filled,
+                onDesignChange: (next: GameDesign) => editGame({ design: next }),
+                onRedesign: () => {
+                  void designGame({
+                    brief,
+                    template: templateId,
+                    model: designerModel
+                  });
+                },
+                redesignPending: designing,
+                onCancelRedesign: cancelDesign,
+                error: designError,
+                readOnly: context?.readOnly ?? false
+              })
+            : null
       },
       {
         stage: "look",
-        label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
-        primaryLabel: t("storyboard:attrs.buildYourGame", { defaultValue: "Build your game" }),
+        label: "Build",
+        primaryLabel: "Build your game",
+        primaryDetail:
+          estimate === null
+            ? `Draws ${imageSlots.length} images`
+            : `Draws ${imageSlots.length} images, about ${formatUsd(estimate)}`,
         canAdvance:
-          styleChoice !== null &&
-          imageChoices.selectedId !== null &&
-          projectName.trim().length > 0,
+          design !== null &&
+          designGaps.length === 0 &&
+          imageModel !== null &&
+          name.trim().length > 0,
         blockedReason:
-          styleChoice === null
-            ? "Pick a style"
-            : imageChoices.selectedId === null
-              ? "Pick an image model"
-              : "Name your project",
-        primaryDetail: gameCostLine(costEstimate),
+          imageModel === null
+            ? "Pick an image model"
+            : name.trim().length === 0
+              ? "Name your game"
+              : "Finish the design first",
         pending: building,
-        pendingLabel: "Placing the graph, then running it once",
+        pendingLabel: progress
+          ? `Drawing ${progress.label} (${progress.done + 1} of ${progress.total})`
+          : "Creating your game",
         footerControls: (context) =>
-          createElement(GameImageModelFooterField, {
-            row: imageChoices,
+          createElement(ImageModelFooterField, {
+            model: imageModel,
+            onModelChange: (model: { provider: string; id: string }) =>
+              setGameQuietly({ image_model: imageModelTileId(model) }),
             readOnly: context.readOnly
           }),
-        render: () =>
+        render: (context) =>
           createElement(GameLookStep, {
-            slots,
-            presets: presets ?? [],
-            customStyle: styleEntity,
+            presets: stylePresets,
+            presetsLoading: stylePresetsLoading,
             styleEntityId,
-            onStyleChange: (entityId: string) => {
-              void setGame({ style_entity_id: entityId });
-            },
-            designerModel,
-            image: imageChoices,
-            sfx: sfxChoices,
-            music: musicChoices,
-            projectName,
-            onProjectNameChange: (name: string) => {
-              void setGame({ project_name: name });
-            }
+            onStyleSelect: (entityId: string) =>
+              setGameQuietly({ style_entity_id: entityId }),
+            name,
+            onNameChange: (next: string) => editGame({ project_name: next }),
+            imageSlots: imageSlots.map(describeGameSlot),
+            readOnly: context?.readOnly ?? false
           }),
-        // `buildGame` writes the terminal stage itself, as soon as the nodes
-        // are placed (game-prd § 4.3, D3).
-        onAdvance: async () => {
-          if (!template || design === null) {
-            throw new Error(t("storyboard:attrs.writeTheDesignBeforeBuilding", { defaultValue: "Write the design before building." }));
+        // The build writes `done` itself once the art is in.
+        continueAfterUnmount: true,
+        onAdvance: async (context) => {
+          if (!design || !imageModel) {
+            return;
           }
-          const built = await buildGame({
-            manifest: templateManifest(template),
-            design,
-            choices: buildChoices(projectName)
-          });
-          openLandingPanel();
-          onFinish?.(built);
-        }
+          const result = await buildGame(
+            {
+              projectId,
+              name: name.trim(),
+              template: templateId,
+              design,
+              style:
+                styleEntityId === NO_GAME_STYLE_ID
+                  ? null
+                  : gameStyleChoice(stylePresets, styleEntityId),
+              imageModel,
+              ...(game?.game_id && { gameId: game.game_id }),
+              setGame
+            },
+            context?.signal
+          );
+          onFinish(result);
+        },
+        onCancel: cancelBuild
       }
     ],
     [
+      alternativeError,
       brief,
-      buildChoices,
       buildGame,
       building,
-      costEstimate,
+      cancelBuild,
+      cancelDesign,
       design,
       designError,
       designGame,
-      t,
+      designGaps,
       designIsCurrent,
       designerModel,
       designing,
-      exportBlank,
-      exportingBlank,
+      editGame,
+      estimate,
       filled,
-      imageChoices,
-      missingDesignField,
-      musicChoices,
+      game?.game_id,
+      game?.template,
+      handleAlternative,
+      hasPinnedDesign,
+      imageModel,
+      imageSlots,
+      name,
       onFinish,
-      onOpenTutorial,
-      openLandingPanel,
-      pinned,
-      presets,
-      projectName,
+      progress,
+      projectId,
       setGame,
-      sfxChoices,
+      setGameQuietly,
       slots,
-      startBlank,
-      styleChoice,
-      styleEntity,
+      startingAlternative,
       styleEntityId,
+      stylePresets,
+      stylePresetsLoading,
       template,
       templateId,
-      templates,
-      templatesLoading
+      workflowId
     ]
   );
 
@@ -596,8 +411,8 @@ export const useGameSetupFlow = ({
     steps,
     stage,
     onStageChange,
-    buildResult,
-    template
+    building,
+    cancelBuild
   };
 };
 

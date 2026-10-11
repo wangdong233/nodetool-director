@@ -17,10 +17,10 @@ import type {
 
 /**
  * One clip handed to the graph for scheduling, with the PCM it should play:
- * either an asset URL the graph decodes (an audio clip) or a buffer the caller
- * already rendered (a midi clip, from `midiRender.ts`). Everything downstream —
- * clip gain, fades, the track chain, mute/solo, the offline export — treats the
- * two identically.
+ * either an asset URL the graph decodes or streams (an audio clip) or a buffer
+ * the caller already rendered (a midi clip, from `midiRender.ts`). Everything
+ * downstream — clip gain, fades, the track chain, mute/solo, the offline
+ * export — treats them identically.
  */
 export type ScheduledAudioClip =
   | {
@@ -28,6 +28,10 @@ export type ScheduledAudioClip =
       /** Resolved HTTP URL for the audio asset. */
       assetUrl: string;
       buffer?: undefined;
+      /** The asset's byte size, when known. See {@link prefersStreamedPlayback}. */
+      assetSize?: number | null;
+      /** The asset's duration in seconds, when known. */
+      assetDurationSec?: number | null;
     }
   | {
       clip: TimelineClip;
@@ -122,10 +126,196 @@ function windowSegments(clip: TimelineClip): TimeRemapAudioSegment[] {
 }
 
 /**
+ * Files at or above this size, or this long, stream during preview instead of
+ * being decoded. A decoded buffer is float32 per channel: five minutes of
+ * 48 kHz stereo is about 115 MB, and a two-hour WAV several gigabytes.
+ */
+export const STREAM_MIN_BYTES = 50 * 1024 * 1024;
+export const STREAM_MIN_DURATION_SEC = 5 * 60;
+
+/**
+ * Whether an asset of this size and duration plays through a media element
+ * rather than a decoded buffer.
+ *
+ * Streaming is kept to large files. A media element starts on a timer and its
+ * own clock, not on the audio clock, so it can sit a few tens of milliseconds
+ * off the timeline where a buffer source is sample-exact; its playback rate is
+ * limited to 1/16..16. A short clip, the common case for sound effects and
+ * dialogue, keeps the exact path. The offline export always decodes, because
+ * an `OfflineAudioContext` cannot take a media element.
+ */
+export function prefersStreamedPlayback(
+  sizeBytes: number | null | undefined,
+  durationSec: number | null | undefined
+): boolean {
+  return (
+    (sizeBytes ?? 0) >= STREAM_MIN_BYTES ||
+    (durationSec ?? 0) >= STREAM_MIN_DURATION_SEC
+  );
+}
+
+/** Media element playback rates browsers accept. */
+const MEDIA_ELEMENT_MIN_RATE = 0.0625;
+const MEDIA_ELEMENT_MAX_RATE = 16;
+/** A streamed start this late (seconds) seeks forward to catch up. */
+const STREAM_LATE_START_SEC = 0.02;
+
+/** A streamed element still this far (seconds) behind when it starts playing
+ *  is seeked forward; smaller gaps are inaudible and a seek would stall it. */
+const STREAM_PLAYING_RESYNC_SEC = 0.08;
+
+/** A scheduled sound the graph can stop and release. */
+interface PlayingSource {
+  /** Stop at `when` on the audio clock, or now. */
+  stop(when?: number): void;
+  disconnect(): void;
+  /** Called once the source has played to its end or been stopped. */
+  onended: ((event: Event) => unknown) | null;
+}
+
+/**
+ * How long a stopped clip takes to ramp to silence. Cutting a source off
+ * mid-waveform clicks; a few milliseconds of ramp is inaudible as a fade.
+ */
+const DECLICK_SEC = 0.005;
+/** Wall-clock slack past the ramp before its nodes are disconnected. */
+const DECLICK_RELEASE_MS = DECLICK_SEC * 1000 + 20;
+
+/**
+ * Ramp `param` from wherever it is now to silence by `endAt`. Holding the
+ * current value first matters: cancelling a ramp in progress would otherwise
+ * jump back to the value before it, which is the click this avoids.
+ */
+function rampToSilence(param: AudioParam, now: number, endAt: number): void {
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    const held = param.value;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(held, now);
+  }
+  param.linearRampToValueAtTime(0, endAt);
+}
+
+/**
+ * One constant-rate stretch played through a media element, which streams the
+ * file with Range requests instead of decoding it whole. A gate gain opens and
+ * closes on the audio clock, so the stretch is heard exactly between its start
+ * and end even though the element itself starts on a timer.
+ */
+class StreamedSegment implements PlayingSource {
+  onended: ((event: Event) => unknown) | null = null;
+  private readonly timers: ReturnType<typeof setTimeout>[] = [];
+  private stopped = false;
+  private ctx: BaseAudioContext | null = null;
+
+  constructor(
+    private readonly element: HTMLAudioElement,
+    private readonly node: MediaElementAudioSourceNode,
+    private readonly gate: GainNode
+  ) {}
+
+  schedule(
+    ctx: BaseAudioContext,
+    startAt: number,
+    endAt: number,
+    offsetSec: number,
+    rate: number
+  ): void {
+    this.ctx = ctx;
+    this.gate.gain.setValueAtTime(0, ctx.currentTime);
+    this.gate.gain.setValueAtTime(1, startAt);
+    this.gate.gain.setValueAtTime(0, endAt);
+    this.element.currentTime = offsetSec;
+    this.timers.push(
+      setTimeout(
+        () => {
+          if (this.stopped) return;
+          // Timers run late; seek past what the clock has already covered.
+          const late = ctx.currentTime - startAt;
+          if (late > STREAM_LATE_START_SEC) {
+            this.element.currentTime = offsetSec + late * rate;
+          }
+          // Buffering delays the first sample past this timer, so the element
+          // is late again once it really starts: re-sync when it reports
+          // `playing`, against the audio clock at that moment.
+          const onPlaying = (): void => {
+            this.element.removeEventListener("playing", onPlaying);
+            if (this.stopped) return;
+            const behind =
+              offsetSec +
+              Math.max(0, ctx.currentTime - startAt) * rate -
+              this.element.currentTime;
+            if (behind > STREAM_PLAYING_RESYNC_SEC) {
+              this.element.currentTime += behind;
+            }
+          };
+          this.element.addEventListener("playing", onPlaying);
+          void this.element.play().catch(() => {
+            // Autoplay refusal or a stop racing the start: stays silent.
+          });
+        },
+        Math.max(0, (startAt - ctx.currentTime) * 1000)
+      ),
+      // The gate already closed at endAt; pausing stops the download.
+      setTimeout(
+        () => {
+          if (this.stopped) return;
+          this.element.pause();
+          this.onended?.(new Event("ended"));
+        },
+        Math.max(0, (endAt - ctx.currentTime) * 1000)
+      )
+    );
+  }
+
+  stop(when?: number): void {
+    if (this.stopped) return;
+    this.stopped = true;
+    for (const timer of this.timers) clearTimeout(timer);
+    const release = (): void => {
+      this.element.pause();
+      // Drop the source so the element releases its buffered media.
+      this.element.removeAttribute("src");
+      this.element.load();
+    };
+    // The element runs on its own clock, so a stop on the audio clock is a
+    // timer: it keeps playing under the clip gain's ramp to silence.
+    const delayMs =
+      when !== undefined && this.ctx
+        ? Math.max(0, (when - this.ctx.currentTime) * 1000)
+        : 0;
+    if (delayMs > 0) setTimeout(release, delayMs);
+    else release();
+  }
+
+  disconnect(): void {
+    this.node.disconnect();
+    this.gate.disconnect();
+  }
+}
+
+export interface AudioGraphOptions {
+  /** Test seam: makes the media element a streamed clip plays through. */
+  createMediaElement?: () => HTMLAudioElement;
+  /**
+   * Cancels the graph's asset fetches. The offline export passes its own, so
+   * a cancelled mixdown stops downloading instead of finishing in the
+   * background.
+   */
+  signal?: AbortSignal;
+}
+
+/**
  * LRU cap on decoded AudioBuffer entries. A 3-min stereo @ 48 kHz buffer is
  * ~70 MB; we keep a small working set and rely on re-decode on miss.
  */
 const BUFFER_CACHE_MAX = 16;
+
+/** Decoded-buffer cache key: the asset id plus the URL it was fetched from. */
+export function audioBufferCacheKey(assetId: string, url: string): string {
+  return `${assetId}\u0000${url}`;
+}
 
 export class AudioGraph {
   private ctx: BaseAudioContext | null = null;
@@ -137,14 +327,26 @@ export class AudioGraph {
    * constant-rate segment of its curve, so this is a list rather than a single
    * node; an ordinary clip has exactly one entry.
    */
-  private clipSources = new Map<string, AudioBufferSourceNode[]>();
+  private clipSources = new Map<string, PlayingSource[]>();
   private bufferCache = new Map<string, AudioBuffer>();
   private loadingPromises = new Map<string, Promise<AudioBuffer | null>>();
+  private readonly createMediaElement: () => HTMLAudioElement;
+  private readonly signal: AbortSignal | undefined;
+  /** Bumped by every use of the context, so a deferred suspend can see it is stale. */
+  private contextUse = 0;
 
-  constructor(private readonly injectedContext?: BaseAudioContext) {}
+  constructor(
+    private readonly injectedContext?: BaseAudioContext,
+    options: AudioGraphOptions = {}
+  ) {
+    this.createMediaElement =
+      options.createMediaElement ?? (() => new Audio());
+    this.signal = options.signal;
+  }
 
   /** Must be called from a user-gesture handler — triggers the autoplay policy. */
   getContext(): BaseAudioContext {
+    this.contextUse += 1;
     if (!this.ctx) {
       this.ctx = this.injectedContext ?? new AudioContext();
       this.masterGain = this.ctx.createGain();
@@ -158,23 +360,25 @@ export class AudioGraph {
   }
 
   async loadBuffer(assetId: string, url: string): Promise<AudioBuffer | null> {
-    const cachedBuffer = this.bufferCache.get(assetId);
+    // Keyed by asset and URL: a relinked file keeps its id but not its URL.
+    const cacheKey = audioBufferCacheKey(assetId, url);
+    const cachedBuffer = this.bufferCache.get(cacheKey);
     if (cachedBuffer) {
       // LRU touch (delete+reinsert) only matters when eviction is imminent.
       // While the cache has spare capacity nothing is evicted, so skip the
       // reorder churn on the hot path.
       if (this.bufferCache.size >= BUFFER_CACHE_MAX) {
-        this.bufferCache.delete(assetId);
-        this.bufferCache.set(assetId, cachedBuffer);
+        this.bufferCache.delete(cacheKey);
+        this.bufferCache.set(cacheKey, cachedBuffer);
       }
       return cachedBuffer;
     }
-    if (this.loadingPromises.has(assetId)) {
-      return this.loadingPromises.get(assetId)!;
+    if (this.loadingPromises.has(cacheKey)) {
+      return this.loadingPromises.get(cacheKey)!;
     }
 
     const ctx = this.getContext();
-    const promise = fetch(url)
+    const promise = (this.signal ? fetch(url, { signal: this.signal }) : fetch(url))
       .then((r) => {
         if (!r.ok) {
           throw new Error(`HTTP ${r.status} fetching audio: ${url}`);
@@ -183,25 +387,29 @@ export class AudioGraph {
       })
       .then((ab) => ctx.decodeAudioData(ab))
       .then((buffer) => {
-        this.bufferCache.set(assetId, buffer);
-        this.loadingPromises.delete(assetId);
+        // Drop the same asset's older revisions; nothing asks for them again.
+        for (const key of [...this.bufferCache.keys()]) {
+          if (key.startsWith(`${assetId}\u0000`)) this.bufferCache.delete(key);
+        }
+        this.bufferCache.set(cacheKey, buffer);
+        this.loadingPromises.delete(cacheKey);
         // Evict least-recently-used entries to bound memory. Sources that are
         // already running hold their own buffer reference, so eviction here
         // does not interrupt in-flight playback.
         while (this.bufferCache.size > BUFFER_CACHE_MAX) {
           const oldestKey = this.bufferCache.keys().next().value;
-          if (oldestKey === undefined || oldestKey === assetId) break;
+          if (oldestKey === undefined || oldestKey === cacheKey) break;
           this.bufferCache.delete(oldestKey);
         }
         return buffer;
       })
       .catch((err) => {
         console.warn("[AudioGraph] Failed to load buffer", assetId, err);
-        this.loadingPromises.delete(assetId);
+        this.loadingPromises.delete(cacheKey);
         return null;
       });
 
-    this.loadingPromises.set(assetId, promise);
+    this.loadingPromises.set(cacheKey, promise);
     return promise;
   }
 
@@ -497,21 +705,48 @@ export class AudioGraph {
     for (const id of clipIds) {
       const sources = this.clipSources.get(id);
       if (!sources) continue;
-      for (const src of sources) {
-        try {
-          src.stop();
-        } catch {
-          // source may already have stopped at its natural end
-        }
-      }
-      try {
-        this.clipGains.get(id)?.disconnect();
-      } catch {
-        /* not connected */
-      }
+      this.releaseClip(sources, this.clipGains.get(id));
       this.clipSources.delete(id);
       this.clipGains.delete(id);
     }
+  }
+
+  /**
+   * Fade a clip out over {@link DECLICK_SEC}, stop its sources at the end of
+   * the ramp, then disconnect them and its gain — a streamed segment
+   * included, whose element node and gate would otherwise stay attached.
+   */
+  private releaseClip(sources: PlayingSource[], gain: GainNode | undefined): void {
+    const now = this.ctx?.currentTime ?? 0;
+    const endAt = now + DECLICK_SEC;
+    if (gain) {
+      try {
+        rampToSilence(gain.gain, now, endAt);
+      } catch {
+        /* the gain is already released */
+      }
+    }
+    for (const src of sources) {
+      try {
+        src.stop(endAt);
+      } catch {
+        // source may already have stopped at its natural end
+      }
+    }
+    setTimeout(() => {
+      for (const src of sources) {
+        try {
+          src.disconnect();
+        } catch {
+          /* not connected */
+        }
+      }
+      try {
+        gain?.disconnect();
+      } catch {
+        /* not connected */
+      }
+    }, DECLICK_RELEASE_MS);
   }
 
   /**
@@ -524,7 +759,7 @@ export class AudioGraph {
   async addClips(
     clips: ScheduledAudioClip[],
     tracks: TimelineTrack[],
-    currentTimeMs: number,
+    currentTimeInput: number | (() => number),
     shouldCancel?: () => boolean,
     globalRate = 1
   ): Promise<void> {
@@ -536,25 +771,54 @@ export class AudioGraph {
     // faster timeline reads the same buffer span, just quicker.
     const g = Math.max(0.0001, globalRate);
     this.updateTracks(tracks);
+    // Only a live AudioContext can play a media element; the offline export
+    // context always decodes.
+    const streamingAvailable =
+      typeof (ctx as Partial<AudioContext>).createMediaElementSource ===
+      "function";
 
-    const bufferPromises = clips.map(async (scheduled) => {
-      const { clip } = scheduled;
-      if (this.clipSources.has(clip.id)) {
-        return { clipId: clip.id, buffer: null, windowed: false };
+    const bufferPromises = clips.map(
+      async (
+        scheduled
+      ): Promise<{
+        clipId: string;
+        buffer: AudioBuffer | null;
+        windowed: boolean;
+        streamUrl?: string;
+      }> => {
+        const { clip } = scheduled;
+        if (this.clipSources.has(clip.id)) {
+          return { clipId: clip.id, buffer: null, windowed: false };
+        }
+        // A caller-supplied buffer is the clip's audio; nothing is fetched.
+        if (scheduled.buffer) {
+          return { clipId: clip.id, buffer: scheduled.buffer, windowed: true };
+        }
+        if (!clip.currentAssetId) {
+          return { clipId: clip.id, buffer: null, windowed: false };
+        }
+        // A large file streams: nothing is fetched or decoded up front.
+        if (
+          streamingAvailable &&
+          prefersStreamedPlayback(
+            scheduled.assetSize,
+            scheduled.assetDurationSec
+          )
+        ) {
+          return {
+            clipId: clip.id,
+            buffer: null,
+            windowed: false,
+            streamUrl: scheduled.assetUrl
+          };
+        }
+        const buffer = await this.loadBuffer(
+          clip.currentAssetId,
+          scheduled.assetUrl
+        );
+        return { clipId: clip.id, buffer, windowed: false };
       }
-      // A caller-supplied buffer is the clip's audio; nothing is fetched.
-      if (scheduled.buffer) {
-        return { clipId: clip.id, buffer: scheduled.buffer, windowed: true };
-      }
-      if (!clip.currentAssetId) {
-        return { clipId: clip.id, buffer: null, windowed: false };
-      }
-      const buffer = await this.loadBuffer(
-        clip.currentAssetId,
-        scheduled.assetUrl
-      );
-      return { clipId: clip.id, buffer, windowed: false };
-    });
+    );
 
     const loadedBuffers = await Promise.all(bufferPromises);
     // A newer play/pause/seek gesture superseded this call while buffers were
@@ -563,6 +827,13 @@ export class AudioGraph {
       return;
     }
     const bufferMap = new Map(loadedBuffers.map((b) => [b.clipId, b]));
+    // The playhead moves while buffers fetch and decode, and `now` below is
+    // read after them. A reader is sampled here, beside `now`, so the position
+    // and the audio clock describe the same instant.
+    const currentTimeMs =
+      typeof currentTimeInput === "function"
+        ? currentTimeInput()
+        : currentTimeInput;
 
     for (const { clip } of clips) {
       if (this.clipSources.has(clip.id)) {
@@ -570,8 +841,9 @@ export class AudioGraph {
       }
 
       const loaded = bufferMap.get(clip.id);
-      const buffer = loaded?.buffer;
-      if (!loaded || !buffer) {
+      const buffer = loaded?.buffer ?? null;
+      const streamUrl = loaded?.streamUrl;
+      if (!loaded || (!buffer && !streamUrl)) {
         continue;
       }
 
@@ -619,6 +891,12 @@ export class AudioGraph {
       // the tracks region draws and the ffmpeg export renders.
       const fades = resolveClipFades(clip, clip.durationMs);
 
+      // Where the fade-in's automation ends, computed once as `start +
+      // duration` the way WebAudio computes it. The fade-out may not begin
+      // before it: derived separately, two fades that meet can round one ulp
+      // apart and overlap, which silences the first ramp or, for two value
+      // curves, throws NotSupportedError.
+      let fadeInEndAt = startAt;
       if (fades.fadeInMs > 0) {
         const fadeEndMs = clip.startMs + fades.fadeInMs;
         if (currentTimeMs < fadeEndMs) {
@@ -627,6 +905,7 @@ export class AudioGraph {
           const offsetInFadeMs = Math.max(0, currentTimeMs - clip.startMs);
           const remainingSec =
             (fadeEndMs - Math.max(currentTimeMs, clip.startMs)) / 1000 / g;
+          fadeInEndAt = startAt + remainingSec;
           rampAlongFade(
             clipGain.gain,
             fades.fadeInShape,
@@ -643,14 +922,16 @@ export class AudioGraph {
 
       if (fades.fadeOutMs > 0) {
         const fadeSec = fades.fadeOutMs / 1000 / g;
-        const fadeOutStartAt = Math.max(startAt, clipEndAt - fadeSec);
+        const fadeOutStartAt = Math.max(fadeInEndAt, clipEndAt - fadeSec);
         if (fadeOutStartAt < clipEndAt) {
           // A fade-out reads its curve backwards: full volume at the top of
-          // the ramp down to silence at the clip's end.
+          // the ramp down to silence at the clip's end. Playback starting
+          // inside it resumes at the level the fade has already reached.
+          const elapsedSec = Math.max(0, fadeOutStartAt - (clipEndAt - fadeSec));
           rampAlongFade(
             clipGain.gain,
             fades.fadeOutShape,
-            1,
+            Math.max(0, 1 - elapsedSec / fadeSec),
             0,
             volumeLinear,
             fadeOutStartAt,
@@ -662,7 +943,7 @@ export class AudioGraph {
       const trackGain = this.getTrackGain(clip.trackId);
       clipGain.connect(trackGain);
 
-      const sources: AudioBufferSourceNode[] = [];
+      const sources: PlayingSource[] = [];
       for (const segment of segments) {
         // WebAudio cannot play a buffer backwards: `playbackRate` takes no
         // useful negative value and there is no reverse source node, so a
@@ -678,54 +959,114 @@ export class AudioGraph {
         const segLeadSec =
           Math.max(0, (segment.timelineStartMs - currentTimeMs) / 1000) / g;
 
+        const offsetSec =
+          segment.sourceStartMs / 1000 + intoSegmentSec * segment.rate;
+        if (streamUrl) {
+          sources.push(
+            this.streamSegment(
+              ctx as AudioContext,
+              streamUrl,
+              clipGain,
+              now + segLeadSec,
+              now + segLeadSec + segRemainingMs / 1000 / g,
+              offsetSec,
+              segment.rate * g
+            )
+          );
+          continue;
+        }
         const src = ctx.createBufferSource();
         src.buffer = buffer;
         src.playbackRate.value = segment.rate * g;
         src.connect(clipGain);
         src.start(
           now + segLeadSec,
-          segment.sourceStartMs / 1000 + intoSegmentSec * segment.rate,
+          offsetSec,
           (segRemainingMs / 1000) * segment.rate
         );
         sources.push(src);
       }
+
+      // Once every source has played out, release the clip so its buffer is
+      // not held until the next pause or seek. A source that ends after the
+      // clip was stopped or replaced finds other sources registered and
+      // leaves them alone.
+      let playingCount = sources.length;
+      const onSourceEnded = (): void => {
+        playingCount -= 1;
+        if (playingCount > 0 || this.clipSources.get(clip.id) !== sources) {
+          return;
+        }
+        this.clipSources.delete(clip.id);
+        this.clipGains.delete(clip.id);
+        this.releaseClip(sources, clipGain);
+      };
+      for (const src of sources) src.onended = onSourceEnded;
 
       this.clipSources.set(clip.id, sources);
       this.clipGains.set(clip.id, clipGain);
     }
   }
 
+  /**
+   * Play one stretch of `url` through a media element into `clipGain`, heard
+   * from `startAt` to `endAt` on the audio clock, starting `offsetSec` into
+   * the file at `rate`.
+   */
+  private streamSegment(
+    ctx: AudioContext,
+    url: string,
+    clipGain: GainNode,
+    startAt: number,
+    endAt: number,
+    offsetSec: number,
+    rate: number
+  ): StreamedSegment {
+    const element = this.createMediaElement();
+    element.crossOrigin = "anonymous";
+    element.preload = "auto";
+    // A buffer source changes pitch with its rate; match it.
+    element.preservesPitch = false;
+    element.src = url;
+    const clamped = Math.min(
+      MEDIA_ELEMENT_MAX_RATE,
+      Math.max(MEDIA_ELEMENT_MIN_RATE, rate)
+    );
+    element.defaultPlaybackRate = clamped;
+    element.playbackRate = clamped;
+    const node = ctx.createMediaElementSource(element);
+    const gate = ctx.createGain();
+    node.connect(gate);
+    gate.connect(clipGain);
+    const segment = new StreamedSegment(element, node, gate);
+    segment.schedule(ctx, startAt, endAt, offsetSec, clamped);
+    return segment;
+  }
+
   stopAll(): void {
-    for (const [, sources] of this.clipSources) {
-      for (const src of sources) {
-        try {
-          src.stop();
-        } catch {
-          // already stopped
-        }
-        try {
-          src.disconnect();
-        } catch {
-          /* not connected */
-        }
-      }
-    }
-    for (const [, gain] of this.clipGains) {
-      try {
-        gain.disconnect();
-      } catch {
-        /* not connected */
-      }
+    for (const [id, sources] of this.clipSources) {
+      this.releaseClip(sources, this.clipGains.get(id));
     }
     this.clipSources.clear();
     this.clipGains.clear();
   }
 
+  /**
+   * Suspend once the clips {@link stopAll} just released have ramped out:
+   * suspending at once would freeze the output mid-waveform. Any use of the
+   * context before then (a play that follows at once) cancels it.
+   */
   suspend(): void {
-    if (this.ctx instanceof AudioContext) void this.ctx.suspend();
+    const ctx = this.ctx;
+    if (!(ctx instanceof AudioContext)) return;
+    const use = this.contextUse;
+    setTimeout(() => {
+      if (this.contextUse === use && this.ctx === ctx) void ctx.suspend();
+    }, DECLICK_RELEASE_MS);
   }
 
   resume(): void {
+    this.contextUse += 1;
     if (this.ctx instanceof AudioContext) void this.ctx.resume();
   }
 

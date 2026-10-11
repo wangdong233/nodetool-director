@@ -93,9 +93,20 @@ const stub = (name: string) => ({
   __esModule: true,
   default: () => <div data-testid={name} />
 });
+jest.mock("../ShotRenderDialog", () => ({
+  __esModule: true,
+  default: ({ step, shot }: { step: string; shot: { action?: string } }) => (
+    <div
+      data-testid="shot-render-dialog"
+      data-step={step}
+      data-action={shot.action}
+    />
+  )
+}));
 jest.mock("../ShotEditViewer", () => stub("shot-edit-viewer"));
 jest.mock("../ShotTakesGallery", () => stub("takes-gallery"));
 jest.mock("../ShotScriptPanel", () => stub("script-panel"));
+jest.mock("../ShotStillModifyPanel", () => stub("still-modify"));
 
 import ShotEditPanel from "../ShotEditPanel";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
@@ -208,17 +219,37 @@ afterEach(() => {
   useStoryboardStore.getState().removeBoard(BOARD);
 });
 
+describe("ShotEditPanel takes and still changes", () => {
+  it("switches the side column between the takes and the still changes", async () => {
+    seed([baseShot()]);
+    renderPanel();
+
+    expect(screen.getByTestId("takes-gallery")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Change still" }));
+    expect(screen.getByTestId("still-modify")).toBeInTheDocument();
+    expect(screen.queryByTestId("takes-gallery")).not.toBeInTheDocument();
+  });
+
+  it("offers only the takes on a read-only board", () => {
+    seed([baseShot()]);
+    renderPanel({ readOnly: true });
+
+    expect(screen.getByTestId("takes-gallery")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Change still" })
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("ShotEditPanel fields (criterion 14)", () => {
-  it("shows the derived numbering and the board's aspect ratio read-only", () => {
+  it("shows the derived numbering in the header", () => {
     seed([baseShot(), baseShot({ id: "shot-2", index: 1, scene_id: "sc2" })]);
     renderPanel();
 
     // Scene 1, Shot 1 — both derived from `shot.index`, neither editable.
-    expect(screen.getByTestId("cell-scene")).toHaveTextContent("1");
-    expect(screen.getByTestId("cell-shot")).toHaveTextContent("1");
-    // The ratio is the board's, so it is shown with the way to change it.
-    expect(screen.getByTestId("cell-aspect-ratio")).toHaveTextContent("9:16");
-    expect(screen.getByText("Set in Board settings")).toBeInTheDocument();
+    expect(screen.getByTestId("shot-edit-title")).toHaveTextContent(
+      "Scene 1, Shot 1"
+    );
   });
 
   it("prices the unsaved draft duration before rendering", async () => {
@@ -230,20 +261,12 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     expect(mockCostShot?.duration_seconds).toBe(9);
   });
 
-  it("links to the board's settings form when the caller can open one", () => {
-    seed([baseShot()]);
-    const onOpenBoardSettings = jest.fn();
-    renderPanel({ onOpenBoardSettings });
-    expect(
-      screen.getByRole("button", { name: "Board settings" })
-    ).toBeEnabled();
-  });
-
   it("numbers a shot by its scene, not by its position on the board", () => {
     seed([baseShot(), baseShot({ id: "shot-2", index: 1, scene_id: "sc2" })]);
     renderPanel({ shotId: "shot-2" });
-    expect(screen.getByTestId("cell-scene")).toHaveTextContent("2");
-    expect(screen.getByTestId("cell-shot")).toHaveTextContent("1");
+    expect(screen.getByTestId("shot-edit-title")).toHaveTextContent(
+      "Scene 2, Shot 1"
+    );
   });
 
   // Eleven fields typed one key at a time exceed Jest's default on CI runners.
@@ -252,6 +275,9 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     renderPanel();
 
     await typeInto("Description", "A lighthouse at dawn");
+    await typeInto("Shot motion", "Slow push-in");
+    await typeInto("End", "The lamp fills the frame");
+    await typeInto("Sound", "Gulls and surf");
     await typeInto("Dialogue", "We are open.");
     await typeInto("Estimated running time in seconds", "7");
     await choose("Size", "wide");
@@ -259,7 +285,7 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     await choose("Movement", "pan left");
     await choose("Equipment", "steadicam");
     await choose("Focal length", "35mm");
-    await userEvent.click(screen.getByRole("button", { name: "Add +" }));
+    await userEvent.click(screen.getByText("Advanced"));
     await typeInto("Notes", "Keep the gulls");
     await typeInto("Shot title", "Dawn");
 
@@ -271,6 +297,9 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     expect(storedShot()).toMatchObject({
       slug: "Dawn",
       action: "A lighthouse at dawn",
+      motion: "Slow push-in",
+      end_state: "The lamp fills the frame",
+      sound: "Gulls and surf",
       dialogue: "We are open.",
       notes: "Keep the gulls",
       duration_seconds: 7,
@@ -301,19 +330,6 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     expect(storedShot().camera).toBeUndefined();
   }, 60_000);
 
-  it("moves the shot to the chosen scene and writes that scene's lighting", async () => {
-    seed([baseShot(), baseShot({ id: "shot-2", index: 1, scene_id: "sc2" })]);
-    renderPanel();
-
-    await choose("Slugline", "INT. LAMP ROOM — NIGHT");
-    await typeInto("Scene lighting", "sodium wash");
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(storedShot().scene_id).toBe("sc2");
-    const scenes =
-      useStoryboardStore.getState().boards[BOARD]?.screenplay?.scenes ?? [];
-    expect(scenes.find((s) => s.id === "sc2")?.lighting).toBe("sodium wash");
-  });
 });
 
 describe("ShotEditPanel overflow actions", () => {
@@ -387,38 +403,12 @@ describe("ShotEditPanel save semantics", () => {
     expect(storedShot().action).toBe("A lighthouse at dusk");
   });
 
-  it("keeps scene conflict resolution when both sides moved the shot", async () => {
-    seed([baseShot(), baseShot({ id: "shot-2", index: 1, scene_id: "sc2" })]);
-    renderPanel();
-
-    await choose("Slugline", "INT. LAMP ROOM — NIGHT");
-    act(() => {
-      useStoryboardStore.getState().moveShot(BOARD, "shot-1", null, 0);
-    });
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(
-      await screen.findByText("This shot changed elsewhere")
-    ).toBeInTheDocument();
-    expect(storedShot().scene_id).toBeUndefined();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "Keep my changes" })
-    );
-    expect(storedShot().scene_id).toBe("sc2");
-
-    act(() => {
-      useStoryboardStore.getState().undo(BOARD);
-    });
-    expect(storedShot().scene_id).toBeUndefined();
-  });
-
   it("asks before closing with unsaved edits, and discards on Discard", async () => {
     seed([baseShot()]);
     renderPanel();
 
     await typeInto("Description", "A lighthouse at dawn");
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to storyboard" }));
 
     expect(onClose).not.toHaveBeenCalled();
     const confirm = await screen.findByText("Discard changes?");
@@ -438,7 +428,7 @@ describe("ShotEditPanel save semantics", () => {
     renderPanel();
 
     await typeInto("Description", "A lighthouse at dawn");
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to storyboard" }));
     const confirm = await screen.findByText("Discard changes?");
     await userEvent.click(
       within(confirm.closest("[role='dialog']") as HTMLElement).getByRole(
@@ -454,12 +444,12 @@ describe("ShotEditPanel save semantics", () => {
   it("closes without asking when nothing was edited", async () => {
     seed([baseShot()]);
     renderPanel();
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to storyboard" }));
     expect(onClose).toHaveBeenCalled();
     expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
   });
 
-  it("renders from the saved values, not the ones on screen before Save", async () => {
+  it("asks for the still model with the saved values, not the ones on screen before Save", async () => {
     seed([baseShot()]);
     renderPanel();
 
@@ -467,10 +457,11 @@ describe("ShotEditPanel save semantics", () => {
     await userEvent.click(screen.getByRole("button", { name: "Regenerate" }));
 
     expect(storedShot().action).toBe("A lighthouse at dawn");
-    expect(generateKeyframeMock).toHaveBeenCalledWith(
-      BOARD,
-      expect.objectContaining({ action: "A lighthouse at dawn" })
+    expect(screen.getByTestId("shot-render-dialog")).toHaveAttribute(
+      "data-action",
+      "A lighthouse at dawn"
     );
+    expect(generateKeyframeMock).not.toHaveBeenCalled();
   });
 });
 
@@ -527,6 +518,62 @@ describe("ShotEditPanel keyboard", () => {
     await userEvent.keyboard("{Escape}");
     expect(onClose).not.toHaveBeenCalled();
     expect(await screen.findByText("Discard changes?")).toBeInTheDocument();
+  });
+});
+
+describe("ShotEditPanel in a background tab", () => {
+  it("ignores Esc and Cmd/Ctrl+S while its tab is inert", async () => {
+    seed([baseShot()]);
+    const { container } = renderPanel();
+    container.setAttribute("inert", "");
+
+    await userEvent.keyboard("{Escape}");
+    await userEvent.keyboard("{Control>}s{/Control}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("ShotEditPanel render guards", () => {
+  const openOverflow = async () => {
+    await userEvent.click(
+      screen.getByRole("button", { name: "More shot actions" })
+    );
+  };
+
+  it("does not offer a clip render for a keyframe shot with no still", async () => {
+    seed([baseShot()]);
+    renderPanel();
+
+    await openOverflow();
+
+    expect(
+      await screen.findByRole("menuitem", { name: /Render clip/ })
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByText("Render a still first, or set render mode to Direct")
+    ).toBeInTheDocument();
+  });
+
+  it("does not offer moving the last shot in a scene later", async () => {
+    seed([baseShot()]);
+    renderPanel();
+
+    await openOverflow();
+
+    expect(
+      await screen.findByRole("menuitem", { name: "Move later in scene" })
+    ).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("disables Regenerate while the shot is rendering", () => {
+    seed([baseShot()]);
+    useStoryboardStore
+      .getState()
+      .setShotStatus(BOARD, "shot-1", "keyframe_generating");
+    renderPanel();
+
+    expect(screen.getByRole("button", { name: "Regenerate" })).toBeDisabled();
   });
 });
 

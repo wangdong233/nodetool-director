@@ -7,11 +7,11 @@
     "packages/timeline",
     "packages/storyboard",
     "packages/app-runtime",
+    "packages/game-runtime",
+    "packages/game-renderer",
     "packages/image-editor",
     "packages/model3d",
-    "packages/godot",
     "packages/kernel",
-    "packages/godot-templates",
     "packages/runtime",
     "packages/models",
     "packages/node-sdk",
@@ -67,12 +67,14 @@
     "packages/integration-nodes",
     "packages/code-nodes",
     "packages/automation-nodes",
+    "packages/mutator",
     "web",
     "electron",
     "demo",
     "examples/chat_app",
     "examples/nextjs-vercel",
-    "examples/nextjs-cloudflare"
+    "examples/nextjs-cloudflare",
+    "packages/whisper-cpp"
   ],
   "scripts": {
     "postinstall": "node electron/scripts/rebuild-native.mjs",
@@ -87,7 +89,7 @@
     "build:packages:tsc": "node scripts/run-tsc.mjs --build tsconfig.build.json && node scripts/copy-manifests.mjs",
     "build:tsc6": "node scripts/run-with-tsc-version.mjs 6 npm run build:packages:clean",
     "build:tsc7": "node scripts/run-with-tsc-version.mjs 7 npm run build:packages:tsc",
-    "build:web": "node scripts/run-turbo.mjs run build --filter=web",
+    "build:web": "node scripts/run-turbo.mjs run build --filter=nodetool",
     "build:mcpb": "node scripts/build-mcpb.mjs --smoke",
     "build": "node scripts/run-turbo.mjs run build",
     "test:packages": "npm run test:oxlint-rules && npm run test:scripts && node scripts/run-turbo.mjs run test --filter=\"./packages/*\" --filter=\"./reliability/*\"",
@@ -101,7 +103,7 @@
     "turbo:lint": "node scripts/run-turbo.mjs run lint",
     "turbo:typecheck": "node scripts/run-turbo.mjs run typecheck",
     "turbo:check": "node scripts/run-turbo.mjs run typecheck lint test",
-    "dev": "concurrently --raw --kill-others-on-fail \"node scripts/dev-server.mjs\" \"node scripts/wait-for-api.mjs && npm run dev --workspace=web\"",
+    "dev": "node scripts/dev-ports.mjs api web && concurrently --raw --kill-others-on-fail \"node scripts/dev-server.mjs\" \"node scripts/wait-for-api.mjs && npm run dev --workspace=web\"",
     "dev:fast": "npm run dev",
     "dev:web": "npm run dev --workspace=web",
     "storybook": "npm run storybook --workspace=web",
@@ -161,13 +163,12 @@
     "test:coverage:mobile": "npm --prefix mobile run test:coverage",
     "test:integration": "npm test --workspace=@nodetool-ai/base-nodes -- example-workflows-execute",
     "validate:examples": "node scripts/validate-examples.mjs",
+    "build:example-apps:check": "node scripts/build-example-apps.mjs --check",
     "codegen:dsl": "npm run codegen --workspace=packages/dsl",
     "codegen:dsl:check": "npm run codegen:check --workspace=packages/dsl",
     "gen:example-thumbnails": "node scripts/generate-example-thumbnails.mjs",
     "gen:icons": "node scripts/generate-brand-icons.mjs",
     "gen:icons:check": "node scripts/generate-brand-icons.mjs --check",
-    "gen:game-tiles": "node scripts/make-game-style-tiles.mjs",
-    "gen:game-tiles:check": "node scripts/make-game-style-tiles.mjs --check",
     "build:example-storyboards": "node scripts/build-example-storyboards.mjs",
     "build:example-storyboards:check": "node scripts/build-example-storyboards.mjs --check",
     "examples:smoke": "node scripts/smoke-examples.mjs",
@@ -178,6 +179,8 @@
     "reliability:ring1": "node scripts/reliability-ring1.mjs",
     "test:mutation": "for pkg in agents auth config kernel node-sdk runtime security storage; do npm run test:mutation --workspace=packages/$pkg || true; done",
     "mutation:score": "node scripts/mutation-score.mjs",
+    "crap": "node scripts/crap-score.mjs",
+    "mutate": "node packages/mutator/dist/cli.js",
     "lint:web": "npm run lint --workspace=web",
     "lint:electron": "npm run lint --workspace=electron",
     "lint:mobile": "npm --prefix mobile run lint",
@@ -217,7 +220,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@oxlint/plugins": "^1.78.0",
-    "@types/jest": "^30.0.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.0.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vitest/coverage-v8": "^5.0.1",
@@ -242,7 +245,7 @@
     "sharp": "^0.35.3"
   },
   "engines": {
-    "node": ">=22.0.0 <23.0.0"
+    "node": "24.18.0"
   },
   "packageManager": "npm@10.9.7"
 }

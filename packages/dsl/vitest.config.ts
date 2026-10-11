@@ -3,6 +3,7 @@ import { resolve } from "path";
 export default defineConfig({
   resolve: {
     alias: {
+      "@nodetool-ai/execution": resolve(__dirname, "../execution/src"),
       "@nodetool-ai/protocol": resolve(__dirname, "../protocol/src"),
       "@nodetool-ai/kernel": resolve(__dirname, "../kernel/src/index.ts"),
       // Subpaths before the root alias (Vite alias is prefix-based).
@@ -67,6 +68,7 @@ export default defineConfig({
   test: {
     root: resolve(__dirname),
     include: ["tests/**/*.test.ts"],
-    testTimeout: 30000
+    testTimeout: 30000,
+    typecheck: { enabled: true }
   }
 });

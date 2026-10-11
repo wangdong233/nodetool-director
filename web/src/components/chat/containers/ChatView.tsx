@@ -183,6 +183,7 @@ type ChatViewProps = {
    * (e.g. a workspace chat tab) that may not be `currentThreadId`.
    */
   threadId?: string | null;
+  focusMessage?: { messageId: string; requestId: number } | null;
   /** A deterministic replay owns thread scrolling. */
   externalScroll?: boolean;
 };
@@ -239,7 +240,8 @@ const ChatView = ({
   hideModelPicker,
   showNewChatButton = false,
   projectDocumentsSidebar,
-  threadId
+  threadId,
+  focusMessage
 }: ChatViewProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -279,6 +281,13 @@ const ChatView = ({
     (state) => state.addNotification
   );
 
+  const effectiveThreadId = useGlobalChatStore(
+    (state) => threadId ?? state.currentThreadId
+  );
+  const [failedSubmission, setFailedSubmission] = useState<{
+    threadId: string | null;
+  } | null>(null);
+
   const handleSendMessage = useCallback(
     async (
       content: MessageContent[],
@@ -287,7 +296,10 @@ const ChatView = ({
     ) => {
       try {
         await sendMessage(buildOutgoing(content, mediaGeneration));
+        setFailedSubmission(null);
+        return true;
       } catch (error) {
+        setFailedSubmission({ threadId: effectiveThreadId });
         console.error("Error sending message:", error);
         addNotification({
           type: "error",
@@ -295,18 +307,16 @@ const ChatView = ({
             error instanceof Error ? error.message : String(error)
           }`
         });
+        return false;
       }
     },
-    [sendMessage, buildOutgoing, addNotification]
+    [sendMessage, buildOutgoing, addNotification, effectiveThreadId]
   );
 
   const todos = useGlobalChatStore((state) => {
     const id = threadId ?? state.currentThreadId;
     return (id && state.todosByThread[id]) || NO_TODOS;
   });
-  const effectiveThreadId = useGlobalChatStore(
-    (state) => threadId ?? state.currentThreadId
-  );
   // The thread's own error, plus the top-level one when this surface renders
   // the current thread — a protocol error that arrives without a thread id
   // lands there and nowhere else.
@@ -341,7 +351,9 @@ const ChatView = ({
   const [mobileRail, setMobileRail] = useState<MobileRail>("chat");
   const mobileRails = useMemo<MobileRail[]>(() => {
     const rails: MobileRail[] = ["chat"];
-    if (projectDocumentsSidebar && !documentsFit) {
+    // Phones get no documents rail: a Chat/Documents picker crowds the
+    // conversation, and documents stay reachable from the side panel.
+    if (projectDocumentsSidebar && !documentsFit && !isMobile) {
       rails.push("documents");
     }
     if (!railsFit && todos.length > 0) {
@@ -351,7 +363,14 @@ const ChatView = ({
       rails.push("task");
     }
     return rails;
-  }, [todos.length, hasTaskRail, projectDocumentsSidebar, documentsFit, railsFit]);
+  }, [
+    todos.length,
+    hasTaskRail,
+    projectDocumentsSidebar,
+    documentsFit,
+    railsFit,
+    isMobile
+  ]);
   const showMobileRails = mobileRails.length > 1;
   // A rail whose content went away leaves the conversation hidden behind an
   // option that is no longer offered.
@@ -392,20 +411,54 @@ const ChatView = ({
     clearError(effectiveThreadId ?? undefined);
   }, [clearError, effectiveThreadId]);
 
+  // Regenerate, edit and Retry share one move: rewind the thread to just
+  // before a user message, then send that message again (with new text for an
+  // edit). The rewind is what keeps the old answer out of the new turn's
+  // history and off the screen.
+  const rewindThread = useGlobalChatStore((state) => state.rewindThread);
+  const handleResendFrom = useCallback(
+    async (message: Message, text?: string) => {
+      const blocks = messageBlocks(message);
+      if (!blocks || !effectiveThreadId) {
+        return;
+      }
+      const content: MessageContent[] =
+        text === undefined
+          ? blocks
+          : [
+              { type: "text", text },
+              ...blocks.filter((block) => block.type !== "text")
+            ];
+      if (message.id) {
+        try {
+          await rewindThread(effectiveThreadId, message.id);
+        } catch (error) {
+          addNotification({
+            type: "error",
+            content: `Could not rewind the conversation: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          });
+          return;
+        }
+      }
+      await handleSendMessage(
+        content,
+        "",
+        (message as ChatOutgoingMessage).media_generation ?? undefined
+      );
+    },
+    [effectiveThreadId, rewindThread, addNotification, handleSendMessage]
+  );
+
   const handleRetry = useCallback(() => {
-    if (!lastUserMessage) {
-      return;
+    if (lastUserMessage) {
+      void handleResendFrom(lastUserMessage);
     }
-    const content = messageBlocks(lastUserMessage);
-    if (!content) {
-      return;
-    }
-    void handleSendMessage(
-      content,
-      "",
-      lastUserMessage.media_generation ?? undefined
-    );
-  }, [lastUserMessage, handleSendMessage]);
+  }, [lastUserMessage, handleResendFrom]);
+  // A demo replay owns its messages, and a running turn would keep writing
+  // into the history a rewind cuts.
+  const canResend = !isBusy && !externalScroll && Boolean(effectiveThreadId);
 
   // Every open workspace tab stays mounted and inactive ones are `inert`, so
   // a shortcut must only act for the ChatView the user can actually see.
@@ -449,7 +502,7 @@ const ChatView = ({
       <div className="chat-main">
         {((!isMobile && messages.length > 0) ||
           (showNewChatButton && onNewChat)) && (
-          <FlexRow className="chat-overlay-actions" align="center" gap={2}>
+          <FlexRow className="chat-overlay-actions" align="center" gap={SPACING.md}>
             {!isMobile && messages.length > 0 && (
               <ToolbarIconButton
                 onClick={handleCopyConversation}
@@ -488,6 +541,7 @@ const ChatView = ({
             {messages.length > 0 ? (
               <ChatThreadView
                 threadId={effectiveThreadId}
+                focusMessage={focusMessage}
                 messages={messages}
                 status={status}
                 replayElapsedSeconds={replayElapsedSeconds}
@@ -501,6 +555,7 @@ const ChatView = ({
                 onInsertCode={onInsertCode}
                 showTaskUpdate={false}
                 externalScroll={externalScroll}
+                onResendFrom={canResend ? handleResendFrom : undefined}
               />
             ) : (
               noMessagesPlaceholder ?? <div style={{ flex: 1 }} />
@@ -531,7 +586,7 @@ const ChatView = ({
             <ChatErrorBanner
               error={chatError}
               onDismiss={handleDismissError}
-              onRetry={!isBusy && lastUserMessage ? handleRetry : undefined}
+              onRetry={!isBusy && failedSubmission?.threadId !== effectiveThreadId && lastUserMessage ? handleRetry : undefined}
             />
           </FlexColumn>
         )}

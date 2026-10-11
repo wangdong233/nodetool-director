@@ -7,8 +7,11 @@ import { describe, it, expect } from "vitest";
 import {
   isPublicAppDeploymentRequest,
   isPublicOAuthRequest,
+  isPublicSharedWorkflowRequest,
   isPublicWorkflowMetadataRequest,
-  isPublicAuthExemptRoute
+  isPublicAuthExemptRoute,
+  isStaticAppRequest,
+  routedPathname
 } from "../src/lib/public-routes.js";
 
 describe("isPublicWorkflowMetadataRequest", () => {
@@ -172,5 +175,66 @@ describe("isPublicAppDeploymentRequest", () => {
     expect(isPublicAuthExemptRoute("/api/apps/tok3n/session", "POST")).toBe(
       true
     );
+  });
+});
+
+describe("isPublicSharedWorkflowRequest", () => {
+  it("exempts reading a workflow through its public share token", () => {
+    expect(
+      isPublicSharedWorkflowRequest("/api/shared-workflows/tok3n", "GET")
+    ).toBe(true);
+    expect(
+      isPublicAuthExemptRoute("/api/shared-workflows/tok3n", "GET")
+    ).toBe(true);
+  });
+
+  it("exempts nothing deeper, empty, or mutating", () => {
+    for (const [path, method] of [
+      ["/api/shared-workflows/", "GET"],
+      ["/api/shared-workflows", "GET"],
+      ["/api/shared-workflows/tok3n/graph", "GET"],
+      ["/api/shared-workflows/tok3n", "POST"],
+      ["/api/shared-workflows/tok3n", "DELETE"]
+    ] as const) {
+      expect(isPublicSharedWorkflowRequest(path, method)).toBe(false);
+      expect(isPublicAuthExemptRoute(path, method)).toBe(false);
+    }
+  });
+});
+
+describe("routedPathname", () => {
+  it("decodes the path the way the router does", () => {
+    expect(routedPathname("/%61pi/workflows?x=1")).toBe("/api/workflows");
+    expect(routedPathname("/%77s")).toBe("/ws");
+    // Reserved characters stay encoded, as in find-my-way.
+    expect(routedPathname("/api/a%2Fb")).toBe("/api/a%2Fb");
+  });
+
+  it("returns null for malformed escapes", () => {
+    expect(routedPathname("/api/storage/%E0%A4%A")).toBeNull();
+  });
+});
+
+describe("isStaticAppRequest", () => {
+  it("serves frontend paths without auth", () => {
+    expect(isStaticAppRequest("/", "GET")).toBe(true);
+    expect(isStaticAppRequest("/assets/index.js", "GET")).toBe(true);
+  });
+
+  it("keeps percent-encoded API and WebSocket paths behind auth", () => {
+    for (const url of [
+      "/%61pi/workflows",
+      "/%77s",
+      "/%74rpc/workflows.list",
+      "/%6Dcp",
+      "/%76%31/chat/completions"
+    ]) {
+      expect(isStaticAppRequest(routedPathname(url), "GET")).toBe(false);
+    }
+  });
+
+  it("never treats an undecodable path or a non-GET as static", () => {
+    expect(isStaticAppRequest(null, "GET")).toBe(false);
+    expect(isStaticAppRequest("/index.html", "POST")).toBe(false);
   });
 });

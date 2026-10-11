@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/protocol",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Shared message types and protocol definitions for the NodeTool workflow runtime",
   "type": "module",
   "engines": {
@@ -30,6 +30,12 @@
     "vitest": "^5.0.1"
   },
   "exports": {
+    "./run-trace": {
+      "nodetool-dev": "./src/run-trace.ts",
+      "types": "./dist/run-trace.d.ts",
+      "import": "./dist/run-trace.js",
+      "default": "./dist/run-trace.js"
+    },
     ".": {
       "nodetool-dev": "./src/index.ts",
       "types": "./dist/index.d.ts",
@@ -41,6 +47,18 @@
       "types": "./dist/blend-modes.d.ts",
       "import": "./dist/blend-modes.js",
       "default": "./dist/blend-modes.js"
+    },
+    "./game.js": {
+      "nodetool-dev": "./src/game.ts",
+      "types": "./dist/game.d.ts",
+      "import": "./dist/game.js",
+      "default": "./dist/game.js"
+    },
+    "./missing-runtime-package": {
+      "nodetool-dev": "./src/missing-runtime-package.ts",
+      "types": "./dist/missing-runtime-package.d.ts",
+      "import": "./dist/missing-runtime-package.js",
+      "default": "./dist/missing-runtime-package.js"
     },
     "./zod-schema": {
       "nodetool-dev": "./src/zod-schema.ts",
@@ -59,6 +77,12 @@
       "types": "./dist/builtin-packs.d.ts",
       "import": "./dist/builtin-packs.js",
       "default": "./dist/builtin-packs.js"
+    },
+    "./python-packs": {
+      "nodetool-dev": "./src/python-packs.ts",
+      "types": "./dist/python-packs.d.ts",
+      "import": "./dist/python-packs.js",
+      "default": "./dist/python-packs.js"
     },
     "./bridge-protocol": {
       "nodetool-dev": "./src/bridge-protocol.ts",

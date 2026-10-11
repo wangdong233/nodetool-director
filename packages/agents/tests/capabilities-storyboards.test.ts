@@ -8,6 +8,8 @@
  * remain the deep behavioural net.
  */
 
+import { productionRequirement } from "@nodetool-ai/protocol";
+import { storyboardResponse } from "@nodetool-ai/protocol/api-schemas/storyboards.js";
 import { withGenerationSeam } from "./_helpers/generation-seam.js";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
@@ -216,6 +218,9 @@ describe("storyboards capability module", () => {
   it("is well-formed and declares itself as storyboards", () => {
     expect(capabilityModuleIssues("storyboards", storyboards)).toEqual([]);
     expect(storyboards.exports.map((e) => e.spec.name)).toEqual([
+      "finish_storyboard",
+      "layout_storyboard",
+      "preview_storyboard_design",
       "list_storyboards",
       "create_storyboard",
       "get_storyboard",
@@ -226,7 +231,9 @@ describe("storyboards capability module", () => {
       "edit_storyboard",
       "direct_storyboard",
       "extract_script_from_storyboard",
-      "delete_storyboard"
+      "delete_storyboard",
+      "get_storyboard_one_take",
+      "update_storyboard_one_take"
     ]);
   });
 
@@ -330,6 +337,285 @@ describe("storyboards capability behaviour", () => {
     })) as { entity_ids: string[] };
     expect(read.entity_ids).toEqual(["style-1", "char-1"]);
   });
+
+  it("set_board persists narration and music direction for timeline assembly", async () => {
+    const board = await makeBoard([renderedShot("s1", 0)]);
+    const context = ctx();
+    const edited = await run(context).invoke("edit_storyboard", {
+      storyboard_id: board.id,
+      ops: [
+        {
+          op: "set_board",
+          narration: "A quiet town at dusk.",
+          music_prompt: "Soft piano."
+        }
+      ]
+    });
+    expect(edited).toMatchObject({ applied: 1, failed: 0 });
+    expect(
+      await run(context).invoke("get_storyboard", {
+        storyboard_id: board.id
+      })
+    ).toMatchObject({
+      narration: "A quiet town at dusk.",
+      music_prompt: "Soft piano."
+    });
+
+    const saved = await Storyboard.findById(board.id);
+    expect(saved?.toDocument().screenplay).toMatchObject({
+      type: "screenplay",
+      narration: "A quiet town at dusk.",
+      music_prompt: "Soft piano."
+    });
+    const assembled = (await run(context).invoke(
+      "assemble_storyboard_timeline",
+      {
+        storyboard_id: board.id
+      }
+    )) as { timeline_id: string };
+    const timeline = (await sequenceOf(assembled.timeline_id)).toDocument();
+    expect(timeline.clips.map((clip) => clip.prompt)).toEqual(
+      expect.arrayContaining(["A quiet town at dusk.", "Soft piano."])
+    );
+  });
+
+  it("edits and reads storyboard motion-graphics intent", async () => {
+    const board = await makeBoard([shot({ id: "s1", index: 0 }), shot({ id: "s2", index: 1 })]);
+    const context = ctx();
+    const graphics = {
+      mode: "hybrid",
+      direction: "Keep the exact packshot while the offer builds around it.",
+      elements: [
+        {
+          id: "headline",
+          kind: "text",
+          role: "headline",
+          text: "NEW DROP",
+          direction: "Reveal from behind the product."
+        },
+        {
+          id: "logo",
+          kind: "asset",
+          role: "logo",
+          asset_id: "asset-logo"
+        }
+      ]
+    };
+    const motionDesign = {
+      direction: "A yellow line ties the whole cut together.",
+      transitions: [
+        {
+          from_shot_id: "s1",
+          to_shot_id: "s2",
+          direction: "Carry the line through the cut."
+        }
+      ],
+      continuities: [
+        {
+          id: "yellow-line",
+          shot_ids: ["s1", "s2"],
+          direction: "Persist across both shots."
+        }
+      ]
+    };
+
+    const edited = await run(context).invoke("edit_storyboard", {
+      storyboard_id: board.id,
+      ops: [
+        { op: "update_shot", target: "s1", graphics },
+        { op: "set_board", motion_design: motionDesign }
+      ]
+    });
+    expect(edited).toMatchObject({ applied: 2, failed: 0 });
+
+    const read = (await run(context).invoke("get_storyboard", {
+      storyboard_id: board.id
+    })) as {
+      motion_design: unknown;
+      shots: Array<{ id: string; graphics?: unknown }>;
+    };
+    expect(read.motion_design).toEqual(motionDesign);
+    expect(read.shots.find((entry) => entry.id === "s1")?.graphics).toEqual(
+      graphics
+    );
+
+    const saved = await Storyboard.findById(board.id);
+    expect(saved?.toDocument().screenplay?.motion_design).toEqual(motionDesign);
+    expect(saved?.toDocument().shots[0].graphics).toEqual(graphics);
+    expect(storyboardResponse.safeParse(saved?.toResponse()).error?.issues ?? []).toEqual([]);
+    expect(JSON.parse(saved!.document).screenplay.shots).toEqual(saved?.toDocument().shots);
+  });
+
+  it("edits and reads per-shot social-ad production policy", async () => {
+    const board = await makeBoard([shot({ id: "s1", index: 0 })]);
+    const policy = {
+      media_strategy: "still_motion_graphics",
+      protected_inputs: [
+        {
+          id: "packshot",
+          kind: "product",
+          asset_id: "asset-product",
+          allowed_transformations: ["position", "scale", "crop", "composite"]
+        },
+        {
+          id: "price",
+          kind: "exact_text",
+          value: "€29",
+          allowed_transformations: ["position", "scale"]
+        }
+      ]
+    };
+
+    expect(
+      await run(ctx()).invoke("edit_storyboard", {
+        storyboard_id: board.id,
+        ops: [{ op: "update_shot", target: "s1", production: policy }]
+      })
+    ).toMatchObject({ applied: 1, failed: 0 });
+
+    const read = (await run(ctx()).invoke("get_storyboard", {
+      storyboard_id: board.id
+    })) as { shots: Array<{ id: string; production?: unknown }> };
+    expect(read.shots.find((entry) => entry.id === "s1")?.production).toEqual(
+      productionRequirement.parse(policy)
+    );
+    expect((await Storyboard.findById(board.id))?.toDocument().shots[0].production).toEqual(
+      productionRequirement.parse(policy)
+    );
+  });
+
+  it("stores full owned source IDs from add/update graphics, production and board cast edits", async () => {
+    const id = "a".repeat(32);
+    await new Asset({id, user_id: "u1", name: "Product", content_type: "image/png"}).save();
+    const board = await makeBoard([shot({id: "s1", index: 0})]);
+    const graphics = (assetId: string) => ({mode: "graphics_first", elements: [{id: "product", kind: "asset", role: "product", asset_id: assetId, entity_id: assetId}]});
+    const edited = await run(ctx()).invoke("edit_storyboard", {
+      storyboard_id: board.id,
+      ops: [
+        {op: "add_shot", action: "Product", graphics: graphics(id.slice(0, 12))},
+        {op: "update_shot", target: "s1", graphics: graphics(id), production: {protected_inputs: [{id: "product", kind: "product", asset_id: id.slice(0, 12), entity_id: id.slice(0, 12)}]}},
+        {op: "set_board", entity_ids: [id.slice(0, 12)]}
+      ]
+    });
+    expect(edited).toMatchObject({applied: 3, failed: 0});
+    const document = (await Storyboard.findById(board.id))!.toDocument();
+    expect(document.entityIds).toEqual([id]);
+    for (const saved of document.shots) expect(saved.graphics?.elements?.[0]).toMatchObject({asset_id: id, entity_id: id});
+    expect(document.shots[0].production?.protected_inputs[0]).toMatchObject({asset_id: id, entity_id: id});
+  });
+
+  it("rejects ambiguous and foreign source refs before persisting any edit in the batch", async () => {
+    const prefix = "abcdef123456";
+    for (const suffix of ["a", "b"]) await new Asset({id: prefix + suffix.repeat(20), user_id: "u1", name: "Product", content_type: "image/png"}).save();
+    const foreign = "c".repeat(32);
+    await new Asset({id: foreign, user_id: "another-user", name: "Private", content_type: "image/png"}).save();
+    const board = await makeBoard([shot({id: "s1", index: 0})]);
+    const before = board.toDocument();
+    for (const assetId of [prefix, foreign, foreign.slice(0, 12)]) {
+      const result = await run(ctx()).invoke("edit_storyboard", {
+        storyboard_id: board.id,
+        ops: [
+          {op: "update_shot", target: "s1", action: "Must not persist"},
+          {op: "add_shot", action: "Invalid source", graphics: {mode: "graphics_first", elements: [{id: "product", kind: "asset", asset_id: assetId}]}}
+        ]
+      });
+      expect(result).toMatchObject({error: expect.stringMatching(/more than one row|unavailable/)});
+      expect((await Storyboard.findById(board.id))!.toDocument()).toEqual(before);
+      expect((await Storyboard.findById(board.id))!.revision).toBe(board.revision);
+    }
+  });
+
+  it("refuses malformed storyboard graphics intent without saving it", async () => {
+    const board = await makeBoard([shot({ id: "s1", index: 0 })]);
+    const before = board.toDocument();
+
+    const result = await run(ctx()).invoke("edit_storyboard", {
+      storyboard_id: board.id,
+      ops: [
+        {
+          op: "update_shot",
+          target: "s1",
+          graphics: { mode: "magic" }
+        },
+        {
+          op: "set_board",
+          motion_design: {
+            transitions: [{ from_shot_id: "s1" }]
+          }
+        }
+      ]
+    });
+
+    expect(result).toMatchObject({ applied: 0, failed: 2 });
+    expect((await Storyboard.findById(board.id))?.toDocument()).toEqual(before);
+  });
+
+  it("set_board changes only supplied screenplay direction and accepts empty text to clear it", async () => {
+    const screenplay = {
+      type: "screenplay",
+      id: "sp_existing",
+      title: "Evening",
+      logline: "A return home.",
+      style_bible: "Amber light.",
+      script_id: "linked-script",
+      shots: [],
+      scenes: [],
+      narration: "Old narration.",
+      music_prompt: "Old score."
+    };
+    const board = await makeBoard([shot({ id: "s1", index: 0 })], {
+      screenplay
+    });
+    const context = ctx();
+    expect(
+      await run(context).invoke("edit_storyboard", {
+        storyboard_id: board.id,
+        ops: [{ op: "set_board", narration: "New narration." }]
+      })
+    ).toMatchObject({ applied: 1, failed: 0 });
+    expect(
+      (await Storyboard.findById(board.id))?.toDocument().screenplay
+    ).toEqual({
+      ...screenplay,
+      shots: [shot({id: "s1", index: 0})],
+      narration: "New narration."
+    });
+    expect(
+      await run(context).invoke("edit_storyboard", {
+        storyboard_id: board.id,
+        ops: [{ op: "set_board", narration: "", music_prompt: "" }]
+      })
+    ).toMatchObject({ applied: 1, failed: 0 });
+    expect(
+      (await Storyboard.findById(board.id))?.toDocument().screenplay
+    ).toEqual({
+      ...screenplay,
+      shots: [shot({id: "s1", index: 0})],
+      narration: "",
+      music_prompt: ""
+    });
+  });
+
+  it.each([
+    { narration: 42 },
+    { music_prompt: false },
+    { narration: null },
+    { narration: "Valid", music_prompt: {} }
+  ])(
+    "set_board refuses malformed screenplay direction without applying the op: %j",
+    async (direction) => {
+      const board = await makeBoard([]);
+      const before = board.toDocument();
+      const result = await run(ctx()).invoke("edit_storyboard", {
+        storyboard_id: board.id,
+        ops: [{ op: "set_board", brief: "Must not be saved", ...direction }]
+      });
+      expect(result).toMatchObject({ applied: 0, failed: 1 });
+      expect((await Storyboard.findById(board.id))?.toDocument()).toEqual(
+        before
+      );
+    }
+  );
 
   it("still refuses an op name that means nothing", async () => {
     const context = ctx();
@@ -591,6 +877,26 @@ describe("storyboards capability behaviour", () => {
       storyboard_id: board.id
     })) as { error: string };
     expect(result.error).toContain("find_model");
+  });
+
+  it.each([
+    productionRequirement.parse({ media_strategy: "still_motion_graphics" }),
+    productionRequirement.parse({ protected_inputs: [{ id: "product", kind: "product", asset_id: "exact-product" }] })
+  ])("refuses revision when policy changes while loading its source", async (policy) => {
+    const board = await makeBoard([renderedShot("s1", 0)]);
+    const context = ctx();
+    context.resolveAssetBytes = vi.fn(async () => {
+      const document = board.toDocument();
+      document.shots[0].production = policy;
+      board.document = JSON.stringify(document);
+      await board.save();
+      return { bytes: MP4, attempts: [] };
+    });
+    const result = await run(context).invoke("revise_storyboard_clip", {
+      storyboard_id: board.id, target: "s1", instruction: "make it darker"
+    });
+    expect(result).toHaveProperty("error");
+    expect(context.runProviderPrediction).not.toHaveBeenCalled();
   });
 
   it("refuses to revise a shot with no clip", async () => {
@@ -877,6 +1183,19 @@ describe("storyboards capability behaviour", () => {
 
     const document = (await sequenceOf(assembled.timeline_id)).toDocument();
     expect(document.tracks.map((t) => t.name)).toEqual(["Shots", "Shot Audio"]);
+  });
+
+  it("refuses legacy reassembly of finished layers without writing the timeline", async () => {
+    const board = await makeBoard([renderedShot("s1", 0)]);
+    const context = ctx();
+    const first = await run(context).invoke("assemble_storyboard_timeline", { storyboard_id: board.id }) as { timeline_id: string };
+    const sequence = await sequenceOf(first.timeline_id);
+    const previous = sequence.toDocument();
+    sequence.fromDocument({ ...previous, storyboardMaterializations: [{ boardId: board.id, elementKeys: ["s1/product"] }] });
+    await sequence.save();
+    const snapshot = sequence.toDocument();
+    await expect(run(context).invoke("assemble_storyboard_timeline", { storyboard_id: board.id })).rejects.toThrow("finish_storyboard");
+    expect((await sequenceOf(first.timeline_id)).toDocument()).toEqual(snapshot);
   });
 
   it("keeps tracks the board does not own when re-assembling", async () => {

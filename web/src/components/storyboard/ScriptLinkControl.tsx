@@ -21,7 +21,6 @@ import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useExtractScriptFromBoard } from "../../hooks/storyboard/useExtractScriptFromBoard";
 import { useBoardScriptLinkIssues } from "../../hooks/storyboard/useBoardScriptLinkIssues";
-import { useTranslation } from "react-i18next";
 
 interface ScriptLinkControlProps {
   boardId: string;
@@ -33,7 +32,6 @@ const ScriptLinkControlInner = ({
   boardId,
   disabled
 }: ScriptLinkControlProps) => {
-  const { t } = useTranslation();
   const scriptId = useStoryboardStore(
     (state) => state.boards[boardId]?.screenplay?.script_id ?? null
   );
@@ -66,11 +64,11 @@ const ScriptLinkControlInner = ({
         disabled={disabled || extracting || (!scriptId && !hasShots)}
         title={
           scriptId
-            ? t("storyboard:attrs.openTheScriptThisBoardsWordsComeFrom", { defaultValue: "Open the script this board's words come from" })
-            : t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })
+            ? "Open the script this board's words come from"
+            : "Project this board's dialogue and narration into a script"
         }
       >
-        {scriptId ? t("storyboard:attrs.openScript", { defaultValue: "Open script" }) : extracting ? t("storyboard:attrs.extracting", { defaultValue: "Extracting…" }) : t("storyboard:attrs.extractScript", { defaultValue: "Extract script" })}
+        {scriptId ? "Open script" : extracting ? "Extracting…" : "Extract script"}
       </EditorButton>
       {error && (
         <AlertBanner severity="error" compact>

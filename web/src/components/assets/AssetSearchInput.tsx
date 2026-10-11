@@ -9,21 +9,17 @@ import { registerTypeToFocus } from "../../stores/KeyPressedStore";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetSearch } from "../../serverState/useAssetSearch";
-import { Tooltip, MOTION, BORDER_RADIUS, reducedMotion, getSpacingPx, SPACING } from "../ui_primitives";
+import { Tooltip, FlexRow, LoadingSpinner, MOTION, BORDER_RADIUS, reducedMotion, getSpacingPx, SPACING } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { isNumber } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 
 const styles = (theme: Theme) =>
   css({
     "&": {
       width: "100%",
-      display: "flex",
       position: "relative",
-      flexDirection: "row",
-      alignItems: "center",
       gap: getSpacingPx(SPACING.micro),
       margin: "0",
       padding: 0,
@@ -40,9 +36,9 @@ const styles = (theme: Theme) =>
     "input[type='text']": {
       border: 0,
       outline: "none",
-      padding: "0 2.2em 0 2.6em",
+      padding: `0 ${getSpacingPx(SPACING.xxxl)}`,
       margin: "0",
-      height: "32px",
+      height: getSpacingPx(SPACING.xxxl),
       fontSize: "var(--fontSizeSmall)",
       WebkitAppearance: "none",
       MozAppearance: "none",
@@ -50,7 +46,8 @@ const styles = (theme: Theme) =>
       color: "var(--palette-text-primary)",
       backgroundColor: "var(--palette-grey-800)",
       borderRadius: BORDER_RADIUS.md,
-      transition: MOTION.all
+      transition: MOTION.all,
+      ...reducedMotion({ transition: MOTION.none })
     },
     "input[type='text']:focus": {
       backgroundColor: "var(--palette-grey-700)",
@@ -63,20 +60,26 @@ const styles = (theme: Theme) =>
       outline: "2px solid var(--palette-primary-main)",
       outlineOffset: "-2px"
     },
+    "button:focus-visible": {
+      outline: "2px solid var(--palette-primary-main)",
+      outlineOffset: "-2px",
+      borderRadius: BORDER_RADIUS.md
+    },
     ".clear-search-btn": {
       position: "absolute",
       cursor: "pointer",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      width: "2em",
+      width: getSpacingPx(SPACING.xxl),
       height: "100%",
       top: 0,
-      right: "0.7em",
+      right: getSpacingPx(SPACING.md),
       border: 0,
       backgroundColor: "transparent",
       color: theme.vars.palette.grey[400],
       transition: `color ${MOTION.normal}, ${MOTION.opacity}`,
+      ...reducedMotion({ transition: MOTION.none }),
       padding: 0,
       "& svg": {
         fontSize: "var(--fontSizeBig)"
@@ -95,27 +98,11 @@ const styles = (theme: Theme) =>
     },
     ".search-loading-indicator": {
       position: "absolute",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "2em",
+      width: getSpacingPx(SPACING.xxl),
       height: "100%",
       top: 0,
-      right: "0.7em",
+      right: getSpacingPx(SPACING.md),
       padding: 0
-    },
-    ".search-spinner": {
-      width: "16px",
-      height: "16px",
-      border: "2px solid var(--palette-grey-500)",
-      borderTop: "2px solid var(--palette-grey-100)",
-      borderRadius: BORDER_RADIUS.circle,
-      animation: `spin ${MOTION.spin} infinite`,
-      ...reducedMotion({ animation: "none" })
-    },
-    "@keyframes spin": {
-      "0%": { transform: "rotate(0deg)" },
-      "100%": { transform: "rotate(360deg)" }
     },
     ".search-mode-toggle": {
       position: "absolute",
@@ -123,14 +110,15 @@ const styles = (theme: Theme) =>
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      width: "2em",
+      width: getSpacingPx(SPACING.xxl),
       height: "100%",
       top: 0,
-      left: "0.5em",
+      left: getSpacingPx(SPACING.sm),
       border: 0,
       backgroundColor: "transparent",
       color: theme.vars.palette.grey[400],
       transition: `color ${MOTION.normal}`,
+      ...reducedMotion({ transition: MOTION.none }),
       padding: 0,
       "& svg": {
         fontSize: "var(--fontSizeBig)"
@@ -162,7 +150,6 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   debounceTime = 500,
   width
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const rootStyles = useMemo(() => styles(theme), [theme]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -294,7 +281,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
           setIsGlobalSearchActive(true);
           setGlobalSearchQuery(localSearchTerm);
         }
-      } catch (_error) {
+      } catch {
         if (!ac.signal.aborted) {
           setIsGlobalSearchActive(false);
           setGlobalSearchResults([]);
@@ -374,11 +361,12 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   }, [focusOnTyping, debouncedSetSearchTerm]);
 
   const effectivePlaceholder = isGlobalSearchMode
-    ? t("editor:ui.searchAllAssets", { defaultValue: "Search all assets..." })
-    : t("editor:ui.searchCurrentFolder", { defaultValue: "Search current folder..." });
+    ? "Search all assets..."
+    : "Search current folder...";
 
   return (
-    <div
+    <FlexRow
+      align="center"
       className={`asset-search-input-container with-global-search ${
         isGlobalSearchMode ? "global-mode" : "local-mode"
       }`}
@@ -394,8 +382,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
       <Tooltip
         title={
           isGlobalSearchMode
-            ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" })
-            : t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" })
+            ? "Switch to local search"
+            : "Switch to global search"
         }
       >
         <button
@@ -405,7 +393,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
           }`}
           onClick={toggleSearchMode}
           data-testid="asset-search-mode-toggle"
-          tabIndex={-1}
+          aria-label={isGlobalSearchMode ? "Switch to local search" : "Switch to global search"}
         >
           {isGlobalSearchMode ? <Public /> : <Folder />}
         </button>
@@ -413,7 +401,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
 
       <input
         id="asset-search-input"
-        aria-label={isGlobalSearchMode ? t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : t("editor:ui.searchCurrentFolder2", { defaultValue: "Search current folder" })}
+        aria-label={isGlobalSearchMode ? "Search all assets" : "Search current folder"}
         className="search-input"
         ref={inputRef}
         type="text"
@@ -430,23 +418,24 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
       />
 
       {isSearching && isGlobalSearchMode && localSearchTerm.length >= 2 ? (
-        <div className="search-loading-indicator">
-          <div className="search-spinner"></div>
-        </div>
+        <FlexRow className="search-loading-indicator" align="center" justify="center">
+          <LoadingSpinner size="small" />
+        </FlexRow>
       ) : (
         <button
           type="button"
           className={`clear-search-btn ${
             localSearchTerm.trim() === "" ? "disabled" : ""
           }`}
-          tabIndex={-1}
+          disabled={localSearchTerm.trim() === ""}
+          aria-label="Clear search"
           onClick={clearSearch}
           data-testid="asset-search-clear-btn"
         >
           <BackspaceIcon />
         </button>
       )}
-    </div>
+    </FlexRow>
   );
 };
 

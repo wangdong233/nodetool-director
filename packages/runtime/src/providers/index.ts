@@ -33,6 +33,7 @@ export { mp4DurationSeconds } from "./video-duration.js";
 import { OLLAMA_DEFAULT_URL, LMSTUDIO_DEFAULT_URL } from "./defaults.js";
 import { AnthropicProvider } from "./anthropic-provider.js";
 import { ClaudeAgentProvider } from "./claude-agent-provider.js";
+import { DreaminaProvider } from "./dreamina-provider.js";
 import { GeminiProvider } from "./gemini-provider.js";
 import { LlamaProvider } from "./llama-provider.js";
 import { NodeLlamaCppProvider } from "./node-llama-cpp-provider.js";
@@ -44,6 +45,9 @@ import { MinimaxProvider } from "./minimax-provider.js";
 import { MistralProvider } from "./mistral-provider.js";
 import { MoonshotProvider } from "./moonshot-provider.js";
 import { OpenRouterProvider } from "./openrouter-provider.js";
+import { RequestyProvider } from "./requesty-provider.js";
+import { OpperProvider } from "./opper-provider.js";
+import { APIRouteProvider } from "./api-route-provider.js";
 import { TogetherProvider } from "./together-provider.js";
 import {
   ALIBABA_DEFAULT_BASE_URL,
@@ -77,11 +81,8 @@ import { VoyageProvider } from "./voyage-provider.js";
 import { JinaProvider } from "./jina-provider.js";
 import { FakeProvider } from "./fake-provider.js";
 import { HiggsfieldProvider } from "./higgsfield-provider.js";
-export {
-  BaseProvider,
-  estimatePromptTokens,
-  providerCapabilities
-} from "./base-provider.js";
+import { UseapiProvider } from "./useapi-provider.js";
+export { BaseProvider, estimatePromptTokens } from "./base-provider.js";
 export {
   FAL_PROVIDER_ID,
   FAL_QUEUE_ORIGIN,
@@ -111,6 +112,15 @@ export {
   openAIContextExceeded,
   type ContextExceededSignal
 } from "./context-exceeded.js";
+export {
+  CONTEXT_WINDOW_FALLBACK,
+  MODELS_DEV_URL,
+  modelsDevContextWindow,
+  resetModelsDevCache,
+  resolveContextWindow,
+  type ContextWindow,
+  type ContextWindowSource
+} from "./context-window.js";
 export {
   annotateGroqRequestFailure,
   estimateGroqRequestTokens,
@@ -216,7 +226,9 @@ export type {
 } from "./provider-transport.js";
 export { AnthropicProvider };
 export { HiggsfieldProvider };
+export { UseapiProvider };
 export { ClaudeAgentProvider };
+export { DreaminaProvider, setDreaminaPageRunner, type DreaminaPageRunner } from "./dreamina-provider.js";
 export { GeminiProvider };
 export { LlamaProvider };
 export { NodeLlamaCppProvider };
@@ -229,6 +241,9 @@ export { MinimaxProvider };
 export { MistralProvider };
 export { MoonshotProvider };
 export { OpenRouterProvider };
+export { RequestyProvider };
+export { OpperProvider };
+export { APIRouteProvider };
 export { TogetherProvider };
 export { AlibabaProvider };
 export { CerebrasProvider };
@@ -322,6 +337,7 @@ export type {
   TaskPlanSpec,
   MultiTaskPlanSpec
 } from "./scripted-provider.js";
+export { sampleForSchema } from "./fake-schema-answer.js";
 export {
   registerProvider,
   getRegisteredProvider,
@@ -357,6 +373,7 @@ export {
 export {
   checkCredential,
   isCredentialVerifiable,
+  setCredentialCheckOverride,
   verifiableCredentialKeys
 } from "./credential-check.js";
 export type {
@@ -394,6 +411,13 @@ export type {
   VideoModel,
   TTSModel,
   ASRModel,
+  ModelAdapterInfo,
+  ModelArtifactRef,
+  RerankModel,
+  RerankParams,
+  RerankResult,
+  EstimateDepthParams,
+  RemoveBackgroundParams,
   MusicModel,
   AudioToAudioModel,
   AudioToAudioParams,
@@ -436,6 +460,7 @@ export type {
   ReferenceToVideoInputs,
   ReferenceToVideoParams,
   EntityReference,
+  NamedReferenceImage,
   ProviderStreamItem,
   ProviderSession,
   ProviderSessionUpdate,
@@ -486,6 +511,10 @@ registerBuiltinProvider(PROVIDER_IDS.ANTHROPIC, AnthropicProvider, {
 // installs themselves) surfaces at call time. Pruned from the cloud profile
 // (in NON_CLOUD_PROVIDER_IDS) since it needs a local executable and subscription.
 registerBuiltinProvider(PROVIDER_IDS.CLAUDE_AGENT_SDK, ClaudeAgentProvider, {});
+// Dreamina: image, video and music generation through the user's logged-in Dreamina tab, driven
+// by the NodeTool Chrome extension. No credentials; it lists no models until an
+// extension is attached. Pruned from the cloud profile (NON_CLOUD_PROVIDER_IDS).
+registerBuiltinProvider(PROVIDER_IDS.DREAMINA, DreaminaProvider, {});
 registerBuiltinProvider(PROVIDER_IDS.GEMINI, GeminiProvider, {
   GEMINI_API_KEY: ""
 });
@@ -536,6 +565,12 @@ registerBuiltinProvider(PROVIDER_IDS.HIGGSFIELD, HiggsfieldProvider, {
   HIGGSFIELD_API_KEY_ID: "",
   HIGGSFIELD_API_KEY_SECRET: ""
 });
+registerBuiltinProvider(PROVIDER_IDS.USEAPI, UseapiProvider, {
+  USEAPI_API_TOKEN: ""
+}, {
+  USEAPI_GOOGLE_FLOW_EMAIL: "",
+  USEAPI_DREAMINA_ACCOUNT: ""
+});
 registerBuiltinProvider(PROVIDER_IDS.AKI, AkiProvider, { AKI_API_KEY: "" });
 registerBuiltinProvider(PROVIDER_IDS.MESHY, MeshyProvider, {
   MESHY_API_KEY: ""
@@ -545,6 +580,15 @@ registerBuiltinProvider(PROVIDER_IDS.RODIN, RodinProvider, {
 });
 registerBuiltinProvider(PROVIDER_IDS.OPENROUTER, OpenRouterProvider, {
   OPENROUTER_API_KEY: ""
+});
+registerBuiltinProvider(PROVIDER_IDS.REQUESTY, RequestyProvider, {
+  REQUESTY_API_KEY: ""
+});
+registerBuiltinProvider(PROVIDER_IDS.OPPER, OpperProvider, {
+  OPPER_API_KEY: ""
+});
+registerBuiltinProvider(PROVIDER_IDS.API_ROUTE, APIRouteProvider, {
+  API_ROUTE_API_KEY: ""
 });
 registerBuiltinProvider(PROVIDER_IDS.TOGETHER, TogetherProvider, {
   TOGETHER_API_KEY: ""
@@ -594,18 +638,23 @@ if (!_cloudProfile) {
   // Ollama defaults to the standard local daemon port so the provider is
   // usable out-of-the-box. The URL is registered as an optionalKwarg so it
   // re-resolves from the secret store / env on every getProvider() call —
-  // users changing OLLAMA_API_URL via Settings → API Keys see the change
-  // take effect without a restart. Empty kwargs keep isProviderConfigured()
-  // returning true for the zero-config localhost case.
+  // users changing OLLAMA_API_URL (or the context length and keep-alive) in
+  // Settings → Integrations → Local Model Servers see the change take effect
+  // without a restart. Empty kwargs keep isProviderConfigured() returning
+  // true for the zero-config localhost case.
   registerBuiltinProvider(
     PROVIDER_IDS.OLLAMA,
     OllamaProvider,
     {},
-    { OLLAMA_API_URL: OLLAMA_DEFAULT_URL },
+    {
+      OLLAMA_API_URL: OLLAMA_DEFAULT_URL,
+      OLLAMA_CONTEXT_LENGTH: "",
+      OLLAMA_KEEP_ALIVE: ""
+    },
     { access: "local_service", displayName: "Ollama" }
   );
-  // LM Studio: URL (and optional API key) are user-configurable via the
-  // Settings → API Keys panel. Register them as optionalKwargs so the
+  // LM Studio: URL (and optional API key) are user-configurable in
+  // Settings → Integrations → Local Model Servers. Register them as optionalKwargs so the
   // registry resolves them from the secret store / env on every
   // getProvider() call — that way changing the port in settings takes
   // effect immediately without forcing isProviderConfigured() to return
@@ -627,7 +676,7 @@ if (!_cloudProfile) {
     PROVIDER_IDS.LLAMA_CPP,
     LlamaProvider,
     { LLAMA_CPP_URL: "" },
-    {},
+    { LLAMA_API_KEY: "", LLAMA_CPP_CONTEXT_LENGTH: "" },
     { access: "local_service", displayName: "llama.cpp server" }
   );
   // In-process llama.cpp via the native node-llama-cpp binding. No secret

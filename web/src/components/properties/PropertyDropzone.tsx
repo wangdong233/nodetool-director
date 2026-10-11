@@ -327,7 +327,7 @@ const PropertyDropzone = ({
           fileName = `file.${ext}`;
         }
 
-        const file = new File([fileData.buffer as BlobPart], fileName, { type: contentType });
+        const file = new File([fileData.buffer as BlobPart], fileName, { type: fileData.mimeType });
 
         uploadAssetFn({
           file,
@@ -554,7 +554,11 @@ const PropertyDropzone = ({
           <WaveRecorder onChange={onChangeAsset} workflowId={props.workflowId} />
         )}
         {contentType.split("/")[0] === "video" && showRecorder && (
-          <VideoRecorder onChange={onChangeAsset} workflowId={props.workflowId} />
+          <VideoRecorder
+            onChange={onChangeAsset}
+            workflowId={props.workflowId}
+            hideWhenUnavailable
+          />
         )}
       </div>
     </div>

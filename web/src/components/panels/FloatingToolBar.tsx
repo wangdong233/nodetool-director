@@ -1,8 +1,16 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import React, { memo, useCallback, useEffect } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
 import { useMediaQuery } from "@mui/material";
 import { EditorMenu } from "../ui_primitives";
 import { Tooltip, AlertBanner, FlexRow, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, SHADOW, reducedMotion } from "../ui_primitives";
@@ -20,6 +28,9 @@ import DownloadIcon from "@mui/icons-material/Download";
 import LinearScaleIcon from "@mui/icons-material/LinearScale";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomizeOutlined";
 import { useLocation } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 
@@ -27,18 +38,19 @@ import { useNodes } from "../../contexts/NodeContext";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { useMiniMapStore } from "../../stores/MiniMapStore";
 import { useBottomPanelStore } from "../../stores/BottomPanelStore";
-import { useRightPanelStore } from "../../stores/RightPanelStore";
-import { usePanelStore } from "../../stores/PanelStore";
 import { useCombo } from "../../stores/KeyPressedStore";
 import MobilePaneMenu from "../menus/MobilePaneMenu";
-import { TOOLTIP_ENTER_DELAY, TOOLBAR_WIDTH, LEFT_PANEL_MIN_DRAWER_WIDTH } from "../../config/constants";
+import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { getShortcutTooltip } from "../../config/shortcuts";
+import { runControlTooltip } from "./runControlTooltip";
 import { cn } from "../editor_ui/editorUtils";
 import { MenuItemPrimitive } from "../ui_primitives";
 import { useDraggable } from "../../hooks/useDraggable";
 import { useFloatingToolbarState } from "../../hooks/useFloatingToolbarState";
 import { useFloatingToolbarActions } from "../../hooks/useFloatingToolbarActions";
 import { useFloatingToolbarPosition } from "../../hooks/useFloatingToolbarPosition";
+import { useCanvasSideInsets } from "../../hooks/useCanvasSideInsets";
+import { useWorkflowApp } from "../../hooks/useWorkflowApp";
 import { useRunningTime } from "../../hooks/useRunningTime";
 import { formatRunningTime } from "../../utils/timeFormat";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
@@ -50,9 +62,7 @@ import useCanvasChatDockStore, {
 } from "../../stores/CanvasChatDockStore";
 import CanvasMediaComposer from "./CanvasMediaComposer";
 import ConversationOverlay from "./ConversationOverlay";
-import GameLandingPanel from "../setup/game/GameLandingPanel";
 import TriggerActivationButton from "./TriggerActivationButton";
-import { useTranslation } from "react-i18next";
 
 const MOBILE_DOCK_POSITION: DockPosition = { x: 0, y: 0 };
 const MOBILE_DOCK_LAYER_STYLE: React.CSSProperties = {
@@ -61,7 +71,7 @@ const MOBILE_DOCK_LAYER_STYLE: React.CSSProperties = {
 
 const RUNNING_TIME_STYLE: React.CSSProperties = {
   fontWeight: 600,
-  fontFamily: "monospace",
+  fontFamily: "var(--fontFamily2)",
   letterSpacing: "-0.5px"
 };
 
@@ -101,6 +111,16 @@ const dockLayerStyles = (theme: Theme) =>
     pointerEvents: "none"
   });
 
+// The parts of the composer that fold away when only the toolbar row shows.
+const FOLDABLE =
+  ".media-compose-card > :not(.media-chip-row), .media-compose-card textarea.media-compose-input, .media-chip-row > :not(.composer-workflow-actions)";
+
+// One duration and easing for the dock's width and height animation, so the
+// two stay in step. Slower than MOTION.slow: the width travels hundreds of px.
+const DOCK_RESIZE_MS = 500;
+const DOCK_RESIZE_EASING = "ease-in-out";
+const DOCK_RESIZE = `${DOCK_RESIZE_MS}ms ${DOCK_RESIZE_EASING}`;
+
 const dockStyles = (theme: Theme) =>
   css({
     display: "flex",
@@ -112,6 +132,25 @@ const dockStyles = (theme: Theme) =>
     maxWidth: `calc(100% - ${getSpacingPx(SPACING.xl)})`,
     containerType: "inline-size",
     containerName: "canvas-dock",
+    // Lets the folding parts' height ease to and from `auto`.
+    interpolateSize: "allow-keywords",
+    "&.composer-expanding": { containerType: "normal" },
+    // Everything above the toolbar row folds to zero height instead of
+    // vanishing, so expanding grows the dock smoothly rather than jumping to
+    // full height before the width catches up.
+    [FOLDABLE]: {
+      overflow: "hidden",
+      transition: `height ${DOCK_RESIZE}, min-height ${DOCK_RESIZE}, padding ${DOCK_RESIZE}, margin ${DOCK_RESIZE}, opacity ${MOTION.normal}, visibility 0s`,
+      ...reducedMotion({ transition: MOTION.none })
+    },
+    ".media-compose-card.media-compose-card": {
+      transition: `${MOTION.border}, ${MOTION.shadow}, gap ${DOCK_RESIZE}`,
+      ...reducedMotion({ transition: MOTION.none })
+    },
+    ".media-chip-row.media-chip-row": {
+      transition: `row-gap ${DOCK_RESIZE}`,
+      ...reducedMotion({ transition: MOTION.none })
+    },
 
     ".media-compose-card": {
       borderRadius: BORDER_RADIUS.lg,
@@ -126,24 +165,74 @@ const dockStyles = (theme: Theme) =>
     ".media-compose-card textarea.media-compose-input": {
       padding: `${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.md)}`
     },
-    "@container canvas-dock (max-width: 640px)": {
-      ".media-chip-row.has-trailing": {
-        flexWrap: "wrap",
-        rowGap: theme.spacing(SPACING.xs)
+    // Two rows under the prompt: the generation chips with their Generate
+    // button, then the workflow toolbar. The chips scroll sideways rather
+    // than wrap or overlap when the dock is narrow, so Generate keeps its
+    // place at the end of the first row.
+    ".media-chip-row.has-trailing": {
+      flexWrap: "wrap",
+      rowGap: theme.spacing(SPACING.xs),
+      padding: 0
+    },
+    ".media-chip-row.has-trailing .media-chip-main": {
+      flex: "1 1 0",
+      minWidth: 0,
+      flexWrap: "nowrap",
+      overflowX: "auto",
+      overflowY: "hidden",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": { display: "none" },
+      "> *": { flexShrink: 0 },
+      // The model chip is the one chip that gives up width, down to a
+      // readable name, before the row starts to scroll. Important because
+      // the phone touch-target rule in styles/mobile.css sets its own
+      // important minimum.
+      "> .media-control-chip-grow": {
+        flexShrink: 1,
+        minWidth: "112px !important"
+      }
+    },
+    "@container canvas-dock (max-width: 560px)": {
+      ".composer-run-label": {
+        display: "none"
       },
-      ".media-chip-row.has-trailing .media-chip-main": {
-        flexBasis: "100%",
-        overflowX: "auto"
+      ".media-cost-estimate": {
+        display: "none"
+      }
+    },
+
+    // Collapsed composer: only the workflow toolbar row stays visible, so the
+    // dock shrinks to a slim bar that keeps Run reachable. Hidden with CSS
+    // rather than unmounted so a draft prompt and attachments survive.
+    "&.composer-collapsed": {
+      // Inline-size containment gives the dock no intrinsic width, so its
+      // `auto` width would resolve to 0 and leave an empty pill behind.
+      containerType: "normal",
+      [FOLDABLE]: {
+        height: "0 !important",
+        minHeight: "0 !important",
+        padding: "0 !important",
+        margin: "0 !important",
+        opacity: 0,
+        visibility: "hidden",
+        pointerEvents: "none",
+        // Hide from focus only once the fold has finished.
+        transition: `height ${DOCK_RESIZE}, min-height ${DOCK_RESIZE}, padding ${DOCK_RESIZE}, margin ${DOCK_RESIZE}, opacity ${MOTION.normal}, visibility 0s linear ${DOCK_RESIZE_MS}ms`,
+        ...reducedMotion({ transition: MOTION.none })
       },
-      ".composer-drag-handle, .media-primary-action": {
-        order: 1
+      ".media-compose-card.media-compose-card": { gap: 0 },
+      ".media-chip-row.media-chip-row": { rowGap: 0 },
+      // Chips would otherwise keep the collapsed bar as wide as the full dock.
+      ".media-chip-row > :not(.composer-workflow-actions)": {
+        flex: "0 0 0 !important",
+        width: "0 !important",
+        minWidth: "0 !important",
+        maxWidth: "0 !important"
       },
       ".composer-workflow-actions": {
-        order: 1,
-        marginLeft: "auto",
-        paddingLeft: 0,
-        borderLeft: "none",
-        flexWrap: "wrap"
+        marginTop: 0,
+        paddingTop: 0,
+        borderTopColor: "transparent"
       }
     },
 
@@ -169,26 +258,27 @@ const dockStyles = (theme: Theme) =>
     }
   });
 
-// Workflow controls embedded in the composer footer: an always-visible Run
-// button (+ contextual Stop while running) and a ⋮ button opening a normal
-// dropdown menu for everything else. Kept compact so the composer doesn't grow.
+// The workflow toolbar row at the foot of the composer: canvas tools on the
+// left, then Stop (while running), Run, and the ⋮ menu on the right.
 const actionStyles = (theme: Theme) =>
   css({
-    display: "inline-flex",
+    flex: "1 0 100%",
+    display: "flex",
     alignItems: "center",
-    gap: getSpacingPx(SPACING.xs),
-    marginLeft: getSpacingPx(SPACING.sm),
-    paddingLeft: getSpacingPx(SPACING.md),
-    borderLeft: `1px solid ${theme.vars.palette.divider}`,
+    justifyContent: "space-between",
+    gap: getSpacingPx(SPACING.sm),
+    marginTop: getSpacingPx(SPACING.xs),
+    paddingTop: getSpacingPx(SPACING.sm),
+    borderTop: `1px solid ${theme.vars.palette.divider}`,
+    // Folds with the rest of the composer, so the toolbar row does not pop.
+    transition: `margin-top ${DOCK_RESIZE}, padding-top ${DOCK_RESIZE}, border-color ${DOCK_RESIZE}`,
+    ...reducedMotion({ transition: MOTION.none }),
 
-    // Mobile: the chip row wraps, so the cluster becomes its own right-aligned
-    // line instead of a bordered appendix pinned to the first one.
-    [theme.breakpoints.down("sm")]: {
-      marginLeft: 0,
-      paddingLeft: 0,
-      borderLeft: "none",
-      flex: 1,
-      justifyContent: "flex-end"
+    ".composer-tools, .composer-run-group": {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: getSpacingPx(SPACING.xs),
+      minWidth: 0
     },
 
     "& button": {
@@ -339,6 +429,16 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     pendingRunCount
   } = useFloatingToolbarActions();
 
+  const {
+    openWorkflowApp,
+    hasApp,
+    isPending: isAppPending
+  } = useWorkflowApp();
+  const appActionLabel = hasApp ? "Open app" : "Make app";
+  const appActionTooltip = hasApp
+    ? "Open the app that runs this workflow"
+    : "Make an app from this workflow, with a field for each input";
+
   const { bottomPanelVisible, bottomPanelSize } = useBottomPanelStore(
     useShallow((state) => ({
       bottomPanelVisible: state.panel.isVisible,
@@ -350,13 +450,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     bottomPanelVisible,
     bottomPanelSize
   );
-  const inspectorWidth = useRightPanelStore((state) =>
-    state.panel.isVisible ? state.panel.panelSize : 0
-  );
-  const leftPanelWidth = usePanelStore((state) => state.panel.isVisible
-    ? Math.max(state.panel.panelSize, TOOLBAR_WIDTH + LEFT_PANEL_MIN_DRAWER_WIDTH)
-    : TOOLBAR_WIDTH
-  );
+  const { left: leftPanelWidth, right: inspectorWidth } = useCanvasSideInsets();
 
   const { instantUpdate, setInstantUpdate, editorViewMode, setEditorViewMode } =
     useSettingsStore(
@@ -437,6 +531,9 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
   const {
     conversationCollapsed,
     setConversationCollapsed,
+    toggleConversation,
+    composerCollapsed,
+    setComposerCollapsed,
     dockWidth,
     storePosition,
     setStorePosition,
@@ -445,6 +542,9 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     useShallow((state) => ({
       conversationCollapsed: state.conversationCollapsed,
       setConversationCollapsed: state.setConversationCollapsed,
+      toggleConversation: state.toggleConversation,
+      composerCollapsed: state.composerCollapsed,
+      setComposerCollapsed: state.setComposerCollapsed,
       dockWidth: state.dockWidth,
       storePosition: state.position,
       setStorePosition: state.setPosition,
@@ -460,7 +560,28 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
   // The composer is the canvas chat entry point now that the left chat panel
   // is gone, so the conversation toggle is always available — opening the
   // overlay reaches the thread (even empty), the thread list, and full chat.
-  const conversationOpen = !conversationCollapsed;
+  // A collapsed composer also hides the overlay.
+  const conversationOpen = !conversationCollapsed && !composerCollapsed;
+
+  // The dock turns back into a size container only after the expand finishes.
+  // Mid-animation its width crosses the narrow-dock breakpoint, which would
+  // flip the Run label and make the toolbar jump.
+  const [expandSettled, setExpandSettled] = useState(!composerCollapsed);
+  useEffect(() => {
+    if (composerCollapsed) {
+      setExpandSettled(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(
+      () => setExpandSettled(true),
+      DOCK_RESIZE_MS
+    );
+    return () => window.clearTimeout(timer);
+  }, [composerCollapsed]);
+
+  const handleToggleComposer = useCallback(() => {
+    setComposerCollapsed(!composerCollapsed);
+  }, [composerCollapsed, setComposerCollapsed]);
 
   // Draggable dock. `useDraggable` owns the dock's transform; we persist the
   // final (on-screen clamped) offset to the store on release so it survives
@@ -513,9 +634,53 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     return () => window.removeEventListener("resize", onResize);
   }, [clampToViewport, setStorePosition, dockRef, isMobile]);
 
+  // The dock width animates from the width it had to the width it has now,
+  // both measured in px. A CSS transition from `auto` would start from the
+  // width of the new layout, so the width would barely move while the height
+  // grows. Both use DOCK_RESIZE, from the same commit.
+  const lastDockWidth = useRef<number | null>(null);
+  const lastCollapsed = useRef(composerCollapsed);
+  useLayoutEffect(() => {
+    const dock = dockRef.current;
+    if (!dock) {
+      return;
+    }
+    const toggled = lastCollapsed.current !== composerCollapsed;
+    lastCollapsed.current = composerCollapsed;
+    const running = dock.getAnimations();
+    // A render during the animation (the expand-settled state, a store
+    // update) must not record the width of a frame in flight.
+    if (running.length > 0 && !toggled) {
+      return;
+    }
+    // A toggle during an animation starts from the width on screen.
+    const previous =
+      running.length > 0
+        ? dock.getBoundingClientRect().width
+        : lastDockWidth.current;
+    running.forEach((animation) => animation.cancel());
+    const next = dock.getBoundingClientRect().width;
+    lastDockWidth.current = next;
+    if (
+      toggled &&
+      previous !== null &&
+      Math.abs(previous - next) > 1 &&
+      typeof dock.animate === "function" &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      dock.animate([{ width: `${previous}px` }, { width: `${next}px` }], {
+        duration: DOCK_RESIZE_MS,
+        easing: DOCK_RESIZE_EASING
+      });
+    }
+  });
+
   // Mobile ignores the persisted (desktop) width and MIN_DOCK_WIDTH — a phone
   // viewport can be narrower than both.
-  const dockWidthCss = isMobile
+  // A collapsed composer is only as wide as its toolbar row.
+  const dockWidthCss = composerCollapsed
+    ? "auto"
+    : isMobile
     ? "calc(100vw - 16px)"
     : dockWidth != null
       ? `clamp(${MIN_DOCK_WIDTH}px, ${dockWidth}px, min(${MAX_DOCK_WIDTH}px, calc(100vw - 32px)))`
@@ -569,164 +734,200 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     return null;
   }
 
-  const runTooltip = isStopping
-    ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
-    : runControlLabel.startsWith("Error")
-      ? `${runControlDetail ?? t("editor:ui.workflowFailedToStart", { defaultValue: "Workflow failed to start" })}${t("editor:ui.clickToRetryTheEntireWorkflow", { defaultValue: ". Click to retry the entire workflow." })}`
-      : queuePosition != null
-        ? t("editor:ui.queuedN", { defaultValue: "Queued (#{{n}})", n: queuePosition })
-        : pendingRunCount > 0
-          ? t("editor:ui.runningNQueuedClickToQueueAnother", { defaultValue: "Running — {{n}} queued (click to queue another)", n: pendingRunCount })
-        : isWorkflowActive
-          ? `${runControlLabel}${t("editor:ui.clickToQueueAnotherEntireWorkflowRun", { defaultValue: " (click to queue another entire workflow run)" })}`
-          : // The shortcut tooltip is a ReactElement — render it as a node, not
-            // through a template literal, which stringifies it to
-            // "[object Object]".
-            (
-              <>
-                {getShortcutTooltip("runWorkflow", undefined, "combo")} — {t("editor:ui.runsTheEntireWorkflow", { defaultValue: "runs the entire workflow" })}
-              </>
-            );
+  const runTooltip = runControlTooltip({
+    isStopping,
+    isWorkflowActive,
+    runControlLabel,
+    runControlDetail,
+    queuePosition,
+    pendingRunCount
+  });
 
   const runAriaLabel = isStopping
-    ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
+    ? "Stopping workflow"
     : runControlLabel.startsWith("Error")
-      ? `${runControlLabel}${t("editor:ui.retryTheEntireWorkflow", { defaultValue: ". Retry the entire workflow" })}`
+      ? `${runControlLabel}. Retry the entire workflow`
       : isWorkflowActive
-        ? `${runControlLabel}${t("editor:ui.queueAnotherEntireWorkflowRun", { defaultValue: ". Queue another entire workflow run" })}`
+        ? `${runControlLabel}. Queue another entire workflow run`
         : runControlLabel;
 
+  // The workflow toolbar: the composer's second row. Canvas tools sit on the
+  // left after the drag handle, and the run controls on the right.
   const workflowActions = (
-    <span css={actionStyles(theme)} className="composer-workflow-actions">
-      {editorViewMode === "graph" && (
+    <div css={actionStyles(theme)} className="composer-workflow-actions">
+      <span className="composer-tools">
+        {!isMobile && dragHandle}
+        {editorViewMode === "graph" && (
+          <Tooltip
+            title={getShortcutTooltip("openNodeMenu")}
+            placement="top"
+            delay={TOOLTIP_ENTER_DELAY}
+          >
+            <button
+              type="button"
+              className="composer-action"
+              onClick={handleToggleNodeMenu}
+              aria-label="Add node"
+            >
+              <AddCircleIcon />
+            </button>
+          </Tooltip>
+        )}
+
         <Tooltip
-          title={getShortcutTooltip("openNodeMenu")}
+          title={conversationOpen ? "Hide conversation" : "Show conversation"}
           placement="top"
           delay={TOOLTIP_ENTER_DELAY}
         >
           <button
             type="button"
-            className="composer-action"
-            onClick={handleToggleNodeMenu}
-            aria-label={t("editor:ui.addNode", { defaultValue: "Add node" })}
+            className={cn("composer-convo", conversationOpen && "active")}
+            onClick={toggleConversation}
+            aria-label="Toggle conversation"
+            aria-pressed={conversationOpen}
           >
-            <AddCircleIcon />
+            <ForumOutlinedIcon />
+            {conversationCount > 0 && (
+              <span className="convo-badge" aria-hidden>
+                {conversationCount}
+              </span>
+            )}
           </button>
         </Tooltip>
-      )}
 
-      <Tooltip
-        title={conversationOpen ? t("editor:ui.hideConversation", { defaultValue: "Hide conversation" }) : t("editor:ui.showConversation", { defaultValue: "Show conversation" })}
-        placement="top"
-        delay={TOOLTIP_ENTER_DELAY}
-      >
-        <button
-          type="button"
-          className={cn("composer-convo", conversationOpen && "active")}
-          onClick={() => setConversationCollapsed(!conversationCollapsed)}
-          aria-label={t("editor:ui.toggleConversation", { defaultValue: "Toggle conversation" })}
-          aria-pressed={conversationOpen}
-        >
-          <ForumOutlinedIcon />
-          {conversationCount > 0 && (
-            <span className="convo-badge" aria-hidden>
-              {conversationCount}
-            </span>
-          )}
-        </button>
-      </Tooltip>
+        {/* On mobile Auto Layout and Save move into the ⋮ menu to keep the
+            toolbar within a phone-width row. */}
+        {editorViewMode === "graph" && !isMobile && (
+          <Tooltip
+            title={t("editor:ui.autoLayout", { defaultValue: "Auto Layout" })}
+            placement="top"
+            delay={TOOLTIP_ENTER_DELAY}
+          >
+            <button
+              type="button"
+              className="composer-action"
+              onClick={handleAutoLayout}
+              aria-label="Auto layout"
+            >
+              <LayoutIcon />
+            </button>
+          </Tooltip>
+        )}
 
-      {isRunningish && (
-        <Tooltip
-          title={getShortcutTooltip("stopWorkflow")}
-          placement="top"
-          delay={TOOLTIP_ENTER_DELAY}
-        >
+        {!isMobile && (
+          <Tooltip title="Save" placement="top" delay={TOOLTIP_ENTER_DELAY}>
+            <button
+              type="button"
+              className="composer-action"
+              onClick={handleSave}
+              aria-label="Save workflow"
+            >
+              <SaveIcon />
+            </button>
+          </Tooltip>
+        )}
+
+        {!isMobile && (
+          <Tooltip
+            title={appActionTooltip}
+            placement="top"
+            delay={TOOLTIP_ENTER_DELAY}
+          >
+            <button
+              type="button"
+              className="composer-action"
+              onClick={() => void openWorkflowApp()}
+              aria-label={appActionLabel}
+              disabled={isAppPending}
+            >
+              <DashboardCustomizeOutlinedIcon />
+            </button>
+          </Tooltip>
+        )}
+
+        {/* Shown at every width: arming and disarming a trigger is the whole
+            point of the feature, and a phone browser needs it too. */}
+        <TriggerActivationButton />
+      </span>
+
+      <span className="composer-run-group">
+        {isRunningish && (
+          <Tooltip
+            title={getShortcutTooltip("stopWorkflow")}
+            placement="top"
+            delay={TOOLTIP_ENTER_DELAY}
+          >
+            <button
+              type="button"
+              className="composer-stop"
+              onClick={handleStop}
+              aria-label={isStopping ? "Stopping workflow" : "Stop workflow"}
+              disabled={isStopping}
+            >
+              <StopIcon />
+            </button>
+          </Tooltip>
+        )}
+
+        <Tooltip title={runTooltip} placement="top" delay={TOOLTIP_ENTER_DELAY}>
           <button
             type="button"
-            className="composer-stop"
-            onClick={handleStop}
-            aria-label={isStopping ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" }) : t("editor:ui.stopWorkflow", { defaultValue: "Stop workflow" })}
+            className={cn("composer-run", isWorkflowActive && "running")}
+            onClick={handleRun}
+            aria-label={runAriaLabel}
             disabled={isStopping}
           >
-            <StopIcon />
+            {/* Instant-update mode runs on every keystroke, so its ticking
+                timer would be noise. The visible state label remains stable
+                instead. */}
+            {isWorkflowRunning && !instantUpdate ? (
+              <RunningTime isRunning timerKey={workflow?.id} />
+            ) : !isWorkflowActive || runControlLabel.startsWith("Error") ? (
+              <PlayArrow />
+            ) : null}
+            <span className="composer-run-label">{runControlLabel}</span>
+            {pendingRunCount > 0 && (
+              <span className="run-queue-badge" aria-hidden>
+                {pendingRunCount}
+              </span>
+            )}
           </button>
         </Tooltip>
-      )}
 
-      <Tooltip title={runTooltip} placement="top" delay={TOOLTIP_ENTER_DELAY}>
-        <button
-          type="button"
-          className={cn("composer-run", isWorkflowActive && "running")}
-          onClick={handleRun}
-          aria-label={runAriaLabel}
-          disabled={isStopping}
+        <Tooltip
+          title={composerCollapsed ? "Show prompt" : "Hide prompt"}
+          placement="top"
+          delay={TOOLTIP_ENTER_DELAY}
         >
-          {/* Instant-update mode runs on every keystroke, so its ticking timer
-              would be noise. The visible state label remains stable instead. */}
-          {isWorkflowRunning && !instantUpdate ? (
-            <RunningTime isRunning timerKey={workflow?.id} />
-          ) : !isWorkflowActive || runControlLabel.startsWith("Error") ? (
-            <PlayArrow />
-          ) : null}
-          <span>{runControlLabel}</span>
-          {pendingRunCount > 0 && (
-            <span className="run-queue-badge" aria-hidden>
-              {pendingRunCount}
-            </span>
-          )}
-        </button>
-      </Tooltip>
-
-      {/* On mobile Auto Layout and Save move into the ⋮ menu to keep the
-          action cluster within a phone-width composer row. */}
-      {editorViewMode === "graph" && !isMobile && (
-        <Tooltip title={t("editor:ui.autoLayout", { defaultValue: "Auto Layout" })} placement="top" delay={TOOLTIP_ENTER_DELAY}>
           <button
             type="button"
-            className="composer-action"
-            onClick={handleAutoLayout}
-            aria-label={t("editor:ui.autoLayout", { defaultValue: "Auto layout" })}
+            className="composer-action composer-collapse"
+            onClick={handleToggleComposer}
+            aria-label={composerCollapsed ? "Show prompt" : "Hide prompt"}
+            aria-expanded={!composerCollapsed}
           >
-            <LayoutIcon />
+            {composerCollapsed ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </button>
         </Tooltip>
-      )}
 
-      {!isMobile && (
-        <Tooltip title={t("timeline:topbar.save", { defaultValue: "Save" })} placement="top" delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip
+          title="Workflow actions"
+          placement="top"
+          delay={TOOLTIP_ENTER_DELAY}
+        >
           <button
             type="button"
-            className="composer-action"
-            onClick={handleSave}
-            aria-label={t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
+            className={cn("composer-menu", actionsMenuAnchor && "active")}
+            onClick={handleOpenActionsMenu}
+            aria-label="Workflow actions"
+            aria-haspopup="menu"
+            aria-expanded={Boolean(actionsMenuAnchor)}
           >
-            <SaveIcon />
+            <MoreVertIcon />
           </button>
         </Tooltip>
-      )}
-
-      {/* Shown at every width: arming and disarming a trigger is the whole
-          point of the feature, and a phone browser needs it too. */}
-      <TriggerActivationButton />
-
-      <Tooltip
-        title={t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
-        placement="top"
-        delay={TOOLTIP_ENTER_DELAY}
-      >
-        <button
-          type="button"
-          className={cn("composer-menu", actionsMenuAnchor && "active")}
-          onClick={handleOpenActionsMenu}
-          aria-label={t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
-          aria-haspopup="menu"
-          aria-expanded={Boolean(actionsMenuAnchor)}
-        >
-          <MoreVertIcon />
-        </button>
-      </Tooltip>
-    </span>
+      </span>
+    </div>
   );
 
   return (
@@ -742,15 +943,13 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <div
           ref={dockRef}
           css={dockStyles(theme)}
-          className="floating-toolbar canvas-chat-dock"
+          className={cn(
+            "floating-toolbar canvas-chat-dock",
+            composerCollapsed && "composer-collapsed",
+            !composerCollapsed && !expandSettled && "composer-expanding"
+          )}
           style={{ width: dockWidthCss }}
         >
-          {/* The Game flow's landing sits at the top of this panel
-              (game-prd § 4.4). It renders nothing unless this workflow is one
-              the flow built, so every other canvas is unchanged. */}
-          {conversationOpen && workflowId !== null && (
-            <GameLandingPanel workflowId={workflowId} />
-          )}
           {conversationOpen && (
             <ConversationOverlay
               onCollapse={() => setConversationCollapsed(true)}
@@ -769,10 +968,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
               </FlexRow>
             </AlertBanner>
           )}
-          <CanvasMediaComposer
-            leadingActions={isMobile ? undefined : dragHandle}
-            trailingActions={workflowActions}
-          />
+          <CanvasMediaComposer trailingActions={workflowActions} />
         </div>
       </div>
 
@@ -785,7 +981,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         paperSx={{ minWidth: "220px", maxWidth: "280px" }}
       >
         <MenuItemPrimitive
-          label={editorViewMode === "graph" ? t("editor:ui.chainView", { defaultValue: "Chain View" }) : t("editor:ui.graphView", { defaultValue: "Graph View" })}
+          label={editorViewMode === "graph" ? "Chain View" : "Graph View"}
           icon={
             editorViewMode === "graph" ? (
               <LinearScaleIcon fontSize="small" />
@@ -798,12 +994,12 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <MenuItemPrimitive
           label={t("editor:ui.instantUpdate", { defaultValue: "Instant Update" })}
           icon={<BoltIcon fontSize="small" />}
-          secondary={instantUpdate ? t("appbuilder:attrs.on", { defaultValue: "On" }) : t("appbuilder:attrs.off", { defaultValue: "Off" })}
+          secondary={instantUpdate ? "On" : "Off"}
           onClick={runWithClose(handleToggleInstantUpdate)}
         />
         {isRunningish && (
           <MenuItemPrimitive
-            label={t("ui2:attrs.stop", { defaultValue: "Stop" })}
+            label="Stop"
             icon={<StopIcon fontSize="small" />}
             onClick={runWithClose(handleStop)}
           />
@@ -817,15 +1013,21 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
         {isMobile && (
           <MenuItemPrimitive
-            label={t("timeline:topbar.save", { defaultValue: "Save" })}
+            label="Save"
             icon={<SaveIcon fontSize="small" />}
             onClick={runWithClose(handleSave)}
           />
         )}
         <MenuItemPrimitive
+          label={appActionLabel}
+          icon={<DashboardCustomizeOutlinedIcon fontSize="small" />}
+          disabled={isAppPending}
+          onClick={runWithClose(() => void openWorkflowApp())}
+        />
+        <MenuItemPrimitive
           label={t("editor:ui.miniMap", { defaultValue: "Mini Map" })}
           icon={<MapIcon fontSize="small" />}
-          secondary={isMiniMapVisible ? t("editor:ui.visible", { defaultValue: "Visible" }) : t("timeline:attrs.hidden", { defaultValue: "Hidden" })}
+          secondary={isMiniMapVisible ? "Visible" : "Hidden"}
           onClick={runWithClose(handleToggleMiniMap)}
         />
         <MenuItemPrimitive

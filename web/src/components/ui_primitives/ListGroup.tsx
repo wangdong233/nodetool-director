@@ -5,6 +5,7 @@
  * Provides a simplified API for common list patterns.
  */
 
+import { i18n } from "../../i18n";
 import React, { memo } from "react";
 import {
   List,
@@ -93,7 +94,7 @@ export interface ListItemRowProps extends Omit<ListItemProps, "button"> {
  * // Clickable item with icon
  * <ListItemRow
  *   icon={<FolderIcon />}
- *   primary={i18n.t("editor:ui.documents", { defaultValue: "Documents" })}
+ *   primary={i18n.t("editor:ui.documents", { defaultValue: "Documents" })
  *   secondary="12 files"
  *   onClick={handleOpen}
  *   selected={isSelected}

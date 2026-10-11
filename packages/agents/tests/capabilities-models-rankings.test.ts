@@ -25,6 +25,7 @@ import {
   RANK_BONUS_MAX,
   SCORE_TIERS,
   findModel,
+  pickTaskRank,
   rankCandidate,
   scoreCandidate
 } from "../src/capabilities/models.js";
@@ -266,6 +267,9 @@ describe("the shipped artifact", () => {
     ) {
       super(id);
     }
+    protected override declaredCapabilities() {
+      return ["text_to_image", "image_to_image"] as const;
+    }
     override async getAvailableImageModels(): Promise<ImageModel[]> {
       return this.served;
     }
@@ -371,13 +375,13 @@ describe("the shipped artifact", () => {
   });
 
   it("leaves an unranked model's answer in the pre-rankings shape", async () => {
-    // No entry for this id in the artifact, so no ranking field appears and
-    // the score is what it was before rankings existed.
+    const modelId = "nodetool-test/unranked-image-model";
+    expect(modelRankings.models[`fal_ai:${modelId}`]).toBeUndefined();
     const result = (await findModelOver({
       fal_ai: new FakeImageProvider("fal_ai" as ProviderId, [
         {
-          id: "fal-ai/flux/schnell",
-          name: "Flux Schnell",
+          id: modelId,
+          name: "Unranked test model",
           provider: "fal_ai"
         } as ImageModel
       ])
@@ -395,5 +399,19 @@ describe("the shipped artifact", () => {
       "score"
     ]);
     expect(result.results[0]["score"]).toBe(0);
+  });
+});
+
+describe("pickTaskRank without a task", () => {
+  it("picks the task with the highest score, not the highest normalized value", () => {
+    const entry = {
+      canonical: "m",
+      name: "M",
+      tasks: {
+        text_to_image: { score: 1100, normalized: 0.9, rank: 2, of: 10 },
+        image_to_image: { score: 1200, normalized: 0.5, rank: 8, of: 10 }
+      }
+    };
+    expect(pickTaskRank(entry, undefined, true)?.task).toBe("image_to_image");
   });
 });

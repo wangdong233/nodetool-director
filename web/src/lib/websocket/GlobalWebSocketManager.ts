@@ -28,6 +28,7 @@ export interface WebSocketMessage {
   thread_id?: string;
   workflow_id?: string;
   job_id?: string;
+  run_id?: string;
   [key: string]: unknown;
 }
 
@@ -353,6 +354,10 @@ class GlobalWebSocketManager extends EventEmitter<GlobalWebSocketEvents> {
       routingKeys.add(message.job_id);
     }
 
+    if (message.run_id) {
+      routingKeys.add(message.run_id);
+    }
+
     if (isRpcResponse(message)) {
       routingKeys.add(message.request_id);
     }
@@ -579,6 +584,15 @@ class GlobalWebSocketManager extends EventEmitter<GlobalWebSocketEvents> {
 
   isConnectionOpen(): boolean {
     return this.wsManager?.isConnected() ?? false;
+  }
+
+  /**
+   * False until something first needs the live connection. The app opens it
+   * lazily, so a fresh session with nothing running has not started one, and
+   * that is not the same as having lost it.
+   */
+  hasConnectionStarted(): boolean {
+    return this.wsManager !== null || this.isConnecting;
   }
 
   subscribeEvent<K extends GlobalWebSocketEvent>(

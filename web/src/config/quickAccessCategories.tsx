@@ -241,6 +241,7 @@ export const LEFT_PANEL_DIRECT: readonly LeftPanelTopLevelCategory[] = [
   LEFT_PANEL_CATEGORY_BY_ID.documents,
   LEFT_PANEL_CATEGORY_BY_ID.chats,
   LEFT_PANEL_CATEGORY_BY_ID.library,
+  LEFT_PANEL_CATEGORY_BY_ID.entities,
   LEFT_PANEL_CATEGORY_BY_ID.nodes
 ];
 
@@ -287,7 +288,6 @@ const DOCUMENT_PANEL_VIEWS: ReadonlySet<LeftPanelView> = new Set([
   "sketches",
   "scripts",
   "storyboards",
-  "entities",
   "timelines",
   "jsscripts"
 ]);

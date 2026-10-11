@@ -12,6 +12,14 @@ jest.mock("../../lib/env", () => ({
   isLocalhost: true
 }));
 
+jest.mock("../useAuth", () => {
+  const { create } = jest.requireActual("zustand");
+  const useAuth = create(() => ({
+    state: "logged_in", user: null
+  }));
+  return { __esModule: true, default: useAuth, useAuth };
+});
+
 jest.mock("../../lib/auth", () => ({
   authHeader: jest.fn(async () => ({ Authorization: "Bearer test" }))
 }));
@@ -67,11 +75,13 @@ import { pack } from "msgpackr";
 import { Server } from "mock-socket";
 import useGlobalChatStore from "../GlobalChatStore";
 import { trpcClient } from "../../trpc/client";
+import useAuth from "../useAuth";
+import { ApiErrorCode } from "@nodetool-ai/protocol/api-schemas";
 
 jest.mock("../../trpc/client", () => ({
   trpcClient: {
     ...jest.requireActual("../../trpc/client").trpcClient,
-    messages: { list: { query: jest.fn() } }
+    messages: { list: { query: jest.fn() }, rewind: { mutate: jest.fn() } }
   }
 }));
 import {
@@ -183,6 +193,44 @@ describe("GlobalChatStore", () => {
     const state = store.getState();
     expect(state.currentThreadId).toBe(id);
     expect(state.threads[id]).toBeDefined();
+  });
+
+  it("does not fetch conversations before authentication is ready", async () => {
+    const list = jest.spyOn(trpcClient.threads.list, "query");
+    useAuth.setState({ state: "loading" });
+    await store.getState().fetchThreads();
+    expect(list).not.toHaveBeenCalled();
+    expect(store.getState().threadsLoaded).toBe(false);
+    useAuth.setState({ state: "logged_in" });
+    list.mockRestore();
+  });
+
+  it("keeps a failed conversation request retryable", async () => {
+    const list = jest.spyOn(trpcClient.threads.list, "query")
+      .mockRejectedValueOnce(new Error("Unauthorized"))
+      .mockResolvedValueOnce({ threads: [], next: null });
+    await store.getState().fetchThreads();
+    expect(store.getState().threadsLoaded).toBe(false);
+    await store.getState().fetchThreads();
+    expect(store.getState().threadsLoaded).toBe(true);
+    expect(store.getState().error).toBeNull();
+    list.mockRestore();
+  });
+
+  it("loads conversations after sign-in without another component mounting", async () => {
+    jest.useFakeTimers();
+    const list = jest.spyOn(trpcClient.threads.list, "query")
+      .mockResolvedValue({ threads: [], next: null });
+    useAuth.setState({ state: "logged_out" });
+    await store.getState().fetchThreads();
+    expect(list).not.toHaveBeenCalled();
+    useAuth.setState({ state: "logged_in" });
+    expect(list).not.toHaveBeenCalled();
+    await jest.runOnlyPendingTimersAsync();
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(store.getState().threadsLoaded).toBe(true);
+    list.mockRestore();
+    jest.useRealTimers();
   });
 
   it("loads the newest page then prepends older history without losing live messages", async () => {
@@ -348,6 +396,9 @@ describe("GlobalChatStore", () => {
         command: "chat_message",
         data: {
           ...msg,
+          // The wire carries the cached turn's own id, so the stored row and
+          // the cached copy name each other (see rewindThread).
+          id: cachedMessage.id,
           workflow_id: null,
           project_id: "default",
           thread_id: threadId,
@@ -375,11 +426,11 @@ describe("GlobalChatStore", () => {
       }
     } as any);
 
-    await store.getState().sendMessage({
+    await expect(store.getState().sendMessage({
       role: "user",
       type: "message",
       content: "hello"
-    } as Message);
+    } as Message)).rejects.toThrow("No model selected");
 
     expect(mockGlobalWebSocketManager.send).not.toHaveBeenCalled();
     expect(store.getState().error).toMatch(/No model selected/i);
@@ -940,6 +991,51 @@ describe("GlobalChatStore", () => {
     });
   });
 
+  describe("rewindThread", () => {
+    const cached = (ids: string[]): Message[] =>
+      ids.map((id) => ({ id, role: "user", type: "message", content: id }) as Message);
+
+    it("rewinds the stored thread and drops the message and what follows", async () => {
+      jest.mocked(trpcClient.messages.rewind.mutate).mockResolvedValueOnce({
+        deleted_ids: ["b", "c"]
+      });
+      store.setState({ messageCache: { t1: cached(["a", "b", "c"]) } });
+
+      await store.getState().rewindThread("t1", "b");
+
+      expect(trpcClient.messages.rewind.mutate).toHaveBeenCalledWith({
+        thread_id: "t1",
+        message_id: "b"
+      });
+      expect(store.getState().messageCache.t1.map((m) => m.id)).toEqual(["a"]);
+    });
+
+    it("still drops a turn the server never stored", async () => {
+      jest.mocked(trpcClient.messages.rewind.mutate).mockRejectedValueOnce(
+        Object.assign(new Error("Message not found"), {
+          data: { apiCode: ApiErrorCode.NOT_FOUND }
+        })
+      );
+      store.setState({ messageCache: { t1: cached(["a", "b"]) } });
+
+      await store.getState().rewindThread("t1", "b");
+
+      expect(store.getState().messageCache.t1.map((m) => m.id)).toEqual(["a"]);
+    });
+
+    it("keeps the cache when the server refuses for another reason", async () => {
+      jest.mocked(trpcClient.messages.rewind.mutate).mockRejectedValueOnce(
+        new Error("offline")
+      );
+      store.setState({ messageCache: { t1: cached(["a", "b"]) } });
+
+      await expect(store.getState().rewindThread("t1", "b")).rejects.toThrow(
+        "offline"
+      );
+      expect(store.getState().messageCache.t1.map((m) => m.id)).toEqual(["a", "b"]);
+    });
+  });
+
   describe("Thread Management", () => {
     it("switchThread switches to existing thread", async () => {
       const thread1 = await store.getState().createNewThread();
@@ -1003,6 +1099,35 @@ describe("GlobalChatStore", () => {
       expect(thread).toBeDefined();
       expect(thread.title).toBe("New Title");
       expect(thread.updated_at).not.toBe(originalTimestamp);
+    });
+
+    it("keeps a title renamed while an older thread list was loading", async () => {
+      const threadId = await store.getState().createNewThread();
+      const original = {
+        ...store.getState().threads[threadId],
+        title: "Old Title",
+        workflow_id: "server-workflow"
+      };
+      store.setState({
+        threads: { [threadId]: original },
+        threadWorkflowId: { [threadId]: "server-workflow" }
+      });
+      let resolveList!: (value: { threads: typeof original[] }) => void;
+      const list = jest.spyOn(trpcClient.threads.list, "query").mockImplementationOnce(
+        () => new Promise((resolve) => { resolveList = resolve as typeof resolveList; }) as ReturnType<typeof trpcClient.threads.list.query>
+      );
+      const update = jest.spyOn(trpcClient.threads.update, "mutate").mockResolvedValueOnce(original);
+
+      const loading = store.getState().fetchThreads();
+      await store.getState().updateThreadTitle(threadId, "New Title");
+      store.setState({ threadWorkflowId: { [threadId]: "local-workflow" } });
+      resolveList({ threads: [original] });
+      await loading;
+
+      expect(store.getState().threads[threadId].title).toBe("New Title");
+      expect(store.getState().threadWorkflowId[threadId]).toBe("local-workflow");
+      list.mockRestore();
+      update.mockRestore();
     });
 
     it("updateThreadTitle handles non-existent thread", () => {
@@ -1162,7 +1287,7 @@ describe("GlobalChatStore", () => {
       expect(Object.keys(store.getState().threads)).toHaveLength(1);
     });
 
-    it("sendMessage does nothing when socket is not connected", async () => {
+    it("sendMessage rejects when socket is not connected", async () => {
       store.getState().disconnect();
       mockGlobalWebSocketManager.disconnect();
       mockGlobalWebSocketManager.isConnectionOpen.mockReturnValue(false);
@@ -1181,7 +1306,7 @@ describe("GlobalChatStore", () => {
         content: "hello"
       } as Message;
 
-      await store.getState().sendMessage(message);
+      await expect(store.getState().sendMessage(message)).rejects.toThrow("Not connected");
       expect(store.getState().currentThreadId).toBeNull();
     });
 
@@ -1202,6 +1327,7 @@ describe("GlobalChatStore", () => {
         command: "chat_message",
         data: {
           ...message,
+          id: store.getState().messageCache[threadId][0].id,
           workflow_id: "test-workflow",
           project_id: "default",
           thread_id: threadId,
@@ -1582,7 +1708,7 @@ describe("GlobalChatStore", () => {
         content: "hello"
       } as Message;
 
-      await store.getState().sendMessage(message);
+      await expect(store.getState().sendMessage(message)).rejects.toThrow("Connection timeout");
 
       expect(store.getState().error).toEqual(
         expect.stringContaining("Not connected to chat service")
@@ -1688,35 +1814,54 @@ describe("GlobalChatStore", () => {
   });
 
   describe("State Persistence", () => {
-    it("partialize function returns only threads and currentThreadId", () => {
-      const mockState = {
-        status: "connected" as const,
-        statusMessage: "test",
-        progress: { current: 5, total: 10 },
-        error: "test error",
-        workflowId: "workflow-123",
-        socket: {} as WebSocket,
-        threads: { "thread-1": {} as any },
-        currentThreadId: "thread-1"
-        // ... other properties would be here in real state
-      } as any;
-
-      // Access the partialize function from the store config
-      // Note: This tests the partialize logic conceptually
-      const persistedState = {
-        threads: mockState.threads,
-        currentThreadId: mockState.currentThreadId
-      };
-
-      expect(persistedState).toEqual({
-        threads: { "thread-1": {} },
-        currentThreadId: "thread-1"
+    it("does not write conversations to localStorage", () => {
+      const options = store.persist.getOptions();
+      const persisted = options.partialize!({
+        ...store.getState(),
+        threads: {
+          "thread-1": {
+            id: "thread-1",
+            title: "secret",
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z"
+          }
+        } as any,
+        messageCache: { "thread-1": [] },
+        workflowThreadId: { "wf-1": "thread-1" },
+        threadWorkflowId: { "thread-1": "wf-1" },
+        lastUsedThreadId: "thread-1"
       });
 
-      // Verify that connection state is not persisted
-      expect(persistedState).not.toHaveProperty("status");
-      expect(persistedState).not.toHaveProperty("socket");
-      expect(persistedState).not.toHaveProperty("error");
+      expect(Object.keys(persisted).sort()).toEqual([
+        "lastPermissionMode",
+        "lastUsedThreadId",
+        "permissionMode",
+        "selectedModel",
+        "threadModel"
+      ]);
+      expect(JSON.stringify(persisted)).not.toContain("secret");
+    });
+
+    it("drops conversations from a version 1 payload", async () => {
+      const options = store.persist.getOptions();
+      const migrated = await options.migrate!(
+        {
+          threads: { "thread-1": { id: "thread-1", title: "old" } },
+          workflowThreadId: { "wf-1": "thread-1" },
+          threadWorkflowId: { "thread-1": "wf-1" },
+          lastUsedThreadId: "thread-1",
+          selectedModel: null,
+          permissionMode: { "thread-1": "plan" },
+          lastPermissionMode: "plan"
+        },
+        1
+      );
+
+      expect(migrated).not.toHaveProperty("threads");
+      expect(migrated).not.toHaveProperty("workflowThreadId");
+      expect(migrated).not.toHaveProperty("threadWorkflowId");
+      expect(migrated.lastUsedThreadId).toBe("thread-1");
+      expect(migrated.permissionMode).toEqual({ "thread-1": "plan" });
     });
   });
 });

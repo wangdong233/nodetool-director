@@ -10,6 +10,7 @@
  *     same-type track above/below, remove
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
@@ -28,6 +29,8 @@ import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VerticalAlignTopIcon from "@mui/icons-material/VerticalAlignTop";
 import VerticalAlignBottomIcon from "@mui/icons-material/VerticalAlignBottom";
+import CreateNewFolderOutlinedIcon from "@mui/icons-material/CreateNewFolderOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 
 import {
   findInstrumentPreset,
@@ -40,6 +43,7 @@ import {
   useTimelineStoreApi
 } from "../../../stores/timeline/TimelineStore";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
+import { useNotificationStore } from "../../../stores/NotificationStore";
 import {
   DEFAULT_TRACK_HEADER_WIDTH_PX,
   useTimelineUIStore,
@@ -62,15 +66,16 @@ import {
   InlineEditableText,
   SPACING,
   getSpacingPx,
+  CONTROL,
+  TYPOGRAPHY,
   Z_INDEX
 } from "../../ui_primitives";
 import type { SelectOption } from "../../ui_primitives";
 import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { DEFAULT_TRACK_HEIGHT_PX as SHARED_DEFAULT_TRACK_HEIGHT_PX } from "./trackHeight";
-import { trackTypeMeta, trackTypeAccent, trackTypeLabel } from "./trackVisuals";
+import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
 import ConfirmDialog from "../../dialogs/ConfirmDialog";
-import { useTranslation } from "react-i18next";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
 /**
  * Phone header width. 192px is half a 390px viewport — the lanes get less room
@@ -96,6 +101,8 @@ const MIN_TRACK_HEIGHT_PX = 48;
 const MAX_TRACK_HEIGHT_PX = 300;
 const DEFAULT_TRACK_HEIGHT_PX = SHARED_DEFAULT_TRACK_HEIGHT_PX;
 const RESIZE_HANDLE_HEIGHT_PX = 6;
+const RESIZE_KEY_STEP_PX = 8;
+const RESIZE_KEY_STEP_LARGE_PX = 32;
 
 const headerStyles = (theme: Theme, heightPx: number, compact: boolean) =>
   css({
@@ -202,9 +209,14 @@ const nameInputStyles = (theme: Theme) =>
     textOverflow: "ellipsis",
     overflow: "hidden",
     whiteSpace: "nowrap",
+    borderRadius: BORDER_RADIUS.xs,
     "&:focus": {
       cursor: "text",
       color: theme.vars.palette.text.primary
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${theme.vars.palette.primary.main}`,
+      outlineOffset: 1
     }
   });
 
@@ -217,8 +229,7 @@ const indexChipStyles = (theme: Theme) =>
     alignItems: "center",
     justifyContent: "center",
     borderRadius: BORDER_RADIUS.sm,
-    fontFamily:
-      "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    fontFamily: TYPOGRAPHY.mono.caption.fontFamily,
     fontSize: FONT_SIZE_MONO.caption,
     fontWeight: FONT_WEIGHT.semibold,
     letterSpacing: "0.04em",
@@ -250,35 +261,56 @@ const controlsRowStyles = (compact: boolean, scrollable: boolean) =>
       : null)
   });
 
-const iconButtonStyles = (theme: Theme, active = true) =>
-  css({
-    width: 24,
-    height: 22,
-    background: "transparent",
+/**
+ * Icon-button tones. `idle` and `dim` are the resting states (dim marks an
+ * optional feature that is off, e.g. an empty effects chain). An engaged
+ * toggle — hidden, locked, muted, soloed — gets a filled background and an
+ * accent glyph so it reads as switched on, the way an NLE lights its M/S/L
+ * buttons: mute, lock and hidden in `warning`, solo in `success`.
+ */
+type IconButtonTone = "idle" | "dim" | "warning" | "success";
+
+const iconButtonStyles = (theme: Theme, tone: IconButtonTone) => {
+  const engaged = tone === "warning" || tone === "success";
+  const color = engaged
+    ? theme.vars.palette[tone].main
+    : tone === "idle"
+      ? theme.vars.palette.text.secondary
+      : theme.vars.palette.text.disabled;
+  return css({
+    width: CONTROL.height.xs,
+    height: CONTROL.height.xs,
+    background: engaged ? theme.vars.palette.action.selected : "transparent",
     border: "1px solid transparent",
     padding: 0,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: active
-      ? theme.vars.palette.text.secondary
-      : theme.vars.palette.text.disabled,
+    color,
     borderRadius: BORDER_RADIUS.md,
     transition: `background-color ${MOTION.fast}, color ${MOTION.fast}, border-color ${MOTION.fast}`,
     "&:hover": {
-      backgroundColor: theme.vars.palette.action.hover,
-      color: theme.vars.palette.text.primary,
+      backgroundColor: engaged
+        ? theme.vars.palette.action.selected
+        : theme.vars.palette.action.hover,
+      color: engaged ? color : theme.vars.palette.text.primary,
       borderColor: theme.vars.palette.divider
     },
     "&:focus-visible": {
-      outline: "none",
-      borderColor: theme.vars.palette.primary.main
+      outline: `2px solid ${theme.vars.palette.primary.main}`,
+      outlineOffset: 2
     },
     "& svg": {
       fontSize: 14
     }
   });
+};
+
+const soloGlyphStyles = css({
+  ...TYPOGRAPHY.mono.strong,
+  lineHeight: 1
+});
 
 const resizeHandleStyles = (theme: Theme) =>
   css({
@@ -288,10 +320,17 @@ const resizeHandleStyles = (theme: Theme) =>
     right: 0,
     height: RESIZE_HANDLE_HEIGHT_PX,
     cursor: "ns-resize",
+    // A vertical finger drag resizes the track; without this the browser
+    // scrolls the track list and cancels the pointer.
+    touchAction: "none",
     backgroundColor: "transparent",
     "&:hover": {
       backgroundColor: theme.vars.palette.primary.main,
       opacity: 0.3
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${theme.vars.palette.primary.main}`,
+      outlineOffset: -2
     }
   });
 
@@ -308,16 +347,12 @@ const presetSelectStyles = css({
 /** Shown when the track's voice matches no shipped preset. */
 const CUSTOM_PRESET = "custom";
 
-/** Preset options with a localized "Custom" tail; instrument preset names
- * are shipped synth-preset proper nouns and render verbatim. */
-const presetOptions = (
-  t: (key: string, opts?: Record<string, unknown>) => string
-): SelectOption[] => [
+const PRESET_OPTIONS: readonly SelectOption[] = [
   ...TIMELINE_INSTRUMENT_PRESETS.map((preset) => ({
     value: preset.id,
     label: preset.name
   })),
-  { value: CUSTOM_PRESET, label: t("editor:ui.customPreset", { defaultValue: "Custom" }) }
+  { value: CUSTOM_PRESET, label: "Custom" }
 ];
 
 interface TrackHeaderProps {
@@ -335,7 +370,7 @@ interface TrackHeaderProps {
 
 export const TrackHeader: React.FC<TrackHeaderProps> = memo(
   ({ track, typedIndex, compact = false }) => {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
     const theme = useTheme();
 
     const setTrackVisible = useTimelineStore((s) => s.setTrackVisible);
@@ -348,6 +383,9 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
     const reorderTracks = useTimelineStore((s) => s.reorderTracks);
     const insertTrack = useTimelineStore((s) => s.insertTrack);
     const duplicateTrack = useTimelineStore((s) => s.duplicateTrack);
+    const trackFolders = useTimelineStore((s) => s.trackFolders);
+    const createTrackFolderForTrack = useTimelineStore((s) => s.createTrackFolderForTrack);
+    const setTrackFolder = useTimelineStore((s) => s.setTrackFolder);
 
     const verticalZoom = useTimelineUIStore((s) => s.verticalZoom);
     const authoredHeightPx = track.heightPx ?? DEFAULT_TRACK_HEIGHT_PX;
@@ -427,6 +465,30 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
       isResizingRef.current = false;
       history.end();
     }, [history]);
+
+    // Keyboard path for the resize separator: each arrow press is one
+    // undoable height step.
+    const handleResizeKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        const step = e.shiftKey ? RESIZE_KEY_STEP_LARGE_PX : RESIZE_KEY_STEP_PX;
+        const next = Math.min(
+          MAX_TRACK_HEIGHT_PX,
+          Math.max(
+            MIN_TRACK_HEIGHT_PX,
+            authoredHeightPx + (e.key === "ArrowDown" ? step : -step)
+          )
+        );
+        if (next !== authoredHeightPx) {
+          setTrackHeight(track.id, next);
+        }
+      },
+      [authoredHeightPx, setTrackHeight, track.id]
+    );
 
     // Context menu: right-click anywhere on the header, or a touch hold. The
     // resize handle and the drag grip stop pointer/contextmenu propagation so a
@@ -648,11 +710,19 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
       [compact, isMidi]
     );
     const iconButtonOnCss = useMemo(
-      () => iconButtonStyles(theme, true),
+      () => iconButtonStyles(theme, "idle"),
       [theme]
     );
     const iconButtonOffCss = useMemo(
-      () => iconButtonStyles(theme, false),
+      () => iconButtonStyles(theme, "dim"),
+      [theme]
+    );
+    const iconButtonWarningCss = useMemo(
+      () => iconButtonStyles(theme, "warning"),
+      [theme]
+    );
+    const iconButtonSuccessCss = useMemo(
+      () => iconButtonStyles(theme, "success"),
       [theme]
     );
     const resizeHandleCss = useMemo(() => resizeHandleStyles(theme), [theme]);
@@ -689,15 +759,15 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   onDragEnd={handleDragEnd}
                   onPointerDown={stopPointerPropagation}
                   onContextMenu={stopPointerPropagation}
-                  aria-label={t("timeline:attrs.reorderTrackName", { defaultValue: "Reorder {{name}}", name: track.name })}
+                  aria-label={`Reorder ${track.name}`}
                   role="button"
                   tabIndex={-1}
-                  title={t("timeline:attrs.dragToReorderTrack", { defaultValue: "Drag to reorder track" })}
+                  title="Drag to reorder track"
                   data-testid={`track-drag-handle-${track.id}`}
                 >
                   <DragIndicatorIcon />
                 </div>
-                <div css={typeGlyphCss} aria-hidden title={trackTypeLabel(track.type)}>
+                <div css={typeGlyphCss} aria-hidden title={meta.label}>
                   <TypeIcon />
                 </div>
               </>
@@ -711,13 +781,13 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 editing={editingName}
                 onEditingChange={setEditingName}
                 onCommit={commitName}
-                ariaLabel={t("timeline:attrs.trackNameAria", { defaultValue: "Track name: {{name}}", name: track.name })}
-                title={t("timeline:attrs.doubleclickToRename", { defaultValue: "Double-click to rename" })}
+                ariaLabel={`Track name: ${track.name}`}
+                title="Double-click to rename"
               />
               <span
                 css={indexChipCss}
-                aria-label={t("timeline:attrs.trackIndexAria", { defaultValue: "{{label}} track {{index}}", label: trackTypeLabel(track.type), index: typedIndex })}
-                title={`${trackTypeLabel(track.type)} ${typedIndex}`}
+                aria-label={`${meta.label} track ${typedIndex}`}
+                title={`${meta.label} ${typedIndex}`}
               >
                 {meta.prefix}
                 {typedIndex}
@@ -731,12 +801,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             className={compact ? "timeline-track-controls" : undefined}
           >
             {track.type !== "midi" && (
-              <Tooltip title={track.visible ? t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : t("timeline:attrs.showTrack", { defaultValue: "Show track" })}>
+              <Tooltip title={track.visible ? "Hide track" : "Show track"}>
                 <button
                   type="button"
-                  css={track.visible ? iconButtonOnCss : iconButtonOffCss}
+                  css={track.visible ? iconButtonOnCss : iconButtonWarningCss}
                   onClick={() => setTrackVisible(track.id, !track.visible)}
-                  aria-label={track.visible ? t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : t("timeline:attrs.showTrack", { defaultValue: "Show track" })}
+                  aria-label={track.visible ? "Hide track" : "Show track"}
                   aria-pressed={!track.visible}
                 >
                   {track.visible ? (
@@ -748,12 +818,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               </Tooltip>
             )}
 
-            <Tooltip title={track.locked ? t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : t("timeline:attrs.lockTrack", { defaultValue: "Lock track" })}>
+            <Tooltip title={track.locked ? "Unlock track" : "Lock track"}>
               <button
                 type="button"
-                css={track.locked ? iconButtonOffCss : iconButtonOnCss}
+                css={track.locked ? iconButtonWarningCss : iconButtonOnCss}
                 onClick={() => setTrackLocked(track.id, !track.locked)}
-                aria-label={track.locked ? t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : t("timeline:attrs.lockTrack", { defaultValue: "Lock track" })}
+                aria-label={track.locked ? "Unlock track" : "Lock track"}
                 aria-pressed={track.locked}
               >
                 {track.locked ? <LockOutlinedIcon /> : <LockOpenOutlinedIcon />}
@@ -765,7 +835,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 <Tooltip title={track.muted ? "Unmute" : "Mute"} key="mute">
                   <button
                     type="button"
-                    css={track.muted ? iconButtonOffCss : iconButtonOnCss}
+                    css={track.muted ? iconButtonWarningCss : iconButtonOnCss}
                     onClick={() => setTrackMuted(track.id, !track.muted)}
                     aria-label={track.muted ? "Unmute" : "Mute"}
                     aria-pressed={!!track.muted}
@@ -781,20 +851,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 <Tooltip title={track.solo ? "Unsolo" : "Solo"}>
                   <button
                     type="button"
-                    css={track.solo ? iconButtonOnCss : iconButtonOffCss}
+                    css={track.solo ? iconButtonSuccessCss : iconButtonOnCss}
                     onClick={() => setTrackSolo(track.id, !track.solo)}
                     aria-label={track.solo ? "Unsolo" : "Solo"}
                     aria-pressed={!!track.solo}
                   >
-                    <span
-                      style={{
-                        fontSize: theme.fontSizeSmaller,
-                        fontWeight: 600,
-                        letterSpacing: "0.04em"
-                      }}
-                    >
-                      S
-                    </span>
+                    <span css={soloGlyphStyles}>S</span>
                   </button>
                 </Tooltip>
               </>
@@ -803,12 +865,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             {isMidi && (
               <>
                 <SelectField
-                  label={t("timeline:attrs.instrumentForName", { defaultValue: "Instrument for {{name}}", name: track.name })}
+                  label={`Instrument for ${track.name}`}
                   hideLabel
                   size="small"
                   variant="outlined"
                   value={presetId}
-                  options={presetOptions(t)}
+                  options={PRESET_OPTIONS}
                   onChange={handlePresetChange}
                   css={presetSelectStyles}
                 />
@@ -834,8 +896,8 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               <Tooltip
                 title={
                   effectsCount === 0
-                    ? t("timeline:attrs.effectsChainEmpty", { defaultValue: "Effects chain (empty)" })
-                    : t("timeline:attrs.effectsChainCount", { defaultValue: "Effects chain ({{count}})", count: effectsCount })
+                    ? "Effects chain (empty)"
+                    : `Effects chain (${effectsCount})`
                 }
               >
                 <button
@@ -847,7 +909,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   }
                   onClick={handleFxToggle}
                   aria-label={
-                    fxExpanded ? t("timeline:attrs.hideEffectsChain", { defaultValue: "Hide effects chain" }) : t("timeline:attrs.showEffectsChain", { defaultValue: "Show effects chain" })
+                    fxExpanded ? "Hide effects chain" : "Show effects chain"
                   }
                   aria-pressed={fxExpanded}
                   data-testid={`track-fx-${track.id}`}
@@ -876,10 +938,16 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             onPointerMove={handleResizePointerMove}
             onPointerUp={handleResizePointerEnd}
             onPointerCancel={handleResizePointerEnd}
+            onKeyDown={handleResizeKeyDown}
             onContextMenu={stopPointerPropagation}
             aria-label={t("timeline:attrs.resizeTrackHeight", { defaultValue: "Resize track height" })}
             role="separator"
             aria-orientation="horizontal"
+            aria-valuenow={Math.round(authoredHeightPx)}
+            aria-valuemin={MIN_TRACK_HEIGHT_PX}
+            aria-valuemax={MAX_TRACK_HEIGHT_PX}
+            tabIndex={0}
+            data-testid={`track-resize-${track.id}`}
           />
         </div>
         <ContextMenu
@@ -903,13 +971,45 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             compact
           />
           <MenuItemPrimitive
-            label={t("timeline:attrs.insertTrackAbove", { defaultValue: "Insert {{label}} track above", label: trackTypeLabel(track.type) })}
+            label="New folder with this track"
+            icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
+            onClick={() => {
+              createTrackFolderForTrack(track.id);
+              closeContextMenu();
+            }}
+            compact
+          />
+          {track.folderId && (
+            <MenuItemPrimitive
+              label="Remove from folder"
+              icon={<FolderOutlinedIcon fontSize="small" />}
+              onClick={() => {
+                setTrackFolder(track.id, null);
+                closeContextMenu();
+              }}
+              compact
+            />
+          )}
+          {trackFolders.filter((folder) => folder.id !== track.folderId).map((folder) => (
+            <MenuItemPrimitive
+              key={folder.id}
+              label={`Move to ${folder.name}`}
+              icon={<FolderOutlinedIcon fontSize="small" />}
+              onClick={() => {
+                setTrackFolder(track.id, folder.id);
+                closeContextMenu();
+              }}
+              compact
+            />
+          ))}
+          <MenuItemPrimitive
+            label={`Insert ${meta.label} track above`}
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={handleMenuInsertAbove}
             compact
           />
           <MenuItemPrimitive
-            label={t("timeline:attrs.insertTrackBelow", { defaultValue: "Insert {{label}} track below", label: trackTypeLabel(track.type) })}
+            label={`Insert ${meta.label} track below`}
             icon={<VerticalAlignBottomIcon fontSize="small" />}
             onClick={handleMenuInsertBelow}
             compact
@@ -926,9 +1026,17 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
         <ConfirmDialog
           open={confirmRemoveOpen}
           onClose={() => setConfirmRemoveOpen(false)}
-          onConfirm={() => removeTrack(track.id)}
+          onConfirm={() => {
+            if (!removeTrack(track.id)) {
+              useNotificationStore.getState().addNotification({
+                type: "warning",
+                alert: true,
+                content: `Unlock track "${track.name}" and its clips to remove it`
+              });
+            }
+          }}
           title={t("timeline:attrs.removeTrack", { defaultValue: "Remove track" })}
-          content={t("timeline:attrs.removeTrackConfirm", { defaultValue: 'Remove track "{{name}}" and all its clips?', name: track.name })}
+          content={`Remove track "${track.name}" and all its clips?`}
           confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
           cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         />

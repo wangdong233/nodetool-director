@@ -2,6 +2,8 @@
  * @nodetool-ai/runtime – Public API
  */
 
+export { sniffAudioMime } from "./providers/audio-mime.js";
+
 export {
   ProcessingContext,
   ACTIVE_MODEL_CONTEXT_KEY,
@@ -17,7 +19,6 @@ export {
   type FolderAssetEntry,
   type ProcessingContextModelInterfaces,
   type EntityUpsertArgs,
-  type GameTemplateInfo,
   type GenerationRequest,
   type GenerationResult,
   type GenerationRunOptions,
@@ -84,12 +85,14 @@ export {
   withWorkflowSpan,
   withNodeSpan,
   withSpanGen,
+  withTaskSpan,
   setLastUsage,
   consumeLastUsage,
   peekLastUsage,
   createUsageSlot,
   type AgentSpanKind,
-  type LlmUsage
+  type LlmUsage,
+  type TaskKind
 } from "./tracing-helpers.js";
 export {
   RecoverableNodeError,
@@ -140,7 +143,9 @@ export type {
 } from "./providers/higgsfield-transport.js";
 export {
   generationRegistry,
+  generationDeliveryOf,
   type GenerationOutcome,
+  type GenerationDelivery,
   type CompletedGeneration
 } from "./generation-registry.js";
 export { redactGenerationParams } from "./redact-params.js";
@@ -261,7 +266,13 @@ export {
   connectPythonBridgeForGraph,
   resolvePythonNodeExecutor
 } from "./python-graph-resolver.js";
-export { loadMediaRefBytes, type MediaRefValue } from "./media-ref-bytes.js";
+export { loadMediaRefBytes, type MediaRefValue, type MediaRefContext, type MediaRefByteOptions } from "./media-ref-bytes.js";
+export {
+  IMAGE_EDIT_TASK,
+  imageModelSupportsTask,
+  imageModelTasks,
+  isImageEditModel
+} from "./image-model-tasks.js";
 export {
   fetchExternalMedia,
   privateMediaFetchAllowed
@@ -363,3 +374,15 @@ export type {
   PermissionMode,
   RequestApproval
 } from "./permission-gate.js";
+
+export { inAppRunCostAccount } from "./run-context.js";
+export type { AppRunContext, AppRunCostAccount, AppRunDocumentRef } from "./run-context.js";
+
+export { flushTelemetry } from "./telemetry.js";
+export { configureRunTraceStore } from "./run-trace-processor.js";
+export type { RunTraceStore, RunTraceWrite, TraceSanitizerOptions, TraceIncompleteReason } from "./run-trace-processor.js";
+export { withRunTrace, getRunTraceScope, recordRunTraceSecret, markTraceContentTruncated, suppressRunTraceContent, recordTraceEvent } from "./run-trace-context.js";
+export type { RunTraceScope } from "./run-trace-context.js";
+export { stringifyTraceContent } from "./run-trace-serialization.js";
+
+export { getProviderStreamTrace } from "./providers/loop-tracing.js";

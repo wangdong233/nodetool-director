@@ -1,3 +1,12 @@
+import { registerChatRunTrace, registerWorkflowRunTrace, withRegisteredRunTrace, settleRegisteredRunTrace } from "@nodetool-ai/execution";
+import { getRunTraceScope, suppressRunTraceContent } from "@nodetool-ai/runtime";
+import {
+  TRACE_RESTRICTED_CAPABILITY_MODULES,
+  isFullResourceId
+} from "@nodetool-ai/protocol";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { settleRunTrace, registerRunTraceParent, registerRunTraceParents, threadHasTraceContentTools } from "@nodetool-ai/models";
+import { capabilityModuleOf, listCapabilitySpecs } from "@nodetool-ai/agents";
 import { createLogger } from "@nodetool-ai/config";
 import { randomUUID } from "node:crypto";
 import {
@@ -5,6 +14,7 @@ import {
   repairOrphanedToolCalls
 } from "../chat-tool-call-repair.js";
 import { attachChatPredictionForwarder } from "../chat-prediction-forwarder.js";
+import { admitSpend } from "../credit-gate.js";
 import { isGoogleWorkspaceEnabled } from "@nodetool-ai/config";
 import {
   isFunctionValue,
@@ -76,7 +86,9 @@ import {
   groqRequestFailureMessage,
   mediaResolverFor,
   providerFailureDetail,
+  resolveContextWindow,
   type ActiveModelSelection,
+  type ContextWindow,
   type RunBudget
 } from "@nodetool-ai/runtime";
 import {
@@ -105,19 +117,22 @@ import {
   type ChatCodeActToolCall
 } from "@nodetool-ai/agents";
 import {
-  getBuiltinTools,
-  getAllMcpTools,
-  getGoogleWorkspaceTools,
-  getApifyTools,
-  getSerpApiTools,
-  toolForCapabilityName,
-  gateTools,
+  availableBuiltinToolNames,
+  GOOGLE_WORKSPACE_TOOL_NAMES,
+  APIFY_TOOL_NAMES,
+  SERPAPI_TOOL_NAMES,
+  capabilityForName,
+  capabilityProviderTool,
+  type CapabilitySpec,
+  getAllMcpCapabilitySpecs,
+  toolFromCapability,
   capabilityFromTool,
   createCapabilityRun,
   contextSecretAvailability,
   BackgroundSubtaskRegistry,
-  UNGATED,
   PERMISSION_GATE_CONTEXT_KEY,
+  GAME_ASSET_NODE_RUNNER_CONTEXT_KEY,
+  type GameAssetNodeRunner,
   extractInjectableImages,
   registerTemporaryImageHandle,
   type CapabilityRun,
@@ -159,6 +174,7 @@ import {
 } from "./chat-history.js";
 import {
   chooseCompactionCut,
+  compactionThreshold,
   COMPACTION_SUMMARY_MAX_TOKENS,
   holdsTranscriptServerSide,
   readCompactionSettings,
@@ -175,7 +191,34 @@ import type {
   WebSocketClientSessionOptions
 } from "../websocket-client-session.js";
 
+function restrictedTraceToolNames(): string[] {
+  const modules = new Set<string>(TRACE_RESTRICTED_CAPABILITY_MODULES);
+  return listCapabilitySpecs().filter((spec) => modules.has(capabilityModuleOf(spec.name) ?? "")).map((spec) => spec.name);
+}
+
+function seedStoredToolProvenance(messages: readonly Message[]): void {
+  for (const message of messages) {
+    const names = message.name ? [message.name] : [];
+    if (isCompactionMessage(message)) { names.push(...(message.tools ?? [])); }
+    for (const call of message.tool_calls ?? []) {
+      if (!isRecord(call)) { continue; }
+      if (isString(call.name)) { names.push(call.name); }
+      if (isRecord(call.function) && isString(call.function.name)) { names.push(call.function.name); }
+    }
+    for (const name of names) {
+      const moduleName = capabilityModuleOf(name);
+      if (moduleName === "email" || moduleName === "google" || moduleName === "browser") { suppressRunTraceContent(); }
+    }
+  }
+}
+
 const log = createLogger("nodetool.websocket.runner");
+
+/** Providers whose credential is an account sign-in, not an API key. */
+const SIGN_IN_PROVIDER_LABELS: Record<string, string> = {
+  [PROVIDER_IDS.CODEX]: "Codex",
+  [PROVIDER_IDS.CLAUDE_AGENT_SDK]: "Claude"
+};
 
 const GENERIC_CHAT_ERROR =
   "Something went wrong while processing your request. Please try again.";
@@ -293,18 +336,18 @@ function providerFailureMessage(
   const gemini = geminiFailureSummary(error, providerId);
   const groq = groqRequestFailureMessage(error);
   const status = httpStatusFromError(error) ?? gemini?.status ?? null;
+  const statusCode = status ?? undefined;
   const rawMessage = groq ?? gemini?.message ?? safeClientErrorText(error);
-  let bodyMessage: string | null = null;
-  if (isObjectLike(error)) {
-    const body = error.body ?? error.response;
-    if (isObjectLike(body)) {
-      const bodyError = isObjectLike(body.error) ? body.error : body;
-      if (isObjectLike(bodyError) && isString(bodyError.message)) {
-        const safe = safeClientErrorText(bodyError.message);
-        bodyMessage = safe === GENERIC_CHAT_ERROR ? null : safe;
-      }
-    }
-  }
+
+  const body = isObjectLike(error) ? (error.body ?? error.response) : undefined;
+  const bodyError =
+    isObjectLike(body) && isObjectLike(body.error) ? body.error : body;
+  const bodyText =
+    isObjectLike(bodyError) && isString(bodyError.message)
+      ? safeClientErrorText(bodyError.message)
+      : null;
+  const bodyMessage = bodyText === GENERIC_CHAT_ERROR ? null : bodyText;
+
   if (
     providerId.toLowerCase() === "openai" &&
     /\borganization must be verified\b/i.test(bodyMessage ?? rawMessage)
@@ -312,7 +355,7 @@ function providerFailureMessage(
     return {
       errorType: status === null ? "error" : "http_status_error",
       message: "This model requires a verified OpenAI organization. Verify your provider organization or choose a model your account can access.",
-      statusCode: status ?? undefined
+      statusCode
     };
   }
   const detail = providerFailureDetail(error);
@@ -321,27 +364,30 @@ function providerFailureMessage(
     return {
       errorType: "error",
       message: `The ${target} request is too large for the model context window. Shorten the conversation or remove some attachments and try again.`,
-      statusCode: status ?? undefined
+      statusCode
     };
   }
   if (detail?.code === "provider_auth") {
+    const signIn = SIGN_IN_PROVIDER_LABELS[detail.provider];
+    const remedy = signIn ? `Sign in to ${signIn} again` : "Check the API key";
     return {
       errorType: "error",
-      message: `Authentication failed: ${detail.provider} rejected the configured credentials. Check the API key in Settings → Models & Providers.`,
-      statusCode: status ?? undefined
+      message: `Authentication failed: ${detail.provider} rejected the configured credentials. ${remedy} in Settings → Models & Providers.`,
+      statusCode
     };
   }
   if (status === null) {
-    return { errorType: "error", message: rawMessage, statusCode: undefined };
+    return { errorType: "error", message: rawMessage, statusCode };
   }
 
-  let message = rawMessage;
+  const modelName = model || "requested";
+  let message: string;
   if (gemini?.kind === "quota") {
     message = `Account quota exhausted for ${providerId}/${model}. Check your ${providerId} quota or billing and try again later.`;
   } else if (gemini?.kind === "model") {
-    message = `Model ${model || "requested"} is unavailable on ${providerId}. Choose another model or check that your account has access to it.`;
+    message = `Model ${modelName} is unavailable on ${providerId}. Choose another model or check that your account has access to it.`;
   } else if (gemini?.kind === "tools") {
-    message = `Model ${model || "requested"} does not support the requested tools on ${providerId}. Choose a model with tool support or disable tools.`;
+    message = `Model ${modelName} does not support the requested tools on ${providerId}. Choose a model with tool support or disable tools.`;
   } else if (status === 400) {
     message = `Bad request: ${groq ?? bodyMessage ?? rawMessage}`;
   } else if (status === 401) {
@@ -352,18 +398,18 @@ function providerFailureMessage(
     message =
       "Access forbidden: You don't have permission for this resource. Check the provider key's model and account access.";
   } else if (status === 404) {
-    message = `Model ${model || "requested"} was not found or is unavailable on ${providerId}. Choose another model or check account access.`;
+    message = `Model ${modelName} was not found or is unavailable on ${providerId}. Choose another model or check account access.`;
   } else if (status === 413) {
-    const detail = groq ?? bodyMessage ?? rawMessage;
+    const bodyDetail = bodyMessage ?? rawMessage;
     message =
       groq ??
-      (detail === GENERIC_CHAT_ERROR
+      (bodyDetail === GENERIC_CHAT_ERROR
         ? "Request is too large for the provider. Shorten the conversation or remove some attachments and try again."
-        : `Request is too large for the provider (${detail}). Shorten the conversation or remove some attachments and try again.`);
+        : `Request is too large for the provider (${bodyDetail}). Shorten the conversation or remove some attachments and try again.`);
   } else if (status === 429) {
-    message = groq
-      ? groq
-      : "Rate limited: Too many requests or insufficient provider quota. Check your provider plan and try again later.";
+    message =
+      groq ??
+      "Rate limited: Too many requests or insufficient provider quota. Check your provider plan and try again later.";
   } else if (status >= 500) {
     message =
       groq ??
@@ -373,7 +419,7 @@ function providerFailureMessage(
     message = `HTTP error (${status}): ${rawMessage}`;
   }
 
-  return { errorType: "http_status_error", message, statusCode: status };
+  return { errorType: "http_status_error", message, statusCode };
 }
 
 /**
@@ -392,6 +438,31 @@ const MEMORY_BLOCK_LIMIT = 100;
  * full thread load.
  */
 const SESSION_PROBE_WINDOW = 50;
+
+/** The most rows of a thread a turn loads as its history. */
+const THREAD_HISTORY_LIMIT = 1000;
+
+/**
+ * The thread's newest rows, oldest first. An ascending page would return the
+ * oldest rows instead, and a thread past the limit would then lose its latest
+ * turns, the user message just sent among them.
+ *
+ * A window cut by the limit starts at its first user row, so it never opens on
+ * a tool result whose call fell outside it.
+ */
+export async function loadRecentThreadRows(
+  threadId: string,
+  limit: number = THREAD_HISTORY_LIMIT
+): Promise<Message[]> {
+  const [newestFirst] = await Message.paginate(threadId, {
+    reverse: true,
+    limit
+  });
+  const rows = newestFirst.reverse();
+  if (rows.length < limit) return rows;
+  const firstUser = rows.findIndex((row) => row.role === "user");
+  return firstUser > 0 ? rows.slice(firstUser) : rows;
+}
 
 /**
  * Output-token worst case assumed when reserving a chat turn. The chat loop
@@ -628,6 +699,20 @@ export class ChatTurnHandler {
    * 11 is what switches the guest onto `run.invoke`.
    */
   private chatCapabilityRun: CapabilityRun | null = null;
+  /**
+   * Input window per `provider/model`, resolved once per connection and again
+   * whenever a turn selects a model this connection has not used.
+   */
+  private contextWindows = new Map<string, Promise<ContextWindow>>();
+  /**
+   * The provider-reported size of each thread's last call, keyed by thread,
+   * with the `provider/model` it was measured on. The next turn's prompt is at
+   * least this large, and this counts what the local estimate cannot see.
+   */
+  private measuredThreadTokens = new Map<
+    string,
+    { modelKey: string; tokens: number }
+  >();
 
   constructor(
     private readonly session: ClientSession,
@@ -751,6 +836,12 @@ export class ChatTurnHandler {
     }
     const existing = await Thread.find(userId, threadId);
     if (existing) return existing.id;
+    // `create` upserts on the primary key, so creating under an id another
+    // user's thread already holds would reassign that thread (and its
+    // history) to this caller.
+    if (await Thread.get(threadId)) {
+      throw new Error("Thread not found");
+    }
     const thread = await Thread.create({
       id: threadId,
       user_id: userId,
@@ -766,9 +857,11 @@ export class ChatTurnHandler {
    * Mirrors Python's _save_message_to_db_async: pops id, type, user_id before create.
    */
   private async saveMessageToDb(
-    messageData: Record<string, unknown>
-  ): Promise<void> {
+    messageData: Record<string, unknown>,
+    options: { keepClientId?: boolean } = {}
+  ): Promise<Message> {
     const data = { ...messageData };
+    const clientId = data.id;
     delete data.id;
     delete data.type;
     const threadId = isString(data.thread_id) ? data.thread_id : "";
@@ -776,11 +869,21 @@ export class ChatTurnHandler {
     const userId = this.session.requireUserId();
     delete data.user_id;
 
-    await Message.create({
-      thread_id: threadId,
-      user_id: userId,
-      ...data
-    });
+    // The user's own turn keeps the id the client minted for it, so the client
+    // can name that turn later (Regenerate, edit a sent message) without a
+    // round-trip. Anything that is not a fresh 32-hex id is replaced.
+    if (
+      options.keepClientId &&
+      isString(clientId) &&
+      isFullResourceId(clientId) &&
+      !(await Message.find(clientId))
+    ) {
+      data.id = clientId;
+    }
+    const message = await Message.create<Message>({ thread_id: threadId, user_id: userId, ...data });
+    const scope = getRunTraceScope();
+    if (scope) { await registerRunTraceParent(userId, scope.runId, { kind: "message", id: message.id }); }
+    return message;
   }
 
   /**
@@ -1281,6 +1384,7 @@ export class ChatTurnHandler {
         : null,
       assetOutputMode: this.session.mode === "text" ? "data_uri" : "temp_url"
     });
+    context.runTraceContext = getRunTraceScope() ?? null;
     // This context is built here rather than copied from the turn, so the
     // turn's gate has to be put on it by hand. The node's own loops read it
     // with `gateFromContext`; a node run outside a chat turn carries none and
@@ -1427,17 +1531,60 @@ export class ChatTurnHandler {
     log.debug("Chat message", { threadId, model, provider: providerId });
 
     // Save user message to DB — matches Python's _save_message_to_db_async(data)
-    await this.saveMessageToDb(data);
+    const turnMessage = await this.saveMessageToDb(data, { keepClientId: true });
 
+    const rootContext = createRuntimeContext({ jobId: turnMessage.id, threadId, workflowId, userId, workspace: null });
+    await registerChatRunTrace(rootContext, { messageId: turnMessage.id, threadId });
+    return withRegisteredRunTrace(rootContext, "chat.turn", async () => {
+      try {
+        if (await threadHasTraceContentTools(userId, threadId, restrictedTraceToolNames())) { suppressRunTraceContent(); }
+        await this.handlePersistedChatTurn(data, turnMessage, rootContext, requestSeq, signal);
+        await settleRegisteredRunTrace(rootContext, signal?.aborted ? "cancelled" : "completed");
+      } catch (error) {
+        await settleRegisteredRunTrace(rootContext, signal?.aborted ? "cancelled" : "failed", error instanceof Error ? error.message : String(error));
+        throw error;
+      }
+    });
+  }
+
+  private async handlePersistedChatTurn(
+    data: Record<string, unknown>,
+    turnMessage: Message,
+    rootContext: ProcessingContext,
+    requestSeq?: number,
+    signal?: AbortSignal
+  ): Promise<void> {
+    const threadId = String(data.thread_id);
+    const workflowId = isString(data.workflow_id) ? data.workflow_id : null;
+    const userId = this.session.requireUserId();
+    const providerId = String(data.provider);
+    const model = String(data.model);
     if (requestSeq !== undefined && requestSeq !== this.chatRequestSeq) return;
 
     if (!this.session.resolveProvider) {
+      await settleRegisteredRunTrace(rootContext, "failed", "No provider resolver configured");
       await this.session.send({
         type: "error",
         message: "No provider resolver configured",
         thread_id: threadId
       });
       return;
+    }
+
+    // The managed provider spends NodeTool's own keys against the user's
+    // credits. Every other managed entry point admits against the balance and
+    // the operator's model whitelist first, and so does a chat turn.
+    if (providerId === "nodetool") {
+      const decision = await admitSpend(userId, 0, [model]);
+      if (!decision.allowed) {
+        await settleRegisteredRunTrace(rootContext, "failed", decision.reason);
+        await this.session.send({
+          type: "error",
+          message: decision.reason,
+          thread_id: threadId
+        });
+        return;
+      }
     }
 
     // Route to the workflow processor ONLY when the client explicitly opts in
@@ -1450,7 +1597,7 @@ export class ChatTurnHandler {
       ? data.workflow_target
       : null;
     if (workflowTarget === "workflow") {
-      await this.handleWorkflowMessage(data, requestSeq, signal);
+      await this.handleWorkflowMessage(data, turnMessage.id, requestSeq, signal);
       return;
     }
 
@@ -1538,9 +1685,12 @@ export class ChatTurnHandler {
       toolCalls: null,
       threadId: null
     });
+    const copiedMessageIds = new Set<string>();
     const convertDbMessages = (rows: Message[]): ProviderMessage[] => {
       const out: ProviderMessage[] = [];
       for (const m of rows) {
+        copiedMessageIds.add(m.id);
+        seedStoredToolProvenance([m]);
         const pm = dbMessageToProviderMessage(m, this.session.userId);
         if (pm) out.push(pm);
       }
@@ -1564,6 +1714,7 @@ export class ChatTurnHandler {
         reverse: true,
         limit: SESSION_PROBE_WINDOW
       });
+      seedStoredToolProvenance(recent);
       const probeHasWholeThread = recent.length < SESSION_PROBE_WINDOW;
       // `recent` is newest-first. Walk to the first boundary marker: an
       // assistant carrying a session token, or a compaction record. Both claim
@@ -1613,14 +1764,17 @@ export class ChatTurnHandler {
           systemHash: probeSession.systemHash,
           checkpoint: 1
         };
+        if (probeSession.traceContentSuppressed) { priorSession.traceContentSuppressed = true; }
         // Absolute position to persist: prior prefix + the prior assistant + the
         // new turns — identical to what the full-load path would store.
         sessionCheckpointOverride =
           probeSession.checkpoint + 1 + newTurns.length;
         loadFullHistory = async () => {
-          const [rows] = await Message.paginate(threadId, { limit: 1000 });
+          const rows = await loadRecentThreadRows(threadId);
           const full = convertDbMessages(historySinceCompaction(rows));
           full.unshift(systemChatMessage());
+          const scope = getRunTraceScope();
+          if (scope) { await registerRunTraceParents(userId, scope.runId, [...copiedMessageIds].map((id) => ({ kind: "message" as const, id }))); }
           return full;
         };
       } else if (probeHasWholeThread) {
@@ -1633,12 +1787,14 @@ export class ChatTurnHandler {
         // all (a far-back session still resumes via the slice path). A session
         // older than the compaction cut is not one of them: searching only the
         // compacted slice is what keeps the newest marker winning here too.
-        const [rows] = await Message.paginate(threadId, { limit: 1000 });
+        const rows = await loadRecentThreadRows(threadId);
         const kept = historySinceCompaction(rows);
         chatHistory = convertDbMessages(kept);
         priorSession = lastMatchingProviderSession(kept, providerId, model);
       }
     }
+
+    if (priorSession?.traceContentSuppressed) { suppressRunTraceContent(); }
 
     // Expose the read-only `run_search` fan-out primitive by default. A client
     // can opt out by sending `enable_read_only_search: false`.
@@ -1697,14 +1853,6 @@ export class ChatTurnHandler {
     // it starts (invariant I-2). A loop that made its own would hand every
     // nested agent a fresh allowance, which is no ceiling at all.
     const turnBudget = await createChatTurnBudget();
-    const gatedRun = (context: ProcessingContext): CapabilityRun =>
-      createCapabilityRun({
-        context,
-        gate: chatGate,
-        projectId: chatProjectId,
-        availableSecrets: contextSecretAvailability(context),
-        budget: turnBudget
-      });
     // The user's external MCP servers (Blender, Hugging Face, …). Their tools
     // are plain belt tools named `mcp_<server>_<tool>`, so every loop reaches
     // them the same way; a server that does not answer is skipped, not fatal.
@@ -1716,41 +1864,49 @@ export class ChatTurnHandler {
         error: err instanceof Error ? err.message : String(err)
       });
     }
-    const rawToolbelt: Tool[] = [
-      ...getBuiltinTools(),
-      ...(googleWorkspace ? getGoogleWorkspaceTools() : []),
-      // Apify and SerpAPI have no `nodetool.*` namespace, so the belt is how
-      // a chat discovers them (`nodetool.searchTools("apify")`) at all.
-      ...getApifyTools(gatedRun),
-      ...getSerpApiTools(gatedRun),
-      ...externalMcpTools,
-      ...getAllMcpTools({
-        registry: this.session.nodeRegistry,
-        providers: chatProviders,
-        ...mcpToolHostDeps()
-      }),
-      toolForCapabilityName("list_collections"),
-      toolForCapabilityName("query_collection"),
-      runNodeTool
+    const legacyCapabilities = [runNodeTool, ...externalMcpTools].map(capabilityFromTool);
+    const nativeSpecs = [
+      ...availableBuiltinToolNames().map((name) => capabilityForName(name).spec),
+      ...(googleWorkspace ? GOOGLE_WORKSPACE_TOOL_NAMES : []).map((name) => capabilityForName(name).spec),
+      ...[...APIFY_TOOL_NAMES, ...SERPAPI_TOOL_NAMES].map((name) => capabilityForName(name).spec),
+      ...getAllMcpCapabilitySpecs({ registry: this.session.nodeRegistry, providers: chatProviders }),
+      capabilityForName("list_collections").spec,
+      capabilityForName("query_collection").spec
     ];
-    // De-duplicate by name (builtins / mcp / extras may overlap); first wins.
-    const dedupedToolbelt: Tool[] = [];
-    const seenToolNames = new Set<string>();
-    for (const tool of rawToolbelt) {
-      if (seenToolNames.has(tool.name)) continue;
-      seenToolNames.add(tool.name);
-      dedupedToolbelt.push(tool);
+    const specsByName = new Map<string, CapabilitySpec>();
+    for (const spec of [...nativeSpecs, ...legacyCapabilities.map((entry) => entry.spec)]) {
+      if (!specsByName.has(spec.name)) {
+        specsByName.set(spec.name, spec);
+      }
     }
-
-    // Wrap the toolbelt in the permission gate. The wrapper is transparent
-    // except for `process()`, so the chat loop AND any `run_subtask` child
-    // loop inherit gating by simply calling `tool.process()`.
-    const baseTools = gateTools(dedupedToolbelt, chatGate);
+    const baseSpecs = [...specsByName.values()];
+    const legacyByName = new Map(legacyCapabilities.map((entry) => [entry.spec.name, entry]));
+    // Delegated executors still consume Tool[]. Adapt only at that boundary.
+    // Each child context owns a separate run so its memory and depth are local.
+    const childRuns = new WeakMap<ProcessingContext, CapabilityRun>();
+    const childRun = (context: ProcessingContext): CapabilityRun => {
+      let run = childRuns.get(context);
+      if (!run) {
+        run = createCapabilityRun({
+          context, gate: chatGate, nodeRegistry: this.session.nodeRegistry,
+          providers: chatProviders, budget: turnBudget,
+          availableSecrets: contextSecretAvailability(context),
+          ...mcpToolHostDeps(), capabilities: legacyCapabilities
+        });
+        childRuns.set(context, run);
+      }
+      return run;
+    };
+    const baseTools = baseSpecs.map((spec) => {
+      const entry = legacyByName.get(spec.name)
+        ?? capabilityForName(spec.name);
+      return toolFromCapability(entry.spec, entry.impl, childRun);
+    });
 
     // Inject the recursive-decomposition primitive (ungated — it spawns a
     // child loop whose own tools are the gated `baseTools`). Child events
     // stream back tagged with `parent_tool_call_id` so the UI can nest cards.
-    const serverTools: Tool[] = baseTools.slice();
+    const serverTools: CapabilitySpec[] = baseSpecs.slice();
     // The same runtime the delegation tools take, kept for the capability run
     // below: provider, model, the parent belt, and the event forwarder.
     let subAgentRuntime: SubAgentRuntime | undefined;
@@ -1794,22 +1950,12 @@ export class ChatTurnHandler {
       // `parent_tool_call_id` / `subtask_depth` tagging are unchanged.
       // `start_subtask` / `wait_subtasks` share the per-turn registry above:
       // spawn returns immediately, and the parent collects on its own terms.
-      const delegationRun = (context: ProcessingContext) =>
-        createCapabilityRun({
-          context,
-          // Ungated on purpose, as before: spawning a child loop has no side
-          // effect of its own, and the child's tools are the gated `baseTools`.
-          gate: UNGATED,
-          availableSecrets: contextSecretAvailability(context),
-          subAgent: subAgentRuntime,
-          budget: turnBudget
-        });
-      serverTools.unshift(toolForCapabilityName("run_subtask", delegationRun));
+      serverTools.unshift(capabilityForName("run_subtask").spec);
       serverTools.unshift(
-        toolForCapabilityName("start_subtask", delegationRun)
+        capabilityForName("start_subtask").spec
       );
       serverTools.unshift(
-        toolForCapabilityName("wait_subtasks", delegationRun)
+        capabilityForName("wait_subtasks").spec
       );
 
       // Plan mode's own capability: `create_plan` runs the TaskPlanner over the
@@ -1821,7 +1967,7 @@ export class ChatTurnHandler {
       // gate, not for which tools were offered.
       if (permissionMode === "plan") {
         serverTools.unshift(
-          toolForCapabilityName("create_plan", delegationRun)
+          capabilityForName("create_plan").spec
         );
       }
 
@@ -1831,18 +1977,13 @@ export class ChatTurnHandler {
       // `blocked_in_plan_mode`, which tells the model to have the user switch
       // out, where dropping it from the belt entirely would only say the tool
       // does not exist. It is *offered* everywhere but plan mode, below.
-      serverTools.unshift(
-        ...gateTools(
-          [toolForCapabilityName("execute_plan", delegationRun)],
-          chatGate
-        )
-      );
+      serverTools.unshift(capabilityForName("execute_plan").spec);
 
       // Read-only fan-out search (opt-in). Reuses the same runtime — the
       // capability filters the parent belt to its read-only allowlist
       // internally, so passing the full snapshot is correct.
       if (enableReadOnlySearch) {
-        serverTools.unshift(toolForCapabilityName("run_search", delegationRun));
+        serverTools.unshift(capabilityForName("run_search").spec);
       }
     }
 
@@ -1856,7 +1997,7 @@ export class ChatTurnHandler {
     });
 
     const serverSchemas: ProviderTool[] = serverTools.map((t) =>
-      t.toProviderTool()
+      capabilityProviderTool(t)
     );
     // Every client tool the connected UI registered is exposed. They used to be
     // gated on an active workflow, which made the editor tools unreachable from
@@ -1921,6 +2062,9 @@ export class ChatTurnHandler {
       workspace: chatWorkspace,
       authToken: this.deps.authToken()
     });
+    ctx.runTraceContext = rootContext.runTraceContext;
+    ctx.set("chat_message_id", turnMessage.id);
+    if (ctx.runTraceContext) { await registerRunTraceParents(userId, ctx.runTraceContext.runId, [...copiedMessageIds].map((id) => ({ kind: "message" as const, id }))); }
     const detachPredictions = attachChatPredictionForwarder(
       (listener) => ctx.addMessageListener(listener),
       (msg) => this.session.sendDetached(msg),
@@ -1971,8 +2115,11 @@ export class ChatTurnHandler {
       budget: turnBudget,
       secretPrompt: (request) => this.requestSecretEntry(threadId, request),
       ...mcpToolHostDeps(),
-      capabilities: [capabilityFromTool(runNodeTool)]
+      capabilities: legacyCapabilities
     });
+    const gameAssetRun = this.chatCapabilityRun;
+    const gameAssetNodeRunner: GameAssetNodeRunner = (args) => gameAssetRun.invoke("run_node", args);
+    ctx.set(GAME_ASSET_NODE_RUNNER_CONTEXT_KEY, gameAssetNodeRunner);
 
     // CodeAct session for this turn. Created here so its prompt section is in
     // place before the system message is materialized below. The tool router
@@ -2078,10 +2225,14 @@ export class ChatTurnHandler {
     // What to persist onto the assistant message: the provider's token, but with
     // the absolute checkpoint when the fast path sent only a delta (the
     // provider's emitted checkpoint is relative to the trimmed view).
-    const sessionForPersist = (): ProviderSession | null =>
-      sessionCheckpointOverride != null && capturedSession
-        ? { ...capturedSession, checkpoint: sessionCheckpointOverride }
-        : capturedSession;
+    const sessionForPersist = (): ProviderSession | null => {
+      if (!capturedSession) { return null; }
+      const contentSuppressed = getRunTraceScope()?.policy.contentSuppressed || priorSession?.traceContentSuppressed || capturedSession.traceContentSuppressed;
+      const persisted = { ...capturedSession };
+      if (sessionCheckpointOverride != null) { persisted.checkpoint = sessionCheckpointOverride; }
+      if (contentSuppressed) { persisted.traceContentSuppressed = true; }
+      return persisted;
+    };
 
     // Cap on tool-calling rounds before the loop stops. Generous enough to
     // build a multi-component app UI or run a long edit session in one turn —
@@ -2173,9 +2324,14 @@ export class ChatTurnHandler {
           clientResult.result ?? clientResult.content ?? clientResult;
       } else if (serverTool) {
         try {
-          toolResult = await Tool.executeTool(serverTool, ctx, toolCall.args, {
-            toolCallId: toolCall.id
-          });
+          const args = { ...Tool.stripMessage(toolCall.args) };
+          if (serverTool.needsToolCallId) {
+            args["_tool_call_id"] = toolCall.id;
+          }
+          if (!this.chatCapabilityRun) {
+            throw new Error("Chat capability run is unavailable");
+          }
+          toolResult = await this.chatCapabilityRun.invoke(serverTool.name, args);
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
           log.error("Tool execution failed", {
@@ -2389,6 +2545,16 @@ export class ChatTurnHandler {
     // The rows stay in the database for the UI and `nodetool.threads.*`; only
     // the provider's view is cut.
     const compaction = await readCompactionSettings();
+    const modelKey = `${providerId}/${model}`;
+    let contextWindow = this.contextWindows.get(modelKey);
+    if (!contextWindow && compaction.thresholdTokens === null) {
+      contextWindow = resolveContextWindow(provider, model);
+      this.contextWindows.set(modelKey, contextWindow);
+    }
+    const compactionThresholdTokens = compactionThreshold(
+      compaction,
+      contextWindow ? (await contextWindow).tokens : 0
+    );
     /** Spent by the reactive trigger below; bounds the turn to one retry. */
     let compactionRetryUsed = false;
 
@@ -2442,14 +2608,14 @@ export class ChatTurnHandler {
      * turn that cannot run at all.
      */
     const compactThread = async (reason: string): Promise<boolean> => {
-      const [rows] = await Message.paginate(threadId, { limit: 1000 });
+      const rows = await loadRecentThreadRows(threadId);
       const cut = chooseCompactionCut(
         historySinceCompaction(rows),
         compaction.keepUserTurns,
         {
           // Leave room for the summary, turn context and subsequent replies.
           maxTokens:
-            compaction.thresholdTokens * 0.75 -
+            compactionThresholdTokens * 0.75 -
             COMPACTION_SUMMARY_MAX_TOKENS -
             estimatePromptTokens([systemChatMessage()]) -
             estimatePromptTokens([
@@ -2498,6 +2664,7 @@ export class ChatTurnHandler {
         role: "user",
         execution_event_type: COMPACTION_EVENT_TYPE,
         content: compactionMessageContent(summary),
+        tools: getRunTraceScope()?.policy.contentSuppressed ? restrictedTraceToolNames() : null,
         created_at: Number.isFinite(boundary)
           ? new Date(boundary - 1).toISOString()
           : cut.keep[0].created_at
@@ -2509,6 +2676,7 @@ export class ChatTurnHandler {
       // The upstream transcript a session token resumes is the history the cut
       // just replaced, so nothing resumes across a compaction.
       capturedSession = null;
+      this.measuredThreadTokens.delete(threadId);
       loadFullHistory = null;
       sessionCheckpointOverride = null;
       await this.session.send({
@@ -2531,25 +2699,28 @@ export class ChatTurnHandler {
       return true;
     };
 
-    // Trigger 1, proactive: the estimated prompt is over the configured
-    // ceiling. `estimatePromptTokens` tokenizes the message text and tool
-    // calls and scores each attached image, audio, video or document at a
-    // fixed per-modality figure, so a resolved `data:` uri never reaches the
-    // tokenizer. The number is still not the prompt — the tool definitions
-    // this turn also sends are missing from it. It is a size signal, which is
-    // why the default ceiling sits well under any shipping context window
-    // rather than close to one.
+    // Trigger 1, proactive: the prompt reached the threshold, 90% of the
+    // model's input window unless `NODETOOL_CHAT_COMPACTION_TOKENS` sets it.
+    // The size is the larger of two numbers. The provider-reported size of
+    // this thread's last call counts the system prompt and tool definitions.
+    // `estimatePromptTokens` counts the messages added since, scoring each
+    // attached image, audio, video or document at a fixed per-modality figure
+    // so a resolved `data:` uri never reaches the tokenizer.
     //
     // A provider holding the conversation upstream is sent only the turns since
     // its session token, so this number would describe a fraction of what it
     // actually has. Those get trigger 2 alone: the provider itself says when
     // the transcript stopped fitting.
     if (!holdsTranscriptServerSide(providerId, capturedSession !== null)) {
-      const promptTokens = estimatePromptTokens(messagesToSend);
-      if (promptTokens > compaction.thresholdTokens) {
+      const measured = this.measuredThreadTokens.get(threadId);
+      const promptTokens = Math.max(
+        estimatePromptTokens(messagesToSend),
+        measured?.modelKey === modelKey ? measured.tokens : 0
+      );
+      if (promptTokens >= compactionThresholdTokens) {
         await compactThread(
-          `it reached about ${promptTokens} tokens, over the ` +
-            `${compaction.thresholdTokens}-token limit`
+          `it reached about ${promptTokens} tokens, at or over the ` +
+            `${compactionThresholdTokens}-token limit`
         );
       }
     }
@@ -2693,6 +2864,13 @@ export class ChatTurnHandler {
       for (;;) {
         try {
           await streamTurn();
+          const lastCallTokens = provider.lastCallTokens;
+          if (typeof lastCallTokens === "number") {
+            this.measuredThreadTokens.set(threadId, {
+              modelKey,
+              tokens: lastCallTokens
+            });
+          }
           break;
         } catch (err) {
           if (
@@ -2766,6 +2944,7 @@ export class ChatTurnHandler {
         return;
       }
       const errMsg = err instanceof Error ? err.message : String(err);
+      await settleRegisteredRunTrace(rootContext, "failed", errMsg);
       log.error("Chat processing error", { threadId, error: errMsg });
 
       let errorType = "error";
@@ -2836,6 +3015,14 @@ export class ChatTurnHandler {
     } finally {
       detachPredictions();
       detachCostLedger();
+      try {
+        await chatWorkspace?.cleanupScratch?.();
+      } catch (err) {
+        log.warn("Chat workspace scratch cleanup failed", {
+          threadId,
+          error: err instanceof Error ? err.message : String(err)
+        });
+      }
       // Whatever is still outstanding never got a result row. Leaving the gap
       // makes the thread malformed — Anthropic rejects a `tool_use` with no
       // `tool_result` — and leaves the model unaware the call was abandoned,
@@ -3745,6 +3932,11 @@ export class ChatTurnHandler {
     } catch (err) {
       if (cancelled()) return;
       const errMsg = err instanceof Error ? err.message : String(err);
+      const scope = getRunTraceScope();
+      if (scope) {
+        trace.getActiveSpan()?.setStatus({ code: SpanStatusCode.ERROR });
+        await settleRunTrace(userId, scope.runId, { status: "failed", error: scope.policy.contentSuppressed ? "Execution failed" : errMsg, secretValues: scope.secretValues, contentSuppressed: scope.policy.contentSuppressed });
+      }
       log.error("Media generation error", { threadId, mode, error: errMsg });
       const failure = providerFailureMessage(err, providerId, modelId);
       const failureMessage = `Generation failed: ${failure.message}`;
@@ -3788,6 +3980,7 @@ export class ChatTurnHandler {
    */
   private async handleWorkflowMessage(
     data: Record<string, unknown>,
+    turnMessageId: string,
     requestSeq?: number,
     signal?: AbortSignal
   ): Promise<void> {
@@ -3847,7 +4040,10 @@ export class ChatTurnHandler {
         "messages";
 
       // Build chat history for params — matches Python
-      const [dbMessages] = await Message.paginate(threadId, { limit: 1000 });
+      const dbMessages = await loadRecentThreadRows(threadId);
+      const inheritedTrace = getRunTraceScope();
+      seedStoredToolProvenance(dbMessages);
+      if (inheritedTrace) { await registerRunTraceParents(userId, inheritedTrace.runId, dbMessages.map((m) => ({ kind: "message" as const, id: m.id }))); }
       const chatHistorySerialized = dbMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -3868,7 +4064,14 @@ export class ChatTurnHandler {
       // Prepare params — matches Python's WorkflowMessageProcessor
       const params: Record<string, unknown> = {
         [messageInputName]: currentMessage,
-        [messagesInputName]: [...chatHistorySerialized, currentMessage]
+        // The stored history already holds this turn's message; it is appended
+        // once, as `currentMessage`.
+        [messagesInputName]: [
+          ...chatHistorySerialized.filter(
+            (_, i) => dbMessages[i].id !== turnMessageId
+          ),
+          currentMessage
+        ]
       };
       if (isObjectLike(data.params)) {
         Object.assign(params, data.params as Record<string, unknown>);
@@ -3900,6 +4103,8 @@ export class ChatTurnHandler {
         assetOutputMode: this.session.mode === "text" ? "data_uri" : "temp_url"
       });
 
+      context.runTraceContext = getRunTraceScope() ?? null;
+
       // Expose executor/node-type resolution for sub-workflow nodes
       context.setResolveExecutor((node) => this.session.resolveExecutor(node));
       if (this.session.resolveNodeType) {
@@ -3917,6 +4122,9 @@ export class ChatTurnHandler {
             } | null>
         );
       }
+
+      await Job.create({ id: jobId, workflow_id: workflowId, user_id: userId, status: "running", params, graph });
+      await registerWorkflowRunTrace(context, { jobId, workflowId });
 
       // Create and run workflow (A5: via the ExecutionSession facade — see
       // the identical note in `startJobInner`).
@@ -3956,20 +4164,6 @@ export class ChatTurnHandler {
         }
       };
       this.deps.jobs.registerJob(jobId, active);
-
-      // Persist job to DB (best-effort)
-      try {
-        await Job.create({
-          id: jobId,
-          workflow_id: workflowId,
-          user_id: userId,
-          status: "running",
-          params,
-          graph
-        });
-      } catch (error) {
-        this.session.logError("workflow job persistence failed", error);
-      }
 
       // The run already started inside `ExecutionSession.create()` above.
       const executePromise = session.result;
@@ -4165,6 +4359,11 @@ export class ChatTurnHandler {
       log.debug("Workflow message complete", { threadId, workflowId, jobId });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
+      const scope = getRunTraceScope();
+      if (scope) {
+        trace.getActiveSpan()?.setStatus({ code: SpanStatusCode.ERROR });
+        await settleRunTrace(userId, scope.runId, { status: "failed", error: scope.policy.contentSuppressed ? "Execution failed" : errMsg, secretValues: scope.secretValues, contentSuppressed: scope.policy.contentSuppressed });
+      }
       log.error("Workflow message error", {
         threadId,
         workflowId,

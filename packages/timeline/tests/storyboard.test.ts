@@ -8,6 +8,8 @@ import {
   DEFAULT_SHOT_MS,
   buildStoryboardPreviewTimeline,
   buildStoryboardTimeline,
+  resolveShotSource,
+  isAssemblableShot,
   frameSizeForAspect
 } from "../src/storyboard.js";
 import type { AssembledTimeline } from "../src/storyboard.js";
@@ -45,12 +47,35 @@ describe("frameSizeForAspect", () => {
     expect(frameSizeForAspect("wide")).toEqual({ width: 1920, height: 1080 });
     expect(frameSizeForAspect("0:9")).toEqual({ width: 1920, height: 1080 });
     expect(frameSizeForAspect(null)).toEqual({ width: 1920, height: 1080 });
-    expect(frameSizeForAspect(undefined)).toEqual({ width: 1920, height: 1080 });
+    expect(frameSizeForAspect(undefined)).toEqual({
+      width: 1920,
+      height: 1080
+    });
   });
 });
 
 describe("buildStoryboardTimeline", () => {
-  it("keeps only rendered shots with a clip asset", () => {
+  it("assembles a still-only board without inventing shot audio", () => {
+    const result = buildStoryboardTimeline({
+      boardId: "board-1",
+      shots: [
+        makeShot({
+          id: "still",
+          index: 0,
+          keyframe: keyframeRef("image"),
+          duration_seconds: 3
+        })
+      ]
+    });
+    expect(pictureClips(result.clips)).toHaveLength(1);
+    expect(result.clips[0].mediaType).toBe("image");
+    expect(result.durationMs).toBe(3000);
+    expect(result.clips.filter((clip) => clip.mediaType === "audio")).toEqual(
+      []
+    );
+    expect(result.skippedShotIds).toEqual([]);
+  });
+  it("preserves rendered clips and keyframe stills in a mixed board", () => {
     const result = buildStoryboardTimeline({
       boardId: "board-1",
       shots: [
@@ -70,10 +95,10 @@ describe("buildStoryboardTimeline", () => {
       ]
     });
 
-    expect(pictureClips(result.clips)).toHaveLength(1);
-    expect(pictureClips(result.clips)[0].currentAssetId).toBe("asset-a");
-    expect(result.skippedShotIds).toEqual(["b", "c"]);
-    expect(result.durationMs).toBe(DEFAULT_SHOT_MS);
+    expect(pictureClips(result.clips)).toHaveLength(2);
+    expect(pictureClips(result.clips).map((clip) => [clip.mediaType, clip.currentAssetId])).toEqual([["video", "asset-a"], ["image", "still-b"]]);
+    expect(result.skippedShotIds).toEqual(["c"]);
+    expect(result.durationMs).toBe(DEFAULT_SHOT_MS * 2);
   });
 
   it("lays narration across the full cut as a draft audio clip", () => {
@@ -436,13 +461,13 @@ describe("assembly against the footage that came back", () => {
         renderedShot("c", 2, 2.0, 3.5)
       ]
     });
-    expect(pictureClips(result.clips).map((c) => [c.startMs, c.durationMs])).toEqual(
-      [
-        [0, 5184],
-        [5184, 2000],
-        [7184, 3500]
-      ]
-    );
+    expect(
+      pictureClips(result.clips).map((c) => [c.startMs, c.durationMs])
+    ).toEqual([
+      [0, 5184],
+      [5184, 2000],
+      [7184, 3500]
+    ]);
     expect(result.durationMs).toBe(10684);
     expect(result.retimedShots).toHaveLength(3);
   });
@@ -665,7 +690,7 @@ describe("scenes do not change the cut", () => {
   /**
    * Three contiguous scenes whose boundaries cut across everything else the
    * builder could group by: the fused run s3/s4 is split between scene B and
-   * scene C, and the skipped shots s2 and s6 land in different scenes.
+   * scene C, and the held still s2 and skipped shot s6 land in different scenes.
    */
   const SCENE_OF: Record<string, string> = {
     s0: "sc-a",
@@ -740,7 +765,8 @@ describe("scenes do not change the cut", () => {
         ...clip,
         id: token("clip", clip.id),
         trackId: token("track", clip.trackId),
-        linkId: clip.linkId === undefined ? undefined : token("link", clip.linkId)
+        linkId:
+          clip.linkId === undefined ? undefined : token("link", clip.linkId)
       }))
     };
   };
@@ -755,6 +781,7 @@ describe("scenes do not change the cut", () => {
     expect(pictureClips(unscened.clips).map((c) => c.storyboardShotId)).toEqual([
       "s0",
       "s1",
+      "s2",
       "s3",
       "s4",
       "s5",
@@ -765,19 +792,26 @@ describe("scenes do not change the cut", () => {
     ).toEqual([
       [0, 5184],
       [5184, 2000],
-      [7184, 1250],
-      [8434, 2750],
-      [11184, 3000],
-      [14184, 2200]
+      [7184, 3000],
+      [10184, 1250],
+      [11434, 2750],
+      [14184, 3000],
+      [17184, 2200]
     ]);
-    expect(unscened.durationMs).toBe(16384);
-    expect(unscened.skippedShotIds).toEqual(["s2", "s6"]);
+    expect(unscened.durationMs).toBe(19384);
+    expect(unscened.skippedShotIds).toEqual(["s6"]);
     expect(unscened.tracks.map((t) => t.name)).toEqual([
       "Shots",
       "Shot Audio",
       "Narration",
       "Music"
     ]);
+    // Generate must compose the score, not read the music prompt aloud (S5).
+    const music = unscened.clips.find((c) => c.name === "Music");
+    expect(music?.bindingKind).toBe("text-to-music");
+    expect(unscened.clips.find((c) => c.name === "Narration")?.bindingKind).toBe(
+      "text-to-audio"
+    );
   });
 
   it("assembles the same cut however the shots are grouped", () => {
@@ -818,6 +852,7 @@ describe("scenes do not change the cut", () => {
       "s5",
       "s4",
       "s3",
+      "s2",
       "s1",
       "s0"
     ]);
@@ -826,3 +861,31 @@ describe("scenes do not change the cut", () => {
     );
   });
 });
+
+ describe("policy source selection", () => {
+ it("uses the still instead of stale video in assembly and preview", () => {
+ const shot = makeShot({id:"s",index:0,clip:clipRef("stale"),keyframe:keyframeRef("exact")});
+ const input = {boardId:"b",shots:[shot],production:{media_strategy:"still_motion_graphics" as const}};
+ expect(resolveShotSource(shot,input.production)).toEqual({kind:"still",assetId:"exact"});
+ for (const build of [buildStoryboardTimeline,buildStoryboardPreviewTimeline]) {
+ const result=build(input);
+ expect(result.clips).toHaveLength(1);
+ expect(result.clips[0]).toMatchObject({mediaType:"image",currentAssetId:"exact"});
+ }
+ });
+ it("reserves graphics-only shot timing without inventing a source", () => {
+ const shot=makeShot({id:"g",index:0,graphics:{mode:"graphics_first",elements:[]}});
+ expect(resolveShotSource(shot)).toEqual({kind:"graphics"});
+ expect(isAssemblableShot(shot)).toBe(true);
+ const result=buildStoryboardTimeline({boardId:"b",shots:[shot]});
+ expect(result.durationMs).toBe(DEFAULT_SHOT_MS);
+ expect(result.skippedShotIds).toEqual([]);
+ expect(result.clips).toEqual([]);
+ });
+ it("does not substitute a still for an explicit generated-video strategy",()=>{
+ const shot=makeShot({id:"s",index:0,keyframe:keyframeRef("still"),production:{media_strategy:"generated_video"}});
+ expect(resolveShotSource(shot)).toBeNull();
+ expect(isAssemblableShot(shot)).toBe(false);
+ expect(buildStoryboardTimeline({boardId:"b",shots:[shot]}).skippedShotIds).toEqual(["s"]);
+ });
+ });

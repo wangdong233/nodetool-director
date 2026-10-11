@@ -15,6 +15,7 @@
 
 import React, { memo, useCallback, useRef, useState } from "react";
 import type { ImageRef, Shot, VideoRef } from "@nodetool-ai/protocol";
+import { resolveEffectiveProductionRequirement } from "@nodetool-ai/protocol";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -29,6 +30,7 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  MagicGenerationFill,
   ResponsiveImage,
   ToggleGroup,
   ToggleOption,
@@ -44,12 +46,15 @@ import {
   sameMediaRef,
   useStoryboardStore
 } from "../../stores/storyboard/StoryboardStore";
+import { useStoryboardGenerationStore } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { getErrorMessage } from "../../utils/errorHandling";
+import ShotDesignFrame from "./ShotDesignFrame";
+import { isShotGenerating } from "./ShotStatusPill";
 import { copiedStill, flippedStill } from "./shotImageEdits";
 import { syncShotClipToTimeline } from "../../stores/storyboard/timelineSync";
 import { i18n } from "../../i18n";
@@ -84,10 +89,12 @@ const stageSx = {
   bgcolor: "c_overlay_subtle",
   display: "grid",
   placeItems: "center",
-  touchAction: "none",
   cursor: "grab",
   "&[data-panning='true']": { cursor: "grabbing" }
 } as const;
+
+/** How far a finger has to travel sideways for a swipe to change the take. */
+const SWIPE_MIN_PX = 40;
 
 const pagerSx = {
   ...TYPOGRAPHY.mono.caption,
@@ -115,6 +122,11 @@ const stillVersionsOf = (shot: Shot): ImageRef[] =>
 
 const clipVersionsOf = (shot: Shot): VideoRef[] =>
   shot.clip_versions ?? (shot.clip ? [shot.clip] : []);
+
+/** Identifies a take across renders: its asset, else its URI. */
+const mediaKey = (
+  media: ImageRef | VideoRef | null | undefined
+): string | null => media?.asset_id ?? media?.uri ?? null;
 
 interface PreviewState {
   shotId: string;
@@ -154,7 +166,10 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
   const { t } = useTranslation();
   const stillVersions = stillVersionsOf(shot);
   const clipVersions = clipVersionsOf(shot);
-  const hasClip = clipVersions.length > 0;
+  const hasClip =
+    clipVersions.length > 0 &&
+    resolveEffectiveProductionRequirement(undefined, shot.production)
+      ?.media_strategy !== "still_motion_graphics";
   const [mediumState, setMediumState] = useState(() => ({
     shotId: shot.id,
     value: defaultMedium(shot)
@@ -164,10 +179,70 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
   const [previewState, setPreviewState] = useState(() =>
     initialPreviewState(shot)
   );
+  // A take that lands while the viewer is open (a still edit, a re-render,
+  // a flip) is the one the creator is waiting for: show it. It stays a
+  // preview; "Set current" makes it the shot's still.
+  const [seenStills, setSeenStills] = useState(() => ({
+    shotId: shot.id,
+    count: stillVersions.length
+  }));
+  if (seenStills.shotId !== shot.id) {
+    setSeenStills({ shotId: shot.id, count: stillVersions.length });
+  } else if (stillVersions.length !== seenStills.count) {
+    setSeenStills({ shotId: shot.id, count: stillVersions.length });
+    if (stillVersions.length > seenStills.count) {
+      const newest = stillVersions.length - 1;
+      setPreviewState((previous) => ({
+        ...(previous.shotId === shot.id ? previous : initialPreviewState(shot)),
+        still: newest
+      }));
+      setMediumState({ shotId: shot.id, value: "still" });
+    }
+  }
+  // A take made current outside the viewer, such as a click in the takes
+  // gallery, is the one the creator chose: show it in the large view.
+  const currentStillKey = mediaKey(shot.keyframe);
+  const currentClipKey = mediaKey(shot.clip);
+  const [seenCurrent, setSeenCurrent] = useState(() => ({
+    shotId: shot.id,
+    still: currentStillKey,
+    clip: currentClipKey
+  }));
+  if (seenCurrent.shotId !== shot.id) {
+    setSeenCurrent({
+      shotId: shot.id,
+      still: currentStillKey,
+      clip: currentClipKey
+    });
+  } else if (
+    seenCurrent.still !== currentStillKey ||
+    seenCurrent.clip !== currentClipKey
+  ) {
+    setSeenCurrent({
+      shotId: shot.id,
+      still: currentStillKey,
+      clip: currentClipKey
+    });
+    const shownMedium: Medium =
+      seenCurrent.still !== currentStillKey && currentStillKey
+        ? "still"
+        : "clip";
+    if (shownMedium === "still" || currentClipKey) {
+      setPreviewState((previous) => ({
+        ...(previous.shotId === shot.id ? previous : initialPreviewState(shot)),
+        [shownMedium]:
+          shownMedium === "still"
+            ? currentIndex(stillVersions, shot.keyframe)
+            : currentIndex(clipVersions, shot.clip)
+      }));
+      setMediumState({ shotId: shot.id, value: shownMedium });
+    }
+  }
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [busy, setBusy] = useState(false);
   const panFrom = useRef<{ x: number; y: number } | null>(null);
+  const swipeFrom = useRef<{ x: number; y: number } | null>(null);
 
   const acceptKeyframeVersion = useStoryboardStore(
     (state) => state.acceptKeyframeVersion
@@ -220,10 +295,28 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      // Pan with the primary button only, and never from media controls:
+      // capturing the pointer there would turn a click on play or the seek bar
+      // into a pan.
+      if (
+        event.button !== 0 ||
+        (event.target instanceof Element &&
+          event.target.closest(
+            "button, input, select, video, a, [role=slider], [role=button]"
+          ))
+      ) {
+        return;
+      }
+      // A finger on an unzoomed take swipes between takes; the page keeps
+      // its vertical scroll (the stage's touch-action is pan-y then).
+      if (event.pointerType === "touch" && zoom === 1) {
+        swipeFrom.current = { x: event.clientX, y: event.clientY };
+        return;
+      }
       panFrom.current = { x: event.clientX - pan.x, y: event.clientY - pan.y };
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [pan.x, pan.y]
+    [pan.x, pan.y, zoom]
   );
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -234,9 +327,22 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
     },
     []
   );
-  const handlePointerUp = useCallback(() => {
-    panFrom.current = null;
-  }, []);
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      panFrom.current = null;
+      const from = swipeFrom.current;
+      swipeFrom.current = null;
+      if (!from || event.type === "pointercancel") {
+        return;
+      }
+      const dx = event.clientX - from.x;
+      const dy = event.clientY - from.y;
+      if (Math.abs(dx) >= SWIPE_MIN_PX && Math.abs(dx) > Math.abs(dy)) {
+        step(dx < 0 ? 1 : -1);
+      }
+    },
+    [step]
+  );
 
   const nudgePan = useCallback((x: number, y: number) => {
     setPan((currentPan) => ({
@@ -266,13 +372,18 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
     (file: File, failure: string) =>
       uploadAsset({
         file,
-        onCompleted: (asset) =>
+        onCompleted: (asset) => {
+          setBusy(false);
           appendShotKeyframeVersion(
             boardId,
             shot.id,
             mediaRefFromAsset(asset, "image")
-          ),
-        onFailed: (error) => reportFailure(error, failure)
+          );
+        },
+        onFailed: (error) => {
+          setBusy(false);
+          reportFailure(error, failure);
+        }
       }),
     [uploadAsset, appendShotKeyframeVersion, boardId, shot.id]
   );
@@ -328,6 +439,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
     }
     setBusy(true);
     try {
+      // `busy` clears when the upload settles, not when it is queued.
       addVersion(
         await flippedStill(stillUrl, `${stillName} flipped.png`),
         "The flip could not be saved."
@@ -352,6 +464,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
       uploadAsset({
         file,
         onCompleted: (asset) => {
+          setBusy(false);
           appendShotKeyframeVersion(
             boardId,
             shot.id,
@@ -366,13 +479,14 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           });
           onLeave?.();
         },
-        onFailed: (error) =>
-          reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }))
+        onFailed: (error) => {
+          setBusy(false);
+          reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
+        }
       });
     } catch (error) {
-      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
-    } finally {
       setBusy(false);
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
     }
   }, [
     stillUrl,
@@ -387,12 +501,20 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
   ]);
 
   const canEditStill = !readOnly && !!stillUrl && !busy;
+  const jobActive = useStoryboardGenerationStore((state) => {
+    const status = state.shotJobs[shot.id]?.status;
+    return status === "queued" || status === "running";
+  });
+  const generating = jobActive || isShotGenerating(shot);
 
   return (
     <FlexColumn gap={SPACING.md} fullHeight sx={{ minWidth: 0 }}>
       <Box
-        sx={stageSx}
+        // Unzoomed, a vertical swipe scrolls the editor instead of being
+        // trapped by the stage.
+        sx={{ ...stageSx, touchAction: zoom > 1 ? "none" : "pan-y" }}
         role="region"
+        aria-busy={generating || undefined}
         aria-label={`${shown === "clip" ? "Clip" : "Still"} take preview. Focus this region to browse takes with the left and right arrow keys.`}
         tabIndex={0}
         data-panning={panFrom.current ? "true" : undefined}
@@ -408,11 +530,28 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           sx={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "center",
+            width:
+              shot.graphics && shot.graphics.mode !== "none"
+                ? "100%"
+                : undefined,
+            height:
+              shot.graphics && shot.graphics.mode !== "none"
+                ? "100%"
+                : undefined,
             maxWidth: "100%",
             maxHeight: "100%"
           }}
         >
-          {previewedClip ? (
+          {shot.graphics && shot.graphics.mode !== "none" ? (
+            <ShotDesignFrame
+              boardId={boardId}
+              shot={{
+                ...shot,
+                keyframe: previewedStill ?? shot.keyframe,
+                clip: previewedClip ?? shot.clip
+              }}
+            />
+          ) : previewedClip ? (
             <VideoPlayer
               locator={previewedClip}
               label={`Shot ${shot.index + 1}`}
@@ -427,6 +566,12 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
             <Caption color="muted">{t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}</Caption>
           )}
         </Box>
+        {generating && (
+          <MagicGenerationFill
+            borderRadius={BORDER_RADIUS.lg}
+            data-testid="shot-edit-generating"
+          />
+        )}
       </Box>
 
       <FlexRow align="center" gap={SPACING.sm} wrap>
@@ -467,7 +612,14 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           maxZoom={MAX_ZOOM}
           buttonSize="small"
         />
-        <FlexRow role="group" aria-label={t("storyboard:attrs.panControls", { defaultValue: "Pan controls" })} gap={SPACING.micro}>
+        {/* Fingers drag the zoomed take directly; the buttons are for
+            pointers and keyboards. */}
+        <FlexRow
+          role="group"
+          aria-label={t("storyboard:attrs.panControls", { defaultValue: "Pan controls" })}
+          gap={SPACING.micro}
+          sx={{ "@media (pointer: coarse)": { display: "none" } }}
+        >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon sx={{ fontSize: "1em" }} />}
             tooltip={t("storyboard:attrs.panUp", { defaultValue: "Pan up" })}

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Asset } from "@nodetool-ai/models";
+import { Asset, initTestDb } from "@nodetool-ai/models";
 import { BaseProvider } from "@nodetool-ai/runtime";
 import type { ExtendVideoParams } from "@nodetool-ai/runtime";
 import { DirectInferenceHandler } from "../src/session/inference.js";
@@ -24,6 +24,13 @@ class ExtensionProvider extends BaseProvider {
   tasks = ["extend_video"];
   constructor() {
     super("fal_ai");
+  }
+  protected override declaredCapabilities() {
+    return [
+      "text_to_video",
+      "image_to_video",
+      "extend_video"
+    ] as const;
   }
   override async getAvailableVideoModels() {
     return [
@@ -78,6 +85,7 @@ function handler(provider: ExtensionProvider): DirectInferenceHandler {
 
 describe("direct video extension dispatch", () => {
   beforeEach(() => {
+    initTestDb();
     vi.clearAllMocks();
     vi.spyOn(Asset, "find").mockResolvedValue(
       new Asset({

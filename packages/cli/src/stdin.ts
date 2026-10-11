@@ -26,13 +26,13 @@ import { processChat } from "@nodetool-ai/chat";
 import {
   applySystemPrompt,
   buildCliAgentBelt,
-  createCliCodeActTurn
+  createCliCodeActTurn,
+  loadCliSkillCatalog
 } from "./chat-codeact.js";
 import { createChatContext } from "./chat-context.js";
 import { budgetStopReason, createCliRunBudget } from "./run-budget.js";
 import { isString } from "./predicates.js";
 import {
-  getBuiltinTools,
   PERMISSION_GATE_CONTEXT_KEY,
   type PermissionMode
 } from "@nodetool-ai/agents";
@@ -41,6 +41,7 @@ import type { Tool } from "@nodetool-ai/agents/tool";
 import type { ProcessingMessage } from "@nodetool-ai/protocol";
 import type { NodeRegistry } from "@nodetool-ai/node-sdk";
 import { createProvider } from "./providers.js";
+import { buildCliToolbelt } from "./agent-toolbelt.js";
 import { WebSocketChatClient, type JobEvent } from "./websocket-client.js";
 import {
   isCodeAction,
@@ -220,7 +221,13 @@ async function handleSlashCommand(
   }
 }
 
-export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
+/**
+ * Run piped chat until stdin ends. Resolves to the process exit code: 1 when a
+ * server turn reported an error, so a script piping into `nodetool chat --url`
+ * can tell a failed turn from an answered one.
+ */
+export async function runStdinMode(opts: StdinModeOptions): Promise<number> {
+  let failed = false;
   const wsClient = opts.wsUrl ? new WebSocketChatClient(opts.wsUrl) : null;
   if (wsClient) {
     await wsClient.connect();
@@ -258,7 +265,7 @@ export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
     // `execute_code` itself and appends `view_image` only if it finds it here,
     // which is why an empty belt silently removed the one channel for pixels.
     return buildCliAgentBelt({
-      baseTools: getBuiltinTools(),
+      baseTools: buildCliToolbelt(opts.agentProviders ?? {}, opts.registry),
       provider: prov,
       model: opts.model,
       forwardMessage: (msg: ProcessingMessage) => {
@@ -299,6 +306,7 @@ export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
     const turn = createCliCodeActTurn({
       tools,
       context,
+      skillCatalog: await loadCliSkillCatalog(context.userId),
       onToolCall: ({ name }) => {
         process.stderr.write(`[tool] ${name}\n`);
       }
@@ -375,7 +383,9 @@ export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
         trimmed,
         threadId,
         opts.model,
-        opts.provider
+        opts.provider,
+        undefined,
+        opts.permissionMode ? { permissionMode: opts.permissionMode } : {}
       )) {
         if (event.type === "chunk") {
           process.stdout.write(event.content);
@@ -413,6 +423,7 @@ export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
           process.stdout.write("\n");
         } else if (event.type === "error") {
           process.stderr.write(`Error: ${event.message}\n`);
+          failed = true;
           break;
         } else if (event.type === "done") {
           break;
@@ -439,4 +450,5 @@ export async function runStdinMode(opts: StdinModeOptions): Promise<void> {
   }
 
   wsClient?.disconnect();
+  return failed ? 1 : 0;
 }

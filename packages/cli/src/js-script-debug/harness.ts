@@ -14,8 +14,6 @@
  * (`@nodetool-ai/execution/js-script-debug`), the sandbox runner and the bridge
  * factory (`@nodetool-ai/agents`). Tests supply their own and load neither.
  */
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
 import type {
   JsScriptDebugReport,
   JsScriptInteractionRecord,
@@ -24,6 +22,8 @@ import type {
 import type { JsScriptBridgeFinalState } from "@nodetool-ai/agents";
 import type { JsScriptDocument } from "@nodetool-ai/protocol/api-schemas/js-scripts.js";
 import type { JsScriptInteractionStep } from "./interactions.js";
+import { runInteractionSteps } from "../interaction-script.js";
+import { writeDebugBundle } from "../debug-bundle.js";
 import {
   resolveJsScriptTarget,
   type ResolvedJsScriptTarget,
@@ -62,7 +62,10 @@ export interface JsScriptTestReport {
 export interface JsScriptDebugCore {
   validateJsScriptDoc: (
     raw: unknown,
-    options?: { knownSecrets?: readonly string[] }
+    options?: {
+      knownSecrets?: readonly string[];
+      packDtsSources?: ReadonlyMap<string, string>;
+    }
   ) => Promise<JsScriptValidation>;
   buildJsScriptDebugReport: (input: {
     target: JsScriptDebugReport["target"];
@@ -78,7 +81,16 @@ export interface JsScriptDebugCore {
 export type JsScriptExecutor = (
   document: JsScriptDocument,
   inputs: Record<string, unknown>,
-  inputStreams?: Record<string, unknown[]>
+  inputStreams?: Record<string, unknown[]>,
+  /**
+   * The script's own row id, for a target loaded from the database. Seeds
+   * the run's context with the same call-chain key `run_js_script` sets
+   * (`JS_SCRIPT_CHAIN_KEY`, via `enterJsScript`), so a body that runs
+   * another JS script sees this run in the chain the same way it would
+   * through the capability path — a cycle or the depth cap is refused the
+   * same way. Absent for a file target, which has no row to chain from.
+   */
+  scriptId?: string
 ) => Promise<JsScriptRunResult>;
 
 /** The bridge surface this host drives — one tool per `ui_jsscript_*` name. */
@@ -149,23 +161,26 @@ async function loadCore(): Promise<JsScriptDebugCore> {
  */
 async function loadExecutor(): Promise<JsScriptExecutor> {
   const { runCodeBody } = await import("@nodetool-ai/agents");
-  const {
-    PERMISSION_GATE_CONTEXT_KEY,
-    ProcessingContext,
-    headlessGate
-  } = await import("@nodetool-ai/runtime");
+  const { PERMISSION_GATE_CONTEXT_KEY, ProcessingContext, headlessGate } =
+    await import("@nodetool-ai/runtime");
   const { FileStorageAdapter } = await import("@nodetool-ai/storage");
   const { getDefaultAssetsPath } = await import("@nodetool-ai/config");
   const { JS_SCRIPT_MAX_TIMEOUT_SECONDS } =
     await import("@nodetool-ai/protocol/api-schemas/js-scripts.js");
 
+  // The toolbelt's `nodetool.*` modules read and write the database, so a
+  // body that saves a timeline needs it even when it declares no secrets.
+  const { initDb, getSecret } = await import("@nodetool-ai/models");
+  const { getDefaultDbPath } = await import("@nodetool-ai/config");
+  initDb(getDefaultDbPath());
+  // A body imports installed sandbox packs by name, as it does on the server.
+  const { installSandboxCatalog } = await import("../sandbox-catalog.js");
+  installSandboxCatalog();
+
   let seq = 0;
-  return async (document, inputs, inputStreams) => {
+  return async (document, inputs, inputStreams, scriptId) => {
     let secretResolver;
     if (document.secrets.length > 0) {
-      const { initDb, getSecret } = await import("@nodetool-ai/models");
-      const { getDefaultDbPath } = await import("@nodetool-ai/config");
-      initDb(getDefaultDbPath());
       secretResolver = getSecret;
     }
     const contextInit: ConstructorParameters<typeof ProcessingContext>[0] = {
@@ -178,6 +193,13 @@ async function loadExecutor(): Promise<JsScriptExecutor> {
     }
     const context = new ProcessingContext(contextInit);
     context.set(PERMISSION_GATE_CONTEXT_KEY, headlessGate("JS script debug"));
+    if (scriptId) {
+      // Mirrors `enterJsScript` in the `run_js_script` capability: the same
+      // chain key, so a script this run invokes sees this CLI run as part
+      // of the call chain the way it would through the capability path.
+      const { JS_SCRIPT_CHAIN_KEY } = await import("@nodetool-ai/agents");
+      context.set(JS_SCRIPT_CHAIN_KEY, [scriptId]);
+    }
     const runOptions: Parameters<typeof runCodeBody>[1] = {
       code: document.code,
       inputs,
@@ -249,16 +271,6 @@ async function loadBridgeFactory(): Promise<CreateJsScriptBridge> {
     ) as JsScriptBridge;
 }
 
-function defaultOutDir(ref: string): string {
-  const slug =
-    ref
-      .replace(/[^a-zA-Z0-9_-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "jsscript";
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return resolve(`nodetool-debug/jsscript-${slug}-${stamp}`);
-}
-
 /**
  * The document a target carries, parsed against the schema so the executor
  * gets defaults for anything the file left out. A document that does not parse
@@ -288,7 +300,10 @@ export async function runJsScriptValidate(
 ): Promise<JsScriptValidateResult> {
   const resolved = await resolveJsScriptTarget(ref, deps);
   const core = deps.core ?? (await loadCore());
-  const validation = await core.validateJsScriptDoc(resolved.raw);
+  const { discoverPackDtsSources } = await import("../sandbox-catalog.js");
+  const validation = await core.validateJsScriptDoc(resolved.raw, {
+    packDtsSources: discoverPackDtsSources()
+  });
   return { target: resolved.target, validation };
 }
 
@@ -319,9 +334,11 @@ export async function runJsScriptOnce(
     }
   }
   const execute = deps.execute ?? (await loadExecutor());
+  const scriptId =
+    resolved.target.kind === "id" ? resolved.target.ref : undefined;
   return {
     target: resolved.target,
-    result: await execute(document, inputs, inputStreams)
+    result: await execute(document, inputs, inputStreams, scriptId)
   };
 }
 
@@ -370,47 +387,20 @@ export async function runJsScriptDebug(
   if (steps.length > 0) {
     const createBridge = deps.createBridge ?? (await loadBridgeFactory());
     const bridgeInit: Parameters<typeof createBridge>[0] = {
-      document: (await asDocument(resolved.raw))
+      document: await asDocument(resolved.raw)
     };
     if (resolved.target.name) {
       bridgeInit.name = resolved.target.name;
     }
     const bridge = createBridge(bridgeInit);
-    const byName = new Map(bridge.tools.map((t) => [t.name, t]));
-
-    for (const step of steps) {
-      const tool = byName.get(step.tool);
-      if (!tool) {
-        const known = [...byName.keys()].sort().join(", ");
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error: `No JS script tool named "${step.tool}". Available: ${known}.`
-        });
-        deps.onLog?.(`✗ ${step.tool}: unknown tool`);
-        continue;
-      }
-      try {
-        const result = await tool.execute(step.input);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: true,
-          result
-        });
-        deps.onLog?.(`✓ ${step.tool}`);
-      } catch (e) {
-        const error = e instanceof Error ? e.message : String(e);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error
-        });
-        deps.onLog?.(`✗ ${step.tool}: ${error}`);
-      }
-    }
+    interactions.push(
+      ...(await runInteractionSteps(
+        steps,
+        bridge.tools,
+        "JS script",
+        deps.onLog
+      ))
+    );
     snapshot = bridge.finalState();
     finalDocument = bridge.document();
   }
@@ -428,25 +418,14 @@ export async function runJsScriptDebug(
   }
   const report = await core.buildJsScriptDebugReport(reportInput);
 
-  const bundleDir = options.outDir
-    ? resolve(options.outDir)
-    : defaultOutDir(ref);
-  await mkdir(bundleDir, { recursive: true });
-  await writeFile(
-    join(bundleDir, "jsscript.json"),
-    JSON.stringify(resolved.raw, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.json"),
-    JSON.stringify(report, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.md"),
-    core.renderJsScriptReportMarkdown(report),
-    "utf8"
-  );
+  const bundleDir = await writeDebugBundle({
+    kind: "jsscript",
+    ref,
+    outDir: options.outDir,
+    raw: resolved.raw,
+    report,
+    reportMarkdown: core.renderJsScriptReportMarkdown(report),
+  });
 
   return { report, bundleDir };
 }

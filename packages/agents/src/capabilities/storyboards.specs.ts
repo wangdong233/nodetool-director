@@ -183,17 +183,19 @@ export const EDIT_STORYBOARD_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
     storyboard_id: { type: "string", description: "Storyboard id." },
+    expected_revision: { type: "integer", minimum: 0, description: "Reject if the Storyboard changed since it was read." },
     ops: {
       type: "array",
       description:
         'Operations in order. Each is {"op": <name>, ...arguments}: ' +
         "add_shot {action, slug?, camera?, motion?, dialogue?, narration?, " +
         "duration_seconds?, duration_source?, render_mode?, entity_ids?, " +
-        "location_id?, covered_by?, notes?, index?}, " +
+        "location_id?, covered_by?, notes?, end_state?, sound?, index?}, " +
         "update_shot {target, ...same fields}, remove_shot {target}, " +
         "reorder_shot {target, index}, move_shot {target, scene_id?, " +
         "position}, duplicate_shot {target}, set_board {brief?, style?, " +
-        "aspect_ratio?, entity_ids?, image_model?, video_model?}, " +
+        "aspect_ratio?, entity_ids?, image_model?, video_model?, narration?, " +
+        "music_prompt?}, " +
         "set_setup {brief?, genre?, stage?}, update_scene {scene_id, " +
         "slugline?, lighting?}, create_scene {after_scene_id?}, " +
         "merge_scene {scene_id}, set_style {entity_id? | style?}, " +
@@ -213,7 +215,9 @@ export const EDIT_STORYBOARD_SCHEMA: JsonSchema = {
         "and assembles as that window. Pass null to undo it. " +
         "image_model/video_model take a model object from find_model and " +
         "become the board's defaults for render_storyboard_stills and " +
-        "render_storyboard_clips.",
+        "render_storyboard_clips. set_board narration/music_prompt are " +
+        "screenplay-level strings for voiceover and score direction; an " +
+        "empty string clears one. Other screenplay fields are preserved.",
       items: { type: "object" }
     }
   },
@@ -265,6 +269,77 @@ export const EXTRACT_SCRIPT_SCHEMA: JsonSchema = {
         "Re-project onto the script the board already links, instead of " +
         "failing. Rewrites that script's lines and the board's line " +
         "references; every take voiced from a changed line becomes stale."
+    }
+  },
+  required: ["storyboard_id"]
+};
+
+export const GET_STORYBOARD_ONE_TAKE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    storyboard_id: { type: "string", description: "Storyboard id." }
+  },
+  required: ["storyboard_id"]
+};
+
+export const UPDATE_STORYBOARD_ONE_TAKE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    storyboard_id: { type: "string", description: "Storyboard id." },
+    expected_revision: {
+      type: "integer",
+      minimum: 0,
+      description: "Reject if the Storyboard changed since it was read."
+    },
+    prompt: {
+      type: "string",
+      description:
+        "The creator's own prompt (brand, rules, light). Replaces the stored " +
+        "one. It is sent before the block compiled from the board, and may " +
+        "refer to the board's images as [Image N]."
+    },
+    duration_seconds: {
+      type: ["number", "null"],
+      description:
+        "The clip's length in seconds, above 0. Every shot window scales to fit it. " +
+        "null clears it: the clip then runs the sum of the shot durations."
+    },
+    aspect_ratio: {
+      type: ["string", "null"],
+      description: "For example 16:9. null clears it: the board's aspect ratio applies."
+    },
+    resolution: {
+      type: ["string", "null"],
+      description:
+        "For example 720p or 1080p. null clears it: the render picks 1080p " +
+        "when the model offers it."
+    },
+    model: {
+      type: ["object", "null"],
+      description:
+        "The video model for the one take. null clears it: the board's " +
+        "video model applies.",
+      properties: {
+        provider: { type: "string" },
+        id: { type: "string" },
+        name: { type: "string" }
+      },
+      required: ["provider", "id"]
+    },
+    shots: {
+      type: "array",
+      description:
+        "Per-shot patches. `shot_id` is an id, index or slug. An empty " +
+        "string or null clears end_state or sound.",
+      items: {
+        type: "object",
+        properties: {
+          shot_id: { type: "string" },
+          end_state: { type: ["string", "null"] },
+          sound: { type: ["string", "null"] }
+        },
+        required: ["shot_id"]
+      }
     }
   },
   required: ["storyboard_id"]
@@ -393,7 +468,8 @@ export const editStoryboardSpec: CapabilitySpec = {
   description:
     "Edit a saved storyboard's shot list headlessly: add, rewrite, remove and " +
     "reorder shots, and set the board's brief, style, aspect ratio and " +
-    "entities. Operations run in order against the stored document and the " +
+    "entities, narration and music direction. Operations run in order against " +
+    "the stored document and the " +
     "result is saved; an open board picks the change up live. Rendering stays " +
     "with render_storyboard_stills / render_storyboard_clips — this tool " +
     "directs, it does not spend. Call get_storyboard first for shot ids.",
@@ -458,8 +534,77 @@ export const deleteStoryboardSpec: CapabilitySpec = {
   userMessage: (params) => `Deleting storyboard ${params["storyboard_id"]}`
 };
 
+
+export const finishStoryboardSpec: CapabilitySpec = {
+  name: "finish_storyboard",
+  description: "Materialize semantic storyboard graphics into separately editable Timeline layers without media generation. The default deterministic strategy needs no provider and returns status unreviewed_draft with reviewed false. It is an editable scaffold, not a certified finished cut. Opt-in agentic strategy uses an explicit {provider,id} model or the session provider for whole-cut editable composition, real rendered-frame visual review and bounded revisions before the same atomic save and returns status reviewed_finished with reviewed true. Requires current revisions and validates protected sources, text and colors.",
+  category: "write",
+  inputSchema: { type: "object", properties: {
+    model: { type: "object", properties: { provider: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 } }, required: ["provider", "id"], additionalProperties: false },
+    strategy: { type: "string", enum: ["deterministic", "agentic"], default: "deterministic" },
+    storyboardId: { type: "string" }, expectedStoryboardRevision: { type: "integer", minimum: 0 },
+    expectedLinkedScriptFingerprint: { type: "string", description: "For linked scripts, supply linkedScriptFingerprint from the reviewed design preview." },
+    timelineId: { type: "string" }, expectedTimelineRevision: { type: "integer", minimum: 0 }
+  }, required: ["storyboardId", "expectedStoryboardRevision"], additionalProperties: false }
+};
+
+export const layoutStoryboardSpec: CapabilitySpec = {
+  name: "layout_storyboard",
+  description: "Compose the static layout of a revision-checked still-motion-graphics Storyboard with a vision model and save it as the board's Timeline. The agent positions and scales every image and copy layer at each shot's hold frame, may add editable shapes, and with imageModel may generate backgrounds and decoration, which join the board as decorative elements. Elements with an authored frame, lock or limits keep that placement: an edit that breaks a lock or exceeds a limit is rejected. A pixel layout check and a rendered-frame visual review gate the result. No motion is authored: a later finish_storyboard with strategy agentic keeps the layout and authors the motion. Returns status laid_out, the timeline and the new revisions. When every hard check passes but the visual review still has findings after the last round, or two rounds in a row fail the same frames, it saves the best layout and returns status needs_review with findings (a list of strings).",
+  category: "write",
+  inputSchema: { type: "object", properties: {
+    model: { type: "object", properties: { provider: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 } }, required: ["provider", "id"], additionalProperties: false, description: "The vision language model that lays out the frames. Defaults to the session's model." },
+    imageModel: { type: "object", properties: { provider: { type: "string", minLength: 1 }, id: { type: "string", minLength: 1 } }, required: ["provider", "id"], additionalProperties: false, description: "The text-to-image model for backgrounds and decoration. Without it the agent decorates with shapes only." },
+    storyboardId: { type: "string" }, expectedStoryboardRevision: { type: "integer", minimum: 0 },
+    timelineId: { type: "string" }, expectedTimelineRevision: { type: "integer", minimum: 0 }
+  }, required: ["storyboardId", "expectedStoryboardRevision"], additionalProperties: false }
+};
+
+export const previewStoryboardDesignSpec: CapabilitySpec = {
+  name: "preview_storyboard_design",
+  description: "Read a revision-checked Storyboard design as an inline editable Timeline preview. Resolves owned source references and validates semantic intent/preservation before returning. No provider call, generation or document save.",
+  category: "read",
+  inputSchema: { type: "object", properties: {
+    storyboardId: { type: "string" }, expectedStoryboardRevision: { type: "integer", minimum: 0 }
+  }, required: ["storyboardId", "expectedStoryboardRevision"], additionalProperties: false }
+};
+export const getStoryboardOneTakeSpec: CapabilitySpec = {
+  name: "get_storyboard_one_take",
+  description:
+    "Read a storyboard's one-take direction: the creator's prompt, the " +
+    "block compiled from the board (REFS, STEPS, AUDIO), the full prompt a " +
+    "render sends, the [Image N] references (the shot stills, in shot " +
+    "order), each shot's window, the total duration, the stored render " +
+    "`settings` (duration_seconds, aspect_ratio, resolution, model; null " +
+    "when unset), the `effective` values after the board's fallbacks, and " +
+    "warnings.",
+  inputSchema: GET_STORYBOARD_ONE_TAKE_SCHEMA,
+  category: "read",
+  userMessage: (params) =>
+    `Reading one-take direction of storyboard ${String(params["storyboard_id"])}`
+};
+
+export const updateStoryboardOneTakeSpec: CapabilitySpec = {
+  name: "update_storyboard_one_take",
+  description:
+    "Write a storyboard's one-take direction. `prompt` replaces the " +
+    "creator's prompt. `duration_seconds`, `aspect_ratio`, `resolution` " +
+    "and `model` set the render settings and keep the others. null clears " +
+    "one. `shots` sets each shot's end_state and sound. " +
+    "References, steps and audio are compiled from the board. Renders " +
+    "nothing. Returns what get_storyboard_one_take returns.",
+  inputSchema: UPDATE_STORYBOARD_ONE_TAKE_SCHEMA,
+  category: "write",
+  userMessage: (params) =>
+    `Updating one-take direction of storyboard ${String(params["storyboard_id"])}`
+};
+
+
 /** Every spec this module declares, in declaration order. */
 export const storyboardsSpecs: readonly CapabilitySpec[] = [
+  finishStoryboardSpec,
+  layoutStoryboardSpec,
+  previewStoryboardDesignSpec,
   listStoryboardsSpec,
   createStoryboardSpec,
   getStoryboardSpec,
@@ -470,5 +615,7 @@ export const storyboardsSpecs: readonly CapabilitySpec[] = [
   editStoryboardSpec,
   directStoryboardSpec,
   extractScriptFromStoryboardSpec,
-  deleteStoryboardSpec
+  deleteStoryboardSpec,
+  getStoryboardOneTakeSpec,
+  updateStoryboardOneTakeSpec
 ];

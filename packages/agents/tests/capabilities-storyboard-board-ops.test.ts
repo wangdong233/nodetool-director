@@ -23,6 +23,7 @@ import {
 } from "@nodetool-ai/protocol";
 import type { RenderInputs, Scene, Shot } from "@nodetool-ai/protocol";
 import type { StoryboardDocument } from "@nodetool-ai/models";
+import { editStoryboard } from "../src/capabilities/storyboards.js";
 import { createCapabilityRun, UNGATED } from "../src/capabilities/invoke.js";
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]);
@@ -146,6 +147,15 @@ async function makeStyleEntity(
 
 beforeEach(() => initTestDb());
 afterEach(() => ModelObserver.clear());
+
+it("rejects a stale Recipe edit without overwriting a concurrently edited direction", async () => {
+  const board = await makeBoard();
+  const context = ctx();
+  await edit(context, board.id, [{op: "set_board", motion_design: {direction: "User edited direction"}}]);
+  const result = await editStoryboard.impl(run(context), {storyboard_id: board.id, expected_revision: board.revision, ops: [{op: "set_board", motion_design: {direction: "Stale Recipe direction"}}]});
+  expect(result).toMatchObject({error: expect.stringContaining("revision conflict")});
+  expect((await reread(board.id)).screenplay?.motion_design?.direction).toBe("User edited direction");
+});
 
 describe("set_setup", () => {
   it("writes brief, genre and stage together", async () => {
@@ -307,6 +317,49 @@ describe("scene ops", () => {
     expect(doc.shots[2].scene_id).toBe(created.id);
     expect(doc.shots[2].action).toBe("");
     expect(doc.shots.map((s) => s.index)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("create_scene on a board with one unscened shot gives the legacy scene and the new scene distinct ids", async () => {
+    // Both ids used to be `scene_<ms>_<count>`, and the two counts are equal
+    // here (one shot, one scene), so ops within one millisecond collided.
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+    try {
+      const context = ctx();
+      const board = await makeBoard({
+        screenplay: undefined,
+        shots: [shot({ id: "s1", index: 0 })]
+      });
+      const result = await edit(context, board.id, [{ op: "create_scene" }]);
+      expect(result.failed).toBe(0);
+
+      const doc = await reread(board.id);
+      const ids = doc.screenplay?.scenes?.map((s) => s.id) ?? [];
+      expect(ids).toHaveLength(2);
+      expect(new Set(ids).size).toBe(2);
+      expect(new Set(doc.shots.map((s) => s.scene_id)).size).toBe(2);
+    } finally {
+      now.mockRestore();
+    }
+  });
+
+  it("add_shot after remove_shot in one batch does not reuse a live shot id", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+    try {
+      const context = ctx();
+      const board = await makeBoard();
+      const result = await edit(context, board.id, [
+        { op: "add_shot", action: "first" },
+        { op: "remove_shot", target: "s1" },
+        { op: "add_shot", action: "second" }
+      ]);
+      expect(result.failed).toBe(0);
+
+      const doc = await reread(board.id);
+      expect(doc.shots).toHaveLength(4);
+      expect(new Set(doc.shots.map((s) => s.id)).size).toBe(4);
+    } finally {
+      now.mockRestore();
+    }
   });
 
   it("merge_scene folds a scene into the one before it, and refuses the first", async () => {
@@ -524,7 +577,7 @@ describe("stale_only", () => {
     expect(rendered.skipped).toEqual(["s1", "s3"]);
   });
 
-  it("filters clips the same way, off the selected take's record", async () => {
+  it.each([true, false])("filters selected clip records with explicit targets: %s", async (explicitTargets) => {
     const base = await makeBoard();
     const doc = await reread(base.id);
     const clipRecord = (target: Shot, overrides: Partial<RenderInputs> = {}) => ({
@@ -565,7 +618,7 @@ describe("stale_only", () => {
 
     const rendered = (await run(ctx()).invoke("render_storyboard_clips", {
       storyboard_id: base.id,
-      targets: ["s1", "s2"],
+      ...(explicitTargets ? { targets: ["s1", "s2"] } : {}),
       stale_only: true
     })) as { skipped: string[]; results: { shot_id: string }[] };
 
@@ -589,7 +642,7 @@ describe("stale_only", () => {
   // only the render path can write. Every case above hand-writes one, so this
   // is the one that fails if the headless render stops stamping — which it did
   // when the flow first shipped, leaving `stale_only` permanently empty.
-  it("records what it rendered, so a later stale_only can read it", async () => {
+  it.each([true, false])("records renders for stale_only with explicit targets: %s", async (explicitTargets) => {
     const base = await makeBoard();
     await run(ctx()).invoke("render_storyboard_stills", {
       storyboard_id: base.id,
@@ -605,7 +658,7 @@ describe("stale_only", () => {
     // Nothing about the board moved, so the still it just rendered is current.
     const unchanged = (await run(ctx()).invoke("render_storyboard_stills", {
       storyboard_id: base.id,
-      targets: ["s1"],
+      ...(explicitTargets ? { targets: ["s1"] } : {}),
       stale_only: true
     })) as { skipped: string[] };
     expect(unchanged.skipped).toEqual(["s1"]);
@@ -617,7 +670,7 @@ describe("stale_only", () => {
 
     const afterStyle = (await run(ctx()).invoke("render_storyboard_stills", {
       storyboard_id: base.id,
-      targets: ["s1"],
+      ...(explicitTargets ? { targets: ["s1"] } : {}),
       stale_only: true
     })) as { skipped: string[]; results: { shot_id: string }[] };
     expect(afterStyle.results.map((r) => r.shot_id)).toEqual(["s1"]);

@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
-import type { CreativeContext } from "@nodetool-ai/protocol";
 import { useTranslation } from "react-i18next";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CreativeContext } from "@nodetool-ai/protocol";
 
 import {
   Caption,
@@ -14,6 +14,8 @@ import {
 export interface ScriptCreativeContextFieldsProps {
   value?: CreativeContext;
   onChange: (value: CreativeContext | undefined) => void;
+  /** Show the context without letting it change. */
+  readOnly?: boolean;
 }
 
 const listValue = (values: readonly string[] | undefined): string =>
@@ -27,23 +29,75 @@ const listFromValue = (value: string): string[] | undefined => {
   return values.length > 0 ? values : undefined;
 };
 
+interface ClaimsTextProps {
+  readonly label: string;
+  readonly helperText: string;
+  readonly value: string;
+  readonly onCommit: (value: string) => void;
+  readonly disabled: boolean;
+}
+
+// Parsing each keystroke would trim away spaces and new lines as they are
+// typed, so keep a draft and commit it on blur or unmount.
+const ClaimsText: React.FC<ClaimsTextProps> = ({
+  label,
+  helperText,
+  value,
+  onCommit,
+  disabled
+}) => {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState(value);
+  const pendingRef = useRef({ draft, value, onCommit });
+  pendingRef.current = { draft, value, onCommit };
+  useEffect(
+    () => () => {
+      const pending = pendingRef.current;
+      if (pending.draft !== pending.value) {
+        pending.onCommit(pending.draft);
+      }
+    },
+    []
+  );
+  return (
+    <FlexColumn gap={GAP.micro}>
+      <Label>{label}</Label>
+      <TextInput
+        label={label}
+        hideLabel
+        multiline
+        rows={3}
+        value={draft}
+        disabled={disabled}
+        helperText={helperText}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => {
+          if (draft !== value) {
+            // The commit remounts this field, so unmount must not repeat it.
+            pendingRef.current.value = draft;
+            onCommit(draft);
+          }
+        }}
+      />
+    </FlexColumn>
+  );
+};
+
 const TEXT_FIELDS = [
-  ["product_name", "Product name", "Optional name used in production direction.", "storyboard:attrs.productName", "storyboard:attrs.optionalNameUsedInProductionDirection"],
+  ["product_name", "Product name", "Optional name used in production direction."],
   [
     "product_description",
     "Product description",
-    "What the product looks like or does.",
-    "storyboard:attrs.productDescription",
-    "storyboard:attrs.whatTheProductLooksLikeOrDoes"
+    "What the product looks like or does."
   ],
-  ["audience", "Audience", "Who this script is for.", "storyboard:attrs.audience", "storyboard:attrs.whoThisScriptIsFor"],
-  ["objective", "Objective", "What the video should achieve.", "storyboard:attrs.objective", "storyboard:attrs.whatTheVideoShouldAchieve"],
-  ["tone", "Tone", "The desired delivery and mood.", "storyboard:attrs.tone", "storyboard:attrs.theDesiredDeliveryAndMood"]
+  ["audience", "Audience", "Who this script is for."],
+  ["objective", "Objective", "What the video should achieve."],
+  ["tone", "Tone", "The desired delivery and mood."]
 ] as const;
 
 export const ScriptCreativeContextFields: React.FC<
   ScriptCreativeContextFieldsProps
-> = ({ value, onChange }) => {
+> = ({ value, onChange, readOnly = false }) => {
   const { t } = useTranslation();
   const context = useMemo<CreativeContext>(
     () => value ?? ({ schema_version: 1 } as CreativeContext),
@@ -66,17 +120,20 @@ export const ScriptCreativeContextFields: React.FC<
       aria-label={t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}
     >
       <FlexColumn gap={GAP.micro}>
-        <Text size="normal" weight={600} component="h3">{t("storyboard:attrs.productionContext", { defaultValue: "Production context" })}</Text>
+        <Text size="normal" weight={600} component="h3">
+          Production context
+        </Text>
         <Caption color="secondary" component="p">
-          {t("editor:ui.optionalContextForVisualProductionTheScriptStillOwnsItsWords")}
+          Optional context for visual production. The script still owns its words.
         </Caption>
       </FlexColumn>
-      {TEXT_FIELDS.map(([key, label, helperText, labelKey, helperKey]) => (
+      {TEXT_FIELDS.map(([key, label, helperText]) => (
         <TextInput
           key={key}
-          label={t(labelKey, { defaultValue: label })}
+          label={label}
           value={typeof context[key] === "string" ? context[key] : ""}
-          helperText={t(helperKey, { defaultValue: helperText })}
+          disabled={readOnly}
+          helperText={helperText}
           onChange={(event) =>
             update({
               [key]:
@@ -87,34 +144,22 @@ export const ScriptCreativeContextFields: React.FC<
           }
         />
       ))}
-      <FlexColumn gap={GAP.micro}>
-        <Label>{t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}</Label>
-        <TextInput
-          label={t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}
-          hideLabel
-          multiline
-          rows={3}
-          value={listValue(context.approved_claims)}
-          helperText={t("editor:ui.oneApprovedFactPerLine", { defaultValue: "One approved fact per line." })}
-          onChange={(event) =>
-            update({ approved_claims: listFromValue(event.target.value) })
-          }
-        />
-      </FlexColumn>
-      <FlexColumn gap={GAP.micro}>
-        <Label>{t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}</Label>
-        <TextInput
-          label={t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}
-          hideLabel
-          multiline
-          rows={3}
-          value={listValue(context.prohibited_claims)}
-          helperText={t("editor:ui.oneClaimToAvoidPerLine", { defaultValue: "One claim to avoid per line." })}
-          onChange={(event) =>
-            update({ prohibited_claims: listFromValue(event.target.value) })
-          }
-        />
-      </FlexColumn>
+      <ClaimsText
+        key={`approved:${listValue(context.approved_claims)}`}
+        label={t("ui2:attrs.approvedClaims", { defaultValue: "Approved claims" })}
+        helperText={t("editor:ui.oneApprovedFactPerLine", { defaultValue: "One approved fact per line." })}
+        value={listValue(context.approved_claims)}
+        disabled={readOnly}
+        onCommit={(text) => update({ approved_claims: listFromValue(text) })}
+      />
+      <ClaimsText
+        key={`prohibited:${listValue(context.prohibited_claims)}`}
+        label={t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })}
+        helperText={t("editor:ui.oneClaimToAvoidPerLine", { defaultValue: "One claim to avoid per line." })}
+        value={listValue(context.prohibited_claims)}
+        disabled={readOnly}
+        onCommit={(text) => update({ prohibited_claims: listFromValue(text) })}
+      />
     </FlexColumn>
   );
 };

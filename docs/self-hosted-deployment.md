@@ -42,11 +42,29 @@ Common overrides (set in `.env` or the shell):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `NODETOOL_IMAGE` | `ghcr.io/nodetool-ai/nodetool:${NODETOOL_VERSION}` | Full image reference. Set it to run a locally built image (for example `nodetool:dev`) |
 | `NODETOOL_VERSION` | `latest` | Image tag to pull (pin a release in production) |
 | `NODETOOL_PORT` | `17777` | Host port mapped to the container's `7777` |
 | `NODETOOL_TRUST_LOCAL_NETWORKS` | `172.16.0.0/12,192.168.65.0/24` | ⚠️ Source CIDRs trusted as user `1` **without a login** (Local mode). Docker's Linux bridge plus Docker Desktop's VM gateway subnet by default — **never `0.0.0.0/0`** on a public IP. Ignored in Supabase mode |
-| `SECRETS_MASTER_KEY` | auto-generated | 32-byte base64 key encrypting stored secrets — set explicitly in production (`openssl rand -base64 32`) |
+| `SECRETS_MASTER_KEY` | generated on first start | 32-byte base64 key encrypting stored secrets. If unset, the image entrypoint generates one and stores it in `/workspace/.secrets_master_key` (override the path with `SECRETS_MASTER_KEY_FILE`). The line is commented out in the compose file, so uncomment it to pass your own (`openssl rand -base64 32`) |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `FAL_API_KEY`, `HF_TOKEN` | unset | Model provider keys |
+
+The compose file also sets `NODETOOL_ENV=production` and
+`NODETOOL_NODE_PROFILE=full`. Production defaults to the curated cloud node
+catalog with no local model runtimes, and `full` restores the whole catalog,
+including the llama.cpp, vLLM, and Ollama providers. The database is SQLite at
+`/workspace/nodetool.sqlite3` (`DB_PATH`). The entrypoint refuses to start when
+neither `DB_PATH` nor `DATABASE_URL` is set.
+
+The compose file has commented-out blocks you can enable:
+
+- **Ollama**: set `OLLAMA_API_URL` (`http://host.docker.internal:11434` for
+  Ollama on the host, with the `extra_hosts` entry uncommented).
+- **llama.cpp** and **vLLM** services: uncomment the service and set
+  `LLAMA_CPP_URL` or `VLLM_BASE_URL`. vLLM needs an NVIDIA GPU on Linux.
+- **PostgreSQL**: uncomment the `postgres` service, remove `DB_PATH`, and set
+  `DATABASE_URL`. With `DATABASE_URL` set, the entrypoint runs
+  `db-migrate.mjs` on every start unless `NODETOOL_MIGRATE_ON_BOOT=0`.
 
 Upgrade in place:
 
@@ -104,7 +122,8 @@ origin.
 >   `0.0.0.0/0` on a public IP.**
 > - Putting NodeTool on a public address or sharing it with untrusted users?
 >   **Enable Supabase mode** (above) so every request needs a real login, and
->   terminate TLS in front of the server.
+>   terminate TLS in front of the server or give it a certificate
+  ([Serving the Web UI and TLS](configuration.md#serving-the-web-ui-and-tls)).
 
 > Serving the web UI from a **different origin** (e.g. a CDN)? Point the frontend
 > at the backend with the build-time `VITE_API_URL`, and add that origin to the
@@ -142,11 +161,15 @@ For a local host, set `host: localhost` and omit the `ssh` block.
 
 ## Apply Flow
 
-1. **Directory Creation**: Ensures `workspace` and `hf_cache` directories exist.
-2. **Image Check**: Verifies the configured image exists locally/remote. `deploy apply` does not auto-pull.
-3. **Image Transfer**: For remote hosts, copies image to remote runtime if needed.
-4. **Container Management**: Restarts container with new configuration.
-5. **Health Check**: Verifies HTTP endpoint.
+1. **Directory Creation**: Creates `workspace` (with `data`, `assets`, `temp`, `proxy`, and `acme` subdirectories) and `hf_cache` on the host.
+2. **Image Check**: Verifies the configured image exists on the host. `deploy apply` does not pull. A local host without the image fails with an error, so pull or build it first.
+3. **Image Transfer**: For a remote host that lacks the image, pipes `docker save` from your local daemon into `docker load` over SSH. An image the remote already holds is never replaced.
+4. **Container Management**: Stops and removes the existing container, and any other `nodetool-*` container publishing the same host port, then runs a new one named `nodetool-<container.name>`. Docker is used when installed, otherwise Podman. Set `NODETOOL_CONTAINER_RUNTIME=docker` or `podman` to choose.
+5. **Health Check**: Polls `http://127.0.0.1:<host port>/health` on the host, 10 attempts 2 seconds apart, and fails the apply if the server never answers.
+
+`container.port` is the host port. The container serves on `7777`, and a
+`container.port` of `7777` is published as `8000`. The container is started with
+`--restart unless-stopped` and a Docker health check on `/health`.
 
 ## End-to-End: Local Docker Deployment
 
@@ -173,19 +196,22 @@ nodetool deploy add local --type docker
 
 `--type docker` is required. The command then prompts for the rest:
 
-- Host address: `localhost`
+- Docker host (IP or hostname): `localhost`
+- SSH user and SSH key path: asked only for a remote host (defaults `root` and `~/.ssh/id_rsa`)
 - Docker image name: `ghcr.io/nodetool-ai/nodetool`
-- Docker image tag: `latest`
-- Container name: `nodetool`
-- Port: `8000`
-- GPU/workflows assignment: optional
-- Workspace folder: `$HOME/.nodetool-workspace`
-- HF cache folder: canonical local HF cache (auto-detected, usually `$HOME/.cache/huggingface/hub`)
+- Image tag: `latest`
+- Container name: `nodetool-<deployment name>`
+- Container port: `8000`
+
+The command does not prompt for GPU or paths. It sets `paths.workspace` to
+`~/.nodetool-workspace` and `paths.hf_cache` to the Hugging Face cache it finds
+(`HF_HUB_CACHE`, then `$HF_HOME/hub`, then `~/.cache/huggingface/hub`). Edit
+`container.gpu` and `paths` with `nodetool deploy edit`.
 
 Path meanings:
 
-- Workspace: stores assets and temporary runtime data.
-- HF cache: stores downloaded Hugging Face artifacts/models.
+- Workspace: mounted at `/workspace`. Holds the database, assets, and temporary runtime data.
+- HF cache: mounted at `/hf-cache`, read-only. Holds downloaded Hugging Face models.
 
 ### 2. Review Deployment Config
 
@@ -193,7 +219,7 @@ Path meanings:
 nodetool deploy show local
 ```
 
-This dumps the deployment entry as YAML. You should see something like:
+This dumps the deployment entry as YAML. It also lists `enabled`, `state`, `server_auth_token`, and `container.environment` (with a generated `SECRETS_MASTER_KEY`). You should see something like:
 
 ```yaml
 local:
@@ -203,7 +229,7 @@ local:
     name: ghcr.io/nodetool-ai/nodetool
     tag: latest
   container:
-    name: nodetool
+    name: nodetool-local
     port: 8000
   paths:
     workspace: <your workspace path>
@@ -235,16 +261,15 @@ Without one on disk it stops and tells you to run `nodetool deploy init` first.
 nodetool deploy apply local
 ```
 
-Expected successful output includes:
+Apply prints each step, then the result as JSON. A successful run shows:
 
 - directories created
-- image check passed
+- `Image already present.`
 - app container started
-- health checks passing for `http://127.0.0.1:8000/health`
-- `Deployment successful`
-- secrets synced
+- `Health endpoint OK: http://127.0.0.1:8000/health`
+- `"status": "success"` in the final JSON
 
-If the first apply fails (for example due to container/port conflicts), run apply again:
+If apply fails (for example because the image is missing or the health check times out), fix the cause and run it again:
 
 ```bash
 nodetool deploy apply local
@@ -274,10 +299,13 @@ Sync one workflow by ID to the deployed instance:
 nodetool deploy workflows sync local <workflow_id>
 ```
 
-This sync command also:
+Sync pushes the workflow definition (name, description, access, graph, and
+settings) to `PUT /api/workflows/<id>` on the deployment. It does not upload
+assets or download models. Add assets and models on the target yourself.
 
-- uploads referenced assets
-- downloads referenced models (HuggingFace/Ollama) on the target
+All `deploy workflows` subcommands (`sync`, `list`, `delete`, `run`) need an
+admin bearer token, resolved like the [API users](#api-users) commands below.
+`delete` prompts first unless you pass `--force`.
 
 Verify remote workflows:
 
@@ -293,7 +321,7 @@ Run a synced workflow remotely:
 nodetool deploy workflows run local <workflow_id>
 ```
 
-Optional params example:
+Pass parameters with a repeatable `-p key=value`:
 
 ```bash
 nodetool deploy workflows run local <workflow_id> -p prompt="hello"
@@ -309,12 +337,27 @@ nodetool deploy logs local --tail 200
 
 A deployment that serves more than one person needs API users. Four
 `nodetool deploy` subcommands manage them over the running server's admin API,
-so the deployment must already be applied and reachable.
+so the deployment must already be applied and reachable. The caller must be an
+admin: user `1`, an id listed in `ADMIN_USER_IDS`, or an API user created with
+`--role admin`. Records live in the file named by `USERS_FILE`, which the image
+sets to `/workspace/users.json` so they survive a redeploy.
 
 Every one of them needs an admin bearer token. It comes from `--token`, else
 from `NODETOOL_ADMIN_TOKEN`, else from an interactive prompt — with no TTY and
 neither set, the command exits with
 `Admin token required. Provide --token or set NODETOOL_ADMIN_TOKEN.`
+
+The deployment's `server_auth_token` (in `deployment.yaml`) is that admin
+token. `apply` passes it to the container as `SERVER_AUTH_TOKEN`, and a
+Local-mode server accepts it as `Authorization: Bearer <token>` for user `1`.
+A Supabase-mode server ignores it.
+
+A Local-mode server accepts each token `users-add` prints as
+`Authorization: Bearer <token>` for that user's own id, so each API user has
+separate workflows and assets. API users exist only in Local mode: a
+Supabase-mode server refuses `users-add` and `users-reset-token`, because the
+token would never authenticate there. Supabase users sign in, or mint an
+access token in the app.
 
 - `users-add <deployment> <username>` — create a user and print its token.
   `--role <admin|user>` defaults to `user`; any other value is refused. The
@@ -397,7 +440,7 @@ The Python bridge refuses to connect in production. The flag lifts that:
 ```yaml
 environment:
   NODETOOL_ALLOW_PYTHON_BRIDGE_IN_PRODUCTION: "1"
-  NODETOOL_PYTHON: "/opt/conda/envs/nodetool/bin/python"
+  NODETOOL_PYTHON: "/opt/venv/bin/python"
 ```
 
 **The published image ships no Python worker.** `ghcr.io/nodetool-ai/nodetool`
@@ -407,8 +450,11 @@ the error you get. To run Python nodes, derive an image that installs
 
 ```dockerfile
 FROM ghcr.io/nodetool-ai/nodetool:latest
-RUN pip install --no-cache-dir nodetool-core
-ENV NODETOOL_PYTHON=/usr/local/bin/python3 \
+# The image runs as `node`, and /opt/venv belongs to root.
+USER root
+RUN /opt/venv/bin/pip install --no-cache-dir nodetool-core
+USER node
+ENV NODETOOL_PYTHON=/opt/venv/bin/python \
     NODETOOL_ALLOW_PYTHON_BRIDGE_IN_PRODUCTION=1
 ```
 
@@ -427,5 +473,5 @@ nodetool deploy logs local --tail 200
 For a remote host you can also read the container logs directly:
 
 ```bash
-ssh user@host "docker logs nodetool-server"
+ssh user@host "docker logs nodetool-<container.name>"
 ```

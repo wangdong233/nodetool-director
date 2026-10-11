@@ -8,57 +8,33 @@
  * Python bridge at execution time. Static tools (validate) therefore treat
  * unknown types as "not in the local TS registry".
  */
+import { NodeRegistry } from "@nodetool-ai/node-sdk";
 import {
-  NodeRegistry,
-  discoverSandboxCatalog
-} from "@nodetool-ai/node-sdk";
-import { setProcessSandboxModuleCatalog } from "@nodetool-ai/runtime";
-import { createCachedNpmLookup } from "@nodetool-ai/sandbox-compiler/cache";
-import { registerBaseNodes } from "@nodetool-ai/base-nodes";
-import { registerAtlasCloudNodes } from "@nodetool-ai/atlascloud-nodes";
-import { registerElevenLabsNodes } from "@nodetool-ai/elevenlabs-nodes";
-import { registerMinimaxNodes } from "@nodetool-ai/minimax-nodes";
-import { registerTransformersJsNodes } from "@nodetool-ai/transformers-js-nodes";
-import { registerFalNodes } from "@nodetool-ai/fal-nodes";
-import { registerReplicateNodes } from "@nodetool-ai/replicate-nodes";
-import { registerReveNodes } from "@nodetool-ai/reve-nodes";
-import { registerHuggingFaceNodes } from "@nodetool-ai/huggingface-nodes";
+  registerBuiltinPacks,
+  CLI_BUILTIN_PACK_POLICY
+} from "@nodetool-ai/base-nodes/builtin-packs";
+import { BUILTIN_NODE_PACKS } from "@nodetool-ai/protocol";
+import { installSandboxCatalog } from "./sandbox-catalog.js";
 
-/**
- * Discover installed sandbox packs and make the catalog this process's default,
- * so the CLI's validation and execution harnesses resolve sandbox modules
- * through the same instance the server uses. Discovery executes no pack code.
- * A failure leaves the CLI without a catalog rather than without a registry.
- *
- * This path never compiles. npm-backed modules resolve only from the cache,
- * whose entries are re-verified against their inputs' current contents; a miss
- * becomes the `pending-compile` diagnostic naming `nodetool packs compile`.
- */
-export function installSandboxCatalog(): void {
-  try {
-    setProcessSandboxModuleCatalog(
-      discoverSandboxCatalog(undefined, { compiled: createCachedNpmLookup() }).catalog
-    );
-  } catch (error) {
-    console.warn(
-      `Sandbox module catalog unavailable: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-  }
-}
+/** Workflow JSON runs and local MCP historically omit AtlasCloud too. */
+export const CLI_LOCAL_BUILTIN_PACK_POLICY = {
+  ...CLI_BUILTIN_PACK_POLICY,
+  excludedPackIds: [
+    ...(CLI_BUILTIN_PACK_POLICY.excludedPackIds ?? []),
+    "atlascloud"
+  ]
+};
+
+/** DSL files import provider nodes themselves, so only the required base pack is bootstrapped. */
+export const CLI_DSL_BUILTIN_PACK_POLICY = {
+  enabledOverrides: Object.fromEntries(
+    BUILTIN_NODE_PACKS.map((pack) => [pack.id, false])
+  )
+};
 
 export function buildFullRegistry(): NodeRegistry {
   installSandboxCatalog();
   const registry = new NodeRegistry();
-  registerBaseNodes(registry);
-  registerAtlasCloudNodes(registry);
-  registerElevenLabsNodes(registry);
-  registerMinimaxNodes(registry);
-  registerTransformersJsNodes(registry);
-  registerFalNodes(registry);
-  registerReplicateNodes(registry);
-  registerReveNodes(registry);
-  registerHuggingFaceNodes(registry);
+  registerBuiltinPacks(registry, CLI_BUILTIN_PACK_POLICY);
   return registry;
 }

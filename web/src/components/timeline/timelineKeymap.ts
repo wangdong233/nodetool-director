@@ -122,7 +122,8 @@ const NODETOOL: Keymap = {
   selectTool: [k("v")],
   cutTool: [k("c")],
   splitAtPlayhead: [k("s")],
-  cutAllTracks: [k("k", { ctrl: true })],
+  // Ctrl/Cmd+K opens the app's command menu on every view.
+  cutAllTracks: [k("k", { ctrl: true, shift: true })],
   rippleDeleteSelected: [k("Delete", { shift: true }), k("Backspace", { shift: true })],
   duplicate: [k("d", { ctrl: true })],
   duplicateWithGap: [k("d", { ctrl: true, shift: true })],
@@ -154,7 +155,9 @@ const PREMIERE: Keymap = {
   ...(COMMON as Keymap),
   selectTool: [k("v")],
   cutTool: [k("c")],
-  splitAtPlayhead: [k("k", { ctrl: true })],
+  // Premiere splits on Cmd+K, which opens the app's command menu here, so
+  // the split adds Alt.
+  splitAtPlayhead: [k("k", { ctrl: true, alt: true })],
   cutAllTracks: [k("k", { ctrl: true, shift: true })],
   rippleDeleteSelected: [k("Delete", { shift: true }), k("Backspace", { shift: true })],
   duplicate: [k("d", { alt: true })],
@@ -227,6 +230,24 @@ export interface KeyEventLike {
   metaKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
+  /** Physical key (`KeyboardEvent.code`). Optional so synthetic events still match on `key`. */
+  code?: string;
+}
+
+const SYMBOL_CODES: Record<string, string> = {
+  ",": "Comma",
+  ".": "Period",
+  "'": "Quote",
+  ";": "Semicolon",
+  "\\": "Backslash",
+  "=": "Equal",
+  "-": "Minus"
+};
+
+/** The `e.code` of a binding's physical key, or null when it has none to match. */
+function codeOf(key: string): string | null {
+  if (/^[a-z]$/i.test(key)) return `Key${key.toUpperCase()}`;
+  return SYMBOL_CODES[key] ?? null;
 }
 
 const isLetter = (key: string): boolean => /^[a-z]$/i.test(key);
@@ -234,7 +255,15 @@ const isLetter = (key: string): boolean => /^[a-z]$/i.test(key);
 function matches(binding: KeyBinding, e: KeyEventLike): boolean {
   const ctrl = e.ctrlKey || e.metaKey;
   const key = isLetter(e.key) ? e.key.toLowerCase() : e.key;
-  if (key !== binding.key) return false;
+  // Option+T types "†" and Shift+, types "<" on macOS and US layouts, so
+  // bindings that use Alt or Shift on a symbol match the physical key.
+  const bindingCode = codeOf(binding.key);
+  const symbolKey = binding.key.length === 1 && !isLetter(binding.key);
+  const byCode =
+    e.code !== undefined &&
+    bindingCode !== null &&
+    (binding.alt || (symbolKey && binding.shift));
+  if (byCode ? e.code !== bindingCode : key !== binding.key) return false;
   // "?" can arrive as AltGr on some layouts (ctrl+alt); match the character.
   if (binding.key === "?") return true;
   if (ctrl !== Boolean(binding.ctrl)) return false;
@@ -284,4 +313,29 @@ export function bindingKeys(binding: KeyBinding): string[] {
   const label = KEY_LABELS[binding.key] ?? binding.key.toUpperCase();
   parts.push(label);
   return parts;
+}
+
+/** One binding as tooltip text, e.g. "Alt+←". */
+export function formatBinding(binding: KeyBinding): string {
+  return bindingKeys(binding).join("+");
+}
+
+/** The first key `action` is bound to under `preset`, as tooltip text, or
+ *  null when the preset leaves it unbound. */
+export function formatActionShortcut(
+  preset: TimelineKeyboardPreset,
+  action: TimelineAction
+): string | null {
+  const binding = TIMELINE_KEYMAPS[preset][action]?.[0];
+  return binding ? formatBinding(binding) : null;
+}
+
+/** `label` with the shortcut for `action` appended in parentheses, when bound. */
+export function withActionShortcut(
+  label: string,
+  preset: TimelineKeyboardPreset,
+  action: TimelineAction
+): string {
+  const shortcut = formatActionShortcut(preset, action);
+  return shortcut ? `${label} (${shortcut})` : label;
 }

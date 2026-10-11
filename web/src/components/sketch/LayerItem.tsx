@@ -22,11 +22,7 @@ import type { Layer } from "./types";
 import { summarizeLayerImageReference } from "./types";
 import { getLayerDataImageUrl } from "./serialization";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
-import {
-  SKETCH_FONT,
-  SKETCH_SPACING,
-  SKETCH_TOOLTIP_DELAY_MS
-} from "./sketchStyles";
+import { SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
 import {
   FlexColumn,
   FlexRow,
@@ -36,22 +32,18 @@ import {
   Box,
   BORDER_RADIUS,
   SPACING,
+  FONT_SIZE_SANS,
   getSpacingPx,
   IconButton,
   InlineEditableText,
   MagicGenerationFill,
-  ResponsiveImage
+  ResponsiveImage,
+  TreeRow
 } from "../ui_primitives";
 import type { LayerStatus } from "@nodetool-ai/image-editor";
 import { LAYER_STATUS_MAP } from "./Inspector/layerStatusMapping";
 import { isFunction } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-
-/** Base left padding for the layer row (px). 0 so the thumbnail sits flush
- *  with the row's left edge — the row background should not stick out past it. */
-const BASE_PADDING = 0;
-/** Additional left padding per nesting depth level (px). */
-const DEPTH_INDENT = 20;
 
 /** Group rows: override MUI IconButton default min touch target so rows stay compact. */
 const GROUP_LAYER_ICON_BUTTON_SX = {
@@ -215,9 +207,18 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
   return (
     <Box>
-      <Box
+      <TreeRow
         data-focus-id={`sketch-layer-${layer.id}`}
         className={rowClass}
+        depth={depth}
+        baseIndent={SPACING.none}
+        indentStep={SPACING.xl}
+        selected={isRowSelected || isPaintTarget}
+        interactive
+        role="button"
+        tabIndex={0}
+        aria-label={layer.name}
+        aria-pressed={isRowSelected || isPaintTarget}
         draggable
         onContextMenu={(e) => {
           e.preventDefault();
@@ -236,8 +237,15 @@ const LayerItem: React.FC<LayerItemProps> = ({
         onDragEnd={onDragEnd}
         onPointerDown={(e) => onLayerRowPointerDown(e, layer.id)}
         onClick={(e) => onLayerRowClick(e, layer.id)}
+        onKeyDown={(e) => {
+          if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            e.currentTarget.click();
+          }
+        }}
         sx={{
-          pl: `${BASE_PADDING + depth * DEPTH_INDENT}px`,
+          pr: SPACING.xs,
+          py: SPACING.xs,
           ...dropIndicatorSx
         }}
       >
@@ -330,7 +338,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
                 onToggleIsolateLayer(layer.id);
               }}
               sx={{
-                padding: SKETCH_SPACING.sm,
+                padding: getSpacingPx(SPACING.xs),
                 flexShrink: 0,
                 color: isIsolated ? "warning.main" : "grey.500",
                 opacity: isIsolated ? 1 : 0.75,
@@ -361,7 +369,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
             <FlexRow
               align="center"
               sx={{
-                gap: SKETCH_SPACING.sm,
+                gap: SPACING.xs,
                 minWidth: 0
               }}
             >
@@ -420,7 +428,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               <Text
                 className="layer-sublabel"
                 sx={{
-                  fontSize: SKETCH_FONT.xs,
+                  fontSize: FONT_SIZE_SANS.caption,
                   color: "text.secondary",
                   lineHeight: 1.1,
                   minWidth: 0,
@@ -535,7 +543,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
             )}
           </IconButton>
         </Box>
-      </Box>
+      </TreeRow>
     </Box>
   );
 };

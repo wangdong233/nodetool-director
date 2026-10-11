@@ -3,7 +3,8 @@
  *
  * Owner-only. Mints role-scoped share links ("Can view" / "Can edit"),
  * lists collaborators who redeemed a link, and lets the owner change roles,
- * remove collaborators, or revoke links.
+ * remove collaborators, or revoke links. A public link shows the workflow to
+ * anyone, without an account, and lets them copy it into their own workflows.
  */
 import { memo, useCallback } from "react";
 import {
@@ -25,6 +26,7 @@ import {
 import {
   useWorkflowSharing,
   shareUrlForToken,
+  type CollaboratorRole,
   type ShareRole
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -33,7 +35,8 @@ import { useTranslation } from "react-i18next";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
   viewer: "Can view",
-  editor: "Can edit"
+  editor: "Can edit",
+  public: "Public view"
 };
 
 const ROLE_OPTIONS = [
@@ -82,7 +85,9 @@ const ShareWorkflowDialog = ({
       // Clipboard access can be denied (permissions, insecure context); the
       // link exists either way and stays copyable from the list below.
       try {
-        await navigator.clipboard.writeText(shareUrlForToken(share.token));
+        await navigator.clipboard.writeText(
+          shareUrlForToken(share.token, share.role)
+        );
         addNotification({
           type: "success",
           content: `${ROLE_LABELS[role]} link copied to clipboard`,
@@ -111,9 +116,11 @@ const ShareWorkflowDialog = ({
     >
       <FlexColumn gap={SPACING.md} sx={{ pb: 2 }}>
         <Caption>
-          Anyone signed in to this server who opens a share link gets the
-          link&apos;s role. Revoking a link stops new joins; people who
-          already joined stay listed below.
+          Anyone signed in to this server who opens a view or edit link gets
+          the link&apos;s role. Revoking a link stops new joins; people who
+          already joined stay listed below. A public link shows the workflow
+          and its settings to anyone, without an account, and lets them copy
+          it into their own workflows. Revoking it stops both.
         </Caption>
 
         <FlexRow gap={SPACING.sm}>
@@ -130,6 +137,13 @@ const ShareWorkflowDialog = ({
             onClick={() => void handleCreateLink("editor")}
           >
             {t("editor:ui.copyEditLink")}
+          </EditorButton>
+          <EditorButton
+            variant="outlined"
+            disabled={createLink.isPending}
+            onClick={() => void handleCreateLink("public")}
+          >
+            Copy public link
           </EditorButton>
         </FlexRow>
 
@@ -148,9 +162,8 @@ const ShareWorkflowDialog = ({
                 <FlexRow gap={SPACING.sm} align="center">
                   <Chip label={ROLE_LABELS[share.role]} size="small" />
                   <CopyButton
-                    value={shareUrlForToken(share.token)}
-                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
-                  />
+                    value={shareUrlForToken(share.token, share.role)}
+                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}                  />
                 </FlexRow>
                 <EditorButton
                   density="compact"
@@ -197,7 +210,7 @@ const ShareWorkflowDialog = ({
                 onChange={(value) =>
                   setRole.mutate({
                     userId: collaborator.user_id,
-                    role: value as ShareRole
+                    role: value as CollaboratorRole
                   })
                 }
               />

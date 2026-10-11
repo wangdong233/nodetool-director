@@ -24,6 +24,7 @@ import {
   ToggleGroup,
   ToggleOption,
   SPACING,
+  TYPOGRAPHY,
   getSpacingPx
 } from "../ui_primitives";
 import { useSettingsStore } from "../../stores/SettingsStore";
@@ -38,7 +39,7 @@ import {
 } from "./timelineKeymap";
 import { useTranslation } from "react-i18next";
 
-interface Row {
+export interface Row {
   /** The action whose bindings fill the key column, or fixed keys for a
    *  pointer gesture that has no keyboard binding. */
   action?: TimelineAction;
@@ -46,12 +47,12 @@ interface Row {
   label: string;
 }
 
-interface Group {
+export interface Group {
   title: string;
   rows: Row[];
 }
 
-const GROUPS: Group[] = [
+export const TIMELINE_SHORTCUT_GROUPS: readonly Group[] = [
   {
     title: "Tools",
     rows: [
@@ -75,7 +76,7 @@ const GROUPS: Group[] = [
       { action: "trimEditRight", label: "Trim edit point one frame on" },
       { action: "trimEditLeftLarge", label: "Trim edit point ten frames back" },
       { action: "trimEditRightLarge", label: "Trim edit point ten frames on" },
-      { action: "duplicate", label: "Duplicate (after each source)" },
+      { action: "duplicate", label: "Duplicate after the selection" },
       { action: "duplicateWithGap", label: "Duplicate with a 1 s gap" },
       { action: "applyDefaultTransition", label: "Cross-fade into selected clips" },
       { action: "applyFades", label: "Fade selected clips in and out" },
@@ -118,6 +119,29 @@ const GROUPS: Group[] = [
       { action: "addMarker", label: "Add marker at playhead" },
       { action: "nextMarker", label: "Next marker" },
       { action: "prevMarker", label: "Previous marker" }
+    ]
+  },
+  {
+    // PreviewArea handles these on its own root, so they need the preview
+    // focused (click it or Tab to it). Fullscreen has no key.
+    title: "Preview (focused)",
+    rows: [
+      { keys: ["←"], label: "Step back one frame" },
+      { keys: ["→"], label: "Step forward one frame" },
+      { keys: ["Shift", "←"], label: "Previous clip boundary" },
+      { keys: ["Shift", "→"], label: "Next clip boundary" },
+      { keys: ["Home"], label: "Go to start" },
+      { keys: ["End"], label: "Go to end" },
+      { keys: ["Esc"], label: "Exit the expanded preview" }
+    ]
+  },
+  {
+    // TransformGizmoOverlay's own key handler, active while it has focus.
+    title: "Transform handles (focused)",
+    rows: [
+      { keys: ["Arrows"], label: "Move the clip one pixel" },
+      { keys: ["Shift", "Arrows"], label: "Move the clip ten pixels" },
+      { keys: ["."], label: "Reset the transform" }
     ]
   },
   {
@@ -241,10 +265,8 @@ const rowStyles = (theme: Theme) =>
   });
 
 const groupTitleSx = {
-  color: "text.secondary",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  fontWeight: 600
+  ...TYPOGRAPHY.sans.label,
+  color: "text.secondary"
 } as const;
 
 const keysCellStyles = css({
@@ -337,7 +359,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
             "@media (max-width: 560px)": { gridTemplateColumns: "1fr" }
           })}
         >
-          {GROUPS.map((group) => (
+          {TIMELINE_SHORTCUT_GROUPS.map((group) => (
             <FlexColumn key={group.title} gap={0.5} css={groupStyles}>
               <Caption sx={groupTitleSx}>{scLabel(group.title)}</Caption>
               {group.rows.map((row) => (

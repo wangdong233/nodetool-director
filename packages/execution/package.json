@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "ExecutionSession facade: the one place that constructs WorkflowRunner",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,11 +25,11 @@
     "@nodetool-ai/protocol": "*",
     "@nodetool-ai/runtime": "*",
     "@nodetool-ai/storage": "*",
-    "@nodetool-ai/timeline": "*"
+    "@nodetool-ai/timeline": "*",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "^5.0.1"
   },
   "exports": {

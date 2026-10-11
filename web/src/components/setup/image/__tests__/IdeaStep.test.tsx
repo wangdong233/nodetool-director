@@ -31,7 +31,8 @@ const upload: UploadFirstLayerResult = {
   uploadFirstLayer: jest.fn(),
   uploading: false,
   error: null,
-  clearError: jest.fn()
+  clearError: jest.fn(),
+  cancel: jest.fn()
 };
 
 const renderStep = () =>

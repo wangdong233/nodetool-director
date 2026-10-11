@@ -1,7 +1,9 @@
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useReactFlow, Node } from "@xyflow/react";
 import { shallow } from "zustand/shallow";
+import { useTheme } from "@mui/material/styles";
 
 import {
   Divider,
@@ -9,6 +11,8 @@ import {
   EditorMenu,
   EditorMenuItem,
   BORDER_RADIUS,
+  CONTROL,
+  SHADOW,
   Toolbar,
   ListItemIcon,
   ListItemText
@@ -28,21 +32,28 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useDuplicateNodes } from "../../hooks/useDuplicate";
 import { useNodes } from "../../contexts/NodeContext";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
-import { getShortcutTooltip, shortcutComboText } from "../../config/shortcuts";
+import { getShortcutTooltip } from "../../config/shortcuts";
 import { useNodeContextMenu } from "../../hooks/nodes/useNodeContextMenu";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
+import { openPageTab } from "../workspace/openPageTab";
 import { NodeData } from "../../stores/NodeData";
-import { useTranslation } from "react-i18next";
 
 interface NodeToolbarProps {
   nodeId: string | null;
 }
 
+const BUTTON_BOX = {
+  width: CONTROL.height.sm,
+  height: CONTROL.height.sm,
+  borderRadius: CONTROL.radius
+} as const;
+const ICON_SX = { fontSize: 18 } as const;
+
 const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { getNode } = useReactFlow();
-  const navigate = useNavigate();
   const { deleteNode, updateNodeData, selectNodesByType, toggleBypass } = useNodes(
     (state) => ({
       deleteNode: state.deleteNode,
@@ -105,11 +116,10 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
 
   // Use local node from props, not from context menu store
   const handleFindTemplates = useCallback(() => {
-    const nodeType = node?.type || "";
-    if (nodeType) {
-      navigate(`/templates?node=${encodeURIComponent(nodeType)}`);
+    if (node?.type) {
+      openPageTab("examples");
     }
-  }, [navigate, node?.type]);
+  }, [node?.type]);
 
   const handleOpenDropdown = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -126,7 +136,17 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
       <Toolbar
         variant="dense"
         className="node-toolbar"
-        sx={{ backgroundColor: "transparent", gap: 0.5 }}
+        disableGutters
+        sx={{
+          minHeight: 0,
+          gap: 0.5,
+          padding: 0.5,
+          backgroundColor: theme.vars.palette.grey[900],
+          border: `1px solid ${theme.vars.palette.divider}`,
+          borderRadius: BORDER_RADIUS.lg,
+          boxShadow: SHADOW(theme).md,
+          marginBottom: 2
+        }}
       >
         <ToolbarIconButton
           title={isWorkflowRunning ? "Running..." : "Run Node"}
@@ -136,32 +156,66 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
           tabIndex={-1}
           disabled={isWorkflowRunning}
           size="small"
-          variant="primary"
+          sx={{
+            ...BUTTON_BOX,
+            backgroundColor: theme.vars.palette.primary.main,
+            color: theme.vars.palette.primary.contrastText,
+            "&:hover": {
+              backgroundColor: theme.vars.palette.primary.light,
+              color: theme.vars.palette.primary.contrastText
+            },
+            "&.Mui-disabled": {
+              backgroundColor: theme.vars.palette.grey[800],
+              color: theme.vars.palette.grey[500]
+            }
+          }}
         >
-          <PlayArrowIcon sx={{ fontSize: 28 }} />
+          <PlayArrowIcon sx={ICON_SX} />
         </ToolbarIconButton>
 
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ marginX: 0.5, marginY: 0.5 }}
+        />
+
         <ToolbarIconButton
-          title={`${isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })} ${shortcutComboText("bypassNode")}`}
+          title={
+            <>
+              {isBypassed ? i18n.t("editor:node.enableNode", { defaultValue: "Enable Node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable Node" })}{" "}
+              {getShortcutTooltip("bypassNode", undefined, "combo")}
+            </>
+          }
+          ariaLabel={isBypassed ? "Enable Node" : "Disable Node"}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleToggleBypass}
           tabIndex={-1}
-          color={isBypassed ? "warning" : "default"}
+          active={isBypassed}
           size="small"
+          sx={{
+            ...BUTTON_BOX,
+            ...(isBypassed && { color: theme.vars.palette.warning.main })
+          }}
         >
-          <PowerSettingsNewIcon fontSize="small" />
+          <PowerSettingsNewIcon sx={ICON_SX} />
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={`Duplicate ${shortcutComboText("duplicate")}`}
+          title={
+            <>
+              Duplicate {getShortcutTooltip("duplicate", undefined, "combo")}
+            </>
+          }
+          ariaLabel="Duplicate"
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleDuplicateNodes}
           tabIndex={-1}
           size="small"
+          sx={BUTTON_BOX}
         >
-          <CopyAllIcon fontSize="small" />
+          <CopyAllIcon sx={ICON_SX} />
         </ToolbarIconButton>
 
         <ToolbarIconButton
@@ -170,9 +224,11 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
           className="nodrag"
           onClick={handleOpenDropdown}
           tabIndex={-1}
+          active={dropdownOpen}
           size="small"
+          sx={BUTTON_BOX}
         >
-          <MoreVertIcon fontSize="small" />
+          <MoreVertIcon sx={ICON_SX} />
         </ToolbarIconButton>
       </Toolbar>
 
@@ -225,7 +281,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            {hasCommentTitle ? t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : t("editor:node.addComment", { defaultValue: "Add Comment" })}
+            {hasCommentTitle ? i18n.t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : i18n.t("editor:node.addComment", { defaultValue: "Add Comment" })}
           </ListItemText>
         </EditorMenuItem>
 

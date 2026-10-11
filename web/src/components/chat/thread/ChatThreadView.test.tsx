@@ -34,6 +34,7 @@ jest.mock("@tanstack/react-virtual", () => ({
       getTotalSize: () => mockTotalSize ?? count * 200,
       measureElement: () => {},
       scrollToIndex: mockScrollToIndex,
+      scrollElement: document.createElement("div"),
       shouldAdjustScrollPositionOnItemSizeChange: undefined as unknown
     };
     Object.defineProperty(
@@ -51,11 +52,29 @@ jest.mock("@tanstack/react-virtual", () => ({
 
 // Mock child components to isolate ChatThreadView logic
 jest.mock("../message/MessageView", () => ({
-  MessageView: ({ message }: { message: Message }) => (
-    <div data-testid={`message-${message.id}`}>
+  MessageView: ({
+    message,
+    isLatestReply,
+    onRegenerate,
+    hideActions,
+    replyCopyText
+  }: {
+    message: Message;
+    isLatestReply?: boolean;
+    onRegenerate?: () => void;
+    hideActions?: boolean;
+    replyCopyText?: string;
+  }) => (
+    <div
+      data-testid={`message-${message.id}`}
+      data-latest-reply={isLatestReply ? "true" : undefined}
+      data-hide-actions={hideActions ? "true" : undefined}
+      data-copy={replyCopyText}
+    >
       {Array.isArray(message.content)
         ? (message.content[0] as any).text
         : message.content}
+      {onRegenerate && <button onClick={onRegenerate}>Regenerate</button>}
     </div>
   )
 }));
@@ -146,10 +165,101 @@ describe("ChatThreadView", () => {
     progressMessage: null
   };
 
+  it("marks the finished reply and regenerates it from the user's message", () => {
+    const onResendFrom = jest.fn();
+    renderWithTheme(
+      <ChatThreadView {...defaultProps} onResendFrom={onResendFrom} />
+    );
+
+    expect(screen.getByTestId("message-2")).toHaveAttribute(
+      "data-latest-reply",
+      "true"
+    );
+    expect(screen.getByTestId("message-1")).not.toHaveAttribute(
+      "data-latest-reply"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate" }));
+    expect(onResendFrom).toHaveBeenCalledWith(mockMessages[0]);
+  });
+
+  it("offers no finished reply while a turn is running", () => {
+    renderWithTheme(
+      <ChatThreadView
+        {...defaultProps}
+        status="streaming"
+        onResendFrom={jest.fn()}
+      />
+    );
+
+    expect(screen.getByTestId("message-2")).not.toHaveAttribute(
+      "data-latest-reply"
+    );
+    expect(
+      screen.queryByRole("button", { name: "Regenerate" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("gives a reply in several messages one action row, copying all of it", () => {
+    const messages: Message[] = [
+      ...mockMessages,
+      {
+        type: "message",
+        id: "3",
+        role: "assistant",
+        content: "And more.",
+        created_at: new Date().toISOString()
+      }
+    ];
+    const view = renderWithTheme(
+      <ChatThreadView {...defaultProps} messages={messages} />
+    );
+
+    expect(screen.getByTestId("message-2")).toHaveAttribute(
+      "data-hide-actions",
+      "true"
+    );
+    expect(screen.getByTestId("message-3")).not.toHaveAttribute(
+      "data-hide-actions"
+    );
+    expect(screen.getByTestId("message-3")).toHaveAttribute(
+      "data-copy",
+      "Hi there\n\nAnd more."
+    );
+
+    view.rerender(
+      <ThemeProvider theme={mockTheme}>
+        <ChatThreadView
+          {...defaultProps}
+          messages={messages}
+          status="streaming"
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByTestId("message-3")).toHaveAttribute(
+      "data-hide-actions",
+      "true"
+    );
+  });
+
   it("renders messages correctly", () => {
     renderWithTheme(<ChatThreadView {...defaultProps} />);
     expect(screen.getByTestId("message-1")).toHaveTextContent("Hello");
     expect(screen.getByTestId("message-2")).toHaveTextContent("Hi there");
+  });
+
+  it("focuses a message after its thread messages load", () => {
+    mockScrollToIndex.mockClear();
+    const focusMessage = { messageId: "2", requestId: 1 };
+    const view = renderWithTheme(
+      <ChatThreadView {...defaultProps} messages={[]} focusMessage={focusMessage} />
+    );
+    expect(mockScrollToIndex).not.toHaveBeenCalled();
+    view.rerender(
+      <ThemeProvider theme={mockTheme}>
+        <ChatThreadView {...defaultProps} focusMessage={focusMessage} />
+      </ThemeProvider>
+    );
+    expect(mockScrollToIndex).toHaveBeenCalledWith(1, { align: "center" });
   });
 
   it("leaves scroll positioning to an external replay controller", () => {
@@ -233,9 +343,11 @@ describe("ChatThreadView", () => {
     );
     expect(host).toHaveAttribute("data-scroll-mode", "free-scrolling");
     expect(mockScrollToIndex).not.toHaveBeenCalled();
-    useGlobalChatStore.setState({
-      loadMessages: originalLoad,
-      messageCursors: {}
+    act(() => {
+      useGlobalChatStore.setState({
+        loadMessages: originalLoad,
+        messageCursors: {}
+      });
     });
     jest.useRealTimers();
   });
@@ -646,6 +758,7 @@ describe("ChatThreadView", () => {
   });
 
   it("collapses consecutive tool-call-only messages of the same tool", () => {
+    mockScrollToIndex.mockClear();
     const toolMessage = (id: string, callId: string): Message =>
       ({
         type: "message",
@@ -658,6 +771,7 @@ describe("ChatThreadView", () => {
     renderWithTheme(
       <ChatThreadView
         {...defaultProps}
+        focusMessage={{ messageId: "s3", requestId: 7 }}
         messages={[
           mockMessages[0],
           toolMessage("s1", "a"),
@@ -686,5 +800,6 @@ describe("ChatThreadView", () => {
     expect(screen.queryByTestId("message-s3")).not.toBeInTheDocument();
     expect(screen.queryByTestId("message-t1")).not.toBeInTheDocument();
     expect(screen.getByTestId("message-final")).toBeInTheDocument();
+    expect(mockScrollToIndex).toHaveBeenCalledWith(1, { align: "center" });
   });
 });

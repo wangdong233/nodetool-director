@@ -9,7 +9,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ApplicationDocument } from "@nodetool-ai/app-runtime";
 
-import type { Workflow } from "../../../../stores/ApiTypes";
+import type { Workflow, NodeMetadata } from "../../../../stores/ApiTypes";
+
+// These tests exercise reducer/transport semantics independently of persistence.
+jest.mock("../useAppInstance", () => ({
+  useAppInstance: () => ({ enabled: false, visitor: false, account: "1", instance: undefined, attach: () => undefined, flush: async () => undefined, serverFold: (apply: () => void) => apply(), refresh: async () => undefined, loading: false })
+}));
 
 const fetchWorkflow = jest.fn();
 
@@ -36,7 +41,8 @@ jest.mock("../../../../lib/websocket/GlobalWebSocketManager", () => ({
 }));
 
 jest.mock("../../../../lib/workflow/browserWorkflowRunner", () => ({
-  runBrowserGraphJob: jest.fn(async () => undefined)
+  runBrowserGraphJob: jest.fn(async () => ({ success: true, outputs: {} })),
+  browserSupportsSync: () => true
 }));
 
 const cancelJob = jest.fn(async (_input: { id: string }) => ({ ok: true }));
@@ -55,10 +61,16 @@ const getScript = jest.fn(async (_input: { id: string }) => ({
     tests: []
   }
 }));
+const getScriptVersion = jest.fn(async (input: {id: string; version: number}) => {
+  if (input.version < 1) {
+    throw new Error("JS script version not found");
+  }
+  return getScript(input);
+});
 jest.mock("../../../../trpc/client", () => ({
   trpcClient: {
     jobs: { cancel: { mutate: (input: { id: string }) => cancelJob(input) } },
-    jsScripts: { get: { query: (input: { id: string }) => getScript(input) } }
+    jsScripts: {get: {query: (input: {id: string}) => getScript(input)}, documentVersions: {get: { query: (input: { id: string; version: number }) => getScriptVersion(input) }} }
   }
 }));
 
@@ -67,18 +79,23 @@ jest.mock("../../../jsScript/runJsScript", () => ({
   runJsScript: (
     id: string,
     inputs: Record<string, unknown>,
-    inputStreams?: Record<string, unknown[]>
-  ) => runJsScript(id, inputs, inputStreams)
+    inputStreams?: Record<string, unknown[]>,
+    version?: number,
+    onLine?: (line: unknown) => void
+  ) => runJsScript(id, inputs, inputStreams, version, onLine)
 }));
 
 import { getWorkflowRunnerStore } from "../../../../stores/WorkflowRunner";
 import { useAppRuntime } from "../useAppRuntime";
+import { runBrowserGraphJob } from "../../../../lib/workflow/browserWorkflowRunner";
+import useMetadataStore from "../../../../stores/MetadataStore";
 import {
   appInstanceId,
   disposeAppRuntimeStore,
   workflowInstanceId
 } from "../appRuntimeStore";
 import { variableStorageKey } from "../variablePersistence";
+import useProviderSignInStore from "../../../../stores/ProviderSignInStore";
 
 interface FakeRunnerState {
   job_id: string | null;
@@ -175,6 +192,31 @@ const renderRuntime = (
     wrapper
   });
 
+it("gives repeated reactive browser invocations distinct identities", async () => {
+  const workflow = { ...workflowA, graph: { ...workflowA.graph!, edges: [
+    { id: "edge", source: "in1", sourceHandle: "output", target: "out1", targetHandle: "value" }
+  ] } };
+  const metadata = jest.spyOn(useMetadataStore.getState(), "getMetadata").mockImplementation(() => stub<NodeMetadata>({ effect: "pure" }));
+  const { result } = renderRuntime(workflow, doc({ operations: [
+    { id: "main", name: "Run", workflowId: "wf-a", inputs: {}, outputs: {}, policy: "replace" }
+  ] }));
+  await waitFor(() => expect(result.current.ioFor("main").inputs).toHaveLength(1));
+  const trigger = () => act(() => result.current.dispatch({ kind: "run", operationId: "main", from: "op:main/in:in1" }));
+  trigger();
+  await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalledTimes(1));
+  const first = runnerState("wf-a").run.mock.results[0].value;
+  deliver({ type: "job_update", job_id: await first, status: "completed" });
+  jest.mocked(runBrowserGraphJob).mockClear();
+  trigger();
+  await waitFor(() => expect(runBrowserGraphJob).toHaveBeenCalledTimes(1));
+  await act(async () => { await Promise.resolve(); });
+  trigger();
+  await waitFor(() => expect(runBrowserGraphJob).toHaveBeenCalledTimes(2));
+  const ids = jest.mocked(runBrowserGraphJob).mock.calls.map(([options]) => options.jobId);
+  expect(new Set(ids).size).toBe(2);
+  metadata.mockRestore();
+});
+
 /** Deliver a streaming message the way the websocket manager would. */
 const deliver = (message: Record<string, unknown>) =>
   act(() => {
@@ -187,6 +229,7 @@ beforeEach(() => {
   subscribers.length = 0;
   cancelJob.mockClear();
   getScript.mockClear();
+  getScriptVersion.mockClear();
   runJsScript.mockReset();
   window.localStorage.clear();
   disposeAppRuntimeStore(appInstanceId("application:app-script"));
@@ -242,6 +285,46 @@ describe("useAppRuntime — outputs into variables", () => {
     expect(result.current.store.getState().outputs["main:out1"]?.value).toBe(
       "Hello"
     );
+  });
+});
+
+describe("useAppRuntime — provider sign-in", () => {
+  it("offers the Codex sign-in when a node fails on an expired login", async () => {
+    useProviderSignInStore.getState().dismiss();
+    const document = doc({
+      operations: [
+        {
+          id: "main",
+          name: "Run",
+          workflowId: "wf-a",
+          inputs: {},
+          outputs: {},
+          policy: "replace"
+        }
+      ]
+    });
+    const { result } = renderRuntime(workflowA, document);
+    await act(async () => {
+      result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    const jobId = await runnerState("wf-a").run.mock.results[0].value;
+
+    deliver({
+      type: "node_update",
+      job_id: jobId,
+      node_id: "ag",
+      node_name: "Agent",
+      node_type: "nodetool.agents.Agent",
+      status: "error",
+      error: "Codex request failed (401)",
+      error_detail: {
+        code: "provider_auth",
+        provider: "codex",
+        secret_key: "CODEX_ACCESS_TOKEN"
+      }
+    });
+
+    expect(useProviderSignInStore.getState().provider?.label).toBe("Codex");
   });
 });
 
@@ -346,6 +429,7 @@ describe("useAppRuntime — run policy", () => {
     await act(async () => {
       result.current.dispatch({ kind: "run", operationId: "main" });
     });
+    await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalled());
     const first = await runnerState("wf-a").run.mock.results[0].value;
     runnerState("wf-a").job_id = first;
 
@@ -365,6 +449,7 @@ describe("useAppRuntime — run policy", () => {
     await act(async () => {
       result.current.dispatch({ kind: "run", operationId: "main" });
     });
+    await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalled());
     const first = await runnerState("wf-a").run.mock.results[0].value;
 
     act(() => {
@@ -377,6 +462,40 @@ describe("useAppRuntime — run policy", () => {
 
     await waitFor(() =>
       expect(runnerState("wf-a").run).toHaveBeenCalledTimes(2)
+    );
+  });
+
+  it("keeps the result of the run in flight when a second run queues behind it", async () => {
+    const { result } = renderRuntime(workflowA, operation("queue"));
+    await act(async () => {
+      result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalled());
+    const first = await runnerState("wf-a").run.mock.results[0].value;
+
+    act(() => {
+      result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    deliver({
+      type: "output_update",
+      job_id: first,
+      node_id: "out1",
+      value: "first result",
+      disposition: "replace"
+    });
+
+    await waitFor(() =>
+      expect(result.current.store.getState().outputs["main:out1"]?.value).toBe(
+        "first result"
+      )
+    );
+    deliver({ type: "job_update", job_id: first, status: "completed" });
+    await waitFor(() =>
+      expect(runnerState("wf-a").run).toHaveBeenCalledTimes(2)
+    );
+    // The admitted run now owns the slot and its result replaces the first.
+    expect(result.current.store.getState().outputs["main:out1"]?.status).toBe(
+      "pending"
     );
   });
 
@@ -393,6 +512,7 @@ describe("useAppRuntime — run policy", () => {
       });
       result.current.dispatch({ kind: "run", operationId: "main" });
     });
+    await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalled());
     const first = await runnerState("wf-a").run.mock.results[0].value;
 
     act(() => {
@@ -581,6 +701,37 @@ describe("useAppRuntime — multiple operations", () => {
     expect(
       result.current.scope.operations.map((o) => o.operationId).sort()
     ).toEqual(["main", "publish"]);
+  });
+
+  it("reads a node property from the binding's own operation when node ids repeat", async () => {
+    const sharedNode = (model: string) => ({
+      nodes: [
+        { id: "bg", type: "nodetool.image.RemoveBackground", data: { model } }
+      ],
+      edges: []
+    });
+    fetchWorkflow.mockImplementation(async (id: string) =>
+      id === "wf-b"
+        ? { ...workflowB, graph: sharedNode("backdrop-model") }
+        : { ...workflowA, graph: sharedNode("cutout-model") }
+    );
+    const { result } = renderRuntime(
+      { ...workflowA, graph: sharedNode("cutout-model") },
+      twoOperations
+    );
+    await waitFor(() =>
+      expect(
+        result.current.scope.operations.find((o) => o.operationId === "publish")
+          ?.nodeIds
+      ).toHaveLength(1)
+    );
+
+    expect(result.current.getNodeProperty("bg", "model", "publish")).toBe(
+      "backdrop-model"
+    );
+    expect(result.current.getNodeProperty("bg", "model", "main")).toBe(
+      "cutout-model"
+    );
   });
 
   it("refuses a run naming an operation the app does not have", async () => {
@@ -775,6 +926,7 @@ describe("useAppRuntime — queued runs", () => {
     await act(async () => {
       result.current.dispatch({ kind: "run", operationId: "main" });
     });
+    await waitFor(() => expect(runnerState("wf-a").run).toHaveBeenCalled());
     const first = await runnerState("wf-a").run.mock.results[0].value;
 
     act(() => {
@@ -838,15 +990,107 @@ describe("useAppRuntime — script operations", () => {
       ]
     });
 
-  const renderScriptApp = () =>
+  const renderScriptApp = (scriptVersion = 1, scriptId = "script-1") =>
     renderHook(
       () =>
         useAppRuntime(workflowA, false, {
-          document: scriptDoc(),
+          document: {...scriptDoc(), operations: scriptDoc().operations.map(operation => ({...operation, target: {kind: "script", scriptId, scriptVersion}}))},
           application: { id: "app-script" }
         }),
       { wrapper }
     );
+
+  it("uses a bundled script and its runner without fetching an installed document", async () => {
+    const bundled = (await getScript({ id: "bundle-adder" })).document;
+    getScript.mockClear();
+    const bundledRunner = jest.fn(async () => ({
+      ok: true, outputs: { sum: 4 }, streamed: [], logs: [], duration_ms: 3
+    }));
+    const { result } = renderHook(() => useAppRuntime(workflowA, false, {
+      document: scriptDoc(),
+      scriptOverrides: { "script-1": { ...bundled, schemaVersion: 1 } },
+      scriptRunner: bundledRunner
+    }), { wrapper });
+    await waitFor(() => expect(result.current.ioFor("main").inputs).toHaveLength(1));
+    await act(async () => {
+      result.current.write({ kind: "input", operationId: "main", nodeId: "a" }, 3);
+      await result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    expect(getScript).not.toHaveBeenCalled();
+    expect(bundledRunner).toHaveBeenCalledWith("script-1", { a: 3 }, undefined, 1, expect.any(Function), undefined);
+    expect(runJsScript).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.store.getState().variables.total).toBe(4));
+  });
+
+  it("runs a script whose optional image port is left empty", async () => {
+    const bundled = (await getScript({ id: "bundle-adder" })).document;
+    const bundledRunner = jest.fn(async () => ({
+      ok: true, outputs: { sum: 4 }, streamed: [], logs: [], duration_ms: 3
+    }));
+    const { result } = renderHook(() => useAppRuntime(workflowA, false, {
+      document: scriptDoc(),
+      scriptOverrides: {
+        "script-1": {
+          ...bundled,
+          schemaVersion: 1,
+          inputs: [...bundled.inputs, { name: "reference", type: "image" }]
+        }
+      },
+      scriptRunner: bundledRunner
+    }), { wrapper });
+    await waitFor(() => expect(result.current.ioFor("main").inputs).toHaveLength(2));
+    await act(async () => {
+      result.current.write({ kind: "input", operationId: "main", nodeId: "a" }, 3);
+      await result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    expect(bundledRunner).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(result.current.store.getState().variables.total).toBe(4));
+  });
+
+  it("folds an agent's streamed lines while the script runs, then settles once", async () => {
+    let release: () => void = () => undefined;
+    const settled = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    runJsScript.mockImplementation(
+      async (
+        _id: string,
+        _inputs: unknown,
+        _streams: unknown,
+        _version: unknown,
+        onLine?: (line: unknown) => void
+      ) => {
+        onLine?.({ type: "message", message: { type: "chunk", node_id: "agent", content: "Reading.", content_type: "text" } });
+        onLine?.({ type: "message", message: { type: "tool_call_update", node_id: "agent", tool_call_id: "c1", name: "get_storyboard", args: {}, message: "Reading the board" } });
+        onLine?.({ type: "emit", name: "sum", value: 1 });
+        await settled;
+        return { ok: true, outputs: {}, streamed: [{ name: "sum", value: 1 }], logs: [], duration_ms: 3 };
+      }
+    );
+    const { result } = renderScriptApp();
+    await waitFor(() => expect(result.current.ioFor("main").inputs).toHaveLength(1));
+
+    await act(async () => {
+      void result.current.dispatch({ kind: "run", operationId: "main" });
+    });
+    const state = () => result.current.store.getState();
+    const jobId = () => state().activeInvocation.main;
+    await waitFor(() =>
+      expect(state().transcripts[jobId()]).toEqual([
+        { kind: "text", text: "Reading.", source: "agent" },
+        expect.objectContaining({ kind: "tool", id: "c1", label: "Reading the board", status: "running" })
+      ])
+    );
+    expect(state().variables.total).toBe(1);
+    expect(state().invocations[jobId()].status).not.toBe("completed");
+
+    await act(async () => {
+      release();
+    });
+    await waitFor(() => expect(state().invocations[jobId()].status).toBe("completed"));
+    // The streamed emit is not replayed from the result, which would append it twice.
+    expect(state().variables.total).toBe(1);
+  });
 
   it("derives the bindable surface from the script's declared ports", async () => {
     const { result } = renderScriptApp();
@@ -859,6 +1103,24 @@ describe("useAppRuntime — script operations", () => {
     expect(result.current.ioFor("main").outputs).toEqual([
       expect.objectContaining({ nodeId: "sum", name: "sum" })
     ]);
+  });
+
+  it("retains a persistent checkpoint when refresh fails and reloads it", async () => {
+    runJsScript.mockRejectedValue(new Error("Storyboard revision conflict"));
+    const document = scriptDoc();
+    document.variables = [{id: "total", name: "Checkpoint", scope: "user", persist: true}];
+    window.localStorage.setItem(variableStorageKey("application:app-checkpoint"), JSON.stringify({total: 42}));
+    const render = () => renderHook(() => useAppRuntime(workflowA, false, {document, application: {id: "app-checkpoint"}}), {wrapper});
+    const app = render();
+    await waitFor(() => expect(app.result.current.ioFor("main").outputs).toHaveLength(1));
+    await act(async () => {app.result.current.dispatch({kind: "run", operationId: "main"});});
+    await waitFor(() => expect(Object.values(app.result.current.store.getState().invocations).some(invocation => invocation.status === "failed")).toBe(true));
+    expect(app.result.current.store.getState().variables.total).toBe(42);
+    expect(JSON.parse(window.localStorage.getItem(variableStorageKey("application:app-checkpoint")) ?? "{}")).toEqual({total: 42});
+    app.unmount();
+    disposeAppRuntimeStore(appInstanceId("app-checkpoint"));
+    const resumed = render();
+    expect(resumed.result.current.store.getState().variables.total).toBe(42);
   });
 
   it("runs the script and folds its result the way a workflow run folds", async () => {
@@ -881,13 +1143,39 @@ describe("useAppRuntime — script operations", () => {
       await result.current.dispatch({ kind: "run", operationId: "main" });
     });
 
+    expect(getScript).toHaveBeenCalledWith({id: "script-1", version: 1});
     // Ports are the wire names, so the mapped value arrives keyed by port name.
-    expect(runJsScript).toHaveBeenCalledWith("script-1", { a: 3 }, undefined);
+    expect(runJsScript).toHaveBeenCalledWith("script-1", { a: 3 }, undefined, 1, expect.any(Function));
     // No graph was submitted: a script run never touches a workflow runner.
     expect(runnerState("wf-a").run).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(result.current.store.getState().variables.total).toBe(4)
     );
+  });
+
+  it("does not query an unselected script target while authoring", async () => {
+    const {result} = renderScriptApp(0, "");
+    await act(async () => { await Promise.resolve(); });
+    expect(result.current.ioFor("main").inputs).toEqual([]);
+    expect(getScript).not.toHaveBeenCalled();
+  });
+
+  it("never falls back to the live head for a malformed negative version", async () => {
+    const {result} = renderScriptApp(-1);
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await result.current.dispatch({kind: "run", operationId: "main"}); });
+    expect(getScriptVersion).toHaveBeenCalledWith({id: "script-1", version: -1});
+    expect(getScript).not.toHaveBeenCalled();
+    expect(runJsScript).not.toHaveBeenCalled();
+  });
+
+  it("keeps unpinned version-zero draft operations on the saved head", async () => {
+    runJsScript.mockResolvedValue({ok: true, outputs: {sum: 4}, streamed: [], logs: [], duration_ms: 1});
+    const {result} = renderScriptApp(0);
+    await waitFor(() => expect(result.current.ioFor("main").inputs).toHaveLength(1));
+    await act(async () => { await result.current.dispatch({kind: "run", operationId: "main"}); });
+    expect(getScript).toHaveBeenCalledWith({id: "script-1"});
+    expect(runJsScript).toHaveBeenCalledWith("script-1", {}, undefined, undefined, expect.any(Function));
   });
 
   it("reports a failed script run as a failed invocation", async () => {

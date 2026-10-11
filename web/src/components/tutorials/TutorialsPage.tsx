@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
@@ -15,17 +16,17 @@ import {
   getSpacingPx,
   MOTION,
   SPACING,
-  VideoPlayer
+  VideoPlayer,
+  SHADOW
 } from "../ui_primitives";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { creationProjectId, useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { openPageTab } from "../workspace/openPageTab";
 import { useGuidedFlowStarters } from "../workspace/useGuidedFlowStarters";
 import { TutorialCard } from "./TutorialCard";
 import { TUTORIALS, getTutorial } from "./tutorialsData";
 import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -147,7 +148,7 @@ const styles = (theme: Theme) =>
       overflow: "hidden",
       border: `1px solid ${theme.vars.palette.divider}`,
       background: theme.vars.palette.common.black,
-      boxShadow: "0 20px 50px rgba(0,0,0,0.4)",
+      boxShadow: SHADOW(theme).xl,
       [theme.breakpoints.down("md")]: { boxShadow: "none" }
     },
     ".tut-play": {
@@ -290,13 +291,11 @@ const TutorialsPage: React.FC = () => {
   const { starters } = useGuidedFlowStarters();
   const createNewThread = useGlobalChatStore((state) => state.createNewThread);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
+  const addNotification = useNotificationStore(
+    (state) => state.addNotification
+  );
 
   const active = getTutorial(params.get("id"));
-  // Localized once: the play-button aria-label and the h2 must agree, and a
-  // single lookup keeps both in lockstep with the sidebar card's title key.
-  const activeTitle = t(`tools:tutorials.${active.id}.title`, {
-    defaultValue: active.title
-  });
 
   // The videos stream from the docs site, so none is requested until someone
   // asks for one — the poster ships with the app and carries the stage. Keyed
@@ -321,8 +320,10 @@ const TutorialsPage: React.FC = () => {
         if (!starter) {
           throw new Error(`No starter is registered for ${launch.flow}`);
         }
-        await starter.start(projectId);
-        navigate("/workspace");
+        // A failed start has shown its toast; stay on the tutorial.
+        if (await starter.start(projectId)) {
+          navigate("/workspace");
+        }
       } else if (launch.kind === "chat") {
         const threadId = await createNewThread(undefined, undefined, {
           projectId
@@ -331,21 +332,29 @@ const TutorialsPage: React.FC = () => {
           type: "chat",
           ref: threadId,
           mode: "view",
-          // Same discipline as NewProjectSurface's chat seed: the tab title
-          // is a one-time snapshot, so it resolves through the i18n
-          // singleton (the tab does not re-render on language switch).
-          title: i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
+          title: "New chat",
           projectId
         });
         navigate("/workspace");
       } else {
         openPageTab("examples");
       }
+    } catch (error) {
+      // A guided start reports its own failure. The chat thread and a
+      // missing starter would otherwise fail without a word.
+      addNotification({
+        type: "error",
+        alert: true,
+        content: `Could not open the task: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      });
     } finally {
       setOpeningTask(false);
     }
   }, [
     active.launch,
+    addNotification,
     createNewThread,
     navigate,
     openTab,
@@ -373,19 +382,12 @@ const TutorialsPage: React.FC = () => {
         </div>
         <span className="spacer" />
         <button type="button" className="back" onClick={() => navigate("/workspace")}>
-          <ArrowBackRoundedIcon />
-          {t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}
-        </button>
+          <ArrowBackRoundedIcon />{t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}</button>
       </header>
 
       <div className="tut-body" ref={bodyRef}>
         <aside className="tut-sidebar">
-          <span className="sidebar-label">
-            {t(TUTORIALS.length === 1 ? "tools:tutorials.countOne" : "tools:tutorials.countMany", {
-              defaultValue: `${TUTORIALS.length} tutorial${TUTORIALS.length === 1 ? "" : "s"}`,
-              count: TUTORIALS.length
-            })}
-          </span>
+          <span className="sidebar-label">{TUTORIALS.length} tutorials</span>
           {TUTORIALS.map((tutorial) => (
             <TutorialCard
               key={tutorial.id}
@@ -416,10 +418,7 @@ const TutorialsPage: React.FC = () => {
                   type="button"
                   className="tut-play"
                   onClick={start}
-                  aria-label={t("tools:tutorials.playVideoAria", {
-                    defaultValue: "Play video: {{title}}",
-                    title: activeTitle
-                  })}
+                  aria-label={`Play video: ${active.title}`}
                 >
                   <PlayArrowRoundedIcon />
                 </button>
@@ -428,21 +427,21 @@ const TutorialsPage: React.FC = () => {
 
             <div className="tut-meta">
               <span className="pill" style={{ background: active.accent }}>
-                {t(`tools:tutorials.level.${active.level}`, { defaultValue: active.level })}
+                {active.level}
               </span>
               <span className="dur">{active.durationLabel}</span>
             </div>
 
-            <h2 className="tut-title">{activeTitle}</h2>
-            <p className="tut-desc">{t(`tools:tutorials.${active.id}.description`, { defaultValue: active.description })}</p>
+            <h2 className="tut-title">{active.title}</h2>
+            <p className="tut-desc">{active.description}</p>
 
             <section className="tut-learn">
-              <h2>{t("ui2:attrs.whatYouLlLearn", { defaultValue: "What you'll learn" })}</h2>
+              <h2>What you'll learn</h2>
               <ul>
-                {active.learn.map((point, i) => (
+                {active.learn.map((point) => (
                   <li key={point}>
                     <CheckRoundedIcon />
-                    {t(`tools:tutorials.${active.id}.learn_${i}`, { defaultValue: point })}
+                    {point}
                   </li>
                 ))}
               </ul>
@@ -454,15 +453,15 @@ const TutorialsPage: React.FC = () => {
                 <div className="tut-task-grid">
                   <div>
                     <h3>{t("ui2:attrs.startHere", { defaultValue: "Start here" })}</h3>
-                    <p>{t(`tools:tutorials.${active.id}.startingState`, { defaultValue: active.startingState })}</p>
+                    <p>{active.startingState}</p>
                   </div>
                   <div>
                     <h3>{t("ui2:attrs.yourTask", { defaultValue: "Your task" })}</h3>
-                    <p>{t(`tools:tutorials.${active.id}.task`, { defaultValue: active.task })}</p>
+                    <p>{active.task}</p>
                   </div>
                   <div>
                     <h3>{t("ui2:attrs.checkTheResult", { defaultValue: "Check the result" })}</h3>
-                    <p>{t(`tools:tutorials.${active.id}.result`, { defaultValue: active.result })}</p>
+                    <p>{active.result}</p>
                   </div>
                 </div>
               </section>
@@ -476,15 +475,13 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? t("editor:ui.openingTask", { defaultValue: "Opening task…" }) : t("editor:ui.openTask", { defaultValue: "Open task" })}
+                  {openingTask ? "Opening task…" : "Open task"}
                 </EditorButton>
               ) : (
-                <EditorButton variant="contained" onClick={() => navigate("/workspace")}>
-                  {t("tools:tutorials.startBuilding", { defaultValue: "Start building" })}
-                </EditorButton>
+                <EditorButton variant="contained" onClick={() => navigate("/workspace")}>{t("tools:tutorials.startBuilding", { defaultValue: "Start building" })}</EditorButton>
               )}
-              <EditorButton variant="outlined" onClick={() => navigate("/examples")}>
-                {t("tools:tutorials.browseExamples", { defaultValue: "Browse examples" })}
+              <EditorButton variant="outlined" onClick={() => openPageTab("examples")}>
+                Browse examples
               </EditorButton>
             </div>
           </div>

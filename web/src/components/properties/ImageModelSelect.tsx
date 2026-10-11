@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
   value: string;
+  provider?: string;
   task?: ImageModelTask | ImageModelTask[];
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
@@ -30,6 +31,7 @@ interface ImageModelSelectProps {
 const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
   onChange,
   value,
+  provider,
   task,
   recommendedModels,
   modelPacks,
@@ -47,8 +49,10 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     if (!fetchedModels || !value) {
       return null;
     }
-    return fetchedModels.find((m) => m.id === value);
-  }, [fetchedModels, value]);
+    return fetchedModels.find(
+      (m) => m.id === value && (!provider || m.provider === provider)
+    );
+  }, [fetchedModels, value, provider]);
 
   const displayInfo = useMemo(() => {
     if (currentSelectedModelDetails) {

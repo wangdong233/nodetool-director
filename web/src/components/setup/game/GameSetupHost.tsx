@@ -1,280 +1,223 @@
 /**
- * The Game flow for a host that is not already the node editor — the New
- * guided flow tab opened when the Game entry card creates the workflow
- * (game-prd § 4, D30: the card is on the workspace
- * surface, not in Studio).
+ * The Game flow for any host: the guided-flow tab the Game entry card opens,
+ * or a workflow tab reopened on a game still in setup.
  *
- * This host supplies the one thing the flow cannot read off the document or
- * the shipped manifests: what the configured providers offer for each of the
- * Look step's three rows, and the model property value the build assigns for a
- * chosen tile. Everything else is on `settings.game`, so a reload resumes at
- * the same step.
+ * This host supplies what the flow cannot read off the document — which
+ * designer and image model to start on, the shipped game styles, and what the
+ * blank-game alternatives do. Everything else is on `settings.game`, so a
+ * reload resumes at the same step.
  */
 
-import React, { useCallback, useMemo } from "react";
-import { isModelSelected } from "@nodetool-ai/protocol";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { findNativeGameTemplate, isModelSelected } from "@nodetool-ai/protocol";
 
 import {
   useImageModelsByProvider,
-  useLanguageModelsByProvider,
-  useMusicModelsByProvider
+  useLanguageModelsByProvider
 } from "../../../hooks/useModelsByProvider";
 import {
   recommendedModelKey,
   useRecommendedModelKeys
 } from "../../../hooks/useRecommendedModelKeys";
-import { useProviders } from "../../../hooks/useProviders";
-import useMetadataStore from "../../../stores/MetadataStore";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
-import { useGameSetupDocument } from "../../../hooks/game/useGameSetup";
+import useModelPreferencesStore from "../../../stores/ModelPreferencesStore";
+import {
+  useWorkflowManager,
+  useWorkflowManagerStore
+} from "../../../contexts/WorkflowManagerContext";
+import {
+  useGameSetupDocument,
+  useGameWorkflowLoaded
+} from "../../../hooks/game/useGameSetup";
 import type { BuildGameResult } from "../../../hooks/game/useBuildGame";
-import { openPageTab } from "../../workspace/openPageTab";
+import { useGameStylePresets } from "../../../serverState/useStylePresets";
+import {
+  Caption,
+  EditorButton,
+  FlexColumn,
+  GAP,
+  PADDING,
+  Text,
+  ThinkingIndicator
+} from "../../ui_primitives";
 import { SetupFlow } from "../SetupFlow";
-import type { OptionCardItem } from "../OptionCardGrid";
-import { useGameSetupFlow, type GameRowAvailability } from "./useGameSetupFlow";
-import type { GameRowStatus } from "./LookStep";
+import type { GameStartAlternative } from "./IdeaStep";
+import { useGameSetupFlow } from "./useGameSetupFlow";
 import { useTranslation } from "react-i18next";
-
-/** A model as a Look step tile row shows it. */
-interface RowModel {
-  id: string;
-  provider: string;
-  name: string;
-  /** The value the build assigns to the node's typed model property. */
-  ref: Record<string, unknown>;
-}
-
-const toRowModels = (
-  models: readonly { id: string; provider: string; name?: string | null }[],
-  propertyType: string
-): RowModel[] =>
-  models.map((model) => ({
-    id: `${model.provider}:${model.id}`,
-    provider: model.provider,
-    name: model.name ?? model.id,
-    ref: {
-      type: propertyType,
-      provider: model.provider,
-      id: model.id,
-      name: model.name ?? model.id,
-      path: null,
-      supported_tasks: []
-    }
-  }));
-
-/**
- * The provider whose text-to-audio nodes the sound-effect row is drawn from.
- * A node whose provider is not configured cannot run, and a tile for it would
- * fail the build rather than the row (R9).
- */
-const SFX_NODE_PREFIX = "fal.text_to_audio.";
-const SFX_PROVIDER = "fal_ai";
-
-/** Titles that mark a text-to-audio node as a sound-effect generator (R9). */
-const SFX_TITLE_MARKER = "sound effect";
 
 export interface GameSetupHostProps {
   workflowId: string;
-  /** Runs when the flow reaches stage `done` — the host opens the canvas. */
-  onFinish: (result: BuildGameResult | null) => void;
-  /**
-   * Leaves for a different entry card, from step 1 only. The caller owns what
-   * happens to the workflow this flow already created; the flow only offers
-   * the way out. The brief handed over comes from the manager store, so it is
-   * what the creator typed rather than what the last save landed.
-   */
+  /** The project the game is created in; the workflow's own when absent. */
+  projectId?: string;
+  /** Makes a game without the design, opens it, and leaves the flow. */
+  onStartAlternative: (kind: GameStartAlternative) => Promise<void>;
+  /** Runs once the game exists and the flow reached `done`. */
+  onFinish: (result: BuildGameResult) => void;
+  /** Leaves for a different entry card, from step 1 only. */
   onChangeFlow?: (brief: string) => void | Promise<void>;
 }
 
 const GameSetupHost: React.FC<GameSetupHostProps> = ({
   workflowId,
+  projectId: projectIdProp,
+  onStartAlternative,
   onFinish,
   onChangeFlow
 }) => {
   const { t } = useTranslation();
+  const store = useWorkflowManagerStore();
+  const loaded = useGameWorkflowLoaded(workflowId);
+  const workflowProjectId = useWorkflowManager(
+    (state) => state.getWorkflow(workflowId)?.project_id ?? null
+  );
+  const game = useGameSetupDocument(workflowId);
+
+  // A guided-flow tab restored after a reload holds the workflow id but not
+  // the row, which the manager only has once something fetched it.
+  useEffect(() => {
+    if (!loaded) {
+      void store
+        .getState()
+        .fetchWorkflow(workflowId, { makeCurrent: false });
+    }
+  }, [loaded, store, workflowId]);
   const language = useLanguageModelsByProvider();
   const image = useImageModelsByProvider({ task: "text_to_image" });
-  const music = useMusicModelsByProvider();
   const recommendedKeys = useRecommendedModelKeys();
   const selectedChatModel = useGlobalChatStore((state) => state.selectedModel);
-  const metadata = useMetadataStore((state) => state.metadata);
-  const { providers, isLoading: providersLoading } = useProviders();
-
-  const imageModels = useMemo(
-    () => toRowModels(image.models, "image_model"),
-    [image.models]
+  const imageDefault = useModelPreferencesStore(
+    (state) => state.defaults["image_model"]
   );
-  const musicModels = useMemo(
-    () => toRowModels(music.models, "music_model"),
-    [music.models]
-  );
-  const languageModels = useMemo(
-    () => toRowModels(language.models, "language_model"),
-    [language.models]
-  );
+  const presets = useGameStylePresets();
 
-  /** Loading, failed, no provider, or usable — the four states of a row. */
-  const statusOf = (
-    count: number,
-    query: { isLoading: boolean; error: Error | null | undefined }
-  ): GameRowStatus =>
-    count > 0
-      ? "ready"
-      : query.isLoading
-        ? "loading"
-        : query.error
-          ? "error"
-          : "empty";
-
-  const imageRow = useMemo<GameRowAvailability>(
-    () => ({
-      label: t("editor:ui.imageModel", { defaultValue: "Image model" }),
-      tiles: imageModels.map(
-        (model): OptionCardItem => ({
-          id: model.id,
-          title: model.name,
-          description: model.provider
-        })
-      ),
-      status: statusOf(imageModels.length, image),
-      errorMessage: image.error?.message ?? null,
-      onRetry: () => {
-        void image.refetch();
-      },
-      capability: "text_to_image",
-      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersATextToImageModel", { defaultValue: "No connected provider offers a text-to-image model, and every sprite, tile and background needs one." })
-    }),
-    [image, imageModels, t]
-  );
-
-  /**
-   * The sound-effect nodes this install can actually run: the text-to-audio
-   * nodes whose title says they make sound effects, and only while the
-   * provider behind them is configured (R9). The chain sets `prompt` and
-   * `duration` only, which every listed node has.
-   */
-  const sfxNodeTypes = useMemo(() => {
-    if (!providers.some((entry) => entry.provider === SFX_PROVIDER)) {
-      return [];
-    }
-    return Object.values(metadata)
-      .filter(
-        (node) =>
-          node.node_type.startsWith(SFX_NODE_PREFIX) &&
-          node.title.toLowerCase().includes(SFX_TITLE_MARKER)
-      )
-      .sort((a, b) => a.title.localeCompare(b.title));
-  }, [metadata, providers]);
-
-  const sfxRow = useMemo<GameRowAvailability>(
-    () => ({
-      label: t("editor:ui.soundEffects", { defaultValue: "Sound effects" }),
-      tiles: sfxNodeTypes.map(
-        (node): OptionCardItem => ({
-          id: node.node_type,
-          title: node.title,
-          description: (node.description ?? "").split("\n")[0]
-        })
-      ),
-      status: sfxNodeTypes.length > 0 ? "ready" : providersLoading ? "loading" : "empty",
-      onRetry: () => undefined,
-      capability: "text_to_speech",
-      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersASoundEffectNode", { defaultValue: "No connected provider offers a sound-effect node. The template's own sounds are kept." }),
-      placeholderLabel: t("storyboard:attrs.keepThePlaceholderSounds", { defaultValue: "Keep the placeholder sounds" }),
-      placeholderDescription: t("storyboard:attrs.theTemplatesOwnSoundFilesNoGeneration", { defaultValue: "The template's own sound files, no generation" })
-    }),
-    [providersLoading, sfxNodeTypes, t]
-  );
-
-  const musicRow = useMemo<GameRowAvailability>(
-    () => ({
-      id: "music",
-      label: t("storyboard:attrs.music", { defaultValue: "Music" }),
-      tiles: musicModels.map(
-        (model): OptionCardItem => ({
-          id: model.id,
-          title: model.name,
-          description: model.provider
-        })
-      ),
-      status: statusOf(musicModels.length, music),
-      errorMessage: music.error?.message ?? null,
-      onRetry: () => {
-        void music.refetch();
-      },
-      capability: "text_to_music",
-      emptyMessage: t("storyboard:attrs.noConnectedProviderOffersAMusicModel", { defaultValue: "No connected provider offers a music model. The template's own loop is kept." }),
-      placeholderLabel: t("storyboard:attrs.keepThePlaceholderMusic", { defaultValue: "Keep the placeholder music" }),
-      placeholderDescription: t("storyboard:attrs.theTemplatesOwnMusicLoopNoGeneration", { defaultValue: "The template's own music loop, no generation" })
-    }),
-    [music, musicModels, t]
-  );
-
-  // The tile id the flow read off the workflow, resolved against what is on
-  // offer now. An id no provider answers for falls back to the first model
-  // rather than reaching the build as `undefined`.
-  const chosenModel = useCallback(
-    (row: "image" | "music", tileId: string | null) => {
-      const models = row === "image" ? imageModels : musicModels;
-      return (
-        models.find((model) => model.id === tileId)?.ref ??
-        models[0]?.ref ??
-        null
-      );
-    },
-    [imageModels, musicModels]
-  );
-
-  // Where the designer starts before the template step's picker chooses. In
-  // order: the model the creator already chats with, then the first
-  // recommended model the install offers, then anything.
+  // The designer starts on the model the creator chats with, then the first
+  // recommended model the install offers, then anything, as the Workflow
+  // flow's planner does.
   const defaultDesignerModel = useMemo(() => {
-    if (languageModels.length === 0) {
+    const models = language.models;
+    if (models.length === 0) {
       return null;
     }
-    const asChoice = (model: RowModel) => ({
-      provider: model.provider,
-      id: model.ref["id"] as string
-    });
-    const chatModel = languageModels.find(
+    const chat = models.find(
       (model) =>
         isModelSelected(selectedChatModel) &&
         model.provider === selectedChatModel.provider &&
-        model.ref["id"] === selectedChatModel.id
+        model.id === selectedChatModel.id
     );
-    if (chatModel) {
-      return asChoice(chatModel);
+    const recommended = recommendedKeys
+      .map((key) =>
+        models.find(
+          (model) => recommendedModelKey(model.provider, model.id) === key
+        )
+      )
+      .find((model) => model !== undefined);
+    const picked = chat ?? recommended ?? models[0];
+    return picked ? { provider: picked.provider, id: picked.id } : null;
+  }, [language.models, recommendedKeys, selectedChatModel]);
+
+  // The art is the spend, so the image model is not picked by catalog order:
+  // the saved default when this install still serves it, else the creator
+  // picks one.
+  const defaultImageModel = useMemo(() => {
+    if (!imageDefault?.id) {
+      return null;
     }
-    for (const key of recommendedKeys) {
-      const match = languageModels.find(
-        (model) =>
-          recommendedModelKey(model.provider, model.ref["id"] as string) === key
-      );
-      if (match) {
-        return asChoice(match);
+    const listed = image.models.find(
+      (model) =>
+        model.id === imageDefault.id &&
+        (!imageDefault.provider ||
+          (model.provider ?? "").toLowerCase() ===
+            imageDefault.provider.toLowerCase())
+    );
+    return listed ? { provider: listed.provider ?? "", id: listed.id } : null;
+  }, [image.models, imageDefault]);
+
+  const finishedRef = useRef(false);
+  const handleFinish = useCallback(
+    (result: BuildGameResult) => {
+      if (finishedRef.current) {
+        return;
       }
-    }
-    return asChoice(languageModels[0]);
-  }, [languageModels, recommendedKeys, selectedChatModel]);
+      finishedRef.current = true;
+      onFinish(result);
+    },
+    [onFinish]
+  );
 
-  const openTutorial = useCallback(() => openPageTab("tutorials"), []);
-
+  const projectId = projectIdProp ?? workflowProjectId ?? "";
   const config = useGameSetupFlow({
     workflowId,
+    projectId,
     defaultDesignerModel,
-    imageRow,
-    sfxRow,
-    musicRow,
-    chosenModel,
-    onOpenTutorial: openTutorial,
-    onFinish
+    defaultImageModel,
+    stylePresets: presets.data ?? [],
+    stylePresetsLoading: presets.isLoading,
+    onStartAlternative,
+    onFinish: handleFinish
   });
 
-  const brief = useGameSetupDocument(workflowId)?.brief ?? "";
+  const brief = game?.brief ?? "";
   const handleChangeFlow = useCallback(
     () => onChangeFlow?.(brief),
     [brief, onChangeFlow]
   );
+
+  // A `done` no step of this mount handed off: the document loaded that way
+  // (a reload after the build), or the headless `build_game` wrote it while
+  // this tab was open. The shell has no step for `done`, so the game opens.
+  const gameId = game?.game_id;
+  const settledDone =
+    game !== null && config.stage === "done" && !config.building;
+  useEffect(() => {
+    if (settledDone && gameId) {
+      handleFinish({
+        gameId,
+        name: game?.project_name ?? game?.design?.title ?? "Untitled game",
+        projectId,
+        failures: []
+      });
+    }
+  }, [game, gameId, handleFinish, projectId, settledDone]);
+
+  if (!loaded) {
+    return (
+      <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
+        <ThinkingIndicator label="Opening your game setup" announce />
+      </FlexColumn>
+    );
+  }
+
+  // A setup the removed Godot workflow started names a template the built-in
+  // engine does not have. Its files stay; the gameplay is rebuilt natively.
+  if (game?.template && findNativeGameTemplate(game.template) === null) {
+    return (
+      <FlexColumn gap={GAP.comfortable} sx={{ padding: PADDING.section }}>
+        <Text size="big" component="h2">
+          Legacy game setup
+        </Text>
+        <Caption>
+          This setup used the removed Godot workflow. Its source files and
+          generated assets remain available. Create a native game to rebuild
+          its gameplay.
+        </Caption>
+        <EditorButton
+          variant="contained"
+          sx={{ alignSelf: "flex-start" }}
+          onClick={() => void onStartAlternative("blank-2d")}
+        >
+          Create native game
+        </EditorButton>
+      </FlexColumn>
+    );
+  }
+
+  if (settledDone) {
+    return (
+      <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
+        <ThinkingIndicator label="Opening your game" announce />
+      </FlexColumn>
+    );
+  }
 
   return (
     <SetupFlow

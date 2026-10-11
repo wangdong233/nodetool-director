@@ -80,6 +80,34 @@ describe("previewDimensions", () => {
 });
 
 describe("buildPreviewSequence", () => {
+  it("plays one-take coverage instead of a covered shot's old clip versions", () => {
+    const preview = buildPreviewSequence(
+      board({
+        shots: [
+          clipShot("a", 0, {
+            duration_seconds: 4,
+            clip: { type: "video", asset_id: "one-take", duration: 10 }
+          }),
+          stillShot("b", 1, {
+            duration_seconds: 6,
+            clip: null,
+            clip_versions: [{ type: "video", asset_id: "old-b", duration: 6 }],
+            covered_by: { shot_id: "a", start_seconds: 4, end_seconds: 10 }
+          })
+        ]
+      })
+    );
+
+    expect(preview?.sequence.durationMs).toBe(10000);
+    expect(preview?.sequence.clips.filter((clip) => clip.mediaType === "video"))
+      .toMatchObject([
+        { currentAssetId: "one-take", startMs: 0, durationMs: 4000, inPointMs: 0 },
+        { currentAssetId: "one-take", startMs: 4000, durationMs: 6000, inPointMs: 4000 }
+      ]);
+    expect(preview?.stillShotIds).toEqual([]);
+    expect(preview?.shotCount).toBe(2);
+  });
+
   it("plays a rendered clip take before it is accepted instead of holding the still", () => {
     const preview = buildPreviewSequence(
       board({
@@ -213,5 +241,44 @@ describe("previewSignature", () => {
 
   it("is empty for a board that does not exist", () => {
     expect(previewSignature(undefined)).toBe("");
+  });
+});
+
+describe("preview shot count", () => {
+  it("counts shots, not the audio twins and stills on other tracks", () => {
+    const preview = buildPreviewSequence(
+      board({
+        shots: [
+          clipShot("a", 0),
+          clipShot("b", 1),
+          clipShot("c", 2),
+          stillShot("d", 3)
+        ]
+      })
+    );
+    expect(preview?.shotCount).toBe(4);
+    expect(preview?.stillShotIds).toEqual(["d"]);
+  });
+});
+
+describe("preview signature inputs", () => {
+  it("changes when a shot switches to graphics or gains coverage", () => {
+    const base = board({ shots: [clipShot("a", 0), clipShot("b", 1)] });
+    const graphics = board({
+      shots: [
+        clipShot("a", 0, { graphics: { mode: "graphics_first" } as Shot["graphics"] }),
+        clipShot("b", 1)
+      ]
+    });
+    const covered = board({
+      shots: [
+        clipShot("a", 0),
+        clipShot("b", 1, {
+          covered_by: { shot_id: "a", start_seconds: 2 } as Shot["covered_by"]
+        })
+      ]
+    });
+    expect(previewSignature(graphics)).not.toBe(previewSignature(base));
+    expect(previewSignature(covered)).not.toBe(previewSignature(base));
   });
 });

@@ -210,6 +210,9 @@ function suitesFor(name, moduleName, pool, sources, aliases) {
     `capabilities-${moduleName}.test.ts`,
     `${moduleName}-capabilities.test.ts`
   ];
+  if (moduleName === "game") {
+    owned.push("capabilities-game3d.test.ts");
+  }
   const flat = moduleName.replace(/-/g, "");
   return pool
     .filter((file) => matcher.test(sources[file]))
@@ -221,7 +224,8 @@ function suitesFor(name, moduleName, pool, sources, aliases) {
       };
       return rank(a) - rank(b) || (a < b ? -1 : 1);
     })
-    .slice(0, 2)
+    // Games cover legacy and retained authoring, 2D routes and the 3D contract.
+    .slice(0, moduleName === "game" ? 4 : 2)
     .map(rel);
 }
 

@@ -12,8 +12,6 @@
  * bridge factory (`@nodetool-ai/agents`). Tests supply their own and load
  * neither.
  */
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
 import type { TimelineDocument } from "@nodetool-ai/protocol/api-schemas/timeline.js";
 import type {
   TimelineDebugReport,
@@ -21,6 +19,8 @@ import type {
   TimelineValidation
 } from "@nodetool-ai/execution/timeline-debug";
 import type { TimelineInteractionStep } from "./interactions.js";
+import { runInteractionSteps } from "../interaction-script.js";
+import { writeDebugBundle } from "../debug-bundle.js";
 import {
   resolveTimelineTarget,
   type ResolvedTimelineTarget,
@@ -127,16 +127,6 @@ async function loadBridgeFactory(): Promise<CreateTimelineBridge> {
     ) as TimelineBridge;
 }
 
-function defaultOutDir(ref: string): string {
-  const slug =
-    ref
-      .replace(/[^a-zA-Z0-9_-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "timeline";
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return resolve(`nodetool-debug/timeline-${slug}-${stamp}`);
-}
-
 /** Load a timeline and validate it — no bridge, no bundle. */
 export async function runTimelineValidate(
   ref: string,
@@ -185,50 +175,24 @@ export async function runTimelineDebug(
       sequence.camera2d = resolved.document.camera2d;
     }
     const bridge = createBridge({ sequence });
-    const byName = new Map(bridge.tools.map((t) => [t.name, t]));
-
-    for (const step of steps) {
-      const tool = byName.get(step.tool);
-      if (!tool) {
-        const known = [...byName.keys()].sort().join(", ");
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error: `No timeline tool named "${step.tool}". Available: ${known}.`
-        });
-        deps.onLog?.(`✗ ${step.tool}: unknown tool`);
-        continue;
-      }
-      try {
-        const result = await tool.execute(step.input);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: true,
-          result
-        });
-        deps.onLog?.(`✓ ${step.tool}`);
-      } catch (e) {
-        const error = e instanceof Error ? e.message : String(e);
-        interactions.push({
-          tool: step.tool,
-          input: step.input,
-          ok: false,
-          error
-        });
-        deps.onLog?.(`✗ ${step.tool}: ${error}`);
-      }
-    }
+    interactions.push(
+      ...(await runInteractionSteps(
+        steps,
+        bridge.tools,
+        "timeline",
+        deps.onLog
+      ))
+    );
     snapshot = bridge.finalState();
   }
 
   // The bridge hands back its full tracks, clips and markers, so the document
   // the session ended with is a real document. Markers fall back to the ones
   // the target carried, for a bridge that does not report them.
-  const finalCamera2d = snapshot?.camera2d !== undefined
-    ? snapshot.camera2d
-    : resolved.document.camera2d;
+  const finalCamera2d =
+    snapshot?.camera2d !== undefined
+      ? snapshot.camera2d
+      : resolved.document.camera2d;
   let finalDocument: TimelineDocument | undefined;
   if (snapshot?.documentTracks && snapshot.documentClips) {
     finalDocument = {
@@ -256,25 +220,14 @@ export async function runTimelineDebug(
   }
   const report = await core.buildTimelineDebugReport(reportInput);
 
-  const bundleDir = options.outDir
-    ? resolve(options.outDir)
-    : defaultOutDir(ref);
-  await mkdir(bundleDir, { recursive: true });
-  await writeFile(
-    join(bundleDir, "timeline.json"),
-    JSON.stringify(resolved.raw, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.json"),
-    JSON.stringify(report, null, 2),
-    "utf8"
-  );
-  await writeFile(
-    join(bundleDir, "report.md"),
-    core.renderTimelineReportMarkdown(report),
-    "utf8"
-  );
+  const bundleDir = await writeDebugBundle({
+    kind: "timeline",
+    ref,
+    outDir: options.outDir,
+    raw: resolved.raw,
+    report,
+    reportMarkdown: core.renderTimelineReportMarkdown(report),
+  });
 
   return { report, bundleDir };
 }

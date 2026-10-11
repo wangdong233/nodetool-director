@@ -8,6 +8,7 @@ name: User Journeys
 # slower and has more moving parts than the page-load smoke suite.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches: [main]
     paths:
       - "web/src/**"
@@ -35,12 +36,22 @@ permissions:
 # blocks the release. Same reasoning (and same expression) as docker.yml.
 # Elsewhere — PR branches, tags — superseded runs are still cancelled.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Adding any other label to a PR also triggers a run, whose jobs skip. It
+  # gets a group of its own so it cannot cancel a run that is testing.
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'browser-suites' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   journeys:
     name: Drive the app the way a user does
+    # Advisory on pull requests and opt-in there: a PR runs this suite only
+    # with the `browser-suites` label, which saves its runner time on the
+    # many PRs that do not need it. Pushes to main, nightly and manual runs
+    # always run it.
+    if: >-
+      ${{ github.event_name != 'pull_request'
+      || (contains(github.event.pull_request.labels.*.name, 'browser-suites')
+      && (github.event.action != 'labeled' || github.event.label.name == 'browser-suites')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -48,33 +59,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build workspace packages
+      # setup-build restores node_modules and the Turbo build cache, so a
+      # warm run skips the cold `npm ci` and most of the package build.
+      - name: Set up Node, install deps, build packages
         # The seeded backend (tests/globalSetup.ts) imports @nodetool-ai/* via
         # the `development` export condition, which resolves to each package's
         # compiled dist/. Build them first.
-        run: npm run build:packages
+        # mesa-vulkan-drivers ships lavapipe (CPU Vulkan ICD) so headless
+        # Chromium can acquire a WebGPU adapter on GPU-less runners.
+        uses: ./.github/actions/setup-build
+        with:
+          extra-apt: mesa-vulkan-drivers
 
       - name: Type-check journey suite
         working-directory: web
         run: npm run typecheck:playwright
 
       - name: Install Playwright Chromium browser
-        # mesa-vulkan-drivers ships lavapipe (CPU Vulkan ICD) so headless
-        # Chromium can acquire a WebGPU adapter on GPU-less runners.
         working-directory: web
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mesa-vulkan-drivers
-          npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Run user-journey suite
         working-directory: web
@@ -110,25 +113,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      # setup-build restores node_modules and the Turbo build cache, so a
+      # warm run skips the cold `npm ci` and most of the package build.
+      - name: Set up Node, install deps, build packages
+        # libsecret-1-dev: electron/scripts/prepare-backend.mjs's staging step
+        # (used by the packaged-journey run below) shells out through the
+        # electron workspace, which needs keytar's native build deps present.
+        uses: ./.github/actions/setup-build
         with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build workspace packages
-        run: npm run build:packages
-
-      - name: Install system libraries for keytar
-        # electron/scripts/prepare-backend.mjs's staging step (used by the
-        # packaged-journey run below) shells out through the electron
-        # workspace, which needs keytar's native build deps present.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libsecret-1-dev
+          extra-apt: libsecret-1-dev
 
       # Full hermetic suite (every reliability/journeys/* journey) on kernel
       # (oracle, strict) + ws-server, cross-surface diffed (`--diff`), plus

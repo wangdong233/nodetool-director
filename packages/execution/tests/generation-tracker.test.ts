@@ -70,6 +70,44 @@ describe("generation tracker", () => {
   });
   afterEach(() => resetGenerationTrackerState());
 
+  it.each(["completed", "failed"])(
+    "retains %s workspace delivery separately from generated assets",
+    async (status) => {
+      const state = createTrackerState();
+      const delivery = {
+        status,
+        path: "audio/bed.wav",
+        ...(status === "failed" ? { error: "workspace unavailable" } : {})
+      };
+      await recordFromMessage(
+        prediction({
+          id: "audio-delivery",
+          status: "running",
+          capability: "text_to_music"
+        }),
+        OPTIONS,
+        state
+      );
+      await recordFromMessage(
+        prediction({
+          id: "audio-delivery",
+          status: "completed",
+          capability: "text_to_music",
+          asset_ids: ["audio-asset"],
+          data: { delivery }
+        }),
+        OPTIONS,
+        state
+      );
+      expect(await Prediction.find("audio-delivery")).toMatchObject({
+        status: "completed",
+        asset_ids: ["audio-asset"],
+        error: null,
+        metadata: { delivery }
+      });
+    }
+  );
+
   it("tracks video-to-audio assets and the provider charge through completion", async () => {
     const state = createTrackerState();
     const running = prediction({
@@ -323,6 +361,32 @@ describe("generation tracker", () => {
     // Another user's row is not theirs to reconcile.
     const foreign = await reconcileGeneration(row.id, "u2", resolve);
     expect(foreign.found).toBe(false);
+  });
+
+  it("resolves the configured FAL_API_KEY for generic FAL generations", async () => {
+    let receivedSecret: Record<string, string> | undefined;
+    registerCostReconciler("fal_ai", async ({ secrets }) => {
+      receivedSecret = secrets;
+      return { cost: 0.3, currency: "USD" };
+    });
+    const row = await Prediction.create<Prediction>({
+      id: "fal-ai-reconcile",
+      user_id: USER,
+      provider: "fal_ai",
+      model: "fal-ai/flux/dev",
+      status: "completed",
+      cost: 0.2,
+      provider_request_id: "fal-req",
+      created_at: new Date().toISOString()
+    });
+    const requestedKeys: string[] = [];
+    const result = await reconcileGeneration(row.id, USER, async (key) => {
+      requestedKeys.push(key);
+      return key === "FAL_API_KEY" ? "configured-fal-key" : null;
+    });
+    expect(requestedKeys).toEqual(["FAL_API_KEY"]);
+    expect(receivedSecret).toEqual({ FAL_API_KEY: "configured-fal-key" });
+    expect(result).toMatchObject({ reconciled: true, after: 0.3 });
   });
 
   it("marks a row unavailable when its provider has no reconciler", async () => {

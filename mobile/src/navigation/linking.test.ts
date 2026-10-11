@@ -3,7 +3,7 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import { getStateFromPath } from '@react-navigation/native';
 import { linking } from './linking';
-import { RootStackParamList } from './types';
+import type { MainTabParamList, RootStackParamList } from './types';
 
 type Screens = NonNullable<NonNullable<typeof linking.config>['screens']>;
 
@@ -72,33 +72,33 @@ describe('linking', () => {
   });
 
   it('maps every route in the param list', () => {
+    // Tab routes live one level down, under `Main`.
+    const leafNames = (screens: Screens): string[] =>
+      Object.entries(screens).flatMap(([name, entry]) =>
+        typeof entry === 'object' && entry !== null && 'screens' in entry && entry.screens
+          ? leafNames(entry.screens as Screens)
+          : [name]
+      );
     const screens = linking.config?.screens as Screens;
-    const expected: (keyof RootStackParamList)[] = [
+    // A folder is only ever pushed from the Assets tab, so it has no path.
+    const expected: (Exclude<keyof RootStackParamList, 'Main' | 'AssetFolder'> | keyof MainTabParamList)[] = [
       'Login',
-      'WorkflowsList',
-      'GraphEditor',
       'Chat',
       'Threads',
       'Documents',
       'Apps',
       'App',
       'StoryboardEditor',
-      'ScriptEditor',
-      'JsScriptEditor',
       'TimelineViewer',
       'SketchViewer',
-      'DocumentViewer',
       'Assets',
       'AssetViewer',
       'Jobs',
-      'Triggers',
       'JobDetail',
-      'Collections',
       'Settings',
-      'Secrets',
       'LanguageModelSelection',
     ];
-    expect(Object.keys(screens).sort()).toEqual([...expected].sort());
+    expect(leafNames(screens).sort()).toEqual([...expected].sort());
   });
 
   describe('path resolution', () => {
@@ -107,6 +107,18 @@ describe('linking', () => {
         name: 'JobDetail',
         params: { jobId: 'job-42' },
       });
+    });
+
+    it('keeps the tabs under a pushed screen so Back has somewhere to go', () => {
+      const state = getStateFromPath('/job/job-42', linking.config);
+      expect(state?.routes.map((route) => route.name)).toEqual(['Main', 'JobDetail']);
+    });
+
+    it('routes the tab paths into the tab navigator', () => {
+      const state = getStateFromPath('/jobs', linking.config);
+      expect(state?.routes[0].name).toBe('Main');
+      expect(routeForPath('/jobs').name).toBe('Jobs');
+      expect(routeForPath('/documents').name).toBe('Documents');
     });
 
     it('routes asset/:assetId to AssetViewer', () => {
@@ -124,18 +136,14 @@ describe('linking', () => {
       });
     });
 
-    it('prefers the dedicated document screens over the fallback viewer', () => {
-      expect(routeForPath('/document/script/d1').name).toBe('ScriptEditor');
-      expect(routeForPath('/document/jsscript/d1').name).toBe('JsScriptEditor');
+    it('routes the kept document kinds to their screens', () => {
       expect(routeForPath('/document/storyboard/d1').name).toBe('StoryboardEditor');
       expect(routeForPath('/document/timeline/d1').name).toBe('TimelineViewer');
-      expect(routeForPath('/document/mindmap/d1')).toEqual({
-        name: 'DocumentViewer',
-        params: { kind: 'mindmap', id: 'd1' },
-      });
+      expect(routeForPath('/document/sketch/d1').name).toBe('SketchViewer');
     });
 
-    it('routes app/:applicationId to a single app screen', () => {
+    it('routes the root to Apps and app/:applicationId to a single app', () => {
+      expect(routeForPath('/').name).toBe('Apps');
       expect(routeForPath('/apps').name).toBe('Apps');
       expect(routeForPath('/app/a1')).toEqual({
         name: 'App',
@@ -143,10 +151,8 @@ describe('linking', () => {
       });
     });
 
-    it('routes the plain settings and workflow list paths', () => {
+    it('routes the plain settings path', () => {
       expect(routeForPath('/settings').name).toBe('Settings');
-      expect(routeForPath('/settings/secrets').name).toBe('Secrets');
-      expect(routeForPath('/').name).toBe('WorkflowsList');
     });
   });
 

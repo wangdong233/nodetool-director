@@ -78,6 +78,13 @@ export interface TimelineAudition {
   takeId: string;
 }
 
+/** Source viewer marks; they belong to the asset they were set on. */
+export interface TimelineSourceRange {
+  assetId: string;
+  inMs: number;
+  outMs: number;
+}
+
 export interface TimelineUIState {
   /** Set of selected clip IDs. */
   selectedClipIds: Set<string>;
@@ -128,7 +135,7 @@ export interface TimelineUIState {
   /** The candidate currently shown in the preview, or null for the accepted take. */
   audition: TimelineAudition | null;
   /** In and out on the source viewer's asset, clip-source milliseconds. */
-  sourceRange: { inMs: number; outMs: number } | null;
+  sourceRange: TimelineSourceRange | null;
   /**
    * Milliseconds per pixel — the primary zoom metric.
    * Default 10 ms/px ≈ 100 px/s. Smaller = zoomed in.
@@ -257,7 +264,7 @@ export interface TimelineUIState {
   setAudition: (audition: TimelineAudition | null) => void;
   /** Return preview to the accepted take. */
   clearAudition: () => void;
-  setSourceRange: (range: { inMs: number; outMs: number } | null) => void;
+  setSourceRange: (range: TimelineSourceRange | null) => void;
 
   // ── FX panel ─────────────────────────────────────────────────────────────
 
@@ -293,8 +300,15 @@ export interface TimelineUIState {
    * Id of the MIDI track selected in the right-panel Instruments tab.
    */
   expandedInstrumentTrackId: string | null;
-  panelTab: "inspector" | "source" | "instrument" | "agent" | "history" | "script";
+  panelTab: "inspector" | "shot" | "source" | "instrument" | "agent" | "history" | "script" | "code";
   setPanelTab: (tab: TimelineUIState["panelTab"]) => void;
+  /**
+   * Whether the Code panel has edits not yet baked or discarded.
+   * `hooks/timeline/useGuardedPanelTab` reads this to confirm before leaving
+   * a dirty "code" tab; `setPanelTab` itself only clears the flag on leave.
+   */
+  codePanelDirty: boolean;
+  setCodePanelDirty: (dirty: boolean) => void;
   instrumentKeyboards: Record<string, boolean>;
   toggleInstrumentKeyboard: (trackId: string) => void;
   /** Open the Instruments tab for the given MIDI track. */
@@ -366,7 +380,17 @@ export const createTimelineUIStore = (): TimelineUIStoreApi =>
     expandedFxTrackId: null,
     expandedInstrumentTrackId: null,
     panelTab: "inspector",
-    setPanelTab: (panelTab) => set({ panelTab }),
+    // Pure switch — clears the dirty flag whenever the Code tab is left.
+    // Confirming that a dirty leave is intended is a component-layer concern
+    // (see `hooks/timeline/useGuardedPanelTab`), not something a store
+    // should ask the user about directly.
+    setPanelTab: (panelTab) =>
+      set((state) => {
+        const leavingCode = state.panelTab === "code" && panelTab !== "code";
+        return leavingCode ? { panelTab, codePanelDirty: false } : { panelTab };
+      }),
+    codePanelDirty: false,
+    setCodePanelDirty: (dirty) => set({ codePanelDirty: dirty }),
     instrumentKeyboards: {},
     toggleInstrumentKeyboard: (trackId) => set(state => ({
       instrumentKeyboards: {...state.instrumentKeyboards, [trackId]: !state.instrumentKeyboards[trackId]}

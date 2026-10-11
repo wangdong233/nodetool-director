@@ -16,6 +16,7 @@
  * take record for it.
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
@@ -48,7 +49,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
-import { useTranslation } from "react-i18next";
+import { usePersistedFold } from "./usePersistedFold";
 
 const TILE_PX = 56;
 
@@ -191,7 +192,6 @@ const VersionTile: React.FC<VersionTileProps> = memo(
     onRename,
     onDelete
   }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const getAsset = useAssetStore((s) => s.get);
     const [url, setUrl] = useState<string | undefined>(undefined);
@@ -280,12 +280,12 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              tooltip={active ? "Preview Original" : "Preview Candidate"}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" }) : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              aria-label={active ? "Preview Original" : "Preview Candidate"}
               sx={actionIconSx}
             />
             {!active && (
@@ -310,7 +310,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
+                  ? "This is the active take — select a different take before deleting it."
                   : `Delete ${displayName}`
               }
               disabled={active}
@@ -331,15 +331,19 @@ interface ClipVersionHistoryProps {
 
 export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
   ({ clipId }) => {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
+    const trackLocked = useTimelineStore(
+      (s) => s.tracks.find((t) => t.id === clip?.trackId)?.locked === true
+    );
     const applyTake = useTimelineStore((s) => s.applyTake);
     const audition = useTimelineUIStore((s) => s.audition);
     const setAudition = useTimelineUIStore((s) => s.setAudition);
     const renameTake = useTimelineStore((s) => s.renameTake);
     const deleteTake = useTimelineStore((s) => s.deleteTake);
     const addNotification = useNotificationStore((s) => s.addNotification);
+    const [open, setOpen] = usePersistedFold("version-history", true);
 
     const [editingVersionId, setEditingVersionId] = useState<string | null>(
       null
@@ -405,7 +409,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
 
     if (successVersions.length === 0) return null;
 
-    const interactive = !clip.locked;
+    const interactive = !clip.locked && !trackLocked;
     const editingVersion = editingVersionId
       ? successVersions.find((v) => v.id === editingVersionId)
       : undefined;
@@ -418,12 +422,11 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
             icon={<HistoryOutlinedIcon />}
           />
         }
-        defaultOpen
+        open={open}
+        onToggle={setOpen}
       >
         {clip.locked && (
-          <Caption color="secondary" sx={{ px: 1, pt: 0.5 }}>
-            {t("editor:ui.unlockTheClipToSwapGenerations")}
-          </Caption>
+          <Caption color="secondary" sx={{ px: SPACING.xs, pt: SPACING.micro }}>{t("editor:ui.unlockTheClipToSwapGenerations", { defaultValue: "Unlock the clip to swap generations." })}</Caption>
         )}
         <div css={stripStyles(theme)}>
           {successVersions.map((version, index) => (

@@ -13,8 +13,17 @@ import {
 import type { ProjectDocument } from "./projectStatus";
 import { useTranslation } from "react-i18next";
 
+/** A document the copy route covers. Workflows are listed but not copied. */
+type CopyableDocument = ProjectDocument & {
+  type: Exclude<ProjectDocument["type"], "workflow">;
+};
+
+export const isCopyableDocument = (
+  document: ProjectDocument
+): document is CopyableDocument => document.type !== "workflow";
+
 interface CopyProjectDocumentActionProps {
-  readonly document: ProjectDocument;
+  readonly document: CopyableDocument;
   readonly sourceProjectId: string;
 }
 

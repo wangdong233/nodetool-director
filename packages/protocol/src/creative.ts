@@ -354,6 +354,8 @@ export interface RenderInputs {
   /** The still a keyframe-mode clip animated. */
   source_version_id?: string;
   reference_asset_ids?: string[];
+  /** Fingerprint of the still's effective entity descriptors and images. */
+  entity_conditioning_hash?: string;
   render_mode?: ShotRenderMode;
   recorded_at: string;
 }
@@ -364,7 +366,10 @@ export interface RenderInputs {
  * than in a parallel array that a reorder or a delete could desynchronize.
  */
 export type VersionRef<T> = T &
-  ProductionTakeMetadata & { render_inputs?: RenderInputs };
+  ProductionTakeMetadata & {
+    render_inputs?: RenderInputs;
+    render_provenance?: "unknown";
+  };
 
 export type KeyframeVersion = VersionRef<ImageRef>;
 
@@ -416,11 +421,95 @@ export function renderInputsMatch(a: RenderInputs, b: RenderInputs): boolean {
     a.model === b.model &&
     a.aspect_ratio === b.aspect_ratio &&
     a.style_entity_id === b.style_entity_id &&
+    a.entity_conditioning_hash === b.entity_conditioning_hash &&
     JSON.stringify(a.reference_asset_ids ?? []) ===
       JSON.stringify(b.reference_asset_ids ?? []) &&
     a.render_mode === b.render_mode &&
     a.source_version_id === b.source_version_id
   );
+}
+
+/** A semantic graphics element the Storyboard can show without baking into AI media. */
+export interface ShotGraphicsElement {
+  /** Stable id used to trace the element into a later Timeline composition. */
+  id: string;
+  /** What kind of exact/editable element this is. */
+  kind: "text" | "asset" | "shape";
+  /** Its creative role, when one of the common ad roles applies. */
+  role?:
+    | "headline"
+    | "subhead"
+    | "price"
+    | "badge"
+    | "cta"
+    | "logo"
+    | "product"
+    | "decorative";
+  /** Exact copy. This remains authoritative instead of asking an image model to spell it. */
+  text?: string;
+  /** Exact stored media to preserve, e.g. a logo or product cutout. */
+  asset_id?: string;
+  /** Optional project entity backing the element. */
+  entity_id?: string;
+  /** Resolved production input whose exact asset/value this element must use. */
+  protected_input_id?: string;
+  /** Semantic placement/motion direction, not Timeline keyframes. */
+  direction?: string;
+  /** Authored box, normalized to the canvas. See `graphicsFrame`. */
+  frame?: {
+    box: [number, number, number, number];
+    fit?: "contain" | "cover";
+    align?: { x?: "start" | "center" | "end"; y?: "start" | "center" | "end" };
+    clip?: boolean;
+  };
+  /** Default text style. `size` is a fraction of the canvas width. */
+  typography?: { size?: number; weight?: 400 | 500 | 600 | 700; align?: "left" | "center" | "right"; maxLines?: number };
+  /** Properties agents may not change from the authored placement. */
+  lock?: Array<"position" | "scale" | "crop">;
+  /** Maximum deviation from the scaffold baseline. */
+  limits?: { x?: number; y?: number; scale?: number };
+  /** Template-owned shape style. See `graphicsShapeStyle`. */
+  style?: { fill?: string; stroke?: string; strokeWidth?: number; cornerRadius?: number };
+}
+
+/**
+ * Shot-local graphics intent.
+ *
+ * This describes the approved composition, not how the Timeline implements it:
+ * tracks, easing, masks and keyframes stay Timeline concerns.
+ */
+export interface ShotGraphics {
+  mode?: "none" | "overlay" | "graphics_first" | "hybrid";
+  direction?: string;
+  elements?: ShotGraphicsElement[];
+  /** Visual rules the reviewer checks for this shot. */
+  review_rules?: string[];
+}
+
+/** A transition idea between two Storyboard shots. */
+export interface StoryboardTransitionIntent {
+  from_shot_id: string;
+  to_shot_id: string;
+  direction?: string;
+}
+
+/** One graphic/device intentionally continuing across several shots. */
+export interface StoryboardContinuityIntent {
+  id: string;
+  shot_ids: string[];
+  direction: string;
+}
+
+/**
+ * Whole-board motion-design direction.
+ *
+ * Stored with the Screenplay direction so a later finished-cut pass can reason
+ * about transitions and continuity across shot boundaries.
+ */
+export interface StoryboardMotionDesign {
+  direction?: string;
+  transitions?: StoryboardTransitionIntent[];
+  continuities?: StoryboardContinuityIntent[];
 }
 
 /** One shot in a {@link Screenplay}. */
@@ -437,6 +526,12 @@ export interface Shot {
   camera?: CameraDirection;
   /** What moves in the shot (and how the camera moves). */
   motion?: string;
+  /** The picture the shot ends on; a one-take step's "End:". */
+  end_state?: string;
+  /** What is heard in the shot; a one-take audio cue. */
+  sound?: string;
+  /** Exact graphic elements and semantic motion-design intent for this shot. */
+  graphics?: ShotGraphics;
   /** Spoken line delivered in-shot, if any. */
   dialogue?: string;
   /** Voiceover narration timed to this shot. */
@@ -617,6 +712,8 @@ export interface Screenplay {
   narration?: string;
   /** Score direction as a music-generation prompt. */
   music_prompt?: string;
+  /** Motion-design direction that can span several shots. */
+  motion_design?: StoryboardMotionDesign;
   /** Entities referenced anywhere in the screenplay. */
   entity_ids?: string[];
   /** Copy of the board's genre, taken when the Director ran. */
@@ -678,15 +775,15 @@ export function entitiesForShot(shot: Shot, boardEntities: Entity[]): Entity[] {
 }
 
 /**
- * The board's cast, widened to hold every entity its shots reference.
+ * The board's cast, widened to hold every entity its shots explicitly reference.
  *
  * A shot's `entity_ids` is a selection out of the board's cast:
  * {@link entitiesForShot} filters the board's entities by it, so an id cast on
  * a shot but never on the board resolves to nothing — the chip is on the shot,
  * the entity is not in the board's library, and the prompt is not seasoned with
  * it. Agents writing shots hit this routinely. Reconciling on read keeps the
- * two in step: board cast first, in order, then each shot's unseen ids in shot
- * order.
+ * two in step: board cast first, in order, then each shot's unseen ids in shot order. Graphics element entity references
+ * remain composition-only and are deliberately excluded from the generation cast.
  *
  * Returns `entityIds` itself when nothing is missing, so a caller can compare
  * by identity and skip a write.
@@ -698,7 +795,11 @@ export function boardEntityIdsWithShots(
   const seen = new Set(entityIds);
   const added: string[] = [];
   for (const shot of shots) {
-    for (const id of shot.entity_ids ?? []) {
+    // Graphics-only entity references are composition inputs, not prompt
+    // conditioning. Do not widen the generation cast with them: style/location
+    // entities in the cast automatically season prompts.
+    const referenced = shot.entity_ids ?? [];
+    for (const id of referenced) {
       if (!seen.has(id)) {
         seen.add(id);
         added.push(id);

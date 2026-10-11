@@ -23,11 +23,7 @@ import {
   REROUTE_NODE_TYPE
 } from "../../constants/nodeTypes";
 import { wouldCreateCycle } from "../../utils/graphCycle";
-import {
-  defaultValueForType,
-  normalizeDynamicSlots,
-  normalizeTypeMetadata
-} from "../../utils/dynamicSlots";
+import { dynamicInputSlotPatch } from "../../utils/dynamicSlots";
 import { CONTROL_HANDLE_ID } from "../../stores/graphEdgeToReactFlowEdge";
 import { shallow } from "zustand/shallow";
 import { isFunction } from "../../utils/typePredicates";
@@ -275,7 +271,7 @@ export default function useConnectionHandlers() {
   );
 
   const onConnectEnd: OnConnectEnd = useCallback(
-    (event, _connectionState) => {
+    (event, connectionState) => {
       const resetConnectingState = (): void => {
         connectionCreated.current = true;
         setConnectionAttempted(false);
@@ -322,6 +318,29 @@ export default function useConnectionHandlers() {
         !targetIsGroup &&
         !targetIsPane;
 
+      // Released on a handle that isValidConnection rejected (wrong type, a
+      // cycle): report it instead of auto-connecting to another handle.
+      const droppedOnHandle =
+        htmlTarget.closest(".react-flow__handle") !== null;
+      const toHandle = connectionState?.toHandle;
+      const isOwnHandle =
+        toHandle?.nodeId === connectNodeId && toHandle?.id === connectHandleId;
+      if (
+        !connectionCreated.current &&
+        droppedOnHandle &&
+        toHandle &&
+        !isOwnHandle &&
+        connectionState.isValid === false
+      ) {
+        addNotification({
+          type: "warning",
+          alert: true,
+          content: "Cannot connect these handles"
+        });
+        resetConnectingState();
+        return;
+      }
+
       // targetIsNode: try to auto-connect or create dynamic property
       if (!connectionCreated.current && targetIsNode) {
         const closestNode = htmlTarget.closest(".react-flow__node") as HTMLElement | null;
@@ -356,33 +375,17 @@ export default function useConnectionHandlers() {
           // Find a unique name if the property already exists
           let propertyName = sourceNodeName;
           let counter = 1;
-          while (dynamicProps[propertyName]) {
+          // New slots default to "", 0, false or null, so test for the key,
+          // not the value.
+          while (Object.hasOwn(dynamicProps, propertyName)) {
             propertyName = `${sourceNodeName}_${counter}`;
             counter++;
           }
 
-          if (!dynamicProps[propertyName]) {
-            // Declare the new slot with the dragged output's type (mirrors
-            // the dynamic-output path below), so most slots are typed for free.
-            const declaredType =
-              connectType && connectType.type !== "any"
-                ? normalizeTypeMetadata(connectType)
-                : undefined;
-            updateNodeData(nodeId, {
-              dynamic_properties: {
-                ...dynamicProps,
-                [propertyName]: declaredType
-                  ? defaultValueForType(declaredType)
-                  : ""
-              },
-              ...(declaredType && {
-                dynamic_inputs: {
-                  ...normalizeDynamicSlots(node.data?.dynamic_inputs),
-                  [propertyName]: { type: declaredType }
-                }
-              })
-            });
-          }
+          updateNodeData(
+            nodeId,
+            dynamicInputSlotPatch(node.data ?? {}, propertyName, connectType)
+          );
 
           // handleOnConnect derives the edge className from the source handle.
           handleOnConnect({
@@ -666,7 +669,8 @@ export default function useConnectionHandlers() {
       openContextMenu,
       updateNodeData,
       onConnect,
-      openHandleSelectionMenu
+      openHandleSelectionMenu,
+      addNotification
     ]
   );
 

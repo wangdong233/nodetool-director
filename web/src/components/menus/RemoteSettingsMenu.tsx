@@ -69,8 +69,18 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   {
     key: "local-model-servers",
     label: "Local Model Servers",
-    labelKey: "localModelServers",
-    groups: ["vLLM", "Ollama", "LlamaCpp", "NodeLlamaCpp", "LMStudio", "TransformersJs"]
+    groups: [
+      "vLLM",
+      "Ollama",
+      "LlamaCpp",
+      "NodeLlamaCpp",
+      "LMStudio",
+      "WhisperCpp",
+      "WhisperCppServer",
+      "TransformersJs",
+      "PythonNodes",
+      "Wan2GP"
+    ]
   },
   {
     key: "provider-options",
@@ -204,6 +214,9 @@ const SETTING_LINKS: Record<string, string> = {
   ANTHROPIC_API_KEY: "https://console.anthropic.com/",
   GEMINI_API_KEY: "https://aistudio.google.com/app/apikey",
   OPENROUTER_API_KEY: "https://openrouter.ai/keys",
+  REQUESTY_API_KEY: "https://app.requesty.ai/api-keys",
+  OPPER_API_KEY: "https://platform.opper.ai",
+  API_ROUTE_API_KEY: "https://www.api-route.com/api-keys",
   HF_TOKEN: "https://huggingface.co/settings/tokens",
   REPLICATE_API_TOKEN: "https://replicate.com/account/api-tokens",
   GOOGLE_APP_PASSWORD: "https://myaccount.google.com/apppasswords",
@@ -224,6 +237,9 @@ const SETTING_BUTTON_TITLES: Record<string, string> = {
   ANTHROPIC_API_KEY: "Get Anthropic API Key",
   GEMINI_API_KEY: "Get Gemini API Key",
   OPENROUTER_API_KEY: "Get OpenRouter API Key",
+  REQUESTY_API_KEY: "Get Requesty API Key",
+  OPPER_API_KEY: "Get Opper API Key",
+  API_ROUTE_API_KEY: "Get API Route Key",
   HF_TOKEN: "Get Hugging Face Token",
   REPLICATE_API_TOKEN: "Get Replicate API Token",
   GOOGLE_APP_PASSWORD: "Get Google App Password",
@@ -243,6 +259,9 @@ const SETTING_TOOLTIPS: Record<string, string> = {
   ANTHROPIC_API_KEY: "Go to Anthropic console",
   GEMINI_API_KEY: "Go to Google AI Studio to get your API key",
   OPENROUTER_API_KEY: "Go to OpenRouter keys page",
+  REQUESTY_API_KEY: "Go to Requesty API keys page",
+  OPPER_API_KEY: "Go to Opper platform to get your API key",
+  API_ROUTE_API_KEY: "Go to API Route API keys page",
   HF_TOKEN: "Go to Hugging Face tokens page",
   REPLICATE_API_TOKEN: "Go to Replicate API tokens page",
   GOOGLE_APP_PASSWORD: "Go to Google account app passwords page",
@@ -333,7 +352,8 @@ const SettingItem = memo(function SettingItem({
               SETTING_TOOLTIPS[setting.env_var] || ""
             }
           >
-            {t(`settings:remote.${setting.env_var}.get`, { defaultValue: SETTING_BUTTON_TITLES[setting.env_var] || "GET YOUR API KEY" })}
+            {SETTING_BUTTON_TITLES[setting.env_var] ||
+              "Get your API key"}
           </ExternalLink>
         </div>
       )}
@@ -460,11 +480,15 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       updateSettings(args.settings, args.secrets),
     onSuccess: (_data, args) => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-      // Saving secrets through the remote-settings panel must propagate the
-      // same way SecretsMenu does — provider availability and per-modality
-      // model lists derive from configured secrets.
-      if (args.secrets && Object.keys(args.secrets).length > 0) {
+      const savedSecrets = Object.keys(args.secrets).length > 0;
+      if (savedSecrets) {
         queryClient.invalidateQueries({ queryKey: ["secrets"] });
+      }
+      // Providers resolve their configuration from secrets and plain settings
+      // alike (LLAMA_CPP_URL is a setting), and the server drops its provider
+      // cache on either save. Model lists are cached for minutes, so refetch
+      // them here too or the picker keeps showing the old server's models.
+      if (savedSecrets || Object.keys(args.settings).length > 0) {
         for (const key of PROVIDER_QUERY_KEYS) {
           queryClient.invalidateQueries({ queryKey: [key] });
         }
@@ -489,6 +513,21 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     setSettingValues((prev) => ({ ...prev, [envVar]: value }));
   }, []);
 
+  // Restore every edited field to its saved value.
+  const handleDiscard = useCallback(() => {
+    if (!data) return;
+    setSettingValues((prev) => {
+      const next = { ...prev };
+      for (const setting of data) {
+        if (setting.env_var in next) {
+          next[setting.env_var] =
+            setting.value != null ? String(setting.value) : "";
+        }
+      }
+      return next;
+    });
+  }, [data]);
+
   const handleSave = useCallback(() => {
     const settings: Record<string, string> = {};
     const secrets: Record<string, string> = {};
@@ -511,9 +550,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       {
         onSuccess: () => {
           addNotification({
-            content: i18n.t("tools:menus.yourSettingsHaveBeenSavedSuccessfully", {
-              defaultValue: "Your settings have been saved successfully"
-            }),
+            content: "Settings saved",
             type: "success",
             alert: true
           });
@@ -591,6 +628,14 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
 
             {isDirty && (
               <div className="save-button-container">
+                <Text className="save-bar-message">Unsaved changes</Text>
+                <EditorButton
+                  variant="text"
+                  onClick={handleDiscard}
+                  disabled={updateSettingsMutation.isPending}
+                >
+                  Discard
+                </EditorButton>
                 <EditorButton
                   variant="contained"
                   color="primary"
@@ -599,7 +644,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {t("editor:ui.saveSettings", { defaultValue: "SAVE SETTINGS" })}
+                  {updateSettingsMutation.isPending ? "Saving…" : "Save changes"}
                 </EditorButton>
               </div>
             )}

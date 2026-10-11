@@ -14,6 +14,14 @@ const makeMockHandler = (): Model3DToolHandler => ({
   setVisibility: jest.fn(),
   renameObject: jest.fn(),
   setMaterialColor: jest.fn(),
+  getObject: jest.fn(),
+  duplicateObject: jest.fn(),
+  setParent: jest.fn(),
+  setMaterial: jest.fn(),
+  setLight: jest.fn(),
+  setGeometry: jest.fn(),
+  undo: jest.fn(),
+  redo: jest.fn(),
   frameScene: jest.fn(),
   captureView: jest.fn()
 });
@@ -46,6 +54,21 @@ describe("model3DToolBridge", () => {
   });
 
   describe("setModel3DToolHandler", () => {
+    it("returns a disposer that clears its own handler", () => {
+      const dispose = setModel3DToolHandler(makeMockHandler());
+      dispose();
+      expect(() => getModel3DToolHandler()).toThrow();
+    });
+
+    it("keeps a newer handler when an older editor disposes", () => {
+      const first = makeMockHandler();
+      const second = makeMockHandler();
+      const disposeFirst = setModel3DToolHandler(first);
+      setModel3DToolHandler(second);
+      disposeFirst();
+      expect(getModel3DToolHandler()).toBe(second);
+    });
+
     it("clears the handler when passed null", () => {
       setModel3DToolHandler(makeMockHandler());
       setModel3DToolHandler(null);

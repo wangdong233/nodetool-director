@@ -30,7 +30,14 @@
  * are the same artifact.
  */
 
-import { useCallback, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type RefObject
+} from "react";
 import {
   ATTRIBUTION_SYSTEM_PROMPT,
   ATTRIBUTION_TOOL_DESCRIPTION,
@@ -61,10 +68,9 @@ import {
   scriptSourcePatch,
   type ImportedScript
 } from "../../lib/script/importedScript";
-import {
-  writerSignature,
-  writerSignaturePatch
-} from "./scriptWriteSignature";
+import { writerSignature, writerSignaturePatch } from "./scriptWriteSignature";
+import { activeWrites, notifyWrites, subscribeWrites } from "./scriptWrites";
+import { isVoicingLive } from "../../stores/script/scriptVoicing";
 import { i18n } from "../../i18n";
 
 /** The length a script is written to when no step wrote one. */
@@ -93,14 +99,37 @@ const lineIdsOf = (script: ScriptDraft): string[] =>
 /** Imported lines applied as they are — the source already named the cast. */
 function applyImportedAsIs(
   imported: ImportedScript,
-  options: { idPrefix: string; lineIds: readonly string[]; sectionTitle: string }
+  options: {
+    idPrefix: string;
+    lineIds: readonly string[];
+    sectionTitle: string;
+    /** The cast on the document. A speaker of the same name keeps its id, and
+     * with it the voice the creator picked. */
+    existingCast: ReadonlyArray<{ id: string; name: string }>;
+  }
 ): WrittenScript {
+  const heldIds = new Map(
+    options.existingCast.map(
+      (member) => [member.name.trim().toLowerCase(), member.id] as const
+    )
+  );
   const cast: Array<{ id: string; name: string }> = [];
   const byName = new Map<string, string>();
-  imported.speakers.forEach((name, index) => {
-    const id = `${options.idPrefix}_spk_${index + 1}`;
+  // A screenplay whose dialogue names nobody still has to be read by someone.
+  // With no cast, the review asked for a speaker and offered none to pick, the
+  // rule `applyAttribution` already applies to pasted text.
+  const speakers =
+    imported.speakers.length > 0
+      ? imported.speakers
+      : imported.lines.length > 0
+        ? ["Narrator"]
+        : [];
+  const nobodyNamed = imported.speakers.length === 0;
+  speakers.forEach((name, index) => {
+    const key = name.trim().toLowerCase();
+    const id = heldIds.get(key) ?? `${options.idPrefix}_spk_${index + 1}`;
     cast.push({ id, name });
-    byName.set(name.toLowerCase(), id);
+    byName.set(key, id);
   });
   return {
     cast,
@@ -110,7 +139,10 @@ function applyImportedAsIs(
         title: options.sectionTitle,
         lines: imported.lines.map((line, index) => ({
           id: options.lineIds[index] ?? `${options.idPrefix}_line_${index + 1}`,
-          speakerId: byName.get(line.speakerName.toLowerCase()) ?? null,
+          speakerId:
+            byName.get(
+              nobodyNamed ? "narrator" : line.speakerName.trim().toLowerCase()
+            ) ?? null,
           text: line.text,
           direction: line.direction,
           targetDurationMs: line.targetDurationMs
@@ -123,19 +155,29 @@ function applyImportedAsIs(
 export interface WriteScriptOptions {
   /** True for the review step's `Rewrite`. */
   rewrite?: boolean;
+  signal?: AbortSignal;
 }
 
 export interface UseWriteScriptResult {
   /**
    * Write (or rewrite) the script. Resolves `true` when lines were applied and
    * `false` when the run was refused or the provider failed — the reason is in
-   * {@link UseWriteScriptResult.error}. It never rejects, because the review
+   * {@link UseWriteScriptResult.errorRef}. It never rejects, because the review
    * step fires it from a click handler; the setup flow reads the boolean and
    * turns a `false` into the message on its button.
    */
   write: (scriptId: string, options?: WriteScriptOptions) => Promise<boolean>;
+  cancel: () => void;
   writing: boolean;
   error: string | null;
+  /** Forget the last failure, once the step that showed it is left. */
+  clearError: () => void;
+  /**
+   * The same reason as `error`, set before `write` resolves. `error` is state
+   * and reaches a caller's closure only after the next render, so code that
+   * reads the reason right after awaiting `write` reads this instead.
+   */
+  errorRef: RefObject<string | null>;
 }
 
 /**
@@ -145,16 +187,60 @@ export interface UseWriteScriptResult {
  * which are paid-for audio of different words. The counter is what makes each
  * write's ids its own, the way `ScriptStore`'s own id helper does it.
  */
+/** What `errorRef` holds after a canceled write. `error` stays empty. */
+export const WRITE_CANCELED = "The write was canceled.";
+
 let writeSequence = 0;
 const nextIdPrefix = (): string =>
   `w${Date.now().toString(36)}${(writeSequence++).toString(36)}`;
 
-export const useWriteScript = (): UseWriteScriptResult => {
-  const [writing, setWriting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * `scriptId` scopes `writing` and `cancel` to one script, so a write the agent
+ * started shows (and can be canceled) on the flow that shows that script.
+ * Without it they cover only this instance's own writes.
+ */
+export const useWriteScript = (scriptId?: string): UseWriteScriptResult => {
+  const owner = useRef(Symbol("useWriteScript")).current;
+  const writing = useSyncExternalStore(subscribeWrites, () =>
+    scriptId !== undefined
+      ? activeWrites.has(scriptId)
+      : [...activeWrites.values()].some((entry) => entry.owner === owner)
+  );
+  const [error, setErrorState] = useState<string | null>(null);
+  const errorRef = useRef<string | null>(null);
+  const setError = useCallback((message: string | null) => {
+    errorRef.current = message;
+    setErrorState(message);
+  }, []);
+
+  const cancel = useCallback(() => {
+    activeWrites.forEach((entry, id) => {
+      if (scriptId !== undefined ? id === scriptId : entry.owner === owner) {
+        entry.controller.abort();
+      }
+    });
+  }, [owner, scriptId]);
+  // Unmounting stops only this instance's own writes: a flow that leaves
+  // must not abort a write the agent asked for.
+  useEffect(
+    () => () => {
+      activeWrites.forEach((entry, id) => {
+        if (entry.owner === owner) {
+          entry.controller.abort();
+          activeWrites.delete(id);
+        }
+      });
+      notifyWrites();
+    },
+    [owner]
+  );
 
   const write = useCallback(
     async (scriptId: string, options: WriteScriptOptions = {}) => {
+      if (options.signal?.aborted) {
+        errorRef.current = WRITE_CANCELED;
+        return false;
+      }
       const store = useScriptStore.getState();
       const script = store.getScript(scriptId);
       if (!script) {
@@ -162,15 +248,10 @@ export const useWriteScript = (): UseWriteScriptResult => {
         return false;
       }
       const setup = script.setup ?? null;
-      // A rewrite gives the source up, so this and every later run write from
-      // the script the creator actually has in front of them. It is the one
-      // place a source is dropped, and the review says so beside the button.
-      if (options.rewrite === true && readScriptSource(setup) !== null) {
-        store.setSetup(scriptId, scriptSourcePatch(null));
-      }
-      const imported = readScriptSource(
-        store.getScript(scriptId)?.setup ?? null
-      );
+      // Rewrites use the edited script. Drop its imported source only after
+      // success, so cancelling keeps the original draft intact.
+      const source = readScriptSource(setup);
+      const imported = options.rewrite ? null : source;
       const brief = setup?.brief.trim() ?? "";
       if (brief === "" && !imported && lineIdsOf(script).length === 0) {
         setError(i18n.t("editor:ui.writeABriefBeforeWritingTheScript", { defaultValue: "Write a brief before writing the script." }));
@@ -202,8 +283,25 @@ export const useWriteScript = (): UseWriteScriptResult => {
       const idPrefix = nextIdPrefix();
       const heldLineIds = lineIdsOf(script);
 
+      if (activeWrites.has(scriptId)) {
+        setError("This script is already being written.");
+        return false;
+      }
+      // A write replaces the lines a running voicing is paying to record.
+      if (isVoicingLive(scriptId)) {
+        setError(
+          "This script is being voiced. Write it again once voicing finishes."
+        );
+        return false;
+      }
+      const signature = writerSignature(setup, imported);
+      const controller = new AbortController();
+      activeWrites.set(scriptId, { controller, owner });
+      notifyWrites();
+      const abort = (): void => controller.abort();
+      options.signal?.addEventListener("abort", abort, { once: true });
+      const { signal } = controller;
       setError(null);
-      setWriting(true);
       try {
         let written: WrittenScript;
 
@@ -211,20 +309,27 @@ export const useWriteScript = (): UseWriteScriptResult => {
           written = applyImportedAsIs(imported, {
             idPrefix,
             lineIds: heldLineIds,
-            sectionTitle
+            sectionTitle,
+            existingCast: asWritten(script).cast
           });
         } else if (imported) {
           const texts = imported.lines.map((line) => line.text);
-          const answer = await rpcRequest("generate_text", {
-            provider: model?.provider,
-            model: model?.id,
-            system: ATTRIBUTION_SYSTEM_PROMPT,
-            prompt: buildAttributionPrompt(texts, { brief, format }),
-            max_tokens: MAX_WRITER_TOKENS,
-            schema: buildAttributionSchema(texts.length),
-            schema_name: ATTRIBUTION_TOOL_NAME,
-            schema_description: ATTRIBUTION_TOOL_DESCRIPTION
-          });
+          const answer = await rpcRequest(
+            "generate_text",
+            {
+              provider: model?.provider,
+              model: model?.id,
+              system: ATTRIBUTION_SYSTEM_PROMPT,
+              prompt: buildAttributionPrompt(texts, { brief, format }),
+              max_tokens: MAX_WRITER_TOKENS,
+              schema: buildAttributionSchema(texts.length),
+              schema_name: ATTRIBUTION_TOOL_NAME,
+              schema_description: ATTRIBUTION_TOOL_DESCRIPTION
+            },
+            undefined,
+            signal
+          );
+          signal.throwIfAborted();
           written = applyAttribution(texts, answer.data, {
             idPrefix,
             lineIds: heldLineIds,
@@ -240,16 +345,22 @@ export const useWriteScript = (): UseWriteScriptResult => {
             language: setup?.language,
             existing: options.rewrite ? asWritten(script) : undefined
           };
-          const answer = await rpcRequest("generate_text", {
-            provider: model?.provider,
-            model: model?.id,
-            system: SCRIPT_WRITER_SYSTEM_PROMPT,
-            prompt: buildScriptWriterPrompt(input),
-            max_tokens: MAX_WRITER_TOKENS,
-            schema: buildScriptSchema({ retainIds: heldLineIds }),
-            schema_name: SCRIPT_TOOL_NAME,
-            schema_description: SCRIPT_TOOL_DESCRIPTION
-          });
+          const answer = await rpcRequest(
+            "generate_text",
+            {
+              provider: model?.provider,
+              model: model?.id,
+              system: SCRIPT_WRITER_SYSTEM_PROMPT,
+              prompt: buildScriptWriterPrompt(input),
+              max_tokens: MAX_WRITER_TOKENS,
+              schema: buildScriptSchema({ retainIds: heldLineIds }),
+              schema_name: SCRIPT_TOOL_NAME,
+              schema_description: SCRIPT_TOOL_DESCRIPTION
+            },
+            undefined,
+            signal
+          );
+          signal.throwIfAborted();
           const parseOptions = {
             idPrefix,
             retainIds: heldLineIds,
@@ -266,37 +377,48 @@ export const useWriteScript = (): UseWriteScriptResult => {
               : fallbackScript(input, parseOptions);
         }
 
+        signal.throwIfAborted();
+        if (options.rewrite && source !== null) {
+          store.setSetup(scriptId, scriptSourcePatch(null));
+        }
         store.applyWrittenScript(scriptId, written);
         // What this script was written from, so pressing step 2's button again
         // on unchanged inputs continues to it instead of paying for it twice
         // (F15).
-        store.setSetup(
-          scriptId,
-          writerSignaturePatch(
-            writerSignature(
-              useScriptStore.getState().getScript(scriptId)?.setup ?? null,
-              imported
-            )
-          )
-        );
+        store.setSetup(scriptId, writerSignaturePatch(signature));
         // Only a run that was waiting for its script moves the stage on: the
         // review's `Rewrite` fires the same call and must not throw the
         // creator back a step.
-        if (useScriptStore.getState().getScript(scriptId)?.setup?.stage === "format") {
+        if (
+          useScriptStore.getState().getScript(scriptId)?.setup?.stage ===
+          "format"
+        ) {
           store.setSetup(scriptId, { stage: "review" });
         }
         return true;
       } catch (cause) {
+        if (signal.aborted) {
+          // Not shown: the creator who canceled knows. A caller that reports
+          // the reason, such as the agent's tool, reads it from the ref.
+          errorRef.current = WRITE_CANCELED;
+          return false;
+        }
         setError(cause instanceof Error ? cause.message : String(cause));
         return false;
       } finally {
-        setWriting(false);
+        options.signal?.removeEventListener("abort", abort);
+        if (activeWrites.get(scriptId)?.controller === controller) {
+          activeWrites.delete(scriptId);
+          notifyWrites();
+        }
       }
     },
-    []
+    [owner, setError]
   );
 
-  return { write, writing, error };
+  const clearError = useCallback(() => setError(null), [setError]);
+
+  return { write, cancel, writing, error, errorRef, clearError };
 };
 
 export default useWriteScript;

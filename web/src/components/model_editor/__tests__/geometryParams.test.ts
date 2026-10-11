@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {
   GEOMETRY_PARAM_SPECS,
+  MAX_SEGMENTS,
   buildGeometry,
   isEditableGeometryType,
   readGeometryParams,
@@ -54,6 +55,34 @@ describe("buildGeometry", () => {
     });
   });
 
+  it("raises values below a param's minimum before building", () => {
+    // NumericField commits each keystroke and clamps only on blur, so a
+    // transient 0 reaches buildGeometry. Unclamped, it divides by zero.
+    const geo = buildGeometry("BoxGeometry", {
+      width: 0,
+      widthSegments: 0,
+      heightSegments: 2.6
+    }) as THREE.BoxGeometry;
+    expect(geo.parameters).toMatchObject({
+      width: 0.001,
+      widthSegments: 1,
+      heightSegments: 3
+    });
+    const positions = geo.getAttribute("position").array;
+    expect(Array.from(positions).every(Number.isFinite)).toBe(true);
+  });
+
+  it("caps segment counts so a large value cannot freeze the tab", () => {
+    const geo = buildGeometry("PlaneGeometry", {
+      widthSegments: 2000,
+      heightSegments: 3
+    }) as THREE.PlaneGeometry;
+    expect(geo.parameters).toMatchObject({
+      widthSegments: MAX_SEGMENTS,
+      heightSegments: 3
+    });
+  });
+
   it("preserves cylinder openEnded across a rebuild", () => {
     const original = new THREE.CylinderGeometry(1, 1, 2, 16, 1, true);
     const rebuilt = buildGeometry(
@@ -77,6 +106,7 @@ describe("buildGeometry", () => {
       SphereGeometry: new THREE.SphereGeometry(0.5, 32, 16),
       PlaneGeometry: new THREE.PlaneGeometry(2, 2),
       CylinderGeometry: new THREE.CylinderGeometry(0.5, 0.5, 1, 32),
+      ConeGeometry: new THREE.ConeGeometry(0.5, 1, 32),
       TorusGeometry: new THREE.TorusGeometry(0.5, 0.2, 16, 64)
     } satisfies Record<EditableGeometryType, THREE.BufferGeometry>;
     for (const [type, geo] of Object.entries(samples) as [

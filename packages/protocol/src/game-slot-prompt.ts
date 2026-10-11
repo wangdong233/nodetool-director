@@ -4,7 +4,7 @@
  * A {@link GameSlotSpec} says what a template needs; a generator needs a
  * prompt and a canvas; the `nodetool.game.*` checker that accepts the result
  * needs numbers. {@link slotPrompt} is the one mapping between them, pure, so
- * the `nodetool.game.SlotPrompt` node, the `godot-game` skill and the editor
+ * the `nodetool.game.SlotPrompt` node and the editor
  * all size a sheet and word a prompt the same way.
  *
  * Three rules the tests pin:
@@ -39,6 +39,14 @@ export interface SlotPromptResult {
   height: number;
   /** The prop bag the `nodetool.game.*` checker for this kind takes. */
   checker: Record<string, unknown>;
+  /**
+   * Primary image of the style, then of each cast member, for an
+   * image-to-image generator. Without the cast's images a character sprite
+   * holds its likeness through the descriptor text alone.
+   */
+  referenceImages: NonNullable<Entity["reference_images"]>;
+  /** The style's primary image asset id. */
+  referenceAssetId: string;
 }
 
 /**
@@ -274,6 +282,10 @@ export function slotPrompt(
   return {
     prompt: injected.prompt,
     ...canvas(slot),
-    checker: slotCheckerProps(slot)
+    checker: slotCheckerProps(slot),
+    referenceImages: applied.flatMap(
+      (entity) => entity.reference_images?.slice(0, 1) ?? []
+    ),
+    referenceAssetId: style?.reference_images?.[0]?.asset_id ?? ""
   };
 }

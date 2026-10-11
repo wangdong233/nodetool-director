@@ -26,7 +26,10 @@ host that answers `302 Location: http://127.0.0.1:6379/` walks past one.
 
 **Media refs** go through `fetchExternalMedia`
 (`packages/runtime/src/external-media-fetch.ts`), which is `safeFetch` plus one
-documented opt-out (below).
+documented opt-out (below). Audio loading in
+`packages/audio-nodes/src/lib/audio-wav.ts` delegates to `loadMediaRefBytes` in
+`packages/runtime/src/media-ref-bytes.ts`, whose HTTP fallback calls
+`fetchExternalMedia` and checks every redirect hop.
 
 **The sandbox fetch bridge** runs its own policy on purpose: plain http is
 allowed, and a host — never guest code — may waive the address check for a node
@@ -80,7 +83,7 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | Surface | File | URL comes from |
 |---|---|---|
 | media ref → bytes (Python bridge + TS nodes) | `packages/runtime/src/media-ref-bytes.ts` | workflow |
-| AudioRef → bytes | `packages/audio-nodes/src/lib/audio-wav.ts` | workflow |
+| AudioRef → shared media resolver | `packages/audio-nodes/src/lib/audio-wav.ts` | workflow |
 | Model3DRef / ImageRef → bytes | `packages/video-nodes/src/nodes/model3d/utils.ts` | workflow |
 | Model bytes → bytes (shared resolution) | `packages/nodes-utils/src/model-bytes.ts` | workflow |
 | chat source images | `packages/websocket/src/websocket-client-session.ts` | chat client |
@@ -90,15 +93,18 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | `yt_dlp` download | `packages/agents/src/capabilities/media.ts` | model |
 | Apify run artifacts → assets | `packages/agents/src/apify/assets.ts` | provider response |
 | `isolate_subject` mask video → asset | `packages/agents/src/capabilities/timeline-isolate-subject.ts` | provider response |
+| Google Fonts family resolution (timeline) | `packages/timeline/src/fonts/google-fonts-fetch.ts` | workflow |
 | Reve reference image | `packages/reve-nodes/src/reve-base.ts` | workflow |
 | HF pipeline media input | `packages/huggingface-nodes/src/huggingface-base.ts` | workflow |
 | FAL media upload | `packages/fal-nodes/src/fal-base.ts` | workflow |
 | Replicate files upload | `packages/replicate-nodes/src/replicate-base.ts` | workflow |
 | OpenAI media input | `packages/llm-nodes/src/nodes/openai.ts` | workflow |
+| Together image result downloads | `packages/runtime/src/providers/together-provider.ts` | provider response |
 | Together asset resolution | `packages/together-nodes/src/together-base.ts` | workflow |
 | AtlasCloud media pass-through | `packages/atlascloud-nodes/src/atlascloud-factory.ts` | workflow |
 | AtlasCloud prediction downloads | `packages/runtime/src/providers/atlascloud-transport.ts` | provider response |
 | Higgsfield uploads and prediction downloads | `packages/runtime/src/providers/higgsfield-transport.ts` | provider response |
+| useapi.net Google Flow and Dreamina result downloads | `packages/runtime/src/providers/useapi-provider.ts` | provider response |
 | KIE result downloads | `packages/kie-nodes/src/kie-base.ts` | provider response |
 | Topaz result downloads | `packages/topaz-nodes/src/topaz-base.ts` | provider response |
 | MiniMax audio / file downloads | `packages/minimax-nodes/src/minimax-base.ts` | provider response |
@@ -133,6 +139,12 @@ The guest bridge is `packages/agents/src/js-sandbox.ts`.
 
 ## Exemptions
 
+**Dreamina browser requests.**
+`packages/runtime/src/providers/dreamina-provider.ts` runs API and upload
+requests inside the user's logged-in Dreamina browser tab. Cookies stay in
+that tab. Server-side result downloads use `fetchExternalMedia`, which checks
+each redirect hop and sends no Dreamina credentials.
+
 **Fixed provider hosts.** The URL is a constant in this repo, at most
 with a path or query interpolated — `api.elevenlabs.io`, `fal.run`,
 `generativelanguage.googleapis.com`, the OAuth token endpoints, the codegen
@@ -148,6 +160,17 @@ after five seconds, coalesces concurrent refreshes, and caps key-cache freshness
 at 24 hours.
 
 **Deliberately private hosts.** Reaching an internal address is the feature:
+
+- `packages/whisper-cpp/src/whisper-server-provider.ts` — the operator's
+  `WHISPER_CPP_SERVER_URL`, normally localhost or the LAN. This local-only
+  provider uses native fetch, following the llama.cpp server provider's policy.
+  Requests carry audio and transcription options without provider credentials.
+
+- `packages/integration-nodes/src/nodes/stable-diffusion-cpp.ts` — the graph
+  author selects a running `sd-server`, normally localhost or the LAN. Requests
+  send no credentials and reject redirects. Job polling and cancellation stay
+  on the configured server, ignoring response-provided URLs. The cloud profile
+  excludes `lib.stable_diffusion_cpp.GenerateImage` by default.
 
 - `packages/runtime/src/comfy-executor.ts` — a ComfyUI server, normally
   localhost or the LAN, so screening private addresses would refuse the ordinary
@@ -181,16 +204,25 @@ at 24 hours.
   deployment (`isAuthEnforced`) the URL must pass `isSafePublicHttpsUrl`. A
   local install allows loopback and private addresses, because screenshotting
   the app on `localhost` is the reason to take one there.
-- `packages/cli/src/nodetool.ts` — runs on the operator's machine against their
+- `packages/cli/src/nodetool-main.ts` — runs on the operator's machine against their
   own API URL, loopback by default.
 - `packages/deploy/src/admin-client.ts` — the server being deployed.
-- `packages/node-sdk/src/package-registry-client.ts` — the pack registry,
-  overridable for a self-hosted one.
 
 **Browser-side.** The socket belongs to the viewer's browser, not the server:
+`packages/game-renderer/src/standalone-player.ts` (fixed relative game document
+and bundled `./assets/` paths),
+`packages/game-renderer/src/standalone-player3d.ts` (fixed relative `game.json`
+and `manifest.json`, then digest-named `./assets/` paths validated against the
+closed export manifest),
+`packages/game-renderer/src/audio/player.ts` and
+`packages/game-renderer/src/browser-fonts.ts` (asset URLs resolved by the web
+app, or bundled `./assets/` paths in a standalone export),
 `packages/image-nodes/src/nodes/image-io.ts` (behind `!IS_NODE`),
 `packages/core-nodes/src/nodes/fake-media.ts`,
 `packages/browser/src/capture.ts` (inside `page.evaluate`).
+The standalone 3D export applies `connect-src 'self'` CSP. The browser follows
+redirects subject to that same-origin policy and its own network restrictions.
+These fetches open no server-side socket.
 
 ## Adding a surface
 

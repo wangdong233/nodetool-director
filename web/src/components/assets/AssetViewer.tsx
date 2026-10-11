@@ -25,7 +25,8 @@ import {
   reducedMotion,
   BORDER_RADIUS,
   SPACING,
-  Z_INDEX, getSpacingPx
+  Z_INDEX, getSpacingPx,
+  SHADOW
 } from "../ui_primitives";
 //icons
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -35,6 +36,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CompareIcon from "@mui/icons-material/Compare";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import AssetItem from "./AssetItem";
 import AssetInfoPanel from "../context_menus/AssetInfoPanel";
 import { ImageComparer } from "../widgets";
@@ -52,6 +54,7 @@ import { useAssetDownload } from "../../hooks/assets/useAssetDownload";
 import { useAssetNavigation } from "../../hooks/assets/useAssetNavigation";
 import { useAssetDisplay } from "../../hooks/assets/useAssetDisplay";
 import { useEditVideoAsset } from "../../hooks/useEditVideoAsset";
+import { useOpenAssetWorkflow } from "../../hooks/useOpenAssetWorkflow";
 import { useNavigate } from "react-router-dom";
 import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
@@ -197,7 +200,7 @@ const styles = (theme: Theme) =>
       overflow: "hidden",
       borderRadius: BORDER_RADIUS.lg,
       border: `2px solid ${theme.vars.palette.primary.main}`,
-      boxShadow: `0 0 0 4px rgb(${theme.vars.palette.primary.mainChannel} / 0.18), 0 12px 32px rgb(0 0 0 / 0.5)`,
+      boxShadow: `0 0 0 4px rgb(${theme.vars.palette.primary.mainChannel} / 0.18), ${SHADOW(theme).lg}`,
       // Re-keyed by asset id on navigation, so this replays each time the
       // centered frame changes — a quick confident pop, no bounce.
       animation: `${activePop} ${MOTION.slow}`
@@ -218,7 +221,7 @@ const styles = (theme: Theme) =>
     },
     ".prev-next-items .item:hover": {
       transform: "translateY(-6px) scale(1.06)",
-      boxShadow: "0 12px 26px rgb(0 0 0 / 0.45)",
+      boxShadow: SHADOW(theme).lg,
       zIndex: Z_INDEX.raised
     },
     // Press feedback: quick dip on click before the frame slides to center.
@@ -312,7 +315,7 @@ const styles = (theme: Theme) =>
       overflowY: "auto",
       zIndex: Z_INDEX.modal,
       backgroundColor: theme.vars.palette.grey[900],
-      boxShadow: "-8px 0 24px rgb(0 0 0 / 0.5)"
+      boxShadow: SHADOW(theme).lg
     }
   });
 
@@ -328,6 +331,12 @@ type AssetViewerProps = {
    * here; the viewer itself has only the asset record.
    */
   captions?: Record<string, string>;
+  /**
+   * Ids of records a caller built for media that is not in the library, such
+   * as a shipped style sample. They have nothing to edit or describe, so the
+   * edit and info actions are hidden for them.
+   */
+  detachedIds?: ReadonlySet<string>;
   onClose: () => void;
 };
 
@@ -341,6 +350,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
     open,
     contentType,
     captions,
+    detachedIds,
     onClose: handleClose
   } = props;
 
@@ -514,6 +524,14 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
     }
   }, [currentAsset, isAudio, openTab, navigate, handleClose, projectId]);
 
+  const { openWorkflow } = useOpenAssetWorkflow();
+  const handleOpenWorkflow = useCallback(() => {
+    if (currentAsset?.workflow_id) {
+      openWorkflow(currentAsset);
+      handleClose();
+    }
+  }, [currentAsset, openWorkflow, handleClose]);
+
   const handleOpenVideoEditor = useCallback(() => {
     if (currentAsset && isVideo) {
       void editVideoAsset(currentAsset);
@@ -619,6 +637,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
   );
 
   const caption = currentAsset ? captions?.[currentAsset.id] : undefined;
+  const inLibrary = !(currentAsset && detachedIds?.has(currentAsset.id));
 
   const { component: assetViewer } = useAssetDisplay({
     asset: currentAsset,
@@ -651,6 +670,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
   }, [currentIndex, assetsToUse.length, handleChangeAsset]);
 
   const navigation = useMemo(() => {
+  const { t } = useTranslation();
     if (currentIndex === null) {
       return null;
     }
@@ -870,7 +890,10 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
 
         {showInfo && currentAsset && !compareMode && (
           <div className="info-panel-overlay">
-            <AssetInfoPanel asset={currentAsset} />
+            <AssetInfoPanel
+              asset={currentAsset}
+              onOpenWorkflow={handleClose}
+            />
           </div>
         )}
 
@@ -891,7 +914,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
             nodrag={false}
             sx={viewerActionButtonSx}
           />
-          {isImage && !compareMode && (
+          {isImage && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<EditIcon />}
               tooltip={isSvg ? t("editor:ui.editSvg", { defaultValue: "Edit SVG" }) : t("editor:ui.editImage", { defaultValue: "Edit Image" })}
@@ -901,7 +924,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               sx={viewerActionButtonSx}
             />
           )}
-          {isModel3D && !compareMode && (
+          {isModel3D && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<EditIcon />}
               tooltip={t("editor:ui.editIn3DEditor", { defaultValue: "Edit in 3D Editor" })}
@@ -911,7 +934,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               sx={viewerActionButtonSx}
             />
           )}
-          {isAudio && !compareMode && (
+          {isAudio && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<EditIcon />}
               tooltip={t("editor:ui.editAudio", { defaultValue: "Edit Audio" })}
@@ -921,7 +944,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               sx={viewerActionButtonSx}
             />
           )}
-          {isVideo && !compareMode && (
+          {isVideo && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<EditIcon />}
               tooltip={
@@ -931,6 +954,16 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               }
               onClick={handleOpenVideoEditor}
               className="button edit"
+              nodrag={false}
+              sx={viewerActionButtonSx}
+            />
+          )}
+          {currentAsset?.workflow_id && !compareMode && inLibrary && (
+            <ToolbarIconButton
+              icon={<AccountTreeIcon />}
+              tooltip="Open the workflow that made this"
+              onClick={handleOpenWorkflow}
+              className="button open-workflow"
               nodrag={false}
               sx={viewerActionButtonSx}
             />
@@ -965,7 +998,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
               sx={viewerActionButtonSx}
             />
           )}
-          {currentAsset && !compareMode && (
+          {currentAsset && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<InfoOutlinedIcon />}
               tooltip={showInfo ? t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : t("editor:ui.showInfo", { defaultValue: "Show info" })}

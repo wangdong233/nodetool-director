@@ -17,9 +17,12 @@ import {
   BORDER_RADIUS,
   SelectableListItem,
   Surface,
-  Text,
-  Z_INDEX
+  Text
 } from "../../ui_primitives";
+import {
+  MENTION_MENU_MAX_HEIGHT,
+  mentionMenuPosition
+} from "./mentionMenuPosition";
 
 type Skill = RouterOutputs["skills"]["list"][number];
 
@@ -60,12 +63,6 @@ export const findSkillTrigger = (
 const readCaret = (element: HTMLTextAreaElement, value: string): number =>
   element.selectionStart ?? value.length;
 
-const menuWrapperStyles = (rect: DOMRect): React.CSSProperties => ({
-  position: "fixed",
-  left: Math.max(8, rect.left),
-  bottom: Math.max(8, window.innerHeight - rect.top + 6),
-  zIndex: Z_INDEX.tooltip
-});
 
 interface SkillMentionMenuProps {
   skills: readonly Skill[];
@@ -91,7 +88,7 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
       sx={{
         minWidth: 280,
         maxWidth: 420,
-        maxHeight: 320,
+        maxHeight: MENTION_MENU_MAX_HEIGHT,
         overflowY: "auto",
         border: "1px solid",
         borderColor: "divider"
@@ -357,7 +354,7 @@ export const useTextareaSkillMention = ({
       return null;
     }
     return createPortal(
-      <div id={SKILL_MENU_ID} ref={menuRef} style={menuWrapperStyles(rect)}>
+      <div id={SKILL_MENU_ID} ref={menuRef} style={mentionMenuPosition(rect)}>
         <SkillMentionMenu
           skills={matchingSkills}
           selectedIndex={selectedIndex}

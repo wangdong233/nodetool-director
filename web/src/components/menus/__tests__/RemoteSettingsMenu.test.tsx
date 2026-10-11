@@ -1,6 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery
+} from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import RemoteSettingsMenuComponent from "../RemoteSettingsMenu";
@@ -217,7 +221,7 @@ describe("RemoteSettingsMenu", () => {
       await user.type(timeoutInput, "60");
 
       // Save settings
-      const saveButton = screen.getByRole("button", { name: /SAVE SETTINGS/i });
+      const saveButton = screen.getByRole("button", { name: /save changes/i });
       await user.click(saveButton);
 
       await waitFor(() => {
@@ -270,7 +274,7 @@ describe("RemoteSettingsMenu", () => {
         expect(screen.getByDisplayValue("localhost")).toBeInTheDocument();
       });
       expect(
-        screen.queryByRole("button", { name: /SAVE SETTINGS/i })
+        screen.queryByRole("button", { name: /save changes/i })
       ).not.toBeInTheDocument();
     });
 
@@ -346,13 +350,13 @@ describe("RemoteSettingsMenu", () => {
       // The save bar only appears once a field is edited.
       const input = await screen.findByDisplayValue("30");
       expect(
-        screen.queryByRole("button", { name: /SAVE SETTINGS/i })
+        screen.queryByRole("button", { name: /save changes/i })
       ).not.toBeInTheDocument();
 
       await user.clear(input);
       await user.type(input, "60");
 
-      const saveButton = await screen.findByRole("button", { name: /SAVE SETTINGS/i });
+      const saveButton = await screen.findByRole("button", { name: /save changes/i });
       await user.click(saveButton);
 
       await waitFor(() => {
@@ -361,6 +365,63 @@ describe("RemoteSettingsMenu", () => {
           expect.anything()
         );
       });
+    });
+
+    it("refetches warm model lists when only a provider URL setting is saved", async () => {
+      mockRemoteSettingsStore.fetchSettings.mockResolvedValue([
+        {
+          package_name: "nodetool",
+          env_var: "LLAMA_CPP_URL",
+          group: "LlamaCpp",
+          description: "Base URL for the llama.cpp server",
+          is_secret: false,
+          value: "http://127.0.0.1:9999",
+          enum: null
+        }
+      ]);
+      mockRemoteSettingsStore.updateSettings.mockResolvedValue(undefined);
+      // The picker's model query: fresh for five minutes, no focus refetch.
+      const fetchModels = jest
+        .fn<Promise<string[]>, []>()
+        .mockResolvedValueOnce([])
+        .mockResolvedValue(["qwen3-8b"]);
+      const ModelProbe = () => {
+        const { data } = useQuery({
+          queryKey: ["language-models", "llama_cpp"],
+          queryFn: fetchModels,
+          staleTime: 5 * 60 * 1000,
+          refetchOnWindowFocus: false
+        });
+        return <output aria-label="models">{(data ?? []).join(",")}</output>;
+      };
+      const user = userEvent.setup();
+
+      render(
+        <>
+          <ModelProbe />
+          <RemoteSettingsMenuComponent />
+        </>,
+        { wrapper }
+      );
+      await waitFor(() => expect(fetchModels).toHaveBeenCalledTimes(1));
+
+      const input = await screen.findByDisplayValue("http://127.0.0.1:9999");
+      await user.clear(input);
+      await user.type(input, "http://127.0.0.1:8080");
+      await user.click(
+        await screen.findByRole("button", { name: /save changes/i })
+      );
+
+      await waitFor(() => {
+        expect(mockRemoteSettingsStore.updateSettings).toHaveBeenCalledWith(
+          { LLAMA_CPP_URL: "http://127.0.0.1:8080" },
+          {}
+        );
+      });
+      expect(await screen.findByLabelText("models")).toHaveTextContent(
+        "qwen3-8b"
+      );
+      expect(fetchModels).toHaveBeenCalledTimes(2);
     });
 
     it("hides the save bar until there are unsaved edits", async () => {
@@ -385,7 +446,7 @@ describe("RemoteSettingsMenu", () => {
         expect(screen.getByDisplayValue("30")).toBeInTheDocument();
       });
       expect(
-        screen.queryByRole("button", { name: /SAVE SETTINGS/i })
+        screen.queryByRole("button", { name: /save changes/i })
       ).not.toBeInTheDocument();
 
       // Edit a field — the bar appears.
@@ -393,8 +454,39 @@ describe("RemoteSettingsMenu", () => {
       await user.clear(input);
       await user.type(input, "45");
       expect(
-        await screen.findByRole("button", { name: /SAVE SETTINGS/i })
+        await screen.findByRole("button", { name: /save changes/i })
       ).toBeInTheDocument();
+    });
+
+    it("discards unsaved edits back to the saved value", async () => {
+      const mockSettings = [
+        {
+          package_name: "nodetool",
+          env_var: "TIMEOUT",
+          group: "Configuration",
+          description: "Timeout",
+          is_secret: false,
+          value: "30",
+          enum: null
+        }
+      ];
+      mockRemoteSettingsStore.fetchSettings.mockResolvedValue(mockSettings);
+      const user = userEvent.setup();
+
+      render(<RemoteSettingsMenuComponent />, { wrapper });
+
+      const input = await screen.findByDisplayValue("30");
+      await user.clear(input);
+      await user.type(input, "45");
+      expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Discard" }));
+
+      expect(screen.getByDisplayValue("30")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /save changes/i })
+      ).not.toBeInTheDocument();
+      expect(mockRemoteSettingsStore.updateSettings).not.toHaveBeenCalled();
     });
   });
 

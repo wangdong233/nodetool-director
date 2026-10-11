@@ -39,6 +39,21 @@
     },
     {
       "path": "../runtime"
+    },
+    {
+      "path": "../execution"
+    },
+    {
+      "path": "../huggingface-nodes"
+    },
+    {
+      "path": "../reve-nodes"
+    },
+    {
+      "path": "../storage"
+    },
+    {
+      "path": "../whisper-cpp"
     }
   ]
 }

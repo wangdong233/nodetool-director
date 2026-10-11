@@ -16,6 +16,12 @@ import {
   type SyncedDocumentType
 } from "./documentSync";
 import { isString } from "../utils/typePredicates";
+import { resolveDocumentProject } from "../lib/resolveDocumentProject";
+import {
+  LOOSE_PROJECT_ID,
+  tabId,
+  useWorkspaceTabsStore
+} from "./WorkspaceTabsStore";
 
 type WorkflowResourceReloader = (
   workflowId: string,
@@ -72,6 +78,7 @@ const DOCUMENT_TRPC_ROUTER = {
   storyboard: "storyboards",
   script: "scripts",
   jsscript: "jsScripts",
+  game: "games",
   application: "applications"
 } satisfies Record<SyncedDocumentType, string>;
 
@@ -82,7 +89,8 @@ const DOCUMENT_TRPC_ROUTER = {
  */
 const DOCUMENT_EXTRA_PROCEDURES: Partial<Record<SyncedDocumentType, string[]>> =
   {
-    jsscript: ["palette"]
+    jsscript: ["palette"],
+    game: ["draftChanges", "revisions"]
   };
 
 const isSyncedDocumentType = (value: string): value is SyncedDocumentType =>
@@ -139,6 +147,29 @@ function invalidateTrpcProcedure(router: string, procedure: string): void {
       return Array.isArray(head) && head[0] === router && head[1] === procedure;
     }
   });
+}
+
+/**
+ * A workflow created outside the editor (bundle import, API, agent) has no tab
+ * and no editor store until something opens it. Opening the tab mounts the
+ * editor, which is what makes the workflow editable.
+ */
+async function openCreatedWorkflowTab(id: string): Promise<void> {
+  const tabs = useWorkspaceTabsStore.getState();
+  if (tabs.tabs.some((tab) => tab.id === tabId("workflow", id))) {
+    return;
+  }
+  try {
+    const document = await resolveDocumentProject("workflow", id);
+    useWorkspaceTabsStore.getState().openTab({
+      type: "workflow",
+      ref: document.id,
+      mode: "edit",
+      projectId: document.projectId ?? LOOSE_PROJECT_ID
+    });
+  } catch (error) {
+    console.warn(`[ResourceChange] Could not open workflow ${id}`, error);
+  }
 }
 
 /**
@@ -293,6 +324,9 @@ export function handleResourceChange(update: ResourceChangeUpdate): void {
     }
 
     if (resource_type === "workflow") {
+      if (event === "created") {
+        void openCreatedWorkflowTab(resource.id);
+      }
       if (event === "updated") {
         // Merge against the cached base BEFORE invalidation. An observer
         // refetch that lands first would make base == server and drop the

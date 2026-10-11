@@ -75,11 +75,11 @@ jest.mock("../preview/PreviewArea", () => ({
     React.createElement("div", { "data-testid": "preview-area" }, "Preview")
 }));
 
-// TopBarPrompt pulls in ImageModelSelect → useImageModelsByProvider, which
-// calls TanStack Query. The editor shell tests don't render a
-// QueryClientProvider, so swap it for a no-op.
-jest.mock("../TopBarPrompt", () => ({
-  TopBarPrompt: () =>
+// The Generate dialog's form pulls in the model pickers, which call TanStack
+// Query. The editor shell tests don't render a QueryClientProvider, so swap
+// it for a no-op.
+jest.mock("../TimelineGeneratePanel", () => ({
+  TimelineGeneratePanel: () =>
     React.createElement("div", { "data-testid": "topbar-prompt" }, "Prompt")
 }));
 
@@ -96,6 +96,13 @@ jest.mock("../../properties/TTSModelSelect", () => ({
 jest.mock("../../assets/SaveToFolderMenu", () => ({
   __esModule: true,
   default: () => null
+}));
+
+// `TopBar`'s Code button and the inspector tab list both read whether the
+// timeline has embedded code via TanStack Query. Same no-QueryClientProvider
+// reason as above — these editor shell tests don't render one.
+jest.mock("../../../serverState/useTimelineCode", () => ({
+  useTimelineHasCode: jest.fn(() => false)
 }));
 
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";

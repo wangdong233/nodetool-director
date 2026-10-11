@@ -426,7 +426,9 @@ export function analyzeCorrelation(
           nodeId: node.id,
           nodeType: node.type,
           handle,
-          message: `Handle "${handle}" receives ${edges.length} edges but is not a list type; this is invalid under correlation analysis.`
+          message:
+            `Handle "${handle}" receives ${edges.length} edges but is not a list type; this is invalid under correlation analysis. ` +
+            "To gather several values into one list, wire them into a list-typed input such as `value` on nodetool.constant.List."
         });
       }
 
@@ -526,8 +528,14 @@ export function analyzeCorrelation(
 
     // Compute per-output static facts.
     const outputCorr = node.output_correlation ?? {};
-    const declaredOutputs = node.outputs ?? {};
-    const outputHandles = Object.keys(declaredOutputs);
+    // A dynamic output (a Code node's handles) is a declared output too: the
+    // editor saves it only in `dynamic_outputs`, not in `outputs`.
+    const outputHandles = [
+      ...new Set([
+        ...Object.keys(node.outputs ?? {}),
+        ...Object.keys(node.dynamic_outputs ?? {})
+      ])
+    ];
 
     // For source nodes (no inputs declared) with no output_correlation entries,
     // we still need to emit empty-scope facts so downstream edges work.
@@ -536,8 +544,16 @@ export function analyzeCorrelation(
         ? outputHandles
         : Object.keys(outputCorr);
 
+    // A dynamic output has no class-level entry: its handle exists only on
+    // this instance, so the instance may say how it emits (an App node whose
+    // inner workflow streams that output).
+    const dynamicCorr = node.dynamic_output_correlation ?? {};
+    const dynamicHandles = new Set(Object.keys(node.dynamic_outputs ?? {}));
+
     for (const handle of handlesToProcess) {
-      const corr = outputCorr[handle];
+      const corr =
+        outputCorr[handle] ??
+        (dynamicHandles.has(handle) ? dynamicCorr[handle] : undefined);
 
       // Default behavior when no correlation metadata is provided: treat as
       // `single` with `__execution__` source. This keeps the analyzer usable

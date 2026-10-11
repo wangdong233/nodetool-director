@@ -9,7 +9,6 @@ import {
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import type { WorkspaceTabMode } from "../../stores/WorkspaceTabsStore";
-import { useTranslation } from "react-i18next";
 
 interface ImageSurfaceProps {
   refId: string;
@@ -28,7 +27,6 @@ interface ImageSurfaceProps {
  * cross-contaminate. Inactive edit tabs fall back to the viewer (hidden anyway).
  */
 const ImageSurface = ({ refId, mode, active }: ImageSurfaceProps) => {
-  const { t } = useTranslation();
   const { data: asset, isLoading, error } = useAssetById(refId);
   const setMode = useWorkspaceTabsStore((state) => state.setMode);
 
@@ -48,7 +46,7 @@ const ImageSurface = ({ refId, mode, active }: ImageSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {error ? t("editor:ui.failedToLoadImage", { defaultValue: "Failed to load image" }) : t("editor:ui.imageNotFound", { defaultValue: "Image not found" })}
+          {error ? "Failed to load image" : "Image not found"}
         </Text>
       </FlexColumn>
     );

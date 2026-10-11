@@ -168,8 +168,9 @@ describe("build helpers keep only the fields the named type reads", () => {
     expect(buildMask(maskParams.parse({ kind: "ellipse", radiusPx: 12 }))).not.toHaveProperty("radiusPx");
   });
 
-  it("drops a levels knob off a glow", () => {
-    expect(buildEffect({ type: "glow", radius: 9, inBlack: 0.5 }, 0)).toEqual({
+  it("rejects a levels knob on a glow and preserves supported knobs", () => {
+    expect(() => buildEffect({ type: "glow", radius: 9, inBlack: 0.5 }, 0)).toThrow(/glow.*inBlack/);
+    expect(buildEffect({ type: "glow", radius: 9 }, 0)).toEqual({
       id: "fx-1",
       type: "glow",
       enabled: true,
@@ -177,6 +178,33 @@ describe("build helpers keep only the fields the named type reads", () => {
       intensity: 1,
       color: undefined
     });
+  });
+
+  it("rejects blur amount before building a silently neutral effect", () => {
+    expect(() => buildEffect({ type: "blur", amount: 80 }, 0)).toThrow(/blur.*amount.*radius/);
+    expect(buildEffect({ type: "blur", radius: 80 }, 0)).toMatchObject({
+      type: "blur", radius: 80
+    });
+    expect(buildEffect({ type: "dropShadow", radius: 12 }, 0)).toMatchObject({
+      type: "dropShadow", blur: 12
+    });
+  });
+
+  it("names the allowed fields for a key no effect reads", () => {
+    const result = effectParams.safeParse({ type: "grain", foo: 1 });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe(
+      'grain does not accept parameter "foo". Allowed parameters: amount, size, colorAmount, animate.'
+    );
+  });
+
+  it("names the valid modes for a missing or unknown stylize/generator mode", () => {
+    expect(() => buildEffect({ type: "stylize" }, 0)).toThrow(
+      /Unknown stylize mode: "undefined"\. Valid modes: rgbSplit, radialBlur/
+    );
+    expect(() => buildEffect({ type: "generator", mode: "nope" }, 0)).toThrow(
+      /Unknown generator mode: "nope"\. Valid modes: noise, fractal/
+    );
   });
 });
 
@@ -214,9 +242,8 @@ describe("the shared tool name list", () => {
     }
   });
 
-  it("leaves out the browser-only frame sampler", () => {
-    // It needs real rendered video, so there is no headless twin to demand.
-    expect(SHARED_TIMELINE_TOOL_NAMES).not.toContain(
+  it("includes the frame inspection contract implemented by each media host", () => {
+    expect(SHARED_TIMELINE_TOOL_NAMES).toContain(
       "ui_timeline_get_clip_frames"
     );
   });

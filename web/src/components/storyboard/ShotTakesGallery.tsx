@@ -6,11 +6,14 @@
  * still and a single clip still needs somewhere to show them. The galleries
  * reuse {@link OutputRenderer} — the same component that renders node results
  * — so an array of stills gets the asset grid (double-click opens the
- * fullscreen viewer) and clips get the standard video players. Still
- * thumbnails and take chips above each gallery pick the selected still/clip —
- * the one the card shows, the clip render animates, and export uses.
+ * fullscreen viewer) and clips get the standard video players. Above them,
+ * stills and clips share one tile row each: clicking a tile makes it the
+ * selected still or clip — the one the card shows, the clip render animates,
+ * and export uses.
  */
 
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import type { ImageRef, Shot, VideoRef } from "@nodetool-ai/protocol";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -35,9 +38,13 @@ import {
   useStoryboardStore
 } from "../../stores/storyboard/StoryboardStore";
 import { syncShotClipToTimeline } from "../../stores/storyboard/timelineSync";
-import { useResolvedMediaUris } from "../../hooks/useResolvedMediaUri";
+import {
+  useResolvedMedia,
+  useResolvedMediaUris
+} from "../../hooks/useResolvedMediaUri";
+import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
+import { asResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { ResponsiveImage } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 interface ShotTakesGalleryProps {
   boardId: string;
@@ -77,9 +84,26 @@ const takeThumbSx = {
   }
 } as const;
 
+// On a touch screen the take actions are always shown, and two buttons on a
+// thumbnail this size cover most of it and each other. They move under the
+// thumbnail instead, side by side.
 const takeWrapSx = {
   position: "relative",
-  display: "inline-flex"
+  display: "inline-flex",
+  "@media (pointer: coarse)": {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    justifyItems: "center",
+    "& > :first-of-type": { gridColumn: "1 / -1" }
+  }
+} as const;
+
+const coarseStaticSx = {
+  "@media (pointer: coarse)": {
+    opacity: 1,
+    position: "static",
+    bgcolor: "transparent"
+  }
 } as const;
 
 // The take actions belong to the take under the pointer, not to every take in
@@ -98,7 +122,8 @@ const viewButtonSx = {
   position: "absolute",
   bottom: SPACING.micro,
   right: SPACING.micro,
-  bgcolor: "c_scrim_soft"
+  bgcolor: "c_scrim_soft",
+  ...coarseStaticSx
 } as const;
 
 const removeButtonSx = {
@@ -106,7 +131,8 @@ const removeButtonSx = {
   position: "absolute",
   top: SPACING.micro,
   right: SPACING.micro,
-  bgcolor: "c_scrim_soft"
+  bgcolor: "c_scrim_soft",
+  ...coarseStaticSx
 } as const;
 
 // Both take rows lead with the same fixed-width label so the thumbnails and
@@ -115,6 +141,26 @@ const takeRowLabelSx = { width: getSpacingPx(9), flexShrink: 0 } as const;
 
 const versionKey = (ref: ImageRef | VideoRef, index: number): string =>
   ref.asset_id ?? ref.uri ?? String(index);
+
+/** A clip take's poster frame, or its number while there is none. */
+const ClipTakeThumb: React.FC<{ clip: VideoRef; index: number }> = ({
+  clip,
+  index
+}) => {
+  const { t } = useTranslation();
+  const { url, thumbUrl } = useResolvedMedia(clip);
+  const poster = asResolvedMediaUrl(useVideoThumbnail(thumbUrl, url));
+  return poster ? (
+    <ResponsiveImage
+      src={poster}
+      alt=""
+      fit="cover"
+      sx={{ width: "100%", height: "100%" }}
+    />
+  ) : (
+    <span>{index + 1}</span>
+  );
+};
 
 const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
   boardId,
@@ -200,8 +246,16 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
   const handleRemoveClip = useCallback(
     (index: number) => {
       removeClipVersion(boardId, shot.id, index);
+      // Removing the current take promotes another one: move a linked,
+      // already-assembled timeline onto it so it stops playing the removed take.
+      const next = useStoryboardStore
+        .getState()
+        .boards[boardId]?.shots.find((s) => s.id === shot.id)?.clip;
+      if (next?.asset_id && next.asset_id !== shot.clip?.asset_id) {
+        void syncShotClipToTimeline(boardId, shot.id, next.asset_id);
+      }
     },
-    [removeClipVersion, boardId, shot.id]
+    [removeClipVersion, boardId, shot.id, shot.clip?.asset_id]
   );
 
   const handleCloseViewer = useCallback(() => setViewerMedia(null), []);
@@ -224,7 +278,9 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
           wrap
           className="still-thumbs"
         >
-          <Caption color="secondary" sx={takeRowLabelSx}>{t("storyboard:attrs.stills", { defaultValue: "Stills" })}</Caption>
+          <Caption color="secondary" sx={takeRowLabelSx}>
+            Stills
+          </Caption>
           {stills.map((still, i) => {
             const isCurrent = i === selectedStill;
             return (
@@ -241,10 +297,16 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     aria-label={
                       isCurrent
                         ? `Still ${i + 1}, current still`
-                        : `Preview still ${i + 1}`
+                        : readOnly
+                          ? `Preview still ${i + 1}`
+                          : `Use still ${i + 1} as current still`
                     }
                     aria-current={isCurrent ? "true" : undefined}
-                    onClick={() => setViewerMedia(still)}
+                    onClick={() =>
+                      readOnly || isCurrent
+                        ? setViewerMedia(still)
+                        : handleAcceptStill(i)
+                    }
                     sx={takeThumbSx}
                   >
                     {stillThumbSrcs[i] ? (
@@ -278,12 +340,6 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     sx={viewButtonSx}
                   />
                 </Box>
-                {!isCurrent && !readOnly && (
-                  <EditorButton
-                    onClick={() => handleAcceptStill(i)}
-                    aria-label={`Set still ${i + 1} as current still`}
-                  >{t("storyboard:attrs.setAsCurrentStill", { defaultValue: "Set as current still" })}</EditorButton>
-                )}
               </FlexRow>
             );
           })}
@@ -291,8 +347,15 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
       )}
 
       {clips.length > 0 && (
-        <FlexRow gap={SPACING.micro} align="center" wrap className="clip-chips">
-          <Caption color="secondary" sx={takeRowLabelSx}>{t("storyboard:attrs.clips", { defaultValue: "Clips" })}</Caption>
+        <FlexRow
+          gap={SPACING.micro}
+          align="center"
+          wrap
+          className="clip-thumbs"
+        >
+          <Caption color="secondary" sx={takeRowLabelSx}>
+            Clips
+          </Caption>
           {clips.map((clip, i) => {
             const isCurrent = i === selectedClip;
             return (
@@ -300,52 +363,48 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                 key={versionKey(clip, i)}
                 className="take"
                 align="center"
-                gap={0}
+                gap={SPACING.micro}
               >
-                <Chip
-                  compact
-                  clickable
-                  variant="outlined"
-                  label={
-                    isCurrent ? `Take ${i + 1} · Current` : `Preview ${i + 1}`
-                  }
-                  aria-label={
-                    isCurrent
-                      ? `Take ${i + 1}, current clip`
-                      : `Preview clip take ${i + 1}`
-                  }
-                  aria-current={isCurrent ? "true" : undefined}
-                  sx={{
-                    borderRadius: BORDER_RADIUS.pill,
-                    color: isCurrent ? "text.primary" : "text.secondary",
-                    borderColor: isCurrent ? "primary.main" : "divider"
-                  }}
-                  onClick={() => handlePreviewClip(i)}
-                />
-                {!isCurrent && !readOnly && (
-                  <EditorButton
-                    onClick={() => handleUseClip(i)}
-                    aria-label={`Set take ${i + 1} as current clip`}
-                  >{t("storyboard:attrs.setAsCurrentClip", { defaultValue: "Set as current clip" })}</EditorButton>
-                )}
-                {!readOnly && (
+                <Box sx={takeWrapSx}>
+                  <Box
+                    component="button"
+                    type="button"
+                    aria-label={
+                      isCurrent
+                        ? `Clip ${i + 1}, current clip`
+                        : readOnly
+                          ? `Preview clip ${i + 1}`
+                          : `Use clip ${i + 1} as current clip`
+                    }
+                    aria-current={isCurrent ? "true" : undefined}
+                    onClick={() =>
+                      readOnly || isCurrent
+                        ? handlePreviewClip(i)
+                        : handleUseClip(i)
+                    }
+                    sx={takeThumbSx}
+                  >
+                    <ClipTakeThumb clip={clip} index={i} />
+                  </Box>
+                  {!readOnly && (
+                    <ToolbarIconButton
+                      icon={<DeleteOutlineIcon sx={{ fontSize: "1em" }} />}
+                      tooltip={t("storyboard:attrs.removeClip", { defaultValue: "Remove clip" })}
+                      ariaLabel={`Remove clip ${i + 1}`}
+                      onClick={() => handleRemoveClip(i)}
+                      disabled={isGenerating}
+                      sx={removeButtonSx}
+                      variant="error"
+                    />
+                  )}
                   <ToolbarIconButton
-                    icon={<DeleteOutlineIcon sx={{ fontSize: "1em" }} />}
-                    tooltip={t("storyboard:attrs.removeClip", { defaultValue: "Remove clip" })}
-                    ariaLabel={`Remove clip ${i + 1}`}
-                    onClick={() => handleRemoveClip(i)}
-                    disabled={isGenerating}
-                    variant="error"
-                    sx={takeActionSx}
+                    icon={<FullscreenIcon sx={{ fontSize: "1em" }} />}
+                    tooltip="View fullscreen"
+                    ariaLabel={`View clip ${i + 1} fullscreen`}
+                    onClick={() => setViewerMedia(clip)}
+                    sx={viewButtonSx}
                   />
-                )}
-                <ToolbarIconButton
-                  icon={<FullscreenIcon sx={{ fontSize: "1em" }} />}
-                  tooltip={t("storyboard:attrs.viewFullscreen", { defaultValue: "View fullscreen" })}
-                  ariaLabel={`View clip take ${i + 1} fullscreen`}
-                  onClick={() => setViewerMedia(clip)}
-                  sx={takeActionSx}
-                />
+                </Box>
               </FlexRow>
             );
           })}
@@ -360,7 +419,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
             "&:hover": { color: "text.primary", bgcolor: "c_overlay_subtle" }
           }}
         >
-          {expanded ? t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
+          {expanded ? i18n.t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : i18n.t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
         </EditorButton>
       </FlexRow>
 
@@ -377,7 +436,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
           )}
           {clips.length > 0 && (
             <>
-              <Caption color="secondary">{t("storyboard:attrs.clips", { defaultValue: "Clips" })}</Caption>
+              <Caption color="secondary">Clips</Caption>
               <OutputRenderer value={clips} showTextActions={false} />
             </>
           )}

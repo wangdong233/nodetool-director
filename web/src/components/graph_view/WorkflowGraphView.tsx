@@ -205,7 +205,7 @@ function GraphInner() {
           justifyContent: "center",
           background: bgColor,
           color: "var(--palette-error-main)",
-          fontFamily: "monospace",
+          fontFamily: "var(--fontFamily2)",
           fontSize: 18
         }}
       >

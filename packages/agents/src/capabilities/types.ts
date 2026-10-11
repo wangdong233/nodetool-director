@@ -77,7 +77,7 @@ export type CapabilityImpl = (
 ) => Promise<unknown>;
 
 /**
- * The permission gate a run carries. Identical to the options `gateTools` takes
+ * The permission gate a run carries. Identical to the options `gateLegacyTools` takes
  * today — mode, the shared session allow-set, the approval round trip, and the
  * optional security-monitor consult — because the gate that moves into
  * {@link CapabilityRun.invoke} is that gate, not a second one.
@@ -154,6 +154,8 @@ export interface CapabilityLoaders {
 /** Everything a capability call needs that only exists per run. */
 export interface CapabilityRun {
   readonly context: ProcessingContext;
+  /** Invocation cancellation, including a script deadline. Context state stays shared. */
+  readonly signal?: AbortSignal;
   /** The one gate. decide → (ask ↔ UI) → monitor → run; owns the session allow-set. */
   readonly gate: CapabilityGate;
   /** Browser round trip for `ui_*` capabilities; absent on headless runs. */

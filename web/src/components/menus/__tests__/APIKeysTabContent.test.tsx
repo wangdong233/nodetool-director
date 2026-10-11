@@ -33,6 +33,14 @@ jest.mock("../../../trpc/client", () => ({
     }
   }
 }));
+// The server lists every known key; unconfigured ones are placeholders.
+const mockSecrets = [
+  { key: "DATA_FOR_SEO_LOGIN", is_configured: false },
+  { key: "DATA_FOR_SEO_PASSWORD", is_configured: false },
+  { key: "HIGGSFIELD_API_KEY_ID", is_configured: false },
+  { key: "HIGGSFIELD_API_KEY_SECRET", is_configured: false },
+  { key: "OPENROUTER_API_KEY", is_configured: false }
+];
 jest.mock("../../../stores/SecretsStore", () => ({
   __esModule: true,
   default: <T,>(
@@ -43,7 +51,7 @@ jest.mock("../../../stores/SecretsStore", () => ({
     }) => T
   ) =>
     selector({
-      secrets: [],
+      secrets: mockSecrets,
       updateSecret: jest.fn(),
       deleteSecret: jest.fn()
     })
@@ -74,7 +82,7 @@ describe("APIKeysTabContent on a hosted deployment", () => {
       });
   });
 
-  it("lists OpenAI and Codex separately and hides local-only Claude Code", () => {
+  it("lists one OpenAI card with the ChatGPT sign-in and hides local-only Claude Code", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     });
@@ -89,9 +97,45 @@ describe("APIKeysTabContent on a hosted deployment", () => {
     expect(
       screen.queryByRole("button", { name: /sign in with claude/i })
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Codex")).toBeInTheDocument();
+    expect(screen.queryByText("Codex")).not.toBeInTheDocument();
     expect(screen.getByText("Anthropic")).toBeInTheDocument();
-    expect(screen.getByText("OpenAI")).toBeInTheDocument();
+    expect(screen.getAllByText("OpenAI")).toHaveLength(1);
+    expect(
+      screen.getByRole("button", { name: /sign in with openai/i })
+    ).toBeInTheDocument();
     expect(screen.queryByText("Claude Code")).not.toBeInTheDocument();
+  });
+
+  it("does not mark placeholder secrets as connected", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={mockTheme}>
+          <APIKeysTabContent />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+
+    expect(screen.queryByText("Connected")).not.toBeInTheDocument();
+  });
+
+  // A placeholder row and the catalog entry for the same provider both landed
+  // in its section, so every unconnected provider with a placeholder showed
+  // twice (and React warned about duplicate keys).
+  it("lists an unconnected provider once", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={mockTheme}>
+          <APIKeysTabContent />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+
+    expect(screen.getAllByText("OpenRouter")).toHaveLength(1);
   });
 });

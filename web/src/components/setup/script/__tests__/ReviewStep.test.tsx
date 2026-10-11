@@ -15,6 +15,7 @@ import {
 } from "../../../../components/script/scriptAgentBridge";
 import { useScriptStore } from "../../../../stores/script/ScriptStore";
 import { ReviewStep } from "../ReviewStep";
+import { generationEstimate } from "../../generationEstimate";
 
 // The picker's dialog, reduced to one selectable model.
 jest.mock("../../../model_menu/LanguageModelMenuDialog", () => ({
@@ -41,6 +42,15 @@ jest.mock("../../../model_menu/LanguageModelMenuDialog", () => ({
       </button>
     ) : null
 }));
+
+// Pass-through, so a test can read what the estimate priced.
+jest.mock("../../generationEstimate", () => {
+  const actual = jest.requireActual("../../generationEstimate");
+  return {
+    ...actual,
+    generationEstimate: jest.fn(actual.generationEstimate)
+  };
+});
 
 jest.mock("../../../../hooks/useModelsByProvider", () => ({
   __esModule: true,
@@ -174,6 +184,36 @@ describe("script ReviewStep", () => {
     ).toHaveTextContent("Rewrite 6 words");
   });
 
+  it("prices the script a rewrite sends, not only the brief (F7)", () => {
+    (generationEstimate as jest.Mock).mockClear();
+    renderStep();
+    const brief = (generationEstimate as jest.Mock).mock.calls.at(-1)?.[1];
+    expect(brief).toContain("an interview");
+    expect(brief).toContain("Welcome back.");
+    expect(brief).toContain("Glad to be here.");
+  });
+
+  it("changes nothing in a view-mode tab (F14)", () => {
+    const onRewrite = jest.fn();
+    const onOpenEditor = jest.fn();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ReviewStep
+          scriptId={SCRIPT_ID}
+          onRewrite={onRewrite}
+          onOpenEditor={onOpenEditor}
+          readOnly
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByRole("button", { name: "Rewrite" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Add a line" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Open the editor without voicing" })
+    ).toBeDisabled();
+    expect(screen.getByDisplayValue("Welcome back.")).toHaveAttribute("readonly");
+  });
+
   it("adds a line, and clears the empty ones it left behind (F20)", async () => {
     const user = userEvent.setup();
     renderStep();
@@ -189,6 +229,57 @@ describe("script ReviewStep", () => {
       screen.getByRole("button", { name: "Remove 1 empty line" })
     );
     expect(linesOf()).toHaveLength(2);
+  });
+
+  it("names a line with no speaker as unassigned (F7)", async () => {
+    const user = userEvent.setup();
+    useScriptStore
+      .getState()
+      .patchLine(SCRIPT_ID, "line_2", { speakerId: null });
+    renderStep();
+
+    const speakers = screen.getAllByRole("combobox", { name: "Speaker" });
+    expect(speakers[1]).toHaveTextContent("No speaker");
+    await user.click(speakers[0]);
+    await user.click(screen.getByRole("option", { name: "No speaker" }));
+    expect(setLineSpeaker).toHaveBeenCalledWith("line_1", null);
+  });
+
+  it("locks the lines while a rewrite replaces them (F8)", () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ReviewStep
+          scriptId={SCRIPT_ID}
+          onRewrite={jest.fn()}
+          onOpenEditor={jest.fn()}
+          rewriting
+        />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByDisplayValue("Welcome back.")).toHaveAttribute(
+      "readonly"
+    );
+    for (const speaker of screen.getAllByRole("combobox", { name: "Speaker" })) {
+      expect(speaker).toHaveAttribute("aria-disabled", "true");
+    }
+    expect(screen.getByRole("button", { name: "Add a line" })).toBeDisabled();
+  });
+
+  it("shows why the last rewrite failed (F6)", () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ReviewStep
+          scriptId={SCRIPT_ID}
+          onRewrite={jest.fn()}
+          onOpenEditor={jest.fn()}
+          error="The writer timed out."
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The writer timed out."
+    );
   });
 
   it("offers the text-only finish (F16)", async () => {

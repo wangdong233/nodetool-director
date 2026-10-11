@@ -19,75 +19,61 @@
           "props": {
             "id": "title",
             "text": "📦 Product Launch Kit",
-            "level": "1"
-          }
-        },
-        {
-          "type": "Text",
-          "props": {
-            "id": "tagline",
-            "text": "One product photo in, mockups and a launch video out."
+            "level": "1",
+            "subtitle": "One product photo in, mockups and a launch video out."
           }
         },
         {
           "type": "Text",
           "props": {
             "id": "app-note",
-            "text": "💸 Mockups and launch video use configured cloud models. Video generation is billed per run, so it has its own button."
+            "text": "💸 Mockups and launch video use configured cloud models. Video generation is billed per run, so it has its own button.",
+            "tone": "hint"
           }
         },
         {
-          "type": "Columns",
+          "type": "Stepper",
           "props": {
-            "id": "cols-your-product",
-            "gap": 24,
-            "left": [
+            "id": "steps",
+            "binding": "var:step",
+            "steps": [
               {
-                "type": "Container",
+                "value": "your-product",
+                "title": "Your product"
+              },
+              {
+                "value": "launch-video",
+                "title": "Launch video"
+              }
+            ],
+            "allowBack": true
+          }
+        },
+        {
+          "type": "Container",
+          "props": {
+            "id": "step-your-product",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "your-product"
+            },
+            "content": [
+              {
+                "type": "Heading",
                 "props": {
-                  "id": "panel-your-product",
-                  "title": "Your product",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-mockups-4-model",
-                        "binding": "op:mockups/prop:4#model",
-                        "label": "Mockups model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-mockups-6-model",
-                        "binding": "op:mockups/prop:6#model",
-                        "label": "Mockups model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-mockups-8-model",
-                        "binding": "op:mockups/prop:8#model",
-                        "label": "Mockups model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-mockups-15-model",
-                        "binding": "op:mockups/prop:15#model",
-                        "label": "Mockups model",
-                        "modelKind": "image_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-your-product",
+                  "text": "Your product",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-your-product",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "ImageInput",
                       "props": {
@@ -133,9 +119,59 @@
                         "id": "in-mockups-num-scenes",
                         "binding": "op:mockups/in:13",
                         "label": "How many scenes?",
-                        "min": 1,
+                        "min": 2,
                         "max": 6,
                         "events": []
+                      }
+                    },
+                    {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-your-product",
+                        "title": "Models (4)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-mockups-4-model",
+                              "binding": "op:mockups/prop:4#model",
+                              "label": "Composite product into scene model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-mockups-6-model",
+                              "binding": "op:mockups/prop:6#model",
+                              "label": "Split into per-scene prompts model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-mockups-8-model",
+                              "binding": "op:mockups/prop:8#model",
+                              "label": "Scene concept agent model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-mockups-15-model",
+                              "binding": "op:mockups/prop:15#model",
+                              "label": "Render scene model",
+                              "modelKind": "image_model",
+                              "events": []
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -156,17 +192,8 @@
                         ]
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-your-product-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -197,16 +224,53 @@
                       "type": "Heading",
                       "props": {
                         "id": "lbl-mockups-scene",
-                        "text": "Shot list",
+                        "text": "Scenes before the product goes in",
                         "level": "3"
                       }
                     },
                     {
-                      "type": "Markdown",
+                      "type": "Image",
                       "props": {
                         "id": "out-mockups-scene",
                         "binding": "op:mockups/out:output-scene",
-                        "text": ""
+                        "fit": "contain",
+                        "height": 280,
+                        "placeholder": "Your result appears here"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-your-product"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-your-product",
+                  "gap": 16,
+                  "left": [],
+                  "right": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "next-your-product",
+                        "label": "Next: Launch video",
+                        "variant": "contained",
+                        "color": "primary",
+                        "fullWidth": false,
+                        "align": "end",
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "launch-video"
+                          }
+                        ]
                       }
                     }
                   ]
@@ -216,37 +280,30 @@
           }
         },
         {
-          "type": "Columns",
+          "type": "Container",
           "props": {
-            "id": "cols-launch-video",
-            "gap": 24,
-            "left": [
+            "id": "step-launch-video",
+            "variant": "plain",
+            "visibleWhen": {
+              "binding": "var:step",
+              "op": "eq",
+              "value": "launch-video"
+            },
+            "content": [
               {
-                "type": "Container",
+                "type": "Heading",
                 "props": {
-                  "id": "panel-launch-video",
-                  "title": "Launch video",
-                  "content": [
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-video-3-model",
-                        "binding": "op:video/prop:3#model",
-                        "label": "Launch video model",
-                        "modelKind": "language_model",
-                        "events": []
-                      }
-                    },
-                    {
-                      "type": "ModelSelect",
-                      "props": {
-                        "id": "model-video-97f03868-da4f-4604-b57e-5f2118847956-model",
-                        "binding": "op:video/prop:97f03868-da4f-4604-b57e-5f2118847956#model",
-                        "label": "Launch video model",
-                        "modelKind": "video_model",
-                        "events": []
-                      }
-                    },
+                  "id": "heading-launch-video",
+                  "text": "Launch video",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "cols-launch-video",
+                  "gap": 24,
+                  "left": [
                     {
                       "type": "Text",
                       "props": {
@@ -275,6 +332,36 @@
                       }
                     },
                     {
+                      "type": "Accordion",
+                      "props": {
+                        "id": "models-launch-video",
+                        "title": "Models (2)",
+                        "defaultOpen": false,
+                        "content": [
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-video-3-model",
+                              "binding": "op:video/prop:3#model",
+                              "label": "Write video prompt model",
+                              "modelKind": "language_model",
+                              "events": []
+                            }
+                          },
+                          {
+                            "type": "ModelSelect",
+                            "props": {
+                              "id": "model-video-97f03868-da4f-4604-b57e-5f2118847956-model",
+                              "binding": "op:video/prop:97f03868-da4f-4604-b57e-5f2118847956#model",
+                              "label": "Animate product video model",
+                              "modelKind": "video_model",
+                              "events": []
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "Button",
                       "props": {
                         "id": "btn-video",
@@ -292,17 +379,8 @@
                         ]
                       }
                     }
-                  ]
-                }
-              }
-            ],
-            "right": [
-              {
-                "type": "Container",
-                "props": {
-                  "id": "panel-launch-video-results",
-                  "title": "Results",
-                  "content": [
+                  ],
+                  "right": [
                     {
                       "type": "Progress",
                       "props": {
@@ -329,6 +407,39 @@
                       }
                     }
                   ]
+                }
+              },
+              {
+                "type": "Divider",
+                "props": {
+                  "id": "divider-launch-video"
+                }
+              },
+              {
+                "type": "Columns",
+                "props": {
+                  "id": "nav-launch-video",
+                  "gap": 16,
+                  "left": [
+                    {
+                      "type": "Button",
+                      "props": {
+                        "id": "back-launch-video",
+                        "label": "Back: Your product",
+                        "variant": "outlined",
+                        "fullWidth": false,
+                        "events": [
+                          {
+                            "trigger": "click",
+                            "kind": "setVariable",
+                            "key": "var:step",
+                            "value": "your-product"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "right": []
                 }
               }
             ]
@@ -377,6 +488,17 @@
     "resources": [],
     "variables": [
       {
+        "id": "step",
+        "name": "Step",
+        "type": {
+          "type": "str",
+          "optional": true
+        },
+        "default": "your-product",
+        "scope": "instance",
+        "persist": false
+      },
+      {
         "id": "productPhoto",
         "name": "Product photo",
         "type": {
@@ -412,17 +534,14 @@
               "name": "product_image",
               "value": {
                 "type": "image",
-                "uri": "",
-                "asset_id": null,
-                "data": null,
-                "metadata": null
+                "uri": "package://nodetool-base/recipe-inputs/coffee.jpg"
               },
               "description": "The product image to place in scenes"
             },
             "ui_properties": {
               "position": {
-                "x": 1340,
-                "y": 509
+                "x": 0,
+                "y": 503
               },
               "zIndex": 0,
               "width": 280,
@@ -444,7 +563,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 130
+                "y": 868
               },
               "zIndex": 0,
               "width": 280,
@@ -466,7 +585,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 827
+                "y": 1093
               },
               "zIndex": 0,
               "width": 280,
@@ -488,7 +607,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 583
+                "y": 1318
               },
               "zIndex": 0,
               "width": 280,
@@ -512,7 +631,7 @@
             "ui_properties": {
               "position": {
                 "x": 0,
-                "y": 367
+                "y": 1543
               },
               "zIndex": 0,
               "width": 280,
@@ -531,8 +650,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2620,
-                "y": 479
+                "x": 3144,
+                "y": 847
               },
               "selectable": true
             }
@@ -545,8 +664,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 2000,
-                "y": 0
+                "x": 2384,
+                "y": 1304
               },
               "selectable": true
             }
@@ -570,8 +689,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 50,
-                "y": -197
+                "x": 0,
+                "y": 442
               },
               "zIndex": 0,
               "width": 280,
@@ -592,8 +711,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 50,
-                "y": 83
+                "x": 0,
+                "y": 667
               },
               "zIndex": 0,
               "width": 280,
@@ -614,8 +733,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 50,
-                "y": 363
+                "x": 0,
+                "y": 892
               },
               "zIndex": 0,
               "width": 280,
@@ -632,15 +751,15 @@
             "data": {
               "name": "image_input_1",
               "value": {
-                "uri": "/api/storage/4a816f674eda4358b8140c50917ae78e.bin",
-                "type": "image"
+                "type": "image",
+                "uri": "package://nodetool-base/recipe-inputs/coffee.jpg"
               },
               "description": "Product photo to animate into the launch video"
             },
             "ui_properties": {
               "position": {
-                "x": 50,
-                "y": 643
+                "x": 0,
+                "y": 1117
               },
               "zIndex": 0,
               "width": 280,
@@ -659,8 +778,8 @@
             },
             "ui_properties": {
               "position": {
-                "x": 1763,
-                "y": 357
+                "x": 2362,
+                "y": 984
               },
               "selectable": true
             }
@@ -682,6 +801,7 @@
     "op:video/out:output-product-video": {
       "$demo": "video"
     },
+    "var:step": "your-product",
     "var:audience": "people who hike on weekends"
   }
 }

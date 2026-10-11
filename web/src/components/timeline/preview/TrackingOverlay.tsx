@@ -7,7 +7,6 @@ import {
   sourcePointToReframeViewport
 } from "./ReframeFocusOverlay";
 import type { TrackingRectangle } from "./useTrackingSelection";
-import { useTranslation } from "react-i18next";
 
 interface TrackingOverlayProps {
   region: TrackingRectangle | null;
@@ -33,7 +32,6 @@ const clamp = (value: number, min: number, max: number): number =>
 export function TrackingOverlay(
   props: TrackingOverlayProps
 ): React.ReactElement | null {
-  const { t } = useTranslation();
   const { region, onChange, onCancel, frameWidth, frameHeight } = props;
   const descriptionId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -163,7 +161,7 @@ export function TrackingOverlay(
         height={frameHeight}
         viewBox={`0 0 ${frameWidth} ${frameHeight}`}
         role={onChange ? "group" : "img"}
-        aria-label={onChange ? t("timeline:attrs.selectTrackingSubject", { defaultValue: "Select tracking subject" }) : t("timeline:attrs.trackedSubject", { defaultValue: "Tracked subject" })}
+        aria-label={onChange ? "Select tracking subject" : "Tracked subject"}
         aria-describedby={descriptionId}
         tabIndex={onChange ? 0 : undefined}
         style={{

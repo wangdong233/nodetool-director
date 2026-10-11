@@ -15,6 +15,25 @@
   "graph": {
     "nodes": [
       {
+        "id": "intro-comment",
+        "type": "nodetool.workflows.base_node.Comment",
+        "data": {
+          "comment": "# Blog Post to Social Thread\n\nTurns a long article into a numbered social thread of six to eight posts. Each post must read on its own, which stops the result from being a summary cut into pieces.\n\n**How it works:** Paste the article into \"1 Input\". \"2 Agent\" writes posts under 280 characters each, with no hashtags. \"3 Output\" shows the thread as text.\n\n**Try this:** Pick a model on the Agent and change the limit in its system prompt to 500 characters for a platform that allows longer posts."
+        },
+        "ui_properties": {
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "zIndex": 0,
+          "width": 560,
+          "selectable": true,
+          "height": 247
+        },
+        "dynamic_properties": {},
+        "dynamic_outputs": {}
+      },
+      {
         "id": "in",
         "type": "nodetool.input.StringInput",
         "data": {
@@ -25,7 +44,7 @@
         "ui_properties": {
           "position": {
             "x": 0,
-            "y": 120
+            "y": 346
           },
           "zIndex": 0,
           "width": 300,
@@ -41,13 +60,13 @@
         "data": {
           "model": {
             "type": "language_model",
-            "provider": "openai",
-            "id": "gpt-5-mini",
-            "name": "GPT-5 mini",
+            "provider": "",
+            "id": "",
+            "name": "",
             "path": null,
             "supported_tasks": []
           },
-          "system": "You turn articles into social threads. Six to eight posts, each under 280 characters, each readable on its own. No hashtags.",
+          "system": "You turn articles into social threads. Six to eight posts, each under 280 characters, each readable on its own. Number each post as 1/, 2/ and so on. No hashtags.",
           "prompt": "",
           "tools": [],
           "image": [],
@@ -59,8 +78,8 @@
         },
         "ui_properties": {
           "position": {
-            "x": 330,
-            "y": 120
+            "x": 400,
+            "y": 327
           },
           "zIndex": 0,
           "width": 300,
@@ -78,8 +97,8 @@
         },
         "ui_properties": {
           "position": {
-            "x": 660,
-            "y": 120
+            "x": 800,
+            "y": 358
           },
           "zIndex": 0,
           "width": 300,

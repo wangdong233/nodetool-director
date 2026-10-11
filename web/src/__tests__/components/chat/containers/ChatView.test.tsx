@@ -413,6 +413,21 @@ describe("ChatView", () => {
       });
     });
 
+    it("does not offer to retry the previous message after a new send fails", async () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      mockSendMessage.mockRejectedValueOnce(new Error("offline"));
+      useGlobalChatStore.setState({ currentThreadId: "failed-send-thread", error: "offline" });
+      renderWithProviders(<ChatView {...baseProps} messages={[{
+        id: "previous", type: "message", role: "user",
+        content: [{ type: "text", text: "Previous message" }]
+      }]} />);
+      expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+      await userEvent.click(screen.getByTestId("send-message-btn"));
+      await waitFor(() => expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument());
+      expect(mockSendMessage).toHaveBeenCalledTimes(1);
+      consoleSpy.mockRestore();
+    });
+
     it("handles sendMessage errors gracefully", async () => {
       const consoleSpy = jest
         .spyOn(console, "error")
@@ -629,8 +644,12 @@ describe("ChatView", () => {
       );
     });
 
-    it("retries with the last user message's content", async () => {
+    it("retries by rewinding to the last user message and sending it again", async () => {
       seedThreadError("thread-1", "Provider refused the request");
+      const rewindThread = jest.fn().mockResolvedValue(undefined);
+      act(() => {
+        useGlobalChatStore.setState({ rewindThread });
+      });
 
       renderWithProviders(
         <ChatView {...baseProps} threadId="thread-1" messages={conversation} />
@@ -638,11 +657,16 @@ describe("ChatView", () => {
 
       await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-      expect(mockSendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          role: "user",
-          content: [{ type: "text", text: "First ask" }]
-        })
+      // The failed turn leaves the history before it is sent again, so the
+      // thread does not end up holding the same question twice.
+      expect(rewindThread).toHaveBeenCalledWith("thread-1", "1");
+      await waitFor(() =>
+        expect(mockSendMessage).toHaveBeenCalledWith(
+          expect.objectContaining({
+            role: "user",
+            content: [{ type: "text", text: "First ask" }]
+          })
+        )
       );
     });
 
@@ -759,6 +783,34 @@ describe("ChatView", () => {
       expect(screen.queryByTestId("chat-thread-view")).not.toBeInTheDocument();
       // The composer stays put whichever rail is showing.
       expect(screen.getByTestId("chat-input-section")).toBeInTheDocument();
+    });
+
+    it("keeps the documents rail out of the phone layout", () => {
+      setViewport("narrow");
+
+      renderWithProviders(
+        <ChatView
+          {...baseProps}
+          messages={[
+            {
+              id: "1",
+              type: "message",
+              role: "user",
+              content: [{ type: "text", text: "Go" }]
+            }
+          ]}
+          projectDocumentsSidebar={<div data-testid="project-documents" />}
+        />
+      );
+
+      expect(
+        screen.queryByRole("button", { name: "Chat" })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Documents" })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId("project-documents")).not.toBeInTheDocument();
+      expect(screen.getByTestId("chat-thread-view")).toBeInTheDocument();
     });
 
     it("leaves the desktop layout without the tabs", () => {

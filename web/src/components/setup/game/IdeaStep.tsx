@@ -1,23 +1,18 @@
 /**
- * Step 1 of the Game flow — the idea (game-prd § 4.1).
+ * Step 1 of the Game flow — the idea.
  *
- * A box for the premise, three inspiration chips, and the three other ways in.
- * The brief writes straight to `settings.game` as it is typed, so `Continue`
- * has only the stage left to write and a reload resumes with the text intact.
- *
- * Two of the alternatives skip a step rather than leaving the flow:
- * `Start from a template` opens the three template cards inline and lands on
- * the Design step with that card selected, and `Export a blank template` picks
- * one, writes stage `done`, and places the export node alone — a project that
- * runs in Godot today with the template's placeholder art (D27).
+ * A box for the game, three inspiration chips written for the built-in
+ * top-down template, and the ways in that skip the design: a blank room to
+ * edit by hand, or a blank 3D game. The brief writes straight to
+ * `settings.game` as it is typed, so a reload resumes with the text intact.
  */
 
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { GAME_INSPIRATION_CHIPS } from "@nodetool-ai/protocol";
+import React, { memo, useCallback, useMemo, useRef } from "react";
+import { NATIVE_GAME_INSPIRATION_CHIPS } from "@nodetool-ai/protocol";
 
 import {
+  AlertBanner,
   Box,
-  Caption,
   FlexColumn,
   GAP,
   Text,
@@ -26,48 +21,38 @@ import {
 import { ExampleBriefs } from "../ExampleBriefs";
 import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
-import { OptionCardGrid } from "../OptionCardGrid";
-import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
-import { templateCards } from "./templates";
-import { useAppLanguage } from "../../../i18n";
 import { useTranslation } from "react-i18next";
+import ReportBugButton from "../../support/ReportBugButton";
 
+/** A way in that makes a game without designing one. */
+export type GameStartAlternative = "blank-2d" | "blank-3d";
 export interface GameIdeaStepProps {
+  workflowId: string;
   brief: string;
   /** Writes the brief as it is typed. */
   onBriefChange: (brief: string) => void;
-  /** The shipped templates, for both inline card grids. */
-  templates: readonly GameTemplate[];
-  /** Picks a template and moves to the Design step with it selected. */
-  onStartFromTemplate: (templateId: string) => void;
-  /** Picks a template, writes stage `done`, and exports the placeholders. */
-  onExportBlank: (templateId: string) => void;
-  /** True while the blank export is placing and running its one node. */
-  exportingBlank?: boolean;
-  /** Leaves the flow for an empty canvas — stage `done`, nothing built. */
-  onStartBlank: () => void;
-  /** Opens the existing tutorials entry. */
-  onOpenTutorial: () => void;
+  /** Makes a game without the design steps, then leaves the flow. */
+  onStartAlternative: (kind: GameStartAlternative) => void;
+  /** The alternative being created right now. */
+  startingAlternative?: GameStartAlternative | null;
+  /** Why the last alternative was refused. */
+  alternativeError?: string | null;
+  onDismissAlternativeError?: () => void;
+  readOnly?: boolean;
 }
 
-/** Which inline card grid the step body has been replaced by, if any. */
-type Picker = "template" | "blank" | null;
-
 const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
+  workflowId,
   brief,
   onBriefChange,
-  templates,
-  onStartFromTemplate,
-  onExportBlank,
-  exportingBlank = false,
-  onStartBlank,
-  onOpenTutorial
+  onStartAlternative,
+  startingAlternative = null,
+  alternativeError = null,
+  onDismissAlternativeError,
+  readOnly = false
 }) => {
   const { t } = useTranslation();
-  // The template cards' meta line is translated inside the memo, so its work
-  // must redo when the language flips (the frozen-i18n.t rule).
-  const { version: languageVersion } = useAppLanguage();
-  const [picker, setPicker] = useState<Picker>(null);
+  const briefField = useRef<HTMLElement | null>(null);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -75,86 +60,45 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
     },
     [onBriefChange]
   );
-
-  const cards = useMemo(
-    () => templateCards(templates, t),
-    [templates, t, languageVersion]
-  );
-
-  const alternatives: AlternativeEntry[] = useMemo(
-    () => [
-      {
-        id: "template",
-        title: t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" }),
-        description: t("editor:ui.pickLoopSkipToDesign", { defaultValue: "Pick the loop and skip straight to the design" }),
-        onSelect: () => setPicker("template"),
-        disabled: templates.length === 0,
-        disabledReason:
-          templates.length === 0 ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" }) : undefined
-      },
-      {
-        id: "blank",
-        title: t("editor:ui.exportBlankTemplate", { defaultValue: "Export a blank template" }),
-        description: t("editor:ui.runningProjectPlaceholderArt", { defaultValue: "A running project with placeholder art, fill it later" }),
-        onSelect: () => setPicker("blank"),
-        disabled: templates.length === 0 || exportingBlank,
-        disabledReason: exportingBlank
-          ? t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
-          : templates.length === 0
-            ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" })
-            : undefined
-      },
-      {
-        id: "blank",
-        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
-        onSelect: onStartBlank
-      },
-      {
-        id: "tutorial",
-        title: t("editor:ui.tutorial", { defaultValue: "Tutorial" }),
-        description: t("editor:ui.walkOneProjectEndToEnd", { defaultValue: "Walk one project end to end, with the steps explained" }),
-        onSelect: onOpenTutorial
+  // A step shown for reading takes no chip either.
+  const handleChip = useCallback(
+    (next: string) => {
+      if (!readOnly) {
+        onBriefChange(next);
       }
-    ],
-    [t, exportingBlank, onOpenTutorial, onStartBlank, templates.length]
+    },
+    [onBriefChange, readOnly]
   );
 
-  if (picker !== null) {
-    const blank = picker === "blank";
-    return (
-      <FlexColumn gap={GAP.comfortable}>
-        <FlexColumn gap={GAP.tight}>
-          <Text size="big" component="h2">
-            {blank
-              ? t("editor:ui.exportBlankTemplate", {
-                  defaultValue: "Export a blank template"
-                })
-              : t("editor:ui.startFromATemplate", {
-                  defaultValue: "Start from a template"
-                })}
-          </Text>
-          <Caption color="secondary" component="p">
-            {blank
-              ? t("storyboard:attrs.theTemplateWithItsPlaceholderArtExportedAndReadyToOpenInGodot", { defaultValue: "The template with its placeholder art, exported and ready to open in Godot." })
-              : t("storyboard:attrs.pickTheLoopAndSkipStraightToTheDesign", { defaultValue: "Pick the loop and skip straight to the design." })}
-          </Caption>
-        </FlexColumn>
-        <OptionCardGrid
-          label={blank ? t("storyboard:attrs.blankTemplate", { defaultValue: "Blank template" }) : t("storyboard:attrs.template", { defaultValue: "Template" })}
-          options={cards}
-          onSelect={(id) => {
-            setPicker(null);
-            if (blank) {
-              onExportBlank(id);
-              return;
-            }
-            onStartFromTemplate(id);
-          }}
-        />
-      </FlexColumn>
-    );
-  }
+  const alternatives: AlternativeEntry[] = useMemo(() => {
+    const busy = startingAlternative !== null || readOnly;
+    const busyReason =
+      startingAlternative !== null ? "Creating your game" : "Not editable";
+    return [
+      {
+        id: "blank-2d",
+        title: "Start with a blank room",
+        description:
+          startingAlternative === "blank-2d"
+            ? "Creating your game"
+            : "Skip the design and edit the top-down room yourself",
+        onSelect: () => onStartAlternative("blank-2d"),
+        disabled: busy,
+        disabledReason: busyReason
+      },
+      {
+        id: "blank-3d",
+        title: "Start a blank 3D game",
+        description:
+          startingAlternative === "blank-3d"
+            ? "Creating your game"
+            : "An empty 3D scene in the built-in engine",
+        onSelect: () => onStartAlternative("blank-3d"),
+        disabled: busy,
+        disabledReason: busyReason
+      }
+    ];
+  }, [onStartAlternative, readOnly, startingAlternative]);
 
   return (
     <Box
@@ -174,7 +118,8 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
             {t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
-            {t("storyboard:attrs.tellUsThePremiseWellPickATemplate", { defaultValue: "Tell us the premise. We'll pick a template, write the design, and fill every asset slot." })}
+            Describe it in a sentence. We&apos;ll write a design you can edit,
+            then draw its art.
           </Text>
         </FlexColumn>
 
@@ -182,21 +127,39 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           value={brief}
           autoFocus
           multiline
-          rows={4}
-          label={t("storyboard:attrs.thePremise", { defaultValue: "The premise" })}
+          rows={3}
+          label="Your game"
           hideLabel
-          placeholder={t("storyboard:attrs.oneSentenceIsEnoughWhoYouPlayWhatYouDoAndWhatStopsYou", { defaultValue: "One sentence is enough: who you play, what you do, and what stops you." })}
+          placeholder="A cat collecting fish in a moonlit garden"
           onChange={handleChange}
+          inputRef={briefField}
+          disabled={readOnly}
         />
 
+        {alternativeError ? (
+          <AlertBanner
+            severity="error"
+            onClose={onDismissAlternativeError}
+            action={
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Creating a game failed",
+                  errorText: alternativeError,
+                  workflowId
+                }}
+              />
+            }
+          >
+            {alternativeError}
+          </AlertBanner>
+        ) : null}
+
         <ExampleBriefs
-          examples={GAME_INSPIRATION_CHIPS.map((chip) =>
-            t(`catalog:gameInspiration.${chip.id}`, {
-              defaultValue: chip.brief
-            })
-          )}
+          examples={NATIVE_GAME_INSPIRATION_CHIPS.map((chip) => chip.brief)}
           brief={brief}
-          onSelect={onBriefChange}
+          onSelect={handleChip}
+          briefRef={briefField}
         />
       </FlexColumn>
 

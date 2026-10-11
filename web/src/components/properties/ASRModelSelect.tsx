@@ -6,7 +6,7 @@ import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
-import { useTranslation } from "react-i18next";
+import { modelLabelFromId } from "../../utils/modelNormalization";
 interface ASRModelSelection {
   type: "asr_model";
   id: string;
@@ -17,6 +17,7 @@ interface ASRModelSelection {
 interface ASRModelSelectProps {
   onChange: (value: ASRModelSelection) => void;
   value: string;
+  provider?: string;
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
 }
@@ -24,10 +25,10 @@ interface ASRModelSelectProps {
 const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
   onChange,
   value,
+  provider,
   recommendedModels,
   modelPacks
 }) => {
-  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("asr_model", onChange);
   const { data: models } = useQuery({
@@ -39,16 +40,22 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
     if (!models || !value) {
       return null;
     }
-    return models.find((m) => m.id === value);
-  }, [models, value]);
+    return models.find(
+      (m) => m.id === value && (!provider || m.provider === provider)
+    );
+  }, [models, value, provider]);
 
   return (
     <>
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel")}
-        subLabel={t("editor:ui.selectASRModel2")}
+        label={
+          currentSelectedModelDetails?.name ||
+          (value ? modelLabelFromId(value) : "Select Model")
+        }
+        secondaryLabel={currentSelectedModelDetails?.provider ?? provider}
+        subLabel="Select ASR Model"
         onClick={handleClick}
       />
       <ASRModelMenuDialog

@@ -6,6 +6,7 @@
  * `repeat(auto-fill, minmax(Npx, 1fr))` grid declarations.
  */
 
+import { i18n } from "../../i18n";
 import React, { forwardRef, memo } from "react";
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

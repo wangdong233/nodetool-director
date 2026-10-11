@@ -4,12 +4,14 @@
  * Resolves HF tokens from environment variables and token files,
  * following the same semantics as the official huggingface_hub library.
  *
- * No external dependencies -- uses only Node.js built-ins.
+ * Directory resolution comes from `@nodetool-ai/config`.
  */
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
+
+import { getHfHomeDir } from "@nodetool-ai/config";
 
 // ---------------------------------------------------------------------------
 // In-memory cache
@@ -27,22 +29,9 @@ function envBool(name: string): boolean {
   return ["1", "TRUE", "YES", "ON"].includes(v.trim().toUpperCase());
 }
 
-/**
- * Return the HF_HOME directory following the same resolution order as
- * the official hub library:
- *   1. $HF_HOME
- *   2. $XDG_CACHE_HOME/huggingface
- *   3. ~/.cache/huggingface
- */
+/** The Hugging Face home directory, resolved by `getHfHomeDir` in `@nodetool-ai/config`. */
 function hfHomeDir(): string {
-  const hfHome = process.env["HF_HOME"];
-  if (hfHome)
-    return hfHome.startsWith("~") ? hfHome.replace("~", os.homedir()) : hfHome;
-
-  const xdg = process.env["XDG_CACHE_HOME"];
-  if (xdg) return path.join(xdg, "huggingface");
-
-  return path.join(os.homedir(), ".cache", "huggingface");
+  return getHfHomeDir();
 }
 
 // ---------------------------------------------------------------------------
@@ -169,20 +158,20 @@ export type SecretReader = (
 ) => Promise<string | null | undefined> | string | null | undefined;
 
 /**
- * Resolve the HuggingFace token a host should forward to a remote worker.
+ * Resolve the HuggingFace token for a download the host starts or relays.
  *
  * A rented worker has neither a secret store nor `HF_TOKEN` in its
  * environment, so it can only download public repos. The host resolves the
  * credential instead and sends it with the `models.download` request
- * (nodetool-ai/nodetool#5184).
+ * (nodetool-ai/nodetool#5184). Local server downloads use it too, because a
+ * token saved in Settings lives in the secret store, not the environment.
  *
  * Order: the user's stored `HF_TOKEN` first, then this process's own
- * environment and HF token file via {@link getHfToken} — the same token the
- * local download path already uses. A blank value at either step is not a
- * credential and yields `undefined`, so the worker takes its own fallback
- * rather than receiving an empty Bearer header. A secret store that throws
- * (locked, absent) falls through to the environment instead of failing the
- * download.
+ * environment and HF token file via {@link getHfToken}. A blank value at
+ * either step is not a credential and yields `undefined`, so the worker takes
+ * its own fallback rather than receiving an empty Bearer header. A secret
+ * store that throws (locked, absent) falls through to the environment instead
+ * of failing the download.
  */
 export async function resolveWorkerHfToken(
   readSecret?: SecretReader

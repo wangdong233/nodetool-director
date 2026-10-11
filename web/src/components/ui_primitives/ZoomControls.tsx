@@ -34,7 +34,7 @@ const styles = (theme: Theme) =>
       color: theme.vars.palette.text.secondary,
       minWidth: `${CONTROL.height.xl}px`,
       textAlign: "center",
-      fontFamily: "monospace"
+      fontFamily: "var(--fontFamily2)"
     }
   });
 

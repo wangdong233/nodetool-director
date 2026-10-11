@@ -5,6 +5,7 @@
  * Replaces repeated flex-row header patterns with title + actions across the codebase.
  */
 
+import { i18n } from "../../i18n";
 import React from "react";
 import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -52,22 +53,30 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   const theme = useTheme();
 
+  // Each size maps onto a sanctioned type style. `small` is the eyebrow used
+  // to group rows inside a panel: caption type, always uppercase, muted.
   const sizeStyles = {
     small: {
       fontSize: theme.fontSizeSmaller,
-      fontWeight: 600,
+      fontWeight: 400,
       padding: theme.spacing(1, 0),
+      uppercase: true,
+      color: theme.vars.palette.text.secondary
     },
     medium: {
       fontSize: theme.fontSizeSmall,
-      fontWeight: 600,
+      fontWeight: 500,
       padding: theme.spacing(1.5, 0),
+      uppercase,
+      color: theme.vars.palette.text.primary
     },
     large: {
-      fontSize: theme.fontSizeNormal,
+      fontSize: theme.fontSizeBig,
       fontWeight: 600,
       padding: theme.spacing(2, 0),
-    },
+      uppercase,
+      color: theme.vars.palette.text.primary
+    }
   };
 
   const currentSize = sizeStyles[size];
@@ -88,9 +97,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           sx={{
             fontSize: currentSize.fontSize,
             fontWeight: currentSize.fontWeight,
-            color: theme.vars.palette.text.primary,
-            textTransform: uppercase ? "uppercase" : "none",
-            letterSpacing: uppercase ? "0.5px" : undefined,
+            color: currentSize.color,
+            textTransform: currentSize.uppercase ? "uppercase" : "none",
+            letterSpacing: currentSize.uppercase ? "0.06em" : undefined,
           }}
         >
           {title}

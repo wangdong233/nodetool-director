@@ -1,5 +1,5 @@
 import { stub } from "../../../test-utils/doubles";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,15 +7,30 @@ import type { Data } from "@puckeditor/core";
 
 import mockTheme from "../../../__mocks__/themeMock";
 import type { ApplicationDocument } from "@nodetool-ai/app-runtime";
+import type { ServerAppInstance } from "../runtime/appInstanceApi";
 
 import AppRuntimeView from "../AppRuntimeView";
+import { useBugReportStore } from "../../../stores/BugReportStore";
 import { Workflow } from "../../../stores/ApiTypes";
 import { globalWebSocketManager } from "../../../lib/websocket/GlobalWebSocketManager";
+import { useRun } from "../../../serverState/useRuns";
+import useTraceStore from "../../../stores/TraceStore";
 import {
   disposeAppRuntimeStore,
   getAppRuntimeStore,
   workflowInstanceId
 } from "../runtime/appRuntimeStore";
+
+let mockLoadedInstance: ServerAppInstance | undefined;
+let mockInstanceError: string | undefined;
+jest.mock("../runtime/useAppInstance", () => ({
+  useAppInstance: () => ({ enabled: false, visitor: false, account: "1", instance: mockLoadedInstance, error: mockInstanceError, attach: () => undefined, flush: async () => undefined, serverFold: (apply: () => void) => apply(), refresh: async () => undefined, loading: false })
+}));
+jest.mock("../../../serverState/useRuns", () => ({
+  ...jest.requireActual("../../../serverState/useRuns"),
+  useRun: jest.fn(() => ({ data: undefined }))
+}));
+jest.mock("../../runs/AskRunAgentButton", () => ({ AskRunAgentButton: ({ runId, spanId }: { runId: string; spanId?: string }) => <button data-run={runId} data-span={spanId}>Ask the agent</button> }));
 
 const workflow = stub<Workflow>({
   id: "wf-puck-runtime",
@@ -57,23 +72,217 @@ const renderView = (document?: ApplicationDocument) =>
 /** Register a run and make it the operation's active invocation. */
 const startRun = (id: string) =>
   act(() =>
-    store().getState().dispatchEvent({
-      type: "runStarted",
-      invocation: {
-        id,
-        operationId: "main",
-        status: "running",
-        startedAt: 1
-      },
-      outputKeys: []
-    })
+    store()
+      .getState()
+      .dispatchEvent({
+        type: "runStarted",
+        invocation: {
+          id,
+          operationId: "main",
+          status: "running",
+          startedAt: 1
+        },
+        outputKeys: []
+      })
   );
 
 beforeEach(() => {
+  mockLoadedInstance = undefined;
+  mockInstanceError = undefined;
   disposeAppRuntimeStore(instance);
+  useTraceStore.getState().clear();
+  jest.mocked(useRun).mockReturnValue(stub<ReturnType<typeof useRun>>({ data: undefined }));
 });
 
 describe("AppRuntimeView (Puck Render)", () => {
+  it.each([false, true])(
+    "preserves input focus across instance saves with nested slot %s",
+    async (nested) => {
+      const user = userEvent.setup();
+      const inputWorkflow = stub<Workflow>({
+        ...workflow,
+        graph: {
+          nodes: [
+            {
+              id: "in1",
+              type: "nodetool.input.StringInput",
+              data: { name: "prompt", value: "hello journey" }
+            }
+          ],
+          edges: []
+        }
+      });
+      const input = {
+        type: "WorkflowInput",
+        props: { id: "prompt-widget", binding: "op:main/in:in1" }
+      };
+      const ui: Data = {
+        root: { props: {} },
+        content: nested
+          ? [
+              {
+                type: "Container",
+                props: { id: "container", variant: "plain", content: [input] }
+              }
+            ]
+          : [input],
+        zones: {}
+      };
+      const document: ApplicationDocument = {
+        schemaVersion: 3,
+        ui,
+        operations: [
+          {
+            id: "main",
+            name: "Echo",
+            workflowId: workflow.id,
+            inputs: {},
+            outputs: {},
+            policy: "replace"
+          }
+        ],
+        resources: [],
+        variables: []
+      };
+      mockLoadedInstance = stub<ServerAppInstance>({
+        id: "loaded-instance",
+        user_id: "1",
+        revision: 0,
+        variables: {},
+        snapshot: {
+          document: { ...document, ui: { ...ui } },
+          workflow_graphs: {},
+          script_documents: {}
+        }
+      });
+      const client = new QueryClient();
+      const view = () => (
+        <QueryClientProvider client={client}>
+          <ThemeProvider theme={mockTheme}>
+            <AppRuntimeView
+              workflow={inputWorkflow}
+              data={ui}
+              document={document}
+              previewDraft
+            />
+          </ThemeProvider>
+        </QueryClientProvider>
+      );
+      const rendered = render(view());
+      const textbox = await screen.findByRole("textbox");
+      await user.click(textbox);
+      expect(textbox).toHaveFocus();
+
+      mockLoadedInstance = {
+        ...mockLoadedInstance,
+        revision: 1,
+        variables: { __app_inputs: { "main:in1": "hello journey" } }
+      };
+      rendered.rerender(view());
+
+      expect(screen.getByRole("textbox")).toBe(textbox);
+      expect(textbox.isConnected).toBe(true);
+      expect(textbox).toHaveFocus();
+      act(() => {
+        store().getState().dispatchEvent({
+          type: "setInput",
+          key: "main:in1",
+          value: "Runtime update"
+        });
+      });
+      await waitFor(() => expect(textbox).toHaveValue("Runtime update"));
+      expect(screen.getByRole("textbox")).toBe(textbox);
+      await user.clear(textbox);
+      await user.type(textbox, "first preview edit");
+      expect(textbox).toHaveValue("first preview edit");
+      expect(store().getState().inputs["main:in1"]?.value).toBe(
+        "first preview edit"
+      );
+
+      mockLoadedInstance = {
+        ...mockLoadedInstance,
+        snapshot: {
+          ...mockLoadedInstance.snapshot,
+          document: {
+            ...document,
+            ui: {
+              ...ui,
+              content: [
+                ...ui.content,
+                {
+                  type: "Heading",
+                  props: {
+                    id: "new-heading",
+                    text: "New definition",
+                    level: "1"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      };
+      rendered.rerender(view());
+      expect(await screen.findByText("New definition")).toBeInTheDocument();
+    }
+  );
+  it("keeps working values visible when a loaded instance has a save conflict", async () => {
+    mockLoadedInstance = stub<ServerAppInstance>({
+      id: "loaded-instance",
+      user_id: "1",
+      variables: {},
+      snapshot: {
+        document: {
+          schemaVersion: 3,
+          ui: { ...data, content: [{ type: "Text", props: { id: "t1", text: "", binding: "var:unsaved" } }] },
+          operations: [],
+          resources: [],
+          variables: [{ id: "unsaved", name: "Unsaved", scope: "instance", persist: false, type: { type: "str" } }]
+        },
+        workflow_graphs: {},
+        script_documents: {}
+      }
+    });
+    mockInstanceError = "This instance changed in another session";
+    act(() => {
+      store().getState().dispatchEvent({ type: "seedVariables", values: { unsaved: "Working draft" } });
+    });
+    renderView();
+    expect(await screen.findByText(mockInstanceError)).toBeInTheDocument();
+    expect(screen.getByText("Working draft")).toBeInTheDocument();
+    expect(store().getState().variables.unsaved).toBe("Working draft");
+  });
+  it("waits for explicit workspace instance identity before mounting widgets", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ThemeProvider theme={mockTheme}>
+          <AppRuntimeView
+            workflow={workflow}
+            data={data}
+            application={{ id: "app" }}
+            onInstanceReady={jest.fn()}
+          />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+    expect(screen.getByText("Opening instance")).toBeInTheDocument();
+    expect(screen.queryByText("Reactive App")).not.toBeInTheDocument();
+  });
+  it("opens the stored failed span and hands the same typed IDs to chat", async () => {
+    const runId = "a".repeat(32), spanId = "b".repeat(16);
+    startRun("failed-job");
+    act(() => {
+      store().getState().setRunReference("main", { runId, traceId: "c".repeat(32), invocationId: "failed-job" });
+      store().getState().dispatchEvent({ type: "invocationError", invocationId: "failed-job", error: "Missing input" });
+    });
+    jest.mocked(useRun).mockReturnValue(stub<ReturnType<typeof useRun>>({ data: { summary: { first_failed_span_id: spanId } } }));
+    renderView();
+    const banner = within(screen.getByRole("alert"));
+    await userEvent.click(banner.getByRole("button", { name: "View trace" }));
+    expect(useTraceStore.getState()).toMatchObject({ selectedRunId: runId, focusedSpanId: spanId, view: "trace" });
+    expect(banner.getByRole("button", { name: "Ask the agent" })).toHaveAttribute("data-run", runId);
+    expect(banner.getByRole("button", { name: "Ask the agent" })).toHaveAttribute("data-span", spanId);
+  });
   it("renders widgets from the Puck document", () => {
     renderView();
     expect(screen.getAllByText("Reactive App").length).toBeGreaterThan(0);
@@ -101,16 +310,18 @@ describe("AppRuntimeView (Puck Render)", () => {
     renderView();
 
     act(() => {
-      globalWebSocketManager.deliverLocal(stub<Parameters<typeof globalWebSocketManager.deliverLocal>[0]>({
-        type: "output_update",
-        workflow_id: workflow.id,
-        job_id: "someone-elses-job",
-        node_id: "out1",
-        node_name: "result",
-        output_name: "result",
-        output_type: "string",
-        value: "Contamination from another tab"
-      }));
+      globalWebSocketManager.deliverLocal(
+        stub<Parameters<typeof globalWebSocketManager.deliverLocal>[0]>({
+          type: "output_update",
+          workflow_id: workflow.id,
+          job_id: "someone-elses-job",
+          node_id: "out1",
+          node_name: "result",
+          output_name: "result",
+          output_type: "string",
+          value: "Contamination from another tab"
+        })
+      );
     });
 
     await waitFor(() =>
@@ -157,6 +368,25 @@ describe("AppRuntimeView (Puck Render)", () => {
     );
   });
 
+  it("reports an invocation as an operation failure", async () => {
+    startRun("job-report");
+    act(() =>
+      store().getState().dispatchEvent({
+        type: "invocationError",
+        invocationId: "job-report",
+        error: "Provider unavailable"
+      })
+    );
+    renderView();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Report failure" })
+    );
+    expect(useBugReportStore.getState().context?.source).toBe(
+      "operation-failure"
+    );
+    useBugReportStore.getState().close();
+  });
+
   it("surfaces an error from a non-default operation", async () => {
     const document: ApplicationDocument = {
       schemaVersion: 3,
@@ -183,16 +413,18 @@ describe("AppRuntimeView (Puck Render)", () => {
       variables: []
     };
     act(() =>
-      store().getState().dispatchEvent({
-        type: "runStarted",
-        invocation: {
-          id: "job-review-error",
-          operationId: "review",
-          status: "running",
-          startedAt: 2
-        },
-        outputKeys: []
-      })
+      store()
+        .getState()
+        .dispatchEvent({
+          type: "runStarted",
+          invocation: {
+            id: "job-review-error",
+            operationId: "review",
+            status: "running",
+            startedAt: 2
+          },
+          outputKeys: []
+        })
     );
     act(() =>
       store().getState().dispatchEvent({
@@ -207,5 +439,57 @@ describe("AppRuntimeView (Puck Render)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Review: Review failed"
     );
+  });
+});
+
+describe("AppRuntimeView input widgets", () => {
+  const listWorkflow = stub<Workflow>({
+    id: "wf-runtime-image-list",
+    name: "Batch Photos",
+    access: "private",
+    graph: {
+      nodes: [
+        {
+          id: "in-photos",
+          type: "nodetool.input.ImageListInput",
+          data: { name: "photos", label: "Photos" }
+        }
+      ],
+      edges: []
+    }
+  });
+  const listData: Data = {
+    root: { props: {} },
+    content: [
+      {
+        type: "WorkflowInput",
+        props: { id: "in-batch-photos", binding: "photos", label: "Your photos" }
+      }
+    ],
+    zones: {}
+  };
+
+  afterEach(() =>
+    disposeAppRuntimeStore(workflowInstanceId(listWorkflow.id))
+  );
+
+  // The property components read the graph's connection state from the node
+  // store. A running app has no graph editor around it, so the view itself
+  // must supply one or the image list control throws on mount.
+  it("renders an image list input without a graph editor around it", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ThemeProvider theme={mockTheme}>
+          <AppRuntimeView workflow={listWorkflow} data={listData} />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+
+    expect(
+      screen.queryByText(/failed to render/)
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector('.image-list-property input[type="file"]')
+    ).not.toBeNull();
   });
 });

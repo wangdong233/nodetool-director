@@ -4,9 +4,10 @@ import {
   ModelChangeEvent,
   ModelChangeMeta,
   ModelObserver,
-  createTimeOrderedUuid
+  createTimeOrderedUuid,
+  nextUpdatedAtAfter
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import { scripts } from "./schema/scripts.js";
 
 /** One word of a take with clip-local timing (mirrors timeline CaptionWord). */
@@ -124,15 +125,6 @@ function assertValidDocument(doc: ScriptDocument): void {
   }
 }
 
-function nextUpdatedAtAfter(previous: string): string {
-  const now = new Date();
-  const previousMs = Date.parse(previous);
-  if (Number.isFinite(previousMs) && now.getTime() <= previousMs) {
-    return new Date(previousMs + 1).toISOString();
-  }
-  return now.toISOString();
-}
-
 /** Total lines across sections — the cheap list summary. */
 export function countScriptLines(doc: ScriptDocument): number {
   return doc.sections.reduce((sum, section) => sum + section.lines.length, 0);
@@ -209,7 +201,7 @@ export class Script extends DBModel {
   }
 
   static async listByUser(userId: string, limit = 50): Promise<Script[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(scripts)
@@ -224,7 +216,7 @@ export class Script extends DBModel {
     userId: string,
     limit = 50
   ): Promise<Script[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(scripts)
@@ -255,7 +247,7 @@ export class Script extends DBModel {
     if (fields.document !== undefined) {
       assertValidDocument(JSON.parse(fields.document) as ScriptDocument);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(scripts)

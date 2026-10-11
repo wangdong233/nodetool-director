@@ -1,6 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { useState, useCallback, memo, useMemo } from "react";
+import {
+  useState,
+  useCallback,
+  memo,
+  useMemo,
+  useRef,
+  useLayoutEffect
+} from "react";
 import PropertyLabel from "../node/PropertyLabel";
 import { PropertyProps } from "../node/PropertyInput";
 import TextEditorModal from "./TextEditorModal";
@@ -10,10 +17,16 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { CopyButton, ToolbarIconButton, SPACING, Z_INDEX } from "../ui_primitives";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
-import { NodeTextField, editorClassNames, cn } from "../editor_ui";
+import {
+  NodeTextField,
+  NodeTextPreview,
+  editorClassNames,
+  cn
+} from "../editor_ui";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
+import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
@@ -67,6 +80,13 @@ const StringProperty = ({
   const id = `textfield-${property.name}-${propertyIndex}`;
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  // On the canvas the field is a static preview until clicked, so it never
+  // catches a pan or a zoom. The Inspector always shows the text field.
+  const [isEditing, setIsEditing] = useState(false);
+  const caretRef = useRef<number | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Typing between focus and blur undoes as one step.
+  const typingUndoGroup = useUndoGroup();
 
   const isConnectedSelector = useIsConnectedSelector(nodeId, property.name);
   const isConnected = useNodes(isConnectedSelector);
@@ -79,8 +99,26 @@ const StringProperty = ({
     [theme]
   );
 
+  // Dynamic inputs on the canvas (Concat, prompt variables) stack several
+  // rows; start each at one line and grow with the text.
+  const compactRows = isDynamicProperty === true && isInspector !== true;
   const codeLanguage = getCodeNodeLanguage(nodeType);
   const stringValue = isString(value) ? value : "";
+
+  const startEditing = useCallback((caretOffset: number | null) => {
+    caretRef.current = caretOffset;
+    setIsEditing(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!isEditing || !input) {
+      return;
+    }
+    const caret = caretRef.current ?? input.value.length;
+    input.focus();
+    input.setSelectionRange(caret, caret);
+  }, [isEditing]);
 
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => {
@@ -126,6 +164,7 @@ const StringProperty = ({
           name={property.name}
           description={property.description}
           id={id}
+          isDynamicProperty={isDynamicProperty}
         />
         <ConnectedBadge />
       </div>
@@ -152,41 +191,67 @@ const StringProperty = ({
             <CopyButton value={value} buttonSize="small" />
           </div>
         ) : null}
-        <div
-          className="value-container"
-          onContextMenuCapture={onPropertyContextMenu}
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <NodeTextField
-            className={cn(
-              "string-value-input",
-              isFocused && editorClassNames.nowheel
-            )}
-            value={stringValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              onChange(e.target.value ?? "");
-            }}
-            onFocus={(e) => {
-              e.preventDefault();
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-            }}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-            }}
-            tabIndex={tabIndex}
-            multiline
-            minRows={3}
-            maxRows={3}
-            autoFocus={false}
-          />
-        </div>
+        {isInspector || isEditing ? (
+          <div
+            className="value-container"
+            onContextMenuCapture={onPropertyContextMenu}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <NodeTextField
+              className={cn(
+                "string-value-input",
+                isFocused && editorClassNames.nowheel
+              )}
+              inputRef={inputRef}
+              value={stringValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                onChange(e.target.value ?? "");
+              }}
+              onFocus={(e) => {
+                e.preventDefault();
+                setIsFocused(true);
+                typingUndoGroup.begin();
+              }}
+              onBlur={() => {
+                typingUndoGroup.end();
+                setIsFocused(false);
+                setIsEditing(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  inputRef.current?.blur();
+                }
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+              }}
+              tabIndex={tabIndex}
+              multiline
+              minRows={compactRows ? 1 : 3}
+              maxRows={compactRows ? 4 : 3}
+              autoFocus={false}
+            />
+          </div>
+        ) : (
+          <div
+            className="value-container"
+            onContextMenuCapture={onPropertyContextMenu}
+          >
+            <NodeTextPreview
+              className="string-value-input"
+              value={stringValue}
+              onActivate={startEditing}
+              ariaLabel={`Edit ${property.name}`}
+              tabIndex={tabIndex}
+              minRows={compactRows ? 1 : 3}
+              maxRows={compactRows ? 4 : 3}
+            />
+          </div>
+        )}
       </div>
       {isExpanded && (
         <TextEditorModal

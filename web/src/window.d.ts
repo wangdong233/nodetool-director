@@ -48,60 +48,6 @@ interface FileExplorerResult {
   message?: string;
 }
 
-type LocalhostProxyMethod =
-  | "GET"
-  | "POST"
-  | "PUT"
-  | "PATCH"
-  | "DELETE"
-  | "HEAD"
-  | "OPTIONS";
-
-interface LocalhostProxyRequest {
-  url: string;
-  method?: LocalhostProxyMethod;
-  headers?: Record<string, string>;
-  body?: string;
-  responseType?: "text" | "json";
-}
-
-interface LocalhostProxyResponse {
-  status: number;
-  ok: boolean;
-  headers: Record<string, string>;
-  data: unknown;
-}
-
-interface LocalhostProxyWsOpenRequest {
-  url: string;
-  headers?: Record<string, string>;
-  protocols?: string[];
-}
-
-interface LocalhostProxyWsOpenResponse {
-  connectionId: string;
-}
-
-interface LocalhostProxyWsSendRequest {
-  connectionId: string;
-  data: string;
-}
-
-interface LocalhostProxyWsCloseRequest {
-  connectionId: string;
-  code?: number;
-  reason?: string;
-}
-
-interface LocalhostProxyWsEvent {
-  connectionId: string;
-  event: "open" | "message" | "error" | "close";
-  data?: string;
-  error?: string;
-  code?: number;
-  reason?: string;
-}
-
 export type MenuEventType =
   | "saveWorkflow"
   | "newTab"
@@ -262,46 +208,7 @@ declare global {
             logUsage?: boolean;
           }
         ) => Promise<void>;
-        trashItem: (path: string) => Promise<void>;
         beep: () => Promise<void>;
-        writeShortcutLink: (
-          shortcutPath: string,
-          operation?: "create" | "update" | "replace",
-          options?: {
-            target: string;
-            cwd?: string;
-            args?: string;
-            description?: string;
-            icon?: string;
-            iconIndex?: number;
-            appUserModelId?: string;
-            toastActivatorClsid?: string;
-          }
-        ) => Promise<boolean>;
-        readShortcutLink: (shortcutPath: string) => Promise<{
-          target: string;
-          cwd?: string;
-          args?: string;
-          description?: string;
-          icon?: string;
-          iconIndex?: number;
-          appUserModelId?: string;
-          toastActivatorClsid?: string;
-        }>;
-      };
-
-      localhostProxy?: {
-        request: (
-          request: LocalhostProxyRequest
-        ) => Promise<LocalhostProxyResponse>;
-        wsOpen: (
-          request: LocalhostProxyWsOpenRequest
-        ) => Promise<LocalhostProxyWsOpenResponse>;
-        wsSend: (request: LocalhostProxyWsSendRequest) => Promise<void>;
-        wsClose: (request: LocalhostProxyWsCloseRequest) => Promise<void>;
-        onWsEvent: (
-          callback: (event: LocalhostProxyWsEvent) => void
-        ) => () => void;
       };
 
       // Settings module - Application settings
@@ -387,6 +294,9 @@ declare global {
             description: string;
             installed: boolean;
             installing: boolean;
+            installedVersion?: string;
+            latestVersion?: string;
+            updateAvailable?: boolean;
           }>
         >;
         installRuntime: (
@@ -394,6 +304,11 @@ declare global {
           installLocation?: string
         ) => Promise<{ success: boolean; message: string }>;
         uninstallRuntime: (
+          packageId: string
+        ) => Promise<{ success: boolean; message: string }>;
+        /** Reinstall a runtime package at the version the app pins. Older
+         *  desktop builds lack it. */
+        updateRuntime?: (
           packageId: string
         ) => Promise<{ success: boolean; message: string }>;
         getInstallLocation: () => Promise<string>;

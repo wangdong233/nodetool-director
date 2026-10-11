@@ -11,6 +11,7 @@
  * into view, reading scroll position — is reachable through the ref handle.
  */
 
+import { i18n } from "../../i18n";
 import React, { forwardRef, memo, useCallback, useImperativeHandle, useMemo, useRef } from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
@@ -177,7 +178,7 @@ function VirtualListInner<T>(
  *   items={rows}
  *   estimateSize={36}
  *   getItemKey={(row) => row.id}
- *   ariaLabel={i18n.t("editor:ui.logMessages", { defaultValue: "Log messages" })}
+ *   ariaLabel={i18n.t("editor:ui.logMessages", { defaultValue: "Log messages" })
  *   renderItem={(row) => <LogRow row={row} />}
  * />
  */

@@ -16,13 +16,12 @@ import {
 } from "../../ui_primitives";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { IconForType } from "../../../config/IconForType";
-import { prettifyModelType } from "../../../utils/modelFormatting";
+import { humanizeModelType } from "../../../utils/modelFormatting";
 import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../../i18n";
-import { humanizeModelType } from "../../../utils/modelFormatting";
 
 const ModelTypeSidebar: React.FC = () => {
   const { t } = useTranslation();
@@ -37,7 +36,7 @@ const ModelTypeSidebar: React.FC = () => {
     return () => setSelectedModelType(type);
   }, [setSelectedModelType]);
 
-  // Plain-text label for the hover title (prettifyModelType returns JSX with a
+  // Plain-text label for the hover title (humanizeModelType returns JSX with a
   // leading icon, which can't be used as a title attribute). Resolves through
   // the catalog so it follows the language switcher; an untranslated type
   // falls back to its humanized slug.
@@ -150,7 +149,7 @@ const ModelTypeSidebar: React.FC = () => {
                   "& img": { filter: "saturate(0)" }
                 }}
               >
-                {/* "All" has no inline icon from prettifyModelType, so give it
+                {/* "All" has no inline icon from humanizeModelType, so give it
                     one here. Every other category already renders a meaningful
                     leading icon (HF logo / Ollama / model) via the label, so a
                     second data-type icon would just be redundant clutter. */}
@@ -172,7 +171,7 @@ const ModelTypeSidebar: React.FC = () => {
                   />
                 )}
                 <ListItemText
-                  primary={prettifyModelType(type)}
+                  primary={humanizeModelType(type)}
                   title={plainLabel(type)}
                   sx={{ minWidth: 0, my: 0 }}
                   primaryTypographyProps={{

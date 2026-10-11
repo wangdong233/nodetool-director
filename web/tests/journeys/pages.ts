@@ -259,7 +259,7 @@ export class ChatPage {
 export class MiniAppPage {
   constructor(private readonly page: Page) {}
 
-  /** Open the app named `appName` and switch its tab to Run. */
+  /** Open the app named `appName`. A tab opens in View mode, on the Run surface. */
   async open(appName: string): Promise<void> {
     await goto(this.page, "/workspace");
     await this.page
@@ -270,12 +270,6 @@ export class MiniAppPage {
       .filter({ hasText: /^Apps/ })
       .locator('[role="treeitem"][aria-level="2"]')
       .filter({ hasText: appName })
-      .click({ timeout: 30_000 });
-
-    // The tab opens in Design mode; Run is the surface a user runs the app on.
-    await this.page
-      .getByRole("button", { name: "Run", exact: true })
-      .first()
       .click({ timeout: 30_000 });
 
     await this.runButton().waitFor({ state: "visible", timeout: 30_000 });
@@ -375,5 +369,50 @@ export class AssetsPage {
 
   async clearSearch(): Promise<void> {
     await this.page.getByTestId("asset-search-clear-btn").click();
+  }
+}
+
+/** The visual board and its semantic shot inspector. */
+export class StoryboardPage {
+  constructor(private readonly page: Page) {}
+
+  async open(name: string): Promise<void> {
+    await goto(this.page, "/workspace");
+    await this.page.getByRole("button", { name: "Documents", exact: true }).click();
+    await this.page.getByRole("treeitem", { name: `${name} Storyboard`, exact: true }).click();
+  }
+
+  firstShot(): Locator {
+    // Shot cards expose controls but no container role.
+    return this.page.locator(".shot-card").first();
+  }
+
+  shotEditor(): Locator {
+    return this.page.getByTestId("shot-edit-panel");
+  }
+}
+
+/** A text file opened from the New menu, edited in Monaco. */
+export class TextFilePage {
+  constructor(private readonly page: Page) {}
+
+  /** New → New text file… → the given format, from the workspace home. */
+  async create(format: RegExp): Promise<void> {
+    await goto(this.page, "/workspace");
+    await this.page.getByRole("button", { name: "Open or create a tab" }).click();
+    await this.page.getByRole("menuitem", { name: /New text file/ }).click();
+    await this.page.getByRole("menuitem", { name: format }).click();
+    // Monaco exposes no role for its text area; `.view-lines` is what renders.
+    await this.lines().waitFor({ state: "visible", timeout: 30_000 });
+  }
+
+  lines(): Locator {
+    return this.page.locator(".monaco-editor .view-lines").first();
+  }
+
+  /** Type the way a fast typist or a key-repeat does: one key every 15 ms. */
+  async typeFast(text: string): Promise<void> {
+    await this.lines().click();
+    await this.page.keyboard.type(text, { delay: 15 });
   }
 }

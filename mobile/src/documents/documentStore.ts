@@ -10,8 +10,7 @@
  *
  * Transport is a per-kind backend (`backends.ts`) rather than a mutation hook,
  * for the same reason. Every write echoes back the concurrency token it read —
- * a revision for the `resources` kinds, `baseUpdatedAt` for scripts — and the
- * server rejects a stale write instead of applying it, which surfaces here as
+ * the `resources` revision, opaque to the store — and the server rejects a stale write instead of applying it, which surfaces here as
  * `status: 'conflict'` for the screen to offer a reload.
  */
 
@@ -95,6 +94,9 @@ function createDocumentStore<Doc>(
    */
   let inFlight: Promise<void> | null = null;
 
+  /** Bumped by each `load`; a response whose number is stale is dropped. */
+  let loadSeq = 0;
+
   return create<DocumentState<Doc>>((set, get) => ({
     kind,
     id,
@@ -107,9 +109,23 @@ function createDocumentStore<Doc>(
     error: null,
 
     load: async () => {
+      const seq = ++loadSeq;
+      const started = get();
       set({ status: "loading", error: null });
       try {
         const loaded = await backend.read(id);
+        if (seq !== loadSeq) {
+          // A newer load superseded this one; its response wins.
+          return;
+        }
+        const now = get();
+        if (now.doc !== started.doc || now.name !== started.name) {
+          // Edited while the read was on the wire. Keep the edit and the old
+          // token, so the next save is checked against the revision the edit
+          // was made on and conflicts instead of silently overwriting.
+          set({ status: "idle" });
+          return;
+        }
         set({
           doc: loaded.doc,
           name: loaded.name,
@@ -120,6 +136,9 @@ function createDocumentStore<Doc>(
           error: null
         });
       } catch (error) {
+        if (seq !== loadSeq) {
+          return;
+        }
         set({ status: "error", error: errorMessage(error) });
       }
     },
@@ -216,7 +235,7 @@ export function disposeDocumentStore(kind: DocumentKind, id: string): void {
   stores.delete(storeKey(kind, id));
 }
 
-/** Test seam. */
+/** Drop every cached store, e.g. on sign-out so the next account starts clean. */
 export function resetDocumentStores(): void {
   stores.clear();
 }

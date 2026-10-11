@@ -12,35 +12,46 @@ import {
   ModelObserver,
   createTimeOrderedUuid
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb, getDatabase } from "./db.js";
 import { assets } from "./schema/assets.js";
+
+export type AssetRow = typeof assets.$inferSelect;
+export type AssetInsert = typeof assets.$inferInsert;
 
 export class Asset extends DBModel {
   static override table = assets;
 
-  declare id: string;
-  declare user_id: string;
-  declare parent_id: string | null;
-  declare file_id: string | null;
-  declare name: string;
-  declare content_type: string;
-  declare size: number | null;
-  declare duration: number | null;
-  declare metadata: Record<string, unknown> | null;
+  declare id: AssetRow["id"];
+  declare user_id: AssetRow["user_id"];
+  declare parent_id: AssetRow["parent_id"];
+  declare file_id: AssetRow["file_id"];
+  declare name: AssetRow["name"];
+  declare content_type: AssetRow["content_type"];
+  declare size: AssetRow["size"];
+  declare duration: AssetRow["duration"];
+  declare metadata: AssetRow["metadata"];
   /** Sketch document that backs this image asset, if any (1:1 link). */
-  declare sketch_document_id: string | null;
-  declare workflow_id: string | null;
-  declare node_id: string | null;
-  declare job_id: string | null;
-  declare timeline_id: string | null;
+  declare sketch_document_id: AssetRow["sketch_document_id"];
+  declare workflow_id: AssetRow["workflow_id"];
+  declare node_id: AssetRow["node_id"];
+  declare job_id: AssetRow["job_id"];
+  declare timeline_id: AssetRow["timeline_id"];
   /**
    * The project this asset belongs to, `"default"` for none — the same loose
    * bucket every document table spells that way. Read per project only for
    * entities, the assets carrying the entity marker.
    */
-  declare project_id: string;
-  declare created_at: string;
-  declare updated_at: string;
+  declare project_id: AssetRow["project_id"];
+  /**
+   * Absolute path of a file referenced in place (local mode only). Bytes are
+   * read from this path, never copied under the storage root, and deleting
+   * the asset leaves the file alone. Null for every managed asset.
+   */
+  declare external_path: AssetRow["external_path"];
+  /** The user starred this asset; the asset browser lists these as Favorites. */
+  declare favorite: AssetRow["favorite"];
+  declare created_at: AssetRow["created_at"];
+  declare updated_at: AssetRow["updated_at"];
 
   constructor(data: Record<string, unknown>) {
     super(data);
@@ -59,6 +70,8 @@ export class Asset extends DBModel {
     this.job_id ??= null;
     this.timeline_id ??= null;
     this.project_id ??= "default";
+    this.external_path ??= null;
+    this.favorite = Boolean(this.favorite);
     this.created_at ??= now;
     this.updated_at ??= now;
   }
@@ -68,21 +81,35 @@ export class Asset extends DBModel {
     expectedMetadata: Record<string, unknown> | null
   ): Promise<boolean> {
     this.beforeSave();
-    const condition = expectedMetadata
-      ? eq(assets.metadata, expectedMetadata)
-      : isNull(assets.metadata);
-    const updated = await getDb()
-      .update(assets)
-      .set(this.toRow())
-      .where(
-        and(eq(assets.id, this.id), eq(assets.user_id, this.user_id), condition)
-      )
-      .returning({ id: assets.id });
+    const connection = getDatabase();
+    const table = connection.schema.assets;
+    const condition = and(eq(table.id, this.id), eq(table.user_id, this.user_id),
+      expectedMetadata ? eq(table.metadata, expectedMetadata) : isNull(table.metadata));
+    const row = this.toRow();
+    const updated = connection.dialect === "sqlite"
+      ? await connection.db.update(connection.schema.assets).set(row)
+        .where(condition).returning({ id: connection.schema.assets.id })
+      : await connection.db.update(connection.schema.assets).set(row)
+        .where(condition).returning({ id: connection.schema.assets.id });
     if (updated.length === 0) {
       return false;
     }
     ModelObserver.notify(this, ModelChangeEvent.UPDATED);
     return true;
+  }
+
+  override toRow(): AssetInsert & Record<string, unknown> {
+    return {
+      id: this.id, user_id: this.user_id, parent_id: this.parent_id,
+      file_id: this.file_id, name: this.name, content_type: this.content_type,
+      size: this.size, duration: this.duration,
+      metadata: this.metadata === null ? null : JSON.parse(JSON.stringify(this.metadata)),
+      sketch_document_id: this.sketch_document_id, workflow_id: this.workflow_id,
+      node_id: this.node_id, job_id: this.job_id, timeline_id: this.timeline_id,
+      project_id: this.project_id, external_path: this.external_path,
+      favorite: this.favorite,
+      created_at: this.created_at, updated_at: this.updated_at
+    };
   }
 
   override beforeSave(): void {
@@ -109,19 +136,18 @@ export class Asset extends DBModel {
 
   /** Find an asset by id, scoped to the user. */
   static async find(userId: string, assetId: string): Promise<Asset | null> {
-    const db = getDb();
-    const [exact] = await db
-      .select()
-      .from(assets)
-      .where(and(eq(assets.user_id, userId), eq(assets.id, assetId)))
-      .limit(1);
-    if (exact) return new Asset(exact);
+    const connection = getDatabase();
+    const table = connection.schema.assets;
+    const exactWhere = and(eq(table.user_id, userId), eq(table.id, assetId));
+    const exactRows = connection.dialect === "sqlite"
+      ? await connection.db.select().from(connection.schema.assets).where(exactWhere).limit(1)
+      : await connection.db.select().from(connection.schema.assets).where(exactWhere).limit(1);
+    if (exactRows[0]) return new Asset(exactRows[0]);
     if (!isShortResourceId(assetId)) return null;
-    const matches = await db
-      .select()
-      .from(assets)
-      .where(and(eq(assets.user_id, userId), like(assets.id, `${assetId}%`)))
-      .limit(2);
+    const prefixWhere = and(eq(table.user_id, userId), like(table.id, `${assetId}%`));
+    const matches = connection.dialect === "sqlite"
+      ? await connection.db.select().from(connection.schema.assets).where(prefixWhere).limit(2)
+      : await connection.db.select().from(connection.schema.assets).where(prefixWhere).limit(2);
     if (matches.length > 1) {
       throw new Error(`short id "${assetId}" matches more than one row; use the full id`);
     }
@@ -133,7 +159,7 @@ export class Asset extends DBModel {
     if (assetIds.length === 0) return [];
 
     const uniqueIds = Array.from(new Set(assetIds));
-    const db = getDb();
+    const db = getPortableDb();
     const results: Asset[] = [];
 
     const chunkSize = 900;
@@ -151,13 +177,27 @@ export class Asset extends DBModel {
     return results;
   }
 
+  /** The user's assets that reference `externalPath` in place. */
+  static async findByExternalPath(
+    userId: string,
+    externalPath: string
+  ): Promise<Asset[]> {
+    const rows = await getPortableDb()
+      .select()
+      .from(assets)
+      .where(
+        and(eq(assets.user_id, userId), eq(assets.external_path, externalPath))
+      );
+    return rows.map((row) => new Asset(row));
+  }
+
   /**
    * Every asset across all users, oldest first — for offline maintenance
    * (the storage key backfill). Deliberately not user-scoped, so it must
    * never back a request handler; pass `userId` to narrow it.
    */
   static async allForMigration(userId?: string): Promise<Asset[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const query = db.select().from(assets);
     const rows = await (userId
       ? query.where(eq(assets.user_id, userId))
@@ -186,6 +226,8 @@ export class Asset extends DBModel {
 
     const parent = await Asset.find(userId, parentId);
     if (!parent) return "Parent folder not found";
+    // A short id resolves to the asset itself without equalling its id.
+    if (parent.id === asset.id) return "An asset cannot be its own parent";
     if (parent.content_type !== "folder") return "Parent must be a folder";
 
     // Walk up from the new parent: reaching the asset means the move would put
@@ -234,6 +276,8 @@ export class Asset extends DBModel {
       jobId?: string;
       timelineId?: string;
       projectId?: string;
+      /** Only starred assets, from every folder. */
+      favorite?: boolean;
       limit?: number;
       startKey?: string;
     } = {}
@@ -246,10 +290,11 @@ export class Asset extends DBModel {
       jobId,
       timelineId,
       projectId,
+      favorite,
       limit = 50,
       startKey
     } = opts;
-    const db = getDb();
+    const db = getPortableDb();
 
     const conditions = [eq(assets.user_id, userId)];
     if (parentId !== undefined) {
@@ -287,6 +332,9 @@ export class Asset extends DBModel {
     if (projectId) {
       conditions.push(eq(assets.project_id, projectId));
     }
+    if (favorite) {
+      conditions.push(eq(assets.favorite, true));
+    }
     if (startKey) {
       const cursor = await Asset.get<Asset>(startKey);
       if (cursor && cursor.user_id === userId) {
@@ -304,7 +352,7 @@ export class Asset extends DBModel {
       .orderBy(desc(assets.created_at))
       .limit(limit + 1);
 
-    const items = rows.map((r: Record<string, unknown>) => new Asset(r));
+    const items = rows.map((row) => new Asset(row));
     if (items.length <= limit) return [items, ""];
     items.pop();
     const cursor = items[items.length - 1]?.id ?? "";
@@ -315,7 +363,7 @@ export class Asset extends DBModel {
     userId: string,
     projectId: string
   ): Promise<Asset[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(assets)
@@ -355,7 +403,7 @@ export class Asset extends DBModel {
     const { contentType, projectId, limit = 100, cursor: startKey } = opts;
     // Escape LIKE special characters to prevent pattern injection
     const sanitized = query.trim().replace(/[%_\\]/g, "\\$&");
-    const db = getDb();
+    const db = getPortableDb();
 
     const conditions = [
       eq(assets.user_id, userId),
@@ -382,7 +430,7 @@ export class Asset extends DBModel {
       .orderBy(desc(assets.created_at))
       .limit(limit + 1);
 
-    const items = rows.map((r: Record<string, unknown>) => new Asset(r));
+    const items = rows.map((row) => new Asset(row));
     let cursor = "";
     if (items.length > limit) {
       items.pop();
@@ -391,7 +439,7 @@ export class Asset extends DBModel {
 
     const pathInfo = await Asset.getAssetPathInfo(
       userId,
-      items.map((a: Record<string, unknown>) => a.id as string)
+      items.map((asset) => asset.id)
     );
 
     const folderPaths: Array<Record<string, string>> = [];
@@ -427,7 +475,7 @@ export class Asset extends DBModel {
     const chunkSize = 900;
     for (let i = 0; i < assetIds.length; i += chunkSize) {
       const chunk = assetIds.slice(i, i + chunkSize);
-      const db = getDb();
+      const db = getPortableDb();
       const rows = await db
         .select()
         .from(assets)

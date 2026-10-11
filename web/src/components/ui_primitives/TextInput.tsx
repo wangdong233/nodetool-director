@@ -6,6 +6,7 @@
  * above the control via the shared Label primitive — no floating labels.
  */
 
+import { i18n } from "../../i18n";
 import { memo, forwardRef, useId } from "react";
 import {
   Box,
@@ -13,7 +14,7 @@ import {
   TextFieldProps as MuiTextFieldProps,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { CONTROL } from "./tokens";
+import { CONTROL, TYPOGRAPHY } from "./tokens";
 import { Label } from "./Label";
 import { useFormFieldContext } from "./formFieldContext";
 import { isString } from "../../utils/typePredicates";
@@ -32,6 +33,8 @@ export interface TextInputProps
   errorMessage?: string;
   /** Hide the label visually while keeping it as the accessible name */
   hideLabel?: boolean;
+  /** Render the value in the mono code style, for source text such as SVG or JSON */
+  monospace?: boolean;
 }
 
 /**
@@ -69,6 +72,7 @@ export const TextInput = memo(
         disabled,
         id,
         hideLabel = false,
+        monospace = false,
         className,
         style,
         inputProps,
@@ -152,9 +156,9 @@ export const TextInput = memo(
               // renders at the body token (15px). `compact` only tightens height
               // (via MUI size="small"), never shrinks the text — shrinking the
               // font is what made inputs read as "too small".
-              "& .MuiInputBase-input": {
-                fontSize: theme.fontSizeNormal || "15px",
-              },
+              "& .MuiInputBase-input": monospace
+                ? { ...TYPOGRAPHY.mono.code, overflowWrap: "anywhere" }
+                : { fontSize: theme.fontSizeNormal || "15px" },
               // Fields read as fields: the outlined root (single-line and
               // multiline) gets the same constant field background the editor
               // controls use. Filled/standard variants keep MUI's own surface

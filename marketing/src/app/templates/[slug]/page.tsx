@@ -11,6 +11,7 @@ import { ArrowLeft, Download, Play, Workflow } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import JsonLd from "@/components/JsonLd";
+import TrackedLink from "@/components/TrackedLink";
 import WorkflowFlowDiagram from "@/components/WorkflowFlowDiagram";
 import { SmartDownloadButton } from "@/app/SmartDownloadButton";
 import {
@@ -18,7 +19,6 @@ import {
   relatedTemplates,
   type TemplateEntry,
 } from "@/data/templates";
-import { miniAppEntries } from "@/data/miniApps";
 import { recipeEntries, recipesUsingTemplate } from "@/data/recipes";
 
 const BASE_URL = "https://nodetool.ai";
@@ -100,11 +100,6 @@ export default async function TemplatePage({
 
   const steps = runSteps(entry);
   const related = relatedTemplates(entry, templateEntries, 9);
-  // A curated mini app binds several templates, so the link back runs through
-  // the app's workflow list rather than a shared slug.
-  const miniApp = miniAppEntries.find((a) =>
-    a.workflows.some((w) => w.slug === entry.slug),
-  );
   // The larger jobs this workflow is one step of.
   const recipes = recipesUsingTemplate(entry.slug, recipeEntries);
   const summary =
@@ -175,14 +170,6 @@ export default async function TemplatePage({
                 <Play className="h-4 w-4" />
                 How to run it
               </a>
-              {miniApp && (
-                <a
-                  href={miniApp.route}
-                  className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-8 py-3.5 text-sm font-semibold text-sky-300 transition-all hover:border-sky-500/50 hover:bg-sky-500/20"
-                >
-                  Try it as a mini app
-                </a>
-              )}
             </div>
           </div>
         </section>
@@ -276,9 +263,11 @@ export default async function TemplatePage({
               <div className="grid gap-4 sm:grid-cols-2">
                 {recipes.map((recipe) => {
                   return (
-                    <a
+                    <TrackedLink
                       key={recipe.slug}
                       href={recipe.route}
+                      event="Open Recipe"
+                      eventProps={{ recipe: recipe.slug, placement: "template" }}
                       className="group rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 transition-colors hover:border-amber-500/45"
                     >
                       <div className="text-xs font-semibold uppercase tracking-wide text-amber-400/80">
@@ -290,7 +279,7 @@ export default async function TemplatePage({
                       <p className="mt-2 text-sm leading-relaxed text-slate-400">
                         {recipe.outcome}
                       </p>
-                    </a>
+                    </TrackedLink>
                   );
                 })}
               </div>
@@ -309,9 +298,11 @@ export default async function TemplatePage({
                 {related.map((r) => {
                   const thumbnail = templateThumbnail(r.slug, r.thumbnail);
                   return (
-                    <a
+                    <TrackedLink
                       key={r.slug}
                       href={r.route}
+                      event="Open Template"
+                      eventProps={{ template: r.slug, placement: "related" }}
                       className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 transition-colors hover:border-white/25"
                     >
                     {thumbnail ? (
@@ -333,7 +324,7 @@ export default async function TemplatePage({
                         {r.name}
                       </div>
                     </div>
-                    </a>
+                    </TrackedLink>
                   );
                 })}
               </div>
@@ -356,14 +347,16 @@ export default async function TemplatePage({
                 icon={<Download className="h-5 w-5" />}
                 classNameOverride="inline-flex items-center justify-center gap-2 rounded-full bg-sky-500 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.6)] transition-all hover:bg-sky-400"
               />
-              <a
+              <TrackedLink
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                event="Star GitHub"
+                eventProps={{ placement: "closing" }}
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0a0a14]/70 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:border-white/25 hover:bg-white/5"
               >
                 Star on GitHub
-              </a>
+              </TrackedLink>
             </div>
           </div>
         </section>

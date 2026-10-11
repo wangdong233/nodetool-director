@@ -11,7 +11,7 @@ import {
 } from "@nodetool-ai/config";
 import { createHTTPHandler } from "@trpc/server/adapters/standalone";
 import { TRPC_MAX_BATCH_SIZE } from "@nodetool-ai/protocol";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,7 +33,8 @@ import { appRouter } from "./trpc/router.js";
 import { createContextFactory } from "./trpc/context.js";
 import { ScriptedProvider, autoScript } from "@nodetool-ai/runtime";
 import { handleNodeHttpRequest, type HttpApiOptions } from "./http-api.js";
-import { initDb, initPostgresDb } from "@nodetool-ai/models";
+import { createTestUiRunRoutes } from "./lib/test-ui-run-routes.js";
+import { initDb, initPostgresDb, migrateSqliteDb } from "@nodetool-ai/models";
 import {
   isNonEmptyString,
   isString
@@ -1275,6 +1276,51 @@ function readExampleWorkflow(
   };
 }
 
+const PACKAGE_ASSET_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
+  ".json": "application/json"
+};
+
+/**
+ * The file `/api/assets/packages/<package>/<path>` names inside one of
+ * `roots`, or null. Rejects traversal segments and anything outside the root.
+ */
+export function resolvePackageAsset(pathname: string, roots: string[]): string | null {
+  let segments: string[];
+  try {
+    segments = pathname
+      .slice("/api/assets/packages/".length)
+      .split("/")
+      .map(decodeURIComponent);
+  } catch {
+    return null;
+  }
+  if (
+    segments.length < 2 ||
+    segments.some((s) => s === "" || s === "." || s === ".." || s.includes("\\"))
+  ) {
+    return null;
+  }
+  for (const root of roots) {
+    const base = path.resolve(root);
+    const candidate = path.resolve(base, ...segments);
+    const rel = path.relative(base, candidate);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) continue;
+    try {
+      if (statSync(candidate).isFile()) return candidate;
+    } catch {
+      // Not under this root.
+    }
+  }
+  return null;
+}
+
 export function createTestUiServer(options: TestUiServerOptions = {}) {
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? Number(process.env.PORT ?? 7777);
@@ -1294,6 +1340,13 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
     metadataRoots,
     registry
   };
+  const fontsDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../timeline/fonts"
+  );
+  if (!resolvedApiOptions.bundledFontsDir && existsSync(fontsDir)) {
+    resolvedApiOptions.bundledFontsDir = fontsDir;
+  }
   // Pass the resolved examples directory so handleWorkflowExamples can serve
   // examples directly from the filesystem without requiring Python metadata.
   if (examplesDir) {
@@ -1369,8 +1422,17 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
     }
   });
 
+  const runRoutes = createTestUiRunRoutes();
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = new URL(req.url ?? "/", `http://${host}:${port}`);
+    if (runRoutes.matches(url.pathname)) {
+      void runRoutes.handle(req, res).catch((error: unknown) => {
+        log.error("UI run route failed", error);
+        if (!res.headersSent) { res.statusCode = 500; }
+        res.end();
+      });
+      return;
+    }
     if (url.pathname === "/api/test/reset") {
       if (req.method !== "POST" || !options.resetDatabase) {
         res.statusCode = 404;
@@ -1463,6 +1525,17 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
         return;
       }
     }
+    if (url.pathname.startsWith("/api/assets/packages/")) {
+      // Production serves `package://` assets from a Fastify route this server
+      // does not mount, so serve them from the configured roots here.
+      const file = resolvePackageAsset(url.pathname, options.packageAssetsRoots ?? []);
+      if (file) {
+        res.statusCode = 200;
+        res.setHeader("content-type", PACKAGE_ASSET_TYPES[path.extname(file).toLowerCase()] ?? "application/octet-stream");
+        res.end(readFileSync(file));
+        return;
+      }
+    }
     if (url.pathname.startsWith("/trpc")) {
       const originalUrl = req.url;
       req.url = (req.url ?? "/").replace(/^\/trpc/, "") || "/";
@@ -1551,7 +1624,7 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
             });
           }
         });
-      }),
+      }).then(() => runRoutes.close()),
     info: {
       host,
       port,
@@ -1567,7 +1640,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (postgresDatabaseUrl) {
       await initPostgresDb(postgresDatabaseUrl);
     } else {
-      initDb(getDefaultDbPath());
+      const dbPath = getDefaultDbPath();
+      await migrateSqliteDb(dbPath);
+      initDb(dbPath);
     }
   } catch {
     // DB unavailable — secrets will appear unconfigured

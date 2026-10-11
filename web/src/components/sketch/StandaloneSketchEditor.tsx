@@ -21,6 +21,7 @@
  *      resets the seed.
  */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import { css } from "@emotion/react";
@@ -56,7 +57,6 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
-import { useTranslation } from "react-i18next";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -87,6 +87,12 @@ interface StandaloneSketchEditorProps {
    * whichever editor happens to be active.
    */
   overlay?: React.ReactNode;
+  /**
+   * Stops the editor's window shortcuts while something covers the canvas,
+   * such as the guided image flow. Keys pressed there must not nudge, clear
+   * or undo the hidden document.
+   */
+  suspendKeyboardShortcuts?: boolean;
 }
 
 /**
@@ -115,8 +121,14 @@ const ConflictBannerHost: React.FC<{ documentId: string }> = ({ documentId }) =>
 };
 
 const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
-  function StandaloneSketchEditorBody({ documentId, headerActions, overlay }) {
-    const { t } = useTranslation();
+  function StandaloneSketchEditorBody({
+    documentId,
+    headerActions,
+    overlay,
+    active = true,
+    suspendKeyboardShortcuts = false
+  }) {
+  const { t } = useTranslation();
     const theme = useTheme();
     const styles = useMemo(() => containerStyles(theme), [theme]);
     const editorRef = useRef<SketchEditorHandle | null>(null);
@@ -209,11 +221,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <SaveOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>
-          {saving
-            ? t("editor:ui.saving", { defaultValue: "Saving…" })
-            : t("editor:ui.save", { defaultValue: "Save" })}
-        </ListItemText>
+        <ListItemText>{saving ? "Saving…" : "Save"}</ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="save-as-asset"
@@ -228,9 +236,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <AddPhotoAlternateOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>
-          {savingAsAsset
-            ? t("editor:ui.saving", { defaultValue: "Saving…" })
-            : t("editor:ui.saveAsAsset", { defaultValue: "Save as Asset" })}
+          {savingAsAsset ? "Saving…" : "Save as Asset"}
         </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
@@ -258,7 +264,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
             <EmptyState
               variant="error"
               title={t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
-              description={t("editor:ui.theImageDocumentYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
+              description="The image document you requested does not exist or you do not have access to it."
             />
           </FlexColumn>
         );
@@ -281,6 +287,9 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           initialEditorState={initialEditorState ?? undefined}
           headerActions={headerActions}
           menuItems={documentMenuItems}
+          // Inactive workspace tabs stay mounted, so their window key
+          // listeners must not act on keys meant for the focused tab.
+          suspendKeyboardShortcuts={!active || suspendKeyboardShortcuts}
         />
         <SaveToFolderMenu
           anchorEl={saveAsAssetAnchor}
@@ -306,7 +315,7 @@ const StandaloneSketchEditor: React.FC<StandaloneSketchEditorProps> = ({
   ...bodyProps
 }) => (
   <SketchProvider active={active}>
-    <StandaloneSketchEditorBody {...bodyProps} />
+    <StandaloneSketchEditorBody active={active} {...bodyProps} />
   </SketchProvider>
 );
 

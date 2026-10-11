@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
@@ -12,8 +12,13 @@ import {
 
 import mockTheme from "../../../__mocks__/themeMock";
 import { AdaptFormatDialog } from "../AdaptFormatDialog";
+import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 
-const createAdaptations = jest.fn(async () => ["derived-1"]);
+const createAdaptations = jest.fn(async () => ({
+  createdIds: ["derived-1"],
+  createdAspectRatios: ["9:16"],
+  failures: [] as Array<{ aspectRatio: string; message: string }>
+}));
 
 jest.mock("../../../hooks/timeline/useCreateFormatAdaptation", () => ({
   useCreateFormatAdaptation: () => ({
@@ -61,13 +66,16 @@ const subject: MediaTrack = {
   status: "ready"
 };
 
-const renderDialog = (mediaTracks: readonly MediaTrack[] = []) =>
+const renderDialog = (
+  mediaTracks: readonly MediaTrack[] = [],
+  openedSequence: TimelineSequence = sequence
+) =>
   render(
     <ThemeProvider theme={mockTheme}>
       <AdaptFormatDialog
         open
         onClose={jest.fn()}
-        sequence={sequence}
+        sequence={openedSequence}
         mediaTracks={mediaTracks}
       />
     </ThemeProvider>
@@ -76,14 +84,27 @@ const renderDialog = (mediaTracks: readonly MediaTrack[] = []) =>
 describe("AdaptFormatDialog", () => {
   beforeEach(() => {
     createAdaptations.mockClear();
+    act(() => {
+      useTimelineStore.getState().reset();
+      useTimelineStore.getState().addClips(sequence.clips);
+    });
   });
 
-  it("defaults to a nondestructive 9:16 Smart Reframe adaptation", async () => {
+  it("reads clips from the live document, not the sequence loaded at open", () => {
+    renderDialog([subject], { ...sequence, clips: [] });
+
+    expect(screen.getByRole("radio", { name: "Smart reframe" })).toBeEnabled();
+    expect(
+      screen.getByRole("radio", { name: "Follow selected object" })
+    ).toBeEnabled();
+  });
+
+  it("defaults to a nondestructive 9:16 Smart reframe adaptation", async () => {
     renderDialog([subject]);
 
     expect(screen.getByText("1920 × 1080")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /9:16/i })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Smart Reframe" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Smart reframe" })).toBeChecked();
 
     await userEvent.click(
       screen.getByRole("button", { name: "Create adaptation" })
@@ -96,11 +117,11 @@ describe("AdaptFormatDialog", () => {
     });
   });
 
-  it("makes Smart Reframe unavailable without analysis or authored framing", () => {
+  it("makes Smart reframe unavailable without analysis or authored framing", () => {
     renderDialog();
 
     expect(screen.getByRole("radio", { name: "Center" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Smart Reframe" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Smart reframe" })).toBeDisabled();
     expect(
       screen.getByText(/needs a current subject track or authored framing/i)
     ).toBeInTheDocument();

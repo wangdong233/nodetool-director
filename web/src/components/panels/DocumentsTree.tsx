@@ -1,3 +1,5 @@
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -20,7 +22,9 @@ import {
   type DocumentTreeLeaf,
   type DocumentTreeLeafType
 } from "../../hooks/useDocumentTreeData";
+import { useDeleteDocument } from "../../serverState/useDeleteDocument";
 import { useOpenApplication } from "../../hooks/useOpenApplication";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { usePanelStore } from "../../stores/PanelStore";
 import type { BugReportContext } from "../../utils/bugReportBundle";
 import {
@@ -29,13 +33,12 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { EntityEditorDialog } from "../entities/EntityEditorDialog";
 import ReportBugButton from "../support/ReportBugButton";
-import PanelHeadline from "../ui/PanelHeadline";
 import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
-import { useTranslation } from "react-i18next";
-import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import {
   BORDER_RADIUS,
   Box,
+  ConfirmDialog,
+  DeleteButton,
   EmptyState,
   ExpandCollapseButton,
   FlexColumn,
@@ -46,7 +49,8 @@ import {
   SearchInput,
   SPACING,
   Text,
-  TruncatedText
+  TruncatedText,
+  PanelHeader
 } from "../ui_primitives";
 
 const DOCUMENT_TAB_TYPES = {
@@ -56,7 +60,10 @@ const DOCUMENT_TAB_TYPES = {
   storyboard: "storyboard",
   timeline: "timeline",
   jsscript: "jsscript"
-} satisfies Record<Exclude<DocumentTreeLeafType, "application" | "entity">, WorkspaceTabType>;
+} satisfies Record<
+  Exclude<DocumentTreeLeafType, "application" | "entity">,
+  WorkspaceTabType
+>;
 
 const GROUP_ICONS: Record<DocumentTreeGroup["id"], SvgIconComponent> = {
   workflows: WorkflowIcon,
@@ -96,81 +103,102 @@ interface DocumentTreeRowProps {
   readonly leaf: DocumentTreeLeaf;
   readonly active: boolean;
   readonly onOpen: (document: DocumentTreeLeaf) => void;
+  readonly onDelete: (document: DocumentTreeLeaf) => void;
 }
 
-const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
-  // Own subscription: this memo'd row must re-render on language change for
-  // the entity-overlay name lookup below (a parent-only hook would leave
-  // stale-language rows whenever the leaf props stay referentially equal).
-  const { t } = useTranslation();
+const DocumentTreeRow = ({
+  leaf,
+  active,
+  onOpen,
+  onDelete
+}: DocumentTreeRowProps) => {
   const Icon = LEAF_ICONS[leaf.type];
   const handleClick = useCallback(() => onOpen(leaf), [leaf, onOpen]);
+  const handleDelete = useCallback(() => onDelete(leaf), [leaf, onDelete]);
 
   return (
-    <Box
-      component="button"
-      type="button"
-      role="treeitem"
-      aria-level={2}
-      aria-selected={active}
-      aria-current={active ? "page" : undefined}
-      onClick={handleClick}
-      className="documents-tree-leaf"
+    <FlexRow
+      align="center"
+      fullWidth
+      className="documents-tree-row"
       sx={{
-        width: "100%",
-        border: 0,
-        padding: 0,
-        background: "transparent",
-        color: "inherit",
-        font: "inherit"
+        "& .documents-tree-delete": { opacity: 0 },
+        "&:hover .documents-tree-delete, &:focus-within .documents-tree-delete":
+          { opacity: 1 }
       }}
     >
-      <FlexRow
-        align="center"
-        gap={SPACING.sm}
-        fullWidth
-        sx={(theme) => ({
-          minHeight: theme.spacing(8),
-          padding: `${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.sm)}`,
-          paddingLeft: theme.spacing(SPACING.xxl),
-          borderRadius: BORDER_RADIUS.md,
-          color: active
-            ? theme.vars.palette.text.primary
-            : theme.vars.palette.text.secondary,
-          backgroundColor: active
-            ? theme.vars.palette.action.selected
-            : "transparent",
-          textAlign: "left",
-          cursor: "pointer",
-          "&:hover": {
-            backgroundColor: theme.vars.palette.action.hover,
-            color: theme.vars.palette.text.primary
-          },
-          "&:focus-visible": {
-            outline: `2px solid ${theme.vars.palette.primary.main}`,
-            outlineOffset: -2
-          }
-        })}
+      <Box
+        component="button"
+        type="button"
+        role="treeitem"
+        aria-level={2}
+        aria-selected={active}
+        aria-current={active ? "page" : undefined}
+        onClick={handleClick}
+        className="documents-tree-leaf"
+        sx={{
+          width: "100%",
+          border: 0,
+          padding: 0,
+          background: "transparent",
+          color: "inherit",
+          font: "inherit"
+        }}
       >
-        <Icon
-          aria-hidden="true"
+        <FlexRow
+          align="center"
+          gap={SPACING.sm}
+          fullWidth
           sx={(theme) => ({
-            color: `color-mix(in srgb, ${LEAF_ICON_COLORS[leaf.type]} 60%, ${theme.vars.palette.text.primary})`,
-            fontSize: "var(--fontSizeBig)"
+            minHeight: theme.spacing(8),
+            padding: `${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.sm)}`,
+            paddingLeft: theme.spacing(SPACING.xxl),
+            borderRadius: BORDER_RADIUS.md,
+            color: active
+              ? theme.vars.palette.text.primary
+              : theme.vars.palette.text.secondary,
+            backgroundColor: active
+              ? theme.vars.palette.action.selected
+              : "transparent",
+            textAlign: "left",
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: theme.vars.palette.action.hover,
+              color: theme.vars.palette.text.primary
+            },
+            "&:focus-visible": {
+              outline: `2px solid ${theme.vars.palette.primary.main}`,
+              outlineOffset: -2
+            }
           })}
-        />
-        <TruncatedText component="span" showTooltip sx={{ minWidth: 0, flex: 1 }}>
-          {/* Entity leaves carry seeded style-preset names — resolve through
-              the catalog overlay (unknown names fall back verbatim). */}
-          {leaf.type === "entity"
-            ? t(`catalog:styles.${leaf.name}.name`, { defaultValue: seededDocDisplayName(leaf.type, leaf.name) })
-            : seededDocDisplayName(leaf.type, leaf.name)}
-        </TruncatedText>
-        <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
-          {leaf.typeLabel}
-        </Text>
-      </FlexRow>
-    </Box>
+        >
+          <Icon
+            aria-hidden="true"
+            sx={(theme) => ({
+              color: `color-mix(in srgb, ${LEAF_ICON_COLORS[leaf.type]} 60%, ${theme.vars.palette.text.primary})`,
+              fontSize: "var(--fontSizeBig)"
+            })}
+          />
+          <TruncatedText
+            component="span"
+            showTooltip
+            sx={{ minWidth: 0, flex: 1 }}
+          >
+            {leaf.name}
+          </TruncatedText>
+          <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
+            {leaf.typeLabel}
+          </Text>
+        </FlexRow>
+      </Box>
+      <DeleteButton
+        onClick={handleDelete}
+        tooltip={`Delete ${leaf.name}`}
+        ariaLabel={`Delete ${leaf.name}`}
+        iconVariant="outline"
+        className="documents-tree-delete"
+      />
+    </FlexRow>
   );
 };
 
@@ -180,6 +208,7 @@ interface DocumentTreeGroupRowProps {
   readonly onToggle: () => void;
   readonly activeTabId: string | null;
   readonly onOpen: (document: DocumentTreeLeaf) => void;
+  readonly onDelete: (document: DocumentTreeLeaf) => void;
 }
 
 const DocumentTreeGroupRow = ({
@@ -187,7 +216,8 @@ const DocumentTreeGroupRow = ({
   expanded,
   onToggle,
   activeTabId,
-  onOpen
+  onOpen,
+  onDelete
 }: DocumentTreeGroupRowProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -248,22 +278,12 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${
-            expanded
-              ? t("editor:ui.collapse", { defaultValue: "Collapse" })
-              : t("editor:ui.expand", { defaultValue: "Expand" })
-          } ${
-        group.labelKey
-          ? t(group.labelKey, { defaultValue: group.label })
-          : group.label
-      }`}
+          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${group.label}`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: "var(--fontSizeBig)" }} />
         <Text size="small" truncate>
-          {group.labelKey
-            ? t(group.labelKey, { defaultValue: group.label })
-            : group.label}
+          {group.label}
         </Text>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}
@@ -277,6 +297,7 @@ const DocumentTreeGroupRow = ({
               leaf={document}
               active={activeTabId === `${document.type}:${document.id}`}
               onOpen={onOpen}
+              onDelete={onDelete}
             />
           ))}
         </FlexColumn>
@@ -298,11 +319,17 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   const [collapsedGroups, setCollapsedGroups] = useState<
     ReadonlySet<DocumentTreeGroup["id"]>
   >(() => new Set());
-  const [entityToEdit, setEntityToEdit] = useState<DocumentTreeLeaf["entity"]>();
+  const deleteDocument = useDeleteDocument();
+  const addNotification = useNotificationStore(
+    (state) => state.addNotification
+  );
+  const [documentToDelete, setDocumentToDelete] = useState<DocumentTreeLeaf>();
+  const [entityToEdit, setEntityToEdit] =
+    useState<DocumentTreeLeaf["entity"]>();
   const errorContext = useMemo<BugReportContext>(
     () => ({
       source: "panel-crash",
-      summary: t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
+      summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
       errorText: error?.message,
       stackTrace: error?.stack
     }),
@@ -343,7 +370,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
       openTab({
         type: DOCUMENT_TAB_TYPES[document.type],
         ref: document.id,
-        mode: "edit",
+        mode: document.type === "timeline" ? "view" : "edit",
         title,
         projectId: document.projectId
       });
@@ -361,6 +388,23 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     [location.pathname, navigate, openApplication, openTab, setVisibility]
   );
 
+  const handleConfirmDelete = useCallback(() => {
+    if (!documentToDelete) {
+      return;
+    }
+    const { id, type, name } = documentToDelete;
+    deleteDocument.mutate(
+      { id, type },
+      {
+        onError: (mutationError) =>
+          addNotification({
+            type: "error",
+            content: `Could not delete ${name}: ${mutationError.message}`
+          })
+      }
+    );
+  }, [addNotification, deleteDocument, documentToDelete]);
+
   const toggleGroup = useCallback((groupId: DocumentTreeGroup["id"]) => {
     setCollapsedGroups((previous) => {
       const next = new Set(previous);
@@ -376,9 +420,9 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   return (
     <FlexColumn fullHeight fullWidth gap={0}>
       {!isMobile && (
-        <PanelHeadline
+        <PanelHeader
           title={t("editor:ui.documents", { defaultValue: "Documents" })}
-          description={t("editor:ui.openDocumentsInTheCurrentProject")}
+          description="Open documents in the current project."
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
@@ -386,13 +430,13 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
           value={query}
           onChange={setQuery}
           ariaLabel={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
-          placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
+          placeholder="Search documents"
           fullWidth
         />
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text={t("editor:ui.loadingDocuments")} />
+          <LoadingSpinner text="Loading documents" />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -406,9 +450,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
             title={t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
-                <Text size="small">
-                  {error?.message ?? "Try again later."}
-                </Text>
+                <Text size="small">{error?.message ?? "Try again later."}</Text>
                 <ReportBugButton context={errorContext} />
               </FlexColumn>
             }
@@ -423,17 +465,23 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
+            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : i18n.t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
             description={
               query.trim()
-                ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
-                : t("editor:ui.documentsCreatedInThisProjectWillAppearHere", { defaultValue: "Documents created in this project will appear here." })
+                ? i18n.t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
+                : // A new text file is a Library file, not a document. Say so,
+                  // or the empty panel reads as a lost save.
+                  "Documents created in this project will appear here. Text files and uploads are in the Library."
             }
           />
         </FlexColumn>
       ) : (
-        <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0, px: SPACING.sm }}>
-          <FlexColumn role="tree" aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })} gap={SPACING.xs}>
+        <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0 }}>
+          <FlexColumn
+            role="tree"
+            aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
+            gap={SPACING.xs}
+          >
             {filteredGroups.map((group) => (
               <DocumentTreeGroupRow
                 key={group.id}
@@ -442,11 +490,25 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
                 onToggle={() => toggleGroup(group.id)}
                 activeTabId={activeTabId}
                 onOpen={handleOpen}
+                onDelete={setDocumentToDelete}
               />
             ))}
           </FlexColumn>
         </ScrollArea>
       )}
+      <ConfirmDialog
+        open={Boolean(documentToDelete)}
+        onClose={() => setDocumentToDelete(undefined)}
+        onConfirm={handleConfirmDelete}
+        title={`Delete ${documentToDelete?.typeLabel.toLowerCase() ?? "document"}?`}
+        content={
+          documentToDelete?.type === "entity"
+            ? `"${documentToDelete.name}" will stop being an entity. Its asset is kept.`
+            : `"${documentToDelete?.name ?? ""}" will be permanently deleted.`
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
       {entityToEdit && (
         <EntityEditorDialog
           open

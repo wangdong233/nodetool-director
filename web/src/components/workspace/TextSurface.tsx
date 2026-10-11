@@ -24,9 +24,8 @@ interface TextSurfaceProps {
  *   text, infers a language from the filename, and saves edits back via the
  *   asset update API.
  */
-const TextSurface = ({ refId, mode }: TextSurfaceProps) => {
   const { t } = useTranslation();
-  const { data: asset, isLoading, error } = useAssetById(refId);
+const TextSurface = ({ refId, mode, active }: TextSurfaceProps) => {  const { data: asset, isLoading, error } = useAssetById(refId);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
 
   useEffect(() => {
@@ -61,7 +60,7 @@ const TextSurface = ({ refId, mode }: TextSurfaceProps) => {
   }
 
   if (mode === "edit") {
-    return <TextDocumentEditor asset={asset} />;
+    return <TextDocumentEditor asset={asset} active={active} />;
   }
 
   return <TextPreview asset={asset} />;

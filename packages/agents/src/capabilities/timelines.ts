@@ -24,13 +24,10 @@ import type {
   TimelineSequenceVersion
 } from "@nodetool-ai/models";
 import type { TimelineValidation } from "@nodetool-ai/execution/timeline-debug";
-import type {
-  TimelineAnimationBakeRequest,
-  TimelineAnimationBakeResult,
-  TimelineBridgeAsset,
-  TimelineBridgeFinalState
-} from "../evals/surfaces/timeline.js";
-import type { BakeCustomAnimationParams } from "../custom-animation-bake.js";
+import type { TimelineBridgeFinalState } from "./timeline-bridge.js";
+import { parseOps, applyOps, TOOL_PREFIX, READ_ONLY_OPS, timelineModel3DBaker } from "./timeline-operations.js";
+export { parseOps, applyOps } from "./timeline-operations.js";
+export type { ParsedOp, OpRecord, ApplyOutcome } from "./timeline-operations.js";
 import type { IsolateSubjectInput } from "./timeline-isolate-subject.js";
 import type { SavedOutput } from "../tools/asset-persist.js";
 import type {
@@ -75,14 +72,32 @@ import {
   MAX_VERSION_LIMIT,
   trackObjectSpec,
   TRACK_OBJECT_DIRECTIONS,
+  getTimelineCodeSpec,
+  setTimelineCodeSpec,
+  editTimelineCodeSpec,
+  rebakeTimelineCodeSpec,
+  detachTimelineCodeSpec,
   deleteTimelineSpec
 } from "./timelines.specs.js";
 import {
   AUDIO_BAKED_ANIMATION_KIND,
   normalizeAuthoredDocument,
+  hashSceneSubtree,
+  mergeTimelineSource,
   type AuthoredRenderSettings,
-  type MediaTrack
+  type MediaTrack,
+  type SourceMergeScenes,
+  type TimelineDocumentLike
 } from "@nodetool-ai/timeline";
+import {
+  bakeTimelineCode,
+  bakedDocumentMatchesSaved,
+  type BakeTimelineCodeResult
+} from "../timeline-code-bake.js";
+import {
+  applyJsScriptEditOps,
+  parseJsScriptEditOps
+} from "./js-scripts.js";
 import type { TrackObjectInput } from "./timeline-track-object.js";
 import { clipSourceWindowMs } from "./timeline-audio-bake.js";
 import { TIMELINE_NATIVE_MEDIA_CAPABILITIES } from "./timeline-native-media.js";
@@ -274,7 +289,7 @@ const getTimeline: CapabilityExport = {
   impl: async (run, params) => {
     const seq = await loadTimeline(run, params["timeline_id"]);
     if (isError(seq)) return seq;
-    return { timeline: seq.toTimelineSequence() };
+    return { timeline: seq.toTimelineSequence(), revision: seq.revision };
   }
 };
 
@@ -472,296 +487,6 @@ const deleteTimelineVersion: CapabilityExport = {
 
 /** Attempts to land the document write before reporting a conflict. */
 const CAS_ATTEMPTS = 2;
-/** Operations one call may apply, so a runaway script cannot rewrite a cut. */
-const MAX_OPS = 60;
-
-const TOOL_PREFIX = "ui_timeline_";
-
-/**
- * Tools the browser bridge exposes that this capability cannot run safely.
- *
- * `edit_timeline` persists document mutations but has no durable media-edit
- * generation adapter or callback path. Exposing generative editing here would
- * require it to invent an asset id, so it remains browser-only until a server
- * generation runner can create and attach the candidate take. `apply_take`
- * stays available because it only promotes an existing candidate.
- */
-const EXCLUDED_OPS = new Set([
-  `${TOOL_PREFIX}get_clip_frames`,
-  `${TOOL_PREFIX}generate_clip`,
-  `${TOOL_PREFIX}generatively_edit_clip`
-]);
-
-/** `add_track`, `ui_add_track`, and `ui_timeline_add_track` all name one tool. */
-function normalizeOpName(name: string): string {
-  const trimmed = name.trim();
-  if (trimmed.startsWith(TOOL_PREFIX)) return trimmed;
-  const bare = trimmed.startsWith("ui_")
-    ? trimmed.slice("ui_".length)
-    : trimmed;
-  return `${TOOL_PREFIX}${bare}`;
-}
-
-interface ParsedOp {
-  op: string;
-  input: Record<string, unknown>;
-}
-
-/** An op is `{op, ...args}` — the arguments sit alongside the verb. */
-function parseOps(raw: unknown): ParsedOp[] | ToolError {
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return {
-      error:
-        'ops must be a non-empty array, e.g. [{"op": "add_track", "type": "audio"}].'
-    };
-  }
-  if (raw.length > MAX_OPS) {
-    return {
-      error: `ops holds ${raw.length} entries; at most ${MAX_OPS} per call.`
-    };
-  }
-  const parsed: ParsedOp[] = [];
-  for (const [index, entry] of raw.entries()) {
-    if (!isRecord(entry)) {
-      return { error: `ops[${index}] must be an object.` };
-    }
-    const { op, ...input } = entry as Record<string, unknown>;
-    if (!isString(op) || op.trim() === "") {
-      return { error: `ops[${index}] has no \`op\` name.` };
-    }
-    parsed.push({ op: normalizeOpName(op), input });
-  }
-  return parsed;
-}
-
-interface OpRecord {
-  op: string;
-  ok: boolean;
-  result?: unknown;
-  error?: string;
-}
-
-interface ApplyOutcome {
-  records: OpRecord[];
-  state: TimelineBridgeFinalState;
-}
-
-/**
- * Read one of the caller's assets for `add_media_clip`.
- *
- * The ref a model has in hand is whatever `list_assets` printed — a bare id or
- * an `asset://<id>.<ext>` URI — so both resolve here.
- */
-async function resolveTimelineAsset(
-  run: CapabilityRun,
-  ref: string
-): Promise<TimelineBridgeAsset | null> {
-  const id = ref.startsWith("asset://")
-    ? ref.slice("asset://".length).replace(/\.[A-Za-z0-9]{1,8}$/, "")
-    : ref;
-  if (!id) return null;
-  const userId = run.context.userId;
-  if (!userId) return null;
-  const { Asset } = await import("@nodetool-ai/models");
-  // `find` is already user-scoped: someone else's asset reads as missing.
-  const asset = await Asset.find(userId, id);
-  if (!asset) return null;
-  const thumbnails = isRecord(asset.metadata)
-    ? asset.metadata["thumbnails"]
-    : undefined;
-  const thumbnailAssetId =
-    Array.isArray(thumbnails) && isString(thumbnails[0])
-      ? thumbnails[0]
-      : undefined;
-  const resolved: TimelineBridgeAsset = {
-    id: asset.id,
-    name: asset.name,
-    contentType: asset.content_type
-  };
-  let duration = asset.duration;
-  if ((!isFiniteNumber(duration) || duration <= 0) &&
-      (asset.content_type.startsWith("audio/") || asset.content_type.startsWith("video/"))) {
-    try {
-      const { loadMediaRefBytes, probeVideoDurationSeconds } = await import("@nodetool-ai/runtime");
-      const bytes = await loadMediaRefBytes({ asset_id: asset.id }, run.context);
-      if (bytes) {
-        duration = await probeVideoDurationSeconds(bytes, new AbortController().signal);
-        if (isFiniteNumber(duration) && duration > 0) {
-          asset.duration = duration;
-          await asset.save();
-        }
-      }
-    } catch {
-      // An explicit clip duration remains usable when the source cannot be probed.
-    }
-  }
-  if (isFiniteNumber(duration) && duration > 0) {
-    resolved.durationMs = Math.round(duration * 1000);
-  }
-  if (thumbnailAssetId) resolved.thumbnailAssetId = thumbnailAssetId;
-  return resolved;
-}
-
-/**
- * Run a custom animation's body once and return its curves.
- *
- * The bake is the only place that code runs — the curves are stored and every
- * render site samples them — so it goes through `bakeCustomAnimation`, the
- * same hermetic path `POST /api/timelines/animations/bake` uses. Imported
- * lazily: the sandbox is a heavy dependency for a capability most calls never
- * reach.
- */
-async function bakeTimelineAnimation(
-  run: CapabilityRun,
-  request: TimelineAnimationBakeRequest
-): Promise<TimelineAnimationBakeResult> {
-  const { bakeCustomAnimation } = await import("../custom-animation-bake.js");
-  const params: BakeCustomAnimationParams = {
-    code: request.code,
-    role: request.role,
-    durationMs: request.durationMs,
-    clipDurationMs: request.clipDurationMs,
-    canvas: request.canvas
-  };
-  if (request.params !== undefined) params.params = request.params;
-  if (request.staggerCount !== undefined) {
-    params.staggerCount = request.staggerCount;
-  }
-  const baked = await bakeCustomAnimation(run.context, params);
-  const result: TimelineAnimationBakeResult = { ok: baked.ok };
-  if (baked.curves !== undefined) result.curves = baked.curves;
-  if (baked.mask !== undefined) result.mask = baked.mask;
-  if (baked.error !== undefined) result.error = baked.error;
-  return result;
-}
-
-/**
- * Run `ops` against a bridge seeded from `document`.
- *
- * A failing op is recorded and the script continues: stopping at the first
- * error hides every problem behind it, and the caller wants the whole picture.
- */
-async function applyOps(
-  run: CapabilityRun,
-  sequence: TimelineSequence,
-  document: TimelineDocument,
-  ops: ParsedOp[]
-): Promise<ApplyOutcome> {
-  const { createTimelineToolBridge } =
-    await import("../evals/surfaces/timeline.js");
-  const bridge = createTimelineToolBridge({
-    sequenceId: sequence.id,
-    sequenceName: sequence.name,
-    projectId: sequence.project_id,
-    sequence: {
-      fps: sequence.fps,
-      width: sequence.width,
-      height: sequence.height,
-      tracks: document.tracks,
-      clips: document.clips,
-      markers: document.markers,
-      transcript: document.transcript,
-      scriptEnabled: document.scriptEnabled,
-      templateId: document.templateId,
-      tempo: document.tempo,
-      camera2d: document.camera2d,
-      setup: document.setup,
-      mediaTracks: document.mediaTracks
-    },
-    resolveAsset: (ref) => resolveTimelineAsset(run, ref),
-    bakeAnimation: (request) => bakeTimelineAnimation(run, request),
-    bakeModel3DClip: async (request) => {
-      const { bakeModel3DClipOnServer } = await import("./timeline-bake.js");
-      return bakeModel3DClipOnServer(run.context, request);
-    },
-    retargetFormat: async (adapted) => {
-      const { TimelineSequence } = await import("@nodetool-ai/models");
-      const derivedDocument: TimelineDocument = {
-        tracks: adapted.tracks,
-        clips: adapted.clips,
-        markers: adapted.markers
-      };
-      if (adapted.transcript !== undefined) {
-        derivedDocument.transcript = adapted.transcript;
-      }
-      if (adapted.scriptEnabled !== undefined) {
-        derivedDocument.scriptEnabled = adapted.scriptEnabled;
-      }
-      if (adapted.tempo !== undefined) derivedDocument.tempo = adapted.tempo;
-      if (adapted.camera2d !== undefined) derivedDocument.camera2d = adapted.camera2d;
-      if (adapted.setup !== undefined) derivedDocument.setup = adapted.setup;
-      if (adapted.templateId !== undefined) {
-        derivedDocument.templateId = adapted.templateId;
-      }
-      if (adapted.mediaTracks !== undefined) {
-        derivedDocument.mediaTracks = adapted.mediaTracks;
-      }
-      const name = `${sequence.name} (${adapted.width}×${adapted.height})`;
-      const created = await TimelineSequence.create({
-        user_id: run.context.userId,
-        project_id: sequence.project_id,
-        workflow_id: sequence.workflow_id,
-        name,
-        fps: adapted.fps,
-        width: adapted.width,
-        height: adapted.height,
-        duration_ms: adapted.durationMs,
-        document: JSON.stringify(derivedDocument)
-      });
-      return { sequenceId: created.id, name };
-    },
-    loadComposition: {
-      get: async (id) => {
-        const { loadComposition } = await import("./compositions.js");
-        const found = await loadComposition(run, id);
-        return found ? found.composition : null;
-      },
-      listIds: async () => {
-        const { loadShippedCompositions, loadUserCompositions } =
-          await import("./compositions.js");
-        const mine = await loadUserCompositions(run);
-        return [
-          ...loadShippedCompositions().map((comp) => comp.id),
-          ...(Array.isArray(mine) ? mine.map((comp) => comp.id) : [])
-        ];
-      }
-    }
-  });
-  const byName = new Map(
-    bridge.tools
-      .filter((tool) => !EXCLUDED_OPS.has(tool.name))
-      .map((tool) => [tool.name, tool])
-  );
-
-  const records: OpRecord[] = [];
-  for (const { op, input } of ops) {
-    const tool = byName.get(op);
-    if (!tool) {
-      const known = [...byName.keys()]
-        .map((name) => name.slice(TOOL_PREFIX.length))
-        .sort()
-        .join(", ");
-      records.push({
-        op,
-        ok: false,
-        error: `No timeline operation named "${op.slice(TOOL_PREFIX.length)}". Available: ${known}.`
-      });
-      continue;
-    }
-    try {
-      records.push({ op, ok: true, result: await tool.execute(input) });
-    } catch (e) {
-      records.push({
-        op,
-        ok: false,
-        error: e instanceof Error ? e.message : String(e)
-      });
-    }
-  }
-
-  return { records, state: bridge.finalState() };
-}
-
 /**
  * The keys an op names its unit under, and which list each one means.
  *
@@ -891,7 +616,12 @@ const editTimeline: CapabilityExport = {
       };
     }
 
-    const { TimelineSequence } = await import("@nodetool-ai/models");
+    const { TimelineSequence, TimelineSequenceVersion } = await import("@nodetool-ai/models");
+    const { timelineMediaEditGenerator } = await import("./timeline-media-edit.js");
+    const generateMediaEdit = timelineMediaEditGenerator(run);
+    // Shared across retries, like the media edit generator: a retry re-applies
+    // every op, and a 3D bake already rendered must not render again.
+    const bakeModel3DClip = timelineModel3DBaker(run);
     for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
       const sequence = await TimelineSequence.findById(timelineId);
       // A sequence owned by someone else reads as missing — the rule the tRPC
@@ -900,7 +630,7 @@ const editTimeline: CapabilityExport = {
         return { error: `Timeline ${timelineId} was not found.` };
       }
       const document: TimelineDocument = sequence.toDocument();
-      const { records, state } = await applyOps(run, sequence, document, ops);
+      const { records, state } = await applyOps(run, sequence, document, ops, { generateMediaEdit, bakeModel3DClip });
 
       // The transcript rides along untouched — no timeline operation edits it,
       // so the stored copy stays authoritative. Markers come back from the
@@ -934,12 +664,12 @@ const editTimeline: CapabilityExport = {
       // hand an open editor a merge with nothing in it.
       const appliedOps = ops
         .map((parsed, index) => ({ parsed, index }))
-        .filter(({ index }) => records[index]?.ok);
+        .filter(({ parsed, index }) => records[index]?.ok && !READ_ONLY_OPS.has(parsed.op));
       if (appliedOps.length === 0) {
         return {
           timeline_id: timelineId,
           updated_at: sequence.updated_at,
-          applied: 0,
+          applied: records.filter((record) => record.ok).length,
           failed: failed.length,
           ops: records,
           tracks: state.tracks,
@@ -978,6 +708,9 @@ const editTimeline: CapabilityExport = {
         };
       }
 
+      const undo = appliedOps.some(({ parsed }) => parsed.op === `${TOOL_PREFIX}apply_take`)
+        ? await TimelineSequenceVersion.snapshot(sequence, { saveType: "manual", name: "Before applying AI edit take" })
+        : undefined;
       const saved = await TimelineSequence.updateDocumentIfUnchanged(
         sequence.id,
         sequence.updated_at,
@@ -993,10 +726,16 @@ const editTimeline: CapabilityExport = {
             )
           }))
         }
-      );
-      if (!saved) continue;
+      ).catch(async (error: unknown) => {
+        await undo?.delete();
+        throw error;
+      });
+      if (!saved) {
+        await undo?.delete();
+        continue;
+      }
 
-      return {
+      const response = {
         timeline_id: timelineId,
         updated_at: saved.updated_at,
         applied: records.length - failed.length,
@@ -1013,6 +752,10 @@ const editTimeline: CapabilityExport = {
           animations: clip.animations
         }))
       };
+      if (undo) {
+        Object.assign(response, { undo_version: undo.version });
+      }
+      return response;
     }
 
     return {
@@ -1024,6 +767,18 @@ const editTimeline: CapabilityExport = {
 // ---------------------------------------------------------------------------
 // validate_timeline
 // ---------------------------------------------------------------------------
+
+/**
+ * The media ref a clip's `currentAssetId` names. Usually a bare asset id, but a
+ * shipped example names its stills by `package://` URI, which resolves for
+ * every user without an asset row; wrapping that in `asset://` made an id no
+ * store holds.
+ */
+function clipAssetRef(assetId: string): { uri: string; asset_id?: string } {
+  return assetId.includes("://")
+    ? { uri: assetId }
+    : { uri: `asset://${assetId}`, asset_id: assetId };
+}
 
 /** A positive finite number from a tool param, or undefined. */
 function numberParam(value: unknown): number | undefined {
@@ -1059,6 +814,10 @@ const validateTimeline: CapabilityExport = {
   // capability in this module reads it. The "no loader" refusal this replaced
   // meant a chat belt could edit a sequence it could not then validate.
   impl: async (run, params) => {
+    const tier = params["tier"];
+    if (tier !== undefined && tier !== "standard" && tier !== "showcase") {
+      return { error: "Unsupported validation tier. Use standard or showcase." };
+    }
     const inline = params["document"];
     const timelineId = params["timeline_id"] as string | undefined;
 
@@ -1100,7 +859,22 @@ const validateTimeline: CapabilityExport = {
 
     const { validateTimelineSequence } =
       await import("@nodetool-ai/execution/timeline-debug");
-    const validation = validateTimelineSequence(document, meta);
+    const validationMeta: typeof meta & {
+      tier?: "standard" | "showcase";
+    } = { ...meta };
+    if (tier !== undefined) {
+      validationMeta.tier = tier;
+    }
+    // Inline preflight must use the same authoring normalization as setDocument.
+    if (inline !== undefined && params["normalize"] === true && isRecord(document)) {
+      const normalized = documentToStore(document);
+      document = normalized.document;
+      meta = { ...normalized.settings, ...Object.fromEntries(
+        Object.entries(meta).filter(([, value]) => value !== undefined)
+      ) };
+      Object.assign(validationMeta, meta);
+    }
+    const validation = validateTimelineSequence(document, validationMeta);
     const report: typeof validation & {
       timeline_id?: string;
       name?: string;
@@ -1131,8 +905,22 @@ const validateTimeline: CapabilityExport = {
 function documentToStore(raw: Record<string, unknown>): {
   document: Record<string, unknown>;
   settings: AuthoredRenderSettings;
+  name: string | undefined;
 } {
-  return normalizeAuthoredDocument(raw);
+  const {
+    name,
+    id: _id,
+    projectId: _projectId,
+    workflowId: _workflowId,
+    durationMs: _durationMs,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    ...document
+  } = raw;
+  return {
+    ...normalizeAuthoredDocument(document),
+    name: isString(name) && name.trim() ? name.trim() : undefined
+  };
 }
 
 /** The end of the last clip — what the sequence's stored duration means. */
@@ -1202,7 +990,11 @@ const setTimelineDocument: CapabilityExport = {
       }
     }
 
-    const { document, settings } = documentToStore(raw);
+    // `get_timeline` returns the sequence row's fields beside the document.
+    // A caller that sends that object back renames the sequence with `name`.
+    // The other row fields are owned by the row, so they are dropped rather
+    // than reported as stripped document fields.
+    const { document, settings, name } = documentToStore(raw);
 
     // Document-level fps/width/height are sequence settings, so opts win and a
     // document that carries them configures the sequence instead of having
@@ -1256,19 +1048,22 @@ const setTimelineDocument: CapabilityExport = {
       name: snapshotName
     });
 
-    const durationMs = documentDurationMs(document);
+    const fields: Parameters<typeof TimelineSequence.updateFieldsIfUnchanged>[2] = {
+      document: JSON.stringify(document),
+      fps,
+      width,
+      height,
+      duration_ms: documentDurationMs(document)
+    };
+    if (name !== undefined) {
+      fields.name = name;
+    }
     let saved: TimelineSequence | null;
     try {
       saved = await TimelineSequence.updateFieldsIfUnchanged(
         sequence.id,
         sequence.updated_at,
-        {
-          document: JSON.stringify(document),
-          fps,
-          width,
-          height,
-          duration_ms: durationMs
-        }
+        fields
       );
     } catch (error) {
       // The model rejects a document without tracks/clips/markers arrays. The
@@ -1301,6 +1096,7 @@ const setTimelineDocument: CapabilityExport = {
       ok: true,
       written: true,
       timeline_id: saved.id,
+      name: saved.name,
       updated_at: saved.updated_at,
       undo_version: undo.version,
       fps: saved.fps,
@@ -1522,10 +1318,7 @@ const previewTimelineFrame: CapabilityExport = {
           shutterAngle: angleParam(params["shutter_angle"])
         },
         loadAsset: (assetId) =>
-          loadMediaRefBytes(
-            { uri: `asset://${assetId}`, asset_id: assetId },
-            run.context
-          )
+          loadMediaRefBytes(clipAssetRef(assetId), run.context)
       });
     } catch (error) {
       return {
@@ -1554,6 +1347,7 @@ const previewTimelineFrame: CapabilityExport = {
         mime: "image/png"
       });
       sheet = {
+        complete: result.complete,
         columns: tiled.columns,
         rows: tiled.rows,
         cells: tiled.cells,
@@ -1568,12 +1362,15 @@ const previewTimelineFrame: CapabilityExport = {
     const frames = [];
     for (const frame of result.frames) {
       const entry: Record<string, unknown> = {
+        complete: frame.complete,
         time_ms: frame.time_ms,
         width: frame.width,
         height: frame.height,
         layers: frame.layers,
+        failures: frame.failures,
         dropped: frame.dropped,
-        degraded: frame.degraded
+        degraded: frame.degraded,
+        degradations: frame.degraded
       };
       if (!wantSheet) {
         const saved = await persistOutput(run.context, frame.png, {
@@ -1586,6 +1383,8 @@ const previewTimelineFrame: CapabilityExport = {
     }
 
     return {
+      complete: result.complete,
+      visual_output_verified: false,
       timeline_id: isString(timelineId) ? timelineId : undefined,
       name,
       fps: meta.fps,
@@ -1595,12 +1394,15 @@ const previewTimelineFrame: CapabilityExport = {
       frames,
       sheet,
       effects_not_applied: result.effectsNotApplied,
-      hint: wantSheet
+      fonts_unavailable: result.fontsUnavailable,
+      hint: (!result.complete
+        ? "Incomplete preview: requested content was skipped or approximated. Inspect failures, dropped, degradations, skipped layers, effects_not_applied and fonts_unavailable. This image cannot verify the complete composition. "
+        : "") + (wantSheet
         ? "Call view_image with the sheet's asset_id to see every frame at " +
           "once; the cells run left to right, labelled with their timecode. " +
           "Each frame's layers are listed top of the stack first."
         : "Call view_image with a frame's asset_id to see it. The layers are " +
-          "listed top of the stack first — the first one covers the rest."
+          "listed top of the stack first — the first one covers the rest.")
     };
   }
 };
@@ -1748,10 +1550,7 @@ const compareTimelineFrames: CapabilityExport = {
         timesMs: times,
         width,
         loadAsset: (assetId) =>
-          loadMediaRefBytes(
-            { uri: `asset://${assetId}`, asset_id: assetId },
-            run.context
-          )
+          loadMediaRefBytes(clipAssetRef(assetId), run.context)
       });
 
     let rendered;
@@ -1769,14 +1568,17 @@ const compareTimelineFrames: CapabilityExport = {
     const frames = [];
     const cells = [];
     for (let i = 0; i < times.length; i++) {
-      const difference = Number(
-        (await frameDifference(left.frames[i].png, right.frames[i].png)).toFixed(
-          4
-        )
-      );
-      frames.push({ time_ms: times[i], difference });
+      const complete = left.frames[i].complete && right.frames[i].complete;
+      const difference = complete ? Number(
+        (await frameDifference(left.frames[i].png, right.frames[i].png)).toFixed(4)
+      ) : null;
+      frames.push({
+        time_ms: times[i], complete, difference,
+        a: { failures: left.frames[i].failures, dropped: left.frames[i].dropped, degradations: left.frames[i].degraded, skipped: left.frames[i].layers.filter((layer) => layer.skipped) },
+        b: { failures: right.frames[i].failures, dropped: right.frames[i].dropped, degradations: right.frames[i].degraded, skipped: right.frames[i].layers.filter((layer) => layer.skipped) }
+      });
       cells.push({
-        label: `${times[i]}ms  ${difference.toFixed(3)}`,
+        label: `${times[i]}ms  ${difference === null ? "incomplete" : difference.toFixed(3)}`,
         png: await sideBySide(left.frames[i].png, right.frames[i].png)
       });
     }
@@ -1787,20 +1589,24 @@ const compareTimelineFrames: CapabilityExport = {
       mime: "image/png"
     });
 
-    const differences = frames.map((frame) => frame.difference);
-    const changed = frames.filter((frame) => frame.difference > 0);
+    const complete = left.complete && right.complete;
+    const differences = frames.flatMap((frame) => frame.difference === null ? [] : [frame.difference]);
+    const changed = frames.filter((frame) => frame.difference !== null && frame.difference > 0);
     return {
+      complete,
+      visual_output_verified: false,
       a: a.source,
       b: b.source,
       frames,
-      changed_times_ms: changed.map((frame) => frame.time_ms),
-      max_difference: Math.max(...differences),
-      mean_difference: Number(
+      changed_times_ms: complete ? changed.map((frame) => frame.time_ms) : null,
+      max_difference: complete ? Math.max(...differences) : null,
+      mean_difference: complete ? Number(
         (differences.reduce((sum, d) => sum + d, 0) / differences.length).toFixed(
           4
         )
-      ),
+      ) : null,
       sheet: {
+        complete,
         columns: tiled.columns,
         rows: tiled.rows,
         cells: tiled.cells,
@@ -1811,7 +1617,11 @@ const compareTimelineFrames: CapabilityExport = {
       effects_not_applied: [
         ...new Set([...left.effectsNotApplied, ...right.effectsNotApplied])
       ].sort(),
+      fonts_unavailable: [
+        ...new Set([...left.fontsUnavailable, ...right.fontsUnavailable])
+      ].sort(),
       hint:
+        (!complete ? "Incomplete previews cannot establish visual equivalence. Difference scores are null for incomplete pairs and aggregate metrics are unavailable. " : "") +
         "difference is the mean absolute RGB difference, 0 (identical) to 1. " +
         "Each cell of the sheet is a pair: `a` on the left, `b` on the right, " +
         "labelled with its timecode and score."
@@ -2504,7 +2314,7 @@ const isolateSubject: CapabilityExport = {
     const persist = async (next: TimelineClipShape): Promise<boolean> => {
       const clips = document.clips.map((c) => (c.id === next.id ? next : c));
       const saved = await TimelineSequence.updateDocumentIfUnchanged(
-        timelineId,
+        sequence.id,
         expectedUpdatedAt,
         { ...document, clips },
         {
@@ -2638,7 +2448,7 @@ const trackObject: CapabilityExport = {
     let mediaTracks: MediaTrack[] = document.mediaTracks ?? [];
     const persist = async (next: MediaTrack[]): Promise<boolean> => {
       const saved = await TimelineSequence.updateDocumentIfUnchanged(
-        timelineId,
+        sequence.id,
         expectedUpdatedAt,
         { ...document, mediaTracks: next },
         { ops: [{ tool: "track_object", input: { clip_id: clip.id, track_id: trackId } }] }
@@ -2695,6 +2505,408 @@ const trackObject: CapabilityExport = {
   }
 };
 
+/**
+ * The report shape `get_timeline_code`, `set_timeline_code`, `edit_timeline_code`
+ * and `rebake_timeline_code` all answer for `scenes`: `edited` means "kept
+ * as-is rather than reflecting the code" — either the code has never been
+ * baked into a current merge (`get`), or this call's own merge kept it as a
+ * conflict (`set`/`edit`/`rebake`).
+ */
+function sceneReport(
+  scenes: SourceMergeScenes,
+  editedNames: ReadonlySet<string>
+): Array<{ name: string; group_id: string; edited: boolean }> {
+  return Object.entries(scenes).map(([name, recorded]) => ({
+    name,
+    group_id: recorded.groupId,
+    edited: editedNames.has(name)
+  }));
+}
+
+/** `force` is a boolean or an array of scene names; anything else is refused. */
+function normalizeForceOption(
+  value: unknown
+): true | string[] | undefined | ToolError {
+  if (value === undefined) return undefined;
+  if (value === true) return true;
+  if (value === false) return undefined;
+  if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+    return value as string[];
+  }
+  return { error: "force must be a boolean or an array of scene names." };
+}
+
+/**
+ * Validate, snapshot, and CAS-write a document the way `set_timeline_document`
+ * does (see its own docstring for why each step is there): validate first so
+ * a document that would not render never reaches the database, snapshot the
+ * state being replaced so the write is undoable, then a CAS write so a
+ * concurrent edit is reported rather than clobbered.
+ */
+export async function writeTimelineCodeDocument(
+  sequence: TimelineSequence,
+  document: Record<string, unknown>,
+  snapshotName: string
+): Promise<
+  | { written: true; timeline_id: string; errors: string[]; warnings: string[] }
+  | { written: false; error: string; errors: string[]; warnings: string[] }
+> {
+  const { validateTimelineSequence } =
+    await import("@nodetool-ai/execution/timeline-debug");
+  const before: TimelineValidation = validateTimelineSequence(
+    document as unknown as TimelineDocument,
+    { fps: sequence.fps, width: sequence.width, height: sequence.height }
+  );
+  const errors = before.errors.map((issue) => issue.message);
+  const warnings = before.warnings.map((issue) => issue.message);
+  if (!before.ok) {
+    return {
+      written: false,
+      error: `The baked document has ${before.errors.length} error${
+        before.errors.length === 1 ? "" : "s"
+      } and was not written to timeline ${sequence.id}.`,
+      errors,
+      warnings
+    };
+  }
+
+  const { TimelineSequence: TimelineSequenceModel, TimelineSequenceVersion } =
+    await import("@nodetool-ai/models");
+  await TimelineSequenceVersion.snapshot(sequence, {
+    saveType: "manual",
+    name: snapshotName
+  });
+
+  const saved = await TimelineSequenceModel.updateFieldsIfUnchanged(
+    sequence.id,
+    sequence.updated_at,
+    {
+      document: JSON.stringify(document),
+      duration_ms: documentDurationMs(document)
+    }
+  );
+  if (!saved) {
+    return {
+      written: false,
+      error: `Timeline ${sequence.id} was modified concurrently; nothing was written. Read it again and try again.`,
+      errors,
+      warnings
+    };
+  }
+  return { written: true, timeline_id: saved.id, errors, warnings };
+}
+
+/**
+ * Bake `code`, merge the result into `sequence`'s current document (see
+ * `mergeTimelineSource` in `@nodetool-ai/timeline` for the merge rule), and
+ * write it through the same path `set_timeline_document` uses. Shared by
+ * `set_timeline_code`, `edit_timeline_code` and `rebake_timeline_code` — they
+ * differ only in where `code` comes from.
+ */
+async function bakeAndMergeTimelineCode(
+  run: CapabilityRun,
+  sequence: TimelineSequence,
+  code: string,
+  force: true | string[] | undefined
+) {
+  const current = sequence.toDocument();
+  const baked: BakeTimelineCodeResult = await bakeTimelineCode(
+    run.context,
+    code
+  );
+  if (!baked.ok || !baked.document) {
+    return {
+      timeline_id: sequence.id,
+      errors: [baked.error ?? "The code failed to build a document."],
+      warnings: [],
+      conflicts: [],
+      scenes: []
+    };
+  }
+
+  const previousScenes: SourceMergeScenes = current.source?.scenes ?? {};
+  const merged = mergeTimelineSource(
+    current as unknown as TimelineDocumentLike,
+    baked.document,
+    previousScenes,
+    force !== undefined ? { force } : {}
+  );
+
+  const mergedWithSource: Record<string, unknown> = {
+    ...merged.document,
+    source: {
+      lang: "js" as const,
+      code,
+      bakedAt: new Date().toISOString(),
+      scenes: merged.scenes
+    }
+  };
+
+  const editedNames = new Set(merged.conflicts.map((c) => c.scene));
+  const scenes = sceneReport(merged.scenes, editedNames);
+
+  const write = await writeTimelineCodeDocument(
+    sequence,
+    mergedWithSource,
+    "Before writing timeline code"
+  );
+  if (!write.written) {
+    return {
+      timeline_id: sequence.id,
+      errors: [write.error, ...write.errors],
+      warnings: write.warnings,
+      conflicts: merged.conflicts,
+      scenes
+    };
+  }
+  return {
+    timeline_id: write.timeline_id,
+    errors: write.errors,
+    warnings: write.warnings,
+    conflicts: merged.conflicts,
+    scenes
+  };
+}
+
+/**
+ * Attach `code` as `sequence`'s authoring source only when a hermetic bake
+ * of it gives exactly the document that is saved now. This is
+ * `set_timeline_code` with `require_match: true`, which `v.save()` calls
+ * with the retained program it printed (docs/timeline-code-capture.md).
+ *
+ * A mismatch writes nothing and returns a warning. The document stays as it
+ * was saved, only without code, because code that does not rebuild it would
+ * make a later rebake diverge from what the timeline shows.
+ */
+async function attachMatchingTimelineCode(
+  run: CapabilityRun,
+  sequence: TimelineSequence,
+  code: string
+) {
+  const current = sequence.toDocument();
+  const notEmbedded = (warning: string) => ({
+    timeline_id: sequence.id,
+    embedded: false,
+    errors: [],
+    warnings: [warning],
+    conflicts: [],
+    scenes: []
+  });
+
+  const baked = await bakeTimelineCode(run.context, code);
+  if (!baked.ok || !baked.document) {
+    return notEmbedded(
+      `Code not embedded: the retained program failed to rebake (${
+        baked.error ?? "unknown error"
+      }).`
+    );
+  }
+  if (
+    !bakedDocumentMatchesSaved(
+      current as unknown as TimelineDocumentLike,
+      baked.document
+    )
+  ) {
+    return notEmbedded(
+      "Code not embedded: the retained program rebakes to a different " +
+        "timeline than the one saved. A scene clip probably changed after " +
+        "v.series(), or a value came from Math.random() or Date.now()."
+    );
+  }
+
+  // Every scene is new here: the saved document was just written from this
+  // same run, so there are no hand edits to keep.
+  const merged = mergeTimelineSource(
+    current as unknown as TimelineDocumentLike,
+    baked.document,
+    {},
+    { force: true }
+  );
+  const write = await writeTimelineCodeDocument(
+    sequence,
+    {
+      ...merged.document,
+      source: {
+        lang: "js" as const,
+        code,
+        bakedAt: new Date().toISOString(),
+        scenes: merged.scenes
+      }
+    },
+    "Attach authoring code"
+  );
+  if (!write.written) {
+    return notEmbedded(`Code not embedded: ${write.error}`);
+  }
+  return {
+    timeline_id: write.timeline_id,
+    embedded: true,
+    errors: write.errors,
+    warnings: write.warnings,
+    conflicts: [],
+    scenes: sceneReport(merged.scenes, new Set())
+  };
+}
+
+const getTimelineCode: CapabilityExport = {
+  spec: getTimelineCodeSpec,
+  impl: async (run, params) => {
+    const sequence = await loadTimeline(run, params["timeline_id"]);
+    if (isError(sequence)) return sequence;
+    const doc = sequence.toDocument();
+    const source = doc.source;
+    if (!source) return { code: null, baked_at: null, scenes: [] };
+
+    const groupIdByScene = new Map<string, string>();
+    for (const clip of doc.clips) {
+      if (typeof clip.sourceScene === "string" && clip.sourceScene) {
+        groupIdByScene.set(clip.sourceScene, clip.id);
+      }
+    }
+    const editedNames = new Set<string>();
+    for (const [name, recorded] of Object.entries(source.scenes)) {
+      const groupId = groupIdByScene.get(name);
+      const edited =
+        groupId === undefined ||
+        hashSceneSubtree(doc.clips, groupId) !== recorded.hash;
+      if (edited) editedNames.add(name);
+    }
+    return {
+      code: source.code,
+      baked_at: source.bakedAt,
+      scenes: sceneReport(source.scenes, editedNames)
+    };
+  }
+};
+
+const setTimelineCode: CapabilityExport = {
+  spec: setTimelineCodeSpec,
+  impl: async (run, params) => {
+    const sequence = await loadTimeline(run, params["timeline_id"]);
+    if (isError(sequence)) return sequence;
+    const code = params["code"];
+    if (!isString(code) || !code.trim()) {
+      return { error: "code is required and must be a non-empty script." };
+    }
+    if (params["require_match"] === true) {
+      return attachMatchingTimelineCode(run, sequence, code);
+    }
+    const force = normalizeForceOption(params["force"]);
+    if (isError(force)) return force;
+    return bakeAndMergeTimelineCode(run, sequence, code, force);
+  }
+};
+
+const editTimelineCode: CapabilityExport = {
+  spec: editTimelineCodeSpec,
+  impl: async (run, params) => {
+    const sequence = await loadTimeline(run, params["timeline_id"]);
+    if (isError(sequence)) return sequence;
+    const source = sequence.toDocument().source;
+    if (!source) {
+      return {
+        error: `Timeline ${sequence.id} has no authoring code to edit. Call set_timeline_code first.`
+      };
+    }
+    const ops = parseJsScriptEditOps(params["edits"]);
+    if (isError(ops)) return ops;
+    const applied = applyJsScriptEditOps(source.code, ops);
+    if (isError(applied)) return applied;
+    const force = normalizeForceOption(params["force"]);
+    if (isError(force)) return force;
+    return bakeAndMergeTimelineCode(
+      run,
+      sequence,
+      applied.code,
+      force
+    );
+  }
+};
+
+const rebakeTimelineCode: CapabilityExport = {
+  spec: rebakeTimelineCodeSpec,
+  impl: async (run, params) => {
+    const sequence = await loadTimeline(run, params["timeline_id"]);
+    if (isError(sequence)) return sequence;
+    const source = sequence.toDocument().source;
+    if (!source) {
+      return { error: `Timeline ${sequence.id} has no authoring code to rebake.` };
+    }
+    const force = normalizeForceOption(params["force"]);
+    if (isError(force)) return force;
+    return bakeAndMergeTimelineCode(
+      run,
+      sequence,
+      source.code,
+      force
+    );
+  }
+};
+
+const detachTimelineCode: CapabilityExport = {
+  spec: detachTimelineCodeSpec,
+  impl: async (run, params) => {
+    const sequence = await loadTimeline(run, params["timeline_id"]);
+    if (isError(sequence)) return sequence;
+    const current = sequence.toDocument();
+    const source = current.source;
+    if (!source) return { scenes: [] };
+
+    const scenesParam = params["scenes"];
+    // "all" drops the code entirely — there is nothing left to track, and
+    // nothing left worth rebaking. Naming every currently-tracked scene one
+    // by one is a different request: those scenes stop being tracked, but
+    // the code stays, so a later edit that reintroduces a scene (or adds a
+    // new one) still has somewhere to bake into.
+    const dropCode = scenesParam === "all";
+    let detachedNames: string[];
+    if (dropCode) {
+      detachedNames = Object.keys(source.scenes);
+    } else if (
+      Array.isArray(scenesParam) &&
+      scenesParam.length > 0 &&
+      scenesParam.every((s) => typeof s === "string")
+    ) {
+      detachedNames = (scenesParam as string[]).filter(
+        (name) => name in source.scenes
+      );
+    } else {
+      return {
+        error: 'scenes must be "all" or a non-empty array of scene names.'
+      };
+    }
+    if (detachedNames.length === 0) return { scenes: [] };
+
+    const remaining: SourceMergeScenes = { ...source.scenes };
+    for (const name of detachedNames) delete remaining[name];
+
+    const nextDocument: Record<string, unknown> = { ...current };
+    if (dropCode) {
+      delete nextDocument["source"];
+    } else {
+      nextDocument["source"] = { ...source, scenes: remaining };
+    }
+
+    const { TimelineSequence: TimelineSequenceModel, TimelineSequenceVersion } =
+      await import("@nodetool-ai/models");
+    await TimelineSequenceVersion.snapshot(sequence, {
+      saveType: "manual",
+      name: "Before detaching timeline code"
+    });
+    const saved = await TimelineSequenceModel.updateFieldsIfUnchanged(
+      sequence.id,
+      sequence.updated_at,
+      { document: JSON.stringify(nextDocument) }
+    );
+    if (!saved) {
+      return {
+        error: `Timeline ${sequence.id} was modified concurrently; nothing was written. Try again.`
+      };
+    }
+    return { timeline_id: saved.id, scenes: detachedNames };
+  }
+};
+
 const deleteTimeline: CapabilityExport = {
   spec: deleteTimelineSpec,
   impl: async (run, params) => {
@@ -2727,6 +2939,11 @@ export const TIMELINE_CAPABILITIES: readonly CapabilityExport[] = [
   isolateSubject,
   trackObject,
   ...TIMELINE_NATIVE_MEDIA_CAPABILITIES,
+  getTimelineCode,
+  setTimelineCode,
+  editTimelineCode,
+  rebakeTimelineCode,
+  detachTimelineCode,
   deleteTimeline
 ];
 
@@ -2753,5 +2970,10 @@ export {
   bakeAudioAnimation,
   isolateSubject,
   trackObject,
+  getTimelineCode,
+  setTimelineCode,
+  editTimelineCode,
+  rebakeTimelineCode,
+  detachTimelineCode,
   deleteTimeline
 };

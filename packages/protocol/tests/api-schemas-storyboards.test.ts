@@ -6,6 +6,7 @@ import {
   normalizeStoryboardShot,
   parseStoryboardBundle,
   storyboardDocument,
+  storyboardShotGraphics,
   storyboardScreenplay
 } from "../src/api-schemas/storyboards.js";
 
@@ -175,6 +176,131 @@ describe("script link fields", () => {
   });
 });
 
+describe("motion graphics intent", () => {
+  const graphics = {
+    mode: "hybrid" as const,
+    direction: "Keep the packshot centered while the offer builds around it.",
+    elements: [
+      {
+        id: "headline",
+        kind: "text" as const,
+        role: "headline" as const,
+        text: "NEW DROP",
+        direction: "Reveal from behind the product."
+      },
+      {
+        id: "logo",
+        kind: "asset" as const,
+        role: "logo" as const,
+        asset_id: "asset-logo",
+        entity_id: "entity-brand",
+        direction: "Hold bottom right."
+      }
+    ]
+  };
+
+  const motionDesign = {
+    direction: "One continuous yellow line ties the cut together.",
+    transitions: [
+      {
+        from_shot_id: "shot-a",
+        to_shot_id: "shot-b",
+        direction: "Carry the line through the cut."
+      }
+    ],
+    continuities: [
+      {
+        id: "yellow-line",
+        shot_ids: ["shot-a", "shot-b"],
+        direction: "Persist across both shots."
+      }
+    ]
+  };
+
+  it("normalizes and round-trips shot graphics plus board motion design", () => {
+    const play = normalizeStoryboardScreenplay({
+      type: "screenplay",
+      title: "Product drop",
+      motionDesign,
+      shots: [
+        {
+          id: "shot-a",
+          action: "A faithful product packshot on a clean studio background",
+          graphics
+        },
+        {
+          id: "shot-b",
+          action: "The same product against a color field"
+        }
+      ]
+    });
+
+    expect(play.motion_design).toEqual(motionDesign);
+    expect(play.shots[0].graphics).toEqual(graphics);
+    expect(storyboardScreenplay.parse(play)).toEqual(play);
+  });
+
+  it("preserves graphics intent through the storyboard document schema", () => {
+    const play = normalizeStoryboardScreenplay({
+      type: "screenplay",
+      title: "Product drop",
+      motion_design: motionDesign,
+      shots: [
+        {
+          id: "shot-a",
+          action: "Product hero",
+          graphics
+        },
+        { id: "shot-b", action: "CTA" }
+      ]
+    });
+    const doc = storyboardDocument.parse({
+      screenplay: play,
+      shots: play.shots,
+      brief: "Launch the product",
+      style: "minimal studio",
+      entityIds: ["entity-brand"],
+      aspectRatio: "9:16",
+      directorModel: null,
+      imageModel: null,
+      videoModel: null
+    });
+
+    expect(doc.screenplay?.motion_design).toEqual(motionDesign);
+    expect(doc.shots[0].graphics?.elements?.[0]).toMatchObject({
+      id: "headline",
+      kind: "text",
+      text: "NEW DROP"
+    });
+  });
+
+  it("rejects malformed cross-shot and graphics contracts", () => {
+    expect(() =>
+      normalizeStoryboardScreenplay({
+        type: "screenplay",
+        title: "Broken motion",
+        motionDesign: {
+          transitions: [{ from_shot_id: "shot-a" }]
+        },
+        shots: [{ action: "Product hero" }]
+      })
+    ).toThrow(/motion_design/);
+
+    expect(() =>
+      normalizeStoryboardScreenplay({
+        type: "screenplay",
+        title: "Broken graphics",
+        shots: [
+          {
+            action: "Product hero",
+            graphics: { mode: "cinematic_magic" }
+          }
+        ]
+      })
+    ).toThrow(/graphics/);
+  });
+});
+
 describe("normalizeStoryboardShot", () => {
   it("fills in what the save requires", () => {
     const shot = normalizeStoryboardShot(
@@ -212,6 +338,74 @@ describe("parseStoryboardBundle", () => {
       name: "Lighthouse",
       description: "",
       tags: []
+    });
+  });
+
+  it("preserves motion graphics through bundle import", () => {
+    const graphicsDocument = {
+      ...document,
+      screenplay: {
+        type: "screenplay",
+        id: "sp-graphics",
+        title: "Offer",
+        shots: [
+          {
+            type: "shot",
+            id: "shot-1",
+            index: 0,
+            action: "A faithful packshot",
+            status: "planned",
+            graphics: {
+              mode: "overlay",
+              elements: [
+                {
+                  id: "headline",
+                  kind: "text",
+                  role: "headline",
+                  text: "SAVE 20%"
+                }
+              ]
+            }
+          }
+        ],
+        motion_design: {
+          direction: "Keep the headline rhythm consistent across the cut."
+        }
+      },
+      shots: [
+        {
+          type: "shot",
+          id: "shot-1",
+          index: 0,
+          action: "A faithful packshot",
+          status: "planned",
+          graphics: {
+            mode: "overlay",
+            elements: [
+              {
+                id: "headline",
+                kind: "text",
+                role: "headline",
+                text: "SAVE 20%"
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    const bundle = parseStoryboardBundle({
+      name: "Offer",
+      document: graphicsDocument
+    });
+
+    expect(bundle?.document.screenplay?.motion_design).toEqual({
+      direction: "Keep the headline rhythm consistent across the cut."
+    });
+    expect(bundle?.document.shots[0].graphics?.elements?.[0]).toMatchObject({
+      id: "headline",
+      kind: "text",
+      text: "SAVE 20%"
     });
   });
 
@@ -405,5 +599,31 @@ describe("scenes", () => {
       slugline: "Scene 3",
       lighting: "practicals"
     });
+  });
+});
+
+describe("authored frames on graphics", () => {
+  const element = { id: "glyph", kind: "asset", asset_id: "a" };
+  it("accepts frame, typography, lock, limits and review rules, and an element without them", () => {
+    const parsed = storyboardShotGraphics.parse({
+      review_rules: ["The anchor never moves."],
+      elements: [
+        { ...element, frame: { box: [-0.06, 0.3, 0.66, 0.46], fit: "cover", align: { x: "start" }, clip: true }, lock: ["position", "scale", "crop"], limits: { x: 0.05, scale: 0.15 } },
+        { id: "copy", kind: "text", text: "Hi", typography: { size: 0.075, weight: 700, align: "center", maxLines: 2 } },
+        { ...element, id: "plain" }
+      ]
+    });
+    expect(parsed.elements?.[0].frame?.box).toEqual([-0.06, 0.3, 0.66, 0.46]);
+    expect(parsed.elements?.[2]).toEqual({ ...element, id: "plain" });
+    expect(parsed.review_rules).toEqual(["The anchor never moves."]);
+  });
+  it.each([
+    ["a box with three numbers", { frame: { box: [0, 0, 1] } }],
+    ["an unknown fit", { frame: { box: [0, 0, 1, 1], fit: "stretch" } }],
+    ["an unknown lock", { lock: ["rotation"] }],
+    ["a negative limit", { limits: { x: -1 } }],
+    ["a weight outside the set", { typography: { weight: 800 } }]
+  ])("rejects %s", (_name, extra) => {
+    expect(storyboardShotGraphics.safeParse({ elements: [{ ...element, ...extra }] }).success).toBe(false);
   });
 });

@@ -30,6 +30,8 @@ export interface ImageModel {
    */
   aspectRatios?: string[];
   resolutions?: string[];
+  /** Execution adapter facts for a model that runs in this process. */
+  adapter?: ModelAdapterInfo;
 }
 
 export interface VideoModel {
@@ -52,6 +54,10 @@ export interface ModelArtifactRef {
   repoId: string;
   revision?: string;
   path?: string;
+  /** The files the adapter loads, when it needs only part of the repository. */
+  allowPatterns?: string[];
+  /** The model type the download service fetches the artifact with, e.g. `tjs.feature_extraction`. */
+  modelType?: string;
 }
 
 export interface ModelAdapterInfo {
@@ -75,6 +81,7 @@ export interface TTSModel {
 }
 
 export interface TextToSpeechParams {
+  signal?: AbortSignal;
   text: string;
   model: string;
   voice?: string;
@@ -129,6 +136,8 @@ export interface ASRModel {
   id: string;
   name: string;
   provider: ProviderId;
+  /** Execution adapter facts for a model that runs in this process. */
+  adapter?: ModelAdapterInfo;
 }
 
 export interface AudioChunk {
@@ -146,6 +155,8 @@ export interface EmbeddingModel {
   name: string;
   provider: ProviderId;
   dimensions?: number;
+  /** Execution adapter facts for a model that runs in this process. */
+  adapter?: ModelAdapterInfo;
 }
 
 export interface ToolCall {
@@ -414,6 +425,16 @@ export interface EntityReference {
   image?: Uint8Array | null;
 }
 
+/**
+ * A reference image a video model conditions on, with the name the prompt can
+ * call it by. Unlike {@link EntityReference}, it reaches the provider: only a
+ * provider with a reference mode reads it, and every other provider ignores it.
+ */
+export interface NamedReferenceImage {
+  name: string;
+  image: Uint8Array;
+}
+
 export interface TextToImageParams {
   model: ImageModel;
   prompt: string;
@@ -531,6 +552,36 @@ export interface RemoveBackgroundParams {
   model: ImageModel;
 }
 
+export interface EstimateDepthParams {
+  model: ImageModel;
+  signal?: AbortSignal;
+}
+
+/** A cross-encoder that scores how well each document answers a query. */
+export interface RerankModel {
+  id: string;
+  name: string;
+  provider: ProviderId;
+  /** Execution adapter facts for a model that runs in this process. */
+  adapter?: ModelAdapterInfo;
+}
+
+export interface RerankParams {
+  model: string;
+  query: string;
+  documents: string[];
+  /** Keep only the best this many documents. All documents when unset. */
+  topK?: number;
+  signal?: AbortSignal;
+}
+
+/** One scored document. `index` points into the input `documents`. */
+export interface RerankResult {
+  index: number;
+  /** Relevance from 0 to 1. Higher is more relevant. */
+  score: number;
+}
+
 /** A rectangle in source-image pixels. */
 export interface ImageBox {
   x: number;
@@ -604,6 +655,7 @@ export interface VectorizeImageParams {
  * {@link EncodedAudioResult} rather than raw PCM samples.
  */
 export interface TextToMusicParams {
+  signal?: AbortSignal;
   model: MusicModel;
   /** Free-text description of the desired music (style, mood, instruments). */
   prompt: string;
@@ -623,6 +675,8 @@ export interface TextToVideoParams {
   prompt: string;
   /** Consistency entities; descriptors join the prompt (text-only for video). */
   entities?: EntityReference[] | null;
+  /** Reference images for providers with a reference mode. */
+  references?: NamedReferenceImage[] | null;
   negativePrompt?: string | null;
   numFrames?: number | null;
   /** Requested duration in seconds (provider decides fps). */
@@ -653,6 +707,11 @@ export interface ImageToVideoParams {
    * would change its meaning.
    */
   entities?: EntityReference[] | null;
+  /**
+   * Reference images for providers with a reference mode, which condition on
+   * them beside the start frame. The rest ignore them.
+   */
+  references?: NamedReferenceImage[] | null;
   negativePrompt?: string | null;
   numFrames?: number | null;
   /** Requested duration in seconds (provider decides fps). */

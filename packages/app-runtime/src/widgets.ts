@@ -61,13 +61,13 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
     label: "Heading",
     mode: "read",
     format: true,
-    fields: { text: "text", level: "select", binding: "custom" }
+    fields: { text: "text", level: "select", subtitle: "textarea", binding: "custom" }
   },
   Text: {
     label: "Text",
     mode: "read",
     format: true,
-    fields: { text: "textarea", binding: "custom" }
+    fields: { text: "textarea", tone: "select", binding: "custom" }
   },
   Markdown: {
     label: "Markdown",
@@ -84,7 +84,10 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
       height: "number",
       placeholder: "text",
       download: "radio",
-      filename: "text"
+      filename: "text",
+      aspectRatio: "text",
+      width: "number",
+      caption: "text"
     }
   },
   Audio: {
@@ -137,6 +140,26 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
       placeholder: "text"
     }
   },
+  // Shows a bound storyboard (an id or a storyboard ref) as shot cards.
+  Storyboard: {
+    label: "Storyboard",
+    mode: "read",
+    fields: {
+      binding: "custom",
+      height: "number",
+      placeholder: "text"
+    }
+  },
+  // Plays a bound storyboard as one cut: clips in shot order, stills between.
+  StoryboardPreview: {
+    label: "Storyboard Preview",
+    mode: "read",
+    fields: {
+      binding: "custom",
+      height: "number",
+      placeholder: "text"
+    }
+  },
   // Lays out an array value as rows — what a run that emits N results needs.
   Table: {
     label: "Table",
@@ -163,6 +186,18 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
     label: "Progress",
     mode: "read",
     fields: { label: "text", binding: "custom" }
+  },
+  // What an agent did during a run, while it runs: its text and each tool call
+  // with its outcome. Bound to `op:<id>/exec#transcript`.
+  AgentActivity: {
+    label: "Agent Activity",
+    mode: "read",
+    fields: {
+      label: "text",
+      binding: "custom",
+      height: "number",
+      placeholder: "text"
+    }
   },
   // Reads a bound value as a message rather than as content: an error output,
   // a validation string, a status line the app wants to draw attention to.
@@ -290,6 +325,51 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
       placeholder: "text"
     }
   },
+  // Recipe / guided-production primitives. These remain ordinary serializable
+  // widgets: no callbacks or arbitrary code, so web, mobile and app-debug can
+  // interpret the same document.
+  ChoiceCards: {
+    label: "Choice Cards",
+    bindingProps: [{ prop: "optionsBinding", mode: "read" }],
+    mode: "write",
+    trigger: "change",
+    commits: false,
+    fields: {
+      binding: "custom",
+      label: "text",
+      options: "array",
+      optionsBinding: "custom",
+      columns: "number",
+      events: "array"
+    }
+  },
+  Stepper: {
+    label: "Guided Steps",
+    mode: "write",
+    trigger: "change",
+    commits: false,
+    fields: {
+      binding: "custom",
+      label: "text",
+      steps: "array",
+      allowBack: "radio",
+      events: "array"
+    }
+  },
+  Approval: {
+    label: "Approval",
+    mode: "write",
+    trigger: "change",
+    commits: false,
+    fields: {
+      binding: "custom",
+      label: "text",
+      description: "textarea",
+      approveLabel: "text",
+      rejectLabel: "text",
+      events: "array"
+    }
+  },
   // Inputs
   //
   // Every input of one operation in a single widget, resolved from the graph at
@@ -323,6 +403,7 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
       binding: "custom",
       label: "text",
       placeholder: "text",
+      hint: "text",
       multiline: "radio",
       events: "array"
     }
@@ -642,6 +723,8 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
       label: "text",
       variant: "select",
       color: "select",
+      fullWidth: "radio",
+      align: "radio",
       events: "array"
     }
   },
@@ -650,13 +733,13 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
     label: "Panel",
     mode: "layout",
     slots: ["content"],
-    fields: { title: "text", content: "slot" }
+    fields: { title: "text", variant: "select", columns: "number", content: "slot", visibleWhen: "custom" }
   },
   Columns: {
     label: "Columns",
     mode: "layout",
     slots: ["left", "right"],
-    fields: { gap: "number", left: "slot", right: "slot" }
+    fields: { gap: "number", layout: "select", left: "slot", right: "slot", visibleWhen: "custom" }
   },
   // Three fixed slots rather than a variable number: Puck fields are declared
   // statically, and three tabs cover what a mini app does without a nested
@@ -678,7 +761,7 @@ export const WIDGET_CATALOG: Readonly<Record<string, WidgetDescriptor>> = {
     label: "Accordion",
     mode: "layout",
     slots: ["content"],
-    fields: { title: "text", defaultOpen: "radio", content: "slot" }
+    fields: { title: "text", defaultOpen: "radio", content: "slot", visibleWhen: "custom" }
   },
   Spacer: { label: "Spacer", mode: "layout", fields: { height: "number" } },
   Divider: { label: "Divider", mode: "layout", fields: {} }
@@ -691,8 +774,9 @@ export const isKnownWidget = (type: string): boolean => type in WIDGET_CATALOG;
 
 /**
  * Every field a widget's inspector shows: its own, plus the logic props each
- * non-layout widget shares. Layout widgets carry no bindings and no conditions,
- * so nothing is appended to them.
+ * non-layout widget shares. Layout widgets carry no bindings, so nothing is
+ * appended to them. Container, Columns and Accordion declare `visibleWhen`
+ * themselves, so one condition can show or hide a whole step.
  *
  * This is what `ui_app_list_component_types` reports, on both the browser
  * surface and the headless eval bridge, so an agent sees one catalog.

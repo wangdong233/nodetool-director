@@ -46,6 +46,7 @@ import {
 import { NodeInputs } from "../node/NodeInputs";
 import AddDynamicOutputButton from "../node/AddDynamicOutputButton";
 import HandleColumn from "../node/HandleColumn";
+import NodeModelChips from "../node/NodeModelChips";
 import ImageView from "../node/ImageView";
 import OutputRenderer from "../node/OutputRenderer";
 import { NodeOutputs } from "../node/NodeOutputs";
@@ -106,6 +107,11 @@ const styles = (theme: Theme) =>
       gap: theme.spacing(0.5),
       padding: `${theme.spacing(1)} ${theme.spacing(0.5)} ${theme.spacing(0.5)}`,
       minHeight: 0
+    },
+    // Inputs sit inside this body's own padding as well as the node's, so the
+    // handle steps back past both to center on the node edge.
+    "&.content-card-body .react-flow__handle-left": {
+      left: `calc(-6px - var(--node-body-padding, 0px) - ${theme.spacing(0.5)})`
     },
     // Text variant inherits the node body color instead of the dark media
     // backdrop — keeps text content visually flush with the rest of the
@@ -581,6 +587,11 @@ const TextPreview: React.FC<{ value: unknown }> = ({ value }) => {
   // Same TextRenderer PreviewNode uses. `.text-preview` CSS pins
   // fontSizeSmaller so the card matches the output node preview.
   const text = extractTextValue(value);
+  // A run that produced an empty string would otherwise leave a blank band
+  // under the header that reads as broken layout.
+  if (text.trim() === "") {
+    return <CheckerDropzone message="Empty result" icon={<TextFieldsIcon />} />;
+  }
   return (
     <div
       className="text-preview nodrag nopan nowheel"
@@ -803,6 +814,14 @@ const ContentCardBodyInner: React.FC<ContentCardBodyProps> = ({
     });
   }, [data.dynamic_properties, id, updateNodeData]);
 
+  const quickActionOutput = useMemo(
+    () =>
+      primaryOutput
+        ? { name: primaryOutput.name, type: primaryOutput.type.type }
+        : undefined,
+    [primaryOutput]
+  );
+
   const renderSingle = useCallback(
     (value: unknown) => (
       <PreviewArea variant={variant} value={value} nodeId={id} />
@@ -825,6 +844,7 @@ const ContentCardBodyInner: React.FC<ContentCardBodyProps> = ({
             nodeId={id}
             liveResult={liveResolvedResult}
             renderSingle={renderSingle}
+            output={quickActionOutput}
           />
         ) : (
           <PreviewArea
@@ -838,6 +858,13 @@ const ContentCardBodyInner: React.FC<ContentCardBodyProps> = ({
             colliding with inline-field rows below. */}
         <HandleColumn id={id} properties={handleProps} connectedEdges={connectedEdges} />
       </div>
+
+      <NodeModelChips
+        id={id}
+        nodeType={nodeType}
+        nodeMetadata={nodeMetadata}
+        data={data}
+      />
 
       {/* Inline fields: rendered as full editors in normal flow under preview.
           Labels are visible here (no display: none). Dynamic inputs are

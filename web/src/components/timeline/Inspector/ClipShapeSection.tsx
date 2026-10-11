@@ -22,8 +22,7 @@ import {
   Caption,
   CollapsibleSection,
   FlexColumn,
-  SPACING,
-  TextInput
+  BatchedColorInput
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
 import {
@@ -32,12 +31,14 @@ import {
   InspectorRow,
   InspectorSectionTitle,
   InspectorSelect,
-  InspectorSliderRow
+  InspectorSliderRow,
+  INSPECTOR_SECTION_CONTENT_SX
 } from "./InspectorPrimitives";
 import { FillFields, TextCommitField } from "./InspectorMotionFields";
 import { useTranslation } from "react-i18next";
 import {
   formatNumberList,
+  parseFiniteNumber,
   parseNumberList
 } from "./InspectorPrimitives.helpers";
 
@@ -66,8 +67,6 @@ const SCRUB_UNIT = { step: 0.01 };
 const SCRUB_PX = { step: 1, min: 0 };
 const SCRUB_COUNT = { step: 1, min: 3 };
 
-const FILL_COLOR_INPUT_PROPS = { "aria-label": "Shape fill color" };
-const STROKE_COLOR_INPUT_PROPS = { "aria-label": "Shape stroke color" };
 
 interface ClipShapeSectionProps {
   clip: TimelineClip;
@@ -114,11 +113,11 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
       [patchShape]
     );
     const handleWidthCommit = useCallback(
-      (raw: string) => commitNumber(raw, (width) => patchShape({ width })),
+      (raw: string) => commitNumber(raw, (width) => patchShape({ width }), 0),
       [patchShape]
     );
     const handleHeightCommit = useCallback(
-      (raw: string) => commitNumber(raw, (height) => patchShape({ height })),
+      (raw: string) => commitNumber(raw, (height) => patchShape({ height }), 0),
       [patchShape]
     );
     const handleX2Commit = useCallback(
@@ -135,8 +134,10 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
     );
     const handleSidesCommit = useCallback(
       (raw: string) => {
-        const sides = Math.round(Number(raw));
-        if (!Number.isFinite(sides) || sides < 3) return;
+        const parsed = parseFiniteNumber(raw);
+        if (parsed === null) return;
+        const sides = Math.round(parsed);
+        if (sides < 3) return;
         patchShape({ sides });
       },
       [patchShape]
@@ -147,23 +148,21 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
     );
     const handleCornerRadiusCommit = useCallback(
       (raw: string) =>
-        commitNumber(raw, (cornerRadius) => patchShape({ cornerRadius })),
+        commitNumber(raw, (cornerRadius) => patchShape({ cornerRadius }), 0),
       [patchShape]
     );
     const handleFillColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchShape({ fill: event.target.value }),
+      (fill: string) => patchShape({ fill }),
       [patchShape]
     );
     const handleStrokeColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchShape({ stroke: event.target.value }),
+      (stroke: string) => patchShape({ stroke }),
       [patchShape]
     );
     const handleStrokeWidthCommit = useCallback(
       (raw: string) => {
-        const strokeWidthPx = Number(raw);
-        if (!Number.isFinite(strokeWidthPx) || strokeWidthPx < 0) return;
+        const strokeWidthPx = parseFiniteNumber(raw);
+        if (strokeWidthPx === null || strokeWidthPx < 0) return;
         patchShape({ strokeWidthPx });
       },
       [patchShape]
@@ -214,7 +213,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
           onToggle={setOpen}
           unmountOnExit
         >
-          <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
+          <FlexColumn sx={INSPECTOR_SECTION_CONTENT_SX}>
             <InspectorRow label={t("ui2:attrs.kind", { defaultValue: "Kind" })}>
               <InspectorSelect
                 label={t("timeline:attrs.shapeKind", { defaultValue: "Shape kind" })}
@@ -334,6 +333,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                 value={shapeStyle.innerRadius ?? 0.5}
                 display={(shapeStyle.innerRadius ?? 0.5).toFixed(2)}
                 onChange={handleInnerRadiusChange}
+                resetValue={0.5}
               />
             )}
 
@@ -349,11 +349,10 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
             )}
 
             <InspectorRow label={t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
-              <TextInput
-                type="color"
-                value={shapeStyle.fill ?? "#ffffff"}
+              <BatchedColorInput
+                value={typeof shapeStyle.fill === "string" ? shapeStyle.fill : "#ffffff"}
                 onChange={handleFillColorChange}
-                inputProps={FILL_COLOR_INPUT_PROPS}
+                ariaLabel="Shape fill color"
               />
             </InspectorRow>
             <FillFields
@@ -363,11 +362,10 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
             />
 
             <InspectorRow label={t("timeline:attrs.strokeColor", { defaultValue: "Stroke color" })}>
-              <TextInput
-                type="color"
+              <BatchedColorInput
                 value={shapeStyle.stroke ?? "#000000"}
                 onChange={handleStrokeColorChange}
-                inputProps={STROKE_COLOR_INPUT_PROPS}
+                ariaLabel="Shape stroke color"
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.strokeWidth", { defaultValue: "Stroke width" })}>
@@ -411,6 +409,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
               value={shapeStyle.trimStart ?? 0}
               display={(shapeStyle.trimStart ?? 0).toFixed(2)}
               onChange={handleTrimStartChange}
+              origin={0}
             />
             <InspectorSliderRow
               label={t("timeline:attrs.trimEnd", { defaultValue: "Trim end" })}
@@ -420,6 +419,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
               value={shapeStyle.trimEnd ?? 1}
               display={(shapeStyle.trimEnd ?? 1).toFixed(2)}
               onChange={handleTrimEndChange}
+              resetValue={1}
             />
           </FlexColumn>
         </CollapsibleSection>
@@ -429,10 +429,17 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
   }
 );
 
-/** Commit a numeric field, ignoring anything that does not parse. */
-function commitNumber(raw: string, apply: (value: number) => void): void {
-  const value = Number(raw);
-  if (Number.isFinite(value)) apply(value);
+/** Commit a numeric field, ignoring blank, non-numeric or out-of-range input. */
+function commitNumber(
+  raw: string,
+  apply: (value: number) => void,
+  min?: number,
+  exclusiveMin = false
+): void {
+  const value = parseFiniteNumber(raw);
+  if (value === null) return;
+  if (min !== undefined && (exclusiveMin ? value <= min : value < min)) return;
+  apply(value);
 }
 
 ClipShapeSection.displayName = "ClipShapeSection";

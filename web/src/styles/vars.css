@@ -51,9 +51,33 @@
   --c_input: var(--palette-c_input);
   --c_output: var(--palette-c_output);
 
+  /* Elevation mirrors SHADOW(theme).sm, .md, .lg and .xl, scaled by the
+     palette's shadow strength (softer in the light scheme). */
+  --shadow-sm: 0 1px 3px rgba(var(--palette-common-blackChannel) / calc(0.3 * var(--palette-c_shadow_alpha, 1)));
+  --shadow-md: 0 4px 12px rgba(var(--palette-common-blackChannel) / calc(0.35 * var(--palette-c_shadow_alpha, 1)));
+  --shadow-lg: 0 8px 32px rgba(var(--palette-common-blackChannel) / calc(0.4 * var(--palette-c_shadow_alpha, 1)));
+  --shadow-xl: 0 16px 64px rgba(var(--palette-common-blackChannel) / calc(0.45 * var(--palette-c_shadow_alpha, 1)));
+
+  /* Node handle and tooltip geometry. */
+  --node-tooltip-max-width: 250px;
+  --node-tooltip-top-max-width: 300px;
+  --node-tooltip-doc-max-width: 200px;
+  --node-tooltip-horizontal-offset: 30px;
+  --node-tooltip-reverse-gap: 3px;
+  --node-tooltip-divider-width: 1px;
+  --node-handle-border-width: 2px;
+  --node-handle-snap-offset-x: -10px;
+  --node-handle-snap-offset-y: -5px;
+  --node-handle-core-radius: 2px;
+  --node-handle-core-feather: 2.5px;
+  --node-handle-stripe-width: 3px;
+  --node-handle-stripe-period: 5px;
+
   /* NODES */
-  --handle_width: 6px;
+  --handle_width: 12px;
   --handle_height: 12px;
+  /* A handle sits on the center line of its 18px label row. */
+  --handle-row-center: 9px;
   --c_node_bg: var(--palette-c_node_bg);
   --c_node_bg_group: var(--palette-c_node_bg_group);
   --c_node_header_bg: var(--palette-c_node_header_bg);
@@ -68,17 +92,16 @@
   --node-collapsed-overflow: visible;
   /* Pixels along node — % is relative to ancestor height (often 0 in collapsed overlays) */
   --node-collapsed-handle-mid-y: calc(var(--node-collapsed-height) / 2);
-  /* Extra −Y on strip-centered sockets (collect/streaming are taller than --handle_height) */
-  --node-collapsed-handle-y-nudge: calc(var(--handle_height) * 0.85);
+  /* Extra −Y on strip-centered sockets. 7px puts a socket center on the
+     strip midline (measured on a collapsed Float: y 20 of 40). */
+  --node-collapsed-handle-y-nudge: 7px;
   /* Agent orange source handle: sit lower than mid-strip when collapsed */
   --node-collapsed-agent-control-bottom-drop: 30px;
-  /* Taller socket variants (collect / streaming) need a bit more upward shift */
-  --node-collapsed-tall-handle-extra-nudge: calc(var(--handle_height) * 0.35);
+  /* Collect and streaming sockets are standard circles: no extra shift. */
+  --node-collapsed-tall-handle-extra-nudge: 0px;
   /* Horizontal offset from center for agent control top vs bottom handle */
   --node-collapsed-control-split: 14px;
 
-  /* PreviewNode left target: default handle top:5px sits above header (matches header padding-top + ~½ line) */
-  --preview-target-handle-top-expanded: calc(1.25em + 0.65em);
   /* Collapsed: nudge down from strip midline (global collapsed rules still center the handle) */
   --preview-target-handle-extra-top-collapsed: 10px;
 }

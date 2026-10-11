@@ -29,10 +29,10 @@ offered because ComfyUI wires them internally, is
 
 Two facts shape every recipe below:
 
-- **A handle only exists if you asked for it.** Media inputs and save outputs
-  are derived automatically. Seeds, steps, CFG, and prompt text are offered as
-  a checkbox list in the Load Workflow dialog. Until you tick one there is no
-  handle, and the prompt keeps its exported value. See
+- **A handle only exists if you asked for it.** Media inputs, prompt text, and
+  save outputs are derived automatically. Seeds, steps, CFG, and sizes are
+  offered as a checkbox list in the Load Workflow dialog. Until you tick one
+  there is no handle, and the prompt keeps its exported value. See
   [Loading a workflow](comfyui.md#loading-a-workflow).
 - **The node runs on the server, not in your browser.** All three ComfyUI nodes
   are server-side, so `endpoint` has to resolve from wherever the NodeTool
@@ -64,10 +64,9 @@ graph LR
 handle. `nodetool.agents.Agent` works the same way when you want tools or a
 system prompt, and its `text` output is the one to wire.
 
-**Watch out.** `6:text` is not there until you tick that `CLIPTextEncode`
-field in the loader dialog. A negative prompt is a second `CLIPTextEncode` with
-its own id, so leaving it as a literal and driving only the positive one is the
-usual arrangement.
+**Watch out.** A negative prompt is a second `CLIPTextEncode` with its own id
+and its own handle. Leaving it unconnected keeps its exported text, so driving
+only the positive one is the usual arrangement.
 
 ---
 
@@ -279,28 +278,25 @@ export const comfyRun = workflow(
 );
 ```
 
-**The limitation is in the generated types.** `RunWorkflowInputs` names the four
-static properties (`endpoint`, `api`, `workflow`, `timeout`) and nothing else,
-because the generator reads the node's declared props and the
-`<comfyNodeId>:<field>` handles are derived from a workflow it has never seen.
-A dynamic key in a DSL literal is a type error:
+**Dynamic inputs type-check, dynamic outputs do not resolve.** Because the node
+supports dynamic inputs, `RunWorkflowInputs` names the four static properties
+(`endpoint`, `api`, `workflow`, `timeout`) and also has a
+`[name: string]: unknown` index signature, so a `"6:text"` key compiles. A
+literal under that key is stored as a dynamic property and injected into
+`prompt["6"].inputs.text` at run time. An upstream node's output handle under a
+key such as `"10:image"` becomes an edge into that handle, which is how a
+NodeTool media ref reaches a `Load*` node.
 
-```
-error TS2353: Object literal may only specify known properties,
-and '"6:text"' does not exist in type 'RunWorkflowInputs'.
-```
+The generated function declares one output slot, `output`, which carries the raw
+ComfyUI history (the job manifest when `api` is `v2`). It declares none of the `<comfyNodeId>:<kind>` slots, because
+they come from a workflow the generator has never seen, and
+`comfy.output("9:image")` throws `Unknown output slot '9:image'`. A DSL script
+therefore cannot select the per-file image, audio or video slots. Two ways
+around it:
 
-So a DSL-authored comfy node submits its prompt with nothing injected. Two ways
-around it, in order of preference:
-
-1. **Build the values into the prompt JSON.** The node injects dynamic props
-   into `prompt[nodeId].inputs[field]` anyway, so writing them into the object
-   you stringify reaches the same place. This covers seeds, steps, CFG, and
-   prompt text, which is most of what a script varies.
-2. **Author the graph in the editor** when the workflow needs a NodeTool media
-   ref on a `Load*` handle. That upload only happens for a connected ref, so
-   there is no JSON you can write instead. Run the saved graph by id from the
-   CLI or the API.
+1. **Read `output`** when the script only needs ComfyUI's history payload.
+2. **Author the graph in the editor** when downstream nodes need the media on a
+   save slot. Run the saved graph by id from the CLI or the API.
 
 ### The API
 

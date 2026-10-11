@@ -24,13 +24,47 @@
 - [Cloud](https://nodetool.ai/cloud.md): the hosted browser edition for evaluation while in alpha.
 - [Pricing](https://nodetool.ai/pricing.md): edition comparison and how BYOK pricing works.
 - [Agents](https://nodetool.ai/agents.md): build and inspect automation that produces editable workflows and projects.
-- [For developers](https://nodetool.ai/developers.md): The QuickJS sandbox, the node DSL inside it, and how agents drive NodeTool from sandboxed code.
+- [For developers](https://nodetool.ai/developers.md): connect NodeTool to your coding agent over MCP for images, video, speech, and workflows.
 - [For marketing teams](https://nodetool.ai/marketing.md): hand a brief to an agent; campaign assets at volume.
 - [Documentation](https://docs.nodetool.ai/llms.txt): install guides, key concepts, node reference, API reference, CLI.
 
 ## Comparisons
 
-
+- [Higgsfield alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/higgsfield)
+- [OpenArt alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/openart)
+- [LTX Studio alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/ltx-studio)
+- [Google Flow alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/google-flow)
+- [Artlist Studio alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/artlist)
+- [Invideo alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/invideo)
+- [Katalist alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/katalist)
+- [Storyboarder.ai alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/storyboarder-ai)
+- [Story.com alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/story-com)
+- [Mootion alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/mootion)
+- [Moonvalley Marey alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/moonvalley)
+- [Kling AI alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/kling-ai)
+- [Pika alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/pika)
+- [Luma Dream Machine alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/luma-dream-machine)
+- [PixVerse alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/pixverse)
+- [Leonardo AI alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/leonardo-ai)
+- [Midjourney alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/midjourney)
+- [Adobe Firefly alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/adobe-firefly)
+- [Ideogram alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/ideogram)
+- [Recraft alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/recraft)
+- [Dreamina alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/dreamina)
+- [ComfyUI alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/comfyui)
+- [Weavy alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/weavy)
+- [Figma Weave alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/figma-weave)
+- [Runway alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/runway)
+- [Langflow alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/langflow)
+- [n8n alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/n8n)
+- [Flowise alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/flowise)
+- [Dify alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/dify)
+- [Flora alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/flora)
+- [Krea alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/krea)
+- [LM Studio alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/lm-studio)
+- [Jan alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/jan)
+- [Lindy alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/lindy)
+- [Gumloop alternatives (2026) — why teams choose NodeTool](https://nodetool.ai/alternatives/gumloop)
 
 ## Use cases
 
@@ -46,6 +80,7 @@
 - [Is NodeTool open source?](https://nodetool.ai/faq/is-nodetool-open-source)
 - [Is NodeTool local-first and private?](https://nodetool.ai/faq/is-nodetool-local-first)
 - [What does it mean that NodeTool is agent-first?](https://nodetool.ai/faq/what-does-agent-first-mean)
+- [Can I use NodeTool from Claude Code, Codex, or Cursor?](https://nodetool.ai/faq/use-nodetool-from-claude-code)
 - [What does "bring your own keys" mean for me?](https://nodetool.ai/faq/what-is-byok)
 - [How much does NodeTool cost?](https://nodetool.ai/faq/how-much-does-nodetool-cost)
 - [Does NodeTool mark up model pricing?](https://nodetool.ai/faq/does-nodetool-mark-up-model-pricing)

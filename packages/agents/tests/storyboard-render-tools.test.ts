@@ -174,12 +174,13 @@ describe("storyboard render tools", () => {
     const prompt = context.runProviderPrediction.mock.calls[0][0] as {
       capability: string;
       model: string;
-      params: { prompt: string; aspect_ratio: string };
+      params: { prompt: string; aspect_ratio: string; resolution: string };
     };
     expect(prompt.capability).toBe("text_to_image");
     expect(prompt.model).toBe("img-1");
     expect(prompt.params.prompt).toBe("action 0, wide shot, moody neon");
     expect(prompt.params.aspect_ratio).toBe("16:9");
+    expect(prompt.params.resolution).toBe("1K");
 
     const saved = (await Storyboard.findById(board.id))!.toDocument();
     expect(saved.shots[0].status).toBe("keyframe_ready");
@@ -187,6 +188,45 @@ describe("storyboard render tools", () => {
     expect(saved.shots[0].keyframe_versions).toHaveLength(1);
     // The shot that already had a still is untouched.
     expect(saved.shots[1].keyframe?.asset_id).toBe("a1");
+  });
+
+  it("renders a still with entity references through image_to_image when the model edits", async () => {
+    await Asset.create<Asset>({
+      id: "dog-1",
+      user_id: "u1",
+      name: "Rex",
+      content_type: "image/png",
+      metadata: { nodetool_entity: { kind: "character", name: "Rex", descriptor: "a corgi" } }
+    });
+    const board = await makeBoard([shot({ id: "s1", index: 0, entity_ids: ["dog-1"] })], {
+      entityIds: ["dog-1"],
+      aspectRatio: "9:16",
+      imageModel: {
+        type: "image_model",
+        id: "google/gemini-2.5-flash-image",
+        provider: "openrouter",
+        supported_tasks: ["text_to_image", "image_to_image"]
+      }
+    });
+    const context = ctx();
+
+    const result = (await toolForCapabilityName("render_storyboard_stills").process(context, {
+      storyboard_id: board.id
+    })) as { rendered: number };
+
+    expect(result.rendered).toBe(1);
+    const request = context.runProviderPrediction.mock.calls[0][0] as {
+      capability: string;
+      params: { aspect_ratio: string; entities: Array<{ name: string; reference_images: unknown[] }> };
+    };
+    expect(request.capability).toBe("image_to_image");
+    expect(request.params.aspect_ratio).toBe("9:16");
+    expect(request.params.entities).toEqual([
+      expect.objectContaining({
+        name: "Rex",
+        reference_images: [expect.objectContaining({ asset_id: "dog-1" })]
+      })
+    ]);
   });
 
   it("reports a failed render per shot and marks the shot failed", async () => {
@@ -219,6 +259,52 @@ describe("storyboard render tools", () => {
     expect(result.error).toContain("find_model");
   });
 
+  it.each(["stills", "clips"] as const)("uses each shot model for %s without a board default", async (kind) => {
+    const shotModel = kind === "stills" ? "still_model" : "clip_model";
+    const boardModel = kind === "stills" ? "imageModel" : "videoModel";
+    const board = await makeBoard([
+      shot({ id: "s1", index: 0, render_mode: kind === "clips" ? "direct" : "keyframe", [shotModel]: { provider: "fal_ai", id: "model-a" } }),
+      shot({ id: "s2", index: 1, render_mode: kind === "clips" ? "direct" : "keyframe", [shotModel]: { provider: "openai", id: "model-b" } })
+    ], { [boardModel]: null });
+    const context = ctx();
+    const result = await toolForCapabilityName(`render_storyboard_${kind}`).process(context, { storyboard_id: board.id });
+    expect(result).toMatchObject({ rendered: 2, failed: 0 });
+    expect(context.runProviderPrediction.mock.calls.map(([request]) => ({ provider: request.provider, model: request.model }))).toEqual([
+      { provider: "fal_ai", model: "model-a" }, { provider: "openai", model: "model-b" }
+    ]);
+  });
+
+  it("checks discovered tasks for each saved shot model before spending", async () => {
+    await Asset.create<Asset>({ id: "product-ref", user_id: "u1", name: "Product", content_type: "image/png", metadata: { nodetool_entity: { kind: "prop", name: "Product", descriptor: "a red bottle" } } });
+    const board = await makeBoard([
+      shot({ id: "s1", index: 0, render_mode: "direct", clip_model: { provider: "fal_ai", id: "text-only" } }),
+      shot({ id: "s2", index: 1, render_mode: "reference", entity_ids: ["product-ref"], clip_model: { provider: "openai", id: "text-only" } })
+    ], { videoModel: null, entityIds: ["product-ref"] });
+    const context = ctx();
+    context.getProvider = vi.fn(async () => ({ getAvailableVideoModels: async () => [
+      { id: "text-only", name: "Text only", provider: "fal_ai", supportedTasks: ["text_to_video"] }
+    ] })) as unknown as ProcessingContext["getProvider"];
+    const result = await toolForCapabilityName("render_storyboard_clips").process(context, { storyboard_id: board.id });
+    expect(result).toMatchObject({ error: "The selected clip model openai/text-only does not support reference_to_video; choose a model that supports the selected shot mode." });
+    expect(context.runProviderPrediction).not.toHaveBeenCalled();
+    expect(context.getProvider).toHaveBeenCalledWith("fal_ai");
+    expect(context.getProvider).toHaveBeenCalledWith("openai");
+  });
+
+  it("selects a keyframe shot without a still when production bindings supply its clip references", async () => {
+    const board = await makeBoard([shot({ id: "s1", index: 0 })], {
+      creative_context: { schema_version: 1, reference_bindings: [{ kind: "product", asset_id: "product-ref" }] },
+      videoModel: { type: "video_model", id: "reference-model", provider: "fal_ai", supported_tasks: ["reference_to_video"] }
+    });
+    const context = ctx();
+    context.resolveAssetBytes = vi.fn(async () => ({ bytes: PNG, attempts: [] }));
+    const result = await toolForCapabilityName("render_storyboard_clips").process(context, { storyboard_id: board.id });
+    expect(result).toMatchObject({ rendered: 1, failed: 0 });
+    expect(context.runProviderPrediction.mock.calls[0][0]).toMatchObject({
+      capability: "reference_to_video", model: "reference-model", params: { reference_images: [PNG] }
+    });
+  });
+
   it("animates the shot's still into a clip and seeds the model with it", async () => {
     const board = await makeBoard([shot({ id: "s1", index: 0, motion: "slow push in" })]);
     const context = ctx();
@@ -233,11 +319,12 @@ describe("storyboard render tools", () => {
 
     const call = context.runProviderPrediction.mock.calls.at(-1)![0] as {
       capability: string;
-      params: { images: Uint8Array[]; prompt: string };
+      params: { images: Uint8Array[]; prompt: string; resolution: string };
     };
     expect(call.capability).toBe("image_to_video");
     expect(call.params.images[0]).toEqual(PNG);
     expect(call.params.prompt).toBe("slow push in, action 0");
+    expect(call.params.resolution).toBe("1080p");
 
     const saved = (await Storyboard.findById(board.id))!.toDocument();
     expect(saved.shots[0].status).toBe("rendered");

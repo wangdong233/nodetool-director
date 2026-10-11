@@ -9,7 +9,7 @@
  * the flow existed keeps opening as it always did (D3).
  */
 
-import { createElement, useCallback, useMemo, useRef } from "react";
+import { createElement, useCallback, useMemo, useState } from "react";
 import type {
   ScriptDocumentSchema,
   ScriptSetup,
@@ -34,11 +34,12 @@ import {
 import { getScriptAgentHandler } from "../../../components/script/scriptAgentBridge";
 import { useVoiceCostEstimate } from "../../../hooks/script/useVoiceCostEstimate";
 import { useWriteScript } from "../../../hooks/script/useWriteScript";
+import { isWrittenFrom } from "../../../hooks/script/scriptWriteSignature";
 import {
-  readWriterSignature,
-  writerSignature
-} from "../../../hooks/script/scriptWriteSignature";
-import { voicingPatch } from "../../../stores/script/scriptVoicing";
+  isVoicingLive,
+  useVoicingLive,
+  voicingPatch
+} from "../../../stores/script/scriptVoicing";
 import type { SetupFlowConfig, SetupStep } from "../types";
 import { FormatStep, WriterModelFooterField } from "./FormatStep";
 import { IdeaStep } from "./IdeaStep";
@@ -103,14 +104,34 @@ export const newScriptSetupDocument = (
  */
 const FLOW_LABELS = { title: "Script" } as const;
 
-/** What the cost line says when nothing has a published rate. */
-const formatCost = (cost: number, lineCount: number): string | undefined => {
+const VOICING_LIVE = "This script is already being voiced";
+
+const TRANSCRIPTION_EXTRA = "Word timing transcription is extra.";
+
+const linesLabel = (count: number): string =>
+  `${count} ${count === 1 ? "line" : "lines"}`;
+
+/**
+ * The Voices step's cost line. A figure covers only the lines that priced, so
+ * a partly priced script says how many of its lines the figure leaves out.
+ * Every take is also transcribed for its word timings, which the catalog does
+ * not price, so a figure says that call is extra.
+ */
+export const formatCost = (
+  cost: number,
+  lineCount: number,
+  pricedLineCount: number
+): string | undefined => {
   if (lineCount === 0) {
     return undefined;
   }
-  return cost > 0
-    ? `About $${cost.toFixed(2)} to voice ${lineCount} lines`
-    : `${lineCount} lines to voice`;
+  if (cost <= 0) {
+    return `${linesLabel(lineCount)} to voice`;
+  }
+  if (pricedLineCount < lineCount) {
+    return `About $${cost.toFixed(2)} for ${pricedLineCount} of ${linesLabel(lineCount)}, the rest unpriced. ${TRANSCRIPTION_EXTRA}`;
+  }
+  return `About $${cost.toFixed(2)} to voice ${linesLabel(lineCount)}. ${TRANSCRIPTION_EXTRA}`;
 };
 
 export interface ScriptSetupFlowOptions {
@@ -119,7 +140,7 @@ export interface ScriptSetupFlowOptions {
    * Runs after the last step writes stage `done` — the host's cue to show the
    * script it just built (open its tab, navigate to it).
    */
-  onFinish?: () => void;
+  onFinish?: () => void | Promise<void>;
 }
 
 export const useScriptSetupFlow = ({
@@ -128,6 +149,10 @@ export const useScriptSetupFlow = ({
 }: ScriptSetupFlowOptions): SetupFlowConfig<ScriptSetupStage> => {
   const { t } = useTranslation();
   const stage = useScriptSetupStage(scriptId);
+  const [formatError, setFormatError] = useState<string | null>(null);
+  // A file still being read lands on the script after Continue would have
+  // moved on, so the idea step holds until it is in.
+  const [importingFile, setImportingFile] = useState(false);
   const chatModel = useGlobalChatStore((state) => state.selectedModel);
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
@@ -135,6 +160,18 @@ export const useScriptSetupFlow = ({
     (state.scripts[scriptId]?.sections ?? []).some(
       (section) => section.lines.length > 0
     )
+  );
+  const lineCount = useScriptStore((state) =>
+    (state.scripts[scriptId]?.sections ?? []).reduce(
+      (count, section) => count + section.lines.length,
+      0
+    )
+  );
+  // A rewrite sends the script as it stands, so its estimate prices the lines.
+  const lineTexts = useScriptStore((state) =>
+    (state.scripts[scriptId]?.sections ?? [])
+      .flatMap((section) => section.lines.map((line) => line.text))
+      .join("\n")
   );
   const hasEmptyLine = useScriptStore((state) =>
     (state.scripts[scriptId]?.sections ?? []).some((section) =>
@@ -158,70 +195,125 @@ export const useScriptSetupFlow = ({
       (speaker) => speaking.has(speaker.id) && !speaker.voice
     ).length;
   });
-  const { write, writing, error: writeError } = useWriteScript();
-  // The reason a refused run gives arrives as state, one render after the call
-  // resolves, so the step's own closure cannot see it. Mirror it and read the
-  // mirror; when the render has not landed yet the throw still names the step.
-  const writeErrorRef = useRef<string | null>(null);
-  writeErrorRef.current = writeError;
+  // Lines with words and nobody to say them. Voicing skips a line with no
+  // voice, so without a speaker it would come out silent and unreported (F7).
+  const unassignedLines = useScriptStore((state) =>
+    (state.scripts[scriptId]?.sections ?? []).reduce(
+      (count, section) =>
+        count +
+        section.lines.filter(
+          (line) =>
+            line.text.trim() !== "" &&
+            !line.speakerId &&
+            !line.voiceOverride
+        ).length,
+      0
+    )
+  );
+  const {
+    write,
+    cancel,
+    writing,
+    error: writeError,
+    errorRef: writeErrorRef,
+    clearError: clearWriteError
+  } = useWriteScript(scriptId);
 
   const cost = useVoiceCostEstimate(scriptId);
+  // A run the agent or another tab started is voicing these lines already.
+  const voicingLive = useVoicingLive(scriptId);
   const writerModel = setup?.writer_model ?? chatModel ?? null;
   const imported = useMemo(() => readScriptSource(setup), [setup]);
   // Whether the script in the review still answers the inputs on the format
   // step. Unchanged inputs mean there is nothing to write: the button carries
   // the creator forward to the script they came back from (F15).
-  const inputsChanged =
-    readWriterSignature(setup) !== writerSignature(setup, imported);
+  const inputsChanged = !isWrittenFrom(setup, imported);
   const needsWrite = !hasLines || inputsChanged;
   // An attributed import is applied as it stands, with no model in the loop, so
   // it does not need a writer model to be picked first (F16).
   const needsModel = needsWrite && imported?.attributed !== true;
 
+  // A failed rewrite's reason belongs to the visit that saw it. Kept, it
+  // showed again under the script when the creator came back to the review.
   const onStageChange = useCallback(
-    (next: ScriptSetupStage) => setSetup(scriptId, { stage: next }),
-    [scriptId, setSetup]
+    (next: ScriptSetupStage) => {
+      clearWriteError();
+      setSetup(scriptId, { stage: next });
+    },
+    [clearWriteError, scriptId, setSetup]
   );
 
   const finish = useCallback(() => {
     setSetup(scriptId, { stage: "done" });
-    onFinish?.();
+    void Promise.resolve(onFinish?.()).catch((error: unknown) => {
+      console.error("Failed to open the finished script", error);
+    });
   }, [onFinish, scriptId, setSetup]);
 
   const runWriter = useCallback(
-    async (rewrite: boolean) => {
-      const written = await write(scriptId, { rewrite });
+    async (rewrite: boolean, signal?: AbortSignal) => {
+      const written = await write(scriptId, { rewrite, signal });
       if (!written) {
         throw new Error(
           writeErrorRef.current ?? i18n.t("editor:ui.theWriterDidNotReturnAScript")
         );
       }
     },
-    [scriptId, write]
+    [scriptId, write, writeErrorRef]
   );
 
+  // A refused rewrite shows its reason on the review through `writeError`.
   const rewrite = useCallback(() => {
     void write(scriptId, { rewrite: true });
   }, [scriptId, write]);
 
+  const unassignedReason =
+    unassignedLines > 0
+      ? `Pick a speaker for ${unassignedLines} ${
+          unassignedLines === 1 ? "line" : "lines"
+        }. A line with no speaker is not voiced.`
+      : undefined;
+
   // What the format step's button is about to spend, when it spends anything.
-  const writeEstimate = useMemo<Pick<SetupStep<ScriptSetupStage>, "generation">>(
+  const writeEstimate = useMemo<
+    Pick<SetupStep<ScriptSetupStage>, "generation">
+  >(
     () =>
       needsWrite
         ? {
             generation: {
               result: imported
-                ? t("storyboard:attrs.prepareCountExistingLinesKeepingYourWords", { defaultValue: "Prepare {{count}} existing lines, keeping your words", count: imported.lines.length })
-                : t("storyboard:attrs.writeATextScriptForAboutCountSecondsOfSpeech", { defaultValue: "Write a text script for about {{count}} seconds of speech", count: setup?.length_seconds ?? 60 }),
-              next: t("storyboard:attrs.reviewAndEditTheLinesNextChooseVoicesAndGenerateAudioSeparatelyInVoices", { defaultValue: "Review and edit the lines next. Choose voices and generate audio separately in Voices." }),
+                ? hasLines
+                  ? `Prepare ${imported.lines.length} lines again from your import, replacing edits made in the review`
+                  : `Prepare ${imported.lines.length} existing lines, keeping your words`
+                : hasLines
+                  ? `Rewrite your ${linesLabel(lineCount)} for about ${setup?.length_seconds ?? 60} seconds of speech, keeping your edits as context`
+                  : `Write a text script for about ${setup?.length_seconds ?? 60} seconds of speech`,
+              next: "Review and edit the lines next. Choose voices and generate audio separately in Voices.",
               model: writerModel,
-              brief: setup?.brief ?? "",
+              // The call sends the imported words, or the script it rewrites,
+              // along with the brief, so the estimate prices them too.
+              brief: [
+                setup?.brief ?? "",
+                imported ? imported.text : hasLines ? lineTexts : ""
+              ]
+                .filter((part) => part !== "")
+                .join("\n"),
               maxOutputTokens: 8192,
               noModelCall: imported?.attributed
             }
           }
         : {},
-    [imported, needsWrite, setup?.brief, setup?.length_seconds, t, writerModel]
+    [
+      hasLines,
+      imported,
+      lineCount,
+      lineTexts,
+      needsWrite,
+      setup?.brief,
+      setup?.length_seconds,
+      writerModel
+    ]
   );
 
   const steps = useMemo<SetupStep<ScriptSetupStage>[]>(
@@ -232,14 +324,20 @@ export const useScriptSetupFlow = ({
         primaryLabel: "Continue",
         // Imported words are enough on their own: they say what the script is,
         // and the brief beside them is a note for the attribution pass (F3).
-        canAdvance: (setup?.brief.trim().length ?? 0) > 0 || imported !== null,
-        blockedReason: "Describe what to write, or import your script",
-        render: () =>
+        canAdvance:
+          !importingFile &&
+          ((setup?.brief.trim().length ?? 0) > 0 || imported !== null),
+        blockedReason: importingFile
+          ? "Reading your file"
+          : "Describe what to write, or import your script",
+        render: (context) =>
           createElement(IdeaStep, {
             scriptId,
+            readOnly: context?.readOnly ?? false,
             // The blank escape hatch and the last step land in the same place:
             // stage `done` and the editor (PRD § 9.1).
-            onStartBlank: finish
+            onStartBlank: finish,
+            onImportingChange: setImportingFile
           })
       },
       {
@@ -253,11 +351,12 @@ export const useScriptSetupFlow = ({
             : "Write the script"
           : "Continue to review",
         canAdvance:
+          formatError === null &&
           (setup?.format ?? "") !== "" &&
           (!needsModel || Boolean(writerModel?.id)),
-        blockedReason: !setup?.format
-          ? "Pick a script format"
-          : "Pick a writer model",
+        blockedReason:
+          formatError ??
+          (!setup?.format ? "Pick a script format" : "Pick a writer model"),
         // No model runs when the script already answers these inputs, so
         // nothing is estimated either (PRD § 6.2) — the step carries no
         // `generation` at all rather than an empty one.
@@ -269,13 +368,24 @@ export const useScriptSetupFlow = ({
             scriptId,
             readOnly: context.readOnly
           }),
-        render: () => createElement(FormatStep, { scriptId }),
+        render: (context) =>
+          createElement(FormatStep, {
+            scriptId,
+            readOnly: context?.readOnly ?? false,
+            onValidationChange: setFormatError
+          }),
         // The writer runs here, and a refused run must leave the creator on
         // the format step with the reason on the button (PRD § 9.2). It runs
         // only when something it reads has moved: coming back to look at the
         // cards and pressing on used to pay for a second script and throw the
-        // edits made to the first away (F15).
-        onAdvance: needsWrite ? () => runWriter(false) : undefined
+        // edits made to the first away (F15). Lines already on the script are
+        // handed to the writer as they stand, so review edits are rewritten
+        // rather than discarded. An import is prepared again from its words.
+        onAdvance: needsWrite
+          ? (context) =>
+              runWriter(hasLines && imported === null, context?.signal)
+          : undefined,
+        onCancel: cancel
       },
       {
         stage: "review",
@@ -283,20 +393,24 @@ export const useScriptSetupFlow = ({
         primaryLabel: "Continue to voices",
         // Empty lines produce no take and no audio, so they are caught before
         // the creator pays for the rest of the script (F20).
-        canAdvance: hasLines && !hasEmptyLine,
-        blockedReason: hasLines
-          ? "Every line needs words, or remove it"
-          : t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" }),
-        // `Rewrite` runs outside the shell's primary button, so the shell has
+        canAdvance: hasLines && !hasEmptyLine && unassignedLines === 0,
+        blockedReason: !hasLines
+          ? i18n.t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" })
+          : hasEmptyLine
+            ? "Every line needs words, or remove it"
+            : unassignedReason,        // `Rewrite` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot move on to voices while the
         // lines they are reading are being replaced (F2).
         pending: writing,
-        pendingLabel: t("storyboard:attrs.rewritingYourScript", { defaultValue: "Rewriting your script" }),
-        render: () =>
+        pendingLabel: i18n.t("storyboard:attrs.rewritingYourScript", { defaultValue: "Rewriting your script" }),
+        onCancel: cancel,
+        render: (context) =>
           createElement(ReviewStep, {
             scriptId,
+            readOnly: context?.readOnly ?? false,
             onRewrite: rewrite,
             rewriting: writing,
+            error: writeError,
             onOpenEditor: finish
           })
       },
@@ -304,16 +418,39 @@ export const useScriptSetupFlow = ({
         stage: "voices",
         label: i18n.t("editor:ui.voices", { defaultValue: "Voices" }),
         primaryLabel: "Voice your script",
-        canAdvance: castNeedingVoice === 0 && hasLines,
-        blockedReason: hasLines
-          ? "Choose a voice for every speaker"
-          : t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" }),
-        primaryDetail: formatCost(cost.cost, cost.lineCount),
-        render: () => createElement(VoicesStep, { scriptId }),
-        // Stage `done` is written before the takes are asked for, so a tab
+        canAdvance:
+          !voicingLive &&
+          castNeedingVoice === 0 &&
+          hasLines &&
+          unassignedLines === 0,
+        blockedReason: voicingLive
+          ? VOICING_LIVE
+          : !hasLines
+            ? i18n.t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" })
+            : (unassignedReason ?? "Choose a voice for every speaker"),
+        // A write the agent started replaces the cast and the lines, so the
+        // voices picked now and the lines voiced now would be thrown away.
+        pending: writing,
+        pendingLabel: "Writing your script",
+        onCancel: cancel,
+        primaryDetail: formatCost(
+          cost.cost,
+          cost.lineCount,
+          cost.pricedLineCount
+        ),
+        render: (context) =>
+          createElement(VoicesStep, {
+            scriptId,
+            readOnly: context?.readOnly ?? false
+          }),        // Stage `done` is written before the takes are asked for, so a tab
         // closed mid-voicing reopens on the editor with the takes still
         // arriving rather than back in setup (PRD § 9.3, D3).
         onAdvance: async () => {
+          // Checked before the record is written: a refused run must not
+          // reset the progress of the run that is going.
+          if (isVoicingLive(scriptId)) {
+            throw new Error(`${VOICING_LIVE}.`);
+          }
           // Queued, then opened, then completed: `voiceAll` moves the record to
           // `running` and finally to `completed` with the lines that failed, so
           // an editor opened before the takes land can still say what happened
@@ -328,15 +465,27 @@ export const useScriptSetupFlow = ({
               updatedAt: new Date().toISOString()
             })
           });
-          onFinish?.();
-          await getScriptAgentHandler(scriptId).voiceAll();
+          // The handler is taken while this flow's host is still mounted: the
+          // host may hand the script to another surface once onFinish runs.
+          const voicing = getScriptAgentHandler(scriptId).voiceAll();
+          // Voicing has started, so a failed hand-off is logged rather than
+          // thrown: the primary button must not report a run that is going.
+          try {
+            await onFinish?.();
+          } catch (error) {
+            console.error("Failed to open the finished script", error);
+          }
+          await voicing;
         }
       }
     ],
     [
+      cancel,
+      formatError,
       castNeedingVoice,
       cost.cost,
       cost.lineCount,
+      cost.pricedLineCount,
       finish,
       hasLines,
       onFinish,
@@ -349,12 +498,16 @@ export const useScriptSetupFlow = ({
       writing,
       writerModel,
       imported,
+      importingFile,
       writeEstimate,
       needsModel,
       needsWrite,
       hasEmptyLine,
       setup?.length_seconds,
-      t
+      unassignedLines,
+      unassignedReason,
+      voicingLive,
+      writeError
     ]
   );
 

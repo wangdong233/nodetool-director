@@ -6,9 +6,12 @@ import PropertyLabel from "../node/PropertyLabel";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { listDropzoneStyles } from "./shared/listDropzoneStyles";
 import { Tooltip, CloseButton, MOTION, SPACING, BORDER_RADIUS, Z_INDEX, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
+import { useNotificationStore } from "../../stores/NotificationStore";
+import { settleUploads } from "./shared/settleUploads";
 import { isElectron } from "../../utils/browser";
 import {
   deserializeDragData,
@@ -76,8 +79,8 @@ const styles = (theme: Theme) =>
     },
     ".remove-button": {
       position: "absolute",
-      top: "2px",
-      right: "2px",
+      top: getSpacingPx(SPACING.micro),
+      right: getSpacingPx(SPACING.micro),
       opacity: 0,
       transition: `opacity ${MOTION.normal}`,
       backgroundColor: theme.vars.palette.c_scrim,
@@ -94,42 +97,7 @@ const styles = (theme: Theme) =>
     ".remove-button .MuiSvgIcon-root": {
       fontSize: "var(--fontSizeNormal)"
     },
-    ".dropzone": {
-      position: "relative",
-      minHeight: "80px",
-      width: "100%",
-      border: "0",
-      maxWidth: "none",
-      textAlign: "center",
-      transition: MOTION.all,
-      outline: `1px dashed ${theme.vars.palette.grey[600]}`,
-      margin: `${theme.spacing(SPACING.sm)} 0`,
-      backgroundColor: theme.vars.palette.c_scrim_soft,
-      borderRadius: BORDER_RADIUS.md,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      "&:hover": {
-        outline: `1px dashed ${theme.vars.palette.grey[400]}`,
-        backgroundColor: theme.vars.palette.c_scrim_soft
-      },
-      "&.drag-over": {
-        backgroundColor: theme.vars.palette.grey[600],
-        outline: `2px dashed ${theme.vars.palette.grey[100]}`,
-        outlineOffset: "-2px"
-      }
-    },
-    ".dropzone p": {
-      textAlign: "center",
-      fontFamily: theme.fontFamily2,
-      textTransform: "uppercase",
-      letterSpacing: "1px",
-      fontSize: "var(--fontSizeSmaller)",
-      color: theme.vars.palette.grey[500],
-      margin: getSpacingPx(SPACING.xl),
-      lineHeight: "1.1em"
-    }
+    ...listDropzoneStyles(theme)
   });
 
 // Helper to flatten potentially nested arrays of items (handles constants + lists)
@@ -170,21 +138,27 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
     () => flattenVideoItems(props.value),
     [props.value]
   );
+  // Read at upload completion: the list may have changed while files uploaded.
+  const videosRef = useRef(videos);
+  videosRef.current = videos;
+  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddVideos = useCallback(
     (newVideos: VideoItem[]) => {
-      const updatedVideos = [...videos, ...newVideos];
+      const updatedVideos = [...videosRef.current, ...newVideos];
+      videosRef.current = updatedVideos;
       props.onChange(updatedVideos);
     },
-    [videos, props]
+    [props]
   );
 
   const handleRemoveVideo = useCallback(
     (index: number) => {
       const updatedVideos = videos.filter((_, i) => i !== index);
+      videosRef.current = updatedVideos;
       props.onChange(updatedVideos);
     },
     [videos, props]
@@ -270,13 +244,13 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
       );
 
       try {
-        const newVideos = await Promise.all(uploadPromises);
+        const newVideos = await settleUploads(uploadPromises, "videos", addNotification);
         handleAddVideos(newVideos);
       } catch (error) {
         console.error("Failed to upload videos:", error);
       }
     },
-    [uploadAsset, handleAddVideos, filteredAssets, globalSearchResults, selectedAssets]
+    [uploadAsset, addNotification, handleAddVideos, filteredAssets, globalSearchResults, selectedAssets]
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -333,13 +307,13 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
           });
         });
 
-        const newVideos = await Promise.all(uploadPromises);
+        const newVideos = await settleUploads(uploadPromises, "videos", addNotification);
         handleAddVideos(newVideos);
       }
     } catch (error) {
       console.error("Error opening file picker:", error);
     }
-  }, [uploadAsset, handleAddVideos]);
+  }, [uploadAsset, addNotification, handleAddVideos]);
 
   const handleBrowserFilePicker = useCallback(() => {
     fileInputRef.current?.click();
@@ -373,7 +347,7 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
     );
 
     try {
-      const newVideos = await Promise.all(uploadPromises);
+      const newVideos = await settleUploads(uploadPromises, "videos", addNotification);
       handleAddVideos(newVideos);
     } catch (error) {
       console.error("Failed to upload videos:", error);
@@ -383,7 +357,7 @@ const VideoListProperty = (props: PropertyProps<VideoItem[] | null>) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [uploadAsset, handleAddVideos]);
+  }, [uploadAsset, addNotification, handleAddVideos]);
 
   const handleDropzoneClick = useCallback(() => {
     if (isElectron && window.api?.dialog?.openFile) {

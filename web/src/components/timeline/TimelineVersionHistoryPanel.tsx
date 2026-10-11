@@ -15,12 +15,15 @@
  * diff, and the metadata plus a restore is what the history is for.
  */
 
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import React, { memo, useCallback, useMemo, useState } from "react";
 
 import { useTimelineStoreApi } from "../../stores/timeline/TimelineStore";
+import { saveTimelineThroughEditor } from "../../stores/timeline/timelineSaveRegistry";
 import { applyTimelineSequenceToStore } from "../../hooks/timeline/useLoadTimelineIntoStore";
 import {
   useTimelineVersions,
@@ -29,7 +32,6 @@ import {
 } from "../../serverState/useTimelineVersions";
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { notifyMutationError } from "../../utils/notifyMutationError";
-import PanelToolbar from "../panels/PanelToolbar";
 import {
   Caption,
   Chip,
@@ -45,20 +47,14 @@ import {
   BORDER_RADIUS,
   MOTION,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  PanelHeader
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
-
-const SAVE_TYPE_LABEL_KEYS = {
-  manual: "timeline:history.manual",
-  autosave: "timeline:history.auto",
-  restore: "timeline:history.restore"
-} satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
   autosave: "Auto",
-  restore: "Restore"
+  restore: i18n.t("timeline:history.restore", { defaultValue: "Restore" })
 } satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_COLOR = {
@@ -96,7 +92,6 @@ interface VersionRowProps {
 
 const VersionRow: React.FC<VersionRowProps> = memo(
   ({ version, busy, onRestore, onDelete }) => {
-    const { t } = useTranslation();
     const handleRestore = useCallback(
       () => onRestore(version),
       [onRestore, version]
@@ -113,9 +108,7 @@ const VersionRow: React.FC<VersionRowProps> = memo(
             v{version.version}
           </Text>
           <Chip
-            label={t(SAVE_TYPE_LABEL_KEYS[version.saveType], {
-              defaultValue: SAVE_TYPE_LABEL[version.saveType]
-            })}
+            label={SAVE_TYPE_LABEL[version.saveType]}
             color={SAVE_TYPE_COLOR[version.saveType]}
             compact
             size="small"
@@ -137,7 +130,9 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               disabled={busy}
               onClick={handleRestore}
               aria-label={`Restore version ${version.version}`}
-            >{t("timeline:attrs.restore", { defaultValue: "Restore" })}</EditorButton>
+            >
+              Restore
+            </EditorButton>
             <EditorButton
               density="compact"
               variant="text"
@@ -145,7 +140,9 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               onClick={handleDelete}
               aria-label={`Delete version ${version.version}`}
               sx={{ color: "text.secondary" }}
-            >{t("timeline:attrs.delete", { defaultValue: "Delete" })}</EditorButton>
+            >
+              Delete
+            </EditorButton>
           </FlexRow>
         </FlexRow>
         <Caption size="smaller" color="muted">
@@ -205,20 +202,37 @@ export const TimelineVersionHistoryPanel: React.FC<
     []
   );
 
+  // The server snapshots its own row, so pending local edits must reach it
+  // first. False means they did not, and the caller must stop.
+  const flushPendingEdits = useCallback(
+    async (action: string): Promise<boolean> => {
+      if (!sequenceId) return true;
+      const queued = saveTimelineThroughEditor(sequenceId);
+      if (!queued) return true;
+      const result = await queued;
+      if (result.ok) return true;
+      notifyMutationError(action, new Error(result.error));
+      return false;
+    },
+    [sequenceId]
+  );
+
   const handleConfirmSave = useCallback(async () => {
     setSaveDialogOpen(false);
     try {
+      if (!(await flushPendingEdits("save a version"))) return;
       await createVersion(saveName);
     } catch (err) {
       notifyMutationError("save a version", err);
     }
-  }, [createVersion, saveName]);
+  }, [createVersion, flushPendingEdits, saveName]);
 
   const handleConfirmRestore = useCallback(async () => {
     const target = restoreTarget;
     setRestoreTarget(null);
     if (!target) return;
     try {
+      if (!(await flushPendingEdits("restore that version"))) return;
       const restored = await restoreVersion(target.version);
       // The editor holds the pre-restore document in memory and autosaves it
       // 750 ms after any change; without this the next flush would PATCH the
@@ -227,7 +241,7 @@ export const TimelineVersionHistoryPanel: React.FC<
     } catch (err) {
       notifyMutationError("restore that version", err);
     }
-  }, [restoreTarget, restoreVersion, store]);
+  }, [flushPendingEdits, restoreTarget, restoreVersion, store]);
 
   const handleConfirmDelete = useCallback(async () => {
     const target = deleteTarget;
@@ -258,15 +272,15 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClick={openSaveDialog}
         disabled={!sequenceId || isCreatingVersion}
       >
-        {isCreatingVersion ? t("timeline:history.saving", { defaultValue: "Saving…" }) : t("timeline:history.saveVersion", { defaultValue: "Save version" })}
+        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       </EditorButton>
     ),
-    [t, openSaveDialog, sequenceId, isCreatingVersion]
+    [openSaveDialog, sequenceId, isCreatingVersion, t]
   );
 
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
-      <PanelToolbar
+      <PanelHeader
         title={t("timeline:history.title", { defaultValue: "History" })}
         count={ordered.length}
         actions={toolbarActions}
@@ -312,7 +326,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         onCancel={closeSaveDialog}
         confirmText={t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       >
-        <FlexColumn gap={1} sx={{ minWidth: 320, py: 1 }}>
+        <FlexColumn gap={1} sx={{ py: 1 }}>
           <TextInput
             label={t("timeline:history.nameOptional", { defaultValue: "Name (optional)" })}
             value={saveName}
@@ -321,7 +335,7 @@ export const TimelineVersionHistoryPanel: React.FC<
             autoFocus
           />
           <Caption size="smaller" color="secondary">
-            {t("timeline:attrs.snapshotsTheSequenceAsItIsRightNow", { defaultValue: "Snapshots the sequence as it is right now." })}
+            Snapshots the sequence as it is right now.
           </Caption>
         </FlexColumn>
       </Dialog>
@@ -330,11 +344,11 @@ export const TimelineVersionHistoryPanel: React.FC<
         open={restoreTarget !== null}
         onClose={clearRestoreTarget}
         title={
-          restoreTarget ? t("timeline:history.restoreConfirm", { defaultValue: "Restore v{{n}}?", n: String(restoreTarget.version) }) : t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
+          restoreTarget ? `Restore v${restoreTarget.version}?` : "Restore?"
         }
         onConfirm={handleConfirmRestore}
         onCancel={clearRestoreTarget}
-        confirmText={t("timeline:history.restore", { defaultValue: "Restore" })}
+        confirmText={t("timeline:attrs.restore", { defaultValue: "Restore" })}
       >
         <FlexColumn gap={1} sx={{ maxWidth: 420 }}>
           <Text color="secondary">
@@ -354,7 +368,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         title={deleteTarget ? `Delete v${deleteTarget.version}?` : "Delete?"}
         onConfirm={handleConfirmDelete}
         onCancel={clearDeleteTarget}
-        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        confirmText={t("timeline:attrs.delete", { defaultValue: i18n.t("common:action.delete", { defaultValue: "Delete" }) })}
         destructive
       >
         <Text color="secondary">{t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>

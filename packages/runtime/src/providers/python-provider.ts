@@ -6,7 +6,7 @@
  * and proxies all BaseProvider methods through the bridge.
  */
 
-import { BaseProvider } from "./base-provider.js";
+import { BaseProvider, type ProviderCapability } from "./base-provider.js";
 import type {
   LanguageModel,
   ImageModel,
@@ -62,7 +62,10 @@ function parseModelAdapter(value: unknown): ModelAdapterInfo | undefined {
         revision: isString(rawArtifact.revision)
           ? rawArtifact.revision
           : undefined,
-        path: isString(rawArtifact.path) ? rawArtifact.path : undefined
+        path: isString(rawArtifact.path) ? rawArtifact.path : undefined,
+        allowPatterns: Array.isArray(rawArtifact.allow_patterns)
+          ? rawArtifact.allow_patterns.filter(isString)
+          : undefined
       }
     : undefined;
 
@@ -102,26 +105,20 @@ export class PythonProvider extends BaseProvider {
       this._bridge = bridge;
       this._pythonProviderId = providerIdOrOptions;
       this._secrets = secrets;
-      this.referenceToVideo = BaseProvider.prototype.referenceToVideo;
       return;
     }
 
     const { _id, _bridge, _bridgeProviderId, _capabilities, ...rawSecrets } =
       providerIdOrOptions;
     super(_id);
-    const wrappedReferenceToVideo = this.referenceToVideo;
     this._bridge = _bridge;
     this._pythonProviderId = _bridgeProviderId ?? _id;
-    this.referenceToVideo = BaseProvider.prototype.referenceToVideo;
     if (Array.isArray(_capabilities)) {
       this._workerCapabilities = new Set(_capabilities.map(String));
       this._supportsStreamingTTS = _capabilities.includes("text_to_speech");
       this._supportsEncodedTTS = _capabilities.includes(
         "text_to_speech_encoded"
       );
-      if (this._workerCapabilities.has("reference_to_video")) {
-        this.referenceToVideo = wrappedReferenceToVideo;
-      }
     }
     this._secrets = Object.fromEntries(
       Object.entries(rawSecrets).filter(
@@ -132,6 +129,27 @@ export class PythonProvider extends BaseProvider {
 
   static requiredSecrets(): string[] {
     return [];
+  }
+
+  /**
+   * Every operation the bridge forwards. Reference-to-video needs a worker
+   * that reports it.
+   */
+  protected override declaredCapabilities(): readonly ProviderCapability[] {
+    const capabilities: ProviderCapability[] = [
+      "text_to_image",
+      "image_to_image",
+      "text_to_video",
+      "image_to_video",
+      "text_to_speech",
+      "text_to_music",
+      "automatic_speech_recognition",
+      "generate_embedding"
+    ];
+    if (this._workerCapabilities.has("reference_to_video")) {
+      capabilities.push("reference_to_video");
+    }
+    return capabilities;
   }
 
   // ── Model discovery ───────────────────────────────────────────────
@@ -408,16 +426,19 @@ export class PythonProvider extends BaseProvider {
         language: args.language,
         instructions: args.instructions,
         secrets: this._secrets
-      }
+      },
+      args.signal
     )) {
       // audioBytes is a msgpack-decoded Uint8Array — generally a view into a
       // larger buffer at a non-zero byteOffset. `new Int16Array(bytes.buffer)`
       // ignores the offset (reinterpreting unrelated bytes) and throws when the
-      // buffer length or offset isn't 2-aligned. Copy to guarantee alignment,
-      // trimming a trailing odd byte.
+      // buffer length or offset isn't 2-aligned. Copy into a fresh buffer to
+      // guarantee alignment, trimming a trailing odd byte. `slice()` is not a
+      // copy when the chunk is a Node Buffer, so set into a new array instead.
       const even = audioBytes.byteLength - (audioBytes.byteLength % 2);
-      const copy = audioBytes.slice(0, even);
-      yield { samples: new Int16Array(copy.buffer, copy.byteOffset, even / 2) };
+      const copy = new Uint8Array(even);
+      copy.set(audioBytes.subarray(0, even));
+      yield { samples: new Int16Array(copy.buffer) };
     }
   }
 
@@ -429,19 +450,23 @@ export class PythonProvider extends BaseProvider {
     args: TextToSpeechParams
   ): Promise<EncodedAudioResult | null> {
     if (!this._supportsEncodedTTS) return null;
+    const { signal, ...wireParams } = args;
     const data = await this._bridge.providerTTSEncoded(
       this._pythonProviderId,
-      { ...args },
-      this._secrets
+      wireParams,
+      this._secrets,
+      signal
     );
     return { data, mimeType: sniffAudioMime(data) };
   }
 
   async textToMusic(params: TextToMusicParams): Promise<EncodedAudioResult> {
+    const { signal, ...wireParams } = params;
     const data = await this._bridge.providerTextToAudio(
       this._pythonProviderId,
-      { ...params, model: params.model.id },
-      this._secrets
+      { ...wireParams, model: params.model.id },
+      this._secrets,
+      signal
     );
     return { data, mimeType: sniffAudioMime(data) };
   }

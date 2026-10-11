@@ -8,9 +8,10 @@ import {
   ModelChangeEvent,
   ModelChangeMeta,
   ModelObserver,
-  createTimeOrderedUuid
+  createTimeOrderedUuid,
+  nextUpdatedAtAfter
 } from "./base-model.js";
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import { imageDocuments } from "./schema/image-documents.js";
 import { ImageDocumentVersion } from "./image-document-version.js";
 
@@ -53,15 +54,6 @@ function assertValidDocumentData(data: ImageDocumentData): void {
   if (!data.sketch || !Array.isArray(data.layerBindings)) {
     throw new Error("document must contain sketch and layerBindings");
   }
-}
-
-function nextUpdatedAtAfter(previous: string): string {
-  const now = new Date();
-  const previousMs = Date.parse(previous);
-  if (Number.isFinite(previousMs) && now.getTime() <= previousMs) {
-    return new Date(previousMs + 1).toISOString();
-  }
-  return now.toISOString();
 }
 
 export class ImageDocument extends DBModel {
@@ -186,7 +178,7 @@ export class ImageDocument extends DBModel {
     userId: string,
     limit = 50
   ): Promise<ImageDocument[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(imageDocuments)
@@ -201,7 +193,7 @@ export class ImageDocument extends DBModel {
     userId: string,
     limit = 50
   ): Promise<ImageDocument[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(imageDocuments)
@@ -264,7 +256,7 @@ export class ImageDocument extends DBModel {
     if (fields.document !== undefined) {
       assertValidDocumentData(JSON.parse(fields.document) as ImageDocumentData);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(imageDocuments)
@@ -292,7 +284,7 @@ export class ImageDocument extends DBModel {
     meta?: ModelChangeMeta
   ): Promise<ImageDocument | null> {
     assertValidDocumentData(data);
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(imageDocuments)

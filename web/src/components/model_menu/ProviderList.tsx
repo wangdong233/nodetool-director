@@ -735,6 +735,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
           const hasKey = env ? isApiKeySet(env) : true;
           const isHFLogo = iconUrl === huggingfaceColorIcon;
           const renderBadges = () => {
+  const { t } = useTranslation();
             const badges: Array<{ label: string }> = [];
             const isHF = isHuggingFaceProvider(p);
             const executionLabels = providerExecutionLabels.get(p);

@@ -1,4 +1,4 @@
-/* NODE STATE STYLES (selection, hover, loading, bypassed) */
+/* NODE STATE STYLES (selection, hover, loading, bypassed, not run) */
 
 /* --------------------------------------------- */
 /* Selection and highlighting                     */
@@ -15,6 +15,15 @@
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
   outline: 1px solid var(--palette-divider);
   outline-offset: 0;
+}
+
+/* Nodes that draw their own 1px edge: the outer outline would double it. */
+.react-flow__node:has(> .node-body),
+.react-flow__node:has(> .output-node),
+.react-flow__node:has(> .compare-images-node),
+.react-flow__node:has(> .sketch-node),
+.react-flow__node-nodetool\.workflows\.base_node\.Preview {
+  outline: none;
 }
 
 /* Grouped nodes: use group header color for outline */
@@ -37,7 +46,6 @@
 
 .react-flow__node.bypassed .base-node {
   border-style: dashed !important;
-  border-width: 2px !important;
   background: repeating-linear-gradient(
     45deg,
     transparent,
@@ -70,6 +78,13 @@
 .react-flow__edge.from-bypassed path {
   stroke-dasharray: 5, 5;
   opacity: 0.5;
+}
+
+/* Untaken If/Switch branch in the focused run: these nodes did not run.
+   A selection's branch-dimmed fade still wins over this one. */
+.react-flow .react-flow__node.not-run:not(.branch-dimmed),
+.react-flow .react-flow__edge.not-run:not(.branch-dimmed) {
+  opacity: 0.4;
 }
 
 /* --------------------------------------------- */

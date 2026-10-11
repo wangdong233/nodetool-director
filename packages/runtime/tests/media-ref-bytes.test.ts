@@ -3,6 +3,21 @@ import { encodeBase64, loadMediaRefBytes } from "../src/media-ref-bytes.js";
 import type { ProcessingContext } from "../src/context.js";
 
 describe("loadMediaRefBytes", () => {
+  it.each(["file:///etc/passwd", "/etc/passwd", "/api/storage/../../etc/passwd", "/api/storage/%2e%2e%2fsecret"])(
+    "narrow caller policy denies %s before storage", async (uri) => {
+      const retrieve = vi.fn().mockResolvedValue(new Uint8Array([1]));
+      expect(await loadMediaRefBytes({ uri }, { storage: { retrieve } }, { allowLocalFile: false }))
+        .toBeNull();
+      expect(retrieve).not.toHaveBeenCalled();
+    }
+  );
+
+  it("retains local paths for existing default callers", async () => {
+    const retrieve = vi.fn().mockResolvedValue(new Uint8Array([1]));
+    expect(await loadMediaRefBytes({ uri: "/local/image.png" }, { storage: { retrieve } }))
+      .toEqual(new Uint8Array([1]));
+  });
+
   it("loads inline base64 data", async () => {
     const payload = Buffer.from([1, 2, 3]).toString("base64");
     const bytes = await loadMediaRefBytes({
@@ -100,7 +115,9 @@ describe("loadMediaRefBytes", () => {
     );
 
     expect(bytes).toEqual(new Uint8Array([7, 8, 9]));
-    expect(ctx.resolveAssetBytes).toHaveBeenCalledWith("asset://abc-123.png");
+    expect(ctx.resolveAssetBytes).toHaveBeenCalledWith("asset://abc-123.png", {
+      requireOwnedAsset: true
+    });
   });
 
   it("resolves an asset_id-only ref (empty uri) via resolveAssetBytes", async () => {
@@ -119,10 +136,12 @@ describe("loadMediaRefBytes", () => {
     );
 
     expect(bytes).toEqual(new Uint8Array([10, 11, 12]));
-    expect(ctx.resolveAssetBytes).toHaveBeenCalledWith("asset://abc");
+    expect(ctx.resolveAssetBytes).toHaveBeenCalledWith("asset://abc", {
+      requireOwnedAsset: true
+    });
   });
 
-  it("resolves an asset_id-only ref via storage candidates", async () => {
+  it("does not bypass unavailable asset resolution through raw storage candidates", async () => {
     const ctx = {
       resolveAssetBytes: vi.fn(async () => ({ bytes: null, attempts: [] })),
       storage: {
@@ -137,7 +156,8 @@ describe("loadMediaRefBytes", () => {
       ctx
     );
 
-    expect(bytes).toEqual(new Uint8Array([13, 14, 15]));
+    expect(bytes).toBeNull();
+    expect(ctx.storage?.retrieve).not.toHaveBeenCalled();
   });
 });
 
@@ -148,9 +168,7 @@ describe("encodeBase64", () => {
 
   it("encodes bytes via Buffer on Node", () => {
     const bytes = new TextEncoder().encode("hello world");
-    expect(encodeBase64(bytes)).toBe(
-      Buffer.from(bytes).toString("base64")
-    );
+    expect(encodeBase64(bytes)).toBe(Buffer.from(bytes).toString("base64"));
   });
 
   it("falls back to btoa when Buffer is unavailable", () => {

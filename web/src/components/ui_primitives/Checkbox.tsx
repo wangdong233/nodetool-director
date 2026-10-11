@@ -5,6 +5,7 @@
  * and consistent styling. Used for boolean selections.
  */
 
+import { i18n } from "../../i18n";
 import React, { forwardRef, memo } from "react";
 import {
   Checkbox as MuiCheckbox,

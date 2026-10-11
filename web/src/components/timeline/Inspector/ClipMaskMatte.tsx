@@ -47,7 +47,8 @@ import {
   InspectorSectionTitle,
   InspectorSelect,
   InspectorSliderRow,
-  InspectorToggleRow
+  InspectorToggleRow,
+  INSPECTOR_SECTION_CONTENT_SX
 } from "./InspectorPrimitives";
 import { TextCommitField } from "./InspectorMotionFields";
 import { useTranslation } from "react-i18next";
@@ -251,7 +252,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
           onToggle={setMaskOpen}
           unmountOnExit
         >
-          <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
+          <FlexColumn sx={INSPECTOR_SECTION_CONTENT_SX}>
             {mask === undefined ? (
               <Caption color="muted">
 {t("timeline:attrs.enableTheMaskToCutThisClip", { defaultValue: "Enable the mask to cut this clip to a rectangle, an ellipse or an SVG path." })}
@@ -352,7 +353,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
               onToggle={setMatteOpen}
               unmountOnExit
             >
-              <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
+              <FlexColumn sx={INSPECTOR_SECTION_CONTENT_SX}>
                 <InspectorRow label={t("timeline:attrs.source", { defaultValue: "Source" })}>
                   <InspectorSelect
                     label={t("timeline:attrs.matteSourceClip", { defaultValue: "Matte source clip" })}
@@ -409,6 +410,9 @@ function versionLabel(createdAt: string): string {
   return Number.isNaN(at) ? createdAt : new Date(at).toLocaleString();
 }
 
+/** Clips with an isolate request in flight, kept across inspector remounts. */
+const subjectMatteRuns = new Set<string>();
+
 /**
  * "Isolate subject": cut a matte from this clip's own source and dial in how
  * it reads. Four states — none, generating, ready and failed — because that is
@@ -430,15 +434,18 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
       DEFAULT_SUBJECT_MODEL
     );
     // Held between the click and the store's own `generating` mark, which only
-    // lands after the document has been saved.
-    const [pending, setPending] = useState(false);
+    // lands after the document has been saved. Per clip, so it never shows on
+    // (or blocks) another selected clip.
+    const [pendingClipIds, setPendingClipIds] = useState<ReadonlySet<string>>(
+      () => new Set()
+    );
 
     const clipRef = useRef(clip);
     clipRef.current = clip;
 
     const matte = clip.generatedMatte;
     const status = matte?.status ?? (matte ? "ready" : undefined);
-    const generating = pending || status === "generating";
+    const generating = pendingClipIds.has(clip.id) || status === "generating";
     // A failed first run leaves a marker carrying no mask, so there is a matte
     // record with nothing to dial in. Everything after this reads "is there a
     // result", not "is there a record".
@@ -447,14 +454,22 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
 
     const run = useCallback(
       async (regenerate: boolean) => {
-        setPending(true);
+        const clipId = clipRef.current.id;
+        if (subjectMatteRuns.has(clipId)) return;
+        subjectMatteRuns.add(clipId);
+        setPendingClipIds((ids) => new Set(ids).add(clipId));
         try {
-          await isolateSubject(clipRef.current.id, { model, regenerate });
+          await isolateSubject(clipId, { model, regenerate });
         } catch {
           // The store reports every failure it can as a notification; there is
           // nothing left for this button to say.
         } finally {
-          setPending(false);
+          subjectMatteRuns.delete(clipId);
+          setPendingClipIds((ids) => {
+            const next = new Set(ids);
+            next.delete(clipId);
+            return next;
+          });
         }
       },
       [isolateSubject, model]
@@ -519,7 +534,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
           onToggle={setOpen}
           unmountOnExit
         >
-          <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
+          <FlexColumn sx={INSPECTOR_SECTION_CONTENT_SX}>
             <InspectorRow label={t("timeline:attrs.model", { defaultValue: "Model" })}>
               <InspectorSelect
                 label={t("timeline:attrs.subjectMatteModel", { defaultValue: "Subject matte model" })}
@@ -576,6 +591,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   step={0.01}
                   disabled={generating}
                   onChange={handleStrength}
+                  resetValue={1}
                 />
                 <InspectorRow label={t("timeline:attrs.feather", { defaultValue: "Feather" })}>
                   <InspectorPillInput

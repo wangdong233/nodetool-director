@@ -230,13 +230,15 @@ export const useLanguageModelsByProvider = (options?: {
 export type ImageModelTask =
   | "text_to_image"
   | "image_to_image"
+  | "image_edit"
   | "inpainting"
   | "outpaint"
   | "upscale"
   | "remove_background"
   | "relight"
   | "vectorize"
-  | "segment";
+  | "segment"
+  | "estimate_depth";
 
 export type VideoModelTask =
   | "text_to_video"

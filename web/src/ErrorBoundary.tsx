@@ -1,13 +1,15 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "./i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouteError } from "react-router-dom";
 import { CopyButton, Text, EditorButton, Box, MOTION, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "./components/ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
-import { useTranslation } from "react-i18next";
+import { reportClientError } from "./utils/errorTraceReporting";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -160,7 +162,7 @@ const errorBoundaryStyles = (theme: Theme) =>
       color: theme.vars.palette.grey[50],
       border: `1px solid ${theme.vars.palette.grey[800]}`,
       borderRadius: BORDER_RADIUS.md,
-      fontFamily: "monospace",
+      fontFamily: "var(--fontFamily2)",
       fontSize: "var(--fontSizeSmall)",
       padding: getSpacingPx(SPACING.xl),
       whiteSpace: "pre-wrap",
@@ -182,11 +184,15 @@ const ErrorBoundary: React.FC = () => {
   const errorMessage =
     error instanceof Error
       ? error.message
-      : t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
+      : i18n.t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
+    error instanceof Error ? error.stack : i18n.t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
+
+  useEffect(() => {
+    reportClientError(error, "route");
+  }, [error]);
 
   const handleReport = () => {
     openBugReport({
@@ -210,7 +216,8 @@ const ErrorBoundary: React.FC = () => {
         <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool Logo" })} className="logo" />
         <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
-          {t("editor:ui.unexpectedErrorSubtext", { defaultValue: "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it." })}
+          An unexpected error occurred. You can try reloading the page. If
+          this keeps happening, please reach out so we can fix it.
         </Text>
       </Box>
 
@@ -222,7 +229,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={() => window.location.reload()}
             className="reload-button"
           >
-            {t("editor:ui.reloadPage", { defaultValue: "Reload page" })}
+            Reload page
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -230,7 +237,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleReport}
             className="copy-error-button"
           >
-            {t("common:action.reportBug", { defaultValue: "Report a bug" })}
+            Report a bug
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -238,7 +245,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? t("editor:ui.copied2") : t("editor:ui.copyError", { defaultValue: "Copy error" })}
+            {copied ? "Copied!" : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -248,10 +255,10 @@ const ErrorBoundary: React.FC = () => {
             target="_blank"
             rel="noreferrer"
           >
-            {t("editor:ui.joinOurDiscord")}
+            Join our Discord
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            {t("editor:ui.emailHello@nodetoolAi")}
+            Email hello@nodetool.ai
           </a>
         </Box>
       </Box>
@@ -262,7 +269,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
+          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
         </EditorButton>
 
         {showDetails && (

@@ -17,7 +17,7 @@ import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CategoryIcon from "@mui/icons-material/Category";
-import { useNodes } from "../../contexts/NodeContext";
+import { useNodes, useNodeStoreRef } from "../../contexts/NodeContext";
 import useMetadataStore from "../../stores/MetadataStore";
 import { Property, TypeMetadata } from "../../stores/ApiTypes";
 import {
@@ -38,7 +38,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(
   nodeId: string | null,
@@ -90,6 +90,7 @@ const PropertyContextMenuComponent: React.FC = () => {
     }),
     shallow
   );
+  const nodeStore = useNodeStoreRef();
   const metadata = useMetadataStore((state) => state.metadata);
   const {
     canToggleExposed,
@@ -258,46 +259,49 @@ const PropertyContextMenuComponent: React.FC = () => {
 
     const targetIds = resolvePropertyMenuTargetNodeIds(nodeId, payload);
     if (handleId) {
-      for (const nid of targetIds) {
-        const node = findNode(nid);
-        if (!node) {
-          continue;
-        }
+      // Resetting several selected nodes undoes as one step.
+      runAsOneUndoEntry(nodeStore, () => {
+        for (const nid of targetIds) {
+          const node = findNode(nid);
+          if (!node) {
+            continue;
+          }
 
-        if (isDynamicProperty) {
-          const dynamicInputDefaults = node.data?.dynamic_inputs || {};
-          let defaultValue = dynamicInputDefaults?.[handleId]?.default;
+          if (isDynamicProperty) {
+            const dynamicInputDefaults = node.data?.dynamic_inputs || {};
+            let defaultValue = dynamicInputDefaults?.[handleId]?.default;
 
-          if (defaultValue === undefined) {
+            if (defaultValue === undefined) {
+              const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
+              if (nodeMetadata) {
+                const propertyDef = nodeMetadata.properties.find(
+                  (prop: Property) => prop.name === handleId
+                );
+                defaultValue = propertyDef?.default;
+              }
+            }
+
+            if (defaultValue !== undefined && node.data.dynamic_properties) {
+              updateNodeData(nid, {
+                dynamic_properties: {
+                  ...node.data.dynamic_properties,
+                  [handleId]: defaultValue
+                }
+              });
+            }
+          } else {
             const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
             if (nodeMetadata) {
               const propertyDef = nodeMetadata.properties.find(
                 (prop: Property) => prop.name === handleId
               );
-              defaultValue = propertyDef?.default;
-            }
-          }
-
-          if (defaultValue !== undefined && node.data.dynamic_properties) {
-            updateNodeData(nid, {
-              dynamic_properties: {
-                ...node.data.dynamic_properties,
-                [handleId]: defaultValue
+              if (propertyDef) {
+                updateNodeProperties(nid, { [handleId]: propertyDef.default });
               }
-            });
-          }
-        } else {
-          const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
-          if (nodeMetadata) {
-            const propertyDef = nodeMetadata.properties.find(
-              (prop: Property) => prop.name === handleId
-            );
-            if (propertyDef) {
-              updateNodeProperties(nid, { [handleId]: propertyDef.default });
             }
           }
         }
-      }
+      });
     }
     closeContextMenu();
   };

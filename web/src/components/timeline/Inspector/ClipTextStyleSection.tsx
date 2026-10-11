@@ -12,12 +12,13 @@ import TitleOutlinedIcon from "@mui/icons-material/TitleOutlined";
 import type { ClipTextStyle, ShapeFill, TimelineClip } from "@nodetool-ai/timeline";
 
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
+import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
 import {
   Caption,
   CollapsibleSection,
   FlexColumn,
-  SPACING,
-  TextInput
+  TextInput,
+  BatchedColorInput
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
 import {
@@ -26,8 +27,10 @@ import {
   InspectorRow,
   InspectorSectionTitle,
   InspectorSelect,
-  InspectorToggleRow
+  InspectorToggleRow,
+  INSPECTOR_SECTION_CONTENT_SX
 } from "./InspectorPrimitives";
+import { parseFiniteNumber } from "./InspectorPrimitives.helpers";
 import { FillFields } from "./InspectorMotionFields";
 import { FontPicker } from "./FontPicker";
 import { useTranslation } from "react-i18next";
@@ -43,6 +46,27 @@ const VERTICAL_ALIGNMENTS = [
   { value: "middle", label: "Middle" },
   { value: "bottom", label: "Bottom" }
 ] as const;
+
+const FONT_WEIGHTS = [
+  { value: "100", label: "Thin (100)" },
+  { value: "200", label: "Extra light (200)" },
+  { value: "300", label: "Light (300)" },
+  { value: "400", label: "Regular (400)" },
+  { value: "500", label: "Medium (500)" },
+  { value: "600", label: "Semibold (600)" },
+  { value: "700", label: "Bold (700)" },
+  { value: "800", label: "Extra bold (800)" },
+  { value: "900", label: "Black (900)" }
+] as const;
+
+/**
+ * The weight menu, plus the stored weight when it is off the 100 grid (an
+ * agent or an import can write 450), so the select still shows what renders.
+ */
+const fontWeightOptions = (weight: number) =>
+  FONT_WEIGHTS.some((option) => option.value === String(weight))
+    ? FONT_WEIGHTS
+    : [...FONT_WEIGHTS, { value: String(weight), label: `Custom (${weight})` }];
 
 const FONT_STYLES = [
   { value: "normal", label: "Normal" },
@@ -67,10 +91,6 @@ const SCRUB_PX = { step: 1 };
 const SCRUB_UNIT = { step: 0.01, min: 0 };
 
 const TEXT_CONTENT_INPUT_PROPS = { "aria-label": "Text content" };
-const TEXT_COLOR_INPUT_PROPS = { "aria-label": "Text color" };
-const STROKE_COLOR_INPUT_PROPS = { "aria-label": "Text stroke color" };
-const SHADOW_COLOR_INPUT_PROPS = { "aria-label": "Text shadow color" };
-const BACKGROUND_COLOR_INPUT_PROPS = { "aria-label": "Text background color" };
 
 interface ClipTextStyleSectionProps {
   clip: TimelineClip;
@@ -131,10 +151,19 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
 
     // A stable callback per field, so an edit re-renders only the field whose
     // value changed rather than every memoized control in the section.
+    // One undo entry per focused typing session, not one per keystroke.
+    const textHistory = useTimelineHistoryBatch();
+    const handleTextFocus = useCallback(
+      () => textHistory.begin(),
+      [textHistory]
+    );
+    const handleTextBlur = useCallback(() => textHistory.end(), [textHistory]);
     const handleTextChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchStyle({ text: event.target.value }),
-      [patchStyle]
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        patchStyle({ text: event.target.value });
+        textHistory.mark();
+      },
+      [patchStyle, textHistory]
     );
     const handleFontFamilyChange = useCallback(
       (fontFamily: string | undefined) => patchStyle({ fontFamily }),
@@ -142,16 +171,16 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
     );
     const handleFontSizeCommit = useCallback(
       (raw: string) => {
-        const fontSizePx = Number(raw);
-        if (!Number.isFinite(fontSizePx) || fontSizePx < 1) return;
+        const fontSizePx = parseFiniteNumber(raw);
+        if (fontSizePx === null || fontSizePx < 1) return;
         patchStyle({ fontSizePx });
       },
       [patchStyle]
     );
-    const handleFontWeightCommit = useCallback(
+    const handleFontWeightChange = useCallback(
       (raw: string) => {
-        const fontWeight = Number(raw);
-        if (!Number.isFinite(fontWeight) || fontWeight < 1) return;
+        const fontWeight = parseFiniteNumber(raw);
+        if (fontWeight === null || fontWeight < 1) return;
         patchStyle({ fontWeight });
       },
       [patchStyle]
@@ -162,8 +191,8 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
       [patchStyle]
     );
     const handleColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchStyle({ color: event.target.value }),
+      (color: string) =>
+        patchStyle({ color: color }),
       [patchStyle]
     );
     const handleAlignChange = useCallback(
@@ -180,18 +209,23 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
     );
     const handleLetterSpacingCommit = useCallback(
       (raw: string) => {
-        const letterSpacingPx = Number(raw);
-        if (!Number.isFinite(letterSpacingPx)) return;
+        const letterSpacingPx = parseFiniteNumber(raw);
+        if (letterSpacingPx === null) return;
         patchStyle({ letterSpacingPx });
       },
       [patchStyle]
     );
     const handleLineHeightCommit = useCallback(
       (raw: string) => {
-        const lineHeight = Number(raw);
-        if (!Number.isFinite(lineHeight) || lineHeight <= 0) return;
+        const lineHeight = parseFiniteNumber(raw);
+        if (lineHeight === null || lineHeight <= 0) return;
         patchStyle({ lineHeight });
       },
+      [patchStyle]
+    );
+
+    const handleStrikethroughToggle = useCallback(
+      (on: boolean) => patchStyle({ strikethrough: on ? true : undefined }),
       [patchStyle]
     );
 
@@ -200,14 +234,14 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
       [patchStyle]
     );
     const handleStrokeColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchStroke({ color: event.target.value }),
+      (color: string) =>
+        patchStroke({ color: color }),
       [patchStroke]
     );
     const handleStrokeWidthCommit = useCallback(
       (raw: string) => {
-        const widthPx = Number(raw);
-        if (!Number.isFinite(widthPx) || widthPx < 0) return;
+        const widthPx = parseFiniteNumber(raw);
+        if (widthPx === null || widthPx < 0) return;
         patchStroke({ widthPx });
       },
       [patchStroke]
@@ -218,30 +252,30 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
       [patchStyle]
     );
     const handleShadowColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchShadow({ color: event.target.value }),
+      (color: string) =>
+        patchShadow({ color: color }),
       [patchShadow]
     );
     const handleShadowBlurCommit = useCallback(
       (raw: string) => {
-        const blurPx = Number(raw);
-        if (!Number.isFinite(blurPx) || blurPx < 0) return;
+        const blurPx = parseFiniteNumber(raw);
+        if (blurPx === null || blurPx < 0) return;
         patchShadow({ blurPx });
       },
       [patchShadow]
     );
     const handleShadowOffsetXCommit = useCallback(
       (raw: string) => {
-        const offsetX = Number(raw);
-        if (!Number.isFinite(offsetX)) return;
+        const offsetX = parseFiniteNumber(raw);
+        if (offsetX === null) return;
         patchShadow({ offsetX });
       },
       [patchShadow]
     );
     const handleShadowOffsetYCommit = useCallback(
       (raw: string) => {
-        const offsetY = Number(raw);
-        if (!Number.isFinite(offsetY)) return;
+        const offsetY = parseFiniteNumber(raw);
+        if (offsetY === null) return;
         patchShadow({ offsetY });
       },
       [patchShadow]
@@ -253,22 +287,22 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
       [patchStyle]
     );
     const handleBackgroundColorChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) =>
-        patchBackground({ color: event.target.value }),
+      (color: string) =>
+        patchBackground({ color: color }),
       [patchBackground]
     );
     const handleBackgroundPaddingCommit = useCallback(
       (raw: string) => {
-        const paddingPx = Number(raw);
-        if (!Number.isFinite(paddingPx) || paddingPx < 0) return;
+        const paddingPx = parseFiniteNumber(raw);
+        if (paddingPx === null || paddingPx < 0) return;
         patchBackground({ paddingPx });
       },
       [patchBackground]
     );
     const handleBackgroundRadiusCommit = useCallback(
       (raw: string) => {
-        const radiusPx = Number(raw);
-        if (!Number.isFinite(radiusPx) || radiusPx < 0) return;
+        const radiusPx = parseFiniteNumber(raw);
+        if (radiusPx === null || radiusPx < 0) return;
         patchBackground({ radiusPx });
       },
       [patchBackground]
@@ -284,13 +318,15 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
           onToggle={setOpen}
           unmountOnExit
         >
-          <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
+          <FlexColumn sx={INSPECTOR_SECTION_CONTENT_SX}>
             <TextInput
               value={textStyle.text}
               multiline
               minRows={3}
               fullWidth
               onChange={handleTextChange}
+              onFocus={handleTextFocus}
+              onBlur={handleTextBlur}
               inputProps={{ ...TEXT_CONTENT_INPUT_PROPS, "aria-label": t("timeline:attrs.textContent", { defaultValue: "Text content" }) }}
             />
             <InspectorRow label={t("editor:ui.font", { defaultValue: "Font" })}>
@@ -310,11 +346,11 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.weight", { defaultValue: "Weight" })}>
-              <InspectorPillInput
+              <InspectorSelect
+                label={t("timeline:attrs.textFontWeight", { defaultValue: "Text font weight" })}
                 value={String(textStyle.fontWeight ?? 400)}
-                onCommit={handleFontWeightCommit}
-                ariaLabel={t("timeline:attrs.textFontWeight", { defaultValue: "Text font weight" })}
-              />
+                options={fontWeightOptions(textStyle.fontWeight ?? 400)}
+                onChange={handleFontWeightChange}              />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.style", { defaultValue: "Style" })}>
               <InspectorSelect
@@ -325,12 +361,10 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
               />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.color", { defaultValue: "Color" })}>
-              <TextInput
-                type="color"
+              <BatchedColorInput
                 value={textStyle.color}
                 onChange={handleColorChange}
-                inputProps={{ ...TEXT_COLOR_INPUT_PROPS, "aria-label": t("timeline:attrs.textColor", { defaultValue: "Text color" }) }}
-              />
+                ariaLabel={t("timeline:attrs.textColor", { defaultValue: "Text color" })}              />
             </InspectorRow>
             <InspectorRow label={t("timeline:attrs.align", { defaultValue: "Align" })}>
               <InspectorSelect
@@ -368,19 +402,21 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
             </InspectorRow>
 
             <InspectorToggleRow
-              label={t("timeline:attrs.stroke", { defaultValue: "Stroke" })}
-              checked={textStyle.stroke !== undefined}
+              label="Strikethrough"
+              checked={textStyle.strikethrough === true}
+              onChange={handleStrikethroughToggle}
+            />
+            <InspectorToggleRow
+              label={t("timeline:attrs.stroke", { defaultValue: "Stroke" })}              checked={textStyle.stroke !== undefined}
               onChange={handleStrokeToggle}
             />
             {textStyle.stroke && (
               <>
                 <InspectorRow label={t("timeline:attrs.strokeColor", { defaultValue: "Stroke color" })}>
-                  <TextInput
-                    type="color"
+                  <BatchedColorInput
                     value={textStyle.stroke.color}
                     onChange={handleStrokeColorChange}
-                    inputProps={{ ...STROKE_COLOR_INPUT_PROPS, "aria-label": t("timeline:attrs.textStrokeColor", { defaultValue: "Text stroke color" }) }}
-                  />
+                    ariaLabel={t("timeline:attrs.textStrokeColor", { defaultValue: "Text stroke color" })}                  />
                 </InspectorRow>
                 <InspectorRow label={t("timeline:attrs.strokeWidth", { defaultValue: "Stroke width" })}>
                   <InspectorPillInput
@@ -402,12 +438,10 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
             {textStyle.shadow && (
               <>
                 <InspectorRow label={t("timeline:attrs.shadowColor", { defaultValue: "Shadow color" })}>
-                  <TextInput
-                    type="color"
+                  <BatchedColorInput
                     value={textStyle.shadow.color}
                     onChange={handleShadowColorChange}
-                    inputProps={{ ...SHADOW_COLOR_INPUT_PROPS, "aria-label": t("timeline:attrs.textShadowColor", { defaultValue: "Text shadow color" }) }}
-                  />
+                    ariaLabel={t("timeline:attrs.textShadowColor", { defaultValue: "Text shadow color" })}                  />
                 </InspectorRow>
                 <InspectorRow label={t("timeline:attrs.shadowBlur", { defaultValue: "Shadow blur" })}>
                   <InspectorPillInput
@@ -447,12 +481,10 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
             {textStyle.background && (
               <>
                 <InspectorRow label={t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}>
-                  <TextInput
-                    type="color"
+                  <BatchedColorInput
                     value={textStyle.background.color}
                     onChange={handleBackgroundColorChange}
-                    inputProps={{ ...BACKGROUND_COLOR_INPUT_PROPS, "aria-label": t("timeline:attrs.textBackgroundColor", { defaultValue: "Text background color" }) }}
-                  />
+                    ariaLabel={t("timeline:attrs.textBackgroundColor", { defaultValue: "Text background color" })}                  />
                 </InspectorRow>
                 <InspectorRow label={t("timeline:attrs.backgroundPadding", { defaultValue: "Background padding" })}>
                   <InspectorPillInput
@@ -481,7 +513,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
               onChange={handleFillChange}
             />
             <Caption color="muted">
-              A gradient fill is drawn instead of the colour above.
+              A gradient fill is drawn instead of the color above.
             </Caption>
           </FlexColumn>
         </CollapsibleSection>

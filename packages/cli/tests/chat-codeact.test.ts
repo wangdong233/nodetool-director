@@ -6,10 +6,16 @@
  * covered in packages/chat/tests/codeact-turn.test.ts.
  */
 import { describe, it, expect, vi } from "vitest";
+import type { ProcessingContext } from "@nodetool-ai/runtime";
 
 class StubTool {
   readonly name: string = "";
   readonly description: string = "";
+  readonly needsToolCallId: boolean = false;
+  static stripMessage(args: Record<string, unknown>) {
+    const { _message, ...rest } = args;
+    return rest;
+  }
   get inputSchema(): unknown {
     return { type: "object", properties: {} };
   }
@@ -39,10 +45,27 @@ const executedCalls: Array<{
   options: { toolCallId?: string };
 }> = [];
 
+const runsByTool = new WeakMap<object, { invoke: (name: string, args: Record<string, unknown>) => Promise<unknown> }>();
+
 const sessionsCreated: Array<{ toolNames: string[] }> = [];
+
+const listSkillsByUser = vi.fn(
+  async (_userId: string): Promise<Array<{ name: string; description: string }>> => []
+);
+
+vi.mock("@nodetool-ai/models", () => ({
+  Skill: { listByUser: (userId: string) => listSkillsByUser(userId) }
+}));
 
 vi.mock("@nodetool-ai/agents", () => ({
   Tool: StubTool,
+  capabilityRunForLegacyTool: (tool: StubTool) => runsByTool.get(tool),
+  mergeSystemSkills: (rows: Array<{ name: string; description: string }>) => [
+    ...rows,
+    { name: "motion-direction", description: "Set the motion language." }
+  ],
+  formatSkillCatalogForPrompt: (skills: Array<{ name: string }>) =>
+    `## Skills\n${skills.map((skill) => `- /${skill.name}`).join("\n")}`,
   createChatCodeActSession: (options: {
     tools: Array<{ name: string }>;
     executeTool: (call: {
@@ -68,7 +91,7 @@ vi.mock("@nodetool-ai/agents", () => ({
   }
 }));
 
-const { applySystemPrompt, createCliCodeActTurn } = await import(
+const { applySystemPrompt, createCliCodeActTurn, loadCliSkillCatalog } = await import(
   "../src/chat-codeact.js"
 );
 
@@ -172,6 +195,33 @@ describe("createCliCodeActTurn", () => {
   });
 });
 
+describe("skill catalog", () => {
+  it("appends the catalog to the CodeAct contract", () => {
+    const turn = createCliCodeActTurn({
+      tools: [new EchoTool() as never],
+      context,
+      skillCatalog: "## Skills\n- /motion-direction"
+    });
+    expect(turn.systemPrompt).toBe(
+      "CODEACT CONTRACT\n\n## Skills\n- /motion-direction"
+    );
+  });
+
+  it("lists the user's skills and the shipped ones", async () => {
+    listSkillsByUser.mockResolvedValueOnce([
+      { name: "house-style", description: "Our colours." }
+    ]);
+    const catalog = await loadCliSkillCatalog("1");
+    expect(listSkillsByUser).toHaveBeenLastCalledWith("1");
+    expect(catalog).toBe("## Skills\n- /house-style\n- /motion-direction");
+  });
+
+  it("keeps the shipped skills when the skills table cannot be read", async () => {
+    listSkillsByUser.mockRejectedValueOnce(new Error("no database"));
+    expect(await loadCliSkillCatalog("1")).toBe("## Skills\n- /motion-direction");
+  });
+});
+
 describe("applySystemPrompt", () => {
   it("prepends the prompt when the history has none", () => {
     const messages = [{ role: "user" as const, content: "hi" }];
@@ -188,4 +238,22 @@ describe("applySystemPrompt", () => {
     expect(messages.filter((m) => m.role === "system")).toHaveLength(1);
     expect(messages[0].content).toBe("new catalog");
   });
+});
+
+
+it("CLI CodeAct invokes the owned capability run once and preserves the call id", async () => {
+  class NativeTool extends EchoTool {
+    override readonly needsToolCallId: boolean = true;
+  }
+  const tool = new NativeTool();
+  const invoke = vi.fn(async () => ({ ok: true }));
+  runsByTool.set(tool, { invoke });
+  const before = executedCalls.length;
+  // The CLI wiring test passes this context only to its stubbed run.
+  const context = {} as unknown as ProcessingContext;
+  const turn = createCliCodeActTurn({ tools: [tool], context });
+  const session = turn.session as unknown as { __executeTool: (call: { id: string; name: string; args: Record<string, unknown> }) => Promise<unknown> };
+  expect(await session.__executeTool({ id: "call-1", name: tool.name, args: { text: "hello", _message: "Reading a value" } })).toEqual({ ok: true });
+  expect(invoke).toHaveBeenCalledExactlyOnceWith(tool.name, { text: "hello", _tool_call_id: "call-1" });
+  expect(executedCalls).toHaveLength(before);
 });

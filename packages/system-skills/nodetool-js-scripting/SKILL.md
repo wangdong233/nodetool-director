@@ -1,6 +1,7 @@
 ---
 name: nodetool-js-scripting
 description: "Write JavaScript that runs in NodeTool's QuickJS sandbox: Code node bodies, saved JS script documents, sandbox package imports, and calling nodes from code."
+featured: true
 ---
 
 # Write NodeTool sandbox JavaScript
@@ -11,7 +12,7 @@ imports and the same limits.
 | Where | What it is | Reach it with |
 |---|---|---|
 | **Code node** | A body inside a workflow graph | `validate_code`, `run_code`, `test_code` |
-| **JS script document** | A named, versioned script with declared ports, secrets, a timeout and saved tests | `list_js_scripts`, `get_js_script`, `save_js_script`, `validate_js_script`, `run_js_script`, `test_js_script` |
+| **JS script document** | A named, versioned script with declared ports, secrets, a timeout and saved tests | `list_js_scripts`, `get_js_script`, `save_js_script`, `edit_js_script`, `validate_js_script`, `run_js_script`, `test_js_script` |
 | **Native flow** | Guest code calling nodes as async functions, no graph | `import "@nodetool-ai/sandbox-nodetool/flow"` |
 
 Pick a Code node when the logic belongs to one graph. Pick a script document
@@ -81,6 +82,28 @@ compile` builds one for a dependency that is not shipped.
 handle, not bytes. Chain the calls, then `<type>.toAsset(handle)` before the run
 ends. A handle does not survive into a later run.
 
+## Running an agent from code
+
+Use `run_agent` when the work needs more than one model call: look something
+up, act, read the result, correct.
+
+```js
+import { run_agent } from "@nodetool-ai/sandbox-nodetool/agents";
+
+const answer = await run_agent({
+  prompt: "Read storyboard " + inputs.storyboardId + " and list its shot titles.",
+  model: inputs.model,                // {provider, id} from a model selector
+  tools: ["get_storyboard"],          // capability wire names, nothing else
+  output_schema: { type: "object", properties: { titles: { type: "array", items: { type: "string" } } } }
+});
+await output("titles", answer.result.titles);
+```
+
+Without `output_schema`, `answer.text` is the agent's final message. The agent
+reports its text and tool calls while it runs. A mini app shows them in an
+Agent Activity widget bound to `op:<id>/exec#transcript`. `generate_text` stays
+the right call for one prompt with no tools.
+
 ## Calling nodes from code
 
 ```js
@@ -103,6 +126,34 @@ A program that must open in the editor, be validated, or run on the server still
 builds a graph. Use `nodetool-workflow-builder`
 for that.
 
+## Building a timeline from code
+
+```js
+import { video } from "@nodetool-ai/sandbox-timeline";
+
+const v = video({ width: 1920, height: 1080, fps: 30 });
+const title = v.scene("title", 3, (s) => {
+  const t = s.text("Hello", { size: 120, weight: 600, color: "#ffffff" });
+  t.enter({ from: { opacity: 0 }, at: 0, dur: 0.5 });
+});
+v.series([title]);
+const saved = await v.save(nodetool.timelines, { name: "Hello" });
+await output("timeline_id", saved.timeline_id);
+```
+
+The pack authors a whole motion-graphics cut in seconds, local to each scene,
+and saves it with one `set_timeline_document`, instead of one `edit_timeline`
+op per clip. Pass the body's `nodetool.timelines` to `v.save`: a module cannot
+see the belt. `get_sandbox_package_docs` on the specifier returns the full
+authoring API.
+
+Save the build script itself as a JS script document and it links to the
+timeline it makes automatically: `v.save(nodetool.timelines, {name})` with no
+`timeline_id` the first time creates the timeline and links this script to
+it; every later run of the same script updates that timeline in place
+instead of making another. Revise with `edit_js_script`'s string-replacement
+ops (below) rather than resending the whole body.
+
 ## The loop
 
 1. **Write or read the body.** `get_js_script` for a saved script.
@@ -119,7 +170,11 @@ for that.
    handle, compared structurally, with unnamed outputs ignored, and
    `expected_streamed`, the full ordered emit list. A case with neither passes
    when the body runs without error.
-5. **Save.** `save_js_script` validates first and is CAS on update.
+5. **Save.** `save_js_script` validates first and is CAS on update. For a
+   small revision, `edit_js_script(js_script_id, ops)` is cheaper: each op is
+   `{old, new}`, and `old` must match exactly once in the current code — like
+   a code editor's find/replace, refused by name on zero or on an ambiguous
+   match. It validates the result the same way `save_js_script` does.
 
 Script documents get the same version family as the other documents:
 `list_js_script_versions`, `get_js_script_version`, `create_js_script_version`,

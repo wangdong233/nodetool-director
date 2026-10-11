@@ -12,9 +12,12 @@ import {
   evaluateCondition,
   formatTemplate,
   parseCondition,
+  readRef,
+  refFromBinding,
   resolveBinding,
   stateKey,
   type AppAction,
+  type ApplicationDocument,
   type BindingMode,
   type BindingRef,
   type BindingScope,
@@ -24,6 +27,7 @@ import {
   type ResourceRef
 } from "@nodetool-ai/app-runtime";
 
+import type { ServerAppInstance } from "./appInstanceApi";
 import { WorkflowIO } from "../workflowIO";
 import { AppRuntimeStore, AppRuntimeState } from "./appRuntimeStore";
 
@@ -45,7 +49,20 @@ export interface AppRuntimeContextValue {
   resources: ReadonlyArray<ResourceBinding>;
   /** In the builder's design surface, events are inert (no workflow runs). */
   designMode: boolean;
-  dispatch: (action: AppAction) => void;
+  document?: ApplicationDocument;
+  instanceLoading?: boolean;
+  instanceError?: string;
+  instanceId?: string;
+  instance?: ServerAppInstance;
+  flushInstance?: () => Promise<void>;
+  refreshInstance?: () => Promise<void>;
+  reloadInstance?: () => Promise<void>;
+  dispatch: (action: AppAction, source?: { widgetId: string }) => void;
+  reportWidgetError?: (
+    error: Error,
+    component: string,
+    binding?: string
+  ) => { trace_id: string; app_run_id: string; span_id: string } | undefined;
   /** Write a value through a resolved binding. */
   write: (ref: BindingRef, value: unknown) => void;
   /**
@@ -56,9 +73,15 @@ export interface AppRuntimeContextValue {
   /**
    * Current value of a graph node's property (saved data, else metadata
    * default) — the display fallback for node-property bindings the user hasn't
-   * touched yet.
+   * touched yet. `operationId` scopes the lookup to that operation's graph.
    */
-  getNodeProperty: (nodeId: string, property: string) => unknown;
+  getNodeProperty: (
+    nodeId: string,
+    property: string,
+    operationId?: string
+  ) => unknown;
+  /** Type of a graph node, so a widget bound to its property can match it. */
+  getNodeType: (nodeId: string, operationId?: string) => string | undefined;
 }
 
 export const AppRuntimeContext = createContext<AppRuntimeContextValue | null>(
@@ -98,13 +121,18 @@ export const useBindingValue = (ref: BindingRef | null): unknown => {
         return s.variables[key];
       case "view":
         return s.view[key];
+      case "execution": {
+        // A run's state lives on its invocation, not in a keyed slot.
+        const execution = refFromBinding(ref);
+        return execution ? readRef(s, execution) : undefined;
+      }
       default:
         return s.inputs[key]?.value;
     }
   });
 };
 
-export const useRuntimeSelector = <T,>(
+export const useRuntimeSelector = <T>(
   selector: (state: AppRuntimeState) => T
 ): T => {
   const { store } = useAppRuntimeContext();

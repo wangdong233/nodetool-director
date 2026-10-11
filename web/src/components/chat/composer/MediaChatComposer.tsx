@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../../i18n";
 import React, {
   memo,
   useCallback,
@@ -12,7 +13,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import AddIcon from "@mui/icons-material/Add";
 
-import { FlexRow, LoadingSpinner, Text } from "../../ui_primitives";
+import { FlexRow, LoadingSpinner, Text, SPACING } from "../../ui_primitives";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import useMediaGenerationStore, {
   resolveImageSize
@@ -29,14 +30,26 @@ import type {
   LanguageModel,
   MessageContent
 } from "../../../stores/ApiTypes";
-import { isModelSelected, type ModelSelection } from "@nodetool-ai/protocol";
+import {
+  isModelSelected,
+  type Entity,
+  type ModelSelection
+} from "@nodetool-ai/protocol";
 import type { MediaGenerationRequest } from "../types/media.types";
-import { assetToUri } from "../../node_types/editing/promptComposer/promptTokens";
+import {
+  assetToUri,
+  entityToUri
+} from "../../node_types/editing/promptComposer/promptTokens";
 import { useTextareaAssetMention } from "./useTextareaAssetMention";
 import { useTextareaSkillMention } from "./useTextareaSkillMention";
 import { MentionedEntities } from "./MentionedEntities";
 import { VoiceInputControl } from "./voice/VoiceInputControl";
 import { FilePreview } from "./FilePreview";
+import {
+  ComposerAttachDialog,
+  type AttachedDocument
+} from "./ComposerAttachDialog";
+import { insertPromptReference } from "./insertPromptReference";
 import { useFileHandling } from "../hooks/useFileHandling";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
 import { useComposerAssetUpload } from "../hooks/useComposerAssetUpload";
@@ -68,7 +81,7 @@ interface MediaChatComposerProps {
     content: MessageContent[],
     prompt: string,
     mediaGeneration?: MediaGenerationRequest
-  ) => void;
+  ) => void | boolean | Promise<void | boolean>;
   onStop?: () => void;
   disabled?: boolean;
   selectedModel?: LanguageModel;
@@ -78,13 +91,9 @@ interface MediaChatComposerProps {
   requireToolSupport?: boolean;
   /** Focus the prompt textarea on mount. Defaults to true (chat panel). */
   autoFocus?: boolean;
-  /** Extra actions rendered at the end of the footer chip row (e.g. the
-   *  canvas Run button + workflow menu). Empty in the chat panel. */
+  /** Extra content after the footer chip row (the canvas workflow toolbar).
+   *  Empty in the chat panel. */
   trailingActions?: React.ReactNode;
-  /** Extra actions rendered at the start of the footer chip row (e.g. the
-   *  canvas dock drag handle). Empty in the chat panel. Stays visible even
-   *  while the composer is minimized. */
-  leadingActions?: React.ReactNode;
   /** Override the auto-generated, mode-aware textarea placeholder. */
   placeholder?: string;
   /** Pure chat panel: hide the mode picker and force "chat" mode. Used by the
@@ -130,7 +139,6 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   requireToolSupport,
   autoFocus = true,
   trailingActions,
-  leadingActions,
   placeholder: placeholderOverride,
   hideModePicker = false,
   hideModelPicker = false,
@@ -207,31 +215,35 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   }, []);
 
   // File handling (input images for image-to-image / motion-control later)
-  const { droppedFiles, removeFile, clearFiles, getFileContents, addDroppedFiles } =
+  const { droppedFiles, removeFile, getFileContents, addDroppedFiles } =
     useFileHandling();
 
   // Every local file — picked, dropped, or pasted — goes to the asset library
   // first and rides as an `asset://` reference, so the bytes never enter the
   // message. Inlining them base64-encodes the file into the thread, which the
   // client then resends with every following turn.
-  const attachInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles, isUploading } = useComposerAssetUpload(addDroppedFiles);
 
   const { isDragging, handleDragOver, handleDragLeave, handleDrop } =
     useDragAndDrop(uploadFiles, addDroppedFiles);
 
-  const openAttachPicker = useCallback(() => {
-    attachInputRef.current?.click();
+  // The plus button opens one dialog for every kind of reference: library
+  // assets, entities, project documents, and local uploads.
+  const [attachDialogOpen, setAttachDialogOpen] = useState(false);
+  const openAttachDialog = useCallback(() => setAttachDialogOpen(true), []);
+  // The dialog does not hand focus back to the plus button: closing it, with
+  // or without a pick, returns the user to the prompt they were writing.
+  const attachFocusPending = useRef(false);
+  const closeAttachDialog = useCallback(() => {
+    setAttachDialogOpen(false);
+    attachFocusPending.current = true;
   }, []);
-
-  const handleAttachPicked = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      uploadFiles(Array.from(e.target.files ?? []));
-      // Reset so picking the same file twice fires change again.
-      e.target.value = "";
-    },
-    [uploadFiles]
-  );
+  useEffect(() => {
+    if (!attachDialogOpen && attachFocusPending.current) {
+      attachFocusPending.current = false;
+      textareaRef.current?.focus();
+    }
+  }, [attachDialogOpen]);
 
   // Typing `@` opens the asset picker; a picked asset is attached as an
   // `asset://` reference (like a drag from the asset library) rather than
@@ -249,6 +261,33 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       ]);
     },
     [addDroppedFiles]
+  );
+
+  /** Caret to restore once an inserted reference has rendered. */
+  const insertCaretPending = useRef<number | null>(null);
+
+  // Entities and documents are part of the sentence, so they go into the text
+  // at the caret: an entity as its `entity://<id>` token (as the `@` picker
+  // writes it), a document as a `[Name](<kind>://<id>)` resource link.
+  const insertReference = useCallback(
+    (reference: string) => {
+      const caret = textareaRef.current?.selectionStart ?? prompt.length;
+      const next = insertPromptReference(prompt, caret, reference);
+      insertCaretPending.current = next.caret;
+      setPrompt(next.value);
+    },
+    [prompt]
+  );
+
+  const handleSelectEntity = useCallback(
+    (entity: Entity) => insertReference(entityToUri(entity)),
+    [insertReference]
+  );
+
+  const handleSelectDocument = useCallback(
+    (document: AttachedDocument) =>
+      insertReference(`[${document.name.replace(/[[\]]/g, "")}](${document.uri})`),
+    [insertReference]
   );
 
   const { mentionMenu, handleKeyDown: handleMentionKeyDown } =
@@ -295,6 +334,13 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
 
   useLayoutEffect(() => {
     adjustHeight();
+    const insertCaret = insertCaretPending.current;
+    if (insertCaret !== null) {
+      insertCaretPending.current = null;
+      const el = textareaRef.current;
+      el?.focus();
+      el?.setSelectionRange(insertCaret, insertCaret);
+    }
     if (!seedCaretPending.current) {
       return;
     }
@@ -446,7 +492,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       isLoading,
       isStreaming,
       onSendMessage: (content, promptText) => {
-        onSendMessage(content, promptText, buildMediaGeneration());
+        return onSendMessage(content, promptText, buildMediaGeneration());
       },
       onStop,
       textareaRef
@@ -588,11 +634,19 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   // refuses it and opens the picker instead.
   const needsModel = !!modelGate && !isModelSelected(modelGate.model);
 
-  const canGenerate = prompt.trim().length > 0 || droppedFiles.length > 0;
+  // A file still uploading is not in `droppedFiles` yet, so sending now would
+  // leave it out of this message and attach it to the next one.
+  const canGenerate =
+    !isUploading && (prompt.trim().length > 0 || droppedFiles.length > 0);
 
+  // `draft` is the composer text the send replaces. It differs from `text`
+  // when dictation appends a transcript to what was typed.
   const submitPrompt = useCallback(
-    (text: string) => {
-      if (text.trim().length === 0 && droppedFiles.length === 0) {
+    async (text: string, draft: string = text) => {
+      if (
+        isUploading ||
+        (text.trim().length === 0 && droppedFiles.length === 0)
+      ) {
         return;
       }
       // No configured provider can serve this mode — sending would only fail on
@@ -615,17 +669,18 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       const fullContent = [...content, ...fileContents];
       // Only clear the input when the message was actually sent or queued; a
       // dropped message (one already queued) keeps its text and attachments.
-      if (sendMessage(fullContent, text)) {
+      if (await sendMessage(fullContent, text)) {
         recordHistory(text);
-        setPrompt("");
-        clearFiles();
+        setPrompt((current) => current === draft ? "" : current);
+        droppedFiles.forEach((file) => removeFile(file.id));
       }
     },
     [
+      isUploading,
       droppedFiles,
       getFileContents,
       sendMessage,
-      clearFiles,
+      removeFile,
       recordHistory,
       providerSetup,
       needsModel,
@@ -643,14 +698,15 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
       const text = typed.length > 0 ? `${typed} ${transcript}` : transcript;
       // A chat turn sends straight away. A media mode bills for the run it
       // would start, so a dictated prompt lands in the box for review instead.
-      if (isMediaMode) {
+      // So does one dictated while a file is still uploading.
+      if (isMediaMode || isUploading) {
         setPrompt(text);
         textareaRef.current?.focus();
         return;
       }
-      submitPrompt(text);
+      submitPrompt(text, prompt);
     },
-    [prompt, submitPrompt, isMediaMode]
+    [prompt, submitPrompt, isMediaMode, isUploading]
   );
 
   const handlePaste = useCallback(
@@ -780,6 +836,14 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
           autoComplete="off"
         />
         {mentionMenu}
+        <ComposerAttachDialog
+          open={attachDialogOpen}
+          onClose={closeAttachDialog}
+          onSelectAsset={handleSelectAsset}
+          onSelectEntity={handleSelectEntity}
+          onSelectDocument={handleSelectDocument}
+          onUploadFiles={uploadFiles}
+        />
         {skillMenu}
 
         {providerSetup.needsSetup && providerSetup.reason && (
@@ -808,9 +872,9 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
 
         {queuedMessage && (
           <FlexRow
-            gap={0.5}
+            gap={SPACING.micro}
             align="center"
-            sx={{ px: 1, color: "text.secondary" }}
+            sx={{ px: SPACING.xs, color: "text.secondary" }}
           >
             <Text size="small" color="secondary">
               {t("editor:ui.messageQueued", {
@@ -818,7 +882,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                 prompt: queuedMessage.prompt.slice(0, 60)
               })}
             </Text>
-            {onStop && (
+            {(onStop || (!isLoading && !isStreaming)) && (
               <Text
                 size="small"
                 component="button"
@@ -841,7 +905,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
               component="button"
               type="button"
               sx={{
-                ml: onStop ? 0 : "auto",
+                ml: 0,
                 background: "none",
                 border: "none",
                 padding: 0,
@@ -860,18 +924,8 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
             isCompact ? " narrow" : ""
           }`}
         >
-          {/* Leading actions (e.g. the canvas dock drag handle). */}
-          {leadingActions}
           {/* Chip cluster: mode/model chips. */}
           <div className="media-chip-main">
-            {/* Attach: uploads to the asset library and attaches the asset. */}
-            <input
-              ref={attachInputRef}
-              type="file"
-              hidden
-              multiple
-              onChange={handleAttachPicked}
-            />
             <MediaControlChip
               icon={
                 isUploading ? (
@@ -880,12 +934,8 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                   <AddIcon fontSize="small" />
                 )
               }
-              title={
-                isUploading
-                  ? t("editor:chat.uploadingFiles", { defaultValue: "Uploading…" })
-                  : t("editor:chat.attachFiles", { defaultValue: "Attach files" })
-              }
-              onClick={openAttachPicker}
+              title={isUploading ? i18n.t("editor:chat.uploadingFiles", { defaultValue: "Uploading…" }) : i18n.t("editor:chat.addToMessage", { defaultValue: "Add to message" })}
+              onClick={openAttachDialog}
               disabled={disabled}
               showChevron={false}
             />
@@ -920,10 +970,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
           </div>
 
           {/* The Generate button for media modes, or Stop while a run is in
-              flight. Chat mode has no button of its own — Enter sends. Sits
-              between the chip cluster and the host actions rather than inside
-              the chips, so it joins the workflow action buttons on one line
-              when the row wraps. */}
+              flight. Chat mode has no button of its own — Enter sends. */}
           <div className="media-primary-action">
             {/* What the next Generate would cost, next to the button that
                 spends it. Silent in chat mode and whenever no price can be
@@ -949,8 +996,8 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
             ) : null}
           </div>
 
-          {/* Host-supplied actions at the end of the footer (e.g. the canvas
-              Run button + workflow menu). Empty in the chat panel. */}
+          {/* Host-supplied actions after the chips (the canvas workflow
+              toolbar). Empty in the chat panel. */}
           {trailingActions}
         </div>
       </div>

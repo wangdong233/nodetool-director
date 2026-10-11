@@ -4,11 +4,15 @@
  * Module-level buffer (not per-instance) so clips can be copied between
  * timeline tabs. Pasted clips get fresh ids; the earliest copied clip lands
  * at the paste time and the others keep their relative offsets. Clips whose
- * source track no longer exists fall back to the first compatible track and
- * are skipped when none exists.
+ * source track no longer exists or is locked fall back to the first
+ * compatible unlocked track and are skipped when none exists.
  */
 
-import { makeClip, createTimeOrderedUuid } from "@nodetool-ai/timeline";
+import {
+  makeClip,
+  createTimeOrderedUuid,
+  clipFitsTrack
+} from "@nodetool-ai/timeline";
 import type { TimelineClip, TimelineTrack } from "@nodetool-ai/timeline";
 
 let clipboard: TimelineClip[] = [];
@@ -27,16 +31,6 @@ export function clearClipClipboard(): void {
   clipboard = [];
 }
 
-function clipFitsTrack(
-  mediaType: TimelineClip["mediaType"],
-  trackType: TimelineTrack["type"]
-): boolean {
-  if (mediaType === "audio") {
-    return trackType === "audio";
-  }
-  return trackType === "video" || trackType === "overlay";
-}
-
 /**
  * Build paste-ready copies of the clipboard contents, anchored at `atMs`.
  * Returns an empty array when the clipboard is empty.
@@ -49,27 +43,28 @@ export function buildPastedClips(
     return [];
   }
   const minStartMs = Math.min(...clipboard.map((c) => c.startMs));
-  const trackIds = new Set(tracks.map((t) => t.id));
+  const writableTrackIds = new Set(
+    tracks.filter((t) => !t.locked).map((t) => t.id)
+  );
   const pasted: TimelineClip[] = [];
   for (const c of clipboard) {
     let trackId = c.trackId;
-    if (!trackIds.has(trackId)) {
-      const fallback = tracks.find((t) => clipFitsTrack(c.mediaType, t.type));
+    if (!writableTrackIds.has(trackId)) {
+      const fallback = tracks.find(
+        (t) => !t.locked && clipFitsTrack(c.mediaType, t.type)
+      );
       if (!fallback) {
         continue;
       }
       trackId = fallback.id;
     }
-    pasted.push(
-      makeClip({
-        ...c,
-        id: createTimeOrderedUuid(),
-        trackId,
-        startMs: Math.max(0, Math.round(atMs + (c.startMs - minStartMs)))
-      })
-    );
+    pasted.push({
+      ...c,
+      trackId,
+      startMs: Math.max(0, Math.round(atMs + (c.startMs - minStartMs)))
+    });
   }
-  return pasted;
+  return cloneClips(pasted);
 }
 
 /**
@@ -82,28 +77,43 @@ export function cloneClipsToTrack(
   clips: readonly TimelineClip[],
   trackId: string
 ): TimelineClip[] {
+  return cloneClips(clips).map((clip) => ({ ...clip, trackId }));
+}
+
+export function cloneClips(clips: readonly TimelineClip[]): TimelineClip[] {
   const groupCount = new Map<string, number>();
-  for (const c of clips) {
+  const freshIdByClip = new Map<string, string>();
+  const copies = clips.map((c) => {
+    const copy = makeClip({
+      ...structuredClone(c),
+      id: createTimeOrderedUuid()
+    });
+    freshIdByClip.set(c.id, copy.id);
     if (c.linkId !== undefined) {
       groupCount.set(c.linkId, (groupCount.get(c.linkId) ?? 0) + 1);
     }
-  }
+    return copy;
+  });
   const freshLinkByGroup = new Map<string, string>();
-  return clips.map((c) => {
-    let linkId: string | undefined;
+  for (const c of copies) {
+    if (c.parentId !== undefined) {
+      const parentId = freshIdByClip.get(c.parentId);
+      if (parentId === undefined) {
+        delete c.parentId;
+      } else {
+        c.parentId = parentId;
+      }
+    }
     if (c.linkId !== undefined && (groupCount.get(c.linkId) ?? 0) >= 2) {
       let fresh = freshLinkByGroup.get(c.linkId);
       if (fresh === undefined) {
         fresh = createTimeOrderedUuid();
         freshLinkByGroup.set(c.linkId, fresh);
       }
-      linkId = fresh;
+      c.linkId = fresh;
+    } else {
+      delete c.linkId;
     }
-    return makeClip({
-      ...structuredClone(c),
-      id: createTimeOrderedUuid(),
-      trackId,
-      linkId
-    });
-  });
+  }
+  return copies;
 }

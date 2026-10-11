@@ -9,7 +9,7 @@ import {
   ModelObserver,
   createTimeOrderedUuid
 } from "./base-model.js";
-import { getDb, getDbType } from "./db.js";
+import { getPortableDb, getDbType } from "./db.js";
 import { storyboards } from "./schema/storyboards.js";
 
 /**
@@ -144,6 +144,9 @@ export class Storyboard extends DBModel {
     doc.entityIds ??= [];
     doc.setupStage ??= "done";
     doc.genre ??= "";
+    if (doc.screenplay) {
+      doc.screenplay.shots = doc.shots;
+    }
     // A shot can name an entity the board was never cast with — agents write
     // shots one at a time and forget the board. Reconcile on read so the cast
     // holds everything the shots reference.
@@ -183,7 +186,7 @@ export class Storyboard extends DBModel {
   }
 
   static async listByUser(userId: string, limit = 50): Promise<Storyboard[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(storyboards)
@@ -213,7 +216,7 @@ export class Storyboard extends DBModel {
     templateId: string;
     recastKey: string;
   }): Promise<Storyboard | null> {
-    const db = getDb();
+    const db = getPortableDb();
     const postgres = getDbType() === "postgres";
     const templateId = postgres
       ? sql`(${storyboards.document}::json ->> 'templateId')`
@@ -257,7 +260,7 @@ export class Storyboard extends DBModel {
     projectId?: string;
     limit?: number;
   }): Promise<StoryboardSummary[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const postgres = getDbType() === "postgres";
     const shots = postgres
       ? sql<number>`CASE WHEN json_typeof((${storyboards.document}::json) -> 'shots') = 'array' THEN json_array_length((${storyboards.document}::json) -> 'shots') ELSE 0 END`
@@ -293,7 +296,7 @@ export class Storyboard extends DBModel {
     userId: string,
     limit = 50
   ): Promise<Storyboard[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(storyboards)
@@ -326,7 +329,7 @@ export class Storyboard extends DBModel {
     if (fields.document !== undefined) {
       assertValidDocument(JSON.parse(fields.document) as StoryboardDocument);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const now = nextUpdatedAtAfter(expectedUpdatedAt);
     const rows = await db
       .update(storyboards)

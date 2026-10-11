@@ -106,11 +106,11 @@ describe("composeFirstTurn", () => {
     const turn = composeFirstTurn({
       prompt: "A spot for our desk lamp",
       starter: launch,
-      entityNames: ["Aurora lamp", "Night street"]
+      entityIds: ["aurora", "night-street"]
     });
     expect(turn).toBe(
       "/launch-commercial\n\nA spot for our desk lamp\n\n" +
-        "Use these entities: Aurora lamp, Night street."
+        "Use these entities: entity://aurora, entity://night-street."
     );
   });
 
@@ -121,7 +121,7 @@ describe("composeFirstTurn", () => {
       composeFirstTurn({
         prompt: "/launch-commercial A spot for our desk lamp",
         starter: launch,
-        entityNames: []
+        entityIds: []
       })
     ).toBe("/launch-commercial A spot for our desk lamp");
   });
@@ -132,7 +132,7 @@ describe("composeFirstTurn", () => {
       composeFirstTurn({
         prompt: "/house-style A spot for our desk lamp",
         starter: launch,
-        entityNames: []
+        entityIds: []
       })
     ).toBe("/launch-commercial\n\n/house-style A spot for our desk lamp");
   });
@@ -144,7 +144,7 @@ describe("composeFirstTurn", () => {
       composeFirstTurn({
         prompt: "Whatever I want",
         starter: null,
-        entityNames: []
+        entityIds: []
       })
     ).toBe("Whatever I want");
   });
@@ -263,6 +263,22 @@ describe("rankStarters", () => {
         (starter) => starter.name
       )
     ).toEqual(["veo-3-prompting", "house-style", "launch-commercial"]);
+  });
+
+  // The `api-*` skills document one code-action namespace for the agent; a
+  // row of "Api agents", "Api apps"… in front of the real starters says
+  // nothing about what to make.
+  it("ranks the code-action API references with the guides", () => {
+    const apiAgents: ProjectStarter = {
+      name: "api-agents",
+      description: "Call nodetool.agents from a code action.",
+      system: true
+    };
+    expect(
+      rankStarters([apiAgents, houseStyle, launch], []).map(
+        (starter) => starter.name
+      )
+    ).toEqual(["house-style", "launch-commercial", "api-agents"]);
   });
 });
 

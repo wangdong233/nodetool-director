@@ -8,8 +8,7 @@
  * showed. Instead of a real-time rAF loop it:
  *
  *   1. steps the playhead in exact `1 / fps` increments,
- *   2. seeks each video element to the precise source frame (waiting for
- *      `seeked`) so decoding is deterministic, not best-effort,
+ *   2. decodes each video source at its precise timestamp,
  *   3. composites at full sequence resolution into an offscreen canvas,
  *   4. encodes each frame with WebCodecs (via mediabunny) and muxes to the
  *      container `format` names,
@@ -41,6 +40,7 @@ import {
   clipSourceTimeSec,
   computeActiveLayersWithHorizon,
   createAnimationCompileCache,
+  expandTemporalClips,
   motionBlurSampleTimes,
   layerShutterTime,
   resolveAnimatedLayerProps,
@@ -51,15 +51,23 @@ import {
 import type {
   ActiveLayer,
   AnimatedLayerProps,
-  MotionBlurOptions
+  FrameSourceWindow,
+  MotionBlurOptions,
+  RasterWindow
 } from "@nodetool-ai/timeline/render";
 import {
   buildCompositeLayer,
   buildCompositeAdjustments,
   buildCompositePrecomposites,
+  rasterWindowMargin,
   type ResolvedCompositeSource
 } from "../preview/compositeLayers";
 import { Model3DLayerSource } from "../preview/Model3DLayerSource";
+import {
+  logPreviewFailure,
+  previewFailureText,
+  type PreviewFailure
+} from "../preview/previewFailure";
 import {
   alphaBakesToProbe,
   guardBakeHash,
@@ -68,9 +76,10 @@ import {
 } from "../preview/bakeDecoding";
 import { CaptionRasterizer } from "../preview/captionRender";
 import { TextRasterizer } from "../preview/textRender";
-import { ensureBundledFontsLoaded } from "../preview/fontLoading";
+import { ensureBundledFontsLoaded, ensureGoogleFontsLoaded } from "../preview/fontLoading";
 import { textMeasurer } from "../preview/textMeasure";
 import { ShapeRasterizer } from "../preview/shapeRender";
+import { BitmapFrameScope } from "../preview/BitmapFrameScope";
 import { OffscreenVideoPool } from "./OffscreenVideoPool";
 import { renderTimelineAudio } from "./renderAudio";
 
@@ -139,7 +148,11 @@ interface RenderTimelineOptions {
 }
 
 export interface RenderResult {
-  bytes: Uint8Array;
+  /**
+   * The encoded file. A `png_sequence` zip comes back as a `Blob` assembled
+   * from per-frame parts, so the whole archive is never one contiguous buffer.
+   */
+  bytes: Uint8Array | Blob;
   mimeType: string;
   /** File extension the bytes should be saved under, without the dot. */
   extension: string;
@@ -171,49 +184,54 @@ async function canvasPng(canvas: HTMLCanvasElement): Promise<Uint8Array> {
 }
 
 /**
- * Pack the frames into one stored (uncompressed) zip with a manifest.
+ * Incremental stored (uncompressed) zip writer for a PNG sequence.
  *
  * Stored, because a PNG is already deflate-compressed and a second pass costs
- * seconds per frame for nothing. fflate's streaming writer is used so the PNG
- * buffers can be released as they go in rather than being held alongside a
- * second copy inside the archive.
+ * seconds per frame for nothing. Each frame is handed in as it is rendered and
+ * the archive bytes go straight into Blob parts, so the caller can drop the
+ * frame immediately and the finished zip is never concatenated into one
+ * contiguous buffer.
  */
-async function zipPngSequence(
-  frames: Uint8Array[],
-  manifest: PngSequenceManifest
-): Promise<Uint8Array> {
+async function createPngZipWriter(): Promise<{
+  addFrame: (index: number, bytes: Uint8Array) => void;
+  finish: (manifest: PngSequenceManifest) => Blob;
+}> {
   const { Zip, ZipPassThrough } = await import("fflate");
-  const chunks: Uint8Array[] = [];
+  const parts: Blob[] = [];
+  let pending: Uint8Array[] = [];
   let failure: Error | null = null;
   const zip = new Zip((error, data) => {
     if (error) failure = error;
-    else if (data.length > 0) chunks.push(data);
+    else if (data.length > 0) pending.push(data);
   });
-
+  const flush = (): void => {
+    if (pending.length > 0) {
+      parts.push(new Blob(pending as BlobPart[]));
+      pending = [];
+    }
+  };
   const push = (name: string, bytes: Uint8Array): void => {
     const entry = new ZipPassThrough(name);
     zip.add(entry);
     entry.push(bytes, true);
+    flush();
+    if (failure) throw failure;
   };
-
-  frames.forEach((bytes, i) => {
-    push(`frame_${String(i + 1).padStart(6, "0")}.png`, bytes);
-  });
-  push(
-    "manifest.json",
-    new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`)
-  );
-  zip.end();
-  if (failure) throw failure;
-
-  const total = chunks.reduce((n, c) => n + c.length, 0);
-  const out = new Uint8Array(total);
-  let at = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, at);
-    at += chunk.length;
-  }
-  return out;
+  return {
+    addFrame: (index, bytes) => {
+      push(`frame_${String(index + 1).padStart(6, "0")}.png`, bytes);
+    },
+    finish: (manifest) => {
+      push(
+        "manifest.json",
+        new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`)
+      );
+      zip.end();
+      flush();
+      if (failure) throw failure;
+      return new Blob(parts, { type: "application/zip" });
+    }
+  };
 }
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
@@ -315,12 +333,12 @@ export async function renderTimeline(
   // not enough here. Waiting costs one fetch of files the editor has usually
   // loaded already.
   await ensureBundledFontsLoaded();
+  await ensureGoogleFontsLoaded(clips);
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
 
-  const frameMs = 1000 / fps;
   const hasMotionBlur = clips.some((clip) => (clip.motionBlur?.samplesPerFrame ?? 1) > 1) || (opts.motionBlur?.samplesPerFrame ?? 1) > 1;
   /**
    * Where the shutter window is summed, and what the encoder then reads.
@@ -340,16 +358,38 @@ export async function renderTimeline(
   const frameCanvas = blurCanvas ?? canvas;
   const blurGeometry = { canvasWidth: width, canvasHeight: height };
 
-  const { compositor, init } = await createCompositor(canvas);
+  // A WebGPU device loss or validation error leaves the canvas frozen or
+  // blank, so the frame loop fails the export on the first one rather than
+  // encoding the remaining frames from a dead device.
+  let gpuFailure: PreviewFailure | null = null;
+  const { compositor, backend, init } = await createCompositor(canvas, (failure) => {
+    logPreviewFailure(failure);
+    gpuFailure ??= failure;
+  });
+  const throwIfGpuFailed = (): void => {
+    if (gpuFailure) {
+      throw new Error(`Export renderer failed: ${previewFailureText(gpuFailure)}`, {
+        cause: gpuFailure.error
+      });
+    }
+  };
   const videoPool = new OffscreenVideoPool();
   // The export's own session pool: an export can run while the editor previews,
   // and two pools of two contexts is what the cap is sized for. Disposed with
   // everything else in the `finally` below.
   const model3dSource = new Model3DLayerSource({ resolveUrl: resolveCached });
+  // Text and shapes rasterize only where they draw, placed through
+  // `sourceWindow`, as the preview does. The WebGPU compositor reads windows;
+  // Canvas 2D does not.
+  const windowedRasters = backend === "webgpu";
+  const frameWindow = (window: RasterWindow | undefined): FrameSourceWindow | undefined =>
+    window && { x: window.x, y: window.y, frameWidth: width, frameHeight: height };
   const captionRasterizer = new CaptionRasterizer();
   const textRasterizer = new TextRasterizer();
   const shapeRasterizer = new ShapeRasterizer();
   const loadImage = makeImageLoader();
+  /** The muxer once built, so the `finally` can cancel it if it never finalized. */
+  let activeMuxer: { state: string; cancel: () => Promise<void> } | null = null;
 
   try {
     if (!init.ok) {
@@ -367,6 +407,7 @@ export async function renderTimeline(
             format === "webm" ? new WebMOutputFormat() : new Mp4OutputFormat(),
           target: new BufferTarget()
         });
+    activeMuxer = muxer;
 
     const videoSource = muxer
       ? new CanvasSource(frameCanvas, {
@@ -389,9 +430,12 @@ export async function renderTimeline(
       ? await renderTimelineAudio({
           clips,
           tracks,
-          durationMs,
+          // The video holds `totalFrames` whole frames, so the soundtrack is
+          // cut to that length rather than the unrounded timeline length.
+          durationMs: (totalFrames * 1000) / fps,
           resolveUrl: resolveCached,
-          tempo: opts.tempo
+          tempo: opts.tempo,
+          signal
         })
       : null;
     throwIfAborted(signal);
@@ -413,16 +457,23 @@ export async function renderTimeline(
       audioSource.close();
     }
 
-    /** PNG bytes per frame, filled only on the `png_sequence` path. */
-    const pngFrames: Uint8Array[] = [];
+    /** Streaming zip, built only on the `png_sequence` path. */
+    const pngZip = isSequence ? await createPngZipWriter() : null;
 
-    // Video/overlay clips release their pooled `<video>` element as soon as
+    // Video/overlay clips release their pooled source as soon as
     // their fixed time range has fully passed. Each clip is a single
     // contiguous span, so a released clip can never be seeked again — this
     // caps live media elements at the overlap width instead of the whole
-    // export's clip count.
-    const videoClipsByEnd = clips
-      .filter((c) => c.mediaType === "video" || c.mediaType === "overlay")
+    // export's clip count. The scene decodes repeater and echo copies under
+    // their own ids, and a baked 3D clip plays its bake as a video, so both
+    // are released the same way.
+    const videoClipsByEnd = expandTemporalClips(clips)
+      .filter(
+        (c) =>
+          c.mediaType === "video" ||
+          c.mediaType === "overlay" ||
+          (c.mediaType === "model3d" && c.model3dStyle?.bake !== undefined)
+      )
       .sort((a, b) => a.startMs + a.durationMs - (b.startMs + b.durationMs));
     let releasePastIndex = 0;
 
@@ -470,141 +521,165 @@ export async function renderTimeline(
      * way, so a blurred export is N of the export it would otherwise have been.
      */
     const composeAt = async (timeMs: number, frameTimeMs = timeMs, sampleIndex = 0, sampleCount = 1): Promise<void> => {
-      const { layers, precomposites, adjustments } = computeActiveLayersWithHorizon(
-        tracks,
-        clips,
-        timeMs,
-        {
-          // Group transforms live in the same space the animations sample in.
-          canvas: animCanvas,
-          animationCache: animCache,
-          model3dBakeHash,
-          mediaTracks: opts.mediaTracks,
-          camera2d: opts.camera2d,
-          tempo: opts.tempo,
-          layerTimeMs: (clip) => layerShutterTime(clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur)
-        }
-      );
+      const bitmapFrame = new BitmapFrameScope();
+      try {
+        const { layers, precomposites, adjustments } = computeActiveLayersWithHorizon(
+          tracks,
+          clips,
+          timeMs,
+          {
+            // Group transforms live in the same space the animations sample in.
+            canvas: animCanvas,
+            animationCache: animCache,
+            model3dBakeHash,
+            mediaTracks: opts.mediaTracks,
+            camera2d: opts.camera2d,
+            tempo: opts.tempo,
+            layerTimeMs: (clip) => layerShutterTime(clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur)
+          }
+        );
 
-      /**
-       * The pixels one layer draws. A video's are the slow part — the pool has
-       * to seek and wait for the decode — so every layer of a frame is resolved
-       * concurrently and the mapping runs after, in scene order.
-       */
-      const sourceFor = async (
-        layer: ActiveLayer,
-        anim: AnimatedLayerProps
-      ): Promise<ResolvedCompositeSource | null> => {
-        const layerTimeMs = layerShutterTime(layer.clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur);
-        if (layer.kind === "caption" && layer.caption) {
-          const bitmap = captionRasterizer.rasterize(
-            layer.caption,
-            width,
-            height
-          );
-          return bitmap ? { source: bitmap, untransformed: true } : null;
-        }
-        if (layer.kind === "text" && anim.textStyle) {
-          // Staggered per-word motion is drawn into the raster itself,
-          // through the same rasterizer the live preview uses.
-          const stagger = resolveTextStaggerContext(
-            layer.clip,
-            layerTimeMs,
-            animCanvas,
-            animCache,
-            opts.tempo
-          );
-          const bitmap = textRasterizer.rasterize(
-            anim.textStyle,
-            width,
-            height,
-            stagger
-          );
-          return bitmap ? { source: bitmap } : null;
-        }
-        if (layer.kind === "shape") {
-          // The animated style carries a driven trim range; without it a trim
-          // animation would rasterize its first frame and hold.
-          const shapeStyle = anim.shapeStyle ?? layer.shapeStyle;
-          if (!shapeStyle) return null;
-          const bitmap = shapeRasterizer.rasterize(shapeStyle, width, height);
-          return bitmap ? { source: bitmap } : null;
-        }
-
-        if (layer.kind === "model3d") {
-          // Awaited rather than polled: a frame is written to the file once, so
-          // a session that is still loading must not become a missing model.
-          const session = await model3dSource.load(layer);
-          if (!session) return null;
-          const canvas3d = model3dSource.frame(layer, anim, { width, height });
-          return canvas3d ? { source: canvas3d } : null;
-        }
-
-        if (!layer.assetId) return null;
-        const url = await resolveCached(layer.assetId);
-        if (!url) return null;
-
-        if (layer.kind === "video") {
-          // A baked 3D clip's video starts at its own first frame however the
-          // clip is trimmed or retimed, so the scene model hands the seek time
-          // down rather than letting the source mapping recompute it (§D6).
-          const el = await videoPool.seek(
-            layer.clipId,
-            url,
-            layer.bakeSourceTimeSec ?? clipSourceTimeSec(layer.clip, layerTimeMs),
-            signal
-          );
-          return el.videoWidth === 0 ? null : { source: el };
-        }
-        const img = await loadImage(url);
-        return img ? { source: img } : null;
-      };
-
-      // A matte source is held out of `layers` by the scene model, so it is
-      // reached through the layer it mattes and decoded with it.
-      const withMatteSources = (layer: ActiveLayer): ActiveLayer[] =>
-        layer.matte ? [layer, ...withMatteSources(layer.matte.layer)] : [layer];
-      const needed = layers.flatMap(withMatteSources);
-      const sources = new Map<ActiveLayer, ResolvedCompositeSource>();
-      await Promise.all(
-        needed.map(async (layer) => {
+        /**
+         * The pixels one layer draws. Video decoding is the slow part, so every
+         * layer of a frame resolves concurrently before scene-order mapping.
+         */
+        const sourceFor = async (
+          layer: ActiveLayer,
+          anim: AnimatedLayerProps
+        ): Promise<ResolvedCompositeSource | null> => {
           const layerTimeMs = layerShutterTime(layer.clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur);
-          // Rasterizing a layer can depend on its sampled props (a shape's trim
-          // range), and this prefetch runs before `buildCompositeLayer` samples
-          // them, so it samples them itself. The compile cache makes the second
-          // call a lookup.
-          const source = await sourceFor(
-            layer,
-            resolveAnimatedLayerProps(layer, layerTimeMs, animCanvas, animCache, {
-              mediaTracks: opts.mediaTracks ?? [],
-              clips,
-              tempo: opts.tempo
-            })
-          );
-          if (source) sources.set(layer, source);
-        })
-      );
+          if (layer.kind === "caption" && layer.caption) {
+            const bitmap = captionRasterizer.rasterize(
+              layer.caption,
+              width,
+              height,
+              bitmapFrame
+            );
+            return bitmap ? { source: bitmap, untransformed: true } : null;
+          }
+          if (layer.kind === "text" && anim.textStyle) {
+            // Staggered per-word motion is drawn into the raster itself,
+            // through the same rasterizer the live preview uses.
+            const stagger = resolveTextStaggerContext(
+              layer.clip,
+              layerTimeMs,
+              animCanvas,
+              animCache,
+              opts.tempo
+            );
+            const bitmap = textRasterizer.rasterize(
+              anim.textStyle,
+              width,
+              height,
+              stagger,
+              bitmapFrame,
+              windowedRasters ? rasterWindowMargin(layer, anim) : undefined
+            );
+            return bitmap
+              ? { source: bitmap, window: frameWindow(textRasterizer.windowOf(bitmap)) }
+              : null;
+          }
+          if (layer.kind === "shape") {
+            // The animated style carries a driven trim range; without it a trim
+            // animation would rasterize its first frame and hold.
+            const shapeStyle = anim.shapeStyle ?? layer.shapeStyle;
+            if (!shapeStyle) return null;
+            const bitmap = shapeRasterizer.rasterize(
+              shapeStyle,
+              width,
+              height,
+              bitmapFrame,
+              windowedRasters ? rasterWindowMargin(layer, anim) : undefined
+            );
+            return bitmap
+              ? { source: bitmap, window: frameWindow(shapeRasterizer.windowOf(bitmap)) }
+              : null;
+          }
 
-      const composite: CompositeLayer[] = [];
-      for (const layer of layers) {
-        const layerTimeMs = layerShutterTime(layer.clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur);
-        const built = buildCompositeLayer(layer, {
-          atMs: layerTimeMs,
-          canvas: animCanvas,
-          animationCache: animCache,
-          tracking: { mediaTracks: opts.mediaTracks ?? [], clips, tempo: opts.tempo },
-          resolveSource: (target) => sources.get(target) ?? null
-        });
-        if (built) composite.push(built);
+          if (layer.kind === "model3d") {
+            // Awaited rather than polled: a frame is written to the file once, so
+            // a session that is still loading must not become a missing model.
+            const session = await model3dSource.load(layer);
+            if (!session) return null;
+            const canvas3d = model3dSource.frame(layer, anim, { width, height });
+            return canvas3d ? { source: canvas3d } : null;
+          }
+
+          if (!layer.assetId) return null;
+          const url = await resolveCached(layer.assetId);
+          if (!url) return null;
+
+          if (layer.kind === "video") {
+            // A baked 3D clip's video starts at its own first frame however the
+            // clip is trimmed or retimed, so the scene model hands the seek time
+            // down rather than letting the source mapping recompute it (§D6).
+            const decoded = await videoPool.seek(
+              layer.clipId,
+              url,
+              layer.bakeSourceTimeSec ?? clipSourceTimeSec(layer.clip, layerTimeMs),
+              signal
+            );
+            const width = decoded instanceof HTMLVideoElement
+              ? decoded.videoWidth
+              : decoded.width;
+            return width === 0 ? null : { source: decoded };
+          }
+          const img = await loadImage(url);
+          return img ? { source: img } : null;
+        };
+
+        // A matte source is held out of `layers` by the scene model, so it is
+        // reached through the layer it mattes and decoded with it.
+        const withMatteSources = (layer: ActiveLayer): ActiveLayer[] =>
+          layer.matte ? [layer, ...withMatteSources(layer.matte.layer)] : [layer];
+        const needed = layers.flatMap(withMatteSources);
+        const sources = new Map<ActiveLayer, ResolvedCompositeSource>();
+        await Promise.all(
+          needed.map(async (layer) => {
+            const layerTimeMs = layerShutterTime(layer.clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur);
+            // Rasterizing a layer can depend on its sampled props (a shape's trim
+            // range), and this prefetch runs before `buildCompositeLayer` samples
+            // them, so it samples them itself. The compile cache makes the second
+            // call a lookup.
+            const source = await sourceFor(
+              layer,
+              resolveAnimatedLayerProps(layer, layerTimeMs, animCanvas, animCache, {
+                mediaTracks: opts.mediaTracks ?? [],
+                clips,
+                tempo: opts.tempo
+              })
+            );
+            if (source) sources.set(layer, source);
+          })
+        );
+
+        const composite: CompositeLayer[] = [];
+        for (const layer of layers) {
+          const layerTimeMs = layerShutterTime(layer.clip, frameTimeMs, sampleIndex, sampleCount, frameMs, opts.motionBlur);
+          const built = buildCompositeLayer(layer, {
+            atMs: layerTimeMs,
+            canvas: animCanvas,
+            animationCache: animCache,
+            tracking: { mediaTracks: opts.mediaTracks ?? [], clips, tempo: opts.tempo },
+            resolveSource: (target) => sources.get(target) ?? null
+          });
+          if (built) composite.push(built);
+        }
+
+        compositor.setLayers(
+          composite,
+          buildCompositePrecomposites(precomposites),
+          buildCompositeAdjustments(adjustments)
+        );
+        compositor.render();
+        await compositor.flush();
+        if (window.__nodetoolTimelinePerf) {
+          canvas.dataset.textBitmapCacheBytes = String(textRasterizer.residentBytes);
+          canvas.dataset.shapeBitmapCacheBytes = String(shapeRasterizer.residentBytes);
+        }
+      } finally {
+        bitmapFrame.release();
       }
-
-      compositor.setLayers(
-        composite,
-        buildCompositePrecomposites(precomposites),
-        buildCompositeAdjustments(adjustments)
-      );
-      compositor.render();
-      await compositor.flush();
     };
 
     for (let frame = 0; frame < totalFrames; frame++) {
@@ -644,11 +719,12 @@ export async function renderTimeline(
           accumulateBlurSample(blurCtx, canvas, blur.weight, blurGeometry);
         }
       }
+      throwIfGpuFailed();
 
       if (videoSource) {
         await videoSource.add(frame * frameDurationSec, frameDurationSec);
-      } else {
-        pngFrames.push(await canvasPng(frameCanvas));
+      } else if (pngZip) {
+        pngZip.addFrame(frame, await canvasPng(frameCanvas));
       }
 
       onProgress?.({
@@ -669,12 +745,12 @@ export async function renderTimeline(
     });
 
     if (!muxer) {
-      const bytes = await zipPngSequence(pngFrames, {
+      const bytes = pngZip!.finish({
         format: "png_sequence",
         fps,
         width,
         height,
-        count: pngFrames.length,
+        count: totalFrames,
         pattern: "frame_%06d.png"
       });
       return {
@@ -698,6 +774,11 @@ export async function renderTimeline(
       degradations
     };
   } finally {
+    // Aborted or failed after `start()`: the encoder and its hardware session
+    // are still open until the output is cancelled.
+    if (activeMuxer && activeMuxer.state === "started") {
+      await activeMuxer.cancel().catch(() => undefined);
+    }
     compositor.dispose();
     videoPool.dispose();
     model3dSource.dispose();

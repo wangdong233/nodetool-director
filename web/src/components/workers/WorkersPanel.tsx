@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { css } from "@emotion/react";
-import { useTheme, type Theme } from "@mui/material/styles";
 import {
   FlexColumn,
   FlexRow,
@@ -15,7 +14,10 @@ import {
   StatusIndicator,
   AlertBanner,
   WarningBanner,
-  type StatusType, getSpacingPx, SPACING
+  PanelHeader,
+  type StatusType,
+  getSpacingPx,
+  SPACING
 } from "../ui_primitives";
 import {
   useWorkers,
@@ -42,21 +44,21 @@ const STATUS_TONE: Record<string, StatusType> = {
   error: "error"
 };
 
-const panelStyles = (theme: Theme) =>
-  css({
-    "&": {
-      height: "100%"
-    },
-    ".panel-header": {
-      paddingBottom: getSpacingPx(SPACING.lg),
-      borderBottom: `1px solid ${theme.vars.palette.grey[700]}`
-    },
-    ".scrollable-content": {
-      flex: 1,
-      overflowY: "auto",
-      overflowX: "hidden"
-    }
-  });
+const panelStyles = css({
+  "&": {
+    height: "100%"
+  },
+  ".workers-body": {
+    flex: 1,
+    minHeight: 0,
+    padding: getSpacingPx(SPACING.lg)
+  },
+  ".scrollable-content": {
+    flex: 1,
+    overflowY: "auto",
+    overflowX: "hidden"
+  }
+});
 
 function formatUptime(createdAt: string, now: number): string {
   const startedMs = Date.parse(createdAt);
@@ -137,8 +139,14 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       <FlexColumn gap={2} sx={{ pt: 1 }}>
         {profileNames.length === 0 ? (
           <Caption size="small">
-            {t("editor:ui.noWorkerProfilesYetOpen", { defaultValue: "No worker profiles yet. Open " })}
-            <strong>{t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}</strong>
+            {t("editor:ui.noWorkerProfilesYetOpen", {
+              defaultValue: "No worker profiles yet. Open "
+            })}
+            <strong>
+              {t("ui2:attrs.manageProfiles", {
+                defaultValue: "Manage Profiles"
+              })}
+            </strong>
             {t("editor:ui.toCreateOne", { defaultValue: " to create one." })}
           </Caption>
         ) : (
@@ -202,9 +210,13 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
       : "pending"
     : statusTone(instance.status);
   const statusHint = isBooting
-    ? t("editor:ui.gpuUpWorkerStillLoading", { defaultValue: "GPU up — worker still loading" })
+    ? t("editor:ui.gpuUpWorkerStillLoading", {
+        defaultValue: "GPU up — worker still loading"
+      })
     : isRunning && isHealthy
-      ? t("editor:ui.workerIsAnsweringSafeToAttach", { defaultValue: "Worker is answering — safe to attach" })
+      ? t("editor:ui.workerIsAnsweringSafeToAttach", {
+          defaultValue: "Worker is answering — safe to attach"
+        })
       : null;
 
   return (
@@ -328,7 +340,6 @@ interface OrphanWarning {
 
 const WorkersPanel: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const {
     profiles,
     instances,
@@ -352,7 +363,9 @@ const WorkersPanel: React.FC = () => {
   const [stoppingId, setStoppingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [orphanWarning, setOrphanWarning] = useState<OrphanWarning | null>(null);
+  const [orphanWarning, setOrphanWarning] = useState<OrphanWarning | null>(
+    null
+  );
   const now = Date.now();
 
   const shownInstances = useMemo(
@@ -421,7 +434,10 @@ const WorkersPanel: React.FC = () => {
       // Destroying the volume loses the cached models — confirm first.
       if (
         !window.confirm(
-          i18n.t("editor:notify.terminateWorkerConfirm", { defaultValue: "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing." })
+          i18n.t("editor:notify.terminateWorkerConfirm", {
+            defaultValue:
+              "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing."
+          })
         )
       ) {
         return;
@@ -474,109 +490,111 @@ const WorkersPanel: React.FC = () => {
   }, [reconcile]);
 
   return (
-    <FlexColumn gap={0} padding={4} fullHeight css={panelStyles(theme)}>
-      <FlexRow
-        gap={3}
-        align="center"
-        justify="space-between"
-        className="panel-header"
-      >
-        <FlexRow gap={2} align="baseline">
-          <Text size="big" weight={600}>
-            {t("editor:bottom.workers", { defaultValue: "Workers" })}
-          </Text>
-          {shownInstances.length > 0 && (
-            <Caption size="small">{formatRate(totalCost)}</Caption>
-          )}
-        </FlexRow>
-        <FlexRow gap={2} align="center">
-          <EditorButton
-            density="compact"
-            variant="text"
-            onClick={() => setProfilesOpen(true)}
-            aria-label={t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
+    <FlexColumn gap={0} fullHeight css={panelStyles}>
+      <PanelHeader
+        title={t("editor:bottom.workers", { defaultValue: "Workers" })}
+        count={shownInstances.length > 0 ? formatRate(totalCost) : undefined}
+        actions={
+          <>
+            <EditorButton
+              density="compact"
+              variant="text"
+              onClick={() => setProfilesOpen(true)}
+              aria-label={t("editor:ui.manageProfiles", {
+                defaultValue: "Manage profiles"
+              })}
+            >
+              {t("ui2:attrs.manageProfiles", {
+                defaultValue: "Manage Profiles"
+              })}
+            </EditorButton>
+            <EditorButton
+              density="compact"
+              variant="outlined"
+              onClick={() => setDialogOpen(true)}
+              aria-label={t("editor:ui.startWorker", {
+                defaultValue: "Start worker"
+              })}
+            >
+              Start Worker
+            </EditorButton>
+            <EditorButton
+              density="compact"
+              variant="text"
+              onClick={handleReconcile}
+              disabled={busy}
+              aria-label={t("editor:ui.reconcileWorkers", {
+                defaultValue: "Reconcile workers"
+              })}
+            >
+              {t("editor:ui.reconcile", { defaultValue: "Reconcile" })}
+            </EditorButton>
+            <EditorButton
+              density="compact"
+              variant="text"
+              onClick={handleStopAll}
+              disabled={shownInstances.length === 0}
+              aria-label={t("editor:notify.stopAllAria", {
+                defaultValue: "Stop all workers"
+              })}
+            >
+              {t("editor:notify.stopAll", { defaultValue: "Stop All" })}
+            </EditorButton>
+          </>
+        }
+      />
+      <FlexColumn className="workers-body" gap={0}>
+        {error && (
+          <AlertBanner
+            severity="error"
+            compact
+            onClose={() => setError(null)}
+            sx={{ mt: 2 }}
           >
-            {t("ui2:attrs.manageProfiles", { defaultValue: "Manage Profiles" })}
-          </EditorButton>
-          <EditorButton
-            density="compact"
-            variant="outlined"
-            onClick={() => setDialogOpen(true)}
-            aria-label={t("editor:ui.startWorker", { defaultValue: "Start worker" })}
-          >
-            {t("editor:ui.startWorker", { defaultValue: "Start worker" })}
-          </EditorButton>
-          <EditorButton
-            density="compact"
-            variant="text"
-            onClick={handleReconcile}
-            disabled={busy}
-            aria-label={t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
-          >
-            {t("editor:ui.reconcile", { defaultValue: "Reconcile" })}
-          </EditorButton>
-          <EditorButton
-            density="compact"
-            variant="text"
-            onClick={handleStopAll}
-            disabled={shownInstances.length === 0}
-            aria-label={t("editor:notify.stopAllAria", { defaultValue: "Stop all workers" })}
-          >
-            {t("editor:notify.stopAll", { defaultValue: "Stop All" })}
-          </EditorButton>
-        </FlexRow>
-      </FlexRow>
-
-      {error && (
-        <AlertBanner
-          severity="error"
-          compact
-          onClose={() => setError(null)}
-          sx={{ mt: 2 }}
-        >
-          {error}
-        </AlertBanner>
-      )}
-
-      {orphanWarning && (
-        <WarningBanner
-          variant="warning"
-          message={`${orphanWarning.count} orphaned worker(s) may still be billing — stop them in your provider console`}
-          description={`${orphanWarning.liveCount} live, ~${formatRate(
-            orphanWarning.estimatedCostUsd
-          )}`}
-          dismissible
-          onDismiss={() => setOrphanWarning(null)}
-          className="nodrag"
-          compact
-        />
-      )}
-
-      <FlexColumn className="scrollable-content" gap={2} sx={{ mt: 2 }}>
-        {instancesQuery.isLoading ? (
-          <FlexRow justify="center" sx={{ py: 4 }}>
-            <LoadingSpinner size="small" />
-          </FlexRow>
-        ) : shownInstances.length === 0 ? (
-          <Caption size="small">
-            {t("editor:ui.noWorkersRunningStartOneToRentAGPUForYourGraphs")}
-          </Caption>
-        ) : (
-          shownInstances.map((instance) => (
-            <InstanceRow
-              key={instance.id}
-              instance={instance}
-              now={now}
-              onStop={handleStop}
-              onResume={handleResume}
-              onTerminate={handleTerminate}
-              onAttach={handleAttach}
-              onDetach={handleDetach}
-              stopping={stoppingId === instance.id}
-              busy={busy}
-            />
-          ))
+            {error}
+          </AlertBanner>
         )}
+
+        {orphanWarning && (
+          <WarningBanner
+            variant="warning"
+            message={`${orphanWarning.count} orphaned worker(s) may still be billing — stop them in your provider console`}
+            description={`${orphanWarning.liveCount} live, ~${formatRate(
+              orphanWarning.estimatedCostUsd
+            )}`}
+            dismissible
+            onDismiss={() => setOrphanWarning(null)}
+            className="nodrag"
+            compact
+          />
+        )}
+
+        <FlexColumn className="scrollable-content" gap={2} sx={{ mt: 2 }}>
+          {instancesQuery.isLoading ? (
+            <FlexRow justify="center" sx={{ py: 4 }}>
+              <LoadingSpinner size="small" />
+            </FlexRow>
+          ) : shownInstances.length === 0 ? (
+            <Caption size="small">
+              No workers running. Start one to rent a GPU for your graphs.
+            </Caption>
+          ) : (
+            shownInstances.map((instance) => (
+              <InstanceRow
+                key={instance.id}
+                instance={instance}
+                now={now}
+                onStop={handleStop}
+                onResume={handleResume}
+                onTerminate={handleTerminate}
+                onAttach={handleAttach}
+                onDetach={handleDetach}
+                stopping={stoppingId === instance.id}
+                busy={busy}
+              />
+            ))
+          )}
+        </FlexColumn>
       </FlexColumn>
 
       <ProvisionDialog

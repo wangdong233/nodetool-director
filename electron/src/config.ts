@@ -21,9 +21,10 @@ const extensionDistPath: string = app.isPackaged
   ? path.join(process.resourcesPath, "chrome-extension")
   : path.join(__dirname, "..", "..", "chrome-extension", "dist");
 
-// PID file configuration for server process management
-// Note: E2E tests in tests/e2e/ must use the same paths for proper cleanup
-const PID_DIRECTORY: string = path.join(app.getPath("temp"), "nodetool-electron");
+// PID file of the backend this app launched. It lives in the per-user app
+// data directory: on Linux the temp directory is the shared /tmp, where
+// another account could plant or block the file.
+const PID_DIRECTORY: string = app.getPath("userData");
 const PID_FILE_PATH: string = path.join(PID_DIRECTORY, "server.pid");
 
 // Returns a sane default install location if settings do not define CONDA_ENV
@@ -198,6 +199,31 @@ const getDefaultAssetsPath = (): string => {
 const getOptionalNodeModulesPath = (): string =>
   path.join(app.getPath("userData"), "optional-node", "node_modules");
 
+/**
+ * Cache directory `name` under `$XDG_CACHE_HOME`, unless only the one under
+ * `~/.cache` holds data. `marker` names the subdirectory whose presence means
+ * the cache holds data (the HF `hub`), else the directory itself counts.
+ */
+const resolveXdgCacheDir = (
+  xdgCacheHome: string | undefined,
+  legacyCacheHome: string,
+  name: string,
+  marker?: string
+): string => {
+  const legacyDir = path.join(legacyCacheHome, name);
+  if (!xdgCacheHome) return legacyDir;
+  const xdgDir = path.join(xdgCacheHome, name);
+  if (xdgDir === legacyDir) return xdgDir;
+  const hasData = (dir: string): boolean => {
+    try {
+      return fs.readdirSync(marker ? path.join(dir, marker) : dir).length > 0;
+    } catch {
+      return false;
+    }
+  };
+  return hasData(legacyDir) && !hasData(xdgDir) ? legacyDir : xdgDir;
+};
+
 const getProcessEnv = (): ProcessEnv => {
   const condaPath: string = getCondaEnvPath();
 
@@ -242,7 +268,16 @@ const getProcessEnv = (): ProcessEnv => {
     ".bin"
   );
 
+  // npm lifecycle scripts run through `sh -c node …`. A Finder-launched app on
+  // macOS has only the launchd PATH, so the bundled node must be on PATH itself.
+  // A script that calls `npm run …` needs an npm launcher there as well.
+  const bundledNode = getBundledNodeBinary();
+  const bundledNodeDir = bundledNode ? path.dirname(bundledNode) : "";
+  const npmLauncherDir = ensureBundledNpmLaunchers() ?? "";
+
   const pathSegmentsWin = [
+    bundledNodeDir,
+    npmLauncherDir,
     path.join(condaPath),
     path.join(condaPath, "Library", "mingw-w64", "bin"),
     path.join(condaPath, "Library", "usr", "bin"),
@@ -252,6 +287,8 @@ const getProcessEnv = (): ProcessEnv => {
     baseEnv.PATH || "",
   ];
   const pathSegmentsUnix = [
+    bundledNodeDir,
+    npmLauncherDir,
     path.join(condaPath, "bin"),
     path.join(condaPath, "lib"),
     optionalNodeBin,
@@ -261,14 +298,28 @@ const getProcessEnv = (): ProcessEnv => {
   // Set HOME if not already set (needed on macOS for GUI processes)
   const homeDir = baseEnv.HOME || os.homedir();
 
-  // HuggingFace cache: Use env var if set, otherwise default to ~/.cache/huggingface
-  // This ensures consistency between Electron app and CLI usage
-  const hfHome = baseEnv.HF_HOME || path.join(homeDir, ".cache", "huggingface");
+  // HuggingFace home: the user's HF_HOME, else where huggingface_hub puts it
+  // ($XDG_CACHE_HOME/huggingface, else ~/.cache/huggingface), so the app, the
+  // CLI and a Python script outside the app share one model cache. Flatpak
+  // sets XDG_CACHE_HOME per app, so models downloaded before the app followed
+  // XDG stay in ~/.cache. Keep using that cache until the XDG one has models.
+  const legacyCacheHome = path.join(homeDir, ".cache");
+  const hfHome =
+    baseEnv.HF_HOME ||
+    resolveXdgCacheDir(baseEnv.XDG_CACHE_HOME, legacyCacheHome, "huggingface", "hub");
+  // llama.cpp follows XDG_CACHE_HOME only on Linux. The server's resolver
+  // honours LLAMA_CACHE, so pin it to the legacy cache the same way.
+  const llamaCache =
+    !baseEnv.LLAMA_CACHE && process.platform === "linux" && baseEnv.XDG_CACHE_HOME
+      ? resolveXdgCacheDir(baseEnv.XDG_CACHE_HOME, legacyCacheHome, "llama.cpp")
+      : undefined;
 
-  // UV cache: store inside userData so it's writable by the Electron app
+  // UV cache: store inside userData so it's writable by the Electron app.
+  // XDG_CACHE_HOME is deliberately left as the user has it: overriding it
+  // split torch hub weights, llama.cpp downloads and other XDG caches between
+  // the app and the CLI.
   const userDataPath = app.getPath("userData");
   const uvCacheDir = path.join(userDataPath, "uv-cache");
-  const xdgCacheHome = path.join(userDataPath, "cache");
 
   // Python path for the conda environment
   const pythonLibPath =
@@ -280,12 +331,11 @@ const getProcessEnv = (): ProcessEnv => {
   try {
     fs.mkdirSync(hfHome, { recursive: true });
     fs.mkdirSync(uvCacheDir, { recursive: true });
-    fs.mkdirSync(xdgCacheHome, { recursive: true });
   } catch (error) {
     logMessage(`Warning: Failed to create cache directories: ${error}`, "warn");
   }
 
-  return {
+  const env: ProcessEnv = {
     ...baseEnv,
     HOME: homeDir,
     HF_HOME: hfHome,
@@ -293,7 +343,6 @@ const getProcessEnv = (): ProcessEnv => {
     PYTHONUNBUFFERED: "1",
     PYTHONNOUSERSITE: "1",
     UV_CACHE_DIR: uvCacheDir,
-    XDG_CACHE_HOME: xdgCacheHome,
     NODETOOL_OPTIONAL_NODE_MODULES: getOptionalNodeModulesPath(),
     NODETOOL_EXTENSION_DIST: extensionDistPath,
     PATH:
@@ -301,6 +350,10 @@ const getProcessEnv = (): ProcessEnv => {
         ? pathSegmentsWin.filter(Boolean).join(path.delimiter)
         : pathSegmentsUnix.filter(Boolean).join(path.delimiter),
   };
+  if (llamaCache) {
+    env.LLAMA_CACHE = llamaCache;
+  }
+  return env;
 };
 
 /** How to invoke npm: the executable plus any args that must precede the npm subcommand. */
@@ -342,6 +395,54 @@ const getBundledNpmCli = (): string | null => {
     fs.accessSync(cli);
     return cli;
   } catch {
+    return null;
+  }
+};
+
+const quotePosix = (value: string): string =>
+  `'${value.replace(/'/g, "'\\''")}'`;
+
+/**
+ * Write `npm` and `npx` launchers that run the bundled npm with the bundled
+ * Node, and return their directory. `runtime/npm` is the npm package itself,
+ * not an executable, so without these a lifecycle script that calls
+ * `npm run build` finds no npm on a GUI app's PATH. The launchers live in
+ * userData because the signed app bundle is read-only. Returns null when the
+ * app is unpackaged or the launchers cannot be written.
+ */
+const ensureBundledNpmLaunchers = (): string | null => {
+  const node = getBundledNodeBinary();
+  const npmCli = getBundledNpmCli();
+  if (!node || !npmCli) return null;
+  const dir = path.join(app.getPath("userData"), "runtime-bin");
+  const clis = {
+    npm: npmCli,
+    npx: path.join(path.dirname(npmCli), "npx-cli.js"),
+  };
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    for (const [name, cli] of Object.entries(clis)) {
+      const [file, content] =
+        process.platform === "win32"
+          ? [`${name}.cmd`, `@"${node}" "${cli}" %*\r\n`]
+          : [name, `#!/bin/sh\nexec ${quotePosix(node)} ${quotePosix(cli)} "$@"\n`];
+      const target = path.join(dir, file);
+      let current: string | null = null;
+      try {
+        current = fs.readFileSync(target, "utf8");
+      } catch {
+        // Not written yet.
+      }
+      if (current !== content) {
+        fs.writeFileSync(target, content);
+      }
+      if (process.platform !== "win32") {
+        fs.chmodSync(target, 0o755);
+      }
+    }
+    return dir;
+  } catch (error) {
+    logMessage(`Warning: Failed to write npm launchers: ${error}`, "warn");
     return null;
   }
 };
@@ -396,6 +497,16 @@ const getLocalFileRootsEnv = (
 ): string => env["NODETOOL_LOCAL_FILE_ROOTS"] || "*";
 
 /**
+ * Persists a new conda env location. The path is cached for the life of the
+ * process, so writing only the setting would leave installs and status reads
+ * on the old location until the next launch.
+ */
+const setCondaEnvPath = (location: string): void => {
+  updateSetting("CONDA_ENV", location);
+  cachedCondaEnvPath = location;
+};
+
+/**
  * Resets the cached conda env path. Intended for use in tests only so that
  * each test case starts with a clean slate.
  */
@@ -405,6 +516,7 @@ const _resetCondaEnvCache = (): void => {
 
 export {
   getCondaEnvPath,
+  setCondaEnvPath,
   getNodePath,
   getPythonPath,
   getUVPath,

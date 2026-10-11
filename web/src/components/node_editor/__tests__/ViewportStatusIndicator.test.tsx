@@ -66,6 +66,7 @@ describe("ViewportStatusIndicator", () => {
       zoomIn: mockZoomIn,
       zoomOut: mockZoomOut,
       fitView: mockFitView,
+      getZoom: () => mockZoom,
       getNodes: () => [
         { id: "1", selected: true },
         { id: "2", selected: false }

@@ -17,19 +17,22 @@ import {
   ToolbarIconButton,
   MOTION,
   BORDER_RADIUS,
+  CONTROL,
   SPACING,
   getSpacingPx,
   Z_INDEX
 } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { useNodes } from "../../contexts/NodeContext";
+import { useNodes, useNodeStoreRef } from "../../contexts/NodeContext";
 import JSONProperty from "../properties/JSONProperty";
 import CodeProperty from "../properties/CodeProperty";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useDynamicProperty } from "../../hooks/nodes/useDynamicProperty";
+import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import { NodeData } from "../../stores/NodeData";
 import { useInputNodeAutoRun } from "../../hooks/nodes/useInputNodeAutoRun";
+import { useAppendsStaticInput } from "../../hooks/nodes/useAppendsStaticInput";
 import { deriveCodeIOUpdates } from "../../utils/codeOutputInference";
 import { InspectorHeaderResetProvider } from "../../contexts/InspectorPropertyHeaderContext";
 import { getComponentForProperty } from "./PropertyInput.resolver";
@@ -39,7 +42,7 @@ import { normalizeDynamicSlot, slotType } from "../../utils/dynamicSlots";
 import { isSchemaDrivenDynamicNode } from "../../utils/dynamicSlotTypes";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 export type { PropertyProps } from "./PropertyInput.types";
 
 const RESET_BUTTON_OFFSET_CSS = css({
@@ -80,39 +83,45 @@ const propertyInputContainerStyles = (theme: Theme) =>
       pointerEvents: "auto"
     },
 
-    // ACTION ICONS — hidden by default, shown on hover
+    // ACTION ICONS — hidden by default, shown on hover. Pinned to the label
+    // row (top-right, left of the string expand/copy buttons) so the toolbar
+    // never covers the value editor below the label.
     ".action-icons": {
       position: "absolute",
-      right: 4,
-      top: "50%",
-      transform: "translateY(-50%)",
+      right: "var(--property-reset-button-offset, 0px)",
+      top: `-${getSpacingPx(SPACING.xs)}`,
+      height: CONTROL.height.xs,
       display: "flex",
       alignItems: "center",
-      gap: 4,
+      gap: getSpacingPx(SPACING.micro),
       opacity: 0,
+      pointerEvents: "none",
       transition: MOTION.opacity,
       zIndex: Z_INDEX.raised,
       background: theme.vars.palette.background.paper,
-      borderRadius: BORDER_RADIUS.sm,
-      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.sm)}`,
-      boxShadow: `0 1px 4px ${theme.vars.palette.action.focus}`,
+      borderRadius: BORDER_RADIUS.sm
     },
 
     "&:hover .action-icons, &:focus-within .action-icons, &:hover .reset-button.is-active, &:focus-within .reset-button.is-active": {
       opacity: 1
     },
+    "&:hover .action-icons, &:focus-within .action-icons": {
+      pointerEvents: "auto"
+    },
 
     // Touch devices have no hover; keep the action icons and reset reachable.
     "@media (pointer: coarse)": {
       ".action-icons, .reset-button.is-active": {
-        opacity: 1
+        opacity: 1,
+        pointerEvents: "auto"
       }
     },
 
     ".action-icon": {
-      fontSize: "var(--fontSizeBig)",
+      width: CONTROL.height.xs,
+      height: CONTROL.height.xs,
       cursor: "pointer",
-      padding: 4,
+      padding: 0,
       borderRadius: BORDER_RADIUS.sm,
       color: theme.vars.palette.text.secondary,
       transition: `color ${MOTION.fast}, background ${MOTION.fast}`,
@@ -120,6 +129,10 @@ const propertyInputContainerStyles = (theme: Theme) =>
         color: theme.vars.palette.text.primary,
         background: theme.vars.palette.action.hover,
       },
+    },
+
+    ".action-icon svg": {
+      fontSize: "var(--fontSizeSmall)"
     },
 
     ".action-icon.close": {
@@ -229,6 +242,8 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
     shallow
   );
 
+  const nodeStore = useNodeStoreRef();
+
   const targetNodeIds = useMemo(
     () =>
       inspectorBatchNodeIds?.length ? [...inspectorBatchNodeIds] : [id],
@@ -334,47 +349,51 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
 
   const handleResetToDefault = useCallback(() => {
     const metadata = useMetadataStore.getState().metadata;
-    for (const nodeId of targetNodeIds) {
-      const node = findNode(nodeId);
-      if (!node?.data) {
-        continue;
-      }
-      if (isDynamicProperty) {
-        const dynamicInputDefaults = node.data.dynamic_inputs || {};
-        let defaultValue = dynamicInputDefaults?.[property.name]?.default;
-        if (defaultValue === undefined) {
+    // Resetting several selected nodes undoes as one step.
+    runAsOneUndoEntry(nodeStore, () => {
+      for (const nodeId of targetNodeIds) {
+        const node = findNode(nodeId);
+        if (!node?.data) {
+          continue;
+        }
+        if (isDynamicProperty) {
+          const dynamicInputDefaults = node.data.dynamic_inputs || {};
+          let defaultValue = dynamicInputDefaults?.[property.name]?.default;
+          if (defaultValue === undefined) {
+            const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
+            if (nodeMetadata) {
+              const propertyDef = nodeMetadata.properties.find(
+                (prop: Property) => prop.name === property.name
+              );
+              defaultValue = propertyDef?.default ?? property.default;
+            }
+          }
+          if (defaultValue !== undefined && node.data.dynamic_properties) {
+            updateNodeData(nodeId, {
+              dynamic_properties: {
+                ...node.data.dynamic_properties,
+                [property.name]: defaultValue
+              }
+            });
+          }
+        } else {
           const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
           if (nodeMetadata) {
             const propertyDef = nodeMetadata.properties.find(
               (prop: Property) => prop.name === property.name
             );
-            defaultValue = propertyDef?.default ?? property.default;
+            const defaultValue = propertyDef?.default ?? property.default;
+            updateNodeProperties(nodeId, { [property.name]: defaultValue });
+          } else {
+            updateNodeProperties(nodeId, { [property.name]: property.default });
           }
         }
-        if (defaultValue !== undefined && node.data.dynamic_properties) {
-          updateNodeData(nodeId, {
-            dynamic_properties: {
-              ...node.data.dynamic_properties,
-              [property.name]: defaultValue
-            }
-          });
-        }
-      } else {
-        const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
-        if (nodeMetadata) {
-          const propertyDef = nodeMetadata.properties.find(
-            (prop: Property) => prop.name === property.name
-          );
-          const defaultValue = propertyDef?.default ?? property.default;
-          updateNodeProperties(nodeId, { [property.name]: defaultValue });
-        } else {
-          updateNodeProperties(nodeId, { [property.name]: property.default });
-        }
       }
-    }
+    });
   }, [
     findNode,
     isDynamicProperty,
+    nodeStore,
     property,
     targetNodeIds,
     updateNodeData,
@@ -496,9 +515,14 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
     state.getMetadata(nodeType)
   );
   const slotNode = isDynamicProperty ? findNode(id) : undefined;
+  // `isConnected` is only passed in the inspector; on the canvas read the
+  // edge store, so a connected slot (typed by its edge) offers no picker.
+  const isConnectedSelector = useIsConnectedSelector(id, property.name);
+  const hasIncomingEdge = useNodes(isConnectedSelector);
   const canEditSlotType =
     isDynamicProperty &&
     !isConnected &&
+    !hasIncomingEdge &&
     slotNode !== undefined &&
     !isSchemaDrivenDynamicNode(slotNode);
   const slotTypeValue = useMemo(
@@ -514,6 +538,8 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
     },
     [handleUpdatePropertyType, property.name]
   );
+
+  const appendsStaticInput = useAppendsStaticInput(nodeType, property.name);
 
   const hasTopRightPropertyActions =
     componentType === StringProperty ||
@@ -585,7 +611,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
       onDoubleClick={handleDoubleClick}
     >
       <PropertyHandleTooltipContext.Provider value={property.type}>
-        {isConnected && !isImageInputType(property) ? (
+        {isConnected && !appendsStaticInput && !isImageInputType(property) ? (
           <div
             className="property-connected-disabled"
             title={t("editor:ui.drivenByAConnectedInputDisconnectTheEdgeToEdit", { defaultValue: "Driven by a connected input — disconnect the edge to edit" })}

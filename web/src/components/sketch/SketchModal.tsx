@@ -6,6 +6,8 @@
  */
 
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
@@ -24,10 +26,7 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import CheckIcon from "@mui/icons-material/Check";
 import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 import SketchEditor, { SketchEditorHandle } from "./SketchEditor";
-import {
-  SKETCH_KEYBOARD_SHORTCUTS,
-  SKETCH_SHORTCUT_DESCRIPTION_KEYS
-} from "./sketchKeyboardShortcuts";
+import { SKETCH_KEYBOARD_SHORTCUTS } from "./sketchKeyboardShortcuts";
 import { PenPressureSettingsPanel } from "./ToolSettingsPanels";
 import KeyboardShortcutsView from "../content/Help/KeyboardShortcutsView";
 import { ShortcutsSearchableList } from "../content/Help/ShortcutsSearchableList";
@@ -40,15 +39,8 @@ import {
   DEFAULT_PEN_PRESSURE
 } from "./types";
 import type { SketchTool } from "./types";
-import {
-  SKETCH_SPACING,
-  SKETCH_SIZE,
-  SKETCH_Z_INDEX,
-  SKETCH_TOOLTIP_DELAY_MS,
-  settingRowChildrenSx
-} from "./sketchStyles";
+import { SKETCH_Z_INDEX, SKETCH_TOOLTIP_DELAY_MS, settingRowChildrenSx } from "./sketchStyles";
 import { displayCombo } from "./shortcuts";
-import { i18n } from "../../i18n";
 import {
   Caption,
   Divider,
@@ -69,7 +61,6 @@ import {
   ListItemText,
   Slider
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 function isPressureSketchTool(tool: SketchTool): boolean {
   return tool === "brush" || tool === "pencil" || tool === "eraser";
@@ -90,20 +81,20 @@ const styles = (theme: Theme) =>
       display: "flex",
       alignItems: "center",
       flexWrap: "wrap",
-      rowGap: SKETCH_SPACING.md,
-      columnGap: SKETCH_SPACING.lg,
-      padding: `${SKETCH_SPACING.sm} ${SKETCH_SPACING.xl}`,
+      rowGap: getSpacingPx(SPACING.sm),
+      columnGap: getSpacingPx(SPACING.md),
+      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.lg)}`,
       backgroundColor: theme.vars.palette.grey[800],
       borderBottom: `1px solid ${theme.vars.palette.grey[700]}`,
       minHeight: "36px",
       "& .MuiIconButton-root": {
-        padding: SKETCH_SIZE.iconButtonPad,
+        padding: getSpacingPx(SPACING.xs),
       },
       "& .sketch-modal-pen-inline": {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        gap: SKETCH_SPACING.lg,
+        gap: getSpacingPx(SPACING.md),
         flexShrink: 0,
         ...settingRowChildrenSx(theme),
       },
@@ -123,20 +114,6 @@ interface SketchModalProps {
   onExportImage?: (dataUrl: string) => void;
   onExportMask?: (dataUrl: string | null) => void;
 }
-
-
-/** Resolve shortcut scope descriptions at render so zh lands (module table stays pure data). */
-const localizeSketchShortcuts = () =>
-  SKETCH_KEYBOARD_SHORTCUTS.map((s) =>
-    s.description && SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description]
-      ? {
-          ...s,
-          description: i18n.t(SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description], {
-            defaultValue: s.description
-          })
-        }
-      : s
-  );
 
 const SketchModal: React.FC<SketchModalProps> = ({
   open,
@@ -177,20 +154,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
   const headerPenPressureOn = penPressure.pressureSensitivity !== false;
 
   const symmetryLabels = {
-    off: t("sketch:attrs.symmetryOff", { defaultValue: "Off" }),
-    horizontal: t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
-    vertical: t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
-    dual: t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
-    radial: t("sketch:attrs.symmetryRadial", {
-      defaultValue: "Radial ({{rays}})",
-      rays: symmetryRays
-    }),
-    mandala: t("sketch:attrs.symmetryMandala", {
-      defaultValue: "Mandala ({{rays}})",
-      rays: symmetryRays
-    })
+    off: "Off",
+    horizontal: i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
+    vertical: i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
+    dual: i18n.t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
+    radial: `Radial (${symmetryRays})`,
+    mandala: `Mandala (${symmetryRays})`
   } satisfies Record<SymmetryMode, string>;
-  const symmetryLabel = symmetryLabels[symmetryMode] || symmetryLabels.off;
+  const symmetryLabel = symmetryLabels[symmetryMode] || "Off";
   const symmetryActive = symmetryMode !== "off";
 
   useEffect(() => {
@@ -212,6 +183,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
   // so it shadows the editor's own Escape.
   useGlobalCombo("escape", () => setShortcutsPaneOpen(false), {
     active: shortcutsPaneOpen,
+    allowInInputs: true,
+    preventDefault: false
+  });
+
+  // The discard confirmation is modal: shortcuts pause while it is open and
+  // Escape cancels it instead of dropping the selection.
+  useGlobalCombo("escape", () => setConfirmDiscard(false), {
+    active: confirmDiscard,
     allowInInputs: true,
     preventDefault: false
   });
@@ -267,8 +246,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <Tooltip
               title={
                 headerPenPressureOn
-                  ? t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" })
-                  : t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
+                  ? i18n.t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" })
+                  : i18n.t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
               }
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
               enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -319,14 +298,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
         <FlexRow align="center" sx={{ gap: getSpacingPx(SPACING.micro) }}>
           <Tooltip title={`Undo (${displayCombo("undo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label={t("timeline:shortcuts.undo", { defaultValue: "Undo" })} onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
+              <IconButton size="small" aria-label="Undo" onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
                 <UndoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
           </Tooltip>
           <Tooltip title={`Redo (${displayCombo("redo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label={t("timeline:shortcuts.redo", { defaultValue: "Redo" })} onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
+              <IconButton size="small" aria-label="Redo" onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
                 <RedoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
@@ -336,7 +315,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
-              aria-label={shortcutsPaneOpen ? t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
+              aria-label={shortcutsPaneOpen ? i18n.t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : i18n.t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
               aria-expanded={shortcutsPaneOpen}
               color={shortcutsPaneOpen ? "primary" : "default"}
             >
@@ -399,11 +378,13 @@ const SketchModal: React.FC<SketchModalProps> = ({
 
           {confirmDiscard ? (
             <>
-              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>{t("sketch:attrs.discardChanges?", { defaultValue: "Discard changes?" })}</Caption>
+              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>
+                Discard changes?
+              </Caption>
               <IconButton size="small" aria-label={t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })} color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
                 <TrashIcon width={16} height={16} />
               </IconButton>
-              <IconButton size="small" aria-label={t("sketch:attrs.cancelDiscard", { defaultValue: "Cancel discard" })} onClick={() => setConfirmDiscard(false)}>
+              <IconButton size="small" aria-label={t("sketch:attrs.cancelDiscard", { defaultValue: "Cancel discard" })} autoFocus onClick={() => setConfirmDiscard(false)}>
                 <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
               </IconButton>
             </>
@@ -416,7 +397,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           )}
 
           <Tooltip title={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-            <IconButton size="small" aria-label={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} onClick={() => editorRef.current?.exportPng()}>
+            <IconButton size="small" aria-label="Export Image" onClick={() => editorRef.current?.exportPng()}>
               <SaveAltIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
             </IconButton>
           </Tooltip>
@@ -445,7 +426,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           onDocumentChange={onDocumentChange}
           onExportImage={onExportImage}
           onExportMask={onExportMask}
-          suspendKeyboardShortcuts={shortcutsPaneOpen}
+          suspendKeyboardShortcuts={shortcutsPaneOpen || confirmDiscard}
         />
         {shortcutsPaneOpen ? (
           <>
@@ -486,14 +467,16 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 justify="space-between"
                 gap={1}
                 sx={{
-                  px: SKETCH_SPACING.md,
-                  py: SKETCH_SPACING.sm,
+                  px: getSpacingPx(SPACING.sm),
+                  py: getSpacingPx(SPACING.xs),
                   borderBottom: `1px solid ${theme.vars.palette.grey[700]}`,
                   flexShrink: 0
                 }}
               >
-                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>{t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}</Text>
-                <Tooltip title={t("sketch:attrs.close", { defaultValue: "Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>
+                  Keyboard shortcuts
+                </Text>
+                <Tooltip title="Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
                   <IconButton
                     size="small"
                     onClick={() => setShortcutsPaneOpen(false)}
@@ -513,14 +496,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 <TabGroup
                   aria-label={t("sketch:attrs.imageEditorShortcuts", { defaultValue: "Image editor shortcuts" })}
                   tabs={[
-                    {
-                      value: "shortcuts",
-                      label: t("sketch:attrs.shortcuts", { defaultValue: "Shortcuts" })
-                    },
-                    {
-                      value: "keyboard",
-                      label: t("sketch:attrs.keyboard", { defaultValue: "Keyboard" })
-                    }
+                    { value: "shortcuts", label: i18n.t("sketch:attrs.shortcuts", { defaultValue: "Shortcuts" }) },
+                    { value: "keyboard", label: i18n.t("sketch:attrs.keyboard", { defaultValue: "Keyboard" }) }
                   ]}
                   value={shortcutsSubTab}
                   onChange={(v) =>
@@ -530,8 +507,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   fullWidth
                   sx={{
                     flexShrink: 0,
-                    px: SKETCH_SPACING.md,
-                    pt: SKETCH_SPACING.sm,
+                    px: getSpacingPx(SPACING.sm),
+                    pt: getSpacingPx(SPACING.xs),
                     borderBottom: `1px solid ${theme.vars.palette.grey[700]}`
                   }}
                 />
@@ -540,9 +517,9 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     flex: 1,
                     minHeight: 0,
                     overflow: "hidden",
-                    px: SKETCH_SPACING.md,
-                    pb: SKETCH_SPACING.md,
-                    pt: SKETCH_SPACING.sm
+                    px: getSpacingPx(SPACING.sm),
+                    pb: getSpacingPx(SPACING.sm),
+                    pt: getSpacingPx(SPACING.xs)
                   }}
                 >
                   <TabPanel
@@ -558,7 +535,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <ShortcutsSearchableList
-                      shortcuts={localizeSketchShortcuts()}
+                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
                       searchPlaceholder="Search shortcuts"
                       rootSx={{ flex: 1, minHeight: 0 }}
                       scrollSx={{ flex: 1, minHeight: 0 }}
@@ -575,7 +552,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <KeyboardShortcutsView
-                      shortcuts={localizeSketchShortcuts()}
+                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
                       listenToPhysicalKeyboard
                       imageEditorShortcuts
                     />

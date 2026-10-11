@@ -401,12 +401,28 @@ export interface Asset {
   timeline_id?: string | null;
   /** The project the asset belongs to; `"default"` for none. */
   project_id?: string;
+  /** The user starred this asset. */
+  favorite?: boolean;
   created_at: string;
+  /** When the row last changed, a content overwrite included. */
+  updated_at?: string;
   /** URL to download/access the asset (computed by API) */
   get_url: string | null;
   /** URL for thumbnail image (computed by API) */
   thumb_url: string | null;
   etag?: string | null;
+  /**
+   * Set only on an asset that references a local file in place: true when
+   * that file is missing or changed since import or relink.
+   */
+  offline?: boolean;
+  /**
+   * Set only on a video asset on a local server: the state of its all-intra
+   * preview proxy.
+   */
+  proxy_status?: "none" | "queued" | "running" | "ready" | "failed";
+  /** The preview proxy's URL while `proxy_status` is `ready`. Preview only. */
+  proxy_url?: string | null;
 }
 
 export interface AssetList {
@@ -754,6 +770,7 @@ export type UiSurfaceType =
   | "workflow"
   | "sketch"
   | "timeline"
+  | "game"
   | "storyboard"
   | "script"
   | "jsscript"
@@ -769,6 +786,7 @@ export type ChatSource =
   | "workflow_canvas"
   | "sketch_assistant"
   | "timeline_assistant"
+  | "game_assistant"
   | "storyboard_assistant"
   | "script_assistant"
   | "jsscript_assistant"
@@ -776,6 +794,11 @@ export type ChatSource =
   | "code_assistant"
   | "text_editor"
   | "model3d_assistant";
+
+export interface UiRunReference {
+  run_id: string;
+  span_id?: string;
+}
 
 export interface UiContext {
   /** The surface the user is currently looking at. */
@@ -790,9 +813,13 @@ export interface UiContext {
     shot_ids?: string[] | null;
     line_ids?: string[] | null;
     component_ids?: string[] | null;
+    entity_ids?: string[] | null;
+    behavior_index?: number | null;
   } | null;
   /** Chat surface the user typed in. The server names it in the system prompt. */
   source?: ChatSource | null;
+  /** The stored run the user asked the agent to inspect. Readers enforce ownership. */
+  run?: UiRunReference | null;
 }
 
 export interface MessageCreateRequest {
@@ -900,6 +927,11 @@ export interface NodeMetadata {
    * must not gain `retry` by omission. See docs/workflow-supervisor-design.md §5.3.
    */
   retry_safe?: boolean;
+  /**
+   * List properties that keep their static items when an edge feeds them:
+   * the node receives the connected items followed by the static ones.
+   */
+  append_static_inputs?: string[];
   model_packs?: ModelPack[];
   fal_unit_pricing?: FalUnitPricing | null;
   /** When true, the node remains runnable but is hidden from default discovery. */
@@ -946,6 +978,8 @@ export interface Node {
   dynamic_properties?: Record<string, unknown>;
   dynamic_inputs?: Record<string, DynamicSlotMetadata>;
   dynamic_outputs?: Record<string, PropertyTypeMetadata>;
+  /** How each dynamic output emits; see `NodeDescriptor.dynamic_output_correlation`. */
+  dynamic_output_correlation?: Record<string, OutputCorrelation>;
   [key: string]: unknown;
 }
 
@@ -983,6 +1017,7 @@ export interface JobListResponse {
 
 export interface RunJobRequest {
   type?: "run_job_request";
+  traceparent?: string;
   job_id?: string | null;
   /** Human-readable title for the run (workflow name, or node name for a single-node run). */
   job_name?: string | null;
@@ -1019,6 +1054,8 @@ export interface RunJobRequest {
    * job and settles the ledger when it finishes.
    */
   application_id?: string | null;
+  app_run_id?: string;
+  instance_id?: string;
   /** Released version the run executes against; absent for a draft run. */
   application_version?: number | null;
   /**
@@ -1099,6 +1136,9 @@ export const PROVIDER_IDS = {
   // Claude via the Claude Agent SDK / `claude` CLI (no API key — uses the
   // machine's logged-in Claude subscription, spawning the CLI as a subprocess).
   CLAUDE_AGENT_SDK: "claude_agent_sdk",
+  // Dreamina (CapCut) driven through the NodeTool Chrome extension in the
+  // user's own logged-in Chrome tab (no API key, local installs only).
+  DREAMINA: "dreamina",
   GEMINI: "gemini",
   GROQ: "groq",
   MISTRAL: "mistral",
@@ -1108,6 +1148,9 @@ export const PROVIDER_IDS = {
   XAI: "xai",
   COHERE: "cohere",
   OPENROUTER: "openrouter",
+  REQUESTY: "requesty",
+  OPPER: "opper",
+  API_ROUTE: "api_route",
   TOGETHER: "together",
   ALIBABA: "alibaba",
   CEREBRAS: "cerebras",
@@ -1130,6 +1173,7 @@ export const PROVIDER_IDS = {
   REVE: "reve",
   ATLASCLOUD: "atlascloud",
   HIGGSFIELD: "higgsfield",
+  USEAPI: "useapi",
   AKI: "aki",
   MESHY: "meshy",
   RODIN: "rodin",
@@ -1141,6 +1185,8 @@ export const PROVIDER_IDS = {
   LMSTUDIO: "lmstudio",
   LLAMA_CPP: "llama_cpp",
   NODE_LLAMA_CPP: "node_llama_cpp",
+  WHISPER_CPP: "whisper_cpp",
+  WHISPER_CPP_SERVER: "whisper_cpp_server",
   VLLM: "vllm",
   HUGGINGFACE: "huggingface",
   TRANSFORMERS_JS: "transformers_js",
@@ -1342,6 +1388,10 @@ export interface ModelArtifactRef {
   repo_id: string;
   revision?: string | null;
   path?: string | null;
+  /** The files the adapter loads, when it needs only part of the repository. */
+  allow_patterns?: string[] | null;
+  /** The model type the download service fetches the artifact with, e.g. `tjs.feature_extraction`. */
+  model_type?: string | null;
 }
 
 export interface ModelAdapterInfo {
@@ -1369,6 +1419,13 @@ export interface ASRModel {
   name: string;
   provider: Provider;
   path?: string | null;
+}
+
+export interface RerankModel {
+  type: string;
+  id: string;
+  name: string;
+  provider: Provider;
 }
 
 export interface MusicModel {

@@ -18,6 +18,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import type { VideoRef } from "@nodetool-ai/node-sdk";
+import { withTaskSpan } from "@nodetool-ai/runtime";
 import {
   isNonEmptyString,
   isObjectLike,
@@ -54,10 +55,15 @@ function isSpawnEnoent(err: unknown): boolean {
 /** Run ffmpeg, mapping a missing binary to {@link MissingBinaryError}. */
 export async function execFfmpeg(
   args: string[],
-  options: { maxBuffer?: number } = {}
+  options: { maxBuffer?: number; signal?: AbortSignal } = {}
 ): Promise<{ stdout: string; stderr: string }> {
   try {
-    return await execFile("ffmpeg", args, options);
+    return await withTaskSpan(
+      "cpu",
+      "subprocess.run",
+      { "process.executable.name": "ffmpeg" },
+      () => execFile("ffmpeg", args, options)
+    );
   } catch (error) {
     if (isSpawnEnoent(error)) throw new MissingBinaryError("ffmpeg");
     throw error;
@@ -67,10 +73,15 @@ export async function execFfmpeg(
 /** Run ffprobe, mapping a missing binary to {@link MissingBinaryError}. */
 export async function execFfprobe(
   args: string[],
-  options: { maxBuffer?: number } = {}
+  options: { maxBuffer?: number; signal?: AbortSignal } = {}
 ): Promise<{ stdout: string; stderr: string }> {
   try {
-    return await execFile("ffprobe", args, options);
+    return await withTaskSpan(
+      "cpu",
+      "subprocess.run",
+      { "process.executable.name": "ffprobe" },
+      () => execFile("ffprobe", args, options)
+    );
   } catch (error) {
     if (isSpawnEnoent(error)) throw new MissingBinaryError("ffprobe");
     throw error;
@@ -244,4 +255,20 @@ export function coerceProviderBytes(
     `${nodeName}: provider returned ${received}, expected video bytes ` +
       `(Uint8Array/Buffer).`
   );
+}
+
+/** `rate` as atempo factors, each inside the filter's own 0.5–2 range. */
+export function atempoChain(rate: number): string[] {
+  const factors: string[] = [];
+  let remaining = rate;
+  while (remaining > 2) {
+    factors.push("2");
+    remaining /= 2;
+  }
+  while (remaining < 0.5) {
+    factors.push("0.5");
+    remaining *= 2;
+  }
+  factors.push(String(Number(remaining.toFixed(6))));
+  return factors;
 }

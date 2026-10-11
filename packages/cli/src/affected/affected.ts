@@ -10,6 +10,8 @@
  *
  * Pure and registry-free so it can be unit-tested with a synthetic graph.
  */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /** Packages whose nodes load from compiled dist/ (decorators) — see AGENTS.md. */
 export const DECORATOR_PACKAGES: ReadonlySet<string> = new Set([
@@ -38,13 +40,62 @@ export interface PackageInfo {
  * the reliability harness runs; editing one changes what
  * `nodetool reliability run` does, but the files sit outside
  * `reliability/harness/`, so a path-prefix match alone reports them as
- * belonging to no workspace.
+ * belonging to no workspace. `packages/system-skills/` and
+ * `packages/sandbox-packs/` are not workspaces either, for the same reason.
+ * Turbo cannot see this ownership: each owner's `test` inputs in turbo.json
+ * list the directory, and `scripts/ci-plan.mjs` drops `--affected` for it.
  */
 export const EXTRA_WORKSPACE_PATHS: Readonly<
   Record<string, readonly string[]>
 > = {
-  "@nodetool-ai/reliability-harness": ["reliability/journeys"]
+  "@nodetool-ai/reliability-harness": ["reliability/journeys"],
+  // Shipped skills, loaded by `agents` (src/system-skills.ts).
+  "@nodetool-ai/agents": ["packages/system-skills"],
+  // Guest packs, loaded by node-sdk's pack loader and so by everything above it.
+  "@nodetool-ai/node-sdk": ["packages/sandbox-packs"]
 };
+
+/**
+ * Mobile is deliberately not a root workspace, so its dependency on NodeTool
+ * packages is absent from its package.json — see MOBILE_DEPS in
+ * scripts/test-affected.mjs, which this mirrors.
+ */
+const MOBILE_DEPS = ["@nodetool-ai/protocol", "@nodetool-ai/app-runtime"];
+
+/**
+ * The workspace graph as `computeAffected` wants it, read from the root
+ * `package.json` and each workspace manifest — the same reading as
+ * `readPackages` in scripts/test-affected.mjs. Only `node:fs`/`node:path`, so
+ * the gate planner stays cheap to load.
+ */
+export function readWorkspacePackages(repoRoot: string): PackageInfo[] {
+  const readJson = (path: string): Record<string, unknown> =>
+    JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+  const rootPkg = readJson(join(repoRoot, "package.json"));
+  const packages: PackageInfo[] = [];
+  const dirs = Array.isArray(rootPkg["workspaces"])
+    ? (rootPkg["workspaces"] as string[])
+    : [];
+  for (const dir of dirs) {
+    const manifest = join(repoRoot, dir, "package.json");
+    if (!existsSync(manifest)) continue;
+    const pkg = readJson(manifest);
+    const name = String(pkg["name"]);
+    const deps = {
+      ...(pkg["dependencies"] as Record<string, string> | undefined),
+      ...(pkg["devDependencies"] as Record<string, string> | undefined)
+    };
+    const owned = EXTRA_WORKSPACE_PATHS[name];
+    packages.push({
+      name,
+      dir,
+      internalDeps: Object.keys(deps).filter((d) => d.startsWith("@nodetool-ai/")),
+      ...(owned && { ownedPaths: [...owned] })
+    });
+  }
+  packages.push({ name: "mobile", dir: "mobile", internalDeps: MOBILE_DEPS });
+  return packages;
+}
 
 export interface AffectedResult {
   /** Workspaces directly containing a changed file. */

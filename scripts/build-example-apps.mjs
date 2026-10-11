@@ -164,6 +164,24 @@ function idFactory() {
   };
 }
 
+/**
+ * The picker label for a model a graph node uses: the node's title without its
+ * step-number emoji or trailing aside ("6️⃣ Master style frame" becomes "Master
+ * style frame model"). Several pickers in one app would otherwise all read
+ * "<Operation> model".
+ */
+const modelLabel = (node, operationName) => {
+  const title = String(node.data?.title ?? node.ui_properties?.title ?? "")
+    .replace(/^[^\p{L}\p{N}]*\p{N}?\uFE0F?\u20E3\s*/u, "")
+    // A plain step number ("2  Agent"), not a keycap.
+    .replace(/^\p{N}+[.)]?\s+/u, "")
+    .replace(/^[^\p{L}\p{N}]+/u, "")
+    .replace(/\s+[—(].*$/u, "")
+    .trim();
+  const name = title || operationName;
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} model`;
+};
+
 const runEvents = (operationIds) =>
   operationIds.map((operationId) => ({
     trigger: "click",
@@ -387,10 +405,20 @@ function buildControl(control, ctx) {
   }
 
   if (control.model !== undefined) {
-    const { binding, idParts } =
-      typeof control.model === "string"
-        ? inputTarget("model", control.model)
-        : propTarget("model", control.model);
+    let target;
+    if (typeof control.model === "string") {
+      target = inputTarget("model", control.model);
+    } else if (control.model.variable !== undefined) {
+      // One picker for an app variable that several operations read.
+      ctx.useVariable(control.model.variable);
+      target = {
+        binding: varBinding(control.model.variable),
+        idParts: ["model", control.model.variable]
+      };
+    } else {
+      target = propTarget("model", control.model);
+    }
+    const { binding, idParts } = target;
     return {
       type: "ModelSelect",
       props: {
@@ -528,6 +556,27 @@ function buildResult(result, ctx) {
     });
     return items;
   }
+
+  if (result.transcript !== undefined) {
+    if (!ctx.operations.has(result.transcript)) {
+      fail(
+        `${ctx.app.name}: transcript names unknown operation "${result.transcript}"`
+      );
+    }
+    items.push({
+      type: "AgentActivity",
+      props: {
+        id: nextId(["transcript", result.transcript]),
+        binding: execBinding(result.transcript, "transcript"),
+        label: result.label,
+        placeholder: result.placeholder ?? ""
+      }
+    });
+    return items;
+  }
+
+  // An editable variable can sit among the results, under the run that fills it.
+  if (result.textVar !== undefined) return [buildControl(result, ctx)];
 
   if (result.note !== undefined) {
     items.push({
@@ -677,6 +726,14 @@ function buildApp(app, templates) {
       const operation = operations.get(operationId);
       if (!operation || operation.kind === "script") continue;
       for (const node of operation.template.graph.nodes) {
+        // An edge feeds this model, so the graph's input picks it.
+        if (
+          operation.template.graph.edges.some(
+            (edge) => edge.target === node.id && edge.targetHandle === "model"
+          )
+        ) {
+          continue;
+        }
         const model = node.data?.model;
         if (
           !model ||
@@ -693,7 +750,7 @@ function buildApp(app, templates) {
           op: operationId,
           model: { node: node.id, prop: "model" },
           modelKind: model.type,
-          label: `${node.data?.title || operation.spec.name} model`
+          label: modelLabel(node, operation.spec.name)
         });
       }
     }
@@ -723,36 +780,185 @@ function buildApp(app, templates) {
     }
   };
 
+  // The tagline reads as the title's subtitle and the cost note as a small
+  // hint under it, rather than three lines of body text at one weight.
   const defaultContent = [
     {
       type: "Heading",
       props: {
         id: nextId(["title"]),
         text: app.showEmoji === false ? app.name : `${app.emoji} ${app.name}`,
-        level: "1"
+        level: "1",
+        ...(app.tagline ? { subtitle: app.tagline } : {})
       }
-    },
-    { type: "Text", props: { id: nextId(["tagline"]), text: app.tagline } }
+    }
   ];
   const content = app.content ? structuredClone(app.content) : defaultContent;
   if (!app.content && app.note) {
     content.push({
       type: "Text",
-      props: { id: nextId(["app-note"]), text: app.note }
+      props: { id: nextId(["app-note"]), text: app.note, tone: "hint" }
     });
   }
 
-  for (const section of app.content ? [] : app.sections) {
-    const sourceControls = [
-      ...modelControlsForSection(section),
-      ...(section.controls ?? [])
-    ];
-    const controls = sourceControls.map((control) =>
+  // A stepped app shows one section at a time. The Stepper writes `var:step`,
+  // and each section is a Container that shows while the step names its key.
+  const stepped = !app.content && app.steps === true;
+  const tabbed = !app.content && app.layout === "tabs";
+  if (stepped && tabbed) fail(`${app.name}: an app is either stepped or tabbed`);
+  if (tabbed && app.sections.length > 3) {
+    fail(`${app.name}: the Tabs widget holds at most three sections`);
+  }
+  const sectionKeys = stepped ? app.sections.map((section) => section.key) : [];
+  if (stepped) {
+    if (!declaredVariables.has("step")) {
+      fail(`${app.name}: a stepped app must declare a "step" variable`);
+    }
+    for (const [index, key] of sectionKeys.entries()) {
+      if (!key || sectionKeys.indexOf(key) !== index) {
+        fail(`${app.name}: every step needs a unique section key`);
+      }
+    }
+    content.push({
+      type: "Stepper",
+      props: {
+        id: nextId(["steps"]),
+        binding: varBinding("step"),
+        steps: app.sections.map((section) => ({
+          value: section.key,
+          title: section.title
+        })),
+        allowBack: true
+      }
+    });
+  }
+  const goTo = (key) => [
+    { trigger: "click", kind: "setVariable", key: varBinding("step"), value: key }
+  ];
+
+  // A tabbed app puts each section's panels on its own tab, for sections that
+  // are separate tools on one source rather than steps in order.
+  const tabPanes = [];
+  for (const [index, section] of (app.content ? [] : app.sections).entries()) {
+    const controls = (section.controls ?? []).map((control) =>
       buildControl(control, ctx)
     );
+    // Pickers for the models inside the graph go just above the first run
+    // button. Two or more fold into a closed "Models" section: the defaults
+    // run as shipped, and a wall of pickers hid the inputs that matter.
+    const modelControls = modelControlsForSection(section).map((control) =>
+      buildControl(control, ctx)
+    );
+    if (modelControls.length > 0) {
+      const firstRun = (section.controls ?? []).findIndex((control) =>
+        Array.isArray(control.run)
+      );
+      const at = firstRun === -1 ? controls.length : firstRun;
+      controls.splice(
+        at,
+        0,
+        ...(modelControls.length === 1
+          ? modelControls
+          : [
+              {
+                type: "Accordion",
+                props: {
+                  id: nextId(["models", section.title]),
+                  title: `Models (${modelControls.length})`,
+                  defaultOpen: false,
+                  content: modelControls
+                }
+              }
+            ])
+      );
+    }
     const results = (section.results ?? []).flatMap((result) =>
       buildResult(result, ctx)
     );
+    if (stepped) {
+      const previous = app.sections[index - 1];
+      const next = app.sections[index + 1];
+      if (section.nextWhen !== undefined) ctx.useVariable(section.nextWhen);
+      const back = previous && {
+        type: "Button",
+        props: {
+          id: nextId(["back", section.key]),
+          label: `Back: ${previous.title}`,
+          variant: "outlined",
+          fullWidth: false,
+          events: goTo(previous.key)
+        }
+      };
+      const forward = next && {
+        type: "Button",
+        props: {
+          id: nextId(["next", section.key]),
+          label: `Next: ${next.title}`,
+          variant: "contained",
+          color: "primary",
+          fullWidth: false,
+          align: "end",
+          events: goTo(next.key),
+          ...(section.nextWhen
+            ? {
+                disabledWhen: {
+                  binding: varBinding(section.nextWhen),
+                  op: "empty"
+                }
+              }
+            : {})
+        }
+      };
+      content.push({
+        type: "Container",
+        props: {
+          id: nextId(["step", section.key]),
+          variant: "plain",
+          visibleWhen: {
+            binding: varBinding("step"),
+            op: "eq",
+            value: section.key
+          },
+          content: [
+            {
+              type: "Heading",
+              props: {
+                id: nextId(["heading", section.key]),
+                text: section.title,
+                level: "2",
+                ...(section.intro ? { subtitle: section.intro } : {})
+              }
+            },
+            // Inputs on the left and what they produce on the right. Columns
+            // stacks into one column when the app is narrow.
+            ...(results.length > 0
+              ? [
+                  {
+                    type: "Columns",
+                    props: {
+                      id: nextId(["cols", section.key]),
+                      gap: 24,
+                      left: controls,
+                      right: results
+                    }
+                  }
+                ]
+              : controls),
+            { type: "Divider", props: { id: nextId(["divider", section.key]) } },
+            {
+              type: "Columns",
+              props: {
+                id: nextId(["nav", section.key]),
+                gap: 16,
+                left: back ? [back] : [],
+                right: forward ? [forward] : []
+              }
+            }
+          ]
+        }
+      });
+      continue;
+    }
     const left = {
       type: "Container",
       props: {
@@ -761,11 +967,12 @@ function buildApp(app, templates) {
         content: controls
       }
     };
+    const place = tabbed ? (widget) => tabPanes.push(widget) : (widget) => content.push(widget);
     if (results.length === 0) {
-      content.push(left);
+      place(left);
       continue;
     }
-    content.push({
+    place({
       type: "Columns",
       props: {
         id: nextId(["cols", section.title]),
@@ -783,6 +990,15 @@ function buildApp(app, templates) {
         ]
       }
     });
+  }
+
+  if (tabbed) {
+    const tabs = { id: nextId(["tabs"]) };
+    for (const [index, section] of app.sections.entries()) {
+      tabs[`tab${index + 1}Label`] = section.title;
+      tabs[`tab${index + 1}`] = [tabPanes[index]];
+    }
+    content.push({ type: "Tabs", props: tabs });
   }
 
   // Operation mappings key on node IDs, so a renamed node never breaks an app.
@@ -874,6 +1090,13 @@ function buildApp(app, templates) {
 }
 
 function buildBundle(app, templates) {
+  // Script-backed examples already carry normal pinned operation documents.
+  // The preview page seeds only `values`, so carry each variable default the
+  // runtime would seed, such as a Recipe's step and example images.
+  if (app.bundle) {
+    const values = Object.fromEntries(app.bundle.app.variables.filter((variable) => variable.default !== undefined).map((variable) => [`var:${variable.id}`, variable.default]));
+    return {bundle: app.bundle, values};
+  }
   const { document, values } = buildApp(app, templates);
   const workflows = Object.entries(app.workflows).map(([key, templateName]) => {
     const template = templates.get(templateName);
@@ -893,6 +1116,24 @@ function buildBundle(app, templates) {
         );
       }
       node.data.model = model;
+    }
+    for (const [nodeId, props] of Object.entries(
+      app.propOverrides?.[key] ?? {}
+    )) {
+      const node = graph.nodes.find((candidate) => candidate.id === nodeId);
+      if (!node) {
+        fail(
+          `${app.name}: prop override names unknown node "${nodeId}" in ${template.name}`
+        );
+      }
+      for (const prop of Object.keys(props)) {
+        if (!(prop in (node.data ?? {}))) {
+          fail(
+            `${app.name}: prop override sets "${prop}", which node "${nodeId}" in ${template.name} does not have`
+          );
+        }
+      }
+      Object.assign(node.data, props);
     }
     return {
       key,
@@ -951,7 +1192,10 @@ function writeFile(file, contents) {
  * build. `values` is keyed by the same binding tokens the widgets carry.
  */
 function previewFor(app, bundle, values) {
-  const artFile = path.join(ART, `${Object.values(app.workflows)[0]}.jpg`);
+  // An app that binds no workflow ships its art under its own slug, as the
+  // example app gallery reads it.
+  const firstWorkflow = Object.values(app.workflows)[0];
+  const artFile = path.join(ART, `${firstWorkflow ?? app.slug}.jpg`);
   let image = null;
   if (fs.existsSync(artFile)) {
     image = `/app-preview/img/${app.slug}.jpg`;
@@ -1097,10 +1341,34 @@ if (regen) runRegen();
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
+/**
+ * A stepped app's sections key on their slugified titles unless a spec names
+ * a key, and the `step` variable the Stepper writes is declared for it, so a
+ * spec turns steps on with `steps: true` alone.
+ */
+const withStepDefaults = (app) => {
+  if (app.steps !== true || app.content) return app;
+  const sections = app.sections.map((section) => ({
+    ...section,
+    key: section.key ?? slugify(section.title)
+  }));
+  const variables = app.variables ?? [];
+  return {
+    ...app,
+    sections,
+    variables: variables.some((variable) => variable.id === "step")
+      ? variables
+      : [
+          { id: "step", name: "Step", scope: "instance", type: "str", default: sections[0].key },
+          ...variables
+        ]
+  };
+};
+
 const only = flagValue("--app");
-const selectedApps = only
-  ? EXAMPLE_APPS.filter((app) => app.slug === only)
-  : EXAMPLE_APPS;
+const selectedApps = (
+  only ? EXAMPLE_APPS.filter((app) => app.slug === only) : EXAMPLE_APPS
+).map(withStepDefaults);
 if (selectedApps.length === 0) fail(`no example app with slug "${only}"`);
 
 const templateNames = new Set();
@@ -1143,6 +1411,13 @@ for (const app of selectedApps) {
   liveSlugs.add(app.slug);
   if (Array.isArray(app.debugInteractions)) {
     debugInteractions.set(app.slug, app.debugInteractions);
+  } else if (app.steps === true) {
+    // A no-run debug starts on the first step. Walking every step lets it see
+    // that each step's run button can be reached.
+    debugInteractions.set(
+      app.slug,
+      app.sections.map((section) => ({ set: { key: "step", value: section.key } }))
+    );
   }
   manifest.push({
     slug: app.slug,

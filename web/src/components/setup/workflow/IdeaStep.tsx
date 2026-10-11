@@ -16,6 +16,7 @@
  * of document entirely.
  */
 
+import { i18n } from "../../../i18n";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 
 import {
@@ -32,6 +33,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSetup";
 import type { Workflow } from "../../../stores/ApiTypes";
+import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
 import { useTranslation } from "react-i18next";
 
@@ -49,8 +51,10 @@ export interface WorkflowIdeaStepProps {
   pickingExampleId?: string | null;
   /** Why the last copy was refused. */
   exampleError?: string | null;
-  /** Opens the file picker for a workflow JSON or a DSL `.ts`. */
+  /** Reads a picked workflow JSON file onto this workflow. */
   onImport: (file: File) => void | Promise<void>;
+  /** True while a picked file is being read onto this workflow. */
+  importing?: boolean;
   /** Leaves the flow for an empty canvas. */
   onStartBlank: () => void;
   /** An import that was refused, shown above the alternatives. */
@@ -58,8 +62,11 @@ export interface WorkflowIdeaStepProps {
   onDismissImportError?: () => void;
 }
 
-/** What the import path accepts (PRD § 11.1). */
-export const WORKFLOW_IMPORT_ACCEPT = ".json,.ts";
+/**
+ * What the import path accepts (PRD § 11.1). A DSL `.ts` file is a program the
+ * browser cannot run, so the picker does not offer one only to refuse it.
+ */
+export const WORKFLOW_IMPORT_ACCEPT = ".json,application/json";
 
 const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   workflowId,
@@ -70,6 +77,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   pickingExampleId = null,
   exampleError = null,
   onImport,
+  importing = false,
   onStartBlank,
   importError = null,
   onDismissImportError
@@ -78,6 +86,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   const setup = useWorkflowSetupDocument(workflowId);
   const brief = setup?.brief ?? "";
   const importInput = useRef<HTMLInputElement>(null);
+  const briefField = useRef<HTMLElement | null>(null);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -103,24 +112,32 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     () => [
       {
         id: "example",
-        title: t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
-        description: t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
-        onSelect: () => onBrowseExamples(true)
+        title: i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
+        description: i18n.t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
+        onSelect: () => onBrowseExamples(true),
+        // A file being read lands on this workflow and opens it, so a second
+        // way in started meanwhile would be overwritten by it, or overwrite it.
+        disabled: importing,
+        disabledReason: "Reading your file"
       },
       {
         id: "import",
-        title: t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
-        description: t("editor:ui.jsonOrDslTsFile", { defaultValue: "JSON, or a DSL .ts file" }),
-        onSelect: () => importInput.current?.click()
+        title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
+        description: importing ? "Reading your file" : "A workflow JSON file",
+        onSelect: () => importInput.current?.click(),
+        disabled: importing,
+        disabledReason: "Reading your file"
       },
       {
         id: "blank",
-        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
-        onSelect: onStartBlank
+        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
+        onSelect: onStartBlank,
+        disabled: importing,
+        disabledReason: "Reading your file"
       }
     ],
-    [t, onBrowseExamples, onStartBlank]
+    [importing, onBrowseExamples, onStartBlank, t]
   );
 
   if (browsingExamples) {
@@ -164,10 +181,24 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           placeholder={t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
           helperText={t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
           onChange={handleChange}
+          inputRef={briefField}
         />
 
         {importError ? (
-          <AlertBanner severity="error" onClose={onDismissImportError}>
+          <AlertBanner
+            severity="error"
+            onClose={onDismissImportError}
+            action={
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Workflow import failed",
+                  errorText: importError,
+                  workflowId
+                }}
+              />
+            }
+          >
             {importError}
           </AlertBanner>
         ) : null}
@@ -180,6 +211,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           )}
           brief={brief}
           onSelect={onBriefChange}
+          briefRef={briefField}
         />
       </FlexColumn>
 

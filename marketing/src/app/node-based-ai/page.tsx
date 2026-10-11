@@ -4,6 +4,7 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import JsonLd from "../../components/JsonLd";
 import FaqSection from "../../components/FaqSection";
+import SearchStarter from "../../components/SearchStarter";
 import { breadcrumbSchema, itemListSchema } from "../../lib/jsonld";
 import { SmartDownloadButton } from "../SmartDownloadButton";
 import { competitors } from "../../data/competitorEntries";
@@ -158,7 +159,7 @@ export default function NodeBasedAiPage() {
           </span>
           <h1
             id="nba-title"
-            className="mt-6 text-4xl font-bold tracking-tight text-white md:text-5xl"
+            className="mt-6 text-4xl font-semibold tracking-tight text-white md:text-5xl"
           >
             Node-based AI: build workflows with nodes, not prompts.
           </h1>
@@ -172,6 +173,9 @@ export default function NodeBasedAiPage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <SmartDownloadButton
+              source="node-based-ai"
+              starter="generate-then-upscale-a-poster"
+              placement="hero"
               icon={<Download className="h-5 w-5" />}
               classNameOverride="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition-all hover:bg-blue-500 focus-ring"
             />
@@ -183,6 +187,12 @@ export default function NodeBasedAiPage() {
             </a>
           </div>
         </section>
+
+        <SearchStarter
+          starter="generate-then-upscale-a-poster"
+          source="node-based-ai"
+          heading="Build along: generate and upscale a poster"
+        />
 
         {/* Disambiguation — the cluster mixes three different intents. */}
         <section
@@ -207,7 +217,14 @@ export default function NodeBasedAiPage() {
             workflow is not a transcript of what you asked for — it is a file
             you keep, re-run, hand to someone else, or call as an API. That is
             the difference that matters in practice: a prompt gives you one
-            result, a graph gives you a process.
+            result, a graph gives you a process. See{" "}
+            <a
+              href="/node-based-workflows"
+              className="text-blue-300 underline decoration-blue-500/40 underline-offset-2 transition-colors hover:text-blue-200"
+            >
+              node-based workflows in NodeTool
+            </a>{" "}
+            for one built, checked, and run end to end.
           </p>
           <p className="mt-4 leading-relaxed text-slate-300">
             Three different things get searched for with the same words, so to
@@ -316,7 +333,7 @@ export default function NodeBasedAiPage() {
         <FaqSection items={faq} />
 
         <section className="mx-auto my-24 max-w-2xl px-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
             Open the canvas and wire up a node.
           </h2>
           <p className="mt-4 text-lg text-slate-300">
@@ -326,6 +343,9 @@ export default function NodeBasedAiPage() {
           </p>
           <div className="mt-8 flex justify-center">
             <SmartDownloadButton
+              source="node-based-ai"
+              starter="generate-then-upscale-a-poster"
+              placement="closing"
               icon={<Download className="h-5 w-5" />}
               classNameOverride="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition-all hover:bg-blue-500 focus-ring"
             />

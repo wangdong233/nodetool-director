@@ -60,9 +60,8 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput, useUpstreamValues } from "../../../hooks/nodes/useNodeIO";
 import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { COMPOSITOR_NODE_TYPE } from "../../../constants/nodeTypes";
-import { isNumber, isObjectLike } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-
+import { isNumber, isObjectLike, isString } from "../../../utils/typePredicates";
 /** Canonical blend modes are owned by `@nodetool-ai/gpu`. */
 export type CompositorBlendMode = BlendMode;
 
@@ -199,7 +198,9 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
         isNumber(raw.opacity)
           ? Math.max(0, Math.min(1, raw.opacity))
           : DEFAULT_LAYER_STATE.opacity;
-      const blend_mode = coerceBlendMode(raw.blend_mode);
+      const blend_mode = coerceBlendMode(
+        isString(raw.blend_mode) ? raw.blend_mode : undefined
+      );
       const visible =
         raw.visible === undefined ? DEFAULT_LAYER_STATE.visible : !!raw.visible;
       return { opacity, blend_mode, visible, transform: parseTransform(raw.transform) };

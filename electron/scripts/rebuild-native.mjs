@@ -1,5 +1,6 @@
 // Rebuild the V8/NAN-locked native module(s) against the Node ABI the backend
-// runs on (system Node in dev, the bundled Node 22.x in prod — same ABI).
+// runs on (system Node in dev, the bundled Node pinned to .nvmrc in prod — the
+// same ABI when dev uses `nvm use`).
 //
 // The backend always runs on vanilla Node, NOT Electron's embedded Node, so we
 // build against Node headers (node-gyp's default dist-url), not Electron's.
@@ -60,6 +61,19 @@ function resolveNodeGyp() {
 const isTransientResolutionError = (out) =>
   /Cannot find module|MODULE_NOT_FOUND/.test(out ?? "");
 
+// On macOS, node-gyp takes the SDK from the Command Line Tools while
+// `xcode-select` can point at an older Xcode.app whose linker cannot parse that
+// SDK's .tbd stubs ("tapi error: malformed file ... unknown architecture").
+// Building with DEVELOPER_DIR set to the Command Line Tools pairs the SDK with
+// its own linker.
+const CLT_DIR = "/Library/Developer/CommandLineTools";
+const isMacLinkerSdkMismatch = (out) =>
+  process.platform === "darwin" &&
+  process.env.DEVELOPER_DIR !== CLT_DIR &&
+  existsSync(CLT_DIR) &&
+  /tapi error: malformed file|unknown architecture/.test(out ?? "");
+let buildEnv = process.env;
+
 // Block synchronously (no busy-wait) so the sync spawn retry loop stays simple.
 const sleep = (ms) =>
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
@@ -94,7 +108,7 @@ for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
   const result = spawnSync(
     process.execPath,
     [nodeGyp, "rebuild", "--release", `--arch=${arch}`, "-j", "max"],
-    { cwd: moduleDir, encoding: "utf8" }
+    { cwd: moduleDir, encoding: "utf8", env: buildEnv }
   );
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
@@ -115,10 +129,19 @@ for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     continue;
   }
 
+  if (attempt < MAX_ATTEMPTS && isMacLinkerSdkMismatch(combined)) {
+    console.warn(
+      `better-sqlite3 link failed: the linker of the selected Xcode cannot read the SDK. Retrying with DEVELOPER_DIR=${CLT_DIR}. To fix this permanently, run: sudo xcode-select -s ${CLT_DIR}`
+    );
+    buildEnv = { ...process.env, DEVELOPER_DIR: CLT_DIR };
+    continue;
+  }
+
   break;
 }
 
 reportNodeLlamaCpp();
+// @fugood/whisper.node ships prebuilt N-API binaries and needs no rebuild.
 process.exit(lastStatus);
 
 // node-llama-cpp is N-API and ships prebuilt binaries for the supported

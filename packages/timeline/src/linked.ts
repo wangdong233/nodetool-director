@@ -22,7 +22,7 @@
  * did, and this is a third function rather than a branch inside either.
  */
 
-import type { Shot } from "@nodetool-ai/protocol";
+import type { ProductionRequirement, Shot } from "@nodetool-ai/protocol";
 import { createTimeOrderedUuid, makeClip, makeTrack } from "./defaults.js";
 import {
   currentTake,
@@ -40,6 +40,7 @@ import {
   shotAudioClip,
   shotDurationMs,
   shotSources,
+  resolveShotSource,
   type AssembledTimeline,
   type TrimmedShot
 } from "./storyboard.js";
@@ -49,6 +50,7 @@ export interface LinkedAssemblyInput {
   /** Board id stamped onto every clip, linking the cut back to the board. */
   boardId: string;
   shots: Shot[];
+  production?: ProductionRequirement;
   /** Score direction, laid across the full cut as one draft audio clip. */
   musicPrompt?: string | null;
   /** The linked script: the words, the cast, and the id to stamp. */
@@ -86,10 +88,13 @@ export function buildLinkedTimeline(
   const sources = shotSources(input.shots);
   let cursorMs = 0;
   const trimmedShots: TrimmedShot[] = [];
+  const shotWindows = new Map<string, { start: number; end: number }>();
   for (const shot of ordered) {
     const lineIds = shot.script_line_ids ?? [];
-    const source = sources.get(shot.id) ?? null;
-    if (!source) {
+    const resolved = resolveShotSource(shot, input.production, sources.get(shot.id)?.assetId);
+    const source = resolved?.kind === "still" || resolved?.kind === "graphics" || (shot.production?.media_strategy ?? input.production?.media_strategy) === "still_motion_graphics" ? null : sources.get(shot.id) ?? null;
+    const stillAssetId = resolved?.kind === "still" ? resolved.assetId : undefined;
+    if (!source && !stillAssetId && resolved?.kind !== "graphics") {
       skippedShotIds.push(shot.id);
       skippedLineIds.push(...lineIds);
       continue;
@@ -105,9 +110,10 @@ export function buildLinkedTimeline(
     // unlinked cut does, and only then to the length it was directed at.
     const durationMs =
       linkedShotDurationMs(shot, linesById) ??
-      source.availableMs ??
+      source?.availableMs ??
       shotDurationMs(shot);
-    const sourceMs = source.availableMs;
+    shotWindows.set(shot.id, { start: cursorMs, end: cursorMs + durationMs });
+    const sourceMs = source?.availableMs ?? null;
     if (sourceMs !== null && sourceMs !== durationMs) {
       trimmedShots.push({ shotId: shot.id, usedMs: durationMs, sourceMs });
     }
@@ -116,11 +122,11 @@ export function buildLinkedTimeline(
       name: shot.slug ?? `Shot ${shot.index + 1}`,
       startMs: shotStartMs,
       durationMs,
-      mediaType: "video",
+      mediaType: source ? "video" : "image",
       sourceType: "imported",
       status: "generated",
-      currentAssetId: source.assetId,
-      linkId: createTimeOrderedUuid(),
+      currentAssetId: source?.assetId ?? stillAssetId,
+      linkId: source ? createTimeOrderedUuid() : undefined,
       storyboardBoardId: input.boardId,
       storyboardShotId: shot.id,
       versions: []
@@ -128,11 +134,12 @@ export function buildLinkedTimeline(
     // A covered shot is a slice out of the middle of someone else's
     // generation, so it needs its window written; a shot playing its own clip
     // starts at the head and is left exactly as it was.
-    if (source.sourceShotId !== shot.id) {
+    if (source && source.sourceShotId !== shot.id) {
       videoClip.inPointMs = source.inPointMs;
       videoClip.outPointMs = source.inPointMs + durationMs;
     }
-    clips.push(videoClip, shotAudioClip(videoClip, shotAudioTrack.id));
+    if (resolved?.kind !== "graphics") clips.push(videoClip);
+    if (source) clips.push(shotAudioClip(videoClip, shotAudioTrack.id));
     cursorMs += durationMs;
 
     let offsetMs = 0;
@@ -193,7 +200,7 @@ export function buildLinkedTimeline(
         durationMs: cursorMs,
         mediaType: "audio",
         sourceType: "generated",
-        bindingKind: "text-to-audio",
+        bindingKind: "text-to-music",
         prompt: musicPrompt,
         status: "draft",
         versions: []
@@ -210,6 +217,7 @@ export function buildLinkedTimeline(
     trimmedShots,
     // Nothing is reported as retimed: a linked shot is meant to run as long
     // as its lines, so differing from `duration_seconds` is the point.
+    shotWindows,
     retimedShots: []
   };
 }

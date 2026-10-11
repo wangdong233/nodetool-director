@@ -13,10 +13,12 @@ The TypeScript DSL (`@nodetool-ai/dsl`) provides type-safe factory functions for
 3. [Basic Workflow](#basic-workflow)
 4. [Connecting Nodes](#connecting-nodes)
 5. [Multi-Output Nodes](#multi-output-nodes)
-6. [Building the Workflow Graph](#building-the-workflow-graph)
-7. [Namespaces](#namespaces)
-8. [Code Generation](#code-generation)
-9. [Best Practices](#best-practices)
+6. [Typed workflows and composition](#typed-workflows-and-composition)
+7. [Runtime branches, maps, and text](#runtime-branches-maps-and-text)
+8. [Building the Workflow Graph](#building-the-workflow-graph)
+9. [Namespaces](#namespaces)
+10. [Code Generation](#code-generation)
+11. [Best Practices](#best-practices)
 
 ---
 
@@ -37,8 +39,7 @@ import { constant, text, image } from "@nodetool-ai/dsl";
 import { workflow } from "@nodetool-ai/dsl";
 ```
 
-The package root is the only entry point — `package.json` exports `.` and
-`./flow`, so a subpath import of a generated namespace file does not resolve.
+The package root is the only public entry point. `package.json` also exports `./flow`, but that is the internal native-flow backend, not a supported API (see the [native flow design](../dsl-native-flow-design.md)). A subpath import of a generated namespace file does not resolve.
 Run `npm run codegen --workspace=packages/dsl` and read
 `packages/dsl/src/generated/index.ts` for the namespace names this build ships.
 
@@ -57,7 +58,7 @@ a.output()  // → OutputHandle<number> — reference, not the value itself
 
 ### Connectable
 
-Every input field accepts either a **literal value** or an **OutputHandle**:
+Every input field accepts a literal value, an output handle, or a compatible single-output node:
 
 ```ts
 const greeting = constant.string({ value: "hi" });
@@ -72,11 +73,99 @@ The frozen object returned by every factory function:
 
 ```ts
 const node = constant.integer({ value: 42 });
-node.nodeId    // unique UUID
+node.nodeId    // explicit id when supplied, otherwise a UUID
 node.nodeType  // "nodetool.constant.Integer"
 node.inputs    // { value: 42 }
 node.output()  // OutputHandle for the node's default output slot
 ```
+
+---
+
+## Typed workflows and composition
+
+The terminal-node form `workflow(...nodes)` remains available. A schema and
+callback provide named parameters and results:
+
+```ts
+import { workflow, run, t, template, text } from "@nodetool-ai/dsl";
+
+const greeter = workflow(
+  { name: t.string(), suffix: t.string().optional("!") },
+  ({ name, suffix }) => ({ greeting: template`Hello ${name}${suffix}` })
+);
+
+const result = await run(greeter, { params: { name: "Ada" } });
+// { greeting: "Hello Ada!" }
+
+const pair = workflow({}, () => ({
+  first: greeter({ name: "Ada" }, { id: "first" }).greeting,
+  second: greeter({ name: "Grace" }, { id: "second" }).greeting
+}));
+```
+
+`t` provides `t.string()`, `t.int()`, `t.float()`, `t.boolean()`, `t.image()`,
+`t.audio()`, `t.video()`, `t.list(item)`, and `t.value()` (an arbitrary value).
+For example, `t.list(t.image())` carries image handles into a map body. Required scalar and media parameters become the
+existing specialized Input nodes (`StringInput`, `IntegerInput`, `FloatInput`, `BooleanInput`, `ImageInput`, `AudioInput`, `VideoInput`). Lists, arbitrary values, and optional
+parameters use ValueInput, which preserves their values without conversion.
+`.optional(defaultValue)` supplies a fallback. `.optional()` defaults to `null`
+and includes `null` in the inferred type. Missing required parameters fail
+before execution.
+
+Callback inputs are symbolic handles. Return a non-empty object whose keys
+name the workflow's Output nodes. A definition exposes `.nodes` and `.edges`.
+Use `toKernelGraph(definition)` to obtain kernel `properties` and execution
+flags for validation, saving, or visual editing. A definition is callable during
+another build. Each invocation uses a namespace for its operations and explicit
+IDs. Pass `{ id }` to give that namespace a name. Duplicate explicit invocation
+names fail. Automatic invocation names are local to the build.
+
+Builders run synchronously during authoring and composition. Keep host side
+effects outside them. Runtime values cannot drive ordinary JavaScript `if`,
+`for`, string coercion, or property access on media handles.
+
+## Runtime branches, maps, and text
+
+```ts
+import { workflow, t, choose, map, template } from "@nodetool-ai/dsl";
+
+const greetings = workflow(
+  { names: t.list(t.string()), formal: t.boolean() },
+  ({ names, formal }) => ({
+    greetings: map(names, (name, index) => choose(formal, {
+      then: () => template`${index}: Hello ${name}`,
+      else: () => template`${index}: Hi ${name}`
+    }))
+  })
+);
+```
+
+`choose(condition, { then, else })` builds both branch callbacks as isolated
+Subgraphs. At runtime, If nodes gate every branch input so only the selected
+Subgraph executes. Operations must be constructed inside those callbacks.
+A producer created before `choose` remains an ordinary upstream dependency.
+Branch output types must match, except that `int` and `float` may mix. A mismatch throws `Branch output types do not match`. Callbacks must return synchronously.
+
+`map(list, (item, index) => result)` uses ForEach, a Subgraph body, and Collect.
+Item/index correlation and captured values remain aligned. Nested maps are
+supported. An empty list produces `[]`. Execution order and concurrency follow
+the kernel's existing actors. There is no separate scheduler or `parallelMap`
+API.
+
+The `template` tag connects interpolated nodes and handles to the existing
+Template node's dynamic inputs. Literal text stays in its template property.
+Use this tag instead of coercing symbolic values with a JavaScript template
+literal.
+
+Generated nodes expose `node.outputs.slot` for every declared slot, including
+names that collide with the node API. Safe names also support `node.slot`, such
+as `branch.if_true`. `node.output("slot")` remains available. Reserved names
+include `output`, `outputs`, `nodeId`, `nodeType`, `inputs`,
+`defaultOutputHandle`, `then`, `constructor`, and `__proto__`.
+
+Canonical export preserves lowered graph nodes, IDs, dynamic output
+metadata, input modes, correlations, and connections. It regenerates executable
+source rather than preserving the original helper calls or handwritten text.
 
 ---
 
@@ -107,6 +196,45 @@ The `workflow()` function traces all connections from the terminal nodes back to
 ---
 
 ## Connecting Nodes
+
+### Implicit single-output connections
+
+Before:
+
+```ts
+const greeting = constant.string({ value: "Hello" });
+const joined = text.concat({ a: greeting.output(), b: "!" });
+```
+
+After:
+
+```ts
+const greeting = constant.string({ value: "Hello" }, { id: "greeting" });
+const joined = text.concat({ a: greeting, b: "!" }, { id: "joined" });
+const graph = workflow(joined);
+```
+
+Both forms produce the same connection. `resolveConnection(value)` recognizes
+an explicit handle or a single-output node. It returns `undefined` for literals.
+The factory normalizes direct input values before graph traversal. Nodes with
+multiple outputs require an explicit selection even when the low-level factory
+has a default slot. A node buried inside an object or array is rejected by the
+host DSL because that shape cannot wire a direct input.
+
+`{ id }` is available as the second argument on every generated factory.
+IDs must be non-empty strings and unique within one build. Omit the argument
+to retain automatic IDs. Calling `workflow()` clears the build registry, so a
+new build can reuse explicit IDs. Old nodes and handles remain spent.
+
+A node is a symbolic operation. Factory calls build the graph, and `run()`
+executes it through the existing kernel. Interpolating a node into a string
+throws. Build runtime text with the `template` tag or the Template node's dynamic inputs.
+
+The sandbox pack accepts the same node and ID syntax. It retains readable
+automatic IDs and returns kernel nodes with `properties`. It also retains its
+existing list fan-in support for arrays of handles or single-output nodes.
+The host returns `data`, `streaming`, and `streamingInput`, which its runner
+and the CLI translate to kernel descriptors.
 
 ### Linear Chain
 
@@ -171,10 +299,11 @@ Each output slot is individually typed, so TypeScript catches type mismatches at
 ### `workflow()`
 
 ```ts
-function workflow(...terminals: DslNode<never>[]): Workflow;
+function workflow(...terminals: WorkflowTerminal[]): Workflow;
+function workflow(schema, builder): WorkflowDefinition;
 ```
 
-Traces from terminal nodes via BFS, discovers all connected nodes and edges, performs topological sort, and returns a frozen `Workflow` object.
+A terminal is any node (or object) with a `nodeId`. The first form traces from the terminals via BFS, discovers all connected nodes and edges, performs a topological sort, and returns a frozen `Workflow` object. It throws if no terminal is given, if a terminal belongs to an earlier build, or if the graph has a cycle. A node input that holds a handle nested inside an array or object also throws, because only a handle assigned directly to an input becomes an edge. Give each source its own input instead. The second form is the typed schema form described above.
 
 The result can be serialized to JSON:
 
@@ -183,7 +312,7 @@ const wf = workflow(outputNode);
 const json = JSON.stringify(wf, null, 2);
 ```
 
-This JSON is compatible with the NodeTool workflow format used by the visual editor and the workflow runner.
+The host runner and CLI convert this host DSL shape to kernel descriptors. The sandbox DSL returns the kernel graph shape directly for agent validation and persistence.
 
 ### `run()` / `runGraph()`
 
@@ -192,18 +321,56 @@ async function run(wf: Workflow, opts?: RunOptions): Promise<WorkflowResult>;
 async function runGraph(...terminals: DslNode<never>[]): Promise<WorkflowResult>;
 ```
 
-`run()` executes the graph locally via `WorkflowRunner`. By default it resolves executors from `NodeRegistry.global`, or you can pass an explicit registry via `RunOptions.registry`.
+`run()` executes the graph locally and returns the last value each result node produced. An `Output` node is keyed by its `name` property, and any other node with no outgoing data edge is keyed by its node id. It throws if the run fails or a node reports an error. `runGraph(...terminals)` is `run(workflow(...terminals))`.
+
+`run()` resolves each node in this order: `RunOptions.registry`, then `NodeRegistry.global`, then the built-in packs (`base-nodes` plus the ElevenLabs, MiniMax, Transformers.js, Hugging Face, and Reve packs, each skipped if it cannot load), then the Python bridge. An unknown type throws `Unknown node type`.
+
+| `RunOptions` field | Meaning |
+|---|---|
+| `params` | Values for the workflow's typed parameters (the schema form), or Input node values. |
+| `userId` | User whose secrets resolve. Defaults to `"1"`, the CLI's local user. |
+| `authToken` | Bearer token for calls back to the owning NodeTool API. |
+| `registry` | A `NodeRegistry` consulted first. Use it for custom pack nodes. |
+| `secretResolver` | `(key, userId) => string \| null`. Without it, secrets come from environment variables only and a node with `requiredSettings` warns that its secret is missing. |
+| `bridgeOptions` | Python worker bridge options (`wsUrl`, `workerToken`). Otherwise `NODETOOL_WORKER_URL` and `NODETOOL_WORKER_TOKEN` apply. Graphs with Python nodes connect the bridge automatically. |
+
+### Running from the CLI
+
+`nodetool run <file.ts>` imports a TypeScript or JavaScript file, finds every exported `Workflow` (or workflow definition), runs each, and prints the outputs per export name. It fails with `No Workflow exports found` when the file exports none. `nodetool validate <file.ts>` checks the graph without running it, and `nodetool workflows export-dsl <id_or_file> [-o file]` writes a saved workflow as DSL source. See the [CLI reference](../cli.md).
+
+### Using nodes from a custom pack
+
+Packs are not loaded by `run()`, and they have no generated factory. Build the node with `createNode`, register the pack on a registry, and pass it as `RunOptions.registry`:
+
+```ts
+import { createNode, output, workflow, run } from "@nodetool-ai/dsl";
+import { NodeRegistry } from "@nodetool-ai/node-sdk";
+import { register } from "nodetool-mypack";
+
+const registry = new NodeRegistry();
+register(registry);
+
+const reversed = createNode<{ output: string }, "output">(
+  "mypack.text.Reverse",
+  { text: "hello" },
+  { outputNames: ["output"], defaultOutput: "output" }
+);
+const result = await run(workflow(output.output({ name: "reversed", value: reversed })), { registry });
+// { reversed: "olleh" }
+```
+
+`createNode(nodeType, inputs, opts)` takes `id`, `outputNames`, `defaultOutput`, `outputTypes`, `multiOutput`, `streaming`, `streamingInput`, `dynamicOutputs`, `inputMode`, and `outputCorrelation`. The generated factories fill these from node metadata. For a node that streams, copy the flags from its class (`streaming: true` when it overrides `genProcess` or declares `iteration`, `forward`, or `chunk` correlation).
 
 ---
 
 ## Namespaces
 
-All 441 nodes are organized into 69 namespaces. Import the namespace object and call factory functions:
+The generated barrel lists the available namespaces. Run `npm run codegen --workspace=packages/dsl` to enumerate the current factories. Import the namespace object and call factory functions:
 
 | Import | Description | Example |
 |--------|-------------|---------|
 | `constant` | Fixed-value nodes | `constant.integer({ value: 5 })` |
-| `text` | Text processing | `text.template({ string: "Hello, {{ name }}" })` |
+| `text` | Text processing | {% raw %}`text.template({ string: "Hello, {{ name }}" })`{% endraw %} |
 | `image` | Image I/O | `image.loadImageFile({ path: "..." })` |
 | `audio` | Audio processing | `audio.sliceAudio({ start: 0, end: 5 })` |
 | `video` | Video processing | `video.trim({ ... })` |
@@ -212,7 +379,7 @@ All 441 nodes are organized into 69 namespaces. Import the namespace object and 
 | `geminiText` | Google Gemini | `geminiText.groundedSearch({ ... })` |
 | `openaiText` | OpenAI text | `openaiText.webSearch({ ... })` |
 
-See the full list in `packages/dsl/src/generated/index.ts`.
+Namespaces under `nodetool.` drop the prefix (`nodetool.text` becomes `text`). Other dotted namespaces become camelCase (`gemini.text` becomes `geminiText`, `lib.image.color` becomes `libImageColor`, `vector` stays `vector`). Factory names are the last segment of the node type in camelCase (`nodetool.text.FilterString` becomes `text.filterString`), with a trailing underscore for JavaScript reserved words (`control.if_`) and for repeated names. See the full list in `packages/dsl/src/generated/index.ts`.
 
 ---
 
@@ -224,9 +391,9 @@ The factory functions are auto-generated from node metadata. To regenerate after
 npm run codegen --workspace=packages/dsl
 ```
 
-This reads all nodes registered in `@nodetool-ai/base-nodes`, introspects their metadata (inputs, outputs, types, defaults), and emits typed factory functions into `packages/dsl/src/generated/`.
+This reads all nodes in `ALL_BASE_NODES` from `@nodetool-ai/base-nodes`, introspects their metadata (inputs, outputs, types, defaults), and emits typed factory functions into `packages/dsl/src/generated/`. The same pass also writes the guest-side native flow modules into `packages/dsl/src/flow/generated/`. Pass `--graph` or `--flow` to regenerate one tree.
 
-Generated files are committed to git. The codegen script is at `packages/dsl/scripts/codegen.ts`.
+Generated files are committed to git. `npm run codegen:check --workspace=packages/dsl` writes nothing and exits 1 when either tree differs from the registry, and CI runs it. The codegen script is at `packages/dsl/scripts/codegen.ts`.
 
 ### Type Mapping
 
@@ -238,10 +405,16 @@ Generated files are committed to git. The codegen script is at `packages/dsl/scr
 | `image` | `ImageRef` |
 | `audio` | `AudioRef` |
 | `video` | `VideoRef` |
+| `text` | `TextRef` |
+| `dataframe` | `DataframeRef` |
+| `folder` | `FolderRef` |
+| `storyboard` | `StoryboardRef` |
 | `list[T]` | `T[]` |
 | `dict[K,V]` | `Record<K, V>` |
-| `enum` | string literal union |
-| `any` | `unknown` |
+| `enum` (with values) | string literal union |
+| optional types | `T \| undefined` |
+| `union[...]` | union of the mapped types |
+| `any` and any unmapped type (models, messages, 3D refs) | `unknown` |
 
 ---
 
@@ -255,4 +428,30 @@ Generated files are committed to git. The codegen script is at `packages/dsl/scr
 
 4. **Build workflows linearly** — create source nodes first, then processing nodes. The immutable API prevents cycles by construction.
 
-5. **Serialize for interop** — `JSON.stringify(workflow(node))` produces a workflow that can be loaded in the visual editor or executed via the API.
+5. **Choose the graph boundary**: host DSL graphs run through `run()` or the CLI adapter. Sandbox DSL graphs go directly to agent workflow tools.
+
+
+## Canonical source and visual editing
+
+`workflowToDsl(graph)` generates canonical TypeScript from a graph. It emits
+explicit IDs through generated factories or the low-level `createNode()`
+fallback so operation identity survives regeneration. The guarantee covers
+representable data-edge graphs and their executable semantics. Control edges
+are rejected. Editor layout, comments, variable names, constants, and spreads
+from the original source are not preserved.
+
+The initial authoring subset uses imports, `const` bindings, generated factory
+calls, literal options, references to earlier bindings, explicit output
+selection, and `workflow(...terminals)`. Literal arrays and objects are allowed
+where the input contract supports them. Symbolic nested objects are rejected.
+The exporter emits only the terminal form `workflow(...terminals)`. It does
+not emit typed schema callbacks, returned output objects, or `choose` and
+`map`. A saved graph exports as lowered nodes, and Input and Output nodes
+export as ordinary nodes.
+
+Arbitrary `if`, loops, mutation, dynamic property access, reflection, unknown
+spreads, and filesystem/network behavior fall outside the guaranteed visual
+editing subset. They may run during graph construction but do not become
+runtime graph control flow. Canonical export preserves graph semantics rather
+than arbitrary handwritten TypeScript. See the
+[authoring design and follow-up plan](ts-dsl-authoring-design.md).

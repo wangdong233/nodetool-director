@@ -53,75 +53,11 @@ function dirname(p: string): string {
 }
 import type { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base";
 import { ExportResultCode, type ExportResult } from "@opentelemetry/core";
+import type { TraceRecord } from "@nodetool-ai/protocol";
+import { externalSpanRecord } from "./run-trace-processor.js";
+export type { TraceRecord } from "@nodetool-ai/protocol";
 
-/**
- * Stable, analyzer-friendly JSON shape derived from a {@link ReadableSpan}.
- *
- * `start_time_ms` / `end_time_ms` are unix-epoch milliseconds; `duration_ms`
- * is end−start. Timestamps are ms (not ns) because that's what every
- * downstream consumer (logs, dashboards, LLMs) actually uses.
- */
-export interface TraceRecord {
-  trace_id: string;
-  span_id: string;
-  parent_span_id: string | null;
-  name: string;
-  kind: string;
-  start_time_ms: number;
-  end_time_ms: number;
-  duration_ms: number;
-  status: { code: string; message?: string };
-  attributes: Record<string, unknown>;
-  events: Array<{
-    name: string;
-    time_ms: number;
-    attributes?: Record<string, unknown>;
-  }>;
-  resource: Record<string, unknown>;
-}
-
-const SPAN_KINDS = ["INTERNAL", "SERVER", "CLIENT", "PRODUCER", "CONSUMER"];
-const STATUS_CODES = ["UNSET", "OK", "ERROR"];
-
-/**
- * Convert an OTel hrTime ([seconds, nanoseconds]) to integer unix-epoch ms.
- *
- * We round (rather than truncate) so a 0.6ms span doesn't read as 0ms, and
- * we keep the schema integer-typed for downstream JSONL consumers that
- * assume `start_time_ms`/`end_time_ms`/`duration_ms` are whole numbers.
- */
-function hrTimeToMs(hrTime: [number, number]): number {
-  return Math.round(hrTime[0] * 1000 + hrTime[1] / 1_000_000);
-}
-
-export function spanToRecord(span: ReadableSpan): TraceRecord {
-  const ctx = span.spanContext();
-  const startMs = hrTimeToMs(span.startTime);
-  const endMs = hrTimeToMs(span.endTime);
-  const statusCode = { code: STATUS_CODES[span.status.code] ?? "UNSET" };
-  const status = span.status.message
-    ? { ...statusCode, message: span.status.message }
-    : statusCode;
-  return {
-    trace_id: ctx.traceId,
-    span_id: ctx.spanId,
-    parent_span_id: span.parentSpanContext?.spanId ?? null,
-    name: span.name,
-    kind: SPAN_KINDS[span.kind] ?? "INTERNAL",
-    start_time_ms: startMs,
-    end_time_ms: endMs,
-    duration_ms: endMs - startMs,
-    status,
-    attributes: { ...span.attributes },
-    events: span.events.map((e) => {
-      const event = { name: e.name, time_ms: hrTimeToMs(e.time) };
-      return e.attributes
-        ? { ...event, attributes: { ...e.attributes } }
-        : event;
-    }),
-    resource: { ...span.resource.attributes }
-  };
-}
+export { spanToRecord } from "./span-record.js";
 
 /**
  * Append spans as JSONL to a file. Creates parent directories as needed.
@@ -157,7 +93,7 @@ export class JsonlFileSpanExporter implements SpanExporter {
         for (const span of spans) {
           await writeLine(
             this.stream,
-            JSON.stringify(spanToRecord(span)) + "\n"
+            JSON.stringify(externalSpanRecord(span)) + "\n"
           );
         }
         resultCallback({ code: ExportResultCode.SUCCESS });
@@ -241,7 +177,7 @@ export class StdoutSpanExporter implements SpanExporter {
   ): void {
     try {
       for (const span of spans) {
-        const rec = spanToRecord(span);
+        const rec = externalSpanRecord(span);
         if (this.format === "json") {
           process.stdout.write(JSON.stringify(rec) + "\n");
         } else {

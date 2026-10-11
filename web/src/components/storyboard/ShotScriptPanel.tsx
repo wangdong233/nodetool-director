@@ -11,6 +11,8 @@
  * saves it, so that action waits for the script's editor.
  */
 
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useState } from "react";
 import type { Shot } from "@nodetool-ai/protocol";
 import GraphicEqIcon from "@mui/icons-material/GraphicEq";
@@ -19,6 +21,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
   Box,
   Caption,
+  Card,
   Chip,
   EditorButton,
   FlexColumn,
@@ -48,8 +51,6 @@ import { linkedScriptId } from "../../lib/scriptStoryboardLink";
 import { useLinkedScript } from "../../hooks/storyboard/useLinkedScript";
 import { useReprojectShots } from "../../hooks/storyboard/useReprojectShots";
 import { shotDialogueDrifted } from "@nodetool-ai/protocol";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 interface ShotScriptPanelProps {
   boardId: string;
@@ -61,12 +62,6 @@ const STATUS_META: Record<LineStatus, { status: StatusType; label: string }> = {
   draft: { status: "default", label: "Not voiced" },
   stale: { status: "warning", label: "Stale" },
   voiced: { status: "success", label: "Voiced" }
-};
-
-const STATUS_LABEL_KEYS: Record<LineStatus, string> = {
-  draft: "storyboard:attrs.notVoiced",
-  stale: "storyboard:attrs.stale",
-  voiced: "storyboard:attrs.voiced"
 };
 
 const ScriptLineEntry = ({
@@ -111,19 +106,19 @@ const ScriptLineEntry = ({
         {line.text}
       </Text>
       <FlexRow align="center" gap={SPACING.micro} sx={{ flexShrink: 0 }}>
-        <StatusIndicator status={meta.status} label={t(STATUS_LABEL_KEYS[status], { defaultValue: meta.label })} />
+        <StatusIndicator status={meta.status} label={meta.label} />
         {voicing ? (
           <LoadingSpinner size={20} />
         ) : (
           <Tooltip
             title={
               !canVoice
-                ? t("storyboard:attrs.openTheScriptToVoiceThisLine", { defaultValue: "Open the script to voice this line" })
+                ? i18n.t("storyboard:attrs.openTheScriptToVoiceThisLine", { defaultValue: "Open the script to voice this line" })
                 : voice
                   ? status === "stale"
-                    ? t("storyboard:attrs.reVoiceLine", { defaultValue: "Re-voice line" })
-                    : t("editor:ui.voiceLine", { defaultValue: "Voice line" })
-                  : t("storyboard:attrs.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
+                    ? i18n.t("storyboard:attrs.reVoiceLine", { defaultValue: "Re-voice line" })
+                    : i18n.t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+                  : i18n.t("storyboard:attrs.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
             }
           >
             <span>
@@ -184,56 +179,52 @@ const LinkedScriptSection: React.FC<ShotScriptPanelProps> = ({
   const drifted = shotDialogueDrifted(shot, source.linesById);
 
   return (
-    <FlexColumn
-      gap={SPACING.xs}
-      fullWidth
-      sx={{
-        paddingTop: SPACING.xs,
-        borderTop: "1px solid",
-        borderColor: "divider"
-      }}
-    >
-      <FlexRow align="center" justify="space-between" gap={SPACING.xs} wrap>
-        <Caption color="secondary">{t("storyboard:attrs.script", { defaultValue: "Script" })}</Caption>
-        {drifted && (
-          <FlexRow align="center" gap={SPACING.xs}>
-            <StatusIndicator
-              status="warning"
-              label={t("storyboard:attrs.scriptChanged", { defaultValue: "Script changed" })}
-              tooltip={t("storyboard:attrs.theLinkedLinesReadDifferentlyFromThisShotText", { defaultValue: "The linked lines read differently from this shot's text" })}
-            />
-            {!readOnly && (
-              <EditorButton onClick={() => void onReproject()} disabled={reprojecting}>
-                Re-project
-              </EditorButton>
-            )}
-          </FlexRow>
+    <Card variant="outlined" padding="normal">
+      <FlexColumn gap={SPACING.xs} fullWidth>
+        <FlexRow align="center" justify="space-between" gap={SPACING.xs} wrap>
+          <Caption color="secondary">{t("storyboard:attrs.script", { defaultValue: "Script" })}</Caption>
+          {drifted && (
+            <FlexRow align="center" gap={SPACING.xs}>
+              <StatusIndicator
+                status="warning"
+                label={t("storyboard:attrs.scriptChanged", { defaultValue: "Script changed" })}
+                tooltip={t("storyboard:attrs.theLinkedLinesReadDifferentlyFromThisShotText", { defaultValue: "The linked lines read differently from this shot's text" })}
+              />
+              {!readOnly && (
+                <EditorButton onClick={() => void onReproject()} disabled={reprojecting}>
+                  Re-project
+                </EditorButton>
+              )}
+            </FlexRow>
+          )}
+        </FlexRow>
+
+        {lines.map((line) => (
+          <ScriptLineEntry
+            key={line.id}
+            scriptId={scriptId}
+            line={line}
+            cast={source.cast}
+            canVoice={!readOnly && draftLoaded}
+            onError={setError}
+          />
+        ))}
+
+        {lineIds.length > lines.length && (
+          <Caption color="warning">
+            {lineIds.length - lines.length === 1
+              ? "1 linked line is no longer in the script."
+              : `${lineIds.length - lines.length} linked lines are no longer in the script.`}
+          </Caption>
         )}
-      </FlexRow>
 
-      {lines.map((line) => (
-        <ScriptLineEntry
-          key={line.id}
-          scriptId={scriptId}
-          line={line}
-          cast={source.cast}
-          canVoice={!readOnly && draftLoaded}
-          onError={setError}
-        />
-      ))}
-
-      {lineIds.length > lines.length && (
-        <Caption color="warning">
-          {`${lineIds.length - lines.length} linked line(s) are no longer in the script.`}
-        </Caption>
-      )}
-
-      {error && (
-        <Box>
-          <Caption color="error">{error}</Caption>
-        </Box>
-      )}
-    </FlexColumn>
+        {error && (
+          <Box>
+            <Caption color="error">{error}</Caption>
+          </Box>
+        )}
+      </FlexColumn>
+    </Card>
   );
 };
 

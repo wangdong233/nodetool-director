@@ -13,12 +13,16 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import MovieRoundedIcon from "@mui/icons-material/MovieRounded";
 import {
+  AlertBanner,
   EditorButton,
   FlexColumn,
   FlexRow,
+  SPACING,
+  STUDIO_ASSISTANT_WIDTH,
   TabGroup,
   Tooltip
 } from "../components/ui_primitives";
+import ReportBugButton from "../components/support/ReportBugButton";
 import ScriptDocumentPane from "../components/script/ScriptDocumentPane";
 import ScriptCastPanel from "../components/script/ScriptCastPanel";
 import ScriptAgentPanel from "../components/script/ScriptAgentPanel";
@@ -36,13 +40,12 @@ import {
   useScriptSetupFlow,
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
+import DocumentLoadStatus from "../components/workspace/DocumentLoadStatus";
 import StudioShell from "./StudioShell";
-import { useTranslation } from "react-i18next";
 
 type DockTab = "cast" | "assistant";
 
 const StudioScriptPage = () => {
-  const { t } = useTranslation();
   const { scriptId = "" } = useParams<{ scriptId: string }>();
   const theme = useTheme();
   const navigate = useNavigate();
@@ -55,17 +58,8 @@ const StudioScriptPage = () => {
     ensureScript(scriptId);
   }, [ensureScript, scriptId]);
 
-  useScriptServerSync(scriptId);
+  const loadState = useScriptServerSync(scriptId);
   useScriptAgentBridge(scriptId);
-
-  const undo = useScriptStore((state) => state.undo);
-  const redo = useScriptStore((state) => state.redo);
-  useDocumentUndoShortcuts({
-    active: true,
-    enabled: true,
-    onUndo: useCallback(() => undo(scriptId), [undo, scriptId]),
-    onRedo: useCallback(() => redo(scriptId), [redo, scriptId])
-  });
 
   const { assemble, assembling, error: assembleError } =
     useAssembleScriptTimeline();
@@ -76,21 +70,29 @@ const StudioScriptPage = () => {
   const setupStage = useScriptSetupStage(scriptId);
   const setupConfig = useScriptSetupFlow({ scriptId });
 
+  const undo = useScriptStore((state) => state.undo);
+  const redo = useScriptStore((state) => state.redo);
+  // No document undo while the flow shows: it would revert the setup itself.
+  useDocumentUndoShortcuts({
+    active: true,
+    enabled: setupStage === "done",
+    onUndo: useCallback(() => undo(scriptId), [undo, scriptId]),
+    onRedo: useCallback(() => redo(scriptId), [redo, scriptId])
+  });
+
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
-      { value: "assistant", label: t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
+      { value: "cast", label: "Cast", icon: <GroupsIcon /> },
+      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
     ],
-    // Re-resolve when the language changes (including the async zh bundle
-    // landing at boot) — an empty dep array freezes English for the session.
-    [t]
+    []
   );
 
   const createVideo = (
     <Tooltip
       title={
         assembleError ??
-        t("editor:studio.layVoicedLines", { defaultValue: "Lay the voiced lines onto a timeline and open the video editor." })
+        "Lay the voiced lines onto a timeline and open the video editor."
       }
     >
       <span>
@@ -109,11 +111,21 @@ const StudioScriptPage = () => {
               });
           }}
         >
-          {assembling ? t("editor:ui.assembling") : t("editor:ui.createVideo", { defaultValue: "Create video" })}
+          {assembling ? "Assembling…" : "Create video"}
         </EditorButton>
       </span>
     </Tooltip>
   );
+
+  // The store seeds an empty script on mount, so rendering before the server
+  // copy lands looks like a script with no lines.
+  if (loadState !== "ready") {
+    return (
+      <StudioShell title={title || "Untitled script"}>
+        <DocumentLoadStatus state={loadState} label="script" />
+      </StudioShell>
+    );
+  }
 
   if (setupStage !== "done") {
     return (
@@ -125,12 +137,35 @@ const StudioScriptPage = () => {
 
   return (
     <StudioShell title={title || "Untitled script"} actions={createVideo}>
+      {/* The button's tooltip is out of reach for keyboard and touch, so a
+          failed Create video says why here. */}
+      {assembleError ? (
+        <AlertBanner
+          severity="error"
+          title="We couldn't create the video"
+          sx={{ margin: SPACING.md }}
+          action={
+            <ReportBugButton
+              label="Report this failure"
+              variant="outlined"
+              size="small"
+              context={{
+                source: "manual",
+                summary: "Studio script failed to create its video",
+                errorText: assembleError
+              }}
+            />
+          }
+        >
+          {assembleError}
+        </AlertBanner>
+      ) : null}
       <FlexRow fullHeight sx={{ flex: 1, minHeight: 0, position: "relative" }}>
         <ScriptDocumentPane scriptId={scriptId} readOnly={false} />
         <FlexColumn
           fullHeight
           sx={{
-            width: 320,
+            width: STUDIO_ASSISTANT_WIDTH,
             flexShrink: 0,
             minHeight: 0,
             borderLeft: `1px solid ${theme.vars.palette.divider}`

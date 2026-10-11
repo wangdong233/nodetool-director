@@ -43,7 +43,6 @@
     "closeEditor": "关闭编辑器",
     "cmdClickToInsert": "⌘ + 点击插入",
     "code": "代码",
-    "collectionsAreUsedToStoreAndSearchDocuments": "知识库用于存储和检索文档。支持以下文件格式：",
     "colorPicker": "取色器",
     "concept": "概念",
     "confidence": "置信度",
@@ -215,7 +214,6 @@
     "pageNavigationSlider": "页码导航滑块",
     "palettes": "色板",
     "panels": "面板",
-    "pdfsPowerPointWordExcel": "PDF、PowerPoint、Word、Excel",
     "peopleWithAccess": "有权访问的人",
     "performSemanticSimilaritySearches": "执行语义相似度搜索",
     "planned": "已规划",
@@ -357,6 +355,7 @@
     "thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself": "此客户端仅重定向到 localhost。请确认该连接是你自己发起的。",
     "jsScript": "JS 脚本",
     "assignSpeaker": "指派说话人",
-    "speakerChangeSpeaker": "{{name}}，更换说话人"
+    "speakerChangeSpeaker": "{{name}}，更换说话人",
+    "loadFailedUnavailable": "文档加载失败。它可能已不可用，或你需要重新连接。"
   }
 }

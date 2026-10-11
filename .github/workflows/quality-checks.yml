@@ -45,6 +45,21 @@ on:
         required: false
         type: boolean
         default: true
+      plan:
+        description: >-
+          JSON from `node scripts/ci-plan.mjs plan`: which legs this diff
+          needs. Empty runs every leg.
+        required: false
+        type: string
+        default: ""
+      base-sha:
+        description: >-
+          The commit the diff is measured from (the PR base, the merge group
+          base, or the commit before a push). It scopes Turbo's `--affected`,
+          the harness gate and the app test legs. Empty runs them in full.
+        required: false
+        type: string
+        default: ""
     outputs:
       all-passed:
         description: 'Whether every quality check leg passed.'
@@ -60,74 +75,362 @@ permissions:
   packages: read
 
 jobs:
-  # Which parts of the tree this push touched. The caller (test.yml) runs the
-  # gate on every PR with no `paths` filter, because a path-filtered REQUIRED
-  # check is left Pending forever when a push matches nothing. That decision is
-  # right for the required check and wrong for the expensive `docker` leg, so
-  # the paths are computed here instead and used to skip that one job.
+  # Which legs this diff needs. The caller (test.yml) runs `scripts/ci-plan.mjs`
+  # over the diff and passes its JSON as `plan`; this job turns it into the
+  # `static` and `built` matrices, so a leg the diff cannot reach never takes
+  # a runner. GitHub cannot drop a static matrix entry by expression (an
+  # `include` entry whose key was excluded comes back as a new combination),
+  # so the leg list lives here as data and jq filters it. An empty or
+  # unparseable plan runs every leg: only an explicit plan skips work.
   #
-  # The event of the caller propagates into a reusable workflow, so on
-  # pull_request the filter diffs against the PR base and on push against the
-  # commit before the push — both out of the box. It fails open: the step is
-  # continue-on-error and the output falls back to "true", so a filter that
-  # cannot resolve a base builds the image rather than waving it through.
+  # Each leg's `when` names the plan key that selects it (`always`: every run
+  # with code). `docker` is the image smoke test: the caller turns it off on
+  # push, where docker.yml builds main and gates the deploy.
+  #
+  # Notes on the legs, kept beside their definitions:
+  #
+  # `deps`:
+  #   Workspace, circular-dependency, key-boundary, coupled-dependency,
+  #   and lockfile-sync guards (run on source, no build).
+  #
+  # `lint`:
+  #   oxlint + web design-token lint. Neither needs package dist.
+  #
+  # `typescript-6-fallback`:
+  #   Keep the JavaScript compiler rollback exercised after the native
+  #   compiler becomes the default. This is intentionally a separate
+  #   static leg so it remains visible in the required quality gate.
+  #
+  # `typecheck`:
+  #   Three cheap checks in one leg:
+  #     1. `npm run typecheck` — web, electron, mobile.
+  #     2. The web design-token lint plus the base-nodes parity/contract
+  #        suite (Python-parity + example-workflow contracts). These
+  #        encode intentional behavior contracts (see the revert in
+  #        commit 2c0fd8fad), hence is-test:false — they stay a required
+  #        gate even when skip-tests drops the bulk test legs.
+  #     3. `npm run validate:examples` — rot detector for the shipped
+  #        example workflows, both `packages/**/examples/` (templates and
+  #        app bundles) and `examples/workflows/` (the CLI samples):
+  #        `nodetool validate` against the current node
+  #        registry (unknown node types, missing required properties,
+  #        unselected models, dangling/mis-typed edges).
+  #        --warnings-as-errors (set in the script) so a warning-level
+  #        drift fails the gate too. File targets need no DB, only the
+  #        built node registry from the `build` job's dist.
+  #        Then `npm run build:example-apps:check` fails when a shipped
+  #        app bundle no longer matches what its spec and template graphs
+  #        build, so a template fix reaches the app that binds it.
+  #     4. `npm run codegen:dsl:check` — the same rot detector for the
+  #        generated TypeScript DSL (packages/dsl/src/generated). It is
+  #        the graph-authoring surface agents write against, so a node
+  #        the registry no longer has must not survive there. Reads the
+  #        built node registry, writes nothing.
+  #     5. `npm run build:sandbox-dsl:check` — the same detector one layer
+  #        down. `@nodetool-ai/sandbox-dsl` ships its own built copy of
+  #        that DSL, and the copy is what a Code node imports, so it must
+  #        not drift from `packages/dsl` either. Writes nothing.
+  #     6. `npm run build:sandbox-flow:check` — the same, for
+  #        `@nodetool-ai/sandbox-flow`: the guest copy of the native flow
+  #        surface (packages/dsl/src/flow/generated plus its guest core).
+  #     7. `npm run typecheck:examples` — `tsc --noEmit` over the three
+  #        example apps (chat_app, nextjs-vercel, nextjs-cloudflare).
+  #        They compile against the live tRPC router and SDK types, so
+  #        this is what fails a PR that prunes an API procedure an
+  #        example still calls (threads.create in #4448 shipped exactly
+  #        that break). Deliberately typecheck only — the full
+  #        `next build`s cost minutes each and belong to deploys, not
+  #        the PR gate.
+  #     8. `npm run capabilities:check` — the capability coverage table
+  #        (packages/cli/src/harness/capability-table.ts) regenerated
+  #        from the live registry and diffed against the checked-in one.
+  #        Fails on a capability with no suite, no eval case and no gap
+  #        note, and on a table the diff left stale. Imports
+  #        packages/cli/dist and packages/agents/dist, both in the
+  #        `build` job's artifact; nothing else ran it, so the invariant
+  #        packages/agents/AGENTS.md documents held only when someone
+  #        remembered to run it by hand.
+  #
+  # `test-packages-websocket`:
+  #   The four backend test shards. Each runs `turbo run test` over a
+  #   disjoint slice of the workspace graph: the two heaviest packages
+  #   alone, the node packages (`./packages/*-nodes` plus the packages
+  #   only they use), and everything else. The `core` shard runs
+  #   game-runtime, game-renderer, and cli serially before the other packages
+  #   because their script deadlines are sensitive to CPU contention.
+  #   It also carries the two root-level
+  #   suites (`test:oxlint-rules`, `test:scripts`), which take a second.
+  #   The `nodes` and `core` filter lists are the
+  #   same list with the sign flipped — a package added to one must be
+  #   removed from the other, or it runs twice or not at all.
+  #
+  #   `$TURBO_AFFECTED` (set on the `built` Run step) is `--affected`
+  #   when there is a base commit and the plan's `turbo_affected` is
+  #   true: turbo intersects it with the shard's `--filter`. A shard the
+  #   diff cannot reach is not in the matrix at all. It is empty in the
+  #   nightly full run, and for any diff with a file outside every
+  #   workspace directory (a full plan, or a path a workspace owns
+  #   through EXTRA_WORKSPACE_PATHS): turbo attributes such a file to the
+  #   root, which no package depends on, so `--affected` would select no
+  #   task. The shard then runs its whole slice and the task hashes
+  #   decide what reruns. Needs fetch-depth: 0 for the SCM diff. The flag
+  #   is passed to turbo directly rather than through
+  #   `npm run test:packages -- --affected`: npm appends `--` arguments
+  #   to the END of the script string, so on the old `turbo && npm run
+  #   a && npm run b` script the flag landed on the last command and
+  #   turbo ran every package on every PR.
+  #
+  #   mesa-vulkan-drivers ships lavapipe (CPU Vulkan ICD) so Dawn can
+  #   acquire a WebGPU adapter on GPU-less runners — without it the
+  #   shader-backed base-nodes tests fail with "No WebGPU adapter
+  #   available (Node/Dawn)". ffmpeg decodes the clip the runtime's
+  #   video-frame fallback samples for providers with no video content
+  #   part; without it those tests have nothing to decode. Every shard
+  #   installs both: the apt step costs seconds, and a package that
+  #   moves between shards must not lose its driver on the way.
+  #
+  # `test-packages-nodes`:
+  #   This shard also runs the Blender integration suites
+  #   (`packages/blender-nodes/tests/*`), which skip without a Blender
+  #   binary. The X11/GL libraries below are what the Blender tarball
+  #   links against for a headless (`-b`) run — EEVEE in `-b` on a
+  #   display-less runner needs a GL/EGL context (`libegl1`), and older
+  #   tarballs also dlopen `libsm6`; the Install Blender
+  #   step further down puts 5.2 on PATH and sets
+  #   NODETOOL_REQUIRE_BLENDER=1, so a missing Blender fails the
+  #   suite instead of skipping it.
+  #
+  # `bundle`:
+  #   The packaged-backend release gate: `npm run backend:smoke` stages
+  #   the packaged backend and boots it. Nothing outside the release
+  #   workflow used to build the bundle, so a packaging regression only
+  #   surfaced once a release was cut — and the release's smoke-launch
+  #   spawns the Electron main process, which survives its backend child
+  #   dying. v0.7.1-nightly.20260728.713 shipped a sharp/@img major skew
+  #   that killed server.mjs on import with every other check green.
+  #   `nodetool harness gate`'s `backend-smoke` selfcheck runs the same
+  #   command but is `cost: "expensive"`, so the default gate (below)
+  #   skips it — this leg is what keeps it on every PR. The Ring 0
+  #   golden journeys used to run here too
+  #   (docs/RELIABILITY_TASKS.md Track F, task F2); they moved to the
+  #   `harness-gate` leg's `reliability-ring0` selfcheck, which runs on
+  #   any diff touching `packages/kernel/` (or the other
+  #   `workflow-execution` surface paths) without hand-listing them here.
+  #   is-test:false — a release gate, not a unit suite, so it stays
+  #   required even when skip-tests drops the bulk test legs.
+  #
+  # `harness-gate`:
+  #   `nodetool harness gate` — see the `built` job's header comment
+  #   below for what it does and why the old `reliability:ring0` half of
+  #   `bundle` and the standalone `app-build` leg both folded into it.
+  #   `$CI_BASE_SHA` is set on the `built` Run step, so no `${{ }}`
+  #   templating is needed inside the matrix command. `--json` for a
+  #   machine-readable log (rule 6, docs/HARNESS_FIRST.md). is-test:false
+  #   for the same reason as
+  #   `bundle`: this is a gate, not a unit suite.
+  #
   changes:
     name: changes
-    # Nothing to decide when the caller already knows the diff is prose, or
-    # that it never leaves marketing/: the only consumer of this job is the
-    # `docker` leg, which is skipped in both cases too.
     if: ${{ !inputs.docs-only && inputs.shared }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      docker: ${{ steps.filter.outputs.docker || 'true' }}
+      static: ${{ steps.legs.outputs.static }}
+      built: ${{ steps.legs.outputs.built }}
+      docker: ${{ steps.legs.outputs.docker }}
+      turbo-affected: ${{ steps.legs.outputs.turbo-affected }}
+      integration: ${{ steps.legs.outputs.integration }}
+      workflow-runner-e2e: ${{ steps.legs.outputs.workflow-runner-e2e }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Detect docker-relevant changes
-        id: filter
-        continue-on-error: true
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        with:
-          filters: |
-            docker:
-              - 'Dockerfile'
-              - '.dockerignore'
-              - 'docker-compose.yml'
-              - 'packages/**'
-              - 'web/**'
-              - 'scripts/docker-smoke.mjs'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/quality-checks.yml'
+      - name: Select legs from the plan
+        id: legs
+        env:
+          PLAN: ${{ inputs.plan }}
+        run: |
+          set -euo pipefail
+          if ! jq -e 'type == "object"' <<<"${PLAN:-null}" >/dev/null 2>&1; then
+            echo "::notice::No usable plan; running every leg."
+            PLAN='{"full":true,"web":"full","electron":true,"mobile":true,"packages_websocket":true,"packages_agents":true,"packages_nodes":true,"packages_core":true,"integration":true,"workflow_runner_e2e":true,"tsc6":true,"docker":true,"blender":true}'
+          fi
+          select_legs() {
+            jq -c --argjson p "$PLAN" '
+              def on($w): $w == "always" or $p[$w] == true
+                or ($w == "web_full" and $p.web == "full")
+                or ($w == "web_related" and $p.web == "related")
+                or ($w == "electron_or_mobile" and ($p.electron == true or $p.mobile == true));
+              map(select(on(.when)) | del(.when)
+                | if .check == "test-electron-mobile" then .["mobile-deps"] = ($p.mobile == true | tostring) else . end
+                | if .check == "test-packages-nodes" then .blender = ($p.blender != false | tostring) else . end)
+              | {include: .}'
+          }
+          static=$(select_legs <<'JSON'
+          [
+            {
+              "check": "deps",
+              "command": "node scripts/check-workspace-deps.mjs && node scripts/check-circular-deps.mjs && node scripts/check-key-boundaries.mjs && node scripts/check-coupled-deps.mjs && node scripts/check-lockfile-sync.mjs && node scripts/check-execution-boundary.mjs && npm run check:lockfile-libc && npm run check:document-sync && npm run check:agents-docs",
+              "when": "always"
+            },
+            {
+              "check": "lint",
+              "command": "npm run lint",
+              "when": "always"
+            },
+            {
+              "check": "typescript-6-fallback",
+              "command": "npm run build:tsc6",
+              "when": "tsc6"
+            }
+          ]
+          JSON
+          )
+          built=$(select_legs <<'JSON'
+          [
+            {
+              "check": "typecheck",
+              "command": "npm run typecheck && npm test --workspace=@nodetool-ai/base-nodes -- parity example-workflows && npm run validate:examples && npm run build:example-apps:check && npm run codegen:dsl:check && npm run build:sandbox-dsl:check && npm run build:sandbox-flow:check && npm run typecheck:examples && npm run capabilities:check",
+              "mobile-deps": "true",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg",
+              "is-test": "false",
+              "fetch-depth": "1",
+              "when": "always",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-packages-websocket",
+              "command": "npx turbo run test --filter=@nodetool-ai/websocket $TURBO_AFFECTED",
+              "mobile-deps": "false",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg",
+              "is-test": "true",
+              "fetch-depth": "0",
+              "when": "packages_websocket",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-packages-agents",
+              "command": "npx turbo run test --filter=@nodetool-ai/agents $TURBO_AFFECTED",
+              "mobile-deps": "false",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg",
+              "is-test": "true",
+              "fetch-depth": "0",
+              "when": "packages_agents",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-packages-nodes",
+              "command": "npx turbo run test --filter='./packages/*-nodes' --filter=@nodetool-ai/gpu --filter=@nodetool-ai/workflow-runner --filter=@nodetool-ai/nodes-utils $TURBO_AFFECTED",
+              "mobile-deps": "false",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg libgl1 libegl1 libsm6 libxi6 libxrender1 libxfixes3 libxkbcommon0 libxxf86vm1",
+              "is-test": "true",
+              "fetch-depth": "0",
+              "when": "packages_nodes",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-packages-core",
+              "command": "npm run test:oxlint-rules && npm run test:scripts && npx turbo run test --filter=@nodetool-ai/game-runtime --filter=@nodetool-ai/game-renderer --filter=@nodetool-ai/cli --concurrency=1 $TURBO_AFFECTED && npx turbo run test --filter='./packages/*' --filter='./reliability/*' --filter='!./packages/*-nodes' --filter='!@nodetool-ai/gpu' --filter='!@nodetool-ai/workflow-runner' --filter='!@nodetool-ai/nodes-utils' --filter='!@nodetool-ai/websocket' --filter='!@nodetool-ai/agents' --filter='!@nodetool-ai/game-runtime' --filter='!@nodetool-ai/game-renderer' --filter='!@nodetool-ai/cli' $TURBO_AFFECTED",
+              "mobile-deps": "false",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg",
+              "is-test": "true",
+              "fetch-depth": "0",
+              "when": "packages_core",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-web-1",
+              "command": "npm test --workspace=web -- --shard=1/3 --cacheDirectory=\"$GITHUB_WORKSPACE/.jest-cache\"",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "true",
+              "fetch-depth": "1",
+              "jest-cache": "web-1",
+              "when": "web_full"
+            },
+            {
+              "check": "test-web-2",
+              "command": "npm test --workspace=web -- --shard=2/3 --cacheDirectory=\"$GITHUB_WORKSPACE/.jest-cache\"",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "true",
+              "fetch-depth": "1",
+              "jest-cache": "web-2",
+              "when": "web_full"
+            },
+            {
+              "check": "test-web-3",
+              "command": "npm test --workspace=web -- --shard=3/3 --cacheDirectory=\"$GITHUB_WORKSPACE/.jest-cache\"",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "true",
+              "fetch-depth": "1",
+              "jest-cache": "web-3",
+              "when": "web_full"
+            },
+            {
+              "check": "test-web",
+              "command": "node scripts/ci-plan.mjs run web --base \"$CI_BASE_SHA\"",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "true",
+              "fetch-depth": "1",
+              "when": "web_related",
+              "jest-cache": ""
+            },
+            {
+              "check": "test-electron-mobile",
+              "command": "node scripts/ci-plan.mjs run electron mobile ${CI_BASE_SHA:+--base \"$CI_BASE_SHA\"}",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "true",
+              "fetch-depth": "1",
+              "when": "electron_or_mobile",
+              "jest-cache": ""
+            },
+            {
+              "check": "bundle",
+              "command": "npm run backend:smoke",
+              "mobile-deps": "false",
+              "extra-apt": "",
+              "is-test": "false",
+              "fetch-depth": "1",
+              "when": "always",
+              "jest-cache": ""
+            },
+            {
+              "check": "harness-gate",
+              "command": "if [ -n \"$CI_BASE_SHA\" ]; then npm run dev:nodetool -- harness gate --base \"$CI_BASE_SHA\" --json --timeout 900; else npm run dev:nodetool -- harness gate --all --json --timeout 900; fi",
+              "mobile-deps": "false",
+              "extra-apt": "mesa-vulkan-drivers ffmpeg",
+              "is-test": "false",
+              "fetch-depth": "0",
+              "when": "always",
+              "jest-cache": ""
+            }
+          ]
+          JSON
+          )
+          {
+            echo "static=$static"
+            echo "built=$built"
+            echo "docker=$(jq -r --arg event "$GITHUB_EVENT_NAME" '.docker == true and $event != "push"' <<<"$PLAN")"
+            echo "turbo-affected=$(jq -r '.turbo_affected == true' <<<"$PLAN")"
+            echo "integration=$(jq -r '.integration == true' <<<"$PLAN")"
+            echo "workflow-runner-e2e=$(jq -r '.workflow_runner_e2e == true' <<<"$PLAN")"
+          } >> "$GITHUB_OUTPUT"
+          jq -r '.include[].check' <<<"$built" | sed 's/^/built: /'
+          jq -r '.include[].check' <<<"$static" | sed 's/^/static: /'
 
   # Static checks that need no built packages. Kept independent of `build` so
   # the fastest signals (lint, dependency guards) are not delayed behind the
   # ~minutes-long package build. Each leg surfaces its own status check.
   static:
     name: ${{ matrix.check }}
-    if: ${{ !inputs.docs-only && inputs.shared }}
+    needs: changes
+    if: ${{ needs.changes.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: ${{ inputs.fail-fast }}
-      matrix:
-        include:
-          # Workspace, circular-dependency, key-boundary, coupled-dependency,
-          # and lockfile-sync guards (run on source, no build).
-          - check: deps
-            command: node scripts/check-workspace-deps.mjs && node scripts/check-circular-deps.mjs && node scripts/check-key-boundaries.mjs && node scripts/check-coupled-deps.mjs && node scripts/check-lockfile-sync.mjs && node scripts/check-execution-boundary.mjs
-          # oxlint + web design-token lint. Neither needs package dist.
-          - check: lint
-            command: npm run lint
-          # Keep the JavaScript compiler rollback exercised after the native
-          # compiler becomes the default. This is intentionally a separate
-          # static leg so it remains visible in the required quality gate.
-          - check: typescript-6-fallback
-            command: npm run build:tsc6
+      matrix: ${{ fromJSON(needs.changes.outputs.static) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -154,10 +457,24 @@ jobs:
           echo "::endgroup::"
 
       - name: Run ${{ matrix.check }}
+        env:
+          NODETOOL_CHECK_COMMAND: ${{ matrix.command }}
         run: |
           echo "::group::${{ matrix.check }}"
-          ${{ matrix.command }}
+          bash -e -o pipefail -c "$NODETOOL_CHECK_COMMAND" || exit $?
           echo "::endgroup::"
+
+      - name: Check production release workflow contracts
+        if: matrix.check == 'lint'
+        run: node --test .github/tests/docker-deploy.test.mjs
+
+      - name: Install Chromium for agentic QA checks
+        if: matrix.check == 'lint'
+        run: npx playwright install --with-deps chromium
+
+      - name: Check agentic QA origin restrictions
+        if: matrix.check == 'lint'
+        run: npm --prefix web run test:agentic-qa
 
   # Build the ~55 backend packages ONCE and publish their dist as an artifact.
   # The `built` legs below consume it instead of each rebuilding from scratch,
@@ -209,7 +526,8 @@ jobs:
 
   # Checks that need the built packages on disk. They download the dist artifact
   # and set build-packages:false, so they skip the redundant per-leg build. The
-  # app legs (typecheck/test-app) and parity/base-nodes run plain tsc/jest/vitest
+  # app legs (typecheck, test-web*, test-electron-mobile) and parity/base-nodes
+  # run plain tsc/jest/vitest
   # against the prebuilt dist; test-packages runs Turbo and rides the warm
   # per-SHA Turbo cache the `build` job populated.
   #
@@ -222,7 +540,7 @@ jobs:
   # problem at a time.
   #
   # `harness-gate` runs `nodetool harness gate` (docs/HARNESS_FIRST.md § The
-  # gate): it maps the diff against `origin/main` onto the surfaces in
+  # gate): it maps the diff against `inputs.base-sha` onto the surfaces in
   # `packages/cli/src/harness/registry.ts` and runs the keyless selfcheck of
   # every harness covering a touched surface — the diff selects the checks,
   # not this file. This is what replaced the old `reliability:ring0` half of
@@ -236,11 +554,18 @@ jobs:
   # `--timeout` bounds each selfcheck so a hang fails the leg
   # instead of the job's own timeout cutting it off with no verdict. A PR that
   # touches nothing the registry maps runs no selfcheck at all — intended, not
-  # a gap: see docs/HARNESS_FIRST.md. On push to main there is no PR diff to
-  # read, so the leg runs every selfcheck instead (`--all`). Either way the
+  # a gap: see docs/HARNESS_FIRST.md. With no base (the nightly full run) the
+  # leg runs every selfcheck instead (`--all`). Either way the
   # gate skips `cost: "expensive"` selfchecks (Blender render, the packaged
   # backend, …) unless `--expensive` is passed, so `backend:smoke` stays a
   # leg of its own rather than folding into this one.
+  #
+  # `suiteOnly` selfchecks (they only re-run workspace test suites) are skipped
+  # by the gate unless `--include-suites` is passed. No flag here: the
+  # `test-packages-*` and app test legs run those suites (`--affected` with a
+  # base, in full nightly), and test.yml passes `skip-tests: false`. If a
+  # caller ever sets `skip-tests: true`, add `--include-suites` below, because
+  # this leg is `is-test: "false"` and would then be the only one left.
   #
   # The backend suite goes the other way: it is split across four runners
   # (`test-packages-*`). As one leg it was the gate's critical path by about
@@ -251,190 +576,32 @@ jobs:
   # re-importing the whole backend per test file, so they are bounded by
   # cores, not by the rest of the graph. The node packages and everything
   # else split the remaining two.
+  #
+  # The web Jest suite (~1,600 files, ~7.5 min on one runner) is split the
+  # same way, three `--shard`s, when a package it depends on changed. When
+  # only files under web/src changed, one `test-web` leg runs the tests
+  # related to them (`scripts/ci-plan.mjs run web`). Electron and mobile are
+  # small suites and share one leg.
   built:
     name: ${{ matrix.check }}
-    needs: build
+    needs: [changes, build]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: ${{ inputs.fail-fast }}
-      matrix:
-        include:
-          # Three cheap checks in one leg:
-          #   1. `npm run typecheck` — web, electron, mobile.
-          #   2. The web design-token lint plus the base-nodes parity/contract
-          #      suite (Python-parity + example-workflow contracts). These
-          #      encode intentional behavior contracts (see the revert in
-          #      commit 2c0fd8fad), hence is-test:false — they stay a required
-          #      gate even when skip-tests drops the bulk test legs.
-          #   3. `npm run validate:examples` — rot detector for the shipped
-          #      example workflows, both `packages/**/examples/` (templates and
-          #      app bundles) and `examples/workflows/` (the CLI samples):
-          #      `nodetool validate` against the current node
-          #      registry (unknown node types, missing required properties,
-          #      unselected models, dangling/mis-typed edges).
-          #      --warnings-as-errors (set in the script) so a warning-level
-          #      drift fails the gate too. File targets need no DB, only the
-          #      built node registry from the `build` job's dist.
-          #   4. `npm run codegen:dsl:check` — the same rot detector for the
-          #      generated TypeScript DSL (packages/dsl/src/generated). It is
-          #      the graph-authoring surface agents write against, so a node
-          #      the registry no longer has must not survive there. Reads the
-          #      built node registry, writes nothing.
-          #   5. `npm run build:sandbox-dsl:check` — the same detector one layer
-          #      down. `@nodetool-ai/sandbox-dsl` ships its own built copy of
-          #      that DSL, and the copy is what a Code node imports, so it must
-          #      not drift from `packages/dsl` either. Writes nothing.
-          #   6. `npm run build:sandbox-flow:check` — the same, for
-          #      `@nodetool-ai/sandbox-flow`: the guest copy of the native flow
-          #      surface (packages/dsl/src/flow/generated plus its guest core).
-          #   7. `npm run typecheck:examples` — `tsc --noEmit` over the three
-          #      example apps (chat_app, nextjs-vercel, nextjs-cloudflare).
-          #      They compile against the live tRPC router and SDK types, so
-          #      this is what fails a PR that prunes an API procedure an
-          #      example still calls (threads.create in #4448 shipped exactly
-          #      that break). Deliberately typecheck only — the full
-          #      `next build`s cost minutes each and belong to deploys, not
-          #      the PR gate.
-          #   8. `npm run capabilities:check` — the capability coverage table
-          #      (packages/cli/src/harness/capability-table.ts) regenerated
-          #      from the live registry and diffed against the checked-in one.
-          #      Fails on a capability with no suite, no eval case and no gap
-          #      note, and on a table the diff left stale. Imports
-          #      packages/cli/dist and packages/agents/dist, both in the
-          #      `build` job's artifact; nothing else ran it, so the invariant
-          #      packages/agents/AGENTS.md documents held only when someone
-          #      remembered to run it by hand.
-          - check: typecheck
-            command: npm run typecheck && npm run lint:design --workspace=web && npm test --workspace=@nodetool-ai/base-nodes -- parity example-workflows && npm run validate:examples && npm run codegen:dsl:check && npm run build:sandbox-dsl:check && npm run build:sandbox-flow:check && npm run typecheck:examples && npm run capabilities:check
-            mobile-deps: "true"
-            extra-apt: ""
-            is-test: "false"
-            fetch-depth: "1"
-          # The four backend test shards. Each runs `turbo run test` over a
-          # disjoint slice of the workspace graph: the two heaviest packages
-          # alone, the node packages (`./packages/*-nodes` plus the packages
-          # only they use), and everything else. The `core` shard also carries
-          # the two root-level suites (`test:oxlint-rules`, `test:scripts`),
-          # which take a second. The `nodes` and `core` filter lists are the
-          # same list with the sign flipped — a package added to one must be
-          # removed from the other, or it runs twice or not at all.
-          #
-          # `$TURBO_AFFECTED` (set on the Run step below) is `--affected` on
-          # PRs: turbo intersects it with the shard's `--filter`, so a shard
-          # whose packages the diff cannot reach prunes to zero tasks and
-          # reports green in setup time. On push to main it is empty and the
-          # full slice runs. Needs fetch-depth: 0 for the SCM diff. The flag
-          # is passed to turbo directly rather than through
-          # `npm run test:packages -- --affected`: npm appends `--` arguments
-          # to the END of the script string, so on the old `turbo && npm run
-          # a && npm run b` script the flag landed on the last command and
-          # turbo ran every package on every PR.
-          #
-          # mesa-vulkan-drivers ships lavapipe (CPU Vulkan ICD) so Dawn can
-          # acquire a WebGPU adapter on GPU-less runners — without it the
-          # shader-backed base-nodes tests fail with "No WebGPU adapter
-          # available (Node/Dawn)". ffmpeg decodes the clip the runtime's
-          # video-frame fallback samples for providers with no video content
-          # part; without it those tests have nothing to decode. Every shard
-          # installs both: the apt step costs seconds, and a package that
-          # moves between shards must not lose its driver on the way.
-          - check: test-packages-websocket
-            command: npx turbo run test --filter=@nodetool-ai/websocket $TURBO_AFFECTED
-            mobile-deps: "false"
-            extra-apt: "mesa-vulkan-drivers ffmpeg"
-            is-test: "true"
-            fetch-depth: "0"
-          - check: test-packages-agents
-            command: npx turbo run test --filter=@nodetool-ai/agents $TURBO_AFFECTED
-            mobile-deps: "false"
-            extra-apt: "mesa-vulkan-drivers ffmpeg"
-            is-test: "true"
-            fetch-depth: "0"
-          # This shard also runs the Blender integration suites
-          # (`packages/blender-nodes/tests/*`), which skip without a Blender
-          # binary. The X11/GL libraries below are what the Blender tarball
-          # links against for a headless (`-b`) run — EEVEE in `-b` on a
-          # display-less runner needs a GL/EGL context (`libegl1`), and older
-          # tarballs also dlopen `libsm6`; the Install Blender
-          # step further down puts 5.2 on PATH and sets
-          # NODETOOL_REQUIRE_BLENDER=1, so a missing Blender fails the
-          # suite instead of skipping it.
-          - check: test-packages-nodes
-            command: npx turbo run test --filter='./packages/*-nodes' --filter=@nodetool-ai/gpu --filter=@nodetool-ai/workflow-runner --filter=@nodetool-ai/nodes-utils $TURBO_AFFECTED
-            mobile-deps: "false"
-            extra-apt: "mesa-vulkan-drivers ffmpeg libgl1 libegl1 libsm6 libxi6 libxrender1 libxfixes3 libxkbcommon0 libxxf86vm1"
-            is-test: "true"
-            fetch-depth: "0"
-          - check: test-packages-core
-            command: npm run test:oxlint-rules && npm run test:scripts && npx turbo run test --filter='./packages/*' --filter='./reliability/*' --filter='!./packages/*-nodes' --filter='!@nodetool-ai/gpu' --filter='!@nodetool-ai/workflow-runner' --filter='!@nodetool-ai/nodes-utils' --filter='!@nodetool-ai/websocket' --filter='!@nodetool-ai/agents' $TURBO_AFFECTED
-            mobile-deps: "false"
-            extra-apt: "mesa-vulkan-drivers ffmpeg"
-            is-test: "true"
-            fetch-depth: "0"
-          - check: test-app
-            command: npm run test
-            mobile-deps: "true"
-            extra-apt: ""
-            is-test: "true"
-            fetch-depth: "1"
-          # The packaged-backend release gate: `npm run backend:smoke` stages
-          # the packaged backend and boots it. Nothing outside the release
-          # workflow used to build the bundle, so a packaging regression only
-          # surfaced once a release was cut — and the release's smoke-launch
-          # spawns the Electron main process, which survives its backend child
-          # dying. v0.7.1-nightly.20260728.713 shipped a sharp/@img major skew
-          # that killed server.mjs on import with every other check green.
-          # `nodetool harness gate`'s `backend-smoke` selfcheck runs the same
-          # command but is `cost: "expensive"`, so the default gate (below)
-          # skips it — this leg is what keeps it on every PR. The Ring 0
-          # golden journeys used to run here too
-          # (docs/RELIABILITY_TASKS.md Track F, task F2); they moved to the
-          # `harness-gate` leg's `reliability-ring0` selfcheck, which runs on
-          # any diff touching `packages/kernel/` (or the other
-          # `workflow-execution` surface paths) without hand-listing them here.
-          # is-test:false — a release gate, not a unit suite, so it stays
-          # required even when skip-tests drops the bulk test legs.
-          - check: bundle
-            command: npm run backend:smoke
-            mobile-deps: "false"
-            extra-apt: ""
-            is-test: "false"
-            fetch-depth: "1"
-          # `nodetool harness gate` — see the `built` job's header comment
-          # above for what it does and why the old `reliability:ring0` half of
-          # `bundle` and the standalone `app-build` leg both folded into it.
-          # `$GITHUB_EVENT_NAME` is a default runner env var, so no `${{ }}`
-          # templating is needed inside the matrix command. `--json` for a
-          # machine-readable log (rule 6, docs/HARNESS_FIRST.md). is-test:false
-          # for the same reason as
-          # `bundle`: this is a gate, not a unit suite.
-          - check: harness-gate
-            command: if [ "$GITHUB_EVENT_NAME" = "push" ]; then npm run dev:nodetool -- harness gate --all --json --timeout 900; else npm run dev:nodetool -- harness gate --base origin/main --json --timeout 900; fi
-            mobile-deps: "false"
-            extra-apt: ""
-            is-test: "false"
-            fetch-depth: "0"
+      matrix: ${{ fromJSON(needs.changes.outputs.built) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
           # Most legs only need the tip; the test-packages shards and
           # harness-gate need full history — the former for Turbo's
-          # `--affected` diff against the PR base commit, the latter so
-          # `git diff --name-only origin/main...HEAD` (inside `harness gate
-          # --base origin/main`) has the commits to diff.
+          # `--affected` diff against `inputs.base-sha`, the latter so
+          # `git diff --name-only <base-sha>...HEAD` (inside `harness gate
+          # --base`) has the commits to diff. The app legs that run
+          # `scripts/ci-plan.mjs run` fetch the one base commit they diff
+          # against themselves.
           fetch-depth: ${{ matrix.fetch-depth }}
-
-      # `harness-gate` diffs against the named ref `origin/main`, not a SHA.
-      # fetch-depth: 0 above already fetches every head into refs/remotes/
-      # origin/*; this refreshes `main` in case the checkout ran against a
-      # stale mirror. Never add `--prune` here: with a single refspec it
-      # deleted `origin/main` instead of updating it. A no-op on every other
-      # leg.
-      - name: Fetch origin/main for the harness gate
-        if: matrix.check == 'harness-gate'
-        run: git fetch --no-tags origin main:refs/remotes/origin/main
 
       - name: Set up Node, install deps
         uses: ./.github/actions/setup-build
@@ -442,6 +609,35 @@ jobs:
           extra-apt: ${{ matrix.extra-apt }}
           # The dist comes from the artifact below; don't rebuild it per leg.
           build-packages: "false"
+
+      - name: Install Chromium for native 3D tests
+        if: matrix.check == 'test-packages-core' || matrix.check == 'test-packages-agents' || matrix.check == 'harness-gate'
+        run: npx playwright install --with-deps chromium
+
+      # Ubuntu restricts user namespaces for downloaded Chromium binaries.
+      # Allow only Playwright's browser paths so capture keeps its sandbox.
+      # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+      - name: Enable and verify the Chromium sandbox
+        if: matrix.check == 'test-packages-core' || matrix.check == 'test-packages-agents' || matrix.check == 'harness-gate'
+        run: |
+          sudo tee /etc/apparmor.d/nodetool-playwright > /dev/null <<'PROFILE'
+          abi <abi/4.0>,
+          include <tunables/global>
+
+          profile nodetool-playwright-chromium /@{HOME}/.cache/ms-playwright/chromium-*/chrome-linux*/chrome flags=(unconfined) {
+            userns,
+          }
+
+          profile nodetool-playwright-headless /@{HOME}/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux*/chrome-headless-shell flags=(unconfined) {
+            userns,
+          }
+          PROFILE
+          sudo apparmor_parser -r /etc/apparmor.d/nodetool-playwright
+          node --input-type=module <<'JS'
+          import { chromium } from "playwright";
+          const browser = await chromium.launch({ headless: true, chromiumSandbox: true });
+          await browser.close();
+          JS
 
       - name: Download package dist
         uses: actions/download-artifact@v8
@@ -470,15 +666,19 @@ jobs:
       # workflow-runner job. The version lives in one place (BLENDER_VERSION
       # below); bump it and the cache key together with the floor in
       # `blender-binary.ts`.
+      # Only when the plan asks for Blender: a diff touching blender-nodes,
+      # or a full run. Without the binary the render suites skip, which keeps
+      # the leg's longest files off every other PR (see `BLENDER_FILES` in
+      # scripts/ci-plan.mjs).
       - name: Cache Blender
-        if: matrix.check == 'test-packages-nodes'
+        if: matrix.check == 'test-packages-nodes' && matrix.blender == 'true'
         uses: actions/cache@v5
         with:
           path: ~/blender
           key: ${{ runner.os }}-blender-5.2.1
 
       - name: Install Blender
-        if: matrix.check == 'test-packages-nodes'
+        if: matrix.check == 'test-packages-nodes' && matrix.blender == 'true'
         env:
           BLENDER_VERSION: 5.2.1
         run: |
@@ -530,6 +730,20 @@ jobs:
       # dropped so the archive stays bounded. A separate key namespace
       # (`test-results-`, not `turbo-`) so the build job's prefix fallback
       # never picks one of these up in place of a build cache.
+      # ts-jest transforms every web suite's TypeScript on a cold cache. The
+      # cache is keyed by file content, so main's transforms stay valid for a
+      # PR. Saved only off pull requests: three shards saving per PR commit
+      # would evict the node_modules and build caches from the repository's
+      # 10 GB.
+      - name: Restore Jest transform cache
+        if: matrix.jest-cache != ''
+        uses: actions/cache/restore@v5
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-${{ matrix.jest-cache }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-jest-${{ matrix.jest-cache }}-
+
       - name: Restore backend test results
         if: startsWith(matrix.check, 'test-packages-')
         uses: actions/cache/restore@v5
@@ -550,20 +764,45 @@ jobs:
           cp -a --update=none .turbo/test-results/. .turbo/cache/
           touch .turbo/run-start
 
+      - name: Record native game capture environment
+        if: matrix.check == 'harness-gate'
+        run: |
+          mkdir -p "${{ runner.temp }}/native-game-golden-diagnostics"
+          node --input-type=module -e 'import { chromium } from "playwright"; import { execFileSync } from "node:child_process"; console.log(JSON.stringify({ node: process.version, chromiumExecutable: chromium.executablePath(), chromiumVersion: execFileSync(chromium.executablePath(), ["--version"], { encoding: "utf8" }).trim() }));' > "${{ runner.temp }}/native-game-golden-diagnostics/environment.json"
+          cat /etc/os-release > "${{ runner.temp }}/native-game-golden-diagnostics/os-release.txt"
+          fc-match system-ui > "${{ runner.temp }}/native-game-golden-diagnostics/fonts.txt"
+          fc-match sans-serif >> "${{ runner.temp }}/native-game-golden-diagnostics/fonts.txt"
+
       - name: Run ${{ matrix.check }}
         # skip-tests drops the package + app test legs without touching the
         # static checks. The leg still spins up but does no work, so it stays
         # green (a skipped leg must not block the gate).
         if: ${{ !(inputs.skip-tests && matrix.is-test == 'true') }}
         env:
-          # Base commit for Turbo's `--affected` diff (test-packages shards on
-          # PRs). Empty on push, where TURBO_AFFECTED is empty too.
-          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
-          TURBO_AFFECTED: ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+          # Base commit for Turbo's `--affected` diff, the harness gate and
+          # `ci-plan.mjs run`. Empty in the nightly full run, where
+          # TURBO_AFFECTED is empty too and every leg runs in full.
+          # TURBO_AFFECTED is also empty when the plan says turbo cannot
+          # attribute the diff to a package (see the shard comment above).
+          TURBO_SCM_BASE: ${{ inputs.base-sha }}
+          TURBO_AFFECTED: ${{ inputs.base-sha != '' && needs.changes.outputs.turbo-affected == 'true' && '--affected' || '' }}
+          CI_BASE_SHA: ${{ inputs.base-sha }}
+          # Keep deadline-sensitive harness fixtures isolated from parallel test files.
+          NODETOOL_TEST_WORKERS: ${{ matrix.check == 'harness-gate' && '1' || '' }}
+          NODETOOL_CHECK_COMMAND: ${{ matrix.command }}
+          NODETOOL_GAME_GOLDEN_ARTIFACTS: ${{ matrix.check == 'harness-gate' && format('{0}/native-game-golden-diagnostics', runner.temp) || '' }}
         run: |
           echo "::group::${{ matrix.check }}"
-          ${{ matrix.command }}
+          bash -e -o pipefail -c "$NODETOOL_CHECK_COMMAND" || exit $?
           echo "::endgroup::"
+
+      - name: Retain native game golden diagnostics
+        if: matrix.check == 'harness-gate' && !cancelled()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-game-golden-diagnostics
+          path: ${{ runner.temp }}/native-game-golden-diagnostics
+          if-no-files-found: ignore
 
       # Collect and save even when a test failed: turbo only writes an entry
       # for a task that passed, so the archive carries the green packages
@@ -584,6 +823,13 @@ jobs:
           path: .turbo/test-results
           key: ${{ runner.os }}-test-results-${{ matrix.check }}-${{ github.sha }}
 
+      - name: Save Jest transform cache
+        if: matrix.jest-cache != '' && github.event_name != 'pull_request' && !cancelled()
+        uses: actions/cache/save@v5
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-${{ matrix.jest-cache }}-${{ github.sha }}
+
   # The deploy artifact. docker.yml only builds after a merge to main, so until
   # this leg existed nothing verified the image before it landed: a Dockerfile
   # that could not build survived 49 commits on main, taking the Fly deploy with
@@ -593,10 +839,12 @@ jobs:
   # Independent of `build` — it builds its own image and shares no artifact, so
   # it starts as soon as `changes` reports.
   #
-  # Skipped when the push touches nothing the image contains. Building and
-  # booting a container costs a runner for ~10 minutes, and the account-wide
-  # concurrency cap makes that time other jobs spend queued. A skipped leg
-  # counts as a pass in the aggregate below, so the required check still lands.
+  # Runs only when the diff changes the image's own inputs (`DOCKER_FILES` in
+  # scripts/ci-plan.mjs) and in the nightly full run, never on push: docker.yml
+  # builds every push to main. Building and booting a container costs a runner
+  # for ~10 minutes, and the account-wide concurrency cap makes that time
+  # other jobs spend queued. A skipped leg counts as a pass in the aggregate
+  # below, so the required check still lands.
   docker:
     name: docker
     needs: changes
@@ -704,6 +952,83 @@ jobs:
         if: always()
         run: docker rm -f nodetool-smoke || true
 
+  # Heavy jobs that start with the other legs (they wait only on the
+  # seconds-long `changes` job) rather than after them, so the critical path is
+  # max(legs, integration, e2e). They build packages themselves instead of
+  # waiting for the `build` artifact. Both feed the `quality` job below, so a
+  # failure blocks the required check.
+  integration:
+    name: Workflow Integration Tests
+    needs: changes
+    # Runs when the diff reaches base-nodes, whose shipped workflows it
+    # executes. Skipped with `changes` for prose-only and marketing-only diffs.
+    if: ${{ !inputs.skip-tests && needs.changes.outputs.integration == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node, install deps, build packages
+        uses: ./.github/actions/setup-build
+        with:
+          extra-apt: mesa-vulkan-drivers ffmpeg
+
+      - name: Run shipped-workflow execution tests
+        run: npm run test:integration
+
+  workflow-runner-e2e:
+    name: Workflow Runner Browser E2E
+    needs: changes
+    # Runs when the diff reaches the workflow-runner package it drives.
+    if: ${{ !inputs.skip-tests && needs.changes.outputs.workflow-runner-e2e == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node, install deps, build packages
+        # mesa-vulkan-drivers ships lavapipe (CPU Vulkan ICD) so headless
+        # Chromium can acquire a WebGPU adapter on GPU-less CI runners. The
+        # workflow-runner browser harness uses it to drive shader-pool tests
+        # (color.brightnessContrast, etc.) against the same module catalog
+        # the server uses on Node/Dawn.
+        uses: ./.github/actions/setup-build
+        with:
+          extra-apt: mesa-vulkan-drivers
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright Chromium browser
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/workflow-runner
+
+      - name: Type-check workflow-runner browser suite
+        run: npm run typecheck:e2e --workspace=@nodetool-ai/workflow-runner
+
+      - name: Run workflow-runner browser E2E tests
+        run: npm run test:e2e --workspace=@nodetool-ai/workflow-runner
+
+      - name: Upload Playwright diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: workflow-runner-playwright-report
+          path: |
+            packages/workflow-runner/playwright-report/
+            packages/workflow-runner/test-results/
+          retention-days: 7
+
   # Aggregating gate. Kept as job id `quality` (no custom name) so the surfaced
   # status check stays "Quality Gate (npm run check) / quality" — the existing
   # REQUIRED check, so branch protection needs no change.
@@ -715,7 +1040,7 @@ jobs:
   # — fails the gate.
   quality:
     name: quality
-    needs: [changes, static, build, built, docker]
+    needs: [changes, static, build, built, docker, integration, workflow-runner-e2e]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -732,7 +1057,9 @@ jobs:
             "static:${{ needs.static.result }}" \
             "build:${{ needs.build.result }}" \
             "built:${{ needs.built.result }}" \
-            "docker:${{ needs.docker.result }}"; do
+            "docker:${{ needs.docker.result }}" \
+            "integration:${{ needs.integration.result }}" \
+            "workflow-runner-e2e:${{ needs.workflow-runner-e2e.result }}"; do
             name="${leg%%:*}"
             result="${leg#*:}"
             echo "- \`$name\`: $result" >> $GITHUB_STEP_SUMMARY

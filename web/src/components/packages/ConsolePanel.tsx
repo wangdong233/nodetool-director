@@ -14,7 +14,6 @@ import {
   FlexColumn,
   FlexRow, getSpacingPx, SPACING
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 const consoleStyles = (theme: Theme) =>
   css({
@@ -40,7 +39,6 @@ interface ConsolePanelProps {
 }
 
 const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -78,7 +76,7 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? t("editor:ui.hideConsole", { defaultValue: "Hide console" }) : t("editor:ui.showConsole", { defaultValue: "Show console" })}
+          {open ? "Hide console" : "Show console"}
           {lines.length > 0 ? ` (${lines.length})` : ""}
         </EditorButton>
         {open && lines.length > 0 && (
@@ -96,7 +94,7 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
         <pre ref={preRef} css={consoleStyles(theme)}>
           {lines.length > 0
             ? lines.join("\n")
-            : t("editor:ui.noOutputYetLogsAppearHereDuringInstall", { defaultValue: "No output yet. Logs appear here during install." })}
+            : "No output yet. Logs appear here during install."}
         </pre>
       )}
     </FlexColumn>

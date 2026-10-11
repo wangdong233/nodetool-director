@@ -1,7 +1,7 @@
 {
   "name": "@nodetool-ai/game-nodes",
-  "version": "0.8.0",
-  "description": "NodeTool game template nodes: read a Godot template's asset slots, turn one into a generation job, and export the filled project",
+  "version": "0.8.2",
+  "description": "NodeTool native game asset generation and staging nodes",
   "type": "module",
   "engines": {
     "node": ">=22.0.0"
@@ -15,13 +15,11 @@
     "lint": "node ../../scripts/run-tsc.mjs --noEmit"
   },
   "dependencies": {
-    "@nodetool-ai/godot": "*",
-    "@nodetool-ai/godot-templates": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/nodes-utils": "*",
     "@nodetool-ai/protocol": "*",
     "@nodetool-ai/runtime": "*",
-    "fflate": "^0.8.2"
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@nodetool-ai/audio-nodes": "*",
@@ -62,7 +60,6 @@
   },
   "keywords": [
     "nodetool",
-    "godot",
     "game",
     "workflow",
     "typescript"

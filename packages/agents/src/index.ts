@@ -5,6 +5,7 @@
 // Types
 export type { Step, Task, TaskPlan } from "./types.js";
 export { PERMISSION_GATE_CONTEXT_KEY } from "./types.js";
+export { GAME_ASSET_NODE_RUNNER_CONTEXT_KEY, type GameAssetNodeRunner } from "./capabilities/game-asset-source.js";
 
 // Tools
 export { Tool } from "./tools/base-tool.js";
@@ -51,6 +52,7 @@ export {
 } from "./tools/serp-tool-factory.js";
 export { htmlToText } from "./tools/browser-tools.js";
 export {
+  getAllMcpCapabilitySpecs,
   getAllMcpTools,
   createWorkflowDocumentTools
 } from "./tools/mcp-tools.js";
@@ -74,8 +76,12 @@ export {
   headlessGate,
   headlessDenialReason
 } from "./tools/tool-permissions.js";
-export { gateTools } from "./capabilities/gate-tools.js";
+export { gateLegacyTools, capabilityRunForLegacyTool, capabilityRunForTools } from "./capabilities/legacy-tools.js";
 export { gateFromContext } from "./capabilities/gate-from-context.js";
+export {
+  agentActivityReporter,
+  type AgentActivityReporter
+} from "./capabilities/agent-activity.js";
 export type {
   PermissionCategory,
   PermissionMode,
@@ -99,12 +105,14 @@ export {
   toolFromLazyCapability,
   toolForCapabilityName,
   capabilityFromTool,
+  capabilityForName,
   capabilitySpec,
   capabilityCategoryFor,
   capabilityModuleOf,
   listCapabilitySpecs,
   createCapabilityRun,
   contextSecretAvailability,
+  capabilityProviderTool,
   resolveCapabilityMessage,
   UNGATED
 } from "./capabilities/index.js";
@@ -384,7 +392,7 @@ export {
   sandboxToolBridgeGlobals,
   NODETOOL_PRELUDE
 } from "./sandbox-toolbelt.js";
-export type { ToolSignatureSource } from "./codeact/tool-api.js";
+export type { ToolBridgeOptions, ToolSignatureSource } from "./codeact/tool-api.js";
 export { compactResourceIds, compactAssetUris } from "./codeact/compact-ids.js";
 export { createChatCodeActSession } from "./codeact/chat-codeact.js";
 export type {
@@ -600,6 +608,13 @@ export {
   createJsScriptToolBridge,
   JS_SCRIPT_TOOL_LOOP_CASES
 } from "./evals/surfaces/js-script.js";
+/**
+ * The context key `run_js_script` pushes the running script's id onto, so a
+ * script that runs another script (directly or through a sub-agent) can be
+ * refused as a cycle. A host driving the sandbox outside that capability
+ * (the CLI harness) sets it the same way, so both paths build one call chain.
+ */
+export { JS_SCRIPT_CHAIN_KEY } from "./capabilities/js-scripts.js";
 export type {
   JsScriptBridgeFinalState,
   JsScriptBridgeInitialState,
@@ -901,6 +916,10 @@ export { renderBuildReportMarkdown } from "./app-build/markdown.js";
 // The build as a service: what `POST /api/applications/build` calls, minus
 // request parsing.
 export { runApplicationBuild } from "./app-build/build-service.js";
+// Cancelling one generation: the `cancel_generation` capability and the
+// WebSocket command of the same name share it.
+export { cancelGenerationForUser } from "./generation-cancel.js";
+export type { GenerationCancelOutcome } from "./generation-cancel.js";
 export type {
   AppBuildDeps,
   AppBuildRequest
@@ -920,6 +939,11 @@ export type {
 } from "./custom-animation-bake.js";
 export { createJsScriptAppRunner } from "./js-script-app-runner.js";
 export type { HarnessRunResult } from "./capabilities/code.js";
+export {
+  bakeTimelineCode,
+  TIMELINE_CODE_BAKE_TIMEOUT_SECONDS
+} from "./timeline-code-bake.js";
+export type { BakeTimelineCodeResult } from "./timeline-code-bake.js";
 
 // Jobs to be done — the agent-intent layer. Each job is one objective taken end
 // to end across whatever surfaces it needs, recorded in full (transcript, tool
@@ -968,3 +992,7 @@ export type {
   McpResourceLink,
   McpSecretResolver
 } from "./tools/external-mcp-tools.js";
+
+export { nativeCapabilityTool } from "./capabilities/lazy-tool.js";
+
+export { GAME_TOOL_LOOP_CASES, createGameToolBridge, GAME_3D_TOOL_LOOP_CASES, createGame3DToolBridge } from "./evals/surfaces/game.js";

@@ -1,5 +1,6 @@
+import { sql } from "drizzle-orm";
 import { pgTable, text, real, index } from "drizzle-orm/pg-core";
-import { jsonText } from "./helpers.js";
+import { integerBoolean, jsonText } from "./helpers.js";
 
 export const assets = pgTable(
   "nodetool_assets",
@@ -24,6 +25,10 @@ export const assets = pgTable(
     timeline_id: text("timeline_id"),
     // The project this asset belongs to — see schema/assets.ts.
     project_id: text("project_id").notNull().default("default"),
+    // In-place file reference — see schema/assets.ts. Always null here.
+    external_path: text("external_path"),
+    // Starred by the user — see schema/assets.ts.
+    favorite: integerBoolean("favorite").notNull().default(sql`0`),
     created_at: text("created_at").notNull(),
     updated_at: text("updated_at").notNull()
   },

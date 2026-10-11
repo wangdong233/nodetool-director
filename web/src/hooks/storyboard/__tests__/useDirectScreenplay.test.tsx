@@ -7,6 +7,7 @@
  * them per shot.
  */
 import { renderHook, act } from "@testing-library/react";
+import { productionRequirement } from "@nodetool-ai/protocol";
 
 const rpcRequest = jest.fn();
 jest.mock("../../../lib/websocket/rpcRequest", () => ({
@@ -20,6 +21,8 @@ jest.mock("../../../serverState/useEntities", () => ({
 }));
 
 import { useDirectScreenplay } from "../useDirectScreenplay";
+import { cancelBoardDirecting, useBoardDirecting } from "../directorRuns";
+import { boardDirectionFingerprint } from "../directionFingerprint";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 
 const BOARD = "board-direct";
@@ -124,6 +127,32 @@ describe("useDirectScreenplay", () => {
     expect(String(request.prompt)).not.toContain("Genre:");
   });
 
+  it("leaves the board and the stage alone when the run is canceled", async () => {
+    const controller = new AbortController();
+    rpcRequest.mockImplementation(
+      (_command: string, _data: unknown, _timeout: unknown, signal: AbortSignal) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener("abort", () =>
+            reject(new DOMException("The request was aborted.", "AbortError"))
+          );
+        })
+    );
+    const { result } = renderHook(() => useDirectScreenplay());
+
+    let applied: boolean | undefined;
+    await act(async () => {
+      const run = result.current.direct(BOARD, 2, controller.signal);
+      controller.abort();
+      applied = await run;
+    });
+
+    expect(applied).toBe(false);
+    expect(result.current.error).toBeNull();
+    const board = useStoryboardStore.getState().getBoard(BOARD);
+    expect(board?.screenplay).toBeNull();
+    expect(board?.setupStage).toBe("genre");
+  });
+
   // PRD § 7.2: the setup flow moves to the review only once a screenplay is
   // actually on the board.
   it("moves the setup stage to review on success", async () => {
@@ -187,6 +216,28 @@ describe("useDirectScreenplay", () => {
     );
   });
 
+  it("preserves approved graphics, production, media and motion design on retained shots", async () => {
+    const graphics = { mode: "graphics_first" as const, elements: [{ id: "price", kind: "text" as const, text: " €29 " }] };
+    const production = productionRequirement.parse({ media_strategy: "still_motion_graphics", protected_inputs: [{ id: "price", kind: "exact_text", value: " €29 ", allowed_transformations: [] }] });
+    const store = useStoryboardStore.getState();
+    store.setScreenplay(BOARD, { type: "screenplay", id: "old", title: "Ad", motion_design: { direction: "Retain rhythm" }, shots: [{ type: "shot", id: "shot-0", index: 0, action: "Old", status: "rendered", graphics, production, keyframe: { type: "image", asset_id: "original" } }] });
+    rpcRequest.mockResolvedValue(answer(1));
+    const { result } = renderHook(() => useDirectScreenplay());
+    await act(async () => { await result.current.direct(BOARD, 1); });
+    const board = useStoryboardStore.getState().getBoard(BOARD);
+    expect(board?.shots[0].graphics).toEqual(graphics);
+    expect(board?.shots[0].production).toEqual(production);
+    expect(board?.shots[0].keyframe?.asset_id).toBe("original");
+    expect(board?.screenplay?.motion_design).toEqual({ direction: "Retain rhythm" });
+  });
+
+  it("clears stored graphics with the explicit undefined patch used by the browser bridge", () => {
+    const store = useStoryboardStore.getState();
+    store.setScreenplay(BOARD, { type: "screenplay", id: "old", title: "Ad", shots: [{ type: "shot", id: "shot-0", index: 0, action: "Price", status: "planned", graphics: { mode: "graphics_first" } }] });
+    store.updateShot(BOARD, "shot-0", { graphics: undefined });
+    expect(useStoryboardStore.getState().getBoard(BOARD)?.shots[0].graphics).toBeUndefined();
+  });
+
   it("writes the parsed screenplay onto the board", async () => {
     rpcRequest.mockResolvedValue(answer(2));
     const { result } = renderHook(() => useDirectScreenplay());
@@ -201,6 +252,30 @@ describe("useDirectScreenplay", () => {
     expect(board?.shots[0].status).toBe("planned");
     expect(board?.shots[1].index).toBe(1);
     expect(result.current.error).toBeNull();
+  });
+
+  // F15: the record is what the genre step computes from the board the run
+  // left. The answer's style bible replaces the board's style, so a record
+  // read off the board before the answer landed would never match.
+  it("records the direction the genre step reads off the resulting board", async () => {
+    rpcRequest.mockResolvedValue(answer(2));
+    const { result } = renderHook(() => useDirectScreenplay());
+
+    await act(async () => {
+      await result.current.direct(BOARD, 2);
+    });
+
+    const board = useStoryboardStore.getState().getBoard(BOARD);
+    if (!board) {
+      throw new Error("Expected the board.");
+    }
+    expect(board.style).toBe("grainy 16mm");
+    // The review step's rewrite asks for the board's own length, which then
+    // is the length the genre step fingerprints.
+    expect(board.setupShotCount).toBe(2);
+    expect(board.setupDirectedFrom).toBe(
+      boardDirectionFingerprint(board, "none")
+    );
   });
 
   it("names the board's cast in the brief so shots reference them exactly", async () => {
@@ -281,5 +356,75 @@ describe("useDirectScreenplay", () => {
 
     expect(rpcRequest).not.toHaveBeenCalled();
     expect(result.current.error).toContain("Pick a model");
+  });
+});
+
+// The flow, the board's Direct button and the agent's `ui_storyboard_direct`
+// each hold their own hook. One run per board, whichever started it, so a
+// second press cannot pay for the same screenplay twice.
+describe("useDirectScreenplay — one run per board", () => {
+  it("refuses a second run while another caller's run is writing", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    rpcRequest.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const agent = renderHook(() => useDirectScreenplay());
+    const flow = renderHook(() => useDirectScreenplay());
+    const running = renderHook(() => useBoardDirecting(BOARD));
+
+    let first: Promise<boolean> = Promise.resolve(false);
+    act(() => {
+      first = agent.result.current.direct(BOARD, 3);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(running.result.current).toBe(true);
+
+    let second = true;
+    await act(async () => {
+      second = await flow.result.current.direct(BOARD, 3);
+    });
+    expect(second).toBe(false);
+    expect(flow.result.current.error).toMatch(/already writing/);
+    expect(rpcRequest).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish(answer(3));
+      await first;
+    });
+    expect(running.result.current).toBe(false);
+  });
+
+  it("lets any caller cancel the board's run", async () => {
+    let runSignal: AbortSignal | undefined;
+    rpcRequest.mockImplementationOnce(
+      (_command: string, _data: unknown, _timeout: unknown, signal: AbortSignal) => {
+        runSignal = signal;
+        // The real request rejects when its signal aborts.
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener("abort", () =>
+            reject(new DOMException("The request was aborted.", "AbortError"))
+          );
+        });
+      }
+    );
+    const agent = renderHook(() => useDirectScreenplay());
+    let first: Promise<boolean> = Promise.resolve(true);
+    act(() => {
+      first = agent.result.current.direct(BOARD, 3);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => cancelBoardDirecting(BOARD));
+
+    expect(runSignal?.aborted).toBe(true);
+    await act(async () => {
+      expect(await first).toBe(false);
+    });
   });
 });

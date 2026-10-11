@@ -1,16 +1,25 @@
-import { useCallback, useState } from "react";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { EntityKind } from "@nodetool-ai/protocol";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 
 import { rpcRequest } from "../../../lib/websocket/rpcRequest";
-import { getRememberedModel, useLastModelStore } from "../../../stores/lastModelStore";
+import { estimateGenerationCost } from "../../../utils/generationCostEstimate";
+import {
+  getRememberedModel,
+  useLastModelStore
+} from "../../../stores/lastModelStore";
 import type { ImageModelValue } from "../../../stores/ApiTypes";
 import EntityAssetPickerDialog from "../../entities/EntityAssetPickerDialog";
 import ImageModelSelect from "../../properties/ImageModelSelect";
+import ReportBugButton from "../../support/ReportBugButton";
 import {
   AlertBanner,
   BORDER_RADIUS,
   Caption,
+  Chip,
   Dialog,
   EditorButton,
   FlexColumn,
@@ -22,13 +31,16 @@ import {
   Text,
   TextInput
 } from "../../ui_primitives";
-import { SETUP_CONTENT_WIDTH, SETUP_MEDIA_WIDTH } from "../layout";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import {
+  SETUP_CONTENT_WIDTH,
+  SETUP_FIELD_WIDTH,
+  SETUP_MEDIA_WIDTH
+} from "../layout";
+import { GalleryFrame } from "../MediaGallery";
 
 interface ReferenceStepProps {
   readonly name: string;
-  readonly kind: string;
+  readonly kind: EntityKind;
   readonly descriptor: string;
   readonly assetId: string | null;
   readonly excludedAssetIds: readonly string[];
@@ -40,18 +52,126 @@ interface ReferenceStepProps {
   readonly onPick: (assetId: string) => void;
 }
 
+interface ReferencePromptOption {
+  readonly id: string;
+  readonly label: string;
+  readonly instruction: string;
+  readonly aspectRatio: "1:1" | "2:3" | "3:2";
+}
+
+const PROMPT_OPTIONS: Record<
+  EntityKind,
+  readonly [ReferencePromptOption, ...ReferencePromptOption[]]
+> = {
+  character: [
+    {
+      id: "full-body",
+      label: "Full body",
+      instruction:
+        "Show one full-body, front-facing pose, head to toe. Center the character against a neutral background with even studio lighting. Make their face, clothing, and distinctive features clear.",
+      aspectRatio: "1:1"
+    },
+    {
+      id: "portrait",
+      label: "Portrait",
+      instruction:
+        "Show a head-and-shoulders portrait with the face fully visible and a neutral expression. Use a simple background and even lighting so facial features and hair are easy to identify.",
+      aspectRatio: "2:3"
+    },
+    {
+      id: "character-sheet",
+      label: "Character sheet",
+      instruction:
+        "Create a character sheet with front, side, and back views plus a close-up of the face. Keep proportions, clothing, colors, and distinctive features consistent across views. Use a clean background without text or labels.",
+      aspectRatio: "3:2"
+    }
+  ],
+  location: [
+    {
+      id: "establishing-view",
+      label: "Establishing view",
+      instruction:
+        "Show a wide establishing view of the location. Make its layout, architecture, landmarks, and atmosphere clear in one coherent scene.",
+      aspectRatio: "3:2"
+    },
+    {
+      id: "detail-view",
+      label: "Detail view",
+      instruction:
+        "Show a closer view of the location's defining materials, objects, and architectural details. Keep the setting and atmosphere recognizable.",
+      aspectRatio: "1:1"
+    },
+    {
+      id: "location-sheet",
+      label: "Location sheet",
+      instruction:
+        "Create a location sheet with three views of the same place from different angles. Keep the architecture, landmarks, lighting, and color palette consistent. No text or labels.",
+      aspectRatio: "3:2"
+    }
+  ],
+  style: [
+    {
+      id: "style-sample",
+      label: "Style sample",
+      instruction:
+        "Create one cohesive scene that clearly shows this visual style's palette, lighting, texture, and rendering treatment.",
+      aspectRatio: "1:1"
+    },
+    {
+      id: "style-sheet",
+      label: "Style sheet",
+      instruction:
+        "Create a visual style sheet with three different subjects rendered in the same style. Keep the palette, lighting, texture, and rendering treatment consistent. No text or labels.",
+      aspectRatio: "3:2"
+    },
+    {
+      id: "texture-detail",
+      label: "Texture detail",
+      instruction:
+        "Show a close-up sample of this style's defining textures, brushwork, materials, and color relationships, with enough detail to reuse the treatment.",
+      aspectRatio: "1:1"
+    }
+  ],
+  prop: [
+    {
+      id: "product-view",
+      label: "Product view",
+      instruction:
+        "Show one clear three-quarter view of the object, fully visible and centered against a neutral background. Use even studio lighting to reveal its shape, materials, and colors.",
+      aspectRatio: "1:1"
+    },
+    {
+      id: "detail-view",
+      label: "Detail view",
+      instruction:
+        "Show a close-up of the object's distinctive details, materials, markings, and construction. Keep the object recognizable against a simple background.",
+      aspectRatio: "1:1"
+    },
+    {
+      id: "turnaround-sheet",
+      label: "Turnaround sheet",
+      instruction:
+        "Create an object turnaround sheet with front, side, and back views. Keep its shape, scale, materials, colors, and details consistent across views. Use a clean background without text or labels.",
+      aspectRatio: "3:2"
+    }
+  ]
+};
+
 const referencePrompt = (
   name: string,
-  kind: string,
-  descriptor: string
+  kind: EntityKind,
+  descriptor: string,
+  option: ReferencePromptOption
 ): string =>
-  `A clear reference image of ${name || `the ${kind}`}. ${descriptor} Centered,
-  full subject visible, neutral background, consistent studio lighting.`;
+  `A reference image of ${name || `the ${kind}`}. ${descriptor.trim()} ${option.instruction}`;
+
+/** How long a reference render may take before the dialog gives up on it. */
+const REFERENCE_TIMEOUT_MS = 5 * 60_000;
 
 interface GenerateReferenceDialogProps {
   readonly open: boolean;
   readonly name: string;
-  readonly kind: string;
+  readonly kind: EntityKind;
   readonly descriptor: string;
   readonly onClose: () => void;
   readonly onPick: (assetId: string) => void;
@@ -67,8 +187,10 @@ const GenerateReferenceDialog = ({
 }: GenerateReferenceDialogProps) => {
   const { t } = useTranslation();
   const rememberedModel = getRememberedModel("image");
+  const options = PROMPT_OPTIONS[kind];
+  const [selectedOption, setSelectedOption] = useState(options[0].id);
   const [prompt, setPrompt] = useState(() =>
-    referencePrompt(name, kind, descriptor)
+    referencePrompt(name, kind, descriptor, options[0])
   );
   const [model, setModel] = useState(rememberedModel?.model ?? "");
   const [provider, setProvider] = useState(rememberedModel?.provider ?? "");
@@ -80,59 +202,123 @@ const GenerateReferenceDialog = ({
     setProvider(value.provider);
   }, []);
 
+  // The request in flight. Closing the dialog or leaving the step aborts it,
+  // so a late answer cannot replace a reference picked since (F11).
+  const controllerRef = useRef<AbortController | null>(null);
+  useEffect(() => () => controllerRef.current?.abort(), []);
+
+  const handleClose = useCallback(() => {
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setGenerating(false);
+    onClose();
+  }, [onClose]);
+
   const handleGenerate = useCallback(async () => {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt || !model || !provider) {
       return;
     }
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
     setGenerating(true);
     setError(null);
     try {
-      const answer = await rpcRequest("generate_media", {
-        mode: "image",
-        provider,
-        model,
-        prompt: trimmedPrompt,
-        aspect_ratio: "1:1",
-        resolution: "1K",
-        variations: 1
-      });
+      const answer = await rpcRequest(
+        "generate_media",
+        {
+          mode: "image",
+          provider,
+          model,
+          prompt: trimmedPrompt,
+          aspect_ratio: aspectRatio,
+          resolution: "1K",
+          variations: 1
+        },
+        REFERENCE_TIMEOUT_MS,
+        controller.signal
+      );
+      if (controller.signal.aborted) {
+        return;
+      }
       const assetId = Array.isArray(answer.asset_ids)
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error(t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
+        throw new Error(i18n.t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
       }
       useLastModelStore.getState().remember("image", { provider, model });
       onPick(assetId);
       onClose();
     } catch (cause) {
+      if (controller.signal.aborted) {
+        return;
+      }
       setError(
         cause instanceof Error
           ? cause.message
           : i18n.t("storyboard:attrs.theReferenceImageCouldNotBeGenerated", { defaultValue: "The reference image could not be generated." })
       );
     } finally {
-      setGenerating(false);
+      if (controllerRef.current === controller) {
+        controllerRef.current = null;
+        setGenerating(false);
+      }
     }
-  }, [model, onClose, onPick, prompt, provider, t]);
+  }, [model, onClose, onPick, options, prompt, provider, selectedOption]);
+
+  const aspectRatio =
+    options.find((option) => option.id === selectedOption)?.aspectRatio ??
+    "1:1";
+  // The dialog's button spends money, so its price and its reason for being
+  // off sit under the model it depends on.
+  const estimate = model
+    ? estimateGenerationCost({
+        kind: "image",
+        provider: provider || null,
+        model,
+        aspectRatio,
+        resolution: "1K",
+        quantity: 1
+      })
+    : null;
+  const modelHelper = !model
+    ? "Pick an image model to generate the reference."
+    : estimate
+      ? `Used to create the reference image. About ${estimate.label}.`
+      : i18n.t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." });
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title={t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
       showActions
       onConfirm={() => void handleGenerate()}
-      confirmText={generating ? t("storyboard:attrs.generating", { defaultValue: "Generating" }) : t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
+      confirmText={generating ? i18n.t("storyboard:attrs.generating", { defaultValue: "Generating" }) : i18n.t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
       confirmDisabled={generating || !prompt.trim() || !model || !provider}
-      cancelDisabled={generating}
       isLoading={generating}
     >
-      <FlexColumn gap={GAP.comfortable} sx={{ minWidth: 360 }}>
+      <FlexColumn gap={GAP.comfortable} sx={{ minWidth: SETUP_FIELD_WIDTH }}>
         <Caption color="secondary">
-          {t("storyboard:attrs.startWithTheEntityDescriptionThenAdjustThePrompt", { defaultValue: "Start with the entity description, then adjust the prompt if you want a different visual interpretation." })}
+          Choose a view, then edit the prompt to refine the image.
         </Caption>
+        <FlexRow gap={GAP.tight} wrap>
+          {options.map((option) => (
+            <Chip
+              key={option.id}
+              label={option.label}
+              active={selectedOption === option.id}
+              aria-pressed={selectedOption === option.id}
+              onClick={() => {
+                setSelectedOption(option.id);
+                setPrompt(referencePrompt(name, kind, descriptor, option));
+              }}
+              disabled={generating}
+            />
+          ))}
+        </FlexRow>
         <TextInput
           label={t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
           value={prompt}
@@ -143,18 +329,34 @@ const GenerateReferenceDialog = ({
         />
         <FormField
           label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
-          helperText={t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." })}
+          helperText={modelHelper}
         >
           <ImageModelSelect
             value={model}
+            provider={provider}
             task="text_to_image"
             onChange={handleModelChange}
           />
         </FormField>
-        {error ? <AlertBanner severity="error">{error}</AlertBanner> : null}
+        {error ? (
+          <AlertBanner
+            severity="error"
+            action={
+              <ReportBugButton
+                context={{
+                  source: "provider-call",
+                  summary: "Entity reference image failed to generate",
+                  errorText: error
+                }}
+              />
+            }
+          >
+            {error}
+          </AlertBanner>
+        ) : null}
         {generating ? (
           <FlexRow gap={GAP.tight} align="center">
-            <LoadingSpinner inline size={14} />
+            <LoadingSpinner inline size="small" />
             <Caption>{t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
           </FlexRow>
         ) : null}
@@ -182,26 +384,40 @@ export const ReferenceStep = ({
   return (
     <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h1">{t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}</Text>
+        <Text size="big" component="h1">
+          Choose a reference image
+        </Text>
         <Text color="secondary">
-          {t("storyboard:attrs.pickTheClearestImageOfTheTraitsYouWantFutureGenerationsToPreserve", { defaultValue: "Pick the clearest image of the traits you want future generations to preserve, or create one with AI." })}
+          Pick the clearest image of the traits you want future generations to
+          preserve, or create one with AI.
         </Text>
       </FlexColumn>
 
       {assetId ? (
-        <ResponsiveImage
+        <GalleryFrame
           locator={`asset://${assetId}`}
-          alt={t("editor:ui.selectedEntityReference")}
-          // Stable hook for the reference slot. The rendered <img> is not one:
-          // jsdom fetches a src but has no image codec, so it fires `error` for
-          // even a valid data: URI and the error fallback replaces the <img>.
-          data-testid="entity-reference-preview"
-          aspectRatio="1/1"
-          fit="contain"
-          borderRadius={BORDER_RADIUS.md}
-          showErrorFallback
-          sx={{ width: SETUP_MEDIA_WIDTH, maxWidth: "100%", maxHeight: "48vh" }}
-        />
+          kind="image"
+          caption={name ? `${name} reference` : "Selected reference"}
+        >
+          <ResponsiveImage
+            locator={`asset://${assetId}`}
+            alt="Selected entity reference"
+            // Stable hook for the reference slot. The rendered <img> is not one:
+            // jsdom fetches a src but has no image codec, so it fires `error`
+            // for even a valid data: URI and the error fallback replaces the
+            // <img>.
+            data-testid="entity-reference-preview"
+            aspectRatio="1/1"
+            fit="contain"
+            borderRadius={BORDER_RADIUS.md}
+            showErrorFallback
+            sx={{
+              width: SETUP_MEDIA_WIDTH,
+              maxWidth: "100%",
+              maxHeight: "48vh"
+            }}
+          />
+        </GalleryFrame>
       ) : null}
 
       <FlexRow gap={GAP.normal} wrap>
@@ -212,18 +428,20 @@ export const ReferenceStep = ({
           disabled={assetsLoading || assetsError}
         >
           {assetsError
-            ? t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" })
+            ? i18n.t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" })
             : assetsLoading
-              ? t("editor:explorer.loading", { defaultValue: "Loading assets" })
+              ? i18n.t("editor:explorer.loading", { defaultValue: "Loading assets" })
               : assetId
-                ? t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
-                : t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
+                ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
+                : i18n.t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
         </EditorButton>
         <EditorButton
           variant="outlined"
           startIcon={<AutoAwesomeOutlinedIcon />}
           onClick={() => setGeneratorOpen(true)}
-        >{t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}</EditorButton>
+        >
+          Generate with AI
+        </EditorButton>
       </FlexRow>
 
       <EntityAssetPickerDialog

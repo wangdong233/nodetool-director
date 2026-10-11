@@ -8,12 +8,13 @@
  * @example
  * <ToolbarIconButton
  *   icon={<SaveIcon />}
- *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })
  *   shortcut={["Ctrl", "S"]}
  *   onClick={handleSave}
  * />
  */
 
+import { i18n } from "../../i18n";
 import React, { forwardRef, memo, useMemo } from "react";
 import { IconButton, IconButtonProps, Tooltip, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -183,6 +184,8 @@ export const ToolbarIconButton = memo(
       return (
         <Tooltip
           title={tooltipContent}
+          // A node title would otherwise rename the button to "Undo Ctrl + Z" while the tooltip is open.
+          describeChild={Boolean(label) && !isString(tooltipContent)}
           enterDelay={delay ?? TOOLTIP_ENTER_DELAY}
           enterNextDelay={TOOLTIP_ENTER_NEXT_DELAY}
           placement={tooltipPlacement}

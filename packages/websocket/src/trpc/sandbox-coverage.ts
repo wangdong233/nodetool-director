@@ -96,6 +96,56 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "Revoking a connected client's grant is denial of service against the " +
       "user's own tooling, same rule as revokeToken."
   },
+  "appInstances.create": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.advance": {
+    withheld: "Owner UI instance management uses revision-checked release advancement. Sandboxed code cannot change its own execution snapshot."
+  },
+  "appInstances.listMetadata": {
+    elsewhere: "Owner UI instance switcher pagination. Sandboxed code reads run metadata through the runs capabilities."
+  },
+  "appInstances.delete": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.duplicate": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.ensureDefault": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.get": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.list": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appInstances.update": {
+    gap: "Instance management is served to the owner UI in phase 1. No sandbox instance capability is exposed yet."
+  },
+  "appRuns.get": {
+    elsewhere: "get_run provides the shared run summary and bounded app inputs and outputs. Executable snapshots remain on the app API."
+  },
+  "appRuns.list": {
+    elsewhere: "list_runs filters app history by app and instance through the shared runs service."
+  },
+  "appRuns.delete": {
+    gap: "Run history deletion is available to the owner UI. No sandbox capability for deleting history is exposed."
+  },
+  "appRuns.reserve": {
+    withheld: "The app UI and execution host own run admission and settlement. Sandboxed work must not reserve or rewrite its own recorded outcome."
+  },
+  "appRuns.update": {
+    withheld: "The app UI and execution host own run admission and settlement. Sandboxed work must not reserve or rewrite its own recorded outcome."
+  },
+  "runs.list": { capability: "list_runs" },
+  "runs.get": { capability: "get_run" },
+  "runs.trace": { capability: "get_run_trace" },
+  "runs.logs": { capability: "get_run_logs" },
+  "runs.await": { capability: "await_run" },
+  "runs.updates": {
+    elsewhere: "Cursor updates serve the UI and CLI tail. Sandboxed readers poll get_run_trace and get_run_logs or wait with await_run."
+  },
   "applications.beginInvocation": {
     withheld:
       "Spend governance. A run that could raise its own ceiling is " +
@@ -198,6 +248,12 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "for a browser streaming a large file straight to object " +
       "storage."
   },
+  "assets.createExternal": {
+    withheld:
+      "A stored external path is a standing read capability on the " +
+      "host filesystem. Only the desktop renderer, acting on a file the " +
+      "user dropped, may create one."
+  },
   "assets.delete": {
     withheld:
       "Deleting an asset also deletes its stored bytes, and a folder " +
@@ -205,6 +261,16 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "cascade lives in the HTTP layer, and irreversible bulk loss of " +
       "a user's media library is the largest-blast-radius write in " +
       "the API — the wrong thing to put one prompt injection away."
+  },
+  "assets.ensureProxy": {
+    gap:
+      "A preview proxy only speeds up seeking in the timeline editor's " +
+      "preview. No headless consumer: renders and exports read the original."
+  },
+  "assets.externalImportConfig": {
+    gap:
+      "Tells the desktop renderer when to reference a dropped file in " +
+      "place. No headless consumer: a run cannot create external assets."
   },
   "assets.finalizeUpload": {
     elsewhere:
@@ -218,6 +284,12 @@ export const SANDBOX_API_COVERAGE: Readonly<
   "assets.recursive": {
     elsewhere:
       "Walk the tree with list_assets, which takes a parent."
+  },
+  "assets.relinkExternal": {
+    withheld:
+      "Relinking stores a new host path on an asset, the same standing " +
+      "read capability as creating an external reference. Only the " +
+      "desktop renderer, acting on a file the user picked, may do it."
   },
   "assets.search": { capability: "asset_search" },
   "assets.update": { capability: "update_asset" },
@@ -362,6 +434,9 @@ export const SANDBOX_API_COVERAGE: Readonly<
   "jobs.cancel": { capability: "cancel_job" },
   "jobs.get": { capability: "get_job" },
   "jobs.list": { capability: "list_jobs" },
+  "jobs.snapshot": {
+    gap: "Editor-shaped graph and params of a past run, for reopening it in the editor. No sandbox capability returns a job's graph yet."
+  },
   "jobs.triggerStart": {
     withheld:
       "Arming a trigger schedules execution that outlives the run " +
@@ -412,6 +487,13 @@ export const SANDBOX_API_COVERAGE: Readonly<
   "messages.list": {
     elsewhere:
       "get_thread returns a thread with its messages."
+  },
+  "messages.rewind": {
+    withheld:
+      "Chat history is the record of what a run was asked to do and " +
+      "what it did. A run that could rewrite or delete a conversation " +
+      "could erase the evidence of its own behaviour, so the threads " +
+      "module is read-only by design — see capabilities/threads.ts."
   },
   "models.all": { capability: "list_models" },
   "models.asr": {
@@ -521,6 +603,16 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "Model management writes to host disk and pulls gigabytes from " +
       "a third party. A run that could start or delete a download " +
       "could fill the disk or remove a model other runs depend on."
+  },
+  "models.rankedKeys": {
+    elsewhere:
+      "The model menu uses these keys for display ordering. find_model " +
+      "already applies the same rankings when selecting models for a run."
+  },
+  "models.rerankByProvider": {
+    gap:
+      "The owner UI lists rerank models by provider. Sandbox model " +
+      "discovery does not yet expose rerank catalogs."
   },
   "models.recommended": {
     elsewhere:
@@ -858,14 +950,49 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "outside every check in this table, for as long as it is valid. " +
       "read_asset returns the bytes to the run instead."
   },
-  "games.templates": { capability: "list_game_templates" },
-  "games.stylePresets": {
-    gap:
-      "Seeds the shipped game style presets into the caller's own library, " +
-      "then lists them — the same shape, and the same gap, as " +
-      "storyboards.stylePresets: reading them back is already reachable " +
-      "through list_entities, and only the seeding half has no headless " +
-      "trigger."
+  "games.create": { capability: "create_native_game" },
+  "games.draftBeforeChange": {
+    gap: "Agent-turn undo snapshots are available to the editor; the agent has no change-history read capability."
+  },
+  "games.draftChanges": {
+    gap: "The editor lists draft change cards; the agent reads the current draft through get_native_game."
+  },
+  "games.example": {
+    gap: "Reading a shipped game without installing it is available in the catalog UI but has no sandbox capability."
+  },
+  "games.examples": { capability: "list_example_games" },
+  "games.get": { capability: "get_native_game" },
+  "games.getDraft": { capability: "get_native_game" },
+  "games.installAsset": {
+    gap: "Installing an existing image asset is available in the editor, but the agent only installs staged candidates."
+  },
+  "games.installCandidate": { capability: "install_native_game_asset" },
+  "games.installExample": { capability: "install_example_game" },
+  "games.list": {
+    gap: "The agent can read a known game but cannot list a project's games yet."
+  },
+  "games.publish": { capability: "publish_native_game" },
+  "games.restore": {
+    elsewhere: "get_native_game reads an earlier revision and publish_native_game publishes it as a new revision."
+  },
+  "games.revisions": {
+    gap: "The agent can read a known revision but cannot enumerate revisions yet."
+  },
+  "games.restoreDraft": {
+    gap: "Restoring a revision to the draft is an editor action; the agent has no whole-revision restore capability."
+  },
+  "games.saveDraft": { capability: "edit_native_game" },
+  "games.saveDraftDocument": {
+    elsewhere: "The editor saves a whole document only when its op batch is rejected or too large; edit_native_game saves agent edits as ops."
+  },
+  "games.previewAuthoring": { capability: "preview_native_game_authoring" },
+  "games.applyAuthoring": { capability: "apply_native_game_authoring" },
+  "games.assetBrowser": { capability: "browse_native_game_assets" },
+  "games.generateAsset": {
+    elsewhere: "generate_game_asset generates and stages the asset; install_native_game_asset binds a 3D candidate and edit_native_game binds sheet frames."
+  },
+  "games.installStagedCandidate": {
+    elsewhere: "browse_native_game_assets with digest returns the binding and install_native_game_asset installs it."
   },
   "storyboards.create": { capability: "create_storyboard" },
   "storyboards.delete": { capability: "delete_storyboard" },
@@ -894,6 +1021,28 @@ export const SANDBOX_API_COVERAGE: Readonly<
   },
   "storyboards.update": { capability: "edit_storyboard" },
   "memories.delete": { capability: "memory_delete" },
+  "errorTraces.list": { capability: "list_error_traces" },
+  "errorTraces.summary": { capability: "list_error_traces" },
+  "errorTraces.get": { capability: "get_error_trace" },
+  "errorTraces.report": { capability: "export_error_report" },
+  "errorTraces.capture": {
+    withheld:
+      "Records a client crash as the app's own failure. A run that could " +
+      "write one could plant traces that send a debugging agent or a bug " +
+      "report after a failure that never happened."
+  },
+  "errorTraces.ingest": {
+    withheld:
+      "The receiving end of another install's sync, authenticated by an " +
+      "access token. A run has no traces of its own to push, and writing " +
+      "here would plant records under the user's id."
+  },
+  "bugReports.submit": {
+    withheld:
+      "Files a bug report with the NodeTool team in the user's name. A run " +
+      "that could send one could put words in the user's mouth and upload " +
+      "data they never reviewed."
+  },
   "memories.list": { capability: "memory_list" },
   "memories.search": { capability: "memory_search" },
   "threads.create": {
@@ -929,13 +1078,13 @@ export const SANDBOX_API_COVERAGE: Readonly<
     elsewhere:
       "edit_timeline applies clip operations to the document."
   },
+  "timeline.code.detach": { capability: "detach_timeline_code" },
+  "timeline.code.get": { capability: "get_timeline_code" },
+  "timeline.code.rebake": { capability: "rebake_timeline_code" },
+  "timeline.code.set": { capability: "set_timeline_code" },
   "timeline.create": { capability: "assemble_script_timeline" },
   "timeline.delete": { capability: "delete_timeline" },
-  "timeline.examples": {
-    gap:
-      "Lists shipped timeline examples for the editor. A headless run can " +
-      "create a timeline with assemble_script_timeline and edit_timeline."
-  },
+  "timeline.examples": { capability: "list_example_timelines" },
   "timeline.get": { capability: "get_timeline" },
   "timeline.installExample": {
     gap:
@@ -1102,6 +1251,12 @@ export const SANDBOX_API_COVERAGE: Readonly<
       "exposed, and it is classified `external` so the gate asks; " +
       "handing access to a *particular* account is a step further and " +
       "stays with the user."
+  },
+  "workflows.sharing.duplicatePublic": {
+    withheld:
+      "Copies a workflow from a link someone else published into the " +
+      "caller's workflows. The token is a credential the user was handed, " +
+      "and redeeming it is the user's decision, not a run's."
   },
   "workflows.sharing.get": {
     withheld:

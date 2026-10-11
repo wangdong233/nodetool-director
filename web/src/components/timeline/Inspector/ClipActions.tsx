@@ -1,5 +1,6 @@
 /** @jsxImportSource @emotion/react */
 
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useRef, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
@@ -15,16 +16,15 @@ import AutoAwesomeMotionIcon from "@mui/icons-material/AutoAwesomeMotion";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
-import { ToolbarIconButton, FlexRow, Text, Dialog, TextInput, Toast } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { ReplaceClipAssetDialog } from "../Tracks/ReplaceClipAssetDialog";
+import { ToolbarIconButton, FlexRow, Toast, SPACING } from "../../ui_primitives";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
 const actionsRowStyles = (theme: Theme) =>
   css({
-    padding: theme.spacing(0.5, 1),
-    gap: theme.spacing(0.5),
+    padding: theme.spacing(SPACING.micro, SPACING.xs),
+    gap: theme.spacing(SPACING.micro),
     flexWrap: "wrap",
     alignItems: "center"
   });
@@ -38,7 +38,7 @@ interface ClipActionsProps {
 
 export const ClipActions: React.FC<ClipActionsProps> = memo(
   ({ clipId, duplicateOffsetMs = 0 }) => {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -49,13 +49,11 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
     const regenerateAsCopy = useTimelineStore((s) => s.regenerateAsCopy);
     const selectClip = useTimelineUIStore((s) => s.selectClip);
     const setClipLocked = useTimelineStore((s) => s.setClipLocked);
-    const replaceClipOutput = useTimelineStore((s) => s.replaceClipOutput);
 
     const duplicateBusyRef = useRef(false);
     const [duplicateBusy, setDuplicateBusy] = useState(false);
     const [duplicateError, setDuplicateError] = useState<string | null>(null);
     const [replaceOpen, setReplaceOpen] = useState(false);
-    const [assetIdInput, setAssetIdInput] = useState("");
 
     const handleDuplicate = useCallback(async () => {
       if (duplicateBusyRef.current) {
@@ -68,7 +66,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         setDuplicateError(
-          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToDuplicateClip", { defaultValue: "Failed to duplicate clip" })
+          err instanceof Error ? err.message : "Failed to duplicate clip"
         );
       } finally {
         duplicateBusyRef.current = false;
@@ -86,7 +84,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         setDuplicateError(
-          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToCreateCopy", { defaultValue: "Failed to create copy" })
+          err instanceof Error ? err.message : "Failed to create copy"
         );
       }
     }, [clipId, duplicateOffsetMs, regenerateAsCopy, selectClip]);
@@ -103,19 +101,10 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
     // ── Replace Output ─────────────────────────────────────────────────────
 
     const handleOpenReplace = useCallback(() => {
-      setAssetIdInput(clip?.currentAssetId ?? "");
       setReplaceOpen(true);
-    }, [clip]);
+    }, []);
 
-    const handleConfirmReplace = useCallback(() => {
-      const trimmed = assetIdInput.trim();
-      if (trimmed) {
-        replaceClipOutput(clipId, trimmed);
-      }
-      setReplaceOpen(false);
-    }, [clipId, assetIdInput, replaceClipOutput]);
-
-    const handleCancelReplace = useCallback(() => {
+    const handleCloseReplace = useCallback(() => {
       setReplaceOpen(false);
     }, []);
 
@@ -141,7 +130,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
               panel; this toolbar is for clip operations only. */}
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip={t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
+            tooltip="Duplicate — copies overrides; tweak params for a variation"
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy}
             aria-label={t("timeline:attrs.duplicateClip", { defaultValue: "Duplicate clip" })}
@@ -168,18 +157,18 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             }
             tooltip={
               clip.locked
-                ? t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
-                : t("timeline:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
+                ? "Locked: timing is frozen and successful generations do not replace the current output"
+                : "Unlocked: lock to freeze timing and keep successful generations from replacing the current output"
             }
             active={clip.locked}
             onClick={handleToggleLock}
-            aria-label={clip.locked ? t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" }) : t("timeline:attrs.lockClip", { defaultValue: "Lock clip" })}
+            aria-label={clip.locked ? "Unlock clip" : "Lock clip"}
             data-testid="clip-action-lock"
           />
 
           <ToolbarIconButton
             icon={<ImageIcon fontSize="small" />}
-            tooltip={t("timeline:attrs.replaceOutputPickAnExistingAssetWithoutRegenerating", { defaultValue: "Replace Output… — pick an existing asset without regenerating" })}
+            tooltip={t("timeline:attrs.replaceOutputPickAnExistingAssetWithoutRegenerating", { defaultValue: "Replace output… Pick an existing asset without regenerating" })}
             onClick={handleOpenReplace}
             aria-label={t("timeline:attrs.replaceClipOutput", { defaultValue: "Replace clip output" })}
             data-testid="clip-action-replace-output"
@@ -188,7 +177,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           {clip.workflowId && sequenceId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip={t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
+              tooltip={t("editor:ui.openInNodeEditor", { defaultValue: "Open in node editor" })}
               onClick={handleOpenInNodeEditor}
               aria-label={t("timeline:attrs.openClipWorkflowInNodeEditor", { defaultValue: "Open clip workflow in node editor" })}
               data-testid="clip-action-open-in-editor"
@@ -196,30 +185,9 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
           )}
         </FlexRow>
 
-        {/* Replace Output dialog */}
-        <Dialog
-          open={replaceOpen}
-          onClose={handleCancelReplace}
-          title={t("timeline:attrs.replaceOutput", { defaultValue: "Replace Output" })}
-          onConfirm={handleConfirmReplace}
-          onCancel={handleCancelReplace}
-          confirmText={t("editor:ui.replace", { defaultValue: "Replace" })}
-          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
-          showActions
-        >
-          <Text size="small" sx={{ mb: 1 }}>
-            Enter the asset ID to use as the clip&apos;s current output. The
-            generation state and param overrides will not be changed.
-          </Text>
-          <TextInput
-            value={assetIdInput}
-            onChange={(e) => setAssetIdInput(e.target.value)}
-            placeholder={t("timeline:attrs.assetID", { defaultValue: "Asset ID" })}
-            inputProps={{ "aria-label": "Asset ID" }}
-            fullWidth
-            size="small"
-          />
-        </Dialog>
+        {replaceOpen && (
+          <ReplaceClipAssetDialog clipId={clipId} onClose={handleCloseReplace} />
+        )}
 
         <Toast
           open={duplicateError !== null}

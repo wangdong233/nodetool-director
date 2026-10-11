@@ -218,12 +218,9 @@
     "editorAssistant": "Editor Assistant",
     "editorAssistantWelcome": "Describe an image to generate, or ask for an edit to your layers.",
     "presets": "Presets…",
-    "symmetryOff": "Off",
     "symmetryHorizontal": "Horizontal",
     "symmetryVertical": "Vertical",
     "symmetryDualAxis": "Dual Axis",
-    "symmetryRadial": "Radial ({{rays}})",
-    "symmetryMandala": "Mandala ({{rays}})",
     "shortcuts": "Shortcuts",
     "keyboard": "Keyboard",
     "hexColor": "Hex color",
@@ -236,7 +233,7 @@
     "regenStaleOrder_one": "Re-generate {{count}} stale layer in dependency order.",
     "regenStaleOrder_other": "Re-generate {{count}} stale layers in dependency order.",
     "regenStaleLabel": "Re-generate Stale ({{count}})",
-    "rotate180": "Rotate 180°",
-    "invertSelection": "Invert"
+    "invertSelection": "Invert",
+    "regenStaleOrder": "Re-generate {{count}} stale layer in dependency order."
   }
 }

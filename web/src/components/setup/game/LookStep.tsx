@@ -1,639 +1,159 @@
 /**
- * Step 3 of the Game flow — the look and the models (game-prd § 4.3).
+ * Step 3 of the Game flow — the look, then the build.
  *
- * One style, one image model, and one row each for sound effects and music.
- * The style is required and the image model is required, because every sprite,
- * tile and background goes through them and a game whose slots were drawn by
- * different models does not read as one game. Audio is optional by design
- * (D27): a creator with no audio provider keeps the template's placeholder
- * files and still gets a running project.
- *
- * The shell's primary button is `Build your game` — the first thing in the
- * whole flow that places a node or spends anything. The cost line beside it is
- * computed here, from the slot counts and the chosen models' unit prices, and
- * says so plainly when a model has no published price.
+ * The art style is one of the shipped game presets; its descriptor is pasted
+ * into every image prompt so the player, the walls and the collectible read as
+ * one game. The game's name starts as the design's title. The image model sits
+ * in the shell's footer beside the button that spends on it, and the line
+ * beside that button says how many images it draws and roughly what they cost.
  */
 
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { formatUsd, getModelUnitPrice } from "@nodetool-ai/model-pricing";
-import {
-  GAME_PLACEHOLDER_SENTINEL,
-  type Entity,
-  type GameSlotSpec
-} from "@nodetool-ai/protocol";
+import React, { memo, useMemo } from "react";
 
+import type { ImageModelValue } from "../../../stores/ApiTypes";
+import type { ImageModelTask } from "../../../hooks/useModelsByProvider";
+import type { StylePresetEntity } from "../../../serverState/useStylePresets";
 import {
-  AlertBanner,
+  Box,
   Caption,
-  EditorButton,
   FlexColumn,
-  FlexRow,
-  FormField,
   GAP,
-  Label,
-  LoadingSpinner,
-  SPACING,
   Text,
   TextInput
 } from "../../ui_primitives";
-import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
-import type { OnboardingCapability } from "../../../stores/ProviderOnboardingStore";
 import ImageModelSelect from "../../properties/ImageModelSelect";
-import MusicModelSelect from "../../properties/MusicModelSelect";
-import type {
-  ImageModelValue,
-  MusicModelValue
-} from "../../../stores/ApiTypes";
-import type { ImageModelTask } from "../../../hooks/useModelsByProvider";
-import { OptionCardGrid } from "../OptionCardGrid";
-import type { OptionCardItem } from "../OptionCardGrid";
 import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
-import { SETUP_FIELD_WIDTH } from "../layout";
 import { SetupFooterField } from "../SetupFooterField";
-import { AddStyleDialog } from "../storyboard/AddStyleDialog";
-import { useGameCustomStyle } from "./useGameCustomStyle";
-import type { StylePresetEntity } from "../../../serverState/useStylePresets";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { SETUP_FIELD_WIDTH } from "../layout";
+import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
+import { NO_GAME_STYLE_ID } from "./gameSetupModel";
 
-/**
- * The tile that keeps a template's shipped audio. It is a real choice, not an
- * absent one (D27), so it is the first tile of its row rather than a cleared
- * selection nobody can see. The id is the protocol's, because the value is
- * saved on the document and every reader — this flow and the headless
- * `build_game` — has to normalize the same string.
- */
-export const GAME_PLACEHOLDER_TILE_ID = GAME_PLACEHOLDER_SENTINEL;
-
-/** Whether a row's tiles are there yet, and why not when they are not. */
-export type GameRowStatus = "loading" | "error" | "empty" | "ready";
-
-/** One row of tiles: what is on offer, and what the workflow remembers. */
-export interface GameModelRow {
-  /** Stable row id, e.g. "image" / "music" — never localized. */
-  id?: string;
-  /** Heading above the row, e.g. "Image model". */
-  label: string;
-  tiles: readonly OptionCardItem[];
-  status: GameRowStatus;
-  errorMessage?: string | null;
-  onRetry: () => void;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  /** The provider capability `Connect a provider` opens onboarding for. */
-  capability: OnboardingCapability;
-  /** What the row says when no configured provider offers anything for it. */
-  emptyMessage: string;
-  /**
-   * The label of the row's `keep the placeholder` tile. Set on the audio rows,
-   * absent on the image row, where there is nothing to fall back to.
-   */
-  placeholderLabel?: string;
-  /** One line under the placeholder tile's title. */
-  placeholderDescription?: string;
-}
-
-export interface GameLookStepProps {
-  /** The chosen template's slots — what the counts and the cost are read from. */
-  slots: readonly GameSlotSpec[];
-  presets: readonly StylePresetEntity[];
-  /** A style the creator made, so it has a tile even though it is not shipped. */
-  customStyle?: Entity | null;
-  styleEntityId: string | null;
-  onStyleChange: (entityId: string) => void;
-  /** The model the `Add your own style` descriptor call goes to. */
-  designerModel: { provider: string; id: string } | null;
-  image: GameModelRow;
-  sfx: GameModelRow;
-  music: GameModelRow;
-  projectName: string;
-  onProjectNameChange: (name: string) => void;
-}
-
-/** A model tile id, `${provider}:${id}`, split back into its two halves. */
-export const splitTileId = (
-  tileId: string | null
-): { provider: string; id: string } | null => {
-  if (tileId === null) {
-    return null;
-  }
-  const index = tileId.indexOf(":");
-  return index <= 0
-    ? null
-    : { provider: tileId.slice(0, index), id: tileId.slice(index + 1) };
-};
-
-export interface GameCostEstimate {
-  /** Total in USD, or null when any chosen model has no published price. */
-  total: number | null;
-  imageCount: number;
-  sfxCount: number;
-  musicCount: number;
-}
-
-/**
- * What `Build your game` spends: one image per image slot at the image model's
- * unit price, plus one sound effect and one music loop per audio slot the
- * creator chose a model for.
- *
- * A model the catalog has no number for makes the whole line unknown rather
- * than a total that quietly leaves that model out — an estimate that is short
- * by an unknown amount is worse than no estimate.
- */
-export const gameCostEstimate = (
-  slots: readonly GameSlotSpec[],
-  choices: {
-    imageModel: string | null;
-    sfxChosen: boolean;
-    musicModel: string | null;
-  }
-): GameCostEstimate => {
-  const imageCount = slots.filter(
-    (slot) =>
-      slot.kind === "spritesheet" ||
-      slot.kind === "tileset" ||
-      slot.kind === "image"
-  ).length;
-  const sfxCount = choices.sfxChosen
-    ? slots.filter((slot) => slot.kind === "sfx").length
-    : 0;
-  const musicCount =
-    choices.musicModel === null
-      ? 0
-      : slots.filter((slot) => slot.kind === "music").length;
-
-  let total = 0;
-  const priced = (tileId: string | null, quantity: number): boolean => {
-    if (quantity === 0) {
-      return true;
-    }
-    const model = splitTileId(tileId);
-    if (!model) {
-      return false;
-    }
-    const price = getModelUnitPrice({ id: model.id, provider: model.provider });
-    if (!price || price.declined || !Number.isFinite(price.unit_price)) {
-      return false;
-    }
-    total += price.unit_price * quantity;
-    return true;
-  };
-
-  const known =
-    priced(choices.imageModel, imageCount) &&
-    priced(choices.musicModel, musicCount);
-  // Sound effects are a node type, not a model tile, so the catalog has no unit
-  // price to look them up by. The line says so rather than pricing them at zero.
-  return {
-    total: known && sfxCount === 0 ? total : null,
-    imageCount,
-    sfxCount,
-    musicCount
-  };
-};
-
-/** "Generates 5 images, 2 sound effects and 1 music loop, then exports the project". */
-export const gameGenerationLine = (estimate: GameCostEstimate): string => {
-  const parts = [
-    `${estimate.imageCount} image${estimate.imageCount === 1 ? "" : "s"}`
-  ];
-  if (estimate.sfxCount > 0) {
-    parts.push(
-      `${estimate.sfxCount} sound effect${estimate.sfxCount === 1 ? "" : "s"}`
-    );
-  }
-  if (estimate.musicCount > 0) {
-    parts.push(
-      estimate.musicCount === 1
-        ? "a music loop"
-        : `${estimate.musicCount} music loops`
-    );
-  }
-  const list =
-    parts.length === 1
-      ? parts[0]
-      : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-  return `Generates ${list}, then exports the project`;
-};
-
-/** The cost beside the button, or the sentence that replaces it. */
-export const gameCostLine = (estimate: GameCostEstimate): string =>
-  estimate.total !== null && estimate.total > 0
-    ? `About ${formatUsd(estimate.total)}`
-    : i18n.t("storyboard:attrs.costUnknownUntilTheFirstAssetReturns", { defaultValue: "Cost unknown until the first asset returns" });
-
-/** What the image picker lists: the models that draw text to image. */
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
 
-/**
- * The image model, through the usual picker rather than tiles. Every sprite,
- * tile and background goes through one model, and the catalog behind the
- * picker (recents, search, Studio curation) is what a creator already knows
- * from every other surface. The tile id on the document stays
- * `${provider}:${id}`, so the stored answer and the build are unchanged.
- */
-const ImageModelStatus: React.FC<{ row: GameModelRow }> = ({ row }) => {
-  const { t } = useTranslation();
-  if (row.status === "loading") {
-    return (
-      <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">
-          {row.label}
-        </Text>
-        <FlexRow gap={GAP.normal} align="center">
-          <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
-          </Caption>
-        </FlexRow>
-      </FlexColumn>
-    );
-  }
-  if (row.status === "error") {
-    return (
-      <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">
-          {row.label}
-        </Text>
-        <AlertBanner
-          severity="error"
-          action={
-            <EditorButton variant="text" onClick={row.onRetry}>
-              Try again
-            </EditorButton>
-          }
-        >
-          <Caption component="span">
-            {row.errorMessage
-              ? `${row.emptyMessage} ${row.errorMessage}`
-              : row.emptyMessage}
-          </Caption>
-        </AlertBanner>
-      </FlexColumn>
-    );
-  }
-  // The image model is required — there is no placeholder art to fall back
-  // to — so an empty catalog is a warning with the way out, not a picker
-  // with nothing in it.
-  if (row.status === "empty") {
-    return (
-      <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">
-          {row.label}
-        </Text>
-        <AlertBanner
-          severity="warning"
-          action={
-            <EditorButton
-              variant="text"
-              onClick={() =>
-                openProviderOnboarding({
-                  capability: row.capability,
-                  reason: row.emptyMessage
-                })
-              }
-            >
-              Connect a provider
-            </EditorButton>
-          }
-        >
-          <Caption component="span">{row.emptyMessage}</Caption>
-        </AlertBanner>
-      </FlexColumn>
-    );
-  }
-  // A ready catalog is picked from the shell's footer, beside the estimate.
-  return null;
-};
-
-/**
- * The image model, for the shell's footer, once the catalog is ready. The
- * loading, error and empty states stay in the step body, where their banners
- * have room for the way out.
- */
-export const GameImageModelFooterField: React.FC<{
-  row: GameModelRow;
+export interface GameLookStepProps {
+  presets: readonly StylePresetEntity[];
+  presetsLoading: boolean;
+  styleEntityId: string | null;
+  onStyleSelect: (entityId: string) => void;
+  name: string;
+  onNameChange: (name: string) => void;
+  /** One line per image the build draws. */
+  imageSlots: readonly string[];
   readOnly?: boolean;
-}> = ({ row, readOnly = false }) => {
-  const handleChange = useCallback(
-    (model: ImageModelValue) => row.onSelect(`${model.provider}:${model.id}`),
-    [row]
-  );
-  if (row.status !== "ready") {
-    return null;
-  }
-  return (
-    <SetupFooterField label="Images">
-      <ImageModelSelect
-        value={splitTileId(row.selectedId)?.id ?? ""}
-        task={IMAGE_MODEL_TASKS}
-        onChange={handleChange}
-        disabled={readOnly}
-      />
-    </SetupFooterField>
-  );
-};
-
-/** One row of tiles, with the four states its source can be in. */
-const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
-  const { t } = useTranslation();
-  const tiles = useMemo<OptionCardItem[]>(
-    () =>
-      row.placeholderLabel === undefined
-        ? [...row.tiles]
-        : [
-            {
-              id: GAME_PLACEHOLDER_TILE_ID,
-              title: row.placeholderLabel,
-              description: row.placeholderDescription
-            },
-            ...row.tiles
-          ],
-    [row.placeholderDescription, row.placeholderLabel, row.tiles]
-  );
-  const canOfferPlaceholder = row.placeholderLabel !== undefined;
-  return (
-    <FlexColumn gap={GAP.normal}>
-      <Text size="normal" component="h3">
-        {row.label}
-      </Text>
-      {row.status === "loading" ? (
-        <FlexRow gap={GAP.normal} align="center">
-          <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
-          </Caption>
-        </FlexRow>
-      ) : row.status === "error" ? (
-        <AlertBanner
-          severity="error"
-          action={
-            <EditorButton variant="text" onClick={row.onRetry}>
-              Try again
-            </EditorButton>
-          }
-        >
-          <Caption component="span">
-            {row.errorMessage
-              ? `${row.emptyMessage} ${row.errorMessage}`
-              : row.emptyMessage}
-          </Caption>
-        </AlertBanner>
-      ) : row.status === "empty" && !canOfferPlaceholder ? (
-        <AlertBanner
-          severity="warning"
-          action={
-            <EditorButton
-              variant="text"
-              onClick={() =>
-                openProviderOnboarding({
-                  capability: row.capability,
-                  reason: row.emptyMessage
-                })
-              }
-            >
-              Connect a provider
-            </EditorButton>
-          }
-        >
-          <Caption component="span">{row.emptyMessage}</Caption>
-        </AlertBanner>
-      ) : (
-        row.id === "music" ? (
-          <FlexRow gap={GAP.normal} align="center">
-            {canOfferPlaceholder ? (
-              <EditorButton
-                variant={
-                  row.selectedId === GAME_PLACEHOLDER_TILE_ID
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() => row.onSelect(GAME_PLACEHOLDER_TILE_ID)}
-              >
-                {row.placeholderLabel}
-              </EditorButton>
-            ) : null}
-            {row.status === "ready" && row.tiles.length > 0 ? (
-              <MusicModelSelect
-                value={splitTileId(row.selectedId)?.id ?? ""}
-                onChange={(model: MusicModelValue) =>
-                  row.onSelect(`${model.provider}:${model.id}`)
-                }
-              />
-            ) : null}
-          </FlexRow>
-        ) : (
-          <OptionCardGrid
-            label={row.label}
-            options={tiles}
-            selectedId={row.selectedId}
-            onSelect={row.onSelect}
-            minColumnWidth={220}
-          />
-        )
-      )}
-    </FlexColumn>
-  );
-};
+}
 
 const LookStepInternal: React.FC<GameLookStepProps> = ({
-  slots,
   presets,
-  customStyle = null,
+  presetsLoading,
   styleEntityId,
-  onStyleChange,
-  designerModel,
-  image,
-  sfx,
-  music,
-  projectName,
-  onProjectNameChange
+  onStyleSelect,
+  name,
+  onNameChange,
+  imageSlots,
+  readOnly = false
 }) => {
-  const { t } = useTranslation();
-  const [addingStyle, setAddingStyle] = useState(false);
-
-  const applyCustomStyle = useCallback(
-    (entity: Entity) => onStyleChange(entity.id),
-    [onStyleChange]
-  );
-  const customStyleState = useGameCustomStyle({
-    model: designerModel,
-    onApply: applyCustomStyle
-  });
-
-  const presetTiles = useMemo<PresetTile[]>(
+  const tiles = useMemo<PresetTile[]>(
     () =>
       presets.map((preset) => ({
         id: preset.entityId,
-        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
-        description: t(`catalog:styles.${preset.name}.description`, { defaultValue: preset.descriptor.trim() }),
-        image: preset.thumbnail
+        title: preset.name,
+        description:
+          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
+        image: preset.thumbnail,
+        disabled: readOnly
       })),
-    [presets, t]
+    [presets, readOnly]
   );
-
-  // A style the creator just made is a style entity like any other, but it is
-  // not one of the shipped six — without its own tile the grid would show
-  // nothing selected right after it was applied.
-  const tiles = useMemo<PresetTile[]>(() => {
-    if (
-      customStyle === null ||
-      presetTiles.some((tile) => tile.id === customStyle.id)
-    ) {
-      return presetTiles;
-    }
-    return [
-      ...presetTiles,
-      {
-        id: customStyle.id,
-        title: customStyle.name,
-        description: customStyle.descriptor.trim(),
-        image: customStyle.reference_images?.[0]
-      }
-    ];
-  }, [customStyle, presetTiles]);
-
-  // `PresetTileGrid` is memoized, so both handlers keep a stable identity.
-  const openAddStyle = useCallback(() => setAddingStyle(true), []);
-  const clearStyleError = customStyleState.clearError;
-  const closeAddStyle = useCallback(() => {
-    clearStyleError();
-    setAddingStyle(false);
-  }, [clearStyleError]);
-
-  const estimate = useMemo(
-    () =>
-      gameCostEstimate(slots, {
-        imageModel: image.selectedId,
-        sfxChosen:
-          sfx.selectedId !== null && sfx.selectedId !== GAME_PLACEHOLDER_TILE_ID,
-        musicModel:
-          music.selectedId === null ||
-          music.selectedId === GAME_PLACEHOLDER_TILE_ID
-            ? null
-            : music.selectedId
-      }),
-    [image.selectedId, music.selectedId, sfx.selectedId, slots]
-  );
-
-  const slotCounts = useMemo(() => {
-    const spritesheets = slots.filter(
-      (slot) => slot.kind === "spritesheet"
-    ).length;
-    const tilesets = slots.filter((slot) => slot.kind === "tileset").length;
-    const images = slots.filter((slot) => slot.kind === "image").length;
-    return { spritesheets, tilesets, images };
-  }, [slots]);
 
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Choose the look and the models
+          Choose the look
         </Text>
         <Text size="normal" color="secondary">
-          {t("storyboard:attrs.oneStyleAndOneImageModelForEveryAsset", { defaultValue: "One style and one image model for every sprite, tile and background, so the game reads as one game." })}
+          The style is added to every piece of art, so the game reads as one.
         </Text>
       </FlexColumn>
+
+      <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
+        <TextInput
+          label="Game name"
+          value={name}
+          placeholder="Untitled game"
+          onChange={(event) => onNameChange(event.target.value)}
+          disabled={readOnly}
+        />
+      </Box>
 
       <FlexColumn gap={GAP.normal}>
-        <Text size="normal" component="h3">
-          Style
+        <Text size="small" component="h3">
+          Art style
         </Text>
-        <Caption color="secondary" component="p">
-          {t("storyboard:attrs.everyPromptCarriesIt", {
-            defaultValue:
-              "Every prompt carries it: {{sprites}}, {{tiles}} and {{images}}.",
-            sprites: `${slotCounts.spritesheets} ${
-              slotCounts.spritesheets === 1
-                ? t("storyboard:attrs.spriteSheet", { defaultValue: "sprite sheet" })
-                : t("storyboard:attrs.spriteSheets", { defaultValue: "sprite sheets" })
-            }`,
-            tiles: `${slotCounts.tilesets} ${
-              slotCounts.tilesets === 1
-                ? t("storyboard:attrs.tileSheet", { defaultValue: "tile sheet" })
-                : t("storyboard:attrs.tileSheets", { defaultValue: "tile sheets" })
-            }`,
-            images: `${slotCounts.images} ${
-              slotCounts.images === 1
-                ? t("storyboard:attrs.background", { defaultValue: "background" })
-                : t("storyboard:attrs.backgrounds", { defaultValue: "backgrounds" })
-            }`
-          })}
-        </Caption>
-        <PresetTileGrid
-          label="Style"
-          presets={tiles}
-          selectedId={styleEntityId}
-          onSelect={onStyleChange}
-          onAddOwn={openAddStyle}
-          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
-          addOwnDisabled={customStyleState.saving}
-        />
+        {presetsLoading && presets.length === 0 ? (
+          <Caption color="secondary">Loading the styles</Caption>
+        ) : (
+          <PresetTileGrid
+            label="Art style"
+            presets={tiles}
+            selectedId={styleEntityId}
+            onSelect={onStyleSelect}
+            onAddOwn={() => onStyleSelect(NO_GAME_STYLE_ID)}
+            addOwnOptionId={NO_GAME_STYLE_ID}
+            addOwnLabel="No style"
+            addOwnDescription="The art follows the design's words alone"
+            addOwnDisabled={readOnly}
+          />
+        )}
       </FlexColumn>
 
-      <ImageModelStatus row={image} />
-      <ModelTileRow row={sfx} />
-      <ModelTileRow row={music} />
-
-      <FormField
-        label="Project name"
-        helperText="The Godot project's name, and the folder it exports to."
-        sx={{ maxWidth: SETUP_FIELD_WIDTH }}
-      >
-        <TextInput
-          label="Project name"
-          hideLabel
-          value={projectName}
-          placeholder="Ember Run"
-          onChange={(event) => onProjectNameChange(event.target.value)}
-        />
-      </FormField>
-
-      <BuildDisclosure estimate={estimate} />
-
-      <AddStyleDialog
-        open={addingStyle}
-        saving={customStyleState.saving}
-        error={customStyleState.error}
-        model={designerModel}
-        onClose={closeAddStyle}
-        onSubmit={customStyleState.addStyle}
-      />
+      <FlexColumn gap={GAP.tight}>
+        <Text size="small" component="h3">
+          What the build draws
+        </Text>
+        <FlexColumn
+          gap={GAP.tight}
+          component="ul"
+          sx={{ listStyle: "none", m: 0, p: 0, "& li": { listStyle: "none" } }}
+        >
+          {imageSlots.map((line) => (
+            <Caption key={line} component="li" color="secondary">
+              {line}
+            </Caption>
+          ))}
+        </FlexColumn>
+        <Caption color="secondary" component="p">
+          Sounds keep the template&apos;s built-in effects. You can replace any
+          asset in the game editor.
+        </Caption>
+      </FlexColumn>
     </FlexColumn>
   );
 };
 
-/**
- * What `Build your game` does, said before the click.
- *
- * The button is the flow's one spending action: it generates every image slot,
- * the audio slots the creator chose a model for, and then exports the project.
- * The counts are the manifest's own, so they cannot drift from what the graph
- * places, and the cost line says plainly when a chosen model has no published
- * price rather than reporting a total that is short by an unknown amount.
- */
-const BuildDisclosure: React.FC<{ estimate: GameCostEstimate }> = ({
-  estimate
+export interface ImageModelFooterFieldProps {
+  model: { provider: string; id: string } | null;
+  onModelChange: (model: { provider: string; id: string }) => void;
+  readOnly?: boolean;
+}
+
+/** The model that draws every image, for the shell's footer. */
+export const ImageModelFooterField: React.FC<ImageModelFooterFieldProps> = ({
+  model,
+  onModelChange,
+  readOnly = false
 }) => (
-  <FlexColumn
-    gap={GAP.tight}
-    role="region"
-    aria-label={i18n.t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
-    sx={{
-      borderTop: "1px solid",
-      borderColor: "divider",
-      paddingTop: SPACING.lg
-    }}
-  >
-    <Label>{gameGenerationLine(estimate)}</Label>
-    <Text size="small" color="secondary">
-      Every asset is checked against the slot it fills before the project is
-      written. A slot you kept the placeholder for is not generated and keeps the
-      template&apos;s own file.
-    </Text>
-    <Text size="small">{gameCostLine(estimate)}</Text>
-  </FlexColumn>
+  <SetupFooterField label="Art">
+    <ImageModelSelect
+      value={model?.id ?? ""}
+      provider={model?.provider}
+      task={IMAGE_MODEL_TASKS}
+      disabled={readOnly}
+      onChange={(value: ImageModelValue) =>
+        onModelChange({ provider: value.provider, id: value.id })
+      }
+    />
+  </SetupFooterField>
 );
 
 export const GameLookStep = memo(LookStepInternal);

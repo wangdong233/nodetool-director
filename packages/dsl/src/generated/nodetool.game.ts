@@ -1,6 +1,6 @@
 // Auto-generated — do not edit manually
 
-import { createNode, Connectable, DslNode } from "../core.js";
+import { createNode, Connectable, NodeWithOutputs, NodeOptions } from "../core.js";
 import type { ImageRef, AudioRef, Entity, GameSlotSpec } from "../types.js";
 
 // Sprite Sheet — nodetool.game.SpriteSheet
@@ -20,8 +20,8 @@ export interface SpriteSheetOutputs {
   fill: Record<string, unknown>;
 }
 
-export function spriteSheet(inputs: SpriteSheetInputs): DslNode<SpriteSheetOutputs> {
-  return createNode("nodetool.game.SpriteSheet", inputs, { outputNames: ["output", "fill"] });
+export function spriteSheet(inputs: SpriteSheetInputs, options?: NodeOptions): NodeWithOutputs<SpriteSheetOutputs> {
+  return createNode("nodetool.game.SpriteSheet", inputs, { id: options?.id, outputNames: ["output", "fill"], outputTypes: {"output":"image","fill":"dict"} });
 }
 
 // Tileset — nodetool.game.Tileset
@@ -39,8 +39,8 @@ export interface TilesetOutputs {
   fill: Record<string, unknown>;
 }
 
-export function tileset(inputs: TilesetInputs): DslNode<TilesetOutputs> {
-  return createNode("nodetool.game.Tileset", inputs, { outputNames: ["output", "fill"] });
+export function tileset(inputs: TilesetInputs, options?: NodeOptions): NodeWithOutputs<TilesetOutputs> {
+  return createNode("nodetool.game.Tileset", inputs, { id: options?.id, outputNames: ["output", "fill"], outputTypes: {"output":"image","fill":"dict"} });
 }
 
 // Seamless Image — nodetool.game.SeamlessImage
@@ -59,8 +59,8 @@ export interface SeamlessImageOutputs {
   fill: Record<string, unknown>;
 }
 
-export function seamlessImage(inputs: SeamlessImageInputs): DslNode<SeamlessImageOutputs> {
-  return createNode("nodetool.game.SeamlessImage", inputs, { outputNames: ["output", "fill"] });
+export function seamlessImage(inputs: SeamlessImageInputs, options?: NodeOptions): NodeWithOutputs<SeamlessImageOutputs> {
+  return createNode("nodetool.game.SeamlessImage", inputs, { id: options?.id, outputNames: ["output", "fill"], outputTypes: {"output":"image","fill":"dict"} });
 }
 
 // Game Sound Effect — nodetool.game.SoundEffect
@@ -77,8 +77,8 @@ export interface SoundEffectOutputs {
   fill: Record<string, unknown>;
 }
 
-export function soundEffect(inputs: SoundEffectInputs): DslNode<SoundEffectOutputs> {
-  return createNode("nodetool.game.SoundEffect", inputs, { outputNames: ["output", "fill"] });
+export function soundEffect(inputs: SoundEffectInputs, options?: NodeOptions): NodeWithOutputs<SoundEffectOutputs> {
+  return createNode("nodetool.game.SoundEffect", inputs, { id: options?.id, outputNames: ["output", "fill"], outputTypes: {"output":"audio","fill":"dict"} });
 }
 
 // Game Music Loop — nodetool.game.MusicLoop
@@ -96,8 +96,8 @@ export interface MusicLoopOutputs {
   fill: Record<string, unknown>;
 }
 
-export function musicLoop(inputs: MusicLoopInputs): DslNode<MusicLoopOutputs> {
-  return createNode("nodetool.game.MusicLoop", inputs, { outputNames: ["output", "fill"] });
+export function musicLoop(inputs: MusicLoopInputs, options?: NodeOptions): NodeWithOutputs<MusicLoopOutputs> {
+  return createNode("nodetool.game.MusicLoop", inputs, { id: options?.id, outputNames: ["output", "fill"], outputTypes: {"output":"audio","fill":"dict"} });
 }
 
 // Load Game Template — nodetool.game.LoadGameTemplate
@@ -111,8 +111,8 @@ export interface LoadGameTemplateOutputs {
   slot: GameSlotSpec;
 }
 
-export function loadGameTemplate(inputs: LoadGameTemplateInputs): DslNode<LoadGameTemplateOutputs> {
-  return createNode("nodetool.game.LoadGameTemplate", inputs, { outputNames: ["manifest", "slots", "slot"], streaming: true });
+export function loadGameTemplate(inputs: LoadGameTemplateInputs, options?: NodeOptions): NodeWithOutputs<LoadGameTemplateOutputs> {
+  return createNode("nodetool.game.LoadGameTemplate", inputs, { id: options?.id, outputNames: ["manifest", "slots", "slot"], outputTypes: {"manifest":"dict","slots":"list[game_slot]","slot":"game_slot"}, streaming: true, inputMode: "buffered", outputCorrelation: {"slot":{"kind":"iteration","source":"__execution__","group":"slots"},"slots":{"kind":"single","source":"__execution__"},"manifest":{"kind":"single","source":"__execution__"}} });
 }
 
 // Slot Prompt — nodetool.game.SlotPrompt
@@ -129,31 +129,30 @@ export interface SlotPromptOutputs {
   kind: string;
   checker: Record<string, unknown>;
   seconds: number;
+  reference_images: ImageRef[];
+  reference_asset_id: string;
 }
 
-export function slotPrompt(inputs: SlotPromptInputs): DslNode<SlotPromptOutputs> {
-  return createNode("nodetool.game.SlotPrompt", inputs, { outputNames: ["prompt", "width", "height", "kind", "checker", "seconds"] });
+export function slotPrompt(inputs: SlotPromptInputs, options?: NodeOptions): NodeWithOutputs<SlotPromptOutputs> {
+  return createNode("nodetool.game.SlotPrompt", inputs, { id: options?.id, outputNames: ["prompt", "width", "height", "kind", "checker", "seconds", "reference_images", "reference_asset_id"], outputTypes: {"prompt":"str","width":"int","height":"int","kind":"str","checker":"dict","seconds":"float","reference_images":"list[image]","reference_asset_id":"str"} });
 }
 
-// Export Godot Project — nodetool.game.ExportGodotProject
-export type ExportGodotProjectInputs = {
+// Stage Game Assets — nodetool.game.StageGameAssets
+export type StageGameAssetsInputs = {
   template?: Connectable<string>;
-  name?: Connectable<string>;
+  game_id?: Connectable<string>;
   fills?: Connectable<(ImageRef | AudioRef)[]>;
-  directory?: Connectable<string>;
-  verify?: Connectable<boolean>;
+  preparation?: Connectable<Record<string, unknown>>;
+  reference_asset_id?: Connectable<string>;
+  fonts?: Connectable<Record<string, unknown>>;
 };
 
-export interface ExportGodotProjectOutputs {
+export interface StageGameAssetsOutputs {
   output: Record<string, unknown>;
-  directory: string;
-  files: string[];
-  verified: boolean;
-  verification: Record<string, unknown>;
-  errors: string[];
-  archive: string;
+  bindings: Record<string, unknown>;
+  paths: string[];
 }
 
-export function exportGodotProject(inputs: ExportGodotProjectInputs): DslNode<ExportGodotProjectOutputs> {
-  return createNode("nodetool.game.ExportGodotProject", inputs, { outputNames: ["output", "directory", "files", "verified", "verification", "errors", "archive"] });
+export function stageGameAssets(inputs: StageGameAssetsInputs, options?: NodeOptions): NodeWithOutputs<StageGameAssetsOutputs> {
+  return createNode("nodetool.game.StageGameAssets", inputs, { id: options?.id, outputNames: ["output", "bindings", "paths"], outputTypes: {"output":"dict","bindings":"dict","paths":"list[str]"} });
 }

@@ -21,7 +21,9 @@
  * Director structure it (F3).
  */
 
-import React, { memo, useCallback, useMemo, useRef } from "react";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
   AlertBanner,
@@ -46,6 +48,7 @@ import { useExampleStoryboards } from "../../../hooks/storyboard/useStoryboards"
 import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { ExampleBriefs } from "../ExampleBriefs";
+import ReportBugButton from "../../support/ReportBugButton";
 import { ShotlistReport } from "./ShotlistReport";
 import { SCRIPT_ACCEPT, useScriptImport } from "./useScriptImport";
 import {
@@ -53,7 +56,6 @@ import {
   SHOTLIST_TEMPLATE_URL,
   useShotlistImport
 } from "./useShotlistImport";
-import { useTranslation } from "react-i18next";
 
 /** How many example loglines are offered as inspiration (PRD § 7.1). */
 const INSPIRATION_COUNT = 3;
@@ -65,13 +67,22 @@ export interface IdeaStepProps {
   /** Opens the existing tutorials entry. */
   onOpenTutorial: () => void;
   onValidationChange?: (reason: string | undefined) => void;
+  /**
+   * Reports a file being read, so the flow holds Continue until it lands. A
+   * late import that found the step moved on writes nothing (F9).
+   */
+  onImportingChange?: (importing: boolean) => void;
+  /** View mode: the step shows what was written and changes nothing. */
+  readOnly?: boolean;
 }
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   boardId,
   onStartBlank,
   onOpenTutorial,
-  onValidationChange
+  onValidationChange,
+  onImportingChange,
+  readOnly = false
 }) => {
   const { t } = useTranslation();
   const brief = useStoryboardStore(
@@ -89,21 +100,38 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   const shotlist = useShotlistImport(boardId);
   const scriptInput = useRef<HTMLInputElement>(null);
   const shotlistInput = useRef<HTMLInputElement>(null);
+  const briefField = useRef<HTMLElement | null>(null);
+  const importing = script.importing || shotlist.importing;
+  useEffect(() => {
+    onImportingChange?.(importing);
+  }, [importing, onImportingChange]);
+  useEffect(() => () => onImportingChange?.(false), [onImportingChange]);
   const source = useImportSource(boardId);
   const locked = source?.preserveWords === true;
 
-  const replaceSource = useCallback(() => scriptInput.current?.click(), []);
-  const editAsText = useCallback(
-    () => releaseImportedStructure(boardId),
-    [boardId]
-  );
-  const removeSource = useCallback(() => clearImport(boardId), [boardId]);
+  const replaceSource = useCallback(() => {
+    if (!readOnly) {
+      scriptInput.current?.click();
+    }
+  }, [readOnly]);
+  const editAsText = useCallback(() => {
+    if (!readOnly) {
+      releaseImportedStructure(boardId);
+    }
+  }, [boardId, readOnly]);
+  const removeSource = useCallback(() => {
+    if (!readOnly) {
+      clearImport(boardId);
+    }
+  }, [boardId, readOnly]);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setSetup(boardId, { brief: event.target.value });
+      if (!readOnly) {
+        setSetup(boardId, { brief: event.target.value });
+      }
     },
-    [boardId, setSetup]
+    [boardId, readOnly, setSetup]
   );
 
   // The picked file is read once; resetting the value lets the same file be
@@ -121,56 +149,49 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   );
 
   // The shipped boards' own briefs: what someone typed to get a board that
-  // exists, which is a better start than an invented example. Each logline is
-  // looked up in the zh-only catalog overlay by its stable board slug
-  // (显示即所发: the localized chip text is the brief it inserts, one string
-  // for both), so the filter that drops the current brief compares the same
-  // string the creator sees.
+  // exists, which is a better start than an invented example.
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) =>
-          t(`catalog:storyboardExamples.${example.slug}.logline`, {
-            defaultValue: example.logline.trim()
-          })
-        )
+        .map((example) => example.logline.trim())
         .filter((logline) => logline.length > 0 && logline !== brief.trim())
         .slice(0, INSPIRATION_COUNT),
-    [brief, examples, t]
+    [brief, examples]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
         id: "upload",
-        title: t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
+        title: "Upload your file",
         description: "PDF, DOCX, FDX",
         onSelect: () => scriptInput.current?.click(),
-        disabled: script.importing,
-        disabledReason: script.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
+        disabled: readOnly || importing,
+        disabledReason: importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "shotlist",
-        title: t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
-        description: t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
+        title: "Import your shotlist",
+        description: i18n.t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
-        disabled: shotlist.importing,
-        disabledReason: shotlist.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
+        disabled: readOnly || importing,
+        disabledReason: importing ? "Reading your file…" : undefined
       },
       {
         id: "blank",
-        title: t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
-        description: t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
-        onSelect: onStartBlank
+        title: i18n.t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
+        description: i18n.t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
+        onSelect: onStartBlank,
+        disabled: readOnly
       },
       {
         id: "tutorial",
-        title: t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
-        description: t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
+        title: i18n.t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
+        description: i18n.t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],
-    [t, onOpenTutorial, onStartBlank, script.importing, shotlist.importing]
+    [importing, onOpenTutorial, onStartBlank, readOnly, t]
   );
 
   return (
@@ -188,48 +209,62 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {t("editor:ui.whatSYourStory")}
+            What&apos;s your story?
           </Text>
           <Text size="normal" color="secondary">
-            {t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard")}
+            We&apos;ll turn it into a screenplay and storyboard.
           </Text>
         </FlexColumn>
 
         <CreativeContextFields
           value={creativeContext ?? storyboardCreativeContextOf(screenplay)}
           onValidationChange={onValidationChange}
-          onChange={(value) => setSetup(boardId, { creative_context: value })}
+          readOnly={readOnly}
+          onChange={(value) => {
+            if (!readOnly) {
+              setSetup(boardId, { creative_context: value });
+            }
+          }}
         />
 
         {source ? (
           <AlertBanner
             severity="info"
-            title={t("storyboard:attrs.importedFromName", { defaultValue: "Imported from {{name}}", name: source.fileName })}
+            title={`Imported from ${source.fileName}`}
           >
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">
                 {locked
-                  ? t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
-                  : t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
+                  ? "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing."
+                  : i18n.t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
               </Caption>
               <FlexRow gap={GAP.normal} wrap>
                 <EditorButton
                   variant="outlined"
                   size="small"
                   onClick={replaceSource}
-                >{t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}</EditorButton>
+                  disabled={readOnly || importing}
+                >
+                  Replace file
+                </EditorButton>
                 {locked ? (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={editAsText}
-                  >{t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}</EditorButton>
+                    disabled={readOnly || importing}
+                  >
+                    Edit as text
+                  </EditorButton>
                 ) : (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={removeSource}
-                  >{t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}</EditorButton>
+                    disabled={readOnly || importing}
+                  >
+                    Remove the file
+                  </EditorButton>
                 )}
               </FlexRow>
             </FlexColumn>
@@ -238,37 +273,63 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
 
         <TextInput
           value={brief}
-          autoFocus={!locked}
+          autoFocus={!locked && !readOnly}
           multiline
           rows={5}
           label={t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
           hideLabel
           placeholder={t("storyboard:attrs.oneSentenceIsEnoughOrPasteAFullScript", { defaultValue: "One sentence is enough, or paste a full script." })}
           onChange={handleChange}
-          slotProps={{ input: { readOnly: locked } }}
+          inputRef={briefField}
+          slotProps={{ input: { readOnly: locked || readOnly } }}
           helperText={
             locked
-              ? t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
+              ? i18n.t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
               : undefined
           }
         />
 
+        {/* The Report control sits in the body: an `action` would replace
+            the banner's close button. */}
         {script.error ? (
           <AlertBanner severity="error" onClose={script.clearError}>
-            {script.error}
+            <FlexColumn gap={GAP.tight} align="flex-start">
+              {script.error}
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Storyboard script import failed",
+                  errorText: script.error
+                }}
+              />
+            </FlexColumn>
           </AlertBanner>
         ) : null}
         {shotlist.error ? (
           <AlertBanner severity="error" onClose={shotlist.clearError}>
-            {shotlist.error}
+            <FlexColumn gap={GAP.tight} align="flex-start">
+              {shotlist.error}
+              <ReportBugButton
+                context={{
+                  source: "operation-failure",
+                  summary: "Storyboard shotlist import failed",
+                  errorText: shotlist.error
+                }}
+              />
+            </FlexColumn>
           </AlertBanner>
         ) : null}
 
-        <ExampleBriefs
-          examples={inspirations}
-          brief={brief}
-          onSelect={(value) => setSetup(boardId, { brief: value })}
-        />
+        {/* An example would replace the held script with a line the camera
+            pass ignores, and i18n.t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" }) would then start from it. */}
+        {readOnly || locked ? null : (
+          <ExampleBriefs
+            examples={inspirations}
+            brief={brief}
+            onSelect={(value) => setSetup(boardId, { brief: value })}
+            briefRef={briefField}
+          />
+        )}
       </FlexColumn>
 
       {/* The other four flows put their entry paths in a column beside the
@@ -280,7 +341,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           alternatives={alternatives}
         />
         <Caption color="secondary" component="p">
-          <a href={SHOTLIST_TEMPLATE_URL} download>{t("storyboard:attrs.downloadTheCSVTemplate", { defaultValue: "Download the CSV template" })}</a>
+          <a href={SHOTLIST_TEMPLATE_URL} download>
+            Download the CSV template
+          </a>
         </Caption>
       </FlexColumn>
 

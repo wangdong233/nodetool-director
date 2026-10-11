@@ -6,7 +6,6 @@ import { Tooltip, ToolbarIconButton, MOTION, BORDER_RADIUS, getSpacingPx, SPACIN
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { memo, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme, isBypassed: boolean) =>
   css({
@@ -47,7 +46,6 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
   isBypassed,
   onClick
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const tooltipContainerStyles = useMemo(
@@ -89,7 +87,7 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
           style={tooltipContainerStyles}
         >
           <span style={titleTextStyles}>
-            {isBypassed ? t("editor:ui.enableNodes", { defaultValue: "Enable Nodes" }) : t("editor:ui.disableNodes", { defaultValue: "Disable Nodes" })}
+            {isBypassed ? "Enable All Nodes" : "Disable All Nodes"}
           </span>
           <span style={shortcutStyles}>
             <kbd>B</kbd>

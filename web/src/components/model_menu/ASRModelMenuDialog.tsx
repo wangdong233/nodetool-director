@@ -1,4 +1,5 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { ASRModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import {
@@ -6,7 +7,7 @@ import {
 } from "../../stores/ModelMenuStore";
 import { useASRModelsByProvider } from "../../hooks/useModelsByProvider";
 import { useTranslation } from "react-i18next";
-
+import { trpc } from "../../lib/trpc";
 interface ASRModelMenuDialogProps {
   open: boolean;
   onClose: () => void;
@@ -21,11 +22,25 @@ function ASRModelMenuDialog({
   onClose,
   onModelChange,
   anchorEl,
-  recommendedModels,
+  recommendedModels: recommendedModelsFromProps,
   modelPacks
 }: ASRModelMenuDialogProps) {
   const { t } = useTranslation();
   const modelData = useASRModelsByProvider();
+  // Local providers such as whisper.cpp list only the files on disk. Without
+  // the recommended list a caller that passes none offers nothing to download.
+  const needsFallback =
+    !recommendedModelsFromProps || recommendedModelsFromProps.length === 0;
+  const { data: recommendedModelsFallback } = useQuery<UnifiedModel[]>({
+    queryKey: ["recommended-task-models", "recommendedAsr"],
+    enabled: open && needsFallback,
+    queryFn: () => trpc.models.recommendedAsr.query(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
+  });
+  const recommendedModels = needsFallback
+    ? recommendedModelsFallback
+    : recommendedModelsFromProps;
   return (
     <ModelMenuDialogBase<ASRModel>
       open={open}

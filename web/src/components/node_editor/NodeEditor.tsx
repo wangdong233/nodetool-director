@@ -29,11 +29,11 @@ import { generateCSS } from "../themes/GenerateCSS";
 import { useTemporalNodes, useNodeStoreRef } from "../../contexts/NodeContext";
 import NodeMenu from "../node_menu/NodeMenu";
 import { useNodeEditorShortcuts } from "../../hooks/useNodeEditorShortcuts";
+import { useWorkflowAutosave } from "../../hooks/useWorkflowAutosave";
 import { useTheme } from "@mui/material/styles";
 import KeyboardShortcutsView from "../content/Help/KeyboardShortcutsView";
 import { NODE_EDITOR_SHORTCUTS } from "../../config/shortcuts";
 import CommandMenu from "../menus/CommandMenu";
-import QuickAddNodeDialog from "./QuickAddNodeDialog";
 import { useCombo } from "../../stores/KeyPressedStore";
 import { isMac } from "../../utils/platform";
 import { EditorUiProvider } from "../editor_ui";
@@ -92,8 +92,6 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
   const selectedNodeCount = useNodes((state) => state.getSelectedNodeCount());
   const store = useNodeStoreRef();
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [commandMenuOpen, setCommandMenuOpen] = useState(false);
-  const [quickAddNodeOpen, setQuickAddNodeOpen] = useState(false);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const editorRoot = useCallback(() => reactFlowWrapperRef.current, []);
   useNodeEditorShortcuts(
@@ -101,6 +99,8 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
     () => setShowShortcuts((v) => !v),
     editorRoot
   );
+  // Periodic autosave runs for every mounted tab, not just the active one.
+  useWorkflowAutosave();
 
   const { missing: missingRuntimes } = useWorkflowRuntimeCheck(workflowId);
   // Let the user dismiss the install prompt without acting on it.
@@ -128,36 +128,6 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
       revealInspectorForSelection();
     }
   }, [active, selectedNodeCount, revealInspectorForSelection]);
-
-  // Keyboard shortcut for CommandMenu (Meta+K on Mac, Ctrl+K on Windows/Linux).
-  // Global scope: must work even when an input/editor is focused.
-  const commandMenuCombo = isMac() ? ["meta", "k"] : ["control", "k"];
-  useCombo(
-    commandMenuCombo,
-    () => {
-      if (active) {
-        setCommandMenuOpen(true);
-      }
-    },
-    true,
-    active,
-    { scope: "global" }
-  );
-
-  // Keyboard shortcut for Quick Add Node (Ctrl+Shift+A on all platforms)
-  const quickAddNodeCombo = isMac()
-    ? ["meta", "shift", "a"]
-    : ["control", "shift", "a"];
-  useCombo(
-    quickAddNodeCombo,
-    () => {
-      if (active) {
-        setQuickAddNodeOpen(true);
-      }
-    },
-    true,
-    active
-  );
 
   // Keyboard shortcut for Node Info Panel (Ctrl+I / Meta+I)
   const nodeInfoCombo = isMac() ? ["meta", "i"] : ["control", "i"];
@@ -219,18 +189,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
               />
               <NodeInfoPanel />
               <NodeMenu focusSearchInput={true} />
-              <CommandMenu
-                open={commandMenuOpen}
-                setOpen={setCommandMenuOpen}
-                undo={undo}
-                redo={redo}
-                reactFlowWrapper={reactFlowWrapperRef}
-              />
-              <QuickAddNodeDialog
-                open={quickAddNodeOpen}
-                setOpen={setQuickAddNodeOpen}
-                reactFlowWrapper={reactFlowWrapperRef}
-              />
+              <CommandMenu undo={undo} redo={redo} />
               <FindInWorkflowDialog workflowId={workflowId} />
               <WorkflowShareDialogHost />
               <Modal

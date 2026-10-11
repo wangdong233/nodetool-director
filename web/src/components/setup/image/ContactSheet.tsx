@@ -17,6 +17,8 @@
  * turn one into something an `<img>` can load.
  */
 
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useState } from "react";
 
 import {
@@ -32,6 +34,8 @@ import {
   ResponsiveImage,
   Text
 } from "../../ui_primitives";
+import { GalleryExpandButton, MEDIA_GALLERY_HOST_CLASS } from "../MediaGallery";
+import ReportBugButton from "../../support/ReportBugButton";
 import { useSketchStore } from "../../sketch/state/useSketchStore";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import {
@@ -39,17 +43,25 @@ import {
   directGenFailure,
   useDirectGenJob
 } from "../../../hooks/sketch/useDirectGenJob";
+import { variationSeeds } from "../../../hooks/sketch/useGenerateVariations";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
   layerIds: readonly string[];
+  /**
+   * Variation layers from earlier batches in this session. `Pick` hides them
+   * too, so only the picked one is visible. Defaults to none.
+   */
+  siblingLayerIds?: readonly string[];
   /** Runs after `Pick` has set visibility — the host closes the flow. */
   onPick: (layerId: string) => void;
   /** Enqueue another batch with the same settings. */
   onMakeMore: () => void;
+  /** What another batch costs, as the look step priced it. */
+  makeMoreDetail?: string;
+  /** What one Regenerate costs. */
+  regenerateDetail?: string;
   /** True while another batch is being enqueued. */
   makeMorePending?: boolean;
   /** Why the last `Make more variations` was refused. */
@@ -63,25 +75,46 @@ export interface ContactSheetProps {
   onOpenCanvas: (layerId: string, animate: boolean) => Promise<void>;
 }
 
+/** File extensions for the image types a provider returns. */
+const IMAGE_EXTENSION: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif"
+};
+
 /**
  * Save one variation's asset to disk. An `asset://` id is not a URL, so the
- * anchor gets the resolved one — the same rule the preview download follows.
+ * resolved one is fetched to a blob first: a browser ignores `download` on a
+ * cross-origin link and would open the picture instead, and the blob's type
+ * names the file's real extension. Throws when the picture cannot be read.
  */
-const downloadVariation = async (
+export const downloadVariation = async (
   assetId: string,
   label: string
 ): Promise<void> => {
+  const { t } = useTranslation();
   const url = await resolveMediaUri(`asset://${assetId}`);
   if (!url) {
-    return;
+    throw new Error("Its file could not be found.");
   }
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`The file could not be read (${response.status}).`);
+  }
+  const blob = await response.blob();
+  const extension = IMAGE_EXTENSION[blob.type] ?? "png";
+  const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${label.replace(/\s+/g, "-").toLowerCase()}.png`;
+  anchor.href = objectUrl;
+  anchor.download = `${label.replace(/\s+/g, "-").toLowerCase()}.${extension}`;
   anchor.rel = "noopener";
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
+  // Revoked after the click has handed the blob to the download.
+  setTimeout(() => URL.revokeObjectURL(objectUrl));
 };
 
 /** Status wording that says what is happening rather than naming a state. */
@@ -92,29 +125,26 @@ const STATUS_TEXT: Record<string, string> = {
   failed: "This one failed"
 };
 
-const STATUS_TEXT_KEYS: Record<string, string> = {
-  draft: "storyboard:attrs.waitingToStart",
-  queued: "editor:ui.queued",
-  generating: "storyboard:attrs.rendering",
-  failed: "storyboard:attrs.thisOneFailed"
-};
-
 /** Statuses that mean the request has not settled yet. */
 const PENDING = new Set(["draft", "queued", "generating"]);
 
 /** What a failure says when the take recorded no reason of its own. */
 const UNRECORDED_REASON = "This one did not render, and gave no reason.";
-const UNRECORDED_REASON_KEY = "storyboard:attrs.thisOneDidNotRenderAndGaveNoReason";
-const unrecordedReason = (): string =>
-  i18n.t(UNRECORDED_REASON_KEY, { defaultValue: UNRECORDED_REASON });
 
 /** Where saving a variation to the library has got to. */
 type SaveState = "idle" | "saving" | "saved" | "failed";
 
+const NO_SIBLINGS: readonly string[] = [];
+
+const NAME_SEPARATOR = "\u241f";
+
 const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   layerIds,
+  siblingLayerIds = NO_SIBLINGS,
   onPick,
   onMakeMore,
+  makeMoreDetail,
+  regenerateDetail,
   makeMorePending = false,
   makeMoreError = null,
   onBackToSettings,
@@ -129,31 +159,43 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
     Record<string, { state: SaveState; message: string }>
   >({});
 
-  const tiles = useMemo(
-    () =>
-      layerIds.map((layerId, index) => {
-        const binding = bindings[layerId];
-        const status = binding?.status ?? "draft";
-        const failure = status === "failed" ? directGenFailure(layerId) : null;
-        return {
-          layerId,
-          label: t("storyboard:attrs.variationCount", { defaultValue: "Variation {{count}}", count: index + 1 }),
-          assetId: binding?.currentAssetId,
-          status,
-          pending: PENDING.has(status),
-          failed: status === "failed",
-          // The remedy, in the provider's own terms where it gave any: a
-          // refused prompt and a missing key are not the same problem (F7).
-          reason:
-            status !== "failed"
-              ? null
-              : failure
-                ? describeDirectGenFailure(failure)
-                : unrecordedReason()
-        };
-      }),
-    [bindings, layerIds, t]
+  // Tiles carry their layer's name, so a tile and the layers panel agree once
+  // a later batch continues the numbering (F18). Joined into one string so
+  // the selector returns a stable value.
+  const layerNames = useSketchStore((state) =>
+    layerIds
+      .map(
+        (layerId) =>
+          state.document.layers.find((layer) => layer.id === layerId)?.name ??
+          ""
+      )
+      .join(NAME_SEPARATOR)
   );
+
+  const tiles = useMemo(() => {
+    const names = layerNames.split(NAME_SEPARATOR);
+    return layerIds.map((layerId, index) => {
+      const binding = bindings[layerId];
+      const status = binding?.status ?? "draft";
+      const failure = status === "failed" ? directGenFailure(layerId) : null;
+      return {
+        layerId,
+        label: names[index] || `Variation ${index + 1}`,
+        assetId: binding?.currentAssetId,
+        status,
+        pending: PENDING.has(status),
+        failed: status === "failed",
+        // The remedy, in the provider's own terms where it gave any: a
+        // refused prompt and a missing key are not the same problem (F7).
+        reason:
+          status !== "failed"
+            ? null
+            : failure
+              ? describeDirectGenFailure(failure)
+              : UNRECORDED_REASON
+      };
+    });
+  }, [bindings, layerIds, layerNames]);
 
   const landed = tiles.filter((tile) => tile.assetId !== undefined).length;
   const failedTiles = tiles.filter((tile) => tile.failed);
@@ -163,32 +205,59 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   // A batch usually fails for one reason — a key, a quota, a prompt — so the
   // sheet says it once above the grid instead of on every tile.
   const reasons = Array.from(
-    new Set(failedTiles.map((tile) => tile.reason ?? unrecordedReason()))
+    new Set(failedTiles.map((tile) => tile.reason ?? UNRECORDED_REASON))
   );
   const sharedReason = failed > 1 && reasons.length === 1 ? reasons[0] : null;
 
+  // Visibility changes through the store's layer action and one history
+  // entry, the way the layers panel toggles it. Replacing the document would
+  // clear undo history (F13).
   const pick = useCallback(
     (layerId: string) => {
       const sketch = useSketchStore.getState();
-      sketch.setDocument({
-        ...sketch.document,
-        layers: sketch.document.layers.map((layer) =>
-          layerIds.includes(layer.id)
-            ? { ...layer, visible: layer.id === layerId }
-            : layer
-        )
-      });
-      useSketchStore.getState().setActiveLayer(layerId);
+      const variations = new Set([...siblingLayerIds, ...layerIds]);
+      let changed = false;
+      for (const layer of sketch.document.layers) {
+        if (
+          variations.has(layer.id) &&
+          layer.visible !== (layer.id === layerId)
+        ) {
+          sketch.toggleLayerVisibility(layer.id);
+          changed = true;
+        }
+      }
+      sketch.setActiveLayer(layerId);
+      if (changed) {
+        useSketchStore.getState().pushHistory("pick variation");
+      }
       onPick(layerId);
     },
-    [layerIds, onPick]
+    [layerIds, onPick, siblingLayerIds]
+  );
+
+  // A regeneration with the seed it already had asks a seeded provider for
+  // the same picture again, so it gets a fresh one. A failed take retries
+  // with its seed, since nothing was rendered from it (F12).
+  const regenerate = useCallback(
+    (layerId: string, failed: boolean) => {
+      if (!failed) {
+        useSketchSessionStore
+          .getState()
+          .patchBinding(layerId, { seed: variationSeeds(1)[0] });
+      }
+      void start(layerId);
+    },
+    [start]
   );
 
   const sendTo = useCallback(
     async (layerId: string, destination: "entity" | "canvas" | "video") => {
       setActions((current) => ({
         ...current,
-        [layerId]: { state: "saving", message: i18n.t("storyboard:attrs.openingDestination", { defaultValue: "Opening destination…" }) }
+        [layerId]: {
+          state: "saving",
+          message: destination === "entity" ? "Saving to entities…" : "Opening…"
+        }
       }));
       try {
         if (destination === "entity") {
@@ -206,12 +275,16 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 : i18n.t("storyboard:attrs.openedInANewNodeCanvas", { defaultValue: "Opened in a new node canvas." })
           }
         }));
-      } catch {
+      } catch (cause) {
+        const reason = cause instanceof Error ? ` ${cause.message}` : "";
         setActions((current) => ({
           ...current,
           [layerId]: {
             state: "failed",
-            message: i18n.t("storyboard:attrs.couldNotOpenThatDestinationTryAgain", { defaultValue: "Could not open that destination. Try again." })
+            message:
+              destination === "entity"
+                ? `Could not save to entities.${reason}`
+                : `Could not open that canvas.${reason}`
           }
         }));
       }
@@ -222,7 +295,9 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}</Text>
+        <Text size="big" component="h2">
+          Pick your image
+        </Text>
         <Text size="normal" color="secondary">
           Every variation stays on the document, so nothing you rendered is
           lost.
@@ -230,21 +305,30 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         {/* What the batch did, said once and out loud, so a reader who cannot
             see the grid still learns that three landed and one did not. */}
         <Text size="small" color="secondary" role="status" aria-live="polite">
-          {[
-            t("storyboard:attrs.countOfTotalRendered", { defaultValue: "{{landed}} of {{total}} rendered", landed, total: tiles.length }),
-            failed > 0 ? t("storyboard:attrs.countFailed", { defaultValue: "{{count}} failed", count: failed }) : null,
-            pending > 0 ? t("storyboard:attrs.countStillRunning", { defaultValue: "{{count}} still running", count: pending }) : null
-          ]
-            .filter((part) => part !== null)
-            .join(" · ")}
+          {`${landed} of ${tiles.length} rendered` +
+            (failed > 0 ? ` · ${failed} failed` : "") +
+            (pending > 0 ? ` · ${pending} still running` : "")}
         </Text>
       </FlexColumn>
 
       {failed > 0 && landed === 0 && pending === 0 ? (
-        <AlertBanner severity="error">
+        <AlertBanner
+          severity="error"
+          action={
+            <ReportBugButton
+              context={{
+                source: "provider-call",
+                summary: "Image variations failed to render",
+                errorText: reasons.join("\n")
+              }}
+            />
+          }
+        >
           <FlexColumn gap={GAP.tight}>
             <Text size="small">
-              {t("storyboard:attrs.nothingRenderedTryAVariationAgain", { defaultValue: "Nothing rendered. Try a variation again, change the model or size under the generation settings, or open the editor and work from the canvas." })}
+              Nothing rendered. Try a variation again, change the model or size
+              under the generation settings, or open the editor and work from
+              the canvas.
             </Text>
             {reasons.map((reason) => (
               <Text key={reason} size="small">
@@ -258,7 +342,19 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
       ) : null}
 
       {makeMoreError ? (
-        <AlertBanner severity="error" role="alert">
+        <AlertBanner
+          severity="error"
+          role="alert"
+          action={
+            <ReportBugButton
+              context={{
+                source: "provider-call",
+                summary: "More image variations failed to start",
+                errorText: makeMoreError
+              }}
+            />
+          }
+        >
           {makeMoreError}
         </AlertBanner>
       ) : null}
@@ -274,27 +370,47 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         }}
       >
         {tiles.map((tile) => (
-          <FlexColumn key={tile.layerId} gap={GAP.normal}>
+          // Every tile repeats the same buttons, so each is a named group: a
+          // screen reader hears which variation i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" }) picks.
+          <FlexColumn
+            key={tile.layerId}
+            gap={GAP.normal}
+            role="group"
+            aria-label={tile.label}
+          >
             <Box
               role="group"
               aria-label={`${tile.label} preview`}
               aria-busy={tile.pending}
+              className={MEDIA_GALLERY_HOST_CLASS}
+              // A click on the still picks it, the same as `Sketch editor`
+              // beneath it, which stays the keyboard route.
+              onClick={tile.assetId ? () => pick(tile.layerId) : undefined}
               sx={{
                 position: "relative",
                 aspectRatio: "1/1",
                 overflow: "hidden",
-                borderRadius: BORDER_RADIUS.sm
+                borderRadius: BORDER_RADIUS.sm,
+                cursor: tile.assetId ? "pointer" : "default",
+                "& img": { pointerEvents: "none", userSelect: "none" }
               }}
             >
               {tile.assetId ? (
-                <ResponsiveImage
-                  locator={`asset://${tile.assetId}`}
-                  preferThumbnail
-                  alt={tile.label}
-                  aspectRatio="1/1"
-                  fit="contain"
-                  borderRadius={BORDER_RADIUS.sm}
-                />
+                <>
+                  <ResponsiveImage
+                    locator={`asset://${tile.assetId}`}
+                    preferThumbnail
+                    alt={tile.label}
+                    aspectRatio="1/1"
+                    fit="contain"
+                    borderRadius={BORDER_RADIUS.sm}
+                  />
+                  <GalleryExpandButton
+                    locator={`asset://${tile.assetId}`}
+                    kind="image"
+                    caption={tile.label}
+                  />
+                </>
               ) : (
                 <Box
                   sx={{
@@ -307,7 +423,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }}
                 >
                   <Caption color="secondary">
-                    {t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", { defaultValue: STATUS_TEXT[tile.status] ?? "Rendering" })}
+                    {STATUS_TEXT[tile.status] ?? "Rendering"}
                   </Caption>
                 </Box>
               )}
@@ -328,12 +444,14 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 variant="contained"
                 disabled={!tile.assetId}
                 onClick={() => pick(tile.layerId)}
-              >{t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}</EditorButton>
+              >
+                Sketch editor
+              </EditorButton>
               {(
                 [
-                  ["entity", t("storyboard:attrs.saveToEntities", { defaultValue: "Save to entities" })],
-                  ["canvas", t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
-                  ["video", t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
+                  ["entity", i18n.t("storyboard:attrs.saveToEntities", { defaultValue: "Save to entities" })],
+                  ["canvas", i18n.t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
+                  ["video", i18n.t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
                 ] as const
               ).map(([destination, label]) => (
                 <EditorButton
@@ -350,21 +468,35 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
               <EditorButton
                 variant="text"
                 disabled={tile.pending}
-                onClick={() => void start(tile.layerId)}
+                onClick={() => regenerate(tile.layerId, tile.failed)}
               >
-                {tile.failed
-                  ? t("storyboard:attrs.tryNameAgain", { defaultValue: "Try {{name}} again", name: tile.label })
-                  : t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}
+                {tile.failed ? `Try ${tile.label} again` : "Regenerate"}
+                {/* Another render is paid for, so its price sits on the button. */}
+                {regenerateDetail ? ` · ${regenerateDetail}` : ""}
               </EditorButton>
               <EditorButton
                 variant="text"
                 disabled={!tile.assetId}
                 onClick={() => {
                   if (tile.assetId) {
-                    void downloadVariation(tile.assetId, tile.label);
+                    downloadVariation(tile.assetId, tile.label).catch(
+                      (cause: unknown) => {
+                        const reason =
+                          cause instanceof Error ? ` ${cause.message}` : "";
+                        setActions((current) => ({
+                          ...current,
+                          [tile.layerId]: {
+                            state: "failed",
+                            message: `Could not download ${tile.label}.${reason}`
+                          }
+                        }));
+                      }
+                    );
                   }
                 }}
-              >{t("storyboard:attrs.download", { defaultValue: "Download" })}</EditorButton>
+              >
+                Download
+              </EditorButton>
             </FlexRow>
             {actions[tile.layerId] ? (
               <Text
@@ -386,12 +518,19 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
+          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : i18n.t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
+        {makeMoreDetail && !makeMorePending ? (
+          <Caption color="secondary" sx={{ alignSelf: "center" }}>
+            {makeMoreDetail}
+          </Caption>
+        ) : null}
         <EditorButton variant="text" onClick={onBackToSettings}>
-          {t("editor:ui.backToGenerationSettings", { defaultValue: "Back to generation settings" })}
+          Back to generation settings
         </EditorButton>
-        <EditorButton variant="text" onClick={onOpenEditor}>{t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
+        <EditorButton variant="text" onClick={onOpenEditor}>
+          Open editor
+        </EditorButton>
       </FlexRow>
     </FlexColumn>
   );

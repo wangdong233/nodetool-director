@@ -7,16 +7,17 @@
  * offers the one action that costs money — `Re-render stills`.
  *
  * Nothing here renders automatically (PRD D12): a style change marks versions
- * stale and spends nothing. The creator clicks, and only the shots whose
- * *selected* still is stale are enqueued. Clips stay stale until the toolbar's
- * `Render clips`.
+ * stale and spends nothing. The creator clicks, sees what the re-render costs
+ * in a confirmation, and only then are the shots whose *selected* still (or
+ * clip) is stale enqueued.
  *
  * With nothing stale the component renders null — not an empty banner, not a
  * zero count. A toolbar that reserves space for a message it has none of is a
  * layout shift every creator pays for (E1 criterion 7).
  */
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { formatUsd } from "@nodetool-ai/model-pricing";
 import {
   currentRenderInputs,
   isVersionStale,
@@ -28,8 +29,22 @@ import { boardRenderContext } from "../../lib/storyboard/boardRenderContext";
 import { useBoard } from "../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../serverState/useEntities";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
-import { AlertBanner, EditorButton, FlexRow, SPACING } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import {
+  useRenderBatchCostEstimate,
+  type RenderBatchCostEstimate
+} from "../../hooks/storyboard/useRenderBatchCostEstimate";
+import {
+  AlertBanner,
+  Caption,
+  Dialog,
+  EditorButton,
+  FlexColumn,
+  FlexRow,
+  Text,
+  SPACING
+} from "../ui_primitives";
+import RenderCostSummary from "./RenderCostSummary";
 
 export type StaleInputReason =
   | "action or prompt"
@@ -72,6 +87,12 @@ const renderInputReasons = (
   }
   return reasons;
 };
+
+/** " · ~$0.12" when the batch prices, nothing when it does not. */
+const costSuffix = (estimate: RenderBatchCostEstimate): string =>
+  estimate.pricedRequestCount > 0 && estimate.cost > 0
+    ? ` · ~${formatUsd(estimate.cost)}`
+    : "";
 
 /** "3 stills", "1 clip" — the count and its noun. */
 const countLabel = (count: number, noun: string): string =>
@@ -164,19 +185,29 @@ const BoardStaleBannerImpl = ({
     return [...found];
   }, [stale]);
 
+  const stillsCost = useRenderBatchCostEstimate(boardId, staleStills, "still");
+  const clipsCost = useRenderBatchCostEstimate(boardId, staleClips, "clip");
+  // Which re-render is waiting on its confirmation, if any.
+  const [confirming, setConfirming] = useState<"stills" | "clips" | null>(
+    null
+  );
+  const closeConfirm = useCallback(() => setConfirming(null), []);
+
   // One shot that cannot start records the reason on itself and is toasted, so
   // a single failure must not stop the rest of the re-render.
-  const handleRerenderStills = useCallback(() => {
-    for (const shot of staleStills) {
-      void generateKeyframe(boardId, shot).catch(() => undefined);
+  const handleConfirm = useCallback(() => {
+    const kind = confirming;
+    setConfirming(null);
+    if (kind === "stills") {
+      for (const shot of staleStills) {
+        void generateKeyframe(boardId, shot).catch(() => undefined);
+      }
+    } else if (kind === "clips") {
+      for (const shot of staleClips) {
+        void generateClip(boardId, shot).catch(() => undefined);
+      }
     }
-  }, [staleStills, generateKeyframe, boardId]);
-
-  const handleRerenderClips = useCallback(() => {
-    for (const shot of staleClips) {
-      void generateClip(boardId, shot).catch(() => undefined);
-    }
-  }, [staleClips, generateClip, boardId]);
+  }, [confirming, staleStills, staleClips, generateKeyframe, generateClip, boardId]);
 
   const message = staleBannerMessage(
     staleStills.length,
@@ -187,32 +218,60 @@ const BoardStaleBannerImpl = ({
     return null;
   }
 
+  const confirmCost = confirming === "clips" ? clipsCost : stillsCost;
+  const confirmNoun = confirming === "clips" ? "clip" : "still";
+  const confirmCount =
+    confirming === "clips" ? staleClips.length : staleStills.length;
+
   return (
-    <AlertBanner
-      severity="info"
-      compact
-      className="board-stale-banner"
-      action={
-        <FlexRow gap={SPACING.xs} wrap>
-          {staleStills.length > 0 && (
-          <EditorButton
-            variant="outlined"
-            onClick={handleRerenderStills}
-            disabled={disabled}
-          >{t("storyboard:attrs.regenerateStaleStills", { defaultValue: "Regenerate stale stills" })}</EditorButton>
-          )}
-          {staleClips.length > 0 && (
-            <EditorButton
-              variant="outlined"
-              onClick={handleRerenderClips}
-              disabled={disabled}
-            >{t("storyboard:attrs.regenerateStaleClips", { defaultValue: "Regenerate stale clips" })}</EditorButton>
-          )}
-        </FlexRow>
-      }
-    >
-      {message}
-    </AlertBanner>
+    <>
+      <AlertBanner
+        severity="info"
+        compact
+        className="board-stale-banner"
+        action={
+          <FlexRow gap={SPACING.xs} wrap>
+            {staleStills.length > 0 && (
+              <EditorButton
+                variant="outlined"
+                onClick={() => setConfirming("stills")}
+                disabled={disabled}
+              >
+                {`${t("storyboard:attrs.regenerateStaleStills", { defaultValue: "Regenerate stale stills" })}${costSuffix(stillsCost)}`}
+              </EditorButton>
+            )}
+            {staleClips.length > 0 && (
+              <EditorButton
+                variant="outlined"
+                onClick={() => setConfirming("clips")}
+                disabled={disabled}
+              >
+                {`${t("storyboard:attrs.regenerateStaleClips", { defaultValue: "Regenerate stale clips" })}${costSuffix(clipsCost)}`}
+              </EditorButton>
+            )}
+          </FlexRow>
+        }
+      >
+        {message}
+      </AlertBanner>
+      <Dialog
+        open={confirming !== null}
+        onClose={closeConfirm}
+        title={`${t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })} ${countLabel(confirmCount, `${t("storyboard:attrs.stale", { defaultValue: "stale" })} ${confirmNoun}`)}?`}
+        onConfirm={handleConfirm}
+        confirmText={`${t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}${costSuffix(confirmCost)}`}
+      >
+        <FlexColumn gap={SPACING.md}>
+          <Text>
+            {t("storyboard:attrs.eachShotRendersANewWithTheModelItLastUsed", { defaultValue: "Each shot renders a new {{noun}} with the model it last used. It arrives as a new take, and the current {{noun}} stays selected until you choose the new one.", noun: confirmNoun })}
+          </Text>
+          <RenderCostSummary estimate={confirmCost} />
+          <Caption color="secondary">
+            {t("storyboard:attrs.onlyTheShotsWhoseCurrentIsStaleAreRendered", { defaultValue: "Only the shots whose current {{noun}} is stale are rendered.", noun: confirmNoun })}
+          </Caption>
+        </FlexColumn>
+      </Dialog>
+    </>
   );
 };
 

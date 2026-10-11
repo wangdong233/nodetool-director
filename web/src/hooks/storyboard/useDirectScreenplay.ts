@@ -34,13 +34,13 @@ import {
 import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import type { FdxImport } from "../../lib/storyboard/parseFdx";
 import {
-  directionFingerprint,
+  boardDirectionFingerprint,
   screenplayWithCreativeContext,
-  storyboardCreativeContextOf,
-  storyboardProductionOf
+  storyboardCreativeContextOf
 } from "./directionFingerprint";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../serverState/useEntities";
+import { endBoardDirecting, startBoardDirecting } from "./directorRuns";
 import {
   CAMERA_PASS_SYSTEM_PROMPT,
   CAMERA_PASS_TOOL_DESCRIPTION,
@@ -72,7 +72,11 @@ interface UseDirectScreenplayResult {
    * must not advance on failure (the setup flow's genre step) reads the
    * boolean.
    */
-  direct: (boardId: string, shotCount: number) => Promise<boolean>;
+  direct: (
+    boardId: string,
+    shotCount: number,
+    signal?: AbortSignal
+  ) => Promise<boolean>;
   directing: boolean;
   error: string | null;
   /**
@@ -95,6 +99,26 @@ interface UseDirectScreenplayResult {
   acceptFallback: () => void;
 }
 
+const preserveNonDirectorIntent = (
+  previous: Screenplay | null | undefined,
+  next: Screenplay
+): Screenplay => {
+  if (!previous) return next;
+  const oldById = new Map(previous.shots.map((shot) => [shot.id, shot]));
+  return {
+    ...next,
+    motion_design: previous.motion_design,
+    shots: next.shots.map((shot) => {
+      const old = oldById.get(shot.id);
+      if (!old) return shot;
+      const retained = { ...shot };
+      if (old.graphics !== undefined) retained.graphics = old.graphics;
+      if (old.production !== undefined) retained.production = old.production;
+      return retained;
+    })
+  };
+};
+
 export const useDirectScreenplay = (): UseDirectScreenplayResult => {
   const { t } = useTranslation();
   const [directing, setDirecting] = useState(false);
@@ -108,7 +132,11 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
   const { data: allEntities } = useEntities();
 
   const direct = useCallback(
-    async (boardId: string, requestedShots: number): Promise<boolean> => {
+    async (
+      boardId: string,
+      requestedShots: number,
+      signal?: AbortSignal
+    ): Promise<boolean> => {
       const board = useStoryboardStore.getState().getBoard(boardId);
       const imported = getImportSource(boardId);
       const brief = board?.brief?.trim() ?? "";
@@ -138,6 +166,16 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
         setError(t("storyboard:attrs.pickAModelBeforeDirecting", { defaultValue: "Pick a model before directing." }));
         return false;
       }
+      // One run per board, whichever caller started it: the flow, the board's
+      // Direct button and the agent each hold their own hook.
+      const run = startBoardDirecting(boardId, signal);
+      if (!run) {
+        setError(
+          "The Director is already writing this storyboard. Wait for it to finish, or cancel it."
+        );
+        return false;
+      }
+      const runSignal = run.signal;
       setError(null);
       setUsedFallback(false);
       setDirecting(true);
@@ -152,20 +190,24 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
 
       // What this run answers, recorded on the board when it lands. The genre
       // step reads it back to decide whether its button continues to the
-      // screenplay or offers a re-direct (F15). The headless path runs through
-      // here too, so both write the same value.
-      const directedFrom = directionFingerprint({
-        brief,
-        genre,
-        shotCount,
-        modelId: model.id,
-        importKind: imported?.kind ?? "none",
-        style,
-        aspectRatio,
-        entityIds: board?.entityIds ?? [],
-        creativeContext,
-        production: storyboardProductionOf(board?.shots ?? [])
-      });
+      // screenplay or offers a re-direct (F15). It is read off the board the
+      // answer produced, with the length this run asked for as the board's
+      // length, so it is the value the step computes from the same board. The
+      // headless path runs through here too, so both write the same value.
+      const recordDirection = (): void => {
+        const store = useStoryboardStore.getState();
+        const directed = store.getBoard(boardId);
+        if (!directed) {
+          return;
+        }
+        store.setSetup(boardId, {
+          shotCount,
+          directedFrom: boardDirectionFingerprint(
+            { ...directed, setupShotCount: shotCount },
+            imported?.kind ?? "none"
+          )
+        });
+      };
 
       // The imported script is the board, not a copy kept beside it: the
       // scenes, the shots and the text the run must preserve are the ones the
@@ -192,7 +234,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
             ),
             schema_name: CAMERA_PASS_TOOL_NAME,
             schema_description: CAMERA_PASS_TOOL_DESCRIPTION
-          });
+          }, undefined, runSignal);
           const returned = applyCameraPass(preserved, answer.data);
           const verified = verifyImportedFdx(preserved, returned);
           const store = useStoryboardStore.getState();
@@ -209,7 +251,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
             creativeContext
           );
           store.setScreenplay(boardId, screenplay);
-          store.setSetup(boardId, { directedFrom });
+          recordDirection();
           setImportNotice(boardId, {
             kind: "fdx",
             correctedShotIds: verified.correctedShotIds
@@ -235,7 +277,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
           schema: buildScreenplaySchema(shotCount),
           schema_name: SCREENPLAY_TOOL_NAME,
           schema_description: SCREENPLAY_TOOL_DESCRIPTION
-        });
+        }, undefined, runSignal);
         const parsed = result.data
           ? parseScreenplay(result.data, { shotCount, aspectRatio, genre })
           : null;
@@ -244,18 +286,21 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
         // the same rule the Director node applies. The board keeps flowing
         // and the user can edit the beats; only a provider error throws.
         const fell = !parsed || parsed.shots.length === 0;
-        const screenplay = screenplayWithCreativeContext(
+        const directed = screenplayWithCreativeContext(
           fell
           ? fallbackScreenplay({ brief, style, shotCount, aspectRatio })
           : parsed,
           creativeContext
         );
+        // Director owns camera/story direction, not graphics, production policy,
+        // or whole-board motion design already approved on retained shot ids.
+        const screenplay = preserveNonDirectorIntent(board?.screenplay, directed);
         // The review step names it as locally written, so nobody edits a
         // placeholder believing the Director wrote it (F9).
         setUsedFallback(fell);
         const store = useStoryboardStore.getState();
         store.setScreenplay(boardId, screenplay);
-        store.setSetup(boardId, { directedFrom });
+        recordDirection();
         if (imported && !imported.preserveWords) {
           // The source text is the brief the creator is looking at, so the
           // check names the lines their own words did not reach.
@@ -273,6 +318,11 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
         }
         return true;
       } catch (err) {
+        // A canceled run leaves the board as it was and says nothing: the
+        // creator asked for it to stop.
+        if (runSignal.aborted) {
+          return false;
+        }
         // The provider's own words, rewritten as one sentence plus the thing
         // to try next — the raw body carries a status code, a JSON blob and a
         // billing URL, and reads as a crash under a guided step.
@@ -286,6 +336,7 @@ export const useDirectScreenplay = (): UseDirectScreenplayResult => {
         );
         return false;
       } finally {
+        endBoardDirecting(boardId, run);
         setDirecting(false);
       }
     },

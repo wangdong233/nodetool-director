@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node", "@webgpu/types"]
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../game-runtime" },
+    { "path": "../gpu" },
+    { "path": "../protocol" },
+    { "path": "../config" }
+  ]
+}

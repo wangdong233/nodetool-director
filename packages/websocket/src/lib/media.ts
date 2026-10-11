@@ -5,10 +5,9 @@
  */
 import { execFile as execFileCb } from "node:child_process";
 import { promisify } from "node:util";
-import { promises as fs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import { trimVideoWindow as trimSharedVideoWindow } from "@nodetool-ai/runtime/trim-video-window";
 import { isObjectLike } from "./wire-values.js";
+import { withTaskSpan } from "@nodetool-ai/runtime/tracing";
 
 const execFile = promisify(execFileCb);
 
@@ -84,89 +83,49 @@ export async function probeDurationMs(
 }
 
 /**
- * Extract the audio track of the media at `inputPath` to 16-bit PCM WAV and
- * return the encoded bytes alongside the WAV's duration. Manages its own temp
- * output directory. Throws if ffmpeg fails (e.g. the input has no audio) or
+ * Extract the audio track of the media at `inputPath` to a 16-bit PCM WAV at
+ * `outputPath` and return the WAV's duration. The WAV stays on disk so the
+ * caller can store it without holding it in memory; a two-hour stereo track
+ * is over a gigabyte. Throws if ffmpeg fails (e.g. the input has no audio) or
  * {@link MediaToolingMissingError} if the binary is missing.
  */
 export async function extractAudio(
-  inputPath: string
-): Promise<{ bytes: Uint8Array; durationMs: number | null }> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "nodetool-extract-"));
-  const outputPath = path.join(dir, "output.wav");
+  inputPath: string,
+  outputPath: string
+): Promise<{ durationMs: number | null }> {
   try {
-    await execFile(
-      "ffmpeg",
-      ["-y", "-i", inputPath, "-vn", "-acodec", "pcm_s16le", outputPath],
-      { maxBuffer: 50 * 1024 * 1024 }
+    await withTaskSpan(
+      "cpu",
+      "subprocess.run",
+      { "process.executable.name": "ffmpeg" },
+      () =>
+        execFile(
+          "ffmpeg",
+          ["-y", "-i", inputPath, "-vn", "-acodec", "pcm_s16le", outputPath],
+          { maxBuffer: 50 * 1024 * 1024 }
+        )
     );
-    const durationMs = await probeDurationMs(outputPath);
-    const bytes = new Uint8Array(await fs.readFile(outputPath));
-    return { bytes, durationMs };
+    return { durationMs: await probeDurationMs(outputPath) };
   } catch (err) {
     if (isEnoent(err)) {
       throw new MediaToolingMissingError();
     }
     throw err;
-  } finally {
-    await fs.rm(dir, { recursive: true, force: true });
   }
 }
 
-/**
- * Materialize the exact constant-speed source window sent to a video editor.
- * The source asset remains untouched in storage. The returned MP4 starts at
- * time zero so providers receive the same window-relative contract as the
- * timeline candidate.
- */
+/** Shared source-window materialization used by browser and headless edits. */
 export async function trimVideoWindow(
   input: Uint8Array,
   startMs: number,
   endMs: number
 ): Promise<Uint8Array> {
-  if (
-    input.length === 0 ||
-    !Number.isFinite(startMs) ||
-    !Number.isFinite(endMs) ||
-    startMs < 0 ||
-    endMs <= startMs
-  ) {
-    throw new Error(
-      "Video edit source window must be a positive finite range."
-    );
-  }
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "nodetool-video-edit-"));
-  const inputPath = path.join(dir, "input.mp4");
-  const outputPath = path.join(dir, "window.mp4");
   try {
-    await fs.writeFile(inputPath, input);
-    await execFile(
-      "ffmpeg",
-      [
-        "-y",
-        "-i",
-        inputPath,
-        "-ss",
-        String(startMs / 1000),
-        "-t",
-        String((endMs - startMs) / 1000),
-        "-c:v",
-        "libx264",
-        "-c:a",
-        "aac",
-        "-movflags",
-        "+faststart",
-        outputPath
-      ],
-      { maxBuffer: 50 * 1024 * 1024 }
-    );
-    return new Uint8Array(await fs.readFile(outputPath));
-  } catch (err) {
-    if (isEnoent(err)) {
+    return await trimSharedVideoWindow(input, startMs, endMs);
+  } catch (error) {
+    if (isEnoent(error)) {
       throw new MediaToolingMissingError();
     }
-    throw err;
-  } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    throw error;
   }
 }

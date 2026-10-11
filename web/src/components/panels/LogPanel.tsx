@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { useMemo, useState, useCallback, memo } from "react";
 import { css } from "@emotion/react";
 import { useNavigate } from "react-router-dom";
@@ -22,10 +24,9 @@ import {
   ToggleGroup,
   ToggleOption,
   ToolbarIconButton,
-  getSpacingPx
+  getSpacingPx,
+  PanelHeader
 } from "../ui_primitives";
-import PanelToolbar from "./PanelToolbar";
-import { useTranslation } from "react-i18next";
 
 type Row = LogRow & { workflowId: string; workflowName: string; key: string };
 
@@ -59,7 +60,6 @@ const SEVERITY_LABELS = {
 } satisfies Record<Severity, string>;
 
 const LogPanel: React.FC = memo(function LogPanel() {
-  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const rootStyles = useMemo(() => containerStyles(theme), [theme]);
@@ -75,6 +75,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
 
   // Map workflow id -> name for quick lookup
   const wfName = useMemo(() => {
+  const { t } = useTranslation();
     const map: Record<string, string> = {};
     openWorkflows.forEach((w) => (map[w.id] = w.name));
     return map;
@@ -156,6 +157,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
 
   const handleRevealNode = useCallback(
     (workflowId: string, nodeId: string) => {
+  const { t } = useTranslation();
       const workflowTab: {
         type: "workflow";
         ref: string;
@@ -195,8 +197,8 @@ const LogPanel: React.FC = memo(function LogPanel() {
       css={rootStyles}
       className={isFullscreen ? "fullscreen" : undefined}
     >
-      <PanelToolbar
-        title={t("editor:bottom.logs", { defaultValue: "Logs" })}
+      <PanelHeader
+        title="Logs"
         count={filteredRows.length}
         actions={
           <ToolbarIconButton
@@ -207,9 +209,9 @@ const LogPanel: React.FC = memo(function LogPanel() {
                 <FullscreenIcon fontSize="small" />
               )
             }
-            tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+            tooltip={isFullscreen ? i18n.t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreenToggle}
-            ariaLabel={t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
+            ariaLabel={i18n.t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
           />
         }
       >
@@ -217,7 +219,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
           value={selectedSeverities}
           onChange={handleSeverityChange}
           compact
-          aria-label={t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
+          aria-label={i18n.t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
         >
           {SEVERITIES.map((s) => (
             <ToggleOption key={s} value={s} aria-label={s}>
@@ -234,7 +236,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
             title={filter.jobId ? `Run ${filter.jobId}` : undefined}
           />
         ) : null}
-      </PanelToolbar>
+      </PanelHeader>
 
       <Box className="table-wrap">
         <LogsTable

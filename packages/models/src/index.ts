@@ -11,13 +11,15 @@ export {
   initPostgresDb,
   initTestDb,
   migrateSqliteDb,
+  getPortableDb,
   getDb,
+  getDatabase,
   getDbType,
   getRawDb,
   pingDb,
   closeDb
 } from "./db.js";
-export type { DbDialect } from "./db.js";
+export type { DbDialect, DatabaseConnection } from "./db.js";
 
 // ── Drizzle Schema (SQLite — default) ──────────────────────────────
 export {
@@ -153,9 +155,10 @@ export {
   isCollaboratorRole,
   type CollaboratorRole
 } from "./workflow-collaborator.js";
-export { WorkflowShare } from "./workflow-share.js";
+export { WorkflowShare, type ShareRole } from "./workflow-share.js";
 
 export { Asset } from "./asset.js";
+export type { AssetRow, AssetInsert } from "./asset.js";
 export { entityFromAsset } from "./entity.js";
 
 export {
@@ -313,6 +316,7 @@ export type {
   ProjectDocumentStatus,
   ProjectDocumentSummary,
   ProjectDocumentType,
+  ProjectSummaryDocumentType,
   ProjectSpend,
   ProjectSummary,
   ProjectThumbnail,
@@ -394,6 +398,7 @@ export type {
 } from "./prediction.js";
 
 export { Workspace } from "./workspace.js";
+export { Game, AmbiguousGameIdError, InvalidGameDocumentError, MissingGameDraftSourceError } from "./game.js";
 
 export { RunEvent } from "./run-event.js";
 export type { EventType } from "./run-event.js";
@@ -411,6 +416,7 @@ export type {
   CreateAccessTokenParams
 } from "./access-token.js";
 export { ExternalIdentity } from "./external-identity.js";
+export type { ExternalIdentityRow, ExternalIdentityInsert } from "./external-identity.js";
 export type { LinkExternalIdentityParams } from "./external-identity.js";
 export {
   DEFAULT_USER_EVENT_RETENTION_DAYS,
@@ -426,6 +432,49 @@ export {
   recordUserEvent,
   sanitizeUserEventMetadata
 } from "./user-event.js";
+export { createBugReport } from "./bug-report.js";
+export type { BugReportRow, CreateBugReportInput } from "./bug-report.js";
+export {
+  DEFAULT_ERROR_TRACE_RETENTION_DAYS,
+  MAX_ERROR_TRACE_INGEST_BATCH,
+  formatErrorReport,
+  getErrorTrace,
+  ingestErrorTraces,
+  listErrorTraces,
+  listUnsyncedErrorTraces,
+  markErrorTracesSynced,
+  pruneErrorTraces,
+  recordErrorTrace,
+  summarizeErrorTraces
+} from "./error-trace.js";
+export type {
+  ErrorTraceGroup,
+  ErrorTraceOrigin,
+  ErrorTraceRow,
+  GetErrorTraceResult,
+  ListErrorTracesOptions,
+  RecordErrorTraceInput
+} from "./error-trace.js";
+export {
+  ERROR_TRACE_CONTEXT_KEYS,
+  ERROR_TRACE_SEVERITIES,
+  ERROR_TRACE_SOURCES,
+  collectSecretValues,
+  describeThrown,
+  errorTraceFingerprint,
+  isErrorTraceSeverity,
+  isErrorTraceSource,
+  redactErrorText,
+  redactErrorTrace,
+  sanitizeErrorTraceContext
+} from "./error-trace-redaction.js";
+export type {
+  ErrorTraceContext,
+  ErrorTraceInput,
+  ErrorTraceSeverity,
+  ErrorTraceSource,
+  RedactedErrorTrace
+} from "./error-trace-redaction.js";
 export type {
   ListUserEventsOptions,
   RecordUserEventInput,
@@ -507,3 +556,18 @@ export type {
   CreditStatus,
   UserSubscription
 } from "./credits.js";
+
+export { commitFinishedStoryboard, findFinishResourceIds } from "./finish-storyboard.js";
+
+export { storyboards } from "./schema/storyboards.js";
+export { assertStoryboardClipGenerationAllowed } from "./storyboard-generation-policy.js";
+
+export * from "./app-instance.js";
+
+export { listRunTraceOwners, registerRunTrace, getRunTrace, getRegisteredRunTrace, getRegisteredTrace, setRunTraceRoot, settleRunTrace, registerRunTraceParent, registerRunTraceParents, writeRunTraceUpdate, listRunTraceRecords, markRunTraceIncomplete, eraseRunTraceParentContent, deleteRunTrace, pruneRunTraces, sanitizeRunTraceRecord, RunTraceError } from "./run-trace.js";
+export type { RegisterRunTraceInput, RunTraceSanitizationOptions } from "./run-trace.js";
+export { resolveRunReader, findRunReaderSource, queryRunReaders, queryRunReaderSpans, queryRunReaderGenerationIds, queryRunReaderDocumentIds, queryRunReaderDocuments, queryRunReaderAppMetadata, queryRunReaderAppContent, queryRunReaderAppContentPresent, queryRunReaderGenerationCosts, encodeRunListCursor } from "./run-readers.js";
+export type { RunReaderSpan } from "./run-readers.js";
+export { threadHasTraceContentTools } from "./trace-provenance.js";
+
+export { listAppInstanceMetadata } from "./app-instance-list.js";

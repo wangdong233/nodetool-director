@@ -51,11 +51,21 @@ export interface WidgetRuntime {
   /** Fractional progress of the app's active run, when it reports any. */
   progress: number | undefined;
   /**
+   * True when the widget is bound to a run's own progress (`exec#progress`),
+   * whose value is the 0..1 fraction rather than a number the graph produced.
+   */
+  boundToRunProgress: boolean;
+  /**
    * What the run this widget watches last reported it was doing — the tool an
    * agent is calling, the planning phase, the task step. Undefined when the run
    * reports nothing but a spinner.
    */
   activity: string | undefined;
+  /**
+   * True while the operation whose output this widget reads is running, so an
+   * empty display can say a result is on its way instead of reading as idle.
+   */
+  producing: boolean;
 }
 
 interface UseWidgetRuntimeParams {
@@ -92,11 +102,17 @@ export const useWidgetRuntime = ({
   // property value (saved data, else metadata default).
   const value =
     storedValue === undefined && boundRef?.kind === "nodeProperty"
-      ? getNodeProperty(boundRef.nodeId, boundRef.property)
+      ? getNodeProperty(
+          boundRef.nodeId,
+          boundRef.property,
+          boundRef.operationId || undefined
+        )
       : storedValue;
 
   // A widget reports on the operation its own events drive, so a button wired
-  // to the second operation shows that operation's run, not operation 0's.
+  // to the second operation shows that operation's run, not operation 0's. A
+  // widget without events (a Progress bar bound to `op:X/exec#progress`)
+  // reports on the operation its binding names.
   const operationId = useMemo(() => {
     const named = (events ?? []).find(
       (event) =>
@@ -104,8 +120,12 @@ export const useWidgetRuntime = ({
         event.operationId &&
         operations.some((operation) => operation.id === event.operationId)
     )?.operationId;
-    return named ?? scope.defaultOperationId;
-  }, [events, operations, scope.defaultOperationId]);
+    const bound =
+      boundRef?.kind === "execution" || boundRef?.kind === "output"
+        ? boundRef.operationId
+        : undefined;
+    return named ?? bound ?? scope.defaultOperationId;
+  }, [boundRef, events, operations, scope.defaultOperationId]);
   const runnerState = useRuntimeSelector((s) =>
     isOperationRunning(s, operationId) ? "running" : "idle"
   );
@@ -149,7 +169,7 @@ export const useWidgetRuntime = ({
       };
       const fire = (event: AppEvent) => {
         const action = eventToAction(event, ctx);
-        if (action) dispatch(action);
+        if (action) dispatch(action, { widgetId: id });
       };
 
       const debounced: AppEvent[] = [];
@@ -181,8 +201,23 @@ export const useWidgetRuntime = ({
         debounced.forEach(fire);
       }, DEBOUNCE_MS);
     },
-    [dispatch, events, from, scope]
+    [dispatch, events, from, id, scope]
   );
 
-  return { value, setValue, emit, designMode, runnerState, progress, activity };
+  const producing = useRuntimeSelector(
+    (s) => boundRef?.kind === "output" && isOperationRunning(s, boundRef.operationId)
+  );
+
+  return {
+    value,
+    setValue,
+    emit,
+    designMode,
+    runnerState,
+    progress,
+    boundToRunProgress:
+      boundRef?.kind === "execution" && boundRef.field === "progress",
+    activity,
+    producing
+  };
 };

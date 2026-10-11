@@ -3,7 +3,7 @@
  * DirectGenClipPanel
  *
  * Inspector panel for a direct-generation clip (text-to-image /
- * image-to-image / text-to-video / text-to-audio). Mirrors the sketch
+ * image-to-image / text-to-video / image-to-video / text-to-audio). Mirrors the sketch
  * editor's `DirectGenLayerPanel`: prompt + model + (optional) source-clip
  * picker, with Generate/Cancel driven by the same `useGenerateClip` API
  * used elsewhere in the timeline.
@@ -12,6 +12,8 @@
  * happens in `TimelineInspector`.
  */
 
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { css } from "@emotion/react";
@@ -76,9 +78,9 @@ import {
 } from "../../ui_primitives";
 import { GeneratedClipTopBar } from "./GeneratedClipTopBar";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
+import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
-import { useTranslation } from "react-i18next";
 
 interface VideoModelChange {
   type: "video_model";
@@ -105,7 +107,8 @@ const panelSx = {
   overflow: "auto"
 };
 
-// Source-clip dropdown is only rendered in image-to-image mode. Sharing one
+// Source-clip dropdown is only rendered in image-to-image and image-to-video
+// mode. Sharing one
 // empty array (rather than `[]` inline in the selector) keeps the selector's
 // result referentially stable outside that mode, so `useShallow` bails out
 // without a re-render.
@@ -129,6 +132,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const [promptOpen, setPromptOpen] = usePersistedFold("direct-gen-prompt", true);
 
   const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
   const setClipPrompt = useTimelineStore((s) => s.setClipPrompt);
@@ -136,7 +140,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
     (s) => s.setClipDirectGenModel
   );
   const patchClipBinding = useTimelineStore((s) => s.patchClipBinding);
-  const patchClip = useTimelineStore((s) => s.patchClip);
+  const trimClipEnd = useTimelineStore((s) => s.trimClipEnd);
+  const trackLocked = useTimelineStore(
+    (s) => s.tracks.find((track) => track.id === clip?.trackId)?.locked ?? false
+  );
+  const timingLocked = !!clip?.locked || trackLocked;
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const {
@@ -148,7 +156,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
   } = useGenerateClip(clipId);
 
   const kind: "image" | "video" | "audio" | "music" =
-    clip?.bindingKind === "text-to-video"
+    clip?.bindingKind === "text-to-video" ||
+    clip?.bindingKind === "image-to-video"
       ? "video"
       : clip?.bindingKind === "text-to-music"
         ? "music"
@@ -156,6 +165,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
           ? "audio"
           : "image";
   const isImageToImage = clip?.bindingKind === "image-to-image";
+  const isImageToVideo = clip?.bindingKind === "image-to-video";
+  const hasSourceClip = isImageToImage || isImageToVideo;
 
   // What pressing Generate spends, at the model and settings picked above.
   const costEstimate = useClipCostEstimate(clip);
@@ -229,22 +240,24 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
     1,
     Math.round((clip?.durationMs ?? 4000) / 1000)
   );
+  const currentDurationMs = clip?.durationMs;
   const handleDurationChange = useCallback(
     (seconds: number) => {
-      patchClip(clipId, { durationMs: seconds * 1000 });
+      if (timingLocked || currentDurationMs === undefined) return;
+      trimClipEnd(clipId, seconds * 1000 - currentDurationMs);
     },
-    [clipId, patchClip]
+    [clipId, currentDurationMs, timingLocked, trimClipEnd]
   );
 
-  // Eligible image-to-image source clips: any other image/overlay clip with
-  // a rendered asset in the sequence. Gated on `isImageToImage` so clips in
+  // Eligible source clips: any other image/overlay clip with a rendered
+  // asset in the sequence. Gated on `hasSourceClip` so clips in
   // every other mode never subscribe to the full `clips` array; the selector
   // returns primitive strings (not fresh {value, label} objects) so
   // `useShallow` can actually bail out the re-render when nothing eligible
   // changed.
   const sourceEntries = useTimelineStore(
     useShallow((s) =>
-      isImageToImage
+      hasSourceClip
         ? s.clips
             .filter(
               (c) =>
@@ -367,11 +380,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 
   const promptPlaceholder =
     kind === "video"
-      ? t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" })
+      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" })
       : kind === "music"
-        ? t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
+        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
         : kind === "audio"
-          ? t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
+          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
           : "Describe the image…";
 
   const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
@@ -388,7 +401,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               icon={<AutoAwesomeOutlinedIcon />}
             />
           }
-          defaultOpen
+          open={promptOpen}
+          onToggle={setPromptOpen}
         >
           <FlexColumn gap={SPACING.sm} css={sectionStyles(theme)}>
             {kind === "image" && (
@@ -406,13 +420,13 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                   value="text-to-image"
                   data-testid="direct-gen-mode-t2i"
                 >
-                  {t("editor:ui.textImage")}
+                  Text → Image
                 </ToggleOption>
                 <ToggleOption
                   value="image-to-image"
                   data-testid="direct-gen-mode-i2i"
                 >
-                  {t("editor:ui.imageImage")}
+                  Image → Image
                 </ToggleOption>
               </ToggleGroup>
             )}
@@ -420,7 +434,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
             {kind === "video" ? (
               <VideoModelSelect
                 value={clip.model ?? ""}
-                task="text_to_video"
+                provider={clip.provider}
+                task={isImageToVideo ? "image_to_video" : "text_to_video"}
                 onChange={handleVideoModelChange}
               />
             ) : kind === "music" ? (
@@ -456,6 +471,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
             ) : (
               <ImageModelSelect
                 value={clip.model ?? ""}
+                provider={clip.provider}
                 task={isImageToImage ? "image_to_image" : "text_to_image"}
                 onChange={handleModelChange}
               />
@@ -478,16 +494,16 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               }}
             />
 
-            {isImageToImage && (
+            {hasSourceClip && (
               sourceOptions.length === 0 ? (
                 <EmptyState
                   variant="empty"
                   size="small"
-                  description={t("editor:ui.noSourceClipsWithARenderedAssetAreAvailable")}
+                  description="No source clips with a rendered asset are available."
                 />
               ) : (
                 <SelectField
-                  label={t("timeline:attrs.sourceClip", { defaultValue: "Source clip" })}
+                  label={isImageToVideo ? i18n.t("timeline:attrs.sourceImage", { defaultValue: "Source image" }) : i18n.t("timeline:attrs.sourceClip", { defaultValue: "Source clip" })}
                   value={clip.sourceClipId ?? ""}
                   onChange={handleSourceChange}
                   options={sourceOptions}
@@ -517,7 +533,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                     <MediaOptionChip
                       icon={<TuneIcon fontSize="small" />}
                       label={`Strength ${(clip.strength ?? DEFAULT_STRENGTH).toFixed(2)}`}
-                      header={t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
+                      header="Edit strength"
                       value={clip.strength ?? DEFAULT_STRENGTH}
                       options={strengthOptions}
                       onChange={(s) =>
@@ -527,7 +543,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                     <MediaOptionChip
                       icon={<LayersIcon fontSize="small" />}
                       label={`${clip.numInferenceSteps ?? DEFAULT_STEPS} steps`}
-                      header={t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
+                      header="Inference steps"
                       value={clip.numInferenceSteps ?? DEFAULT_STEPS}
                       options={stepsOptions}
                       onChange={(n) =>
@@ -547,10 +563,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                   value={videoDuration}
                   options={durationOptions}
                   onChange={handleDurationChange}
+                  disabled={timingLocked}
                 />
                 <MediaOptionChip
                   icon={<TvIcon fontSize="small" />}
-                  header={t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
+                  header="Video resolution"
                   value={
                     (clip.resolution as VideoResolution | undefined) ??
                     DEFAULT_VIDEO_RESOLUTION
@@ -591,7 +608,9 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               {isActive ? "Cancel" : generateLabel}
             </EditorButton>
             {isFailed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>{t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
+              <Caption color="error" sx={{ textAlign: "center" }}>
+                Generation failed.
+              </Caption>
             )}
           </FlexColumn>
         </CollapsibleSection>

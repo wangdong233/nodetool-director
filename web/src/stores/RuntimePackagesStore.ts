@@ -40,6 +40,12 @@ interface RuntimePackageStatus {
   description: string;
   installed: boolean;
   installing: boolean;
+  /** Version on disk, for a package the desktop app installs at a pin. */
+  installedVersion?: string;
+  /** The version this app pins. */
+  latestVersion?: string;
+  /** The installed version differs from the pin. */
+  updateAvailable?: boolean;
 }
 
 interface RuntimePackagesStore extends PackageOpState, PackageConsoleSlice {
@@ -51,6 +57,8 @@ interface RuntimePackagesStore extends PackageOpState, PackageConsoleSlice {
 
   install: (id: string) => Promise<boolean>;
   uninstall: (id: string) => Promise<boolean>;
+  /** Reinstall at the pinned version, then restart the backend to load it. */
+  update: (id: string) => Promise<boolean>;
   selectInstallLocation: () => Promise<void>;
 }
 
@@ -58,8 +66,7 @@ const runtimeApi = () =>
   typeof window !== "undefined" ? window.api?.packages : undefined;
 
 const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
-  available:
-    typeof window !== "undefined" && Boolean(window.api?.packages),
+  available: typeof window !== "undefined" && Boolean(window.api?.packages),
   statuses: [],
   installLocation: null,
   busyIds: [],
@@ -136,6 +143,20 @@ const useRuntimePackagesStore = create<RuntimePackagesStore>((set, get) => ({
       (runtimeId) => api.uninstallRuntime!(runtimeId),
       "Failed to uninstall runtime",
       false
+    );
+  },
+
+  update: async (id) => {
+    const api = runtimeApi();
+    if (!api?.updateRuntime) return false;
+    // The backend imported the old version and keeps it until it restarts.
+    return runPackageOp(
+      set,
+      get,
+      [id],
+      (runtimeId) => api.updateRuntime!(runtimeId),
+      "Failed to update runtime",
+      true
     );
   },
 

@@ -23,8 +23,7 @@ on:
         default: ""
 
 permissions:
-  id-token: write
-  contents: write
+  contents: read
 
 jobs:
   check_changes:
@@ -85,9 +84,17 @@ jobs:
       - id: meta
         name: Resolve release metadata
         shell: bash
+        env:
+          INPUT_CHANNEL: ${{ github.event.inputs.channel }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
           set -euo pipefail
-          if [[ "${GITHUB_EVENT_NAME}" == "schedule" || ( "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${{ github.event.inputs.channel }}" == "nightly" ) ]]; then
+          # A dispatched run signs and publishes, so it must build main or a tag.
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" && "${GITHUB_REF}" != refs/tags/* ]]; then
+            echo "workflow_dispatch releases must run from main or a tag, not ${GITHUB_REF}." >&2
+            exit 1
+          fi
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" || ( "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${INPUT_CHANNEL}" == "nightly" ) ]]; then
             nightly_date="$(date -u -d "${{ github.run_started_at }}" +%Y%m%d)"
             node scripts/resolve-nightly-release.mjs \
               --date "$nightly_date" \
@@ -101,12 +108,16 @@ jobs:
             echo "update_mac_manifest=nightly-mac.yml" >> "$GITHUB_OUTPUT"
             echo "update_linux_manifest=nightly-linux.yml" >> "$GITHUB_OUTPUT"
           else
-            if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && -z "${{ github.event.inputs.version }}" ]]; then
+            if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && -z "${INPUT_VERSION}" ]]; then
               echo "workflow_dispatch stable releases require the version input." >&2
               exit 1
             fi
-            raw="${{ github.event.inputs.version != '' && github.event.inputs.version || github.ref_name }}"
+            raw="${INPUT_VERSION:-${GITHUB_REF_NAME}}"
             version="${raw#v}"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+              echo "'${raw}' is not a semver version (X.Y.Z[-pre][+build])." >&2
+              exit 1
+            fi
             echo "release_channel=stable" >> "$GITHUB_OUTPUT"
             echo "version=$version" >> "$GITHUB_OUTPUT"
             echo "tag=v$version" >> "$GITHUB_OUTPUT"
@@ -239,25 +250,29 @@ jobs:
           echo "Using Python: $(which python)"
           python --version
 
+      # Not a login shell: on macOS `bash -l` runs path_helper, which puts
+      # Homebrew's node ahead of the setup-node one. The postinstall then builds
+      # better-sqlite3 against Homebrew's headers, and later steps that load it
+      # under the .nvmrc Node abort in the addon (seen with 24.20 vs 24.18).
       - name: Install dependencies
-        shell: bash -l {0}
+        shell: bash
         run: npm ci
 
       # Validate both compiler roles before the cross-platform package build.
       # This catches a missing platform-native package or an incorrect npm
       # alias before the release job spends time compiling and packaging.
       - name: Check TypeScript compiler roles
-        shell: bash -l {0}
+        shell: bash
         run: npm run check:typescript
 
       - name: Build workspace packages
-        shell: bash -l {0}
+        shell: bash
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
         run: npm run build:packages
 
       - name: Build Web
-        shell: bash -l {0}
+        shell: bash
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
         run: npm run build --workspace=web
@@ -308,10 +323,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: electron-builder
         run: |
+          set -euo pipefail
           cd electron
           npm run vite:build
           npm run prepare-backend
           npm run prepare-mcpb
+          npm run prepare-chrome-extension
           npx electron-builder --config electron-builder.json --win --x64 --dir --publish never
 
       # Boot the backend out of the packed app before anything is signed or
@@ -432,7 +449,7 @@ jobs:
 
       - name: Sign main app exe (SSL.com eSigner)
         if: matrix.os == 'windows-2022' && env.SHOULD_SIGN == 'true' && (startsWith(github.ref, 'refs/tags/') || env.RELEASE_CHANNEL == 'nightly' || github.event.inputs.version != '')
-        uses: sslcom/esigner-codesign@develop
+        uses: sslcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b  # v1.3.2
         with:
           command: sign
           username: ${{ secrets.ES_USERNAME }}
@@ -443,6 +460,9 @@ jobs:
           output_path: ${{ env.DIST_DIR }}/signed-app
           malware_block: true
           environment_name: PROD
+          # CodeSignTool reads the whole file into the heap. The action's 1024M
+          # default fails with "Java heap space" on the installer.
+          jvm_max_memory: 4096M
 
       - name: Move signed app exe back to unpacked directory
         if: matrix.os == 'windows-2022' && env.SHOULD_SIGN == 'true' && (startsWith(github.ref, 'refs/tags/') || env.RELEASE_CHANNEL == 'nightly' || github.event.inputs.version != '')
@@ -494,7 +514,7 @@ jobs:
 
       - name: Sign installer exe (SSL.com eSigner)
         if: matrix.os == 'windows-2022' && env.SHOULD_SIGN == 'true' && (startsWith(github.ref, 'refs/tags/') || env.RELEASE_CHANNEL == 'nightly' || github.event.inputs.version != '')
-        uses: sslcom/esigner-codesign@develop
+        uses: sslcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b  # v1.3.2
         with:
           command: sign
           username: ${{ secrets.ES_USERNAME }}
@@ -505,6 +525,9 @@ jobs:
           output_path: ${{ env.DIST_DIR }}/signed-installer
           malware_block: true
           environment_name: PROD
+          # CodeSignTool reads the whole file into the heap. The action's 1024M
+          # default fails with "Java heap space" on the installer.
+          jvm_max_memory: 4096M
 
       - name: Move signed installer back to dist directory
         if: matrix.os == 'windows-2022' && env.SHOULD_SIGN == 'true' && (startsWith(github.ref, 'refs/tags/') || env.RELEASE_CHANNEL == 'nightly' || github.event.inputs.version != '')
@@ -605,6 +628,7 @@ jobs:
           npm run vite:build
           npm run prepare-backend
           npm run prepare-mcpb
+          npm run prepare-chrome-extension
           npx electron-builder --config electron-builder.json --publish never
 
       # See the Windows step above. Only the first matching layout is booted:
@@ -661,9 +685,11 @@ jobs:
           # If the process is still alive after the timeout it means the
           # main bundle loaded cleanly.
           fail=0
+          found=0
           shopt -s nullglob
           for app in electron/dist/mac-arm64/Nodetool.app electron/dist/mac/Nodetool.app; do
             [ -d "$app" ] || continue
+            found=$((found + 1))
             echo "::group::Smoke-launch $app"
             bin="$app/Contents/MacOS/Nodetool"
             log=$(mktemp)
@@ -682,8 +708,8 @@ jobs:
               alive=1
             done
             if [ "$alive" -eq 0 ]; then
-              wait $pid 2>/dev/null || true
-              rc=$?
+              rc=0
+              wait $pid 2>/dev/null || rc=$?
               echo "::error file=$app::App died at launch (exit $rc)"
               echo "--- launch log ---"
               tail -200 "$log" || true
@@ -696,6 +722,11 @@ jobs:
             rm -f "$log"
             echo "::endgroup::"
           done
+          if [ "$found" -eq 0 ]; then
+            echo "::error::No Nodetool.app found under electron/dist — nothing was smoke-launched."
+            find electron/dist -maxdepth 2 -type d | head -50
+            fail=1
+          fi
           if [ "$fail" -ne 0 ]; then
             echo "::error::Smoke launch failed; refusing to upload."
             exit 1
@@ -837,18 +868,19 @@ jobs:
 
   nightly-docker-tag:
     name: Retag GHCR image for nightly
-    needs: [preflight]
-    if: ${{ !failure() && !cancelled() && needs.preflight.outputs.release_channel == 'nightly' }}
+    # Waits for the desktop build so :nightly only moves when it succeeded.
+    needs: [preflight, release-build]
+    if: ${{ !failure() && !cancelled() && needs.release-build.result == 'success' && needs.preflight.outputs.release_channel == 'nightly' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c  # v4
 
       - name: Login to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -898,6 +930,8 @@ jobs:
     needs: [preflight, release-build]
     if: ${{ !failure() && !cancelled() && needs.preflight.result == 'success' && needs.release-build.result == 'success' && (github.event_name != 'workflow_dispatch' || github.event.inputs.channel == 'nightly' || github.event.inputs.version != '') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -918,26 +952,30 @@ jobs:
         run: node scripts/smoke-release-updater-assets.mjs release-assets "${{ needs.preflight.outputs.version }}" "${{ needs.preflight.outputs.release_channel }}"
 
       # The win-unpacked zip is kept as a workflow artifact for debugging,
-      # but is intentionally NOT attached to the GitHub Release.
-      # Drop it from release-assets/ here so the publish step doesn't need a
-      # negation glob (which would fail when no win-unpacked zip is present
-      # and `fail_on_unmatched_files: true` is set).
-      - name: Drop win-unpacked archives from release assets
+      # but is intentionally NOT attached to the GitHub Release. So is
+      # builder-debug.yml, which electron-builder writes because the build
+      # jobs set DEBUG=electron-builder; the *.yml glob below would otherwise
+      # publish it (runner paths and build internals) next to the updater
+      # manifests. Drop both from release-assets/ here so the publish step
+      # doesn't need a negation glob (which would fail when no such file is
+      # present and `fail_on_unmatched_files: true` is set).
+      - name: Drop debug-only files from release assets
         run: |
           set -euo pipefail
           shopt -s nullglob
           removed=0
-          for f in release-assets/*win-unpacked*.zip; do
+          for f in release-assets/*win-unpacked*.zip release-assets/builder-debug*.yml; do
             echo "Removing from release-assets: $f"
             rm -f "$f"
             removed=$((removed + 1))
           done
-          echo "Removed ${removed} win-unpacked archive(s)."
+          echo "Removed ${removed} debug-only file(s)."
 
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.preflight.outputs.tag }}
+          target_commitish: ${{ needs.preflight.outputs.ref }}
           name: ${{ needs.preflight.outputs.release_name }}
           prerelease: ${{ needs.preflight.outputs.is_prerelease }}
           make_latest: ${{ needs.preflight.outputs.make_latest }}

@@ -9,6 +9,8 @@
  * directly via ref during the migration.
  */
 
+import { getVectorSourceImage, setVectorSource } from "./vectorSource";
+
 import type {
   SketchRuntime,
   ActiveStrokeInfo,
@@ -175,7 +177,19 @@ export class Canvas2DRuntime implements SketchRuntime {
   }
 
   deleteLayerCanvas(layerId: string): void {
+    this.supersedePendingLoad(layerId);
     this.layerCanvases.delete(layerId);
+  }
+
+  /**
+   * Invalidate any image load still in flight for a layer, so it cannot
+   * redraw over pixels written since or recreate a deleted layer. Returns the
+   * generation of the caller's own load.
+   */
+  private supersedePendingLoad(layerId: string): number {
+    const gen = (this.layerLoadGenerations.get(layerId) ?? 0) + 1;
+    this.layerLoadGenerations.set(layerId, gen);
+    return gen;
   }
 
   invalidateLayer(layerId: string): void {
@@ -267,6 +281,7 @@ export class Canvas2DRuntime implements SketchRuntime {
     const snapshot = window.document.createElement("canvas");
     snapshot.width = source.width;
     snapshot.height = source.height;
+    setVectorSource(snapshot, getVectorSourceImage(source) ?? null);
     const rasterBounds = getCanvasRasterBounds(source);
     if (rasterBounds) {
       setCanvasRasterBounds(snapshot, rasterBounds);
@@ -298,6 +313,7 @@ export class Canvas2DRuntime implements SketchRuntime {
     bounds: LayerContentBounds,
     onComplete?: () => void
   ): void {
+    const gen = this.supersedePendingLoad(layerId);
     // Short-circuit: if the data we're being asked to hydrate from is the
     // SAME string we just serialized off of this layer's live canvas, the
     // canvas is already pixel-identical. Re-decoding and redrawing would
@@ -330,15 +346,11 @@ export class Canvas2DRuntime implements SketchRuntime {
       } else {
         canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       }
+      setVectorSource(canvas, null);
       setCanvasRasterBounds(canvas, decoded.bounds);
       onComplete?.();
       return;
     }
-
-    // Bump the generation so any in-flight load from a prior call
-    // knows it has been superseded and should not overwrite the canvas.
-    const gen = (this.layerLoadGenerations.get(layerId) ?? 0) + 1;
-    this.layerLoadGenerations.set(layerId, gen);
 
     /** Shared finalization: resize canvas, draw the decoded source, and notify. */
     const finalize = (source: ImageBitmap | HTMLImageElement) => {
@@ -364,6 +376,7 @@ export class Canvas2DRuntime implements SketchRuntime {
         canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       }
       setCanvasRasterBounds(canvas, decoded.bounds);
+      setVectorSource(canvas, source instanceof HTMLImageElement && decoded.image?.startsWith("data:image/svg+xml") ? source : null);
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(source, 0, 0);
@@ -457,6 +470,7 @@ export class Canvas2DRuntime implements SketchRuntime {
   }
 
   restoreLayerCanvas(layerId: string, source: HTMLCanvasElement): void {
+    this.supersedePendingLoad(layerId);
     const canvas = this.getOrCreateLayerCanvas(
       layerId,
       source.width,
@@ -466,6 +480,7 @@ export class Canvas2DRuntime implements SketchRuntime {
       canvas.width = source.width;
       canvas.height = source.height;
     }
+    setVectorSource(canvas, getVectorSourceImage(source) ?? null);
     setCanvasRasterBounds(
       canvas,
       getCanvasRasterBounds(source) ?? {

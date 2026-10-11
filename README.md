@@ -18,7 +18,7 @@ like.
 **[Documentation](https://docs.nodetool.ai/)** · **[MCP setup](#mcp)** ·
 **[Contribute](#contributing)**
 
-![NodeTool: shape a product brief into a reusable workflow and campaign assets](marketing/public/hero-project-readme.gif)
+![NodeTool: one sentence becomes a beat sheet, entities, a storyboard of stills and clips, and a finished cut](marketing/public/hero-flow-readme.gif)
 
 ## Every model you need, on your own keys
 
@@ -58,7 +58,7 @@ spending on video, then assemble the clips on a timeline. Trim the cut, add
 narration, and export an MP4. Revise one shot without regenerating the film.
 The [film quick start](docs/getting-started.md) walks through each step.
 
-Five editors share one project, so a piece never leaves the studio to be
+Seven editors share one project, so a piece never leaves the studio to be
 finished, and an agent drives every one of them through the actions you have.
 
 ### Storyboard
@@ -120,10 +120,22 @@ Place primitives and lights in a scene by hand or by asking, then capture a
 view as a depth or composition reference for an image or video model. The same
 scene builds and renders with no editor open, so it comes back the same way
 every time.
+[3D editor guide →](https://docs.nodetool.ai/3d-editor)
+
+### Game
+
+![NodeTool game editor](marketing/public/surface-game-poster.webp)
+
+Build a 2D or 3D game in a workspace tab and play it without leaving the
+editor. Place entities, give them behaviors or JavaScript, and bind generated
+sprites, sounds, and models to their slots. Ask the agent for a new enemy or a
+darker level and it edits the same draft. Publish a revision, then export it as
+a standalone web player that runs without NodeTool.
+[Game editor guide →](https://docs.nodetool.ai/game-editor)
 
 ## The node editor
 
-![NodeTool workflow canvas](marketing/public/screen_workflow.webp)
+![NodeTool node editor](marketing/public/surface-nodes-poster.webp)
 
 Every project is a graph you can open. Drag nodes in, connect typed ports, and
 read the live output at each step. Double-click the canvas to search for a
@@ -132,22 +144,51 @@ refuses a mismatch, so an image cannot land in a text field.
 
 Every editor above sits on this canvas.
 
-## Recipes
+## Example timelines
 
-Each recipe is a downloadable bundle that runs on your keys at provider list
-prices.
+Each film below is a timeline document that ships with NodeTool, rendered to MP4.
+Select a poster to watch the film. Open the example in the app to edit every
+clip, track, and effect.
 
-| Recipe | What you end up holding | Models the shipped chain calls |
-| --- | --- | --- |
-| [Viral video ad](https://nodetool.ai/recipes/viral-video-ad-engine) | A vertical product ad, plus the hook lines and thumbnails to test it against | GPT-5 mini, FLUX.1 Schnell, Kling 2.6 |
-| [Multilingual dub](https://nodetool.ai/recipes/multilingual-video-dubber) | One presenter clip in a second language, lip-synced, with subtitles and a back-translation | GPT-4o mini Transcribe, GPT-5 mini, OpenAI TTS, Inworld TTS, Sync Lipsync |
-| [SKU visual set](https://nodetool.ai/recipes/ecommerce-sku-visual-factory) | One packshot becomes the channel set: cutout, studio scene, seasonal relight, turntable clip, print master, listing copy | Bria background removal, Nano Banana, image relighting, LTX 2.3, Clarity upscaler, GPT-5 mini |
-| [Storyboard to trailer](https://nodetool.ai/recipes/storyboard-to-trailer) | A logline becomes a beat sheet, a numbered shot list, a cut teaser, and a score under it | GPT-5 mini, Gemini 3.1 Pro, GPT Image 2, Veo 3.1, Stable Audio 2.5 |
+### Serein, the inbox that sorts itself
 
-The [recipe gallery](https://nodetool.ai/recipes) has the model chain and
-contact sheet for each run. The [showcase](https://nodetool.ai/showcase) and
+[![Serein, the inbox that sorts itself](marketing/public/timelines/serein/poster.webp)](marketing/public/timelines/serein/film.mp4)
+
+A 26-second product launch film built from editable scene clips, text, motion, and effects. [Watch the film](marketing/public/timelines/serein/film.mp4) or see the [timeline layout](marketing/public/timelines/serein/timeline.webp).
+
+### Kite, savings on autopilot
+
+[![Kite, savings on autopilot](marketing/public/timelines/kite/poster.webp)](marketing/public/timelines/kite/film.mp4)
+
+A 15-second app ad made from motion graphics alone: kinetic type, a drawn-on chart, a filling goal ring, and a logo reveal. [Watch the film](marketing/public/timelines/kite/film.mp4) or see the [timeline layout](marketing/public/timelines/kite/timeline.webp).
+
+### Voltra, silent and violent
+
+[![Voltra, silent and violent](marketing/public/timelines/voltra/poster.webp)](marketing/public/timelines/voltra/film.mp4)
+
+A 23-second motorcycle launch ad cut to a 120 BPM beat, with generated stills, parallax plates, mattes, and spec gauges. [Watch the film](marketing/public/timelines/voltra/film.mp4) or see the [timeline layout](marketing/public/timelines/voltra/timeline.webp).
+
+### Prism, run in every colour
+
+[![Prism, run in every colour](marketing/public/timelines/prism/poster.webp)](marketing/public/timelines/prism/film.mp4)
+
+An 18-second running-shoe ad on a 120 BPM grid, with green-screen stills keyed in the timeline and a prism that splits light. [Watch the film](marketing/public/timelines/prism/film.mp4) or see the [timeline layout](marketing/public/timelines/prism/timeline.webp).
+
+### Tidewater, summer jazz on the pier
+
+[![Tidewater, summer jazz on the pier](marketing/public/timelines/tidewater/poster.webp)](marketing/public/timelines/tidewater/film.mp4)
+
+A 16-second 4:5 risograph poster that moves, on stepped 12 fps time with a swing score. [Watch the film](marketing/public/timelines/tidewater/film.mp4) or see the [timeline layout](marketing/public/timelines/tidewater/timeline.webp).
+
+### Cadence, a year on two wheels
+
+[![Cadence, a year on two wheels](marketing/public/timelines/cadence/poster.webp)](marketing/public/timelines/cadence/film.mp4)
+
+A vertical year-in-review data story with a route that rides itself, counted stat cards, and animated charts. [Watch the film](marketing/public/timelines/cadence/film.mp4) or see the [timeline layout](marketing/public/timelines/cadence/timeline.webp).
+
+The [showcase](https://nodetool.ai/showcase) and
 [template gallery](https://nodetool.ai/templates) hold the single workflows
-recipes chain.
+these films chain.
 
 ## How NodeTool compares
 
@@ -215,6 +256,8 @@ Everything the film surfaces do is reachable on the canvas without the film.
 - **[JavaScript Sandbox](https://docs.nodetool.ai/javascript-sandbox)** — What JS scripts and Code nodes can reach
 - **[Video Editor](https://docs.nodetool.ai/video-editor)** — Sequence and generate clips on a timeline
 - **[Sketch Editor](https://docs.nodetool.ai/sketch-editor)** — Draw, mask, and generate on a layered canvas
+- **[3D Editor](https://docs.nodetool.ai/3d-editor)** — Place objects, lights, and cameras in a glTF scene
+- **[Game Editor](https://docs.nodetool.ai/game-editor)** — Build, play, and export 2D and 3D games
 - **[Node Packs](https://docs.nodetool.ai/packs)** — Available nodes and integrations
 - **[Custom Nodes](https://docs.nodetool.ai/developer/custom-nodes-guide)** — Extend NodeTool
 - **[Provider Guides](https://docs.nodetool.ai/developer/providers/)** — Add new models and nodes for any provider
@@ -223,13 +266,17 @@ Everything the film surfaces do is reachable on the canvas without the film.
 
 ## MCP
 
-The installed CLI registers NodeTool's local toolbelt with Claude Code, Codex,
-or OpenCode:
+Use NodeTool from Claude Code, Codex, or OpenCode. One command registers the
+server with every client it finds. The desktop app is optional:
 
 ```bash
-npm install -g @nodetool-ai/cli
-nodetool mcp install
+npx -y --package=@nodetool-ai/cli nodetool mcp install
 ```
+
+The command starts the server once to check it, then writes each client's
+config. Restart the client and ask it to use NodeTool. For other clients,
+`nodetool mcp config` prints an `mcpServers` block. See
+[NodeTool as an MCP Server](https://docs.nodetool.ai/mcp-server).
 
 For Claude Desktop, build the source MCP bundle after installing dependencies
 and building packages:
@@ -252,7 +299,7 @@ template. It calls no model, so it needs no API key:
 ```bash
 git clone https://github.com/nodetool-ai/nodetool.git
 cd nodetool
-nvm use                         # Requires nvm and Node.js 22.22.1
+nvm use                         # Requires nvm, reads the version from .nvmrc
 npm install
 npm run build:packages
 npm run workflow -- ./examples/workflows/hello_input_output_cli.json \
@@ -281,7 +328,7 @@ providers and local setup. Do not add a key to a committed file.
 
 ## CLI
 
-Install the CLI as shown in [MCP](#mcp), using Node.js 22.22.1. The
+Install the CLI with `npm install -g @nodetool-ai/cli`, using Node.js 22 or later. The
 [CLI package guide](packages/cli/README.md) covers running workflows with the
 installed command.
 
@@ -309,8 +356,9 @@ environment without changing it, use `./start.sh doctor`. None of these launch
 the Electron desktop app.
 
 In a separate terminal, launch the desktop shell with `npm run electron`.
-Node.js 22.22.1 is pinned in [`.nvmrc`](.nvmrc). Python 3.11 and conda are
-optional, for Python nodes. For locked-down environments or missing WebGPU, see
+The Node.js version is pinned in [`.nvmrc`](.nvmrc). Python 3.11 or newer is
+optional, for Python nodes. See
+[Python nodes without the desktop app](docs/installation.md#python-nodes-without-the-desktop-app). For locked-down environments or missing WebGPU, see
 [development environment](docs/dev-environment.md).
 
 ## Testing

@@ -44,6 +44,7 @@
  *   scrollbar stays available.
  */
 
+import { useTranslation } from "react-i18next";
 import { useTimelineIsActive } from "../../../stores/timeline/TimelineInstance";
 import React, {
   memo,
@@ -57,11 +58,15 @@ import React, {
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { useStore } from "zustand";
+import UndoIcon from "@mui/icons-material/Undo";
+import RedoIcon from "@mui/icons-material/Redo";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import {
+  lockedUserTargetIds,
   useTimelineStore,
-  useTimelineStoreApi,
-  getTimelineTemporal
+  useTimelineStoreApi
 } from "../../../stores/timeline/TimelineStore";
 import {
   useTimelineUIStore,
@@ -73,7 +78,10 @@ import {
   maxTrackHeaderWidthForViewport
 } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
-import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
+import {
+  runAsOneUndoEntry,
+  useTimelineHistoryBatch
+} from "../../../stores/timeline/useTimelineHistoryBatch";
 import {
   buildPastedClips,
   copyClipsToClipboard,
@@ -85,6 +93,7 @@ import {
   trackHeaderWidthCss
 } from "./TrackHeader";
 import { TrackHeader } from "./TrackHeader";
+import { TrackFolderHeader } from "./TrackFolderHeader";
 import { TrackLane } from "./TrackLane";
 import { RubberBandOverlay } from "./RubberBandOverlay";
 import { SnapGuideOverlay } from "./SnapGuideOverlay";
@@ -101,13 +110,18 @@ import {
 import { TrackEffectsPanel } from "./TrackEffectsPanel";
 import { ScriptLane, ScriptLaneHeader } from "./ScriptLane";
 import { FX_PANEL_HEIGHT_PX } from "./trackHeight";
-import { layoutTrackRows, visibleTrackWindow } from "./trackWindow";
+import { layoutTrackRows, TRACK_FOLDER_HEIGHT_PX, visibleTrackWindow } from "./trackWindow";
 import { ToolToggle } from "../ToolToggle";
 import { TimelineShortcutsDialog } from "../TimelineShortcutsDialog";
 import {
+  Caption,
+  EditorButton,
   FlexRow,
   HelpButton,
   ResizeHandle,
+  ToolbarIconButton,
+  Tooltip,
+  TYPOGRAPHY,
   FONT_SIZE_MONO,
   FONT_WEIGHT,
   BORDER_RADIUS,
@@ -120,6 +134,7 @@ import { useTimelineIsMobile } from "../../../hooks/timeline/useTimelineIsMobile
 import { useVideoAudioImport } from "../../../hooks/timeline/useVideoAudioImport";
 import { deserializeDragData } from "../../../lib/dragdrop";
 import { assetMediaType } from "../dnd/assetToClipAdapter";
+import { getSourceCapMs } from "./useClipSourceDuration";
 import { buildTypedIndexMap } from "./trackVisuals";
 import { partitionTimelineWheel, normalizeWheelDeltaPx } from "./timelineWheel";
 import {
@@ -129,19 +144,17 @@ import {
 } from "./timelineGesture";
 import { resolveTimelineAction } from "../timelineKeymap";
 import { performSourceEdit } from "../sourceEdit";
-import {
-  getSelectedAssetForExplorer,
-  useAssetsSelectedAsset,
-  useLibrarySelectedAsset
-} from "../../../stores/AssetGridStore";
+import { getSelectedAssetForExplorer } from "../../../stores/AssetGridStore";
 import { usePanelStore } from "../../../stores/PanelStore";
 import {
+  groupDescendantIds,
   hasKeyframeAt,
+  isGroupClip,
   keyframeTimesMs,
   keyframeValueAt
 } from "@nodetool-ai/timeline";
 import { useSettingsStore } from "../../../stores/SettingsStore";
-import { useTranslation } from "react-i18next";
+import { isMac } from "../../../utils/platform";
 
 const ZOOM_SENSITIVITY = 0.001;
 /** Extra gap (ms) inserted after the source clip when using Ctrl+Shift+D. */
@@ -151,6 +164,8 @@ const ZOOM_IN_FACTOR = 0.8;
 const ZOOM_OUT_FACTOR = 1.25;
 /** Padding kept on each side when Shift+Z fits content to the viewport (px). */
 const ZOOM_FIT_PADDING_PX = 64;
+/** Modifier shown in the undo/redo tooltips. */
+const modKeyLabel = isMac() ? "⌘" : "Ctrl";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -211,8 +226,7 @@ const trackCountChipStyles = (theme: Theme) =>
     borderRadius: BORDER_RADIUS.sm,
     backgroundColor: theme.vars.palette.action.hover,
     color: theme.vars.palette.text.secondary,
-    fontFamily:
-      "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    fontFamily: TYPOGRAPHY.mono.caption.fontFamily,
     fontSize: FONT_SIZE_MONO.caption,
     fontWeight: FONT_WEIGHT.semibold,
     letterSpacing: "0"
@@ -253,11 +267,13 @@ const lanesContainerStyles = css({
 interface TracksRegionProps {
   /** Height of the tracks area in pixels. */
   heightPx: number;
+  /** Opens the Generate dialog. The toolbar offers no Generate without it. */
+  onGenerate?: () => void;
 }
 
 export const TracksRegion: React.FC<TracksRegionProps> = memo(
-  ({ heightPx }) => {
-    const { t } = useTranslation();
+  ({ heightPx, onGenerate }) => {
+  const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useTimelineIsMobile();
     const isActive = useTimelineIsActive();
@@ -266,14 +282,6 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         ? s.panel.activeView
         : null
     );
-    const assetsAsset = useAssetsSelectedAsset();
-    const libraryAsset = useLibrarySelectedAsset();
-    const activeAssetId =
-      activeExplorer === "library"
-        ? (libraryAsset?.id ?? null)
-        : activeExplorer === "assets"
-          ? (assetsAsset?.id ?? null)
-          : null;
     const storedHeaderWidthPx = useTimelineUIStore((s) => s.trackHeaderWidthPx);
     const setTrackHeaderWidthPx = useTimelineUIStore(
       (s) => s.setTrackHeaderWidthPx
@@ -287,6 +295,19 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     );
 
     const tracks = useTimelineStore((s) => s.tracks);
+    const trackFolders = useTimelineStore((s) => s.trackFolders);
+    const [collapsedFolderIds, setCollapsedFolderIds] = useState<ReadonlySet<string>>(new Set());
+    const toggleFolder = useCallback((folderId: string) => {
+      setCollapsedFolderIds((current) => {
+        const next = new Set(current);
+        if (next.has(folderId)) {
+          next.delete(folderId);
+        } else {
+          next.add(folderId);
+        }
+        return next;
+      });
+    }, []);
     // Content extent for sizing the ruler / scroll width. The stored
     // `durationMs` is not recomputed when clips are added or moved, so it can
     // lag far behind the actual clips (it stays 0 for a freshly built
@@ -340,13 +361,6 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     const docStore = useTimelineStoreApi();
     const playbackStore = useTimelinePlaybackStoreApi();
     const uiStoreApi = useTimelineUIStoreApi();
-    const previousSourceAssetId = useRef<string | null>(null);
-    useEffect(() => {
-      if (previousSourceAssetId.current !== activeAssetId) {
-        uiStoreApi.getState().setSourceRange(null);
-        previousSourceAssetId.current = activeAssetId;
-      }
-    }, [activeAssetId, uiStoreApi]);
 
     const addTrack = useTimelineStore((s) => s.addTrack);
     const addImportedClip = useTimelineStore((s) => s.addImportedClip);
@@ -407,7 +421,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         if (!dragData || dragData.type !== "asset") return;
         const asset = dragData.payload;
 
-        const mediaType = assetMediaType(asset.content_type);
+        const mediaType = assetMediaType(asset.content_type, asset.name);
         if (!mediaType) return;
 
         const trackType: "video" | "audio" =
@@ -422,17 +436,23 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           Math.round((dropX + scrollEl.scrollLeft) * msPerPx)
         );
 
-        addTrack(trackType);
-        const newTrack = useTimelineStore.getState().tracks.slice(-1)[0];
-        if (!newTrack) return;
         const dropMode = uiStoreApi.getState().dropMode;
+        const createTrack = (): string => {
+          addTrack(trackType);
+          return useTimelineStore.getState().tracks.slice(-1)[0]?.id ?? "";
+        };
         // A video on a new video track also gets a linked audio clip
-        // (extracted from the video), matching the per-lane drop path.
+        // (extracted from the video), matching the per-lane drop path. The
+        // new track, the clip(s) and the drop resolution are one undo entry.
         if (mediaType === "video") {
-          void importVideoWithAudio(asset, newTrack.id, startMs, dropMode);
+          void importVideoWithAudio(asset, createTrack, startMs, dropMode);
         } else {
-          const clipId = addImportedClip(asset, newTrack.id, startMs);
-          docStore.getState().resolveDrop(new Set([clipId]), dropMode);
+          runAsOneUndoEntry(docStore, () => {
+            const trackId = createTrack();
+            if (!trackId) return;
+            const clipId = addImportedClip(asset, trackId, startMs);
+            docStore.getState().resolveDrop(new Set([clipId]), dropMode);
+          });
         }
       },
       [
@@ -523,6 +543,24 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     // Previous scale, so a zoom from the buttons/slider (no cursor anchor) can
     // keep the playhead pinned to the same viewport x as the lanes rescale.
     const prevMsPerPxRef = useRef(msPerPx);
+
+    // Shift+Z and the view-controls button: fit all content to the viewport.
+    const zoomToFit = useCallback(() => {
+      const el = scrollableRef.current;
+      if (!el) return;
+      const doc = docStore.getState();
+      let end = doc.durationMs || 0;
+      for (const c of doc.clips) {
+        end = Math.max(end, c.startMs + c.durationMs);
+      }
+      const viewport = el.clientWidth - ZOOM_FIT_PADDING_PX;
+      if (end > 0 && viewport > 0) {
+        // Pin the content start to the left edge as the lanes rescale,
+        // reusing the cursor-zoom anchor path (see the layout effect).
+        zoomAnchorRef.current = { timeMs: 0, cursorPx: 0 };
+        uiStoreApi.getState().setZoom(end / viewport);
+      }
+    }, [docStore, uiStoreApi]);
 
     // Zoom accumulation for the wheel listener below: a trackpad pinch
     // delivers 60–120+ Hz of wheel events, so we accumulate the compounded
@@ -841,7 +879,9 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
       const isTextEditingTarget = (target: EventTarget | null): boolean => {
         if (
           target instanceof HTMLTextAreaElement ||
-          (target instanceof HTMLElement && target.isContentEditable)
+          (target instanceof HTMLElement &&
+            (target.isContentEditable ||
+              target.closest(".monaco-editor") !== null))
         ) {
           return true;
         }
@@ -929,12 +969,20 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             else doc.trimClipStart(target.id, delta);
           } else {
             const delta = edgeTargetMs - (target.startMs + target.durationMs);
-            if (ui.rippleMode) doc.rippleTrimClipEnd(target.id, delta);
-            else doc.trimClipEnd(target.id, delta);
+            // Same cap as the pointer trim. Without a known source length a
+            // finite-source clip may not grow past its furthest out-point.
+            const sourceMs = getSourceCapMs(target);
+            if (ui.rippleMode) doc.rippleTrimClipEnd(target.id, delta, sourceMs);
+            else doc.trimClipEnd(target.id, delta, sourceMs);
           }
           return true;
         };
-        const trimEditBy = (deltaMs: number): boolean => {
+        // The ms of the frame `frames` away from `ms`'s nearest frame, so
+        // repeated steps land on the frame grid instead of drifting by the
+        // rounding of a fractional frame length.
+        const frameStepMs = (ms: number, frames: number): number =>
+          Math.round(Math.round(ms / frameMs + frames) * frameMs);
+        const trimEditByFrames = (frames: number): boolean => {
           const edit = ui.selectedEdit;
           const target = edit
             ? doc.clips.find((c) => c.id === edit.clipId)
@@ -944,20 +992,29 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             edit.edge === "start"
               ? target.startMs
               : target.startMs + target.durationMs;
-          return trimEdit(edgeMs + deltaMs);
+          return batchHeldKeyEdit(() =>
+            trimEdit(frameStepMs(edgeMs, frames))
+          );
         };
-        const nudge = (deltaMs: number) => {
+        // Runs one keyboard edit inside the held-key undo batch.
+        const batchHeldKeyEdit = <T,>(edit: () => T): T => {
           if (!arrowNudgeOpen) {
             arrowNudgeOpen = true;
             arrowNudgeHistory.begin();
           }
-          const primaryId: string = selectedClipIds.values().next().value!;
-          moveSelectedClips(primaryId, selectedClipIds, deltaMs);
+          const result = edit();
           arrowNudgeHistory.mark();
           if (arrowNudgeTimeoutId !== null) {
             clearTimeout(arrowNudgeTimeoutId);
           }
           arrowNudgeTimeoutId = setTimeout(endArrowNudgeBatch, 400);
+          return result;
+        };
+        const nudge = (deltaMs: number) => {
+          const primaryId: string = selectedClipIds.values().next().value!;
+          batchHeldKeyEdit(() =>
+            moveSelectedClips(primaryId, selectedClipIds, deltaMs)
+          );
         };
         const seekToNeighbour = (times: number[], forward: boolean) => {
           const sorted = [...times].sort((a, b) => a - b);
@@ -1000,10 +1057,25 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             }
             return;
 
-          case "splitAtPlayhead":
+          case "splitAtPlayhead": {
             e.preventDefault();
-            splitSelectedAtPlayhead(liveMs, selectedClipIds);
+            const rightHalves = splitSelectedAtPlayhead(
+              liveMs,
+              selectedClipIds
+            );
+            // The halves have new ids. Selecting the right ones keeps the next
+            // S on the same clips instead of cutting every track.
+            if (selectedClipIds.size > 0 && rightHalves.length > 0) {
+              const live = new Set(
+                docStore.getState().clips.map((c) => c.id)
+              );
+              setSelection([
+                ...[...selectedClipIds].filter((id) => live.has(id)),
+                ...rightHalves
+              ]);
+            }
             return;
+          }
 
           case "cutAllTracks":
             e.preventDefault();
@@ -1014,16 +1086,16 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             if (trimEdit(liveMs)) e.preventDefault();
             return;
           case "trimEditLeft":
-            if (trimEditBy(-Math.round(frameMs))) e.preventDefault();
+            if (trimEditByFrames(-1)) e.preventDefault();
             return;
           case "trimEditRight":
-            if (trimEditBy(Math.round(frameMs))) e.preventDefault();
+            if (trimEditByFrames(1)) e.preventDefault();
             return;
           case "trimEditLeftLarge":
-            if (trimEditBy(-Math.round(frameMs * 10))) e.preventDefault();
+            if (trimEditByFrames(-10)) e.preventDefault();
             return;
           case "trimEditRightLarge":
-            if (trimEditBy(Math.round(frameMs * 10))) e.preventDefault();
+            if (trimEditByFrames(10)) e.preventDefault();
             return;
 
           case "stepFrameBack":
@@ -1069,6 +1141,8 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
 
           case "addMarker":
             e.preventDefault();
+            // Holding the key must not stack a marker per repeat.
+            if (e.repeat) return;
             doc.addMarker({
               timeMs: liveMs,
               label: `Marker ${doc.markers.length + 1}`
@@ -1116,9 +1190,18 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           case "nudgeRightLarge": {
             if (selectedClipIds.size === 0) return;
             e.preventDefault();
-            const large = action.endsWith("Large");
-            const stepMs = large ? 1000 : Math.round(frameMs);
-            nudge(action.startsWith("nudgeLeft") ? -stepMs : stepMs);
+            const direction = action.startsWith("nudgeLeft") ? -1 : 1;
+            if (action.endsWith("Large")) {
+              nudge(direction * 1000);
+              return;
+            }
+            // A one-frame nudge moves the primary clip to the next frame on
+            // the grid; the rest of the selection follows by the same delta.
+            const primary = doc.clips.find(
+              (c) => c.id === selectedClipIds.values().next().value
+            );
+            if (!primary) return;
+            nudge(frameStepMs(primary.startMs, direction) - primary.startMs);
             return;
           }
 
@@ -1126,8 +1209,23 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           case "cut": {
             if (selectedClipIds.size === 0) return;
             e.preventDefault();
+            // A cut copies only what it can delete, so a locked clip left in
+            // place is not pasted a second time.
+            const locked =
+              action === "cut"
+                ? lockedUserTargetIds(doc.clips, doc.tracks)
+                : undefined;
+            // A selected group brings its children, or the copy is empty.
+            const copied = new Set(selectedClipIds);
+            for (const c of doc.clips) {
+              if (selectedClipIds.has(c.id) && isGroupClip(c)) {
+                for (const id of groupDescendantIds(doc.clips, c.id)) {
+                  copied.add(id);
+                }
+              }
+            }
             copyClipsToClipboard(
-              doc.clips.filter((c) => selectedClipIds.has(c.id))
+              doc.clips.filter((c) => copied.has(c.id) && !locked?.has(c.id))
             );
             if (action === "cut") {
               deleteSelected(selectedClipIds);
@@ -1142,8 +1240,12 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             // relative offsets.
             const pasted = buildPastedClips(doc.tracks, liveMs);
             if (pasted.length > 0) {
-              addClips(pasted);
-              setSelection(pasted.map((c) => c.id));
+              const pastedIds = new Set(pasted.map((c) => c.id));
+              runAsOneUndoEntry(docStore, () => {
+                addClips(pasted);
+                docStore.getState().resolveDrop(pastedIds, ui.dropMode);
+              });
+              setSelection([...pastedIds]);
             }
             return;
           }
@@ -1183,31 +1285,20 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             e.preventDefault();
             ui.setZoom(ui.msPerPx * ZOOM_OUT_FACTOR);
             return;
-          case "zoomFit": {
+          case "zoomFit":
             e.preventDefault();
-            const el = scrollableRef.current;
-            if (!el) return;
-            let end = doc.durationMs || 0;
-            for (const c of doc.clips) {
-              end = Math.max(end, c.startMs + c.durationMs);
-            }
-            const viewport = el.clientWidth - ZOOM_FIT_PADDING_PX;
-            if (end > 0 && viewport > 0) {
-              // Pin the content start to the left edge as the lanes rescale,
-              // reusing the cursor-zoom anchor path (see the layout effect).
-              zoomAnchorRef.current = { timeMs: 0, cursorPx: 0 };
-              ui.setZoom(end / viewport);
-            }
+            zoomToFit();
             return;
-          }
 
+          // This editor's history, as the toolbar buttons use: the active
+          // instance can be another mounted timeline.
           case "undo":
             e.preventDefault();
-            getTimelineTemporal().undo();
+            docStore.temporal.getState().undo();
             return;
           case "redo":
             e.preventDefault();
-            getTimelineTemporal().redo();
+            docStore.temporal.getState().redo();
             return;
 
           case "applyDefaultTransition":
@@ -1307,6 +1398,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
       docStore,
       playbackStore,
       setActiveTool,
+      zoomToFit,
       // useTimelineHistoryBatch() returns a fresh object per render, but
       // begin/mark/end are individually stable (useCallback over a stable
       // store api) — depend on those instead of the wrapper object so this
@@ -1318,12 +1410,29 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     ]);
 
     const expandedFxTrackId = useTimelineUIStore((s) => s.expandedFxTrackId);
+
+    // Toolbar undo/redo: the same temporal store the Ctrl+Z / Ctrl+Shift+Z
+    // shortcuts drive, read reactively so the buttons disable at either end.
+    const canUndo = useStore(docStore.temporal, (s) => s.pastStates.length > 0);
+    const canRedo = useStore(
+      docStore.temporal,
+      (s) => s.futureStates.length > 0
+    );
+    const handleUndo = useCallback(
+      () => docStore.temporal.getState().undo(),
+      [docStore]
+    );
+    const handleRedo = useCallback(
+      () => docStore.temporal.getState().redo(),
+      [docStore]
+    );
+    const hasClips = useTimelineStore((s) => s.clips.length > 0);
     // Precompute per-type index map (O(n)) to avoid O(n²) per-header lookups.
     const typedIndexMap = useMemo(() => buildTypedIndexMap(tracks), [tracks]);
 
     const trackLayout = useMemo(
-      () => layoutTrackRows(tracks, hasScript, expandedFxTrackId, verticalZoom),
-      [tracks, hasScript, expandedFxTrackId, verticalZoom]
+      () => layoutTrackRows(tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds),
+      [tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds]
     );
     const previousTrackLayoutRef = useRef(trackLayout);
     const previousVerticalZoomRef = useRef(verticalZoom);
@@ -1419,6 +1528,50 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           data-testid="timeline-toolbar"
         >
           <ToolToggle compact={toolbarCompact} />
+          {/* The tooltip sits on a span so it still shows over a disabled
+              button, which fires no pointer events of its own. */}
+          <Tooltip title={`Undo (${modKeyLabel}+Z)`}>
+            <span>
+              <ToolbarIconButton
+                icon={<UndoIcon />}
+                ariaLabel="Undo"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                data-testid="timeline-undo"
+              />
+            </span>
+          </Tooltip>
+          <Tooltip title={`Redo (${modKeyLabel}+Shift+Z)`}>
+            <span>
+              <ToolbarIconButton
+                icon={<RedoIcon />}
+                ariaLabel="Redo"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                data-testid="timeline-redo"
+              />
+            </span>
+          </Tooltip>
+          {onGenerate && (
+            <EditorButton
+              variant="contained"
+              size="small"
+              startIcon={<AutoAwesomeIcon fontSize="small" />}
+              onClick={onGenerate}
+              aria-label="Generate"
+              data-testid="timeline-generate"
+              sx={{
+                ml: SPACING.xs,
+                flexShrink: 0,
+                ...(toolbarCompact && {
+                  minWidth: 0,
+                  "& .MuiButton-startIcon": { m: 0 }
+                })
+              }}
+            >
+              {toolbarCompact ? null : "Generate"}
+            </EditorButton>
+          )}
           <div style={{ flex: "1 1 auto" }} />
           <ScriptToggleButton compact={toolbarCompact} />
           <AddTrackButton compact={toolbarCompact} />
@@ -1428,16 +1581,19 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             <HelpButton
               onClick={() => setShortcutsOpen(true)}
               iconVariant="helpOutline"
-              tooltip={t("timeline:attrs.keyboardShortcuts(?)", { defaultValue: "Keyboard shortcuts (?)" })}
+              tooltip="Keyboard shortcuts (?)"
             />
           )}
-          <TimelineViewControls compact={toolbarCompact} />
+          <TimelineViewControls
+            compact={toolbarCompact}
+            onZoomToFit={zoomToFit}
+          />
         </FlexRow>
 
         {/* ── Sub-header: TRACKS label + ruler ────────────────────────── */}
         <FlexRow align="stretch" fullWidth>
           <div css={tracksSectionHeaderStyles(theme, isMobile)}>
-            <span>{t("timeline:attrs.tracks", { defaultValue: "Tracks" })}</span>
+            <span>Tracks</span>
             <span
               css={trackCountChipStyles(theme)}
               aria-label={`${tracks.length} tracks`}
@@ -1502,6 +1658,14 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             {visibleRows.map((row) =>
               row.kind === "script" ? (
                 <ScriptLaneHeader key="script" />
+              ) : row.kind === "folder" ? (
+                <TrackFolderHeader
+                  key={row.folder.id}
+                  folder={row.folder}
+                  count={row.count}
+                  collapsed={collapsedFolderIds.has(row.folder.id)}
+                  onToggle={toggleFolder}
+                />
               ) : (
                 <React.Fragment key={row.track.id}>
                   <TrackHeader
@@ -1546,9 +1710,20 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
               {visibleRows.map((row) =>
                 row.kind === "script" ? (
                   <ScriptLane key="script" />
+                ) : row.kind === "folder" ? (
+                  <FlexRow
+                    key={row.folder.id}
+                    sx={{
+                      height: TRACK_FOLDER_HEIGHT_PX,
+                      bgcolor: "action.hover",
+                      borderBottom: 1,
+                      borderColor: "divider"
+                    }}
+                    aria-hidden="true"
+                  />
                 ) : (
                   <React.Fragment key={row.track.id}>
-                    <TrackLane track={row.track} virtualizeClips />
+                    <TrackLane track={row.track} virtualizeClips collapsedFolderIds={collapsedFolderIds} />
                     {expandedFxTrackId === row.track.id && (
                       <div
                         style={{
@@ -1571,6 +1746,26 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
               <RubberBandOverlay />
               <SnapGuideOverlay />
             </div>
+            {/* Empty-sequence guidance. pointer-events:none keeps the whole
+                lanes area a drop target for assets. */}
+            {!hasClips && (
+              <FlexRow
+                align="center"
+                justify="center"
+                padding={SPACING.xl}
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  textAlign: "center"
+                }}
+                data-testid="tracks-empty-hint"
+              >
+                <Caption size="small" color="secondary">
+                  Drag media here from Assets, or add a track to start.
+                </Caption>
+              </FlexRow>
+            )}
           </div>
         </FlexRow>
 
@@ -1601,6 +1796,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           <Playhead
             heightPx={RULER_HEIGHT + lanesHeight}
             trackAreaOffsetPx={0}
+            endMs={contentEndMs}
           />
         </div>
 

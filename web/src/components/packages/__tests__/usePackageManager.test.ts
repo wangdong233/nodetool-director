@@ -71,7 +71,7 @@ describe("usePackageManager", () => {
 
   it("lists core, keyless-local, and optional packs; hides key-gated providers", () => {
     const { result } = renderHook(() =>
-      usePackageManager({ tab: "packs", cat: "included", q: "", filter: "all" })
+      usePackageManager({ cat: "included", q: "", filter: "all" })
     );
     const names = result.current.rows.map((r) => r.name);
     // Core (required) first, then keyless local pack, plus optional categories.
@@ -88,13 +88,12 @@ describe("usePackageManager", () => {
     ).toBe(result.current.rows.length);
   });
 
-  it("filters the included list by the disabled status chip", () => {
+  it("filters the included list to the packs that are off", () => {
     const { result } = renderHook(() =>
       usePackageManager({
-        tab: "packs",
         cat: "included",
         q: "",
-        filter: "disabled"
+        filter: "available"
       })
     );
     const names = result.current.rows.map((r) => r.name);
@@ -107,7 +106,7 @@ describe("usePackageManager", () => {
 
   it("offers Install for an uninstalled registry pack", () => {
     const { result } = renderHook(() =>
-      usePackageManager({ tab: "packs", cat: "python", q: "", filter: "all" })
+      usePackageManager({ cat: "python", q: "", filter: "all" })
     );
     expect(result.current.rows).toHaveLength(1);
     expect(result.current.rows[0].buttons?.install).toBe(true);
@@ -136,7 +135,7 @@ describe("usePackageManager", () => {
       ]
     });
     const { result } = renderHook(() =>
-      usePackageManager({ tab: "packs", cat: "python", q: "", filter: "all" })
+      usePackageManager({ cat: "python", q: "", filter: "all" })
     );
     expect(result.current.bulkUpdate?.count).toBe(1);
     expect(result.current.bulkUpdate?.busy).toBe(false);
@@ -144,19 +143,128 @@ describe("usePackageManager", () => {
 
   it("hides the bulk Update all action when nothing needs updating", () => {
     const { result } = renderHook(() =>
-      usePackageManager({ tab: "packs", cat: "python", q: "", filter: "all" })
+      usePackageManager({ cat: "python", q: "", filter: "all" })
     );
     // Seed default has one uninstalled pack → no updates available.
     expect(result.current.bulkUpdate).toBeNull();
   });
 
+  it("offers an update for an outdated desktop runtime package", () => {
+    const update = jest.fn().mockResolvedValue(true);
+    useRuntimePackagesStore.setState({
+      available: true,
+      statuses: [
+        {
+          id: "claude-agent-sdk",
+          name: "Claude Agent SDK",
+          description: "SDK",
+          installed: true,
+          installing: false,
+          installedVersion: "0.3.190",
+          latestVersion: "0.3.283",
+          updateAvailable: true
+        },
+        {
+          id: "ffmpeg",
+          name: "FFmpeg",
+          description: "Media",
+          installed: true,
+          installing: false
+        }
+      ],
+      update
+    });
+    const { result } = renderHook(() =>
+      usePackageManager({ cat: "runtimes", q: "", filter: "all" })
+    );
+    const sdk = result.current.rows.find((r) => r.key === "claude-agent-sdk");
+    expect(sdk?.badge).toBe("update");
+    expect(sdk?.version).toBe("v0.3.190  →  v0.3.283");
+    expect(sdk?.buttons?.update).toBe(true);
+    sdk?.buttons?.onUpdate();
+    expect(update).toHaveBeenCalledWith("claude-agent-sdk");
+
+    const ffmpeg = result.current.rows.find((r) => r.key === "ffmpeg");
+    expect(ffmpeg?.badge).toBe("installed");
+    expect(ffmpeg?.buttons?.update).toBe(false);
+  });
+
   it("shows a desktop-only notice for software without the runtime IPC", () => {
     const { result } = renderHook(() =>
-      usePackageManager({ tab: "software", cat: "all", q: "", filter: "all" })
+      usePackageManager({ cat: "runtimes", q: "", filter: "all" })
     );
     expect(result.current.isSoftware).toBe(true);
     expect(result.current.notice).toMatch(/desktop app/i);
     expect(result.current.rows).toHaveLength(0);
-    expect(result.current.chips).toHaveLength(0);
+    expect(result.current.filters).toHaveLength(0);
+  });
+
+  it("keeps a pack with an update in the Installed filter", () => {
+    useNodePacksStore.setState({
+      availablePacks: [
+        { repo_id: "acme/cool", name: "Cool", description: "Cool nodes." },
+        { repo_id: "acme/new", name: "New", description: "Not installed." }
+      ],
+      installed: [
+        {
+          name: "Cool",
+          description: "Cool nodes.",
+          version: "1.0.0",
+          repo_id: "acme/cool",
+          latestVersion: "1.1.0",
+          hasUpdate: true
+        }
+      ]
+    });
+    const { result } = renderHook(() =>
+      usePackageManager({ cat: "python", q: "", filter: "installed" })
+    );
+    expect(result.current.rows.map((r) => r.name)).toEqual(["Cool"]);
+    expect(result.current.rows[0].badge).toBe("update");
+    expect(result.current.filters).toEqual([
+      { id: "all", label: "All", count: 2 },
+      { id: "installed", label: "Installed", count: 1 },
+      { id: "available", label: "Not installed", count: 1 }
+    ]);
+  });
+
+  it("shows runtimes in groups: languages, then media, then AI", () => {
+    const status = (id: string, name: string) => ({
+      id,
+      name,
+      description: name,
+      installed: false,
+      installing: false
+    });
+    useRuntimePackagesStore.setState({
+      available: true,
+      statuses: [
+        status("whisper-cpp", "whisper.cpp"),
+        status("ffmpeg", "FFmpeg"),
+        status("python", "Python")
+      ]
+    });
+    const { result } = renderHook(() =>
+      usePackageManager({ cat: "runtimes", q: "", filter: "all" })
+    );
+    expect(
+      result.current.rows.map((r) => [r.group, r.name])
+    ).toEqual([
+      ["Languages", "Python"],
+      ["Media & documents", "FFmpeg"],
+      ["AI runtimes", "whisper.cpp"]
+    ]);
+  });
+
+  it("lists the four categories in the rail", () => {
+    const { result } = renderHook(() =>
+      usePackageManager({ cat: "included", q: "", filter: "all" })
+    );
+    expect(result.current.categories.map((c) => c.label)).toEqual([
+      "Included",
+      "Python packs",
+      "Third-party",
+      "Software"
+    ]);
   });
 });

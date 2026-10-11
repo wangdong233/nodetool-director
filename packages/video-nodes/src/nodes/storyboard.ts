@@ -3,9 +3,10 @@
  *
  * A director approves one board in the editor; a graph then re-runs it for a
  * new product, a new actor, a new SKU. These nodes are that loop: read a board
- * (`LoadStoryboard`, `StoryboardShots`), derive a copy for a new cast
- * (`RecastStoryboard`), spend on its frames (`RenderStills`, `RenderClips`),
- * and cut it (`AssembleTimeline`). Design:
+ * (`LoadStoryboard`, `StoryboardShots`), save one from a Director screenplay
+ * (`CreateStoryboard`), derive a copy for a new cast (`RecastStoryboard`),
+ * spend on its frames (`RenderStills`, `RenderClips`), and cut it
+ * (`AssembleTimeline`). Design:
  * [docs/graph-resources/design.md](../../../../docs/graph-resources/design.md) §4.2.
  *
  * The derivation, the render plan and the render path itself come from
@@ -15,20 +16,22 @@
  *
  * **Write contract.** A `StoryboardRef` is read-only unless it carries
  * `writable: true`, and only a node that created or derived the row in this run
- * sets it. `RenderStills`, `RenderClips` and `AssembleTimeline` refuse a ref
- * without the flag before they read anything, so a picker wired straight into a
- * render node fails before any spend rather than after it.
+ * sets it (`CreateStoryboard`, `RecastStoryboard`). `RenderStills`,
+ * `RenderClips` and `AssembleTimeline` refuse a ref without the flag before
+ * they read anything, so a picker wired straight into a render node fails
+ * before any spend rather than after it.
  */
 
 import { BaseNode, prop } from "@nodetool-ai/node-sdk";
 import { isObjectLike, isString } from "@nodetool-ai/node-sdk";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import {
+  imageModelSupportsTask,
   loadMediaRefBytes,
   probeVideoDurationSeconds,
   resolveEntities
 } from "@nodetool-ai/runtime";
-import { shotRenderMode, requiredVideoTasksForShots } from "@nodetool-ai/protocol";
+import { parseScreenplay, shotRenderMode } from "@nodetool-ai/protocol";
 import type {
   Entity,
   ImageRef,
@@ -251,52 +254,70 @@ async function loadBoardEntities(
   return loaded.filter((entity): entity is Entity => !!entity);
 }
 
-interface ModelChoice {
-  provider: string;
-  model: string;
+function modelOverrides(model: ModelSelectionLike): ShotRenderPlanOptions {
+  const options: ShotRenderPlanOptions = {};
+  if (model.provider && model.provider !== "empty") {
+    options.provider = model.provider;
+  }
+  if (model.id) {
+    options.model = model.id;
+    if (model.supported_tasks?.length) {
+      options.supportedTasks = model.supported_tasks;
+    }
+  }
+  return options;
 }
 
-/**
- * The model a render uses: the node's override when set, else the board's.
- *
- * Unset is an error, never a default — a board rendered on a model nobody chose
- * is a bill nobody agreed to.
- */
-function resolveModel(
-  boardModel: Record<string, unknown> | null,
-  override: ModelSelectionLike | undefined,
-  kind: "still" | "clip",
-  capability: string
-): ModelChoice & { supportedTasks?: string[] } {
-  const provider =
-    override?.provider && override.provider !== "empty"
-      ? override.provider
-      : isString(boardModel?.["provider"])
-        ? (boardModel["provider"] as string)
-        : "";
-  const model =
-    override?.id && override.id !== ""
-      ? override.id
-      : isString(boardModel?.["id"])
-        ? (boardModel["id"] as string)
-        : "";
-  if (!provider || !model) {
+function requirePlanModel(plan: ShotRenderPlan): void {
+  if (!plan.model.provider || !plan.model.model) {
     throw new Error(
-      `No ${kind} model is set on this storyboard. Set one on the board, or wire this node's ${
-        kind === "still" ? "image_model" : "video_model"
-      } input (find_model with capability=${capability} lists the choices).`
+      `No ${plan.kind === "keyframe" ? "still" : "clip"} model is set for shot ${plan.shotId}. Set one on the shot or board, or wire the node's model input (find_model lists the choices).`
     );
   }
-  return {
-    provider,
-    model,
-    supportedTasks:
-      override?.id && override.id !== ""
-        ? override.supported_tasks
-        : Array.isArray(boardModel?.["supported_tasks"])
-          ? boardModel["supported_tasks"].filter(isString)
-          : undefined
-  };
+}
+
+async function validateClipModels(
+  context: ProcessingContext,
+  plans: ShotRenderPlan[]
+): Promise<void> {
+  const groups = new Map<string, ShotRenderPlan[]>();
+  for (const plan of plans) {
+    requirePlanModel(plan);
+    if (plan.preflightError) {
+      continue;
+    }
+    const key = JSON.stringify([plan.model.provider, plan.model.model]);
+    const group = groups.get(key) ?? [];
+    group.push(plan);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    const model = group[0].model;
+    const requiredTasks = [...new Set(group.map((plan) =>
+      plan.mode === "direct" ? "text_to_video" : plan.mode === "reference" ? "reference_to_video" : "image_to_video"
+    ))];
+    let supportedTasks = model.supportedTasks;
+    try {
+      const provider = await context.getProvider(model.provider);
+      const discovered = await provider.getAvailableVideoModels();
+      supportedTasks =
+        discovered.find((entry) => entry.id === model.model)?.supportedTasks ??
+        supportedTasks;
+    } catch (error) {
+      if (requiredTasks.length > 1) {
+        throw new Error(
+          `Could not verify video model ${model.provider}/${model.model} against the selected mixed shot modes before rendering.`,
+          { cause: error }
+        );
+      }
+    }
+    if (requiredTasks.length > 1 && !supportedTasks?.length) {
+      throw new Error(`Could not verify video model ${model.provider}/${model.model} against the selected mixed shot modes before rendering.`);
+    }
+    if (supportedTasks && requiredTasks.some((task) => !supportedTasks.includes(task))) {
+      throw new Error(`Video model ${model.provider}/${model.model} does not support every shot mode in the selected batch. Required capabilities: ${requiredTasks.join(", ")}.`);
+    }
+  }
 }
 
 /**
@@ -320,7 +341,8 @@ function renderHost(context: ProcessingContext): StoryboardRenderHost {
         model: request.model,
         params: request.params,
         origin: { surface: "workflow" },
-        persist: request.persist
+        persist: request.persist,
+        destination: request.destination
       });
       return { output: result.output, assets: result.assets };
     },
@@ -613,6 +635,184 @@ export class StoryboardShotsNode extends BaseNode {
 }
 
 // ---------------------------------------------------------------------------
+// CreateStoryboard
+// ---------------------------------------------------------------------------
+
+type CreateStoryboardOutputs = {
+  storyboard: StoryboardRef;
+  shots: Shot[];
+  shot_count: number;
+  created: boolean;
+};
+
+/**
+ * The `recastKey` a board made by {@link CreateStoryboardNode} carries.
+ *
+ * `recastKey` exists so a re-run finds the row it made last time. A created
+ * board has no template, so the key is the node's own identity: the name. It
+ * also keeps a hand-made board with the same name out of reach, since only a
+ * board this node stamped matches.
+ */
+const createdBoardKey = (name: string): string => `created:${name}`;
+
+export class CreateStoryboardNode extends BaseNode {
+  static readonly nodeType = "nodetool.storyboard.CreateStoryboard";
+  static readonly title = "Create Storyboard";
+  static readonly description =
+    "Save a Director screenplay as a storyboard you can open, edit and render.\n    storyboard, create, screenplay, director, shots, board\n\n    Use cases:\n    - Turning a brief into a board: Director -> Create Storyboard -> Render Stills\n    - Handing a generated shot list to a person for review in the board editor\n    - Casting library entities into a new board";
+  static readonly metadataOutputTypes = {
+    storyboard: "storyboard",
+    shots: "list[dict]",
+    shot_count: "int",
+    created: "bool"
+  };
+  static readonly inputFields = ["screenplay", "cast"];
+
+  @prop({
+    type: "dict",
+    default: {},
+    title: "Screenplay",
+    description: "The screenplay to save, usually from the Director node."
+  })
+  declare screenplay: Record<string, unknown>;
+
+  @prop({
+    type: "str",
+    default: "",
+    title: "Name",
+    description:
+      "Board name. Defaults to the screenplay's title. With reuse_existing it is also the board's identity across runs."
+  })
+  declare name: string;
+
+  @prop({
+    type: "str",
+    default: "",
+    title: "Brief",
+    description: "The brief the board was directed from, shown in the board editor."
+  })
+  declare brief: string;
+
+  @prop({
+    type: "list[entity]",
+    default: [],
+    title: "Cast",
+    description:
+      "Library entities the board's shots are seasoned with. A shot that names an entity gets its descriptor and reference image when rendered."
+  })
+  declare cast: unknown[];
+
+  @prop({
+    type: "image_model",
+    default: emptyModel("image_model"),
+    title: "Image Model",
+    description: "The board's still model. Render Stills uses it unless its own input overrides it."
+  })
+  declare image_model: ModelSelectionLike;
+
+  @prop({
+    type: "video_model",
+    default: emptyModel("video_model"),
+    title: "Video Model",
+    description: "The board's clip model. Render Clips uses it unless its own input overrides it."
+  })
+  declare video_model: ModelSelectionLike;
+
+  @prop({
+    type: "str",
+    default: "",
+    title: "Project",
+    description: "Project to create the board in. Empty uses the default project."
+  })
+  declare project: string;
+
+  @prop({
+    type: "bool",
+    default: true,
+    title: "Reuse Existing",
+    description:
+      "Return the board this node made under the same name last run instead of creating another, so a re-run renders only what is stale."
+  })
+  declare reuse_existing: boolean;
+
+  async process(context?: ProcessingContext): Promise<CreateStoryboardOutputs> {
+    const ctx = requireContext(context, "CreateStoryboard");
+    const raw = isRecord(this.screenplay) ? this.screenplay : {};
+    const rawShots = Array.isArray(raw["shots"]) ? raw["shots"] : [];
+    if (rawShots.length === 0) {
+      throw new Error(
+        "CreateStoryboard: the screenplay has no shots. Connect a Director node's screenplay output."
+      );
+    }
+    const screenplay = parseScreenplay(raw, { shotCount: rawShots.length });
+    const name = String(this.name ?? "").trim() || screenplay.title;
+    const projectId = String(this.project ?? "").trim() || "default";
+    const key = createdBoardKey(name);
+
+    if (this.reuse_existing) {
+      const boards = await listBoards(ctx, projectId);
+      if (boards === null) {
+        throw new Error(
+          "CreateStoryboard: this host cannot look up the board a previous run made, so reuse_existing would create a new board every run. Turn reuse_existing off."
+        );
+      }
+      const existing = boards.find(
+        (board) => board.document.recastKey === key && !board.document.templateId
+      );
+      if (existing) {
+        const shots = orderedShots(existing.document);
+        return {
+          storyboard: writableRef(existing.id),
+          shots,
+          shot_count: shots.length,
+          created: false
+        };
+      }
+    }
+
+    const cast = await resolveEntities(this.cast, ctx);
+    const shots = screenplay.shots.map((entry, index) => ({ ...entry, index }));
+    const document: StoryboardDocument = {
+      screenplay: { ...screenplay, shots },
+      shots,
+      brief: String(this.brief ?? "").trim() || screenplay.logline || "",
+      style: screenplay.style_bible ?? "",
+      entityIds: cast.map((entity) => entity.id).filter(Boolean),
+      aspectRatio: screenplay.aspect_ratio || "16:9",
+      setupStage: "done",
+      genre: screenplay.genre ?? "",
+      directorModel: null,
+      imageModel: selectedModel(this.image_model),
+      videoModel: selectedModel(this.video_model),
+      templateId: null,
+      recastKey: key
+    };
+    const saved = asBoardRow(
+      await ctx.createStoryboard({ name, projectId, document })
+    );
+    if (!saved) {
+      throw new Error(`CreateStoryboard: could not save storyboard ${name}.`);
+    }
+    return {
+      storyboard: writableRef(saved.id),
+      shots,
+      shot_count: shots.length,
+      created: true
+    };
+  }
+}
+
+/** A model prop as the board stores it: null when nothing is selected. */
+function selectedModel(
+  model: ModelSelectionLike | null | undefined
+): Record<string, unknown> | null {
+  if (!model || !model.id || !model.provider || model.provider === "empty") {
+    return null;
+  }
+  return { ...model };
+}
+
+// ---------------------------------------------------------------------------
 // RecastStoryboard
 // ---------------------------------------------------------------------------
 
@@ -893,18 +1093,9 @@ export class RenderStillsNode extends BaseNode {
       "RenderStills"
     );
     const doc = row.document;
-    const model = resolveModel(
-      doc.imageModel,
-      this.image_model,
-      "still",
-      "text_to_image"
-    );
     const entities = await loadBoardEntities(ctx, doc);
     const targets = asTargets(this.targets);
-    const options: ShotRenderPlanOptions = {
-      provider: model.provider,
-      model: model.model
-    };
+    const options = modelOverrides(this.image_model);
     const plans = planShotRenders(doc, entities, "keyframe", targets, options);
     // A direct-mode shot renders its clip from the prompt and needs no still —
     // unless it was named, where a board frame to look at is worth having.
@@ -921,11 +1112,22 @@ export class RenderStillsNode extends BaseNode {
       skipShotIds: direct,
       maxShots: this.max_shots
     });
+    for (const plan of selection.plans) {
+      requirePlanModel(plan);
+      plan.stillModelTakesImages = await imageModelSupportsTask(
+        ctx,
+        plan.model,
+        "image_to_image",
+        plan.model.supportedTasks
+      );
+    }
     const outcomes = await renderShots(
       renderHost(ctx),
       { id: row.id },
       selection.plans,
-      { concurrency: clampConcurrency(this.concurrency) }
+      {
+        concurrency: clampConcurrency(this.concurrency)
+      }
     );
 
     return {
@@ -1042,52 +1244,13 @@ export class RenderClipsNode extends BaseNode {
       "RenderClips"
     );
     const doc = row.document;
-    const model = resolveModel(
-      doc.videoModel,
-      this.video_model,
-      "clip",
-      doc.shots.some((shot) => shotRenderMode(shot) === "reference")
-        ? "reference_to_video"
-        : doc.shots.every((shot) => shotRenderMode(shot) === "direct")
-        ? "text_to_video"
-        : "image_to_video"
-    );
-    const requiredTasks = requiredVideoTasksForShots(doc.shots);
-    let supportedTasks = model.supportedTasks;
-    try {
-      const provider = await ctx.getProvider(model.provider);
-      const discovered = await provider.getAvailableVideoModels();
-      supportedTasks = discovered.find((entry) => entry.id === model.model)?.supportedTasks;
-    } catch (error) {
-      if (requiredTasks.length > 1) {
-        throw new Error(
-          `Could not verify video model ${model.provider}/${model.model} against the storyboard's mixed shot modes before rendering.`,
-          { cause: error }
-        );
-      }
-      // Single-mode legacy providers may not implement model discovery.
-    }
-    if (requiredTasks.length > 1 && !supportedTasks?.length) {
-      throw new Error(
-        `Could not verify video model ${model.provider}/${model.model} against the storyboard's mixed shot modes before rendering.`
-      );
-    }
-    if (
-      supportedTasks &&
-      requiredTasks.some((task) => !supportedTasks.includes(task))
-    ) {
-      throw new Error(
-        `Video model ${model.provider}/${model.model} does not support every shot mode on this storyboard. Required capabilities: ${requiredTasks.join(", ")}.`
-      );
-    }
     const entities = await loadBoardEntities(ctx, doc);
     const targets = asTargets(this.targets);
     // A linked board times its shots from the words they cover, so a clip is
     // rendered long enough to hold its voiceover.
     const script = await loadLinkedScript(ctx, doc);
     const options: ShotRenderPlanOptions = {
-      provider: model.provider,
-      model: model.model,
+      ...modelOverrides(this.video_model),
       scriptLines: scriptLinesById(script?.document.sections ?? [])
     };
     const plans = planShotRenders(doc, entities, "clip", targets, options);
@@ -1111,6 +1274,7 @@ export class RenderClipsNode extends BaseNode {
       skipShotIds: unrenderable,
       maxShots: this.max_shots
     });
+    await validateClipModels(ctx, selection.plans);
     const outcomes = await renderShots(
       renderHost(ctx),
       { id: row.id },
@@ -1383,6 +1547,7 @@ export class AssembleTimelineNode extends BaseNode {
 export const STORYBOARD_NODES = tagAsServer([
   LoadStoryboardNode,
   StoryboardShotsNode,
+  CreateStoryboardNode,
   RecastStoryboardNode,
   RenderStillsNode,
   RenderClipsNode,

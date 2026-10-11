@@ -24,7 +24,144 @@ export interface PuckData {
 }
 
 /** Bumped whenever the parser needs a new branch. */
-export const APP_SCHEMA_VERSION = 4 as const;
+export const APP_SCHEMA_VERSION = 5 as const;
+/** Ordinary Applications remain v4-compatible; Recipe metadata requires v5. */
+export const BASE_APP_SCHEMA_VERSION = 4 as const;
+
+/** Versioned authoring metadata for an Application that is also a Recipe. */
+export const RECIPE_MANIFEST_SCHEMA_VERSION = 1 as const;
+
+export type RecipeInputKind =
+  | "text"
+  | "number"
+  | "boolean"
+  | "image"
+  | "video"
+  | "audio"
+  | "color"
+  | "asset"
+  | "entity"
+  | "storyboard"
+  | "timeline";
+
+export interface RecipeInput {
+  id: string;
+  label: string;
+  kind: RecipeInputKind;
+  required: boolean;
+  description?: string;
+  choices?: Array<{ value: string; title: string; description?: string; image?: string }>;
+}
+
+export interface RecipeOperationSpec {
+  /** Semantic operation id, stable across concrete workflow/script bindings. */
+  id: string;
+  /** Application operation binding that implements this intent. */
+  bindingId: string;
+  /** Human/agent-readable intent, e.g. plan_storyboard or render_stills. */
+  intent: string;
+  /** Shared operation contract version, independent of the pinned target version. */
+  version?: number;
+  strategy?: "deterministic" | "agentic";
+  /** Existing language-model reference for an explicitly agentic operation. */
+  model?: {provider: string; id: string};
+}
+
+/** Semantic composition intent. Timeline owns layout and animation implementation. */
+export interface RecipeShotIntent {
+  id: string;
+  title: string;
+  durationSeconds: number;
+  elements: Array<{
+    id: string;
+    kind: "asset" | "text" | "shape";
+    role: "product" | "logo" | "headline" | "price" | "cta" | "decorative";
+    /** Absent only on a template-owned shape, whose `style` is its source. */
+    inputId?: string;
+    direction?: string;
+    /** Authored placement and type style. Same shapes as the Storyboard graphics element in `@nodetool-ai/protocol`. */
+    frame?: RecipeElementFrame;
+    typography?: RecipeElementTypography;
+    lock?: Array<"position" | "scale" | "crop">;
+    limits?: { x?: number; y?: number; scale?: number };
+    style?: RecipeShapeStyle;
+    /** The image to generate when the optional input is empty. See `graphicsFallback`. */
+    fallback?: { prompt: string };
+  }>;
+  /** Visual rules the reviewer checks for this shot. */
+  reviewRules?: string[];
+}
+
+export interface RecipeElementFrame {
+  box: [number, number, number, number];
+  fit?: "contain" | "cover";
+  align?: { x?: "start" | "center" | "end"; y?: "start" | "center" | "end" };
+  clip?: boolean;
+}
+/** Template-owned shape style. Same shape as `graphicsShapeStyle` in `@nodetool-ai/protocol`. */
+export interface RecipeShapeStyle {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  cornerRadius?: number;
+}
+
+export interface RecipeElementTypography {
+  size?: number;
+  weight?: 400 | 500 | 600 | 700;
+  align?: "left" | "center" | "right";
+  maxLines?: number;
+}
+
+export interface RecipeOutputSpec {
+  id: string;
+  /** Readable Application binding. Defaults to var:<id>. */
+  binding?: string;
+  kind: "asset" | "storyboard" | "timeline" | "value";
+  label?: string;
+}
+
+export interface RecipePreservationRule {
+  inputId: string;
+  policy: "exact_asset" | "exact_text" | "exact_color";
+  allowedTransformations?: Array<
+    "position" | "scale" | "crop" | "rotate" | "mask" | "opacity" | "composite"
+  >;
+}
+
+export interface RecipeManifest {
+  schemaVersion: typeof RECIPE_MANIFEST_SCHEMA_VERSION;
+  slug: string;
+  category?: string;
+  tags?: string[];
+  inputs: RecipeInput[];
+  defaults?: Record<string, unknown>;
+  creativeStrategy?: {
+    objective?: string;
+    structure?: string;
+    direction?: string;
+    shots?: RecipeShotIntent[];
+    /** Visual rules for every shot. */
+    reviewRules?: string[];
+    aspectRatio?: "9:16" | "4:5" | "1:1" | "16:9";
+  };
+  preservationRules?: RecipePreservationRule[];
+  mediaPolicy?: {
+    defaultStrategy?: "still_motion_graphics" | "hybrid" | "generated_video";
+    allowGeneratedVideo?: boolean;
+  };
+  operations: RecipeOperationSpec[];
+  outputs: RecipeOutputSpec[];
+  presentation?: {
+    layout?: string;
+    groups?: Array<{ id: string; title: string; inputIds: string[] }>;
+    advancedInputs?: string[];
+  };
+  marketing?: {
+    shortDescription?: string;
+    thumbnailAssetId?: string;
+  };
+}
 
 /** Where an operation input takes its value from. */
 export type InputMapping =
@@ -156,6 +293,8 @@ export interface ApplicationDocument {
   resources: ResourceBinding[];
   variables: VariableDeclaration[];
   theme?: ThemeRef;
+  /** Present only when this Application is a curated Recipe. */
+  recipe?: RecipeManifest;
 }
 
 export const createEmptyPuckData = (title?: string): PuckData => ({
@@ -165,7 +304,7 @@ export const createEmptyPuckData = (title?: string): PuckData => ({
 });
 
 export const createEmptyDocument = (title?: string): ApplicationDocument => ({
-  schemaVersion: APP_SCHEMA_VERSION,
+  schemaVersion: BASE_APP_SCHEMA_VERSION,
   ui: createEmptyPuckData(title),
   operations: [],
   resources: [],
@@ -174,6 +313,256 @@ export const createEmptyDocument = (title?: string): ApplicationDocument => ({
 
 const isPuckData = (value: unknown): value is PuckData =>
   isRecord(value) && isRecord(value.root) && Array.isArray(value.content);
+
+const recipeInputKinds = new Set<RecipeInputKind>([
+  "text", "number", "boolean", "image", "video", "audio", "color", "asset", "entity", "storyboard", "timeline"
+]);
+const recipeOutputKinds = new Set<RecipeOutputSpec["kind"]>([
+  "asset", "storyboard", "timeline", "value"
+]);
+const recipePreservationPolicies = new Set<RecipePreservationRule["policy"]>([
+  "exact_asset", "exact_text", "exact_color"
+]);
+const recipeTransforms = new Set<NonNullable<RecipePreservationRule["allowedTransformations"]>[number]>([
+  "position", "scale", "crop", "rotate", "mask", "opacity", "composite"
+]);
+
+/** Strict at the manifest boundary: malformed Recipe metadata must not masquerade as a Recipe. */
+const finiteBox = (value: unknown): value is [number, number, number, number] =>
+  Array.isArray(value) && value.length === 4 && value.every((part) => isNumber(part) && Number.isFinite(part));
+const oneOf = <T extends string | number>(value: unknown, allowed: readonly T[]): value is T => allowed.includes(value as T);
+const nonNegative = (value: unknown): value is number => isNumber(value) && Number.isFinite(value) && value >= 0;
+
+/** Optional authored placement of one element. Undefined means a malformed value, an empty object means none. */
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+const parseAuthoredPlacement = (element: Record<string, unknown>): Pick<RecipeShotIntent["elements"][number], "frame" | "typography" | "lock" | "limits" | "style" | "fallback"> | undefined => {
+  const result: Pick<RecipeShotIntent["elements"][number], "frame" | "typography" | "lock" | "limits" | "style" | "fallback"> = {};
+  const { frame, typography, lock, limits, style, fallback } = element;
+  if (fallback !== undefined) {
+    if (!isRecord(fallback) || !isString(fallback.prompt) || !fallback.prompt.trim() || element.kind !== "asset") return undefined;
+    result.fallback = { prompt: fallback.prompt };
+  }
+  if (style !== undefined) {
+    if (!isRecord(style)) return undefined;
+    const parsed: RecipeShapeStyle = {};
+    for (const key of ["fill", "stroke"] as const) {
+      if (style[key] === undefined) continue;
+      if (!isString(style[key]) || !HEX_COLOR.test(style[key])) return undefined;
+      parsed[key] = style[key];
+    }
+    if (style.strokeWidth !== undefined) { if (!isNumber(style.strokeWidth) || !(style.strokeWidth > 0)) return undefined; parsed.strokeWidth = style.strokeWidth; }
+    if (style.cornerRadius !== undefined) { if (!nonNegative(style.cornerRadius)) return undefined; parsed.cornerRadius = style.cornerRadius; }
+    result.style = parsed;
+  }
+  if (frame !== undefined) {
+    if (!isRecord(frame) || !finiteBox(frame.box)) return undefined;
+    if (frame.fit !== undefined && !oneOf(frame.fit, ["contain", "cover"] as const)) return undefined;
+    if (frame.clip !== undefined && frame.clip !== true && frame.clip !== false) return undefined;
+    const parsed: RecipeElementFrame = { box: [...frame.box] };
+    if (frame.fit !== undefined) parsed.fit = frame.fit as RecipeElementFrame["fit"];
+    if (frame.clip !== undefined) parsed.clip = frame.clip;
+    if (frame.align !== undefined) {
+      if (!isRecord(frame.align)) return undefined;
+      const align: NonNullable<RecipeElementFrame["align"]> = {};
+      for (const axis of ["x", "y"] as const) {
+        const side = frame.align[axis];
+        if (side === undefined) continue;
+        if (!oneOf(side, ["start", "center", "end"] as const)) return undefined;
+        align[axis] = side;
+      }
+      parsed.align = align;
+    }
+    result.frame = parsed;
+  }
+  if (typography !== undefined) {
+    if (!isRecord(typography)) return undefined;
+    const parsed: RecipeElementTypography = {};
+    if (typography.size !== undefined) { if (!isNumber(typography.size) || !(typography.size > 0)) return undefined; parsed.size = typography.size; }
+    if (typography.weight !== undefined) { if (!oneOf(typography.weight, [400, 500, 600, 700] as const)) return undefined; parsed.weight = typography.weight; }
+    if (typography.align !== undefined) { if (!oneOf(typography.align, ["left", "center", "right"] as const)) return undefined; parsed.align = typography.align; }
+    if (typography.maxLines !== undefined) { if (!isInteger(typography.maxLines) || typography.maxLines < 1) return undefined; parsed.maxLines = typography.maxLines; }
+    result.typography = parsed;
+  }
+  if (lock !== undefined) {
+    if (!Array.isArray(lock) || !lock.every((entry) => oneOf(entry, ["position", "scale", "crop"] as const))) return undefined;
+    result.lock = [...lock] as NonNullable<RecipeShotIntent["elements"][number]["lock"]>;
+  }
+  if (limits !== undefined) {
+    if (!isRecord(limits)) return undefined;
+    const parsed: NonNullable<RecipeShotIntent["elements"][number]["limits"]> = {};
+    for (const key of ["x", "y", "scale"] as const) {
+      if (limits[key] === undefined) continue;
+      if (!nonNegative(limits[key])) return undefined;
+      parsed[key] = limits[key];
+    }
+    result.limits = parsed;
+  }
+  return result;
+};
+
+/** Optional review rules. Undefined means malformed, an empty array means none. */
+const parseReviewRules = (value: unknown): string[] | undefined => {
+  if (value === undefined) return [];
+  return Array.isArray(value) && value.every(isNonEmptyString) ? [...value] : undefined;
+};
+
+const recipeElementRoles = new Set(["product", "logo", "headline", "price", "cta", "decorative"]);
+const recipeElementKinds = new Set(["asset", "text", "shape"]);
+
+const parseShotElement = (element: unknown, inputIds: ReadonlySet<string>): RecipeShotIntent["elements"][number] | undefined => {
+  if (!isRecord(element) || !isNonEmptyString(element.id)) return undefined;
+  // A template-owned shape has no input: its fill or stroke style is its source.
+  const owned = element.inputId === undefined && element.kind === "shape" && isRecord(element.style) && (element.style.fill !== undefined || element.style.stroke !== undefined);
+  if (!owned && (!isNonEmptyString(element.inputId) || !inputIds.has(element.inputId))) return undefined;
+  if (!recipeElementKinds.has(element.kind as string) || !recipeElementRoles.has(element.role as string)) return undefined;
+  if (element.direction !== undefined && !isString(element.direction)) return undefined;
+  const authored = parseAuthoredPlacement(element);
+  if (authored === undefined) return undefined;
+  const parsed: RecipeShotIntent["elements"][number] = {id: element.id, kind: element.kind as "asset" | "text" | "shape", role: element.role as RecipeShotIntent["elements"][number]["role"]};
+  if (!owned) parsed.inputId = element.inputId as string;
+  if (element.direction !== undefined) parsed.direction = element.direction;
+  return Object.assign(parsed, authored);
+};
+
+/** Undefined means the shot list is malformed. */
+const parseShots = (shots: unknown, inputIds: ReadonlySet<string>): RecipeShotIntent[] | undefined => {
+  if (!Array.isArray(shots) || shots.length === 0) return undefined;
+  const parsedShots: RecipeShotIntent[] = [];
+  for (const shot of shots) {
+    if (!isRecord(shot) || !isNonEmptyString(shot.id) || !isNonEmptyString(shot.title) || !isNumber(shot.durationSeconds) || !Number.isFinite(shot.durationSeconds) || shot.durationSeconds <= 0 || !Array.isArray(shot.elements)) return undefined;
+    const elements: RecipeShotIntent["elements"] = [];
+    for (const element of shot.elements) {
+      const parsed = parseShotElement(element, inputIds);
+      if (!parsed) return undefined;
+      elements.push(parsed);
+    }
+    if (new Set(elements.map((element) => element.id)).size !== elements.length) return undefined;
+    const shotRules = parseReviewRules(shot.reviewRules);
+    if (shotRules === undefined) return undefined;
+    const parsedShot: RecipeShotIntent = {id: shot.id, title: shot.title, durationSeconds: shot.durationSeconds, elements};
+    if (shotRules.length) parsedShot.reviewRules = shotRules;
+    parsedShots.push(parsedShot);
+  }
+  if (new Set(parsedShots.map((shot) => shot.id)).size !== parsedShots.length) return undefined;
+  return parsedShots;
+};
+
+const parseRecipeManifest = (value: unknown): RecipeManifest | undefined => {
+  if (value === undefined || value === null) return undefined;
+  if (!isRecord(value) || value.schemaVersion !== RECIPE_MANIFEST_SCHEMA_VERSION || !isNonEmptyString(value.slug)) return undefined;
+  if (!Array.isArray(value.inputs) || !Array.isArray(value.operations) || !Array.isArray(value.outputs)) return undefined;
+  const inputs: RecipeInput[] = [];
+  for (const raw of value.inputs) {
+    if (!isRecord(raw) || !isNonEmptyString(raw.id) || !isNonEmptyString(raw.label) || !recipeInputKinds.has(raw.kind as RecipeInputKind) || (raw.required !== true && raw.required !== false)) return undefined;
+    const input: RecipeInput = { id: raw.id, label: raw.label, kind: raw.kind as RecipeInputKind, required: raw.required };
+    if (isString(raw.description)) input.description = raw.description;
+    if (raw.choices !== undefined) {
+      if (!Array.isArray(raw.choices) || raw.choices.length === 0 || !raw.choices.every((choice) => isRecord(choice) && isNonEmptyString(choice.value) && isNonEmptyString(choice.title) && (choice.description === undefined || isString(choice.description)) && (choice.image === undefined || isString(choice.image)))) return undefined;
+      input.choices = raw.choices.map((choice) => {
+        const parsed: NonNullable<RecipeInput["choices"]>[number] = {value: choice.value, title: choice.title};
+        if (choice.description !== undefined) parsed.description = choice.description;
+        if (choice.image !== undefined) parsed.image = choice.image;
+        return parsed;
+      });
+      if (new Set(input.choices.map((choice) => choice.value)).size !== input.choices.length || input.kind !== "text") return undefined;
+    }
+    inputs.push(input);
+  }
+  const operations: RecipeOperationSpec[] = [];
+  for (const raw of value.operations) {
+    if (!isRecord(raw) || !isNonEmptyString(raw.id) || !isNonEmptyString(raw.bindingId) || !isNonEmptyString(raw.intent)) return undefined;
+    if (raw.version !== undefined && (!isInteger(raw.version) || raw.version < 1)) return undefined;
+    if (raw.strategy !== undefined && raw.strategy !== "deterministic" && raw.strategy !== "agentic") return undefined;
+    if (raw.model !== undefined && (!isRecord(raw.model) || !isNonEmptyString(raw.model.provider) || !isNonEmptyString(raw.model.id))) return undefined;
+    const operation: RecipeOperationSpec = {id: raw.id, bindingId: raw.bindingId, intent: raw.intent};
+    if (raw.version !== undefined) operation.version = raw.version as number;
+    if (raw.strategy !== undefined) operation.strategy = raw.strategy as RecipeOperationSpec["strategy"];
+    if (isRecord(raw.model) && isString(raw.model.provider) && isString(raw.model.id)) operation.model = {provider: raw.model.provider, id: raw.model.id};
+    operations.push(operation);
+  }
+  const outputs: RecipeOutputSpec[] = [];
+  for (const raw of value.outputs) {
+    if (!isRecord(raw) || !isNonEmptyString(raw.id) || !recipeOutputKinds.has(raw.kind as RecipeOutputSpec["kind"])) return undefined;
+    if (raw.binding !== undefined && !isNonEmptyString(raw.binding)) return undefined;
+    const output: RecipeOutputSpec = { id: raw.id, kind: raw.kind as RecipeOutputSpec["kind"] };
+    if (isString(raw.binding)) output.binding = raw.binding;
+    if (isString(raw.label)) output.label = raw.label;
+    outputs.push(output);
+  }
+  let preservationRules: RecipePreservationRule[] | undefined;
+  if (value.preservationRules !== undefined) {
+    if (!Array.isArray(value.preservationRules)) return undefined;
+    preservationRules = [];
+    for (const raw of value.preservationRules) {
+      if (!isRecord(raw) || !isNonEmptyString(raw.inputId) || !recipePreservationPolicies.has(raw.policy as RecipePreservationRule["policy"])) return undefined;
+      const transforms = raw.allowedTransformations;
+      if (transforms !== undefined && (!Array.isArray(transforms) || !transforms.every((item) => recipeTransforms.has(item as never)))) return undefined;
+      const rule: RecipePreservationRule = { inputId: raw.inputId, policy: raw.policy as RecipePreservationRule["policy"] };
+      if (transforms) rule.allowedTransformations = transforms as RecipePreservationRule["allowedTransformations"];
+      preservationRules.push(rule);
+    }
+  }
+  const inputIds = new Set(inputs.map((input) => input.id));
+  const operationIds = new Set(operations.map((operation) => operation.id));
+  const outputIds = new Set(outputs.map((output) => output.id));
+  if (inputIds.size !== inputs.length || operationIds.size !== operations.length || outputIds.size !== outputs.length) return undefined;
+  if (preservationRules?.some((rule) => !inputIds.has(rule.inputId))) return undefined;
+  if (preservationRules && new Set(preservationRules.map((rule) => rule.inputId)).size !== preservationRules.length) return undefined;
+  if (value.category !== undefined && !isString(value.category)) return undefined;
+  if (value.tags !== undefined && (!Array.isArray(value.tags) || !value.tags.every(isString))) return undefined;
+  if (value.defaults !== undefined && !isRecord(value.defaults)) return undefined;
+  const manifest: RecipeManifest = { schemaVersion: RECIPE_MANIFEST_SCHEMA_VERSION, slug: value.slug, inputs, operations, outputs };
+  if (isString(value.category)) manifest.category = value.category;
+  if (Array.isArray(value.tags) && value.tags.every(isString)) manifest.tags = value.tags;
+  if (isRecord(value.defaults)) manifest.defaults = value.defaults;
+  if (value.creativeStrategy !== undefined) {
+    if (!isRecord(value.creativeStrategy)) return undefined;
+    const { objective, structure, direction } = value.creativeStrategy;
+    if ([objective, structure, direction].some((part) => part !== undefined && !isString(part))) return undefined;
+    manifest.creativeStrategy = {};
+    if (isString(objective)) manifest.creativeStrategy.objective = objective;
+    if (isString(structure)) manifest.creativeStrategy.structure = structure;
+    if (isString(direction)) manifest.creativeStrategy.direction = direction;
+    const aspectRatio = value.creativeStrategy.aspectRatio;
+    if (aspectRatio !== undefined) {
+      if (aspectRatio !== "9:16" && aspectRatio !== "4:5" && aspectRatio !== "1:1" && aspectRatio !== "16:9") return undefined;
+      manifest.creativeStrategy.aspectRatio = aspectRatio;
+    }
+    if (value.creativeStrategy.shots !== undefined) {
+      const parsedShots = parseShots(value.creativeStrategy.shots, inputIds);
+      if (!parsedShots) return undefined;
+      manifest.creativeStrategy.shots = parsedShots;
+    }
+    const strategyRules = parseReviewRules(value.creativeStrategy.reviewRules);
+    if (strategyRules === undefined) return undefined;
+    if (strategyRules.length) manifest.creativeStrategy.reviewRules = strategyRules;
+  }
+  if (preservationRules) manifest.preservationRules = preservationRules;
+  if (value.mediaPolicy !== undefined) {
+    if (!isRecord(value.mediaPolicy)) return undefined;
+    const strategy = value.mediaPolicy.defaultStrategy;
+    if (strategy !== undefined && strategy !== "still_motion_graphics" && strategy !== "hybrid" && strategy !== "generated_video") return undefined;
+    if (value.mediaPolicy.allowGeneratedVideo !== undefined && value.mediaPolicy.allowGeneratedVideo !== true && value.mediaPolicy.allowGeneratedVideo !== false) return undefined;
+    manifest.mediaPolicy = {};
+    if (strategy !== undefined) manifest.mediaPolicy.defaultStrategy = strategy;
+    if (value.mediaPolicy.allowGeneratedVideo === true || value.mediaPolicy.allowGeneratedVideo === false) manifest.mediaPolicy.allowGeneratedVideo = value.mediaPolicy.allowGeneratedVideo;
+  }
+  if (value.presentation !== undefined) {
+    if (!isRecord(value.presentation)) return undefined;
+    const { layout, groups, advancedInputs } = value.presentation;
+    if (layout !== undefined && !isString(layout)) return undefined;
+    if (advancedInputs !== undefined && (!Array.isArray(advancedInputs) || !advancedInputs.every(isString))) return undefined;
+    if (groups !== undefined && (!Array.isArray(groups) || !groups.every((group) => isRecord(group) && isString(group.id) && isString(group.title) && Array.isArray(group.inputIds) && group.inputIds.every(isString)))) return undefined;
+    manifest.presentation = value.presentation as RecipeManifest["presentation"];
+  }
+  if (value.marketing !== undefined) {
+    if (!isRecord(value.marketing)) return undefined;
+    if (value.marketing.shortDescription !== undefined && !isString(value.marketing.shortDescription)) return undefined;
+    if (value.marketing.thumbnailAssetId !== undefined && !isString(value.marketing.thumbnailAssetId)) return undefined;
+    manifest.marketing = value.marketing as RecipeManifest["marketing"];
+  }
+  return manifest;
+};
 
 /**
  * Parse one input mapping, or null when the entry is not a mapping the union
@@ -291,6 +680,7 @@ const parseOperation = (
     : targetWorkflowId(value.target);
   if (!script && workflowId === null) return null;
   type BindingFields = Mutable<OperationBinding>;
+  const targetVersion = isRecord(value.target) && value.target.kind === "workflow" ? value.target.workflowVersion : undefined;
   const binding: BindingFields = {
     id,
     name: isString(name) ? name : id,
@@ -300,7 +690,7 @@ const parseOperation = (
     workflowId: script ? "" : workflowId || hostWorkflowId || "",
     workflowVersion: isNumber(value.workflowVersion)
       ? value.workflowVersion
-      : undefined,
+      : isNumber(targetVersion) ? targetVersion : undefined,
     inputs: parseMappings(value.inputs, parseInputMapping),
     outputs: parseMappings(value.outputs, parseOutputMapping),
     policy: policy === "parallel" || policy === "queue" ? policy : "replace",
@@ -370,6 +760,71 @@ const parseResource = (value: unknown): ResourceBinding | null => {
 /** The default operation id a migrated single-workflow app gets. */
 export const DEFAULT_OPERATION_ID = "main";
 
+export type RecipeManifestStatus =
+  | { status: "none" }
+  | { status: "valid"; manifest: RecipeManifest }
+  | { status: "malformed" }
+  | { status: "unsupported"; schemaVersion: number };
+
+/** Inspect protection metadata without downgrading invalid Recipes to ordinary Apps. */
+export const inspectRecipeManifest = (value: unknown): RecipeManifestStatus => {
+  if (value === undefined) return { status: "none" };
+  if (isRecord(value) && isNumber(value.schemaVersion) && value.schemaVersion !== RECIPE_MANIFEST_SCHEMA_VERSION) {
+    return { status: "unsupported", schemaVersion: value.schemaVersion };
+  }
+  const manifest = parseRecipeManifest(value);
+  return manifest ? { status: "valid", manifest } : { status: "malformed" };
+};
+
+/** Validate Recipe references against existing Application bindings. */
+export const validateRecipeBindings = (
+  document: Pick<ApplicationDocument, "recipe" | "variables" | "operations">
+): string[] => {
+  const recipe = document.recipe;
+  if (!recipe) return [];
+  const errors: string[] = [];
+  const variables = new Map(document.variables.map((variable) => [variable.id, variable]));
+  const operations = new Map(document.operations.map((operation) => [operation.id, operation]));
+  if (variables.size !== document.variables.length) errors.push("Application variable IDs must be unique.");
+  if (operations.size !== document.operations.length) errors.push("Application operation IDs must be unique.");
+  const boundOperations = recipe.operations.flatMap((intent) => {
+    const operation = operations.get(intent.bindingId);
+    if (!operation) errors.push(`Recipe operation ${intent.id} references missing operation ${intent.bindingId}.`);
+    return operation ? [operation] : [];
+  });
+  for (const input of recipe.inputs) {
+    const variable = variables.get(input.id);
+    if (!variable) {
+      errors.push(`Recipe input ${input.id} requires Application variable ${input.id}.`);
+      continue;
+    }
+    const expectedType = input.kind === "text" || input.kind === "color" ? "str" : input.kind === "boolean" ? "bool" : input.kind === "number" ? "float" : input.kind;
+    const actualType = variable.type?.type;
+    if (actualType && actualType !== expectedType && !(input.kind === "number" && actualType === "int")) {
+      errors.push(`Recipe input ${input.id} (${input.kind}) is incompatible with variable type ${actualType}.`);
+    }
+    if (input.required && !boundOperations.some((operation) => Object.values(operation.inputs).some((mapping) => mapping.from === "variable" && mapping.variableId === input.id))) {
+      errors.push(`Required Recipe input ${input.id} is not mapped to a Recipe operation.`);
+    }
+  }
+  for (const operation of boundOperations) {
+    for (const mapping of Object.values(operation.inputs)) {
+      if (mapping.from === "variable" && !variables.has(mapping.variableId)) errors.push(`Operation ${operation.id} reads missing variable ${mapping.variableId}.`);
+    }
+    for (const mapping of Object.values(operation.outputs)) {
+      if (mapping.to === "variable" && !variables.has(mapping.variableId)) errors.push(`Operation ${operation.id} writes missing variable ${mapping.variableId}.`);
+    }
+  }
+  for (const output of recipe.outputs) {
+    const binding = output.binding ?? `var:${output.id}`;
+    if (binding.startsWith("var:") && variables.has(binding.slice(4))) continue;
+    const match = /^op:([^/]+)\/out:(.+)$/.exec(binding);
+    if (match && operations.get(match[1])?.outputs[match[2]]) continue;
+    errors.push(`Recipe output ${output.id} has unresolved readable binding ${binding}.`);
+  }
+  return errors;
+};
+
 /**
  * Parse an unknown value into an {@link ApplicationDocument}, or null.
  *
@@ -393,20 +848,37 @@ export const parseApplicationDocument = (
 ): ApplicationDocument | null => {
   if (!isRecord(value)) return null;
 
+  // Legacy envelopes cannot carry protection metadata safely.
+  if (!isPuckData(value.ui) && value.recipe !== undefined) return null;
+
   // v3+: the native shape.
   if (isPuckData(value.ui)) {
+    const metadata = inspectRecipeManifest(value.recipe);
+    if (metadata.status === "malformed" || metadata.status === "unsupported") return null;
+    const recipe = metadata.status === "valid" ? metadata.manifest : undefined;
     const schemaVersion = isNumber(value.schemaVersion)
       ? value.schemaVersion
-      : APP_SCHEMA_VERSION;
+      : recipe
+        ? APP_SCHEMA_VERSION
+        : BASE_APP_SCHEMA_VERSION;
     if (schemaVersion > APP_SCHEMA_VERSION) return null;
-    return {
-      schemaVersion: APP_SCHEMA_VERSION,
+    // Recipe metadata is a safety contract. Malformed or unsupported metadata
+    // must never downgrade silently to an unconstrained ordinary Application.
+    if (value.recipe !== undefined && recipe === undefined) return null;
+    if (recipe && schemaVersion < 5) return null;
+    const operations = Array.isArray(value.operations)
+      ? value.operations
+          .map((op) => parseOperation(op, options.hostWorkflowId))
+          .filter((op): op is OperationBinding => op !== null)
+      : [];
+    if (recipe) {
+      const bindingIds = new Set(operations.map((operation) => operation.id));
+      if (recipe.operations.some((operation) => !bindingIds.has(operation.bindingId))) return null;
+    }
+    const document: ApplicationDocument = {
+      schemaVersion,
       ui: value.ui,
-      operations: Array.isArray(value.operations)
-        ? value.operations
-            .map((op) => parseOperation(op, options.hostWorkflowId))
-            .filter((op): op is OperationBinding => op !== null)
-        : [],
+      operations,
       resources: Array.isArray(value.resources)
         ? value.resources
             .map(parseResource)
@@ -420,14 +892,17 @@ export const parseApplicationDocument = (
       theme:
         isRecord(value.theme) && isString(value.theme.id)
           ? { id: value.theme.id }
-          : undefined
+          : undefined,
+      recipe
     };
+    if (validateRecipeBindings(document).length > 0) return null;
+    return document;
   }
 
   // v1/v2: `{ version, data }` on `workflow.app_doc`.
   if (isPuckData(value.data)) {
     return {
-      schemaVersion: APP_SCHEMA_VERSION,
+      schemaVersion: BASE_APP_SCHEMA_VERSION,
       ui: value.data,
       operations: options.hostWorkflowId
         ? [

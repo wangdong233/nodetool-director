@@ -26,7 +26,16 @@ runs:
 
     - name: Install system libraries
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y libsecret-1-0 ${{ inputs.extra-apt }}
+      # The runner image usually ships libsecret, so a leg with no extra
+      # packages skips the ~20 s `apt-get update`.
+      env:
+        EXTRA_APT: ${{ inputs.extra-apt }}
+      run: |
+        if [ -z "$EXTRA_APT" ] && dpkg -s libsecret-1-0 >/dev/null 2>&1; then
+          echo "libsecret-1-0 already installed."
+        else
+          sudo apt-get update && sudo apt-get install -y libsecret-1-0 $EXTRA_APT
+        fi
 
     # Cache the installed workspace node_modules keyed on the lockfile (and Node
     # version). On a hit we skip `npm ci` and the native rebuild entirely — the
@@ -99,3 +108,15 @@ runs:
       if: inputs.build-packages == 'true'
       shell: bash
       run: npm run build:packages
+
+    # The cache step saves `.turbo/cache` under a new per-SHA key after
+    # restoring the newest one, so without pruning it carries every entry ever
+    # written. Drop entries older than a week before the save. tar restores
+    # each entry's own mtime, so a cache hit does not refresh it, and an entry
+    # for an unchanged package is rebuilt at most once a week.
+    - name: Prune old Turbo build outputs
+      if: inputs.build-packages == 'true'
+      shell: bash
+      run: |
+        find .turbo/cache -maxdepth 1 -type f -mtime +7 -delete
+        echo "$(find .turbo/cache -maxdepth 1 -type f | wc -l) entries, $(du -sh .turbo/cache | cut -f1)"

@@ -17,7 +17,7 @@ import {
   ModelObserver,
   createTimeOrderedUuid
 } from "./base-model.js";
-import { executeRaw, getDb } from "./db.js";
+import { executeRaw, getPortableDb } from "./db.js";
 import { projects } from "./schema/projects.js";
 import { jobs } from "./schema/jobs.js";
 import { Thread } from "./thread.js";
@@ -105,7 +105,7 @@ export class Project extends DBModel {
   }
 
   static async ensurePersonal(userId: string): Promise<Project> {
-    const db = getDb();
+    const db = getPortableDb();
     const existing = await db
       .select()
       .from(projects)
@@ -237,7 +237,7 @@ export class Project extends DBModel {
     if (!row || row.kind === PERSONAL_PROJECT_KIND) return null;
     if (row.deleted_at) return row;
     const now = new Date().toISOString();
-    const db = getDb();
+    const db = getPortableDb();
     const [updated] = await db
       .update(projects)
       .set({ deleted_at: now, archived_at: null, updated_at: now })
@@ -248,6 +248,9 @@ export class Project extends DBModel {
 
   /** Resolve a caller-supplied project without permitting cross-user writes. */
   static async requireOwned(userId: string, id: string): Promise<Project> {
+    // Personal is created lazily, so a client that targets its own id before
+    // anything has listed or saved to it (the Examples page) must not fail.
+    if (id === `personal:${userId}`) return Project.ensurePersonal(userId);
     const project = await Project.findOwned(userId, id);
     if (!project) throw new Error("Project not found");
     return project;
@@ -265,7 +268,7 @@ export class Project extends DBModel {
     if (thread && thread.project_id !== LOOSE_PROJECT_ID) {
       return Project.findOwned(userId, thread.project_id);
     }
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(projects)
@@ -282,7 +285,7 @@ export class Project extends DBModel {
     limit = 100,
     archived = false
   ): Promise<Project[]> {
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .select()
       .from(projects)
@@ -313,7 +316,7 @@ export class Project extends DBModel {
   ): Promise<Project | null> {
     const project = new Project(data);
     project.beforeSave();
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .insert(projects)
       .values({
@@ -346,7 +349,7 @@ export class Project extends DBModel {
     if (!row) return false;
     if (row.kind === PERSONAL_PROJECT_KIND) return false;
     const projectId = row.id;
-    const db = getDb();
+    const db = getPortableDb();
     const now = new Date().toISOString();
     await Project.tombstoneOwned(userId, projectId);
 
@@ -380,6 +383,7 @@ export class Project extends DBModel {
       "image_documents",
       "applications",
       "js_scripts",
+      "games",
       "nodetool_assets",
       "nodetool_workflows",
       "nodetool_threads",
@@ -432,7 +436,7 @@ export class Project extends DBModel {
       title: project.name,
       project_id: project.id
     });
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .update(projects)
       // `updated_at` is left alone: naming the thread is bookkeeping, not
@@ -475,7 +479,7 @@ export class Project extends DBModel {
     ) {
       return null;
     }
-    const db = getDb();
+    const db = getPortableDb();
     const rows = await db
       .update(projects)
       .set({ ...fields, updated_at: new Date().toISOString() })

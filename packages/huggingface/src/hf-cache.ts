@@ -14,9 +14,8 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import * as os from "node:os";
 
-import { expandLeadingTildePath } from "./hf-expand-path.js";
+import { getHfHubCacheDir } from "@nodetool-ai/config";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,30 +39,12 @@ interface _RepoState {
 // ---------------------------------------------------------------------------
 
 /**
- * Return the default Hugging Face Hub cache directory.
- *
- * Resolution order:
- *   1. `$HF_HUB_CACHE`
- *   2. `$HF_HOME/hub`
- *   3. `~/.cache/huggingface/hub`
+ * Return the default Hugging Face Hub cache directory. Delegates to
+ * `getHfHubCacheDir` in `@nodetool-ai/config`, the one resolver every reader
+ * and writer of the hub cache shares.
  */
 export function getDefaultHfCacheDir(): string {
-  const envCache = process.env["HF_HUB_CACHE"];
-  if (envCache) {
-    return envCache.startsWith("~")
-      ? expandLeadingTildePath(envCache)
-      : envCache;
-  }
-
-  const hfHome = process.env["HF_HOME"];
-  if (hfHome) {
-    const base = hfHome.startsWith("~")
-      ? expandLeadingTildePath(hfHome)
-      : hfHome;
-    return path.join(base, "hub");
-  }
-
-  return path.join(os.homedir(), ".cache", "huggingface", "hub");
+  return getHfHubCacheDir();
 }
 
 // ---------------------------------------------------------------------------
@@ -370,12 +351,24 @@ export function _normalizeRepoType(
   throw new Error(`Unknown repo_type: ${repoType}`);
 }
 
+/**
+ * Strip leading and trailing slashes. A loop, not `/^\/+|\/+$/g`: the regex
+ * backtracks quadratically on a long slash run followed by another character.
+ */
+function trimSlashes(value: string): string {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value[start] === "/") start += 1;
+  while (end > start && value[end - 1] === "/") end -= 1;
+  return value.slice(start, end);
+}
+
 /** Normalize repo ID and type into a canonical pair. */
 export function _normalizeRepoIdAndType(
   repoId: string,
   repoType: string | undefined | null
 ): [normalizedType: string | null, normalizedRepoId: string] {
-  repoId = repoId.trim().replace(/^\/+|\/+$/g, "");
+  repoId = trimSlashes(repoId.trim());
   const parts = repoId.split("/");
   let inferredType: string | null = null;
 

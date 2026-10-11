@@ -43,6 +43,12 @@ import {
   FFMPEG_MAX_BUFFER
 } from "./ffmpeg-helpers.js";
 import {
+  EASE_CURVE_PRESETS,
+  easeCurveEasing,
+  easeCurveFilterGraph,
+  easeCurveSegments
+} from "./easeCurve.js";
+import {
   isObjectLike,
   isString
 } from "@nodetool-ai/node-sdk";
@@ -360,6 +366,23 @@ async function ffmpegTransform(
  * Base for every ffmpeg-backed node. Carries only the runtime gate; each node
  * declares its own props and `process()`.
  */
+/**
+ * Expand `entity://` and text-asset mentions in a prompt for a node that takes
+ * no media input of its own. The Prompt composer writes mentions as tokens; a
+ * node that sent them as-is handed the model the literal `entity://<id>`.
+ */
+async function expandPromptMentions(
+  prompt: string,
+  context?: ProcessingContext
+): Promise<string> {
+  const overrides = await mapPromptAssetsToInputs(
+    [{ name: "prompt", value: prompt }],
+    [],
+    context
+  );
+  return isString(overrides.prompt) ? overrides.prompt : prompt;
+}
+
 abstract class VideoTransformNode extends BaseNode {
   static readonly requiredRuntimes = ["ffmpeg"];
 }
@@ -463,7 +486,7 @@ export class TextToVideoNode extends BaseNode {
   declare timeout_seconds: number;
 
   async process(context?: ProcessingContext): Promise<TextToVideoNodeOutputs> {
-    const text = String(this.prompt ?? "");
+    const text = await expandPromptMentions(String(this.prompt ?? ""), context);
     const { providerId, modelId } = modelConfig(this.serialize());
     if (!canUseProvider(context, providerId, modelId)) {
       throw new Error("No provider available for text-to-video generation.");
@@ -753,7 +776,7 @@ export class ReferenceToVideoNode extends BaseNode {
         params: {
           reference_images: referenceImages,
           reference_videos: referenceVideos,
-          prompt: String(this.prompt ?? ""),
+          prompt: await expandPromptMentions(String(this.prompt ?? ""), context),
           use_reference_video_audio: this.use_reference_video_audio,
           negative_prompt: this.negative_prompt,
           entities: await resolveEntities(this.entities, context),
@@ -1135,7 +1158,7 @@ export class ForEachFrameNode extends VideoTransformNode {
           "-y",
           "-i", inputFile.path,
           "-vf", vfFilter,
-          "-vsync", "vfr",
+          "-fps_mode", "vfr",
           ...frameLimit,
           path.join(outputDir, "frame_%d.png")
         ],
@@ -1761,6 +1784,132 @@ export class SetSpeedVideoNode extends VideoTransformNode {
         { allowFallback: true }
       )) ??
       (await ffmpegTransform(bytes, ["-vf", `setpts=${1 / speed}*PTS`]));
+    return { output: videoRef(transformed) };
+  }
+}
+
+/** Output handles EaseCurveVideoNode.process() emits. */
+type EaseCurveVideoNodeOutputs = {
+  output: VideoRef;
+};
+
+const EASE_CURVE_CUSTOM_ONLY = {
+  visible_when: { property: "easing", equals: "custom" }
+} as const;
+
+export class EaseCurveVideoNode extends VideoTransformNode {
+  static readonly nodeType = "nodetool.video.EaseCurve";
+  static readonly title = "Ease Curve";
+  static readonly description =
+    "Retime a video along an easing curve so playback speeds up or slows down smoothly. Ease in starts slow and ends fast, ease out the reverse. The whole source plays once, over the output duration.\n    video, speed, ramp, retime, ease, curve, slow motion, time remap";
+  static readonly metadataOutputTypes = {
+    output: "video"
+  };
+  @prop({
+    type: "video",
+    default: defaultVideoRef(),
+    title: "Video",
+    description: "The input video to retime."
+  })
+  declare video: VideoRef;
+
+  @prop({
+    type: "enum",
+    default: "easeInOut",
+    title: "Easing",
+    description:
+      "The speed curve. Choose custom to set cubic-bezier control points.",
+    values: [...EASE_CURVE_PRESETS]
+  })
+  declare easing: string;
+
+  @prop({
+    type: "float",
+    default: 0,
+    title: "Duration",
+    description:
+      "Output length in seconds. 0 keeps the source length.",
+    min: 0
+  })
+  declare duration: number;
+
+  @prop({
+    type: "float",
+    default: 0.42,
+    title: "X1",
+    description: "First cubic-bezier control point, x (0 to 1).",
+    min: 0,
+    max: 1,
+    json_schema_extra: EASE_CURVE_CUSTOM_ONLY
+  })
+  declare x1: number;
+
+  @prop({
+    type: "float",
+    default: 0,
+    title: "Y1",
+    description: "First cubic-bezier control point, y (0 to 1).",
+    min: 0,
+    max: 1,
+    json_schema_extra: EASE_CURVE_CUSTOM_ONLY
+  })
+  declare y1: number;
+
+  @prop({
+    type: "float",
+    default: 0.58,
+    title: "X2",
+    description: "Second cubic-bezier control point, x (0 to 1).",
+    min: 0,
+    max: 1,
+    json_schema_extra: EASE_CURVE_CUSTOM_ONLY
+  })
+  declare x2: number;
+
+  @prop({
+    type: "float",
+    default: 1,
+    title: "Y2",
+    description: "Second cubic-bezier control point, y (0 to 1).",
+    min: 0,
+    max: 1,
+    json_schema_extra: EASE_CURVE_CUSTOM_ONLY
+  })
+  declare y2: number;
+
+  async process(context?: ProcessingContext): Promise<EaseCurveVideoNodeOutputs> {
+    const bytes = await videoBytesAsync(this.video, context);
+    if (bytes.length === 0) return { output: videoRef(bytes) };
+    const easing = easeCurveEasing(this.easing ?? "easeInOut", {
+      x1: Number(this.x1 ?? 0.42),
+      y1: Number(this.y1 ?? 0),
+      x2: Number(this.x2 ?? 0.58),
+      y2: Number(this.y2 ?? 1)
+    });
+
+    const probe = await withTempFile(".mp4", bytes);
+    let sourceSec: number;
+    let meta: ConcatMeta;
+    try {
+      sourceSec = await ffprobeDuration(probe.path);
+      meta = await probeConcatMeta(probe.path);
+    } finally {
+      await probe.cleanup();
+    }
+    if (!(sourceSec > 0)) {
+      throw new Error("Ease Curve could not read the input video's duration.");
+    }
+    const requested = Number(this.duration ?? 0);
+    const outputSec = requested > 0 ? requested : sourceSec;
+    const segments = easeCurveSegments(sourceSec * 1000, outputSec * 1000, easing);
+    const transformed = await ffmpegTransform(bytes, [
+      ...easeCurveFilterGraph({
+        segments,
+        outputDurationMs: outputSec * 1000,
+        fps: meta.fps > 0 ? meta.fps : 30,
+        withAudio: meta.hasAudio
+      })
+    ]);
     return { output: videoRef(transformed) };
   }
 }
@@ -3122,6 +3271,15 @@ export class VideoToVideoNode extends BaseNode {
   })
   declare strength: number;
 
+  @prop({
+    type: "list[entity]",
+    default: [],
+    title: "Entities",
+    description:
+      "Consistency entities whose descriptors are injected into the prompt and whose reference images guide the edit"
+  })
+  declare entities: Entity[];
+
   async process(context?: ProcessingContext): Promise<VideoToVideoNodeOutputs> {
     const bytes = await videoBytesAsync(this.video, context);
     if (bytes.length === 0) throw new Error("The input video is empty.");
@@ -3136,8 +3294,9 @@ export class VideoToVideoNode extends BaseNode {
       model: modelId,
       params: {
         video: bytes,
-        prompt: String(this.prompt ?? ""),
+        prompt: await expandPromptMentions(String(this.prompt ?? ""), context),
         negative_prompt: this.negative_prompt,
+        entities: await resolveEntities(this.entities, context),
         strength: Number(this.strength ?? 0.6)
       }
     }),
@@ -3232,6 +3391,7 @@ export const VIDEO_NODES = [
   ResizeVideoNode,
   RotateVideoNode,
   SetSpeedVideoNode,
+  EaseCurveVideoNode,
   OverlayVideoNode,
   ColorBalanceVideoNode,
   DenoiseVideoNode,

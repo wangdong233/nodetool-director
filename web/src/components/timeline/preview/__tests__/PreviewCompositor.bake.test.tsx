@@ -64,6 +64,8 @@ function bakedClip(): TimelineClip {
 
 let mockClips: TimelineClip[] = [];
 let mockTimeMs = 0;
+/** Asset responses by id; any other id answers a plain `blob:` URL. */
+let mockAssets: Record<string, Record<string, unknown>> = {};
 
 jest.mock("../../../../stores/timeline/TimelineStore", () => {
   const getState = () => ({
@@ -107,7 +109,8 @@ jest.mock("../../../../stores/timeline/useTimelineHistoryBatch", () => ({
 
 jest.mock("../../../../stores/AssetStore", () => {
   const getState = () => ({
-    get: async (id: string) => ({ id, get_url: `blob:${id}` })
+    get: async (id: string) =>
+      mockAssets[id] ?? { id, get_url: `blob:${id}` }
   });
   const useAssetStore = <T,>(selector: (s: unknown) => T): T =>
     selector(getState());
@@ -137,6 +140,7 @@ jest.mock("../TransformGizmoOverlay", () => ({
 
 jest.mock("../Model3DLayerSource", () => ({
   Model3DLayerSource: jest.fn().mockImplementation(() => ({
+    revive: jest.fn(),
     frame: () => null,
     retain: jest.fn(),
     state: () => undefined,
@@ -184,6 +188,15 @@ function stubMediaElement(): void {
 
 /** Render the preview at `atMs` and answer the bound element's seek time. */
 async function seekAt(atMs: number, asset = "asset-bake", clipId?: string): Promise<number | undefined> {
+  return (await boundAt(atMs, `blob:${asset}`, clipId))?.currentTime;
+}
+
+/** Render the preview at `atMs` and answer the element bound to `url`. */
+async function boundAt(
+  atMs: number,
+  url: string,
+  clipId?: string
+): Promise<HTMLVideoElement | undefined> {
   mockTimeMs = atMs;
   const view = render(
     <ThemeProvider theme={mockTheme}>
@@ -197,12 +210,11 @@ async function seekAt(atMs: number, asset = "asset-bake", clipId?: string): Prom
     await Promise.resolve();
   });
   const bound = [...view.container.querySelectorAll("video")].find(
-    (el) => el.getAttribute("data-asset") === `blob:${asset}` &&
+    (el) => el.getAttribute("data-asset") === url &&
       (clipId === undefined || el.dataset.clipId === clipId)
   );
-  const seeked = bound?.currentTime;
   view.unmount();
-  return seeked;
+  return bound;
 }
 
 describe("PreviewCompositor — a baked 3D clip", () => {
@@ -251,5 +263,98 @@ describe("PreviewCompositor — repeated video", () => {
     })];
     expect(await seekAt(500, "asset-video", "shot:repeat:1")).toBeCloseTo(1.4);
     expect(await seekAt(500, "asset-video", "shot:repeat:1:echo:1")).toBeCloseTo(1.2);
+  });
+});
+
+describe("PreviewCompositor — preview proxy", () => {
+  beforeAll(stubMediaElement);
+
+  function shot(): TimelineClip {
+    return makeClip({
+      id: "shot",
+      trackId: track.id,
+      name: "Shot",
+      mediaType: "video",
+      sourceType: "imported",
+      status: "generated",
+      startMs: 0,
+      durationMs: 2000,
+      inPointMs: 1000,
+      currentAssetId: "asset-4k"
+    });
+  }
+
+  afterEach(() => {
+    mockAssets = {};
+  });
+
+  it("plays the proxy once the server reports it ready, at the same source time", async () => {
+    mockClips = [shot()];
+    mockAssets = {
+      "asset-4k": {
+        id: "asset-4k",
+        content_type: "video/mp4",
+        get_url: "/api/storage/user-1/asset-4k.mp4",
+        proxy_status: "ready",
+        proxy_url: "/api/storage/user-1/asset-4k_proxy.mp4?v=abc"
+      }
+    };
+    const proxy = await boundAt(
+      500,
+      "/api/storage/user-1/asset-4k_proxy.mp4?v=abc"
+    );
+    expect(proxy?.currentTime).toBeCloseTo(1.5);
+  });
+
+  it("plays the original while the proxy is still being made", async () => {
+    mockClips = [shot()];
+    mockAssets = {
+      "asset-4k": {
+        id: "asset-4k",
+        content_type: "video/mp4",
+        get_url: "/api/storage/user-1/asset-4k.mp4",
+        proxy_status: "running",
+        proxy_url: null
+      }
+    };
+    const original = await boundAt(500, "/api/storage/user-1/asset-4k.mp4");
+    expect(original?.currentTime).toBeCloseTo(1.5);
+  });
+});
+
+describe("PreviewCompositor — unresolved generated matte", () => {
+  beforeAll(stubMediaElement);
+
+  it("shows one placeholder for the picture and matte of the same clip", async () => {
+    mockTimeMs = 500;
+    mockClips = [makeClip({
+      id: "matte-shot",
+      trackId: track.id,
+      name: "Matte shot",
+      mediaType: "video",
+      sourceType: "imported",
+      status: "generated",
+      startMs: 0,
+      durationMs: 2000,
+      currentAssetId: "asset-video",
+      generatedMatte: {
+        assetId: "asset-matte",
+        sourceAssetId: "asset-video",
+        sourceRange: { fromMs: 0, toMs: 2000 },
+        settings: { model: "General Use (Light)" },
+        status: "ready"
+      }
+    })];
+    const view = render(
+      <ThemeProvider theme={mockTheme}>
+        <PreviewCompositor />
+      </ThemeProvider>
+    );
+    expect(view.queryAllByText("Matte shot")).toHaveLength(1);
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    view.unmount();
   });
 });

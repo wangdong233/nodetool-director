@@ -1,4 +1,5 @@
 import type {
+  UnifiedModel,
   LanguageModel,
   ImageModel,
   ASRModel,
@@ -58,6 +59,48 @@ export function executionForDisplay(
         : execution.runtime_name
           ? `Runs through ${execution.runtime_name} on this device.`
           : "Runs on this device."
+  };
+}
+
+/** The repository files a model must download before it can run. */
+export interface ModelDownloadTarget {
+  repoId: string;
+  /** One file in the repository, or null for the repository's files. */
+  path: string | null;
+  allowPatterns: string[] | null;
+  ignorePatterns: string[] | null;
+  /** The type the download service fetches with, when it differs from the picker's model type. */
+  modelType: string | null;
+}
+
+/**
+ * Where to download a model that reports `download_required`, or null when it
+ * names nothing to download. A local adapter names its own artifact, which can
+ * differ from the model id the picker shows.
+ */
+export function modelDownloadTarget(
+  model: ModelSelectorModel
+): ModelDownloadTarget | null {
+  if (model.execution?.state !== "download_required") {
+    return null;
+  }
+  // Picker rows are the server's unified models: the fields beyond the
+  // modality type ride along.
+  const unified = model as Partial<UnifiedModel>;
+  const artifact = unified.adapter?.artifact_ref;
+  const repoId = artifact?.repo_id ?? unified.repo_id ?? null;
+  if (!repoId) {
+    return null;
+  }
+  const path = artifact ? (artifact.path ?? null) : (unified.path ?? null);
+  return {
+    repoId,
+    path,
+    allowPatterns: path
+      ? null
+      : (artifact?.allow_patterns ?? unified.allow_patterns ?? null),
+    ignorePatterns: path ? null : (unified.ignore_patterns ?? null),
+    modelType: artifact?.model_type ?? null
   };
 }
 
@@ -194,4 +237,18 @@ export function applyAdvancedModelFilters<TModel extends ModelSelectorModel>(
 
     return true;
   });
+}
+
+/**
+ * A readable label for a model the picker cannot find in its list. Local
+ * providers such as whisper.cpp use the file path as the id: show the file
+ * name without its extension and without a `ggml-` prefix ("small").
+ */
+export function modelLabelFromId(id: string): string {
+  const isPath = /^(?:[/~]|[A-Za-z]:[\\/])/.test(id);
+  if (!isPath) {
+    return id;
+  }
+  const file = id.split(/[\\/]/).filter(Boolean).at(-1) ?? id;
+  return file.replace(/\.[^.]+$/, "").replace(/^ggml-/i, "");
 }

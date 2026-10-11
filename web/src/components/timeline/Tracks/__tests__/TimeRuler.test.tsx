@@ -6,7 +6,7 @@
  * the playhead, and the delete button removes it from the store.
  */
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, createEvent, fireEvent, render, screen } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 
 import mockTheme from "../../../../__mocks__/themeMock";
@@ -33,6 +33,10 @@ describe("TimeRuler markers", () => {
 
     const flag = screen.getByTestId("timeline-marker");
     expect(flag).toHaveTextContent("Scene 1");
+    // A real button, reachable and named for keyboard and screen-reader users.
+    expect(
+      screen.getByRole("button", { name: "Scene 1 at 0:02.0" })
+    ).toBe(flag);
 
     act(() => {
       fireEvent.click(flag);
@@ -52,5 +56,58 @@ describe("TimeRuler markers", () => {
     });
     expect(useTimelineStore.getState().markers).toHaveLength(0);
     expect(screen.queryByTestId("timeline-marker")).not.toBeInTheDocument();
+  });
+});
+
+/** jsdom's pointer events drop clientX/buttons, so set them on the event. */
+const pointer = (
+  type: "pointerDown" | "pointerMove" | "pointerUp",
+  el: Element,
+  props: { clientX?: number; buttons?: number; button?: number }
+) => {
+  const event = createEvent[type](el, { pointerId: 1 });
+  for (const [k, v] of Object.entries(props)) {
+    Object.defineProperty(event, k, { value: v });
+  }
+  fireEvent(el, event);
+};
+
+describe("TimeRuler gesture ownership", () => {
+  it("ignores a drag that did not start on the ruler", () => {
+    renderRuler();
+    const canvas = screen.getByTestId("time-ruler").querySelector("canvas")!;
+    act(() => {
+      useTimelinePlaybackStore.getState().seek(500);
+    });
+    pointer("pointerMove", canvas, { buttons: 1, clientX: 400 });
+    expect(useTimelinePlaybackStore.getState().currentTimeMs).toBe(500);
+  });
+
+  it("scrubs a drag that started on the ruler and stops after release", () => {
+    renderRuler();
+    const canvas = screen.getByTestId("time-ruler").querySelector("canvas")!;
+    canvas.setPointerCapture = jest.fn();
+    pointer("pointerDown", canvas, { button: 0, buttons: 1, clientX: 100 });
+    const afterDown = useTimelinePlaybackStore.getState().currentTimeMs;
+    pointer("pointerMove", canvas, { buttons: 1, clientX: 300 });
+    const afterMove = useTimelinePlaybackStore.getState().currentTimeMs;
+    expect(afterMove).toBeGreaterThan(afterDown);
+    pointer("pointerUp", canvas, {});
+    pointer("pointerMove", canvas, { buttons: 1, clientX: 600 });
+    expect(useTimelinePlaybackStore.getState().currentTimeMs).toBe(afterMove);
+  });
+
+  it("does not seek or scrub on a right or middle press", () => {
+    renderRuler();
+    const canvas = screen.getByTestId("time-ruler").querySelector("canvas")!;
+    canvas.setPointerCapture = jest.fn();
+    act(() => {
+      useTimelinePlaybackStore.getState().seek(500);
+    });
+    pointer("pointerDown", canvas, { button: 2, buttons: 2, clientX: 300 });
+    pointer("pointerDown", canvas, { button: 1, buttons: 4, clientX: 300 });
+    pointer("pointerMove", canvas, { buttons: 1, clientX: 400 });
+    expect(useTimelinePlaybackStore.getState().currentTimeMs).toBe(500);
+    expect(canvas.setPointerCapture).not.toHaveBeenCalled();
   });
 });

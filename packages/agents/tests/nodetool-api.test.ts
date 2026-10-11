@@ -10,8 +10,10 @@ import {
 } from "../src/codeact/chat-codeact.js";
 import {
   buildNodetoolApiPromptSection,
-  hasNodetoolApiTools
+  hasNodetoolApiTools,
+  NODETOOL_API_NAMESPACE_TOOLS
 } from "../src/codeact/nodetool-api.js";
+import { findSystemSkill } from "../src/system-skills.js";
 import { createMockContext } from "./_helpers/mock-context.js";
 
 const objectSchema = (props: Record<string, unknown>) => ({
@@ -43,6 +45,8 @@ const MEDIA_TOOLS = [
 ].map(toolDef);
 const TIMELINE_TOOLS = [
   "list_timelines",
+  "list_example_timelines",
+  "get_example_timeline",
   "validate_timeline",
   "preview_timeline_frame",
   "compare_timeline_frames",
@@ -154,6 +158,10 @@ function createFakeRouter() {
         });
       case "list_timelines":
         return JSON.stringify({ timelines: [] });
+      case "list_example_timelines":
+        return JSON.stringify({ examples: [] });
+      case "get_example_timeline":
+        return JSON.stringify({ slug: args["slug"] });
       case "create_timeline_version":
         return JSON.stringify({ version: 1 });
       case "validate_timeline":
@@ -202,6 +210,42 @@ async function runAction(
 }
 
 describe("nodetool object model", () => {
+  it("routes game document and example methods through their belt capabilities", async () => {
+    const names = ["create_native_game", "get_native_game", "edit_native_game", "publish_native_game",
+      "install_native_game_asset", "playtest_native_game", "capture_native_game_frame", "generate_game_asset",
+      "build_native_game", "list_example_games", "get_example_game", "install_example_game", "autoplay_native_game"];
+    const calls: ChatCodeActToolCall[] = [];
+    const session = makeSession(names.map(toolDef), async (call) => { calls.push(call); return JSON.stringify({ ok: true }); });
+    const observation = await runAction(session, `
+      await nodetool.games.create("Level", {project_id: "project"});
+      await nodetool.games.get("game", {view: "full"});
+      await nodetool.games.setDocument("game", {scenes: []}, {base_updated_at: "before"});
+      await nodetool.games.edit("game", [{op: "set_game", pixels_per_unit: 48}]);
+      await nodetool.games.publish("game", {base_revision: "revision"});
+      await nodetool.games.installAsset("game", "hero", {digest: "sha"}, {candidate_workspace_id: "workspace"});
+      await nodetool.games.playtest("game", {inputs: []});
+      await nodetool.games.capture("game", {ticks: [0]});
+      await nodetool.games.generateAsset("game", "jump", "sfx", "jump", {provider: "provider"});
+      await nodetool.games.build("game", {revision: "revision"});
+      await nodetool.games.listExamples();
+      await nodetool.games.getExample("kindle");
+      await nodetool.games.installExample("kindle", {project_id: "project"});
+      await nodetool.games.autoplay("game", {target_prefix: "beacon"});
+      return "done";
+    `);
+    expect(observation.ok, JSON.stringify(observation)).toBe(true);
+    expect(calls.map((call) => call.name)).toEqual([
+      ...names.slice(0, 2), "edit_native_game", "edit_native_game", ...names.slice(3)
+    ]);
+    expect(calls[0].args).toEqual({ name: "Level", project_id: "project" });
+    expect(calls[1].args).toEqual({ game_id: "game", view: "full" });
+    expect(calls[2].args).toEqual({ game_id: "game", base_updated_at: "before", ops: [{ op: "set_document", document: { scenes: [] } }] });
+    expect(calls[5].args).toEqual({ game_id: "game", slot: "hero", binding: { digest: "sha" }, candidate_workspace_id: "workspace" });
+    expect(calls[8].args).toEqual({ game_id: "game", slot: "jump", kind: "sfx", prompt: "jump", provider: "provider" });
+    expect(calls[12].args).toEqual({ slug: "kindle", project_id: "project" });
+    expect(calls[13].args).toEqual({ game_id: "game", target_prefix: "beacon" });
+  });
+
   it("reports capabilities from the belt", async () => {
     const { executeTool } = createFakeRouter();
     const session = makeSession([...WORKFLOW_TOOLS, ...MODEL_TOOLS], executeTool);
@@ -410,6 +454,45 @@ describe("nodetool object model", () => {
     expect(calls[1].args).toEqual({ document: { tracks: [] } });
   });
 
+  it("passes showcase validation options for saved and inline timelines", async () => {
+    const { executeTool, calls } = createFakeRouter();
+    const session = makeSession(TIMELINE_TOOLS, executeTool);
+    const obs = await runAction(
+      session,
+      `await nodetool.timelines.validate("tl1", { tier: "showcase" });
+       await nodetool.timelines.validate({ tracks: [] }, {
+         tier: "showcase", fps: 30, width: 1920, height: 1080
+       });
+       return "done";`
+    );
+    expect(obs.ok).toBe(true);
+    expect(calls[0].args).toEqual({ timeline_id: "tl1", tier: "showcase" });
+    expect(calls[1].args).toEqual({
+      document: { tracks: [] }, tier: "showcase", fps: 30, width: 1920, height: 1080
+    });
+  });
+
+  it("lists shipped example timelines and reads a bounded scene by slug", async () => {
+    const { executeTool, calls } = createFakeRouter();
+    const session = makeSession(TIMELINE_TOOLS, executeTool);
+    const obs = await runAction(
+      session,
+      `await nodetool.timelines.examples.list({ query: "kite" });
+       await nodetool.timelines.examples.get("kite", {
+         scene_id: "scene_intro", clip_offset: 0, clip_limit: 8
+       });
+       return "done";`
+    );
+    expect(obs.ok).toBe(true);
+    expect(calls.map((call) => call.name)).toEqual([
+      "list_example_timelines", "get_example_timeline"
+    ]);
+    expect(calls[0].args).toEqual({ query: "kite" });
+    expect(calls[1].args).toEqual({
+      slug: "kite", scene_id: "scene_intro", clip_offset: 0, clip_limit: 8
+    });
+  });
+
   it("routes timelines.compositions to the composition capabilities", async () => {
     const { executeTool, calls } = createFakeRouter();
     const session = makeSession(TIMELINE_TOOLS, executeTool);
@@ -596,6 +679,17 @@ describe("nodetool object model", () => {
     expect(session.systemPromptSection).toContain("nodetool");
   });
 
+  it("names each namespace's shipped skill when the belt can load skills", () => {
+    const every = Object.values(NODETOOL_API_NAMESPACE_TOOLS).flat();
+    const section = buildNodetoolApiPromptSection([...every, "load_skill"]);
+    const named = [...section.matchAll(/Skill: `([a-z0-9-]+)`/g)].map((m) => m[1]);
+    expect(named.length).toBeGreaterThan(15);
+    // A pointer at a skill that does not ship is a load that fails mid-task.
+    expect(named.filter((name) => findSystemSkill(name) === null)).toEqual([]);
+    // Without load_skill on the belt the pointers would name a dead end.
+    expect(buildNodetoolApiPromptSection(every)).not.toContain("Skill: `");
+  });
+
   it("runs a single node and delegates to sub-agents", async () => {
     const calls: ChatCodeActToolCall[] = [];
     const executeTool = async (call: ChatCodeActToolCall): Promise<unknown> => {
@@ -681,5 +775,38 @@ describe("nodetool object model", () => {
     );
     expect(obs.ok).toBe(true);
     expect(obs.result).toBe("completed");
+  });
+});
+
+
+describe("timeline save error details", () => {
+  it("keeps every validation error in the thrown sandbox error", async () => {
+    const errors = Array.from({ length: 25 }, (_, i) => ({
+      code: "schema_invalid", message: "clips." + i + ".effects.0.id: expected string"
+    }));
+    const session = createChatCodeActSession({
+      tools: TIMELINE_TOOLS,
+      executeTool: async () => ({ error: "The document has 25 errors", written: false, validation: { ok: false, errors, warnings: [] } })
+    });
+    const result = JSON.parse(await session.executeAction({
+      code: 'await nodetool.timelines.setDocument("tl1", { tracks: [], clips: [] });'
+    }));
+    expect(result.ok).toBe(false);
+    for (const error of errors) {
+      expect(result.error).toContain(error.message);
+    }
+  });
+});
+
+describe("packs.docs return contract", () => {
+  it("returns the documentation string for string methods", async () => {
+    const session = createChatCodeActSession({
+      tools: [toolDef("get_sandbox_package_docs")],
+      executeTool: async () => ({ specifier: "@acme/pack", trusted: true, documentation: "<guide>hello</guide>" })
+    });
+    const result = JSON.parse(await session.executeAction({
+      code: 'return (await nodetool.packs.docs("@acme/pack")).includes("<guide>");'
+    }));
+    expect(result).toMatchObject({ ok: true, result: true });
   });
 });

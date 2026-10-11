@@ -1,3 +1,4 @@
+import { recordAppRunLlmCost } from "./run-context.js";
 /**
  * Helpers for wrapping agent / workflow / node code in OpenTelemetry spans.
  *
@@ -12,6 +13,12 @@
  *       llm.chat / llm.stream        ← BaseProvider (existing)
  *
  *   agent.execute                    ← `withAgentSpan({ kind: "execute" })`
+ *
+ * IO- and CPU-bound work (storage, subprocesses, image codecs, Python worker
+ * calls) gets its own span through `withTaskSpan`, tagged with
+ * `nodetool.task.kind` so a backend can split wall time by resource.
+ * Outbound `fetch` calls get `HTTP <method>` spans from the undici
+ * instrumentation registered in `initTelemetry`.
  *     agent.plan                     ← `withAgentSpan({ kind: "plan" })`
  *     agent.step                     ← `withAgentSpan({ kind: "step" })`
  *       llm.chat / llm.stream        ← BaseProvider (existing)
@@ -92,6 +99,7 @@ export function setLastUsage(usage: LlmUsage): void {
   // made outside a capture slot still cost money, and retry safety turns on
   // whether this invocation spent anything.
   recordInvocationCost(usage.cost);
+  recordAppRunLlmCost(usage.cost);
   const slot = usageStore.getStore();
   if (!slot) return;
   const previous = slot.usage;
@@ -177,6 +185,17 @@ export function createUsageSlot() {
   };
 }
 
+/**
+ * Mark a span failed: ERROR status with the error text (the run-store
+ * `error_summary` source) and the recorded exception. Use it when a failure
+ * is returned instead of thrown, so the span does not end OK.
+ */
+export function markSpanError(span: Span | null, err: unknown): void {
+  if (!span) return;
+  span.setStatus({ code: SpanStatusCode.ERROR, message: String(err) });
+  span.recordException(err as Error);
+}
+
 /** Wrap a function in an OTel span; pass-through if telemetry is disabled. */
 export async function withSpan<T>(
   name: string,
@@ -189,11 +208,10 @@ export async function withSpan<T>(
     setAttributes(span, attributes);
     try {
       const result = await fn(span);
-      span.setStatus({ code: SpanStatusCode.OK });
+      if (!spanEndedWithError(span)) { span.setStatus({ code: SpanStatusCode.OK }); }
       return result;
     } catch (err) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: String(err) });
-      span.recordException(err as Error);
+      markSpanError(span, err);
       throw err;
     } finally {
       span.end();
@@ -229,14 +247,13 @@ export async function* withSpanGen<T, TReturn = void>(
       const result = await otelContext.with(ctx, () => inner.next());
       if (result.done) {
         exhausted = true;
-        span.setStatus({ code: SpanStatusCode.OK });
+        if (!spanEndedWithError(span)) { span.setStatus({ code: SpanStatusCode.OK }); }
         return result.value;
       }
       yield result.value;
     }
   } catch (err) {
-    span.setStatus({ code: SpanStatusCode.ERROR, message: String(err) });
-    span.recordException(err as Error);
+    markSpanError(span, err);
     throw err;
   } finally {
     if (!exhausted) {
@@ -248,6 +265,10 @@ export async function* withSpanGen<T, TReturn = void>(
     }
     span.end();
   }
+}
+
+function spanEndedWithError(span: Span): boolean {
+  return "status" in span && typeof span.status === "object" && span.status !== null && "code" in span.status && span.status.code === SpanStatusCode.ERROR;
 }
 
 function setAttributes(span: Span, attributes: Record<string, unknown>): void {
@@ -338,6 +359,22 @@ function agentAttrs(
   return attrs;
 }
 
+/** Which resource a task span spends: waiting on IO, or burning CPU. */
+export type TaskKind = "io" | "cpu";
+
+/**
+ * Wrap an IO- or CPU-bound task in a span named `name` carrying
+ * `nodetool.task.kind`. Pass-through when telemetry is disabled.
+ */
+export function withTaskSpan<T>(
+  kind: TaskKind,
+  name: string,
+  attributes: Record<string, unknown>,
+  fn: (span: Span | null) => Promise<T>
+): Promise<T> {
+  return withSpan(name, { "nodetool.task.kind": kind, ...attributes }, fn);
+}
+
 /** Wrap a single node execution (kernel Actor) in a span. */
 export function withNodeSpan<T>(
   attributes: {
@@ -362,3 +399,5 @@ export function withNodeSpan<T>(
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
+
+export { SpanStatusCode };

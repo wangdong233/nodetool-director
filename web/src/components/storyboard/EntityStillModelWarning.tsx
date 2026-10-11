@@ -17,12 +17,21 @@ import { useImageModelsByProvider } from "../../hooks/useModelsByProvider";
 interface EntityStillModelWarningProps {
   /** The board's selected still model, if one is chosen. */
   modelId: string | undefined;
+  provider: string | undefined;
 }
 
-const EntityStillModelWarning = ({ modelId }: EntityStillModelWarningProps) => {
+const EntityStillModelWarning = ({
+  modelId,
+  provider
+}: EntityStillModelWarningProps) => {
   const { models } = useImageModelsByProvider();
-  const details = modelId ? models.find((m) => m.id === modelId) : undefined;
-  if (details?.supported_tasks?.includes("image_to_image")) {
+  const details = modelId
+    ? models.find((m) => m.id === modelId && m.provider === provider)
+    : undefined;
+  // Only a model known to take text alone earns the warning: no model picked,
+  // a list still loading, or a model that lists no tasks says nothing.
+  const tasks = details?.supported_tasks;
+  if (!tasks || tasks.length === 0 || tasks.includes("image_to_image")) {
     return null;
   }
   return (

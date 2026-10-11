@@ -8,6 +8,7 @@
  * the offline context rather than fetched.
  */
 import type { TimelineClip, TimelineTrack } from "@nodetool-ai/timeline";
+import { clearSamplerAudioCache } from "../../preview/samplerAudio";
 import { renderTimelineAudio } from "../renderAudio";
 
 interface Scheduled {
@@ -43,6 +44,10 @@ class MockOfflineAudioContext {
     const channel = new Float32Array(length);
     return { length, getChannelData: () => channel, channel };
   }
+  decodeAudioData() {
+    return Promise.resolve({ length: this.sampleRate, duration: 1, sampleRate: this.sampleRate, numberOfChannels: 1,
+      getChannelData: () => Float32Array.from({ length: this.sampleRate }, (_, i) => .25 * Math.sin(i * .03)) });
+  }
   startRendering() {
     return Promise.resolve({ length: this.length } as AudioBuffer);
   }
@@ -74,7 +79,22 @@ const midiClip: TimelineClip = {
 };
 
 describe("renderTimelineAudio — midi", () => {
+  it("loads a sampler recording and schedules its rendered tail in the offline mix", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) });
+    const resolveUrl = jest.fn().mockResolvedValue("https://example.test/drum.wav");
+    try {
+      await renderTimelineAudio({ clips: [midiClip], tracks: [{ ...midiTrack, instrument: {
+        type: "sampler", zones: [{ id: "z", name: "Hit", assetId: "a".repeat(32), rootNote: 60, lowNote: 60, highNote: 60, gainDb: 0 }],
+        oneShot: true, attackMs: 0, releaseMs: 50, gainDb: -6
+      } }], durationMs: 2000, resolveUrl });
+      expect(resolveUrl).toHaveBeenCalledWith("a".repeat(32));
+      const buffer = scheduled[0].buffer as { channel: Float32Array };
+      expect(buffer.channel.slice(24000, 36000).some(x => Math.abs(x) > .01)).toBe(true);
+    } finally { globalThis.fetch = originalFetch; }
+  });
   beforeEach(() => {
+    clearSamplerAudioCache();
     scheduled.length = 0;
     (
       globalThis as unknown as { OfflineAudioContext: unknown }
@@ -129,5 +149,76 @@ describe("renderTimelineAudio — midi", () => {
       ]
     );
     expect(result).toBeNull();
+  });
+
+  it("stops with an AbortError when cancelled while assets resolve (F33)", async () => {
+    const controller = new AbortController();
+    const audioClip: TimelineClip = {
+      ...midiClip,
+      id: "a1",
+      mediaType: "audio",
+      notes: undefined,
+      currentAssetId: "asset-1"
+    };
+    const audioTrack: TimelineTrack = { ...midiTrack, id: "t-midi", type: "audio" };
+    const resolveUrl = jest.fn(() => new Promise<string | undefined>(() => {}));
+    const pending = renderTimelineAudio({
+      clips: [audioClip],
+      tracks: [audioTrack],
+      durationMs: 1000,
+      resolveUrl,
+      signal: controller.signal
+    });
+    await Promise.resolve();
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect(scheduled).toEqual([]);
+  });
+
+  it("does not render a midi clip's notes after a cancel during its sampler load", async () => {
+    const originalFetch = globalThis.fetch;
+    let finishFetch: (value: unknown) => void = () => undefined;
+    globalThis.fetch = jest.fn(
+      () => new Promise((resolve) => { finishFetch = resolve; })
+    ) as unknown as typeof fetch;
+    const createBuffer = jest.spyOn(MockOfflineAudioContext.prototype, "createBuffer");
+    const controller = new AbortController();
+    try {
+      const pending = renderTimelineAudio({
+        clips: [midiClip],
+        tracks: [{ ...midiTrack, instrument: {
+          type: "sampler", zones: [{ id: "z", name: "Hit", assetId: "b".repeat(32), rootNote: 60, lowNote: 60, highNote: 60, gainDb: 0 }],
+          oneShot: true, attackMs: 0, releaseMs: 50, gainDb: -6
+        } }],
+        durationMs: 2000,
+        resolveUrl: async () => "https://example.test/hit.wav",
+        signal: controller.signal
+      });
+      for (let i = 0; i < 5; i += 1) await Promise.resolve();
+      expect(globalThis.fetch).toHaveBeenCalled();
+      controller.abort();
+      await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+      finishFetch({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) });
+      for (let i = 0; i < 20; i += 1) await Promise.resolve();
+      expect(createBuffer).not.toHaveBeenCalled();
+      expect(scheduled).toEqual([]);
+    } finally {
+      createBuffer.mockRestore();
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("rejects immediately when already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      renderTimelineAudio({
+        clips: [midiClip],
+        tracks: [midiTrack],
+        durationMs: 1000,
+        resolveUrl: async () => undefined,
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
   });
 });

@@ -7,7 +7,13 @@
  * reason the losers stay on the document instead of being deleted.
  */
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import type { LayerVersion } from "@nodetool-ai/image-editor";
@@ -194,6 +200,27 @@ describe("ContactSheet Pick (criterion 5)", () => {
     expect(onPick).toHaveBeenCalledWith(layerIds[2]);
   });
 
+  it("picks a variation from a click on its still", () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+
+    // The still ignores the pointer so the press reaches its preview.
+    fireEvent.click(screen.getByRole("img", { name: "Variation 2" }));
+    expect(onPick).toHaveBeenCalledWith(layerIds[1]);
+  });
+
   it("regenerates one variation in place", async () => {
     const layerIds = seedBatch();
     render(
@@ -220,6 +247,119 @@ describe("ContactSheet Pick (criterion 5)", () => {
         .filter((layer) => layerIds.includes(layer.id))
         .every((layer) => layer.visible)
     ).toBe(true);
+  });
+
+  // F12: a seeded provider answers the same seed with the same picture, so
+  // Regenerate asks with a new one.
+  it("regenerates with a fresh seed", async () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+    const before = useSketchSessionStore.getState().bindings[layerIds[1]].seed;
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Regenerate" })[1]
+    );
+    const after = useSketchSessionStore.getState().bindings[layerIds[1]].seed;
+    expect(typeof after).toBe("number");
+    expect(after).not.toBe(before);
+    expect(start).toHaveBeenCalledWith(layerIds[1]);
+  });
+
+  // F13: a pick hides the earlier batches too, and keeps undo history.
+  it("hides earlier batches and keeps undo history on pick", async () => {
+    const layerIds = seedBatch();
+    act(() => {
+      useSketchStore.getState().pushHistory("before the flow");
+    });
+    const historyBefore = useSketchStore.getState().history.length;
+    expect(historyBefore).toBeGreaterThan(0);
+    const [earlier, ...current] = layerIds;
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={current}
+          siblingLayerIds={[earlier]}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Sketch editor" })[0]
+    );
+    const visible = useSketchStore
+      .getState()
+      .document.layers.filter((layer) => layerIds.includes(layer.id))
+      .filter((layer) => layer.visible)
+      .map((layer) => layer.id);
+    expect(visible).toEqual([current[0]]);
+    expect(useSketchStore.getState().history.length).toBeGreaterThan(
+      historyBefore
+    );
+  });
+
+  // F18: tiles carry the layer's own name, so a later batch numbered from 5
+  // reads the same in the sheet and in the layers panel.
+  it("labels tiles with their layer names", () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds.slice(2)}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+    expect(
+      screen.getByRole("group", { name: "Variation 3 preview" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Variation 4 preview" })
+    ).toBeInTheDocument();
+  });
+
+  // Every tile repeats the same buttons, so each tile is a named group and
+  // a screen reader hears which variation a button acts on.
+  it("names each tile's controls by its variation", async () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+    const tile = screen.getByRole("group", { name: "Variation 2" });
+    await userEvent.click(
+      within(tile).getByRole("button", { name: "Sketch editor" })
+    );
+    expect(onPick).toHaveBeenCalledWith(layerIds[1]);
   });
 
   it("offers the strip's follow-ups", async () => {
@@ -259,7 +399,7 @@ describe("ContactSheet Pick (criterion 5)", () => {
       screen.getAllByRole("button", { name: "New node canvas" })[0]
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not open that destination"
+      "Could not open that canvas. Network error"
     );
     expect(
       screen.getAllByRole("button", { name: "New node canvas" })[0]
@@ -305,6 +445,14 @@ describe("a failed batch", () => {
       </ThemeProvider>
     );
 
+  it("does nothing on a click on a preview with nothing rendered", () => {
+    const layerIds = seedFailedBatch();
+    renderSheet(layerIds);
+
+    fireEvent.click(screen.getByRole("group", { name: "Variation 1 preview" }));
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
   it("leaves two ways out when nothing rendered", async () => {
     const layerIds = seedFailedBatch();
     renderSheet(layerIds);
@@ -324,6 +472,11 @@ describe("a failed batch", () => {
     expect(onOpenEditor).toHaveBeenCalled();
   });
 
+  it("offers Report when nothing rendered", () => {
+    renderSheet(seedFailedBatch());
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
+  });
+
   it("announces the counts and retries one variation", async () => {
     const layerIds = seedFailedBatch();
     renderSheet(layerIds);
@@ -332,10 +485,16 @@ describe("a failed batch", () => {
       "0 of 4 rendered · 4 failed"
     );
 
+    const seedBefore =
+      useSketchSessionStore.getState().bindings[layerIds[1]].seed;
     await userEvent.click(
       screen.getByRole("button", { name: "Try Variation 2 again" })
     );
     expect(start).toHaveBeenCalledWith(layerIds[1]);
+    // Nothing rendered from the failed take, so its seed is kept.
+    expect(useSketchSessionStore.getState().bindings[layerIds[1]].seed).toBe(
+      seedBefore
+    );
   });
 });
 
@@ -424,5 +583,52 @@ describe("failure reasons", () => {
     }
     renderSheet(layerIds);
     expect(screen.getAllByText(/invalid api key/)).toHaveLength(1);
+  });
+});
+
+describe("ContactSheet prices", () => {
+  it("shows what another batch and one regenerate cost", () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          makeMoreDetail="4 images · about $0.16"
+          regenerateDetail="about $0.04"
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+
+    expect(screen.getByText("4 images · about $0.16")).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: "Regenerate · about $0.04" })
+    ).toHaveLength(4);
+  });
+});
+
+describe("ContactSheet failed follow-up", () => {
+  it("offers Report when another batch could not start", () => {
+    const layerIds = seedBatch();
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <ContactSheet
+          layerIds={layerIds}
+          onPick={onPick}
+          onMakeMore={onMakeMore}
+          makeMoreError="The provider refused the request."
+          onBackToSettings={onBackToSettings}
+          onOpenEditor={onOpenEditor}
+          onSaveToLibrary={onSaveToLibrary}
+          onOpenCanvas={onOpenCanvas}
+        />
+      </ThemeProvider>
+    );
+    expect(screen.getByRole("button", { name: "Report" })).toBeInTheDocument();
   });
 });

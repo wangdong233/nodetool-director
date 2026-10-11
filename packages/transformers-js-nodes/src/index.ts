@@ -36,6 +36,7 @@ export { AudioClassificationNode } from "./nodes/audio-classification.js";
 export { TextToSpeechNode } from "./nodes/text-to-speech.js";
 
 export {
+  bytesToRawImage,
   clearPipelineCache,
   decodeAudioBytesToSamples,
   extractRepoId,
@@ -44,7 +45,8 @@ export {
   loadTransformers,
   setTransformersJsCacheDir,
   tjsModelDefault,
-  type HfModelRef
+  type HfModelRef,
+  type RawImage
 } from "./transformers-base.js";
 
 export {
@@ -63,10 +65,13 @@ export {
 export {
   KOKORO_VOICES,
   clearKokoroCache,
+  generateKokoroSpeech,
   getKokoro,
   isKokoroRepo,
   isSpeechT5Repo,
-  type KokoroVoice
+  splitTextForTts,
+  type KokoroVoice,
+  type KokoroSpeechOptions
 } from "./tts-shared.js";
 
 export {

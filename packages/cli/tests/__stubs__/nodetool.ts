@@ -7,6 +7,7 @@
 // config
 export const getDefaultDbPath = (): string => ":memory:";
 export const getDefaultAssetsPath = (): string => "/tmp/nodetool-assets-stub";
+export const getHfHubCacheDir = (): string => "/tmp/nodetool-hf-cache-stub";
 
 // deploy
 export class AdminHTTPClient {
@@ -174,6 +175,9 @@ const STUB_PROVIDER_SECRET_KEYS: Record<string, string | null> = {
   alibaba: "DASHSCOPE_API_KEY",
   together: "TOGETHER_API_KEY",
   openrouter: "OPENROUTER_API_KEY",
+  requesty: "REQUESTY_API_KEY",
+  opper: "OPPER_API_KEY",
+  api_route: "API_ROUTE_API_KEY",
   huggingface: "HF_TOKEN",
   replicate: "REPLICATE_API_TOKEN",
   kie: "KIE_API_KEY",
@@ -200,14 +204,17 @@ export class ProcessingContext {
     | ((key: string, userId: string) => Promise<string | null> | string | null)
     | null;
   readonly userId: string;
+  readonly storage: unknown;
   constructor(opts?: {
     userId?: string;
+    storage?: unknown;
     secretResolver?: (
       key: string,
       userId: string
     ) => Promise<string | null> | string | null;
   }) {
     this.userId = opts?.userId ?? "1";
+    this.storage = opts?.storage ?? null;
     this._secretResolver = opts?.secretResolver ?? null;
   }
   setModelInterfaces(interfaces: Record<string, unknown>): void {

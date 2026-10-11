@@ -1,6 +1,7 @@
 ---
 name: nodetool-app-builder
 description: "Build or repair a NodeTool mini app: operations, widgets, bindings, variables, resources. Use when the deliverable is a screen a person runs, not a graph."
+featured: true
 ---
 
 # Build NodeTool mini apps
@@ -161,7 +162,7 @@ are callable directly.
 | `op:<opId>/in:<nodeId>` | An input of one of the app's workflows |
 | `op:<opId>/out:<nodeId>` | An output of one of the app's workflows |
 | `op:<opId>/prop:<nodeId>#<prop>` | A node setting, driven by a widget |
-| `op:<opId>/exec#<field>` | Run status: `running`, `progress`, `error`, `activity` |
+| `op:<opId>/exec#<field>` | Run status: `running`, `progress`, `error`, `activity`, `transcript` (agent text and tool calls, for an Agent Activity widget) |
 | `var:<variableId>` | A value the app remembers |
 | `view:<componentId>#<prop>` | State belonging to one widget, never saved |
 
@@ -203,12 +204,15 @@ silently hides a widget.
 ### Widgets
 
 **Show something:** Heading, Text, Markdown (the right choice for streamed
-prose), Image, Audio, Video, Sketch, Timeline, JSON, Table, Output, Progress,
-Gallery, Image Compare.
+prose), Image, Audio, Video, Sketch, Timeline, Storyboard, Storyboard Preview,
+JSON, Table, Output, Progress, Agent Activity (an agent's text and tool calls,
+live), Gallery, Image Compare.
 
-Sketch and Timeline take a document reference, `{type: "sketch", id}` or
-`{type: "timeline", id}`, which is what the nodes producing them emit. Binding
-one to Image or Video shows nothing: a reference is not a media URL.
+Sketch, Timeline, and the two storyboard widgets take a document reference,
+such as `{type: "sketch", id}`, which is what the nodes producing them emit.
+Storyboard shows the shot cards. Storyboard Preview plays the board as one cut,
+with clips in shot order and stills for shots without a clip. Binding a
+reference to Image or Video shows nothing: a reference is not a media URL.
 
 **Take input:** Workflow Form, Workflow Input, Text Input, Number Input, Slider,
 Switch, Select, Image Input, Sketch Pad, Audio Input, Audio Recorder, Video
@@ -229,6 +233,16 @@ is a variable and `streamBinding` is an output.
 
 **Buttons and layout:** Button, Panel, Columns (`left` and `right` slots),
 Divider.
+
+Panel, Columns and Accordion take `visibleWhen`, so one condition shows or
+hides a whole group, such as one step of a Guided Steps flow. Panel's
+`variant` is `panel`, `card` (a small raised card for one item) or `plain` (no
+frame), and `columns` lays its children in a grid. Columns' `layout:
+"main-aside"` gives the left slot the free width and sizes the right slot to
+its content. A Button with `fullWidth: false` fits its label, and `align:
+"end"` puts it at the right. Heading takes a `subtitle`, Text a `tone`
+(`muted` or `hint`), Text Input a `hint`, and Image an `aspectRatio`, a
+`width` and a `caption`.
 
 ### Document shape
 

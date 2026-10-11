@@ -233,11 +233,16 @@ export const NON_CLOUD_PROVIDER_IDS: readonly string[] = [
   "lmstudio",
   "llama_cpp",
   "node_llama_cpp",
+  "whisper_cpp",
+  "whisper_cpp_server",
   "vllm",
   "mlx",
   "transformers_js",
   // A personal subscription reached by spawning the local `claude` CLI.
   "claude_agent_sdk",
+  // A logged-in Dreamina tab in the user's own Chrome, reached through the
+  // NodeTool extension.
+  "dreamina",
   // Test double, dev-gated at registration.
   "fake"
 ];

@@ -293,15 +293,46 @@ describe("PlanReview", () => {
     expect(screen.getByLabelText("Dialogue")).toHaveFocus();
   });
 
+  // A storyboard in view mode holds every field. "Add dialogue" opened an
+  // empty box there that took no typing.
+  it("offers no add control on a held field", () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <PlanReview
+          sections={[
+            {
+              id: "shot-1",
+              header: "Shot 1",
+              rows: [
+                row("dialogue", {
+                  label: "Dialogue",
+                  addLabel: "Add dialogue",
+                  readOnly: true
+                })
+              ]
+            }
+          ]}
+        />
+      </ThemeProvider>
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Add dialogue" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Dialogue")).not.toBeInTheDocument();
+  });
+
   // A duration parsed on every keystroke reads `900` as `9` on the way through
   // and writes 9 seconds nobody typed. `onChange` is the draft; `onCommit` is
   // the settled value.
   describe("onCommit", () => {
+    let setFromOutside: (value: string) => void = () => undefined;
     const renderField = (props: { multiline?: boolean } = {}) => {
       const onChange = jest.fn();
       const onCommit = jest.fn();
       const Host = () => {
         const [value, setValue] = React.useState("3");
+        setFromOutside = setValue;
         return (
           <PlanReview
             sections={[
@@ -387,6 +418,27 @@ describe("PlanReview", () => {
       await user.tab();
 
       expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    // A rewrite or Restore changes the row underneath the field. Typing the
+    // value the field last committed must still save over the new one.
+    it("commits a value that matches an earlier commit after an outside change", async () => {
+      const user = userEvent.setup();
+      const { onCommit } = renderField();
+      const field = screen.getByLabelText("Seconds");
+
+      await user.clear(field);
+      await user.type(field, "5");
+      await user.tab();
+      expect(onCommit).toHaveBeenLastCalledWith("5");
+
+      React.act(() => setFromOutside("8"));
+      await user.clear(field);
+      await user.type(field, "5");
+      await user.tab();
+
+      expect(onCommit).toHaveBeenCalledTimes(2);
+      expect(onCommit).toHaveBeenLastCalledWith("5");
     });
   });
 
@@ -505,5 +557,54 @@ describe("PlanReview", () => {
     // The last item leaves no next item, so focus goes to the one before it.
     await user.click(screen.getByRole("button", { name: "Remove Beat 3" }));
     expect(screen.getByRole("button", { name: "Remove Beat 1" })).toHaveFocus();
+  });
+});
+
+describe("advanced fields", () => {
+  const sections = (): PlanReviewSection[] => [
+    {
+      id: "scene",
+      header: "Scene 1",
+      rows: [],
+      groups: [
+        {
+          id: "shot",
+          header: "Shot 1",
+          rows: [
+            row("Action", { value: "The keeper climbs" }),
+            row("Requested takes", {
+              advanced: true,
+              value: "3",
+              options: [
+                { value: "1", label: "1" },
+                { value: "3", label: "3" }
+              ]
+            }),
+            row("Production direction", { advanced: true })
+          ]
+        }
+      ]
+    }
+  ];
+
+  it("hides advanced fields behind a toggle that names the values set", async () => {
+    render(
+      <ThemeProvider theme={mockTheme}>
+        <PlanReview sections={sections()} />
+      </ThemeProvider>
+    );
+    expect(screen.getByLabelText("Action")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Production direction")).toBeNull();
+    expect(screen.getByText("Requested takes: 3")).toBeInTheDocument();
+
+    const toggle = screen.getByRole("button", { name: "More options" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(toggle);
+
+    expect(screen.getByLabelText("Production direction")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Fewer options" })
+    ).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryByText("Requested takes: 3")).toBeNull();
   });
 });

@@ -26,7 +26,8 @@ import type {
 import {
   EMPTY_LINEAGE,
   LOOP_NODE_TYPE,
-  TypeMetadata
+  TypeMetadata,
+  missingRuntimePackageOf
 } from "@nodetool-ai/protocol";
 
 // Stryker disable next-line StringLiteral: logger name is a diagnostic label, not a behavioural contract
@@ -64,7 +65,7 @@ import {
 } from "./substitute-validator.js";
 // Span helpers via the narrow `/tracing` subpath — keeps the runtime
 // provider / python-bridge barrel out of thin (browser) bundles.
-import { withNodeSpan } from "@nodetool-ai/runtime/tracing";
+import { markSpanError, withNodeSpan } from "@nodetool-ai/runtime/tracing";
 import { NodeInbox, type MessageEnvelope } from "./inbox.js";
 import { NodeInputs, NodeOutputs } from "./io.js";
 import type { NodeAnalysis } from "./correlation-analysis.js";
@@ -381,11 +382,11 @@ export class NodeActor {
     return withNodeSpan(
       // Stryker disable next-line ObjectLiteral: OpenTelemetry span attributes are observability, not a behavioural contract
       { nodeId: this.node.id, nodeType: this.node.type },
-      () => this._runImpl()
+      (span) => this._runImpl(span)
     );
   }
 
-  private async _runImpl(): Promise<ActorResult> {
+  private async _runImpl(span: Parameters<typeof markSpanError>[0]): Promise<ActorResult> {
     let errorMessage: string | undefined;
     let errorDetail: NodeErrorDetail | undefined;
     this._executionContext?.clearProviderCost?.();
@@ -404,15 +405,24 @@ export class NodeActor {
       await this._runExecutionMode();
     } catch (err) {
       errorMessage = err instanceof Error ? err.message : String(err);
+      // The error is returned, not thrown, so `withNodeSpan` cannot see it.
+      markSpanError(span, err);
       // A credential failure carries the provider and the key that failed,
       // so the editor can send the user straight to the screen that fixes it
       // instead of asking them to parse the message.
       const failure = providerFailureDetail(err);
+      const runtimePackage = missingRuntimePackageOf(err);
       if (failure) {
         errorDetail = {
           code: failure.code,
           provider: failure.provider,
           secret_key: failure.secretKey
+        };
+      } else if (runtimePackage) {
+        // The editor offers to install the package in place.
+        errorDetail = {
+          code: "missing_runtime_package",
+          runtime_package: runtimePackage
         };
       }
       // Stryker disable next-line StringLiteral,ObjectLiteral: diagnostic log args only
@@ -1258,6 +1268,33 @@ export class NodeActor {
   }
 
   /**
+   * Put the node's static list items after the connected items on the handles
+   * the executor names in `appendStaticInputs`. Every other edge input still
+   * replaces the node's own property value.
+   */
+  private _appendStaticItems(
+    edgeInputs: Record<string, unknown>
+  ): Record<string, unknown> {
+    const handles = this._executor.appendStaticInputs;
+    if (!handles || handles.length === 0) return edgeInputs;
+    let result = edgeInputs;
+    for (const handle of handles) {
+      if (!Object.prototype.hasOwnProperty.call(edgeInputs, handle)) continue;
+      const staticItems = this.node.properties?.[handle];
+      if (!Array.isArray(staticItems) || staticItems.length === 0) continue;
+      const incoming = edgeInputs[handle];
+      const incomingItems =
+        incoming === null || incoming === undefined
+          ? []
+          : Array.isArray(incoming)
+            ? incoming
+            : [incoming];
+      result = { ...result, [handle]: [...incomingItems, ...staticItems] };
+    }
+    return result;
+  }
+
+  /**
    * Execute process or genProcess with the given inputs.
    */
   /**
@@ -1535,7 +1572,7 @@ export class NodeActor {
       inputs = {
         ...(this.node.properties ?? {}),
         ...(this.node.dynamic_properties ?? {}),
-        ...inputs
+        ...this._appendStaticItems(inputs)
       };
     }
     inputs = this._applyDynamicSlots(inputs);
@@ -1989,7 +2026,7 @@ export class NodeActor {
         const merged = this._applyDynamicSlots({
           ...baseProps,
           ...dynProps,
-          ...inputs,
+          ...this._appendStaticItems(inputs),
           ...this._currentControlProperties
         });
         const outputs = await this._invokeWithRecovery(merged, () =>

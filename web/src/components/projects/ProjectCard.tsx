@@ -27,6 +27,7 @@ import ProjectLifecycleActions from "./ProjectLifecycleActions";
 import { useTranslation } from "react-i18next";
 
 const MEDIA_HEIGHT = 176;
+const EMPTY_MEDIA_HEIGHT_XS = 72;
 
 interface ProjectCardProps {
   detail: ProjectDetail;
@@ -78,7 +79,12 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
       <Box
         sx={{
           position: "relative",
-          height: `${MEDIA_HEIGHT}px`,
+          // A project without stills keeps a short band for its progress
+          // pill on phones instead of a tall empty frame.
+          height:
+            stills.length === 0
+              ? { xs: `${EMPTY_MEDIA_HEIGHT_XS}px`, sm: `${MEDIA_HEIGHT}px` }
+              : `${MEDIA_HEIGHT}px`,
           bgcolor: "background.paper",
           display: "grid",
           gap: SPACING.micro,
@@ -119,7 +125,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
         )}
       </Box>
 
-      <FlexColumn gap={SPACING.md} sx={{ p: SPACING.xl }}>
+      <FlexColumn gap={SPACING.md} sx={{ p: { xs: SPACING.lg, sm: SPACING.xl } }}>
         <FlexRow align="center" gap={SPACING.md}>
           <Box component="span" aria-hidden sx={{ color: PROJECT_COLOR }}>
             {PROJECT_GLYPH}
@@ -130,8 +136,8 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
           </Caption>
         </FlexRow>
         <Caption color="secondary">{projectStatusLine(documents)}</Caption>
-        <ProjectLifecycleActions project={project} />
         <FlexRow align="center" gap={SPACING.md}>
+          <ProjectLifecycleActions project={project} />
           <FlexRow gap={SPACING.sm} aria-hidden>
             {documents.map((doc) => (
               <Box

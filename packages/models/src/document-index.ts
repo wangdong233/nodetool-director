@@ -27,7 +27,7 @@ import { and, desc, eq, isNull, like, or, type SQL } from "drizzle-orm";
 import { createLogger } from "@nodetool-ai/config";
 import type { Entity } from "@nodetool-ai/protocol";
 
-import { getDb } from "./db.js";
+import { getPortableDb } from "./db.js";
 import { entityFromAsset } from "./entity.js";
 import { applications } from "./schema/applications.js";
 import { assets } from "./schema/assets.js";
@@ -129,7 +129,7 @@ async function listNamed(
   limit: number,
   extra?: SQL<unknown>
 ): Promise<NamedRow[]> {
-  const db = getDb();
+  const db = getPortableDb();
   return db
     .select({
       id: table.id,
@@ -149,6 +149,19 @@ async function listNamed(
 }
 
 /**
+ * The project's workflows as the navigator lists them: the same run modes, the
+ * three columns a card draws, newest first. The project overview reads these
+ * so a saved workflow counts as one of the project's documents there too.
+ */
+export async function listProjectWorkflows(
+  userId: string,
+  projectId: string,
+  limit: number
+): Promise<NamedRow[]> {
+  return listNamed(workflows, userId, projectId, limit, listedRunModes());
+}
+
+/**
  * The project's entities. Only the project's own assets are read — the
  * `(user_id, project_id)` index — and the marker lives inside the metadata
  * JSON, stored as text in both dialects, so the predicate is a substring match
@@ -160,7 +173,7 @@ async function listEntities(
   projectId: string,
   limit: number
 ): Promise<{ entries: DocumentIndexEntry[]; rowCount: number }> {
-  const db = getDb();
+  const db = getPortableDb();
   const rows = await db
     .select({
       id: assets.id,

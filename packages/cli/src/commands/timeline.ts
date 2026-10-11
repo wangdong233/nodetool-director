@@ -1,13 +1,15 @@
 /**
- * `nodetool timeline validate`, `debug` and `versions` — the timeline harness
- * commands.
+ * `nodetool timeline validate`, `debug`, `render` and `versions` — the
+ * timeline harness commands.
  *
  * `validate` checks a timeline document statically: tracks a clip points at,
  * fields a round trip through the schema would strip, timings that cannot
  * render. `debug` additionally replays a scripted `--interact` edit session
  * against the headless `ui_timeline_*` bridge and writes a bundle. Both take a
- * timeline JSON file or a `timeline_sequences` row id. `versions`
- * (timeline-versions.ts) reads and restores a sequence's snapshot history.
+ * timeline JSON file or a `timeline_sequences` row id. `render`
+ * (timeline-render.ts) renders the picture through the GPU compositor.
+ * `versions` (timeline-versions.ts) reads and restores a sequence's snapshot
+ * history.
  *
  * Heavy dependencies (the database, the validator core, the bridge) are
  * imported lazily inside each action, so command registration stays light and
@@ -17,7 +19,10 @@ import type { Command } from "commander";
 import type { TimelineDebugReport } from "@nodetool-ai/execution/timeline-debug";
 import type { TimelineSequenceRecord } from "../timeline-debug/target.js";
 import { printCommandError } from "../command-errors.js";
+import { printDebugSummary } from "./debug-summary-output.js";
 import { renderTimelineValidation } from "./timeline-validation-output.js";
+import { registerTimelineRenderCommand } from "./timeline-render.js";
+import { registerTimelineScoreCommand } from "./timeline-score.js";
 import { registerTimelineVersionsCommands } from "./timeline-versions.js";
 
 export { renderTimelineValidation };
@@ -139,7 +144,11 @@ export function registerTimelineCommands(program: Command): void {
         if (opts.json) {
           console.log(JSON.stringify(report, null, 2));
         } else {
-          printTimelineSummary(report, bundleDir);
+          printDebugSummary(report, bundleDir, {
+            label: "timeline",
+            meta: `${report.meta.trackCount} track(s), ${report.meta.clipCount} clip(s), ${report.meta.durationMs}ms @ ${report.meta.fps}fps`,
+            file: "timeline.json"
+          });
         }
         process.exit(report.verdict.ok ? 0 : 1);
       } catch (e) {
@@ -148,33 +157,7 @@ export function registerTimelineCommands(program: Command): void {
       }
     });
 
+  registerTimelineRenderCommand(timeline, sequenceLoader);
+  registerTimelineScoreCommand(timeline, sequenceLoader);
   registerTimelineVersionsCommands(timeline);
-}
-
-function printTimelineSummary(
-  report: TimelineDebugReport,
-  bundleDir: string
-): void {
-  const mark = report.verdict.ok ? "✅" : "❌";
-  console.log(`\n${mark} ${report.verdict.headline}`);
-  console.log(
-    `  timeline: ${report.meta.trackCount} track(s), ${report.meta.clipCount} clip(s), ${report.meta.durationMs}ms @ ${report.meta.fps}fps`
-  );
-  const failed = report.interactions.filter((i) => !i.ok).length;
-  if (report.interactions.length > 0) {
-    console.log(
-      `  session:  ${report.interactions.length} step(s), ${failed} failed`
-    );
-  }
-  if (report.verdict.issues.length > 0) {
-    console.log("\nIssues:");
-    for (const issue of report.verdict.issues) console.log(`  - ${issue}`);
-  }
-  if (report.verdict.warnings && report.verdict.warnings.length > 0) {
-    console.log("\nWarnings:");
-    for (const warning of report.verdict.warnings)
-      console.log(`  - ${warning}`);
-  }
-  console.log(`\nDebug bundle: ${bundleDir}`);
-  console.log("  report.md / report.json · timeline.json");
 }

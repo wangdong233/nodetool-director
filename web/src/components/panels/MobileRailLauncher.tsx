@@ -6,7 +6,6 @@ import React, { useCallback } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 
 import { usePanelStore } from "../../stores/PanelStore";
-import { useTranslation } from "react-i18next";
 import {
   ToolbarIconButton,
   BORDER_RADIUS,
@@ -54,7 +53,6 @@ const styles = (theme: Theme) =>
  * second menu button beside it.
  */
 const MobileRailLauncher: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isVisible = usePanelStore((state) => state.panel.isVisible);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -69,7 +67,7 @@ const MobileRailLauncher: React.FC = () => {
       <ToolbarIconButton
         className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
         onClick={toggle}
-        ariaLabel={isVisible ? t("editor:ui.closePanel", { defaultValue: "Close panel" }) : t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
+        ariaLabel={isVisible ? "Close panel" : "Open left panel"}
         aria-expanded={isVisible}
         tabIndex={-1}
         icon={<MenuIcon />}

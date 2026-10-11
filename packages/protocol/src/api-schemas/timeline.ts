@@ -421,7 +421,29 @@ export type DrumPad = z.infer<typeof drumPad>;
  * FableSynth instruments (github.com/georgi/fablesynth): WT-1 the wavetable
  * synth, BL-1 the acid bassline, DR-1 the drum machine.
  */
+export const samplerZone = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  assetId: z.string().regex(/^[a-f0-9]{32}$/, "Use a full audio asset id"),
+  rootNote: z.number().int().min(0).max(127),
+  lowNote: z.number().int().min(0).max(127),
+  highNote: z.number().int().min(0).max(127),
+  gainDb: z.number().min(-60).max(12)
+}).refine(zone => zone.lowNote <= zone.highNote, {
+  message: "The lowest key must not exceed the highest key"
+});
+
+export const samplerMidiInstrument = z.object({
+    type: z.literal("sampler"),
+    zones: z.array(samplerZone).max(32),
+    oneShot: z.boolean(),
+    attackMs: z.number().min(0).max(10000),
+    releaseMs: z.number().min(0).max(30000),
+    gainDb: z.number().min(-60).max(12)
+  });
+
 export const midiInstrument = z.discriminatedUnion("type", [
+  samplerMidiInstrument,
   z.object({
     type: z.literal("subtractive"),
     waveform: z.enum(["saw", "square", "triangle", "sine"]),
@@ -523,6 +545,7 @@ export const timelineTrack = z.object({
   name: z.string(),
   type: z.enum(["video", "audio", "overlay", "subtitle", "midi"]),
   index: z.number().int(),
+  folderId: z.string().optional(),
   visible: z.boolean(),
   locked: z.boolean(),
   muted: z.boolean().optional(),
@@ -535,6 +558,12 @@ export const timelineTrack = z.object({
   instrument: midiInstrument.optional()
 });
 export type TimelineTrack = z.infer<typeof timelineTrack>;
+
+export const timelineTrackFolder = z.object({
+  id: z.string(),
+  name: z.string().min(1)
+});
+export type TimelineTrackFolder = z.infer<typeof timelineTrackFolder>;
 
 // ── Per-clip placement, transitions, and GPU effects ─────────────────────────
 
@@ -565,13 +594,55 @@ export const timelineCamera2d = z.object({
   })).optional()
 });
 
+const flexJustifyEnum = z.enum([
+  "flex-start",
+  "flex-end",
+  "center",
+  "space-between",
+  "space-around",
+  "space-evenly"
+]);
+const flexAlignEnum = z.enum(["flex-start", "flex-end", "center", "stretch", "baseline"]);
+const clipLayoutEdges = z.object({
+  top: z.number().optional(),
+  right: z.number().optional(),
+  bottom: z.number().optional(),
+  left: z.number().optional()
+});
+/** A px number or a percentage string, as `types.ts`'s `ClipLayoutDimension` names it. */
+const clipLayoutDimension = z.union([z.number(), z.string()]);
+
+/** A flex container (Yoga). See `types.ts`'s `ClipLayout` for the field-by-field contract. */
 export const clipLayout = z.object({
-  kind: z.enum(["row", "stack", "relative"]),
-  children: z.array(z.string()).optional(),
-  gapPx: z.number().optional(),
-  targetClipId: z.string().optional(),
-  side: z.enum(["left", "right", "above", "below", "center"]).optional(),
-  fitText: z.object({ paddingXPx: z.number(), paddingYPx: z.number() }).optional()
+  display: z.literal("flex"),
+  flexDirection: z.enum(["row", "column"]).optional(),
+  justifyContent: flexJustifyEnum.optional(),
+  alignItems: flexAlignEnum.optional(),
+  alignContent: flexJustifyEnum.optional(),
+  flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse"]).optional(),
+  gap: z.number().optional(),
+  rowGap: z.number().optional(),
+  columnGap: z.number().optional(),
+  padding: z.union([z.number(), clipLayoutEdges]).optional(),
+  width: clipLayoutDimension.optional(),
+  height: clipLayoutDimension.optional(),
+  minWidth: clipLayoutDimension.optional(),
+  maxWidth: clipLayoutDimension.optional(),
+  minHeight: clipLayoutDimension.optional(),
+  maxHeight: clipLayoutDimension.optional()
+});
+
+/** A flex child's own sizing/placement. See `types.ts`'s `ClipFlexItem`. */
+export const clipFlexItem = z.object({
+  grow: z.number().optional(),
+  shrink: z.number().optional(),
+  basis: clipLayoutDimension.optional(),
+  alignSelf: flexAlignEnum.optional(),
+  width: clipLayoutDimension.optional(),
+  height: clipLayoutDimension.optional(),
+  margin: z.union([z.number(), clipLayoutEdges]).optional(),
+  position: z.enum(["relative", "absolute"]).optional(),
+  inset: z.union([z.number(), clipLayoutEdges]).optional()
 });
 
 export const clipRepeater = z.object({
@@ -971,6 +1042,7 @@ export const clipBindingKind = z.enum([
   "text-to-image",
   "image-to-image",
   "text-to-video",
+  "image-to-video",
   "text-to-music",
   "text-to-audio"
 ]);
@@ -1221,6 +1293,7 @@ export const clipTextStyle = z.object({
   letterSpacingPx: z.number().optional(),
   lineHeight: z.number().optional(),
   verticalAlign: z.string().optional(),
+  strikethrough: z.boolean().optional(),
   stroke: z.object({ color: z.string(), widthPx: z.number() }).optional(),
   shadow: z
     .object({
@@ -1571,6 +1644,9 @@ export const timelineClip = z.object({
    * than at the size the user picked. */
   aspectRatio: z.string().optional(),
   resolution: z.string().optional(),
+  /** Direct-gen video references: image assets, then entities. */
+  referenceImageIds: z.array(z.string()).optional(),
+  referenceEntityIds: z.array(z.string()).optional(),
   strength: z.number().optional(),
   numInferenceSteps: z.number().optional(),
   seed: z.number().optional(),
@@ -1586,6 +1662,9 @@ export const timelineClip = z.object({
    * strips them on every PATCH, breaking shot→clip revision round-trips. */
   storyboardBoardId: z.string().optional(),
   storyboardShotId: z.string().optional(),
+  storyboardElementId: z.string().optional(),
+  storyboardElementRole: z.string().optional(),
+  storyboardMaterializationBaseline: z.string().optional(),
   /** Script provenance (script→timeline assemble bridge). Without these
    * fields Zod strips them on every PATCH, breaking line→clip re-voice
    * round-trips. */
@@ -1619,6 +1698,7 @@ export const timelineClip = z.object({
   fadeOutShape: clipFadeShapeEnum.optional(),
   transform: clipTransform.optional(),
   layout: clipLayout.optional(),
+  flexItem: clipFlexItem.optional(),
   repeater: clipRepeater.optional(),
   motionBlur: z.object({ samplesPerFrame: z.number().int().min(1).max(32), shutterAngle: z.number().min(0).max(360) }).optional(),
   steppedTime: z.object({ fps: z.number().positive() }).optional(),
@@ -1669,6 +1749,11 @@ export const timelineClip = z.object({
   /** Group this clip is parented to. Without this field Zod strips it on every
    * PATCH, so autosave unparents every child of a group. */
   parentId: z.string().optional(),
+  /** The scene name this group is the root of, on a scene group `v.scene()`
+   * built. Without this field Zod strips it on every PATCH, so a code-backed
+   * timeline's next rebake could no longer tell this scene apart from a hand
+   * edit. */
+  sourceScene: z.string().optional(),
   /** Shape mask. Without this field Zod strips it on every PATCH, so a masked
    * layer reverts to its full rectangle on the next save. */
   mask: clipMask.optional(),
@@ -1816,10 +1901,27 @@ export const timelineSetup = z
   .passthrough();
 export type TimelineSetup = z.infer<typeof timelineSetup>;
 
+/**
+ * A timeline's authoring code and the scene hashes its last bake recorded.
+ * See `TimelineSource` in `@nodetool-ai/timeline`.
+ */
+export const timelineSource = z.object({
+  lang: z.literal("js"),
+  code: z.string(),
+  bakedAt: z.string(),
+  scenes: z.record(
+    z.string(),
+    z.object({ groupId: z.string(), hash: z.string() })
+  )
+});
+export type TimelineSource = z.infer<typeof timelineSource>;
+
 export const timelineDocument = z.object({
   tracks: z.array(timelineTrack),
+  trackFolders: z.array(timelineTrackFolder).optional(),
   clips: z.array(timelineClip),
   markers: z.array(timelineMarker),
+  storyboardMaterializations: z.array(z.object({ boardId: z.string(), elementKeys: z.array(z.string()), stage: z.enum(["layout", "finished"]).optional() })).optional(),
   transcript: z.array(transcriptLine).optional(),
   scriptEnabled: z.boolean().optional(),
   /** Constant tempo the midi clips are read against. Without this field Zod
@@ -1831,6 +1933,10 @@ export const timelineDocument = z.object({
   /** Sequence this one was retargeted from. Without this field Zod strips it
    * on every PATCH and the lineage is lost on the first save. */
   templateId: z.string().nullable().optional(),
+  /** The authoring code this timeline was baked from, and the scene hashes
+   * the last bake recorded. Without this field Zod strips it on every PATCH,
+   * so an editor save between bakes would silently detach the code. */
+  source: timelineSource.nullable().optional(),
   /** Subject/object tracks (P0 AI Video, Phase 2). Without this field Zod
    * strips it on every PATCH, so a track and every clip following it are
    * lost on the next save. */
@@ -1838,6 +1944,21 @@ export const timelineDocument = z.object({
   camera2d: timelineCamera2d.nullable().optional()
 });
 export type TimelineDocument = z.infer<typeof timelineDocument>;
+
+/** Read-only bundle shipped in the example timeline catalog. */
+export const exampleTimelineBundle = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  fps: z.number().int().positive(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  durationMs: z.number().int().positive(),
+  videoUri: z.string(),
+  posterUri: z.string(),
+  document: timelineDocument
+});
+export type ExampleTimelineBundle = z.infer<typeof exampleTimelineBundle>;
+
 
 export const exampleTimelineSummary = z.object({
   slug: z.string(),
@@ -1869,8 +1990,10 @@ export const timelineSequenceResponse = z.object({
   height: z.number(),
   durationMs: z.number(),
   tracks: z.array(timelineTrack),
+  trackFolders: z.array(timelineTrackFolder).optional(),
   clips: z.array(timelineClip),
   markers: z.array(timelineMarker),
+  storyboardMaterializations: z.array(z.object({ boardId: z.string(), elementKeys: z.array(z.string()), stage: z.enum(["layout", "finished"]).optional() })).optional(),
   transcript: z.array(transcriptLine).optional(),
   scriptEnabled: z.boolean().optional(),
   /** Constant tempo, mirroring the document's. Without this field Zod strips
@@ -1879,6 +2002,8 @@ export const timelineSequenceResponse = z.object({
   setup: timelineSetup.optional(),
   /** Sequence this one was retargeted from, mirroring the document's. */
   templateId: z.string().nullable().optional(),
+  /** The authoring code this timeline was baked from, mirroring the document's. */
+  source: timelineSource.nullable().optional(),
   /** Subject/object tracks, mirroring the document's. */
   mediaTracks: z.array(mediaTrack).optional(),
   camera2d: timelineCamera2d.nullable().optional(),
@@ -1909,7 +2034,12 @@ export const createTimelineInput = z.object({
   projectId: z.string().min(1),
   fps: z.number().int().min(1).optional().default(30),
   width: z.number().int().min(1).optional().default(1920),
-  height: z.number().int().min(1).optional().default(1080)
+  height: z.number().int().min(1).optional().default(1080),
+  /**
+   * The caller's sequence this one is derived from (a format adaptation).
+   * Recorded at creation because a later save keeps the stored lineage.
+   */
+  templateId: z.string().min(1).optional()
 });
 export type CreateTimelineInput = z.infer<typeof createTimelineInput>;
 
@@ -1921,6 +2051,7 @@ export const patchTimelineInput = z
     fps: z.number().int().min(1).optional(),
     width: z.number().int().min(1).optional(),
     height: z.number().int().min(1).optional(),
+    durationMs: z.number().int().nonnegative().optional(),
     document: timelineDocument.optional()
   })
   .refine((v) => Object.keys(v).length > 0, {

@@ -1,32 +1,23 @@
-/**
- * `CapabilityRun.invoke` — the single choke point: lookup → gate → impl.
- *
- * The gate used to be a wrapper class applied where someone remembered
- * `gateTools`. It lives here now, in the one place lookup already happens, so a
- * direct call and an in-sandbox call cannot take different paths. `gateTools`
- * survives as a shim that routes a `Tool` through this ladder
- * (`tools/tool-permissions.ts`); `tests/capabilities-gate-parity.test.ts`
- * drives both entrances and compares transcripts.
- *
- * Design: docs/tool-class-retirement-design.md § "Where the permission gate
- * lives".
- */
+/** Capability invocation validates arguments and runs the single permission gate. */
 
 import type {
   BaseProvider,
   ProcessingContext,
-  RunBudget
+  RunBudget,
+  ProviderTool
 } from "@nodetool-ai/runtime";
+import { SpanStatusCode } from "@opentelemetry/api";
+import { getTracer, getRunTraceScope, suppressRunTraceContent, stringifyTraceContent } from "@nodetool-ai/runtime";
 import { budgetFromContext } from "@nodetool-ai/runtime";
 import type { NodeRegistry } from "@nodetool-ai/node-sdk";
 import type { VectorCollection } from "@nodetool-ai/vectorstore";
-import { Tool } from "../tools/base-tool.js";
+import { injectUserMessageField, Tool } from "../tools/base-tool.js";
 import {
   decidePermission,
   type PermissionCategory
 } from "../tools/tool-permissions.js";
 import { validateCapabilityArgs, withSnakeCaseAliases } from "./args.js";
-import { findCapability } from "./registry.js";
+import { capabilitySpec, capabilityForName, capabilityModuleOf } from "./registry.js";
 import type {
   AvailableSecretsResolver,
   CapabilityExport,
@@ -47,31 +38,29 @@ import type {
   WorkflowEnvironmentProvider
 } from "../tools/mcp-tools.js";
 
-/**
- * The gate a directly-constructed tool carries. Those tools are gated from the
- * outside — `gateTools` wraps them per turn — and the adapter calls the
- * implementation without consulting the run's own gate, so this exists only to
- * satisfy the run's shape. `auto` keeps the two paths equivalent if anything
- * ever reaches {@link CapabilityRun.invoke} through one of them.
- */
+/** Explicit ungated compatibility runs still use normal validation. */
 export const UNGATED: CapabilityGate = {
   mode: "auto",
   sessionAllow: new Set<string>(),
   requestApproval: async () => "allow"
 };
 
-/**
- * A run over one call's context and nothing else — what every ported tool
- * class whose capability needs only the context builds in its `process()`.
- */
+/** Compatibility consumers reuse one context-only run per context. */
+const ungatedRuns = new WeakMap<ProcessingContext, CapabilityRun>();
+
 export function ungatedCapabilityRun(
   context: ProcessingContext
 ): CapabilityRun {
-  return createCapabilityRun({
-    context,
-    gate: UNGATED,
-    availableSecrets: contextSecretAvailability(context)
-  });
+  let run = ungatedRuns.get(context);
+  if (!run) {
+    run = createCapabilityRun({
+      context,
+      gate: UNGATED,
+      availableSecrets: contextSecretAvailability(context)
+    });
+    ungatedRuns.set(context, run);
+  }
+  return run;
 }
 
 /**
@@ -98,6 +87,8 @@ export function contextSecretAvailability(
 
 export interface CreateCapabilityRunOptions {
   context: ProcessingContext;
+  /** Invocation-local cancellation without copying the processing context. */
+  signal?: AbortSignal;
   gate: CapabilityGate;
   client?: ClientToolRouter;
   /** The project this run works in; see {@link CapabilityRun.projectId}. */
@@ -147,6 +138,7 @@ export function createCapabilityRun(
 
   const run: CapabilityRun = {
     context: options.context,
+    signal: options.signal,
     gate: options.gate,
     client: options.client,
     projectId: options.projectId ?? options.context.projectId ?? undefined,
@@ -165,11 +157,13 @@ export function createCapabilityRun(
     workflowEnvironment: options.workflowEnvironment,
     loaders: options.loaders,
     invoke: async (name, args) => {
-      const entry = local.get(name) ?? (await findCapability(name));
+      const entry =
+        local.get(name) ??
+        (capabilitySpec(name) ? capabilityForName(name) : undefined);
       if (entry === undefined) {
         throw new Error(`no capability is registered for "${name}"`);
       }
-      return gatedCall(run, entry, args ?? {});
+      return invokeCapability(run, entry, args ?? {});
     }
   };
 
@@ -200,11 +194,50 @@ async function offTheClock<T>(
  * in), then the mode decision, then the session allow-set, then the approval
  * round trip.
  */
-async function gatedCall(
+export async function invokeCapability(
   run: CapabilityRun,
   entry: CapabilityExport,
   rawArgs: Record<string, unknown>
 ): Promise<unknown> {
+  const moduleName = capabilityModuleOf(entry.spec.name);
+  if (moduleName === "email" || moduleName === "google" || moduleName === "browser") {
+    suppressRunTraceContent();
+  }
+  const tracer = getTracer();
+  if (!tracer) {
+    return invokeCapabilityImpl(run, entry, rawArgs);
+  }
+  return tracer.startActiveSpan("capability.call", async (span) => {
+    span.setAttribute("capability.name", entry.spec.name);
+    span.setAttribute("tool.argument_names", Object.keys(rawArgs));
+    const scope = getRunTraceScope();
+    if (scope && scope.origin !== "public" && !scope.policy.contentSuppressed) {
+      span.setAttribute("tool.arguments", stringifyTraceContent(rawArgs));
+    }
+    try {
+      const result = await invokeCapabilityImpl(run, entry, rawArgs);
+      const failed = result !== null && typeof result === "object" && "error" in result;
+      span.setStatus({ code: failed ? SpanStatusCode.ERROR : SpanStatusCode.OK });
+      if (scope && scope.origin !== "public" && !scope.policy.contentSuppressed) {
+        span.setAttribute("tool.result", stringifyTraceContent(result));
+      }
+      return result;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      span.recordException(error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+async function invokeCapabilityImpl(
+  run: CapabilityRun,
+  entry: CapabilityExport,
+  rawArgs: Record<string, unknown>
+): Promise<unknown> {
+  run.signal?.throwIfAborted();
   const { spec, impl } = entry;
   const checked = validateCapabilityArgs(spec, withSnakeCaseAliases(rawArgs));
   if (!checked.ok) return checked.error;
@@ -242,7 +275,10 @@ async function gatedCall(
       toolName: spec.name,
       category,
       args: Tool.stripMessage(args),
-      message: resolveCapabilityMessage(spec, args)
+      message: resolveCapabilityMessage(spec, {
+        ...args,
+        _message: rawArgs["_message"]
+      })
     })
   );
 
@@ -306,6 +342,7 @@ async function runImpl(
       };
     }
   }
+  run.signal?.throwIfAborted();
   return entry.impl(run, args);
 }
 
@@ -322,4 +359,13 @@ export function resolveCapabilityMessage(
   if (llm) return llm;
   const template = spec.userMessage?.(Tool.stripMessage(args ?? {}));
   return template && template.trim() ? template : `Running ${spec.name}`;
+}
+
+/** Provider declarations need metadata, not a legacy Tool instance. */
+export function capabilityProviderTool(spec: CapabilitySpec): ProviderTool {
+  return {
+    name: spec.name,
+    description: spec.description,
+    inputSchema: injectUserMessageField(spec.inputSchema)
+  };
 }

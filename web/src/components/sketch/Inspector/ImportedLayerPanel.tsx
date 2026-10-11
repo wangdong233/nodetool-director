@@ -13,9 +13,9 @@ import { summarizeLayerImageReference } from "../types";
 import { useTranslation } from "react-i18next";
 import {
   Caption,
-  CollapsibleSection,
   FlexColumn,
   FlexRow,
+  InspectorSection,
   Label,
   Panel,
   Text
@@ -45,8 +45,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
             <Caption color="secondary">{t("ui2:attrs.importedLayer", { defaultValue: "Imported layer" })}</Caption>
           </FlexColumn>
 
-          <CollapsibleSection title={t("timeline:editor.source", { defaultValue: "Source" })} defaultOpen>
-            {ref ? (
+          <InspectorSection title={t("timeline:editor.source", { defaultValue: "Source" })} divider={false}>            {ref ? (
               <FlexColumn gap={0.5}>
                 <Text size="small">
                   {ref.naturalWidth}×{ref.naturalHeight} · {ref.objectFit}
@@ -58,7 +57,7 @@ export const ImportedLayerPanel: React.FC<ImportedLayerPanelProps> = memo(
             ) : (
               <Caption color="secondary">{t("ui2:attrs.noImageSourceRecorded", { defaultValue: "No image source recorded." })}</Caption>
             )}
-          </CollapsibleSection>
+          </InspectorSection>
         </FlexColumn>
       </Panel>
     );

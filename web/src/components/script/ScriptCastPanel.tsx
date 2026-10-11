@@ -253,8 +253,8 @@ const ScriptCastPanel = ({
       }}
     >
       <FlexRow align="center" justify="space-between" fullWidth>
-        <Text size="normal" weight={600}>
-          {t("editor:ui.cast", { defaultValue: "Cast" })}
+        <Text size="small" weight={500}>
+          Cast
         </Text>
         {!readOnly && (
           <EditorButton

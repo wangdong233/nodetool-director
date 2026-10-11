@@ -16,6 +16,7 @@
  * of the board would.
  */
 
+import { i18n } from "../../i18n";
 import { useMemo } from "react";
 import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import { CLIP_RESOLUTION, STILL_RESOLUTION } from "./renderSpec";
@@ -59,7 +60,8 @@ export function useRenderBatchCostEstimate(
   boardId: string,
   shots: Shot[],
   step: RenderStep,
-  modelForShot?: (shot: Shot) => ShotModelRef | null
+  modelForShot?: (shot: Shot) => ShotModelRef | null,
+  clipResolution: string = CLIP_RESOLUTION
 ): RenderBatchCostEstimate {
   const { t } = useTranslation();
   const imageModel = useBoardImageModel(boardId);
@@ -79,10 +81,9 @@ export function useRenderBatchCostEstimate(
 
     // What the step is, decided once: only the duration varies per shot.
     const isStill = step === "still";
-    const label = isStill ? t("storyboard:attrs.still", { defaultValue: "Still" }) : t("storyboard:attrs.clip", { defaultValue: "Clip" });
-    const pickerLabel = isStill ? t("editor:ui.stillModel", { defaultValue: "still model" }) : t("editor:ui.clipModel", { defaultValue: "clip model" });
-    const resolution = isStill ? STILL_RESOLUTION : CLIP_RESOLUTION;
-
+    const label = isStill ? i18n.t("storyboard:attrs.still", { defaultValue: "Still" }) : i18n.t("storyboard:attrs.clip", { defaultValue: "Clip" });
+    const pickerLabel = isStill ? i18n.t("editor:ui.stillModel", { defaultValue: "still model" }) : i18n.t("editor:ui.clipModel", { defaultValue: "clip model" });
+    const resolution = isStill ? STILL_RESOLUTION : clipResolution;
     const plan = compileRenderBatchRequestPlan({
       shots,
       step,
@@ -127,7 +128,16 @@ export function useRenderBatchCostEstimate(
       reasons: Array.from(new Set(reasons)),
       notes: Array.from(new Set(notes))
     };
-  }, [t, shots, step, imageModel, videoModel, linesById, modelForShot]);
+  }, [
+    shots,
+    step,
+    imageModel,
+    videoModel,
+    linesById,
+    modelForShot,
+    clipResolution,
+    t
+  ]);
 }
 
 export default useRenderBatchCostEstimate;

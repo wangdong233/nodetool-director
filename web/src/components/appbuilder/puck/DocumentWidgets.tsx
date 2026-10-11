@@ -12,12 +12,16 @@
  * preview compositor.
  */
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Caption,
   EmptyState,
   LoadingSpinner,
   Box,
+  FlexColumn,
+  EditorButton,
+  SPACING,
   BORDER_RADIUS
 } from "../../ui_primitives";
 import { AppEvent } from "../types";
@@ -29,6 +33,7 @@ import {
   resolveTimelineSequence
 } from "../../node/outputValueResolvers";
 import SketchRenderer from "../../sketch/SketchRenderer";
+import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { tAttr } from "../i18nAttrs";
 import { useTranslation } from "react-i18next";
@@ -64,6 +69,18 @@ const frame = (height?: number): React.CSSProperties => ({
   maxHeight: height ? `${height}px` : undefined,
   overflow: "hidden",
   borderRadius: BORDER_RADIUS.md
+});
+
+/** The Puck default for a Timeline widget's height, in px. */
+const TIMELINE_PREVIEW_HEIGHT = 360;
+
+/**
+ * The timeline preview fills its parent's height, so the frame must have one.
+ * A max-height alone collapses it to the transport bar.
+ */
+const timelineFrame = (height?: number): React.CSSProperties => ({
+  ...frame(height),
+  height: `${height ?? TIMELINE_PREVIEW_HEIGHT}px`
 });
 
 export const SketchWidget: React.FC<
@@ -128,7 +145,14 @@ export const TimelineWidget: React.FC<
   DocumentWidgetProps & { showMetadata?: boolean }
 > = (props) => {
   const { t } = useTranslation();
-  const { value, designMode } = useReadBinding(props);
+  const navigate = useNavigate();
+  const openTab = useWorkspaceTabsStore((state) => state.openTab);
+  const openForegroundTab = useWorkspaceTabsStore(
+    (state) => state.openForegroundTab
+  );
+  const activeProjectId = useWorkspaceTabsStore(
+    (state) => state.activeProjectId
+  );  const { value, designMode } = useReadBinding(props);
   const bound = firstItem(value);
 
   const inlineSequence = React.useMemo(
@@ -149,18 +173,42 @@ export const TimelineWidget: React.FC<
 
   if (sequence) {
     return (
-      <Box sx={frame(props.height)}>
-        <React.Suspense
-          fallback={<LoadingSpinner size="small" text={tAttr("Loading preview")} />}
-        >
-          <LazyTimelineRenderer
-            sequence={sequence}
-            ariaLabel={t("editor:ui.timeline", { defaultValue: "Timeline" })}
-            showMetadata={props.showMetadata ?? true}
-          />
-        </React.Suspense>
-      </Box>
-    );
+      <FlexColumn gap={SPACING.sm}>
+        <Box sx={timelineFrame(props.height)}>
+          <React.Suspense
+            fallback={<LoadingSpinner size="small" text="Loading preview" />}
+          >
+            <LazyTimelineRenderer
+              sequence={sequence}
+              ariaLabel={t("editor:ui.timeline", { defaultValue: "Timeline" })}
+              showMetadata={props.showMetadata ?? true}
+            />
+          </React.Suspense>
+        </Box>
+        {!designMode && timelineId ? (
+          <EditorButton
+            onClick={() => {
+              // A tab outside the active project is hidden, so open it in
+              // the timeline's own project and bring that project forward.
+              const projectId = sequence.projectId ?? activeProjectId;
+              const input = {
+                type: "timeline" as const,
+                ref: timelineId,
+                mode: "edit" as const,
+                title: sequence.name
+              };
+              if (projectId) {
+                openForegroundTab({ ...input, projectId });
+              } else {
+                openTab(input);
+              }
+              navigate("/workspace");
+            }}
+          >
+            Open editable timeline
+          </EditorButton>
+        ) : null}
+      </FlexColumn>    );
   }
   if (shouldLoad && query.isLoading) {
     return <LoadingSpinner size="small" text={tAttr("Loading timeline")} />;

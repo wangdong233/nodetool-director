@@ -10,9 +10,29 @@
  *
  * Only absent fields are filled. A value the caller sent is never replaced —
  * the point of a whole-document write is that what was sent is what is stored.
+ * Two shorthands the `ui_timeline_*` ops accept are resolved the way those ops
+ * resolve them: a typewriter's author-facing duration becomes its per-character
+ * reveal windows, and a midi track's `instrument: {preset}` becomes the sound
+ * the preset names.
  */
 
+import {
+  buildEffect,
+  type EffectParams
+} from "@nodetool-ai/protocol/api-schemas/timeline-tool-params.js";
+import { KNOWN_CLIP_EFFECT_TYPE_LIST } from "@nodetool-ai/protocol/api-schemas/timeline.js";
+import { typewriterTiming } from "./animation/typewriter.js";
+import { findInstrumentPreset } from "./midi/presets.js";
+import type { AnimationStagger, StaggerFrom } from "./animation/types.js";
 import type { TimelineClip } from "./types.js";
+
+const KNOWN_CLIP_EFFECT_TYPES: ReadonlySet<string> = new Set(
+  KNOWN_CLIP_EFFECT_TYPE_LIST
+);
+
+function isKnownClipEffectType(type: unknown): type is EffectParams["type"] {
+  return typeof type === "string" && KNOWN_CLIP_EFFECT_TYPES.has(type);
+}
 
 /** Render settings that belong on the sequence row, not in the document. */
 export interface AuthoredRenderSettings {
@@ -67,20 +87,75 @@ export function sourceTypeForClip(
 
 function normalizeTrack(
   track: Record<string, unknown>,
-  index: number
+  index: number,
+  nextEffectId: () => string
 ): Record<string, unknown> {
-  const next = { ...track };
+  const next = normalizeEffects(track, nextEffectId, false);
   if (next["index"] === undefined) next["index"] = index;
   if (next["visible"] === undefined) next["visible"] = true;
   if (next["locked"] === undefined) next["locked"] = false;
+  const instrument = next["instrument"];
+  if (isRecord(instrument) && typeof instrument["preset"] === "string") {
+    const preset = findInstrumentPreset(instrument["preset"]);
+    // An unknown preset stays as sent, for validation to report.
+    if (preset) next["instrument"] = structuredClone(preset.instrument);
+  }
   return next;
+}
+
+const STAGGER_FROM: readonly StaggerFrom[] = ["start", "end", "center"];
+
+function parseStagger(raw: unknown): AnimationStagger | undefined {
+  if (!isRecord(raw)) return undefined;
+  const { unit, offsetMs, from } = raw;
+  if (typeof unit !== "string" || typeof offsetMs !== "number") {
+    return undefined;
+  }
+  const stagger: AnimationStagger = { unit, offsetMs };
+  const start = STAGGER_FROM.find((value) => value === from);
+  if (start) stagger.from = start;
+  return stagger;
+}
+
+/**
+ * A typewriter written with a plain duration draws nothing until its window
+ * ends. `animate_clip` resolves it to one-millisecond reveals, one per
+ * character, and a resolved one has a 1 ms duration, so resolving is
+ * idempotent.
+ */
+function resolveTypewriter(
+  animation: Record<string, unknown>,
+  clip: Record<string, unknown>
+): Record<string, unknown> {
+  if (animation["preset"] !== "typewriter" || animation["durationMs"] === 1) {
+    return animation;
+  }
+  const textStyle = clip["textStyle"];
+  const text =
+    isRecord(textStyle) && typeof textStyle["text"] === "string"
+      ? textStyle["text"]
+      : "";
+  const delayMs =
+    typeof animation["delayMs"] === "number" ? animation["delayMs"] : 0;
+  const clipMs =
+    typeof clip["durationMs"] === "number" ? clip["durationMs"] : 0;
+  const requested =
+    typeof animation["durationMs"] === "number"
+      ? animation["durationMs"]
+      : undefined;
+  const stagger = parseStagger(animation["stagger"]);
+  return {
+    ...animation,
+    ...typewriterTiming(text, clipMs - delayMs, requested, stagger)
+  };
 }
 
 function normalizeClip(
   clip: Record<string, unknown>,
-  nextAnimationId: () => string
+  nextAnimationId: () => string,
+  nextEffectId: () => string
 ): Record<string, unknown> {
-  const next = { ...clip };
+  const next = normalizeEffects(clip, nextEffectId, true);
   if (next["sourceType"] === undefined) {
     next["sourceType"] = sourceTypeForClip(next as Partial<TimelineClip>);
   }
@@ -93,29 +168,95 @@ function normalizeClip(
   const animations = next["animations"];
   if (Array.isArray(animations)) {
     next["animations"] = animations.map((animation) => {
-      if (!isRecord(animation) || animation["id"] !== undefined) {
-        return animation;
-      }
-      return { ...animation, id: nextAnimationId() };
+      if (!isRecord(animation)) return animation;
+      const resolved = resolveTypewriter(animation, next);
+      return resolved["id"] !== undefined
+        ? resolved
+        : { ...resolved, id: nextAnimationId() };
     });
   }
   return next;
 }
 
-/** Collect the animation ids already in use, so a filled one cannot collide. */
-function usedAnimationIds(clips: unknown[]): Set<string> {
+/**
+ * The neutral defaults `buildEffect` computes for a clip effect's type, for
+ * every field the authored effect left absent. Protocol's `set_effects` edit
+ * op fills these through `buildEffect` already; a whole-document write skips
+ * that op, so a bare `{type: "dropShadow"}` reached the document schema with
+ * no `offsetX`/`offsetY`/etc and was refused. Only fields absent here are
+ * filled — a value the caller sent is never replaced. A type `buildEffect`
+ * cannot default without more input (stylize/generator with no mode, lut with
+ * no cube) is left as authored, for validation to report.
+ */
+function fillClipEffectDefaults(
+  effect: Record<string, unknown>
+): Record<string, unknown> {
+  const type = effect.type;
+  if (!isKnownClipEffectType(type)) {
+    return effect;
+  }
+  let defaults: object;
+  try {
+    defaults = buildEffect({ type }, 0);
+  } catch {
+    return effect;
+  }
+  const filled = { ...effect };
+  for (const [key, value] of Object.entries(defaults)) {
+    if (key === "id" || key === "enabled" || key === "type") continue;
+    if (value === undefined) continue;
+    if (filled[key] === undefined) filled[key] = value;
+  }
+  return filled;
+}
+
+function normalizeEffects(
+  owner: Record<string, unknown>,
+  nextId: () => string,
+  isClip: boolean
+): Record<string, unknown> {
+  const next = { ...owner };
+  if (Array.isArray(owner.effects)) {
+    next.effects = owner.effects.map((effect) => {
+      if (!isRecord(effect)) {
+        return effect;
+      }
+      const filled = isClip ? fillClipEffectDefaults(effect) : effect;
+      return {
+        ...filled,
+        id: filled.id === undefined ? nextId() : filled.id,
+        enabled: filled.enabled === undefined ? true : filled.enabled
+      };
+    });
+  }
+  return next;
+}
+
+function missingIds(
+  owners: readonly unknown[],
+  field: string,
+  prefix: string
+): () => string {
   const used = new Set<string>();
-  for (const clip of clips) {
-    if (!isRecord(clip)) continue;
-    const animations = clip["animations"];
-    if (!Array.isArray(animations)) continue;
-    for (const animation of animations) {
-      if (isRecord(animation) && typeof animation["id"] === "string") {
-        used.add(animation["id"]);
+  for (const owner of owners) {
+    if (!isRecord(owner) || !Array.isArray(owner[field])) {
+      continue;
+    }
+    for (const entry of owner[field]) {
+      if (isRecord(entry) && typeof entry.id === "string") {
+        used.add(entry.id);
       }
     }
   }
-  return used;
+  let counter = 0;
+  return () => {
+    let id = `${prefix}_${++counter}`;
+    while (used.has(id)) {
+      id = `${prefix}_${++counter}`;
+    }
+    used.add(id);
+    return id;
+  };
 }
 
 /**
@@ -134,24 +275,36 @@ export function normalizeAuthoredDocument(
     if (document[key] !== undefined) delete document[key];
   }
 
-  if (Array.isArray(document["tracks"])) {
-    document["tracks"] = document["tracks"].map((track, index) =>
-      isRecord(track) ? normalizeTrack(track, index) : track
+  const clips = Array.isArray(document.clips) ? document.clips : [];
+  const tracks = Array.isArray(document.tracks) ? [...document.tracks] : [];
+  const nextAnimationId = missingIds(clips, "animations", "anim");
+  const nextEffectId = missingIds([...tracks, ...clips], "effects", "effect");
+  // Only infer absent tracks. Existing declarations and malformed track ids
+  // remain untouched so validation can report them.
+  const declared = new Set(tracks.filter(isRecord).map((track) => track.id));
+  for (const clip of clips) {
+    if (
+      !isRecord(clip) ||
+      typeof clip.trackId !== "string" ||
+      declared.has(clip.trackId)
+    ) {
+      continue;
+    }
+    const type =
+      clip.mediaType === "audio" || clip.mediaType === "midi"
+        ? clip.mediaType
+        : "video";
+    tracks.push({ id: clip.trackId, name: clip.trackId, type });
+    declared.add(clip.trackId);
+  }
+  if (document.tracks === undefined || Array.isArray(document.tracks)) {
+    document.tracks = tracks.map((track, index) =>
+      isRecord(track) ? normalizeTrack(track, index, nextEffectId) : track
     );
   }
-
-  if (Array.isArray(document["clips"])) {
-    const clips = document["clips"];
-    const used = usedAnimationIds(clips);
-    let counter = 0;
-    const nextAnimationId = (): string => {
-      let id = `anim_${++counter}`;
-      while (used.has(id)) id = `anim_${++counter}`;
-      used.add(id);
-      return id;
-    };
-    document["clips"] = clips.map((clip) =>
-      isRecord(clip) ? normalizeClip(clip, nextAnimationId) : clip
+  if (Array.isArray(document.clips)) {
+    document.clips = clips.map((clip) =>
+      isRecord(clip) ? normalizeClip(clip, nextAnimationId, nextEffectId) : clip
     );
   }
 

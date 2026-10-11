@@ -13,7 +13,7 @@ use it, but not to edit it, and not to have to understand it. So you build a Min
 App: one field for the photo, one button that says "Write the caption", and one
 box where the caption appears. Same workflow underneath, nothing to break.
 
-- **[Building Mini Apps](mini-apps-guide.md)** — nine app shapes, each built step
+- **[Building Mini Apps](mini-apps-guide.md)** — eleven app shapes, each built step
   by step. Start here if you want to make one.
 - **[Mini App Reference](mini-apps-reference.md)** — every widget, setting, and
   field, in tables.
@@ -76,17 +76,22 @@ workflow.
 
 | Where | How to get there |
 | --- | --- |
-| Apps panel | Left sidebar → **Apps**. Every app you own, plus **New app** and **New app from workflow**. |
-| App tab | Click an app. It opens as a workspace tab with three views: **Design**, **Run**, **Settings**. |
-| Linked workflows | A menu on the app tab, listing the workflows this app runs. Click one to open it as a normal workflow tab. |
+| Apps panel | Left sidebar → **Apps**. Every app in the project, plus the **New app** and **Create app from workflow** buttons. Right-click a row to rename, duplicate, or delete an app. |
+| App tab | Click an app. It opens as a workspace tab with four views: **Design**, **Run**, **Preview draft**, **Settings**. |
+| Linked workflows | A **Linked workflows** menu on the app tab, listing the workflows this app runs. Click one to open it as a normal workflow tab. |
 | Terminal | `nodetool app debug <application_id>`. See [Checking an app](#checking-an-app). |
 
 **Design** is where you place and wire widgets:
 
 ![Mini App — Design view](assets/screenshots/mini-app-design.png)
 
-**Run** is what the person using the app sees — the fields, the button, and the
-result:
+**Run** is what the person using the app sees: the fields, the button, and the
+result. Each working instance runs its pinned version. A new default instance
+uses the release when one exists, or the unpublished draft. **Preview draft**
+freezes a separate draft working copy when requested, so you can test edits
+without changing a released instance. **Settings** holds publishing, versions, the spend
+budget, the public link, and recent runs. See
+[Publishing and sharing](#publishing-and-sharing).
 
 ![Mini App — Run view](assets/screenshots/mini-app-run.png)
 
@@ -97,24 +102,53 @@ NodeTool Cloud. On mobile, a published app opens as its own screen.
 
 - **New app** starts empty. You add an operation, pick the workflow it runs, and
   place widgets yourself.
-- **New app from workflow** builds a starting point for you: one operation bound
-  to the workflow you picked, and a widget for every Input and Output node it
-  has. This is a copy, made once. From then on the app and the workflow are
-  separate, and editing one doesn't change the other.
+- **Create app from workflow** builds a starting point for you. You pick a
+  workflow, and the app gets one operation named `main` bound to it, a Workflow
+  Input widget for every `nodetool.input.*` node, an Output widget for every
+  `nodetool.output.*` node and Preview node, a Run button, a Cancel button that
+  shows while a run is going, a Progress widget, and an error alert. If the
+  workflow already carries an older embedded app document, that document is
+  imported instead. This is a copy, made once. From then on the app and the
+  workflow are separate, and editing one doesn't change the other.
 
 ### Publishing and sharing
 
-**Publish** takes a snapshot. It saves the current screen as a version and locks
-in the current state of every workflow the app runs, so a published app keeps
-working the way it did on release day while you keep editing the drafts. A
-spending limit caps what a published app may cost, and every run counts against
-it.
+**Publish new version** (Settings) saves the draft first, then takes a snapshot.
+The snapshot is the screen, the variables, and the graph of every workflow the
+app runs, frozen at that moment. It becomes the **released** version at once, so
+a published app keeps working the way it did on release day while you keep
+editing the drafts. Every version is listed with what it may touch (workflow
+count and resource access). **Roll back to version N** makes an older version the
+released one again.
 
-To hand an app to someone else, export a **bundle**: one JSON file holding the
-app *and* the full graph of every workflow it runs. They import it and get a
-working app plus its workflows. Inside the file the app refers to its workflows
-by a local nickname; importing swaps those for the real ids of the workflows it
-creates. The example apps NodeTool ships are bundles, installed the same way.
+Settings has three more sections:
+
+- **Spend budget.** A period (per day, per month, or lifetime), a maximum spend in
+  USD, and a maximum number of runs. An empty field means no limit. Runs of the
+  released app are checked against it before they reach a provider, and the
+  section shows what has been used so far.
+- **Public link.** **Create public link** makes a hidden `/a/<token>` URL. Anyone
+  with it can open and run the released version without a NodeTool account. Runs
+  execute on your account and count against the budget. **Withdraw link** turns it
+  off. Links are served only when the server runs with `NODETOOL_ENV=production`,
+  as nodetool.ai does, so a local install shows a note instead. A link needs a
+  released version and a budget with at least one finite limit. Apps with script
+  operations or resource bindings cannot be linked, and publishing such a change
+  while a link is live is refused.
+- **Recent invocations.** Each run of the released app with its operation, status,
+  version, and cost (marked "est." until the actual cost is known).
+
+To hand an app to someone else without a link, export a **bundle**: one JSON file
+holding the app *and* the full graph of every workflow it runs. They import it and
+get a working app plus its workflows. Bundles move through the CLI
+(`nodetool apps export-bundle <id>` and `nodetool apps import-bundle <file>`, see
+[CLI](cli.md#nodetool-apps)) and through the
+`GET /api/applications/:id/export-bundle` and
+`POST /api/applications/import-bundle` routes. Inside the file the app refers to
+its workflows by a local nickname. Importing swaps those for the real ids of the
+workflows it creates. NodeTool ships example apps as bundles. Add one from **Start
+from an app** on the start page, or install it with
+`POST /api/applications/examples/:slug/install`.
 
 ## How it works
 
@@ -143,19 +177,28 @@ tested, cached, and read by the agent. Logic hidden in an app screen can't.
 
 ### The app document
 
-Everything you build in the editor is saved as one document with four parts:
+Everything you build in the editor is saved as one document with these parts:
 
 - **`ui`** — the layout. Which widgets are on the screen, where, and what each
   one is wired to.
 - **`operations`** — the workflows this app can run. Each operation has a name,
-  the workflow it runs, wiring for each input and output, a rule for what happens
-  when you click Run while it's already running, and an optional time limit. One
+  what it runs, wiring for each input and output, a rule for what happens
+  when you click Run while it's already running, and an optional time limit. An
+  operation runs a workflow, or a JS script at a pinned version (see
+  [Reference](mini-apps-reference.md#operations)). One
   app can run several workflows, or the same workflow twice wired differently
   (`translateTitle` and `translateBody`).
 - **`variables`** — the values the app remembers, each with a type, a starting
   value, and whether it survives a reload.
 - **`resources`** — handles to a real document (an asset, timeline, storyboard,
   or sketch) that the app is allowed to read or edit.
+- **`theme`** — optional. A named page style picked in the editor's **Theme**
+  field: **Default**, **Centered** (content capped at 720 px), or **Card**
+  (content in a bordered card, capped at 880 px).
+
+In the editor, the **App Data** button in the Design header opens a panel where
+you add and edit operations, variables, and resources by hand. The assistant edits
+the same lists.
 
 Operations are what make an app more than a form over one graph. A transcription
 app can run a transcriber, a summarizer, and a translator from one screen.
@@ -225,6 +268,40 @@ does.
    wired that way. Streamed text builds up; streamed items collect into a list.
    Clicking Run again starts fresh instead of appending to the last result.
 
+### Saved working state
+
+Opening an app loads its server-owned default instance. Widget inputs, variable
+state and terminal outputs survive a reload and follow the authenticated
+account between browsers. Existing local variable caches are imported when the
+default instance is first created. An existing server instance wins over a
+browser cache.
+
+Each operation reserves a durable app run before collecting its inputs. The
+run stores its inputs, outputs, outcome and child generation attachments. It
+executes the definition pinned by its instance. Revision checks prevent a
+stale browser or delayed run from overwriting newer working state. A conflict
+keeps the run's outputs and asks you to reload the instance.
+
+The instance header offers New, Rename, Duplicate, Delete, and advancement to a
+newer release. New starts from app defaults. Duplicate copies working values
+and the frozen definition, reuses media references, and starts with empty history. Each instance opens
+in its own workspace tab. Editing opens the application editor, while Run
+returns to a working instance tab.
+
+Run history is scoped to the instance. Selecting a run shows read-only inputs,
+outputs, stored agent activity, and links to its trace and documents. Document
+links open the current document. Historical inspection changes no working
+values and starts no execution. Expired or limited content is labelled.
+Each run also has **View trace** and **Ask the agent**. **Ask the agent** opens a chat tab
+titled "Inspect run" with the run id attached, and the first failed span when there is one.
+Deleting an instance removes its history and attachments while retaining
+generated library media.
+
+Deployed-app visitors keep local working state. Their server runs retain no
+visitor inputs or outputs, and they cannot manage owner instances.
+See [App runs](https://github.com/nodetool-ai/nodetool/blob/main/docs/app-runs-design.md#phase-1-contracts) for the
+persistence and API contracts.
+
 ### Showing that something is happening
 
 Every operation exposes four things a widget can display, so an app over a slow
@@ -266,13 +343,24 @@ npm run dev:nodetool -- app debug <application_id>
 npm run dev:nodetool -- app debug my-app.json      # a bundle file
 npm run dev:nodetool -- app debug <id> --no-run    # check the wiring, don't run
 npm run dev:nodetool -- app debug <id> --json      # full report
+npm run dev:nodetool -- app debug <id> --timeout 60000 --out ./app-report
 ```
+
+The command exits 0 when the verdict is ok and 1 otherwise. `--timeout` is a
+per-run ceiling in milliseconds. An operation's own time limit also applies, and
+the shorter one wins. `--out` sets the report folder. The target can also be a
+workflow id or file that carries an older embedded app document.
 
 It catches the mistakes a workflow-only test can't: a widget wired to an input or
 output that doesn't exist, an app with no way to start a run, a display widget
 that never receives anything, a result wired to a variable that was never
 declared, a button pointing at an operation the app doesn't have, and a run that
 hit its time limit.
+
+It also warns about gaps that still run: a Run button with no `disabledWhen` on
+the running state, an input with no default, no widget showing an operation's
+progress or error, an Output node no widget displays, and an operation no event
+runs.
 
 It follows your conditions too: a widget hidden or disabled by `visibleWhen` or
 `disabledWhen` can't be clicked, so a script that tries reports the condition
@@ -294,6 +382,23 @@ npm run dev:nodetool -- app debug <id> --params '{"resource:boards":[{"id":"b1"}
 What it can't check: how the app looks — layout, styling, focus — and your
 stored resources, since the run reads the seeded collection rather than the
 database, and has no editor for `openResource` to open.
+
+## Building an app from a prompt
+
+`nodetool app build` writes the app for you and checks it with the same
+harness. It plans one workflow per operation, places and wires the widgets,
+checks the wiring, replays every interaction, and asks a judge model whether each
+interaction did what was asked. It needs a provider and model.
+
+```bash
+npm run dev:nodetool -- app build "an app that drafts a note from a prompt" -p anthropic -m claude-sonnet-5
+npm run dev:nodetool -- app build spec.json -p openai -m gpt-5.4-mini --no-judge
+```
+
+It writes an `ApplicationBundle` and a build report, and exits 0 only when the
+verdict is ok. The flags (`--workflow`, `--max-repairs`, `--cost-cap`,
+`--judge-model`, `--watch`) are in
+[the harness reference](harnesses.md#nodetool-app-build-mini-app-build-harness).
 
 To debug the workflow itself, `nodetool validate` is the quick check and
 `nodetool debug` is the full run. See [Workflow Debugging](workflow-debugging.md).

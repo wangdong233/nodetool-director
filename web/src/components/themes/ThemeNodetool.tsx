@@ -81,7 +81,8 @@ const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
     padYInspector: "6px",
     controlRadius: CONTROL.radius,
     menuRadius: "8px",
-    menuShadow: "0 10px 30px rgba(0, 0, 0, 0.5)"
+    menuShadow:
+      "0 10px 30px rgba(0 0 0 / calc(0.5 * var(--palette-c_shadow_alpha, 1)))"
   },
   // TanStack Virtual overscan — extra item/row count rendered outside the viewport.
   virtualScroll: {
@@ -93,9 +94,7 @@ const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
     }
   },
   typography: {
-    // fontFamilyOverride carries the CJK fallback chain in the zh variant:
-    // Inter has no CJK glyphs — an implicit OS pick drifts the weights.
-    fontFamily: fontFamilyOverride ?? "'Inter', sans-serif",
+    fontFamily: "var(--fontFamily1)",
     fontSize: 15
   },
   spacing: 4,
@@ -148,7 +147,11 @@ const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
           "--rounded-dialog": theme.rounded.dialog,
           "--rounded-node": theme.rounded.node,
           "--rounded-buttonSmall": theme.rounded.buttonSmall,
-          "--rounded-buttonLarge": theme.rounded.buttonLarge
+          "--rounded-buttonLarge": theme.rounded.buttonLarge,
+          "--z-index-node-handle": theme.zIndex.mobileStepper - 1,
+          "--z-index-node-control-handle": theme.zIndex.mobileStepper,
+          "--z-index-node-handle-tooltip": theme.zIndex.mobileStepper + 1,
+          "--z-index-node-tooltip": theme.zIndex.popover2
         }
       })
     },
@@ -317,10 +320,18 @@ const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
           borderRadius: theme.rounded.md,
           padding: theme.spacing(1.5, 2), // 6px / 8px
           boxShadow:
-            "0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)"
+            "var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04)",
+          // The scrim is black in both schemes; light text needs a light
+          // surface or every tooltip reads dark on dark.
+          ...theme.applyStyles("light", {
+            backgroundColor: theme.vars.palette.background.paper
+          })
         }),
-        arrow: () => ({
-          color: "var(--palette-c_scrim_strong)"
+        arrow: ({ theme }) => ({
+          color: "var(--palette-c_scrim_strong)",
+          ...theme.applyStyles("light", {
+            color: theme.vars.palette.background.paper
+          })
         })
       }
     },

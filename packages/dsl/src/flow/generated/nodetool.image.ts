@@ -375,7 +375,7 @@ export type ImageToImageInputs = {
   image?: ImageRef[];
   prompt?: string;
   negative_prompt?: string;
-  entities?: Record<string, unknown>[];
+  entities?: Entity[];
   strength?: number;
   aspect_ratio?: string;
   resolution?: string;
@@ -418,6 +418,20 @@ export interface RemoveBackgroundOutputs {
 
 export function removeBackground(inputs: RemoveBackgroundInputs): Promise<RemoveBackgroundOutputs> {
   return callNode<RemoveBackgroundOutputs>("nodetool.image.RemoveBackground", inputs);
+}
+
+// Estimate Depth — nodetool.image.EstimateDepth
+export type EstimateDepthInputs = {
+  model?: unknown;
+  image?: ImageRef;
+};
+
+export interface EstimateDepthOutputs {
+  output: ImageRef;
+}
+
+export function estimateDepth(inputs: EstimateDepthInputs): Promise<EstimateDepthOutputs> {
+  return callNode<EstimateDepthOutputs>("nodetool.image.EstimateDepth", inputs);
 }
 
 // Relight Image — nodetool.image.Relight

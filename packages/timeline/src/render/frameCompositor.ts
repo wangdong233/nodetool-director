@@ -29,6 +29,8 @@ import {
   UNPREMULTIPLY_FRAGMENT,
   WebGPULayerCompositor,
   forwardClipMatrixToInverseAffine,
+  placedLayerRect,
+  invertClipPlacement,
   type InverseAffine
 } from "@nodetool-ai/gpu/webgpu";
 
@@ -186,6 +188,16 @@ export interface FrameLayer<TSource = FrameLayerPixels> {
    * group, which is the path that allocates no intermediate texture.
    */
   precomposeGroupId?: string;
+  /**
+   * The source is this window of a larger raster rather than the whole of it:
+   * a text or shape drawn only where it has ink. The layer is placed as the
+   * `frameWidth × frameHeight` raster would be, and the window lands at
+   * `x, y` inside it. The host sends a window only for a layer with no crop,
+   * border radius, mask, matte or transition, and with effects whose spread the
+   * window was padded for (`rasterWindowMarginPx`), since each of those reads
+   * the source's own bounds.
+   */
+  sourceWindow?: FrameSourceWindow;
   /** Rounded-corner radius in source pixels. */
   borderRadius?: number;
   /**
@@ -217,6 +229,35 @@ export interface FrameLayer<TSource = FrameLayerPixels> {
    * names are rendered here.
    */
   transition?: ResolvedTransition;
+}
+
+/** Where a windowed source sits inside the raster it was cut from. */
+export interface FrameSourceWindow {
+  x: number;
+  y: number;
+  frameWidth: number;
+  frameHeight: number;
+}
+
+/**
+ * The placement of a window of a larger raster, from the placement of that
+ * raster: a texel of the window is the raster texel `(x, y)` further on.
+ * Applies to the projective form too, where the shift scales with the
+ * denominator row.
+ */
+export function shiftInverseAffine(inv: InverseAffine, x: number, y: number): InverseAffine {
+  const p = inv.p ?? 0;
+  const q = inv.q ?? 0;
+  const r = inv.r ?? 1;
+  return {
+    ...inv,
+    a: inv.a - x * p,
+    b: inv.b - x * q,
+    tx: inv.tx - x * r,
+    c: inv.c - y * p,
+    d: inv.d - y * q,
+    ty: inv.ty - y * r
+  };
 }
 
 /** A track matte with its source layer's pixels already in hand. */
@@ -376,9 +417,22 @@ export interface GpuFrameCompositorOptions<TSource> {
 export interface GpuCompositeResult {
   /** The accumulation texture holding the finished frame. */
   texture: GPUTexture;
-  /** How many of the given layers resolved to pixels. */
+  /**
+   * How many of the given layers resolved: drew pixels, or had a ready source
+   * that covers no area this frame.
+   */
   drawn: number;
 }
+
+/**
+ * A layer whose source is ready but which covers no area this frame: a
+ * zero-area placement, or a matte whose keyhole lands nowhere. It draws
+ * nothing, yet it counts as drawn, so the host presents the frame (cleared
+ * where the layer was) instead of holding the previous one. Only a source
+ * still decoding leaves the frame undrawn.
+ */
+const EMPTY_LAYER = "empty" as const;
+type LayerResolution = ResolvedLayer | typeof EMPTY_LAYER | null;
 
 export class GpuFrameCompositor<TSource = FrameLayerPixels> {
   private readonly device: GPUDevice;
@@ -591,7 +645,7 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
         writeTex = swap;
         continue;
       }
-      core.renderBlendPass(encoder, readTex, writeTex, {
+      const params = {
         source: item.texture,
         opacity: item.opacity,
         blendModeId: blendModeGpuId(item.blendMode),
@@ -601,7 +655,24 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
         borderRadius: item.borderRadius,
         wipe: wipeParams(item.mask),
         iris: item.iris
-      });
+      };
+      // Only the pixels under the layer's quad can change. A layer that
+      // misses the frame is skipped, and one that covers part of it is
+      // blended in place over that part: a title over a full frame of
+      // other layers costs its own area, not the frame's.
+      const rect = placedLayerRect(
+        item.invAffine,
+        item.texture.width,
+        item.texture.height,
+        readTex.width,
+        readTex.height
+      );
+      if (!rect) continue;
+      if (rect.width * rect.height < readTex.width * readTex.height) {
+        core.renderBlendPassInRect(encoder, readTex, writeTex, params, rect);
+        continue;
+      }
+      core.renderBlendPass(encoder, readTex, writeTex, params);
       const tmp = readTex;
       readTex = writeTex;
       writeTex = tmp;
@@ -618,9 +689,9 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
   private resolveLayer(
     layer: FrameLayer<TSource>,
     encoder: GPUCommandEncoder
-  ): ResolvedLayer | null {
+  ): LayerResolution {
     const item = this.resolvePlacedLayer(layer, encoder);
-    if (!item || !layer.matte) return item;
+    if (!item || item === EMPTY_LAYER || !layer.matte) return item;
     return this.applyMatte(layer, item, layer.matte, encoder);
   }
 
@@ -639,11 +710,12 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
     item: ResolvedLayer,
     matte: FrameMatte<TSource>,
     encoder: GPUCommandEncoder
-  ): ResolvedLayer | null {
+  ): LayerResolution {
     const source = this.resolvePlacedLayer(matte.layer, encoder);
     // No matte source pixels means an empty keyhole. Drawing the layer unmatted
     // would show everything the matte was there to hide, so it draws nothing.
     if (!source) return null;
+    if (source === EMPTY_LAYER) return EMPTY_LAYER;
 
     const composed = this.composeToTexture(
       `matte:${layer.id}`,
@@ -718,25 +790,42 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
       stackOrder: layer.stackOrder,
       // The composite is frame-sized, so it blends 1:1: the layer's placement
       // already ran when it was drawn onto its own texture.
-      invAffine: this.placementOf({}, this.width, this.height),
+      invAffine: this.framePlacement(undefined),
       borderRadius: 0
     };
   }
 
   /**
    * Upload a layer's pixels, run its own effect chain and shape mask, and work
-   * out where it sits. Null when the layer has no drawable source.
+   * out where it sits. Null when the layer has no drawable source yet, and
+   * {@link EMPTY_LAYER} when its placement covers no area.
    */
   private resolvePlacedLayer(
     layer: FrameLayer<TSource>,
     encoder: GPUCommandEncoder
-  ): ResolvedLayer | null {
+  ): LayerResolution {
     const uploaded = this.upload(layer.id, layer.source);
     if (!uploaded) return null;
     // Crop first: everything below — the effect chain, the shape mask, the
     // contain fit, the border radius — then sees the cropped rectangle as the
     // layer's whole picture, which is what a crop means.
     const src = this.cropSource(layer, uploaded, encoder);
+    const window = layer.sourceWindow;
+    const placement = this.placementOf(
+      {
+        transform: transitionTransform(
+          layer.transform,
+          layer.transition,
+          this.referenceWidth,
+          this.referenceHeight
+        ),
+        parentMatrix: layer.parentMatrix
+      },
+      window?.frameWidth ?? src.width,
+      window?.frameHeight ?? src.height
+    );
+    if (!placement) return EMPTY_LAYER;
+    const invAffine = window ? shiftInverseAffine(placement, window.x, window.y) : placement;
 
     const clipEffects = layer.transition?.effect
       ? [...(layer.effects ?? []), layer.transition.effect]
@@ -784,19 +873,7 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
       blendMode: layer.blendMode,
       zIndex: layer.zIndex,
       stackOrder: layer.stackOrder,
-      invAffine: this.placementOf(
-        {
-          transform: transitionTransform(
-            layer.transform,
-            layer.transition,
-            this.referenceWidth,
-            this.referenceHeight
-          ),
-          parentMatrix: layer.parentMatrix
-        },
-        src.width,
-        src.height
-      ),
+      invAffine,
       borderRadius:
         radiusPx > 0
           ? Math.min(0.5, radiusPx / Math.min(src.width, src.height))
@@ -809,12 +886,35 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
     };
   }
 
-  /** Where a source of this size lands on the frame, as the shader's affine. */
+  /**
+   * The placement of a frame-sized texture: 1:1, or moved by a transition's
+   * transform. A transition never scales to zero, so this is never empty.
+   */
+  private framePlacement(transform: ClipTransform | undefined): InverseAffine {
+    return forwardClipMatrixToInverseAffine(
+      buildTransformMatrix(
+        transform ?? IDENTITY_TRANSFORM,
+        containBaseScale(this.width, this.height, this.width, this.height),
+        this.referenceWidth,
+        this.referenceHeight
+      ),
+      this.width,
+      this.height,
+      this.width,
+      this.height
+    );
+  }
+
+  /**
+   * Where a source of this size lands on the frame, as the shader's affine.
+   * Null when the placement covers no area, such as a scale of 0 on either
+   * axis: that layer draws nothing.
+   */
   private placementOf(
     layer: Pick<FrameLayer<TSource>, "transform" | "parentMatrix">,
     sourceWidth: number,
     sourceHeight: number
-  ): InverseAffine {
+  ): InverseAffine | null {
     const matrix = buildTransformMatrix(
       layer.transform ?? IDENTITY_TRANSFORM,
       containBaseScale(sourceWidth, sourceHeight, this.width, this.height),
@@ -822,7 +922,7 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
       this.referenceHeight,
       layer.parentMatrix
     );
-    return forwardClipMatrixToInverseAffine(
+    return invertClipPlacement(
       matrix,
       sourceWidth,
       sourceHeight,
@@ -972,6 +1072,7 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
         const item = this.resolveLayer(layer, encoder);
         if (!item) continue;
         drawn += 1;
+        if (item === EMPTY_LAYER) continue;
         const solid = this.dipSolidFor(layer);
         if (solid) stack.push(solid);
         stack.push(item);
@@ -1000,6 +1101,7 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
       const item = this.resolveLayer(layer, encoder);
       if (!item) continue;
       drawn += 1;
+      if (item === EMPTY_LAYER) continue;
       // The solid shares the layer's z and is pushed first, so the stable sort
       // that orders the stack keeps it beneath the clip it dips into.
       const solid = this.dipSolidFor(layer);
@@ -1028,14 +1130,14 @@ export class GpuFrameCompositor<TSource = FrameLayerPixels> {
         stackOrder: group.stackOrder,
         // The texture is frame-sized, so it composites 1:1: the group's own
         // matrix already rode into each child through `parentMatrix`.
-        invAffine: this.placementOf({
-          transform: transitionTransform(
+        invAffine: this.framePlacement(
+          transitionTransform(
             undefined,
             group.transition,
             this.referenceWidth,
             this.referenceHeight
           )
-        }, this.width, this.height),
+        ),
         borderRadius: 0,
         mask: group.transition?.mask,
         iris: group.transition?.iris
@@ -1488,23 +1590,6 @@ export interface HeadlessRenderFrameOptions {
 }
 
 /**
- * Divide the premultiplied colour back out of every pixel, in place.
- *
- * A fully transparent pixel keeps its zero colour: there is no colour to
- * recover from `0 × 0`, and inventing one would print noise into the parts of
- * an alpha export nothing drew.
- */
-export function unpremultiplyInPlace(rgba: Uint8Array): void {
-  for (let i = 0; i < rgba.length; i += 4) {
-    const a = rgba[i + 3];
-    if (a === 0 || a === 255) continue;
-    rgba[i] = Math.min(255, Math.round((rgba[i] * 255) / a));
-    rgba[i + 1] = Math.min(255, Math.round((rgba[i + 1] * 255) / a));
-    rgba[i + 2] = Math.min(255, Math.round((rgba[i + 2] * 255) / a));
-  }
-}
-
-/**
  * Composite one timeline frame without a canvas: CPU pixels in, straight-alpha
  * RGBA8 out.
  *
@@ -1533,15 +1618,12 @@ export class HeadlessFrameCompositor {
   private readonly readbacks: readonly [GPUBuffer, GPUBuffer];
   private readbackIndex = 0;
   private readonly sources = new Map<string, SourceTexture>();
-  /**
-   * The motion-blur half, built on the first frame that asks for more than one
-   * sample and never at all for a render with blur off. Kept as three lazy
-   * fields rather than an object so the single-sample path allocates nothing.
-   */
+  /** Accumulation is allocated only when motion blur uses multiple samples. */
   private blurAccumulation: GPUTexture | null = null;
-  private blurResolveTarget: GPUTexture | null = null;
   private blurAccumulatePipeline: GPURenderPipeline | null = null;
-  private blurResolvePipeline: GPURenderPipeline | null = null;
+  /** Shared straight-alpha resolve target and pipeline for both render paths. */
+  private resolveTarget: GPUTexture | null = null;
+  private resolvePipeline: GPURenderPipeline | null = null;
 
   constructor(device: GPUDevice, width: number, height: number) {
     this.device = device;
@@ -1575,6 +1657,14 @@ export class HeadlessFrameCompositor {
   }
 
   /**
+   * Set the sequence resolution a stored transform is expressed against, for
+   * a frame smaller or larger than the sequence. Unset, it is the frame size.
+   */
+  setReferenceSize(width: number, height: number): void {
+    this.compositor.setReferenceSize(width, height);
+  }
+
+  /**
    * Composite `layers` and return the frame as straight-alpha RGBA8 at the
    * compositor's resolution.
    *
@@ -1596,12 +1686,15 @@ export class HeadlessFrameCompositor {
       adjustments
     );
 
+    // Chroma key and other effects can lower alpha even over the opaque seed.
+    // Resolve both export modes to straight alpha before copying to the CPU.
     const readback = this.nextReadback();
     const encoder = this.device.createCommandEncoder({
       label: "timeline-headless-readback"
     });
+    const resolved = this.resolvePremultiplied(texture, encoder);
     encoder.copyTextureToBuffer(
-      { texture },
+      { texture: resolved },
       {
         buffer: readback,
         bytesPerRow: this.bytesPerRow,
@@ -1611,12 +1704,7 @@ export class HeadlessFrameCompositor {
     );
     this.device.queue.submit([encoder.finish()]);
 
-    // The accumulation is premultiplied. An effect such as chroma key can
-    // lower alpha even over the opaque seed, so both export modes must divide
-    // colour back out to honor this method's straight-alpha contract.
-    const rgba = await this.readMapped(readback);
-    unpremultiplyInPlace(rgba);
-    return rgba;
+    return this.readMapped(readback);
   }
 
   /**
@@ -1672,11 +1760,11 @@ export class HeadlessFrameCompositor {
       this.foldBlurSample(accumulation, texture, weight, i === 0);
     }
 
-    const resolved = this.resolveBlurAccumulation(accumulation);
     const readback = this.nextReadback();
     const encoder = this.device.createCommandEncoder({
       label: "timeline-headless-blur-readback"
     });
+    const resolved = this.resolvePremultiplied(accumulation, encoder);
     encoder.copyTextureToBuffer(
       { texture: resolved },
       {
@@ -1687,8 +1775,6 @@ export class HeadlessFrameCompositor {
       { width: this.width, height: this.height }
     );
     this.device.queue.submit([encoder.finish()]);
-    // The resolve pass already divided the colour back out, so unlike
-    // `renderFrame` there is no CPU un-premultiply left to do.
     return this.readMapped(readback);
   }
 
@@ -1699,7 +1785,7 @@ export class HeadlessFrameCompositor {
     weight: number,
     first: boolean
   ): void {
-    const [pipeline] = this.buildBlurPipelines();
+    const pipeline = this.buildBlurPipeline();
     const encoder = this.device.createCommandEncoder({
       label: "timeline-headless-blur-fold"
     });
@@ -1730,13 +1816,10 @@ export class HeadlessFrameCompositor {
     this.device.queue.submit([encoder.finish()]);
   }
 
-  /** Divide the summed colour by the summed alpha into a readable RGBA8 texture. */
-  private resolveBlurAccumulation(accumulation: GPUTexture): GPUTexture {
-    const target = this.blurResolveTexture();
-    const [, pipeline] = this.buildBlurPipelines();
-    const encoder = this.device.createCommandEncoder({
-      label: "timeline-headless-blur-resolve"
-    });
+  /** Divide premultiplied colour by alpha into a readable RGBA8 texture. */
+  private resolvePremultiplied(source: GPUTexture, encoder: GPUCommandEncoder): GPUTexture {
+    const target = this.resolvedTexture();
+    const pipeline = this.buildResolvePipeline();
     const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
@@ -1752,12 +1835,11 @@ export class HeadlessFrameCompositor {
       0,
       this.device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
-        entries: [{ binding: 0, resource: accumulation.createView() }]
+        entries: [{ binding: 0, resource: source.createView() }]
       })
     );
     pass.draw(4);
     pass.end();
-    this.device.queue.submit([encoder.finish()]);
     return target;
   }
 
@@ -1776,22 +1858,22 @@ export class HeadlessFrameCompositor {
     return texture;
   }
 
-  private blurResolveTexture(): GPUTexture {
-    let texture = this.blurResolveTarget;
+  private resolvedTexture(): GPUTexture {
+    let texture = this.resolveTarget;
     if (!texture) {
       texture = this.device.createTexture({
-        label: "timeline-headless-blur-resolve",
+        label: "timeline-headless-resolve",
         size: { width: this.width, height: this.height },
         format: TEXTURE_FORMAT,
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
       });
-      this.blurResolveTarget = texture;
+      this.resolveTarget = texture;
     }
     return texture;
   }
 
-  /** The fold and resolve pipelines, built together on the first blurred frame. */
-  private buildBlurPipelines(): [GPURenderPipeline, GPURenderPipeline] {
+  /** The accumulation pipeline, built on the first blurred frame. */
+  private buildBlurPipeline(): GPURenderPipeline {
     if (!this.blurAccumulatePipeline) {
       const module = this.device.createShaderModule({
         label: "timeline-headless-blur-fold",
@@ -1825,13 +1907,17 @@ export class HeadlessFrameCompositor {
         primitive: { topology: "triangle-strip" }
       });
     }
-    if (!this.blurResolvePipeline) {
+    return this.blurAccumulatePipeline;
+  }
+
+  private buildResolvePipeline(): GPURenderPipeline {
+    if (!this.resolvePipeline) {
       const module = this.device.createShaderModule({
-        label: "timeline-headless-blur-resolve",
+        label: "timeline-headless-resolve",
         code: `${FULLSCREEN_QUAD_VERTEX}\n${UNPREMULTIPLY_FRAGMENT}`
       });
-      this.blurResolvePipeline = this.device.createRenderPipeline({
-        label: "timeline-headless-blur-resolve",
+      this.resolvePipeline = this.device.createRenderPipeline({
+        label: "timeline-headless-resolve",
         layout: "auto",
         vertex: { module, entryPoint: "vs_main" },
         fragment: {
@@ -1842,10 +1928,9 @@ export class HeadlessFrameCompositor {
         primitive: { topology: "triangle-strip" }
       });
     }
-    return [this.blurAccumulatePipeline, this.blurResolvePipeline];
+    return this.resolvePipeline;
   }
 
-  /** Map the readback buffer and drop its 256-byte row padding. */
   /** The buffer this frame reads back through — the one the last frame did not. */
   private nextReadback(): GPUBuffer {
     const buffer = this.readbacks[this.readbackIndex];
@@ -1855,17 +1940,20 @@ export class HeadlessFrameCompositor {
 
   private async readMapped(readback: GPUBuffer): Promise<Uint8Array> {
     await readback.mapAsync(GPUMapMode.READ);
-    const mapped = new Uint8Array(readback.getMappedRange());
-    const rgba = new Uint8Array(this.width * this.height * 4);
-    const rowBytes = this.width * 4;
-    for (let row = 0; row < this.height; row++) {
-      rgba.set(
-        mapped.subarray(row * this.bytesPerRow, row * this.bytesPerRow + rowBytes),
-        row * rowBytes
-      );
+    try {
+      const mapped = new Uint8Array(readback.getMappedRange());
+      const rgba = new Uint8Array(this.width * this.height * 4);
+      const rowBytes = this.width * 4;
+      for (let row = 0; row < this.height; row++) {
+        rgba.set(
+          mapped.subarray(row * this.bytesPerRow, row * this.bytesPerRow + rowBytes),
+          row * rowBytes
+        );
+      }
+      return rgba;
+    } finally {
+      readback.unmap();
     }
-    readback.unmap();
-    return rgba;
   }
 
   private uploadPixels(
@@ -1922,8 +2010,8 @@ export class HeadlessFrameCompositor {
     this.sources.clear();
     this.blurAccumulation?.destroy();
     this.blurAccumulation = null;
-    this.blurResolveTarget?.destroy();
-    this.blurResolveTarget = null;
+    this.resolveTarget?.destroy();
+    this.resolveTarget = null;
     this.compositor.dispose();
     for (const readback of this.readbacks) readback.destroy();
   }

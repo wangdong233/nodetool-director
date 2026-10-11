@@ -11,7 +11,8 @@ vi.mock("@nodetool-ai/models", async (orig) => {
     Job: {
       ...actual.Job,
       get: vi.fn(),
-      paginate: vi.fn()
+      paginate: vi.fn(),
+      markCancelledIfActive: vi.fn()
     }
   };
 });
@@ -195,9 +196,123 @@ describe("jobs router", () => {
     });
   });
 
+  // ── snapshot ────────────────────────────────────────────────────
+  describe("snapshot", () => {
+    const mockJob = (fields: Record<string, unknown>) =>
+      (Job.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ...makeJob({ id: "j1", started_at: "2026-10-06T10:00:00.000Z" }),
+        name: "Run",
+        ...fields
+      });
+
+    it("returns a kernel-form graph in the editor shape with the run's inputs", async () => {
+      mockJob({
+        params: { prompt: "a red fox" },
+        graph: {
+          nodes: [
+            {
+              id: "in",
+              type: "nodetool.input.StringInput",
+              properties: { name: "prompt", value: "default" },
+              ui_properties: { position: { x: 1, y: 2 } },
+              propertyTypes: { value: "str" },
+              is_streaming_output: false
+            },
+            {
+              id: "gen",
+              type: "nodetool.image.TextToImage",
+              properties: { width: 512 },
+              dynamic_properties: {}
+            }
+          ],
+          edges: [
+            {
+              id: "e1",
+              source: "in",
+              sourceHandle: "output",
+              target: "gen",
+              targetHandle: "prompt",
+              edge_type: "data"
+            }
+          ]
+        }
+      });
+
+      const result = await createCaller(makeCtx()).jobs.snapshot({ id: "j1" });
+
+      expect(result).toMatchObject({
+        id: "j1",
+        workflow_id: "wf-1",
+        name: "Run",
+        started_at: "2026-10-06T10:00:00.000Z",
+        params: { prompt: "a red fox" }
+      });
+      expect(result.graph).toEqual({
+        nodes: [
+          {
+            id: "in",
+            type: "nodetool.input.StringInput",
+            data: { name: "prompt", value: "a red fox" },
+            ui_properties: { position: { x: 1, y: 2 } }
+          },
+          {
+            id: "gen",
+            type: "nodetool.image.TextToImage",
+            data: { width: 512 },
+            dynamic_properties: {}
+          }
+        ],
+        edges: [
+          {
+            id: "e1",
+            source: "in",
+            sourceHandle: "output",
+            target: "gen",
+            targetHandle: "prompt",
+            edge_type: "data"
+          }
+        ]
+      });
+    });
+
+    it("keeps an editor-form graph's data", async () => {
+      mockJob({
+        params: {},
+        graph: {
+          nodes: [{ id: "n", type: "x.Y", data: { a: 1 } }],
+          edges: []
+        }
+      });
+      const result = await createCaller(makeCtx()).jobs.snapshot({ id: "j1" });
+      expect(result.graph?.nodes).toEqual([
+        { id: "n", type: "x.Y", data: { a: 1 } }
+      ]);
+    });
+
+    it("returns a null graph for an empty placeholder graph", async () => {
+      mockJob({ graph: { nodes: [], edges: [] }, params: {} });
+      const result = await createCaller(makeCtx()).jobs.snapshot({ id: "j1" });
+      expect(result.graph).toBeNull();
+    });
+
+    it("returns a null graph when the job stored none", async () => {
+      mockJob({ graph: null, params: null });
+      const result = await createCaller(makeCtx()).jobs.snapshot({ id: "j1" });
+      expect(result.graph).toBeNull();
+      expect(result.params).toBeNull();
+    });
+
+    it("throws NOT_FOUND when the user does not own the job", async () => {
+      mockJob({ user_id: "other-user", graph: { nodes: [], edges: [] } });
+      await expect(
+        createCaller(makeCtx()).jobs.snapshot({ id: "j1" })
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    });
+  });
+
   // ── cancel ──────────────────────────────────────────────────────
   describe("cancel", () => {
-    it("marks the job cancelled, saves, and returns background shape", async () => {
+    it("cancels an active job with a conditional write and returns its new state", async () => {
       const j = makeJob({
         id: "j1",
         user_id: "user-1",
@@ -205,12 +320,18 @@ describe("jobs router", () => {
         workflow_id: "wf-1",
         started_at: "2026-04-17T00:00:00Z"
       });
-      (Job.get as ReturnType<typeof vi.fn>).mockResolvedValue(j);
+      const cancelled = { ...j, status: "cancelled" };
+      (Job.get as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(j)
+        .mockResolvedValueOnce(cancelled);
+      (Job.markCancelledIfActive as ReturnType<typeof vi.fn>).mockResolvedValue(
+        true
+      );
 
       const caller = createCaller(makeCtx());
       const result = await caller.jobs.cancel({ id: "j1" });
-      expect(j.markCancelled).toHaveBeenCalled();
-      expect(j.save).toHaveBeenCalled();
+      expect(Job.markCancelledIfActive).toHaveBeenCalledWith("j1", "user-1");
+      expect(j.save).not.toHaveBeenCalled();
       expect(result).toEqual({
         job_id: "j1",
         status: "cancelled",
@@ -219,6 +340,20 @@ describe("jobs router", () => {
         is_running: false,
         is_completed: true // "cancelled" maps to is_completed
       });
+    });
+
+    it("leaves a job that already finished as it is", async () => {
+      const j = makeJob({ id: "j1", status: "completed" });
+      (Job.get as ReturnType<typeof vi.fn>).mockResolvedValue(j);
+      (Job.markCancelledIfActive as ReturnType<typeof vi.fn>).mockResolvedValue(
+        false
+      );
+
+      const caller = createCaller(makeCtx());
+      const result = await caller.jobs.cancel({ id: "j1" });
+      expect(j.markCancelled).not.toHaveBeenCalled();
+      expect(j.save).not.toHaveBeenCalled();
+      expect(result.status).toBe("completed");
     });
 
     it("throws NOT_FOUND when the job does not exist", async () => {

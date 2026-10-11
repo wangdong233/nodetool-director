@@ -124,6 +124,17 @@ export const TYPOGRAPHY = {
 } satisfies Record<"sans" | "mono", Record<string, TypeStyle>>;
 
 /**
+ * Group label inside a panel ("TRANSFORM", "MATERIAL", "I/O"): caption type,
+ * uppercase, slightly tracked. Pair it with `text.secondary`. `SectionHeader
+ * size="small"` and `InspectorSectionTitle` render it.
+ */
+export const EYEBROW = {
+  ...TYPOGRAPHY.sans.caption,
+  textTransform: "uppercase",
+  letterSpacing: "0.06em"
+} as const;
+
+/**
  * Motion / transition timing constants.
  *
  * Always pair transitions with a `prefers-reduced-motion` override.
@@ -302,7 +313,8 @@ export const CONTROL = {
  *
  * The scale is a helper, not a const map, because the shadow color must come
  * from the palette (`common.blackChannel`) rather than an `rgba(0, 0, 0, …)`
- * literal.
+ * literal. Opacities are scaled by the palette's `c_shadow_alpha`, so the
+ * light scheme gets softer shadows than the dark one from the same scale.
  *
  * Levels:
  *   ambient     no offset — the halo under slider thumbs and small round controls
@@ -318,7 +330,11 @@ export const CONTROL = {
  */
 export const SHADOW = (theme: Theme) => {
   const black = theme.vars.palette.common.blackChannel ?? "0 0 0";
-  const shade = (alpha: number) => `rgba(${black} / ${alpha})`;
+  const strength = theme.vars.palette.c_shadow_alpha;
+  const shade = (alpha: number) =>
+    strength
+      ? `rgba(${black} / calc(${alpha} * ${strength}))`
+      : `rgba(${black} / ${alpha})`;
   return {
     ambient: `0 0 5px 1px ${shade(0.25)}`,
     sm: `0 1px 3px ${shade(0.3)}`,
@@ -374,3 +390,6 @@ export const scrollbarStyles = (theme: Theme) => ({
       theme.vars.palette.c_scroll_hover ?? theme.vars.palette.grey[500],
   },
 });
+
+/** Width of the assistant beside Studio document editors, in pixels. */
+export const STUDIO_ASSISTANT_WIDTH = 320;

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import NumberInput from "../inputs/NumberInput";
 import { PropertyProps } from "../node/PropertyInput";
 import { useInputMinMax } from "../../hooks/useInputMinMax";
-import { useTemporalNodes } from "../../contexts/NodeContext";
+import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { isNumber } from "../../utils/typePredicates";
 import { i18n } from "../../i18n";
 
@@ -28,8 +28,8 @@ const NumberProperty = ({ inputType, ...props }: NumberPropertyProps) => {
 
   const isValid = inputType === "int" ? Number.isInteger : isNumber;
   const value = isValid(propValue) ? propValue : 0;
-  const pauseHistory = useTemporalNodes((state) => state.pause);
-  const resumeHistory = useTemporalNodes((state) => state.resume);
+  // One undo entry per slider drag, ended on unmount if the drag is cut off.
+  const dragUndoGroup = useUndoGroup();
 
   const { min, max } = useInputMinMax({
     nodeType: props.nodeType,
@@ -53,14 +53,6 @@ const NumberProperty = ({ inputType, ...props }: NumberPropertyProps) => {
     [onChange]
   );
 
-  const handleDragStart = useCallback(() => {
-    pauseHistory();
-  }, [pauseHistory]);
-
-  const handleDragEnd = useCallback(() => {
-    resumeHistory();
-  }, [resumeHistory]);
-
   return (
     <NumberInput
       id={id}
@@ -80,8 +72,8 @@ const NumberProperty = ({ inputType, ...props }: NumberPropertyProps) => {
       showSlider={showSlider}
       onChange={handleChange}
       onChangeComplete={onChangeComplete}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragStart={dragUndoGroup.begin}
+      onDragEnd={dragUndoGroup.end}
     />
   );
 };

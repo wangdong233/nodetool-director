@@ -25,13 +25,14 @@ export * from "./workflow-document-tools.js";
 export * from "./node-type-inventory.js";
 export * from "./correlation-validation.js";
 export * from "./nodes/test-nodes.js";
-export * from "./package-registry-client.js";
 export * from "./pack-loader.js";
 export * from "./sandbox-pack-discovery.js";
 export * from "./sandbox-module-catalog.js";
 export * from "./sandbox-catalog-host.js";
 export * from "./sandbox-bridge-packs.js";
-export * from "./docs/index.js";
+export * from "./docs/overview.js";
+export * from "./docs/nodes.js";
+export * from "./docs/workflows.js";
 export * from "./python-package-scan.js";
 export {
   isString,

@@ -4,17 +4,33 @@
  * an `app_doc`, and checks the interaction simulation, widget states, verdict,
  * and the on-disk bundle.
  */
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Application, initTestDb } from "@nodetool-ai/models";
+import { NodeRegistry } from "@nodetool-ai/node-sdk";
 import { runAppDebug, defaultInteractions } from "../src/app-debug/harness.js";
 import { parseAppSpec } from "@nodetool-ai/execution/app-debug";
 import { collectExecutionSummary } from "../src/debug/collector.js";
 import type { ServerRunInput, ServerRunOutcome } from "../src/debug/server-runner.js";
 
+const tempDirs: string[] = [];
+beforeEach(() => { initTestDb(); });
+const tempDir = (prefix: string): string => {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+};
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 const workflowFile = (over: Record<string, unknown> = {}): string => {
-  const dir = mkdtempSync(join(tmpdir(), "app-debug-"));
+  const dir = tempDir("app-debug-");
   const file = join(dir, "workflow.json");
   writeFileSync(
     file,
@@ -84,7 +100,8 @@ const stubRunner = (
 
 const deps = (runOnServer: ReturnType<typeof stubRunner>) => ({
   loadFromDb: async () => null,
-  runOnServer
+  runOnServer,
+  registry: new NodeRegistry()
 });
 
 describe("runAppDebug", () => {
@@ -93,14 +110,14 @@ describe("runAppDebug", () => {
       { type: "output_update", node_id: "out1", output_name: "output", value: "the answer" },
       { type: "job_update", status: "completed" }
     ]);
-    const outDir = mkdtempSync(join(tmpdir(), "app-bundle-"));
+    const outDir = tempDir("app-bundle-");
     const report = await runAppDebug(
       workflowFile(),
       { params: { prompt: "what is it?" }, outDir },
       deps(runOnServer)
     );
 
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.app).toEqual({ version: 4, title: "Demo App", widgetCount: 3 });
     expect(runOnServer).toHaveBeenCalledOnce();
     expect(runOnServer.mock.calls[0][0].params).toEqual({ prompt: "what is it?" });
@@ -128,7 +145,7 @@ describe("runAppDebug", () => {
     const runOnServer = stubRunner([{ type: "job_update", status: "completed" }]);
     const report = await runAppDebug(
       workflowFile(),
-      { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
     expect(report.verdict.ok).toBe(false);
@@ -175,13 +192,13 @@ describe("runAppDebug", () => {
           }
         }
       }),
-      { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
 
     expect(report.interactions[0]).toMatchObject({ step: "click ChatComposer-1" });
     expect(report.verdict.issues).toEqual([]);
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
   });
 
   it("warns rather than fails when the empty widget sits on an untaken branch", async () => {
@@ -204,19 +221,19 @@ describe("runAppDebug", () => {
           }
         ],
         edges: [
-          { id: "e1", source: "in1", target: "gate" },
-          { id: "e2", source: "gate", target: "out1" }
+          { id: "e1", source: "in1", sourceHandle: "output", target: "gate", targetHandle: "value" },
+          { id: "e2", source: "gate", sourceHandle: "true", target: "out1", targetHandle: "value" }
         ]
       }
     });
     const runOnServer = stubRunner([{ type: "job_update", status: "completed" }]);
     const report = await runAppDebug(
       branching,
-      { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
 
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.verdict.issues).not.toContainEqual(
       expect.stringMatching(/never received a value/)
     );
@@ -233,7 +250,7 @@ describe("runAppDebug", () => {
     );
     const report = await runAppDebug(
       workflowFile(),
-      { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
     expect(report.verdict.ok).toBe(false);
@@ -253,11 +270,11 @@ describe("runAppDebug", () => {
           { set: { key: "prompt", value: "scripted" } },
           { click: "Button" } // unique type reference
         ],
-        outDir: mkdtempSync(join(tmpdir(), "app-bundle-"))
+        outDir: tempDir("app-bundle-")
       },
       deps(runOnServer)
     );
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(runOnServer.mock.calls[0][0].params).toEqual({ prompt: "scripted" });
   });
 
@@ -267,7 +284,7 @@ describe("runAppDebug", () => {
       workflowFile(),
       {
         interact: [{ click: "NoSuchWidget" }],
-        outDir: mkdtempSync(join(tmpdir(), "app-bundle-"))
+        outDir: tempDir("app-bundle-")
       },
       deps(runOnServer)
     );
@@ -280,12 +297,12 @@ describe("runAppDebug", () => {
     const runOnServer = stubRunner([]);
     const report = await runAppDebug(
       workflowFile(),
-      { run: false, outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { run: false, outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
     expect(runOnServer).not.toHaveBeenCalled();
     expect(report.runs).toEqual([]);
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.verdict.headline).toMatch(/static check only/);
   });
 
@@ -293,7 +310,7 @@ describe("runAppDebug", () => {
     const runOnServer = stubRunner([]);
     const report = await runAppDebug(
       workflowFile({ app_doc: undefined }),
-      { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { outDir: tempDir("app-bundle-") },
       deps(runOnServer)
     );
     expect(report.spec).toBeNull();
@@ -309,7 +326,7 @@ const v3File = (over: {
   resources?: unknown[];
   content?: unknown[];
 }): string => {
-  const dir = mkdtempSync(join(tmpdir(), "app-debug-v3-"));
+  const dir = tempDir("app-debug-v3-");
   const file = join(dir, "workflow.json");
   writeFileSync(
     file,
@@ -363,7 +380,7 @@ const ANSWER = [
   { type: "job_update", status: "completed" }
 ];
 
-const outDir = () => mkdtempSync(join(tmpdir(), "app-bundle-"));
+const outDir = () => tempDir("app-bundle-");
 
 describe("runAppDebug — operations", () => {
   const twoOperations = [
@@ -396,7 +413,7 @@ describe("runAppDebug — operations", () => {
       deps(runOnServer)
     );
 
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.interactions[0]).toMatchObject({ step: "run polish", runIndex: 0 });
     expect(report.invocations).toHaveLength(1);
     expect(report.invocations[0]).toMatchObject({
@@ -540,7 +557,7 @@ describe("runAppDebug — variables", () => {
       { outDir: outDir() },
       deps(stubRunner(ANSWER))
     );
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.variables).toEqual({ draft: "the answer" });
     expect(report.widgets[0]).toMatchObject({ id: "Markdown-1", value: "the answer" });
   });
@@ -703,7 +720,7 @@ describe("runAppDebug — execution bindings", () => {
         ])
       )
     );
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.activity.map((a) => a.label)).toEqual(["searching the web"]);
     expect(report.widgets.find((w) => w.id === "Text-1")?.value).toBe(
       "searching the web"
@@ -764,7 +781,7 @@ describe("runAppDebug target kinds", () => {
 
   /** What every target kind must agree on, whatever it was named as. */
   const shapeOf = (report: Awaited<ReturnType<typeof runAppDebug>>) => ({
-    app: report.app,
+    app: { title: report.app.title, widgetCount: report.app.widgetCount },
     io: report.io,
     validation: report.validation,
     interactions: report.interactions,
@@ -780,11 +797,12 @@ describe("runAppDebug target kinds", () => {
   ) =>
     runAppDebug(
       ref,
-      { params: { prompt: "what is it?" }, outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+      { params: { prompt: "what is it?" }, outDir: tempDir("app-bundle-") },
       { loadFromDb: async () => null, runOnServer: stubRunner(ANSWER), ...extra }
     );
 
   it("reports the same shape for a workflow app_doc, an application id, and a bundle file", async () => {
+    await Application.create<Application>({ id: "app-1", user_id: "1", name: "Demo App", document: JSON.stringify(APP_DOCUMENT("wf1")) });
     const legacy = await runTarget(workflowFile());
 
     const fromApplication = await runTarget("app-1", {
@@ -797,7 +815,7 @@ describe("runAppDebug target kinds", () => {
       })
     });
 
-    const dir = mkdtempSync(join(tmpdir(), "app-bundle-file-"));
+    const dir = tempDir("app-bundle-file-");
     const bundleFile = join(dir, "my.app.json");
     writeFileSync(
       bundleFile,
@@ -812,7 +830,10 @@ describe("runAppDebug target kinds", () => {
     );
     const fromBundle = await runTarget(bundleFile);
 
-    expect(fromApplication.verdict.ok).toBe(true);
+    expect(fromApplication.verdict.ok, fromApplication.verdict.issues.join("\n")).toBe(true);
+    expect(legacy.app.version).toBe(4);
+    expect(fromApplication.app.version).toBe(3);
+    expect(fromBundle.app.version).toBe(3);
     expect(shapeOf(fromApplication)).toEqual(shapeOf(legacy));
     expect(shapeOf(fromBundle)).toEqual(shapeOf(legacy));
 
@@ -822,7 +843,8 @@ describe("runAppDebug target kinds", () => {
   });
 
   it("writes the same bundle files for an application target", async () => {
-    const outDir = mkdtempSync(join(tmpdir(), "app-bundle-"));
+    await Application.create<Application>({ id: "app-1", user_id: "1", name: "Demo App", document: JSON.stringify(APP_DOCUMENT("wf1")) });
+    const outDir = tempDir("app-bundle-");
     await runAppDebug(
       "app-1",
       { outDir },
@@ -845,7 +867,7 @@ describe("runAppDebug target kinds", () => {
   it("runs a bundle's second workflow without touching the database", async () => {
     const runOnServer = stubRunner(ANSWER);
     const loadFromDb = vi.fn(async () => null);
-    const dir = mkdtempSync(join(tmpdir(), "app-bundle-file-"));
+    const dir = tempDir("app-bundle-file-");
     const bundleFile = join(dir, "two.app.json");
     const app = APP_DOCUMENT("first");
     writeFileSync(
@@ -899,13 +921,13 @@ describe("runAppDebug target kinds", () => {
       bundleFile,
       {
         interact: [{ click: "Button-1" }, { click: "Button-2" }],
-        outDir: mkdtempSync(join(tmpdir(), "app-bundle-"))
+        outDir: tempDir("app-bundle-")
       },
       { loadFromDb, runOnServer }
     );
 
     expect(loadFromDb).not.toHaveBeenCalled();
-    expect(report.verdict.ok).toBe(true);
+    expect(report.verdict.ok, report.verdict.issues.join("\n")).toBe(true);
     expect(report.invocations.map((i) => i.operationId)).toEqual(["main", "refine"]);
     expect(runOnServer).toHaveBeenCalledTimes(2);
     // A bundle key is not a workflow id, so nothing hands one to the runner.
@@ -918,7 +940,7 @@ describe("runAppDebug target kinds", () => {
     await expect(
       runAppDebug(
         "nope",
-        { outDir: mkdtempSync(join(tmpdir(), "app-bundle-")) },
+        { outDir: tempDir("app-bundle-") },
         {
           loadFromDb: async () => null,
           loadApplication: async () => null,

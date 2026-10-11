@@ -4,21 +4,21 @@ import { WsAdapter } from "../ws-adapter.js";
 import { WebSocketClientSession } from "../websocket-client-session.js";
 import { createGraphNodeTypeResolver, type NodeRegistry } from "@nodetool-ai/node-sdk";
 import type { PythonBridge } from "@nodetool-ai/runtime";
-import { PythonNodeExecutor, getProvider } from "@nodetool-ai/runtime";
+import {
+  PythonNodeExecutor,
+  getProvider,
+  listRegisteredProviderIds,
+  recordRunTraceSecret
+} from "@nodetool-ai/runtime";
 import type { WorkerManager } from "@nodetool-ai/compute";
 import { getSecret as getStoredSecret } from "@nodetool-ai/models";
 import type { HttpApiOptions } from "../http-api.js";
 import { resolveWorkflowWorkspace } from "../lib/workflow-workspace.js";
-import {
-  extensionBridge,
-  type ExtensionSocket
-} from "../extension-cdp-bridge.js";
-import { setExtensionChannelProvider } from "@nodetool-ai/browser";
 import { packWebSocketMessage } from "../messagepack.js";
 import type { SdkLiveRunnerRegistry } from "../sdk/sdk-live-runner-registry.js";
 import { runTransformersJsModelDownload } from "../model-download-runtime.js";
 import type { FrontendRendererRegistry } from "../frontend-renderer-registry.js";
-import { isString } from "../lib/wire-values.js";
+import { runNeedsPythonBridge } from "../python-bridge-gate.js";
 
 const log = createLogger("nodetool.websocket.ws");
 
@@ -45,9 +45,11 @@ export interface WebSocketPluginOptions {
 }
 
 async function resolveProvider(providerId: string, userId: string) {
-  return getProvider(providerId.toLowerCase(), (key) =>
-    getStoredSecret(key, userId).then((v) => v ?? undefined)
-  );
+  return getProvider(providerId.toLowerCase(), async (key) => {
+    const value = await getStoredSecret(key, userId);
+    recordRunTraceSecret(value);
+    return value ?? undefined;
+  });
 }
 
 const isProduction = process.env["NODETOOL_ENV"] === "production";
@@ -119,12 +121,14 @@ const websocketPlugin: FastifyPluginAsync<WebSocketPluginOptions> = async (
       // the runner it is not talking to them.
       appSession: req.appSession,
       beforeRunJob: async (graph) => {
-        if (getPythonBridgeReady()) return;
-        const hasPythonNode = graph.nodes.some((n) => {
-          const type = isString(n.type) ? n.type : "";
-          return registry.getMetadata(type) && !registry.has(type);
+        const needsBridge = runNeedsPythonBridge(graph.nodes, {
+          bridgeReady: getPythonBridgeReady(),
+          bridgeAvailable: pythonBridge.isAvailable(),
+          isPythonNodeType: (type) =>
+            !!registry.getMetadata(type) && !registry.has(type),
+          providerIds: listRegisteredProviderIds
         });
-        if (hasPythonNode) {
+        if (needsBridge) {
           await ensurePythonBridge();
         }
       },
@@ -189,10 +193,10 @@ const websocketPlugin: FastifyPluginAsync<WebSocketPluginOptions> = async (
       apiOptions,
       frontendRendererRegistry
     });
-    const runnerTargetId = sdkLiveRunnerRegistry?.register(
-      req.userId ?? "1",
-      runner.jobs
-    );
+    // An app visitor's socket is not an SDK execution target for its owner.
+    const runnerTargetId = req.appSession
+      ? undefined
+      : sdkLiveRunnerRegistry?.register(req.userId ?? "1", runner.jobs);
     if (runnerTargetId) {
       try {
         socket.send(
@@ -221,55 +225,6 @@ const websocketPlugin: FastifyPluginAsync<WebSocketPluginOptions> = async (
       });
   });
 
-  // Chrome-extension CDP side channel.
-  //
-  // JSON text frames (NOT MsgPack — the main /ws stays MsgPack). The extension
-  // connects here after the user clicks "Attach to this tab" in the popup; the
-  // in-process action loop rides the channel via `extensionBridge.getChannel()`.
-  // Auth/localhost-bypass is handled by the global onRequest hook in server.ts
-  // (the /ws prefix is exempt from static-asset bypass and subject to the same
-  // localhost rule as /ws).
-  //
-  // v1 is single-connection: a new socket replaces any existing one.
-  //
-  // Register the in-process channel factory so the browser action loop running
-  // in this server rides the bridge instead of opening its own client WS. The
-  // dependency points websocket → automation-nodes (no cycle).
-  //
-  // This is an unauthenticated, single-connection side channel: whoever connects
-  // to /ws/extension becomes THE extension socket and can proxy CDP through this
-  // server. It is disabled in production by default; set
-  // NODETOOL_ENABLE_EXTENSION_BRIDGE=1 to opt back in for deployments that
-  // actually use the browser extension.
-  const extensionBridgeEnabled =
-    !isProduction ||
-    process.env["NODETOOL_ENABLE_EXTENSION_BRIDGE"] === "1";
-
-  if (extensionBridgeEnabled) {
-    setExtensionChannelProvider(() => extensionBridge.getChannel());
-
-    app.get("/ws/extension", { websocket: true }, (socket, _req) => {
-      // The @fastify/websocket socket satisfies the ExtensionSocket surface
-      // (send(string) / close() / on("message"|"close"|"error")).
-      // SAFETY: the @fastify/websocket socket satisfies the ExtensionSocket
-      // surface — send(string) / close() / on("message"|"close"|"error").
-      const extSocket = socket as ExtensionSocket;
-      socket.on("error", (error: Error) => {
-        log.error("Extension WebSocket error", error);
-      });
-      log.info("Extension WebSocket client connected");
-      extensionBridge.registerSocket(extSocket);
-      socket.on("close", () => {
-        extensionBridge.clear(extSocket);
-        log.info("Extension WebSocket client disconnected");
-      });
-    });
-  } else {
-    log.info(
-      "Extension CDP bridge (/ws/extension) disabled in production; set NODETOOL_ENABLE_EXTENSION_BRIDGE=1 to enable"
-    );
-  }
-
   // Download WebSocket endpoint — local development only
   if (!isProduction) {
     // Download WebSocket (HuggingFace model downloads)
@@ -280,7 +235,7 @@ const websocketPlugin: FastifyPluginAsync<WebSocketPluginOptions> = async (
       log.info("Download WebSocket client connected");
 
       import("@nodetool-ai/huggingface")
-        .then(({ getDownloadManager }) => {
+        .then(({ getDownloadManager, resolveWorkerHfToken }) => {
           // TJS downloads are bookkept here so cancel can abort them.
           const tjsAborts = new Map<string, AbortController>();
           // In-flight worker-scoped downloads, keyed by the same composite id
@@ -321,12 +276,21 @@ const websocketPlugin: FastifyPluginAsync<WebSocketPluginOptions> = async (
                   await handleTjsDownload(socket, repoId, modelType, tjsAborts);
                   return;
                 }
-                const manager = await getDownloadManager(req.userId ?? "1");
+                const userId = req.userId ?? "1";
+                const manager = await getDownloadManager(userId);
+                // The token pasted in Settings lives in the secret store, not
+                // in this process's environment, so resolve it per user.
+                const token = await resolveWorkerHfToken((key) =>
+                  getStoredSecret(key, userId)
+                );
                 await manager.startDownload(repoId, {
                   path: msg.path ?? null,
+                  token: token ?? null,
                   allowPatterns: msg.allow_patterns ?? null,
                   ignorePatterns: msg.ignore_patterns ?? null,
-                  cacheDir: msg.cache_dir ?? null,
+                  // No client-chosen cache_dir: the Model Manager, the
+                  // download badges and every loader read only the shared
+                  // hub cache, so a download elsewhere was invisible.
                   modelType,
                   onProgress: (update) => {
                     try {

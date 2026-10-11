@@ -7,13 +7,10 @@ import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   DocsHelpLink,
-  FlexRow,
-  Text,
+  PanelHeader,
   ToolbarIconButton,
   Popover,
-  ScrollArea,
-  SPACING,
-  getSpacingPx
+  ScrollArea
 } from "../../ui_primitives";
 import type { DocsTopic } from "../../../config/docsLinks";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
@@ -34,6 +31,8 @@ interface ChatPanelHeaderProps {
   threadId?: string | null;
   /** Optional label shown on the left of the header. */
   title?: React.ReactNode;
+  /** Short explanation shown when the title is hovered. */
+  description?: string;
   /** Docs page the help icon points at. Defaults to the agents guide. */
   docsTopic?: DocsTopic;
   /** Name the help icon's tooltip uses. */
@@ -52,6 +51,7 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
   onSelectThread,
   threadId,
   title,
+  description,
   docsTopic = "agents",
   docsLabel = i18n.t("editor:chat.docsLabel", { defaultValue: "Chat & agents" }),
   projectId
@@ -140,44 +140,31 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
   }, [openTab, navigate, selectedThreadId]);
 
   return (
-    <FlexRow
-      align="center"
-      justify="space-between"
-      sx={{
-        flexShrink: 0,
-        px: getSpacingPx(SPACING.sm),
-        py: getSpacingPx(SPACING.xs),
-        borderBottom: 1,
-        borderColor: "divider"
-      }}
+    <PanelHeader
+      title={title}
+      description={description}
+      actions={
+        <>
+          <ToolbarIconButton
+            onClick={onNewChat}
+            tooltip={t("editor:chat.newChat", { defaultValue: "New chat" })}
+            icon={<AddIcon fontSize="small" />}
+          />
+          <ToolbarIconButton
+            ref={threadsAnchorRef}
+            onClick={() => setThreadsOpen(true)}
+            tooltip={t("editor:chat.conversations", { defaultValue: "Conversations" })}
+            icon={<ForumOutlinedIcon fontSize="small" />}
+          />
+          <ToolbarIconButton
+            onClick={handleOpenAsTab}
+            tooltip={t("editor:chat.openInTab", { defaultValue: "Open in a workspace tab" })}
+            icon={<OpenInNewIcon fontSize="small" />}
+          />
+          <DocsHelpLink topic={docsTopic} label={docsLabel} />
+        </>
+      }
     >
-      {title ? (
-        <Text size="small" color="secondary" sx={{ pl: SPACING.micro }}>
-          {title}
-        </Text>
-      ) : (
-        <span />
-      )}
-      <FlexRow align="center" gap={SPACING.micro}>
-        <ToolbarIconButton
-          onClick={onNewChat}
-          tooltip={t("editor:chat.newChat", { defaultValue: "New chat" })}
-          icon={<AddIcon fontSize="small" />}
-        />
-        <ToolbarIconButton
-          ref={threadsAnchorRef}
-          onClick={() => setThreadsOpen(true)}
-          tooltip={t("editor:chat.conversations", { defaultValue: "Conversations" })}
-          icon={<ForumOutlinedIcon fontSize="small" />}
-        />
-        <ToolbarIconButton
-          onClick={handleOpenAsTab}
-          tooltip={t("editor:chat.openInTab", { defaultValue: "Open in a workspace tab" })}
-          icon={<OpenInNewIcon fontSize="small" />}
-        />
-        <DocsHelpLink topic={docsTopic} label={docsLabel} />
-      </FlexRow>
-
       <Popover
         anchorEl={threadsAnchorRef.current}
         open={threadsOpen}
@@ -196,7 +183,7 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
           />
         </ScrollArea>
       </Popover>
-    </FlexRow>
+    </PanelHeader>
   );
 };
 

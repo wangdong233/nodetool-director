@@ -2,6 +2,11 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import { useWorkflowActions } from "../useWorkflowActions";
 import { Workflow } from "../../stores/ApiTypes";
 import * as ReactRouterDom from "react-router-dom";
+import { openPageTab } from "../../components/workspace/openPageTab";
+
+jest.mock("../../components/workspace/openPageTab", () => ({
+  openPageTab: jest.fn()
+}));
 
 const mockCreateNewWorkflow = jest.fn();
 const mockCreateWorkflow = jest.fn();
@@ -171,12 +176,22 @@ describe("useWorkflowActions", () => {
       );
     });
 
-    it("opens a new workflow in view mode after creation", async () => {
+    it("navigates to the workspace after creation", async () => {
       const { result } = renderHook(() => useWorkflowActions());
 
       await result.current.handleExampleClick(mockWorkflow);
 
       expect(mockNavigate).toHaveBeenCalledWith("/workspace");
+    });
+
+    it("clears loading state after success so the still-mounted page stays clickable", async () => {
+      const { result } = renderHook(() => useWorkflowActions());
+
+      await act(async () => {
+        await result.current.handleExampleClick(mockWorkflow);
+      });
+
+      expect(result.current.loadingExampleId).toBeNull();
     });
 
     it("clears loading state on error", async () => {
@@ -259,12 +274,13 @@ describe("useWorkflowActions", () => {
   });
 
   describe("handleViewAllTemplates", () => {
-    it("navigates to the examples page", () => {
+    it("opens the examples page tab", () => {
       const { result } = renderHook(() => useWorkflowActions());
 
       result.current.handleViewAllTemplates();
 
-      expect(mockNavigate).toHaveBeenCalledWith("/examples");
+      expect(openPageTab).toHaveBeenCalledWith("examples");
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

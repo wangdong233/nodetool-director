@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ShotStatus } from "@nodetool-ai/protocol";
+import { productionRequirement, type ShotStatus } from "@nodetool-ai/protocol";
 import { storyboards } from "@nodetool-ai/protocol/api-schemas";
 import { FrontendToolRegistry } from "../frontendTools";
 import { getStoryboardAgentHandler } from "../../../components/storyboard/storyboardAgentBridge";
@@ -92,6 +92,8 @@ const screenplayShotParam = z
     slug: z.string().optional().describe("Short human label for the shot."),
     camera: cameraParam.optional(),
     motion: z.string().optional(),
+    graphics: storyboards.storyboardShotGraphics.optional(),
+    production: productionRequirement.optional(),
     dialogue: z.string().optional(),
     narration: z.string().optional(),
     notes: z.string().optional(),
@@ -148,6 +150,7 @@ const screenplayParam = z
       ),
     narration: z.string().optional(),
     musicPrompt: z.string().optional(),
+    motionDesign: storyboards.storyboardMotionDesign.optional(),
     entityIds: z.array(z.string()).optional()
   })
   .passthrough();
@@ -185,7 +188,7 @@ const shotStatusEnum = z.enum([
 FrontendToolRegistry.register({
   name: "ui_storyboard_get_state",
   description:
-    "Read the specified storyboard: title, brief, style, genre, setup stage, aspect ratio, the entity ids cast on the board, the scenes with the shots under each, whether a screenplay is loaded, the selected shot, and every shot with its index, slug, action, camera, motion, duration, scene, dialogue, status, how many stills and takes it holds, and whether its selected still or clip is stale. Call this first to discover the shot and scene ids the other tools need.",
+    "Read the specified storyboard: title, brief, style, genre, setup stage, aspect ratio, entity ids, scenes, whole-board motionDesign, the selected shot, and every shot with its index, slug, action, camera, physical motion, graphics intent, duration, scene, dialogue, status, media counts and staleness. Call this first to discover the shot and scene ids the other tools need.",
   parameters: z.object({ storyboard_id: storyboardIdParam }),
   async execute({ storyboard_id }) {
     const snapshot = getStoryboardAgentHandler(storyboard_id).getSnapshot();
@@ -255,13 +258,15 @@ FrontendToolRegistry.register({
 FrontendToolRegistry.register({
   name: "ui_storyboard_add_shot",
   description:
-    "Add a new shot to the specified storyboard. `action` is the concrete visual (required). `slug` is the shot's short title, e.g. 'Lighthouse at dusk' — give every shot one. Optionally set `camera`, `motion`, `durationSeconds`, and where it lands: `afterShotId` inserts it directly after that shot in that shot's scene (the scene-safe way), `index` puts it at a board position. The shot starts in the 'planned' status.",
+    "Add a new shot to the specified storyboard. `action` is the concrete visual (required). `slug` is the shot's short title, e.g. 'Lighthouse at dusk' — give every shot one. Optionally set `camera`, physical `motion`, semantic `graphics` (exact text/assets plus design direction), `durationSeconds`, and where it lands: `afterShotId` inserts it directly after that shot in that shot's scene (the scene-safe way), `index` puts it at a board position. The shot starts in the 'planned' status.",
   parameters: z.object({
     storyboard_id: storyboardIdParam,
     action: z.string().min(1),
     slug: z.string().optional(),
     camera: cameraParam.optional(),
     motion: z.string().optional(),
+    graphics: storyboards.storyboardShotGraphics.optional(),
+    production: productionRequirement.optional(),
     durationSeconds: z.number().optional(),
     index: z.number().optional(),
     afterShotId: targetParam
@@ -276,6 +281,8 @@ FrontendToolRegistry.register({
     slug,
     camera,
     motion,
+    graphics,
+    production,
     durationSeconds,
     index,
     afterShotId
@@ -285,6 +292,8 @@ FrontendToolRegistry.register({
       slug,
       camera,
       motion,
+      graphics,
+      production,
       durationSeconds,
       index,
       afterShotId
@@ -302,7 +311,7 @@ FrontendToolRegistry.register({
 FrontendToolRegistry.register({
   name: "ui_storyboard_update_shot",
   description:
-    "Edit an existing shot's `slug` (its short title), `action`, `camera` (including its `equipment` rig), `motion`, `dialogue`, `notes`, `durationSeconds` (which pins the shot to that length), `durationSource`, or `status`. Omit a field to leave it unchanged. A shot's scene is not a field here — move it with ui_storyboard_move_shot.",
+    "Edit an existing shot's `slug` (its short title), `action`, `camera` (including its `equipment` rig), physical `motion`, semantic `graphics`, `dialogue`, `notes`, `durationSeconds` (which pins the shot to that length), `durationSource`, or `status`. Pass `graphics: null` to clear the graphics intent; omit a field to leave it unchanged. A shot's scene is not a field here — move it with ui_storyboard_move_shot.",
   parameters: z.object({
     storyboard_id: storyboardIdParam,
     target: targetParam,
@@ -310,6 +319,8 @@ FrontendToolRegistry.register({
     slug: z.string().optional(),
     camera: cameraParam.optional(),
     motion: z.string().optional(),
+    graphics: storyboards.storyboardShotGraphics.nullable().optional(),
+    production: productionRequirement.nullable().optional(),
     dialogue: z
       .string()
       .optional()
@@ -336,6 +347,8 @@ FrontendToolRegistry.register({
     slug,
     camera,
     motion,
+    graphics,
+    production,
     dialogue,
     notes,
     durationSeconds,
@@ -347,6 +360,8 @@ FrontendToolRegistry.register({
       slug,
       camera,
       motion,
+      graphics,
+      production,
       dialogue,
       notes,
       durationSeconds,
@@ -447,7 +462,7 @@ FrontendToolRegistry.register({
 FrontendToolRegistry.register({
   name: "ui_storyboard_assemble_timeline",
   description:
-    "Create a timeline from the specified storyboard's current clips and open it in the timeline editor. Shot clips are laid end to end in order; the screenplay's narration and music become draft audio clips ready to generate. When the board links a script, the words are cut in with the picture instead: each shot runs as long as the takes it covers, every voiced line becomes a voiceover clip inside its shot, and the draft narration clip is dropped (lines that got no clip are returned in skippedLineIds). Shots without a current clip are skipped (returned in skippedShotIds). If the board already links to a sequence, this rebuilds and replaces its storyboard-owned clips while preserving unrelated tracks and clips. Edits to storyboard-owned timeline clips can be replaced by that rebuild.",
+    "Create a timeline from the specified storyboard's current clips or stills and open it in the timeline editor. Shot clips are laid end to end in order; the screenplay's narration and music become draft audio clips ready to generate. When the board links a script, the words are cut in with the picture instead: each shot runs as long as the takes it covers, every voiced line becomes a voiceover clip inside its shot, and the draft narration clip is dropped (lines that got no clip are returned in skippedLineIds). Shots without a current clip use their selected still as an image clip. Shots without either are skipped (returned in skippedShotIds). If the board already links to a sequence, this rebuilds and replaces its storyboard-owned clips while preserving unrelated tracks and clips. Edits to storyboard-owned timeline clips can be replaced by that rebuild.",
   parameters: z.object({ storyboard_id: storyboardIdParam }),
   async execute({ storyboard_id }) {
     const result =
@@ -631,7 +646,7 @@ FrontendToolRegistry.register({
 FrontendToolRegistry.register({
   name: "ui_storyboard_direct",
   description:
-    "Run the Director over the specified storyboard's brief, genre and style, and load the screenplay it writes. Pass `redirect: true` to re-run over a screenplay that is already there: shots the revision keeps hold their ids, their rendered stills and clips, and their status, so a re-direct is a rewrite and not a reset. Without `redirect` a board that already has a screenplay is refused. Write the brief with ui_storyboard_set_setup first — directing without one fails.",
+    "Run the Director over the specified storyboard's brief, genre and style, and load the screenplay it writes. Pass `redirect: true` to re-run over a screenplay that is already there: shots the revision keeps hold their ids, their rendered stills and clips, and their status, so a re-direct is a rewrite and not a reset. Without `redirect` a board that already has a screenplay is refused. Write the brief with ui_storyboard_set_setup first — directing without one fails. One Director run writes a board at a time: a call while the setup flow or another call is directing it is refused, and the creator can cancel a run from the flow.",
   parameters: z.object({
     storyboard_id: storyboardIdParam,
     redirect: z

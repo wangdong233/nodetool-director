@@ -11,6 +11,13 @@
 # scripts/make-game-style-tiles.mjs and served as `package://` URIs.
 !nodetool/assets/nodetool-base/styles/**
 !nodetool/assets/nodetool-base/templates/**
+
+# Shipped example games include PNG sprites, backgrounds, and color grades.
+!nodetool/assets/nodetool-base/games/**/*.png
+
+# …and the example timelines' rendered videos and posters, written by
+# scripts/render-example-timeline.mjs and served as `package://` URIs.
+!nodetool/assets/nodetool-base/timelines/**
 %Y-%m-%d-%H-%M-%S.txt
 \[object\ Object\]/
 
@@ -28,3 +35,5 @@ src.txt
 sub/
 test.txt
 top/
+# Films play from media.nodetool.ai and are not committed or bundled.
+nodetool/assets/nodetool-base/storyboards/*/*.mp4

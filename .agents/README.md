@@ -7,12 +7,10 @@ without being told how.
 
 | Path | What it does |
 | :--- | :--- |
-| `hooks/session-start.sh` | Installs dependencies when a Claude Code **web** session starts, using the flags that survive sandboxed/proxied containers. No-ops locally and on repeat runs. |
-| `settings.json` | Registers the hook. |
 | `commands/serve.md` | `/serve` — start the API on :7777 in the background and poll until it answers. |
 | `commands/verify.md` | `/verify` — typecheck, lint, test, and fix what breaks. |
 | `commands/onboard.md` | `/onboard <area>` — locate the owning workspace, entry point, nearest example, and the pitfalls that apply. |
-| `skills/` | Repository engineering skills, plus a symlink per NodeTool skill into `packages/system-skills/`. The `.agents` symlink exposes the same files to Codex. |
+| `skills/` | Repository engineering skills, plus a symlink per NodeTool skill into `packages/system-skills/`. The `.claude` symlink exposes the same files to Claude Code. |
 | `skills/<name>/agents/openai.yaml` | Codex's invocation policy, where a skill is typed rather than reached for. |
 
 ## Engineering skills
@@ -62,7 +60,7 @@ All are model-invoked and typeable.
 
 | Skill | Surface |
 | :--- | :--- |
-| `/storyboard-core` | Storyboards, entity casting, rendering, timeline assembly. Routes to `/ugc-video`, `/product-commercial`, `/script-video`, `/short-film`, `/video-clone`, `/launch-kit`, `/video-workflow` |
+| `/storyboard-core` | Storyboards, entity casting, rendering, timeline assembly. Routes to `/ugc-video`, `/product-commercial`, `/script-video`, `/short-film`, `/video-clone`, `/launch-kit`, `/video-workflow`, `/motion-ad` |
 | `/nodetool-workflow-builder` | Workflow graphs, and the routing table for when a graph is the wrong document |
 | `/nodetool-app-builder` | Mini apps: operations, widgets, bindings, variables, resources |
 | `/nodetool-video-post` | Repairs on delivered footage, and the candidate review protocol |
@@ -103,8 +101,8 @@ replacing them wholesale.
 
 ## Codex reads the same skills
 
-Codex scans `.agents/skills` at the repository root, and `.agents` is a symlink
-to `.claude`, so both agents read one tree — including the NodeTool skills,
+Codex scans `.agents/skills` at the repository root, and `.claude` is a symlink
+to `.agents`, so both agents read one tree — including the NodeTool skills,
 which are themselves symlinks into `packages/system-skills/`. Codex follows a
 symlinked skill folder to its target, so the two hops resolve.
 
@@ -120,8 +118,8 @@ policy:
 ```
 
 Without it Codex reaches for a skill the repository says to type. The two are
-kept in step by `npm run check:agents-docs`, which also fails on a `.agents`
-that stops pointing at `.claude` and on a skill Codex would silently skip. That
+kept in step by `npm run check:agents-docs`, which also fails on a `.claude`
+that stops pointing at `.agents` and on a skill Codex would silently skip. That
 file also carries `interface` (display name, icon, colour) and `dependencies`
 (MCP servers a skill needs); this repository sets neither.
 
@@ -157,20 +155,7 @@ infer improved task success from a smaller prompt alone.
 ./start.sh doctor   # what's set up, what isn't
 ```
 
-`./start.sh` is the same path the hook prepares, so the first command in a
-session works whether or not the hook ran.
-
-## Why the hook is web-only
-
-It guards on `CLAUDE_CODE_REMOTE=true`. Web sessions get a fresh container each
-time and would otherwise start with no `node_modules`; your local checkout
-already has one and shouldn't pay an install check on every session.
-
-To make it run locally too, drop the guard at the top of `session-start.sh`.
-
-## Changing it
-
-The hook runs synchronously — the session waits for the install to finish, so
-Claude never starts a test run against a half-installed tree. For a faster
-session start at the cost of that guarantee, emit
-`{"async": true, "asyncTimeout": 600000}` as the script's first line of stdout.
+Agents set up a fresh container with `scripts/setup-agent-env.sh`, as described
+in [AGENTS.md § Prerequisites](../AGENTS.md#prerequisites). It prepares the same
+tree `./start.sh` uses. To run it automatically in Claude Code on the web, set
+it as the environment's setup script.

@@ -8,7 +8,6 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { formatFileSize } from "../../utils/formatUtils";
-import { useTranslation } from "react-i18next";
 
 export interface ImageMetadata {
   width?: number;
@@ -158,7 +157,6 @@ const ImageComparer: React.FC<ImageComparerProps> = ({
   metadataA,
   metadataB
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"horizontal" | "vertical">(initialMode);
@@ -327,7 +325,7 @@ const ImageComparer: React.FC<ImageComparerProps> = ({
 
         {/* Toggle button */}
         <ToolbarIconButton
-          tooltip={mode === "horizontal" ? t("editor:ui.switchToVertical", { defaultValue: "Switch to vertical" }) : t("editor:ui.switchToHorizontal", { defaultValue: "Switch to horizontal" })}
+          tooltip={mode === "horizontal" ? "Switch to vertical" : "Switch to horizontal"}
           icon={mode === "horizontal" ? <SwapVertIcon fontSize="small" /> : <SwapHorizIcon fontSize="small" />}
           className="toggle-button"
           onClick={toggleMode}

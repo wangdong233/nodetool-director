@@ -26,7 +26,6 @@ import {
 } from "../../hooks/useApplications";
 import { trpc, trpcClient } from "../../trpc/client";
 import {
-  createEmptyDocument,
   parseApplicationDocument,
   type AppDocument
 } from "./appData";
@@ -43,12 +42,15 @@ import {
   getPuckAgentHandler,
   hasPuckAgentHandler
 } from "./puck/puckAgentBridge";
+import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { useTranslation } from "react-i18next";
 
 interface ApplicationAppBuilderProps {
   applicationId: string;
+  onDraftChange?: (document: AppDocument) => void;
+  onSaveReady?: (save: () => Promise<string>) => void;
   /**
    * The graph the assistant's workflow tools should target. Reported whenever
    * the live operations change, including the seed, so the surface dock can
@@ -82,6 +84,8 @@ const placeholderWorkflow = (id: string, name: string): Workflow => ({
  */
 const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
   applicationId,
+  onDraftChange,
+  onSaveReady,
   onAgentWorkflowIdChange
 }) => {
   const { t } = useTranslation();
@@ -402,12 +406,7 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
 
   const document = useMemo<AppDocument | null>(() => {
     if (!application) return null;
-    return (
-      parseApplicationDocument(application.document) ??
-      // Untitled on purpose — see createEmptyDocument's caller in
-      // `capabilities/apps.ts`. The name lives on the row, not in the page.
-      createEmptyDocument()
-    );
+    return parseApplicationDocument(application.document);
   }, [application]);
 
   // The operations the canvas holds, which lead the saved row: the agent binds
@@ -477,49 +476,102 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
     [application?.name, applicationId, workflow]
   );
 
+  const saveInFlightRef = useRef<Promise<string> | null>(null);
   const handleSave = useCallback(
-    async (next: AppDocument) => {
-      if (!application) return;
-      try {
-        const saved = await updateApplication.mutateAsync({
-          id: application.id,
-          // Spread into fresh literals: the router's schema types `ui` as an
-          // open record, which an interface does not satisfy directly.
-          document: { ...next, ui: { ...next.ui } },
-          // Compare-and-swap against the revision this canvas is based on —
-          // the ref, not the cached row: an external merge rolls the ref
-          // forward without refetching the query, and saving against the
-          // stale row revision would fail its CAS every time.
-          baseUpdatedAt: revisionRef.current ?? application.updatedAt
-        });
-        setConflict(null);
-        revisionRef.current = saved.updatedAt;
-        lastSyncedRef.current = JSON.stringify(saved.document);
-        addNotification({ type: "success", content: tAttr("App saved") });
-      } catch (err) {
-        if (isConcurrencyConflict(err)) {
-          setConflict("save-rejected");
+    (next: AppDocument): Promise<string> => {
+      if (saveInFlightRef.current) {
+        return saveInFlightRef.current;
+      }
+      const pending = (async (): Promise<string> => {
+        if (!application) {
+          throw new Error("App is not loaded");
+        }
+        useDocumentDraftStore
+          .getState()
+          .setSaving(`application:${applicationId}`, true);
+        try {
+          const saved = await updateApplication.mutateAsync({
+            id: application.id,
+            // Spread into fresh literals: the router's schema types `ui` as an
+            // open record, which an interface does not satisfy directly.
+            document: { ...next, ui: { ...next.ui } },
+            // Compare-and-swap against the revision this canvas is based on —
+            // the ref, not the cached row: an external merge rolls the ref
+            // forward without refetching the query, and saving against the
+            // stale row revision would fail its CAS every time.
+            baseUpdatedAt: revisionRef.current ?? application.updatedAt
+          });
+          setConflict(null);
+          revisionRef.current = saved.updatedAt;
+          lastSyncedRef.current = JSON.stringify(saved.document);
+          addNotification({ type: "success", content: "App saved" });
+          return saved.updatedAt;
+        } catch (err) {
+          if (isConcurrencyConflict(err)) {
+            setConflict("save-rejected");
+            addNotification({
+              type: "error",
+              alert: true,
+              content: `"${application.name}" changed elsewhere — your edits were not saved.`
+            });
+            throw err;
+          }
           addNotification({
             type: "error",
             alert: true,
-            content: tAttrTpl(
-              "changedElsewhereNotSaved",
-              '"{{name}}" changed elsewhere — your edits were not saved.',
-              { name: application.name }
-            )
+            content: err instanceof Error ? err.message : "Failed to save app"
           });
-          return;
+          throw err;
+        } finally {
+          useDocumentDraftStore
+            .getState()
+            .setSaving(`application:${applicationId}`, false);
+          useDocumentDraftStore
+            .getState()
+            .setDirty(`application:${applicationId}`, isCanvasDirty());
         }
-        addNotification({
-          type: "error",
-          alert: true,
-          content:
-            err instanceof Error ? err.message : tAttr("Failed to save app")
-        });
-      }
+      })().finally(() => {
+        saveInFlightRef.current = null;
+      });
+      saveInFlightRef.current = pending;
+      return pending;
     },
-    [addNotification, application, updateApplication]
+    [
+      addNotification,
+      application,
+      applicationId,
+      isCanvasDirty,
+      updateApplication
+    ]
   );
+
+  const handleDraftChange = useCallback(
+    (next: AppDocument): void => {
+      const base = lastSyncedRef.current;
+      useDocumentDraftStore
+        .getState()
+        .setDirty(
+          `application:${applicationId}`,
+          base !== null &&
+            appDocumentFingerprint(next) !==
+              appDocumentFingerprint(JSON.parse(base))
+        );
+      onDraftChange?.(next);
+    },
+    [applicationId, onDraftChange]
+  );
+
+  useEffect(() => {
+    onSaveReady?.(async () => {
+      if (saveInFlightRef.current) {
+        await saveInFlightRef.current;
+      }
+      if (!hasPuckAgentHandler(applicationId)) {
+        throw new Error("App editor is not ready");
+      }
+      return handleSave(getPuckAgentHandler(applicationId).document());
+    });
+  }, [applicationId, handleSave, onSaveReady]);
 
   if (isLoading) {
     return (
@@ -537,8 +589,8 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
     return (
       <EmptyState
         variant="error"
-        title={tAttr("Could not load app")}
-        description={error?.message ?? tAttr("The app may have been deleted.")}
+        title="Could not load app"
+        description={error?.message ?? (application && !document ? "The Application document is invalid or uses an unsupported version." : "The app may have been deleted.")}
       />
     );
   }
@@ -553,7 +605,11 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
       agentWorkflowId={workflow?.id}
       onOperationsChange={setLiveOperations}
       projectId={application.projectId}
-      onSave={(next) => void handleSave(next)}
+      onSave={(next) => {
+        void handleSave(next).catch(() => undefined);
+      }}
+      onDraftChange={handleDraftChange}
+      saving={updateApplication.isPending}
       banner={
         conflict ? (
           <FlexColumn sx={{ px: SPACING.lg, py: SPACING.md }}>

@@ -13,6 +13,7 @@ import {
   Text,
   Z_INDEX
 } from "../ui_primitives";
+import { useCanvasSideInsets } from "../../hooks/useCanvasSideInsets";
 
 interface FirstWorkflowReadiness {
   readonly input: boolean;
@@ -57,7 +58,7 @@ const FirstWorkflowGuide = ({
   onClose
 }: FirstWorkflowGuideProps) => {
   const { t } = useTranslation();
-  if (hasSavedWorkflows !== false) {
+  const insets = useCanvasSideInsets();  if (hasSavedWorkflows !== false) {
     return null;
   }
 
@@ -70,7 +71,8 @@ const FirstWorkflowGuide = ({
       sx={{
         position: "absolute",
         top: SPACING.xxl,
-        left: "50%",
+        // Center in the canvas area the side panels leave visible.
+        left: `calc(${insets.left}px + (100% - ${insets.left + insets.right}px) / 2)`,
         transform: "translateX(-50%)",
         zIndex: Z_INDEX.overlay
       }}

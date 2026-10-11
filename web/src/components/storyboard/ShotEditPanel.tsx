@@ -1,30 +1,27 @@
 /**
  * ShotEditPanel
  *
- * `Edit your shot` — the editor the board opens **directly underneath the card
- * being edited**, spanning the grid's full width, rather than over the board in
- * a dialog: the shot stays on screen while its fields are edited. The viewer and
- * the takes gallery sit side by side, the § 7.7.2 table row and the scene header
- * row sit under them, and the linked script's lines sit under that.
+ * The shot editor the board opens in an overlay over itself. A header bar
+ * carries the way back, the step to the previous and next shot, and the save
+ * actions. Under it, the form sits in a left column (description, cast,
+ * dialogue, shot details, an Advanced fold for notes and graphics, script
+ * lines) and the viewer with
+ * the takes gallery fills the right. Each column scrolls on its own.
  *
  * The two rows are a **draft**. Nothing typed here reaches the board until
  * `Save`, which writes the whole shot in one `updateShot` — one store update,
  * one undo step, so a creator who changes five fields undoes five fields
- * together rather than one keystroke at a time. `Regenerate` saves and then
- * renders from what was saved, never from what is on screen. Closing dirty
- * asks.
+ * together rather than one keystroke at a time. `Regenerate` saves, then asks
+ * for the still model and renders from what was saved, never from what is on
+ * screen. Closing dirty asks.
  *
  * What is *not* draft state, because it is already a committed act: choosing a
  * version, deleting one, flipping, and uploading. Those write straight through,
  * as they do on the board.
- *
- * The scene header row is the one part Save cannot fold in. Moving a shot
- * between scenes (`moveShot`) and editing a scene's lighting (`updateScene`)
- * are board-level operations with their own checkpoints, so a save that
- * changes the header writes those first and then the shot. The § 7.7.2 fields
- * — what criterion 14 measures — are always the single `updateShot`.
  */
 
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -33,41 +30,50 @@ import React, {
   useRef,
   useState
 } from "react";
+import { shotRenderMode } from "@nodetool-ai/protocol";
 import type { Entity, Scene, Shot } from "@nodetool-ai/protocol";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { formatUsd } from "@nodetool-ai/model-pricing";
 
 import {
   Box,
+  Card,
   Caption,
-  Chip,
-  CloseButton,
+  CollapsibleSection,
   Dialog,
-  Divider,
   EditorButton,
   EditorMenu,
   EditorMenuItem,
   FlexColumn,
   FlexRow,
   Label,
-  Panel,
+  MenuItemPrimitive,
   ScrollArea,
-  SelectField,
+  TabGroup,
   Text,
   TextInput,
   ToolbarIconButton,
-  SPACING,
-  TYPOGRAPHY
+  SPACING
 } from "../ui_primitives";
+import ShotGraphicsEditor from "./ShotGraphicsEditor";
 import ShotEditViewer from "./ShotEditViewer";
-import ShotEditTable from "./ShotEditTable";
+import ShotEditTable, { ShotAdvancedFields } from "./ShotEditTable";
+import ShotEntitiesField from "./ShotEntitiesField";
 import ShotTakesGallery from "./ShotTakesGallery";
+import ShotStillModifyPanel from "./ShotStillModifyPanel";
 import ShotScriptPanel from "./ShotScriptPanel";
 import ShotCostLine from "./ShotCostLine";
+import ShotPromptPreview from "./ShotPromptPreview";
+import ShotRenderDialog from "./ShotRenderDialog";
 import {
   changedDraftKeys,
   conflictingDraftKeys,
   draftFromShot,
   isDraftDirty,
+  isDurationInvalid,
   savedShot,
   shotPatchFromChangedDraft,
   shotPatchFromDraft,
@@ -88,11 +94,12 @@ import {
 } from "../../hooks/storyboard/useShotDuration";
 import { useShotCostEstimate } from "../../hooks/storyboard/useShotCostEstimate";
 import { useEntities } from "../../serverState/useEntities";
-import { getEntityChipSx, getEntityKindDotSx } from "../entities/entityKind";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { requestDocumentFocus } from "../../stores/DocumentFocusStore";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
+import { useNotificationStore } from "../../stores/NotificationStore";
+import { canTakeFocus } from "../../utils/browser";
+import { getErrorMessage } from "../../utils/errorHandling";
+import { isShotGenerating } from "./ShotStatusPill";
 
 interface ShotEditPanelProps {
   boardId: string;
@@ -108,8 +115,6 @@ interface ShotEditPanelProps {
   /** Opens with the dialogue cell focused, for the card's dialogue icon. */
   focusDialogue?: boolean;
   readOnly?: boolean;
-  /** Opens the board's settings form, where the aspect ratio lives. */
-  onOpenBoardSettings?: () => void;
   /** A board-level transition that must pass through this panel's draft guard. */
   leaveRequest?: { id: number; shotId?: string } | null;
   onLeaveRequestComplete?: (result: "saved" | "discarded" | "cancelled") => void;
@@ -132,22 +137,79 @@ const PLACEHOLDER_SHOT: Shot = {
   status: "planned"
 };
 
-/** The two columns: the viewer takes the room, the takes gallery a sidebar. */
-const columnsSx = {
+/** Below this width the two columns stack and the body scrolls as one. */
+const STACKED = "@container (max-width: 56rem)";
+
+/** Back on the left, the shot and its steppers centred, actions right. */
+const headerSx = {
   display: "grid",
-  gridTemplateColumns: "minmax(0, 2fr) minmax(14rem, 1fr)",
-  gap: SPACING.xl,
-  minHeight: "22rem",
-  "@container (max-width: 44rem)": {
+  gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+  alignItems: "center",
+  gap: SPACING.md,
+  px: SPACING.xl,
+  py: SPACING.md,
+  borderBottom: "1px solid",
+  borderColor: "divider",
+  [STACKED]: {
     gridTemplateColumns: "minmax(0, 1fr)",
-    minHeight: 0
+    justifyItems: "start"
   }
 } as const;
 
+/** The form column takes a fixed width, the viewer the rest. */
+const columnsSx = {
+  display: "grid",
+  gridTemplateColumns: "minmax(20rem, 28rem) minmax(0, 1fr)",
+  height: "100%",
+  minHeight: 0,
+  [STACKED]: {
+    gridTemplateColumns: "minmax(0, 1fr)",
+    height: "auto"
+  }
+} as const;
+
+const formColumnSx = {
+  height: "100%",
+  p: SPACING.xl,
+  borderRight: "1px solid",
+  borderColor: "divider",
+  [STACKED]: { height: "auto", borderRight: "none" }
+} as const;
+
+/** A fixed-height column: the stage gives way to the tools under it. */
+const viewerColumnSx = {
+  height: "100%",
+  minHeight: 0,
+  p: SPACING.xl,
+  [STACKED]: { height: "auto" }
+} as const;
+
+/** Matches the form's `Shot details` heading. */
+const sectionTitleSx = {
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  fontWeight: 500,
+  color: "text.disabled"
+} as const;
+
+/** The stage takes what the tools leave, down to a usable floor. */
+const viewerSx = {
+  flex: "1 1 0",
+  minHeight: "14rem",
+  [STACKED]: { flex: "none", height: "24rem" }
+} as const;
+
+/** The takes and the change tools scroll on their own, under the stage. */
+const toolsSx = {
+  flex: "0 1 auto",
+  minHeight: 0,
+  [STACKED]: { overflow: "visible" }
+} as const;
+
 const DRAFT_LABELS: Record<ShotDraftKey, string> = {
-  slug: "Shot title",
-  sceneId: "Slugline",
-  lighting: "Scene lighting",
+  slug: i18n.t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" }),
+  sceneId: i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
+  lighting: i18n.t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" }),
   action: "Description",
   dialogue: "Dialogue",
   durationSeconds: "Estimated running time",
@@ -158,31 +220,47 @@ const DRAFT_LABELS: Record<ShotDraftKey, string> = {
   equipment: "Equipment",
   lens: "Focal length",
   notes: "Notes",
-  renderMode: "Render mode"
+  renderMode: i18n.t("storyboard:attrs.renderMode", { defaultValue: "Render mode" }),
+  graphics: "Graphics",
+  motion: "Shot motion",
+  endState: "End",
+  sound: "Sound"
 };
 
-const DRAFT_LABEL_KEYS: Record<ShotDraftKey, string> = {
-  slug: "storyboard:attrs.shotTitle",
-  sceneId: "storyboard:attrs.slugline",
-  lighting: "storyboard:attrs.sceneLighting",
-  action: "storyboard:attrs.description",
-  dialogue: "storyboard:attrs.dialogue",
-  durationSeconds: "storyboard:attrs.estimatedRunningTime",
-  durationSource: "storyboard:attrs.durationSource",
-  framing: "storyboard:attrs.size",
-  angle: "storyboard:attrs.perspective",
-  movement: "storyboard:attrs.movement",
-  equipment: "storyboard:attrs.equipment",
-  lens: "storyboard:attrs.focalLength",
-  notes: "storyboard:attrs.notes",
-  renderMode: "storyboard:attrs.renderMode"
+/** A render that could not start: the hook records the ones it knows about. */
+const reportRenderFailure = (error: unknown): void => {
+  useNotificationStore.getState().addNotification({
+    type: "error",
+    alert: true,
+    dismissable: true,
+    content: `Render did not start. ${getErrorMessage(error, "Try again.")}`
+  });
 };
 
-const shotNumberSx = {
-  ...TYPOGRAPHY.mono.caption,
-  color: "text.secondary",
-  flexShrink: 0
-} as const;
+/** A draft value as the conflict dialog shows it: names, not ids or objects. */
+const formatDraftValue = (
+  key: ShotDraftKey,
+  value: ShotDraft[ShotDraftKey],
+  sceneOptions: { value: string; label: string }[]
+): string => {
+  if (value === undefined || value === null || value === "") {
+    return i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" });
+  }
+  if (key === "sceneId") {
+    return sceneOptions.find((option) => option.value === value)?.label ?? "Not set";
+  }
+  if (typeof value === "object") {
+    return "Edited graphics";
+  }
+  return String(value);
+};
+
+type SideTab = "takes" | "change";
+
+const SIDE_TABS: { value: SideTab; label: string }[] = [
+  { value: "takes", label: "Takes" },
+  { value: "change", label: "Change still" }
+];
 
 const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   boardId,
@@ -191,7 +269,6 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   onShotChange,
   focusDialogue,
   readOnly,
-  onOpenBoardSettings,
   leaveRequest,
   onLeaveRequestComplete
 }) => {
@@ -204,8 +281,12 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     imageEditor?: boolean;
   } | null>(null);
   const [saveConflicts, setSaveConflicts] = useState<ShotDraftKey[]>([]);
+  // The render a save conflict interrupted, run once the conflict is resolved.
+  const conflictedRender = useRef<"still" | "clip" | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const imageLeaveResolver = useRef<((allowed: boolean) => void) | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [sideTab, setSideTab] = useState<SideTab>("takes");
 
   const shots = useStoryboardStore(
     (state) => state.boards[boardId]?.shots ?? EMPTY_SHOTS
@@ -213,22 +294,19 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   const scenes = useStoryboardStore(
     (state) => state.boards[boardId]?.screenplay?.scenes ?? EMPTY_SCENES
   );
-  const aspectRatio = useStoryboardStore(
-    (state) => state.boards[boardId]?.aspectRatio ?? "16:9"
-  );
   const scriptId = useStoryboardStore(
     (state) => state.boards[boardId]?.screenplay?.script_id ?? null
   );
   const boardEntityIds = useStoryboardStore(
     (state) => state.boards[boardId]?.entityIds ?? EMPTY_IDS
   );
+  const boardStyle = useStoryboardStore(
+    (state) => state.boards[boardId]?.style ?? ""
+  );
   const applyShotDraft = useStoryboardStore((state) => state.applyShotDraft);
   const nudgeShot = useStoryboardStore((state) => state.nudgeShot);
-  const toggleShotEntity = useStoryboardStore(
-    (state) => state.toggleShotEntity
-  );
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
-  const { generateKeyframe, generateClip } = useGenerateShot();
+  const { generateClip } = useGenerateShot();
   const { data: allEntities } = useEntities();
 
   const shot = shots.find((s) => s.id === shotId);
@@ -279,6 +357,20 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     };
   }, [allEntities, boardEntityIds, shot]);
 
+  const castNames = useMemo(
+    () =>
+      boardEntities
+        .filter((entity) => appliedIds.includes(entity.id))
+        .map((entity) => entity.name || "Untitled"),
+    [boardEntities, appliedIds]
+  );
+  // The prompt preview reads the scene the draft points at, lit the way the
+  // draft says: both are saved with the shot.
+  const promptScene = useMemo((): Scene | null => {
+    const target = scenes.find((s) => s.id === draft?.sceneId) ?? null;
+    return target && draft ? { ...target, lighting: draft.lighting } : target;
+  }, [scenes, draft]);
+
   const ordered = useMemo(
     () => sceneOrder(shots, scenes).flatMap((group) => group.shots),
     [shots, scenes]
@@ -295,28 +387,6 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         label: group.scene?.slugline || `SCENE ${i + 1}`
       })),
     [shots, scenes]
-  );
-
-  /**
-   * Moving to another scene brings that scene's lighting note with it — the
-   * note belongs to the scene, so leaving the old one in the field would save
-   * it onto the scene the shot just joined.
-   */
-  const handleSceneChange = useCallback(
-    (value: string) => {
-      const nextId = value === "" ? null : value;
-      setDraft((current) =>
-        current
-          ? {
-              ...current,
-              sceneId: nextId,
-              lighting:
-                scenes.find((s) => s.id === nextId)?.lighting ?? ""
-            }
-          : current
-      );
-    },
-    [scenes]
   );
 
   /**
@@ -366,16 +436,37 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     boardId
   ]);
 
+  const durationInvalid = !!draft && isDurationInvalid(draft.durationSeconds);
+
   const handleSave = useCallback(() => {
+    if (durationInvalid) {
+      return;
+    }
+    conflictedRender.current = null;
     commit();
-  }, [commit]);
+  }, [commit, durationInvalid]);
+
+  // A still render asks for its model first, opened on the shot as saved.
+  const [stillRenderShot, setStillRenderShot] = useState<Shot | null>(null);
+  const closeStillRender = useCallback(() => setStillRenderShot(null), []);
+  const startRender = useCallback(
+    (kind: "still" | "clip", saved: Shot) => {
+      if (kind === "still") {
+        setStillRenderShot(saved);
+        return;
+      }
+      void generateClip(boardId, saved).catch(reportRenderFailure);
+    },
+    [generateClip, boardId]
+  );
 
   const handleRegenerate = useCallback(() => {
     const saved = commit();
+    conflictedRender.current = saved ? null : "still";
     if (saved) {
-      void generateKeyframe(boardId, saved).catch(() => undefined);
+      startRender("still", saved);
     }
-  }, [commit, generateKeyframe, boardId]);
+  }, [commit, startRender]);
 
   // Reordering inside a scene: the board offers it by drag, which no keyboard
   // reaches. Crossing a scene is the slugline dropdown above.
@@ -392,10 +483,11 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   const handleRenderClip = useCallback(() => {
     setMenuAnchor(null);
     const saved = commit();
+    conflictedRender.current = saved ? null : "clip";
     if (saved) {
-      void generateClip(boardId, saved).catch(() => undefined);
+      startRender("clip", saved);
     }
-  }, [commit, generateClip, boardId]);
+  }, [commit, startRender]);
 
   const completeLeave = useCallback(
     (
@@ -471,13 +563,18 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   const resolveSaveConflicts = useCallback(
     (resolution: "mine" | "current") => {
       const saved = commit(resolution);
+      const render = conflictedRender.current;
+      conflictedRender.current = null;
+      if (saved && render) {
+        startRender(render, saved);
+      }
       if (saved && pending) {
         const target = pending;
         setPending(null);
         completeLeave(target, "saved");
       }
     },
-    [commit, pending, completeLeave]
+    [commit, pending, completeLeave, startRender]
   );
 
   const requestImageEditorLeave = useCallback((): Promise<boolean> => {
@@ -511,11 +608,20 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     [ordered, position, leave]
   );
 
-  // `Cmd/Ctrl+S` saves, `Esc` closes — the panel is not a dialog, so it listens
-  // for both itself. `←`/`→` step versions and are handled by the viewer, which
+  // `Cmd/Ctrl+S` saves, `Esc` closes — the overlay is not a MUI dialog, so it
+  // listens for both itself. `←`/`→` step versions and are handled by the viewer, which
   // owns the still/clip toggle and the pager index (PRD § 7.5).
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // Every workspace tab stays mounted: a panel in a hidden tab must not
+      // answer keys meant for the active one, nor cancel an IME composition.
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        !canTakeFocus(panelRef.current)
+      ) {
+        return;
+      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         handleSave();
@@ -574,229 +680,259 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     return null;
   }
 
+  const generating = isShotGenerating(shot);
+  // What each render button spends, on the button: the cost line beside them
+  // sums both steps, and a click only pays for one.
+  const stepCost = (label: string): string => {
+    const cost = costEstimate.steps.find((step) => step.label === label)?.cost;
+    return cost ? ` · ~${formatUsd(cost)}` : "";
+  };
+  const clipNeedsStill =
+    shotRenderMode(previewShot) === "keyframe" && !shot.keyframe;
+  const shotsInScene = shots.filter(
+    (s) => (s.scene_id ?? null) === (shot.scene_id ?? null)
+  ).length;
+
   const canStep = !!onShotChange;
   const canStepBack = canStep && position > 0;
   const canStepForward =
     canStep && position >= 0 && position < ordered.length - 1;
 
+  const entityChips = (
+    <ShotEntitiesField
+      boardId={boardId}
+      shotId={shot.id}
+      boardEntities={boardEntities}
+      appliedIds={appliedIds}
+      boardEntityIds={boardEntityIds}
+      readOnly={readOnly}
+    />
+  );
+
   return (
-    <Panel
-      padding={SPACING.xl}
+    <FlexColumn
+      ref={panelRef}
+      fullHeight
       className="shot-edit-panel"
       data-testid="shot-edit-panel"
       data-shot-id={shot.id}
-      sx={{ minWidth: 0, containerType: "inline-size" }}
+      sx={{
+        minWidth: 0,
+        bgcolor: "background.default",
+        containerType: "inline-size"
+      }}
     >
-      <FlexColumn gap={SPACING.xl} sx={{ minWidth: 0 }}>
-        <FlexRow align="center" gap={SPACING.md} wrap>
-          <Text size="big">{t("storyboard:attrs.editYourShot", { defaultValue: "Edit your shot" })}</Text>
-          <Box sx={shotNumberSx}>
-            {`SH ${String(shot.index + 1).padStart(2, "0")}`}
-          </Box>
+      <Box sx={headerSx}>
+        <EditorButton
+          onClick={handleClose}
+          startIcon={<ArrowBackIcon fontSize="small" />}
+          sx={{ justifySelf: "start" }}
+        >
+          Back to storyboard
+        </EditorButton>
+
+        <FlexRow align="center" gap={SPACING.md}>
           {canStep && (
-            <>
-              <EditorButton
-                onClick={() => stepShot(-1)}
-                disabled={!canStepBack}
-                title={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
-              >{t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}</EditorButton>
-              <EditorButton
-                onClick={() => stepShot(1)}
-                disabled={!canStepForward}
-                title={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
-              >{t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}</EditorButton>
-            </>
-          )}
-          <Box sx={{ flex: 1 }} />
-          <CloseButton onClick={handleClose} />
-        </FlexRow>
-
-        <Box sx={columnsSx}>
-          <ShotEditViewer
-            boardId={boardId}
-            shot={shot}
-            readOnly={readOnly}
-            onLeave={onClose}
-            onBeforeImageEditor={requestImageEditorLeave}
-          />
-          <ScrollArea>
-            <ShotTakesGallery
-              boardId={boardId}
-              shot={shot}
-              readOnly={readOnly}
+            <ToolbarIconButton
+              icon={<ChevronLeftIcon />}
+              tooltip={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
+              ariaLabel="Previous shot"
+              onClick={() => stepShot(-1)}
+              disabled={!canStepBack}
             />
-          </ScrollArea>
-        </Box>
-
-        <Divider />
-
-        {/* Header row: which scene the shot belongs to, and how that scene is
-            lit. Both are the scene's, shared by every shot under it. */}
-        <FlexRow align="flex-end" gap={SPACING.lg} wrap>
-          <Box sx={{ flex: "1 1 16rem", minWidth: 0 }}>
-            <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}</Label>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.slugline", { defaultValue: "Slugline" })}
-                hideLabel
-                disabled={readOnly || sceneOptions.length === 0}
-                value={draft.sceneId ?? ""}
-                onChange={handleSceneChange}
-                options={sceneOptions}
-              />
-            </FlexColumn>
-          </Box>
-          <Box sx={{ flex: "1 1 12rem", minWidth: 0 }}>
-            <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}</Label>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.renderMode}
-                onChange={(value) =>
-                  setDraft({ ...draft, renderMode: value as "keyframe" | "direct" | "reference" })
-                }
-                options={[
-                  { value: "keyframe", label: "Keyframe" },
-                  { value: "direct", label: "Direct" },
-                  { value: "reference", label: "Reference" }
-                ]}
-              />
-            </FlexColumn>
-          </Box>
-          <Box sx={{ flex: "1 1 16rem", minWidth: 0 }}>
-            <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.lighting", { defaultValue: "Lighting" })}</Label>
-              <TextInput
-                compact
-                size="small"
-                label={t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" })}
-                hideLabel
-                placeholder={t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" })}
-                disabled={readOnly || !draft.sceneId}
-                value={draft.lighting}
-                onChange={(event) =>
-                  setDraft({ ...draft, lighting: event.target.value })
-                }
-              />
-            </FlexColumn>
-          </Box>
-          <Box sx={{ flex: "1 1 12rem", minWidth: 0 }}>
-            <FlexColumn gap={SPACING.xs}>
-              <Label sx={{ color: "text.secondary" }}>{t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}</Label>
-              <TextInput
-                compact
-                size="small"
-                label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
-                hideLabel
-                placeholder={t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
-                disabled={readOnly}
-                value={draft.slug}
-                onChange={(event) =>
-                  setDraft({ ...draft, slug: event.target.value })
-                }
-              />
-            </FlexColumn>
-          </Box>
+          )}
+          <FlexColumn align="center" sx={{ minWidth: 0 }}>
+            <Text size="big" data-testid="shot-edit-title">
+              {`Scene ${numbering.scene || "—"}, Shot ${numbering.shot || "—"}`}
+            </Text>
+          </FlexColumn>
+          {canStep && (
+            <ToolbarIconButton
+              icon={<ChevronRightIcon />}
+              tooltip={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
+              ariaLabel="Next shot"
+              onClick={() => stepShot(1)}
+              disabled={!canStepForward}
+            />
+          )}
         </FlexRow>
 
-        <ShotEditTable
-          draft={draft}
-          onChange={setDraft}
-          numbering={numbering}
-          aspectRatio={aspectRatio}
-          linksLines={linksLines}
-          takesDuration={duration.seconds ?? null}
-          readOnly={readOnly}
-          focusDialogue={focusDialogue}
-          onEditInScript={linksLines ? handleEditInScript : undefined}
-          onOpenBoardSettings={onOpenBoardSettings}
-        />
-
-        {boardEntities.length > 0 && (
-          <FlexRow gap={SPACING.micro} wrap>
-            {boardEntities.map((entity) => {
-              const applied = appliedIds.includes(entity.id);
-              return (
-                <Chip
-                  key={entity.id}
-                  compact
-                  label={entity.name || "Untitled"}
-                  variant="outlined"
-                  icon={<Box sx={getEntityKindDotSx(entity.kind, applied)} />}
-                  sx={getEntityChipSx(applied)}
-                  title={
-                    applied
-                      ? t("storyboard:attrs.nameClickToExcludeFromThisShot", {
-                          defaultValue: "{{name}}: click to exclude from this shot",
-                          name: entity.descriptor || entity.name
-                        })
-                      : t("storyboard:attrs.clickToIncludeNameInThisShot", {
-                          defaultValue: "Click to include {{name}} in this shot",
-                          name: entity.name
-                        })
-                  }
-                  onClick={
-                    readOnly
-                      ? undefined
-                      : () =>
-                          toggleShotEntity(
-                            boardId,
-                            shot.id,
-                            entity.id,
-                            appliedIds
-                          )
-                  }
-                />
-              );
-            })}
-          </FlexRow>
-        )}
-
-        <ShotScriptPanel boardId={boardId} shot={shot} readOnly={readOnly} />
-
-        <Divider />
-
-        <FlexRow align="center" gap={SPACING.sm} wrap>
+        <FlexRow
+          align="center"
+          justify="flex-end"
+          gap={SPACING.sm}
+          wrap
+          sx={{ justifySelf: "end", minWidth: 0 }}
+        >
           <ShotCostLine estimate={costEstimate} />
-          <Box sx={{ flex: 1 }} />
           {!readOnly && (
             <>
               <ToolbarIconButton
                 icon={<MoreHorizIcon sx={{ fontSize: "1em" }} />}
-                tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+                tooltip="More actions"
                 ariaLabel={t("storyboard:attrs.moreShotActions", { defaultValue: "More shot actions" })}
                 onClick={(event) => setMenuAnchor(event.currentTarget)}
               />
-              <EditorButton onClick={handleRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
+              <EditorButton
+                onClick={handleRegenerate}
+                disabled={generating || durationInvalid}
+                title={
+                  generating ? "This shot is already rendering" : undefined
+                }
+              >
+                {`Regenerate${stepCost("Still")}`}
+              </EditorButton>
               <EditorButton
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
-                disabled={!dirty}
-              >{t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
+                disabled={!dirty || durationInvalid}
+              >
+                Save
+              </EditorButton>
             </>
           )}
         </FlexRow>
-      </FlexColumn>
+      </Box>
+
+      <ScrollArea thin sx={{ flex: 1, minHeight: 0 }}>
+        <Box sx={columnsSx}>
+          <ScrollArea thin sx={formColumnSx}>
+            <FlexColumn gap={SPACING.lg}>
+              <ShotEditTable
+                draft={draft}
+                onChange={setDraft}
+                entities={entityChips}
+                linksLines={linksLines}
+                takesDuration={duration.seconds ?? null}
+                readOnly={readOnly}
+                focusDialogue={focusDialogue}
+                onEditInScript={linksLines ? handleEditInScript : undefined}
+              />
+              <Card variant="outlined" padding="normal">
+                <CollapsibleSection
+                  title={<Caption sx={sectionTitleSx}>Advanced</Caption>}
+                  compact
+                  defaultOpen={false}
+                >
+                  <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.md }}>
+                    <ShotAdvancedFields
+                      draft={draft}
+                      onChange={setDraft}
+                      readOnly={readOnly}
+                    />
+                    <TextInput
+                      compact
+                      size="small"
+                      multiline
+                      minRows={2}
+                      label="Notes"
+                      placeholder="Anything the render should not read as direction"
+                      disabled={readOnly}
+                      value={draft.notes}
+                      onChange={(event) =>
+                        setDraft({ ...draft, notes: event.target.value })
+                      }
+                    />
+                    <ShotGraphicsEditor
+                      shot={shot}
+                      draft={draft}
+                      onChange={setDraft}
+                      readOnly={readOnly}
+                    />
+                  </FlexColumn>
+                </CollapsibleSection>
+              </Card>
+              <ShotPromptPreview
+                shot={previewShot}
+                scene={promptScene}
+                style={boardStyle}
+                castNames={castNames}
+              />
+              <ShotScriptPanel
+                boardId={boardId}
+                shot={shot}
+                readOnly={readOnly}
+              />
+            </FlexColumn>
+          </ScrollArea>
+
+          <FlexColumn gap={SPACING.lg} sx={viewerColumnSx}>
+            <Box sx={viewerSx}>
+              <ShotEditViewer
+                boardId={boardId}
+                shot={previewShot}
+                readOnly={readOnly}
+                onLeave={onClose}
+                onBeforeImageEditor={requestImageEditorLeave}
+              />
+            </Box>
+            {!readOnly && (
+              <Box sx={{ flexShrink: 0 }}>
+                <TabGroup
+                  tabs={SIDE_TABS}
+                  value={sideTab}
+                  onChange={(value) => setSideTab(value as SideTab)}
+                  size="small"
+                  aria-label="Takes or change the still"
+                />
+              </Box>
+            )}
+            <ScrollArea thin sx={toolsSx}>
+              {readOnly || sideTab === "takes" ? (
+                <ShotTakesGallery
+                  boardId={boardId}
+                  shot={shot}
+                  readOnly={readOnly}
+                />
+              ) : (
+                <ShotStillModifyPanel boardId={boardId} shot={shot} />
+              )}
+            </ScrollArea>
+          </FlexColumn>
+        </Box>
+      </ScrollArea>
 
       <EditorMenu
         open={menuAnchor !== null}
         anchorEl={menuAnchor}
         onClose={() => setMenuAnchor(null)}
       >
-        <EditorMenuItem onClick={handleRenderClip}>
-          {shot.clip ? t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          compact
+          label={`${shot.clip ? i18n.t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : i18n.t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}${stepCost("Clip")}`}
+          secondary={
+            generating
+              ? "This shot is already rendering"
+              : clipNeedsStill
+                ? "Render a still first, or set render mode to Direct"
+                : undefined
+          }
+          disabled={generating || clipNeedsStill}
+          onClick={handleRenderClip}
+        />
         <EditorMenuItem
           onClick={() => handleNudge("up")}
           disabled={numbering.shot <= 1}
-        >{t("storyboard:attrs.moveEarlierInScene", { defaultValue: "Move earlier in scene" })}</EditorMenuItem>
-        <EditorMenuItem onClick={() => handleNudge("down")}>{t("storyboard:attrs.moveLaterInScene", { defaultValue: "Move later in scene" })}</EditorMenuItem>
+        >
+          Move earlier in scene
+        </EditorMenuItem>
+        <EditorMenuItem
+          onClick={() => handleNudge("down")}
+          disabled={numbering.shot >= shotsInScene}
+        >
+          Move later in scene
+        </EditorMenuItem>
       </EditorMenu>
+
+      {stillRenderShot && (
+        <ShotRenderDialog
+          boardId={boardId}
+          shot={stillRenderShot}
+          step="still"
+          onClose={closeStillRender}
+        />
+      )}
 
       <Dialog
         open={pending !== null}
@@ -805,18 +941,22 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         actions={
           <FlexRow align="center" gap={SPACING.sm}>
             <EditorButton onClick={keepEditing}>{t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
-            <EditorButton onClick={() => runPending(false)}>{t("storyboard:attrs.discard", { defaultValue: "Discard" })}</EditorButton>
+            <EditorButton onClick={() => runPending(false)}>
+              Discard
+            </EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => runPending(true)}
-            >{t("storyboard:attrs.save", { defaultValue: "Save" })}</EditorButton>
+            >
+              Save
+            </EditorButton>
           </FlexRow>
         }
       >
         <Text>{t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
         <Caption color="secondary">
-          {t("editor:ui.versionChoicesDeletionsFlipsAndUploadsAreAlreadySaved")}
+          Version choices, deletions, flips and uploads are already saved.
         </Caption>
       </Dialog>
 
@@ -826,13 +966,19 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         title={t("storyboard:attrs.thisShotChangedElsewhere", { defaultValue: "This shot changed elsewhere" })}
         actions={
           <FlexRow align="center" gap={SPACING.sm} wrap>
-            <EditorButton onClick={() => setSaveConflicts([])}>{t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
-            <EditorButton onClick={() => resolveSaveConflicts("current")}>{t("storyboard:attrs.useCurrentValues", { defaultValue: "Use current values" })}</EditorButton>
+            <EditorButton onClick={() => setSaveConflicts([])}>
+              Keep editing
+            </EditorButton>
+            <EditorButton onClick={() => resolveSaveConflicts("current")}>
+              Use current values
+            </EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => resolveSaveConflicts("mine")}
-            >{t("storyboard:attrs.keepMyChanges", { defaultValue: "Keep my changes" })}</EditorButton>
+            >
+              Keep my changes
+            </EditorButton>
           </FlexRow>
         }
       >
@@ -846,15 +992,15 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               const current = draftFromShot(shot, scene);
               return (
                 <FlexColumn key={key} gap={SPACING.xs}>
-                  <Label>{t(DRAFT_LABEL_KEYS[key], { defaultValue: DRAFT_LABELS[key] })}</Label>
-                  <Caption color="secondary">{`Your edit: ${String(draft[key] ?? t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
-                  <Caption color="secondary">{`Current: ${String(current[key] ?? t("storyboard:attrs.notSet", { defaultValue: "Not set" }))}`}</Caption>
+                  <Label>{DRAFT_LABELS[key]}</Label>
+                  <Caption color="secondary">{`Your edit: ${formatDraftValue(key, draft[key], sceneOptions)}`}</Caption>
+                  <Caption color="secondary">{`Current: ${formatDraftValue(key, current[key], sceneOptions)}`}</Caption>
                 </FlexColumn>
               );
             })}
         </FlexColumn>
       </Dialog>
-    </Panel>
+    </FlexColumn>
   );
 };
 

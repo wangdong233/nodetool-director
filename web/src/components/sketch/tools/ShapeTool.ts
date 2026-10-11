@@ -13,6 +13,7 @@ import type { Point, ShapeToolType, ShapeSettings } from "../types";
 import CategoryIcon from "@mui/icons-material/Category";
 import { CoordinateMapper } from "../painting";
 import { ensureLayerRasterBounds } from "../transform/geometry/ensureRasterBounds";
+import { DragSnapSession } from "../snapping/toolSnap";
 import {
   getDocumentViewportInLayerSpace,
   getCanvasRasterBounds
@@ -79,6 +80,21 @@ function applyAltCenterDraw(
   return { start, end };
 }
 
+/**
+ * The two corners (or a line's two ends) the shape is drawn between once Alt
+ * and Shift are applied, in the same space as `start` and `end`.
+ */
+function shapeEndpoints(
+  start: Point,
+  end: Point,
+  tool: ShapeToolType,
+  shiftHeld: boolean,
+  altHeld: boolean
+): [Point, Point] {
+  const centered = applyAltCenterDraw(start, end, tool, altHeld);
+  return [centered.start, constrainEnd(centered.start, centered.end, tool, shiftHeld)];
+}
+
 export function drawShapeOnCtx(
   ctx: CanvasRenderingContext2D,
   tool: ShapeToolType,
@@ -89,14 +105,7 @@ export function drawShapeOnCtx(
   altHeld: boolean
 ): void {
   // Apply Alt (draw from center) before constraint
-  const centered = applyAltCenterDraw(start, end, tool, altHeld);
-  const constrained = constrainEnd(
-    centered.start,
-    centered.end,
-    tool,
-    shiftHeld
-  );
-  const s = centered.start;
+  const [s, constrained] = shapeEndpoints(start, end, tool, shiftHeld, altHeld);
   ctx.save();
   ctx.strokeStyle = settings.strokeColor;
   ctx.lineWidth = settings.strokeWidth;
@@ -229,12 +238,27 @@ export class ShapeTool implements ToolHandler {
   private lastEnd: Point | null = null;
   private activeCtx: ToolContext | null = null;
   private modifierKeyListener: ((e: KeyboardEvent) => void) | null = null;
+  private readonly snapping = new DragSnapSession();
 
   private redrawPreview(): void {
     if (!this.activeCtx || !this.shapeStart || !this.lastEnd) {
       return;
     }
+    this.showShapeSnapLines(this.activeCtx, this.shapeStart, this.lastEnd);
     this.activeCtx.drawOverlayShape(this.shapeStart, this.lastEnd);
+  }
+
+  /** Show only the snap lines the constrained shape still ends on. */
+  private showShapeSnapLines(ctx: ToolContext, start: Point, end: Point): void {
+    this.snapping.keepLinesThrough(
+      shapeEndpoints(
+        start,
+        end,
+        ctx.doc.toolSettings.shape.shapeType,
+        ctx.shiftHeldRef.current,
+        ctx.altHeldRef.current
+      )
+    );
   }
 
   private installModifierListener(ctx: ToolContext): void {
@@ -275,8 +299,10 @@ export class ShapeTool implements ToolHandler {
       return false;
     }
 
-    this.shapeStart = event.point;
-    this.lastEnd = event.point;
+    this.snapping.begin(ctx);
+    const start = this.snapping.snap(ctx, event.point);
+    this.shapeStart = start;
+    this.lastEnd = start;
     this.activeCtx = ctx;
     ctx.onStrokeStart();
     ensureLayerRasterBounds(
@@ -295,8 +321,23 @@ export class ShapeTool implements ToolHandler {
     }
     ctx.shiftHeldRef.current = event.nativeEvent.shiftKey;
     ctx.altHeldRef.current = event.nativeEvent.altKey;
-    this.lastEnd = event.point;
-    ctx.drawOverlayShape(this.shapeStart, event.point);
+    const end = this.snapping.snap(ctx, event.point);
+    this.lastEnd = end;
+    this.showShapeSnapLines(ctx, this.shapeStart, end);
+    ctx.drawOverlayShape(this.shapeStart, end);
+  }
+
+  /** Pointer cancel or a pinch: drop the drag without drawing. */
+  onCancel(ctx: ToolContext): void {
+    this.snapping.end();
+    this.removeModifierListener();
+    if (this.shapeStart) {
+      ctx.clearOverlay();
+      ctx.drawSelectionOverlay();
+    }
+    this.shapeStart = null;
+    this.lastEnd = null;
+    this.activeCtx = null;
   }
 
   onUp(ctx: ToolContext, event?: ToolPointerEvent): void {
@@ -305,12 +346,13 @@ export class ShapeTool implements ToolHandler {
     }
     const { doc } = ctx;
     const activeLayer = doc.layers.find((l) => l.id === doc.activeLayerId);
+    const endDoc = event ? this.snapping.snap(ctx, event.point) : this.lastEnd ?? this.shapeStart;
+    this.snapping.end();
     if (!activeLayer) {
       this.shapeStart = null;
       return;
     }
 
-    const endDoc = event?.point ?? this.shapeStart;
     if (event) {
       ctx.shiftHeldRef.current = event.nativeEvent.shiftKey;
       ctx.altHeldRef.current = event.nativeEvent.altKey;

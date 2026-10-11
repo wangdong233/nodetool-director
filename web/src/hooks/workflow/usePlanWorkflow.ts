@@ -24,9 +24,13 @@ import {
   WORKFLOW_PLANNER_SYSTEM_PROMPT,
   WORKFLOW_PLAN_TOOL_DESCRIPTION,
   WORKFLOW_PLAN_TOOL_NAME,
+  PLAN_CORE_NODE_TYPES,
   buildWorkflowPlanSchema,
-  parseWorkflowPlan
+  checkWorkflowPlan,
+  planNodeShape,
+  refineWorkflowPlan
 } from "@nodetool-ai/protocol";
+import { plannedCodeStepProblems } from "@nodetool-ai/node-sdk/code-analysis";
 import {
   readWorkflowSetup,
   type WorkflowSetupPlan,
@@ -46,7 +50,8 @@ import { useWorkflowSetupWriter } from "./useWorkflowSetup";
 import { workflowCategory } from "../../components/setup/workflow/categories";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../i18n";
-
+import { snippetStepAsCode } from "../../utils/planSnippetSteps";
+import { isRecord } from "../../utils/typePredicates";
 /** How many candidate node types the planner prompt carries. */
 const CANDIDATE_LIMIT = 48;
 
@@ -70,19 +75,30 @@ export interface PlanWorkflowInput {
 export interface UsePlanWorkflowResult {
   /**
    * Plan a brief and store the result. Resolves `null` when a plan was written
-   * and the reason when the call was refused. It never rejects, because the
-   * review step's `Re-plan` fires it from a click handler — and it hands the
-   * reason back rather than only setting `error`, because the flow shell reads
-   * it in the same tick and `error` is a render behind (a provider that is out
-   * of quota reported as "did not return a plan").
+   * and otherwise the reason it was not: the call was refused, or its answer
+   * was set aside because the creator canceled, left the stage, or changed the
+   * brief or category meanwhile. It never rejects, because the review step's
+   * `Re-plan` fires it from a click handler — and it hands the reason back
+   * rather than only setting `error`, because the flow shell reads it in the
+   * same tick and `error` is a render behind (a provider that is out of quota
+   * reported as "did not return a plan").
    */
   planWorkflow: (input: PlanWorkflowInput) => Promise<string | null>;
   /** Ends the active planner request without allowing its reply to commit. */
   cancelPlanning: () => void;
   planning: boolean;
+  /**
+   * `checking` while the planner repairs its own draft (rounds after the
+   * first), so the wait can say the plan is being checked.
+   */
+  planningPhase: "drafting" | "checking";
   planningStatus: "idle" | "pending" | "canceled" | "error";
   error: string | null;
 }
+
+/** Why an answer that arrived was not stored. */
+export const PLAN_SET_ASIDE_REASON =
+  "The brief, category or step changed while the plan was being written. Plan the steps again.";
 
 const nodeCatalog = (
   metadata: Record<string, NodeMetadata>
@@ -143,8 +159,13 @@ export const planCandidates = (
   const ranked = candidateQueries(brief, category).map((query) =>
     rankedTypes(query, metadata, PER_QUERY_LIMIT)
   );
-  const picked: NodeMetadata[] = [];
-  const seen = new Set<string>();
+  // The general-purpose nodes lead: a brief's words rank provider-specific
+  // nodes above Text To Image or Agent, and the planner names only what it sees.
+  const picked: NodeMetadata[] = PLAN_CORE_NODE_TYPES.flatMap((nodeType) => {
+    const meta = metadata[nodeType];
+    return meta ? [meta] : [];
+  });
+  const seen = new Set<string>(picked.map((meta) => meta.node_type));
   for (let index = 0; index < PER_QUERY_LIMIT; index += 1) {
     for (const results of ranked) {
       const result = results[index];
@@ -202,7 +223,8 @@ export const matchNodeType = (
  *
  * A step the planner named correctly is left alone. Any other step — unnamed,
  * or naming a type this install does not have — is matched against the registry
- * so the review step shows a node the build can actually place.
+ * so the review step shows a node the build can actually place. A step that
+ * lands on a Code-node snippet becomes a Code step carrying the snippet's body.
  */
 export const resolvePlanNodeTypes = (
   plan: WorkflowSetupPlan,
@@ -210,9 +232,11 @@ export const resolvePlanNodeTypes = (
 ): WorkflowSetupPlan => ({
   ...plan,
   steps: plan.steps.map((step) =>
-    step.node_type !== null && step.node_type in metadata
-      ? step
-      : { ...step, node_type: matchNodeType(step, metadata) }
+    snippetStepAsCode(
+      step.node_type !== null && step.node_type in metadata
+        ? step
+        : { ...step, node_type: matchNodeType(step, metadata) }
+    )
   )
 });
 
@@ -247,23 +271,38 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
   const [planningStatus, setPlanningStatus] = useState<
     "idle" | "pending" | "canceled" | "error"
   >("idle");
+  const [planningPhase, setPlanningPhase] = useState<"drafting" | "checking">(
+    "drafting"
+  );
   const [error, setError] = useState<string | null>(null);
   const { setSetup } = useWorkflowSetupWriter(workflowId);
   const store = useWorkflowManagerStore();
-  const workflowSettings = useWorkflowManager(
-    (state) => state.getWorkflow(workflowId)?.settings
+  const stage = useWorkflowManager(
+    (state) =>
+      readWorkflowSetup(state.getWorkflow(workflowId)?.settings)?.stage ?? "done"
   );
   // Which request the hook is still waiting for. A planner call outlives the
   // stage that asked for it, so a late answer must neither overwrite a plan a
   // newer request wrote nor pull a creator who has moved on back to the review
-  // (F9, the same guard `usePlanBeats` uses).
+  // (F9, the same guard `usePlanBeats` uses). Only what the plan answers
+  // invalidates it — the stage, the brief and the category. Any other write to
+  // `settings`, a save response included, leaves the request current.
   const requestRef = useRef(0);
-  const settingsRef = useRef(workflowSettings);
   const activeControllerRef = useRef<AbortController | null>(null);
-  if (settingsRef.current !== workflowSettings) {
-    settingsRef.current = workflowSettings;
-    requestRef.current += 1;
-  }
+
+  // A refusal or a cancellation belongs to the step it happened on. Carried
+  // to another step it reads as a fault of the plan on screen there.
+  const stageRef = useRef(stage);
+  useEffect(() => {
+    if (stageRef.current === stage) {
+      return;
+    }
+    stageRef.current = stage;
+    setError(null);
+    setPlanningStatus((current) =>
+      current === "error" || current === "canceled" ? "idle" : current
+    );
+  }, [stage]);
 
   useEffect(
     () => () => {
@@ -274,12 +313,19 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
     [workflowId]
   );
 
-  const readStage = useCallback(
-    (): WorkflowSetupStage =>
-      readWorkflowSetup(store.getState().getWorkflow(workflowId)?.settings)
-        ?.stage ?? "done",
-    [store, workflowId]
-  );
+  // What a plan answers, read from the document: the stage it was asked on,
+  // the brief and the category.
+  const readPlanInputs = useCallback((): string => {
+    const setup = readWorkflowSetup(
+      store.getState().getWorkflow(workflowId)?.settings
+    );
+    const current: [WorkflowSetupStage, string, string] = [
+      setup?.stage ?? "done",
+      (setup?.brief ?? "").trim(),
+      setup?.category ?? ""
+    ];
+    return JSON.stringify(current);
+  }, [store, workflowId]);
 
   const planWorkflow = useCallback(
     async (input: PlanWorkflowInput): Promise<string | null> => {
@@ -291,15 +337,20 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         return reason;
       }
       const token = (requestRef.current += 1);
-      const originStage = readStage();
+      const originInputs = readPlanInputs();
       const controller = new AbortController();
       activeControllerRef.current = controller;
       const isCurrent = () =>
         token === requestRef.current &&
-        readStage() === originStage &&
+        readPlanInputs() === originInputs &&
         !controller.signal.aborted;
+      const setAside = () =>
+        controller.signal.aborted
+          ? "Planning was canceled."
+          : PLAN_SET_ASIDE_REASON;
       setError(null);
       setPlanning(true);
+      setPlanningPhase("drafting");
       setPlanningStatus("pending");
       try {
         const pinned = pinnedChipPlan(brief);
@@ -307,29 +358,65 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         if (input.model?.id) {
           const metadata = useMetadataStore.getState().metadata;
           const candidates = planCandidates(brief, input.category, metadata);
-          const answer = await rpcRequest("generate_text", {
-            provider: input.model.provider,
-            model: input.model.id,
-            system: WORKFLOW_PLANNER_SYSTEM_PROMPT,
-            prompt: [
-              `Task: ${brief}`,
-              input.category ? `Kind of workflow: ${input.category}` : "",
-              "",
-              "Candidate node types:",
-              ...candidates
-            ]
-              .filter((line) => line !== "")
-              .join("\n"),
-            max_tokens: 4096,
-            schema: buildWorkflowPlanSchema(),
-            schema_name: WORKFLOW_PLAN_TOOL_NAME,
-            schema_description: WORKFLOW_PLAN_TOOL_DESCRIPTION
+          const model = input.model;
+          // The planner checks its own plan and repairs it before the
+          // creator sees it: a plan that would fail at the test run is sent
+          // back with the checker's findings, not handed over to be fixed.
+          const refined = await refineWorkflowPlan({
+            messages: [
+              { role: "system", content: WORKFLOW_PLANNER_SYSTEM_PROMPT },
+              {
+                role: "user",
+                content: [
+                  `Task: ${brief}`,
+                  input.category ? `Kind of workflow: ${input.category}` : "",
+                  "",
+                  "Candidate node types:",
+                  ...candidates
+                ]
+                  .filter((line) => line !== "")
+                  .join("\n")
+              }
+            ],
+            onRound: (round) => {
+              if (token === requestRef.current) {
+                setPlanningPhase(round > 1 ? "checking" : "drafting");
+              }
+            },
+            generate: async (messages) => {
+              if (!isCurrent()) {
+                throw new DOMException("The plan was abandoned.", "AbortError");
+              }
+              const answer = await rpcRequest(
+                "generate_text",
+                {
+                  provider: model.provider,
+                  model: model.id,
+                  messages,
+                  max_tokens: 4096,
+                  schema: buildWorkflowPlanSchema(),
+                  schema_name: WORKFLOW_PLAN_TOOL_NAME,
+                  schema_description: WORKFLOW_PLAN_TOOL_DESCRIPTION
+                },
+                undefined,
+                controller.signal
+              );
+              return isRecord(answer.data) ? answer.data : null;
+            },
+            // Steps the planner left unnamed, or named with a type this
+            // install does not have, are matched against the registry here —
+            // the flow's whole point is a plan the build can place.
+            normalize: (draft) => resolvePlanNodeTypes(draft, metadata),
+            check: (draft) =>
+              checkWorkflowPlan(draft, {
+                lookup: (nodeType) => {
+                  const meta = metadata[nodeType];
+                  return meta ? planNodeShape(meta) : null;
+                },
+                checkCode: plannedCodeStepProblems
+              })
           });
-          plan = answer.data ? parseWorkflowPlan(answer.data) : null;
-          // Steps the planner left unnamed, or named with a type this
-          // install does not have, are matched against the registry here —
-          // the flow's whole point is a plan the build can place.
-          plan = plan ? resolvePlanNodeTypes(plan, metadata) : null;
+          plan = refined.plan;
         }
         // No model, or an answer that was not a plan: a shipped chip falls back
         // to its pinned plan so the creator still reaches the review step.
@@ -345,7 +432,7 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         // The plan they are looking at now stays, and the refusal of a request
         // they abandoned is not reported over what they are reading.
         if (!isCurrent()) {
-          return null;
+          return setAside();
         }
         if (!resolved) {
           const reason = input.model?.id
@@ -358,15 +445,27 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         // Nothing above placed a node — criterion 3. `plan_source` records what
         // this plan answers, so returning to the category step and pressing its
         // button continues to this plan rather than replacing it (F15).
-        await setSetup({
-          plan: resolved,
-          stage: "review",
-          [PLAN_SOURCE_KEY]: planSourceOf(brief, input.category)
-        });
+        try {
+          await setSetup({
+            plan: resolved,
+            stage: "review",
+            [PLAN_SOURCE_KEY]: planSourceOf(brief, input.category)
+          });
+        } catch (cause) {
+          // The plan is already on screen at review, so the refusal belongs
+          // to that step. The stage reset below must not clear it.
+          stageRef.current = "review";
+          const reason = `The plan could not be saved: ${
+            cause instanceof Error ? cause.message : String(cause)
+          }`;
+          setError(reason);
+          setPlanningStatus("error");
+          return reason;
+        }
         return null;
       } catch (cause) {
         if (!isCurrent()) {
-          return null;
+          return setAside();
         }
         // The provider's own words — a 429, a model that no longer exists, a
         // missing key. Reporting them beats a generic refusal: only these say
@@ -387,7 +486,7 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         }
       }
     },
-    [readStage, setSetup]
+    [readPlanInputs, setSetup]
   );
 
   const cancelPlanning = useCallback(() => {
@@ -407,6 +506,7 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
     planWorkflow,
     cancelPlanning,
     planning,
+    planningPhase,
     planningStatus,
     error
   };

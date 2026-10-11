@@ -60,14 +60,18 @@ export interface OnboardingEngine {
    * {@link RuntimePackagesStore} status ids.
    */
   runtimeId?: string;
-  /** True when the desktop app bundles it (no install step needed). */
-  bundled?: boolean;
+  /**
+   * Download page, when the engine is a separate application the user
+   * installs and runs outside NodeTool (Ollama). NodeTool connects to it.
+   */
+  separateInstallUrl?: string;
   docsUrl: string;
 }
 
 /**
- * The local engines, roughly ordered easiest-first. Ollama ships with the
- * desktop app; the rest are installed from the Package Manager.
+ * The local engines, roughly ordered easiest-first. Ollama is a separate
+ * application NodeTool connects to; the rest are installed from the Package
+ * Manager.
  */
 export const ENGINE_TAGLINE_KEYS: Record<string, string> = {
   "ollama": "editor:ui.oneclickLocalLLMs",
@@ -79,13 +83,22 @@ export const ENGINE_TAGLINE_KEYS: Record<string, string> = {
 
 export const ONBOARDING_ENGINES: readonly OnboardingEngine[] = [
   {
+    id: "whisper-cpp",
+    name: "whisper.cpp",
+    tagline: "Local speech transcription",
+    formats: ["GGML"],
+    description: "Transcribe audio and live audio streams inside the NodeTool backend with local GGML models.",
+    runtimeId: "whisper-cpp",
+    docsUrl: "https://github.com/ggml-org/whisper.cpp"
+  },
+  {
     id: "ollama",
     name: "Ollama",
     tagline: "One-click local LLMs",
     formats: ["GGUF"],
     description:
-      "The simplest way to run chat and reasoning models locally. Pull a model by name and it runs on your GPU or CPU. Bundled with the desktop app.",
-    bundled: true,
+      "The simplest way to run chat and reasoning models locally. Pull a model by name and it runs on your GPU or CPU. Ollama is a separate app: install it from ollama.com and keep it running, and NodeTool connects to it.",
+    separateInstallUrl: "https://ollama.com/download",
     docsUrl: "https://ollama.com"
   },
   {
@@ -123,7 +136,7 @@ export const ONBOARDING_ENGINES: readonly OnboardingEngine[] = [
     tagline: "Apple Silicon acceleration",
     formats: ["MLX", "Safetensors"],
     description:
-      "Apple's array framework, tuned for the unified memory of M-series chips. Fast local inference on modern Macs.",
+      "Apple's array framework, tuned for the unified memory of M-series chips. Fast local inference on modern Macs. Needs the Python runtime and the MLX node pack from the Package Manager.",
     platform: "Apple Silicon only",
     docsUrl: "https://github.com/ml-explore/mlx"
   }
@@ -153,7 +166,8 @@ export const HUGGINGFACE_PACK_REPO_ID = "nodetool-ai/nodetool-huggingface";
 
 /**
  * The optional node packs. Base nodes ship with NodeTool, so they are not
- * listed here — everything below is an extra install.
+ * listed here — everything below is an extra install. Ollama needs no pack:
+ * its provider and nodes are built in.
  */
 export const ONBOARDING_NODE_PACKS: readonly OnboardingNodePack[] = [
   {
@@ -162,13 +176,6 @@ export const ONBOARDING_NODE_PACKS: readonly OnboardingNodePack[] = [
     description:
       "Local image, audio, and speech models via Diffusers and Transformers.",
     capabilities: ["image", "vision", "speech-to-text", "text-to-speech"]
-  },
-  {
-    repoId: "nodetool-ai/nodetool-ollama",
-    name: "Ollama",
-    description: "Chat and embedding nodes backed by your local Ollama models.",
-    descriptionKey: "tools:misc.onboardingPacks.ollama",
-    capabilities: ["chat", "embedding"]
   }
 ];
 

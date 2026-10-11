@@ -126,7 +126,7 @@ export const SYMMETRY_DEFAULT_RAYS = 6;
 
 // ─── Layer Types ──────────────────────────────────────────────────────────────
 
-export type LayerType = "raster" | "mask" | "group";
+export type LayerType = "raster" | "mask" | "group" | "vector";
 
 // Blend modes are defined once in @nodetool-ai/gpu and shared by the
 // sketch editor, the timeline preview compositor, and the Compositor node.
@@ -214,7 +214,7 @@ export interface Layer {
   /** When true, painting only affects existing opaque pixels ("Lock Transparency"). */
   alphaLock: boolean;
   blendMode: BlendMode;
-  /** Serialized layer raster payload, or a legacy PNG data URL. */
+  /** Serialized image payload. Vector layers retain an SVG data URL. */
   data: string | null;
   /** Layer placement in document space. */
   transform: LayerTransform;
@@ -308,6 +308,22 @@ export const SKETCH_PRESET_SWATCHES: string[] = [
 
 // ─── Sketch Document ──────────────────────────────────────────────────────────
 
+export type SketchGuideOrientation = "horizontal" | "vertical";
+
+/**
+ * A ruler guide: an infinite line at `position` document pixels. A horizontal
+ * guide sits at a y coordinate, a vertical guide at an x coordinate.
+ */
+export interface SketchGuide {
+  id: string;
+  orientation: SketchGuideOrientation;
+  position: number;
+}
+
+export function generateGuideId(): string {
+  return `guide_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export interface SketchDocument {
   version: number;
   canvas: {
@@ -325,6 +341,8 @@ export interface SketchDocument {
    * persisted, never inferred from content (D3).
    */
   setup?: SketchSetup;
+  /** Ruler guides. Absent until the first guide is placed. */
+  guides?: SketchGuide[];
   metadata: {
     createdAt: string;
     updatedAt: string;
@@ -339,7 +357,7 @@ export function generateLayerId(): string {
 
 /** Locked pixel buffer, but transform (move / nudge) is still allowed. */
 export function layerAllowsTransformWhilePixelLocked(layer: Layer): boolean {
-  return Boolean(layer.imageReference?.uri);
+  return layer.type === "vector" || Boolean(layer.imageReference?.uri);
 }
 
 const MAX_IMAGE_REF_URI_CHARS = 160;
@@ -386,7 +404,7 @@ export function createDefaultLayer(
     type,
     visible: true,
     opacity: 1,
-    locked: false,
+    locked: type === "vector",
     alphaLock: false,
     blendMode: "normal",
     data: null,
@@ -587,7 +605,7 @@ export function normalizeSketchDocument(doc: SketchDocument): SketchDocument {
         type: layer.type ?? "raster",
         visible: layer.visible ?? true,
         opacity: layer.opacity ?? 1,
-        locked: layer.locked ?? false,
+        locked: layer.type === "vector" || (layer.locked ?? false),
         alphaLock: layer.alphaLock ?? false,
         blendMode: coerceBlendMode(layer.blendMode),
         data: layer.data ?? null,

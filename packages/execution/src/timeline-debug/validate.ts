@@ -50,11 +50,14 @@ import {
   parseTransitionType
 } from "@nodetool-ai/timeline/scene";
 
+import { checkShowcase } from "./showcase.js";
 import { checkLegibility } from "./legibility.js";
 import { checkClipMotion } from "./motion.js";
 import type { TimelineDebugIssue, TimelineValidation } from "./types.js";
 
 export interface TimelineValidationMeta {
+  /** Opt-in structural guidance. Warnings never change correctness (`ok`). */
+  tier?: "standard" | "showcase";
   fps?: number;
   width?: number;
   height?: number;
@@ -571,10 +574,16 @@ function checkClip(
   }
 
   issues.push(...maskIssues(clip));
-  issues.push(...unknownEffectIssues(clip));
+  issues.push(
+    ...unknownEffectIssues(clip),
+    ...animateIgnoredIssues(clip),
+    ...effectWashesOutIssues(clip)
+  );
   issues.push(...cropIssues(clip));
   const shapeKind = unknownShapeKindIssue(clip);
   if (shapeKind) issues.push(shapeKind);
+  const shapePath = shapePathInvalidIssue(clip);
+  if (shapePath) issues.push(shapePath);
   issues.push(...model3dIssues(clip, { fps, ...canvas }));
   issues.push(...fontPortabilityIssues(clip));
 
@@ -680,6 +689,85 @@ function unknownEffectIssues(clip: TimelineClip): TimelineDebugIssue[] {
   return issues;
 }
 
+/**
+ * Generator and stylize modes whose shader never reads `time`, the value
+ * `animate` stamps each frame (`filters.visualFx@1` in `@nodetool-ai/gpu`).
+ * `gradientWipe` is listed apart: it reads `time` as its map selector, so the
+ * stamped seconds switch it from linear to radial to noise.
+ */
+const CLOCKLESS_MODES = new Set([
+  "generator:conicGradient", "generator:gridPattern",
+  "stylize:rgbSplit", "stylize:radialBlur", "stylize:zoomBlur", "stylize:halftone",
+  "stylize:dither", "stylize:lightRays", "stylize:lensFlare", "stylize:innerShadow",
+  "stylize:innerGlow", "stylize:edgeHighlight"
+]);
+
+/** An `animate` flag that moves nothing, or that breaks a gradient wipe. */
+function animateIgnoredIssues(clip: TimelineClip): TimelineDebugIssue[] {
+  const issues: TimelineDebugIssue[] = [];
+  for (const [index, effect] of (clip.effects ?? []).entries()) {
+    if (effect.type !== "generator" && effect.type !== "stylize") continue;
+    if (effect.enabled === false || effect.animate !== true) continue;
+    const key = `${effect.type}:${effect.mode}`;
+    let consequence: string | null = null;
+    if (key === "stylize:gradientWipe") {
+      consequence = "reads `time` as the value that selects the map, so the stamped clock switches it from linear to radial to noise. Set `time` instead and turn `animate` off";
+    } else if (CLOCKLESS_MODES.has(key)) {
+      consequence = `never reads the clock \`animate\` drives, so it stays still. Animate \`effect.${effect.id}.${effect.mode === "conicGradient" ? "angle" : "amount"}\` with a style track instead`;
+    }
+    if (!consequence) continue;
+    issues.push({
+      severity: "warning",
+      code: "effect_animate_ignored",
+      message: `Clip "${clipLabel(clip)}" sets animate on its ${effect.mode} ${effect.type}, which ${consequence}.`,
+      path: `effects[${index}].animate`,
+      clipId: clip.id,
+      trackId: clip.trackId
+    });
+  }
+  return issues;
+}
+
+/**
+ * A `color` effect set to values that drive the picture to a flat white or
+ * black, or strip its contrast to nothing.
+ *
+ * `brightness` is an offset (-1..1, 0 unchanged) while `contrast` and
+ * `saturation` are multipliers (1 unchanged) — the unit mismatch is the trap:
+ * a caller reaching for "a little brighter" and reusing the 1-is-neutral
+ * convention sends `brightness: 1`, which is not a nudge but the offset that
+ * turns every pixel white. Nothing else in validation catches this, because
+ * the values are individually in range; only their effect on the picture is
+ * wrong. The message states both conventions so the fix is obvious, not just
+ * the symptom.
+ */
+function effectWashesOutIssues(clip: TimelineClip): TimelineDebugIssue[] {
+  const issues: TimelineDebugIssue[] = [];
+  for (const [index, effect] of (clip.effects ?? []).entries()) {
+    if (effect.type !== "color" || effect.enabled === false) continue;
+    const brightness =
+      typeof effect.brightness === "number" ? effect.brightness : undefined;
+    const contrast =
+      typeof effect.contrast === "number" ? effect.contrast : undefined;
+    const blownOut = brightness !== undefined && Math.abs(brightness) >= 0.5;
+    const flattened = contrast !== undefined && contrast <= 0.1;
+    if (!blownOut && !flattened) continue;
+    const culprit = blownOut ? `brightness ${brightness}` : `contrast ${contrast}`;
+    const consequence = blownOut
+      ? `drives the picture to ${(brightness as number) > 0 ? "white" : "black"}`
+      : "removes nearly all contrast";
+    issues.push({
+      severity: "warning",
+      code: "effect_washes_out",
+      message: `Clip "${clipLabel(clip)}" color effect sets ${culprit}, which ${consequence}. brightness is an offset from -1 to 1 where 0 is unchanged; contrast and saturation use 1 as unchanged.`,
+      path: `effects[${index}]`,
+      clipId: clip.id,
+      trackId: clip.trackId
+    });
+  }
+  return issues;
+}
+
 /** What a shape's `kind` accepts, for the `unknown_shape_kind` message. */
 const SHAPE_KIND_GRAMMAR = CLIP_SHAPE_KINDS.join(", ");
 
@@ -756,6 +844,29 @@ function model3dIssues(
   }
 
   return issues;
+}
+
+/**
+ * A `path`-kind shape whose own `d` this build cannot parse — an error, not a
+ * warning: unlike a mask, which leaves the layer drawing unmasked, a shape
+ * with unparseable path data draws nothing at all (`buildShapeSegments`
+ * returns `null` for it, silently). Named after the command that stopped the
+ * parser, the same way `mask_path_invalid` is, so a shape a newer build wrote
+ * with a command this one doesn't read never just vanishes.
+ */
+function shapePathInvalidIssue(clip: TimelineClip): TimelineDebugIssue | null {
+  const style = clip.shapeStyle;
+  if (!style || style.kind !== "path") return null;
+  const parsed = parseSvgPath(style.d ?? "");
+  if (parsed.ok) return null;
+  return {
+    severity: "error",
+    code: "shape_path_invalid",
+    message: `Clip "${clipLabel(clip)}" has a path shape this build cannot draw — it draws nothing. ${parsed.error}.`,
+    path: "shapeStyle.d",
+    clipId: clip.id,
+    trackId: clip.trackId
+  };
 }
 
 /** What a mask's `kind` accepts, for the `mask_path_invalid` message. */
@@ -1115,6 +1226,58 @@ function checkParents(doc: TimelineDocument): TimelineDebugIssue[] {
 }
 
 /**
+ * A `layout`/`flexItem` malformed against the flex model
+ * (`packages/timeline/src/render/layout.ts`): a container on a non-`group`
+ * clip, a `layout` whose `display` is not `"flex"` (a legacy document that
+ * still carries the pre-flex row/stack/relative shape, or hand-authored JSON
+ * that skipped the schema), or a `flexItem` on a clip whose parent is not
+ * itself a flex container — `resolveClipLayoutsWithDiagnostics` silently
+ * ignores all three (an unrecognized container is never a flex root; an
+ * orphaned `flexItem` never enters a Yoga tree), so nothing else in the
+ * render pipeline reports them. A `parentId` cycle through a flex container
+ * is already reported generically by {@link checkParents}'s `parent_cycle`.
+ */
+function checkFlexLayout(doc: TimelineDocument): TimelineDebugIssue[] {
+  const issues: TimelineDebugIssue[] = [];
+  const byId = new Map(doc.clips.map((clip) => [clip.id, clip]));
+  for (const clip of doc.clips) {
+    const at = { clipId: clip.id, trackId: clip.trackId };
+    if (clip.layout) {
+      if (clip.mediaType !== "group") {
+        issues.push({
+          severity: "warning",
+          code: "layout_on_non_group",
+          message: `Clip "${clipLabel(clip)}" has mediaType "${clip.mediaType}" and a \`layout\` — only a "group" clip can be a flex container, so this is ignored.`,
+          path: "layout",
+          ...at
+        });
+      } else if (clip.layout.display !== "flex") {
+        issues.push({
+          severity: "warning",
+          code: "unknown_layout_display",
+          message: `Clip "${clipLabel(clip)}"'s \`layout.display\` is "${String((clip.layout as { display?: unknown }).display)}", not "flex" — this build only lays out a flex container, so its children keep their authored transforms.`,
+          path: "layout.display",
+          ...at
+        });
+      }
+    }
+    if (clip.flexItem) {
+      const parent = clip.parentId ? byId.get(clip.parentId) : undefined;
+      if (!parent || parent.mediaType !== "group" || parent.layout?.display !== "flex") {
+        issues.push({
+          severity: "warning",
+          code: "flex_item_without_flex_parent",
+          message: `Clip "${clipLabel(clip)}" has a \`flexItem\`, but its parent is not a flex container (\`layout.display: "flex"\`) — \`flexItem\` is ignored outside one.`,
+          path: "flexItem",
+          ...at
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+/**
  * What an overlap does at render, which is the half the warning used to leave
  * out.
  *
@@ -1143,6 +1306,22 @@ function overlapConsequence(
     : auto;
 }
 
+/**
+ * Where a clip's last repeater copy ends. `expandTemporalClips` starts each
+ * copy `timeStepMs` after the one before and keeps the original's duration,
+ * so the copies reach past the clip. A parent group's window still clips them.
+ */
+function repeaterReachMs(clip: TimelineClip, byId: ReadonlyMap<string, TimelineClip>): number {
+  const end = clip.startMs + Math.max(0, clip.durationMs);
+  const repeater = clip.repeater;
+  if (!repeater || !(repeater.timeStepMs > 0)) return end;
+  const count = Math.max(1, Math.min(128, Math.floor(repeater.count)));
+  let reach = end + (count - 1) * repeater.timeStepMs;
+  const parent = clip.parentId ? byId.get(clip.parentId) : undefined;
+  if (parent) reach = Math.min(reach, parent.startMs + Math.max(0, parent.durationMs));
+  return Math.max(end, reach);
+}
+
 function checkOverlaps(doc: TimelineDocument): TimelineDebugIssue[] {
   const issues: TimelineDebugIssue[] = [];
   const trackTypes = new Map(doc.tracks.map((t) => [t.id, t.type]));
@@ -1152,18 +1331,23 @@ function checkOverlaps(doc: TimelineDocument): TimelineDebugIssue[] {
     if (list) list.push(clip);
     else byTrack.set(clip.trackId, [clip]);
   }
+  const byId = new Map(doc.clips.map((clip) => [clip.id, clip]));
   for (const [trackId, clips] of byTrack) {
     const ordered = [...clips].sort((a, b) => a.startMs - b.startMs);
     for (let i = 0; i < ordered.length - 1; i += 1) {
       const current = ordered[i]!;
       const end = current.startMs + Math.max(0, current.durationMs);
+      const reach = repeaterReachMs(current, byId);
       for (let j = i + 1; j < ordered.length; j += 1) {
         const next = ordered[j]!;
-        if (next.startMs >= end) break;
+        if (next.startMs >= reach) break;
+        const copies = next.startMs >= end
+          ? ` Its repeater copies run to ${reach}ms, each starting a step later with the full duration.`
+          : "";
         issues.push({
           severity: "warning",
           code: "clips_overlap",
-          message: `Clips "${clipLabel(current)}" (${current.startMs}–${end}ms) and "${clipLabel(next)}" (${next.startMs}–${next.startMs + next.durationMs}ms) overlap on track "${trackId}". ${overlapConsequence(next, trackTypes.get(trackId))}`,
+          message: `Clips "${clipLabel(current)}" (${current.startMs}–${end}ms) and "${clipLabel(next)}" (${next.startMs}–${next.startMs + next.durationMs}ms) overlap on track "${trackId}".${copies} ${overlapConsequence(next, trackTypes.get(trackId))}`,
           trackId,
           clipId: current.id
         });
@@ -1516,8 +1700,9 @@ export function validateTimelineSequence(
     ...checkDuplicateIds(doc),
     ...doc.clips.flatMap((clip) => checkClip(clip, trackIds, fps, canvas)),
     ...doc.clips.flatMap((clip) => checkClipMotion(clip, canvas)),
-    ...checkLegibility(doc, canvas.height),
+    ...checkLegibility(doc, canvas),
     ...checkParents(doc),
+    ...checkFlexLayout(doc),
     ...checkMattes(doc),
     ...checkGeneratedMattes(doc),
     ...checkReframes(doc),
@@ -1527,7 +1712,8 @@ export function validateTimelineSequence(
     ...checkOverlaps(doc),
     ...checkVideoLayerCap(doc),
     ...checkMidi(doc),
-    ...checkDocumentLevel(doc)
+    ...checkDocumentLevel(doc),
+    ...(meta?.tier === "showcase" ? checkShowcase(doc, canvas) : [])
   ];
 
   const errors = issues.filter((issue) => issue.severity === "error");

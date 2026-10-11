@@ -33,7 +33,6 @@ import {
 } from "../../utils/hfCache";
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
-import { useTranslation } from "react-i18next";
 
 interface ModelPackCardProps {
   pack: ModelPack;
@@ -44,7 +43,6 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
   pack,
   onDownloadAll
 }) => {
-  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const packModelIds = useMemo(
     () => pack.models.map((m) => m.id),
@@ -248,16 +246,16 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             }}
           >
             {allDownloaded
-              ? t("editor:ui.allDownloaded", { defaultValue: "All Downloaded" })
+              ? "All Downloaded"
               : someDownloaded
-                ? t("editor:ui.downloadNRemaining", { defaultValue: "Download {{n}} Remaining", n: pack.models.length - downloadedModels.size })
-                : t("editor:ui.downloadAll", { defaultValue: "Download All" })}
+                ? `Download ${pack.models.length - downloadedModels.size} Remaining`
+                : "Download All"}
           </EditorButton>
         </Tooltip>
 
         <ToolbarIconButton
           icon={<ExpandMoreIcon />}
-          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : t("editor:ui.expandModelPackDetails", { defaultValue: "Expand model pack details" })}
+          tooltip={expanded ? "Collapse model pack details" : "Expand model pack details"}
           onClick={handleToggleExpanded}
           sx={{
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -274,7 +272,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             color="secondary"
             sx={{ mb: 1 }}
           >
-            {t("editor:ui.includedModels")}
+            Included Models:
           </Text>
           <List dense disablePadding>
             {pack.models.map((model) => (

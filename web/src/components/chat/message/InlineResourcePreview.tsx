@@ -1,11 +1,14 @@
 /**
- * InlineResourcePreview — a sketch or timeline rendered directly in chat prose.
+ * InlineResourcePreview — a sketch, timeline, 3D model, or game rendered
+ * directly in chat prose.
  *
  * The agent embeds a document with image syntax (`![Label](sketch://sk_1)`,
- * `![Label](timeline://tl_7)`); ChatMarkdown routes those two kinds here. The
- * component fetches the document and renders the same read-only renderer the
- * editors ship, with a ResourceChip beneath it to open the document in its
- * editor. Anything that cannot be previewed — unknown kind, load failure, a
+ * `![Label](timeline://tl_7)`, `![Label](model3d://<asset id>)`,
+ * `![Label](game://<game id>)`); ChatMarkdown routes those kinds here, and also
+ * a `.glb`/`.gltf` asset link as `model3d`. The component fetches the document
+ * and renders the same read-only renderer the editors ship (for a game, the
+ * player, which stays idle until the reader presses Play), with a
+ * ResourceChip beneath it to open the document in its editor. Anything that cannot be previewed — unknown kind, load failure, a
  * document today's renderer cannot resolve — degrades to the chip alone.
  */
 import React, { useMemo } from "react";
@@ -24,6 +27,9 @@ import {
   resolveSketchDocument,
   resolveTimelineSequence
 } from "../../node/outputValueResolvers";
+import { useResolvedMedia } from "../../../hooks/useResolvedMediaUri";
+import { assetLocator } from "../../../utils/mediaRef";
+import LazyModel3DViewer from "../../asset_viewer/LazyModel3DViewer";
 import ResourceChip from "./ResourceChip";
 import { useTranslation } from "react-i18next";
 
@@ -33,8 +39,18 @@ const LazySketchRenderer = React.lazy(
 const LazyTimelineRenderer = React.lazy(
   () => import("../../timeline/TimelineRenderer")
 );
+const LazySavedGamePlayer = React.lazy(() =>
+  import("../../game/GamePlayerPage").then((module) => ({
+    default: module.SavedGamePlayer
+  }))
+);
 
-const PREVIEW_KINDS: readonly ResourceKind[] = ["sketch", "timeline"];
+const PREVIEW_KINDS: readonly ResourceKind[] = [
+  "sketch",
+  "timeline",
+  "model3d",
+  "game"
+];
 
 /** True when the URI names a resource kind chat can render inline. */
 export const isInlinePreviewUri = (uri: string): boolean => {
@@ -43,6 +59,8 @@ export const isInlinePreviewUri = (uri: string): boolean => {
 };
 
 const PREVIEW_HEIGHT = 280;
+/** The player's control row sits above a 16:9 canvas. */
+const GAME_PREVIEW_HEIGHT = 360;
 
 const frameSx = {
   width: "100%",
@@ -115,6 +133,51 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
   return null;
 };
 
+/** A 3D model is a `.glb`/`.gltf` asset; `model3d://<id>` names the asset. */
+const Model3DPreview: React.FC<{ id: string }> = ({ id }) => {
+  const { url, pending } = useResolvedMedia(assetLocator(id));
+
+  if (url) {
+    return (
+      <Box sx={frameSx} data-testid="model3d-preview">
+        <LazyModel3DViewer url={url} compact />
+      </Box>
+    );
+  }
+  if (pending) {
+    return <LoadingSpinner size="small" text="Loading 3D model" />;
+  }
+  return <Caption color="secondary">Could not load this 3D model.</Caption>;
+};
+
+/** The saved game's player; it loads the draft and waits for Play. */
+const GamePreview: React.FC<{ id: string }> = ({ id }) => (
+  <Box
+    sx={{ ...frameSx, height: GAME_PREVIEW_HEIGHT }}
+    data-testid="game-preview"
+  >
+    <React.Suspense fallback={<LoadingSpinner size="small" text="Loading game" />}>
+      <LazySavedGamePlayer gameId={id} setsDocumentTitle={false} />
+    </React.Suspense>
+  </Box>
+);
+
+const ResourcePreview: React.FC<{ kind: ResourceKind; id: string }> = ({
+  kind,
+  id
+}) => {
+  if (kind === "sketch") {
+    return <SketchPreview id={id} />;
+  }
+  if (kind === "timeline") {
+    return <TimelinePreview id={id} />;
+  }
+  if (kind === "game") {
+    return <GamePreview id={id} />;
+  }
+  return <Model3DPreview id={id} />;
+};
+
 interface InlineResourcePreviewProps {
   uri: string;
   label: string;
@@ -137,11 +200,7 @@ const InlineResourcePreview: React.FC<InlineResourcePreviewProps> = ({
       sx={{ width: "100%", minWidth: 0 }}
       data-testid="inline-resource-preview"
     >
-      {ref.kind === "sketch" ? (
-        <SketchPreview id={ref.id} />
-      ) : (
-        <TimelinePreview id={ref.id} />
-      )}
+      <ResourcePreview kind={ref.kind} id={ref.id} />
       <ResourceChip uri={uri} label={label} />
     </FlexColumn>
   );

@@ -1,4 +1,12 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
   Dialog,
@@ -20,16 +28,20 @@ import { useNodes } from "../../../contexts/NodeContext";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import {
-  parseComfyWorkflowJson,
-  extractComfyPromptFromPng,
-  resolveComfySchema,
+  bytesToBase64,
+  resolveComfyWorkflow,
   paramToDynInput,
   type ComfyResolvedSchema,
   type ComfyDynInput
 } from "../../../utils/comfyDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { isString } from "../../../utils/typePredicates";
+
+/** Wait this long after the last keystroke before parsing pasted JSON. */
+const PARSE_DEBOUNCE_MS = 300;
+
+const errorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
 
 interface ComfyWorkflowLoaderProps {
   nodeId: string;
@@ -39,12 +51,12 @@ interface ComfyWorkflowLoaderProps {
 /**
  * Loads a ComfyUI workflow into the Run ComfyUI Workflow node: paste API-format
  * JSON or drop a `.json`/`.png` exported by ComfyUI. Derives typed inputs
- * (Load nodes) and outputs (Save nodes), and lets the user expose additional
- * scalar params as typed inputs.
+ * (the App Mode inputs, else Load nodes and prompt text) and outputs (Save
+ * nodes), and lets the user expose additional scalar params as typed inputs.
  */
 export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
   ({ nodeId, data }) => {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
     const updateNodeData = useNodes((state) => state.updateNodeData);
     const [open, setOpen] = useState(false);
     const [text, setText] = useState("");
@@ -53,45 +65,94 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // A workflow set without the loader (over the API, or by an agent) has
+    // no slots on the node. Derive them once so its handles can be wired;
+    // the run declares the same slots from the same server-side parser.
+    const workflow = data.properties?.workflow;
+    const hasSlots =
+      Object.keys(data.dynamic_inputs ?? {}).length > 0 ||
+      Object.keys(data.dynamic_outputs ?? {}).length > 0;
+    const dynamicPropertiesRef = useRef(data.dynamic_properties);
+    useEffect(() => {
+      dynamicPropertiesRef.current = data.dynamic_properties;
+    }, [data.dynamic_properties]);
+    useEffect(() => {
+      if (hasSlots || !isString(workflow) || !workflow.trim()) {
+        return;
+      }
+      const controller = new AbortController();
+      resolveComfyWorkflow({ workflow }, controller.signal)
+        .then((resolved) => {
+          updateNodeData(
+            nodeId,
+            {
+              dynamic_inputs: normalizeDynamicSlots(resolved.dynamic_inputs),
+              dynamic_outputs: resolved.dynamic_outputs,
+              dynamic_properties: {
+                ...resolved.dynamic_properties,
+                ...dynamicPropertiesRef.current
+              }
+            },
+            { quiet: true }
+          );
+        })
+        .catch(() => {
+          // An unparseable workflow keeps no slots; running it reports why.
+        });
+      return () => controller.abort();
+    }, [hasSlots, workflow, nodeId, updateNodeData]);
+
     const applySchema = useCallback((resolved: ComfyResolvedSchema) => {
       setSchema(resolved);
       setError(null);
       setSelected(new Set());
     }, []);
 
-    const parseText = useCallback(
-      (value: string) => {
-        setText(value);
-        if (!value.trim()) {
-          setSchema(null);
-          setError(null);
-          return;
-        }
-        try {
-          applySchema(resolveComfySchema(parseComfyWorkflowJson(value)));
-        } catch (err) {
-          setSchema(null);
-          setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToParse", { defaultValue: "Failed to parse" }));
-        }
-      },
-      [applySchema]
-    );
+    // The server parses the workflow. Pasted text is sent once typing pauses,
+    // and a newer edit cancels the request still in flight.
+    useEffect(() => {
+      if (!text.trim()) {
+        return;
+      }
+      const controller = new AbortController();
+      const timer = setTimeout(() => {
+        resolveComfyWorkflow({ workflow: text }, controller.signal)
+          .then(applySchema)
+          .catch((err: unknown) => {
+            if (controller.signal.aborted) return;
+            setSchema(null);
+            setError(errorMessage(err, "Failed to parse"));
+          });
+      }, PARSE_DEBOUNCE_MS);
+      return () => {
+        clearTimeout(timer);
+        controller.abort();
+      };
+    }, [text, applySchema]);
+
+    const parseText = useCallback((value: string) => {
+      setText(value);
+      if (!value.trim()) {
+        setSchema(null);
+        setError(null);
+      }
+    }, []);
 
     const handleFile = useCallback(
       async (file: File) => {
         try {
           if (file.name.toLowerCase().endsWith(".png")) {
-            const buf = await file.arrayBuffer();
-            applySchema(resolveComfySchema(extractComfyPromptFromPng(buf)));
             setText("");
+            const buf = await file.arrayBuffer();
+            applySchema(
+              await resolveComfyWorkflow({ png_base64: bytesToBase64(buf) })
+            );
           } else {
-            const content = await file.text();
-            setText(content);
-            applySchema(resolveComfySchema(parseComfyWorkflowJson(content)));
+            setText(await file.text());
           }
         } catch (err) {
           setSchema(null);
-          setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadFile", { defaultValue: "Failed to load file" }));
+          setError(errorMessage(err, "Failed to load file"));
         }
       },
       [applySchema]
@@ -123,7 +184,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
       const dynamic_properties = {
         ...schema.dynamic_properties
       } satisfies Record<string, unknown>;
-      for (const param of schema.availableParams) {
+      for (const param of schema.available_params) {
         if (!selected.has(param.handle)) continue;
         dynamic_inputs[param.handle] = paramToDynInput(param);
         dynamic_properties[param.handle] = param.default;
@@ -150,7 +211,8 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
       const nIn = Object.keys(schema.dynamic_inputs).length;
       const nOut = Object.keys(schema.dynamic_outputs).length;
       const nNodes = Object.keys(schema.prompt).length;
-      return `${nNodes} nodes · ${nIn} typed input${nIn === 1 ? "" : "s"} · ${nOut} output${nOut === 1 ? "" : "s"}`;
+      const inputSource = schema.app_mode_inputs ? " from App Mode" : "";
+      return `${nNodes} nodes · ${nIn} typed input${nIn === 1 ? "" : "s"}${inputSource} · ${nOut} output${nOut === 1 ? "" : "s"}`;
     }, [schema]);
 
     return (
@@ -179,14 +241,15 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
           maxWidth="sm"
           fullWidth
           showActions
-          confirmText={t("timeline:project.apply", { defaultValue: "Apply" })}
+          confirmText="Apply"
           confirmDisabled={!schema}
           onConfirm={handleApply}
           onCancel={() => setOpen(false)}
         >
           <FlexColumn gap={1.5} sx={{ minWidth: 0 }}>
             <Caption>
-              {t("editor:ui.pasteAWorkflowInAPIPromptFormat", { defaultValue: "Paste a workflow in API (prompt) format — use “Save (API Format)” in ComfyUI — or drop a .json/.png file exported by ComfyUI." })}
+              Paste a workflow in API (prompt) format — use “Save (API Format)”
+              in ComfyUI — or drop a .json/.png file exported by ComfyUI.
             </Caption>
             <Box
               onDrop={onDrop}
@@ -215,7 +278,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 >
                   <UploadFileIcon sx={{ fontSize: 18 }} />
                 </ToolbarIconButton>
-                <Caption>{t("editor:ui.orDropAJsonPngHere", { defaultValue: "or drop a .json / .png here" })}</Caption>
+                <Caption>or drop a .json / .png here</Caption>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -239,12 +302,12 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
             {schema && (
               <FlexColumn gap={0.5}>
                 <Text size="small">{summary}</Text>
-                {schema.availableParams.length > 0 && (
+                {schema.available_params.length > 0 && (
                   <>
                     <Caption>{t("editor:ui.exposeAdditionalParametersAsInputs", { defaultValue: "Expose additional parameters as inputs:" })}</Caption>
                     <ScrollArea style={{ maxHeight: 180 }}>
                       <FlexColumn gap={0}>
-                        {schema.availableParams.map((param) => (
+                        {schema.available_params.map((param) => (
                           <Checkbox
                             key={param.handle}
                             compact

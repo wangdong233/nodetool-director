@@ -25,6 +25,9 @@ export {
   applicationInvocations
 } from "./application-budgets.js";
 export { projects } from "./projects.js";
+export { games } from "./games.js";
+export { gameDraftChanges } from "./game-draft-changes.js";
+export { gameRevisionMessages } from "./game-revision-messages.js";
 export { scripts } from "./scripts.js";
 export { jsScripts } from "./js-scripts.js";
 export { skills } from "./skills.js";
@@ -36,6 +39,8 @@ export { creditLedger, userSubscriptions } from "./credits.js";
 export { accessTokens } from "./access-tokens.js";
 export { externalIdentities } from "./external-identities.js";
 export { userEvents } from "./user-events.js";
+export { errorTraces } from "./error-traces.js";
+export { bugReports } from "./bug-reports.js";
 export {
   mcpOauthClients,
   mcpOauthGrants,
@@ -45,3 +50,6 @@ export { generationAttempts } from "./generation-attempts.js";
 export { generationWebhookDeliveries } from "./generation-webhook-deliveries.js";
 export { generationOutputs } from "./generation-outputs.js";
 export { generationAttachments } from "./generation-attachments.js";
+export * from "./app-instances.js";
+
+export * from "./run-traces.js";

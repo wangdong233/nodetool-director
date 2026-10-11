@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -21,22 +23,20 @@ import {
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { useOpenPackageManagerInNewTab } from "../../../hooks/useOpenPackageManager";
-import { useTranslation } from "react-i18next";
 import {
   ONBOARDING_ENGINES,
   ONBOARDING_NODE_PACKS,
   type OnboardingEngine,
-  type OnboardingNodePack,
-  ENGINE_TAGLINE_KEYS
+  type OnboardingNodePack
 } from "./onboardingCatalog";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const statusChip = engine.bundled ? (
-    <Chip label={t("editor:ui.bundled", { defaultValue: "Bundled" })} compact color="success" variant="outlined" />
+  const statusChip = engine.separateInstallUrl ? (
+    <Chip label="Separate app" compact variant="outlined" />
   ) : engine.runtimeId ? (
-    <Chip label={t("editor:ui.runtime", { defaultValue: "Runtime" })} compact variant="outlined" />
+    <Chip label="Runtime" compact variant="outlined" />
   ) : null;
 
   return (
@@ -58,7 +58,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
           {statusChip}
         </FlexRow>
         <Caption sx={{ color: theme.vars.palette.primary.main }}>
-          {t(ENGINE_TAGLINE_KEYS[engine.id] ?? "", { defaultValue: engine.tagline })}
+          {engine.tagline}
         </Caption>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5, flex: 1 }}>
           {engine.description}
@@ -74,12 +74,22 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
             <Chip key={fmt} label={fmt} compact variant="outlined" />
           ))}
         </FlexRow>
+        {engine.separateInstallUrl && (
+          <TextLink
+            href={engine.separateInstallUrl}
+            external
+            sx={{ mt: SPACING.micro, fontSize: "var(--fontSizeSmall)" }}
+          >
+            Download {engine.name}{" "}
+            <OpenInNewIcon fontSize="inherit" sx={{ ml: SPACING.micro }} />
+          </TextLink>
+        )}
         <TextLink
           href={engine.docsUrl}
           external
           sx={{ mt: SPACING.micro, fontSize: "var(--fontSizeSmall)" }}
         >
-          {t("editor:ui.learnMore", { defaultValue: "Learn more" })} <OpenInNewIcon sx={{ fontSize: 12, ml: SPACING.micro }} />
+          Learn more <OpenInNewIcon fontSize="inherit" sx={{ ml: SPACING.micro }} />
         </TextLink>
       </FlexColumn>
     </Card>
@@ -87,7 +97,6 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
 };
 
 const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   // Select primitives only — deriving a new array inside the selector would
   // change the snapshot on every render and loop useSyncExternalStore.
@@ -124,7 +133,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           {pack.name}
         </Text>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.4 }}>
-          {pack.descriptionKey ? t(pack.descriptionKey, { defaultValue: pack.description }) : pack.description}
+          {pack.description}
         </Caption>
       </FlexColumn>
       {isInstalled ? (
@@ -132,7 +141,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           <CheckCircleIcon
             sx={{ fontSize: 16, color: theme.vars.palette.success.main }}
           />
-          <Caption color="secondary">{t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
+          <Caption color="secondary">{i18n.t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
         </FlexRow>
       ) : (
         <EditorButton
@@ -205,19 +214,19 @@ const EngineGuide: React.FC = () => {
         <FlexRow gap={SPACING.xs} align="center" justify="space-between">
           <FlexColumn gap={SPACING.micro}>
             <Text size="big" weight={600}>
-              {t("editor:ui.nodePacks")}
+              Node packs
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." })
-                : t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
+                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." })
+                : i18n.t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
             </Caption>
           </FlexColumn>
           <EditorButton
             variant="text"
             density="compact"
             size="small"
-            endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+            endIcon={<OpenInNewIcon fontSize="inherit" />}
             onClick={openPackageManager}
           >
             Package Manager

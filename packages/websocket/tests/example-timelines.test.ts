@@ -19,21 +19,54 @@ describe("example timelines", () => {
   beforeEach(() => initTestDb());
   afterEach(() => ModelObserver.clear());
 
-  it("finds the shipped timeline and its playable media", () => {
+  it("finds the shipped timelines and their playable media", () => {
     expect(resolveExampleTimelinesDir(options)).toBe(nodePath.join(baseNodes, "examples", "timelines"));
     const examples = listExampleTimelines(options);
-    expect(examples).toHaveLength(1);
-    const [serein] = examples;
-    expect(serein.slug).toBe("serein");
-    expect(serein.durationMs).toBe(26000);
-    expect(serein.fps).toBe(30);
-    expect(serein.clipCount).toBeGreaterThan(0);
-    for (const uri of [serein.videoUri, serein.posterUri]) {
-      const ref = parsePackageAssetUri(uri);
-      expect(ref).not.toBeNull();
-      expect(existsSync(nodePath.join(baseNodes, "assets", ref!.packageName, ref!.path))).toBe(true);
+    // Frame-aligned, not round numbers: each example is now authored as a
+    // `@nodetool-ai/sandbox-timeline` script (scripts/example-timelines/
+    // build.mjs), and every scene's length is snapped to its own frame grid
+    // (`msFor` in the pack) rather than hand-set to a tidy millisecond count.
+    // prism/tidewater/voltra's durations moved from their pre-port
+    // placeholders (18000/16000/23000) to the sum of their scripts' actual
+    // per-scene frame-aligned lengths.
+    expect(examples.map((example) => [example.slug, example.durationMs, example.fps])).toEqual([
+      ["cadence", 17766, 30],
+      ["kite", 15000, 30],
+      ["prism", 18467, 30],
+      ["serein", 26000, 30],
+      ["t-minus-30", 30000, 30],
+      ["tidewater", 15958, 24],
+      ["voltra", 22734, 30]
+    ]);
+    for (const example of examples) {
+      expect(example.clipCount).toBeGreaterThan(0);
+      for (const uri of [example.videoUri, example.posterUri]) {
+        const ref = parsePackageAssetUri(uri);
+        expect(ref).not.toBeNull();
+        expect(existsSync(nodePath.join(baseNodes, "assets", ref!.packageName, ref!.path))).toBe(true);
+      }
     }
     expect(getExampleTimelineBundle(options, "../serein")).toBeNull();
+  });
+
+  it("ships every package:// media asset a clip references", () => {
+    // An installed copy keeps these references verbatim, so a missing file is
+    // a broken clip for every user who installs the example.
+    let checked = 0;
+    for (const example of listExampleTimelines(options)) {
+      const bundle = getExampleTimelineBundle(options, example.slug);
+      for (const clip of bundle!.document.clips) {
+        if (!clip.currentAssetId?.startsWith("package://")) continue;
+        const ref = parsePackageAssetUri(clip.currentAssetId);
+        expect(ref, `${example.slug}/${clip.name}`).not.toBeNull();
+        expect(
+          existsSync(nodePath.join(baseNodes, "assets", ref!.packageName, ref!.path)),
+          `${example.slug}/${clip.name}: ${clip.currentAssetId}`
+        ).toBe(true);
+        checked += 1;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it("installs an independent editable copy with the accepted cut and scene data", async () => {
