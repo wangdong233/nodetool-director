@@ -52,7 +52,10 @@ web/src/
 All user-visible strings resolve through `react-i18next` — never hardcode display
 text. Read [i18n/glossary.md](i18n/glossary.md) before writing translations:
 business jargon over literal rendering, standard terms (SVG/JSON/brand names)
-stay Latin, whole-sentence rewrites only (never word-swapped hybrids).
+stay Latin, whole-sentence rewrites only (never word-swapped hybrids). For the
+step-by-step procedure — which mechanism a new surface needs, the wiring
+workflow, the verification checklist, and the standing keep-English rulings —
+follow [i18n/CONTRIBUTING.md](i18n/CONTRIBUTING.md).
 
 - **Catalogs**: `i18n/locales/<lang>/<namespace>.json`. English is the source
   of truth; every `t()` call carries `defaultValue: "<English>"` so English
